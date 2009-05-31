@@ -22,7 +22,7 @@ import ram.motion as motion
 import ram.motion.basic
 import ram.motion.search
 #import ram.motion.common
-import ram.motion.pipe # For the manuevering motions
+import ram.motion.pipe # For the maneuvering motions
 
 COMPLETE = core.declareEventType('COMPLETE')
 
@@ -473,9 +473,9 @@ class Dive(HoveringState):
         event.angle = math.Degree(0)
         HoveringState.BIN_FOUND(self, event)
         
-    def enter(self):
+    def enter(self, useMultiAngle = False):
         # Keep the hover motion going (and use the bin angle)
-        HoveringState.enter(self, useMultiAngle = False)
+        HoveringState.enter(self, useMultiAngle)
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
@@ -623,23 +623,8 @@ class PreDropDive(Dive):
         { motion.basic.Motion.FINISHED : SettleBeforeDrop })
         
     def enter(self):
-        # Keep the hover motion going (and use the bin angle)
-        HoveringState.enter(self, useMultiAngle = False)
-        
-        # Set orientation to match the initial orientation
-        if self.ai.data.has_key('binArrayOrientation'):
-            self.controller.setDesiredOrientation(
-                self.ai.data['binArrayOrientation'])
-
-        # While keeping center, dive down
-        binDepth = self._config.get('binDepth', 11)
-        offset = self._config.get('offset', 0.5)
-        
-        diveMotion = motion.basic.RateChangeDepth(    
-            desiredDepth = binDepth - offset,
-            speed = self._config.get('diveSpeed', 0.3))
-        
-        self.motionManager.setMotion(diveMotion)
+        # Standard dive
+        Dive.enter(self, useMultiAngle = False)
         
 class SettleBeforeDrop(SettlingState):
     """

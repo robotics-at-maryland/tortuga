@@ -487,11 +487,16 @@ class TestSeekEnd(BinTestCase):
         self.assertCurrentState(bin.Dive)
         
 
-class TestDive(BinTestCase):
-    def setUp(self):
-        BinTestCase.setUp(self)
+class DiveTestCase(object):
+    """
+    Holds common test dive cases
+    """
+    
+    def setUp(self, myState, nextState):
+        self.myState = myState
+        self.nextState = nextState
         self.vehicle.depth = 0
-        self.machine.start(bin.Dive)
+        self.machine.start(self.myState)
 
     def testStart(self):
         """Make sure we start diving"""
@@ -506,7 +511,7 @@ class TestDive(BinTestCase):
 
         # Restart the state machine
         self.machine.stop()
-        self.machine.start(bin.Dive)
+        self.machine.start(self.myState)
 
         # Make sure we have the proper orientation
         self.assertEqual(expected, self.controller.desiredOrientation)
@@ -522,7 +527,12 @@ class TestDive(BinTestCase):
     def testDiveFinished(self):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(bin.Aligning)
+        self.assertCurrentState(self.nextState)
+
+class TestDive(DiveTestCase, BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        DiveTestCase.setUp(self, myState = bin.Dive, nextState = bin.Aligning)
         
 class TestExamine(BinTestCase):
     def setUp(self):
@@ -648,43 +658,12 @@ class TestExamine(BinTestCase):
     def testBinTracking(self):
         self.binTrackingHelper()
         
-class TestPreDropDive(BinTestCase):
+class TestPreDropDive(DiveTestCase, BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.vehicle.depth = 0
-        self.machine.start(bin.PreDropDive)
-
-    def testStart(self):
-        """Make sure we start diving"""
-        self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
-        #self.assertGreaterThan(self.controller.depth, 0)
-
-    def testBinArrayOrientation(self):
-        # Setup data for turn hold
-        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
-        self.ai.data['binArrayOrientation'] = expected
-
-        # Restart the state machine
-        self.machine.stop()
-        self.machine.start(bin.PreDropDive)
-
-        # Make sure we have the proper orientation
-        self.assertEqual(expected, self.controller.desiredOrientation)
-                
-    def testBinFound(self):
-        """Make sure the loop back works"""
-        # Need to add multi-motion support
-        self.binFoundHelper(False, useMultiAngle = False)
+        DiveTestCase.setUp(self, myState = bin.PreDropDive, 
+                           nextState = bin.SettleBeforeDrop)
         
-    def testBinTracking(self):
-        self.binTrackingHelper()
-        
-    def testDiveFinished(self):
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(bin.SettleBeforeDrop)
-    
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -696,10 +675,6 @@ class TestSettleBeforeDrop(BinTestCase):
         self.machine.start(bin.SettleBeforeDrop)
         
         self.assertCurrentMotion(motion.pipe.Hover)
-        
-        # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
         
         # Make sure timer works
         self.releaseTimer(bin.SettleBeforeDrop.SETTLED)
@@ -723,9 +698,6 @@ class TestSettleBeforeDrop(BinTestCase):
     
     def testSettled(self):
         """Make sure we move on after settling"""
-        # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
         # Inject settled event
         self.injectEvent(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
