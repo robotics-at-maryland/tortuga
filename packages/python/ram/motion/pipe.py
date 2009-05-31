@@ -36,7 +36,7 @@ class Pipe(common.Target):
     
 class Hover(common.Hover):
     """
-    A verision of ram.motion.common.Hover which aligns to target too
+    A version of ram.motion.common.Hover which aligns to target too
     """
     def __init__(self, pipe, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
                  speedGain = 1.0, sidewaysSpeedGain = 1.0, 
@@ -81,7 +81,7 @@ class Hover(common.Hover):
 
 class Follow(Hover):
     def _setForwardSpeed(self):
-        """Determin forward speed (and bound within limits)"""
+        """Determine forward speed (and bound within limits)"""
         forwardSpeed = (1 - math.fabs(self._pipe.x)) * self._speedGain
         
         if forwardSpeed > self._maxSpeed:
