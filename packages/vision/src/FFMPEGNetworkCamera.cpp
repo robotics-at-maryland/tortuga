@@ -45,8 +45,8 @@ FFMPEGNetworkCamera::FFMPEGNetworkCamera(std::string hostname,
 
     m_codecContext= avcodec_alloc_context();
     // Resolution must be a multiple of two
-    m_codecContext->width = 640;
-    m_codecContext->height = 480;
+    m_codecContext->width = width();
+    m_codecContext->height = height();
 
 
     // we do not send complete frames
