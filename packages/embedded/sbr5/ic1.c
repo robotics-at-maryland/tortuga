@@ -10,8 +10,8 @@
            only a few days before leaving.
 */
 
-//#define SBR5
-#define SBR7
+#define SBR5
+//#define SBR7
 
 
 
@@ -1949,7 +1949,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_VLOW);
 
-                if(len != 12)
+                if(len != 10)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1959,7 +1959,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<12; i++)
+                for(i=0; i<10; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
