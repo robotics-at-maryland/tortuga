@@ -186,6 +186,12 @@ class TestSeekingToCentered(TestRangeXYHold):
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
 
+    def testInRange(self):
+        TestRangeXYHold.testInRange(self)
+
+        # Make sure the event was ignored
+        self.assertCurrentState(target.SeekingToCentered)
+
 class TestSeekingToRange(TestRangeXYHold):
     def setUp(self):
         TestRangeXYHold.setUp(self, target.SeekingToRange)
