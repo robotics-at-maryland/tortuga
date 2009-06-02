@@ -22,7 +22,7 @@ namespace device {
 
 PSU::PSU(core::ConfigNode config, core::EventHubPtr eventHub,
          IVehiclePtr vehicle) :
-    IPSU(eventHub),
+    IPSU(eventHub, config["name"].asString()),
     Device(config["name"].asString()),
     Updatable(),
     m_config(config),

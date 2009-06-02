@@ -14,8 +14,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IDepthSensor::IDepthSensor(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+IDepthSensor::IDepthSensor(core::EventHubPtr eventHub, std::string name) :
+    IDevice(eventHub, name)
 {
 }
 

@@ -31,7 +31,7 @@ SBSonar::SBSonar(core::ConfigNode config,
                  core::EventHubPtr eventHub,
                  IVehiclePtr vehicle) :
     Device(config["name"].asString("Sonar")),
-    ISonar(eventHub),
+    ISonar(eventHub, config["name"].asString("Sonar")),
     m_direction(math::Vector3::ZERO),
     m_range(0),
     m_sensorBoard(SensorBoardPtr())

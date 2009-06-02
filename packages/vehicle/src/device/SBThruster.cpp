@@ -25,7 +25,7 @@ namespace device {
 SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
                    IVehiclePtr vehicle) :
     Device(config["name"].asString()),
-    IThruster(eventHub),
+    IThruster(eventHub, config["name"].asString()),
     m_address(config["address"].asInt()),
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1)),

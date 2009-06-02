@@ -35,7 +35,7 @@ using namespace ram::math;
     
 IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
          IVehiclePtr vehicle) :
-    IIMU(eventHub),
+    IIMU(eventHub, config["name"].asString()),
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/imu")),
@@ -43,8 +43,8 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
-	m_magCorruptThresh(100),
-	m_magNominalLength(0),
+    m_magCorruptThresh(100),
+    m_magNominalLength(0),
     m_orientation(0,0,0,1),
     m_rawState(0),
     m_filteredState(0)

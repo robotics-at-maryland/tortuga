@@ -14,8 +14,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IPowerBus::IPowerBus(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+IPowerBus::IPowerBus(core::EventHubPtr eventHub, std::string name) :
+    IDevice(eventHub, name)
 {
 }
 

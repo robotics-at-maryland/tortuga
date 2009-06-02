@@ -68,7 +68,8 @@ public:
     virtual double getOffset() = 0;
 
 protected:
-    IThruster(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IThruster(core::EventHubPtr eventHub = core::EventHubPtr(),
+              std::string name = "UNNAMED");
 };
     
 } // namespace device

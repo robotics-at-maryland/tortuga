@@ -32,7 +32,8 @@ public:
     virtual double getDepth() = 0;
     
 protected:
-    IDepthSensor(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IDepthSensor(core::EventHubPtr eventHub = core::EventHubPtr(),
+                 std::string name = "UNNAMED");
 };
     
 } // namespace device

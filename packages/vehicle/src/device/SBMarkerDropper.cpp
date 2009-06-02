@@ -26,7 +26,7 @@ SBMarkerDropper::SBMarkerDropper(core::ConfigNode config,
                                  core::EventHubPtr eventHub,
                                  IVehiclePtr vehicle) :
     Device(config["name"].asString("MarkerDropper")),
-    IPayloadSet(eventHub),
+    IPayloadSet(eventHub, config["name"].asString("MarkerDropper")),
     m_sensorBoard(SensorBoardPtr()),
     m_markersDropped(0)
 {

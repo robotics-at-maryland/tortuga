@@ -53,7 +53,8 @@ public:
     virtual void setEnabled(bool state) = 0;
     
 protected:
-    IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr(),
+                 std::string name = "UNNAMED");
 };
     
 } // namespace device

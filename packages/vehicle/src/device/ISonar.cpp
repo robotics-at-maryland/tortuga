@@ -16,8 +16,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-ISonar::ISonar(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+ISonar::ISonar(core::EventHubPtr eventHub, std::string name) :
+    IDevice(eventHub, name)
 {
 }
 

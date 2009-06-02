@@ -44,7 +44,7 @@ SBPowerBus::SBPowerBus(core::ConfigNode config,
                              core::EventHubPtr eventHub,
                              IVehiclePtr vehicle) :
     Device(voltageToName(config["voltage"].asInt())),
-    IPowerBus(eventHub),
+    IPowerBus(eventHub, voltageToName(config["voltage"].asInt())),
     m_id(config["voltage"].asInt()),
     m_voltage(0.0),
     m_current(0.0),

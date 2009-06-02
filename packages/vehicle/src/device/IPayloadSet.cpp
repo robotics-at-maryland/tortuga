@@ -16,8 +16,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IPayloadSet::IPayloadSet(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+IPayloadSet::IPayloadSet(core::EventHubPtr eventHub, std::string name) :
+    IDevice(eventHub, name)
 {
 }
 

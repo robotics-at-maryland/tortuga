@@ -55,7 +55,7 @@ public:
     }
     
 protected:
-    IDevice(core::EventHubPtr eventHub);
+    IDevice(core::EventHubPtr eventHub, std::string name = "UNNAMED");
 };
     
 } // namespace device

@@ -52,7 +52,8 @@ public:
     StringList getSupplyNames();
     
 protected:
-    IPSU(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IPSU(core::EventHubPtr eventHub = core::EventHubPtr(),
+         std::string name = "UNNAMED");
 };
     
 } // namespace device

@@ -46,7 +46,7 @@ SBPowerSource::SBPowerSource(core::ConfigNode config,
                              core::EventHubPtr eventHub,
                              IVehiclePtr vehicle) :
     Device(idToName(config["id"].asInt())),
-    IPowerSource(eventHub),
+    IPowerSource(eventHub, idToName(config["id"].asInt())),
     m_id(config["id"].asInt()),
     m_enabled(false),
     m_inUse(false),

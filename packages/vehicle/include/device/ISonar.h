@@ -44,7 +44,8 @@ public:
     virtual core::TimeVal getPingTime() = 0;    
     
 protected:
-    ISonar(core::EventHubPtr eventHub = core::EventHubPtr());  
+    ISonar(core::EventHubPtr eventHub = core::EventHubPtr(),
+           std::string name = "UNNAMED");
 };
 
 } // namespace device

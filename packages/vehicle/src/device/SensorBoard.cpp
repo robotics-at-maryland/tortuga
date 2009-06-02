@@ -75,6 +75,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
                          core::EventHubPtr eventHub,
                          IVehiclePtr vehicle) :
     Device(config["name"].asString()),
+    IDepthSensor(eventHub, config["name"].asString()),
     m_depthCalibSlope(config["depthCalibSlope"].asDouble()),
     m_depthCalibIntercept(config["depthCalibIntercept"].asDouble()),
     m_deviceFile(config["deviceFile"].asString("/dev/sensor")),

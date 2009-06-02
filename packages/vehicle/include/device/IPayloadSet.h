@@ -51,7 +51,8 @@ public:
     virtual int initialObjectCount() = 0;
     
 protected:
-    IPayloadSet(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IPayloadSet(core::EventHubPtr eventHub = core::EventHubPtr(),
+                std::string name = "UNNAMED");
 };
 
 } // namespace device

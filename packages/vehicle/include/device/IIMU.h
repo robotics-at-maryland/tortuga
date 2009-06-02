@@ -41,7 +41,8 @@ public:
     virtual math::Quaternion getOrientation() = 0;
     
 protected:
-    IIMU(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IIMU(core::EventHubPtr eventHub = core::EventHubPtr(),
+         std::string name = "UNNAMED");
 };
     
 } // namespace device

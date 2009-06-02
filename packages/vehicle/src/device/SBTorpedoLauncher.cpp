@@ -26,7 +26,7 @@ SBTorpedoLauncher::SBTorpedoLauncher(core::ConfigNode config,
                                  core::EventHubPtr eventHub,
                                  IVehiclePtr vehicle) :
     Device(config["name"].asString("TorpedoLauncher")),
-    IPayloadSet(eventHub),
+    IPayloadSet(eventHub, config["name"].asString("TorpedoLauncher")),
     m_sensorBoard(SensorBoardPtr()),
     m_torpedosFired(0)
 {

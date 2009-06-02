@@ -35,7 +35,8 @@ public:
     virtual ~IPowerBus();
 
 protected:
-    IPowerBus(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IPowerBus(core::EventHubPtr eventHub = core::EventHubPtr(),
+              std::string name = "UNNAMED");
 };
     
 } // namespace device
