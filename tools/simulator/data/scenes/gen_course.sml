@@ -33,46 +33,51 @@ Scene:
     Objects:        
         course:
             type: [sim.vision.ICourse, sim.vision.Course]
-            order: [pipe1, buoy, pipe2, blackJackTable, pipe3, pinger, safe]
-            startPos: [-15, 1, -3.05] 
+            
+            start: pipe1
+            startType: [sim.vision.IPipe, sim.vision.Pipe]
+            startHeading: -45
+            startDepth: -3.05
+            startPos: [-15, 1] 
             
             pipe1:
-                type: [sim.vision.IPipe, sim.vision.Pipe]
-                heading: -45
-                distance: [2,7] #5
-                depth: -3.05
+                buoy:
+                    type: [sim.vision.IBuoy, sim.vision.Buoy]
+                    distance: [2,7]#5
+                    depth: -2.9
             
             buoy:
-                type: [sim.vision.IBuoy, sim.vision.Buoy]
-                distance: [2,7]#5
-                depth: -2.9
+                pipe2:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    heading: [0,80] #75
+                    distance: [2,7] #7
+                    depth: -3.05
 
             pipe2:
-                type: [sim.vision.IPipe, sim.vision.Pipe]
-                heading: [0,80] #75
-                distance: [2,7] #7
-                depth: -3.05
+                blackJackTable:
+                    type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
+                    distance: [2,7] #7
+                    offset: 1
+                    depth: -3.05
 
             blackJackTable:
-                type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
-                distance: [2,7] #7
-                offset: 1
-                depth: -3.05
+                pipe3:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    heading: [0,80] #60
+                    distance: [2,13] #13
+                    offset: 3
+                    depth: -3.05
                 
             pipe3:
-                type: [sim.vision.IPipe, sim.vision.Pipe]
-                heading: [0,80] #60
-                distance: [2,13] #13
-                offset: 3
-                depth: -3.05
+                pinger:
+                    type: [sim.sonar.IPinger, sim.sonar.Pinger]
+                    distance: [5,10]
+                    depth: -4
 
             pinger:
-                type: [sim.sonar.IPinger, sim.sonar.Pinger]
-                depth: -4
-                
-            safe:
-                type: [sim.vision.ISafe, sim.vision.Safe]
-                depth: -3.1
+                safe:
+                    type: [sim.vision.ISafe, sim.vision.Safe]
+                    depth: -3.1
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

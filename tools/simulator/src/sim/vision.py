@@ -507,51 +507,75 @@ class Course(ram.sim.object.Object):
         scene, parent, cfg = data_object
         ram.sim.object.Object.load(self, (parent, cfg))
         
-        names = cfg['order']
+        startType = cfg['startType']
+        startName = cfg['start']
         startPos = cfg['startPos']
+        startDepth = self._readRandom(cfg.get('startDepth', 0))
+        curHeading = self._readRandom(cfg.get('startHeading', 0))
         curPos = ext.math.Vector2(float(startPos[0]), float(startPos[1]))
-        curHeading = 0
         seed = cfg.get('seed', -1)
 
-        # Define usable variables
-        rotMatrix = ext.math.Matrix2()
         if -1 != seed:
             random.seed(seed)
         
-        for i, name in enumerate(names):
-            # Read in the configuration information
-            pCfg = cfg[name]
-            type_ = pCfg['type']
-            pos = [curPos.x, curPos.y, self._readRandom(pCfg['depth'])]
-            heading = self._readRandom(pCfg.get('heading',0)) + curHeading
+        # Create start object
+        startObjCfg = {
+            'name' : startName,
+            'type' : startType,
+            'position' : [curPos.x, curPos.y, startDepth],
+            'orientation' : [0, 0, 1, -curHeading],
+        }
+        self._createObject(scene, startObjCfg)
+        
+        # Create all objects recursively
+        self._createObjectives(scene, cfg, cfg[startName], curPos, curHeading)
     
+    def _createObjectives(self, scene, mainCfg, sectionCfg, startPos, 
+                          startHeading):
+        
+        for name in sectionCfg.iterkeys():
+            # Read in the configuration information
+            pCfg = sectionCfg[name]
+            type_ = pCfg['type']
+            
+            # Define usable variables
+            rotMatrix = ext.math.Matrix2()
+                
+            # New heading
+            curHeading = self._readRandom(pCfg.get('heading',0)) + startHeading
+            curPos = startPos
+                
+            # New current position
+            if pCfg.has_key('distance'):
+                distToNext = self._readRandom(pCfg['distance'])
+                rotMatrix.fromAngle(ext.math.Degree(curHeading))
+                offset = rotMatrix * ext.math.Vector2.UNIT_X * distToNext
+                curPos = curPos + offset
+                
+            # Add in the offset
+            if pCfg.has_key('offset'):
+                offsetDist = pCfg['offset']
+                rotMatrix.fromAngle(ext.math.Degree(-90 + curHeading))
+                offset = rotMatrix * ext.math.Vector2.UNIT_X * offsetDist
+                curPos = curPos + offset
+
+            # Get the final position
+            pos = [curPos.x, curPos.y, self._readRandom(pCfg['depth'])]
+
             # Build the configuration and load the object
             objCfg = {
                 'name' : name,
                 'type' : type_,
                 'position' : pos,
-                'orientation' : [0, 0, 1, -heading],
+                'orientation' : [0, 0, 1, -curHeading],
             }
             self._createObject(scene, objCfg)
-    
+
             # Determine the new current position and heading
-            if i < (len(names) - 1):
-                # New heading
-                curHeading = heading
-                
-                # New current position
-                if pCfg.has_key('distance'):
-                    distToNext = self._readRandom(pCfg['distance'])
-                    rotMatrix.fromAngle(ext.math.Degree(curHeading))
-                    offset = rotMatrix * ext.math.Vector2.UNIT_X * distToNext
-                    curPos = curPos + offset
-                
-                # Add in the offset
-                if pCfg.has_key('offset'):
-                    offsetDist = pCfg['offset']
-                    rotMatrix.fromAngle(ext.math.Degree(-90 + curHeading))
-                    offset = rotMatrix * ext.math.Vector2.UNIT_X * offsetDist
-                    curPos = curPos + offset 
+            if mainCfg.has_key(name):
+                # Create all objects recursively
+                self._createObjectives(scene, mainCfg, mainCfg[name], curPos, 
+                                       curHeading)
     
     def _readRandom(self, val):
         if type(val) is list:
