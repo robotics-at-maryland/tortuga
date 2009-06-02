@@ -61,7 +61,28 @@ struct Fixture
         return boost::dynamic_pointer_cast<T>(readBack());
     }
 };
+
+TEST_FIXTURE(Fixture, Event)
+{
+    // A named publisher so that it can properly be recorded
+    ram::core::EventPublisher publisher(ram::core::EventHubPtr(),
+                                        "PublisherName");
     
+    // Create the event and fill it with data
+    ram::core::EventPtr event(new ram::core::Event());
+    event->type = "Bob";
+    event->sender = &publisher;
+    // timestamp already filled by the constructor
+
+    // Write and read back the event
+    ram::core::EventPtr result = serializeDeSerialize<ram::core::Event>(event);
+    
+    // Check to make sure everything made it back
+    CHECK_EQUAL(event->type, result->type);
+    CHECK_EQUAL(event->sender, result->sender);
+    CHECK_EQUAL(event->timeStamp, result->timeStamp);
+}
+
 TEST_FIXTURE(Fixture, RedLightEvent)
 {
     // Create the event and load it with data
