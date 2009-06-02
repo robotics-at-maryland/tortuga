@@ -1,14 +1,15 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+ * Copyright (C) 2009 Robotics at Maryland
+ * Copyright (C) 2009 John Edmonds <pocketcookies2@gmail.com>
  * All rights reserved.
  *
- * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/math/test/src/TestChecks.cxx
+ * Author: John Edmonds <pocketcookies2@gmail.com>
+ * File:  packages/logging/test/src/TestSerialize.h"
  */
 
 // STD Includes
 #include <sstream>
+#include <iostream>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
@@ -22,6 +23,8 @@
 
 // Bring Vector3, and other math classes into scope
 using namespace ram::math;
+
+SUITE(Serialization) {
 
 TEST(ChangeMe)
 {
@@ -54,3 +57,4 @@ TEST(ChangeMe)
 
 }
 
+} // SUITE(Serialization)
