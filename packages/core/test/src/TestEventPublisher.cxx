@@ -51,6 +51,27 @@ TEST_FIXTURE(EventPublisherFixture, EmptyPublish)
     publisher.publish("Type", ram::core::EventPtr(new ram::core::Event()));
 }
 
+TEST_FIXTURE(EventPublisherFixture, getPublisherName)
+{
+    ram::core::EventPublisher publisher2(ram::core::EventHubPtr(), "Beth");
+    CHECK_EQUAL("Beth", publisher2.getPublisherName());
+}
+
+TEST_FIXTURE(EventPublisherFixture, lookupByName)
+{
+    {
+        // Check while the object is around
+        ram::core::EventPublisher publisher2(ram::core::EventHubPtr(), "Beth");
+        CHECK_EQUAL(&publisher2,
+                    ram::core::EventPublisher::lookupByName("Beth"));
+    }
+
+    // Check after its gone
+    CHECK_EQUAL((ram::core::EventPublisher*)0,
+                ram::core::EventPublisher::lookupByName("Beth"));
+}
+
+
 TEST_FIXTURE(EventPublisherFixture, disconnect)
 {
     ram::core::EventConnectionPtr connection(

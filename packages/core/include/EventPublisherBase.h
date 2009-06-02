@@ -40,7 +40,8 @@ class EventPublisherBaseTemplate :
     public EventPublisherBase
 {
 public:
-    EventPublisherBaseTemplate(EventHubPtr hub = EventHubPtr());
+    EventPublisherBaseTemplate(EventHubPtr hub = EventHubPtr(),
+                               std::string name = "UNNAMED");
     
     virtual ~EventPublisherBaseTemplate() {};
 
@@ -52,6 +53,8 @@ public:
     virtual void publish(T subscribeType, Event::EventType etype,
                          EventPublisher* sender, EventPtr event);
 
+    std::string getPublisherName();
+    
 protected:
     /// Implements the abstract connection class
     class Connection : public EventConnection
@@ -90,6 +93,9 @@ private:
     // So it can call unSubscribe
     friend class Connection;
 
+    /// Can be used to identify publishers
+    std::string m_name;
+
     /// The hub to which all messages are puslished
     EventHubPtr m_hub;
     
@@ -109,8 +115,10 @@ private:
 // ------------------------------------------------------------------------- // 
     
 template<typename T>
-EventPublisherBaseTemplate<T>::EventPublisherBaseTemplate(EventHubPtr hub) :
-    m_hub(hub)
+EventPublisherBaseTemplate<T>::EventPublisherBaseTemplate(EventHubPtr hub,
+                                                          std::string name) :
+    m_name(name),
+    m_hub(hub)    
 {
 }
     
@@ -151,6 +159,12 @@ void EventPublisherBaseTemplate<T>::publish(T subscribeType,
         m_hub->publish(event);
 }
 
+template<typename T>
+std::string EventPublisherBaseTemplate<T>::getPublisherName()
+{
+    return m_name;
+}
+    
 template<typename T>
 void EventPublisherBaseTemplate<T>::unSubscribe(T type,
     boost::signals::connection connection)

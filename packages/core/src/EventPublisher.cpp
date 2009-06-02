@@ -10,6 +10,7 @@
 // Project Includes
 #include "core/include/EventPublisher.h"
 #include "core/include/EventPublisherBase.h"
+#include "core/include/EventPublisherRegistry.h"
 
 namespace ram {
 namespace core {
@@ -26,11 +27,19 @@ asType(EventPublisherBasePtr basePtr)
     return type; 
 }
     
-EventPublisher::EventPublisher(EventHubPtr eventHub) :
-    m_imp(new EventPublisherBaseTemplate<Event::EventType>(eventHub))
+EventPublisher::EventPublisher(EventHubPtr eventHub, std::string name) :
+    m_imp(new EventPublisherBaseTemplate<Event::EventType>(eventHub, name))
 {
+    if (name != "UNNAMED")
+        EventPublisherRegistry::registerPublisher(this);
 }
 
+EventPublisher::~EventPublisher()
+{
+    if (getPublisherName() != "UNNAMED")
+        EventPublisherRegistry::unRegisterPublisher(this);
+}
+    
 EventConnectionPtr EventPublisher::subscribe(
     Event::EventType type,
     boost::function<void (EventPtr)> handler)
@@ -42,13 +51,17 @@ void EventPublisher::publish(Event::EventType type, EventPtr event)
 {
     asType(m_imp)->publish(type, type, this, event);
 }
-/*
-void EventPublisher::doPublish(Event::EventType type, EventPublisher* sender,
-                               EventPtr event)
-{
-    asType(m_imp)->publish(type, sender, event);
-    }*/
 
+std::string EventPublisher::getPublisherName()
+{
+    return asType(m_imp)->getPublisherName();
+}
+    
+EventPublisher* EventPublisher::lookupByName(std::string name)
+{
+    return EventPublisherRegistry::lookupByName(name);
+}
+    
 } // namespace core
 } // namespace ram
 

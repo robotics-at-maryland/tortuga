@@ -27,7 +27,8 @@ asType(QueuedEventPublisherBasePtr basePtr)
 }
     
 QueuedEventPublisher::QueuedEventPublisher(EventPublisher* parent) :
-    m_imp(new QueuedEventPublisherBaseTemplate<Event::EventType>(parent))
+    m_imp(new QueuedEventPublisherBaseTemplate<Event::EventType>(parent,
+                                                                 "UNNAMED"))
 {
 }
     

@@ -38,7 +38,7 @@ class QueuedEventPublisherBaseTemplate :
         public EventPublisherBaseTemplate<T>
 {
 public:
-    QueuedEventPublisherBaseTemplate(EventPublisher* parent);
+    QueuedEventPublisherBaseTemplate(EventPublisher* parent, std::string name);
 
     virtual EventConnectionPtr subscribe(T type,
         boost::function<void (EventPtr)>  handler);
@@ -137,7 +137,8 @@ bool QueuedEventPublisherBaseTemplate<T>::Connection::connected()
 
 template<typename T>
 QueuedEventPublisherBaseTemplate<T>::QueuedEventPublisherBaseTemplate(
-    EventPublisher* parent) :
+    EventPublisher* parent, std::string name) :
+    EventPublisherBaseTemplate<T>(EventHubPtr(), name),
     m_parent(parent)
 {
 }

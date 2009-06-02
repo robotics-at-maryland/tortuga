@@ -26,8 +26,8 @@ public:
     /** Create a QueuedEventPublisher connected to the given EventPublisher
      *
      *  This provides a buffer inbetween a handler function and EventPublishers.
-     *  All event subscribtions are forward to the given EventPublishers.  Then
-     *  all incoming events are queued up, until they are released.
+     *  All event subscribtions are forwarded to the given EventPublishers.
+     *  Then all incoming events are queued up, until they are released.
      *
      *  @param parent
      *      The EventPublisher to subcribe to, and handle events from.

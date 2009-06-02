@@ -55,6 +55,7 @@ def generate(module_builder, local_ns, global_ns):
 
     # Event Subsystem
     EventPublisher = expose_publisher(local_ns, 'EventPublisher')
+    EventPublisher.member_function('lookupByName').exclude()
     EventPublisher.include_files.append('core/include/EventHub.h')
     classes.append(EventPublisher)
 

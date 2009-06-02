@@ -24,15 +24,28 @@
 
 namespace ram {
 namespace core {
-    
+
+/** Base class for information to be passed between publisher and subscriber */
 struct RAM_EXPORT Event
 {
+    Event();
+    
     virtual ~Event() {};
     
     typedef std::string EventType;
-    
+
+    /** A unique identifier for a stream of events from an EventPublisher */
     EventType type;
+
+    /** The original source who published the event */
     EventPublisher* sender;
+
+    /** The time at which the event was created
+     *
+     *  The time is in seconds since the start of the UNIX epoch.  Percision is
+     *  approximately microseconds
+     */
+    double timeStamp;
 };
     
 } // namespace core

@@ -89,6 +89,8 @@ TEST(MockController)
 
     controller->setSpeed(5);
     CHECK_EQUAL(5, mockController->speed);
+
+    delete mockController;
 }
 
 
