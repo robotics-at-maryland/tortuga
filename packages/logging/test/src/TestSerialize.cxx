@@ -24,37 +24,68 @@
 // Bring Vector3, and other math classes into scope
 using namespace ram::math;
 
+
+
 SUITE(Serialization) {
 
-TEST(ChangeMe)
+struct Fixture
 {
-  std::ostringstream ofs;
-  ram::vision::RedLightEventPtr myRedLightEventPointer(new ram::vision::RedLightEvent(1.2, 2.7));
-  //ram::vision::RedLightEvent *testEvent=myRedLightEventPointer.get();
-  myRedLightEventPointer->azimuth=Degree(3.2);
-  myRedLightEventPointer->elevation=Degree(3.3);
-  myRedLightEventPointer->range=3.4;
-  myRedLightEventPointer->pixCount=3;
-  ram::core::EventPtr myEventPtr=myRedLightEventPointer;
-  {
-    boost::archive::text_oarchive oa(ofs);
-    oa.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
-    oa << myEventPtr;
-  }
-  std::istringstream ifs(ofs.str());
-  ram::vision::RedLightEventPtr myRedLightEventPointer2(new ram::vision::RedLightEvent(1.5, 2.5));
-  {
-    boost::archive::text_iarchive iar(ifs);
-    iar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
-    iar >> myRedLightEventPointer2;
-  }
-  CHECK_EQUAL(myRedLightEventPointer2->x, myRedLightEventPointer->x);
-  CHECK_EQUAL(myRedLightEventPointer2->y, myRedLightEventPointer->y);
-  CHECK_EQUAL(myRedLightEventPointer2->azimuth, myRedLightEventPointer->azimuth);
-  CHECK_EQUAL(myRedLightEventPointer2->elevation, myRedLightEventPointer->elevation);
-  CHECK_EQUAL(myRedLightEventPointer2->range, myRedLightEventPointer->range);
-  CHECK_EQUAL(myRedLightEventPointer2->pixCount, myRedLightEventPointer->pixCount);
+    std::ostringstream ofs;
+    std::istringstream ifs;
 
+    void writeOut(ram::core::EventPtr event)
+    {
+        boost::archive::text_oarchive oa(ofs);
+        ram::logging::registerTypes(oa);
+        oa << event;
+    }
+
+    ram::core::EventPtr readBack()
+    {
+        // Create the archive
+        ifs.str(ofs.str());
+        boost::archive::text_iarchive iar(ifs);
+        ram::logging::registerTypes(iar);
+
+        // Read in the event
+        ram::core::EventPtr event;        
+        iar >> event;
+
+        return event;
+    }
+
+    template<class T>
+    boost::shared_ptr<T> serializeDeSerialize(ram::core::EventPtr event)
+    {
+        writeOut(event);
+        return boost::dynamic_pointer_cast<T>(readBack());
+    }
+};
+    
+TEST_FIXTURE(Fixture, RedLightEvent)
+{
+    // Create the event and load it with data
+  ram::vision::RedLightEventPtr redLightEvent(
+      new ram::vision::RedLightEvent(0, 0));
+
+  redLightEvent->x = 1.2;
+  redLightEvent->y = 2.7;
+  redLightEvent->azimuth = Degree(3.2);
+  redLightEvent->elevation = Degree(3.3);
+  redLightEvent->range = 3.4;
+  redLightEvent->pixCount = 3;
+
+  // Write out and read back the event, then downcast to the proper type
+  ram::vision::RedLightEventPtr result(
+      serializeDeSerialize<ram::vision::RedLightEvent>(redLightEvent));
+  
+  // Check the data
+  CHECK_EQUAL(result->x, redLightEvent->x);
+  CHECK_EQUAL(result->y, redLightEvent->y);
+  CHECK_EQUAL(result->azimuth, redLightEvent->azimuth);
+  CHECK_EQUAL(result->elevation, redLightEvent->elevation);
+  CHECK_EQUAL(result->range, redLightEvent->range);
+  CHECK_EQUAL(result->pixCount, redLightEvent->pixCount);
 }
 
 } // SUITE(Serialization)

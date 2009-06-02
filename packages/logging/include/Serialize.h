@@ -27,6 +27,24 @@
 #include "vision/include/Events.h"
 
 
+namespace ram {
+namespace logging {
+
+// ------------------------------------------------------------------------- //
+//                     T Y P E   R E G I S T R A T I O N                     //
+// ------------------------------------------------------------------------- //
+
+template <class Archive>
+void registerTypes(Archive& ar)
+{
+    ar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
+}
+    
+    
+} // logging
+} // ram
+
+
 namespace boost {
 namespace serialization {
 
