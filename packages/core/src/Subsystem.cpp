@@ -24,13 +24,14 @@ std::string Subsystem::getName()
 }
     
 Subsystem::Subsystem(std::string name, EventHubPtr eventHub) :
-    EventPublisher(eventHub, name),
+    EventPublisher(eventHub, "Subsystem." + name),
     m_name(name)
 {
 }
 
 Subsystem::Subsystem(std::string name, SubsystemList list) :
-    EventPublisher(getSubsystemOfExactType<EventHub>(list), name),
+    EventPublisher(getSubsystemOfExactType<EventHub>(list),
+                   "Subsystem." + name),
     m_name(name)
 {
 }
