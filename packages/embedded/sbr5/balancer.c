@@ -399,7 +399,7 @@ void processData(byte data)
 
                 case BUS_CMD_BATTVOLTAGE:
                 {
-                    txBuf[0] = 12;
+                    txBuf[0] = 14;
                     byte i;
 
                     /* Battery voltages. Big-endian. */
@@ -414,7 +414,7 @@ void processData(byte data)
 
                 case BUS_CMD_BATTCURRENT:
                 {
-                    txBuf[0] = 10;
+                    txBuf[0] = 12;
                     byte i;
 
                     /* Battery currents. Big-endian. */
