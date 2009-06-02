@@ -15,15 +15,22 @@
 namespace boost{
 namespace serialization{
 
-  template <class Archive> void serialize(Archive &ar, ram::core::Event &t, const unsigned int file_version)
-    {
-    }
+template <class Archive>
+void serialize(Archive &ar, ram::core::Event &t,
+               const unsigned int file_version)
+{
+}
 
-template <class Archive> void serialize(Archive &ar, ram::vision::ImageEvent &t, const unsigned int file_version)
+template <class Archive>
+void serialize(Archive &ar, ram::vision::ImageEvent &t,
+               const unsigned int file_version)
 {
   //ar & t->image;
 }
-template <class Archive> void serialize(Archive &ar, ram::vision::RedLightEvent &t, const unsigned int file_version)
+    
+template <class Archive>
+void serialize(Archive &ar, ram::vision::RedLightEvent &t,
+               const unsigned int file_version)
 { 
   ar & boost::serialization::base_object<ram::core::Event>(t);
   ar & t.y;

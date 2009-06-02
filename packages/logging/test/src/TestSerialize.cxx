@@ -7,15 +7,18 @@
  * File:  packages/math/test/src/TestChecks.cxx
  */
 
+// STD Includes
+#include <sstream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-#include "math/test/include/MathChecks.h"
-#include "logging/include/serialize.h"
-#include <sstream>
+#include "logging/include/Serialize.h"
 
 #include "vision/include/Events.h"
+
+#include "math/test/include/MathChecks.h"
 
 // Bring Vector3, and other math classes into scope
 using namespace ram::math;
