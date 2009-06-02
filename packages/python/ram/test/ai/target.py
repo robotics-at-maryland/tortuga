@@ -66,7 +66,7 @@ class TestFindAttempt(support.AITestCase):
         # Now change states
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0)
-        self.assertCurrentState(target.SeekingToRange)
+        self.assertCurrentState(target.SeekingToCentered)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.targetDetector)
@@ -101,7 +101,7 @@ class TestSearching(support.AITestCase):
         # Now change states
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0)
-        self.assertCurrentState(target.SeekingToRange)
+        self.assertCurrentState(target.SeekingToCentered)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.targetDetector)
@@ -147,6 +147,44 @@ class TestRangeXYHold(support.AITestCase):
         
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()
+
+class TestSeekingToCentered(TestRangeXYHold):
+    def setUp(self):
+        TestRangeXYHold.setUp(self, target.SeekingToCentered)
+
+    def testPointAligned(self):
+        self._aligned = False
+        def aligned(event):
+            self._aligned = True
+        self.qeventHub.subscribeToType(ram.motion.seek.SeekPoint.POINT_ALIGNED,
+                                       aligned)
+
+        # Inject an event which does not have the point aligned
+        self.injectEvent(vision.EventType.TARGET_FOUND,
+                         vision.TargetEvent, 0, 0, 0, 0,
+                         x = 1.0, y = 1.0, range = 3.0, squareNess = 1)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(target.SeekingToCentered)
+
+        # Inject an event with the point aligned, set large values to range
+        # make sure that the range has nothing to do with it
+        self.injectEvent(vision.EventType.TARGET_FOUND,
+                         vision.TargetEvent, 0, 0, 0, 0,
+                         x = 0.0, y = 0.0, range = 3.0, squareNess = 1)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(target.SeekingToRange)
+
+    def testTargetFound(self):
+        """Make sure new found events move the vehicle"""
+        self.injectEvent(vision.EventType.TARGET_FOUND, 
+                         vision.TargetEvent, 0, 0, 0, 0,
+                         x = 0.5, y = -0.5, range = 4, squareNess = 1)
+        
+        # Bigger numbers = deeper
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertEqual(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertEqual(self.controller.yawChange, 0)
 
 class TestSeekingToRange(TestRangeXYHold):
     def setUp(self):

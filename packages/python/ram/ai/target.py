@@ -166,7 +166,7 @@ class FindAttempt(state.State):
     @staticmethod
     def transitions():
         return { FindAttempt.TIMEOUT : Searching,
-                 vision.EventType.TARGET_FOUND : SeekingToRange }
+                 vision.EventType.TARGET_FOUND : SeekingToCentered }
     
     def enter(self):
         # Turn all off all motions, hold the current heading
@@ -192,7 +192,7 @@ class Searching(state.State):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.TARGET_FOUND : SeekingToRange }
+        return { vision.EventType.TARGET_FOUND : SeekingToCentered }
 
     def enter(self):
         # Make sure the detector is on the vision system
@@ -207,6 +207,34 @@ class Searching(state.State):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+class SeekingToCentered(RangeXYHold):
+    """
+    Changes the depth and centers the target
+    """
+
+    _offset = 0.0
+    _firstRun = True
+
+    @staticmethod
+    def transitions():
+        return RangeXYHold.transitions(SeekingToCentered, {
+            ram.motion.seek.SeekPoint.POINT_ALIGNED : SeekingToRange})
+        
+    def TARGET_FOUND(self, event):
+        """Update the state of the target, this moves the vehicle"""
+        self._updateFilters(event)
+
+        # To keep the range the same, the vehicle saves its first range
+        # value and keeps the vehicle at this range
+        if (self._firstRun):
+            self._offset = self._filterdRange
+            self._firstRun = False
+        
+        # We ignore azimuth and elevation because we aren't using them
+        self._target.setState(0, 0, self._filterdRange - self._offset +
+                              self._desiredRange, self._filterdX,
+                              self._filterdY)
         
 class SeekingToRange(RangeXYHold):
     """

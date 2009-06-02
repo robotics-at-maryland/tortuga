@@ -182,10 +182,11 @@ class SeekPoint(Motion):
         if self._maxSpeed != 0:
             self._controller.setSpeed(self._speedScale() * self._maxSpeed)
         
-        if self._alignment() <= 0.05 and not self._first:
+        if self._alignment() <= 0.1 and not self._first:
             self.publish(SeekPoint.POINT_ALIGNED, ext.core.Event())
 
         self._first = False
+
     def _alignment(self):
         vect = ext.math.Vector2(self._target.x, self._target.y)
         return vect.length()
