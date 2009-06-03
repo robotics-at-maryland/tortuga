@@ -205,11 +205,11 @@ struct powerInfo
     /** Voltage of balanced 26V, in V. NOT IMPLEMENTED IN BALANCER r2 */
     float v26VBus;
 
-    /** 0-3 are batt 1-4. 4 is external power (batt 5). In V */
-    float battVoltages[5];
+    /** 0-4 are batt 1-4. 5 is external power (batt 6). In V */
+    float battVoltages[6];
 
     /** Battery currents. See note above. In A */
-    float battCurrents[5];
+    float battCurrents[6];
 };
 
 struct sonarData
