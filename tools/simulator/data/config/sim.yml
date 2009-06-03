@@ -79,10 +79,17 @@ Subsystems:
         #            'ram.ai.course.Octagaon']
 
         # Demo course with the barbed wire                    
+        #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+        #            'ram.ai.course.Light', 'ram.ai.course.Pipe2',
+        #            'ram.ai.course.BarbedWire',
+        #            'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
+        
+        # Demo course with everything
         taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
                     'ram.ai.course.Light', 'ram.ai.course.Pipe2',
                     'ram.ai.course.BarbedWire',
-                    'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
+                    'ram.ai.course.Pipe3', 'ram.ai.course.Bin',
+                    'ram.ai.course.Pinger']
         type: AI
 
     StateMachine:
@@ -434,8 +441,9 @@ Subsystems:
             #Main: objectives/pipe.sml
             #Main: objectives/bin.sml
             #Main: objectives/duct.sml
+            #Main: objectives/multi_pipe.sml
             #Main: objectives/barbedwire.sml
-            Main: objectives/target.sml
+            #Main: objectives/target.sml
             #Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml
@@ -445,6 +453,7 @@ Subsystems:
             #Main: safePing.sml
             #Main: shortCourse.sml
             #Main: nbrf_tank.sml
+            Main: erc_course.sml
         
         Graphics:
             Plugins:

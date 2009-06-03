@@ -528,7 +528,9 @@ class Course(ram.sim.object.Object):
         self._createObject(scene, startObjCfg)
         
         # Create all objects recursively
-        self._createObjectives(scene, cfg, cfg[startName], curPos, curHeading)
+        if cfg.has_key(startName):
+            self._createObjectives(scene, cfg, cfg[startName], curPos,
+                                   curHeading)
     
     def _createObjectives(self, scene, mainCfg, sectionCfg, startPos, 
                           startHeading):
@@ -541,9 +543,8 @@ class Course(ram.sim.object.Object):
             # Define usable variables
             rotMatrix = ext.math.Matrix2()
                 
-            # New heading
-            curHeading = self._readRandom(pCfg.get('heading',0)) + startHeading
             curPos = startPos
+            curHeading = self._readRandom(pCfg.get('direction',0)) + startHeading
                 
             # New current position
             if pCfg.has_key('distance'):
@@ -562,12 +563,15 @@ class Course(ram.sim.object.Object):
             # Get the final position
             pos = [curPos.x, curPos.y, self._readRandom(pCfg['depth'])]
 
+            # New heading
+            newHeading = self._readRandom(pCfg.get('heading',0)) + curHeading
+
             # Build the configuration and load the object
             objCfg = {
                 'name' : name,
                 'type' : type_,
                 'position' : pos,
-                'orientation' : [0, 0, 1, -curHeading],
+                'orientation' : [0, 0, 1, -newHeading],
             }
             self._createObject(scene, objCfg)
 
@@ -575,7 +579,7 @@ class Course(ram.sim.object.Object):
             if mainCfg.has_key(name):
                 # Create all objects recursively
                 self._createObjectives(scene, mainCfg, mainCfg[name], curPos, 
-                                       curHeading)
+                                       newHeading)
     
     def _readRandom(self, val):
         if type(val) is list:
