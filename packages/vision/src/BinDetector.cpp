@@ -441,39 +441,12 @@ else
         
         // Sort candidate bins on distance from center
         candidateBins.sort(binToCenterComparer);
-        
-        // List of new bins
-        BinList newBins;
-        
-        // Sort through our candidate bins and match them to the old ones
-        BOOST_FOREACH(Bin candidateBin, candidateBins)
-        {
-            // Go through the list of current bins and find the closest bin
-            double currentMin = 10000;
-            Bin minBin;
-            BOOST_FOREACH(Bin currentBin, m_bins)
-            {
-                double distance = currentBin.distanceTo(candidateBin);
-                if (distance < currentMin)
-                {
-                    currentMin = distance;
-                    minBin = currentBin;
-                }
-            }
-            
-            // If its close enough, we transfer the ID
-            if (currentMin < m_sameBinThreshold)
-            {
-                // Transfer Id
-                candidateBin._setId(minBin.getId());
-                // Remove from list to search against
-                m_bins.remove(minBin);
-            }
-            
-            // Store bin in our list of new bins
-            newBins.push_back(candidateBin);
-        }
 
+        // Sort through our candidate bins and match them to the old ones
+        TrackedBlob::updateIds(&m_bins, &candidateBins, m_sameBinThreshold);
+
+        // List of new bins
+        BinList newBins = candidateBins;
 
         // Anybody left we didn't find this iteration, so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)

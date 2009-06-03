@@ -59,6 +59,16 @@ public:
     
     /** Draws the normal states but includes the ID */
     void drawStats(Image* image);
+
+    /** Matches blobs in the newList to those in the oldList
+     *
+     *  The oldList will have all blobs that are matched to new blobs removed.
+     *  All blobs in the newList with matches will have there IDs updated to
+     *  reflect that.
+     *
+     */
+    template <class T>
+    static void updateIds(T* oldList, T* newList, double distanceThreshold);
     
 private:
     double m_normX;
@@ -68,6 +78,39 @@ private:
     int m_id;
 };
     
+template <class T>
+void TrackedBlob::updateIds(T* oldList, T* newList, double distanceThreshold)
+{
+    typename T::iterator newListIter = newList->begin();
+    typename T::iterator newListEnd = newList->end();
+    for (;newListIter != newListEnd; newListIter++)
+    {
+        // Go through the list of current bins and find the closest bin
+        double currentMin = 10000;
+        typename T::iterator currentBlob = oldList->begin();
+        typename T::iterator oldListIter = oldList->begin();
+        typename T::iterator oldListEnd = oldList->end();
+        for (;oldListIter != oldListEnd; oldListIter++)
+        {
+            double distance = oldListIter->distanceTo(*newListIter);
+            if (distance < currentMin)
+            {
+                currentMin = distance;
+                currentBlob = oldListIter;
+            }
+        }
+        
+        // If its close enough, we transfer the ID
+        if (currentMin < distanceThreshold)
+        {
+            // Transfer Id
+            newListIter->_setId(currentBlob->getId());
+            // Remove from list to search against
+            oldList->erase(currentBlob);
+        }
+    }
+}
+
 } // namespace vision
 } // namespace ram
 

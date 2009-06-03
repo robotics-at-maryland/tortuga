@@ -86,11 +86,17 @@ class RAM_EXPORT PipeDetector  : public Detector
     /** Disabled use of hough */
     bool m_noHough;
 
+    /** Max distance a pipe can move between frames and be considered the same*/
+    double m_samePipeThreshold;
+    
     /** Finds the pipe blobs */
     BlobDetector m_blobDetector;
 
     /** All the pipes we found last frame */
     PipeList m_pipes;
+
+    /** Current pipe id */
+    int m_pipeID;
     
     int m_minPixels;
     int m_minPixelsFound;

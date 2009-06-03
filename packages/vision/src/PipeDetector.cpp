@@ -88,7 +88,8 @@ PipeDetector::PipeDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub,
                            int minPixels, int foundMinPixels) :
     Detector(eventHub),
-    m_noHough(false)
+    m_noHough(false),
+    m_pipeID(0)
 {
     init(config, minPixels, foundMinPixels);
 }
@@ -101,9 +102,14 @@ void PipeDetector::init(core::ConfigNode config, int minPixels,
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
 
+    propSet->addProperty(config, false, "samePipeThreshold",
+        "Max distance a pipe can move between frames and be considered the "
+        " same pipe", 0.2, &m_samePipeThreshold);
+    
     propSet->addProperty(config, false, "minPixels",
         "Minimum pixels for a blob to be considered a pipe",
         minPixels, &m_minPixels);
+    
     propSet->addProperty(config, false, "minPixelsFound",
         "Minimum pixels for a blob, if we found the blob last frame",
         foundMinPixels, &m_minPixelsFound);
@@ -152,19 +158,25 @@ void PipeDetector::processImage(Image* input, Image* output)
         math::Degree angle;
         if (findPipeAngle(pipeBlob, angle, input, output))
         {
-            candidatePipes.push_back(Pipe(pipeBlob, input, angle, 0));
+            candidatePipes.push_back(Pipe(pipeBlob, input, angle, m_pipeID));
         }
         else
         {
-            candidatePipes.push_back(Pipe(pipeBlob, input, math::Degree(0), 0));
+            candidatePipes.push_back(Pipe(pipeBlob, input, math::Degree(0),
+                                          m_pipeID));
             if (output)
                 pipeBlob.draw(output, false);
         }
+
+        m_pipeID++;
     }
     
     // Filter blobs for correct "pipeness"
     /// TODO: Implement this
 
+    // Sort through our candidate pipes and match them to the old pipes
+    TrackedBlob::updateIds(&m_pipes, &candidatePipes, m_samePipeThreshold);
+    
     // Pack up all the blob information
     m_pipes = candidatePipes;
     

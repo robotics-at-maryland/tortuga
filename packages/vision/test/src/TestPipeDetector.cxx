@@ -7,6 +7,9 @@
  * File:  packages/vision/test/src/TestPipeDetector.cxx
  */
 
+// STD Includes
+#include <algorithm>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
@@ -281,6 +284,46 @@ TEST_FIXTURE(PipeDetectorFixture, DoubleFlat)
     CHECK_CLOSE(expectedBottomY, bottomPipe.getY(), 0.05);
     CHECK_CLOSE(expectedBottomAngle, bottomPipe.getAngle(), math::Degree(2));
 }
+
+TEST_FIXTURE(PipeDetectorFixture, PipeTracking)
+{
+    // Make two pipes
+    vision::makeColor(&input, 0, 0, 0);
+    drawSquare(&input, 160,240, 150, 50, 70, CV_RGB(255,255,255));
+    drawSquare(&input, 480,240, 150, 50, 70, CV_RGB(255,255,255));
+
+    // Find the pipes and check the IDs
+    processImage(&input);
+
+    CHECK_EQUAL(2u, pipes.size());
+    int minId = pipes[0].getId();
+    int maxId = pipes[1].getId();
+    
+    if (maxId < minId)
+        std::swap(maxId, minId);
+    
+    CHECK_EQUAL(0, minId);
+    CHECK_EQUAL(1, maxId);
+
+    // Draw the pipes slightly moved
+    vision::makeColor(&input, 0, 0, 0);
+    drawSquare(&input, 160,240, 150, 50, 70, CV_RGB(255,255,255)); 
+    drawSquare(&input, 480,240, 150, 50, 70, CV_RGB(255,255,255));
+
+    // Make sure we still have the same ids
+    processImage(&input);
+
+    CHECK_EQUAL(2u, pipes.size());
+    minId = pipes[0].getId();
+    maxId = pipes[1].getId();
+    
+    if (maxId < minId)
+        std::swap(maxId, minId);
+    
+    CHECK_EQUAL(0, minId);
+    CHECK_EQUAL(1, maxId);
+}
+
 
 
 } // SUITE(PipeDetector)
