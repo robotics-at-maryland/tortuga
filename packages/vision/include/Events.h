@@ -83,9 +83,11 @@ typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
 class RAM_EXPORT PipeEvent : public core::Event
 {
 public:
-    PipeEvent(double x, double y, double angle)
-        { this->x=x; this->y=y; this->angle=angle;}
-    
+    PipeEvent(double x_, double y_, double angle_) :
+        id(0), x(x_), y(y_), angle(angle_)
+    {}
+
+    int id;
     double x;
     double y;
     math::Degree angle;
