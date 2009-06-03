@@ -705,6 +705,7 @@ int readBoardVoltages(int fd, struct powerInfo * info)
 
     readData(fd, buf+1, 11);
 
+
     for(i=0; i<11; i++)
         cs += buf[i];
 
@@ -724,7 +725,7 @@ int readBoardVoltages(int fd, struct powerInfo * info)
 
 int readBatteryVoltages(int fd, struct powerInfo * info)
 {
-    unsigned char buf[16] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
+    unsigned char buf[18] = {HOST_CMD_BATTVOLTAGE, HOST_CMD_BATTVOLTAGE};
     int i=0, cs=0;
 
     if(info == NULL)
@@ -748,26 +749,26 @@ int readBatteryVoltages(int fd, struct powerInfo * info)
 
     readData(fd, buf+1, 15);
 
-    for(i=0; i<13; i++)
+    for(i=0; i<15; i++)
         cs += buf[i];
 
     if((cs & 0xFF) != buf[15])
     {
-        printf("bad cc in voltages!\n");
+        printf("bad cs in voltages!\n");
         return SB_BADCC;
     }
 
     for(i=0; i<6; i++)
         info->battVoltages[i] = ((buf[i*2+1] << 8) | (buf[i*2+2])) / 1000.0;
 
-    info->v26VBus = ((buf[5*2+1] << 8) | (buf[5*2+2])) / 1000.0;
+    info->v26VBus = ((buf[6*2+1] << 8) | (buf[6*2+2])) / 1000.0;
 
     return SB_OK;
 }
 
 int readBatteryCurrents(int fd, struct powerInfo * info)
 {
-    unsigned char buf[12] = {HOST_CMD_BATTCURRENT, HOST_CMD_BATTCURRENT};
+    unsigned char buf[14] = {HOST_CMD_BATTCURRENT, HOST_CMD_BATTCURRENT};
     int i=0, cs=0;
 
     if(info == NULL)
@@ -791,7 +792,7 @@ int readBatteryCurrents(int fd, struct powerInfo * info)
 
     readData(fd, buf+1, 13);
 
-    for(i=0; i<11; i++)
+    for(i=0; i<13; i++)
         cs += buf[i];
 
     if((cs & 0xFF) != buf[13])
