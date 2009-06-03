@@ -34,6 +34,11 @@ using namespace std;
 namespace ram {
 namespace vision {
 
+static bool pipeToCenterComparer(PipeDetector::Pipe b1, PipeDetector::Pipe b2)
+{
+    return b1.distanceTo(0,0) < b2.distanceTo(0,0);
+}
+    
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     PipeDetector(config, eventHub),
@@ -140,38 +145,68 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Find all of our pipes
     PipeDetector::processImage(input, output);
     PipeDetector::PipeList pipes = getPipes();
-    
-    // See if we found the pipes, report them lost if we just lost them
-    bool pipeFound = pipes.size() > 0;
-    if (!pipeFound && m_found)
-    {
-        publish(EventType::PIPE_LOST,
-                core::EventPtr(new core::Event()));
-    }
-    m_found = pipeFound;
 
-    // Report information if we have found the pipes
+    // Determine if we found any pipes
+    m_found = pipes.size() > 0;
+    
+    // Determine which pipes (by id) were present last time, but aren't present
+    // now.  Also build the set of current pipe IDs
+
+    // Get the set of the Ids of the newest pipes
+    std::set<int> newIds;
+    BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
+        newIds.insert(pipe.getId());
+
+    // Get the Set Ids that were in the last frame but not the current
+    std::vector<int> lostIds(m_lastPipeIds.size()); 
+    std::vector<int>::iterator lostIdsEnd =
+        std::set_difference(m_lastPipeIds.begin(), m_lastPipeIds.end(),
+                            newIds.begin(), newIds.end(), lostIds.begin());
+    lostIds.resize(lostIdsEnd -lostIds.begin());
+    
+    // Send out lost events for all the pipes we lost
+    BOOST_FOREACH(int id, lostIds)
+    {
+        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        event->id = id;
+        publish(EventType::PIPE_LOST, event);
+    }
+    
+    // Send out found events for all the pipes we currently see
+    BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
+    {
+        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        event->id = pipe.getId();
+        event->x = pipe.getX();
+        event->y = pipe.getY();
+        event->angle = pipe.getAngle();
+        publish(EventType::PIPE_FOUND, event);
+    }
+
+    // Record the current set of Ids
+    m_lastPipeIds = newIds;
+
     if (m_found)
     {
-        // Grab the pipe we found and store its information
-        PipeDetector::Pipe pipe = pipes[0];
-	m_lineX = pipe.getX();
-	m_lineY = pipe.getY();
-	m_angle = pipe.getAngle();
-
-        // Fire off found event
-        PipeEventPtr event(new PipeEvent(0, 0, 0));
-        event->x = m_lineX;
-        event->y = m_lineY;
-        event->angle = m_angle;
-        publish(EventType::PIPE_FOUND, event);
+        // Record the center pipe information
+        m_lineX = pipes[0].getX();
+        m_lineY = pipes[0].getY();
+        m_angle = pipes[0].getAngle();
+        
+        // Send out the centerted event
+        std::sort(pipes.begin(), pipes.end(), pipeToCenterComparer);
 
         // Determine Centered
-        math::Vector2 toCenter(m_lineX, m_lineY);
+        math::Vector2 toCenter(pipes[0].getX(), pipes[0].getY());
         if (toCenter.normalise() < m_centeredLimit)
         {
             if(!m_centered)
             {
+                PipeEventPtr event(new PipeEvent(0, 0, 0));
+                event->x = pipes[0].getX();
+                event->y = pipes[0].getY();
+                event->angle = pipes[0].getAngle();
+
                 m_centered = true;
                 publish(EventType::PIPE_CENTERED, event);
             }

@@ -307,8 +307,8 @@ TEST_FIXTURE(PipeDetectorFixture, PipeTracking)
 
     // Draw the pipes slightly moved
     vision::makeColor(&input, 0, 0, 0);
-    drawSquare(&input, 160,240, 150, 50, 70, CV_RGB(255,255,255)); 
-    drawSquare(&input, 480,240, 150, 50, 70, CV_RGB(255,255,255));
+    drawSquare(&input, 165,235, 150, 50, 70, CV_RGB(255,255,255)); 
+    drawSquare(&input, 483,250, 150, 50, 70, CV_RGB(255,255,255));
 
     // Make sure we still have the same ids
     processImage(&input);

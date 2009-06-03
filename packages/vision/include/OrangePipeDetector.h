@@ -10,6 +10,8 @@
 #ifndef RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
 #define RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
 
+// STD Includes
+#include <set>
 
 // Project Includes
 #include "vision/include/Common.h"
@@ -76,6 +78,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 
     /** Number of times to erode the masked image before the hough */
     int m_erodeIterations;
+
+    /** The set of IDs of the pipes that were present in the last frame */
+    std::set<int> m_lastPipeIds;
 };
     
 } // namespace vision
