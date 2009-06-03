@@ -49,39 +49,78 @@ void VelocityDetector::init(core::ConfigNode config)
     
     propSet->addProperty(config, false, "phaseLineScale",
         "Scale red line draw by the phase correlation",
-	 1.0, &m_phaseLineScale, 1.0, 50.0);
+        1.0, &m_phaseLineScale, 1.0, 50.0);
+    
+    // Parameters for LK Flow
+    propSet->addProperty(config, false, "useLKFlow",
+                         "Run the phase pyramidal Lucas-Kanade algorithm", 
+                         false, &m_useLKFlow);
+    propSet->addProperty(config, false, "lkMaxNumberFeatures", 
+                         "maximum number of features to track", 400,
+                         &m_lkMaxNumberFeatures);
+    propSet->addProperty(config, false, "lkMinQualityFeatures", 
+                         "minimum quality of the features to track", .01,
+                         &m_lkMinQualityFeatures);
+    propSet->addProperty(config, false, "lkMinEucDistance", 
+                         "minimum Euclidean distance between features", .01,
+                         &m_lkMinEucDistance);
+    propSet->addProperty(config, false, "lkIterations", 
+                         "termination criteria (iterations)", 20, 
+                         &m_lkIterations);
+    propSet->addProperty(config, false, "lkEpsilon", 
+                         "termination criteria (better than error)", .3, 
+                         &m_lkEpsilon);
 
-    // Initialize grey scale images
+    // Initialize grey scale images (for PhaseCorrelation)
     m_currentGreyScale = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
     m_lastGreyScale = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
     m_phaseResult = cvCreateImage(cvSize(640, 480), IPL_DEPTH_64F, 1);
+    
+    // Initialize scratch images for LK
+    m_eig_image = cvCreateImage(cvSize(640, 480), IPL_DEPTH_32F, 1);
+    m_temp_image = cvCreateImage(cvSize(640, 480), IPL_DEPTH_32F, 1);
+    m_pyramid1 = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
+    m_pyramid2 = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
 }
     
 VelocityDetector::~VelocityDetector()
 {
     delete m_currentFrame;
     delete m_lastFrame;
+
     cvReleaseImage(&m_currentGreyScale);
     cvReleaseImage(&m_lastGreyScale);
+    cvReleaseImage(&m_phaseResult);
+    cvReleaseImage(&m_eig_image);
+    cvReleaseImage(&m_temp_image);
+    cvReleaseImage(&m_pyramid1);
+    cvReleaseImage(&m_pyramid2);
 }
     
 void VelocityDetector::processImage(Image* input, Image* output)
 {
     // Resize images and data structures if needed
     if ((m_lastFrame->getWidth() != input->getWidth()) &&
-	(m_lastFrame->getHeight() != input->getHeight()))
+    (m_lastFrame->getHeight() != input->getHeight()))
     { 
+        // Release all the old images
         cvReleaseImage(&m_currentGreyScale);
-	cvReleaseImage(&m_lastGreyScale);
-	m_currentGreyScale = cvCreateImage(cvSize(input->getWidth(),
-						  input->getHeight()), 
-					   IPL_DEPTH_8U, 1);
-	m_lastGreyScale = cvCreateImage(cvSize(input->getWidth(),
-					       input->getHeight()), 
-					IPL_DEPTH_8U, 1);
-	m_phaseResult = cvCreateImage(cvSize(input->getWidth(),
-					     input->getHeight()), 
-				      IPL_DEPTH_64F, 1);
+        cvReleaseImage(&m_lastGreyScale);
+        cvReleaseImage(&m_phaseResult);
+        cvReleaseImage(&m_eig_image);
+        cvReleaseImage(&m_temp_image);
+        cvReleaseImage(&m_pyramid1);
+        cvReleaseImage(&m_pyramid2);
+        
+        // Allocate all the new
+        CvSize frameSize = cvSize(input->getWidth(), input->getHeight());
+        m_currentGreyScale = cvCreateImage(frameSize, IPL_DEPTH_8U, 1);
+        m_lastGreyScale = cvCreateImage(frameSize, IPL_DEPTH_8U, 1);
+        m_phaseResult = cvCreateImage(frameSize, IPL_DEPTH_64F, 1);
+        m_eig_image = cvCreateImage(frameSize, IPL_DEPTH_32F, 1);
+        m_temp_image = cvCreateImage(frameSize, IPL_DEPTH_32F, 1);
+        m_pyramid1 = cvCreateImage(frameSize, IPL_DEPTH_8U, 1);
+        m_pyramid2 = cvCreateImage(frameSize, IPL_DEPTH_8U, 1);
     }
 
     // Copy the current frame locally
@@ -95,7 +134,9 @@ void VelocityDetector::processImage(Image* input, Image* output)
 
     // Now run all different optical flow algorithms
     if (m_usePhaseCorrelation)
-        phasePhaseCorrelation(output);
+        phaseCorrelation(output);
+    else if (m_useLKFlow)
+        LKFlow(output);
 
     // We are done with our work now last save the input for later use
     m_lastFrame->copyFrom(input);
@@ -111,22 +152,75 @@ void VelocityDetector::usePhaseCorrelation()
     m_usePhaseCorrelation = true;
 }
 
-void VelocityDetector::phasePhaseCorrelation(Image* output)
+void VelocityDetector::useLKFlow()
+{
+    m_useLKFlow = true;
+}
+    
+void VelocityDetector::LKFlow(Image* output)
+{
+    // Convert the current image to grey scale
+    cvCvtColor(m_currentFrame->asIplImage(), m_currentGreyScale, CV_BGR2GRAY);
+    
+    
+    // make it happen
+    IplImage* last = m_lastGreyScale;
+    IplImage* current = m_currentGreyScale;
+        
+    CvPoint2D32f frame1_features[m_lkMaxNumberFeatures];
+    
+    int number_of_features = m_lkMaxNumberFeatures;
+    
+    // Choosing the features to track (Shi-Tomasi)
+    
+    cvGoodFeaturesToTrack(last, m_eig_image, m_temp_image, frame1_features, 
+                          &number_of_features, 
+                          m_lkMinQualityFeatures, m_lkMinEucDistance, NULL);
+    CvPoint2D32f frame2_features[m_lkMaxNumberFeatures];
+    
+    char optical_flow_found_feature[m_lkMaxNumberFeatures];
+    float optical_flow_feature_error[m_lkMaxNumberFeatures];
+    
+    // To avoid "aperature problem"
+    CvSize optical_flow_window = cvSize(3,3);
+    
+    // Terminates after iterations or when better epsilon is found
+    CvTermCriteria optical_flow_termination_criteria
+        = cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, m_lkIterations, m_lkEpsilon);
+    
+    // Running pyramidla L-K Optical Flow algorithm on the desired features
+    cvCalcOpticalFlowPyrLK(last, current, m_pyramid1, 
+                           m_pyramid2, 
+                           frame1_features, frame2_features, 
+                           number_of_features, optical_flow_window, 5, 
+                           optical_flow_found_feature, 
+                           optical_flow_feature_error, 
+                           optical_flow_termination_criteria, 0);
+    
+    // Long complicated process for drawing the flow field
+
+    // We are done copy current over to the last
+    cvCopyImage(m_currentGreyScale, m_lastGreyScale);
+    
+    // needs to return m_velocity
+}
+        
+void VelocityDetector::phaseCorrelation(Image* output)
 {
     // Convert the current image to grey scale
     cvCvtColor(m_currentFrame->asIplImage(), m_currentGreyScale, CV_BGR2GRAY);
 
     // Run the phase correlation process
     {
-        IplImage* ref = m_currentGreyScale;
-	IplImage* tpl = m_lastGreyScale;
-	IplImage* poc = m_phaseResult;
+    IplImage* ref = m_currentGreyScale;
+    IplImage* tpl = m_lastGreyScale;
+    IplImage* poc = m_phaseResult;
 
         int         i, j, k;
         double        tmp;
         
         /* get image properties */
-        int width           = ref->width;
+        int width    = ref->width;
         int height   = ref->height;
         int step     = ref->widthStep;
         int fft_size = width * height;
@@ -206,25 +300,25 @@ void VelocityDetector::phasePhaseCorrelation(Image* output)
     {
         // Upper left quadrant
         outX = (double)maxloc.x;
-	outY = - (double)maxloc.y;
+    outY = - (double)maxloc.y;
     } 
     else if ((maxloc.x >= quadrantWidth) && (maxloc.y < quadrantHeight))
     {
         // Upper right quadrant
         outX = -((double)m_currentFrame->getWidth() - (double)maxloc.x);
-	outY = - (double)maxloc.y;
+    outY = - (double)maxloc.y;
     }
     else if ((maxloc.x < quadrantWidth) && (maxloc.y >= quadrantHeight))
     {
         // Lower left quadrant
         outX = (double)maxloc.x;
-	outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
+    outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
     } 
     else if ((maxloc.x >= quadrantWidth) && (maxloc.y >= quadrantHeight))
     {
         // Lower right quadrant
         outX = -((double)m_currentFrame->getWidth() - (double)maxloc.x);
-	outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
+    outY = ((double)m_currentFrame->getHeight() - (double)maxloc.y);
     }
     else 
     {
@@ -237,12 +331,12 @@ void VelocityDetector::phasePhaseCorrelation(Image* output)
     if (output)
     {
         CvPoint start;
-	start.x = output->getWidth() / 2;
-	start.y = output->getHeight() / 2;
-	CvPoint end;
-	end.x = start.x + ((int)(outX*m_phaseLineScale));
-	end.y = start.y - ((int)(outY*m_phaseLineScale));
-	cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
+    start.x = output->getWidth() / 2;
+    start.y = output->getHeight() / 2;
+    CvPoint end;
+    end.x = start.x + ((int)(outX*m_phaseLineScale));
+    end.y = start.y - ((int)(outY*m_phaseLineScale));
+    cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
     }
 
 
