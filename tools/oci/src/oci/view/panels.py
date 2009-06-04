@@ -303,10 +303,10 @@ class AIPanel(wx.Panel):
         self._connections.append(conn)
         
     def _onEntered(self,event):
-        self._currentState.Value = '%s' % event.state.__class__.__name__
+        self._currentState.Value = '%s' % event.string
         
     def _onExited(self,event):
-        self._lastState.Value = '%s' % event.state.__class__.__name__
+        self._lastState.Value = '%s' % event.string
        
     def _onClose(self, closeEvent):
         for conn in self._connections:

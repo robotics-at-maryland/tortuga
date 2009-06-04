@@ -270,8 +270,8 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(None, self.machine.currentState())
         
         # Ensure we entered and exited the exit state
-        self.assertEquals(End, type(enterRecv.event.state))
-        self.assertEquals(End, type(exitRecv.event.state))
+        self.assertEquals(End.__name__, enterRecv.event.string)
+        self.assertEquals(End.__name__, exitRecv.event.string)
 
     def testEvents(self):
         enterRecv = Reciever()
@@ -290,12 +290,12 @@ class TestStateMachine(unittest.TestCase):
         # Check enter event
         self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.event.type)
         self.assertEquals(self.machine, enterRecv.event.sender)
-        self.assertEquals(nextState, enterRecv.event.state)
+        self.assertEquals(nextState.__class__.__name__, enterRecv.event.string)
 
         # Check exit event
         self.assertEquals(state.Machine.STATE_EXITED, exitRecv.event.type)
         self.assertEquals(self.machine, exitRecv.event.sender)
-        self.assertEquals(startState, exitRecv.event.state)
+        self.assertEquals(startState.__class__.__name__, exitRecv.event.string)
         
         # Check completion event
         self.machine.injectEvent(self._makeEvent(MockEventSource.ANOTHER_EVT))

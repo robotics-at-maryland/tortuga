@@ -23,6 +23,7 @@
 // Project Includes
 #include "core/include/EventPublisher.h"
 #include "core/include/EventPublisherRegistry.h"
+#include "core/include/Events.h"
 
 #include "vision/include/Events.h"
 
@@ -88,6 +89,18 @@ void serialize(Archive & ar, ram::core::Event& t,
 }
     
 BOOST_SERIALIZATION_SHARED_PTR(ram::core::Event)
+
+// ------------------------------------------------------------------------- //
+//                           C O R E   E V E N T S                           //
+// ------------------------------------------------------------------------- //
+
+template <class Archive>
+void serialize(Archive &ar, ram::core::StringEvent &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.string;
+}
 
 
 // ------------------------------------------------------------------------- //

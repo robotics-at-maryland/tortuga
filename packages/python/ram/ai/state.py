@@ -320,8 +320,8 @@ class Machine(core.Subsystem):
         self._currentState.enter()
         
         # Notify everyone we just entered the state
-        event = core.Event()
-        event.state = self._currentState
+        event = core.StringEvent()
+        event.string = self._currentState.__class__.__name__
         self.publish(Machine.STATE_ENTERED, event)
         
         # If we are in a state with no way out, exit the state and mark ourself
@@ -341,8 +341,8 @@ class Machine(core.Subsystem):
             conn.disconnect()
         self._connections = []
                 
-        changeEvent = core.Event()
-        changeEvent.state = self._currentState
+        changeEvent = core.StringEvent()
+        changeEvent.string = self._currentState.__class__.__name__
         self.publish(Machine.STATE_EXITED, changeEvent)
         
         self._currentState = None

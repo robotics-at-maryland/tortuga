@@ -96,6 +96,15 @@ def generate(module_builder, local_ns, global_ns):
     
     classes.append(Application)
 
+    # Wrap Events
+    def filterFunc(val):
+        if val.name.endswith('Event') and (val != 'Event'):
+            return True
+        return False
+    for cls in local_ns.classes(function= filterFunc, allow_empty = True):
+        cls.include()
+        classes.append(cls)
+
     # Add registrations functions for hand wrapped classes
     module_builder.add_registration_code("registerSubsystemList();")
     module_builder.add_registration_code("registerSubsystemClass();")
