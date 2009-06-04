@@ -96,6 +96,9 @@ class RAM_EXPORT VelocityDetector : public Detector
     /** Termination criteria (terminates when better than error Epsilon) */
     double m_lkEpsilon;
     
+    /** Length of LKFlow field lines */
+    double m_lkFlowFieldScale;
+    
     // Algorithm independent members
 
     /** Attempt phase correlation on the image */

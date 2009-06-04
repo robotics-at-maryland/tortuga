@@ -7,6 +7,9 @@
  * File:  packages/vision/include/VelocityDetector.h
  */
 
+// STD Include
+#include <cmath>
+
 // Library Includes
 #include "highgui.h"
 #include <boost/foreach.hpp>
@@ -22,8 +25,13 @@
 #include "core/include/PropertySet.h"
 
 #ifndef M_PI
-#define M_PI 3.14159
+#define M_PI 3.14159265358979323846
 #endif
+
+static double square(int a)
+{
+	return a * a;
+}
 
 namespace ram {
 namespace vision {
@@ -70,6 +78,9 @@ void VelocityDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "lkEpsilon", 
                          "termination criteria (better than error)", .3, 
                          &m_lkEpsilon);
+    propSet->addProperty(config, false, "lkFlowFieldScale",
+                         "length of field lines", 3.0, &m_lkFlowFieldScale,
+                         1.0, 10.0);
 
     // Initialize grey scale images (for PhaseCorrelation)
     m_currentGreyScale = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
@@ -137,6 +148,18 @@ void VelocityDetector::processImage(Image* input, Image* output)
         phaseCorrelation(output);
     else if (m_useLKFlow)
         LKFlow(output);
+    
+    // Draw velocity vector
+    if (output)
+    {
+        CvPoint start;
+        start.x = output->getWidth() / 2;
+        start.y = output->getHeight() / 2;
+        CvPoint end;
+        end.x = start.x + ((int)(m_velocity.x*m_phaseLineScale));
+        end.y = start.y - ((int)(m_velocity.y*m_phaseLineScale));
+        cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
+    }
 
     // We are done with our work now last save the input for later use
     m_lastFrame->copyFrom(input);
@@ -150,10 +173,12 @@ math::Vector2 VelocityDetector::getVelocity()
 void VelocityDetector::usePhaseCorrelation()
 {
     m_usePhaseCorrelation = true;
+    m_useLKFlow = false;
 }
 
 void VelocityDetector::useLKFlow()
 {
+    m_usePhaseCorrelation = false;
     m_useLKFlow = true;
 }
     
@@ -196,13 +221,98 @@ void VelocityDetector::LKFlow(Image* output)
                            optical_flow_found_feature, 
                            optical_flow_feature_error, 
                            optical_flow_termination_criteria, 0);
-    
-    // Long complicated process for drawing the flow field
 
     // We are done copy current over to the last
     cvCopyImage(m_currentGreyScale, m_lastGreyScale);
     
     // needs to return m_velocity
+    
+    CvPoint totalP, totalQ;
+    totalP.x = 0;
+    totalP.y = 0;
+    totalQ.x = 0;
+    totalQ.y = 0;
+    
+    for(int i=0; i < number_of_features; i++)
+    {
+        // skip feature if not found
+        if(optical_flow_found_feature[i] == 0)  continue;
+        
+        // plots each feature frame to frame
+        CvPoint p, q;
+        p.x = (int) frame1_features[i].x;
+        p.y = (int) frame1_features[i].y;
+        q.x = (int) frame2_features[i].x;
+        q.y = (int) frame2_features[i].y;
+        
+        totalP.x += p.x;
+        totalP.y += p.y;
+        totalQ.x += q.x;
+        totalQ.y += q.y;
+        
+        // we can draw then flow field if we want, but for now we will average
+        
+        // Draw velocity vector
+        //if (output)
+        //{
+        //    CvPoint start;
+        //    start.x = output->getWidth() / 2;
+        //    start.y = output->getHeight() / 2;
+        //    CvPoint end;
+        //    end.x = start.x + ((int)(m_velocity.x*m_phaseLineScale));
+        //    end.y = start.y - ((int)(m_velocity.y*m_phaseLineScale));
+        //    cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
+        
+        if (output)
+        {
+            int line_thickness = 1;
+            CvScalar line_color = CV_RGB(0,0,255);
+            double angle = atan2((double) p.y - q.y, (double) p.x - q.x);
+            double hypotenuse = sqrt(square(p.y - q.y) + square(p.x - q.x));
+            // Here we lengthen the arrow by a factor of three.
+            q.x = (int) (p.x - m_lkFlowFieldScale * hypotenuse * cos(angle));
+            q.y = (int) (p.y - m_lkFlowFieldScale * hypotenuse * sin(angle));
+            
+            cvLine(output->asIplImage(), p, q, line_color, line_thickness, CV_AA, 0);
+            
+            p.x = (int) (q.x + 5 * cos(angle + M_PI / 4));
+            p.y = (int) (q.y + 5 * sin(angle + M_PI / 4));
+            cvLine(output->asIplImage(), p, q, line_color, line_thickness, CV_AA, 0 );
+            p.x = (int) (q.x + 5 * cos(angle - M_PI / 4));
+            p.y = (int) (q.y + 5 * sin(angle - M_PI / 4));
+            cvLine(output->asIplImage(), p, q, line_color, line_thickness, CV_AA, 0);
+        }
+    }
+    
+    CvPoint avgP, avgQ;
+    avgP.x = 0;
+    avgP.y = 0;
+    avgQ.x = 0;
+    avgQ.y = 0;
+    double outImageX = 0;
+    double outImageY = 0;
+    
+    if (number_of_features != 0)
+    {
+        avgP.x = totalP.x/number_of_features;
+        avgP.y = totalP.y/number_of_features;
+        avgQ.x = totalQ.x/number_of_features;
+        avgQ.y = totalQ.y/number_of_features;
+        
+        outImageX = avgQ.x - avgP.x;
+        outImageY = avgQ.y - avgP.y;
+    }
+    
+    // need to convert coordinates to place origin in center
+    
+    //double outX = 0;
+    //double outY = 0;
+    //Detector::imageToAICoordinates(m_lastFrame, outImageX, outImageY, outX, 
+      //                             outY);
+    
+    // assign velocity
+    m_velocity = math::Vector2(-outImageX, outImageY);
+    
 }
         
 void VelocityDetector::phaseCorrelation(Image* output)
@@ -327,18 +437,6 @@ void VelocityDetector::phaseCorrelation(Image* output)
     
     // Assign velocity
     m_velocity = math::Vector2(outX, outY);
-
-    if (output)
-    {
-        CvPoint start;
-    start.x = output->getWidth() / 2;
-    start.y = output->getHeight() / 2;
-    CvPoint end;
-    end.x = start.x + ((int)(outX*m_phaseLineScale));
-    end.y = start.y - ((int)(outY*m_phaseLineScale));
-    cvLine(output->asIplImage(), start, end, CV_RGB(255,0,0), 1, CV_AA, 0);
-    }
-
 
     // We are done copy current over to the last
     cvCopyImage(m_currentGreyScale, m_lastGreyScale);

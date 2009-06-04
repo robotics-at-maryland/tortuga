@@ -88,6 +88,10 @@ TEST_FIXTURE(VelocityDetectorFixture, UpperLeft)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    
+    detector.useLKFlow();
+    determineVelocity();
+    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);    
 }
 
 TEST_FIXTURE(VelocityDetectorFixture, UpperRight)
@@ -105,6 +109,10 @@ TEST_FIXTURE(VelocityDetectorFixture, UpperRight)
 
     // Run the detector
     detector.usePhaseCorrelation();
+    determineVelocity();
+    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    
+    detector.useLKFlow();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
 }
@@ -126,6 +134,10 @@ TEST_FIXTURE(VelocityDetectorFixture, LowerLeft)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    
+    detector.useLKFlow();
+    determineVelocity();
+    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
 }
 
 TEST_FIXTURE(VelocityDetectorFixture, LowerRight)
@@ -143,6 +155,10 @@ TEST_FIXTURE(VelocityDetectorFixture, LowerRight)
 
     // Run the detector
     detector.usePhaseCorrelation();
+    determineVelocity();
+    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    
+    detector.useLKFlow();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
 }
