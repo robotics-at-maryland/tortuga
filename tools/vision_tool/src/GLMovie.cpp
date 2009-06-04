@@ -168,20 +168,24 @@ void GLMovie::render()
 }
 void GLMovie::onSize(wxSizeEvent &event)
 {
-    //Clear the matricies.
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    //Set up the matrices.
-    glOrtho(0.0f, (float) event.GetSize().GetWidth(), 0.0f,
-            (float) event.GetSize().GetHeight(), -1.0f, 1.0f);
-    glViewport(0, 0, event.GetSize().GetWidth(), event.GetSize().GetHeight());
+    if (initialized)
+    {
+        //Clear the matricies.
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        //Set up the matrices.
+        glOrtho(0.0f, (float) event.GetSize().GetWidth(), 0.0f,
+                (float) event.GetSize().GetHeight(), -1.0f, 1.0f);
+        glViewport(0, 0, event.GetSize().GetWidth(), 
+                   event.GetSize().GetHeight());
 
-    // Samples seem to prefer Update to Refresh.  Update also seems to
-    // correctly resize the OpenGL drawing area.  When using Refresh, the
-    // glcanvas is always one size behind.
-    Update();
+        // Samples seem to prefer Update to Refresh.  Update also seems to
+        // correctly resize the OpenGL drawing area.  When using Refresh, the
+        // glcanvas is always one size behind.
+        Update();
+    }
 }
     
 void GLMovie::onNewImage(core::EventPtr event)
