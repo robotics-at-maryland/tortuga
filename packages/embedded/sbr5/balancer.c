@@ -152,16 +152,20 @@ _FWDT ( WDT_OFF );
 
 
 /* ADC Inputs */
-#define ADC_B1V     0x0B
-#define ADC_B2V     0x09
-#define ADC_B3V     0x07
-#define ADC_B4V     0x03
 
 #ifdef BBR3
+    #define ADC_B1V     0x0B
+    #define ADC_B2V     0x09
+    #define ADC_B3V     0x07
+    #define ADC_B4V     0x03
     #define ADC_B5V     0x05
     #define ADC_B6V     0x0F
 #else
-    #define ADC_B5V     0x0F
+    #define ADC_B1V     0x0B
+    #define ADC_B2V     0x09
+    #define ADC_B3V     0x07
+    #define ADC_B4V     0x03
+    #define ADC_B5V     0x0F /* This is a dummy (There is not 6 battery slots on BBR2) */
     #define ADC_B6V     0x05
 #endif
 
@@ -171,13 +175,12 @@ _FWDT ( WDT_OFF );
 #define ADC_B2I     0x0A
 #define ADC_B3I     0x08
 #define ADC_B4I     0x06
-#define ADC_B5I     0x04
 
 #ifdef BBR3
     #define ADC_B5I     0x04
     #define ADC_B6I     0x0E
 #else
-    #define ADC_B5I     0x0E
+    #define ADC_B5I     0x0E /* Also a dummy (no battery here) */
     #define ADC_B6I     0x04
 #endif
 
@@ -403,7 +406,7 @@ void processData(byte data)
                     byte i;
 
                     /* Battery voltages. Big-endian. */
-                    for(i=0; i < BATT_COUNT + 1; i++)
+                    for(i=0; i < 7; i++)
                     {
                         unsigned int t = vBatt[i];
                         txBuf[2*i+1] = t >> 8;
@@ -689,7 +692,7 @@ void initADC()
 #endif
 
 #ifdef BBR3
-    ADPCFG = 0x8000;
+    ADPCFG = 0x0000;
 #endif
 
     ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
