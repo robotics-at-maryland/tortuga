@@ -286,10 +286,10 @@ class BinPanel(VisionPanel):
         
         if self._ai is not None:
             # Sorted closest to farthest
-            currentBinIDs = self._ai.data.get('currentBins', set())
+            currentBinIDs = self._ai.data['binData'].get('currentIds', set())
             currentBins = [b for b in currentBinIDs]
             sortedBins = sorted(currentBins, self._distCompare)
-            obj = self._ai.data['binData'][sortedBins[0]]
+            obj = self._ai.data['binData']['itemData'][sortedBins[0]]
             
         self._x.Value = "% 4.2f" % obj.x
         self._y.Value = "% 4.2f" % obj.y
@@ -299,7 +299,7 @@ class BinPanel(VisionPanel):
         self.enableControls()
     
     def _distCompare(self, aID, bID):
-        binData = self._ai.data['binData']
+        binData = self._ai.data['binData']['itemData']
         binA = binData[aID]
         binB = binData[bID]
         

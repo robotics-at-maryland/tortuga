@@ -266,4 +266,8 @@ class AITestCase(unittest.TestCase):
     def assertAIDataValue(self, key, value):
         self.assert_(self.ai.data.has_key(key))
         self.assertEqual(value, self.ai.data[key])
+        
+    def assertDataValue(self, data, key, value):
+        self.assert_(data.has_key(key))
+        self.assertEqual(value, data[key])
 

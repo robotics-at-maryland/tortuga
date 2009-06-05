@@ -20,9 +20,17 @@ import ram.motion.pipe
 import ram.test.ai.support as aisupport
 
 class PipeTest(aisupport.AITestCase):
-    def injectPipeEvent(self, x, y, angle):
+    def injectPipeEvent(self, x, y, angle, id = 0):
         self.injectEvent(vision.EventType.PIPE_FOUND, vision.PipeEvent,0,0,0, 
-                         x = x, y = y, angle = angle)
+                         x = x, y = y, angle = angle, id = id)
+    def publishQueuedPipeFound(self, **kwargs):
+        self.publishQueuedEvent(self.ai, vision.EventType.PIPE_FOUND, 
+                                vision.PipeEvent,0,0,0,
+                                **kwargs)
+    def publishQueuedPipeDropped(self, **kwargs):
+        self.publishQueuedEvent(self.ai, vision.EventType.PIPE_DROPPED, 
+                                vision.PipeEvent,0,0,0,
+                                **kwargs)
 
 class TestStart(PipeTest):
     def setUp(self):
@@ -117,8 +125,21 @@ def pipeFoundHelper(self):
     # Now the same maneuvers with the bias in the right direction
     cstate._biasDirection = math.Degree(45)
     
-    self.injectPipeEvent(x = 0, y = -0, angle = math.Degree(22.5))
+    self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(22.5))
     self.assertGreaterThan(self.controller.yawChange, 0)
+    
+    # Check if it doesn't change it's pipe without a bias
+    cstate._biasDirection = None
+    
+    # This should be ignored and the currentID should not be changed
+    self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-45), id = 1)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 0)
+    
+    # This should cause the vehicle to change its current ID and begin moving
+    # towards the new target
+    self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-15), id = 1)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 1)
+    self.assertLessThan(self.controller.yawChange, 0)
         
 class TestSeeking(PipeTest):
     def setUp(self):

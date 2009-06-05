@@ -10,6 +10,7 @@ import unittest
 
 # Project Imports
 import ram.ai.bin as bin
+import ram.ai.tracking as tracking
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -33,7 +34,7 @@ class BinTestCase(aisupport.AITestCase):
                              
     def binFoundHelper(self, shouldRotate = True, useMultiAngle = False):
         # Set our expected ID
-        self.ai.data['currentBinID'] = 6
+        self.ai.data['binData']['currentID'] = 6
         
         # Test improper bin
         self.assertEqual(0, self.controller.speed)
@@ -122,19 +123,19 @@ class BinTestCase(aisupport.AITestCase):
         # Add some and test
         self.publishQueuedBinFound(x = 0.5, y = -0.5, id = 6,
                                    angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([6]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([6]))
         
         self.publishQueuedBinFound(x = 0.3, y = -0.5, id = 2,
                                    angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([2,6]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([2,6]))
         
         self.publishQueuedBinFound(x = 0.2, y = -0.3, id = 3,
                                    angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([2, 3, 6]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([2, 3, 6]))
         
         # Check some bin data
-        self.assert_(self.ai.data.has_key('binData'))
-        binData = self.ai.data['binData']
+        self.assert_(self.ai.data['binData'].has_key('itemData'))
+        binData = self.ai.data['binData']['itemData']
         self.assertEqual(0.5, binData[6].x)
         self.assertEqual(0.3, binData[2].x)
         self.assertEqual(0.2, binData[3].x)
@@ -147,22 +148,22 @@ class BinTestCase(aisupport.AITestCase):
         # Remove some
         self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 3,
                                 angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([2, 6]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([2, 6]))
         self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 6,
                                 angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([2]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([2]))
         
         # Add one
         self.publishQueuedBinFound(x = 0.5, y = -0.5, id = 8,
                                 angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set([2,8]))
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set([2,8]))
         
         # Remove all
         self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 2,
                                 angle = math.Degree(0))
         self.publishQueuedBinDropped(x = 0.5, y = -0.5, id = 8,
                                 angle = math.Degree(0))
-        self.assertAIDataValue('currentBins', set())
+        self.assertDataValue(self.ai.data['binData'], 'currentIds', set())
    
 class TestStart(aisupport.AITestCase):
     def setUp(self):
@@ -181,7 +182,7 @@ class TestStart(aisupport.AITestCase):
 class TestTracking(BinTestCase):
     def testEnsureBinTracking(self):
         bin.ensureBinTracking(self.qeventHub, self.ai)
-        self.assertAIDataValue('binTrackingEnabled', True)
+        self.assertDataValue(self.ai.data['binData'], 'trackingEnabled', True)
     
     def testBinFoundDropped(self):
         bin.ensureBinTracking(self.qeventHub, self.ai)
@@ -205,8 +206,8 @@ class TestSearching(BinTestCase):
         self.assertCurrentState(bin.Seeking)
         
         # Make sure we record the current bin proper, and add it to our set
-        self.assertAIDataValue('currentBinID', 5)
-        self.assertAIDataValue('binTrackingEnabled', True)
+        self.assertDataValue(self.ai.data['binData'], 'currentID', 5)
+        self.assertDataValue(self.ai.data['binData'], 'trackingEnabled', True)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.binDetector)
@@ -282,8 +283,8 @@ class TestCentering(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         
         # Make sure timer works
         self.releaseTimer(bin.Centering.SETTLED)
@@ -309,8 +310,8 @@ class TestCentering(BinTestCase):
     def testSettled(self):
         """Make sure we move on after settling"""
         # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         # Inject settled event
         self.injectEvent(bin.Centering.SETTLED)
         self.assertCurrentState(bin.SeekEnd)
@@ -321,8 +322,8 @@ class TestCentering(BinTestCase):
         self.controller.desiredOrientation = expected
 
         # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         # Send SETTLED event
         self.injectEvent(bin.Centering.SETTLED)
 
@@ -343,8 +344,8 @@ class TestAligning(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         
         # Make sure timer works
         self.releaseTimer(bin.Aligning.ALIGNED)
@@ -369,8 +370,8 @@ class TestAligning(BinTestCase):
     def testSettled(self):
         """Make sure we move on after settling"""
         # Setup for SeekEnd
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         # Inject settled event
         self.injectEvent(bin.Aligning.ALIGNED)
         self.assertCurrentState(bin.Examine)
@@ -379,10 +380,11 @@ class TestSeekEnd(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         
+        self.ai.data['binData'] = dict()
         bin.ensureBinTracking(self.qeventHub, self.ai)
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3,4])
-        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
         self.machine.start(bin.SeekEnd)
         
         self._centered = False
@@ -409,15 +411,15 @@ class TestSeekEnd(BinTestCase):
 
     def testBinFound(self):
         """Make sure the loop back works"""
-        self.ai.data['currentBinID'] = 0
-        self.ai.data['currentBins'] = set([6])
+        self.ai.data['binData']['currentID'] = 0
+        self.ai.data['binData']['currentIds'] = set([6])
         
         # Make sure we repond to bin offset properly, but ignore orientation
         self.binFoundHelper(False, useMultiAngle = True)
         
     def testBinFoundCentered(self):
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         
         # Now test centered
         self._centered = False
@@ -432,8 +434,8 @@ class TestSeekEnd(BinTestCase):
         self.assert_(self._centered)
         
     def testBinTracking(self):
-        self.ai.data['currentBinID'] = 0
-        self.ai.data['currentBins'] = set()
+        self.ai.data['binData']['currentID'] = 0
+        self.ai.data['binData']['currentIds'] = set()
         self.binTrackingHelper()
         
     def testCentered(self):
@@ -443,9 +445,9 @@ class TestSeekEnd(BinTestCase):
         self.assertCurrentState(bin.SeekEnd)
         
         # We are in the center
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([2,3,4])
-        self.ai.data['binData'] = {2 : Mock(x = -1), 3 : Mock(x = 0),
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([2,3,4])
+        self.ai.data['binData']['itemData'] = {2 : Mock(x = -1), 3 : Mock(x = 0),
                                    4 : Mock(x = 1)}
         
         self.assertFalse(self._centered)
@@ -456,7 +458,7 @@ class TestSeekEnd(BinTestCase):
         
         self.assertFalse(self._centered)
         self.assertFalse(self._atEnd)
-        self.assertEqual(2, self.ai.data['currentBinID'])
+        self.assertEqual(2, self.ai.data['binData']['currentID'])
         self.assertCurrentState(bin.SeekEnd)
         
         # Now we are on the left, make sure another center, gets us the right
@@ -466,12 +468,12 @@ class TestSeekEnd(BinTestCase):
         
         self.assertFalse(self._centered)
         self.assert_(self._atEnd)
-        self.assertEqual(2, self.ai.data['currentBinID'])
+        self.assertEqual(2, self.ai.data['binData']['currentID'])
         
     def testCenteredNoBins(self):
         # Try no more bins
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set()
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set()
         self.assertCurrentState(bin.SeekEnd)
         self.injectEvent(bin.SeekEnd.CENTERED_)
         
@@ -578,7 +580,7 @@ class TestExamine(BinTestCase):
         Make sure the right event if found after we get the right number
         of events
         """
-        self.ai.data['currentBinID'] = 3
+        self.ai.data['binData']['currentID'] = 3
         
         # Test blank one
         self.injectBinFound(id = 4, suit = vision.Suit.HEART)
@@ -603,7 +605,7 @@ class TestExamine(BinTestCase):
         
     def testFoundSuit(self):
         # Send in a bunch of events
-        self.ai.data['currentBinID'] = 3 
+        self.ai.data['binData']['currentID'] = 3 
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
         self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
@@ -633,7 +635,7 @@ class TestExamine(BinTestCase):
         
     def testNoSuitFound(self):
         # Send in a bunch of events
-        self.ai.data['currentBinID'] = 3 
+        self.ai.data['binData']['currentID'] = 3 
         self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
         self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
         self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
@@ -725,8 +727,8 @@ class TestSurfaceToMove(BinTestCase):
         
     def testDiveFinished(self):        
         # Make sure we go the right place
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(bin.NextBin)
@@ -734,11 +736,12 @@ class TestSurfaceToMove(BinTestCase):
 class TestNextBin(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
+        self.ai.data['binData'] = dict()
         bin.ensureBinTracking(self.qeventHub, self.ai)
         
-        self.ai.data['currentBinID'] = 4
-        self.ai.data['currentBins'] = set([3,4])
-        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.ai.data['binData']['currentID'] = 4
+        self.ai.data['binData']['currentIds'] = set([3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
         self.machine.start(bin.NextBin)
         self.qeventHub.publishEvents()
         assert type(self.machine.currentState()) == bin.NextBin
@@ -758,9 +761,9 @@ class TestNextBin(BinTestCase):
         self.assertFalse(self._centered)
         
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3,4])
-        self.ai.data['binData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
         self.machine.start(bin.NextBin)
         self.qeventHub.publishEvents()
         
@@ -772,23 +775,23 @@ class TestNextBin(BinTestCase):
         self.assertFalse(self._centered)
         
         
-        self.ai.data['currentBinID'] = 6
-        self.ai.data['currentBins'] = set([6,3,5,4])
-        self.ai.data['binData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
+        self.ai.data['binData']['currentID'] = 6
+        self.ai.data['binData']['currentIds'] = set([6,3,5,4])
+        self.ai.data['binData']['itemData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
             5 : Mock(x = 1), 4 : Mock(x = 2)}
         self.machine.start(bin.NextBin)
         self.qeventHub.publishEvents()
                 
-        self.assertEqual(3, self.ai.data['currentBinID'])
+        self.assertEqual(3, self.ai.data['binData']['currentID'])
         self.assertFalse(self._atEnd)
         self.assertFalse(self._centered)
         self.assertCurrentState(bin.NextBin)
         
     def testMissingCurrent(self):
         # Make sure when lose the current we do something smart
-        self.ai.data['currentBinID'] = 8
-        self.ai.data['currentBins'] = set([6,3,5,4])
-        self.ai.data['binData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
+        self.ai.data['binData']['currentID'] = 8
+        self.ai.data['binData']['currentIds'] = set([6,3,5,4])
+        self.ai.data['binData']['itemData'] = {6 : Mock(x = -1), 3 : Mock(x = 0),
             5 : Mock(x = 1), 4 : Mock(x = 2)}
         self.machine.start(bin.NextBin)
         
@@ -798,21 +801,21 @@ class TestNextBin(BinTestCase):
         self.qeventHub.publishEvents()
                 
         self.assertCurrentState(bin.Recover)
-#        self.assertEqual(3, self.ai.data['currentBinID'])
+#        self.assertEqual(3, self.ai.data['binData']['currentID'])
 #        self.assertFalse(self._atEnd)
 #        self.assertFalse(self._centered)
 #        self.assertCurrentState(bin.NextBin)
 
     def testBinFound(self):
         """Make sure the loop back works"""
-        self.ai.data['currentBinID'] = 0
-        self.ai.data['currentBins'] = set([6])
+        self.ai.data['binData']['currentID'] = 0
+        self.ai.data['binData']['currentIds'] = set([6])
         
         self.binFoundHelper(False, useMultiAngle = True)
         
     def testBinFoundCentered(self):
-        self.ai.data['currentBinID'] = 3
-        self.ai.data['currentBins'] = set([3])
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([3])
         
         # Now test centered
         self._centered = False
@@ -827,8 +830,8 @@ class TestNextBin(BinTestCase):
         self.assert_(self._centered)
         
     def testBinTracking(self):
-        self.ai.data['currentBinID'] = 0
-        self.ai.data['currentBins'] = set()
+        self.ai.data['binData']['currentID'] = 0
+        self.ai.data['binData']['currentIds'] = set()
         self.binTrackingHelper()
         
     def testCentered(self):

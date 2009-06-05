@@ -27,9 +27,7 @@ import ram.motion.pipe # For the maneuvering motions
 
 COMPLETE = core.declareEventType('COMPLETE')
 
-def ensureBinTracking(qeventHub, ai):
-    # Create the dictionary for bin tracking if it doesn't exist
-        
+def ensureBinTracking(qeventHub, ai):        
     tracking.ensureItemTracking(qeventHub, ai, 'binData',
                                 vision.EventType.BIN_FOUND,
                                 vision.EventType.BIN_DROPPED)

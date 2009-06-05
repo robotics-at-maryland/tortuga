@@ -28,9 +28,15 @@ import ext.vision as vision
 import ext.math
 
 import ram.ai.state as state
+import ram.ai.tracking as tracking
 import ram.motion as motion
 import ram.motion.search
 import ram.motion.pipe
+
+def ensurePipeTracking(qeventHub, ai):        
+    tracking.ensureItemTracking(qeventHub, ai, 'pipeData',
+                                vision.EventType.PIPE_FOUND,
+                                vision.EventType.PIPE_DROPPED)
 
 class PipeFollowingState(state.State):
     @staticmethod
@@ -44,29 +50,63 @@ class PipeFollowingState(state.State):
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         
+        pipeData = self.ai.data['pipeData'] 
         angle = event.angle
+        
+        # Check if there is a current ID
+        pipeData.setdefault('currentID', event.id)
+        
+        # Find absolute vehicle direction
+        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleDirection = vehicleOrientation.getYaw(True)
+        
+        # Determine the absolute pipe direction
+        absPipeDirection = ext.math.Degree(vehicleDirection + angle)
+        
+        # Store the absolute pipe direction in the itemData
+        pipeData.setdefault('absoluteDirection', {})[event.id] = \
+            absPipeDirection
         
         # Only do work if we are biasing the direction
         if self._biasDirection is not None:
-            # Find absolute vehicle direction
-            vehicleOrientation = self.vehicle.getOrientation()
-            vehicleDirection = vehicleOrientation.getYaw(True)
+            # If the pipe event is not the currently followed pipe
+            if pipeData['currentID'] != event.id:
+                pass
+            else:
+                # Check difference between actual and "biasDirection"
+                difference = self._biasDirection - \
+                    pipeData['absoluteDirection'][event.id]
+                    
+                if math.fabs(difference.valueDegrees()) > 90:
+                    # We are pointing the wrong direction, so lets switch
+                    # it around
+                    if angle.valueDegrees() < 0:
+                        angle = ext.math.Degree(180) + angle
+                    else:
+                        angle = ext.math.Degree(-180) + angle
+                self._pipe.setState(event.x, event.y, angle)
         
-            # Determine absolute pipe direction
-            absPipeDirection = ext.math.Degree(vehicleDirection + angle)
-            
-            # Check difference between actual and "biasDirection"
-            difference = self._biasDirection - absPipeDirection
-            if math.fabs(difference.valueDegrees()) > 90:
-                # We are pointing the wrong direction, so lets switch it around
-                if angle.valueDegrees() < 0:
-                    angle = ext.math.Degree(180) + angle
-                else:
-                    angle = ext.math.Degree(-180) + angle
-        
-        self._pipe.setState(event.x, event.y, angle)
+        else: # If we are not biasing the direction
+            # If the pipe event is not the currently followed pipe
+            if pipeData['currentID'] != event.id:
+                # If the new pipe is closer to our current direction, switch
+                if math.fabs(angle.valueDegrees()) < math.fabs(
+                            pipeData['itemData'][pipeData['currentID']].angle.
+                            valueDegrees()):
+                    pipeData['currentID'] = event.id
+                    self._pipe.setState(event.x, event.y, angle)
+            else:
+                self._pipe.setState(event.x, event.y, angle)
+    
+    def PIPE_DROPPED(self, event):
+        # Check if the pipe dropped is the current pipe, and change to the
+        # next best pipe if it is.
+        pass
 
     def enter(self):
+        # Ensure pipe tracking
+        ensurePipeTracking(self.queuedEventHub, self.ai)
+        
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
 
         self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
@@ -148,7 +188,7 @@ class Centering(PipeFollowingState):
     """
     When the vehicle is settling over the pipe
     
-    @cvar SETTLED: Event fired when vehile has settled over the pipe
+    @cvar SETTLED: Event fired when vehicle has settled over the pipe
     """
     SETTLED = core.declareEventType('SETTLED')
     
@@ -201,6 +241,9 @@ class AlongPipe(PipeFollowingState):
 
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
+        
+        # Ensure pipe tracking
+        ensurePipeTracking(self.queuedEventHub, self.ai)
         
         # Initial settings
         PipeFollowingState.enter(self)
