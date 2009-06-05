@@ -44,8 +44,13 @@ class PipeFollowingState(state.State):
         if trans is None:
             trans = {}
         trans.update({vision.EventType.PIPE_LOST : Searching,
+                      vision.EventType.PIPE_DROPPED : myState,
                       vision.EventType.PIPE_FOUND : myState})
         return trans
+    
+    def PIPE_DROPPED(self, event):
+        # TODO: Add code here to handle when the current pipe is dropped
+        pass
     
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""

@@ -134,12 +134,25 @@ def pipeFoundHelper(self):
     # This should be ignored and the currentID should not be changed
     self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-45), id = 1)
     self.assertDataValue(self.ai.data['pipeData'], 'currentID', 0)
+    self.assertGreaterThan(self.controller.yawChange, 0)
     
     # This should cause the vehicle to change its current ID and begin moving
     # towards the new target
     self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-15), id = 1)
     self.assertDataValue(self.ai.data['pipeData'], 'currentID', 1)
     self.assertLessThan(self.controller.yawChange, 0)
+    
+    # Now the drop the pipe current pipe, make sure it switches back to the 
+    # old ID
+    # TODO: fix me so that on DROPPING a pipe it finds the next best one
+    # Uncomment the code below when its fixed!
+    #self.publishQueuedPipeDropped(id = 1)
+    #self.assertDataValue(self.ai.data['pipeData'], 'currentID', 0)
+    #self.assertGreaterThan(self.controller.yawChange, 0)
+    
+    # Now send in a new event and make sure it properly picks out the right pipe
+    # TODO: write me
+
         
 class TestSeeking(PipeTest):
     def setUp(self):
