@@ -92,6 +92,8 @@ class Pipe(Visual):
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
+        self._visible = False
+        self.id = 0
 
     def load(self, data_object):
         scene, parent, node = data_object
@@ -622,6 +624,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._runOrangePipe = False
         self._foundPipe = False
         self._pipeCentered = False
+        self._pipeID = 1
         
         # Bin detector variables
         self._runBin = False
@@ -1004,43 +1007,65 @@ class IdealSimVision(ext.vision.VisionSystem):
                              ext.core.Event())
 
         self._foundBarbedWire = frontVisible | backVisible
-
         
     def _checkOrangePipe(self):
         # Drop out if we have no Pipes
         if self._pipes is None:
             return
         
-        pipe, relativePos = self._findClosest(self._pipes)
-        pipeVisible, x, y, angle = self._downwardCheck(relativePos, pipe)
+        found = False
+        visibleBins = 0
+        robotPos = self.vehicle.robot.position + \
+            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
 
-        if pipeVisible and (relativePos.length() < 4.5):
-            event = ext.core.Event()
-            event.x = x
-            event.y = y
-            
-            if angle.valueDegrees() < -90:
-                angle = ext.math.Degree(angle.valueDegrees() + 180)
-            elif angle.valueDegrees() > 90:
-                angle = ext.math.Degree(angle.valueDegrees() - 180)
-            
-            event.angle = angle
-            self.publish(ext.vision.EventType.PIPE_FOUND, event)
-            
-            # Check for centering
-            toCenter = ogre.Vector2(x, y)
-            if toCenter.normalise() < 0.08:
-                if not self._pipeCentered:
-                    self._pipeCentered = True
-                    self.publish(ext.vision.EventType.PIPE_CENTERED, event)
-            else:
-                self._pipeCentered = False
-            
+        for pipe in self._pipes:
+            relativePos = pipe.position - robotPos
+            pipeVisible, x, y, angle = self._downwardCheck(relativePos, pipe)
+
+            if pipeVisible and (relativePos.length() < 4.5):
+                visibleBins += 1
+                found = True
+
+                id = 0
+                if not pipe._visible:
+                    pipe.id = self._pipeID
+                    pipe._visible = True
+                    self._pipeID += 1
+                else:
+                    id = pipe.id
+                
+                # Publish found event
+                event = ext.core.Event()
+                event.x = x
+                event.y = y
+                event.angle = angle
+                event.id = id
+                self.publish(ext.vision.EventType.PIPE_FOUND, event)
+                
+            elif pipe._visible:
+                event = ext.core.Event()
+                event.id = pipe.id
+                self.publish(ext.vision.EventType.PIPE_DROPPED, event)
+                pipe._visible = False
+                
+        # Lost Event
+        if self._foundPipe and (not found):
+            self.publish(ext.vision.EventType.PIPE_LOST, ext.core.Event())
+
+        # Check for centering
+        closestPipe, relativePos = self._findClosest(self._pipes)
+        pipeVisible, x, y, angle = self._downwardCheck(relativePos, closestPipe)
+
+        toCenter = ogre.Vector2(x, y)
+        if pipeVisible and (toCenter.normalise() < 0.08):
+            if not self._pipeCentered:
+                self._pipeCentered = True
+                self.publish(ext.vision.EventType.PIPE_CENTERED, ext.core.Event())
         else:
-            if self._foundPipe:
-                self.publish(ext.vision.EventType.PIPE_LOST, ext.core.Event())
+            self._pipeCentered = False
 
-        self._foundPipe = pipeVisible
+        self._foundPipe = found  
+      
         
     def _checkBin(self):
         # Drop out if we have no Bins
@@ -1097,24 +1122,9 @@ class IdealSimVision(ext.vision.VisionSystem):
             self.publish(ext.vision.EventType.BIN_LOST, ext.core.Event())
 
         # Check for centering
-        
-        # Sort list to find the closest bin
-        def cmp(a,b):
-            relativePosA = a.position - self.vehicle.robot.position
-            relativePosB = b.position - self.vehicle.robot.position
-            lenA = relativePosA.length()
-            lenB = relativePosB.length()
-            if lenA < lenB:
-                return -1
-            elif lenA > lenB:
-                return 1
-            else:
-                return 0
-        sort = sorted(self._bins, cmp)
-        
+
         # Transform to image space
-        closestBin = sort[0]
-        relativePos = closestBin.position - self.vehicle.robot.position
+        closestBin, relativePos = self._findClosest(self._bins)
         binVisible, x, y, angle = self._downwardCheck(relativePos, closestBin)
 
         toCenter = ogre.Vector2(x,y)

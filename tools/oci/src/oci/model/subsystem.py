@@ -119,15 +119,15 @@ class DemoMachine(ram.ai.state.Machine):
         
     def update(self, timestep):
         self._currentTime += timestep
-        event = core.Event()
-        exitEvent = core.Event()
+        event = core.StringEvent()
+        exitEvent = core.StringEvent()
         
         if math.sin(self._currentTime) > 0:
-            event.state = A()
-            exitEvent.state = B()
+            event.string = A.__name__
+            exitEvent.string = B.__name__
         else:
-            event.state = B()
-            exitEvent.state = A()
+            event.string = B.__name__
+            exitEvent.string = A.__name__
             
         self.publish(ram.ai.state.Machine.STATE_EXITED, exitEvent)
         self.publish(ram.ai.state.Machine.STATE_ENTERED, event)
