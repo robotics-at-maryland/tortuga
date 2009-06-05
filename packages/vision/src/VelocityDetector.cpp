@@ -81,6 +81,9 @@ void VelocityDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "lkFlowFieldScale",
                          "length of field lines", 3.0, &m_lkFlowFieldScale,
                          1.0, 10.0);
+    propSet->addProperty(config, false, "lkLengthMaxError",
+                         "Filter flow field vectors", 5.0,
+                         &m_lkLengthMaxError, 0.0, 10.0);
 
     // Initialize grey scale images (for PhaseCorrelation)
     m_currentGreyScale = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 1);
@@ -245,10 +248,24 @@ void VelocityDetector::LKFlow(Image* output)
         q.x = (int) frame2_features[i].x;
         q.y = (int) frame2_features[i].y;
         
-        totalP.x += p.x;
-        totalP.y += p.y;
-        totalQ.x += q.x;
-        totalQ.y += q.y;
+        math::Vector2 flowVector(-(q.x - p.x), q.y - p.y);
+        
+        // Do test
+        double lengthDifference = 
+            fabs(flowVector.length() - m_velocity.length());
+        bool good = false;
+        if ((lengthDifference / m_velocity.length()) < m_lkLengthMaxError)
+            good = true;
+        if (m_velocity.length() < 0.0001)
+            good = true;
+
+        if (good)
+        {
+            totalP.x += p.x;
+            totalP.y += p.y;
+            totalQ.x += q.x;
+            totalQ.y += q.y;
+        }
         
         // we can draw then flow field if we want, but for now we will average
         
@@ -267,6 +284,8 @@ void VelocityDetector::LKFlow(Image* output)
         {
             int line_thickness = 1;
             CvScalar line_color = CV_RGB(0,0,255);
+            if (!good)
+                line_color = CV_RGB(0,255,0);
             double angle = atan2((double) p.y - q.y, (double) p.x - q.x);
             double hypotenuse = sqrt(square(p.y - q.y) + square(p.x - q.x));
             // Here we lengthen the arrow by a factor of three.

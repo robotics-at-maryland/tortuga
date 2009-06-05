@@ -96,8 +96,11 @@ class RAM_EXPORT VelocityDetector : public Detector
     /** Termination criteria (terminates when better than error Epsilon) */
     double m_lkEpsilon;
     
-    /** Length of LKFlow field lines */
+    /** Length of L-K Flow field lines */
     double m_lkFlowFieldScale;
+    
+    /** Flow field magnitude error */
+    double m_lkLengthMaxError;
     
     // Algorithm independent members
 
