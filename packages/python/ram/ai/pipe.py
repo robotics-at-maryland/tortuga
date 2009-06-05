@@ -49,13 +49,48 @@ class PipeFollowingState(state.State):
         return trans
     
     def PIPE_DROPPED(self, event):
-        # TODO: Add code here to handle when the current pipe is dropped
-        pass
-    
+        """Update the tracking system when a pipe is lost. If the pipe
+           dropped is the current pipe, find the closest pipe to the
+           vehicles orienatation and switch to it."""
+
+        # Declare to make it easier to read
+        pipeData = self.ai.data['pipeData']
+
+        # Check if the pipe dropped is the current pipe, and change to the
+        # next best pipe if it is.
+        if pipeData['currentID'] == event.id:
+            # The current pipe has been dropped, find the best new match
+            # Do this by checking the absolute directions of each pipe and
+            # comparing them to the vehicles
+
+            # Find absolute vehicle direction
+            vehicleOrientation = self.vehicle.getOrientation()
+            vehicleDirection = vehicleOrientation.getYaw(True)
+            
+            # Find the id with the absolute direction closest to the
+            # vehicle direction
+            min = None
+            for i in pipeData['currentIds']:
+                if not i is pipeData['currentID']:
+                    if min is None:
+                        min = i
+                    else:
+                        if pipeData['absoluteDirection'][i] \
+                                < pipeData['absoluteDirection'][min]:
+                            min = i
+            if min is None:
+                del pipeData['currentID']
+                self.publish(vision.EventType.PIPE_LOST, core.Event())
+            else:
+                pipeData['currentID'] = min
+                self._pipe.setState(pipeData['itemData'][min].x,
+                                    pipeData['itemData'][min].y,
+                                    pipeData['itemData'][min].angle)
+
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         
-        pipeData = self.ai.data['pipeData'] 
+        pipeData = self.ai.data['pipeData']
         angle = event.angle
         
         # Check if there is a current ID
@@ -76,8 +111,17 @@ class PipeFollowingState(state.State):
         if self._biasDirection is not None:
             # If the pipe event is not the currently followed pipe
             if pipeData['currentID'] != event.id:
-                pass
-            else:
+                # If the new pipe is closer to the biasDirection, switch
+                currentPipeDifference = ext.math.Degree(self._biasDirection) - \
+                    pipeData['absoluteDirection'][pipeData['currentID']]
+                newPipeDifference = ext.math.Degree(self._biasDirection) - \
+                    pipeData['absoluteDirection'][event.id]
+
+                if math.fabs(newPipeDifference.valueDegrees()) < \
+                        math.fabs(currentPipeDifference.valueDegrees()):
+                    pipeData['currentID'] = event.id
+                    self._pipe.setState(event.x, event.y, angle)
+            else: # Otherwise continue normally
                 # Check difference between actual and "biasDirection"
                 difference = self._biasDirection - \
                     pipeData['absoluteDirection'][event.id]
@@ -100,13 +144,8 @@ class PipeFollowingState(state.State):
                             valueDegrees()):
                     pipeData['currentID'] = event.id
                     self._pipe.setState(event.x, event.y, angle)
-            else:
+            else: # Otherwise continue normally
                 self._pipe.setState(event.x, event.y, angle)
-    
-    def PIPE_DROPPED(self, event):
-        # Check if the pipe dropped is the current pipe, and change to the
-        # next best pipe if it is.
-        pass
 
     def enter(self):
         # Ensure pipe tracking

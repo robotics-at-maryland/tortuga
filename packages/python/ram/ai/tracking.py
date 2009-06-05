@@ -31,6 +31,7 @@ def ensureItemTracking(qeventHub, ai, name, foundEvent, lostEvent):
             """
             Remove dropped bins from records
             """
+
             id = event.id
             # Remove from the set of current bins
             data['currentIds'].remove(id)
