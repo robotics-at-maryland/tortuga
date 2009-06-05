@@ -35,6 +35,17 @@ try:
     Quaternion.__str__ = quatStr
     Quaternion.__repr__ = quatStr
 
+    def vector3Str(self):
+        return 'Vector3(%f, %f, %f)' % (self.x, self.y, self.z)
+    Vector3.__str__ = vector3Str
+    Vector3.__repr__ = vector3Str
+
+    def vector2Str(self):
+        return 'Vector2(%f, %f)' % (self.x, self.y)
+    Vector2.__str__ = vector2Str
+    Vector2.__repr__ = vector2Str
+
+
 finally:
     sys.stderr = stderr
 
