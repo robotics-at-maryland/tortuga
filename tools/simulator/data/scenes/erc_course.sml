@@ -27,8 +27,8 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-23, 10, 0]
-            orientation: [0, 0, 1, -45]
+            position: [-10, -23, 0]
+            orientation: [0, 0, 1, 45]
     
     Objects:        
         course:
@@ -36,28 +36,28 @@ Scene:
             
             startType: [sim.vision.IPipe, sim.vision.Pipe]
             start: pipe1
-            startPos: [-18, 6]
-            startDepth: 0
-            startHeading: 60
+            startPos: [-6, -18]
+            startDepth: [-2.753, -3.053]
+            startHeading: -35
             
             pipe1:
                 buoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
                     distance: 8
-                    depth: 0
+                    depth: [-0.353, -0.653]
 
             buoy:
                 pipe2:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
-                    depth: 0
+                    depth: [-2.753, -3.053]
                     heading: -80
            
             pipe2:
                 barbedwire:
                     type: [sim.vision.IBarbedWire, sim.vision.BarbedWire]
                     distance: 7
-                    depth: 0
+                    depth: [-0.953, -1.253]
                     heading: 25
                     
             barbedwire:
@@ -66,20 +66,20 @@ Scene:
                     distance: 3
                     heading: 45
                     offset: -1
-                    depth: 0
+                    depth: [-2.753, -3.053]
                 leftpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
                     heading: -35
                     offset: 1
-                    depth: 0
+                    depth: [-2.753, -3.053]
             
             rightpipe:
                 target:
                     type: [ram.sim.object.IObject, sim.vision.Target]
                     distance: 8
                     heading: -30
-                    depth: 0
+                    depth: [-1.023, -1.323]
             
             target:
                 targetTablePipe:
@@ -87,48 +87,48 @@ Scene:
                     distance: 2
                     heading: -10
                     direction: -90
-                    depth: 0
+                    depth: [-2.753, -3.053]
                 targetSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: -40
-                    depth: 0
+                    depth: [-2.753, -3.053]
             
             leftpipe:
                 blackJackTable:
                     type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
                     distance: 9
                     heading: 10
-                    depth: 0
+                    depth: [-2.753, -3.053]
             
             blackJackTable:
                 tableSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: 15
-                    depth: 0
+                    depth: [-2.753, -3.053]
                     
                 tableTargetPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
                     heading: 37.5
                     direction: 90
-                    depth: 0
+                    depth: [-2.753, -3.053]
             
             tableSonarPipe:
                 sonar:
                     type: [sim.vision.ISafe, sim.vision.Safe]
                     distance: 16
-                    depth: 0
+                    depth: -3.353
             
-        #water:
-        #    type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
-        #    Graphical:
-        #        mesh: 'PLANE:water'
-        #        width: 50
-        #        height: 25
-        #        normal: [0, 0, 1]
-        #        material: 'Simple/Translucent'
+        water:
+            type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
+            Graphical:
+                mesh: 'PLANE:water'
+                width: 25
+                height: 50
+                normal: [0, 0, 1]
+                material: 'Simple/Translucent'
          
         ground:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
@@ -138,7 +138,7 @@ Scene:
                 mesh: 'PLANE:ground'
                 width: 25
                 height: 50
-                normal: [0.0, 0.5, 0.5] #[0.0, 0.0365516170574, 0.999331766377]
+                normal: [0, 0, 1]
                 material: 'Simple/BumpyMetal'
                 utile: 15
                 vtile: 15
@@ -160,6 +160,7 @@ Scene:
                 normal: [-1, 0, 0]
                 upvec: [0, 0, 1]
                 material: 'Simple/FlatMetal'
+
                 utile: 12
                 vtile: 3
             
