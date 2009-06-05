@@ -39,12 +39,15 @@ struct OrangePipeDetectorFixture
             boost::bind(&OrangePipeDetectorFixture::centeredHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::PIPE_LOST,
             boost::bind(&OrangePipeDetectorFixture::lostHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::PIPE_DROPPED,
+            boost::bind(&OrangePipeDetectorFixture::droppedHandler, this, _1));
     }
 
     void processImage(vision::Image* image, bool show = false)
     {
         foundEvents.clear();
         lostEvents.clear();
+        droppedEvents.clear();
         
         if (show)
 	{
@@ -84,11 +87,19 @@ struct OrangePipeDetectorFixture
         lostEvents.push_back(event);
     }
 
+    void droppedHandler(core::EventPtr event_)
+    {
+        event = boost::dynamic_pointer_cast<vision::PipeEvent>(event_);
+        droppedEvents.push_back(event);
+    }
+
+    
     bool found;
     bool centered;
     vision::PipeEventPtr event;
     std::vector<vision::PipeEventPtr> foundEvents;
     std::vector<vision::PipeEventPtr> lostEvents;
+    std::vector<vision::PipeEventPtr> droppedEvents;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
     vision::OrangePipeDetector detector;
@@ -395,8 +406,8 @@ TEST_FIXTURE(OrangePipeDetectorFixture, PipeTrackingAndLoss)
     CHECK_EQUAL(rightPipe.getId(), foundEvents[0]->id);
     
     // Check out lost events
-    CHECK_EQUAL(1u, lostEvents.size());
-    CHECK_EQUAL(leftPipe.getId(), lostEvents[0]->id);
+    CHECK_EQUAL(1u, droppedEvents.size());
+    CHECK_EQUAL(leftPipe.getId(), droppedEvents[0]->id);
 }
 
 

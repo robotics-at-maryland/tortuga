@@ -17,6 +17,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, LIGHT_ALMOST_HIT);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_CENTERED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_DROPPED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_LOST);
