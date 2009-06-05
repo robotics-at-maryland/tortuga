@@ -44,27 +44,57 @@ class PipeFollowingState(state.State):
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         
+        
         angle = event.angle
         
-        # Only do work if we are biasing the direction
+        # If the pipe is the one we're following, act normally
+        #if self._followingPipeId == event.id:
+            # Only do work if we are biasing the direction
         if self._biasDirection is not None:
-            # Find absolute vehicle direction
+                # Find absolute vehicle direction
             vehicleOrientation = self.vehicle.getOrientation()
             vehicleDirection = vehicleOrientation.getYaw(True)
         
-            # Determine absolute pipe direction
+                # Determine absolute pipe direction
             absPipeDirection = ext.math.Degree(vehicleDirection + angle)
             
-            # Check difference between actual and "biasDirection"
+                # Check difference between actual and "biasDirection"
             difference = self._biasDirection - absPipeDirection
+                # records this pipe's absolute direction against the bias
+            self._difference = difference
+                
             if math.fabs(difference.valueDegrees()) > 90:
-                # We are pointing the wrong direction, so lets switch it around
+                    # We are pointing the wrong direction, so lets switch it around
                 if angle.valueDegrees() < 0:
                     angle = ext.math.Degree(180) + angle
                 else:
                     angle = ext.math.Degree(-180) + angle
         
         self._pipe.setState(event.x, event.y, angle)
+        #elif self._blacklist is None or event.id in self._blacklist:
+            # Determine absolute pipe direction
+            #absPipeDirection = ext.mat.Degree(vehicleDirection + angle)
+            
+            # Check difference between actual and "biasDirection"
+            #difference = self._biasDirection - absPipeDirection
+            
+            # Compare the difference of the old pipe to the new pipe
+            # Difference for both should be between 0 and 90, fix it to
+            # account for going in the wrong direction
+            #self._biasDirection = self._biasDirection % 90.0
+            #difference = difference % 90.0
+            
+            # Check which pipe is closer to the biasDirection.
+            #if difference < self._biasDirection:
+                # If the new pipe is closer to the direction we want to go
+                # change the pipe ID to follow it
+            #    self._followingPipeId = event.id
+                # Now call PIPE_FOUND again to move the vehicle properly
+            #    PIPE_FOUND(self, event)
+            #else:
+                # Blacklist this pipe's ID so it's never checked again
+            #    self._blacklist = set()
+            #    self._blacklist.add(event.id)
 
     def enter(self):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)

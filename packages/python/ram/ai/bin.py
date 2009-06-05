@@ -18,6 +18,7 @@ import ext.vision as vision
 import ext.math as math
 
 import ram.ai.state as state
+import ram.ai.tracking as tracking
 import ram.motion as motion
 import ram.motion.basic
 import ram.motion.search
@@ -26,44 +27,12 @@ import ram.motion.pipe # For the maneuvering motions
 
 COMPLETE = core.declareEventType('COMPLETE')
 
-# Helper functions which deal with tracking bins based on "found" and "dropped"
-# events
 def ensureBinTracking(qeventHub, ai):
-    if not ai.data.has_key('binTrackingEnabled'):
-        ai.data['currentBins'] = set()
-        ai.data['binData'] = {}
-
-
-        def binFound(event):
-            """
-            Ensures found event is stored, along with its latest data
-            """
-            id = event.id
-            ai.data['currentBins'].add(id)
-            ai.data['binData'][id] = event
-            
-        def binDropped(event):
-            """
-            Remove dropped bins from records
-            """
-            id = event.id
-            # Remove from the set of current bins
-            ai.data['currentBins'].remove(id)
-    
-            # Remove from our data list
-            binData = ai.data['binData']
-            del binData[id]
-            ai.data['binData'] = binData
-            
-        connA = qeventHub.subscribeToType(vision.EventType.BIN_FOUND, 
-                                          binFound)
-        connB = qeventHub.subscribeToType(vision.EventType.BIN_DROPPED, 
-                                          binDropped)
-    
-        ai.addConnection(connA)
-        ai.addConnection(connB)
+    # Create the dictionary for bin tracking if it doesn't exist
         
-        ai.data['binTrackingEnabled'] = True
+    tracking.ensureItemTracking(qeventHub, ai, 'binData',
+                                vision.EventType.BIN_FOUND,
+                                vision.EventType.BIN_DROPPED)
 
 class HoveringState(state.State):
     """
@@ -83,7 +52,7 @@ class HoveringState(state.State):
         return trans
     
     def _currentBin(self, event):
-        return self.ai.data.get('currentBinID', 0) == event.id
+        return self.ai.data['binData'].get('currentID', 0) == event.id
     
     def MULTI_BIN_ANGLE(self, event):
         self._multiAngle = event.angle
@@ -122,6 +91,7 @@ class HoveringState(state.State):
         Use multiAngle determines whether or not you listen to the bin angle
         or the angle of the array of the bins
         """
+            
         # Make sure we are tracking
         ensureBinTracking(self.queuedEventHub, self.ai)
         
@@ -197,7 +167,7 @@ class BinSortingState(HoveringState):
                           bins
         """
         if (direction != BinSortingState.LEFT) and (direction != BinSortingState.RIGHT):
-            raise Exception("ERORR Wrong Direction")
+            raise Exception("ERROR Wrong Direction")
         self._direction = direction
         
         self._centeredRange = self._config.get('centeredRange', 0.2)
@@ -215,7 +185,7 @@ class BinSortingState(HoveringState):
         sortedBins = self._getSortedBins()
         
         # Compare to current ID
-        currentBinId = self.ai.data['currentBinID']
+        currentBinId = self.ai.data['binData']['currentID']
         mostEdgeBinId = self._getNextBin(sortedBins, currentBinId)
         
         if mostEdgeBinId is None:
@@ -225,7 +195,7 @@ class BinSortingState(HoveringState):
             return False
         else:
             # Still more bins to go
-            self.ai.data['currentBinID'] = mostEdgeBinId
+            self.ai.data['binData']['currentID'] = mostEdgeBinId
             return True
 
     
@@ -239,7 +209,7 @@ class BinSortingState(HoveringState):
         @type idB: int
         @param idB: ID of the other bin to compare
         """
-        binData = self.ai.data['binData']
+        binData = self.ai.data['binData']['itemData']
         binAx = binData[idA].x
         binBx = binData[idB].x
         
@@ -260,7 +230,7 @@ class BinSortingState(HoveringState):
         """
         Returns the bins sorted based desired direction, left/right
         """
-        currentBins = [b for b in self.ai.data['currentBins']]
+        currentBins = [b for b in self.ai.data['binData']['currentIds']]
         sortedBins = sorted(currentBins, self._compareBins)
         return sortedBins
     
@@ -270,7 +240,7 @@ class BinSortingState(HoveringState):
         if thats there is no next bin.
         """
         # Compare to current ID
-        currentBinId = self.ai.data['currentBinID']
+        currentBinId = self.ai.data['binData']['currentID']
         if len(sortedBins) == 0:
             #event = vision.BinEvent(0, 0, vision.Suit.UNKNOWN, math.Degree(0))
             self.publish(vision.EventType.BIN_LOST, core.Event())
@@ -304,10 +274,12 @@ class Searching(state.State):
         return { vision.EventType.BIN_FOUND : Seeking }
 
     def BIN_FOUND(self, event):
-        self.ai.data['currentBinID'] = event.id
-        self.ai.data['currentBins'] = set()
+        self.ai.data['binData']['currentID'] = event.id
+        self.ai.data['binData']['currentIds'] = set()
 
     def enter(self):
+        ensureBinTracking(self.queuedEventHub, self.ai)
+        
         # Turn on the vision system
         self.visionSystem.binDetectorOn()
 
@@ -349,10 +321,12 @@ class Recover(state.State):
                  Recover.TIMEOUT : Searching }
 
     def BIN_FOUND(self, event):
-        self.ai.data['currentBinID'] = event.id
-        self.ai.data['currentBins'] = set()        
+        self.ai.data['binData']['currentID'] = event.id
+        self.ai.data['binData']['currentIds'] = set()
 
     def enter(self):
+        ensureBinTracking(self.queuedEventHub, self.ai)
+        
         self.timer = self.timerManager.newTimer(Recover.TIMEOUT, 
                                                 self._config.get('timeout', 5))
         
