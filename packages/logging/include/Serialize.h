@@ -141,7 +141,7 @@ void serialize(Archive &ar, ram::vision::PipeEventPtr &t,
   ar & t->angle;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::vision::PipeEvent)    
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::PipeEvent)
     
 template <class Archive>
 void serialize(Archive &ar, ram::vision::BinEventPtr &t, 

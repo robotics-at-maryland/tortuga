@@ -15,6 +15,7 @@ namespace ram {
 namespace core {
 
 Event::Event() :
+    sender(0),
     timeStamp(TimeVal::timeOfDay().get_double())
 {
 }
