@@ -148,12 +148,6 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 
     // Determine if we found any pipes
     bool found = pipes.size() > 0;
-    if (!found && m_found)
-    {
-        // We have lost the pipe
-        publish(EventType::PIPE_LOST, core::EventPtr(new core::Event()));
-    }
-    m_found = found;
     
     // Determine which pipes (by id) were present last time, but aren't present
     // now.  Also build the set of current pipe IDs
@@ -192,6 +186,14 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Record the current set of Ids
     m_lastPipeIds = newIds;
 
+    // Send the lost event if we lost all the pipes
+    if (!found && m_found)
+    {
+        // We have lost the pipe
+        publish(EventType::PIPE_LOST, core::EventPtr(new core::Event()));
+    }
+    m_found = found;
+    
     if (m_found)
     {
         // Record the center pipe information
