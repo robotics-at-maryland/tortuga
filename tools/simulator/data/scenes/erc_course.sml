@@ -78,20 +78,20 @@ Scene:
                 target:
                     type: [ram.sim.object.IObject, sim.vision.Target]
                     distance: 8
-                    heading: -30
+                    heading: -10
                     depth: [-1.023, -1.323]
             
             target:
                 targetTablePipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
-                    heading: -10
+                    heading: -30
                     direction: -90
                     depth: [-2.753, -3.053]
                 targetSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
-                    heading: -40
+                    heading: -60
                     depth: [-2.753, -3.053]
             
             leftpipe:
@@ -133,6 +133,7 @@ Scene:
         ground:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
             position: [0, 0, -3.353]
+            orientation: [1, 0, 0, -2.095]
             
             Graphical:
                 mesh: 'PLANE:ground'
