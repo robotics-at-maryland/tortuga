@@ -79,7 +79,7 @@ class SeekPoint(Motion):
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
                  translate = False, translateGain = 1, iDepthGain = 0,
                  dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0,
-                 yawGain = 1.0):
+                 yawGain = 1.0, maxDepthDt = 0):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -108,6 +108,7 @@ class SeekPoint(Motion):
         self._depthGain = depthGain
         self._iDepthGain = iDepthGain
         self._dDepthGain = dDepthGain
+        self._maxDepthDt = maxDepthDt
         self._sumDepth = 0;
         self._oldDepth = 0;
         
@@ -146,6 +147,13 @@ class SeekPoint(Motion):
                 ki = self._iDepthGain,
                 sum = self._sumDepth, 
                 xOld = self._oldDepth)
+
+            # Clamp depth change
+            if self._maxDepthDt != 0:
+                if dtDepth > self._maxDepthDt:
+                    dtDepth = self._maxDepthDt
+                elif dtDepth < -self._maxDepthDt:
+                    dtDepth = -self._maxDepthDt
             
             currentDepth = self._vehicle.getDepth()
             newDepth = currentDepth + dtDepth
@@ -221,6 +229,8 @@ class SeekPoint(Motion):
         """
         self._running = False
         self._controller.setSpeed(0)
+        if self._translate:
+            self._controller.setSidewaysSpeed(0)
         self._conn.disconnect()
 
 class SeekPointToRange(SeekPoint):
@@ -230,7 +240,8 @@ class SeekPointToRange(SeekPoint):
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
                  maxSpeed = 0.0, depthGain = 1, translate = False, 
                  translateGain = 1, iDepthGain = 0, dDepthGain = 0,
-                 iTranslateGain = 0, dTranslateGain = 0, yawGain = 1.0):
+                 iTranslateGain = 0, dTranslateGain = 0, yawGain = 1.0,
+                 maxDepthDt = 0):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -241,10 +252,11 @@ class SeekPointToRange(SeekPoint):
         """
         SeekPoint.__init__(self, target, 
                            maxSpeed = maxSpeed, depthGain = depthGain, 
-                           translate = translate, translateGain = translateGain, 
+                           translate = translate, translateGain = translateGain,
                            iDepthGain = iDepthGain, dDepthGain = dDepthGain,
                            iTranslateGain = iTranslateGain, 
-                           dTranslateGain = dTranslateGain, yawGain = yawGain)
+                           dTranslateGain = dTranslateGain, yawGain = yawGain,
+                           maxDepthDt = maxDepthDt)
         
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff
@@ -295,7 +307,7 @@ class ObserverControllerSeekPoint(Motion):
         # Determine new Depth
         absoluteTargetDepth = \
             self._vehicle.getDepth() + self._target.relativeDepth
-        self._controller.setDepth(absoluteTargetDepth)    
+        self._controller.setDepth(absoluteTargetDepth)
     
         # Determine how to yaw the vehicle
         vehicleHeading =  self._vehicle.getOrientation().getYaw(True)

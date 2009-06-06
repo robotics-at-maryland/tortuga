@@ -50,7 +50,8 @@ class SeekPointTest(support.MotionTest):
             
     def checkCommand(self, azimuth, elevation, range = 0, x = 0, y = 0,
                      yawChange = None, newDepth = None, newSpeed = None,
-                     newSidewaysSpeed = None, translate = False):
+                     newSidewaysSpeed = None, translate = False,
+                     maxDepthDt = 0):
         """
         Checks the commands given to the controller with a certain buoy state
         
@@ -70,16 +71,18 @@ class SeekPointTest(support.MotionTest):
             maxSpeed = 1
         if newSidewaysSpeed is None or translate:
             if not translate:
-                m = self.makeClass(target = Buoy, maxSpeed = maxSpeed)
+                m = self.makeClass(target = Buoy, maxSpeed = maxSpeed, 
+                                   maxDepthDt = maxDepthDt)
             else:
                 m = self.makeClass(target = Buoy, maxSpeed = maxSpeed,
-                                   translate = True)
+                                   translate = True, maxDepthDt = maxDepthDt)
         else:
             maxSidewaysSpeed = 0
             if newSidewaysSpeed is not None:
                 maxSidewaysSpeed = 1
             m = self.makeClass(target = Buoy, maxSpeed = maxSpeed,
-                               maxSidewaysSpeed = maxSidewaysSpeed)
+                               maxSidewaysSpeed = maxSidewaysSpeed,
+                               maxDepthDt = maxDepthDt)
         
         # Start it and check the first results
         self.motionManager.setMotion(m)
@@ -128,6 +131,13 @@ class TestSeekPoint(SeekPointTest):
         # Make sure we only change a depth
         self.checkCommand(azimuth = 0, elevation = 0, y = -0.75, yawChange = 0, 
                           newDepth = 5.75)
+
+        # Now do the same test with a limited depth delta
+        self.vehicle.depth = 5
+        self.controller.depth = 4.5
+        
+        self.checkCommand(azimuth = 0, elevation = 0, y = -0.75, yawChange = 0, 
+                          newDepth = 5.3, maxDepthDt = 0.3)
         
     def testAbove(self):
         # Same oscillation issue as above
@@ -138,6 +148,13 @@ class TestSeekPoint(SeekPointTest):
         # Make sure we only change depth
         self.checkCommand(azimuth = 0, elevation = 0, y = 0.5, yawChange = 0, 
                           newDepth = 9.5)
+
+        # Now do the same test with a limited depth delta
+        self.vehicle.depth = 10
+        self.controller.depth = 10.5
+        
+        self.checkCommand(azimuth = 0, elevation = 0, y = 0.5, yawChange = 0, 
+                          newDepth = 9.7, maxDepthDt = 0.3)
         
     def testLeft(self):
         # Turning toward light at 30 Degrees off North
@@ -195,6 +212,17 @@ class TestSeekPoint(SeekPointTest):
         # Buoy in the right part of the frame
         self.checkCommand(azimuth = -45, elevation = 0, x = 0.5, 
                           translate = True, newSidewaysSpeed = 0.5)
+        
+    def testStop(self):
+        # Buoy in the right part of the frame
+        self.checkCommand(azimuth = -22.5, elevation = 0, x = 0.25,
+                          range = 10, newSpeed = 0.6464,
+                          translate = True, newSidewaysSpeed = 0.25)
+        
+        # Stop the motion and make sure there is zero sideways speed
+        self.motionManager.stopCurrentMotion()
+        self.assertEqual(0, self.controller.sidewaysSpeed)
+        self.assertEqual(0, self.controller.speed)
 
     def testTrack(self):
         self.vehicle.depth = 5

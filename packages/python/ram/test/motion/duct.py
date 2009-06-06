@@ -59,3 +59,10 @@ class TestDuctSeekAlign(TestSeekPointToRange):
         
         self.targetAlignment = -60
         self.checkCommand(azimuth = 0, elevation = 0, newSidewaysSpeed = 1)
+        
+    def testStop(self):
+        self.targetAlignment = -60
+        self.checkCommand(azimuth = 0, elevation = 0, newSidewaysSpeed = 1)
+        
+        self.motionManager.stopCurrentMotion()
+        self.assertEqual(0, self.controller.sidewaysSpeed)
