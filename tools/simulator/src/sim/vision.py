@@ -111,7 +111,9 @@ class Pipe(Visual):
 class BarbedWire(ram.sim.object.Object):
     core.implements(ram.sim.object.IObject, IBarbedWire)
     
-    SEPERATION = 1.2192
+    SEPERATION = 1.2192 # 4 ft
+    WIDTH = 1.8288 # 6 ft
+    ROPE_LENGTH = 5 # 16.4 ft
     
     @two_step_init
     def __init__(self):
@@ -153,14 +155,27 @@ class BarbedWire(ram.sim.object.Object):
         baseName = node['name']
         
         frontBackOffset = \
-            orientation * ogre.Vector3(BarbedWire.SEPERATION/2, 0, 0)
+            orientation * ogre.Vector3(BarbedWire.SEPERATION/2.0, 0, 0)
+        ropeOffset = orientation * ogre.Vector3(0, BarbedWire.WIDTH/2.0, 0)
+        ropeVertOffset = \
+            orientation * ogre.Vector3(0, 0, -BarbedWire.ROPE_LENGTH/2.0)
+
+
         drawOrientation = orientation * ogre.Quaternion(
             ogre.Degree(90), ogre.Vector3.UNIT_Z)
+        ropeDrawOrientation = orientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_Y)
+
         
         # Shared graphics node
         gfxNode = {'mesh': 'cylinder.mesh', 
                    'material' : 'Simple/Green',
-                   'scale': [1.8288, 0.0508/2, 0.0508/2] }
+                   'scale': [BarbedWire.WIDTH, 0.0508/2, 0.0508/2] }
+
+        ropeGfxNode = {'mesh': 'cylinder.mesh', 
+                       'material' : 'Simple/Black',
+                       'scale': [BarbedWire.ROPE_LENGTH, 0.0508/3, 0.0508/3] }
+
         
         # Create Front Pipe
         position = basePos + (frontBackOffset * -1)
@@ -170,6 +185,27 @@ class BarbedWire(ram.sim.object.Object):
                'Graphical' : gfxNode}
         self._front = Visual()
         self._front.load((scene, parent, cfg))
+
+        # Create Front Left Rope
+        position = basePos + (frontBackOffset * -1) + ropeOffset + \
+                   ropeVertOffset
+        cfg = {'name' : baseName + 'BarbedWireFrontLeftRope', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(ropeDrawOrientation) ,
+               'Graphical' : ropeGfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+
+        # Create Front Right Side
+        position = basePos + (frontBackOffset * -1) - ropeOffset + \
+                   ropeVertOffset
+        cfg = {'name' : baseName + 'BarbedWireFrontRightRop', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(ropeDrawOrientation) ,
+               'Graphical' : ropeGfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+
         
         # Create Back Pipe
         position = basePos + (frontBackOffset * 1)
@@ -180,6 +216,27 @@ class BarbedWire(ram.sim.object.Object):
         self._back = Visual()
         self._back.load((scene, parent, cfg))
         
+        # Create Back Left Rope
+        position = basePos + (frontBackOffset * 1) + ropeOffset + \
+                   ropeVertOffset
+        cfg = {'name' : baseName + 'BarbedWireBackLeftRope', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(ropeDrawOrientation) ,
+               'Graphical' : ropeGfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+
+        # Create Back Right Side
+        position = basePos + (frontBackOffset * 1) - ropeOffset + \
+                   ropeVertOffset
+        cfg = {'name' : baseName + 'BarbedWireBackRightRop', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(ropeDrawOrientation) ,
+               'Graphical' : ropeGfxNode}
+        self._front = Visual()
+        self._front.load((scene, parent, cfg))
+
+
 class Target(ram.sim.object.Object):
     core.implements(ram.sim.object.IObject, ITarget)
     
