@@ -79,7 +79,7 @@ class SeekPoint(Motion):
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
                  translate = False, translateGain = 1, iDepthGain = 0,
                  dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0,
-                 yawGain = 1.0, maxDepthDt = 0):
+                 yawGain = 1.0, maxDepthDt = 0, alignmentThreshold = 0.1):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -95,6 +95,7 @@ class SeekPoint(Motion):
         self._running = False
         self._target = target
         self._maxSpeed = maxSpeed
+        self._alignmentThreshold = alignmentThreshold
         
         self._yawGain = yawGain 
         
@@ -190,7 +191,7 @@ class SeekPoint(Motion):
         if self._maxSpeed != 0:
             self._controller.setSpeed(self._speedScale() * self._maxSpeed)
         
-        if self._alignment() <= 0.1 and not self._first:
+        if self._alignment() <= self._alignmentThreshold and not self._first:
             self.publish(SeekPoint.POINT_ALIGNED, ext.core.Event())
 
         self._first = False
@@ -241,7 +242,7 @@ class SeekPointToRange(SeekPoint):
                  maxSpeed = 0.0, depthGain = 1, translate = False, 
                  translateGain = 1, iDepthGain = 0, dDepthGain = 0,
                  iTranslateGain = 0, dTranslateGain = 0, yawGain = 1.0,
-                 maxDepthDt = 0):
+                 maxDepthDt = 0, alignmentThreshold = 0.1):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -256,7 +257,8 @@ class SeekPointToRange(SeekPoint):
                            iDepthGain = iDepthGain, dDepthGain = dDepthGain,
                            iTranslateGain = iTranslateGain, 
                            dTranslateGain = dTranslateGain, yawGain = yawGain,
-                           maxDepthDt = maxDepthDt)
+                           maxDepthDt = maxDepthDt, 
+                           alignmentThreshold = alignmentThreshold)
         
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff

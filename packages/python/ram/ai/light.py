@@ -82,6 +82,10 @@ class Align(state.State):
                  vision.EventType.LIGHT_FOUND : Align,
                  ram.motion.seek.SeekPoint.POINT_ALIGNED : Seek }
 
+    def POINT_ALIGNED(self, event):
+        """Holds the current depth when we find we are aligned"""
+        self.controller.holdCurrentDepth()
+
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         self._light.setState(event.azimuth, event.elevation, event.range,
@@ -92,15 +96,19 @@ class Align(state.State):
         depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
         dDepthGain = self._config.get('dDepthGain', 0.5)
+        maxDepthDt = self._config.get('maxDepthDt', 0.3)
         desiredRange = self._config.get('desiredRange', 5)
         speed = self._config.get('speed', 3)
+        alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
         motion = ram.motion.seek.SeekPointToRange(target = self._light,
+                                                  alignmentThreshold = alignmentThreshold,
                                                   desiredRange = desiredRange,
                                                   maxRangeDiff = 5,
                                                   maxSpeed = speed,
                                                   depthGain = depthGain,
                                                   iDepthGain = iDepthGain,
-                                                  dDepthGain = dDepthGain)
+                                                  dDepthGain = dDepthGain,
+                                                  maxDepthDt = maxDepthDt)
         self.motionManager.setMotion(motion)
 
     def exit(self):

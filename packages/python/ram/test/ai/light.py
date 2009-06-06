@@ -120,6 +120,7 @@ class TestAlign(support.AITestCase):
     def testSeek(self):
         """Make sure we try to hit the light when close"""
         self.injectEvent(ram.motion.seek.SeekPoint.POINT_ALIGNED)
+        self.assertEqual(1, self.controller.depthHolds)
         self.assertCurrentState(light.Seek)
         
 class TestSeek(support.AITestCase):

@@ -183,6 +183,7 @@ class TestSeekingToCentered(TestRangeXYHold):
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        # TODO: Take a close look at range seeking here
         #self.assertEqual(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)

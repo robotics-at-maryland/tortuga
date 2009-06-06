@@ -115,6 +115,7 @@ class RangeXYHold(FilteredState, state.State):
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
+        alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
         depthGain = self._config.get('depthGain', defaultDepthGain)
         iDepthGain = self._config.get('iDepthGain', 0.05)
         dDepthGain = self._config.get('dDepthGain', 0.75)
@@ -125,6 +126,7 @@ class RangeXYHold(FilteredState, state.State):
         translateGain = self._config.get('translateGain', 2)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
+            alignmentThreshold = alignmentThreshold,
             desiredRange = self._desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
