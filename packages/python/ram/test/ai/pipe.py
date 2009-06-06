@@ -167,8 +167,9 @@ def pipeFoundHelper(self):
     self.assertDataValue(self.ai.data['pipeData'], 'currentID', 1)
     self.assertLessThan(self.controller.yawChange, 0)
 
-    # Now drop the old pipe
+    # Now drop the old pipe and make sure we aren't still storing abs. direction
     self.publishQueuedPipeDropped(id = 0)
+    self.assertFalse(self.ai.data['pipeData']['absoluteDirection'].has_key(0))
 
     # Now drop the last pipe and make sure currentID is deleted and state
     # is changed
@@ -267,6 +268,19 @@ class TestAlongPipe(PipeTest):
         """Make sure it goes to between pipes, when pipe is lost"""
         self.injectEvent(vision.EventType.PIPE_LOST)
         self.assertCurrentState(pipe.BetweenPipes)
+
+    def testPipeDropped(self):
+        """Ensure that when the current pipe is dropped its no longer current"""
+
+        # Get it tracking a pipe
+        self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-90),
+                                    id = 1)
+        self.assertDataValue(self.ai.data['pipeData'], 'currentID', 1)
+
+        # Now drop the pipe and make sure the current id is removed
+        self.publishQueuedPipeDropped(id = 1)
+        self.assertFalse(self.ai.data['pipeData'].has_key('currentID'))
+
 
 class TestBetweenPipes(PipeTest):
     def testStart(self):

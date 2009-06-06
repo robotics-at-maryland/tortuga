@@ -56,6 +56,10 @@ class PipeFollowingState(state.State):
         # Declare to make it easier to read
         pipeData = self.ai.data['pipeData']
 
+        # Remove the stored absolute direction
+        absDirection = pipeData['absoluteDirection']
+        del absDirection[event.id]
+
         # Check if the pipe dropped is the current pipe, and change to the
         # next best pipe if it is.
         if pipeData['currentID'] == event.id:
@@ -69,23 +73,23 @@ class PipeFollowingState(state.State):
             
             # Find the id with the absolute direction closest to the
             # vehicle direction
-            min = None
+            minID = None
             for i in pipeData['currentIds']:
                 if not i is pipeData['currentID']:
-                    if min is None:
-                        min = i
+                    if minID is None:
+                        minID = i
                     else:
                         if pipeData['absoluteDirection'][i] \
-                                < pipeData['absoluteDirection'][min]:
-                            min = i
-            if min is None:
+                                < pipeData['absoluteDirection'][minID]:
+                            minID = i
+            if minID is None:
                 del pipeData['currentID']
                 self.publish(vision.EventType.PIPE_LOST, core.Event())
             else:
-                pipeData['currentID'] = min
-                self._pipe.setState(pipeData['itemData'][min].x,
-                                    pipeData['itemData'][min].y,
-                                    pipeData['itemData'][min].angle)
+                pipeData['currentID'] = minID
+                self._pipe.setState(pipeData['itemData'][minID].x,
+                                    pipeData['itemData'][minID].y,
+                                    pipeData['itemData'][minID].angle)
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -159,11 +163,11 @@ class PipeFollowingState(state.State):
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)
-        iSpeedGain = self._config.get('iSpeedGain', 0.5)
+        iSpeedGain = self._config.get('iSpeedGain', 0.1)
         
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 3)
-        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.25)
-        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.5)
+        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.5)
+        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.05)
         
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('forwardSpeed', 5)
@@ -263,7 +267,21 @@ class AlongPipe(PipeFollowingState):
     def transitions():
         return { vision.EventType.PIPE_LOST : BetweenPipes,
                  vision.EventType.PIPE_FOUND : AlongPipe,
+                 vision.EventType.PIPE_DROPPED : AlongPipe,
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
+
+
+    def PIPE_DROPPED(self, event):
+        """Update the tracking system when a pipe is lost. If the pipe
+           dropped is the current pipe, find the closest pipe to the
+           vehicles orienatation and switch to it."""
+
+        # Declare to make it easier to read
+        pipeData = self.ai.data['pipeData']
+
+        # Drop the currentID if we lost the pipe
+        if pipeData['currentID'] == event.id:
+            del pipeData['currentID']
 
 
     def PIPE_FOUND(self, event):
