@@ -1,0 +1,16 @@
+Subsystems:
+    Manager:
+        type: MockSubsystem
+        test: 10
+    Servant1:
+        type: MockSubsystem
+        depends_on: ["Manager"]
+        test: 5
+    Servant2:
+        type: MockSubsystem
+        depends_on: ["Manager"]
+        test: 3
+    SubServant:
+        type: MockSubsystem
+        depends_on: ["Servant1", "Servant2"]
+        test: 11

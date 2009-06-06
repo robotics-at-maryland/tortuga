@@ -1,0 +1,61 @@
+# Copyright (C) 2007 Maryland Robotics Club
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  wrappers/control/SConscript
+
+import os
+
+# Build System imports
+import buildfiles.wrap as wrap
+import buildfiles.libs as libs
+import buildfiles.helpers as helpers
+
+Import('env')
+envl = env.Clone()
+
+# Find all cpp files in the source directory
+extra_sources = envl.Glob('src', '*.cpp')
+extra_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'wrappers', 'control')
+envl.Append(CPPPATH = os.path.abspath(os.environ['RAM_SVN_DIR']))
+
+# Link to libram_pattern.so library
+libs.add_internal(envl, 'control')
+
+# Pattern library directories
+base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'control')
+header_dir = os.path.join(base_dir, 'include')
+
+# Need for because Py++ has so odd include paths
+envl.Append(CPPPATH = base_dir)
+
+# Headers we are currently wrapping
+wrapped_headers = ['IController.h']
+
+if env.HasFeature('core'):
+    wrapped_headers.append('Events.h')
+wrapped_headers = [os.path.join(header_dir, h) for h in wrapped_headers]
+
+# Tests
+envt = env.Clone()
+test_prog, runner = envt.Tests(int_deps = 'control', ext_deps = 'Boost.Python',
+                       run = False)
+
+py_sources = [os.path.abspath(s) for s in envl.Glob('python', '*.py')]
+def extras(env, output, message = None, deps = None):
+    tester = runner(env, output, message, deps)
+    py_install = env.Install(dir = os.environ['RAM_SVN_DIR'] + '/build_ext/ext',
+                             source = py_sources)
+
+    env.Depends(tester, py_install)    
+    return tester
+                       
+# Wrapper
+envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
+          tester = extras,
+          dep_wrappers = ['_core', 'core.py', '_math', 'math.py', '_vehicle',
+                          'vehicle/__init__.py'],
+          dont_build = ['SubsystemList.pypp.cpp'],
+          extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
+          

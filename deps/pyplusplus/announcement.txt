@@ -1,0 +1,45 @@
+Hello!
+
+I'm pleased to announce the 1.0 release of Py++.
+
+What is Py++?
+=============
+
+Py++ is an object-oriented framework for creating a code generator for
+Boost.Python library.
+
+Where is Py++?
+==============
+
+Site: http://language-binding.net/pyplusplus/pyplusplus.html
+
+Download: http://language-binding.net/pyplusplus/download.html
+
+What's new?
+===========
+
+Features
+--------
+
+* Algorightm, which defines what virtual functions should be redefined was improved.
+
+* Exposing "C" code became easier - Py++ is able to generate ``ctypes`` friendly code.
+
+* Support for ``boost::python::make_constructor`` functionality was added.
+
+* Support for unions and unnamed classes was added.
+
+Bug fixes
+---------
+
+* Indexing Suite V2 - few bugs were fixed. 
+  
+  
+Contributors:
+
+* Julian Scheid
+* Oliver Schweitzer
+
+
+For a more complete list, with links to documentation, please see the news:
+http://language-binding.net/pyplusplus/history/history.html

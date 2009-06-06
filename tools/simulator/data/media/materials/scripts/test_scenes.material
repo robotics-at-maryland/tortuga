@@ -1,0 +1,46 @@
+material Simple/BumpyMetal
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture BumpyMetal.jpg
+			}
+		}
+	}
+}
+
+material Simple/FlatMetal
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture murcim001.jpg
+			}
+		}
+	}
+}
+
+material Simple/Translucent
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 0.2 0.2 0.8
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 0.2 0.2 0.8
+			scene_blend add
+			depth_write off
+		}
+	}
+}

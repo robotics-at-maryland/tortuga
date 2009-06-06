@@ -1,0 +1,14 @@
+material TankWallConcrete
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.900002 0.900002 0.900002 1.000000
+			specular 0.258483 0.161142 0.161142 1.000000 17.250000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}

@@ -1,0 +1,35 @@
+#! /usr/bin/python
+# Copyright 2004-2008 Roman Yakovenko.
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+import os
+import sys
+import rational_settings
+
+Import( 'env' )
+
+def get_ccflags():
+    if sys.platform == 'win32':
+        return rational_settings.scons.ccflags \
+               + map( lambda ds: '/D%s' % ds, rational_settings.defined_symbols )
+    else:
+        return map( lambda ds: '-D' + ds, rational_settings.defined_symbols )
+
+def get_source_files():
+    source_files = filter( lambda s: s.endswith( '.cpp' ), os.listdir(rational_settings.generated_files_dir) )
+    return map( lambda fname: os.path.join( rational_settings.generated_files_dir, fname ), source_files )
+
+def get_target():
+    return os.path.join( rational_settings.generated_files_dir
+                         , rational_settings.module_name + rational_settings.scons.suffix )
+
+local_env = env.Copy()
+local_env.Append( CPPPATH=[ rational_settings.generated_files_dir ] )
+local_env.Append( CCFLAGS=get_ccflags() )
+
+_rational_ = local_env.SharedLibrary( target=rational_settings.module_name 
+                                 , source=get_source_files() )
+
+local_env.Install( '#pyboost/rational', _rational_ )

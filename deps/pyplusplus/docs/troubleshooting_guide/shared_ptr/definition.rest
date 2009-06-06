@@ -1,0 +1,3 @@
+Boost.Python works pretty well with ``boost::shared_ptr< T >`` class, but 
+additional  work should be done if you want to register a conversion to 
+``boost::shared_ptr< const T>`` class.

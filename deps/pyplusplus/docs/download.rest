@@ -1,0 +1,65 @@
+=============
+Py++ download
+=============
+
+.. contents:: Table of contents
+
+-------------------
+Py++ on SourceForge
+-------------------
+
+`Py++`_ project is hosted on SourceForge. Using SourceForge services you
+can:
+
+1) get access to source code
+2) get access to latest release version of `Py++`_
+
+
+-----------------
+Subversion access
+-----------------
+
+http://sourceforge.net/svn/?group_id=118209
+
+--------
+Download
+--------
+
+https://sourceforge.net/project/showfiles.php?group_id=118209
+
+------------
+Installation
+------------
+
+In command prompt or shell change current directory to be "pyplusplus-X.Y.Z".
+"X.Y.Z" is version of `Py++`_. Type the following command:
+
+| ``python setup.py install``
+
+After this command complete, you should have installed `Py++`_ package.
+
+Boost.Python installation
+-------------------------
+
+Users of Microsoft Windows can enjoy from simple `installer for Boost Libraries`_.
+You can find it `here`_. Take a look on new `getting started guide`_ for Boost
+libraries.
+
+Another very valuable link related to Boost is http://engineering.meta-comm.com/boost.aspx .
+You will find hourly snapshots of the source code and the documentation for all
+Boost libraries.
+
+.. _`getting started guide` : http://boost.cvs.sourceforge.net/*checkout*/boost/boost/more/getting_started.html
+.. _`here` : http://www.boost-consulting.com/products/free
+.. _`installer for Boost Libraries` : http://www.boost-consulting.com/products/free
+
+------------
+Dependencies
+------------
+
+* `pygccxml`_
+
+
+.. _`Py++` : ./pyplusplus.html
+.. _`pygccxml` : ./../pygccxml/pygccxml.html
+

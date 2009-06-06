@@ -1,0 +1,30 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vehicle/SConscript
+
+import os
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = envl.Glob('src', '*.cpp')
+
+# Build Procducts (library will be called 'libram_vehicle.so')
+envl.RAMSharedLibrary('control',  source = sources)
+
+# Test Control Program
+envt = env.Clone()
+
+if os.name == 'posix':
+    envt.RAMProgram(target = 'ControlTest', 
+                    source = 'test/src/ControlTest.cpp',
+                    int_deps = ['vehicle', 'control'],
+                    ext_deps = ['Boost.ProgramOptions'])
+
+envt = env.Clone()
+envt.Tests(int_deps = 'control')

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>CFBundleDevelopmentRegion</key>
+        <string>English</string>
+        <key>CFBundleExecutable</key>
+        <string>VisionTool</string>
+        <key>CFBundleIconFile</key>
+        <string>logo_icon.icns</string>
+        <key>CFBundleIdentifier</key>
+        <string>org.ram.tools.VisionTool</string>
+        <key>CFBundleName</key>
+        <string>VisionTool</string>
+        <key>CFBundlePackageType</key>
+        <string>UR@M</string>
+        <key>CSResourcesFileMapped</key>
+        <true/>
+        <key>LSRequiresCarbon</key>
+        <true/>
+        <key>NSHumanReadableCopyright</key>
+        <string>Copyright 2009 Robotics @ Maryland</string>
+</dict>
+</plist>

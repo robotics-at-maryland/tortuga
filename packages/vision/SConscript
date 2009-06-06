@@ -1,0 +1,106 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vision/SConscript
+
+import platform
+import os
+from buildfiles import libs
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+if (os.name == 'nt'):
+    envl.Append(LIBS = ['ws2_32'])
+
+# --------------------------------------------------------------------------- #
+#                              L I B R A R Y                                  #
+# --------------------------------------------------------------------------- #
+
+ext_deps = []
+# Only need boost if we are compling the wrappers and the core
+if env.HasFeature('wrappers'):
+    libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
+
+# Sources
+sources = env.Glob('src', '*.cpp')
+
+# Add in ffmpeg libraries specifally on Mac OS X
+if envl['RAM_OS'] == 'darwin':
+  envl.Append(LIBS = ['avcodec', 'avformat', 'swscale', 'avutil'])
+	
+# Build Library (will be called 'libram_vision.so')
+# All build settings for the library are stored in buildfiles/libs.py
+envl.RAMSharedLibrary('vision',  source = sources, ext_deps = ext_deps)
+
+
+# --------------------------------------------------------------------------- #
+#                               T E S T S                                     #
+# --------------------------------------------------------------------------- #
+
+envt = env.Clone()
+
+# Basic camera test
+if platform.system() in ['Linux', 'Darwin']:
+    envt.AppendUnique(CCFLAGS = '-Wno-unused')
+envt.Program(target = 'CvCaptureTest', source = 'test/src/CvCaptureTest.c')
+
+# Optical Flow
+envt.RAMProgram(target = 'OpticalFlowTest',
+                source = 'test/src/OpticalFlow.cpp',
+                ext_deps = ['OpenCV'])
+
+# Image Analyzer
+envt.RAMProgram(target = 'ImageAnalyzer',
+                source = 'test/src/ImageAnalysisTest.cpp',
+                int_deps = ['vision'])
+
+# Suit Histogram Calculator
+envt.RAMProgram(target = 'SuitHistoCalculator',
+                source = 'test/src/SuitHistoCalculatorTest.cpp',
+                int_deps = ['vision'])
+
+
+# Detector Test
+envt.RAMProgram(target = 'DetectorTest', 
+                source = 'test/src/DetectorTest.cpp',
+                int_deps = ['vision'],
+                ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
+
+# Network Trainer
+envt.RAMProgram(target = 'NetworkTrainer',
+		source = 'test/src/NetworkTrainer.cpp',
+		int_deps = ['vision'])
+
+# FFTW based programs 
+envt.RAMProgram(target = 'PhaseCorrelation',
+		source = 'test/src/phase_correlation.cpp',
+		int_deps = ['vision'], ext_deps = ['fftw'])
+
+
+# Unit Tests
+envt = env.Clone()
+envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'])
+
+
+# --------------------------------------------------------------------------- #
+#                               D E M O S                                     #
+# --------------------------------------------------------------------------- #
+
+envd = env.Clone()
+
+# OpenGL Vision Demo
+# Doesn't have portable includes, can't build on Linux/Mac
+#envd.RAMProgram(target = 'VisionDemo',
+#                source = 'demos/src/VisionDemo.cpp',
+#                int_deps = ['vision'])
+
+# Hough Transform Demo
+if (os.name != 'nt'):
+    envd.RAMProgram(target = 'HoughDemo',
+                    source = 'demos/src/houghDemo.cpp',
+                    ext_deps = ['OpenCV'])

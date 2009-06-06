@@ -1,0 +1,166 @@
+==========
+Properties
+==========
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Boost.Python`_ allows users to specify class properties. You can read about
+this functionality in the `tutorials`_  or in the `reference manual`_. Since
+version 0.8.2 `Py++`_ provides a convenient API to specify class properties.
+
+.. _`tutorials` : http://boost.org/libs/python/doc/tutorial/doc/html/python/exposing.html#python.class_properties
+.. _`reference manual` : http://boost.org/libs/python/doc/v2/class.html
+
+-------------
+Usage example
+-------------
+
+.. code-block:: C++
+
+  struct number{
+      ...
+      float value() const;
+      void  set_value( float );
+      ...
+  private:
+      float m_value;
+  }
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  number = mb.class_( 'number' )
+  number.add_property( 'ro_value', number.member_function( 'value' ) )
+  number.add_property( 'value'
+                       , number.member_function( 'value' )
+                       , number.member_function( 'set_value' ) )
+
+This is rather the hard way to add properties to the class. `Py++`_ comes with
+built-in algorithm, which automatically recognizes properties and adds them to the
+class:
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  number = mb.class_( 'number' )
+  number.add_properties( exclude_accessors=False ) #accessors will be exposed
+
+Small advise to you: try ``add_properties`` algorithm first, it should work.
+If it doesn't than:
+
+* Please, bring your use case to the developers of `Py++`_, so we could improve
+  it
+
+* Switch to the ``add_property`` method for a while
+
+-------------
+Call policies
+-------------
+
+Consider the following use case:
+
+.. code-block:: C++
+
+  struct nested{ ... };
+
+.. code-block:: C++
+
+  struct data{
+      ...
+      const nested& get_nested() const
+      { return m_nested; }
+      ...
+  private:
+      nested m_nested;
+  };
+
+In order to expose ``get_nested`` member function you have to specify its
+`call policies`_. Same precondition holds for exposing member function as
+property:
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  get_nested = mb.member_function( 'get_nested' )
+  get_nested.call_policies = call_policies.return_internal_reference()
+  mb.class_( 'data' ).add_properties()
+
+`Py++`_ will take the `call policies`_ information from the relevant accessor.
+
+.. _`call policies` : http://boost.org/libs/python/doc/tutorial/doc/html/python/functions.html#python.call_policies
+
+------------------------------
+Property recognition algorithm
+------------------------------
+
+Description
+-----------
+
+In general the algorithm is very simple. `Py++`_ understands few coding
+conventions. It is aware of few widely used get\\set prefixes. It scans the class
+and its base classes for accessors and after this it tries to match between
+"get" and "set" accessors. If there is "set" accessors, but there is no "get"
+accessor, property will not be constructed. At least one accessor should belong
+to the class. In new property will override an existing exposed declarations
+property will not be created and warning will be written.
+
+Find accessors
+--------------
+
+This part of the algorithm is responsible for finding all functions, which meet
+get\\set accessors criteria.
+
+"get" accessor criteria
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1. It does not have arguments.
+2. It has return other than ``void``.
+3. It does not modify the instance - has ``const`` attribute.
+4. It does not have an overload.
+
+"set" accessor criteria
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1. It has only 1 argument.
+2. Its return type is ``void``.
+3. It do modify the instance - doesn't have ``const`` attribute.
+
+There are also few rules that applies on both accessor types:
+
+1. Accessor should be **included**.
+2. Accessor should be "public".
+3. It should not be static.
+4. It should not be pure virtual.
+
+
+Recognize property
+------------------
+
+This part of the algorithm is responsible to recognize the pair of "get" and "set"
+accessors, which constructs the property. `Py++`_ does it by analyzing name and
+type of the accessors.
+
+`Py++`_ understands the following coding conventions:
+
+* lowercase_with_underscores
+* UpperCamel
+* lowCamel
+
+It is also aware of few common prefixes for set\\get accessors: get, is, has, set,
+<<empty prefix for get accessor>>.
+
+-------------
+Documentation
+-------------
+You can use ``doc`` attribute to specify the property documentation. If you
+don't, than `Py++`_ will construct documentation, which will describe from what
+functions this property was built from.
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org

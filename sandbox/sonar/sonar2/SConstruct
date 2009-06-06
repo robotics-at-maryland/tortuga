@@ -1,0 +1,80 @@
+opts = Options('options.py')
+opts.AddOptions(
+    ('CC', 'The C compiler to use','gcc'),
+    ('CXX', 'The C++ compiler to use', 'g++'))
+
+#CXX = 'bfin-linux-uclibc-g++'
+
+AUV_PACKAGES='/home/levashom/auv/trunk/packages';
+INCLUDES=[
+    '.',
+    'sonarUtils',
+    'spectrum',
+    'dataset',
+    'getDirection',
+    'pingDetect',
+    'sonarPing',
+    'time_diff',
+    'sonar_quadfit',
+    'fft_sonar',
+    'getPingChunk',
+    'getDirection',
+    AUV_PACKAGES];
+RAMLIBS=['/home/levashom/auv/trunk/build/lib'];
+
+env = Environment(CPPPATH = INCLUDES, CCFLAGS=['-Wall','-O3'], options = opts)
+
+#Build common files
+osUtils = env.Object('sonarUtils/sonarUtils.cpp')
+
+oDataset = env.Object('dataset/dataset.c')
+oSpartan = env.Object('dataset/spartan.c')
+oReport = env.Object('dataset/report.c')
+opDetect = env.Object('pingDetect/pingDetect.cpp')
+ogetPChunk = env.Object('getPingChunk/getPingChunk.cpp')
+
+#Build the program for testing ping detection
+env.Program('pingDetect/pingDtest',
+            ['pingDetect/pingDtest.cpp', osUtils, oDataset, oSpartan, 
+             opDetect])
+
+env.Program('getPingChunk/getChunkTest',
+            ['getPingChunk/getChunkTest.cpp', oDataset, oSpartan, ogetPChunk, 
+             opDetect, osUtils])
+
+#envG = env.Clone()
+#envG.Append(LIBS=['gsl','blas']);
+
+#oFftSonar=envG.Object('fft_sonar/fft_sonar.cpp')
+#oQuadFit=envG.Object('sonar_quadfit/sonar_quadfit.cpp')
+#oTimeDiff=envG.Object('time_diff/time_diff.cpp')
+
+#Build the program to test the quadrature fits
+#envG.Program('sonar_quadfit/quadfit_test',
+#            ['sonar_quadfit/quadfit_test.cpp',oFftSonar,oQuadFit])
+
+#Build program to test the time difference
+#envG.Program('time_diff/timediff_test',['time_diff/timediff_test.cpp',
+#                                       oTimeDiff,oQuadFit,oFftSonar])
+
+
+#ogetDirEnv = envG.Object('getDirection/getDirEnvelope',
+#                      ['getDirection/getDirEnvelope.cpp'])
+
+#Program that calculates the direction vectors for the sonar
+#envG.Program('getDirection/getDirEnvTest',
+#            ['getDirection/getDirEnvTest.cpp', osUtils, oDataset, oSpartan, 
+#             opDetect, ogetPChunk, oTimeDiff, oQuadFit, oFftSonar, ogetDirEnv])
+
+# Environment For ram code
+envR = env.Clone()
+
+ogetDirEdge=envR.Object('getDirection/getDirEdge',
+                       ['getDirection/getDirEdge.cpp'])
+envR.Append(LIBS=['libram_math'], LIBPATH=RAMLIBS)
+envR.Program('getDirection/getDirEdgeTest',
+             ['getDirection/getDirEdgeTest.cpp', osUtils, oDataset, oSpartan, 
+              opDetect, ogetPChunk, ogetDirEdge])
+envR.Program('sonarMain/sonarMain',
+             ['sonarMain/sonarMain.cpp', osUtils, oDataset, oSpartan, oReport,
+              opDetect, ogetPChunk, ogetDirEdge])

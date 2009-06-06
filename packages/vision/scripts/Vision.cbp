@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Vision" />
+		<Option makefile="scons" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/debug/Vision" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="scons -f $makefile $target" />
+					<CompileFile command="scons -f $makefile $file" />
+					<Clean command="scons -f $makefile clean$target" />
+					<DistClean command="scons -f $makefile distclean$target" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../include/BasicImage.h" />
+		<Unit filename="../include/Camera.h" />
+		<Unit filename="../include/Common.h" />
+		<Unit filename="../include/Image.h" />
+		<Unit filename="../src/BasicImage.cpp" />
+		<Unit filename="../test/SConstruct" />
+		<Unit filename="../test/src/cvcam_test.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

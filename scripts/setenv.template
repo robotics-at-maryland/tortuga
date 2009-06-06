@@ -1,0 +1,39 @@
+# This sets up the environment for use of our software
+# The file is generated from a template which creates a 'setenv' file in the
+# scripts/setenv'
+# to the location of the source tree. Then in your shell type 'source setenv'
+# and you will be all set. (Note the only works for the current shell)
+
+RAM_ROOT_DIR="%(ram_environ_root)s"
+RAM_SVN_DIR="%(local_svn_dir)s"
+
+# Set up PYTHONPATH so imports will work properly
+export RAM_PYTHON_PREFIX=%(python_prefix)s
+export RAM_PYTHON_VERSION="%(python_version)s"
+export PYTHONPATH="$RAM_SVN_DIR/build_ext:$RAM_SVN_DIR/packages/python:$RAM_ROOT_DIR/%(py_site_packages_suffix)s:$PYTHONPATH"
+
+# Set up the scons path so it will work properly
+export SCONS_LIB_DIR="$RAM_ROOT_DIR/%(py_site_packages_suffix)s"
+
+# Setup the PATH to include scripts in trunk and are custom environment
+export PATH="$RAM_SVN_DIR/build/bin:$RAM_SVN_DIR/scripts:$RAM_ROOT_DIR/bin:%(wx_bin_dir)s:$PATH"
+
+# Setup the LD_LIBRARY_PATH so our executables can find libraries like opencv
+RAM_LIBRARY_PATH="$RAM_SVN_DIR/build/lib:$RAM_ROOT_DIR/lib"
+export LD_LIBRARY_PATH="$RAM_LIBRARY_PATH:$LD_LIBRARY_PATH"
+
+# Probably not needed, but this controls the dynamically loaded .so file path
+# in Mac OS X.
+if [ `uname` == "Darwin" ]; then
+   # When on Mac we need the special wxWidgets dir because we use the wxPython
+   # Libraries, so we add it now
+   export LD_LIBRARY_PATH="%(wx_lib_dir)s:$LD_LIBRARY_PATH"
+   export DYLD_LIBRARY_PATH="$RAM_LIBRARY_PATH:$DYLD_LIBRARY_PATH"
+   export DYLD_FRAMEWORK_PATH="$RAM_LIBRARY_PATH:$DYLD_FRAMEWORK_PATH"
+fi
+
+# Setup path for pkgconfig (so it can find our local libraries)
+export PKG_CONFIG_PATH="$RAM_ROOT_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+export RAM_ROOT_DIR="$RAM_ROOT_DIR"
+export RAM_SVN_DIR="$RAM_SVN_DIR"

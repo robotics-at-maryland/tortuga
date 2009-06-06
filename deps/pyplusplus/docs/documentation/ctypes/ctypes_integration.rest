@@ -1,0 +1,94 @@
+==================
+ctypes integration
+==================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Boost.Python`_ is really a very powerful library, but if you are working
+with code written in plain "C" - you've got a problem. You have to create
+wrappers for almost every function or variable.
+
+In general, if you want to work with plain "C" code from `Python`_
+you don't have to create any wrapper - you can use `ctypes`_ package.
+
+About ctypes
+------------
+`ctypes`_ is a foreign function library for Python. It provides C
+compatible data types, and allows to call functions in dlls/shared
+libraries. It can be used to wrap these libraries in pure Python.
+
+
+--------
+The idea
+--------
+
+The idea behind "ctypes integration" functionality is really simple: you
+configure `Py++`_ to expose address of the variable\\return value, and than you
+you use `ctypes`_ `from_address`_ functionality to access and modify the data.
+
+Obviously, this approach has pros and cons:
+
+* cons - it could be very dangerous - you can corrupt your application memory
+
+* cons - managing memory is not something a typical `Python`_ user get used to.
+  It is too "low level".
+
+* pros - you don't need to create wrapper in C++
+
+* pros - a Python user has access to the data
+
+* pros - compilation time is smaller
+
+* pros - you still can create wrapper, but using `Python`_
+
+
+In my opinion, the better way to go is to "mix":
+
+1. expose your native code using `Boost.Python`_ and "ctypes integration"
+   functionality - it is easy and cheap
+
+2. use `ctypes`_ module to access your data
+
+3. create high level API in Python: the wrappers, which will ensure the
+   constraints and will provide more "natural" interface
+
+-------------------------
+Implemented functionality
+-------------------------
+
+`Py++`_ is able to
+
+* expose global and member variable address
+
+* expose "this" pointer value
+
+* expose a class "sizeof"
+
+* expose variable, which has a union type
+
+* return address of return value as integer - `new call policy was created`_
+
+-----------------
+Future directions
+-----------------
+
+The functionality is going to be developed father and I intend to add
+the following features:
+
+* to port this functionality to 64bit systems
+
+* to add ability to expose "C" functions without using `Boost.Python`_.
+
+.. _`new call policy was created` : ./../../documentation/functions/call_policies/return_addressof.html
+.. _`ctypes` : http://docs.python.org/lib/module-ctypes.html
+.. _`from_address` : http://docs.python.org/lib/ctypes-data-types.html
+.. _`Py++` : ./../../pyplusplus.html
+.. _`pygccxml` : ./../../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

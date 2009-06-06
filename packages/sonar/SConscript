@@ -1,0 +1,84 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vision/SConscript
+
+import platform
+import os
+from buildfiles import libs
+
+# Copy Our Build Environment
+Import('env')
+
+# We currently need non-standard include flags
+envb = env.Clone()
+envb.Append(CPPPATH = ['..', 'include'])
+
+envl = envb.Clone()
+
+# --------------------------------------------------------------------------- #
+#                              L I B R A R Y                                  #
+# --------------------------------------------------------------------------- #
+
+# Sources
+sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/sonard', '*.c'))
+sources.extend(env.Glob('src/fixed', '*.cpp'))
+	
+# Build Library (will be called 'sonar.so')
+# All build settings for the library are stored in buildfiles/libs.py
+envl.RAMSharedLibrary('sonar',  source = sources)
+envl.Append(CPPPATH = ['..', 'include'])
+
+# --------------------------------------------------------------------------- #
+#                               T E S T S                                     #
+# --------------------------------------------------------------------------- #
+
+# Unit Tests
+envt = envb.Clone()
+
+# Only build fftw3 if its here
+envt.RAMProgram(target = 'testGetChunk',
+                source = 'test/src/TestGetChunk.cxx',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'testGetDirEdge',
+                source = 'test/src/TestGetDirEdge.cxx',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'testPingDetect',
+                source = 'test/src/TestPingDetect.cxx',
+                int_deps = ['sonar'])
+
+# --------------------------------------------------------------------------- #
+#                               T O O L S                                     #
+# --------------------------------------------------------------------------- #
+
+envt = envb.Clone()
+
+envt.RAMProgram(target = 'sonard',
+                source = 'src/sonard/main.cpp',
+                int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'rtspectrogram',
+                source = 'src/tools/rtspectrogram.cpp',
+                int_deps = ['sonar'],
+                CPPFLAGS = ['-O3'])
+
+if not envt['bfin']:
+    envt.Append(CPPFLAGS = ['-O3'])
+    envt.RAMProgram(target = 'spectrogram',
+                    source = 'src/tools/spectrogram.cpp',
+                    int_deps = ['sonar'],
+                    ext_deps = ['Boost.ProgramOptions'])
+
+    envt.RAMProgram(target = 'chop',
+                    source = 'src/tools/chop.cpp',
+                    int_deps = ['sonar'])
+    
+    envt.RAMProgram(target = 'comparedft',
+                    source = 'src/tools/comparedft.cpp',
+                    int_deps = ['sonar'],
+                    ext_deps = ['Boost.ProgramOptions', 'fftw'])

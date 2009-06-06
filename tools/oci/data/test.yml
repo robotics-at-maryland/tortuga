@@ -1,0 +1,29 @@
+test: 10
+
+Subsystems:
+    EventHub:
+        type: EventHub
+        
+    QueuedEventHub:
+        depends_on: ["EventHub"]
+        type: QueuedEventHub
+
+    Sonar:
+        type: DemoSonar
+        depends_on: ["EventHub"]
+        
+    Vehicle:
+        type: DemoVehicle
+        depends_on: ["EventHub"]
+        
+    StateMachine:
+        type: DemoStateMachine
+        depends_on: ["EventHub"]
+        
+    VisionSystem:
+        type: DemoVisionSystem
+        depends_on: ["EventHub"]
+        
+    Controller:
+        type: DemoController
+        depends_on: ["EventHub"]

@@ -1,0 +1,75 @@
+=========
+C++ union
+=========
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Boost.Python`_ does not help you to expose a variable, which has a union type.
+In this document, I am going to show you a complete example how to get access
+to the data, stored in the variable.
+
+`Py++`_ will not expose a union - it is impossible using `Boost.Python`_,
+instead it will expose the address of the variable and the rest is done from the
+`Python`_ using `ctypes`_ package.
+
+--------
+Example
+--------
+
+For this example I am going to use the following code:
+
+  .. code-block:: C++
+
+    struct data_t{
+        union actual_data_t{
+            int i;
+            double d;
+        };
+        actual_data_t data;
+    };
+
+As in many other cases, `Py++`_ does the job automatically:
+
+  .. code-block:: Python
+
+    mb = module_builder_t( ... )
+    mb.class_( 'data_t' ).include()
+
+no special code, to achieve the desired result, was written.
+
+The generated code is boring, so I will skip it and will continue to the usage
+example:
+
+  .. code-block:: Python
+
+    import ctypes
+    from <<<your module>>> import data_t
+
+    #lets define our union
+    class actual_data_t( ctypes.Union ):
+        _fields_ = [( "i", ctypes.c_int ), ( 'd', ctypes.c_double )]
+
+    obj = data_t()
+    actual_data = actual_data_t.from_address( obj.data )
+    #you can set\get data
+    actual_data.i = 18
+    prit actual_data.i
+    actual_data.d = 12.12
+    print actual_data.d
+
+That's all. Everything should work fine. You can add few getters and setters to
+class ``data_t``, so you could verify the results. I did this for a tester, that
+checks this functionality.
+
+.. _`ctypes` : http://docs.python.org/lib/module-ctypes.html
+.. _`from_address` : http://docs.python.org/lib/ctypes-data-types.html
+.. _`Py++` : ./../../pyplusplus.html
+.. _`pygccxml` : ./../../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

@@ -1,0 +1,7 @@
+- Tasks should require local namespace references for namespace-local
+  names in commands, targets, and workdirs.
+
+- Have an "environment" namespace for environment variables?  Or look
+  up envvars too when resolving a global?
+
+- allow "namespace='${NAMESPACES/aname}'" ?

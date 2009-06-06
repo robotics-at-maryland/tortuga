@@ -1,0 +1,120 @@
+=====
+Links
+=====
+
+.. contents:: Table of contents
+
+----
+Wiki
+----
+
+Thanks to Allen Bierbaum `Py++`_ now has `wiki`_. We use it primary to
+discuss new features, which will be introduced in future versions.
+
+.. _`wiki` : https://realityforge.vrsource.org/view/PyppApi/WebHome
+
+-------
+Reading
+-------
+
+* `Building Hybrid Systems with Boost.Python`_
+
+  .. _`Building Hybrid Systems with Boost.Python` : http://www.boost-consulting.com/writing/bpl.html
+
+* `A rationale for semantically enhanced library languages`_
+
+  .. _`A rationale for semantically enhanced library languages` : http://www.research.att.com/~bs/SELLrationale.pdf
+
+  ".. A Semantically Enhanced Library Language (a SEL language or a SELL) is a
+  dialect created by supersetting a language using a library and then subsetting
+  the result using a tool that `understands` the syntax and semantics of both
+  the underlying language and the library. ..."
+
+  `Py++`_ + Boost.Python is a SELL!
+
+
+* `Aspect oriented programming`_
+
+  .. _`Aspect oriented programming` : http://en.wikipedia.org/wiki/Aspect-oriented_programming
+
+  `Py++`_ borrowed few ideas from this programming paradigm.
+
+--------------
+Help resources
+--------------
+
+* http://www.google.com :-)
+
+  This site uses Google custom search engine, turned to provide better results
+  when you search for materials related to `Boost.Python`_ library.
+
+* http://boost.org/libs/python/doc/index.html - tutorials, FAQs, reference
+  manuals
+
+* `Boost.Python wiki`_
+
+  .. _`Boost.Python wiki` : http://wiki.python.org/moin/boost%2epython?action=show&redirect=boost+2epython
+
+* http://boost.cvs.sourceforge.net/boost/boost/libs/python/test/ - `Boost.Python`_
+  unit tests. They could be very, very helpful.
+
+* http://pygccxml.svn.sourceforge.net/viewvc/pygccxml/pyplusplus_dev/unittests/ - `Py++`_
+  unit tests. They could be even more helpful!
+
+-------------
+Mailing lists
+-------------
+
+* `C++-sig`_ - development of Python/C++ bindings
+
+  .. _`C++-sig` : http://mail.python.org/mailman/listinfo/c++-sig/
+
+* `Py++ mailing list`_
+
+  .. _`Py++ mailing list` : http://sourceforge.net/mail/?group_id=118209
+
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Py++` : ./pyplusplus.html
+
+
+----------------------------------
+Libraries inspired by Boost.Python
+----------------------------------
+
+* `Luabind`_ - interfacing C++ and `Lua`_
+
+.. _`Luabind` : http://www.rasterbar.com/products/luabind/docs.html
+.. _`Lua` : http://www.lua.org/
+
+* `Pyd`_ - interfacing C++ and `D programming language`_
+
+.. _`Pyd` : http://pyd.dsource.org/index.html
+.. _`D programming language` : http://www.digitalmars.com/d/
+
+* `Sq Plus`_ - interfacing C++ and `Squirrel`_
+
+.. _`Sq Plus` : http://wiki.squirrel-lang.org/default.aspx/SquirrelWiki/SqPlus.html
+.. _`Squirrel` : http://wiki.squirrel-lang.org/
+
+-----------------------------
+Projects inspired by Py++ :-)
+-----------------------------
+
+* `PyBindGen`_ -  a new project for producing Python extensions
+
+.. _`PyBindGen` : https://launchpad.net/pybindgen
+
+-----
+Blogs
+-----
+
+* http://www.shocksolution.com/math_tools/boost.python/index.html - this site
+  contains few useful Boost.Python examples and tutorials.
+
+-------------
+Build systems
+-------------
+
+http://www.scons.org/wiki/GCCXMLBuilder - Joseph Lisee shows how to integrate
+Py++ scripts with Scons.
+

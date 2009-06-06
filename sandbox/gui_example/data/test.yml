@@ -1,0 +1,7 @@
+test: 10
+
+Subsystems:
+    Sonar:
+        type: DemoSonar
+    Power:
+        type: DemoPower

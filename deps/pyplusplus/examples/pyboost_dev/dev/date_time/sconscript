@@ -1,0 +1,49 @@
+#! /usr/bin/python
+# Copyright 2004-2008 Roman Yakovenko.
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+import os
+import sys
+import date_time_settings
+
+Import( 'env' )
+
+def get_ccflags():
+    if sys.platform == 'win32':
+        return date_time_settings.scons.ccflags \
+               + map( lambda ds: '/D%s' % ds, date_time_settings.defined_symbols )
+    else:
+        return map( lambda ds: '-D' + ds, date_time_settings.defined_symbols )
+
+def get_source_files():
+    source_files = filter( lambda s: s.endswith( '.cpp' ), os.listdir(date_time_settings.generated_files_dir) )
+    return map( lambda fname: os.path.join( date_time_settings.generated_files_dir, fname ), source_files )
+
+
+def get_libs():
+    libs = []
+    if sys.platform == 'linux2':
+        libs.append('libboost_date_time-gcc-1_35')
+    return libs
+
+def get_target():
+    return os.path.join( date_time_settings.generated_files_dir
+                         , date_time_settings.module_name + date_time_settings.scons.suffix )
+
+local_env = env.Copy()
+local_env.Append( LIBS=get_libs() )
+local_env.Append( CPPPATH=[ date_time_settings.generated_files_dir ] )
+local_env.Append( CCFLAGS=get_ccflags() )
+
+_date_time_ = local_env.SharedLibrary( target=date_time_settings.module_name 
+                                       , source=get_source_files() )
+
+if sys.platform == 'win32':
+    boost_date_time_so_dll = os.path.join( date_time_settings.boost.libs[0], 'boost_date_time-vc71-mt-1_35.dll' )
+else:
+    boost_date_time_so_dll = os.path.join( date_time_settings.boost.libs[0], 'libboost_date_time-gcc-1_35.so' )
+
+
+local_env.Install( '#pyboost/date_time', [_date_time_, boost_date_time_so_dll ] )

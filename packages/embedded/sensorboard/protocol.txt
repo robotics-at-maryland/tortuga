@@ -1,0 +1,171 @@
+A checksum is computed by adding all the bytes transmitted or recieved so far.
+Checksums are always 8 bits long, so the checksum should be computed mod 256.
+(Ie, take the last 8 bits of the result)
+
+'on bad checksum' means the checksum for the command did not properly verify
+'on failure' means the command was not completed due to internal error of the board
+
+
+Command: Ping
+Description: Test communication with sensor board
+Send:  [0x00 0x00]
+Reply: [0xBC] on success
+       [0xCC] on bad checksum
+
+
+
+Command: Synchronize
+Description: Checks that sensor board command entry is in top-level state
+Send:  [0xFF]
+Reply: [0xBC] on success
+
+The only command without a checksum, this command can be used to return the board
+to a known state. If several commands in a row fail with checksum errors, this is
+a very good indication of a frameshift (that is, the command code of one command is
+being treated as a parameter to another command due to earlier disruption of
+communication). If this happens, the proper framing can be restored by sending one
+or more Synchronize commands until a reply of success is recieved. It is possible
+that during the course of sending Sync commands for a failure or a bad checksum
+reply to be issued, but these are in response to whatever command may have been
+offset by the communication error. A success reply to the Synchronize command means
+that the next value sent to the sensor board will be interpreted as a command.
+
+
+
+Command: System Check
+Description: Ask sensor board to verify operation of all its processors.
+Send:  [0x01 0x01]
+Reply: [0xBC] on success
+       [0xDF] on failure (this may be expanded to be more specific in the future)
+       [0xCC] on bad checksum
+
+
+
+Command: Get Depth
+Description: Retrieve the latest depth value.
+Send:  [0x02 0x02]
+Reply: [0x03 MSB LSB Checksum] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+Actual depth value is (MSB<<8)|(LSB) or MSB*256 + LSB.
+It will be a number between 0 and 1023.
+
+
+
+Command: Get water, power board, and start switch status
+Description: Retrieve a 1-byte status of various pins.
+Send:  [0x04 0x04]
+Reply: [0x05 Status Checksum] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+       Status Bit 0    = Water (0=Dry, 1=Wet)
+       Status Bit 1    = Kill Switch (0=Off, 1=On) (maybe? check power board?)
+       Status Bits 2-5 = Balancer board status lines (batteries in use)
+       Status Bit 6    = ? (Some power board line)
+       Status Bit 7    = Start switch
+
+
+Command: Hard power kill
+Description: Ask balancer board to cut off all power.
+Send:  [0x06 0xDE 0xAD 0xBE 0xEF 0x3E]
+Reply: [0xBC] if the command was issued to slave controller
+       [0xCC] if the command sequence was malformed
+       [0xDF] if the command was recieved but its execution failed
+
+The command sequence is deliberately long and complex to prevent accidental activation.
+After issuing this command, the host should still perform various shut-down tasks, in the
+event that the hard kill command fails. 0xCC is returned if the command was NOT issued
+because a part of the 'safety sequence' was not received properly. A reply of 0xBC means
+that the command was received successfully, but if the host is still alive to receive this
+reply, it means that the hard kill obviously failed and other measures must be taken. A
+reply of 0xDF means that the safety sequence was right, but the chip responsible for
+telling the balancer board to kill power did not respond to the request.
+
+
+
+Command: Drop marker
+Description: Ask balancer board to drop one of the markers.
+Send:  [0x07 Marker Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+This will drop the given marker. 'Marker' can be 0 or 1, corresponding to one of the two
+markers. A value of the marker byte other than 0 or 1 will result in a response of 0xCC.
+A successful reply indicates only that the command was relayed to the chip connected to
+the balancer board, and does not mean that the marker was actually dropped. There is no
+feedback if it was actually released, or if it got stuck, or if that marker was dropped
+earlier.
+
+
+
+Command: Set LCD Backlight
+Description: Turn the backlight on the debugging LCD on or off, or make it flash
+Send:  [0x08 State Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+This will turn the backlight on the display on or off. 'State' determines what to do.
+A state of 0 turns the backlight off. A state of 1 turns the backlight on. A state of
+2 makes the backlight flash about once per second. Any other value of state results
+in a reply of 0xCC.
+
+
+
+
+Command: Set Thruster Safety
+Description: Set the state of the thruster safety pins
+Send:  [0x09 0xB1 0xD0 0x23 0x7A 0x69 Thruster Checksum]
+Reply: [0xBC] on success
+       [0xDF] on hardware failure
+       [0xCC] on bad checksum or malformed command
+
+This changes the values of the thruster safety pins. 'Thruster' can take on the values
+between 0 and 7, with the following encoding:
+       Thruster bits 0 and 1 specify the thruster number (0-3)
+       Thruster bit 2 determines the new pin state, that is, 1 is on and 0 is off
+The checksum applies over the entire command (safety sequence and parameter).
+This is an example of a valid command: [0x09 0xB1 0xD0 0x23 0x7A 0x69 0x04 0x94]
+It has a valid checksum and would turn on the first thruster safety pin. What it means
+for the pins to be on or off... I don't know. It could be enabling or disabling the
+thrusters, depending on how that hardware is set up. All that is known is that the
+four pins are initialized to all 0s on power-on.
+
+
+
+
+Command: Get Temperature Readings - THIS COMMAND WILL CHANGE IN THE FUTURE
+Description: Retrieve the temperature readings of the board's temperature sensors
+Send:  [0x0A 0x0A]
+Reply: [0x0B T0 T1 T2 T3 Checksum]
+       [0xDF] on failure
+       [0xCC] on bad checksum
+
+The bytes T0 - T3 are individual temperature readings, in degrees Celcius. A value
+of 0xFF (255) indicates that a particular temperature sensor has failed to report a
+reading, possibly due to I2C bus noise or something similar, so another reading can
+probably be taken if this happens (though it shouldn't happen in production). Note:
+The number of temperature readings that are returned WILL change, as we will definitely
+have more than 4 temperature sensors! Also, there are other temperature sensors to
+worry about; these are just the readings made by the sensor board. The computer has
+several internal temperature sensors, as does its power supply. The specific physical
+areas associated with each sensor reading are yet to be determined.
+
+
+
+
+Command: Display Text
+Description: Upload a line of text to the LCD
+Send:  [0x0C Line D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 Checksum]
+Reply: [0xBC] on success
+       [0xDF] on failure
+       [0xCC] on bad checksum or invalid input
+
+This command sends a line of text to the LCD. 'Line' can be 0 or 1, with 0 being the
+top line and 1 being the bottom line. D0-D15 are ASCII characters forming a string of
+text 16 bytes in length. This command takes longer to complete than the other commands
+so it should probably be used sparingly. Refresh the display maybe once a second if
+needed but definitely don't upload new text every iteration of the control loop.

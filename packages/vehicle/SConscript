@@ -1,0 +1,62 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/vehicle/SConscript
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/device', '*.cpp'))
+
+# Doesn't Work
+# sources.remove('src/IVehicle.cpp')
+
+# If we aren't building the drivers, remove the sources that depend on them
+excludedDevices = ['IMU',
+                   'PSU',
+                   'SensorBoard',
+                   'SBMarkerDropper',
+                   'SBPowerSource',
+                   'SBThruster',
+                   'SBTempSensor',
+                   'SBSonar']
+if not env.HasFeature('drivers'):
+    # Remove hardware devices
+    for deviceName in excludedDevices:
+        sources.remove('src/device/' + deviceName + '.cpp')
+
+# Build Procducts (library will be called 'libram_vehicle.so')
+envl.RAMSharedLibrary('vehicle',  source = sources)
+
+
+# Testing
+envt = env.Clone()
+
+if env.HasFeature('drivers'):
+    envt.RAMProgram(target = 'ThrusterDemo', 
+                    source = 'test/src/ThrusterDemo.cpp',
+                    int_deps = 'vehicle',
+                    ext_deps = ['Boost.ProgramOptions'])
+
+    envt.RAMProgram(target = 'IMUDemo', 
+                    source = 'test/src/IMUDemo.cpp',
+                    int_deps = 'vehicle')
+
+# Unit Tests
+exclude_list = []
+if not env.HasFeature('drivers'):
+    # Slight list hacks until we fix the source code names
+    excludedDevices[excludedDevices.index('IMU')] = 'nIMU'
+    excludedDevices.remove('SBMarkerDropper')
+    excludedDevices.remove('PSU')
+    
+    for deviceName in excludedDevices:
+        exclude_list.append('test/src/Test' + deviceName + '.cxx')
+
+envt = env.Clone()
+envt.Tests(int_deps = 'vehicle', exclude = exclude_list)

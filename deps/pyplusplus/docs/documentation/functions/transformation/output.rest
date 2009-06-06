@@ -1,0 +1,66 @@
+======================
+``output`` transformer
+======================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+"output" transformer removes an argument from the function definition and adds
+the "returned", by the original function, value to the return statement of the
+function-wrapper.
+
+"output" transformer takes as argument name or index of the original function
+argument. The argument should have "reference" type. Support for "pointer" type
+will be added pretty soon.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+  #include <string>
+
+  inline void hello_world( std::string& hw ){
+      hw = "hello world!";
+  }
+
+Lets say that you need to expose ``hello_world`` function. As you know
+``std::string`` is mapped to `Python`_ string, which is immutable type, so you
+have to create small wrapper for the function. The following `Py++`_ code does it for you:
+
+  .. code-block:: Python
+
+     from pyplusplus import module_builder
+     from pyplusplus import function_transformers as FT
+
+     mb = module_builder.module_builder_t( ... )
+     hw = mb.mem_fun( 'hello_world' )
+     hw.add_transformation( FT.output(0) )
+
+What you see below is the relevant pieces of generated code:
+
+  .. code-block:: C++
+
+     namespace bp = boost::python;
+
+     static boost::python::object hello_world_a3478182294a057b61508c30b1361318(  ){
+         std::string hw2;
+         ::hello_world(hw2);
+         return bp::object( hw2 );
+     }
+
+     BOOST_PYTHON_MODULE(...){
+         ...
+         bp::def( "hello_world", &hello_world_a3478182294a057b61508c30b1361318 );
+      }
+
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

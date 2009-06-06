@@ -1,0 +1,42 @@
+GUI:
+    updateRate: 5
+    singleSubsystem: 1
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:    
+    VisionSystem:
+        type: VisionSystem
+        depends_on: ["EventHub", "Vehicle"]
+        priority: "low"
+
+        # Recording Settings
+        #maxStreamRate: 1 # Hz
+        #maxRecordRate: 5 # Hz
+        #forwardFile: forward.avi
+        #downwardFile: downward.avi
+        #forwardPort: 50000
+        #downwardPort: 50001
+
+        # Includes all camera and vision system settings
+        INCLUDE: data/config/vision/nbrf.yml
+        
+
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/ai/nbrf_ai.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/ai/nbrf_state.yml
+
+
+    # Includes all common subsystems    
+    INCLUDE: data/config/base.yml

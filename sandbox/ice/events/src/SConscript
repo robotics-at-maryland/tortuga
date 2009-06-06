@@ -1,0 +1,18 @@
+import os.path
+Import('env')
+
+# NATIVE MARSHALING CODE FOR C++
+##############################
+
+env.Command(['events.cpp','events.h'], 
+	'events.ice', 'slice2cpp --output-dir ' + os.path.dirname(env.File('events.ice').path) + ' $SOURCES')
+
+
+# BENCHMARK PROGRAM
+##############################
+
+server = env.Program(['server.cpp', 'events.cpp'])
+client = env.Program(['client.cpp', 'events.cpp'])
+progs = [server, client]
+
+Return('progs')
