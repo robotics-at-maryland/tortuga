@@ -192,8 +192,18 @@ class TestSeeking(PipeTest):
     
     def testPipeLost(self):
         """Make sure losing the light goes back to search"""
+        # Setup data
+        self.ai.data['pipeData']['absoluteDirection'] = {}
+        self.ai.data['pipeData']['currentID'] = 0
+        
         self.injectEvent(vision.EventType.PIPE_LOST)
+
+        # Make sure we changed state properly
         self.assertCurrentState(pipe.Searching)
+
+        # Make sure we dropped the currentID
+        self.assertFalse(self.ai.data['pipeData'].has_key('currentID'))
+        self.assertFalse(self.ai.data['pipeData'].has_key('absoluteDirection'))
         
 class TestCentering(PipeTest):
     def setUp(self):
@@ -266,8 +276,16 @@ class TestAlongPipe(PipeTest):
         
     def testPipeLost(self):
         """Make sure it goes to between pipes, when pipe is lost"""
+        self.ai.data['pipeData']['currentID'] = 0
+        self.ai.data['pipeData']['absoluteDirection'] = {}
+        
         self.injectEvent(vision.EventType.PIPE_LOST)
+        
+        # Make sure we changed state
         self.assertCurrentState(pipe.BetweenPipes)
+        # Make sure we dropped the currentID
+        self.assertFalse(self.ai.data['pipeData'].has_key('currentID'))
+        self.assertFalse(self.ai.data['pipeData'].has_key('absoluteDirection'))
 
     def testPipeDropped(self):
         """Ensure that when the current pipe is dropped its no longer current"""

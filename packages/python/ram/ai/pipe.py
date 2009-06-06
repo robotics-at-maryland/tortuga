@@ -47,6 +47,21 @@ class PipeFollowingState(state.State):
                       vision.EventType.PIPE_DROPPED : myState,
                       vision.EventType.PIPE_FOUND : myState})
         return trans
+
+    def PIPE_LOST(self, event):
+        """
+        We were just told all current pipes are lost that means we can't have
+        a currentID, so lets drop it if we do have one
+        """
+
+        # Remove currentID if needed
+        pipeData = self.ai.data['pipeData']
+        if pipeData.has_key('currentID'):
+            del pipeData['currentID']
+
+        # Remove absolute direction if needed
+        if pipeData.has_key('absoluteDirection'):
+            del pipeData['absoluteDirection']
     
     def PIPE_DROPPED(self, event):
         """Update the tracking system when a pipe is lost. If the pipe
@@ -56,9 +71,7 @@ class PipeFollowingState(state.State):
         # Declare to make it easier to read
         pipeData = self.ai.data['pipeData']
 
-        # Remove the stored absolute direction
-        absDirection = pipeData['absoluteDirection']
-        del absDirection[event.id]
+        self._cleanupAbsoluteDirection(event)
 
         # Check if the pipe dropped is the current pipe, and change to the
         # next best pipe if it is.
@@ -97,8 +110,10 @@ class PipeFollowingState(state.State):
         pipeData = self.ai.data['pipeData']
         angle = event.angle
         
-        # Check if there is a current ID
+        # Sets the current ID if there isn't one already set
         pipeData.setdefault('currentID', event.id)
+
+        # TODO: Check if the current ID doesn't really exist
         
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()
@@ -188,6 +203,15 @@ class PipeFollowingState(state.State):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
 
+    def _cleanupAbsoluteDirection(self, event):
+        """Remove the stored absolute direction"""
+        pipeData = self.ai.data['pipeData']
+        absDirection = pipeData.get('absoluteDirection', None)
+        if absDirection is not None:
+            if absDirection.has_key(event.id):
+                del absDirection[event.id]
+
+        
 class Start(state.State):
     @staticmethod
     def transitions():
@@ -270,19 +294,23 @@ class AlongPipe(PipeFollowingState):
                  vision.EventType.PIPE_DROPPED : AlongPipe,
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
 
+    def PIPE_LOST(self, event):
+        """
+        We were just told all current pipes are lost that means we can't have
+        a currentID, so lets drop it if we do have one
+        """
+        PipeFollowingState.PIPE_LOST(self, event)
 
     def PIPE_DROPPED(self, event):
         """Update the tracking system when a pipe is lost. If the pipe
            dropped is the current pipe, find the closest pipe to the
            vehicles orienatation and switch to it."""
 
-        # Declare to make it easier to read
         pipeData = self.ai.data['pipeData']
-
+        
         # Drop the currentID if we lost the pipe
         if pipeData['currentID'] == event.id:
             del pipeData['currentID']
-
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
