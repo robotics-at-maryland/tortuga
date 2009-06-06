@@ -212,6 +212,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
                 event->x = pipes[0].getX();
                 event->y = pipes[0].getY();
                 event->angle = pipes[0].getAngle();
+                event->id = pipes[0].getId();
 
                 m_centered = true;
                 publish(EventType::PIPE_CENTERED, event);
