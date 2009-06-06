@@ -22,10 +22,13 @@ Scene:
         Main:
             position: [-5, 0, 0]
             offset: [0, 0, 35]
-    
+
     Robots:
-        Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-    
+        Tortuga: 
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
+            position: [-18, 0, 0]
+            orientation: [0, 0, 1, 0]
+
     Objects:        
         pipe1:
             type: [sim.vision.IPipe, sim.vision.Pipe]

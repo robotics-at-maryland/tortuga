@@ -33,9 +33,9 @@ Scene:
     Objects:
         BarbedWire:
               type: [ram.sim.object.IObject, sim.vision.BarbedWire]
-              #position: [-12, 0, -2.43]
               position: [-12, -2, -2.5]
-              orientation: [0, 0, 1, 45]
+              #position: [-12, 0, -2]
+              orientation: [0, 0, 1, -25]
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

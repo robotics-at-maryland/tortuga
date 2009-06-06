@@ -639,7 +639,6 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Safe Detector variables
         self._runDownSafeDetector = False
         self._foundDownSafe = False
-        #self._pipeCentered = False
         
         # Target Detector variables
         self._runTarget = False
@@ -734,9 +733,9 @@ class IdealSimVision(ext.vision.VisionSystem):
         relativePos = None
         robotPos = self.vehicle.robot.position + \
             (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
-        
+
         for o in objects:
-            toObj = o.position - self.vehicle.robot.position
+            toObj = o.position - robotPos
             
             # None yet found, default to this one
             if closest is None:
@@ -1060,7 +1059,13 @@ class IdealSimVision(ext.vision.VisionSystem):
         if pipeVisible and (toCenter.normalise() < 0.08):
             if not self._pipeCentered:
                 self._pipeCentered = True
-                self.publish(ext.vision.EventType.PIPE_CENTERED, ext.core.Event())
+                event = ext.core.Event()
+                event.x = x
+                event.y = y
+                event.angle = angle
+                event.id = closestPipe.id
+
+                self.publish(ext.vision.EventType.PIPE_CENTERED, event)
         else:
             self._pipeCentered = False
 
