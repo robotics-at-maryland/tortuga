@@ -103,7 +103,7 @@ class RangeXYHold(FilteredState, state.State):
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
         
-    def enter(self):
+    def enter(self, defaultDepthGain = 1.5):
         FilteredState.enter(self)
         
         # Ensure vision system is on
@@ -115,7 +115,7 @@ class RangeXYHold(FilteredState, state.State):
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
-        depthGain = self._config.get('depthGain', 1.5)
+        depthGain = self._config.get('depthGain', defaultDepthGain)
         iDepthGain = self._config.get('iDepthGain', 0.05)
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
@@ -223,6 +223,10 @@ class SeekingToCentered(RangeXYHold):
         return RangeXYHold.transitions(SeekingToCentered, {
             ram.motion.seek.SeekPoint.POINT_ALIGNED : SeekingToRange})
         
+    def POINT_ALIGNED(self, event):
+        """When aligned we are at a good depth so hold it"""
+        self.controller.holdCurrentDepth()
+        
     def TARGET_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
         self._updateFilters(event)
@@ -232,10 +236,11 @@ class SeekingToCentered(RangeXYHold):
         if (self._firstRun):
             self._offset = self._filterdRange
             self._firstRun = False
-        
+        # TODO: take a close look at range seeking here
         # We ignore azimuth and elevation because we aren't using them
-        self._target.setState(0, 0, self._filterdRange - self._offset +
-                              self._desiredRange, self._filterdX,
+        self._target.setState(0, 0, self._filterdRange, #- self._offset +
+                              #self._desiredRange, 
+                              self._filterdX,
                               self._filterdY)
         
 class SeekingToRange(RangeXYHold):
@@ -247,7 +252,7 @@ class SeekingToRange(RangeXYHold):
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
             RangeXYHold.IN_RANGE : SeekingToAligned })
-
+        
 class FireTorpedos(RangeXYHold):
     """
     Fires the two torpedos at the target, with 1 second in between each, but

@@ -173,6 +173,7 @@ class TestSeekingToCentered(TestRangeXYHold):
                          x = 0.0, y = 0.0, range = 3.0, squareNess = 1)
         self.qeventHub.publishEvents()
         self.assertCurrentState(target.SeekingToRange)
+        self.assertEquals(1, self.controller.depthHolds)
 
     def testTargetFound(self):
         """Make sure new found events move the vehicle"""
@@ -182,7 +183,7 @@ class TestSeekingToCentered(TestRangeXYHold):
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
-        self.assertEqual(self.controller.speed, 0)
+        #self.assertEqual(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
 

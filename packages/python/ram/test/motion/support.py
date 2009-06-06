@@ -32,6 +32,7 @@ class MockController(control.IController):
         self.sidewaysSpeed = 0
         self.desiredOrientation = ext.math.Quaternion.IDENTITY
         self.headingHolds = 0
+        self.depthHolds = 0
         
     def setDepth(self, depth):
         self.depth = depth
@@ -50,6 +51,9 @@ class MockController(control.IController):
     
     def getSidewaysSpeed(self):
         return self.sidewaysSpeed
+
+    def holdCurrentDepth(self):
+        self.depthHolds += 1
 
     def holdCurrentHeading(self):
         self.headingHolds += 1
