@@ -4,6 +4,7 @@
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
+// static char *IC_names[]= ["Master","LCD Controller","Temperature","Depth","Distribution","Balancer","Sonar"];
 
 static unsigned char handshake() {
 	unsigned int i, j;
@@ -102,10 +103,10 @@ static unsigned char writeProgram() {
 }
 
 int main(int argc, char* argv[]) {
-	printf("HandyCAM Firmware Uploader\n\n");
+	printf("Tortuga Embedded Firmware Uploader\n\n");
 
-	if (argc != 3) {
-		printf("Usage: %s (/dev/ttyUSBx|COMx) firmware.hex\n", argv[0]);
+	if (argc != 4) {
+		printf("Usage: %s ICx (/dev/ttyUSBx|COMx) firmware.hex\n", argv[0]);
 		return 1;
 	} else {
 		WhichChip = &SupportedChips[6];
@@ -118,8 +119,8 @@ int main(int argc, char* argv[]) {
 		if (initSerial(argv[1]) != 0)
 			return 1;
 
-		printf("Connecting to HandyCAM...\n");
-		if (handshake()) {			
+		printf("Connecting to IC1...\n");
+		if (handshake()) {
 			printf("Writing program...\n");
 			if (writeProgram()) {
 				printf("Running program...\n");

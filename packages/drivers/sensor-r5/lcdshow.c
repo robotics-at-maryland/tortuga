@@ -368,12 +368,12 @@ int main(int argc, char ** argv)
                 for(i=0; i<6; i++)
                 {
                     printf("\t");
-                    if(i != 4)
+                    if(i != 5)
                         printf("B%d ", i+1);
                     else
                         printf("EXT ");
 
-                    printf("\t% 2.3fV\t% 2.3fA\t ", info.battVoltages[i], info.battCurrents[i]);
+                    printf("\t% 6.3fV\t% 5.3fA\t ", info.battVoltages[i], info.battCurrents[i]);
 
                     printf("   %c\t %c", bEnable & enableFlags[i] ? 'Y' : 'N',
                                      bStat & useFlags[i] ? 'Y' : 'N');

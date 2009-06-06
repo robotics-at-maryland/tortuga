@@ -1,5 +1,5 @@
 
-TCPATH=/path/where/dspic/toolchain/got/untarred
+TCPATH=/home/kickmyassman/robotics-toolchain/
 
 PATH = $(TCPATH)/usr/bin:/bin:/usr/kde/3.5/bin
 

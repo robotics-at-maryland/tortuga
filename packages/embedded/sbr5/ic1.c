@@ -1699,36 +1699,36 @@ int main(void)
                 t1 = waitchar(1);
 
                 if(t1 != HOST_CMD_SONAR)
-		        {
-			        sendByte(HOST_REPLY_BADCHKSUM);
-			        break;
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
                 }
 
-		        if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
-		        {
-			        sendByte(HOST_REPLY_FAILURE);
-        			break;
+		if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
+		{
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
                 }
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
                 if(len != SONAR_PACKET_LEN)
-		        {
-			        sendByte(HOST_REPLY_FAILURE);
-			        break;
-		        }
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
 
-		        sendByte(HOST_REPLY_SONAR);
+		sendByte(HOST_REPLY_SONAR);
 
-		        byte cs=0;
-                for(i=0; i<SONAR_PACKET_LEN; i++)
+		byte cs=0;
+                for(i=0; i < SONAR_PACKET_LEN; i++)
                 {
                     cs += rxBuf[i];
-	                sendByte(rxBuf[i]);
-		        }
+	            sendByte(rxBuf[i]);
+		}
 
-		        sendByte(cs + HOST_REPLY_SONAR);
-		        break;
+		sendByte(cs + HOST_REPLY_SONAR);
+		break;
             }
 
             /* May vastly change */
@@ -1994,7 +1994,7 @@ int main(void)
 
                 sendByte(HOST_REPLY_BATTVOLTAGE);
 
-                byte cs=0;
+                byte cs= HOST_REPLY_BATTVOLTAGE;
 
                 for(i=0; i<14; i++)
                 {
@@ -2002,7 +2002,7 @@ int main(void)
                     sendByte(rxBuf[i]);
                 }
 
-                sendByte(cs + HOST_REPLY_BATTVOLTAGE);
+                sendByte(cs);
                 break;
             }
 

@@ -279,9 +279,12 @@ int readTemp(int fd, unsigned char * tempData)
 
 int getSonarData(int fd, struct sonarData * sd)
 {
-    unsigned char buf[22]={HOST_CMD_SONAR, HOST_CMD_SONAR};
+    /* Buf is only used to get the HOST_REPLY_SONAR and the checksum from
+     * ic1.  The checksum from ic1 sees if any cooruption happened from ic1
+     * to the mini, then there's an inner checksum on just the sonar data*/
+    unsigned char buf[5]= {HOST_CMD_SONAR, HOST_CMD_SONAR};
+    unsigned char rawSonar[SONAR_PACKET_LEN]= {0,0,0,0,0};
     int i;
-    unsigned char rawSonar[22] = {0,0,0,0,0};
 
     if(sd == NULL)
         return -1;
@@ -289,16 +292,16 @@ int getSonarData(int fd, struct sonarData * sd)
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
 
-    if(buf[0] != 0x0E)
+    if(buf[0] != HOST_REPLY_SONAR)
         return SB_ERROR;
 
-    readData(fd, rawSonar, 22);
+    readData(fd, rawSonar, SONAR_PACKET_LEN);
     readData(fd, buf, 1);
 
-    unsigned char sum = 0x0E;
+    unsigned char sum= HOST_REPLY_SONAR;
 
-    for(i=0; i<22; i++)
-        sum = (sum+rawSonar[i]) & 0xFF;
+    for(i=0; i < SONAR_PACKET_LEN; i++)
+        sum = (sum + rawSonar[i]) & 0xFF;
 
     if(sum != buf[0])
         return SB_ERROR;
@@ -337,17 +340,19 @@ int getSonarData(int fd, struct sonarData * sd)
 
     sd->timeStampUSec = (rawSonar[17]<<24) | (rawSonar[18] << 16) | (rawSonar[19] << 8) | rawSonar[20];
 
+    if(rawSonar[21] != 0x00)
+      errorCount++;
 
     /// TODO: Put which pinger we are going for in the message
-    sd->pingerID = 0;
+    sd->pingerID = rawSonar[22];
     
     unsigned char cs = 0;
 
-    for(i=0; i<21; i++)
+    for(i=0; i<23; i++)
         cs += rawSonar[i];
 
-    if(rawSonar[21] != cs)
-        printf("Sonar checksum mismatch: expected %02x, got %02x\n", rawSonar[21], cs);
+    if(rawSonar[23] != cs)
+        printf("Sonar checksum mismatch: expected %02x, got %02x\n", rawSonar[22], cs);
 
     if(errorCount)
     {

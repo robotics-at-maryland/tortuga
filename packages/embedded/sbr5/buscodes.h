@@ -230,8 +230,6 @@
  * --Kit (5/23/2009) */
 
 
-/* Another mysterious define, Hooray! This one *sounds*
- * self-explanitory, and yet, is it important? Why is
- * it in Buscodes.h?
- * --Kit (5/23/2009) */
-#define SONAR_PACKET_LEN 22
+/* This define apparently is for the packet length as defined by the number of
+ * bytes we send in bfin.c. */
+#define SONAR_PACKET_LEN 24

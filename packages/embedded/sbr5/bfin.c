@@ -105,17 +105,17 @@ void _ISR _U2RXInterrupt(void)
         while(U2STAbits.URXDA)
         {
             byte t = U2RXREG;
-	        byte i;
+	    byte i;
             actLight(0);
 
             if(sonarPtr < SONAR_PACKET_LEN)
                 sonarRxBuf[sonarPtr++] = t;   /* Blargh */
 
-	        if(sonarPtr == SONAR_PACKET_LEN)
-	        {
-	            for(i=0; i<SONAR_PACKET_LEN; i++)
-		            sonarBuf[i] = sonarRxBuf[i];
-	        }
+            if(sonarPtr == SONAR_PACKET_LEN)
+            {
+                for(i= 0; i < SONAR_PACKET_LEN; i++)
+                    sonarBuf[i] = sonarRxBuf[i];
+            }
 
 
             /* We are looking for 6 FFs in a row. */
@@ -307,7 +307,6 @@ void freeBus()
 {
     TRISB = TRISB | 0xFF;
 }
-
 
 /*
  * Checks if we have an incoming request. If so, handles it.
