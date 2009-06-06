@@ -97,7 +97,6 @@ class PipeFollowingState(state.State):
                             minID = i
             if minID is None:
                 del pipeData['currentID']
-                self.publish(vision.EventType.PIPE_LOST, core.Event())
             else:
                 pipeData['currentID'] = minID
                 self._pipe.setState(pipeData['itemData'][minID].x,
@@ -109,25 +108,44 @@ class PipeFollowingState(state.State):
         
         pipeData = self.ai.data['pipeData']
         angle = event.angle
-        
-        # Sets the current ID if there isn't one already set
-        pipeData.setdefault('currentID', event.id)
 
-        # TODO: Check if the current ID doesn't really exist
-        
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
-        
+
         # Determine the absolute pipe direction
         absPipeDirection = ext.math.Degree(vehicleDirection + angle)
         
         # Store the absolute pipe direction in the itemData
         pipeData.setdefault('absoluteDirection', {})[event.id] = \
             absPipeDirection
+
+        # Check the threshold if it exists
+        if self._threshold is not None:
+            # Check that there is a biasDirection too
+            if self._biasDirection is not None:
+                # If outside of the threshold, return without continuing
+                if not (absPipeDirection - self._threshold <= \
+                            self._biasDirection <= \
+                            absPipeDirection + self._threshold):
+                    # Now check to make sure the pipe isn't the wrong direction
+                    # TODO: Make it look pretty. This is a mess.
+                    if not ((absPipeDirection - self._threshold <= \
+                                 self._biasDirection - ext.math.Degree(180) <= \
+                                 absPipeDirection + self._threshold) or
+                            (absPipeDirection - self._threshold <= \
+                                 self._biasDirection + ext.math.Degree(180) <= \
+                                 absPipeDirection + self._threshold)):
+                        return
+            else: # If there isn't a biasDirection, raise an error
+                # TODO: Learn how to raise errors
+                print "WARNING: A threshold is set with no biasDirection"
+        
+        # With no threshold, the first pipe seen is the followed pipe
+        pipeData.setdefault('currentID', event.id)
         
         # Only do work if we are biasing the direction
-        if self._biasDirection is not None:
+        if self._biasDirection is not None:    
             # If the pipe event is not the currently followed pipe
             if pipeData['currentID'] != event.id:
                 # If the new pipe is closer to the biasDirection, switch
@@ -173,8 +191,11 @@ class PipeFollowingState(state.State):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
 
         self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
+        self._threshold = self.ai.data.get('pipeThresholdDirection', None)
         if self._biasDirection is not None:
             self._biasDirection = ext.math.Degree(self._biasDirection)
+        if self._threshold is not None:
+            self._threshold = ext.math.Degree(self._threshold)
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)

@@ -171,11 +171,34 @@ def pipeFoundHelper(self):
     self.publishQueuedPipeDropped(id = 0)
     self.assertFalse(self.ai.data['pipeData']['absoluteDirection'].has_key(0))
 
-    # Now drop the last pipe and make sure currentID is deleted and state
-    # is changed
+    # Drop the new pipe and start anew
     self.publishQueuedPipeDropped(id = 1)
+
+    # Check the threshold
+    cstate._biasDirection = math.Degree(0)
+    cstate._threshold = math.Degree(45)
+
+    # Now inject an event that should be ignored because it's out of the
+    # threshold
+    self.publishQueuedPipeFound(x = 0, y = 0, angle = math.Degree(90))
     self.assertEquals(self.ai.data['pipeData'].has_key('currentID'), False)
-    self.assertCurrentState(pipe.Searching)
+
+    # Inject an event with a pipe that goes the wrong way, but is in the
+    # threshold
+    self.publishQueuedPipeFound(x = 0, y = 0, angle = math.Degree(135), id = 1)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 1)
+    self.assertLessThan(self.controller.yawChange, 0)
+
+    # Now inject a normal event that is within the normal range
+    self.publishQueuedPipeFound(x = 0, y = 0, angle = math.Degree(15), id = 2)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 2)
+    self.assertGreaterThan(self.controller.yawChange, 0)
+
+    # Now drop the last pipe and make sure currentID is deleted
+    self.publishQueuedPipeDropped(id = 0)
+    self.publishQueuedPipeDropped(id = 1)
+    self.publishQueuedPipeDropped(id = 2)
+    self.assertEquals(self.ai.data['pipeData'].has_key('currentID'), False)
 
         
 class TestSeeking(PipeTest):
