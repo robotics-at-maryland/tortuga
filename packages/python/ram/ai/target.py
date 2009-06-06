@@ -116,8 +116,9 @@ class RangeXYHold(FilteredState, state.State):
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
         depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.25)
+        iDepthGain = self._config.get('iDepthGain', 0.05)
         dDepthGain = self._config.get('dDepthGain', 0.75)
+        maxDepthDt = self._config.get('maxDepthDt', 0.3)
         self._desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxSpeed = self._config.get('maxSpeed', 1)
@@ -130,6 +131,7 @@ class RangeXYHold(FilteredState, state.State):
             depthGain = depthGain,
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
+            maxDepthDt = maxDepthDt,
             translate = True,
             translateGain = translateGain)
         
@@ -341,8 +343,9 @@ class TargetAlignState(FilteredState):
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.25)
+        iDepthGain = self._config.get('iDepthGain', 0.05)
         dDepthGain = self._config.get('dDepthGain', 0.75)
+        maxDepthDt = self._config.get('maxDepthDt', 0.3)
         
         desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
@@ -360,7 +363,8 @@ class TargetAlignState(FilteredState):
             alignGain = alignGain,
             depthGain = depthGain,
             iDepthGain = iDepthGain,
-            dDepthGain = dDepthGain)
+            dDepthGain = dDepthGain,
+            maxDepthDt = maxDepthDt)
         
         self.motionManager.setMotion(motion)
         

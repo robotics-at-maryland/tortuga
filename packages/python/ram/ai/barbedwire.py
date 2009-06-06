@@ -129,8 +129,9 @@ class RangeXYHold(FilteredState, state.State):
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
         
         self._depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.15)
+        iDepthGain = self._config.get('iDepthGain', 0.05)
         dDepthGain = self._config.get('dDepthGain', 0.3)
+        maxDepthDt = self._config.get('maxDepthDt', 0.3)
         
         self._desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
@@ -149,6 +150,7 @@ class RangeXYHold(FilteredState, state.State):
             depthGain = self._depthGain,
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
+            maxDepthDt = maxDepthDt,
             translate = True,
             translateGain = translateGain,
             iTranslateGain = iTranslateGain,
@@ -239,6 +241,54 @@ class SeekingToRange(RangeXYHold):
         return RangeXYHold.transitions(SeekingToRange, {
             RangeXYHold.IN_RANGE : SeekingToAligned })
 
+    def BARBED_WIRE_FOUND(self, event):
+        """
+        This attempts to find side by side pipes, and if it does, it forces
+        """
+        
+        # Determine if we aren't well aligned (ie. both pipes are beside each 
+        # other and there is no overlap)
+        wellAligned = True
+        
+        # Only run the check if the total with is low enough
+        haveBottomPipe = event.bottomWidth != -1
+        totalWidth = event.topWidth + event.bottomWidth
+        smallEnoughWidth = totalWidth < self._maxAlignCheckWidth
+        if haveBottomPipe and smallEnoughWidth:
+            # Determine the start end and of the pipes on screen
+            leftSt = event.topX - event.topWidth/2.0 
+            leftEnd = event.topX + event.topWidth/2.0
+            rightSt = event.bottomX - event.bottomWidth/2.0 
+            rightEnd = event.bottomX + event.bottomWidth/2.0
+        
+            if event.topX > event.bottomX:
+                # We assumed line direction wrong, swap it
+                leftSt, rightSt = rightSt, leftSt 
+                leftEnd, rightEnd = rightEnd, leftEnd
+               
+            # Find the amount of overlap
+            overlap = (leftEnd - rightSt) / totalWidth
+            
+            # Determine if there is so little overlap we really have side by
+            # side pipes
+            if overlap < self._maxOverlap:
+                wellAligned = False
+        
+        # If we aren't well aligned go the alignment phase, other wise continue
+        # as normal
+        if wellAligned:
+            RangeXYHold.BARBED_WIRE_FOUND(self, event)
+        else:
+            self.publish(SeekingToRange.IN_RANGE, core.Event())    
+
+    def enter(self):
+        # Do the normal enter functions
+        RangeXYHold.enter(self)
+        
+        # Load config options
+        self._maxAlignCheckWidth = self._config.get('maxAlignCheckWidth', 0.7)
+        self._maxOverlap = self._config.get('maxOverlap', 0.1)
+
 class SeekingToRange2(RangeXYHold):
     """
     Heads toward the target until it reaches the desired range
@@ -282,6 +332,7 @@ class TargetAlignState(FilteredState):
         # Read in configuration settings
         self._yZero = self._config.get('yZero', 0.5)
         self._depthGain = self._config.get('depthGain', 1)
+        maxDepthDt = self._config.get('maxDepthDt', 0.3)
         desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
@@ -296,7 +347,8 @@ class TargetAlignState(FilteredState):
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
-            depthGain = self._depthGain)
+            depthGain = self._depthGain,
+            maxDepthDt = maxDepthDt)
         
         self.motionManager.setMotion(motion)
         
@@ -321,8 +373,9 @@ class SeekingToAligned(TargetAlignState, state.State):
 
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
+        haveBottomPipe = event.bottomWidth != -1
         alignment = math.fabs(event.topX) + math.fabs(event.bottomX)
-        if alignment < self._minAlignment:
+        if haveBottomPipe and (alignment < self._minAlignment):
             self.publish(SeekingToAligned.ALIGNED, core.Event())
             
         # Update motion
