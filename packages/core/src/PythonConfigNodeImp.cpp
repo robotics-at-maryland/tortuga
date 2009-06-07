@@ -6,10 +6,13 @@
  * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/core/src/PythonConfigNodeImp.cpp
  */
+
 #include <iostream>
+#include <vector>
 
 // Library Includea
 //#include <Python.h>
+#include "boost/foreach.hpp"
 
 // Project Includes
 #ifdef RAM_WINDOWS
@@ -293,9 +296,41 @@ void PythonConfigNodeImp::set(std::string key, std::string str)
     }
 }
 
+struct null_deleter
+{
+    void operator()(void const *) const
+    {
+    }
+};
+
+
 std::string PythonConfigNodeImp::toString()
 {
     try {
+        // Force includes of all nodes
+        std::vector<ConfigNodeImpPtr> nodes;
+        ConfigNodeImpPtr thisPtr(this, null_deleter());
+        nodes.push_back(thisPtr);
+        
+        do {
+            // Pull a node off the list
+            ConfigNodeImpPtr currentNode = nodes.back();
+            nodes.pop_back();
+
+            // Get all of its subnodes
+            PythonConfigNodeImp* imp =
+                (PythonConfigNodeImp*)currentNode.get();
+            if (PyObject_HasAttrString(imp->m_pyobj.ptr(), "has_key"))
+            {
+                NodeNameList subNodeNames = currentNode->subNodes();
+
+                // Add then all to the list
+                BOOST_FOREACH(std::string nodeName, subNodeNames)
+                    nodes.push_back(currentNode->map(nodeName));
+            }
+            
+        } while (nodes.size() > 0);
+        
         return py::extract<std::string>(py::str(m_pyobj));
     } catch(py::error_already_set err) {
         printf("ConfigNode (toString) Error:\n");
