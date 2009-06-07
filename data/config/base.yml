@@ -203,7 +203,7 @@ RemoteController:
     type: RemoteController
     depends_on: ["Controller"]
     update_interval: -1
-    yawGain: 50
+    yawGain: 800
 
 Logging:
     type: Logging

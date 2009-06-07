@@ -25,7 +25,7 @@ RedLightDetector:
     lostMinPixelScale: 0.75
     almostHitPercentage: 0.17
     topRemovePercentage: 0.25
-    bottomRemovePercentage: 0.25
+    bottomRemovePercentage: 0.1
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0

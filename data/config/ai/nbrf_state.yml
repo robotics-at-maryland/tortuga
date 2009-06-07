@@ -22,6 +22,9 @@ ram.ai.light.Start:
 ram.ai.light.Searching:
     sweepAngle: 0
     speed: 2
+ram.ai.light.Align:
+    alignGain: 0.125
+    maxDepthDt: 0.30
 ram.ai.light.Seek:
     depthGain: 0
     speed: 2
@@ -44,21 +47,15 @@ ram.ai.duct.Aligning:
 ram.ai.target.Start:
     diveDepth: 12.25
 ram.ai.target.SeekingToRange:
-    depthGain: 0 #0.125
-    #iDepthGain: 0.05
-    #dDepthGain: 0.1
+    depthGain: 0.125
 ram.ai.target.SeekingToAligned:
-    depthGain: 0 #0.125
-    #iDepthGain: 0.05
-    #dDepthGain: 0.1
+    depthGain: 0.125
     minSquareNess: 0.96
     alignGain: 0.5
     filterSize: 1
     desiredRange: 0.45
 ram.ai.target.FireTorpedos:
-    depthGain: 0 #0.125
-    #iDepthGain: 0.05
-    #dDepthGain: 0.1
+    depthGain: 0.125
     frontThreshold: 0.15
     desiredRange: 0.4
     rangeThreshold: 0.03
@@ -66,16 +63,16 @@ ram.ai.target.FireTorpedos:
        
 # Barbed wire AI     
 ram.ai.barbedwire.SeekingToRange:
-    depthGain: 0
-    iDepthGain: 0
-    dDepthGain: 0
+    depthGain: 0.1
+    maxDepthDt: 0.3
     desiredRange: 0.7
     translateGain: 2.5
     maxSpeed: 1.5
     maxRangeDiff: 0.5
     rangeGain: 2.5
 ram.ai.barbedwire.SeekingToAligned:
-    depthGain: 0
+    depthGain: 0.1
+    maxDepthDt: 0.3
     alignGain: 0.1
     minAlignment: 0.1
     maxSidewaysSpeed: 1.0
@@ -83,26 +80,9 @@ ram.ai.barbedwire.SeekingToAligned:
     maxRangeDiff: 0.5
     rangeGain: 5
     desiredRange: 0.7
-ram.ai.barbedwire.SeekingToRange2:
-    depthGain: 0
-    iDepthGain: 0 
-    dDepthGain: 0 
-    desiredRange: 0.5
-    translateGain: 2.5
-    maxSpeed: 3
-    maxRangeDiff: 0.5
-    rangeGain: 5
-ram.ai.barbedwire.SeekingToAligned2:
-    depthGain: 0 
-    alignGain: 0.1
-    minAlignment: 0.3 
-    maxSidewaysSpeed: 1.0
-    maxSpeed: 3
-    maxRangeDiff: 0.5
-    rangeGain: 5
-    desiredRange: 0.5
 ram.ai.barbedwire.Aligning:
-    depthGain: 0
+    depthGain: 0.125
+    maxDepthDt: 0.3
     alignGain: 0.1
     maxSidewaysSpeed: 2.0
     desiredRange: 0.5
