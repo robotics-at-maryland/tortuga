@@ -56,12 +56,17 @@ SensorBoard::SensorBoard(int deviceFD,
     m_deviceFile(""),
     m_deviceFD(deviceFD)
 {
+    // Initialize values
+    m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
+                               config["depthSensorLocation"][1].asDouble(0),
+                               config["depthSensorLocation"][2].asDouble(0));
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
     m_state.thrusterValues[3] = 0;
     m_state.thrusterValues[4] = 0;
     m_state.thrusterValues[5] = 0;
+
     // If we get a negative FD, don't try to talk to the board
     if (deviceFD >= 0)
         establishConnection();
@@ -81,7 +86,11 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_deviceFile(config["deviceFile"].asString("/dev/sensor")),
     m_deviceFD(-1)
 {
-    establishConnection();
+
+    // Initialize values
+    m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
+                               config["depthSensorLocation"][1].asDouble(0),
+                               config["depthSensorLocation"][2].asDouble(0));
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
@@ -89,6 +98,10 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_state.thrusterValues[4] = 0;
     m_state.thrusterValues[5] = 0;
 
+
+    // Connect to the sensor board
+    establishConnection();
+  
     for (int i = 0; i < 11; ++i)
         update(1.0/40);
 
@@ -213,6 +226,12 @@ double SensorBoard::getDepth()
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_state.depth;
 }
+
+math::Vector3 SensorBoard::getLocation()
+{
+    return m_location;
+}
+
 
 void SensorBoard::setThrusterValue(int address, int count)
 {

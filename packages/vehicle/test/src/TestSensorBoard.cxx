@@ -86,6 +86,9 @@ struct SensorBoardFixture
 const std::string BASE_CONFIG = "{ 'name' : 'SensorBoard',";
 const std::string BLANK_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
         "'depthCalibIntercept' : 1}";
+const std::string LOC_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
+        "'depthSensorLocation' : [1.0, 2.0, 3.0],"
+        "'depthCalibIntercept' : 1}";
 
 #define LENGTH(X) (sizeof(X)/sizeof(*X))
 
@@ -109,6 +112,17 @@ TEST_FIXTURE(SensorBoardFixture, getDepth)
     ////sb->update(0);
     //CHECK_EQUAL(1.0, sb->getDepth());
     //delete sb;
+}
+
+TEST_FIXTURE(SensorBoardFixture, getLocation)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(LOC_CONFIG));
+
+    ram::math::Vector3 expectedLocation(1, 2, 3);
+    CHECK_CLOSE(expectedLocation, sb->getLocation(), 0.0001);
+
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, setThrusterValue)

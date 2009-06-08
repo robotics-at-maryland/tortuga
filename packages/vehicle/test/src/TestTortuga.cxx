@@ -130,12 +130,31 @@ TEST_FIXTURE(VehicleFixture, IMU)
 
 TEST_FIXTURE(VehicleFixture, DepthSensor)
 {
+    // Create mock depth sensor and IMU
     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
-    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+    MockIMU* imu = new MockIMU("IMU");
+    imu->orientation = math::Quaternion::IDENTITY;
 
+    // Add the mock devices to our vehicle
+    veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    // Check the depth
     double depth = 2.6;
     depthSensor->depth = depth;
     CHECK_EQUAL(depth, veh->getDepth());
+
+    // Now check depth correction for orientation
+
+    // The sensor is in the back, left, and upper corner of the vehicle
+    depthSensor->location = math::Vector3(-1, -0.2, 0.2);
+    // We are pitched forward down by 15 degrees
+    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
+    imu->orientation = orientation;
+    // We add to the expected depth because the downward pitch moves our sensor
+    // to a shallow depth then we are really at
+    double expectedDepth = depth + 0.252;
+    CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
 }
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
@@ -184,7 +203,10 @@ void depthHelper(double* result, ram::core::EventPtr event)
 TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
 {
     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
+    MockIMU* imu = new MockIMU("IMU");
+
     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
     
     double result = 0;
     double expected = 5.7;

@@ -20,12 +20,15 @@ class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
 public:
     MockDepthSensor(std::string name) :
         Device(name),
-        depth(0.0)
-        {}
+        depth(0.0),
+        location(ram::math::Vector3::ZERO)
+    {}
+
+    double depth;
+    ram::math::Vector3 location;
 
     virtual double getDepth() { return depth; }
-    
-    double depth;
+    virtual ram::math::Vector3 getLocation() { return location; }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();

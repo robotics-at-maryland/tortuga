@@ -118,6 +118,8 @@ public:
     // IDepth interface methods
     virtual double getDepth();
 
+    virtual math::Vector3 getLocation();
+
     // The class methods
 
     /** Sets the commanded thruster value
@@ -247,6 +249,10 @@ private:
     // Hacked depth calibration stuff
     double m_depthCalibSlope;
     double m_depthCalibIntercept;
+
+    // Location of the depth sensor
+    math::Vector3 m_location;
+
     //bool m_calibratedDepth;
     //core::AveragingFilter<double, 5> m_depthFilter;
     //double m_depthOffset;

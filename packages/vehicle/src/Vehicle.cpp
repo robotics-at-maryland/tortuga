@@ -162,7 +162,23 @@ std::vector<std::string> Vehicle::getDeviceNames()
     
 double Vehicle::getDepth()
 {
-    return getDepthSensor()->getDepth();
+    // Get the reference to our depth sensor
+    device::IDepthSensorPtr depthSensor = getDepthSensor();
+
+    // Determine depth correction
+    math::Vector3 initialSensorLocation = depthSensor->getLocation();
+    math::Vector3 currentSensorLocation = 
+      getOrientation() * initialSensorLocation;
+    math::Vector3 sensorMovement = 
+      currentSensorLocation - initialSensorLocation;
+    double correction = sensorMovement.z;
+
+    // Grab the depth
+    double depth = depthSensor->getDepth();
+
+    // Return the corrected depth (its addition and not subtraction because
+    // depth is positive down)
+    return depth + correction;
 }
 
 math::Vector2 Vehicle::getPosition()

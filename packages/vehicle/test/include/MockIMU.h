@@ -18,7 +18,10 @@ class MockIMU : public ram::vehicle::device::IIMU,
                 public ram::vehicle::device::Device                
 {
 public:
-    MockIMU(std::string name) : IIMU(ram::core::EventHubPtr()), Device(name) {}
+    MockIMU(std::string name) : 
+        IIMU(ram::core::EventHubPtr()), 
+        Device(name)
+	{}
 	
     virtual ram::math::Vector3 getLinearAcceleration() 
     	{ return linearAcceleration; }
