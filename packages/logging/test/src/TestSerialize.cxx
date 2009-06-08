@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: John Edmonds <pocketcookies2@gmail.com>
- * File:  packages/logging/test/src/TestSerialize.h"
+ * File:  packages/logging/test/src/TestSerialize.cxx
  */
 
 // STD Includes

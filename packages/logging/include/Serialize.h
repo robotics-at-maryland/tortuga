@@ -38,6 +38,10 @@ namespace logging {
 template <class Archive>
 void registerTypes(Archive& ar)
 {
+    // Core Events
+    ar.register_type(static_cast<ram::core::StringEvent*>(NULL));
+
+    // Vision Events
     ar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
 }
     
