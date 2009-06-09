@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <fstream>
+#include <set>
 
 // Library Includes
 #include <boost/archive/text_oarchive.hpp>
@@ -56,6 +57,9 @@ private:
     /** Store event on the internal queue so it can be written to disk */
     void queueEvent(core::EventPtr event);
 
+    /** Writes the event to disk through the archive */
+    void writeEvent(core::EventPtr event);
+
     /** Connection for the recieved events */
     core::EventConnectionPtr m_connection;
 
@@ -67,6 +71,9 @@ private:
     
     /** The archive we are writing to */
     boost::archive::text_oarchive* m_archive;
+
+    /** List of all type we cannot convert for some reason */
+    std::set<std::string> m_unconvertableTypes;
 };
 
 } // namespace logging
