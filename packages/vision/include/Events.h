@@ -57,6 +57,8 @@ public:
     ImageEvent(Image* image_)
         {image = image_;}
 
+    ImageEvent() : image(0) {}
+
     Image* image;
 };
 
@@ -68,7 +70,8 @@ class RAM_EXPORT RedLightEvent : public core::Event
 public:
     RedLightEvent(double x, double y)
         {this->x=x; this->y=y;}
-    RedLightEvent() {}
+    RedLightEvent() : azimuth(0), elevation(0), range(0), x(0), y(0),
+        pixCount(0) {}
 
     math::Degree azimuth;
     math::Degree elevation;
@@ -87,6 +90,7 @@ public:
     PipeEvent(double x_, double y_, double angle_) :
         id(0), x(x_), y(y_), angle(angle_)
     {}
+    PipeEvent() : id(0), x(0), y(0), angle(0) {}
 
     int id;
     double x;
@@ -106,6 +110,7 @@ public:
     
     BinEvent(math::Degree angle)
     {this->x = 0; this->y = 0; this->suit = Suit::UNKNOWN; this->angle = angle;}
+    BinEvent() : x(0), y(0), id(0), suit(Suit::UNKNOWN), angle(0) {}
     
     double x;
     double y;
@@ -125,6 +130,12 @@ public:
         aligned(aligned), visible(visible)
         {
         }
+
+    DuctEvent() :
+        x(0), y(0), range(0), alignment(0),
+        aligned(0), visible(0)
+    {}
+
     
     double x;
     double y;
@@ -139,11 +150,12 @@ typedef boost::shared_ptr<DuctEvent> DuctEventPtr;
 class RAM_EXPORT SafeEvent : public core::Event
 {
   public:
-    SafeEvent(double centerX, double centerY)
-    {
-        x = centerX;
-        y = centerY;
-    }
+    SafeEvent(double centerX, double centerY) : x(centerX), y(centerY)
+    {}
+    
+    SafeEvent() : x(0), y(0)
+    {}
+
     double x;
     double y;
 };
@@ -161,6 +173,16 @@ class RAM_EXPORT TargetEvent : public core::Event
         range(range_)
     {
     }
+
+    TargetEvent() :
+        x(0),
+        y(0),
+        squareNess(0),
+        range(0)
+    {
+    }
+
+
     double x;
     double y;
     double squareNess;
@@ -182,6 +204,18 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
         bottomWidth(bottomWidth_)
     {
     }
+
+    BarbedWireEvent() :
+        topX(0),
+        topY(0),
+        topWidth(0),
+        bottomX(0),
+        bottomY(0),
+        bottomWidth(0)
+    {
+    }
+
+
     double topX;
     double topY;
     double topWidth;

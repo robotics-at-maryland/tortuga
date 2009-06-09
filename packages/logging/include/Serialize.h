@@ -19,14 +19,20 @@
 #include <boost/archive/text_iarchive.hpp>
 
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
 
 // Project Includes
 #include "core/include/EventPublisher.h"
 #include "core/include/EventPublisherRegistry.h"
 #include "core/include/Events.h"
 
+#include "math/include/Events.h"
+
 #include "vision/include/Events.h"
 
+#include "vehicle/include/Events.h"
+
+#include "control/include/Events.h"
 
 namespace ram {
 namespace logging {
@@ -41,8 +47,30 @@ void registerTypes(Archive& ar)
     // Core Events
     ar.register_type(static_cast<ram::core::StringEvent*>(NULL));
 
+    // Math Events
+    ar.register_type(static_cast<ram::math::OrientationEvent*>(NULL));
+    ar.register_type(static_cast<ram::math::Vector3Event*>(NULL));
+    ar.register_type(static_cast<ram::math::NumericEvent*>(NULL));
+    
     // Vision Events
+    ar.register_type(static_cast<ram::vision::ImageEvent*>(NULL));
     ar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::PipeEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::BinEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::DuctEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::SafeEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::TargetEvent*>(NULL));
+    ar.register_type(static_cast<ram::vision::BarbedWireEvent*>(NULL));
+
+    // Vehicle Events
+    ar.register_type(static_cast<ram::vehicle::PowerSourceEvent*>(NULL));
+    ar.register_type(static_cast<ram::vehicle::TempSensorEvent*>(NULL));
+    ar.register_type(static_cast<ram::vehicle::ThrusterEvent*>(NULL));
+    ar.register_type(static_cast<ram::vehicle::SonarEvent*>(NULL));
+
+    // Control Events
+    ar.register_type(static_cast<ram::control::ParamSetupEvent*>(NULL));
+    ar.register_type(static_cast<ram::control::ParamUpdateEvent*>(NULL));
 }
     
     
@@ -106,18 +134,96 @@ void serialize(Archive &ar, ram::core::StringEvent &t,
   ar & t.string;
 }
 
+BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)    
+
+
+// ------------------------------------------------------------------------- //
+//                           M A T H   E V E N T S                           //
+// ------------------------------------------------------------------------- //
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector3 &t,
+               const unsigned int file_version)
+{ 
+  ar & t.x;
+  ar & t.y;
+  ar & t.z;
+}
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::Quaternion &t,
+               const unsigned int file_version)
+{ 
+  ar & t.x;
+  ar & t.y;
+  ar & t.z;
+  ar & t.w;
+}
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::OrientationEvent &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.orientation;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::OrientationEvent)    
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector3Event &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.vector3;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)    
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::NumericEvent &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.number;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::NumericEvent)    
+
 
 // ------------------------------------------------------------------------- //
 //                         V I S I O N   E V E N T S                         //
 // ------------------------------------------------------------------------- //
 
-// Not currently serialized
-//template <class Archive>
-//void serialize(Archive &ar, ram::vision::ImageEvent &t,
-//               const unsigned int file_version)
-//{
-  //ar & t->image;
-//}
+// The image event is not stored currently
+template<class Archive>
+void save(Archive& ar, const ram::vision::ImageEvent& t, unsigned int version)
+{
+    ar & t.type;
+    ar & t.timeStamp;
+}
+    
+template<class Archive>
+void load(Archive& ar, ram::vision::ImageEvent& t, unsigned int version)
+{
+    ar & t.type;
+    ar & t.timeStamp;
+    t.sender = 0;
+}
+
+template<class Archive>
+void serialize(Archive & ar, ram::vision::ImageEvent& t,
+               const unsigned int file_version)
+{
+    split_free(ar, t, file_version); 
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::ImageEvent)
+    
     
 template <class Archive>
 void serialize(Archive &ar, ram::vision::RedLightEvent &t,
@@ -135,58 +241,179 @@ void serialize(Archive &ar, ram::vision::RedLightEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::RedLightEvent)
 
+
 template <class Archive>
-void serialize(Archive &ar, ram::vision::PipeEventPtr &t,
+void serialize(Archive &ar, ram::vision::PipeEvent &t,
                const unsigned int file_version)
 {
-  ar & t->y;
-  ar & t->x;
-  ar & t->y;
-  ar & t->angle;
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.id;
+  ar & t.x;
+  ar & t.y;
+  ar & (*((double*)(&t.angle)));
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::PipeEvent)
-    
+
+
 template <class Archive>
-void serialize(Archive &ar, ram::vision::BinEventPtr &t, 
+void serialize(Archive &ar, ram::vision::BinEvent &t, 
                const unsigned int file_version)
 {
-  ar & t->y;
-  ar & t->y;
-  ar & t->x;
-  ar & t->y;
-  ar & t->id;
-  ar & t->suit;
-  ar & t->angle;
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.y;
+  ar & t.y;
+  ar & t.id;
+  ar & t.suit;
+  ar & (*((double*)(&t.angle)));
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BinEvent)
-    
+
+
 template <class Archive>
-void serialize(Archive &ar, ram::vision::DuctEventPtr &t, 
+void serialize(Archive &ar, ram::vision::DuctEvent &t, 
                const unsigned int file_version)
 {
-  printf("Calling serialize for DuctEvent.\n");
-  ar & t->y;
-  ar & t->x;
-  ar & t->range;
-  ar & t->alignment;
-  ar & t->aligned;
-  ar & t->visible;
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.y;
+  ar & t.x;
+  ar & t.range;
+  ar & t.alignment;
+  ar & t.aligned;
+  ar & t.visible;
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::DuctEvent)
-    
+
+
 template <class Archive>
-void serialize(Archive &ar, ram::vision::SafeEventPtr &t, 
+void serialize(Archive &ar, ram::vision::SafeEvent &t, 
                const unsigned int file_version)
 {
-  ar & t->x;
-  ar & t->y;
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.x;
+  ar & t.y;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::vision::SafeEventPtr)
-    
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::SafeEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vision::TargetEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.x;
+  ar & t.y;
+  ar & t.squareNess;
+  ar & t.range;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::TargetEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vision::BarbedWireEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.topX;
+  ar & t.topY;
+  ar & t.topWidth;
+  ar & t.bottomX;
+  ar & t.bottomY;
+  ar & t.bottomWidth;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BarbedWireEvent)
+
+
+// ------------------------------------------------------------------------- //
+//                        V E H I C L E   E V E N T S                        //
+// ------------------------------------------------------------------------- //
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::PowerSourceEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.id;
+  ar & t.enabled;
+  ar & t.inUse;
+  ar & t.voltage;
+  ar & t.current;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::PowerSourceEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::TempSensorEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.id;
+  ar & t.temp;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::TempSensorEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::ThrusterEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.address;
+  ar & t.current;
+  ar & t.enabled;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::ThrusterEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::SonarEvent &t, 
+               const unsigned int file_version)
+{
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.direction;
+  ar & t.range;
+  ar & t.pingTimeSec;
+  ar & t.pingTimeUSec;
+  ar & t.pingCount;
+  ar & t.pingerID;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::SonarEvent)
+
+
+// ------------------------------------------------------------------------- //
+//                        C O N T R O L   E V E N T S                        //
+// ------------------------------------------------------------------------- //
+
+template <class Archive>
+void serialize(Archive &ar, ram::control::ParamSetupEvent &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.labels;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::control::ParamSetupEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::control::ParamUpdateEvent &t,
+               const unsigned int file_version)
+{ 
+  ar & boost::serialization::base_object<ram::core::Event>(t);
+  ar & t.values;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::control::ParamUpdateEvent)
+
 } // serialization
 } // boost
 
