@@ -58,7 +58,7 @@ class SimThruster(device.IThruster):
     def setForce(self, force):
         self._simThruster.force = force
         
-        event = core.Event()
+        event = vehicle.ThrusterEvent()
         event.number = self._simThruster.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
     
@@ -350,12 +350,12 @@ class SimVehicle(vehicle.IVehicle):
     
     def update(self, timeSinceUpdate):
         # Send Orientation Event
-        event = core.Event()
+        event = math.OrientationEvent()
         event.orientation = self.getOrientation()
         self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
         
         # Send Depth Event
-        event = core.Event()
+        event = math.NumericEvent()
         event.number = self.getDepth()
         self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
         
