@@ -320,7 +320,6 @@ class TestStateMachine(unittest.TestCase):
 
         # Make sure the transition function was called
         self.assertNotEquals(None, startState.thingUpdatedEvent)
-        self.assertEquals(startState.thingUpdatedEvent.sender, self.machine)
         self.assertEquals(startState.thingUpdatedEvent.value, 4)
         
     def testEventHub(self):

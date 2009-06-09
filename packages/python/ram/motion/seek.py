@@ -22,9 +22,11 @@ class PointTarget(ext.core.EventPublisher):
     This represents the state of the target 
     """
     UPDATE = ext.core.declareEventType('UPDATE')
+    VERTICAL_FOV = 78.0 # TODO: Make me configurable
     
-    def __init__(self, azimuth, elevation, range, x, y):
+    def __init__(self, azimuth, elevation, range, x, y, vehicle = None):
         ext.core.EventPublisher.__init__(self)
+        self._vehicle = vehicle
         self.setState(azimuth, elevation, range, x, y, publish = False)
 
     def setState(self, azimuth, elevation, range, x, y, publish = True):
@@ -33,6 +35,16 @@ class PointTarget(ext.core.EventPublisher):
         self.range = range
         self.x = x
         self.y = y
+
+        # If we have vehicle do the correction
+        if self._vehicle is not None:
+            # Grab the current azimuth based on X and FOV
+            angle = x * PointTarget.VERTICAL_FOV/2.0
+            # Get the actual vehicle pitch, and remove it from the angle
+            pitch = self._vehicle.getOrientation().getPitch(True)
+            realAngle = angle - pitch
+            # Now use actual angle of the object to get the real X value
+            self.x = realAngle / PointTarget.VERTICAL_FOV/2.0
 
         # Change them to degrees if they are ext.math.Degree/Radian types
         if hasattr(self.azimuth, 'valueDegrees'):
