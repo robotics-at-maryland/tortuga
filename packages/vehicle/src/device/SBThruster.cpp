@@ -69,7 +69,8 @@ void SBThruster::setForce(double force)
     
     // Convert force here (using calibration factor)
     double motorVoltage = m_sensorBoard->getMainBusVoltage();
-    motorCount = (int)((force / m_calibrationFactor - b) * 1023) / motorVoltage;
+    motorCount =
+        (int)(((force / m_calibrationFactor - b) * 1023) / motorVoltage);
 
     // Take into acount motor direction
     motorCount = motorCount * m_direction;
