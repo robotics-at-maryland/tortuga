@@ -43,8 +43,8 @@ class TestPointTarget(unittest.TestCase):
         
     def testSetState(self):
         # Test basic set state
-        x = 0.5
-        y = 7
+        x = 1
+        y = 0.5
         azimuth = 10
         elevation = 10
         range = 5
@@ -82,8 +82,8 @@ class TestPointTarget(unittest.TestCase):
         
         p.setState(azimuth = azimuth, elevation = elevation, 
                    range = range, x = x, y = y)
-        self.assertAlmostEqual(0.25, p.x, 5)
-        self.assertEqual(y, p.y)
+        self.assertEqual(x, p.x)
+        self.assertAlmostEqual(0.25, p.y, 5)
         self.assertEqual(azimuth, p.azimuth)
         self.assertEqual(elevation, p.elevation)
         self.assertEqual(range, p.range)
