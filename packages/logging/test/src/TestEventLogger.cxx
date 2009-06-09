@@ -14,9 +14,11 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/assign/list_of.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 // Project Includes
 #include "logging/include/EventLogger.h"
+#include "logging/include/Serialize.h"
 
 #include "core/include/Events.h"
 #include "core/include/EventHub.h"
@@ -43,23 +45,29 @@ struct Fixture
 
     EventList readBackAllEvents()
     {
-      /*        std::string fileName = config["fileName"].asString("event.log");
+        std::string fileName = "event.log";
         std::string filePath = (core::Logging::getLogDir() / fileName).string();
-	std::ifstream ifs(filePath.c_str());
+	std::ifstream ifs;
+        ifs.open(filePath.c_str());
 
+        // get length of file:
+        ifs.seekg (0, std::ios::end);
+        int fileLength = ifs.tellg();
+        ifs.seekg (0, std::ios::beg);
+        
         // Create the archive
         boost::archive::text_iarchive iar(ifs);
-        ram::logging::registerTypes(iar);*/
+        ram::logging::registerTypes(iar);
 
 	// Read in all the events
 	EventList events;
-	/*	while (!ifs.eof())
+	while (ifs.tellg() < fileLength)
 	{
-	  // Read in the event
-	  ram::core::EventPtr event;
-	  iar >> event;
-	  events.push_bask(event);
-	  }*/
+            // Read in the event
+            ram::core::EventPtr event;
+            iar >> event;
+            events.push_back(event);
+        }
 
         return events;
     }
@@ -68,25 +76,48 @@ struct Fixture
 TEST_FIXTURE(Fixture, BasicLogging)
 {
     // Create our logger
-  /*    logging::EventLogger* logger = 
+    logging::EventLogger* logger = 
         new logging::EventLogger(core::ConfigNode::fromString("{}"),
 				 boost::assign::list_of(eventHub));
 
+    // Where the results go
+    EventList expected;
+    
     // A named publisher so that it can properly be recorded
     ram::core::EventPublisher publisher(eventHub, "PublisherName");
     ram::core::EventPublisher unNamedPublisher(eventHub);
     
     // Send an event through the publisher
     core::StringEventPtr event1(new ram::core::StringEvent());
-    publisher.publish("Bob", event1);*/
+    event1->string = "Test";
+    publisher.publish("Bob", event1);
+    expected.push_back(event1);
 
-    // Write and read back the event
-    //    ram::core::EventPtr result = serializeDeSerialize<ram::core::Event>(event);
-    
-    // Check to make sure everything made it back
-    //    CHECK_EQUAL(event->type, result->type);
-    //    CHECK_EQUAL(event->sender, result->sender);
-    //    CHECK_EQUAL(event->timeStamp, result->timeStamp);
+    core::StringEventPtr event2(new ram::core::StringEvent());
+    event2->string = "My Other String";
+    unNamedPublisher.publish("Other", event2);
+    expected.push_back(event2);
+
+    // Close down the logger and force the events to disk
+    delete logger;
+
+    // Compare
+    EventList results =  readBackAllEvents();
+    CHECK_EQUAL(expected.size(), results.size());
+
+    CHECK_EQUAL(expected[0]->type, results[0]->type);
+    CHECK_EQUAL(expected[0]->timeStamp, results[0]->timeStamp);
+    CHECK_EQUAL(expected[0]->sender, results[0]->sender);
+    CHECK_EQUAL(
+        boost::dynamic_pointer_cast<core::StringEvent>(expected[0])->string,
+        boost::dynamic_pointer_cast<core::StringEvent>(results[0])->string);
+
+    CHECK_EQUAL(expected[1]->type, results[1]->type);
+    CHECK_EQUAL(expected[1]->timeStamp, results[1]->timeStamp);
+    CHECK(!results[1]->sender);
+    CHECK_EQUAL(
+        boost::dynamic_pointer_cast<core::StringEvent>(expected[1])->string,
+        boost::dynamic_pointer_cast<core::StringEvent>(results[1])->string);
 }
 
 } // SUITE(EventLogger)
