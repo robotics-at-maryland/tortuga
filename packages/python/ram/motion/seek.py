@@ -39,12 +39,12 @@ class PointTarget(ext.core.EventPublisher):
         # If we have vehicle do the correction
         if self._vehicle is not None:
             # Grab the current azimuth based on X and FOV
-            angle = x * PointTarget.VERTICAL_FOV/2.0
+            angle = x * (PointTarget.VERTICAL_FOV/2.0)
             # Get the actual vehicle pitch, and remove it from the angle
             pitch = self._vehicle.getOrientation().getPitch(True)
-            realAngle = angle - pitch
+            realAngle = angle - pitch.valueDegrees()
             # Now use actual angle of the object to get the real X value
-            self.x = realAngle / PointTarget.VERTICAL_FOV/2.0
+            self.x = realAngle / (PointTarget.VERTICAL_FOV/2.0)
 
         # Change them to degrees if they are ext.math.Degree/Radian types
         if hasattr(self.azimuth, 'valueDegrees'):

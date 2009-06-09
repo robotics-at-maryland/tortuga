@@ -9,8 +9,10 @@
 import ram.motion.seek as seek
 
 class Duct(seek.PointTarget):
-    def __init__(self, azimuth, elevation, range, x, y, alignment):
-        seek.PointTarget.__init__(self, azimuth, elevation, range, x, y)
+    def __init__(self, azimuth, elevation, range, x, y, alignment, 
+                 vehicle = None):
+        seek.PointTarget.__init__(self, azimuth, elevation, range, x, y, 
+                                  vehicle)
         self.setState(azimuth, elevation, range, x, y, alignment,
                       publish = False)
 

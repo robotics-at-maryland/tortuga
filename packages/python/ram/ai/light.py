@@ -92,7 +92,8 @@ class Align(state.State):
                              event.x, event.y)
 
     def enter(self):
-        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                  vehicle = self.vehicle)
         depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
         dDepthGain = self._config.get('dDepthGain', 0.5)
@@ -127,7 +128,8 @@ class Seek(state.State):
                              event.x, event.y)
 
     def enter(self):
-        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                  vehicle = self.vehicle)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0)

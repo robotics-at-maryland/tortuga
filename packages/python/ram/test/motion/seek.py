@@ -40,6 +40,54 @@ class TestPointTarget(unittest.TestCase):
         p = motion.seek.PointTarget(azimuth = 15, elevation = 45, range = 12,
                                     x = 0, y = 0)
         self.assertAlmostEqual(-8.485, p.relativeDepth, 3)
+        
+    def testSetState(self):
+        # Test basic set state
+        x = 0.5
+        y = 7
+        azimuth = 10
+        elevation = 10
+        range = 5
+        
+        p = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0, 
+                                    x = 0, y = 0)
+
+        p.setState(azimuth = azimuth, elevation = elevation, 
+                   range = range, x = x, y = y)
+        self.assertEqual(x, p.x)
+        self.assertEqual(y, p.y)
+        self.assertEqual(azimuth, p.azimuth)
+        self.assertEqual(elevation, p.elevation)
+        self.assertEqual(range, p.range)
+        
+        # Test set state with a level vehicle present
+        mockVehicle = support.MockVehicle()
+        
+        p = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0, 
+                                    x = 0, y = 0, vehicle = mockVehicle)
+
+        p.setState(azimuth = azimuth, elevation = elevation, 
+                   range = range, x = x, y = y)
+        self.assertEqual(x, p.x)
+        self.assertEqual(y, p.y)
+        self.assertEqual(azimuth, p.azimuth)
+        self.assertEqual(elevation, p.elevation)
+        self.assertEqual(range, p.range)
+        
+        # Test with un-level vehicle pitched downward 11.25 degrees 
+        # or 1/8 the FOV
+        mockVehicle.orientation = math.Quaternion(
+            math.Degree(11.25), math.Vector3.UNIT_Y) 
+        motion.seek.PointTarget.VERTICAL_FOV = 90
+        
+        p.setState(azimuth = azimuth, elevation = elevation, 
+                   range = range, x = x, y = y)
+        self.assertAlmostEqual(0.25, p.x, 5)
+        self.assertEqual(y, p.y)
+        self.assertEqual(azimuth, p.azimuth)
+        self.assertEqual(elevation, p.elevation)
+        self.assertEqual(range, p.range)
+        
 
 class SeekPointTest(support.MotionTest):
     def makeClass(self, *args, **kwargs):

@@ -121,7 +121,8 @@ class RangeXYHold(FilteredState, state.State):
         self.visionSystem.barbedWireDetectorOn()
         
         # Create tracking object
-        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0, 
+                                                   vehicle = self.vehicle)
         
         # Read in configuration settings
         self._yZero = self._config.get('yZero', 0.5)
@@ -327,7 +328,8 @@ class TargetAlignState(FilteredState):
         self.visionSystem.barbedWireDetectorOn()
         
         # Create tracking object
-        self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
+        self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0, 
+                                            vehicle = self.vehicle)
         
         # Read in configuration settings
         self._yZero = self._config.get('yZero', 0.5)

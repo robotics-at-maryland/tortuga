@@ -110,7 +110,8 @@ class RangeXYHold(FilteredState, state.State):
         self.visionSystem.targetDetectorOn()
         
         # Create tracking object
-        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                   vehicle = self.vehicle)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -345,7 +346,8 @@ class TargetAlignState(FilteredState):
         self.visionSystem.targetDetectorOn()
         
         # Create tracking object
-        self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
+        self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
+                                            vehicle = self.vehicle)
         self._alignSign = 1
         
         # Read in configuration settings
