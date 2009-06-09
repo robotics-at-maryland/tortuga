@@ -47,14 +47,14 @@ namespace ram {
 namespace core {
 
 Logging::Logging(core::ConfigNode config) :
-    Subsystem(config["name"].asString("VisionSystem")),
+    Subsystem(config["name"].asString("Logging")),
     m_logger(0)
 {
     init(config);
 }
     
 Logging::Logging(core::ConfigNode config, core::SubsystemList deps) :
-    Subsystem(config["name"].asString("VisionSystem"), deps),
+    Subsystem(config["name"].asString("Logging"), deps),
     m_logger(0)
 {
     init(config);
