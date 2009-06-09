@@ -41,6 +41,8 @@ Vehicle:
             priority: high
             depthCalibSlope: 35.5
             depthCalibIntercept: 1182
+            # Position is for Tortuga 2 measured in inches as (-11, 1.5, 3)
+            depthSensorLocation: [-0.916666667, 0.125. 0.25]
         MarkerDropper:
             type: SBMarkerDropper
             depends_on: ["SensorBoard"]
