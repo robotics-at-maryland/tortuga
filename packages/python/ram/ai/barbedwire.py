@@ -375,9 +375,15 @@ class SeekingToAligned(TargetAlignState, state.State):
 
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
-        haveBottomPipe = event.bottomWidth != -1
         alignment = math.fabs(event.topX) + math.fabs(event.bottomX)
-        if haveBottomPipe and (alignment < self._minAlignment):
+        range = 1 - event.topWidth        
+        rangeError = math.fabs(range - self._desiredRange)
+
+        inAlignment = alignment < self._minAlignment
+        inRange = rangeError < self._rangeThreshold
+        haveBottomPipe = event.bottomWidth != -1
+
+        if haveBottomPipe and inAlignment and inRange:
             self.publish(SeekingToAligned.ALIGNED, core.Event())
             
         # Update motion
@@ -388,6 +394,8 @@ class SeekingToAligned(TargetAlignState, state.State):
         
         # Record threshold
         self._minAlignment = self._config.get('minAlignment', 0.1)
+        self._desiredRange = self._config.get('desiredRange', 0.5)
+        self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
 
 class SeekingToAligned2(TargetAlignState, state.State):
     """

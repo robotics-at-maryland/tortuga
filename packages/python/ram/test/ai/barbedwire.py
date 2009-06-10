@@ -299,6 +299,18 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         self.assert_(self._aligned)
         self.assertCurrentState(barbedwire.Aligning)
         
+    def testAlignedBadRange(self):
+        # Inject and event which has the target ahead, and at the needed range
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = 0.05, topY = -0.1, topWidth = 0.8,
+                         bottomX = 0.03, bottomY = -0.5, bottomWidth = 0.3)
+        
+        # Make sure we get the ALIGNED event
+        self.qeventHub.publishEvents()
+        self.assertFalse(self._aligned)
+        self.assertCurrentState(barbedwire.SeekingToAligned)
+
     def testAlignedNoBottom(self):
         # Make sure we aren't called aligned if there is no bottom pipe
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
