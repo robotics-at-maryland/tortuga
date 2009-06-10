@@ -64,6 +64,10 @@ class PipeTestCase(support.AITestCase):
                          x = x, y = y, angle = angle, sendToBranches = True)    
 
 class TestPipeBias(PipeTestCase):
+    def publishQueuedPipeFound(self, **kwargs):
+        self.publishQueuedEvent(self.ai, vision.EventType.PIPE_FOUND, 
+                                vision.PipeEvent,0,0,0,
+                                **kwargs)
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
                         ['ram.ai.course.Pipe', 'ram.ai.course.Bin'] }, 
@@ -88,7 +92,7 @@ class TestPipeBias(PipeTestCase):
         self.injectEvent(motion.basic.Motion.FINISHED, sendToBranches = True)
         self.assertCurrentBranchState(pipe.Start, pipe.Searching)
         
-        self.injectPipeEvent(x = 0, y = 0, angle = math.Degree(0))
+        self.publishQueuedPipeFound(x = 0, y = 0, angle = math.Degree(0))
         self.assertCurrentBranchState(pipe.Start, pipe.Seeking)
         
         # Now make sure the biasing has taken effect
@@ -99,7 +103,7 @@ class TestPipeBias(PipeTestCase):
                                                    math.Vector3.UNIT_Z)
         self.controller.setDesiredOrientation(self.vehicle.orientation)
         
-        self.injectPipeEvent(x = 0, y = -0, angle = math.Degree(-75))
+        self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-75))
         self.assertGreaterThan(self.controller.yawChange, 0)
 
 

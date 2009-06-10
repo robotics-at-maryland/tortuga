@@ -38,15 +38,106 @@ def ensurePipeTracking(qeventHub, ai):
                                 vision.EventType.PIPE_FOUND,
                                 vision.EventType.PIPE_DROPPED)
 
-class PipeFollowingState(state.State):
+class PipeTrackingState(state.State):
+    """
+    A more generic version of PipeFollowingState that filters the PIPE_FOUND
+    input to ignore all pipes that are outside of the threshold.
+    """
+    FOUND_PIPE = core.declareEventType('FOUND_PIPE')
+    
     @staticmethod
-    def transitions(myState, trans = None):
+    def transitions(myState = None, trans = None):
+        if myState is None:
+            myState = PipeTrackingState
+        if trans is None:
+            trans = {}
+        trans.update({vision.EventType.PIPE_FOUND : myState})
+        return trans
+    
+    def PIPE_FOUND(self, event):
+        """
+        Check if the found pipe should be tracked. If it shouldn't, ignore it.
+        This only does something if a threshold has been set.
+        """
+        pipeData = self.ai.data['pipeData']
+        angle = event.angle
+        
+        # Create a copy of the event and its properties
+        newEvent = vision.PipeEvent()
+        propNames = [p for p in dir(vision.PipeEvent()) if not p.startswith('_')]
+        for name in propNames:
+            setattr(newEvent, name, getattr(event, name))
+        
+        # Find absolute vehicle direction
+        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleDirection = vehicleOrientation.getYaw(True)
+
+        # Determine the absolute pipe direction
+        absPipeDirection = ext.math.Degree(vehicleDirection + angle)
+        
+        # Store the absolute pipe direction in the itemData
+        pipeData.setdefault('absoluteDirection', {})[event.id] = \
+            absPipeDirection
+        
+        if self._threshold is not None:
+            if self._biasDirection is not None:
+                # If outside of the threshold, return without continuing
+                if not (absPipeDirection - self._threshold <= \
+                            self._biasDirection <= \
+                            absPipeDirection + self._threshold):
+                    # Now check to make sure the pipe isn't the wrong direction
+                    # TODO: Make it look pretty. This is a mess.
+                    if ((absPipeDirection - self._threshold <= \
+                                 self._biasDirection - ext.math.Degree(180) <= \
+                                 absPipeDirection + self._threshold) or
+                            (absPipeDirection - self._threshold <= \
+                                 self._biasDirection + ext.math.Degree(180) <= \
+                                 absPipeDirection + self._threshold)):
+                        self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+                else:
+                    self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+            else: # If there isn't a biasDirection, raise an error
+                raise Exception("A threshold is set with no bnewiasDirection")
+        else:
+            # If a currentID exists or there is no threshold set, call FOUND_PIPE
+            self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+            
+    def enter(self):
+        # Ensure pipe tracking
+        ensurePipeTracking(self.queuedEventHub, self.ai)
+        
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
+
+        self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
+        self._threshold = self.ai.data.get('pipeThreshold', None)
+        if self._biasDirection is not None:
+            self._biasDirection = ext.math.Degree(self._biasDirection)
+        if self._threshold is not None:
+            self._threshold = ext.math.Degree(self._threshold)
+                
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+
+    def _cleanupAbsoluteDirection(self, event):
+        """Remove the stored absolute direction"""
+        pipeData = self.ai.data['pipeData']
+        absDirection = pipeData.get('absoluteDirection', None)
+        if absDirection is not None:
+            if absDirection.has_key(event.id):
+                del absDirection[event.id]
+
+class PipeFollowingState(PipeTrackingState):
+    @staticmethod
+    def transitions(myState = None, trans = None):
+        if myState is None:
+            myState = PipeFollowingState
         if trans is None:
             trans = {}
         trans.update({vision.EventType.PIPE_LOST : Searching,
                       vision.EventType.PIPE_DROPPED : myState,
-                      vision.EventType.PIPE_FOUND : myState})
-        return trans
+                      PipeTrackingState.FOUND_PIPE : myState})
+        
+        return PipeTrackingState.transitions(myState, trans)
 
     def PIPE_LOST(self, event):
         """
@@ -66,7 +157,7 @@ class PipeFollowingState(state.State):
     def PIPE_DROPPED(self, event):
         """Update the tracking system when a pipe is lost. If the pipe
            dropped is the current pipe, find the closest pipe to the
-           vehicles orienatation and switch to it."""
+           vehicles orientation and switch to it."""
 
         # Declare to make it easier to read
         pipeData = self.ai.data['pipeData']
@@ -103,7 +194,7 @@ class PipeFollowingState(state.State):
                                     pipeData['itemData'][minID].y,
                                     pipeData['itemData'][minID].angle)
 
-    def PIPE_FOUND(self, event):
+    def FOUND_PIPE(self, event):
         """Update the state of the light, this moves the vehicle"""
 
         pipeData = self.ai.data['pipeData']
@@ -112,44 +203,15 @@ class PipeFollowingState(state.State):
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
-
-        # Determine the absolute pipe direction
-        absPipeDirection = ext.math.Degree(vehicleDirection + angle)
         
-        # Store the absolute pipe direction in the itemData
-        pipeData.setdefault('absoluteDirection', {})[event.id] = \
-            absPipeDirection
-
-        print self._threshold, self._biasDirection
-        # Check the threshold if it exists
-        if self._threshold is not None:
-            # Check that there is a biasDirection too
-            if self._biasDirection is not None:
-                # If outside of the threshold, return without continuing
-                if not (absPipeDirection - self._threshold <= \
-                            self._biasDirection <= \
-                            absPipeDirection + self._threshold):
-                    # Now check to make sure the pipe isn't the wrong direction
-                    # TODO: Make it look pretty. This is a mess.
-                    if not ((absPipeDirection - self._threshold <= \
-                                 self._biasDirection - ext.math.Degree(180) <= \
-                                 absPipeDirection + self._threshold) or
-                            (absPipeDirection - self._threshold <= \
-                                 self._biasDirection + ext.math.Degree(180) <= \
-                                 absPipeDirection + self._threshold)):
-                        return
-            else: # If there isn't a biasDirection, raise an error
-                # TODO: Learn how to raise errors
-                print "WARNING: A threshold is set with no biasDirection"
-        
-        # With no threshold, the first pipe seen is the followed pipe
+        # Get the currentID
         pipeData.setdefault('currentID', event.id)
 
         # Check if this pipe exists
         if not pipeData['itemData'].has_key(pipeData['currentID']):
             # If it doesn't, set the currentID to event.id
             pipeData['currentID'] = event.id
-        
+
         # Only do work if we are biasing the direction
         if self._biasDirection is not None:    
             # If the pipe event is not the currently followed pipe
@@ -191,17 +253,9 @@ class PipeFollowingState(state.State):
                 self._pipe.setState(event.x, event.y, angle)
 
     def enter(self):
-        # Ensure pipe tracking
-        ensurePipeTracking(self.queuedEventHub, self.ai)
+        PipeTrackingState.enter(self)
         
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
-
-        self._biasDirection = self._config.get('pipeBiasDirection', None)
-        self._threshold = self._config.get('pipeThresholdDirection', None)
-        if self._biasDirection is not None:
-            self._biasDirection = ext.math.Degree(self._biasDirection)
-        if self._threshold is not None:
-            self._threshold = ext.math.Degree(self._threshold)
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)
@@ -225,20 +279,6 @@ class PipeFollowingState(state.State):
                                        iSpeedGain = iSpeedGain,
                                        yawGain = yawGain)
         self.motionManager.setMotion(motion)
-
-    def exit(self):
-        #print '"Exiting Seek, going to follow"'
-
-        self.motionManager.stopCurrentMotion()
-
-    def _cleanupAbsoluteDirection(self, event):
-        """Remove the stored absolute direction"""
-        pipeData = self.ai.data['pipeData']
-        absDirection = pipeData.get('absoluteDirection', None)
-        if absDirection is not None:
-            if absDirection.has_key(event.id):
-                del absDirection[event.id]
-
         
 class Start(state.State):
     @staticmethod
@@ -255,13 +295,17 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Searching(state.State):
+class Searching(PipeTrackingState):
     """When the vehicle is looking for a pipe"""
+    
     @staticmethod
     def transitions():
-        return { vision.EventType.PIPE_FOUND : Seeking }
+        return PipeTrackingState.transitions(Searching,
+            { PipeTrackingState.FOUND_PIPE : Seeking })
 
     def enter(self):
+        PipeTrackingState.enter(self)
+        
         # Turn on the vision system
         self.visionSystem.pipeLineDetectorOn()
 
@@ -272,9 +316,6 @@ class Searching(state.State):
             speed = self._config.get('forwardSpeed', 2))
 
         self.motionManager.setMotion(zigZag)
-
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
 
 class Seeking(PipeFollowingState):
     """When the vehicle is moving over the found pipe"""
@@ -317,10 +358,11 @@ class AlongPipe(PipeFollowingState):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.PIPE_LOST : BetweenPipes,
-                 vision.EventType.PIPE_FOUND : AlongPipe,
+        trans = { vision.EventType.PIPE_LOST : BetweenPipes, 
+                 PipeTrackingState.FOUND_PIPE : AlongPipe,
                  vision.EventType.PIPE_DROPPED : AlongPipe,
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
+        return PipeTrackingState.transitions(AlongPipe, trans)
 
     def PIPE_LOST(self, event):
         """
@@ -340,7 +382,7 @@ class AlongPipe(PipeFollowingState):
         if pipeData['currentID'] == event.id:
             del pipeData['currentID']
 
-    def PIPE_FOUND(self, event):
+    def FOUND_PIPE(self, event):
         """Update the state of the light, this moves the vehicle"""
         
         # Determine if a new pipe has appeared in the field of view
@@ -355,13 +397,10 @@ class AlongPipe(PipeFollowingState):
         if event.x < self._angleDistance and event.y < self._angleDistance:
             angle = event.angle
         event.angle = angle
-        PipeFollowingState.PIPE_FOUND(self, event)
+        PipeFollowingState.FOUND_PIPE(self, event)
 
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
-        
-        # Ensure pipe tracking
-        ensurePipeTracking(self.queuedEventHub, self.ai)
         
         # Initial settings
         PipeFollowingState.enter(self)
@@ -384,7 +423,7 @@ class AlongPipe(PipeFollowingState):
     def exit(self):
         self.motionManager.stopCurrentMotion()
        
-class BetweenPipes(state.State):
+class BetweenPipes(PipeTrackingState):
     """
     When the vehicle is between two pipes, and can't see either.
     """
@@ -392,11 +431,14 @@ class BetweenPipes(state.State):
     
     @staticmethod
     def transitions():
-        return {vision.EventType.PIPE_FOUND : Seeking,
-                BetweenPipes.LOST_PATH : End }
+        return PipeTrackingState.transitions(BetweenPipes,
+                                             {PipeTrackingState.FOUND_PIPE : Seeking,
+                                              BetweenPipes.LOST_PATH : End })
     
     def enter(self):
         """We have driving off the 'end' of the pipe set a timeout"""
+        PipeTrackingState.enter(self)
+        
         forwardTime = self._config.get('forwardTime', 15)
         self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 
 						forwardTime)
@@ -405,6 +447,8 @@ class BetweenPipes(state.State):
         self.controller.setSpeed(self._config.get('forwardSpeed', 5))
         
     def exit(self):
+        PipeTrackingState.exit(self)
+        
         self.controller.setSpeed(0)
         self.timer.stop()
         

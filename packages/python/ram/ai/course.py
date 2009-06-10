@@ -116,7 +116,7 @@ class Pipe(task.Task):
         self._pipeCount = 0
         self.ai.data['pipeBiasDirection'] = \
             self._config.get('biasDirection', None)
-        self.ai.data['pipeThresholdDirection'] = \
+        self.ai.data['pipeThreshold'] = \
             self._config.get('threshold', None)
         
         # Branch off state machine for finding the pipe
@@ -146,6 +146,11 @@ class PipeGate(task.Task):
     
     def enter(self):
         task.Task.enter(self)
+        
+        self.ai.data['pipeBiasDirection'] = \
+            self._config.get('biasDirection', None)
+        self.ai.data['pipeThreshold'] = \
+            self._config.get('threshold', None)
         
         # Branch off state machine for finding the pipe
         if self.ai.data.get('foundPipeEarly', False):

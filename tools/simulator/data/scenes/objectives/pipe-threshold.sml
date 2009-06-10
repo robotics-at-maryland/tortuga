@@ -38,7 +38,7 @@ Scene:
         pipe2:
             type: [sim.vision.IPipe, sim.vision.Pipe]
             position: [-10, 0, -3.05]
-            orientation: [0, 0, 1, -45]
+            orientation: [0, 0, 1, -35]
         
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
