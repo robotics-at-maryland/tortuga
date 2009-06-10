@@ -31,6 +31,7 @@
 #include "math/include/Vector2.h"
 
 #include "core/include/Logging.h"
+#include "core/include/PropertySet.h"
 
 //static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
@@ -128,11 +129,24 @@ void BinDetector::init(core::ConfigNode config)
     m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
     m_maxAspectRatio = config["maxAspectRatio"].asDouble(3);
     
-    m_blackMaskMinimumPercent = config["blackMaskMinimumPercent"].asInt(10);
-    m_blackMaskMaxTotalIntensity = config["blackMaskMaxTotalIntensity"].asInt(350);
-    
-    m_whiteMaskMinimumPercent = config["whiteMaskMinimumPercent"].asInt(30);
-    m_whiteMaskMinimumIntensity = config["whiteMaskMinimumIntensity"].asInt(190);
+
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
+
+    propSet->addProperty(config, false, "blackMaskMinimumPercent",
+        "% of for the black mask minimum",
+        10, &m_blackMaskMinimumPercent, 0, 100);
+    propSet->addProperty(config, false, "blackMaskMaxTotalIntensity",
+        "Maximum value of RGB pixels added together for black",
+        350, &m_blackMaskMaxTotalIntensity, 0, 765);
+
+    propSet->addProperty(config, false, "whiteMaskMinimumPercent",
+        "% of for the white mask minimum",
+        30, &m_whiteMaskMinimumPercent, 0, 100);
+    propSet->addProperty(config, false, "whiteMaskMinimumIntensity",
+        "Minimum value of RGB pixels added together for white",
+        190, &m_whiteMaskMinimumIntensity, 0, 765);
 
     m_incrediblyWashedOutImages = (bool)(config["incrediblyWashedOut"].asInt(0));
     m_logSuitImages = (bool)(config["logSuitImages"].asInt(0));
