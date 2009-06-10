@@ -42,7 +42,7 @@ Vehicle:
             depthCalibSlope: 35.5
             depthCalibIntercept: 1182
             # Position is for Tortuga 2 measured in inches as (-11, 1.5, 3)
-            depthSensorLocation: [-0.916666667, 0.125. 0.25]
+            depthSensorLocation: [-0.916666667, 0.125, 0.25]
         MarkerDropper:
             type: SBMarkerDropper
             depends_on: ["SensorBoard"]
@@ -285,7 +285,7 @@ Controller:
     # 1 = P control (Normal)
     # 4 = Dis. Obs. w/Integral Aug.
     # 5 = PID
-    depthControlType: 1
+    depthControlType: 5
 
     # Discrete Observer Controller w/Integral Aug. (#4)
     depthOCIA4: [0, 12217, -469, 0,
@@ -296,6 +296,6 @@ Controller:
     depthOCIC4: [0, 0, 0, 1]
 
     # Settings for PID Depth Controller (#5)
-    depthKp: 10
-    depthKd: 4
-    depthKi: 1
+    depthKp: 20.0 #10.0
+    depthKi: 1.0
+    depthKd: 1.0

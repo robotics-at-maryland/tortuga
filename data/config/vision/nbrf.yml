@@ -24,8 +24,8 @@ RedLightDetector:
     foundMinPixelScale: 0.85
     lostMinPixelScale: 0.75
     almostHitPercentage: 0.17
-    topRemovePercentage: 0.25
-    bottomRemovePercentage: 0.1
+    topRemovePercentage: 0.0
+    bottomRemovePercentage: 0.0
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
@@ -44,8 +44,8 @@ BinDetector:
     maxAspectRatio: 3
     blackMaskMinimumPercent: 10
     blackMaskMaxTotalIntensity: 350
-    whiteMaskMinimumPercent: 30
-    whiteMaskMinimumIntensity: 190
+    whiteMaskMinimumPercent: 24
+    whiteMaskMinimumIntensity: 137
     incrediblyWashedOut: 0
 DuctDetector:
     minRedOverGreen: 0.5
@@ -83,8 +83,8 @@ SafeDetector:
 TargetDetector:
     filtUMax: 79
     filtUMin: 0
-    filtVMax: 145
-    filtVMin: 0
+    filtVMax: 179
+    filtVMin: 130
  
 BarbedWireDetector:
     bottomRemovePercentage: 0.1

@@ -18,12 +18,13 @@ ram.ai.pipe.AlongPipe:
 
 # Light/Bouy sub task
 ram.ai.light.Start:
-    depth: 10.5
+    depth: 10.8
 ram.ai.light.Searching:
-    sweepAngle: 0
+    sweepAngle: 35
     speed: 2
 ram.ai.light.Align:
     alignGain: 0.125
+    depthGain: 0 #0.05
     maxDepthDt: 0.30
 ram.ai.light.Seek:
     depthGain: 0
@@ -45,43 +46,49 @@ ram.ai.duct.Aligning:
 
 # Target Task
 ram.ai.target.Start:
-    diveDepth: 12.25
+    diveDepth: 8.2
+ram.ai.target.SeekingToCentered:
+    depthGain: 0
+    maxSpeed: 3
+    maxRangeDiff: 0.3
 ram.ai.target.SeekingToRange:
-    depthGain: 0.125
+    depthGain: 0 #0.125
+    maxSpeed: 1.5
+    maxRangeDiff: 0.3
 ram.ai.target.SeekingToAligned:
-    depthGain: 0.125
-    minSquareNess: 0.96
+    depthGain: 0 #0.125
+    minSquareNess: 0.97
     alignGain: 0.5
     filterSize: 1
     desiredRange: 0.45
 ram.ai.target.FireTorpedos:
-    depthGain: 0.125
+    depthGain: 0 #0.125
     frontThreshold: 0.15
-    desiredRange: 0.4
+    desiredRange: 0.35
     rangeThreshold: 0.03
     filterSize: 1
        
 # Barbed wire AI     
 ram.ai.barbedwire.SeekingToRange:
-    depthGain: 0.1
+    depthGain: 0 #0.1
     maxDepthDt: 0.3
     desiredRange: 0.7
     translateGain: 2.5
-    maxSpeed: 1.5
+    maxSpeed: 3
     maxRangeDiff: 0.5
     rangeGain: 2.5
 ram.ai.barbedwire.SeekingToAligned:
-    depthGain: 0.1
+    depthGain: 0 #0.1
     maxDepthDt: 0.3
-    alignGain: 0.1
+    alignGain: 0.05
     minAlignment: 0.1
     maxSidewaysSpeed: 1.0
-    maxSpeed: 3
+    maxSpeed: 5
     maxRangeDiff: 0.5
     rangeGain: 5
     desiredRange: 0.7
 ram.ai.barbedwire.Aligning:
-    depthGain: 0.125
+    depthGain: 0 #0.125
     maxDepthDt: 0.3
     alignGain: 0.1
     maxSidewaysSpeed: 2.0
@@ -89,12 +96,14 @@ ram.ai.barbedwire.Aligning:
        
 # Bin Sub task
 ram.ai.bin.Start:
-    depth: 8
+    depth: 7
 ram.ai.bin.Seeking:
     speedGain: 3
     maxSpeed: 3
     sidewaysSpeedGain: 3
     maxSidewaysSpeed: 3
+ram.ai.bin.Centering:
+    yawGain: 0.4
 ram.ai.bin.SeekEnd:
     #maxSpeed: 2
     speedGain: 7
@@ -102,12 +111,10 @@ ram.ai.bin.SeekEnd:
     #maxSidewaysSpeed: 1.5
 ram.ai.bin.SurfaceToMove:
     binDepth: 12
-    offset: 5
+    offset: 4
 ram.ai.bin.Dive:
     binDepth: 12
-    offset: 2.5
-    yawGain: 0.4
-ram.ai.bin.Centering:
+    offset: 4
     yawGain: 0.4
 ram.ai.bin.Alinging:
     speedGain: 7
@@ -117,14 +124,16 @@ ram.ai.bin.Alinging:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.Examine:
-    targetSuits: ['Diamond', 'Heart']
+    targetSuits: ['Club', 'Heart']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
     sidewaysSpeedGain: 8
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
-
+ram.ai.bin.PreDropDive:
+    binDepth: 12
+    offset: 2
 # Sonar subtask
 ram.ai.sonar.Start:
     diveDepth: 18
