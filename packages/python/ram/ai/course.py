@@ -116,6 +116,8 @@ class Pipe(task.Task):
         self._pipeCount = 0
         self.ai.data['pipeBiasDirection'] = \
             self._config.get('biasDirection', None)
+        self.ai.data['pipeThresholdDirection'] = \
+            self._config.get('threshold', None)
         
         # Branch off state machine for finding the pipe
         self.stateMachine.start(state.Branch(pipe.Start))

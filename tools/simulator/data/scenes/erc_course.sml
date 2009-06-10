@@ -37,27 +37,27 @@ Scene:
             startType: [sim.vision.IPipe, sim.vision.Pipe]
             start: pipe1
             startPos: [-6, -18]
-            startDepth: [-2.753, -3.053]
+            startDepth: -2.353
             startHeading: -35
             
             pipe1:
                 buoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
                     distance: 8
-                    depth: [-0.353, -0.653]
+                    depth: -0.353
 
             buoy:
                 pipe2:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
                     heading: -80
            
             pipe2:
                 barbedwire:
                     type: [sim.vision.IBarbedWire, sim.vision.BarbedWire]
                     distance: 7
-                    depth: [-0.953, -1.253]
+                    depth: -0.953
                     heading: 25
                     
             barbedwire:
@@ -66,20 +66,20 @@ Scene:
                     distance: 3
                     heading: 45
                     offset: -1
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
                 leftpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
                     heading: -35
                     offset: 1
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
             
             rightpipe:
                 target:
                     type: [ram.sim.object.IObject, sim.vision.Target]
                     distance: 8
                     heading: -10
-                    depth: [-1.023, -1.323]
+                    depth: -1.023
             
             target:
                 targetTablePipe:
@@ -87,33 +87,33 @@ Scene:
                     distance: 2
                     heading: -30
                     direction: -90
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
                 targetSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: -60
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
             
             leftpipe:
                 blackJackTable:
                     type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
                     distance: 9
                     heading: 10
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
             
             blackJackTable:
                 tableSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: 15
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
                     
                 tableTargetPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 3
                     heading: 37.5
                     direction: 90
-                    depth: [-2.753, -3.053]
+                    depth: -2.753
             
             tableSonarPipe:
                 sonar:

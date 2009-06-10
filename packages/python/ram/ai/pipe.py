@@ -105,7 +105,7 @@ class PipeFollowingState(state.State):
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        
+
         pipeData = self.ai.data['pipeData']
         angle = event.angle
 
@@ -143,6 +143,11 @@ class PipeFollowingState(state.State):
         
         # With no threshold, the first pipe seen is the followed pipe
         pipeData.setdefault('currentID', event.id)
+
+        # Check if this pipe exists
+        if not pipeData['itemData'].has_key(pipeData['currentID']):
+            # If it doesn't, set the currentID to event.id
+            pipeData['currentID'] = event.id
         
         # Only do work if we are biasing the direction
         if self._biasDirection is not None:    
@@ -222,6 +227,7 @@ class PipeFollowingState(state.State):
 
     def exit(self):
         #print '"Exiting Seek, going to follow"'
+
         self.motionManager.stopCurrentMotion()
 
     def _cleanupAbsoluteDirection(self, event):
