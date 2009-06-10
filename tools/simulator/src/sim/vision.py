@@ -917,6 +917,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Drop out if we have no buoys
         if self._bouys is None:
             return
+        if len(self._bouys) == 0:
+            return
         
         # Determine orientation to the buoy
         bouy, relativePos = self._findClosest(self._bouys)
@@ -954,6 +956,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Drop out if we have no targets
         if self._targets is None:
             return
+        if len(self._targets) == 0:
+            return
         
         # Determine orientation to the target
         target, relativePos = self._findClosest(self._targets)
@@ -985,6 +989,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         """
         # Drop out if we have no Barbed Wire
         if self._barbedWires is None:
+            return
+        if len(self._barbedWires) == 0:
             return
         
         # Grab both pipes determine the relative angle of the whole barbed
@@ -1068,6 +1074,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Drop out if we have no Pipes
         if self._pipes is None:
             return
+        if len(self._pipes) == 0:
+            return
         
         found = False
         visibleBins = 0
@@ -1132,6 +1140,8 @@ class IdealSimVision(ext.vision.VisionSystem):
     def _checkBin(self):
         # Drop out if we have no Bins
         if self._bins is None:
+            return
+        if len(self._bins) == 0:
             return
         
         found = False
@@ -1205,6 +1215,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Drop out if we have no Ducts
         if self._ducts is None:
             return
+        if len(self._ducts) == 0:
+            return
         
         duct, relativePos = self._findClosest(self._ducts)
         ductVisible, x, y, azimuth, elevation, angle = \
@@ -1257,6 +1269,8 @@ class IdealSimVision(ext.vision.VisionSystem):
     def _checkDownwardSafe(self):
         # Drop out if we have no Safes
         if self._safes is None:
+            return
+        if len(self._safes) == 0:
             return
         
         safe, relativePos = self._findClosest(self._safes)
