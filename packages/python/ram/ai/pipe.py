@@ -120,6 +120,7 @@ class PipeFollowingState(state.State):
         pipeData.setdefault('absoluteDirection', {})[event.id] = \
             absPipeDirection
 
+        print self._threshold, self._biasDirection
         # Check the threshold if it exists
         if self._threshold is not None:
             # Check that there is a biasDirection too
@@ -195,8 +196,8 @@ class PipeFollowingState(state.State):
         
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
 
-        self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
-        self._threshold = self.ai.data.get('pipeThresholdDirection', None)
+        self._biasDirection = self._config.get('pipeBiasDirection', None)
+        self._threshold = self._config.get('pipeThresholdDirection', None)
         if self._biasDirection is not None:
             self._biasDirection = ext.math.Degree(self._biasDirection)
         if self._threshold is not None:
