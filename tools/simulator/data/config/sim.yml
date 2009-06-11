@@ -15,12 +15,15 @@ Subsystems:
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
-        #maxRecordRate: 10 # Hz
-        #forwardFile: forward.avi
-        #downwardFile: downward.avi
-        #forwardPort: 50000
-        #downwardPort: 57002
-
+        #ForwardRecorders:
+            #forward.avi: 5 # Really compressed @ 5Hz
+            #forward.rmv: 10 # Raw video at 10Hz
+            #"50000": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+            #downward.avi: 5 # Really compressed @ 5Hz
+            #downward.rmv: 10 # Raw video at 10Hz
+            #"50001": 5 # Really compressed streaming @ 5hz
+            
 #       RedLightDetector:       
 #           intialMinPixels: 400
 #           foundMinPixelScale: 0.85
@@ -111,7 +114,7 @@ Subsystems:
                 biasDirection: 45
                 threshold: 25
             ram.ai.course.Pipe3:
-                biasDirection: 135
+                biasDirection: 180
                 threshold: 45
             ram.ai.course.Target:
                 timeout: 180
