@@ -10,13 +10,14 @@ Subsystems:
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
 
-        # Recording Settings
-        #maxStreamRate: 1 # Hz
-        #maxRecordRate: 5 # Hz
-        #forwardFile: forward.avi
-        #downwardFile: downward.avi
-        #forwardPort: 50000
-        #downwardPort: 50001
+        #ForwardRecorders:
+        #    forward.avi: 5 # Really compressed @ 5Hz
+        #    forward.rmv: 5 # Raw video at 10Hz
+        #    "50000": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+        #    downward.avi: 5 # Really compressed @ 5Hz
+        #    downward.rmv: 5 # Raw video at 10Hz
+        #    "50001": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
         INCLUDE: data/config/vision/nbrf.yml
