@@ -632,6 +632,28 @@ class TestExamine(BinTestCase):
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
         self.assertCurrentState(bin.PreDropDive)
+        self.assertAIDataValue('droppingSuit', vision.Suit.CLUB)
+
+    def testRepeatFoundSuit(self):
+        # Restrat after having dropped the club
+        self.ai.data['droppedSuits'] = set([vision.Suit.CLUB])
+        self.machine.start(bin.Examine)
+
+        # Send in a bunch of events
+        self.ai.data['binData']['currentID'] = 3 
+        for i in xrange(0,14):
+            self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        
+        # Make sure we haven't done anything yet
+        self.assertCurrentState(bin.Examine)
+        self.assertFalse(self._targetFound)
+        
+        # Now release the determine event and make sure we have not moved on
+        # because we have already seen this suit
+        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
+        self.qeventHub.publishEvents()
+        self.assertFalse(self._targetFound)
+        self.assertCurrentState(bin.SurfaceToMove)
         
     def testNoSuitFound(self):
         # Send in a bunch of events
@@ -679,6 +701,7 @@ class TestSettleBeforeDrop(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         # Make sure timer works
+        self.ai.data['droppingSuit'] = vision.Suit.CLUB
         self.releaseTimer(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
         
@@ -701,6 +724,7 @@ class TestSettleBeforeDrop(BinTestCase):
     def testSettled(self):
         """Make sure we move on after settling"""
         # Inject settled event
+        self.ai.data['droppingSuit'] = vision.Suit.CLUB
         self.injectEvent(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
         
@@ -851,6 +875,7 @@ class TestNextBin(BinTestCase):
 class TestDropMarker(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
+        self.ai.data['droppingSuit'] = vision.Suit.CLUB
         self.machine.start(bin.DropMarker)
     
     def testStart(self):
@@ -861,6 +886,7 @@ class TestDropMarker(BinTestCase):
 #        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.releaseTimer(bin.DropMarker.DROPPED)
         self.assertCurrentState(bin.SurfaceToMove)
+        self.assertAIDataValue('droppedSuits', set([vision.Suit.CLUB]))
         
     def testBinFound(self):
         """Make sure the loop back works"""

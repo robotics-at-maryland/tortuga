@@ -554,18 +554,24 @@ class Examine(SettlingState):
     def _loadSuitConfig(self):
         targetSuits = self._config.get('targetSuits', ['Club', 'Diamond'])
         
-        self._targetSuits = set()
+        possibleTargetSuits = set()
         for suit in targetSuits:
             suitName = suit.upper()
             if hasattr(vision.Suit, suitName):
-                self._targetSuits.add(getattr(vision.Suit, suitName))
-    
+                possibleTargetSuits.add(getattr(vision.Suit, suitName))
+
+        droppedSuits = self.ai.data.get('droppedSuits', set())
+        self._targetSuits = possibleTargetSuits.difference(droppedSuits)
+
     def _checkSuit(self, suit):
         """
         Returns true if we are looking for this suit, and publishes
         FOUND_TARGET event.
         """
         if suit in self._targetSuits: 
+            # Record which suit we are dropping 
+            self.ai.data['droppingSuit'] = suit
+            # Publish the fact that we found the target to drop
             self.publish(Examine.FOUND_TARGET, core.Event())
             return True
         return False
@@ -722,8 +728,12 @@ class DropMarker(SettlingState):
         markerNum = self.ai.data.get('markersDropped',0)
         self.ai.data['markersDropped'] = markerNum + 1
 
-        # TODO: drop marker here
+        # Release the marker
         self.vehicle.dropMarker()
+
+        # Mark that we dropped the suit
+        droppingSuit = self.ai.data['droppingSuit']
+        self.ai.data.setdefault('droppedSuits', set()).add(droppingSuit)
         
 class SurfaceToCruise(HoveringState):
     """
