@@ -25,7 +25,7 @@
 #include "core/include/SubsystemMaker.h"
 #include "core/include/Logging.h"
 #include "core/include/EventHub.h"
-
+#include "core/include/Events.h"
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::logging::EventLogger, EventLogger);
 
@@ -135,6 +135,9 @@ void EventLogger::queueEvent(core::EventPtr event)
 
 void EventLogger::writeEvent(core::EventPtr event)
 {
+    static core::StringEvent oldStringEvent;
+    static std::string stringEventTypeName(typeid(oldStringEvent).name());
+    
     std::string typeName(typeid(*(event.get())).name());
     try
     {
@@ -146,10 +149,20 @@ void EventLogger::writeEvent(core::EventPtr event)
     {
         if (ex.code == boost::archive::archive_exception::unregistered_class)
         {
-            std::cerr << "Could not convert: "
-                      << typeid(*(event.get())).name()
-                      << " " << event->type << std::endl;
-            m_unconvertableTypes.insert(typeName);
+            if (stringEventTypeName == typeName)
+            {
+                core::StringEvent* oldStringEvent =
+                    (core::StringEvent*)event.get();
+                core::StringEventPtr stringEvent(new core::StringEvent());
+                stringEvent->string = oldStringEvent->string;
+                (*m_archive) << stringEvent;                
+            }
+            else
+            {
+                std::cerr << "Could not convert: " << typeName << event->type
+                          << std::endl;
+                m_unconvertableTypes.insert(typeName);
+            }
         }
         else
         {
