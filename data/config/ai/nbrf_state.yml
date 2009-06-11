@@ -136,18 +136,18 @@ ram.ai.bin.PreDropDive:
     offset: 2
 # Sonar subtask
 ram.ai.sonar.Start:
-    diveDepth: 18
+    diveDepth: 15
 ram.ai.sonar.CloseSeeking:
-    maxSidewaysSpeed: 1
-    sidewaysSpeedGain: 2
-    maxSpeed: 1
-    speedGain: 2
+    maxSidewaysSpeed: 1.5
+    sidewaysSpeedGain: 3
+    maxSpeed: 1.5
+    speedGain: 3
     closeZ: 0.98
 ram.ai.sonar.FarSeeking:
     maxSidewaysSpeed: 1
     sidewaysSpeedGain: 2
-    maxSpeed: 3
-    speedGain: 7
+    maxSpeed: 2
+    speedGain: 5
     midRangeZ: 0.8
 ram.ai.sonar.Hovering:
     maxSidewaysSpeed: 1
@@ -186,32 +186,34 @@ ram.ai.safe.Settling:
 
 # SONAR & Safe subtask
 ram.ai.sonarSafe.Settling:
-    maxSidewaysSpeed: 3
-    sidewaysSpeedGain: 3
-    maxSpeed: 3
-    speedGain: 3
+    maxSidewaysSpeed: 2.25
+    sidewaysSpeedGain: 2.25
+    maxSpeed: 2.25
+    speedGain: 2.25
 ram.ai.sonarSafe.Dive:
     #Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1
-    safeDepth: 10.5
+    safeDepth: 19
     depthOffset: 1
-    diveRate: 0.2
+    diveRate: 0.1
+    maxSidewaysSpeed: 2.25
+    sidewaysSpeedGain: 2.25
+    maxSpeed: 2.25
+    speedGain: 2.25
+ram.ai.sonarSafe.PreGrabSettling:
     maxSidewaysSpeed: 3
     sidewaysSpeedGain: 3
     maxSpeed: 3
     speedGain: 3
-ram.ai.sonarSafe.PreGrabSettling:
-    maxSidewaysSpeed: 2
-    sidewaysSpeedGain: 2
-    maxSpeed: 2
-    speedGain: 2
+    duration: 15 
+    closeZ: 0.99
 ram.ai.sonarSafe.Grabbing:
     # Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1.5
-    safeDepth: 10.5
-    depthOffset: 1.5
+    safeDepth: 19
+    depthOffset: 1
 
 # Gate + Pipes + Bouy + Bins + VisSafe + Octagon Mission
 ram.ai.course.PingerDive:
