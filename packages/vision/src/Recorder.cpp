@@ -10,9 +10,12 @@
 
 // STD Includes
 #include <algorithm>
+#include <sstream>
 
 // Library Includes
 #include <boost/bind.hpp>
+#include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -21,8 +24,15 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
 
+#include "vision/include/FileRecorder.h"
+#include "vision/include/RawFileRecorder.h"
+#include "vision/include/NetworkRecorder.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
+
 #include "core/include/TimeVal.h"
 #include "core/include/EventConnection.h"
+
+namespace bfs = boost::filesystem;
 
 namespace ram {
 namespace vision {
@@ -130,6 +140,56 @@ void Recorder::background(int interval)
         m_newFrame = false;
     }
     Updatable::background(interval);
+}
+
+Recorder* Recorder::createRecorderFromString(const std::string& str,
+                                             Camera* camera,
+                                             std::string& message,
+                                             Recorder::RecordingPolicy policy,
+                                             int policyArg,
+                                             std::string recorderDir)
+{
+    static boost::regex port("(\\d{1,5})");
+    std::stringstream ss;
+    Recorder* recorder = 0;
+    
+    boost::smatch matcher;
+    if (boost::regex_match(str, matcher, port))
+    {
+        ss <<"Recording to host : '" << boost::lexical_cast<int>(str) << "'";
+        boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(str);
+//#ifdef RAM_POSIX
+//        signal(SIGPIPE, brokenPipeHandler);
+//#endif
+        recorder =
+//            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+            new vision::FFMPEGNetworkRecorder(camera, policy, portNum,
+                                              policyArg);
+    }
+
+    if (!recorder)
+    {
+        std::string fullPath = (bfs::path(recorderDir) / str).string();
+        std::string extension = bfs::path(str).extension();
+
+        ss <<"Assuming string is a file, Recording to '" << str << "'";
+        
+        if (".rmv" == extension)
+        {
+            ss << " as raw .rmv";
+            recorder = new vision::RawFileRecorder(camera, policy, fullPath,
+                                                   policyArg);
+        }
+        else
+        {
+            ss << " as a MPEG4 compressed .avi";
+            recorder = new vision::FileRecorder(camera, policy, fullPath,
+                                                policyArg);
+        }
+    }
+
+    message = ss.str();
+    return recorder;
 }
     
 void Recorder::cleanUp()

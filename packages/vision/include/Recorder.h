@@ -12,6 +12,9 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+// STD Includes
+#include <string>
+
 // Library Includes
 #include <boost/thread/mutex.hpp>
 
@@ -61,6 +64,17 @@ class RAM_EXPORT Recorder : public core::Updatable
 
     /** Starts the background process thread, clear m_newFrame flag */
     virtual void background(int interval = -1);
+
+    /** Creates a recorder from string the string
+     *
+     *  This can be a network recorder, file system recorder etc.
+     */
+    static Recorder* createRecorderFromString(const std::string& str,
+                                              Camera* camera,
+                                              std::string& message,
+                                              Recorder::RecordingPolicy policy,
+                                              int policyArg,
+                                              std::string recorderDir = ".");
     
   protected:
     /** This must be the first thing called in by a subclasses destructor */

@@ -7,6 +7,9 @@
  * File:  packages/vision/src/VisionSystem.cpp
  */
 
+// Library Includes
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
@@ -34,21 +37,12 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 
 namespace ram {
 namespace vision {
-
-std::string getVideoPath(std::string fileName)
-{
-    return (core::Logging::getLogDir() / fileName).string();
-}
     
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
     Subsystem(config["name"].asString("VisionSystem"), deps),
     m_forwardCamera(CameraPtr()),
     m_downwardCamera(CameraPtr()),
-    m_forwardFileRecorder(0),
-    m_downwardFileRecorder(0),
-    m_forwardNetworkRecorder(0),
-    m_downwardNetworkRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
@@ -66,10 +60,6 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
     m_downwardCamera(downward),
-    m_forwardFileRecorder(0),
-    m_downwardFileRecorder(0),
-    m_forwardNetworkRecorder(0),
-    m_downwardNetworkRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
@@ -96,47 +86,11 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;
 
-    // Max number of frames per second to record
-    int maxRecordRate = config["maxRecordRate"].asInt(5);
-    int maxStreamRate = config["maxStreamRate"].asInt(5);
-    
     // Recorders
-    if (config.exists("forwardFile"))
-    {
-        m_forwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
-            m_forwardCamera.get(),
-            Recorder::MAX_RATE,
-            getVideoPath(config["forwardFile"].asString()),
-            maxRecordRate);
-    }
-    if (config.exists("forwardPort"))
-    {
-        m_forwardNetworkRecorder = new FFMPEGNetworkRecorder(
-            m_forwardCamera.get(),
-            Recorder::MAX_RATE,
-            config["forwardPort"].asInt(),
-            maxStreamRate);
-    }
-        
-
-    if (config.exists("downwardFile"))
-    {
-        m_downwardFileRecorder = new FileRecorder( //new FFMPEGRecorder(
-            m_downwardCamera.get(),
-            Recorder::MAX_RATE,
-            getVideoPath(config["downwardFile"].asString()),
-            maxRecordRate);
-
-    }
-    if (config.exists("downwardPort"))
-    {
-        m_downwardNetworkRecorder = new FFMPEGNetworkRecorder(
-            m_downwardCamera.get(),
-            Recorder::MAX_RATE,
-            config["downwardPort"].asInt(),
-            maxStreamRate);
-    }
-    
+    if (config.exists("ForwardRecorders"))
+        createRecorders(config["ForwardRecorders"], m_forwardCamera);
+    if (config.exists("DownwardRecorders"))
+        createRecorders(config["DownwardRecorders"], m_downwardCamera);
     
     // Detector runners (go as fast as possible)
     m_forward = new VisionRunner(m_forwardCamera.get(), Recorder::NEXT_FRAME);
@@ -165,6 +119,30 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_downwardCamera->background(-1);
 }
     
+void VisionSystem::createRecorders(core::ConfigNode recorderCfg,
+                                   CameraPtr camera)
+{
+    BOOST_FOREACH(std::string recorderString, recorderCfg.subNodes())
+    {
+        Recorder::RecordingPolicy policy = Recorder::MAX_RATE;
+
+        // Get in the rate, or the signal to record every frame
+        int policyArg = recorderCfg[recorderString].asInt();
+        if (policyArg <= 0)
+            policy = Recorder::NEXT_FRAME;
+
+        // Create the actual recorder
+        std::string message;
+        Recorder* recorder = Recorder::createRecorderFromString(
+            recorderString, camera.get(), message, policy, policyArg,
+            core::Logging::getLogDir().string());
+        std::cout << "RECORDING>>>> "  << message << std::endl;
+
+        // Store it for later desctruction
+        m_recorders.push_back(recorder);
+    }
+}
+    
 VisionSystem::~VisionSystem()
 {
     m_forward->removeAllDetectors();
@@ -174,10 +152,9 @@ VisionSystem::~VisionSystem()
     m_forwardCamera->unbackground(true);
     m_downwardCamera->unbackground(true);
 
-    delete m_forwardFileRecorder;
-    delete m_downwardFileRecorder;
-    delete m_forwardNetworkRecorder;
-    delete m_downwardNetworkRecorder;
+    // Stop recorders
+    BOOST_FOREACH(Recorder* recorder, m_recorders)
+        delete recorder;
     
     // Shutdown our detectors running on our cameras
     delete m_forward;
@@ -272,15 +249,9 @@ void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 
     m_forward->setPriority(priority);
     m_downward->setPriority(priority);
-
-    if (m_forwardFileRecorder)
-        m_forwardFileRecorder->setPriority(priority);
-    if (m_downwardFileRecorder)
-        m_downwardFileRecorder->setPriority(priority);
-    if (m_forwardNetworkRecorder)
-        m_forwardNetworkRecorder->setPriority(priority);
-    if (m_downwardNetworkRecorder)
-        m_downwardNetworkRecorder->setPriority(priority);        
+    
+    BOOST_FOREACH(Recorder* recorder, m_recorders)
+        recorder->setPriority(priority);
 }
     
 void VisionSystem::background(int interval)
@@ -295,14 +266,8 @@ void VisionSystem::background(int interval)
     m_downward->background(interval);
 
     // Start recorders
-    if (m_forwardFileRecorder)
-        m_forwardFileRecorder->background(interval);
-    if (m_downwardFileRecorder)
-        m_downwardFileRecorder->background(interval);
-    if (m_forwardNetworkRecorder)
-        m_forwardNetworkRecorder->background(interval);
-    if (m_downwardNetworkRecorder)
-        m_downwardNetworkRecorder->background(interval);    
+    BOOST_FOREACH(Recorder* recorder, m_recorders)
+        recorder->background(interval);
 }
         
 void VisionSystem::unbackground(bool join)
@@ -318,14 +283,8 @@ void VisionSystem::unbackground(bool join)
     m_downward->unbackground(join);
 
     // Stop recorders
-    if (m_forwardFileRecorder)
-        m_forwardFileRecorder->unbackground(join);
-    if (m_downwardFileRecorder)
-        m_downwardFileRecorder->unbackground(join);
-    if (m_forwardNetworkRecorder)
-        m_forwardNetworkRecorder->unbackground(join);
-    if (m_downwardNetworkRecorder)
-        m_downwardNetworkRecorder->unbackground(join);    
+    BOOST_FOREACH(Recorder* recorder, m_recorders)
+        recorder->unbackground(join);
 }
 
 void VisionSystem::update(double timestep)
@@ -341,14 +300,8 @@ void VisionSystem::update(double timestep)
     m_downward->update(timestep);
 
     // Update the recorders to record the data
-    if (m_forwardFileRecorder)
-        m_forwardFileRecorder->update(timestep);
-    if (m_downwardFileRecorder)
-        m_downwardFileRecorder->update(timestep);
-    if (m_forwardNetworkRecorder)
-        m_forwardNetworkRecorder->update(timestep);
-    if (m_downwardNetworkRecorder)
-        m_downwardNetworkRecorder->update(timestep);
+    BOOST_FOREACH(Recorder* recorder, m_recorders)
+        recorder->update(timestep);
 }
     
 } // namespace vision

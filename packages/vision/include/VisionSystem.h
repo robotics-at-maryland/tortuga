@@ -10,6 +10,9 @@
 #ifndef RAM_VISION_VISIONSYSTEM_H_01_29_2008
 #define RAM_VISION_VISIONSYSTEM_H_01_29_2008
 
+// STD Includes
+#include <vector>
+
 // Project Includes
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
@@ -95,14 +98,13 @@ public:
 private:
     /** Initializes all internal members */
     void init(core::ConfigNode config, core::EventHubPtr eventHub);
+
+    void createRecorders(core::ConfigNode recorderCfg, CameraPtr camera);
     
     CameraPtr m_forwardCamera;
     CameraPtr m_downwardCamera;
 
-    Recorder* m_forwardFileRecorder;
-    Recorder* m_downwardFileRecorder;
-    Recorder* m_forwardNetworkRecorder;
-    Recorder* m_downwardNetworkRecorder;
+    std::vector<Recorder*> m_recorders;
     
     VisionRunner* m_forward;
     VisionRunner* m_downward;
