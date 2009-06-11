@@ -86,10 +86,11 @@ Subsystems:
         
         # Demo course with everything
         taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-                    'ram.ai.course.Light', 'ram.ai.course.Pipe2',
-                    'ram.ai.course.BarbedWire',
-                    'ram.ai.course.Pipe3', 'ram.ai.course.Bin',
-                    'ram.ai.course.Pinger']
+                    'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+                    'ram.ai.course.BarbedWire', 'ram.ai.course.Pipe2', 
+                    'ram.ai.course.Target', 'ram.ai.course.Pipe3',
+                    'ram.ai.course.Bin', 'ram.ai.course.Pinger', 
+                    'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon']
         type: AI
 
     StateMachine:
@@ -104,6 +105,16 @@ Subsystems:
                 pipesToFind: 3
             ram.ai.course.Gate:
                 pipeDelay: 0
+            ram.ai.course.Light:
+                timeout: 90
+            ram.ai.course.Pipe2:
+                biasDirection: 45
+                threshold: 25
+            ram.ai.course.Pipe3:
+                biasDirection: 135
+                threshold: 45
+            ram.ai.course.Target:
+                timeout: 180
         
             # Duct settings
             ram.ai.duct.SeekingToRange:
@@ -122,6 +133,10 @@ Subsystems:
             ram.ai.duct.Through:
                 forwardTime: 40
 
+            # Bin Settings
+            ram.ai.bin.Start:
+                depth: 5
+                speed: 1
             ram.ai.bin.Searching:
                 sweepAngle: 0
                 speed: 5
@@ -129,13 +144,13 @@ Subsystems:
                 sidewaysSpeedGain: 10
                 speedGain: 7
             ram.ai.bin.Dive:
-                binDepth: 12 #15.4
-                offset: 2.25
+                binDepth: 11 #15.4
+                offset: 5
             ram.ai.bin.PreDropDive:
-                binDepth: 12
-                offset: 1.5
+                binDepth: 11
+                offset: 3.5
             ram.ai.bin.SurfaceToMove:
-                binDepth: 12 #15.4
+                binDepth: 11 #15.4
                 offset: 5
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
@@ -170,16 +185,31 @@ Subsystems:
             # Light/Bouy sub task
             ram.ai.light.Start:
                 speed: 1.5
-                depth: 5
+                depth: 4
             ram.ai.light.Searching:
                 sweepAngle: 0
                 speed: 2
+            ram.ai.light.Align:
+                desiredRange: 7
+                depthGain: 0 #0.125
+                maxDepthDt: 0.3
+                alignmentThreshold: 0.05
             ram.ai.light.Seek:
+                depthGain: 0 # 0.125
+                maxDepthDt: 0.3
                 speed: 2
                 
             # Target AI
+            ram.ai.target.Start:
+                diveDepth: 5.5
+                diveSpeed: 1
+            ram.ai.target.SeekingToCentered:
+                depthGain: 0
+            ram.ai.target.SeekingToRange:
+                depthGain: 0
             ram.ai.target.SeekingToAligned:
                 depthGain: 0
+                alignGain: 0.1
                 minSquareNess: 0.95
             ram.ai.target.FireTorpedos:
                 depthGain: 0
@@ -234,40 +264,34 @@ Subsystems:
                 safeDepth: 10.5
                 depthOffset: 1
 
-            # Gate + Buoy + Safe + Octagon Mission
-            ram.ai.buoySonarCourse.Light:
-                timeout: 40
-            ram.ai.buoySonarCourse.PingerDive:
-                depth: 1.5
-
             # Barbed wire AI
             ram.ai.barbedwire.Start:
                 diveDepth: 5
             ram.ai.barbedwire.SeekingToRange:
                 desiredRange: 0.5
-                maxSpeed: 2.0
-                #depthGain: 0
-                yZero: 0.65
+                maxSpeed: 3.0
+                depthGain: 0
+                yZero: 0.5 #0.65
                 translateGain: 2.5 
             ram.ai.barbedwire.SeekingToAligned:
                 desiredRange: 0.5
                 maxSidewaysSpeed: 2
                 alignGain: 0.1
                 minAlignment: 0.05
-                depthGain: 1
-                yZero: 0.65     
+                depthGain: 0 #1
+                yZero: 0.5 #0.65     
             ram.ai.barbedwire.Aligning:
                 desiredRange: 0.5
                 maxSidewaysSpeed: 2
                 alignGain: 0.1
-                depthGain: 1
-                yZero: 0.65
+                depthGain: 0 #1
+                yZero: 0.5 #0.65
             ram.ai.barbedwire.Through:
                 forwardTime: 20
             
             # Pipe AI
             ram.ai.pipe.BetweenPipes:
-                forwardTime: 15
+                forwardTime: 30
             ram.ai.pipe.Start:
                 speed: 3
             ram.ai.pipe.Searching:
@@ -279,8 +303,12 @@ Subsystems:
     #    update_interval: -1
     #    yawGain: 50
 
+    EventLogger:
+        depends_on: ["EventHub"]
+        type: EventLogger
+    
     Controller:
-        
+        orientationThreshold: 0.1
         depends_on: ["Vehicle", "EventHub"]
         type: BWPDController
         holdCurrentHeading: 1

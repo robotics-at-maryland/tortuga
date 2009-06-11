@@ -286,7 +286,7 @@ class Light(task.Task):
         self.controller.setDesiredOrientation(self._initialOrientation)
         self._hit = True
 
-    def enter(self, defaultTimeout = 60):
+    def enter(self, defaultTimeout = 90):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
         self._hit = False
 
@@ -374,7 +374,7 @@ class Target(task.Task):
         if self._complete:
             self.publish(Target.MOVE_ON, core.Event())
     
-    def enter(self, defaultTimeout = 120):
+    def enter(self, defaultTimeout = 180):
         # Initialize task part of class
         task.Task.enter(self, defaultTimeout = defaultTimeout)
         
