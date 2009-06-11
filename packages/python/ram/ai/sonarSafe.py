@@ -57,20 +57,34 @@ class Dive(TranslationSeeking):
         TranslationSeeking.enter(self)
         
 class PreGrabSettling(TranslationSeeking):
-    SETTLED = core.declareEventType('SETTLED')
-    
+    SETTLED = core.declareEventType('_SETTLED')
+    MOVE_ON = core.declareEventType('_MOVE_ON')    
+
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(PreGrabSettling,
-            { PreGrabSettling.SETTLED : Grabbing })
+            { PreGrabSettling.SETTLED : PreGrabSettling,
+              TranslationSeeking.CLOSE : PreGrabSettling,
+              PreGrabSettling.MOVE_ON : Grabbing })
     
+    def CLOSE(self, event):
+        if self._timerDone:
+            self.publish(PreGrabSettling.MOVE_ON, core.Event())
+
+    def _SETTLED(self, event):
+        self._timerDone = True
+
     def enter(self):
         duration = self._config.get('duration', 10)
+        self._timerDone = False
+
         self.timer = self.timerManager.newTimer(PreGrabSettling.SETTLED, 
                                                 duration)
         self.timer.start()
         
         TranslationSeeking.enter(self)
+
+        self._closeZ = self._config.get('closeZ', 0.97)
         
 class Grabbing(safe.Grabbing):
     @staticmethod

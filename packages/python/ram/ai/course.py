@@ -455,7 +455,6 @@ class SafeSonar(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.stateMachine.stopBranch(sonarSafe.Settling)
-        self.visionSystem.downwardSafeDetectorOff()
 
 class Octagaon(task.Task):
     """
