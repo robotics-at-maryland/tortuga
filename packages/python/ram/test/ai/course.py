@@ -22,6 +22,7 @@ import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
 import ram.ai.barbedwire as barbedwire
+import ram.ai.target as target
 import ram.ai.bin as bin
 import ram.ai.sonar as sonar
 import ram.ai.safe as safe
@@ -490,7 +491,7 @@ class TestBarbedWire(support.AITestCase):
         self.assertCurrentBranches([barbedwire.Start])
         #self.assert_(self.visionSystem.barbedWireDetector)
         
-    def testLightHit(self):
+    def testBarbedWireDone(self):
         """
         Make sure that we move on once we hit the light
         """
@@ -517,6 +518,96 @@ class TestBarbedWire(support.AITestCase):
         self.assertCurrentState(course.Pipe)
         self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
         self.assertFalse(self.visionSystem.barbedWireDetector)
+        
+class TestTarget(support.AITestCase):
+    FINAL_TURN = 65
+    
+    def setUp(self):
+        cfg = { 
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.course.Target' : {
+                        'finalTurn' : TestTarget.FINAL_TURN
+                    },
+                }
+            }, 
+            'Ai' : {'taskOrder' : 
+                    ['ram.ai.course.Target', 'ram.ai.course.Pipe'] } 
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Target)
+        self._stateType = course.Target
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(self._stateType)
+        
+        self.assertCurrentBranches([target.Start])
+        #self.assert_(self.visionSystem.barbedWireDetector)
+        
+    def testTargetDone(self):
+        """
+        Make sure that we start a turn once we finish the target
+        """
+        
+        # Make sure we are still in the same state
+        self.injectEvent(target.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Target)
+        
+        # Make sure we are turning
+        self.assertEqual(TestTarget.FINAL_TURN, self.controller.yawChange)
+        
+        
+    def testTurnFinished(self):
+        """
+        Make sure once the turns finished we publish the move on event
+        """
+        
+        # Subscribe to move on event
+        self._moveOn = False
+        def handler(event):
+            self._moveOn = True
+        self.qeventHub.subscribeToType(course.Target.MOVE_ON, handler)
+                
+        # Start the turn
+        self.injectEvent(target.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Target)
+        
+        # Finish the turn
+        self.controller.publishAtOrientation(
+            math.Quaternion(math.Degree(TestTarget.FINAL_TURN),
+                            math.Vector3.UNIT_Z))
+        
+        # Make sure have published the move on event
+        self.qeventHub.publishEvents()
+        self.assert_(self._moveOn)
+        
+    def testMoveOn(self):
+        # Send the move on event
+        self.injectEvent(course.Target.MOVE_ON, sendToBranches = True)
+        
+        # Make sure we have moved on properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(target.Start))
+        self.assertFalse(self.visionSystem.targetDetector)
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(self._stateType)
+        
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(target.Start))
+        self.assertFalse(self.visionSystem.targetDetector)
         
 class TestBin(support.AITestCase):
     def setUp(self):

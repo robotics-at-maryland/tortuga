@@ -209,7 +209,10 @@ class SeekPoint(Motion):
         self._first = False
 
     def _alignment(self):
-        vect = ext.math.Vector2(self._target.x, self._target.y)
+        y = self._target.y
+        if 0 == self._depthGain:
+            y = 0
+        vect = ext.math.Vector2(self._target.x, y)
         return vect.length()
 
     def _speedScale(self, timeSinceLastRun = 0.0):

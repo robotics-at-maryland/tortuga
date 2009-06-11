@@ -262,8 +262,8 @@ class PipeFollowingState(PipeTrackingState):
         iSpeedGain = self._config.get('iSpeedGain', 0.1)
         
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 3)
-        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.5)
-        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.05)
+        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.05)
+        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.5)
         
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('forwardSpeed', 5)

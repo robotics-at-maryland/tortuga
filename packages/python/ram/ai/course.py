@@ -26,6 +26,7 @@ import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
 import ram.ai.barbedwire as barbedwire
+import ram.ai.target as target
 import ram.ai.bin as bin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
@@ -273,7 +274,7 @@ class Light(task.Task):
     
     def AT_ORIENTATION(self, event):
         """
-        Moves on from this state only after we have succesfully hit the light
+        Moves on from this state only after we have successfully hit the light
         """
         if self._hit:
             self.publish(Light.MOVE_ON, core.Event())
@@ -348,7 +349,48 @@ class BarbedWire(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.stateMachine.stopBranch(barbedwire.Start)
-        self.visionSystem.redLightDetectorOff()
+        self.visionSystem.barbedWireDetectorOff()
+    
+class Target(task.Task):
+    """
+    Task for completion of the BarbedWire objective within a certain timelimit.
+    """
+    
+    MOVE_ON = core.declareEventType('MOVE_ON')
+    
+    @staticmethod
+    def _transitions():
+        return { Target.MOVE_ON : task.Next,
+                 task.TIMEOUT : task.Next,
+                 target.COMPLETE : Target,
+                 control.IController.AT_ORIENTATION : Target,
+                 'GO' : state.Branch(target.Start) }
+        
+    def COMPLETE(self, event):
+        self._complete = True
+        self.controller.yawVehicle(self._finalTurn)
+        
+    def AT_ORIENTATION(self, event):
+        if self._complete:
+            self.publish(Target.MOVE_ON, core.Event())
+    
+    def enter(self, defaultTimeout = 120):
+        # Initialize task part of class
+        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        
+        # Tagged when the state finishes
+        self._complete = False
+        
+        # Read in configuration parameters
+        self._finalTurn = self._config.get('finalTurn', 90)
+        
+        # Start the sub state
+        self.stateMachine.start(state.Branch(target.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(target.Start)
+        self.visionSystem.targetDetectorOff()
     
 class Bin(task.Task):
     @staticmethod

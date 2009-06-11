@@ -91,6 +91,10 @@ class RangeXYHold(FilteredState, state.State):
         """Update the state of the target, this moves the vehicle"""
         self._updateFilters(event)
         
+        y = self._filterdY
+        if 0 == self._depthGain:
+            y = 0
+        
         # We ignore azimuth and elevation because we aren't using them
         self._target.setState(0, 0, self._filterdRange, self._filterdX, 
                               self._filterdY)
@@ -98,7 +102,7 @@ class RangeXYHold(FilteredState, state.State):
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
         rangeError = math.fabs(self._filterdRange - self._desiredRange)
-        frontDistance = math.sqrt(self._filterdX ** 2 + self._filterdY ** 2)
+        frontDistance = math.sqrt(self._filterdX ** 2 + y ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
@@ -117,8 +121,8 @@ class RangeXYHold(FilteredState, state.State):
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
         self._frontThreshold = self._config.get('frontThreshold', 0.15)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
-        depthGain = self._config.get('depthGain', defaultDepthGain)
-        iDepthGain = self._config.get('iDepthGain', 0.05)
+        self._depthGain = self._config.get('depthGain', defaultDepthGain)
+        iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
         self._desiredRange = self._config.get('desiredRange', 0.5)
@@ -131,7 +135,7 @@ class RangeXYHold(FilteredState, state.State):
             desiredRange = self._desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxSpeed = maxSpeed,
-            depthGain = depthGain,
+            depthGain = self._depthGain,
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
             maxDepthDt = maxDepthDt,
@@ -352,7 +356,7 @@ class TargetAlignState(FilteredState):
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
-        iDepthGain = self._config.get('iDepthGain', 0.05)
+        iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
         
