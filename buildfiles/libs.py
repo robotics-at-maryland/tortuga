@@ -249,7 +249,8 @@ def _get_internal_lib(env, name):
             'vision' : InternalLibrary('vision',
                                        int_deps = ['pattern', 'core', 'math'],
                                        ext_deps = ['OpenCV', 'Boost.Thread',
-                                                   'FANN', 'libdc1394', 'fftw']),
+                                                   'Boost.Regex','FANN',
+                                                   'libdc1394', 'fftw']),
             
             'pattern' : InternalLibrary('pattern', int_deps = [],
                                         ext_deps = ['Boost', 'Boost.Thread']),
