@@ -170,6 +170,7 @@ Subsystems:
             # Light/Bouy sub task
             ram.ai.light.Start:
                 speed: 1.5
+                depth: 5
             ram.ai.light.Searching:
                 sweepAngle: 0
                 speed: 2
@@ -241,7 +242,7 @@ Subsystems:
 
             # Barbed wire AI
             ram.ai.barbedwire.Start:
-                diveDepth: 10
+                diveDepth: 5
             ram.ai.barbedwire.SeekingToRange:
                 desiredRange: 0.5
                 maxSpeed: 2.0
