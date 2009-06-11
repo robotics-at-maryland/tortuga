@@ -7,10 +7,6 @@
  * File:  tools/vision_tool/src/App.cpp
  */
 
-// This include must be first because of Mac header defines
-#include "vision/include/OpenCVCamera.h"
-#include "vision/include/FFMPEGCamera.h"
-
 // Library Includes
 #include <wx/frame.h>
 #include <wx/menu.h>

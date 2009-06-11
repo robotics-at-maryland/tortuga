@@ -13,6 +13,7 @@
 // Library Includes
 #include <wx/timer.h>
 
+#include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 // Core Includes
@@ -25,6 +26,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FFMPEGCamera.h"
+#include "vision/include/RawFileCamera.h"
 #include "vision/include/Detector.h"
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/Events.h"
@@ -34,6 +36,8 @@ RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, IMAGE_SOURCE_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, NEW_IMAGE);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, DETECTOR_CHANGED);
 RAM_CORE_EVENT_TYPE(ram::tools::visionvwr::Model, DETECTOR_PROPERTIES_CHANGED);
+
+namespace bfs = boost::filesystem;
 
 namespace ram {
 namespace tools {
@@ -78,8 +82,13 @@ void Model::openFile(std::string filename)
 {
     if (m_camera)
         delete m_camera;
-        
-    m_camera = new vision::FFMPEGCamera(filename);
+
+    std::string extension = bfs::path(filename).extension();
+
+    if (".rmv" == extension)
+        m_camera = new vision::RawFileCamera(filename);
+    else
+        m_camera = new vision::FFMPEGCamera(filename);
     
     sendImageSourceChanged();
     sendNewImage();
