@@ -44,7 +44,7 @@ Scene:
                 buoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
                     distance: 8
-                    depth: -0.353
+                    depth: -1.22
 
             buoy:
                 pipe2:
@@ -79,7 +79,7 @@ Scene:
                     type: [ram.sim.object.IObject, sim.vision.Target]
                     distance: 8
                     heading: -10
-                    depth: -1.023
+                    depth: -1.67
             
             target:
                 targetTablePipe:
