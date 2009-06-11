@@ -20,13 +20,15 @@ namespace ram {
 namespace vision {
 
 const boost::uint32_t RawFileRecorder::MAGIC_NUMBER = 0xC1A55AC5;
+const boost::uint32_t RawFileRecorder::RMV_VERSION = 2;
     
 RawFileRecorder::RawFileRecorder(Camera* camera,
                                  Recorder::RecordingPolicy policy,
                                  std::string filename, int policyArg) :
     Recorder(camera, policy, policyArg),
     m_file(0),
-    m_framenum(0)
+    m_framenum(0),
+    m_lastPacketSizeWritten(0)
 {
     assert((RP_START < policy) && (policy < RP_END) &&
            "Invalid recording policy");
@@ -49,7 +51,7 @@ RawFileRecorder::RawFileRecorder(Camera* camera,
     }
 
     // Fill in the video header
-    Header header;
+    Header header = {0};
     header.magicNumber = MAGIC_NUMBER;
     header.width = camera->width();
     header.height = camera->height();
@@ -58,6 +60,7 @@ RawFileRecorder::RawFileRecorder(Camera* camera,
     /// TODO: Fix assumption about BGR format
     header.format = (boost::uint32_t)Image::PF_BGR_8;
     header.framerate = fps;
+    header.versionNumber = RMV_VERSION;
     
     // Write the header out to disk then flush to disk
     size_t written = fwrite(&header, sizeof(Header), 1, m_file);
@@ -81,16 +84,20 @@ void RawFileRecorder::recordFrame(Image* image)
 {
     // Pack up the header
     Packet packet;
-    packet.size = image->getWidth() * image->getHeight() * 3;
+    packet.magicNumber = MAGIC_NUMBER;
+    packet.lastPacketSize = m_lastPacketSizeWritten;
+    packet.dataSize = image->getWidth() * image->getHeight() * 3;
     packet.framenum = m_framenum;
-
+    
     // Write the header
     size_t written = fwrite(&packet, sizeof(Packet), 1, m_file);
     assert(written == 1 && "Error packet header to disk");
+    m_lastPacketSizeWritten = written * sizeof(Packet);
     
     // Write the date
-    written = fwrite(image->getData(), packet.size, 1, m_file);
+    written = fwrite(image->getData(), packet.dataSize, 1, m_file);
     assert(written == 1 && "Error packet data to disk");
+    m_lastPacketSizeWritten += written * packet.dataSize;
     
     // Increment out counf of frames recorded
     m_framenum++;

@@ -46,6 +46,10 @@ RawFileCamera::RawFileCamera(std::string filename) :
     assert(header.magicNumber == RawFileRecorder::MAGIC_NUMBER
            && "Invalid RawFile magic number");
 
+    // Verifty the version
+    assert(header.versionNumber == RawFileRecorder::RMV_VERSION
+           && "Invalid RawFile version number");
+
     // Set up basic parameters
     m_width = header.width;
     m_height = header.height;
@@ -104,6 +108,10 @@ void RawFileCamera::readNextFrame(bool hurryUp)
     RawFileRecorder::Packet packet;
     int readCount = read(m_file, &packet, sizeof(RawFileRecorder::Packet));
     assert(readCount == sizeof(RawFileRecorder::Packet) && "Error reading");
+
+    // Check the magic number
+    assert(packet.magicNumber == RawFileRecorder::MAGIC_NUMBER
+           && "Invalid packet magic number, possible seek error");
     
     // Update the frame counter
     m_currentFrame = packet.framenum;
@@ -112,22 +120,22 @@ void RawFileCamera::readNextFrame(bool hurryUp)
     m_currentTime = m_currentFrame / m_fps;
 
     // Resize the picture buffer if needed
-    if ((packet.size + sizeof(RawFileRecorder::Packet)) > m_dataBufferSize)
+    if ((packet.dataSize + sizeof(RawFileRecorder::Packet)) > m_dataBufferSize)
     {
         delete m_dataBuffer;
-        m_dataBufferSize = packet.size + sizeof(RawFileRecorder::Packet);
+        m_dataBufferSize = packet.dataSize + sizeof(RawFileRecorder::Packet);
         m_dataBuffer = new unsigned char[m_dataBufferSize];
     }
     
     if (hurryUp)
     {
         // Hurrying up, don't read the new data
-        int ret = lseek(m_file, packet.size, SEEK_CUR);
+        int ret = lseek(m_file, packet.dataSize, SEEK_CUR);
         assert(ret != 0 && "Error seeking in file");
     }
     else
     {
-        int dataToRead = (int)packet.size;
+        int dataToRead = (int)packet.dataSize;
         unsigned char* bufferPos = m_dataBuffer;
         
         while (dataToRead > 0)
