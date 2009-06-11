@@ -648,6 +648,81 @@ void showBootDiag(int mode)
         showString(tmp, 1);
 
     }
+
+    if(mode == 4)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0,
+                                         (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0,
+                                         (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);;
+        showString(tmp, 1);
+    }
+
+    if(mode == 5)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0,
+                                         (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[12] << 8 | rxBuf[13]) / 1000.0,
+                                         (rxBuf[14] << 8 | rxBuf[15]) / 1000.0);;
+        showString(tmp, 1);
+    }
+
+    if(mode == 6)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[16] << 8 | rxBuf[17]) / 1000.0,
+                                         (rxBuf[18] << 8 | rxBuf[19]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[20] << 8 | rxBuf[21]) / 1000.0,
+                                         (rxBuf[22] << 8 | rxBuf[23]) / 1000.0);;
+        showString(tmp, 1);
+    }
 }
 
 void diagBootMode()
@@ -663,7 +738,7 @@ void diagBootMode()
         if(pollStartSw())
         {
             mode++;
-            if(mode == 4)
+            if(mode == 7)
             {
                 showString("Diagnostic Mode ", 0);
                 mode = 0;
