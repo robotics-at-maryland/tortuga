@@ -1,5 +1,6 @@
 %file to view data from an IMU after a dive
 %modified from calibration.m used for IMU calibration
+% requires the functions S.m and quaternionProduct.m to be in the same dir
 
 clear
 
@@ -43,7 +44,7 @@ xCir=cos(tCir);
 yCir=sin(tCir);
 
 
-%% magnetometer plots
+%% magnetometer state plots
 figure(1)
 subplot(2,2,1)
 plot(mag(:,2),mag(:,1),0.22*xCir,0.22*yCir);
@@ -76,7 +77,7 @@ ylabel('z')
 %axis equal
 axis([-.3 .3 -.3 .3])
 
-%% rotating magnetometer data
+%% magnetometer time series
 figure(2)
 magRotatingSize=zeros(length(timeIMU),1);
 for i=1:length(timeIMU)
@@ -98,10 +99,10 @@ axis([0 timeIMU(end) -.3 .3])
 subplot(4,1,4)
 plot(timeIMU,magSize)
 ylabel('||m||_2')
-xlabel('time')
+xlabel('time (s)')
 axis([0 timeIMU(end) 0 .4])
 
-%% accelerometer plots
+%% accelerometer state plots
 figure(3)
 subplot(2,2,1)
 plot(accel(:,2),accel(:,1),xCir,yCir);
@@ -135,7 +136,7 @@ ylabel('z')
 %axis equal
 axis([-1.1 1.1 -1.1 1.1])
 
-%% rotating accelerometer data
+%% accelerometer time series
 figure(4)
 accelSize=zeros(length(timeIMU),1);
 for i=1:length(timeIMU)
@@ -157,13 +158,65 @@ axis([0 timeIMU(end) -1.1 1.1])
 subplot(4,1,4)
 plot(timeIMU,accelSize)
 ylabel('||a||_2')
+xlabel('time (s)')
 axis([0 timeIMU(end) 0 1.3])
 
 
-%% 
+%% quaternion plot
+figure(5)
+subplot(4,1,1)
+plot(timeControl,q_m(:,1),timeControl,q_d(:,1))
+ylabel('q_1')
+legend('measured','desired')
+title('angular position')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,2)
+plot(timeControl,q_m(:,2),timeControl,q_d(:,2))
+ylabel('q_2')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,3)
+plot(timeControl,q_m(:,3),timeControl,q_d(:,3))
+ylabel('q_3')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,4)
+plot(timeControl,q_m(:,4),timeControl,q_d(:,4))
+ylabel('q_4')
+axis([0 timeControl(end) -1.1 1.1])
 
 
 
+%% rotation + depth plot
+figure(6)
+subplot(4,1,1)
+plot(timeControl,q_m(:,1),timeControl,q_d(:,1))
+ylabel('q_1')
+legend('measured','desired')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,2)
+plot(timeControl,q_m(:,2),timeControl,q_d(:,2))
+ylabel('q_2')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,3)
+plot(timeControl,q_m(:,3),timeControl,q_d(:,3))
+ylabel('q_3')
+axis([0 timeControl(end) -1.1 1.1])
+subplot(4,1,4)
+plot(timeControl,depth_m,timeControl,depth_d)
+ylabel('depth')
+xlabel('time (s)')
+axis([0 timeControl(end) min([min(depth_m) min(depth_d)]) max([max(depth_m) max(depth_d)])])
+set(gca, 'YDir', 'reverse')
+
+%% attitude error
+figure(7)
+attitudeError=zeros(length(timeControl),1);
+for i=1:length(timeControl)
+    qtilde=quaternionProduct(q_m(i,:)',q_d(i,:)');
+    attitudeError(i)=2*(180/pi)*asin(norm(qtilde(1:3)));
+end
+plot(timeControl,attitudeError)
+ylabel('|attitude error| (deg)')
+xlabel('time (s)')
 
 
 
