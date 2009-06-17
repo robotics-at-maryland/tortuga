@@ -218,6 +218,27 @@ plot(timeControl,attitudeError)
 ylabel('|attitude error| (deg)')
 xlabel('time (s)')
 
+%% control torque output
+figure(8)
+maxTorq=max(max(rot_torq));
+minTorq=min(min(rot_torq));
+subplot(3,1,1)
+plot(timeControl,rot_torq(:,1))
+ylabel('\tau_1')
+title('Commanded Control Torques')
+axis([0 timeControl(end) 1.1*minTorq 1.1*maxTorq])
+subplot(3,1,2)
+plot(timeControl,rot_torq(:,2))
+ylabel('\tau_2')
+axis([0 timeControl(end) 1.1*minTorq 1.1*maxTorq])
+subplot(3,1,3)
+plot(timeControl,rot_torq(:,3))
+ylabel('\tau_3')
+xlabel('time (s)')
+axis([0 timeControl(end) 1.1*minTorq 1.1*maxTorq])
+
+
+
 
 
 
