@@ -27,6 +27,7 @@ import ext.control
 import ext.core as core
 
 import ram.ai.state 
+import ram.filter as filter
 
 class BasePanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
@@ -330,6 +331,37 @@ class AIPanel(wx.Panel):
             return [(paneInfo, panel, [machine])]
         
         return []
+    
+"""class EventRatePanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, *args, **kwards):
+        """#Create the Control Panel"""
+"""wx.Panel.__init__(self, parent, *args, **kwards)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        currentLabel = wx.StaticText(self, label = 'EventRate')
+        
+    def _onClose(self, closeEvent):
+        pass
+    
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
+                                                     subsystems, nonNone = True)
+        
+        #machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
+        #                                            subsystems)
+        
+        #if machine is not None:
+        paneInfo = wx.aui.AuiPaneInfo().Name("EventRate")
+        paneInfo = paneInfo.Caption("EventRate").Right()
+            
+        panel = EventRatePanel(parent, eventHub)
+        return [(paneInfo, panel, [])]
+        
+        return []"""
 
 class SonarPanel(wx.Panel):
     implements(IPanelProvider)
@@ -484,6 +516,83 @@ class SonarPanel(wx.Panel):
         
             panel = SonarPanel(parent, eventHub, vehicle)
             return [(paneInfo, panel, [vehicle])]
+        
+        return []
+    
+class EventRatePanel(wx.Panel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub, *args, **kwargs):
+        """Create the Control Panel"""
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.SetScrollbar(wx.VERTICAL, 0, 16, 50)
+        
+        self._connections = []
+        
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(self.sizer)
+        self.SetAutoLayout(1)
+        self.sizer.Fit(self)
+        
+        # Event Rate Table points to an array in the format:
+        # [Name (Unchanging Text Field), TextField, MovingAverageFilter,
+        #     Last Time Stamp]
+        self._eventRateTable = dict()
+        
+        conn = eventHub.subscribeToAll(self._handler)
+        self._connections.append(conn)
+        
+        self._setUp(conn)
+        
+    def _setUp(self, conn):
+        print type(conn)
+        
+    def _handler(self, event):
+        if self._eventRateTable.has_key(event.type):
+            array = self._eventRateTable.get(event.type)
+            
+            timeDifference = event.timeStamp - array[3]
+            array[2].append(timeDifference)
+            array[1].SetValue(str(1.0/array[2].getAverage()))
+            array[3] = event.timeStamp
+        else:
+            # If the event hasn't been seen before, create it in the table
+            array = self._eventRateTable.setdefault(event.type, [])
+            
+            name = str(event.type)
+            name = name[name.find(' '):]
+            
+            array.append(wx.StaticText(self, wx.ID_ANY, label = name))
+            array.append(wx.TextCtrl(self, wx.ID_ANY, value = '0'))
+            array.append(filter.MovingAverageFilter(10))
+            array.append(event.timeStamp)
+            
+            newEntry = wx.BoxSizer(wx.HORIZONTAL)
+            newEntry.Add(array[0], 1, wx.EXPAND)
+            newEntry.Add(array[1], 1, wx.EXPAND)
+            
+            self.sizer.Add(newEntry, 0, wx.EXPAND)
+            
+            
+        #self.eventRateLabel.SetLabel(str(self._eventRateTable))
+    
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+       
+        closeEvent.Skip()
+    
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        paneInfo = wx.aui.AuiPaneInfo().Name("Event Rate")
+        paneInfo = paneInfo.Caption("Event Rate").Right()
+
+        panel = EventRatePanel(parent, eventHub)
+        return [(paneInfo, panel, [])]
         
         return []
 
