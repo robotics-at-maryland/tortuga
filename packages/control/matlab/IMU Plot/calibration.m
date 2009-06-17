@@ -1,4 +1,6 @@
-%
+%a matlab script to view relevant IMU calibration data from 
+%log files
+%currently requires python program to perform some of the analysis
 
 clear
 
@@ -114,24 +116,36 @@ ylabel('z')
 axis equal
 
 %% rotating accelerometer data
-figure(2)
-magRotatingSize=zeros(length(timeRotating),1);
+figure(4)
+accelRotatingSize=zeros(length(timeRotating),1);
 for i=1:length(timeRotating)
-    x=magRotating(i,1)-magXBias;
-    y=magRotating(i,2)-magYBias;
-    z=magRotating(i,3)-magZBias;
-    magRotatingSize(i)=sqrt(x^2+y^2+z^2);
+    %found negligible accelerometer bias, so commenting out
+%    x=accelRotating(i,1)-accelXBias;
+%    y=accelRotating(i,2)-accelYBias;
+%    z=accelRotating(i,3)-accelZBias;
+%    accelRotatingSize(i)=sqrt(x^2+y^2+z^2);
+    accelRotatingSize(i)=norm(accelRotating(i,:));
 end
 subplot(4,1,1)
-plot(timeRotating,magRotating(:,1)-magXBias)
-title('Unbiased Mag Readings')
-ylabel('m_1')
+%plot(timeRotating,accelRotating(:,1)-accelXBias)
+plot(timeRotating,accelRotating(:,1))
+title('Unbiased Accel Readings')
+ylabel('a_1')
 subplot(4,1,2)
-plot(timeRotating,magRotating(:,2)-magYBias)
-ylabel('m_2')
+%plot(timeRotating,accelRotating(:,2)-accelYBias)
+plot(timeRotating,accelRotating(:,2))
+ylabel('a_2')
 subplot(4,1,3)
-plot(timeRotating,magRotating(:,3)-magZBias)
-ylabel('m_3')
+%plot(timeRotating,accelRotating(:,3)-accelZBias)
+plot(timeRotating,accelRotating(:,3))
+ylabel('a_3')
 subplot(4,1,4)
-plot(timeRotating,magRotatingSize)
-ylabel('||m||_2'
+plot(timeRotating,accelRotatingSize)
+ylabel('||a||_2')
+
+
+
+
+
+
+
