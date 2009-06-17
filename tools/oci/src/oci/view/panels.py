@@ -519,14 +519,16 @@ class SonarPanel(wx.Panel):
         
         return []
     
-class EventRatePanel(wx.Panel):
+class EventRatePanel(wx.ScrolledWindow):
     implements(IPanelProvider)
     
     def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
-        wx.Panel.__init__(self, parent, *args, **kwargs)
+        wx.ScrolledWindow.__init__(self, parent, style = wx.HSCROLL | wx.VSCROLL, *args, **kwargs)
         
-        self.SetScrollbar(wx.VERTICAL, 0, 16, 50)
+        #scrollbar = wx.ScrollBar(self, wx.ID_ANY, style = wx.SB_VERTICAL)
+
+        #self.SetScrollbar(wx.VERTICAL, 0, 16, 50)
         
         self._connections = []
         
@@ -542,11 +544,6 @@ class EventRatePanel(wx.Panel):
         
         conn = eventHub.subscribeToAll(self._handler)
         self._connections.append(conn)
-        
-        self._setUp(conn)
-        
-    def _setUp(self, conn):
-        print type(conn)
         
     def _handler(self, event):
         if self._eventRateTable.has_key(event.type):
@@ -573,6 +570,10 @@ class EventRatePanel(wx.Panel):
             newEntry.Add(array[1], 1, wx.EXPAND)
             
             self.sizer.Add(newEntry, 0, wx.EXPAND)
+
+            print len(self._eventRateTable)
+
+            self.sizer.Fit(self)
             
             
         #self.eventRateLabel.SetLabel(str(self._eventRateTable))
