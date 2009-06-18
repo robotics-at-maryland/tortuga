@@ -23,7 +23,7 @@ class State(object):
         self._config = config
         for name, subsystem in subsystems.iteritems():
             if 'config' == name:
-                raise ValueError, "Subsystme cannot be named 'config'"
+                raise ValueError, "Subsystem cannot be named 'config'"
             setattr(self, name, subsystem)
 
     @staticmethod
@@ -52,6 +52,43 @@ class State(object):
         @warning: Only valid when the object is created by a Machine object
         """
         raise 
+
+class FindAttempt(State):
+    """
+    Default state for finding a lost target
+    """
+
+    TIMEOUT = core.declareEventType("TIMEOUT")
+
+    def __init__(self, config = None, **kwargs):
+        State.__init__(self, config, **kwargs)
+
+    @staticmethod
+    def transitions(foundEvent = None, foundState = None,
+                    timeoutState = None, trans = None):
+        if foundEvent is None:
+            foundEvent = "NO_EVENT"
+        if foundState is None:
+            foundState = "NO_STATE"
+        if timeoutState is None:
+            timeoutState = "NO_STATE"
+        if trans is None:
+            trans = {}
+        trans.update({foundEvent : foundState,
+                      FindAttempt.TIMEOUT : timeoutState})
+
+        return trans
+
+    def enter():
+        # Create a timer event
+        if self.findTimer is None:
+            timeout = self._config.get('findTimeout', 0)
+            # Timer will only state if the timeout is a positive number
+            # A timer of 0 will turn it off, along with any negative number
+            if timeout > 0:
+                self.findTimer = \
+                    self.timerManager.newTimer(FindAttempt.TIMEOUT, timeout)
+                self.findTimer.start()
 
 class End(State):
     """

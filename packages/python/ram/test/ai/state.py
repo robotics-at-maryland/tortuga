@@ -551,6 +551,42 @@ class TestState(unittest.TestCase):
         self.assertEqual("TestEvent", self.type)
         self.assertEqual(machine, self.sender)
         
+class TestFindAttempt(state.FindAttempt):
+    OBJECT_FOUND = core.declareEventType('OBJECT_FOUND')
+
+    class OriginalState(state.State):
+        pass
+
+    class TimeoutState(state.State):
+        pass
+
+    class FindAttemptState(state.FindAttempt):
+        def transitions():
+            return FindAttempt.transitions(OBJECT_FOUND, OriginalState,
+                                           TimeoutState)
+
+    def injectEventFound(self):
+        self.injectEvent(None, OBJECT_FOUND)
+    def injectEventTimeout(self):
+        self.injectEvent(state.FindAttempt.TIMEOUT)
+        self.publishQueuedEvents()
+
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(TestFindAttempt.FindAttemptState)
+
+    def testFound(self):
+        self.assertCurrentState(TestFindAttempt.FindAttemptState)
+        self.injectEventFound()
+        self.assertCurrentState(TestFindAttempt.OriginalState)
+
+    def testTimeout(self):
+        self.assertCurrentState(TestFindAttempt.FindAttemptState)
+        self.injectEventTimeout()
+        self.assertCurrentState(TestFindAttempt.TimeoutState)
+        
+
+    
         
 if __name__ == '__main__':
     unittest.main()
