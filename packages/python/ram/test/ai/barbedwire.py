@@ -9,6 +9,7 @@
 import unittest
 
 # Project Imports
+import ram.ai.state as state
 import ram.ai.barbedwire as barbedwire
 import ext.core as core
 import ext.vision as vision
@@ -52,8 +53,18 @@ class TestStart(support.AITestCase):
         self.assertCurrentState(barbedwire.FindAttempt)
 
 class TestFindAttempt(support.AITestCase):
+    TIMEOUT = 2
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.barbedwire.FindAttempt' : {
+                        'timeout' : TestFindAttempt.TIMEOUT,
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(barbedwire.FindAttempt)
     
     def testStart(self):
@@ -80,7 +91,7 @@ class TestFindAttempt(support.AITestCase):
         self.machine.start(barbedwire.FindAttempt)
         
         # Release timer
-        self.releaseTimer(barbedwire.FindAttempt.TIMEOUT)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(barbedwire.Searching)
