@@ -9,6 +9,7 @@
 import unittest
 
 # Project Imports
+import ram.ai.state as state
 import ram.ai.target as target
 import ext.core as core
 import ext.vision as vision
@@ -52,8 +53,18 @@ class TestStart(support.AITestCase):
         self.assertCurrentState(target.FindAttempt)
 
 class TestFindAttempt(support.AITestCase):
+    TIMEOUT = 2
     def setUp(self):
-        support.AITestCase.setUp(self)
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.target.FindAttempt' : {
+                        'timeout' : TestFindAttempt.TIMEOUT,
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(target.FindAttempt)
     
     def testStart(self):
@@ -78,9 +89,13 @@ class TestFindAttempt(support.AITestCase):
         # Restart with a working timer
         self.machine.stop()
         self.machine.start(target.FindAttempt)
+
+        # Make sure the timer has the correct value
+        self.assertEquals(self.machine.currentState()._timeout,
+                          TestFindAttempt.TIMEOUT)
         
         # Release timer
-        self.releaseTimer(target.FindAttempt.TIMEOUT)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
         
         # Test that the timeout worked properly
         self.assertCurrentState(target.Searching)

@@ -165,34 +165,19 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.State):
+class FindAttempt(state.FindAttempt):
     """
     Attempt to find the target, before starting search pattern.  This will
     catch the object if its front of the vehicle.
     """
-    TIMEOUT = core.declareEventType('TIMEOUT')
 
     @staticmethod
     def transitions():
-        return { FindAttempt.TIMEOUT : Searching,
-                 vision.EventType.TARGET_FOUND : SeekingToCentered }
-    
-    def enter(self):
-        # Turn all off all motions, hold the current heading
-        self.motionManager.stopCurrentMotion()
-        self.controller.holdCurrentHeading()
-        # TODO: Hold deth        
-        
-        # Turn on the detector
+        return state.FindAttempt.transitions(vision.EventType.TARGET_FOUND,
+                                       SeekingToCentered, Searching)
+
+    def findActions(self):
         self.visionSystem.targetDetectorOn()
-
-        # Start up the timer 
-        delay = self._config.get('delay', 2)
-        self.timer = self.timerManager.newTimer(FindAttempt.TIMEOUT, delay)
-        self.timer.start()
-
-    def exit(self):
-        self.timer.stop()
 
 class Searching(state.State):
     """

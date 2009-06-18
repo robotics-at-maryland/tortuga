@@ -64,14 +64,7 @@ class FindAttempt(State):
         State.__init__(self, config, **kwargs)
 
     @staticmethod
-    def transitions(foundEvent = None, foundState = None,
-                    timeoutState = None, trans = None):
-        if foundEvent is None:
-            foundEvent = "NO_EVENT"
-        if foundState is None:
-            foundState = "NO_STATE"
-        if timeoutState is None:
-            timeoutState = "NO_STATE"
+    def transitions(foundEvent, foundState, timeoutState, trans = None):
         if trans is None:
             trans = {}
         trans.update({foundEvent : foundState,
@@ -79,16 +72,34 @@ class FindAttempt(State):
 
         return trans
 
-    def enter():
+    def enter(self):
+        # Turn all off all motions, hold the current heading
+        self.motionManager.stopCurrentMotion()
+        self.controller.holdCurrentHeading()
+
         # Create a timer event
-        if self.findTimer is None:
-            timeout = self._config.get('findTimeout', 0)
-            # Timer will only state if the timeout is a positive number
-            # A timer of 0 will turn it off, along with any negative number
-            if timeout > 0:
-                self.findTimer = \
-                    self.timerManager.newTimer(FindAttempt.TIMEOUT, timeout)
-                self.findTimer.start()
+        self._timeout = self._config.get('timeout', 0)
+        # Timer will only state if the timeout is a positive number
+        # A timer of 0 will turn it off, along with any negative number
+        if self._timeout > 0:
+            self.timer = \
+                self.timerManager.newTimer(FindAttempt.TIMEOUT, self._timeout)
+            self.timer.start()
+        else:
+            self.timer = None
+
+        self.findActions()
+
+    def findActions(self):
+        """
+        Default template for the FindAttempt to do. Does nothing by default.
+        All handling actions a FindAttempt does should be placed in here.
+        """
+        pass
+
+    def exit(self):
+        if self.timer is not None:
+            self.timer.stop()
 
 class End(State):
     """
