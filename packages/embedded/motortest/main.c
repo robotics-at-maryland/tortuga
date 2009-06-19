@@ -1,7 +1,10 @@
 #include <p30fxxxx.h>
 #include <string.h>
 
-_FOSC( CSW_FSCM_OFF & ECIO & PWRT_64);
+/* Turn on the oscillator in XT mode so that it runs at the clock on
+ * OSC1 and OSC2 */
+_FOSC( CSW_FSCM_OFF & XT);
+
 // Turn off the watchdog
 _FWDT ( WDT_OFF );
 
@@ -9,6 +12,12 @@ _FWDT ( WDT_OFF );
 #define TRIS_IN  1
 #define byte unsigned char
 #define BYTE byte
+
+/* So the R/W bit is low for a write, and high for a read */
+/* In other words, if the master sends data, use I2C_WRITE, */
+/* if the master is receiving data use I2C_READ */
+#define I2C_READ 0x0001
+#define I2C_WRITE 0x0000
 
 /* This sets up the i2c peripheral */
 void initI2C(byte baud_rate) {
@@ -34,13 +43,30 @@ void initI2C(byte baud_rate) {
     return 0;   
 }
 
-void initUART() {
+/* This function initializes the UART with the given baud */
+void initUART(byte baud_rate) {
+}
+
+/* This initializes the Oscillator */
+/* Currently written under the assumption we're using a dsPIC30F4011 */
+void initOSC() {
+
 }
 
 int main()
 {
     byte i;
+
+    /* Set up the Oscillator */
+    initOSC();
+
+    /* Disable the ADCs for now. */
     ADPCFG = 0xFFFF;
 
-    initI2C();
+    /* The value of the equation given by the formula on the reference sheet is
+     * 21.75 for a 10MHz clock (so a 2.5MHz FCY) running on a 100kHz i2c port.
+     * Thus we set the Baud Rate Generator to 0x16 (22 in decimal) */
+    initI2C(0x16);
+
+
 }
