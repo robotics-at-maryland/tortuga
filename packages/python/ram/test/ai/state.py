@@ -15,6 +15,8 @@ import ext.core as core
 import ram.ai.state as state
 import ram.ai.subsystem as aisys
 
+import ram.test.ai.support as aisupport
+
 # --------------------------------------------------------------------------- #
 #                      S U P P P O R T    O B J E C T S                       #
 # --------------------------------------------------------------------------- #
@@ -551,25 +553,31 @@ class TestState(unittest.TestCase):
         self.assertEqual("TestEvent", self.type)
         self.assertEqual(machine, self.sender)
         
-class TestFindAttempt(state.FindAttempt):
+class TestFindAttempt(aisupport.AITestCase):
     OBJECT_FOUND = core.declareEventType('OBJECT_FOUND')
 
     class OriginalState(state.State):
-        pass
+        @staticmethod
+        def transitions():
+            return {'DUMMY' : 'TRANSITION'}
 
     class TimeoutState(state.State):
-        pass
+        @staticmethod
+        def transitions():
+            return {'DUMMY' : 'TRANSITION'}
 
     class FindAttemptState(state.FindAttempt):
+        @staticmethod
         def transitions():
-            return FindAttempt.transitions(OBJECT_FOUND, OriginalState,
-                                           TimeoutState)
+            return state.FindAttempt.transitions(TestFindAttempt.OBJECT_FOUND,
+                                                 TestFindAttempt.OriginalState,
+                                                 TestFindAttempt.TimeoutState)
 
     def injectEventFound(self):
-        self.injectEvent(None, OBJECT_FOUND)
+        self.injectEvent(TestFindAttempt.OBJECT_FOUND)
     def injectEventTimeout(self):
+        # TODO: Real timer test
         self.injectEvent(state.FindAttempt.TIMEOUT)
-        self.publishQueuedEvents()
 
     def setUp(self):
         aisupport.AITestCase.setUp(self)
@@ -584,9 +592,6 @@ class TestFindAttempt(state.FindAttempt):
         self.assertCurrentState(TestFindAttempt.FindAttemptState)
         self.injectEventTimeout()
         self.assertCurrentState(TestFindAttempt.TimeoutState)
-        
-
-    
         
 if __name__ == '__main__':
     unittest.main()

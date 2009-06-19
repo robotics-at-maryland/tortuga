@@ -73,7 +73,7 @@ class FindAttempt(State):
         return trans
 
     def enter(self):
-        # Turn all off all motions, hold the current heading
+        # Turn off all motions, hold the current heading
         self.motionManager.stopCurrentMotion()
         self.controller.holdCurrentHeading()
 
