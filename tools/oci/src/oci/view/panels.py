@@ -10,6 +10,7 @@ import math
 
 # Library Imports
 import wx
+import wx.grid
 
 # Project Imports
 from ram.core import Component, implements
@@ -332,12 +333,15 @@ class AIPanel(wx.Panel):
         
         return []
 
-class EventRatePanel(wx.Panel):
+class EventRatePanel(wx.grid.Grid):
     implements(IPanelProvider)
     
     def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
-        wx.Panel.__init__(self, parent, *args, **kwargs)
+        wx.grid.Grid.__init__(self, parent, *args, **kwargs)
+        self.CreateGrid(0, 2)
+        self.SetColLabelSize(0)
+        self.SetRowLabelSize(0)
 
         #scrollbar = wx.ScrollBar(self, wx.ID_ANY, style = wx.SB_VERTICAL)
 
@@ -345,10 +349,10 @@ class EventRatePanel(wx.Panel):
         
         self._connections = []
         
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetSizer(self.sizer)
-        self.SetAutoLayout(1)
-        self.sizer.Fit(self)
+        #self.sizer = wx.BoxSizer(wx.VERTICAL)
+        #self.SetSizer(self.sizer)
+        #self.SetAutoLayout(1)
+        #self.sizer.Fit(self)
         
         # Event Rate Table points to an array in the format:
         # [Name (Unchanging Text Field), TextField, MovingAverageFilter,
@@ -364,27 +368,38 @@ class EventRatePanel(wx.Panel):
             
             timeDifference = event.timeStamp - array[3]
             array[2].append(timeDifference)
-            array[1].SetValue(str(1.0/array[2].getAverage()))
+            self.SetCellValue(array[1], 1, str(1.0/array[2].getAverage()))
             array[3] = event.timeStamp
         else:
             # If the event hasn't been seen before, create it in the table
+            location = len(self._eventRateTable)
             array = self._eventRateTable.setdefault(event.type, [])
             
             name = str(event.type)
             name = name[name.find(' '):]
             
-            array.append(wx.StaticText(self, wx.ID_ANY, label = name))
-            array.append(wx.TextCtrl(self, wx.ID_ANY, value = '0'))
+            #array.append(wx.StaticText(self, wx.ID_ANY, label = name))
+            #array.append(wx.TextCtrl(self, wx.ID_ANY, value = '0'))
+            
+            self.AppendRows(1)
+            
+            array.append(name)
+            array.append(location)
             array.append(filter.MovingAverageFilter(10))
             array.append(event.timeStamp)
             
-            newEntry = wx.BoxSizer(wx.HORIZONTAL)
-            newEntry.Add(array[0], 1, wx.EXPAND)
-            newEntry.Add(array[1], 1, wx.EXPAND)
+            self.SetCellValue(array[1], 0, array[0])
+            self.SetCellValue(array[1], 1, str(array[2].getAverage()))
             
-            self.sizer.Add(newEntry, 0, wx.EXPAND)
+            self.AutoSize()
+            
+            #newEntry = wx.BoxSizer(wx.HORIZONTAL)
+            #newEntry.Add(array[0], 1, wx.EXPAND)
+            #newEntry.Add(array[1], 1, wx.EXPAND)
+            
+            #self.sizer.Add(newEntry, 0, wx.EXPAND)
 
-            self.sizer.Fit(self)
+            #self.sizer.Fit(self)
             
             
         #self.eventRateLabel.SetLabel(str(self._eventRateTable))
