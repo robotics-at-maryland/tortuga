@@ -100,8 +100,7 @@ class TestFindAttempt(support.AITestCase):
 
     def testTimeout(self):
         self.assertCurrentState(light.FindAttempt)
-        # Since no timeout is set, it should auto-timeout
-        self.qeventHub.publishEvents()
+        self.injectEvent(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(light.Searching)
 
 class TestAlign(support.AITestCase):

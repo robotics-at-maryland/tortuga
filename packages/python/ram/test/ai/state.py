@@ -592,12 +592,6 @@ class TestFindAttempt(aisupport.AITestCase):
         self.assertCurrentState(TestFindAttempt.FindAttemptState)
         self.injectEventTimeout()
         self.assertCurrentState(TestFindAttempt.TimeoutState)
-
-    def testAutoTimeout(self):
-        self.assertCurrentState(TestFindAttempt.FindAttemptState)
-        # The timer is set to -1 so it should automatically timeout
-        self.qeventHub.publishEvents()
-        self.assertCurrentState(TestFindAttempt.TimeoutState)
         
 if __name__ == '__main__':
     unittest.main()
