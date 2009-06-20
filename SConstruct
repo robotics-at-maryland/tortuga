@@ -187,8 +187,10 @@ if 1 == sys.argv.count('docs'):
     
     if doxygen_path is None:
         print 'Could not find doxygen, please make sure it is on your PATH'
+        env['epydoc_path'] = epydoc_path
     elif epydoc_path is None:
         print 'Could not find epydoc, please make sure it is on your PATH'
+        env['doxygen_path'] = doxygen_path
     elif (doxygen_path is None) and (epydoc_path is None):
         print 'Could not find any documentation tools!'
         Exit(1)
