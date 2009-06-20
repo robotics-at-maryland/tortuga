@@ -35,16 +35,16 @@ class RAM_EXPORT BinDetector : public Detector
     public:
         Bin();
         Bin(BlobDetector::Blob blob, double x, double y,
-            math::Degree rotation, int id,  Suit::SuitType suit);
+            math::Degree rotation, int id,  Symbol::SymbolType symbol);
 
-        Suit::SuitType getSuit() { return m_suit; }
+        Symbol::SymbolType getSymbol() { return m_symbol; }
 
         /** Draws the bounds of the bin in green, and its ID */
         void draw(Image* image);
         
 
     private:
-        Suit::SuitType m_suit;
+        Symbol::SymbolType m_symbol;
     };
 
     typedef std::list<Bin> BinList;
@@ -59,11 +59,11 @@ class RAM_EXPORT BinDetector : public Detector
     
     void drawBinImage(Image* imgToShow, int binNumber, Image* output = 0);
 
-    /** redSuit and rotatedRedSuit must be the same size, rotates redSuit,
-        which is the image containing the center of the bin into rotatedRedSuit
+    /** redSymbol and rotatedRedSymbol must be the same size, rotates redSymbol,
+        which is the image containing the center of the bin into rotatedRedSymbol
     */
-    void unrotateBin(math::Radian bin, Image* redSuit, 
-		     Image* rotatedRedSuit);
+    void unrotateBin(math::Radian bin, Image* redSymbol, 
+		     Image* rotatedRedSymbol);
     bool found();
 
     /** X cord of the bin closest to the center of the screen */
@@ -75,18 +75,18 @@ class RAM_EXPORT BinDetector : public Detector
     /** angle of the bin closest to the center of the screen*/
     math::Degree getAngle();
 
-    /** Gets the suit of the bin cloest to the center of the screen */
-    Suit::SuitType getSuit();
+    /** Gets the symbol of the bin cloest to the center of the screen */
+    Symbol::SymbolType getSymbol();
     
     /** Gets our current set of bins, sorted close to farther from center */
     BinDetector::BinList getBins();
     
-    void setSuitDetectionOn(bool);
+    void setSymbolDetectionOn(bool);
 
-    /** Turns on and off the logging of properly extracted suit images to disk
+    /** Turns on and off the logging of properly extracted symbol images to disk
      *
-     *  This places all the suit images in <log_dir>/suits/<suit_type>
-     *  directory.  Where <log_dir> is the runs log directory, and <suit_type>
+     *  This places all the symbol images in <log_dir>/symbols/<symbol_type>
+     *  directory.  Where <log_dir> is the runs log directory, and <symbol_type>
      *  is heart, spade, club, diamond, or unknown.
      *
      *  This only works when you are display debug images as well.
@@ -94,10 +94,10 @@ class RAM_EXPORT BinDetector : public Detector
      *  @param value
      *      True if you wish to log, false if not.
      */
-    void setSuitImageLogging(bool value);
+    void setSymbolImageLogging(bool value);
     
   private:
-    IplImage* scaledRedSuit;
+    IplImage* scaledRedSymbol;
 
   
     void init(core::ConfigNode config);
@@ -108,41 +108,42 @@ class RAM_EXPORT BinDetector : public Detector
      *
      *  @param bin
      *      The blob which bounds the black box of the bin
-     *  @oaram detectoSuit
-     *      True if we are to find the suit for suit detection
+     *  @oaram detectorSymbol
+     *      True if we are to find the symbol for symbol detection
      *  @param output
      *      Our debug output image
      */
-    void processBin(BlobDetector::Blob bin, bool detectSuit, BinList& newBins, 
-		    int binNum, Image* ouput = 0);
+    void processBin(BlobDetector::Blob bin, bool detectSymbol,
+                    BinList& newBins, int binNum, Image* ouput = 0);
 
-    /** Called by process bin, if suit detection is request is true
+    /** Called by process bin, if symbol detection is request is true
      *
      *  @param bin
      *      The blob which bounds the black box of the bin
      *  @param input
-     *      The image to extract the suit from
+     *      The image to extract the symbol from
      *  @param outptu
      *      Our debug output image
      */
-    Suit::SuitType determineSuit(Image* input,
+    Symbol::SymbolType determineSymbol(Image* input,
                                  Image* output = 0);
     
     
     /** Called by process bin, must be called regardless of whether we plan
-     *  to detect suits, as this function sets the angle of the bin.
+     *  to detect symbols, as this function sets the angle of the bin.
      */
-    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input, Image* output = 0);
+    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
+                                     Image* output = 0);
 
-    /** Extracts the image of the suit an into a binImage of #binNum
+    /** Extracts the image of the symbol an into a binImage of #binNum
      *
      *  The result is 128x128 pixels, and should be bounded around all of the
      *  red in the center of the bin.
      */
-    bool cropImage(IplImage* rotatedRedSuit, int binNum);
+    bool cropImage(IplImage* rotatedRedSymbol, int binNum);
 
-    /** Logs the image of the suit to file based on the suit type */
-    void logSuitImage(Image* image, Suit::SuitType suit);
+    /** Logs the image of the symbol to file based on the symbol type */
+    void logSymbolImage(Image* image, Symbol::SymbolType symbol);
     
     bool m_found;
 /*    bool foundHeart;
@@ -150,17 +151,17 @@ class RAM_EXPORT BinDetector : public Detector
     bool foundDiamond;
     bool foundClub;
     bool foundEmpty;*/
-    /** Determines if we should try and determine the suit of the bin */
-    bool m_runSuitDetector;
-    /** Determines whether or not we should write suit images to disk */
-    bool m_logSuitImages;
+    /** Determines if we should try and determine the symbol of the bin */
+    bool m_runSymbolDetector;
+    /** Determines whether or not we should write symbol images to disk */
+    bool m_logSymbolImages;
     int numBinsFound;
     IplImage* binFrame;
     IplImage* rotated;
     IplImage* bufferFrame;
     IplImage* whiteMaskedFrame;
     IplImage* blackMaskedFrame;
-    SuitDetector suitDetector;
+    SuitDetector symbolDetector;
     BlobDetector blobDetector;
 
     IplImage* binImages[4];
@@ -179,7 +180,7 @@ class RAM_EXPORT BinDetector : public Detector
     /** Our current set of bins */
     BinList m_bins;
 
-    Suit suitCenteredOver;
+    Symbol symbolCenteredOver;
 
     /** Current bin ids */
     int m_binID;

@@ -14,7 +14,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
-#include "vision/include/Suit.h"
+#include "vision/include/Symbol.h"
 
 #include "core/include/ConfigNode.h"
 
@@ -27,7 +27,7 @@ namespace vision {
 class RAM_EXPORT SuitDetector : public Detector
 {
   public:
-    Suit::SuitType suit;
+    Symbol::SymbolType suit;
     SuitDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
     SuitDetector(Camera*);
@@ -35,7 +35,7 @@ class RAM_EXPORT SuitDetector : public Detector
     void processImage(Image* input, Image* output= 0);
     void update();
     IplImage* getAnalyzedImage();
-    Suit::SuitType getSuit();
+    Symbol::SymbolType getSymbol();
     //Fills numBackups if numBackups!=null
     int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int dir, int* numBackups = 0);
     void doEdgeRunning(IplImage*);

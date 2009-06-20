@@ -38,9 +38,9 @@ def generate(module_builder, local_ns, global_ns):
     EventType.include()
     classes.append(EventType)
 
-    Suit = local_ns.class_('Suit')
-    Suit.include()
-    classes.append(Suit)
+    Symbol = local_ns.class_('Symbol')
+    Symbol.include()
+    classes.append(Symbol)
     
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),

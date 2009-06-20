@@ -59,7 +59,7 @@ SUITE(FANNSuitDetector) {
         // test is not run to avoid extra error statements
         CHECK(boost::filesystem::exists (dir));
         if (boost::filesystem::exists (dir)) {
-            int results[4] = { vision::Suit::CLUB, vision::Suit::DIAMOND, vision::Suit::HEART, vision::Suit::SPADE };
+            int results[4] = { vision::Symbol::CLUB, vision::Symbol::DIAMOND, vision::Symbol::HEART, vision::Symbol::SPADE };
             unsigned int i = 0;
             for (boost::filesystem::directory_iterator itr (dir); itr != end; ++itr) {
                 if (boost::filesystem::extension (itr->path()) == ".jpg") {

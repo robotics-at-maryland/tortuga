@@ -124,7 +124,7 @@ ram.ai.bin.Alinging:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.Examine:
-    targetSuits: ['Club', 'Heart']
+    targetSymbols: ['Club', 'Heart']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5

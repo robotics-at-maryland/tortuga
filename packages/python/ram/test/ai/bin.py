@@ -27,10 +27,10 @@ from ram.test import Mock
 class BinTestCase(aisupport.AITestCase):
     def injectBinFound(self, **kwargs):
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Suit.UNKNOWN, math.Degree(0), **kwargs)
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
     def injectMultiBinAngle(self, **kwargs):
         self.injectEvent(vision.EventType.MULTI_BIN_ANGLE, vision.BinEvent, 
-                         0, 0, vision.Suit.UNKNOWN, math.Degree(0), **kwargs)
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
                              
     def binFoundHelper(self, shouldRotate = True, useMultiAngle = False):
         # Set our expected ID
@@ -107,12 +107,12 @@ class BinTestCase(aisupport.AITestCase):
     def publishQueuedBinFound(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
                                 vision.BinEvent,
-                                0, 0, vision.Suit.UNKNOWN, math.Degree(0),
+                                0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
                                 **kwargs)
     def publishQueuedBinDropped(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
                                 vision.BinEvent,
-                                0, 0, vision.Suit.UNKNOWN, math.Degree(0),
+                                0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
                                 **kwargs)
             
     def binTrackingHelper(self):
@@ -266,7 +266,7 @@ class TestRecover(aisupport.AITestCase):
         self.machine.start(bin.Recover)
         
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Suit.UNKNOWN, math.Degree(0))
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
         self.assertCurrentState(bin.Seeking)
 
 
@@ -552,14 +552,14 @@ class TestExamine(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.releaseTimer(bin.Examine.DETERMINE_SUIT)
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
         self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToMove)
 
-    def testLoadSuitConfig(self):
-        expectedSuits = set([vision.Suit.CLUB, vision.Suit.DIAMOND])
-        self.assertEqual(expectedSuits, 
-                         self.machine.currentState()._targetSuits)
+    def testLoadSymbolConfig(self):
+        expectedSymbols = set([vision.Symbol.CLUB, vision.Symbol.DIAMOND])
+        self.assertEqual(expectedSymbols, 
+                         self.machine.currentState()._targetSymbols)
 
     def testBinFound(self):
         """Make sure the loop back works"""
@@ -568,14 +568,14 @@ class TestExamine(BinTestCase):
         
         # Test counting variables
         
-    def assertSuitCount(self, heart = 0, spade = 0, club = 0, diamond = 0):
+    def assertSymbolCount(self, heart = 0, spade = 0, club = 0, diamond = 0):
         s = self.machine.currentState()
         self.assertEqual(s._hearts, heart)
         self.assertEqual(s._spades, spade)
         self.assertEqual(s._clubs, club)
         self.assertEqual(s._diamonds, diamond)
         
-    def testSuitCount(self):
+    def testSymbolCount(self):
         """
         Make sure the right event if found after we get the right number
         of events
@@ -583,98 +583,98 @@ class TestExamine(BinTestCase):
         self.ai.data['binData']['currentID'] = 3
         
         # Test blank one
-        self.injectBinFound(id = 4, suit = vision.Suit.HEART)
-        self.assertSuitCount()
+        self.injectBinFound(id = 4, symbol = vision.Symbol.HEART)
+        self.assertSymbolCount()
         
         # Add some ones to populate
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
 
-        self.assertSuitCount(heart = 3, spade = 1, club = 4, diamond = 2)
+        self.assertSymbolCount(heart = 3, spade = 1, club = 4, diamond = 2)
         
         # No try for target found
         self.assertFalse(self._targetFound)
         
-    def testFoundSuit(self):
+    def testFoundSymbol(self):
         # Send in a bunch of events
         self.ai.data['binData']['currentID'] = 3 
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
 
         # Put in a bunch of unknowns to make sure they aren't part of it
-        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
-        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
-        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
-        self.injectBinFound(id = 3, suit = vision.Suit.UNKNOWN)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
         
         # Make sure we haven't done anything yet
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
         # Now release the determine event and make sure we have moved on
-        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
         self.assertCurrentState(bin.PreDropDive)
-        self.assertAIDataValue('droppingSuit', vision.Suit.CLUB)
+        self.assertAIDataValue('droppingSymbol', vision.Symbol.CLUB)
 
-    def testRepeatFoundSuit(self):
+    def testRepeatFoundSymbol(self):
         # Restrat after having dropped the club
-        self.ai.data['droppedSuits'] = set([vision.Suit.CLUB])
+        self.ai.data['droppedSymbols'] = set([vision.Symbol.CLUB])
         self.machine.start(bin.Examine)
 
         # Send in a bunch of events
         self.ai.data['binData']['currentID'] = 3 
         for i in xrange(0,14):
-            self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+            self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
         # Make sure we haven't done anything yet
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
         # Now release the determine event and make sure we have not moved on
-        # because we have already seen this suit
-        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
+        # because we have already seen this symbol
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
         
-    def testNoSuitFound(self):
+    def testNoSymbolFound(self):
         # Send in a bunch of events
         self.ai.data['binData']['currentID'] = 3 
-        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.SPADE)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.DIAMOND)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
-        self.injectBinFound(id = 3, suit = vision.Suit.HEART)
-        self.injectBinFound(id = 3, suit = vision.Suit.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
         # Make sure we haven't done anything yet
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
         # Now release the determine event and make sure we have moved on
-        self.releaseTimer(bin.Examine.DETERMINE_SUIT)   
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
@@ -701,7 +701,7 @@ class TestSettleBeforeDrop(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         
         # Make sure timer works
-        self.ai.data['droppingSuit'] = vision.Suit.CLUB
+        self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.releaseTimer(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
         
@@ -724,7 +724,7 @@ class TestSettleBeforeDrop(BinTestCase):
     def testSettled(self):
         """Make sure we move on after settling"""
         # Inject settled event
-        self.ai.data['droppingSuit'] = vision.Suit.CLUB
+        self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.injectEvent(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
         
@@ -875,7 +875,7 @@ class TestNextBin(BinTestCase):
 class TestDropMarker(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.ai.data['droppingSuit'] = vision.Suit.CLUB
+        self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.machine.start(bin.DropMarker)
     
     def testStart(self):
@@ -886,7 +886,7 @@ class TestDropMarker(BinTestCase):
 #        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.releaseTimer(bin.DropMarker.DROPPED)
         self.assertCurrentState(bin.SurfaceToMove)
-        self.assertAIDataValue('droppedSuits', set([vision.Suit.CLUB]))
+        self.assertAIDataValue('droppedSymbols', set([vision.Symbol.CLUB]))
         
     def testBinFound(self):
         """Make sure the loop back works"""

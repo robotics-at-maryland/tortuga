@@ -50,24 +50,24 @@ IplImage* FANNSuitDetector::getAnalyzedImage()
     return m_analyzed;
 }
     
-Suit::SuitType FANNSuitDetector::getSuit()
+Symbol::SymbolType FANNSuitDetector::getSuit()
 {
     switch (m_imageDetector.getResult())
     {
         case SUIT_CLUB:
-            return Suit::CLUB;
+            return Symbol::CLUB;
             break;
         case SUIT_DIAMOND:
-            return Suit::DIAMOND;
+            return Symbol::DIAMOND;
             break;
         case SUIT_HEART:
-            return Suit::HEART;
+            return Symbol::HEART;
             break;
         case SUIT_SPADE:
-            return Suit::SPADE;
+            return Symbol::SPADE;
             break;
         default:
-            return Suit::UNKNOWN;
+            return Symbol::UNKNOWN;
             break;
     };
 }

@@ -240,7 +240,7 @@ class BinSortingState(HoveringState):
         # Compare to current ID
         currentBinId = self.ai.data['binData']['currentID']
         if len(sortedBins) == 0:
-            #event = vision.BinEvent(0, 0, vision.Suit.UNKNOWN, math.Degree(0))
+            #event = vision.BinEvent(0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
             self.publish(vision.EventType.BIN_LOST, core.Event())
             return None
         else:
@@ -432,7 +432,7 @@ class SeekEnd(BinSortingState):
    
 class Dive(HoveringState):
     """
-    Gets us down to the depth we can check the suits out at
+    Gets us down to the depth we can check the symbols out at
     """
     
     @staticmethod
@@ -482,17 +482,17 @@ class Aligning(SettlingState):
         
 class Examine(SettlingState):
     """
-    Turns on the suit detector, and determines the type of the bin
+    Turns on the symbol detector, and determines the type of the bin
     """
     FOUND_TARGET = core.declareEventType('FOUND_TARGET')
-    DETERMINE_SUIT = core.declareEventType('DETERMINE_SUIT_')
+    DETERMINE_SYMBOL = core.declareEventType('DETERMINE_SYMBOL_')
     MOVE_ON = core.declareEventType('MOVE_ON')
         
     @staticmethod
     def transitions():
         return SettlingState.transitions(Examine,
         { Examine.FOUND_TARGET : PreDropDive,
-          Examine.DETERMINE_SUIT : Examine,
+          Examine.DETERMINE_SYMBOL : Examine,
           Examine.MOVE_ON : SurfaceToMove })
         
     def BIN_FOUND(self, event):
@@ -503,23 +503,23 @@ class Examine(SettlingState):
         
         # Count the hits
         if self._currentBin(event):
-            suit = event.suit
+            symbol = event.symbol
 
             # Only count total hits if its known
-            if suit != vision.Suit.UNKNOWN:
+            if symbol != vision.Symbol.UNKNOWN:
                 self._totalHits += 1
 
             # Count hits hear
-            if suit == vision.Suit.HEART:
+            if symbol == vision.Symbol.HEART:
                 self._hearts += 1
-            elif suit == vision.Suit.CLUB:
+            elif symbol == vision.Symbol.CLUB:
                 self._clubs += 1
-            elif suit == vision.Suit.SPADE:
+            elif symbol == vision.Symbol.SPADE:
                 self._spades += 1
-            elif suit == vision.Suit.DIAMOND:
+            elif symbol == vision.Symbol.DIAMOND:
                 self._diamonds += 1
                 
-    def DETERMINE_SUIT_(self, event):
+    def DETERMINE_SYMBOL_(self, event):
         """
         Determine if we have found something and trigger FOUND_TARGET event 
         if we have
@@ -539,38 +539,38 @@ class Examine(SettlingState):
         # See if any of the types is over the needed percentage
         foundTarget = False
         if hearts >= self._foundLimit:
-            foundTarget = self._checkSuit(vision.Suit.HEART)
+            foundTarget = self._checkSymbol(vision.Symbol.HEART)
         elif clubs >= self._foundLimit:
-            foundTarget = self._checkSuit(vision.Suit.CLUB)
+            foundTarget = self._checkSymbol(vision.Symbol.CLUB)
         elif spades >= self._foundLimit:
-            foundTarget = self._checkSuit(vision.Suit.SPADE)
+            foundTarget = self._checkSymbol(vision.Symbol.SPADE)
         elif diamonds >= self._foundLimit:
-            foundTarget = self._checkSuit(vision.Suit.DIAMOND)
+            foundTarget = self._checkSymbol(vision.Symbol.DIAMOND)
             
         # If we didn't find anything, time to move on
         if not foundTarget:
             self.publish(Examine.MOVE_ON, core.Event())
                     
-    def _loadSuitConfig(self):
-        targetSuits = self._config.get('targetSuits', ['Club', 'Diamond'])
+    def _loadSymbolConfig(self):
+        targetSymbols = self._config.get('targetSymbols', ['Club', 'Diamond'])
         
-        possibleTargetSuits = set()
-        for suit in targetSuits:
-            suitName = suit.upper()
-            if hasattr(vision.Suit, suitName):
-                possibleTargetSuits.add(getattr(vision.Suit, suitName))
+        possibleTargetSymbols = set()
+        for symbol in targetSymbols:
+            symbolName = symbol.upper()
+            if hasattr(vision.Symbol, symbolName):
+                possibleTargetSymbols.add(getattr(vision.Symbol, symbolName))
 
-        droppedSuits = self.ai.data.get('droppedSuits', set())
-        self._targetSuits = possibleTargetSuits.difference(droppedSuits)
+        droppedSymbols = self.ai.data.get('droppedSymbols', set())
+        self._targetSymbols = possibleTargetSymbols.difference(droppedSymbols)
 
-    def _checkSuit(self, suit):
+    def _checkSymbol(self, symbol):
         """
-        Returns true if we are looking for this suit, and publishes
+        Returns true if we are looking for this symbol, and publishes
         FOUND_TARGET event.
         """
-        if suit in self._targetSuits: 
-            # Record which suit we are dropping 
-            self.ai.data['droppingSuit'] = suit
+        if symbol in self._targetSymbols: 
+            # Record which symbol we are dropping 
+            self.ai.data['droppingSymbol'] = symbol
             # Publish the fact that we found the target to drop
             self.publish(Examine.FOUND_TARGET, core.Event())
             return True
@@ -578,7 +578,7 @@ class Examine(SettlingState):
         
     def enter(self):
         # Wait for 20 seconds while we examine things
-        SettlingState.enter(self, Examine.DETERMINE_SUIT, 5)
+        SettlingState.enter(self, Examine.DETERMINE_SYMBOL, 5)
         
         self._hearts = 0
         self._clubs = 0
@@ -587,8 +587,8 @@ class Examine(SettlingState):
         self._totalHits = 0
         self._foundLimit = self._config.get('foundLimit', 0.8)
         
-        # Load needed suits
-        self._loadSuitConfig()
+        # Load needed symbols
+        self._loadSymbolConfig()
         
 class PreDropDive(Dive):
     """
@@ -731,9 +731,9 @@ class DropMarker(SettlingState):
         # Release the marker
         self.vehicle.dropMarker()
 
-        # Mark that we dropped the suit
-        droppingSuit = self.ai.data['droppingSuit']
-        self.ai.data.setdefault('droppedSuits', set()).add(droppingSuit)
+        # Mark that we dropped the symbol
+        droppingSymbol = self.ai.data['droppingSymbol']
+        self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
         
 class SurfaceToCruise(HoveringState):
     """

@@ -47,14 +47,14 @@ static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
     
 BinDetector::Bin::Bin() :
     TrackedBlob(),
-    m_suit(Suit::NONEFOUND)
+    m_symbol(Symbol::NONEFOUND)
 {
 }
     
 BinDetector::Bin::Bin(BlobDetector::Blob blob, double x, double y,
-                      math::Degree angle, int id, Suit::SuitType suit) :
+                      math::Degree angle, int id, Symbol::SymbolType symbol) :
     TrackedBlob(blob, x, y, angle, id),
-    m_suit(suit)
+    m_symbol(symbol)
 {
 }
     
@@ -81,18 +81,18 @@ void BinDetector::Bin::draw(Image* image)
     ss2 << getAngle().valueDegrees();
     Image::writeText(image, ss2.str(), br.x-30, br.y-15);
 
-    // Now do the suit
-    if (Suit::NONEFOUND == m_suit)
+    // Now do the symbol
+    if (Symbol::NONEFOUND == m_symbol)
         Image::writeText(image, "None", bl.x, bl.y - 15);
-    else if (Suit::UNKNOWN == m_suit)
+    else if (Symbol::UNKNOWN == m_symbol)
         Image::writeText(image, "Unknown", bl.x, bl.y - 15);
-    else if (Suit::HEART == m_suit)
+    else if (Symbol::HEART == m_symbol)
         Image::writeText(image, "Heart", bl.x, bl.y - 15);
-    else if (Suit::DIAMOND == m_suit)
+    else if (Symbol::DIAMOND == m_symbol)
         Image::writeText(image, "Diamond", bl.x, bl.y - 15);
-    else if (Suit::SPADE == m_suit)
+    else if (Symbol::SPADE == m_symbol)
         Image::writeText(image, "Spade", bl.x, bl.y - 15);
-    else if (Suit::CLUB == m_suit)
+    else if (Symbol::CLUB == m_symbol)
         Image::writeText(image, "Club", bl.x, bl.y - 15);
 }
     
@@ -100,12 +100,12 @@ void BinDetector::Bin::draw(Image* image)
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
-    suitDetector(config,eventHub),
+    symbolDetector(config,eventHub),
     blobDetector(config,eventHub),
     m_centered(false)
 {
     init(config);
-    setSuitDetectionOn(true);
+    setSymbolDetectionOn(true);
 }
     
 void BinDetector::init(core::ConfigNode config)
@@ -124,7 +124,7 @@ void BinDetector::init(core::ConfigNode config)
     foundDiamond = false;
     foundClub = false;
     foundEmpty = false;*/
-    m_runSuitDetector = false;
+    m_runSymbolDetector = false;
     m_centeredLimit = config["centeredLimit"].asDouble(0.1);
     m_sameBinThreshold = config["sameBinThreshold"].asDouble(0.2);
     m_maxAspectRatio = config["maxAspectRatio"].asDouble(3);
@@ -149,7 +149,7 @@ void BinDetector::init(core::ConfigNode config)
         190, &m_whiteMaskMinimumIntensity, 0, 765);
 
     m_incrediblyWashedOutImages = (bool)(config["incrediblyWashedOut"].asInt(0));
-    m_logSuitImages = (bool)(config["logSuitImages"].asInt(0));
+    m_logSymbolImages = (bool)(config["logSymbolImages"].asInt(0));
     
     m_binID = 0;
     for (int i = 0; i < 4; i++)
@@ -360,13 +360,13 @@ else
     {
         // For each black blob inside a white blob (ie, for each bin blob) 
         // take the rectangular portion containing the black blob and pass it
-        // off to SuitDetector
+        // off to SymbolDetector
         BinList candidateBins;
         
         int binNumber = 0;
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            processBin(binBlob, m_runSuitDetector, candidateBins, binNumber,
+            processBin(binBlob, m_runSymbolDetector, candidateBins, binNumber,
                        out);
             binNumber++;
         }
@@ -466,7 +466,7 @@ else
         BOOST_FOREACH(Bin bin, m_bins)
         {
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
-                                           bin.getSuit(), bin.getAngle()));
+                                           bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
         }
@@ -488,7 +488,7 @@ else
             if(!m_centered)
             {
                 m_centered = true;
-                BinEventPtr event(new BinEvent(getX(), getY(), getSuit(), getAngle()));
+                BinEventPtr event(new BinEvent(getX(), getY(), getSymbol(), getAngle()));
                 publish(EventType::BIN_CENTERED, event);
             }
         }
@@ -502,7 +502,7 @@ else
             if (out)
                 bin.draw(out);
             BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
-                                           bin.getSuit(), bin.getAngle()));
+                                           bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_FOUND, event);
         }
@@ -519,7 +519,7 @@ void BinDetector::drawBinImage(Image* imgToShow, int binNumber,
 		     output);
 }
 
-void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
+void BinDetector::processBin(BlobDetector::Blob bin, bool detectSymbol,
                              BinList& newBins, int binNum, Image* output)
 {
     if (binNum > 3)
@@ -553,55 +553,55 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
         (binCenter.y - height/2 -1 < 0) ||
         (binCenter.y + height/2 +1 >= binFrame->height))
     {
-        newBins.push_back(Bin(bin, binX, binY, math::Degree(0), m_binID++, Suit::UNKNOWN));
+        newBins.push_back(Bin(bin, binX, binY, math::Degree(0), m_binID++, Symbol::UNKNOWN));
         return;
     }
     
     cvGetRectSubPix(binFrame, binImage.asIplImage(), binCenter);
     math::Radian angle = calculateAngleOfBin(bin, &binImage, &binImage);
     //Image::showImage(&binImage);
-    // Find suit if desired
-    Suit::SuitType suit = Suit::NONEFOUND;
+    // Find symbol if desired
+    Symbol::SymbolType symbol = Symbol::NONEFOUND;
     
     // Rotate image to straight
-    OpenCVImage rotatedRedSuitWrapper(binImage.getWidth(),
+    OpenCVImage rotatedRedSymbolWrapper(binImage.getWidth(),
                                           binImage.getHeight());
-    vision::Image::transform(&binImage, &rotatedRedSuitWrapper, -angle);
+    vision::Image::transform(&binImage, &rotatedRedSymbolWrapper, -angle);
     
     // Set fields as percent of colors
     OpenCVImage percentsRotatedRedWrapper(
-        rotatedRedSuitWrapper.getWidth(),
-        rotatedRedSuitWrapper.getHeight());
+        rotatedRedSymbolWrapper.getWidth(),
+        rotatedRedSymbolWrapper.getHeight());
         
-    cvCopyImage(rotatedRedSuitWrapper.asIplImage(),
+    cvCopyImage(rotatedRedSymbolWrapper.asIplImage(),
                 percentsRotatedRedWrapper.asIplImage());
     to_ratios(percentsRotatedRedWrapper.asIplImage());
         
-    if (detectSuit)
+    if (detectSymbol)
     {
 
 //        drawBinImage(&maskedRotatedRed, binNum);
 
         // Now mask just red (ie. make it white)
-        suitMask(percentsRotatedRedWrapper.asIplImage(), rotatedRedSuitWrapper.asIplImage());
+        suitMask(percentsRotatedRedWrapper.asIplImage(), rotatedRedSymbolWrapper.asIplImage());
         
-        if (cropImage(rotatedRedSuitWrapper.asIplImage(), binNum))
+        if (cropImage(rotatedRedSymbolWrapper.asIplImage(), binNum))
         {
             OpenCVImage wrapper(binImages[binNum],false);
 //            Image::showImage(&wrapper);
-            suit = determineSuit(&wrapper);
+            symbol = determineSymbol(&wrapper);
 	    if (output)
             {
                drawBinImage(&wrapper, binNum, output);
 
-               if (m_logSuitImages)
-                   logSuitImage(&wrapper, suit);
+               if (m_logSymbolImages)
+                   logSymbolImage(&wrapper, symbol);
             }
         }
         else
         {
-            suit = Suit::UNKNOWN;
-//            printf("No suit found\n");
+            symbol = Symbol::UNKNOWN;
+//            printf("No symbol found\n");
         }
     }
     
@@ -615,13 +615,13 @@ void BinDetector::processBin(BlobDetector::Blob bin, bool detectSuit,
     
     math::Degree finalJoeAngle(angleToReturn);
     // Create bin add it to the list (and incremet the binID)
-    newBins.push_back(Bin(bin, binX, binY, finalJoeAngle, m_binID++, suit));
+    newBins.push_back(Bin(bin, binX, binY, finalJoeAngle, m_binID++, symbol));
     
     m_found = true;
 }
 
-void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit, 
-			      Image* rotatedRedSuit)
+void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSymbol, 
+			      Image* rotatedRedSymbol)
 {
     float m[6];
     CvMat M = cvMat( 2, 3, CV_32F, m );
@@ -629,24 +629,24 @@ void BinDetector::unrotateBin(math::Radian angleOfBin, Image* redSuit,
     double factor = -angleOfBin.valueRadians();
     m[0] = (float)(cos(factor));
     m[1] = (float)(sin(factor));
-    m[2] = redSuit->getWidth() * 0.5f;
+    m[2] = redSymbol->getWidth() * 0.5f;
     m[3] = -m[1];
     m[4] = m[0];
-    m[5] = redSuit->getWidth() * 0.5f;
+    m[5] = redSymbol->getWidth() * 0.5f;
     
-    cvGetQuadrangleSubPix(redSuit->asIplImage(), rotatedRedSuit->asIplImage(),&M);
+    cvGetQuadrangleSubPix(redSymbol->asIplImage(), rotatedRedSymbol->asIplImage(),&M);
 }
 
 math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, 
 					      Image* input, Image* output)
 {
-    IplImage* redSuit = (IplImage*)(*input);
-    IplImage* redSuitGrayScale = cvCreateImage(cvGetSize(redSuit),IPL_DEPTH_8U,1);
+    IplImage* redSymbol = (IplImage*)(*input);
+    IplImage* redSymbolGrayScale = cvCreateImage(cvGetSize(redSymbol),IPL_DEPTH_8U,1);
 
-    cvCvtColor(redSuit,redSuitGrayScale,CV_BGR2GRAY);
-    IplImage* cannied = cvCreateImage(cvGetSize(redSuitGrayScale), 8, 1 );
+    cvCvtColor(redSymbol,redSymbolGrayScale,CV_BGR2GRAY);
+    IplImage* cannied = cvCreateImage(cvGetSize(redSymbolGrayScale), 8, 1 );
 
-    cvCanny( redSuitGrayScale, cannied, 50, 200, 3 );
+    cvCanny( redSymbolGrayScale, cannied, 50, 200, 3 );
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
     
@@ -679,60 +679,60 @@ math::Radian BinDetector::calculateAngleOfBin(BlobDetector::Blob bin,
         return math::Degree(-180);
     cvReleaseImage(&cannied);
     cvReleaseMemStorage(&storage);
-    cvReleaseImage(&redSuitGrayScale);
+    cvReleaseImage(&redSymbolGrayScale);
     return math::Radian(angle);
 }
 
-Suit::SuitType BinDetector::determineSuit(Image* input,
+Symbol::SymbolType BinDetector::determineSymbol(Image* input,
                                           Image* output)
 {
-//        std::cout<<"finished suit detection"<<std::endl;
-//        std::cout<<"Suit: " << suitDetector.getSuit()<<std::endl;
-    suitDetector.processImage(input,output);
+//        std::cout<<"finished symbol detection"<<std::endl;
+//        std::cout<<"Symbol: " << symbolDetector.getSymbol()<<std::endl;
+    symbolDetector.processImage(input,output);
 	
-    // Filter suit type
-    Suit::SuitType suitFound = suitDetector.getSuit(); //In case we ever want to use the suit detector...
-    Suit::SuitType suit = Suit::NONEFOUND;
+    // Filter symbol type
+    Symbol::SymbolType symbolFound = symbolDetector.getSymbol(); //In case we ever want to use the symbol detector...
+    Symbol::SymbolType symbol = Symbol::NONEFOUND;
 
         
-    if (suitFound == Suit::CLUB || suitFound == Suit::CLUBR90 || suitFound == Suit::CLUBR180 || suitFound == Suit::CLUBR270)
+    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 || symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
     {
         //seeClub = true;
-        suit = Suit::CLUB;
+        symbol = Symbol::CLUB;
 //        std::cout<<"Found Club Bin"<<std::endl;
         
     }
-    else if (suitFound == Suit::SPADE || suitFound == Suit::SPADER90 || suitFound == Suit::SPADER180 || suitFound == Suit::SPADER270)
+    else if (symbolFound == Symbol::SPADE || symbolFound == Symbol::SPADER90 || symbolFound == Symbol::SPADER180 || symbolFound == Symbol::SPADER270)
     {
         //seeSpade = true;
-        suit = Suit::SPADE;
+        symbol = Symbol::SPADE;
 //        std::cout<<"Found Spade Bin"<<std::endl;
         
     }
-    else if (suitFound == Suit::HEART || suitFound == Suit::HEARTR90 || suitFound == Suit::HEARTR180 || suitFound == Suit::HEARTR270)
+    else if (symbolFound == Symbol::HEART || symbolFound == Symbol::HEARTR90 || symbolFound == Symbol::HEARTR180 || symbolFound == Symbol::HEARTR270)
     {
         //seeHeart = true;
-        suit = Suit::HEART;
+        symbol = Symbol::HEART;
 //        std::cout<<"Found Heart Bin"<<std::endl;
     }
-    else if (suitFound == Suit::DIAMOND || suitFound == Suit::DIAMONDR90 || suitFound == Suit::DIAMONDR180 || suitFound == Suit::DIAMONDR270)
+    else if (symbolFound == Symbol::DIAMOND || symbolFound == Symbol::DIAMONDR90 || symbolFound == Symbol::DIAMONDR180 || symbolFound == Symbol::DIAMONDR270)
     {
         //seeDiamond = true;
-        suit = Suit::DIAMOND;
+        symbol = Symbol::DIAMOND;
 //        std::cout<<"Found Diamond Bin"<<std::endl;
     }
-    else if (suitFound == Suit::UNKNOWN)
+    else if (symbolFound == Symbol::UNKNOWN)
     {
-        suit = Suit::UNKNOWN;
+        symbol = Symbol::UNKNOWN;
 //        std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
     }
-    else if (suitFound == Suit::NONEFOUND)
+    else if (symbolFound == Symbol::NONEFOUND)
     {
         //seeEmpty = true;
-        suit = Suit::NONEFOUND;
+        symbol = Symbol::NONEFOUND;
 //        std::cout<<"Found empty Bin"<<std::endl;
     }
-    return suit;
+    return symbol;
 }
     
 float BinDetector::getX()
@@ -757,12 +757,12 @@ math::Degree BinDetector::getAngle()
         return math::Degree(0);
 }
 
-Suit::SuitType BinDetector::getSuit()
+Symbol::SymbolType BinDetector::getSymbol()
 {
     if (m_bins.size() > 0)
-        return m_bins.front().getSuit();
+        return m_bins.front().getSymbol();
     else
-        return Suit::NONEFOUND;
+        return Symbol::NONEFOUND;
 }
 
 BinDetector::BinList BinDetector::getBins()
@@ -775,24 +775,24 @@ bool BinDetector::found()
     return m_found;
 }
 
-//Returns false on failure, puts suit into scaledRedSuit.
-bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
+//Returns false on failure, puts symbol into scaledRedSymbol.
+bool BinDetector::cropImage(IplImage* rotatedRedSymbol, int binNum)
 {   
-    int minSuitX = 999999;
-    int minSuitY = 999999;
-    int maxSuitX = 0;
-    int maxSuitY = 0;
+    int minSymbolX = 999999;
+    int minSymbolY = 999999;
+    int maxSymbolX = 0;
+    int maxSymbolY = 0;
     //            int redCX, redCY;
-//    cvDilate(rotatedRedSuit,rotatedRedSuit,NULL, 1);
-    OpenCVImage mySuit(rotatedRedSuit,false);
+//    cvDilate(rotatedRedSymbol,rotatedRedSymbol,NULL, 1);
+    OpenCVImage mySymbol(rotatedRedSymbol,false);
     //   int size = 0;
     blobDetector.setMinimumBlobSize(100);
-    blobDetector.processImage(&mySuit);
+    blobDetector.processImage(&mySymbol);
     if (!blobDetector.found())
     {
         return false;
-        //no suit found, don't make a histogram
-        //                printf("Oops, we fucked up, no suit found :(\n");
+        //no symbol found, don't make a histogram
+        //                printf("Oops, we fucked up, no symbol found :(\n");
     }
     else
     {
@@ -814,58 +814,58 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
                 }
             }
         }
-        minSuitX = biggest.getMinX();
-        minSuitY = biggest.getMinY();
-        maxSuitX = biggest.getMaxX();
-        maxSuitY = biggest.getMaxY();
+        minSymbolX = biggest.getMinX();
+        minSymbolY = biggest.getMinY();
+        maxSymbolX = biggest.getMaxX();
+        maxSymbolY = biggest.getMaxY();
 
-        if (!m_incrediblyWashedOutImages)//A fancy way to say that at transdec, the suits don't get split.
+        if (!m_incrediblyWashedOutImages)//A fancy way to say that at transdec, the symbols don't get split.
         {
         if (blobs.size() > 1)
         {
-            if (minSuitX > secondBiggest.getMinX())
-                minSuitX = secondBiggest.getMinX();
-            if (minSuitY > secondBiggest.getMinY())
-                minSuitY = secondBiggest.getMinY();
-            if (maxSuitX < secondBiggest.getMaxX())
-                maxSuitX = secondBiggest.getMaxX();
-            if (maxSuitY < secondBiggest.getMaxY())
-                maxSuitY = secondBiggest.getMaxY();
+            if (minSymbolX > secondBiggest.getMinX())
+                minSymbolX = secondBiggest.getMinX();
+            if (minSymbolY > secondBiggest.getMinY())
+                minSymbolY = secondBiggest.getMinY();
+            if (maxSymbolX < secondBiggest.getMaxX())
+                maxSymbolX = secondBiggest.getMaxX();
+            if (maxSymbolY < secondBiggest.getMaxY())
+                maxSymbolY = secondBiggest.getMaxY();
 
         }
         }
     }
 
-    int onlyRedSuitRows = (maxSuitX - minSuitX + 1);// / 4 * 4;
-    int onlyRedSuitCols = (maxSuitY - minSuitY + 1);// / 4 * 4;
+    int onlyRedSymbolRows = (maxSymbolX - minSymbolX + 1);// / 4 * 4;
+    int onlyRedSymbolCols = (maxSymbolY - minSymbolY + 1);// / 4 * 4;
 
-    if (onlyRedSuitRows == 0 || onlyRedSuitCols == 0)
+    if (onlyRedSymbolRows == 0 || onlyRedSymbolCols == 0)
     {
         return false;
 //        binImages[binNum] = NULL;
     }
         
-    onlyRedSuitRows = onlyRedSuitCols = (onlyRedSuitRows > onlyRedSuitCols ? onlyRedSuitRows : onlyRedSuitCols);
+    onlyRedSymbolRows = onlyRedSymbolCols = (onlyRedSymbolRows > onlyRedSymbolCols ? onlyRedSymbolRows : onlyRedSymbolCols);
 
 
-    if (onlyRedSuitRows >= rotatedRedSuit->width || onlyRedSuitCols >= rotatedRedSuit->height)
+    if (onlyRedSymbolRows >= rotatedRedSymbol->width || onlyRedSymbolCols >= rotatedRedSymbol->height)
     {
         return false;
 //        binImages[binNum] = NULL;
     }
         
-    IplImage* onlyRedSuit = cvCreateImage(
-        cvSize(onlyRedSuitRows,
-               onlyRedSuitCols),
+    IplImage* onlyRedSymbol = cvCreateImage(
+        cvSize(onlyRedSymbolRows,
+               onlyRedSymbolCols),
         IPL_DEPTH_8U,
         3);
     
-    cvGetRectSubPix(rotatedRedSuit,
-                    onlyRedSuit,
-                    cvPoint2D32f((maxSuitX+minSuitX)/2,
-                                 (maxSuitY+minSuitY)/2));
+    cvGetRectSubPix(rotatedRedSymbol,
+                    onlyRedSymbol,
+                    cvPoint2D32f((maxSymbolX+minSymbolX)/2,
+                                 (maxSymbolY+minSymbolY)/2));
     
-    cvResize(onlyRedSuit, binImages[binNum], CV_INTER_LINEAR);
+    cvResize(onlyRedSymbol, binImages[binNum], CV_INTER_LINEAR);
 
 //    for (int redIndex = 2; redIndex < 128 * 128 * 3; redIndex+=3)
 //    {
@@ -875,21 +875,21 @@ bool BinDetector::cropImage(IplImage* rotatedRedSuit, int binNum)
 
 //    printf("Bin Num: %d, Size: %d", binNum, size);
     
-    cvReleaseImage(&onlyRedSuit);
+    cvReleaseImage(&onlyRedSymbol);
     return true;
 }
 
-void BinDetector::setSuitDetectionOn(bool on)
+void BinDetector::setSymbolDetectionOn(bool on)
 {
-    m_runSuitDetector = on;
+    m_runSymbolDetector = on;
 }
 
-void BinDetector::setSuitImageLogging(bool value)
+void BinDetector::setSymbolImageLogging(bool value)
 {
-    m_logSuitImages = value;
+    m_logSymbolImages = value;
 }
 
-void BinDetector::logSuitImage(Image* image, Suit::SuitType suit)
+void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)
 {
     static int saveCount = 1;
     
@@ -901,22 +901,22 @@ void BinDetector::logSuitImage(Image* image, Suit::SuitType suit)
 
         for (int i = 0; i < 5; ++i)
         {
-            boost::filesystem::path suitDir = base / names[i];
-            if (!boost::filesystem::exists(suitDir))
-                boost::filesystem::create_directories(suitDir);
+            boost::filesystem::path symbolDir = base / names[i];
+            if (!boost::filesystem::exists(symbolDir))
+                boost::filesystem::create_directories(symbolDir);
         }
     }
 
-    // Determine the directory to place the image based on suit
+    // Determine the directory to place the image based on symbol
     boost::filesystem::path base = core::Logging::getLogDir();
     boost::filesystem::path baseDir;
-    switch (suit)
+    switch (symbol)
     {
-        case Suit::HEART: baseDir = base / "heart"; break;
-        case Suit::SPADE: baseDir = base / "spade"; break;
-        case Suit::DIAMOND: baseDir = base / "diamond"; break;
-        case Suit::CLUB: baseDir = base / "club"; break;
-        case Suit::UNKNOWN: baseDir = base / "unknown"; break;
+        case Symbol::HEART: baseDir = base / "heart"; break;
+        case Symbol::SPADE: baseDir = base / "spade"; break;
+        case Symbol::DIAMOND: baseDir = base / "diamond"; break;
+        case Symbol::CLUB: baseDir = base / "club"; break;
+        case Symbol::UNKNOWN: baseDir = base / "unknown"; break;
             
         default: baseDir = base / "error"; break;
     }

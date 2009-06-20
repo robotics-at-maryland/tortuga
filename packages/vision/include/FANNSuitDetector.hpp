@@ -11,7 +11,7 @@
 #define RAM_VISION_FANN_SUITE_DETECTOR_HPP
 
 // Project Includes
-#include "vision/include/Suit.h"
+#include "vision/include/Symbol.h"
 #include "vision/include/ImageDetector.hpp"
 
 // Must be included last
@@ -37,7 +37,7 @@ class RAM_EXPORT FANNSuitDetector : public Detector
     IplImage* getAnalyzedImage();
     
     /** Get the suite type discovered **/
-    Suit::SuitType getSuit();
+    Symbol::SymbolType getSuit();
   private:
     ImageDetector m_imageDetector;
     IplImage* m_analyzed;

@@ -264,7 +264,7 @@ void serialize(Archive &ar, ram::vision::BinEvent &t,
   ar & t.y;
   ar & t.y;
   ar & t.id;
-  ar & t.suit;
+  ar & t.symbol;
   ar & (*((double*)(&t.angle)));
 }
 

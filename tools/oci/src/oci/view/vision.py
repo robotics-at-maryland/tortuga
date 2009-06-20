@@ -252,7 +252,7 @@ class BinPanel(VisionPanel):
         self._x = None
         self._y = None
         self._angle = None
-        self._suit = None
+        self._symbol = None
         self._ai = ai
         
         if self._ai is not None:
@@ -276,7 +276,7 @@ class BinPanel(VisionPanel):
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
         self._createDataControl(controlName = '_multiAngle', label = 'M-Ang: ')
-        self._createDataControl(controlName = '_suit', label = 'Suit: ')
+        self._createDataControl(controlName = '_symbol', label = 'Symbol: ')
         
     def _onMultiBinAngle(self, event):
         self._multiAngle.Value = "% 4.2f" % event.angle.valueDegrees()
@@ -294,7 +294,7 @@ class BinPanel(VisionPanel):
         self._x.Value = "% 4.2f" % obj.x
         self._y.Value = "% 4.2f" % obj.y
         self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
-        self._suit.Value = "%s" % obj.suit
+        self._symbol.Value = "%s" % obj.symbol
         
         self.enableControls()
     

@@ -12,7 +12,7 @@
 
 // Project Includes
 #include "vision/include/Common.h"
-#include "vision/include/Suit.h"
+#include "vision/include/Symbol.h"
 
 #include "core/include/Event.h"
 
@@ -104,18 +104,18 @@ class RAM_EXPORT BinEvent : public core::Event
 {
 public:
 //    BinEvent(double x, double y)
-//    { this->x=x; this->y=y; this->suit = Suit::NONEFOUND;}
-    BinEvent(double x, double y, Suit::SuitType s, math::Degree angle)
-    { this->x=x; this->y=y; this->suit = s; this->angle = angle;}
+//    { this->x=x; this->y=y; this->symbol = Symbol::NONEFOUND;}
+    BinEvent(double x, double y, Symbol::SymbolType s, math::Degree angle)
+    { this->x=x; this->y=y; this->symbol = s; this->angle = angle;}
     
     BinEvent(math::Degree angle)
-    {this->x = 0; this->y = 0; this->suit = Suit::UNKNOWN; this->angle = angle;}
-    BinEvent() : x(0), y(0), id(0), suit(Suit::UNKNOWN), angle(0) {}
+    {this->x = 0; this->y = 0; this->symbol = Symbol::UNKNOWN; this->angle = angle;}
+    BinEvent() : x(0), y(0), id(0), symbol(Symbol::UNKNOWN), angle(0) {}
     
     double x;
     double y;
     int id;
-    Suit::SuitType suit;
+    Symbol::SymbolType symbol;
     math::Degree angle;
 };
 

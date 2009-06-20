@@ -17,7 +17,7 @@ import ogre.renderer.OGRE as ogre
 import ext.core
 import ext.vision
 import ext.math
-from ext.vision import Suit
+from ext.vision import Symbol
 from sim.subsystems import Simulation
 from sim.vehicle import SimVehicle
 
@@ -333,7 +333,7 @@ class Bin(Visual):
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
-        self._suit = Suit.NONEFOUND
+        self._symbol = Symbol.NONEFOUND
         self._visible = False
         self.id = 0
 
@@ -344,20 +344,23 @@ class Bin(Visual):
             # Default mesh and scale info
             gfxNode = {'mesh' : 'box.mesh', 'scale' : [0.9144, 0.6096, 0.0254]}
             
-            # Determine suit material
+            # Determine symbol material
             material = 'CompElement/Bin'
             
-            _type = node.get('suit', '').lower()
-            self._suit = Suit.NONEFOUND
-            possibleSuits = set(['heart','spade','club','diamond'])
-            if _type in possibleSuits:
-                # Added the suit name to the base (first letter caps
+            _type = node.get('symbol', '').lower()
+            self._symbol = Symbol.NONEFOUND
+            possibleSymbols = set(['heart','spade','club','diamond'])
+            if _type in possibleSymbols:
+                # Added the symbol name to the base (first letter caps
                 material = 'CompElement/' + _type[0].upper() + _type[1:] + 'Bin'
                 
-                # Set suit type
-                typeToFlag = {'club' : Suit.CLUB, 'heart' : Suit.HEART,
-                              'spade' : Suit.SPADE, 'diamond' : Suit.DIAMOND}
-                self._suit = typeToFlag[_type]
+                # Set symbol type
+                typeToFlag = {'club' : Symbol.CLUB, 
+                              'heart' : Symbol.HEART,
+                              'spade' : Symbol.SPADE, 
+                              'diamond' : Symbol.DIAMOND}
+
+                self._symbol = typeToFlag[_type]
 
             gfxNode['material'] = material
                 
@@ -366,15 +369,15 @@ class Bin(Visual):
             
 
         else:
-            self._suit = Suit.NONEFOUND
+            self._symbol = Symbol.NONEFOUND
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
         raise "Not yet implemented"
     
     @property
-    def suit(self):
-        return self._suit
+    def symbol(self):
+        return self._symbol
     
 class BlackJackTable(ram.sim.object.Object):
     """
@@ -408,16 +411,16 @@ class BlackJackTable(ram.sim.object.Object):
         baseOffset = orientation * ogre.Vector3(0, BlackJackTable.SEPERATION, 0)
         baseName = node['name']
         
-        suits = node.get('suits', ['heart','spade','club','diamond'])
-        while len(suits) < 4:
-            suits.append('')
+        symbols = node.get('symbols', ['heart','spade','club','diamond'])
+        while len(symbols) < 4:
+            symbols.append('')
         
         # Create far left bin
         self._farLeftBin = Bin()
         position = basePos + (baseOffset * -1.5)
         cfg = {'name' : baseName + 'FarLeftBin', 'position' : position, 
                'orientation' : self._toAxisAngleArray(orientation),
-               'suit' : suits[0]}
+               'symbol' : symbols[0]}
         self._farLeftBin.load((scene, parent, cfg))
         scene._objects.append(self._farLeftBin)
         
@@ -426,7 +429,7 @@ class BlackJackTable(ram.sim.object.Object):
         position = basePos + (baseOffset * -0.5)
         cfg = {'name' : baseName + 'LeftBin', 'position' : position, 
                'orientation' : self._toAxisAngleArray(orientation),
-               'suit' : suits[1]}
+               'symbol' : symbols[1]}
         self._leftBin.load((scene, parent, cfg))
         scene._objects.append(self._leftBin)
 
@@ -435,7 +438,7 @@ class BlackJackTable(ram.sim.object.Object):
         position = basePos + (baseOffset * 0.5)
         cfg = {'name' : baseName + 'RightBin', 'position' : position, 
                'orientation' : self._toAxisAngleArray(orientation),
-               'suit' : suits[2]}
+               'symbol' : symbols[2]}
         self._rightBin.load((scene, parent, cfg))
         scene._objects.append(self._rightBin)
 
@@ -444,7 +447,7 @@ class BlackJackTable(ram.sim.object.Object):
         position = basePos + (baseOffset * 1.5)
         cfg = {'name' : baseName + 'FarRightBin', 'position' : position, 
                'orientation' : self._toAxisAngleArray(orientation),
-               'suit' : suits[3]}
+               'symbol' : symbols[3]}
         self._farRightBin.load((scene, parent, cfg))
         scene._objects.append(self._farRightBin)
         
@@ -1171,7 +1174,7 @@ class IdealSimVision(ext.vision.VisionSystem):
                 event.x = x
                 event.y = y
                 event.angle = angle
-                event.suit = bin.suit
+                event.symbol = bin.symbol
                 event.id = id
                 self.publish(ext.vision.EventType.BIN_FOUND, event)
                 

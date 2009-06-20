@@ -66,7 +66,7 @@ struct BinDetectorFixture
             boost::bind(&BinDetectorFixture::droppedHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::MULTI_BIN_ANGLE,
             boost::bind(&BinDetectorFixture::multiBinAngleHandler, this, _1));
-        detector.setSuitDetectionOn(false);
+        detector.setSymbolDetectionOn(false);
     }
 
     void foundHandler(core::EventPtr event_)
@@ -117,7 +117,7 @@ SUITE(BinDetector) {
 
 TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     vision::OpenCVImage output(640, 480);
     receivedMultiBinAngleEvent = false;
     
@@ -141,7 +141,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
 
 TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     vision::OpenCVImage output(640,480);
     receivedMultiBinAngleEvent = false;
     
@@ -179,7 +179,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
 TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
 {
     printf("Starting Multi Bin Angles\n");
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     vision::OpenCVImage output(640,480);
     receivedMultiBinAngleEvent = false;
     // Blue Image with orange rectangle in it
@@ -249,7 +249,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
 
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
 
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
@@ -278,7 +278,7 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
 {
     printf("Starting BinSpinAngleTest:\n");
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     vision::OpenCVImage output(640,480);
     double thresh = 3;
     for (int deg = -180; deg < 180; deg+=13)
@@ -341,9 +341,9 @@ TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
 /*
 FIX ME: I AM BROKEN!
   
-TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
+TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
 { 
-    detector.setSuitDetectionOn(true);
+    detector.setSymbolDetectionOn(true);
     int right = 0;
     for (int deg = 0; deg < 360; deg+=10)
     {
@@ -352,11 +352,11 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
         vision::drawBin(&input, 100,100, 200, deg, vision::Club);
         vision::OpenCVImage output(640,480);
         detector.processImage(&input, &output);
-        if (detector.getSuit() == vision::Suit::CLUB)
+        if (detector.getSymbol() == vision::Symbol::CLUB)
         {
             right++;
         }
-        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
             
         }
@@ -375,11 +375,11 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
         vision::drawBin(&input, 320,240, 200, deg, vision::Spade);
         vision::OpenCVImage output(640,480);
         detector.processImage(&input, &output);
-        if (detector.getSuit() == vision::Suit::SPADE)
+        if (detector.getSymbol() == vision::Symbol::SPADE)
         {
             right++;
         }
-        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
             
         }
@@ -398,11 +398,11 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
         vision::drawBin(&input, 320,240, 200, deg, vision::Heart);
         vision::OpenCVImage output(640,480);
         detector.processImage(&input, &output);
-        if (detector.getSuit() == vision::Suit::HEART)
+        if (detector.getSymbol() == vision::Symbol::HEART)
         {
             right++;
         }
-        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
             
         }
@@ -421,11 +421,11 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
         vision::drawBin(&input, 320,240, 200, deg, vision::Diamond);
         vision::OpenCVImage output(640,480);
         detector.processImage(&input, &output);
-        if (detector.getSuit() == vision::Suit::DIAMOND)
+        if (detector.getSymbol() == vision::Symbol::DIAMOND)
         {
             right++;
         }
-        else if (detector.getSuit() == vision::Suit::UNKNOWN)
+        else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
             
         }
@@ -437,24 +437,24 @@ TEST_FIXTURE(BinDetectorFixture, SuperSuitTest)
 }
     //CHECK(right >= 12);
 
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
 }
 */
 TEST_FIXTURE(BinDetectorFixture, FourBins)
 {
-    detector.setSuitDetectionOn(true);
+    detector.setSymbolDetectionOn(true);
     vision::Image* ref = vision::Image::loadFromFile(
         ((getImagesDir()/"distorted-grainy.png").string()));//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
     
     CHECK(ref != NULL);
     
     detector.processImage(ref);
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
 }
 
 TEST_FIXTURE(BinDetectorFixture, BinTracking)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     vision::makeColor(&input, 0, 0, 255);
     vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
     
@@ -508,7 +508,7 @@ TEST_FIXTURE(BinDetectorFixture, BinTracking)
 
 TEST_FIXTURE(BinDetectorFixture, Left)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (left)
@@ -533,7 +533,7 @@ TEST_FIXTURE(BinDetectorFixture, Left)
 
 TEST_FIXTURE(BinDetectorFixture, LowerRight)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (lower right)
@@ -558,7 +558,7 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
 
 TEST_FIXTURE(BinDetectorFixture, CenterUp)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin in center sideways
@@ -583,7 +583,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
 
 TEST_FIXTURE(BinDetectorFixture, CenterSideways)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin in center sideways
@@ -608,7 +608,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // No light at all
     makeColor(&input, 0, 0, 255);
     
@@ -638,7 +638,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Place a set of four bins on screen
     makeColor(&input, 0, 0, 255);
     drawBin(&input, 640/5, 480/2, 100, 0);
@@ -692,7 +692,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
 {
-    detector.setSuitDetectionOn(false);
+    detector.setSymbolDetectionOn(false);
     // Bin in the lower right
     makeColor(&input, 0, 0, 255);
     drawBin(&input, 640 - (640/4), 480/4 * 3, 130, 0);
@@ -738,7 +738,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     CHECK_CLOSE(0, event->y, 0.05);
 }
 
-TEST_FIXTURE(BinDetectorFixture, Suit)
+TEST_FIXTURE(BinDetectorFixture, Symbol)
 {
     // Bin in center
     makeColor(&input, 0, 0, 255);

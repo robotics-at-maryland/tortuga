@@ -138,7 +138,7 @@ SuitDetector::SuitDetector(Camera* camera) :
 
 void SuitDetector::init(core::ConfigNode)
 {
-    suit = Suit::UNKNOWN;
+    suit = Symbol::UNKNOWN;
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
 	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
@@ -823,7 +823,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
 //        vision::OpenCVImage showMe(image,false);
 //        vision::Image::showImage(&showMe);
 //        printf("Failure on findPointsOnEdges\n");
-        suit = Suit::UNKNOWN;
+        suit = Symbol::UNKNOWN;
     }
     else 
     {
@@ -842,7 +842,7 @@ void SuitDetector::doEdgeRunning(IplImage* image)
         //printf("End of Traversal Dists \n");
     }
     
-    suit = Suit::UNKNOWN;
+    suit = Symbol::UNKNOWN;
     bool heartLike = false;
     bool spadeLike = false;
     bool clubLike = false;
@@ -881,19 +881,19 @@ void SuitDetector::doEdgeRunning(IplImage* image)
     
     if (heartLike && !spadeLike && !clubLike && !diamondLike)
     {
-        suit = Suit::HEART;
+        suit = Symbol::HEART;
     }
     if (spadeLike && !heartLike && !clubLike && !diamondLike)
     {
-        suit = Suit::SPADE;
+        suit = Symbol::SPADE;
     }
     if (clubLike && !heartLike && !spadeLike && !diamondLike)
     {
-        suit = Suit::CLUB;
+        suit = Symbol::CLUB;
     }
     if (diamondLike && !heartLike && !spadeLike && !clubLike)
     {
-        suit = Suit::DIAMOND;
+        suit = Symbol::DIAMOND;
     }
     
     if (splitSuit || (clubLike && spadeLike))
@@ -907,32 +907,32 @@ void SuitDetector::doEdgeRunning(IplImage* image)
         
         if (distBot >= 8 && distTop >= 8 && distLeft <= 2 && distRight <= 2)
         {
-            suit = Suit::SPADE;
+            suit = Symbol::SPADE;
         }
         else if (distBot >= 2 && distTop >= 2 && distLeft <= 8 && distRight <= 8)
         {
-            suit = Suit::SPADE;
+            suit = Symbol::SPADE;
         }
         else if (distBot <2 && distTop < 2 && distLeft < 2 && distRight < 2)
         {
-            suit = Suit::CLUB;
+            suit = Symbol::CLUB;
         }
-//        if (suit == Suit::SPADE)
+//        if (suit == Symbol::SPADE)
 //            printf("SPADE BY SPLIT!\n");
-//        else if (suit == Suit::CLUB)
+//        else if (suit == Symbol::CLUB)
 //            printf("CLUB BY SPLIT!\n");
     }
     
 //    printf("\n");
 //    switch(suit)
 //    {
-//        case Suit::HEART: break;//printf("Heart!\n");break;
-//        case Suit::DIAMOND: break;//printf("Diamond!\n");break;
-//        case Suit::SPADE: break;//printf("Spade!\n");break;
-//        case Suit::CLUB: break;//printf("Club!\n");break;
+//        case Symbol::HEART: break;//printf("Heart!\n");break;
+//        case Symbol::DIAMOND: break;//printf("Diamond!\n");break;
+//        case Symbol::SPADE: break;//printf("Spade!\n");break;
+//        case Symbol::CLUB: break;//printf("Club!\n");break;
 //            default: printf("Unknown :( ??\n");
 //    }
-//    if (suit == Suit::SPADE)
+//    if (suit == Symbol::SPADE)
 //        printf("What the hell...\n");
 }
 
@@ -1032,7 +1032,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        //Compare float array
 //        int best = 8000;//Unless one of the scores is below this... I don't think it should be counted
 //                        //threshold must change if histoArr changes size.
-//        suit = Suit::UNKNOWN;
+//        suit = Symbol::UNKNOWN;
 //        int diff;
 //        
 //        //Hearts
@@ -1043,7 +1043,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::HEART;
+//            suit = Symbol::HEART;
 //        }
 //
 //        diff = suitDifference(histoArr, heartCountsR90, HISTOARRSIZE);
@@ -1051,7 +1051,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::HEARTR90;
+//            suit = Symbol::HEARTR90;
 //        }
 //
 //        diff = suitDifference(histoArr, heartCountsR180, HISTOARRSIZE);
@@ -1059,7 +1059,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::HEARTR180;
+//            suit = Symbol::HEARTR180;
 //        }
 //
 //        diff = suitDifference(histoArr, heartCountsR270, HISTOARRSIZE);
@@ -1067,7 +1067,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::HEARTR270;
+//            suit = Symbol::HEARTR270;
 //        }
 //
 //        
@@ -1079,7 +1079,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::SPADE;
+//            suit = Symbol::SPADE;
 //        }
 //
 //        diff = suitDifference(histoArr, spadeCountsR90, HISTOARRSIZE);
@@ -1088,7 +1088,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::SPADER90;
+//            suit = Symbol::SPADER90;
 //        }
 //
 //        diff = suitDifference(histoArr, spadeCountsR180, HISTOARRSIZE);
@@ -1096,7 +1096,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::SPADER180;
+//            suit = Symbol::SPADER180;
 //        }
 //
 //        diff = suitDifference(histoArr, spadeCountsR270, HISTOARRSIZE);
@@ -1104,7 +1104,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::SPADER270;
+//            suit = Symbol::SPADER270;
 //        }
 //        
 //        
@@ -1115,7 +1115,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::DIAMOND;
+//            suit = Symbol::DIAMOND;
 //        }
 //
 //        diff = suitDifference(histoArr, diamondCountsR90, HISTOARRSIZE);
@@ -1123,7 +1123,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::DIAMONDR90;
+//            suit = Symbol::DIAMONDR90;
 //        }
 //
 //        diff = suitDifference(histoArr, diamondCountsR180, HISTOARRSIZE);
@@ -1131,7 +1131,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::DIAMONDR180;
+//            suit = Symbol::DIAMONDR180;
 //        }
 //
 //        diff = suitDifference(histoArr, diamondCountsR270, HISTOARRSIZE);
@@ -1139,7 +1139,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::DIAMONDR270;
+//            suit = Symbol::DIAMONDR270;
 //        }
 //
 //        
@@ -1150,7 +1150,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::CLUB;
+//            suit = Symbol::CLUB;
 //        }
 //
 //        diff = suitDifference(histoArr, clubCountsR90, HISTOARRSIZE);
@@ -1158,7 +1158,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::CLUBR90;
+//            suit = Symbol::CLUBR90;
 //        }
 //
 //        diff = suitDifference(histoArr, clubCountsR180, HISTOARRSIZE);
@@ -1166,7 +1166,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::CLUBR180;
+//            suit = Symbol::CLUBR180;
 //        }
 //
 //        diff = suitDifference(histoArr, clubCountsR270, HISTOARRSIZE);
@@ -1174,12 +1174,12 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //        if (diff < best)
 //        {
 //            best = diff;
-//            suit = Suit::CLUBR270;
+//            suit = Symbol::CLUBR270;
 //        }
 //    }
 //    else
 //    {
-//        suit = Suit::NONEFOUND;
+//        suit = Symbol::NONEFOUND;
 //    }
 //    
 //    cvReleaseImage(&redSuitGrayScale);
@@ -1239,7 +1239,7 @@ bool SuitDetector::cyclicCompare(int traverseDists[], int min[], int max[], int 
 //	cvReleaseImage(&gray);	
 //}
 
-Suit::SuitType SuitDetector::getSuit()
+Symbol::SymbolType SuitDetector::getSymbol()
 {
 	return suit;
 }
