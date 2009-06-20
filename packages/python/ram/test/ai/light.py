@@ -81,9 +81,11 @@ class TestSearching(support.AITestCase):
             
     def testLightFound(self):
         # Now change states
-        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 
-                         0)
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
+                         6)
         self.assertCurrentState(light.Align)
+        self.assertEqual(5, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(6, self.ai.data['lastLightEvent'].y)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
@@ -95,8 +97,11 @@ class TestFindAttempt(support.AITestCase):
 
     def testLightFound(self):
         self.assertCurrentState(light.FindAttempt)
-        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
+                         6)
         self.assertCurrentState(light.Align)
+        self.assertEqual(5, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(6, self.ai.data['lastLightEvent'].y)
 
     def testTimeout(self):
         self.assertCurrentState(light.FindAttempt)
@@ -120,12 +125,16 @@ class TestAlign(support.AITestCase):
         # Bigger numbers = deeper, and we want to go deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
+        self.assertEqual(0, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(-0.5, self.ai.data['lastLightEvent'].y)
         
         # Smaller numbers = shallow, and we want to go shallower
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = 0.5, azimuth = math.Degree(15))
         self.assertLessThan(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
+        self.assertEqual(0, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(0.5, self.ai.data['lastLightEvent'].y)
     
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
@@ -155,12 +164,16 @@ class TestSeek(support.AITestCase):
         # Bigger numbers = deeper, and the vehicle should not change depth
         self.assertEqual(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
+        self.assertEqual(0, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(-0.5, self.ai.data['lastLightEvent'].y)
         
         # Smaller numbers = shallow, and the vehicle should not change depth
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = 0.5, azimuth = math.Degree(15))
         self.assertEqual(self.controller.depth, self.vehicle.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
+        self.assertEqual(0, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(0.5, self.ai.data['lastLightEvent'].y)
     
     def testLightLost(self):
         """Make sure losing the light goes back to search"""

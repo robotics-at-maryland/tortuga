@@ -31,6 +31,13 @@ import ram.motion.seek
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
 
+class StoreLightEvent(object):
+    """
+    Common subclass for states that have a LIGHT_FOUND transition, it stores 
+    the event is the ai.data.
+    """
+    def LIGHT_FOUND(self, event):
+        self.ai.data['lastLightEvent'] = event
 
 class Start(state.State):
     """
@@ -51,9 +58,7 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-
-
-class Searching(state.State):
+class Searching(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_FOUND : Align }
@@ -75,7 +80,7 @@ class Searching(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.FindAttempt):
+class FindAttempt(state.FindAttempt, StoreLightEvent):
     @staticmethod
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
@@ -86,7 +91,7 @@ class FindAttempt(state.FindAttempt):
         # TODO: Discuss actions to find the light at the next meeting
         pass
         
-class Align(state.State):
+class Align(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : FindAttempt,
@@ -99,6 +104,7 @@ class Align(state.State):
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        StoreLightEvent.LIGHT_FOUND(self, event)
         self._light.setState(event.azimuth, event.elevation, event.range,
                              event.x, event.y)
 
@@ -126,7 +132,7 @@ class Align(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Seek(state.State):
+class Seek(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : FindAttempt,
@@ -135,6 +141,7 @@ class Seek(state.State):
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        StoreLightEvent.LIGHT_FOUND(self, event)
         self._light.setState(event.azimuth, event.elevation, event.range,
                              event.x, event.y)
 
