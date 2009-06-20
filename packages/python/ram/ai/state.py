@@ -94,15 +94,6 @@ class FindAttempt(State):
             # FindAttempt to exit by finding the target
             self.timer = None
 
-        self.findActions()
-
-    def findActions(self):
-        """
-        Default template for the FindAttempt to do. Does nothing by default.
-        All handling actions a FindAttempt does should be placed in here.
-        """
-        pass
-
     def exit(self):
         if self.timer is not None:
             self.timer.stop()

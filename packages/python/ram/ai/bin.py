@@ -41,10 +41,12 @@ class HoveringState(state.State):
     LOST_CURRENT_BIN = core.declareEventType('LOST_CURRENT_BIN')
     
     @staticmethod
-    def transitions(myState, trans = None):
+    def transitions(myState, trans = None, lostState = None):
+        if lostState is None:
+            lostState = Recover
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.BIN_LOST : Recover,
+        trans.update({vision.EventType.BIN_LOST : lostState,
                       vision.EventType.BIN_FOUND : myState,
                       vision.EventType.MULTI_BIN_ANGLE : myState})
         return trans
@@ -310,32 +312,29 @@ class Seeking(HoveringState):
     def enter(self):
         HoveringState.enter(self)
 
-class Recover(state.State):
-    TIMEOUT = core.declareEventType("TIMEOUT")
+class Recover(state.FindAttempt):
     
     @staticmethod
-    def transitions():
-        return { vision.EventType.BIN_FOUND : Seeking,
-                 Recover.TIMEOUT : Searching }
+    def transitions(foundState = Seeking):
+        return state.FindAttempt.transitions(vision.EventType.BIN_FOUND,
+                                             foundState, Searching)
 
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
         self.ai.data['binData']['currentIds'] = set()
 
     def enter(self):
+        state.FindAttempt.enter(self)
         ensureBinTracking(self.queuedEventHub, self.ai)
-        
-        self.timer = self.timerManager.newTimer(Recover.TIMEOUT, 
-                                                self._config.get('timeout', 5))
         
         self._bin = ram.motion.common.Target(self.ai.data["lastBinX"],
                                              self.ai.data["lastBinY"])
 
         speedGain = self._config.get('speedGain', 5)
-        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
+        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',5)
         #yawGain = self._config.get('yawGain', 1)
-        maxSpeed = self._config.get('maxSpeed', 5)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        maxSpeed = self._config.get('maxSpeed', 1.5)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1.5)
         
         motion = ram.motion.common.Hover(target = self._bin,
                                          maxSpeed = maxSpeed,
@@ -343,17 +342,15 @@ class Recover(state.State):
                                          sidewaysSpeedGain = sidewaysSpeedGain,
                                          speedGain = speedGain)
         self.motionManager.setMotion(motion)
-        
+         
 
         motion = ram.motion.basic.RateChangeDepth(
-	    self.ai.data.get("preBinCruiseDepth", 7), 0.3)
+	        self.ai.data.get("preBinCruiseDepth", 7), 0.3)
         self.motionManager.setMotion(motion)
 
-        self.timer.start()
-
     def exit(self):
+        state.FindAttempt.exit(self)
         self.motionManager.stopCurrentMotion()
-        self.timer.stop()
 
 class Centering(SettlingState):
     """

@@ -85,11 +85,6 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
                                              Align, Searching)
-
-    def findActions(self):
-        """Place specific actions for finding the light in here"""
-        # TODO: Discuss actions to find the light at the next meeting
-        pass
         
 class Align(state.State, StoreLightEvent):
     @staticmethod

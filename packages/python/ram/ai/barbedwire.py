@@ -190,8 +190,9 @@ class FindAttempt(state.FindAttempt):
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.BARBED_WIRE_FOUND,
                                              SeekingToRange, Searching)
-
-    def findActions(self):
+        
+    def enter(self):
+        state.FindAttempt.enter(self)
         self.visionSystem.barbedWireDetectorOn()
 
 class Searching(state.State):

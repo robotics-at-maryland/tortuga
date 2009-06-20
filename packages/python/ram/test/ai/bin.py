@@ -11,6 +11,7 @@ import unittest
 # Project Imports
 import ram.ai.bin as bin
 import ram.ai.tracking as tracking
+import ram.ai.state as state
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -255,7 +256,7 @@ class TestRecover(aisupport.AITestCase):
         #self.assertLessThan(self.controller.depth, 9)
 
         # Make sure timer works
-        self.releaseTimer(bin.Recover.TIMEOUT)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
         # Its dive, and not SeekEnd because we are already at the end
         self.assertCurrentState(bin.Searching)
         
