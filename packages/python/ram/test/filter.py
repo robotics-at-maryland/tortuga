@@ -13,16 +13,40 @@ import ram.filter as filter
 
 class TestMovingAverageFilter(unittest.TestCase):
     def testInit(self):
-        f = filter.MovingAverageFilter(5)
+        # Test that setting a default works properly
+        f = filter.MovingAverageFilter(5, default = 0.0)
         self.assertEqual([0,0,0,0,0], f.get())
         
-    def testGetAverage(self):
+        # Test that setting no default value works properly
         f = filter.MovingAverageFilter(5)
+        self.assertEqual([], f.get())
+        
+    def testGetAverage(self):
+        f = filter.MovingAverageFilter(5, default = 0.0)
         self.assertEqual(0, f.getAverage())
         
         inVals = [5,5,5,5,5]
         avgVals = [1, 2, 3, 4, 5]
         
+        for i, a in zip(inVals, avgVals):
+            f.append(i)
+            self.assertAlmostEqual(a, f.getAverage(), 5)
+            
+        f = filter.MovingAverageFilter(5)
+        self.assertEqual(0, f.getAverage())
+        
+        inVals = [5,5,5,5,5]
+        avgVals = [5,5,5,5,5]
+        
+        for i, a in zip(inVals, avgVals):
+            f.append(i)
+            self.assertAlmostEqual(a, f.getAverage(), 5)
+            
+        f = filter.MovingAverageFilter(5)
+        self.assertEqual(0, f.getAverage())
+        
+        inVals = [1,2,3,4,5]
+        avgVals = [1, 1.5, 2, 2.5, 3]
         for i, a in zip(inVals, avgVals):
             f.append(i)
             self.assertAlmostEqual(a, f.getAverage(), 5)

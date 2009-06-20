@@ -29,6 +29,7 @@ import ext.core as core
 
 import ram.ai.state 
 import ram.filter as filter
+import ram.timer as timer
 
 class BasePanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
@@ -336,74 +337,77 @@ class AIPanel(wx.Panel):
 class EventRatePanel(wx.grid.Grid):
     implements(IPanelProvider)
     
+    class EventData(object):
+        def __init__(self, name, location, timeStamp,
+                     filter_ = None, active = True):
+            self.name = name
+            self.location = location
+            if filter_ is None:
+                self.filter = filter.MovingAverageFilter(10)
+            else:
+                self.filter = filter_
+            self.timeStamp = timeStamp
+            self.active = active
+    
     def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
         wx.grid.Grid.__init__(self, parent, *args, **kwargs)
         self.CreateGrid(0, 2)
         self.SetColLabelSize(0)
         self.SetRowLabelSize(0)
-
-        #scrollbar = wx.ScrollBar(self, wx.ID_ANY, style = wx.SB_VERTICAL)
-
-        #self.SetScrollbar(wx.VERTICAL, 0, 16, 50)
+        
+        self._timer = wx.Timer()
+        self._timer.Bind(wx.EVT_TIMER, self._timerHandler)
         
         self._connections = []
         
-        #self.sizer = wx.BoxSizer(wx.VERTICAL)
-        #self.SetSizer(self.sizer)
-        #self.SetAutoLayout(1)
-        #self.sizer.Fit(self)
-        
-        # Event Rate Table points to an array in the format:
-        # [Name (Unchanging Text Field), TextField, MovingAverageFilter,
-        #     Last Time Stamp]
+        # Event Rate Table points data in EventData
         self._eventRateTable = dict()
         
         conn = eventHub.subscribeToAll(self._handler)
         self._connections.append(conn)
         
+        self._timer.Start(250)
+        
     def _handler(self, event):
         if self._eventRateTable.has_key(event.type):
-            array = self._eventRateTable.get(event.type)
-            
-            timeDifference = event.timeStamp - array[3]
-            array[2].append(timeDifference)
-            self.SetCellValue(array[1], 1, str(1.0/array[2].getAverage()))
-            array[3] = event.timeStamp
+            data = self._eventRateTable.get(event.type)
+            if data.active is True:
+                timeDifference = event.timeStamp - data.timeStamp
+                data.filter.append(timeDifference)
+            data.timeStamp = event.timeStamp
+            data.active = True
         else:
             # If the event hasn't been seen before, create it in the table
             location = len(self._eventRateTable)
-            array = self._eventRateTable.setdefault(event.type, [])
-            
+
             name = str(event.type)
             name = name[name.find(' '):]
             
-            #array.append(wx.StaticText(self, wx.ID_ANY, label = name))
-            #array.append(wx.TextCtrl(self, wx.ID_ANY, value = '0'))
-            
             self.AppendRows(1)
             
-            array.append(name)
-            array.append(location)
-            array.append(filter.MovingAverageFilter(10))
-            array.append(event.timeStamp)
+            self._eventRateTable[event.type] = \
+                EventRatePanel.EventData(name, location, event.timeStamp)
             
-            self.SetCellValue(array[1], 0, array[0])
-            self.SetCellValue(array[1], 1, str(array[2].getAverage()))
+            self.SetCellValue(location, 0, name)
             
             self.AutoSize()
             
-            #newEntry = wx.BoxSizer(wx.HORIZONTAL)
-            #newEntry.Add(array[0], 1, wx.EXPAND)
-            #newEntry.Add(array[1], 1, wx.EXPAND)
-            
-            #self.sizer.Add(newEntry, 0, wx.EXPAND)
-
-            #self.sizer.Fit(self)
-            
-            
-        #self.eventRateLabel.SetLabel(str(self._eventRateTable))
-    
+    def _timerHandler(self, event):
+        for data in self._eventRateTable.itervalues():
+            rate = 0
+            average = data.filter.getAverage() 
+            if average != 0:
+                rate = 1.0 / average
+                
+            currentTime = timer.time()
+            if (currentTime - data.timeStamp) > (10*average):
+                data.filter = filter.MovingAverageFilter(10)
+                rate = 0
+                data.active = False
+                
+            self.SetCellValue(data.location, 1, "%4.1f" % rate)
+        
     def _onClose(self, closeEvent):
         for conn in self._connections:
             conn.disconnect()
