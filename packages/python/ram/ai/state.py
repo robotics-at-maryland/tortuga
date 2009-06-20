@@ -78,7 +78,7 @@ class FindAttempt(State):
         self.controller.holdCurrentHeading()
 
         # Create a timer event
-        self._timeout = self._config.get('timeout', -1)
+        self._timeout = self._config.get('timeout', 2)
         # Timer will only state if the timeout is a positive number
         # A timer of 0 will turn it off, along with any negative number
         if self._timeout > 0:
