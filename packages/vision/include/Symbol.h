@@ -10,6 +10,10 @@
 #ifndef RAM_SYMBOL_H_07_08_2008
 #define RAM_SYMBOL_H_07_08_2008
 
+// STD Includes
+#include <vector>
+#include <string>
+
 namespace ram {
 namespace vision {
 
@@ -23,6 +27,12 @@ struct Symbol
         DIAMOND, DIAMONDR90, DIAMONDR180, DIAMONDR270, 
         UNKNOWN, NONEFOUND
     };
+
+    /** A list of all symbol names */
+    static std::vector<std::string> getSymbolNames();
+    
+    /** Turns the given symbol into a string, SymbolType::CLUB -> "CLUB" */
+    static std::string symbolToText(SymbolType symbol);
 };
 
 } // namespace vision

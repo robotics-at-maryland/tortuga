@@ -82,18 +82,7 @@ void BinDetector::Bin::draw(Image* image)
     Image::writeText(image, ss2.str(), br.x-30, br.y-15);
 
     // Now do the symbol
-    if (Symbol::NONEFOUND == m_symbol)
-        Image::writeText(image, "None", bl.x, bl.y - 15);
-    else if (Symbol::UNKNOWN == m_symbol)
-        Image::writeText(image, "Unknown", bl.x, bl.y - 15);
-    else if (Symbol::HEART == m_symbol)
-        Image::writeText(image, "Heart", bl.x, bl.y - 15);
-    else if (Symbol::DIAMOND == m_symbol)
-        Image::writeText(image, "Diamond", bl.x, bl.y - 15);
-    else if (Symbol::SPADE == m_symbol)
-        Image::writeText(image, "Spade", bl.x, bl.y - 15);
-    else if (Symbol::CLUB == m_symbol)
-        Image::writeText(image, "Club", bl.x, bl.y - 15);
+    Image::writeText(image, Symbol::symbolToText(m_symbol), bl.x, bl.y - 15);
 }
     
     
@@ -896,12 +885,11 @@ void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)
     if (saveCount == 1)
     {
         // First run, make sure all the directories are created
-        std::string names[] = {"heart", "spade", "diamond", "club", "unknown"};
         boost::filesystem::path base = core::Logging::getLogDir();
 
-        for (int i = 0; i < 5; ++i)
+        BOOST_FOREACH(std::string name, Symbol::getSymbolNames())
         {
-            boost::filesystem::path symbolDir = base / names[i];
+            boost::filesystem::path symbolDir = base / name;
             if (!boost::filesystem::exists(symbolDir))
                 boost::filesystem::create_directories(symbolDir);
         }
@@ -909,17 +897,7 @@ void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)
 
     // Determine the directory to place the image based on symbol
     boost::filesystem::path base = core::Logging::getLogDir();
-    boost::filesystem::path baseDir;
-    switch (symbol)
-    {
-        case Symbol::HEART: baseDir = base / "heart"; break;
-        case Symbol::SPADE: baseDir = base / "spade"; break;
-        case Symbol::DIAMOND: baseDir = base / "diamond"; break;
-        case Symbol::CLUB: baseDir = base / "club"; break;
-        case Symbol::UNKNOWN: baseDir = base / "unknown"; break;
-            
-        default: baseDir = base / "error"; break;
-    }
+    boost::filesystem::path baseDir = base / Symbol::symbolToText(symbol);
 
     // Determine the final path
     std::stringstream ss;

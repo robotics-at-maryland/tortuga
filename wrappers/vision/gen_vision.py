@@ -40,6 +40,8 @@ def generate(module_builder, local_ns, global_ns):
 
     Symbol = local_ns.class_('Symbol')
     Symbol.include()
+    Symbol.member_function('getSymbolNames').exclude()
+    Symbol.member_function('symbolToText').exclude()
     classes.append(Symbol)
     
     eventsFound = False

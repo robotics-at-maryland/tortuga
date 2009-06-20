@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: David Love <loved@umd.edu>
- * File:  packages/vision/test/src/TestFANNSuitDetector.cpp
+ * File:  packages/vision/test/src/TestFANNSymbolDetector.cpp
  */
 
 // STD Includes
@@ -21,7 +21,7 @@
 #include "core/include/ConfigNode.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/FANNSuitDetector.hpp"
+#include "vision/include/FANNSymbolDetector.hpp"
 
 using namespace ram;
 /*
@@ -32,25 +32,25 @@ static boost::filesystem::path getImagesDir()
         "testfann";
 }
 
-static std::string getSuitNetworkFile()
+static std::string getSymbolNetworkFile()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
     return (root / "packages" / "vision" / "test" / "data" /
-            "suits.irn").file_string();
+            "symbols.irn").file_string();
 }
 */
-struct FANNSuitDetectorFixture
+struct FANNSymbolDetectorFixture
 {
 };
 
-SUITE(FANNSuitDetector) {
+SUITE(FANNSymbolDetector) {
   /*    
-    TEST_FIXTURE(FANNSuitDetectorFixture, FANNSuitDetectorTest)
+    TEST_FIXTURE(FANNSymbolDetectorFixture, FANNSymbolDetectorTest)
     {
       
-        core::ConfigNode config = core::ConfigNode::fromString ("{ 'SavedImageIdentifierNetwork' : '" + getSuitNetworkFile() + "' }");
-        vision::FANNSuitDetector detector = vision::FANNSuitDetector (config);
-        std::cout << "Starting FANNSuitDetectorTest:\n";
+        core::ConfigNode config = core::ConfigNode::fromString ("{ 'SavedImageIdentifierNetwork' : '" + getSymbolNetworkFile() + "' }");
+        vision::FANNSymbolDetector detector = vision::FANNSymbolDetector (config);
+        std::cout << "Starting FANNSymbolDetectorTest:\n";
         vision::Image* img;
         boost::filesystem::directory_iterator end;
         boost::filesystem::path dir = getImagesDir();
@@ -67,14 +67,14 @@ SUITE(FANNSuitDetector) {
                     if (img) {
                         detector.processImage(img);
                     }
-                    std::cout << "i: " << i << " detector.getSuit(): " << detector.getSuit() << " results[i]: " << results[i] << "\n";
-                    CHECK_EQUAL(results[i++], detector.getSuit());
+                    std::cout << "i: " << i << " detector.getSymbol(): " << detector.getSymbol() << " results[i]: " << results[i] << "\n";
+                    CHECK_EQUAL(results[i++], detector.getSymbol());
                 }
             }
 
-            // Make sure we ran all four suit tests
+            // Make sure we ran all four symbol tests
             CHECK_EQUAL(4u, i);
 	    }
     }
   */
-} // SUITE(FANNSuitDetector)
+} // SUITE(FANNSymbolDetector)

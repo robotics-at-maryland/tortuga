@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: David Love <loved@umd.edu>
- * File:  packages/vision/include/FANNSuitDetector.hpp
+ * File:  packages/vision/include/FANNSymbolDetector.hpp
  */
 
-#ifndef RAM_VISION_FANN_SUITE_DETECTOR_HPP
-#define RAM_VISION_FANN_SUITE_DETECTOR_HPP
+#ifndef RAM_VISION_FANN_SYMBOL_DETECTOR_HPP
+#define RAM_VISION_FANN_SYMBOL_DETECTOR_HPP
 
 // Project Includes
 #include "vision/include/Symbol.h"
@@ -20,13 +20,13 @@
 namespace ram {
 namespace vision {
 
-/** Wraps ImageDetector to create a card-suite specific interface
-    identical to that of SuitDetector */
-class RAM_EXPORT FANNSuitDetector : public Detector
+/** Wraps ImageDetector to create a card-symbol specific interface
+    identical to that of SymbolDetector */
+class RAM_EXPORT FANNSymbolDetector : public Detector
 {
   public:
-    FANNSuitDetector(core::ConfigNode config,
-                     core::EventHubPtr eventHub = core::EventHubPtr());
+    FANNSymbolDetector(core::ConfigNode config,
+                       core::EventHubPtr eventHub = core::EventHubPtr());
     
     void processImage(Image* input, Image* output= 0);
     
@@ -36,8 +36,8 @@ class RAM_EXPORT FANNSuitDetector : public Detector
     /** Get the analyzed image - just returns the input **/
     IplImage* getAnalyzedImage();
     
-    /** Get the suite type discovered **/
-    Symbol::SymbolType getSuit();
+    /** Get the symbol type discovered **/
+    Symbol::SymbolType getSymbol();
   private:
     ImageDetector m_imageDetector;
     IplImage* m_analyzed;
@@ -47,4 +47,4 @@ class RAM_EXPORT FANNSuitDetector : public Detector
 } // namespace vision
 } // namespace ram
 
-#endif // RAM_SUIT_DETECTOR_H_04_29_2008
+#endif // RAM_SYMBOL_DETECTOR_H_04_29_2008

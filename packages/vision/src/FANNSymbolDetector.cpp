@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: David Love <loved@umd.edu>
- * File:  packages/vision/src/FANNSuiteDetector.cpp
+ * File:  packages/vision/src/FANNSymboleDetector.cpp
  */
 
 #include <opencv/cv.h>
@@ -12,19 +12,19 @@
 #include "vision/include/OpenCVImage.h"
 
 // header for this class
-#include "vision/include/FANNSuitDetector.hpp"
+#include "vision/include/FANNSymbolDetector.hpp"
 
 // some unfortuanate constants
 //  - these depend on the loaded network file for accuracy
-#define SUIT_CLUB 0
-#define SUIT_DIAMOND 1
-#define SUIT_HEART 2
-#define SUIT_SPADE 3
+#define SYMBOL_CLUB 0
+#define SYMBOL_DIAMOND 1
+#define SYMBOL_HEART 2
+#define SYMBOL_SPADE 3
 
 namespace ram {
 namespace vision {
         
-FANNSuitDetector::FANNSuitDetector(core::ConfigNode config,
+FANNSymbolDetector::FANNSymbolDetector(core::ConfigNode config,
                                    core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_imageDetector(ImageDetector(config, eventHub)),
@@ -32,7 +32,7 @@ FANNSuitDetector::FANNSuitDetector(core::ConfigNode config,
 {
 }
     
-void FANNSuitDetector::processImage(Image* input, Image* output)
+void FANNSymbolDetector::processImage(Image* input, Image* output)
 {
     IplImage* edgeImage = cvCreateImage (cvSize (input->getWidth(), input->getHeight()), IPL_DEPTH_8U, 1);
     IplImage* newIn = ImageIdentifier::grayscale (input->asIplImage());
@@ -45,25 +45,25 @@ void FANNSuitDetector::processImage(Image* input, Image* output)
     }
 }
     
-IplImage* FANNSuitDetector::getAnalyzedImage()
+IplImage* FANNSymbolDetector::getAnalyzedImage()
 {
     return m_analyzed;
 }
     
-Symbol::SymbolType FANNSuitDetector::getSuit()
+Symbol::SymbolType FANNSymbolDetector::getSymbol()
 {
     switch (m_imageDetector.getResult())
     {
-        case SUIT_CLUB:
+        case SYMBOL_CLUB:
             return Symbol::CLUB;
             break;
-        case SUIT_DIAMOND:
+        case SYMBOL_DIAMOND:
             return Symbol::DIAMOND;
             break;
-        case SUIT_HEART:
+        case SYMBOL_HEART:
             return Symbol::HEART;
             break;
-        case SUIT_SPADE:
+        case SYMBOL_SPADE:
             return Symbol::SPADE;
             break;
         default:
