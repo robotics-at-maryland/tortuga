@@ -78,14 +78,20 @@ class FindAttempt(State):
         self.controller.holdCurrentHeading()
 
         # Create a timer event
-        self._timeout = self._config.get('timeout', 0)
+        self._timeout = self._config.get('timeout', -1)
         # Timer will only state if the timeout is a positive number
         # A timer of 0 will turn it off, along with any negative number
         if self._timeout > 0:
             self.timer = \
                 self.timerManager.newTimer(FindAttempt.TIMEOUT, self._timeout)
             self.timer.start()
+        elif self._timeout < 0:
+            # A negative timer will automatically move to the timeoutState
+            self.timer = None
+            self.publish(FindAttempt.TIMEOUT, core.Event())
         else:
+            # A timer of zero will turn off the timer and will only allow
+            # FindAttempt to exit by finding the target
             self.timer = None
 
         self.findActions()
