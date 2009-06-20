@@ -34,7 +34,9 @@ FANNSymbolDetector::FANNSymbolDetector(core::ConfigNode config,
     
 void FANNSymbolDetector::processImage(Image* input, Image* output)
 {
-    IplImage* edgeImage = cvCreateImage (cvSize (input->getWidth(), input->getHeight()), IPL_DEPTH_8U, 1);
+    IplImage* edgeImage = cvCreateImage (cvSize (input->getWidth(),
+                                                 input->getHeight()),
+                                         IPL_DEPTH_8U, 1);
     IplImage* newIn = ImageIdentifier::grayscale (input->asIplImage());
     Image* edges = new OpenCVImage (edgeImage);
     cvCanny (newIn, edges->asIplImage(), 25, 200, 3);
