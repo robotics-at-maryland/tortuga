@@ -74,11 +74,22 @@ class Searching(state.State):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+class FindAttempt(state.FindAttempt):
+    @staticmethod
+    def transitions():
+        return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
+                                             Align, Searching)
+
+    def findActions(self):
+        """Place specific actions for finding the light in here"""
+        # TODO: Discuss actions to find the light at the next meeting
+        pass
         
 class Align(state.State):
     @staticmethod
     def transitions():
-        return { vision.EventType.LIGHT_LOST : Searching,
+        return { vision.EventType.LIGHT_LOST : FindAttempt,
                  vision.EventType.LIGHT_FOUND : Align,
                  ram.motion.seek.SeekPoint.POINT_ALIGNED : Seek }
 
@@ -118,7 +129,7 @@ class Align(state.State):
 class Seek(state.State):
     @staticmethod
     def transitions():
-        return { vision.EventType.LIGHT_LOST : Searching,
+        return { vision.EventType.LIGHT_LOST : FindAttempt,
                  vision.EventType.LIGHT_FOUND : Seek,
                  vision.EventType.LIGHT_ALMOST_HIT : Hit }
 

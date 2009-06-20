@@ -10,6 +10,7 @@ import unittest
 
 # Project Imports
 import ram.ai.light as light
+import ram.ai.state as state
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -87,6 +88,20 @@ class TestSearching(support.AITestCase):
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
 
+class TestFindAttempt(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(light.FindAttempt)
+
+    def testLightFound(self):
+        self.assertCurrentState(light.FindAttempt)
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        self.assertCurrentState(light.Align)
+
+    def testTimeout(self):
+        self.assertCurrentState(light.FindAttempt)
+        self.injectEvent(state.FindAttempt.TIMEOUT)
+        self.assertCurrentState(light.Searching)
 
 class TestAlign(support.AITestCase):
     def setUp(self):
@@ -115,7 +130,7 @@ class TestAlign(support.AITestCase):
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.LIGHT_LOST)
-        self.assertCurrentState(light.Searching)
+        self.assertCurrentState(light.FindAttempt)
         
     def testSeek(self):
         """Make sure we try to hit the light when close"""
@@ -150,7 +165,7 @@ class TestSeek(support.AITestCase):
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.LIGHT_LOST)
-        self.assertCurrentState(light.Searching)
+        self.assertCurrentState(light.FindAttempt)
         
     def testHit(self):
         """Make sure finding the light changes to hit"""
