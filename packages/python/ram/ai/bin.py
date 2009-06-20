@@ -390,19 +390,26 @@ class SeekEnd(BinSortingState):
     """
     Goes to the left most visible bin
     """
+    POSSIBLE_END = core.declareEventType('POSSIBLE_END_')
     AT_END = core.declareEventType('AT_END')
     
     @staticmethod
     def transitions():
         return HoveringState.transitions(SeekEnd,
             {BinSortingState.CENTERED_ : SeekEnd, 
+             SeekEnd.POSSIBLE_END : SeekEnd,
              SeekEnd.AT_END : Dive })
-    
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
         event.angle = math.Degree(0)
         BinSortingState.BIN_FOUND(self, event)
+        
+    def POSSIBLE_END_(self, event):
+        self._timer = None
+        if not self.fixEdgeBin():
+            # If already there
+            self.publish(SeekEnd.AT_END, core.Event())
         
     def enter(self):
         # Keep the hover motion going
@@ -413,17 +420,27 @@ class SeekEnd(BinSortingState):
         if self.ai.data.has_key('binArrayOrientation'):
             self.controller.setDesiredOrientation(
                 self.ai.data['binArrayOrientation'])
+        
+        self._timeout = self._config.get('timeout', 5)
+        self._timer = None
 
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():
             # If already there
-            self.publish(SeekEnd.AT_END, core.Event())
+            self._startTimer()
+            
+    def _startTimer(self):
+        if self._timer is not None:
+            self._timer.stop()
+        self._timer = \
+            self.timerManager.newTimer(SeekEnd.POSSIBLE_END, self._timeout)
+        self._timer.start()
         
     def CENTERED(self, event):
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():
             # If already there
-            self.publish(SeekEnd.AT_END, core.Event())
+            self._startTimer()
         
 
    

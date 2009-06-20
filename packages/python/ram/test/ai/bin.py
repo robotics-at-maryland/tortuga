@@ -289,8 +289,7 @@ class TestCentering(BinTestCase):
         
         # Make sure timer works
         self.releaseTimer(bin.Centering.SETTLED)
-        # Its dive, and not SeekEnd because we are already at the end
-        self.assertCurrentState(bin.Dive)
+        self.assertCurrentState(bin.SeekEnd)
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
@@ -466,6 +465,9 @@ class TestSeekEnd(BinTestCase):
         # result
         self.injectEvent(bin.SeekEnd.CENTERED_)
         self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        self.releaseTimer(bin.SeekEnd.POSSIBLE_END)
         
         self.assertFalse(self._centered)
         self.assert_(self._atEnd)
