@@ -10,6 +10,7 @@ import unittest
 
 # Project Imports
 import ram.ai.duct
+import ram.ai.state as state
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -32,14 +33,34 @@ class TestSearching(support.AITestCase):
         self.assert_(self.visionSystem.ductDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
                 
-    def testLightFound(self):
+    def testDuctFound(self):
         # Now change states
         self.injectEvent(vision.EventType.DUCT_FOUND, 
                          vision.DuctEvent, 0, 0, 0, 0, False, False)
         self.assertCurrentState(ram.ai.duct.SeekingToRange)
+        self.assertEqual(0, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(0, self.ai.data['lastDuctEvent'].y)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.ductDetector)
+        
+class TestFindAttempt(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(ram.ai.duct.FindAttempt)
+
+    def testDuctFound(self):
+        self.assertCurrentState(ram.ai.duct.FindAttempt)
+        self.injectEvent(vision.EventType.DUCT_FOUND, vision.DuctEvent, 5, 
+                         6, 0, 0, False, False)
+        self.assertCurrentState(ram.ai.duct.SeekingToRange)
+        self.assertEqual(5, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(6, self.ai.data['lastDuctEvent'].y)
+
+    def testTimeout(self):
+        self.assertCurrentState(ram.ai.duct.FindAttempt)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
+        self.assertCurrentState(ram.ai.duct.Searching)
         
 class TestSeekingToRange(support.AITestCase):
     def setUp(self):
@@ -55,6 +76,12 @@ class TestSeekingToRange(support.AITestCase):
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
                          x = 0.5, y = -0.5, range = 0.6, rotation = 90,
                          aligned = False, visible = False)
+        self.assertEqual(0.5, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(-0.5, self.ai.data['lastDuctEvent'].y)
+        self.assertEqual(0.6, self.ai.data['lastDuctEvent'].range)
+        self.assertEqual(90, self.ai.data['lastDuctEvent'].rotation)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].aligned)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
@@ -64,7 +91,7 @@ class TestSeekingToRange(support.AITestCase):
     def testDuctLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.DUCT_LOST)
-        self.assertCurrentState(ram.ai.duct.Searching)
+        self.assertCurrentState(ram.ai.duct.FindAttempt)
         
     def testInRange(self):
         # Subscribe to in range event
@@ -79,6 +106,12 @@ class TestSeekingToRange(support.AITestCase):
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
                          x = 0.05, y = -0.1, range = 0.31, rotation = 90,
                          aligned = False, visible = False)
+        self.assertEqual(0.05, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(-0.1, self.ai.data['lastDuctEvent'].y)
+        self.assertEqual(0.31, self.ai.data['lastDuctEvent'].range)
+        self.assertEqual(90, self.ai.data['lastDuctEvent'].rotation)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].aligned)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()
@@ -96,6 +129,12 @@ class AlignmentTest(object):
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
                          x = 0.5, y = -0.5, range = 0.6, alignment = 90,
                          aligned = False, visible = False)
+        self.assertEqual(0.5, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(-0.5, self.ai.data['lastDuctEvent'].y)
+        self.assertEqual(0.6, self.ai.data['lastDuctEvent'].range)
+        self.assertEqual(90, self.ai.data['lastDuctEvent'].alignment)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].aligned)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
@@ -106,7 +145,7 @@ class AlignmentTest(object):
     def testDuctLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.DUCT_LOST)
-        self.assertCurrentState(ram.ai.duct.Searching)
+        self.assertCurrentState(ram.ai.duct.FindAttempt)
 
 class TestSeekingToAligned(AlignmentTest, support.AITestCase):
     def setUp(self):
@@ -126,6 +165,12 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
                          vision.DuctEvent, 0, 0, 0, 0, False, False,
                          x = 0.05, y = -0.1, range = 0.31, rotation = 2,
                          aligned = True, visible = False)
+        self.assertEqual(0.05, self.ai.data['lastDuctEvent'].x)
+        self.assertEqual(-0.1, self.ai.data['lastDuctEvent'].y)
+        self.assertEqual(0.31, self.ai.data['lastDuctEvent'].range)
+        self.assertEqual(2, self.ai.data['lastDuctEvent'].rotation)
+        self.assertEqual(True, self.ai.data['lastDuctEvent'].aligned)
+        self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Make sure we get the ALIGNED event
         self.qeventHub.publishEvents()

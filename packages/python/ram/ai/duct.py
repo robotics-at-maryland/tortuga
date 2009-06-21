@@ -35,7 +35,15 @@ import ram.motion.duct
 
 THROUGH_DUCT = core.declareEventType('THROUGH_DUCT')
 
-class Searching(state.State):
+class StoreDuctEvent(object):
+    """
+    Common subclass for states that have a DUCT_FOUND transition, it stores 
+    the event is the ai.data.
+    """
+    def DUCT_FOUND(self, event):
+        self.ai.data['lastDuctEvent'] = event
+
+class Searching(state.State, StoreDuctEvent):
     """
     Runs a zig-zag search pattern until it finds the duct
     """
@@ -57,6 +65,24 @@ class Searching(state.State):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+        
+class FindAttempt(state.FindAttempt, StoreDuctEvent):
+    """
+    Default FindAttempt template
+    """
+    
+    @staticmethod
+    def transitions(foundState = None):
+        if foundState is None:
+            foundState = SeekingToRange
+        return state.FindAttempt.transitions(vision.EventType.DUCT_FOUND,
+                                             foundState, Searching)
+        
+    def enter(self):
+        state.FindAttempt.enter(self)
+        
+        # Make sure the vision system is on
+        self.visionSystem.ductDetectorOn()
         
 class FilteredState(object):
     """
@@ -91,7 +117,7 @@ class FilteredState(object):
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
         
-class SeekingToRange(FilteredState, state.State):
+class SeekingToRange(FilteredState, state.State, StoreDuctEvent):
     """
     Heads toward the duct until it reaches the desired range
     """
@@ -101,11 +127,13 @@ class SeekingToRange(FilteredState, state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.DUCT_FOUND : SeekingToRange,
-                 vision.EventType.DUCT_LOST : Searching,
+                 vision.EventType.DUCT_LOST : FindAttempt,
                  SeekingToRange.IN_RANGE : SeekingToAligned }
         
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        StoreDuctEvent.DUCT_FOUND(self, event)
+        
         self._updateFilters(event)
         
         azimuth = self._filterdX * -107.0/2.0
@@ -147,8 +175,10 @@ class SeekingToRange(FilteredState, state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
         
-class DuctAlignState(FilteredState):
+class DuctAlignState(FilteredState, StoreDuctEvent):
     def DUCT_FOUND(self, event):
+        StoreDuctEvent.DUCT_FOUND(self, event)
+        
         self._updateFilters(event)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0
@@ -194,7 +224,7 @@ class SeekingToAligned(DuctAlignState, state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.DUCT_FOUND : SeekingToAligned,
-                 vision.EventType.DUCT_LOST : Searching,
+                 vision.EventType.DUCT_LOST : FindAttempt,
                  SeekingToAligned.ALIGNED : Aligning }
 
     def DUCT_FOUND(self, event):
@@ -211,7 +241,7 @@ class Aligning(DuctAlignState, state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.DUCT_FOUND : Aligning,
-                 vision.EventType.DUCT_LOST : Searching,
+                 vision.EventType.DUCT_LOST : FindAttempt,
                  Aligning.SETTLED : Through }
 
     def enter(self):

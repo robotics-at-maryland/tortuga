@@ -577,7 +577,7 @@ class TestFindAttempt(aisupport.AITestCase):
         self.injectEvent(TestFindAttempt.OBJECT_FOUND)
     def injectEventTimeout(self):
         # TODO: Real timer test
-        self.injectEvent(state.FindAttempt.TIMEOUT)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
 
     def setUp(self):
         aisupport.AITestCase.setUp(self)
