@@ -35,6 +35,14 @@ import ram.motion.duct
 
 COMPLETE = core.declareEventType('COMPLETE')
 
+class StoreBarbedWireEvent(object):
+    """
+    Common subclass for states that have a BARBED_WIRE_FOUND transition,
+    it stores the event is the ai.data.
+    """
+    def BARBED_WIRE_FOUND(self, event):
+        self.ai.data['lastBarbedWireEvent'] = event
+
 class FilteredState(object):
     """
     Provides filter on the inputs from the vision system
@@ -68,7 +76,7 @@ class FilteredState(object):
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
 
-class RangeXYHold(FilteredState, state.State):
+class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
     """
     Base state that holds the target centered in X, Y and depth without yawing.
     It will also throw off an event whenever it is within range and centering
@@ -94,6 +102,7 @@ class RangeXYHold(FilteredState, state.State):
         
         # Determine y value based on whether we are ignoring depth or not, 
         # also take into account any offset we wish to hold the object at.
+        StoreBarbedWireEvent.BARBED_WIRE_FOUND(self, event)
         y = 0
         if self._depthGain != 0:
             y = event.topY - self._yZero
@@ -180,7 +189,7 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.FindAttempt):
+class FindAttempt(state.FindAttempt, StoreBarbedWireEvent):
     """
     Attempt to find the target, before starting search pattern.  This will
     catch the object if its front of the vehicle.
@@ -195,7 +204,7 @@ class FindAttempt(state.FindAttempt):
         state.FindAttempt.enter(self)
         self.visionSystem.barbedWireDetectorOn()
 
-class Searching(state.State):
+class Searching(state.State, StoreBarbedWireEvent):
     """
     Runs a zig-zag search pattern until it finds the duct
     """
@@ -232,6 +241,7 @@ class SeekingToRange(RangeXYHold):
         """
         This attempts to find side by side pipes, and if it does, it forces
         """
+        StoreBarbedWireEvent.BARBED_WIRE_FOUND(self, event)
         
         # Determine if we aren't well aligned (ie. both pipes are beside each 
         # other and there is no overlap)
@@ -286,10 +296,12 @@ class SeekingToRange2(RangeXYHold):
         return RangeXYHold.transitions(SeekingToRange2, {
             RangeXYHold.IN_RANGE : SeekingToAligned2 })
         
-class TargetAlignState(FilteredState):
+class TargetAlignState(FilteredState, StoreBarbedWireEvent):
     def BARBED_WIRE_FOUND(self, event):
         # Todo remove filters
         #self._updateFilters(event)
+        """Store the event"""
+        StoreBarbedWireEvent.BARBED_WIRE_FOUND(self, event)
         
         """Update the state of the light, this moves the vehicle"""
         azimuth = event.topX * -107.0/2.0
@@ -383,7 +395,7 @@ class SeekingToAligned(TargetAlignState, state.State):
         self._desiredRange = self._config.get('desiredRange', 0.5)
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
 
-class SeekingToAligned2(TargetAlignState, state.State):
+class SeekingToAligned2(TargetAlignState, state.State, StoreBarbedWireEvent):
     """
     Holds the target at range and in the center of the field of view while 
     rotating around it.  If its rotating the wrong direction is will reverse

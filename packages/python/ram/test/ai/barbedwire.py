@@ -53,18 +53,8 @@ class TestStart(support.AITestCase):
         self.assertCurrentState(barbedwire.FindAttempt)
 
 class TestFindAttempt(support.AITestCase):
-    TIMEOUT = 2
     def setUp(self):
-        cfg = {
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.barbedwire.FindAttempt' : {
-                        'timeout' : TestFindAttempt.TIMEOUT,
-                    },
-                }
-            }
-        }
-        support.AITestCase.setUp(self, cfg = cfg)
+        support.AITestCase.setUp(self)
         self.machine.start(barbedwire.FindAttempt)
     
     def testStart(self):
@@ -78,6 +68,8 @@ class TestFindAttempt(support.AITestCase):
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0)
         self.assertCurrentState(barbedwire.SeekingToRange)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.barbedWireDetector)
@@ -113,6 +105,8 @@ class TestSearching(support.AITestCase):
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0)
         self.assertCurrentState(barbedwire.SeekingToRange)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.barbedWireDetector)
@@ -146,6 +140,9 @@ class TestRangeXYHold(support.AITestCase):
     def testTargetFound(self):
         """Make sure new found events move the vehicle"""
         self._injectFoundEvent(topX = 0.5, topY = -0.5, topWidth = 0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.25)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
@@ -182,6 +179,9 @@ class TestRangeXYHoldNoDepth(TestRangeXYHold):
         
     def testTargetFound(self):
         self._injectFoundEvent(topX = 0.5, topY = -0.5, topWidth = 0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.25)
         
         # Bigger numbers = deeper
         self.assertEqual(self.controller.depth, 0)
@@ -212,6 +212,12 @@ class TestSeekingToRange(TestRangeXYHold):
         self._injectFoundEvent(topX = -0.25, topY = 0.5, topWidth = 0.2,
                                bottomX = 0.25, bottomY = 0.25, 
                                bottomWidth = 0.3)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, -0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.2)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomX, 0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomY, 0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.3)
         self.qeventHub.publishEvents()
         self.assertCurrentState(barbedwire.SeekingToAligned)
         
@@ -234,6 +240,12 @@ class AlignmentTest(object):
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
                          topX = -0.5, topY = -0.5, topWidth = 0.25,
                          bottomX = 0.75, bottomY = -0.75, bottomWidth = 0.2)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.25)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomX, 0.75)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomY, -0.75)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.2)
         
         # Bigger numbers = deeper
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
@@ -304,6 +316,12 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
                          topX = 0.05, topY = -0.1, topWidth = 0.5,
                          bottomX = 0.03, bottomY = -0.5, bottomWidth = 0.3)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.05)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.1)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomX, 0.03)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomY, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.3)
         
         # Make sure we get the ALIGNED event
         self.qeventHub.publishEvents()
