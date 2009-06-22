@@ -82,7 +82,7 @@ int main()
         LATE= 0x0000;
         IdleI2C();                       /* Wait for the i2c bus to be idle */
         StartI2C();                      /* Generate a start condition */
-        Write((0x52 << 1) | I2C_WRITE);  /* Send a packet to address 0x52,
+        WriteI2C((0x52 << 1) | I2C_WRITE);/* Send a packet to address 0x52,
                                             informing it of a write */
         IdleI2C();                       /* Wait for the end of transmission */
         WaitAck();                       /* Wait for the NACK/ACK bit to set */
@@ -302,8 +302,8 @@ unsigned int WaitAck(void) {
 
     /* We clear the interrupt flag we're waiting on, because a bunch of stuff
      * *could* have triggered it. */
-    IFS0.MI2CIF= 0;
-    while(!IFS0.MI2CIF) {
+    IFS0bits.MI2CIF= 0;
+    while(!IFS0bits.MI2CIF) {
         if(timeout++ == I2C_TIMEOUT) {
             return 255;
         }
