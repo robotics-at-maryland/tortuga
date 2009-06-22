@@ -28,12 +28,23 @@ class PingerState(state.State):
     Base classes are required to update the actual target with new Sonar 
     information.
     """
+    TIMEOUT = core.declareEventType('PINGER_TIMEOUT')
+
     @staticmethod
-    def transitions(myState, trans = None):
+    def transitions(myState, timeoutState = None, trans = None):
+        if timeoutState is None:
+            timeoutState = PingerLost
         if trans is None:
             trans = {}
-        trans.update({vehicle.device.ISonar.UPDATE : myState})
+        trans.update({vehicle.device.ISonar.UPDATE : myState,
+                      PingerState.TIMEOUT : timeoutState})
         return trans
+
+    def UPDATE(self, event):
+        self._pingChecker.stop()
+        self._pingChecker = self.timerManager.newTimer(PingerState.TIMEOUT,
+                                                       self._timeout)
+        self._pingChecker.start()
     
     def _isNewPing(self, event):
         if self._lastTime != event.pingTimeUSec:
@@ -67,6 +78,12 @@ class PingerState(state.State):
                                        speedGain = self._speedGain, 
                                        yawGain = self._yawGain)
         self.motionManager.setMotion(motion)
+
+        # Set up the ping timer
+        self._timeout = self._config.get('timeout', 2.5)
+        self._pingChecker = self.timerManager.newTimer(
+            PingerState.TIMEOUT, self._timeout)
+        self._pingChecker.start()
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -151,7 +168,7 @@ class FarSeeking(TranslationSeeking):
     """
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(FarSeeking, 
+        return TranslationSeeking.transitions(FarSeeking, PingerLost,
             { TranslationSeeking.CLOSE : CloseSeeking } ) 
                  
     def _loadSettings(self):
@@ -165,7 +182,7 @@ class CloseSeeking(TranslationSeeking):
     """
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(CloseSeeking, 
+        return TranslationSeeking.transitions(CloseSeeking, PingerLostClose,
             { TranslationSeeking.CLOSE : End } ) 
 
     def _loadSettings(self):
@@ -178,8 +195,29 @@ class Hovering(TranslationSeeking):
     """
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Hovering)
+        return TranslationSeeking.transitions(Hovering, PingerLostHovering)
 
 class End(state.State):
     def enter(self):
         self.publish(COMPLETE, core.Event())
+
+class PingerLost(state.FindAttempt):
+    @staticmethod
+    def transitions(foundState = FarSeeking):
+        return state.FindAttempt.transitions(
+            vehicle.device.ISonar.UPDATE, foundState, Searching)
+
+    def enter(self):
+        state.FindAttempt.enter(self)
+
+        self.motionManager.stopCurrentMotion()
+
+class PingerLostClose(PingerLost):
+    @staticmethod
+    def transitions():
+        return PingerLost.transitions(CloseSeeking)
+
+class PingerLostHovering(PingerLost):
+    @staticmethod
+    def transitions():
+        return PingerLost.transitions(Hovering)

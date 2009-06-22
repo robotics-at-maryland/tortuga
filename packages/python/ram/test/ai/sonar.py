@@ -111,6 +111,12 @@ class TransSeekingTestCase(object):
         self.assertAlmostEqual(0, self.controller.yawChange, 3)
         
         self.assertCurrentState(self._myClass)
+
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonar.PingerLost)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
         
 class TestFarSeeking(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
@@ -141,6 +147,12 @@ class TestFarSeeking(TransSeekingTestCase, aisupport.AITestCase):
                          pingTimeUSec = 11)
         self.qeventHub.publishEvents()
         self.assertCurrentState(sonar.CloseSeeking)
+
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonar.PingerLost)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
         
 class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
@@ -164,6 +176,12 @@ class TestCloseSeeking(TransSeekingTestCase, aisupport.AITestCase):
         self.assert_(self.machine.complete)
         self.assert_(self._complete)
 
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonar.PingerLostClose)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
 class TestHovering(TransSeekingTestCase, aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
@@ -177,3 +195,56 @@ class TestHovering(TransSeekingTestCase, aisupport.AITestCase):
         self.qeventHub.publishEvents()
         self.assertCurrentState(sonar.Hovering)
 
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonar.PingerLostHovering)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+class TestPingerLost(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonar.PingerLost)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonar.FarSeeking)
+
+class TestPingerLostClose(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonar.PingerLostClose)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonar.CloseSeeking)
+
+class TestPingerLostHovering(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonar.PingerLostHovering)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonar.Hovering)
