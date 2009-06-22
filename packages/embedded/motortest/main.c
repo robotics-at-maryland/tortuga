@@ -1,6 +1,5 @@
 #include <p30fxxxx.h>
 #include <string.h>
-#include "i2c_master.c"
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -42,8 +41,10 @@ unsigned int getI2C(void);
 byte StartI2C(void);
 unsigned int RestartI2C(void);
 unsigned int StopI2C(void);
-unsigned int WriteI2C(unsigned char);
+unsigned int WriteI2C(byte);
 unsigned int IdleI2C(void);
+unsigned int WaitAck(void);
+byte wasAck(void);
 
 /* The main function sets everything up then loops */
 int main()
@@ -73,19 +74,33 @@ int main()
     LATE= 0x0002;
     while(1) {
         uartRXwait();
+        
         i= uartRX();
-        U1TXREG= i;
+        U1TXREG= i;  /* As a debugging measure we chuck the byte back to the computer */
         
         LATE= 0x0000;
-        IdleI2C();                        /* Wait for the i2c bus to be idle */
-        StartI2C();                       /* Generate a start condition */
-        Write((0x52 << 1) | I2C_WRITE);   /* Send a packet to address 0x52, informing it of a write */
-        IdleI2C();                        /* Wait for the i2c bus to be idle */
-        if(I2CSTATbits.ACKSTAT == NACK) { /* If we've gotten a NACK we're done, light up the red LED */
-            LATE= 0x0004;
+        IdleI2C();                       /* Wait for the i2c bus to be idle */
+        StartI2C();                      /* Generate a start condition */
+        Write((0x52 << 1) | I2C_WRITE);  /* Send a packet to address 0x52,
+                                            informing it of a write */
+        IdleI2C();                       /* Wait for the end of transmission */
+        WaitAck();                       /* Wait for the NACK/ACK bit to set */
+        if(!wasAck()) {                  /* If we've gotten a NACK we're done */
+            LATE= 0x0004;                /* Turn on the Red LED! */
+            continue;
+        }
+        WriteI2C(i);                     /* Pass the byte to the i2c bus */
+        IdleI2C();                       /* Wait for the transmission to end */
+        WaitAck();                       /* Wait for the ACK/NACK bit to set */
+        if(!wasAck()) {                  /* We got a Nack??! OH NOES! */
+            LATE= 0x0001;                /* Turn on the blue LED*/
             continue;
         }
 
+        StopI2C();                       /* Stop the bus, we're done. */
+        LATE= 0x0002;                    /* If we made it here, light up the
+                                            green LED so everyone knows how
+                                            cool we are. */
     }
 
     return 0;
@@ -171,7 +186,7 @@ byte uartRX() {
 |**********************************|
 \**********************************/
 
-/* This function aatempts to ACK  */
+/* This function atempts to ACK  */
 byte AckI2C(void)
 {
     I2CCONbits.ACKDT = 0;          /* Set for Ack */
@@ -204,70 +219,100 @@ unsigned int getI2C(void)
 
 byte StartI2C(void)
 {
-    //This function generates an I2C start condition and returns status
-    //of the Start.
     long timeout=0;
+
     I2CCONbits.SEN = 1;        //Generate Start COndition
     while(I2CCONbits.SEN)
         if(timeout++ == I2C_TIMEOUT)
             return 255;
 
     return 0;
-
-    //return(I2C1STATbits.S);   //Optionally return status
 }
 
+/* This function generates the restart condition and returns the timeout */
 unsigned int RestartI2C(void)
 {
-    //This function generates an I2C Restart condition and returns status
-    //of the Restart.
-    long timeout=0;
-    I2CCONbits.RSEN = 1;       //Generate Restart
+    long timeout= 0;
+    I2CCONbits.RSEN= 1; /* Generate the restart */
 
     while(I2CCONbits.RSEN)
         if(timeout++ == I2C_TIMEOUT)
             return 255;
 
     return 0;
-
-    //return(I2C1STATbits.S);   //Optional - return status
 }
 
+/* This function generates the stop condition and reports a timeout */
 unsigned int StopI2C(void)
 {
-    //This function generates an I2C stop condition and returns status
-    //of the Stop.
-
-    I2CCONbits.PEN = 1;        //Generate Stop Condition
     long timeout=0;
-    while(I2CCONbits.PEN)
-        if(timeout++ == I2C_TIMEOUT)
-            return 255;
-    return 0;
 
-    //return(I2C1STATbits.P);   //Optional - return status
+    I2CCONbits.PEN = 1;        /* Generate the Stop condition */
+    while(I2CCONbits.PEN) {
+        if(timeout++ == I2C_TIMEOUT) {
+            return 255;
+        }
+    }
+
+    return 0;
 }
 
-unsigned int WriteI2C(unsigned char b)
+/* This function transmits the byte passed to it over the i2c bus */
+unsigned int WriteI2C(byte b)
 {
-    // This function transmits the byte passed to the function
-    I2CTRN = b;                 // Load byte to I2C1 Transmit buffer
     long timeout=0;
-    while(I2CSTATbits.TBF)
-        if(timeout++ == I2C_TIMEOUT)
+
+    /* So make sure there's space in the transmit buffer before we stick
+     * anything in there */
+    while(I2CSTATbits.TBF) {
+        if(timeout++ == I2C_TIMEOUT) {
             return 255;
+        }
+    }
+
+    /* Jam the byte in the transmit buffer! */
+    I2CTRN = b;
     return 0;
 }
 
+/* This is technically an inaccurate name.  This is not waiting for 
+ * an Idle condition, it waits until we're not transmitting. */
 unsigned int IdleI2C(void)
 {
-    long timeout=0;
-    while(I2CSTATbits.TRSTAT)
-    {
-        if(timeout++ == I2C_TIMEOUT)
-        {
+    long timeout= 0;
+
+    /* Now we just loop until */
+    while(I2CSTATbits.TRSTAT) {
+        if(timeout++ == I2C_TIMEOUT) {
             return 255;
         }
     }
     return 0;
+}
+
+/* This function should oly be called after the master has done something
+ * which should be ACK'd or NACK'd */
+unsigned int WaitAck(void) {
+    long timeout= 0;
+
+    /* This function waits on the Master i2c interrupt flag because I couldn't
+     * find anything else which was triggered by a NACK or ACK being written.
+     * Anyone who can find a better method should feel free to implement it */
+
+    /* We clear the interrupt flag we're waiting on, because a bunch of stuff
+     * *could* have triggered it. */
+    IFS0.MI2CIF= 0;
+    while(!IFS0.MI2CIF) {
+        if(timeout++ == I2C_TIMEOUT) {
+            return 255;
+        }
+    }
+
+    return 0;
+}
+
+/* This byte returns whether the previous byte was ACK'd */
+/* returns 0 if the previous sent byte was NACK'd, non-0 otherwise */
+byte wasAck(void) {
+    return (I2CSTATbits.ACKSTAT == ACK);
 }
