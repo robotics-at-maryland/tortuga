@@ -133,7 +133,7 @@ class PipeFollowingState(PipeTrackingState):
             myState = PipeFollowingState
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.PIPE_LOST : Searching,
+        trans.update({vision.EventType.PIPE_LOST : FindAttempt,
                       vision.EventType.PIPE_DROPPED : myState,
                       PipeTrackingState.FOUND_PIPE : myState})
         
@@ -294,6 +294,21 @@ class Start(state.State):
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+class FindAttempt(state.FindAttempt, PipeTrackingState):
+
+    @staticmethod
+    def transitions(foundState = None):
+        if foundState is None:
+            foundState = Seeking
+        return state.FindAttempt.transitions(
+            PipeTrackingState.FOUND_PIPE, foundState, Searching)
+
+    def enter(self):
+        PipeTrackingState.enter(self)
+        state.FindAttempt.enter(self)
+
+        self.visionSystem.pipeLineDetectorOn()        
 
 class Searching(PipeTrackingState):
     """When the vehicle is looking for a pipe"""

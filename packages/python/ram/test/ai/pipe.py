@@ -10,6 +10,7 @@ import unittest
 
 # Project Imports
 import ram.ai.pipe as pipe
+import ram.ai.state as state
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -91,6 +92,22 @@ class TestPipeTracking(PipeTest):
         
         self.assertEqual(None, self._foundPipeEvent)
         self._foundPipeEvent = None
+
+class FindAttempt(PipeTest):
+    def setUp(self):
+        PipeTest.setUp(self)
+        self.machine.start(pipe.FindAttempt)
+
+    def testStart(self):
+        self.assert_(self.visionSystem.pipeLineDetector)
+
+    def testPipeFound(self):
+        self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)
+        self.assertCurrentState(pipe.Seeking)
+
+    def testTimeout(self):
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
+        self.assertCurrentState(pipe.Searching)
         
 class TestSearching(PipeTest):
     def setUp(self):
@@ -270,7 +287,7 @@ class TestSeeking(PipeTest):
         self.injectEvent(vision.EventType.PIPE_LOST)
 
         # Make sure we changed state properly
-        self.assertCurrentState(pipe.Searching)
+        self.assertCurrentState(pipe.FindAttempt)
 
         # Make sure we dropped the currentID
         self.assertFalse(self.ai.data['pipeData'].has_key('currentID'))
@@ -294,7 +311,7 @@ class TestCentering(PipeTest):
     def testPipeLost(self):
         """Make sure we search when we lose the pipe"""
         self.injectEvent(vision.EventType.PIPE_LOST)
-        self.assertCurrentState(pipe.Searching)
+        self.assertCurrentState(pipe.FindAttempt)
     
     def testPipeFound(self):
         """Make sure the loop back works"""
