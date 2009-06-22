@@ -390,8 +390,10 @@ class EventRatePanel(wx.grid.Grid):
                 EventRatePanel.EventData(name, location, event.timeStamp)
             
             self.SetCellValue(location, 0, name)
-            
-            self.AutoSize()
+            self.SetReadOnly(location, 0, isReadOnly = True)
+            self.SetReadOnly(location, 1, isReadOnly = True)
+            self.AutoSizeColumn(0)
+            self.AutoSizeColumn(1)
             
     def _timerHandler(self, event):
         for data in self._eventRateTable.itervalues():
