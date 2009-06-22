@@ -33,6 +33,7 @@ _FWDT ( WDT_OFF );
 void initI2C(byte);
 void initUART(byte);
 void initOSC(void);
+void initADC(void);
 void uartRXwait(void);
 byte uartRX(void);
 
