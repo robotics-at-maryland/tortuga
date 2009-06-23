@@ -314,7 +314,7 @@ class TestCentering(BinTestCase):
         self.ai.data['binData']['currentIds'] = set([3])
         # Inject settled event
         self.injectEvent(bin.Centering.SETTLED)
-        self.assertCurrentState(bin.SeekEnd)
+        self.assertCurrentState(bin.CheckEnd)
 
     def testStoreDesiredQuaternion(self):
         # Setup a desired orientation                                       
@@ -376,6 +376,48 @@ class TestAligning(BinTestCase):
         self.injectEvent(bin.Aligning.ALIGNED)
         self.assertCurrentState(bin.Examine)
         
+class TestCheckEnd(BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        
+        self.ai.data['binData'] = dict()
+        bin.ensureBinTracking(self.qeventHub, self.ai)
+
+        self.ai.data['binData']['currentIds'] = set([2,3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1),
+                                               3 : Mock(x = 0),
+                                               2 : Mock(x = 1)}
+        
+    def testLeftBin(self):
+        self.ai.data['binData']['currentID'] = 4
+        self.machine.start(bin.CheckEnd)
+        self.assertEqual(self.ai.data['preferredDirection'],
+                         bin.BinSortingState.LEFT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        
+    def testCenterBin(self):
+        self.ai.data['binData']['currentID'] = 3
+        self.machine.start(bin.CheckEnd)
+        self.assertEqual(self.ai.data['preferredDirection'],
+                         bin.BinSortingState.RIGHT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        
+    def testRightBin(self):
+        self.ai.data['binData']['currentID'] = 2
+        self.machine.start(bin.CheckEnd)
+        self.assertEqual(self.ai.data['preferredDirection'],
+                         bin.BinSortingState.RIGHT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        
 class TestSeekEnd(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -384,7 +426,8 @@ class TestSeekEnd(BinTestCase):
         bin.ensureBinTracking(self.qeventHub, self.ai)
         self.ai.data['binData']['currentID'] = 3
         self.ai.data['binData']['currentIds'] = set([3,4])
-        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1),
+                                               3 : Mock(x = 0)}
         self.machine.start(bin.SeekEnd)
         
         self._centered = False
