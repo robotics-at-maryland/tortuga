@@ -17,7 +17,8 @@ import ram.motion.safe
 #import ram.motion.search
 import ram.motion.common
 
-from ram.ai.sonar import PingerState, TranslationSeeking, PingerLost
+from ram.ai.sonar import PingerState, TranslationSeeking,\
+    PingerLost, CloseSeeking
 import ram.ai.safe as safe
 
 COMPLETE = core.declareEventType('COMPLETE')
@@ -98,17 +99,26 @@ class Grabbing(safe.Grabbing):
 class Surface(safe.Surface):
     pass
 
+class SafeCloseSeeking(CloseSeeking):
+    @staticmethod
+    def transitions():
+        return TranslationSeeking.transitions(SafeCloseSeeking, PingerLost,
+            { TranslationSeeking.CLOSE : Settling } )
+
+    def enter(self):
+        CloseSeeking.enter(self, timeout = 0)
+
 class PingerSettling(PingerLost):
     @staticmethod
     def transitions():
-        return PingerLost.transitions(Settling)
+        return PingerLost.transitions(Settling, SafeCloseSeeking)
 
 class PingerDive(PingerLost):
     @staticmethod
     def transitions():
-        return PingerLost.transitions(Dive)
+        return PingerLost.transitions(Dive, Settling)
 
 class PingerPreGrabSettling(PingerLost):
     @staticmethod
     def transitions():
-        return PingerLost.transitions(PreGrabSettling)
+        return PingerLost.transitions(PreGrabSettling, Settling)

@@ -15,12 +15,14 @@ import ram.ai.sonarSafe as sonarSafe
 import ext.core as core
 import ext.vision as vision
 import ext.vehicle as vehicle
+import ext.vehicle.device
 
 import ram.motion as motion
 import ram.motion.common
 import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
+import ram.test.ai.sonar as sonarsupport
 
 class GainsTestCase(object):
     def setUp(self, stateName):
@@ -210,7 +212,7 @@ class TestPingerSettling(aisupport.AITestCase):
 
     def testTimeout(self):
         self.releaseTimer(sonar.PingerLost.TIMEOUT)
-        self.assertCurrentState(sonar.Searching)
+        self.assertCurrentState(sonarSafe.SafeCloseSeeking)
 
     def testPingerFound(self):
         self.injectEvent(vehicle.device.ISonar.UPDATE)
@@ -226,7 +228,7 @@ class TestPingerDive(aisupport.AITestCase):
 
     def testTimeout(self):
         self.releaseTimer(sonar.PingerLost.TIMEOUT)
-        self.assertCurrentState(sonar.Searching)
+        self.assertCurrentState(sonarSafe.Settling)
 
     def testPingerFound(self):
         self.injectEvent(vehicle.device.ISonar.UPDATE)
@@ -242,8 +244,31 @@ class TestPingerPreGrabSettling(aisupport.AITestCase):
 
     def testTimeout(self):
         self.releaseTimer(sonar.PingerLost.TIMEOUT)
-        self.assertCurrentState(sonar.Searching)
+        self.assertCurrentState(sonarSafe.Settling)
 
     def testPingerFound(self):
         self.injectEvent(vehicle.device.ISonar.UPDATE)
         self.assertCurrentState(sonarSafe.PreGrabSettling)
+
+class TestSafeCloseSeeking(sonarsupport.TransSeekingTestCase,
+                           aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self._myClass = sonarSafe.SafeCloseSeeking
+        self.machine.start(sonarSafe.SafeCloseSeeking)
+        
+    def testClose(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE, vehicle.SonarEvent, 
+                         direction = ext.math.Vector3(-0.1, -0.1, -0.9),
+                         pingTimeUSec = 11)
+        self.qeventHub.publishEvents()
+        
+        # Make sure we enter Settling
+        self.assertCurrentState(sonarSafe.Settling)
+
+    def testPingerLost(self):
+        # Should not change states
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonarSafe.SafeCloseSeeking)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)

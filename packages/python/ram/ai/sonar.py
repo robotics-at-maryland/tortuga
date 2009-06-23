@@ -41,10 +41,11 @@ class PingerState(state.State):
         return trans
 
     def UPDATE(self, event):
-        self._pingChecker.stop()
-        self._pingChecker = self.timerManager.newTimer(PingerState.TIMEOUT,
-                                                       self._timeout)
-        self._pingChecker.start()
+        if self._timeout > 0:
+            self._pingChecker.stop()
+            self._pingChecker = self.timerManager.newTimer(PingerState.TIMEOUT,
+                                                           self._timeout)
+            self._pingChecker.start()
     
     def _isNewPing(self, event):
         if self._lastTime != event.pingTimeUSec:
@@ -65,7 +66,7 @@ class PingerState(state.State):
         self._maxSidewaysSpeed = 0
         self._sidewaysSpeedGain = 0
     
-    def enter(self):
+    def enter(self, timeout = 2.5):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
         self._lastTime = 0
 
@@ -80,10 +81,11 @@ class PingerState(state.State):
         self.motionManager.setMotion(motion)
 
         # Set up the ping timer
-        self._timeout = self._config.get('timeout', 2.5)
-        self._pingChecker = self.timerManager.newTimer(
-            PingerState.TIMEOUT, self._timeout)
-        self._pingChecker.start()
+        self._timeout = self._config.get('timeout', timeout)
+        if self._timeout > 0:
+            self._pingChecker = self.timerManager.newTimer(
+                PingerState.TIMEOUT, self._timeout)
+            self._pingChecker.start()
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -204,9 +206,9 @@ class End(state.State):
 
 class PingerLost(state.FindAttempt):
     @staticmethod
-    def transitions(foundState = FarSeeking):
+    def transitions(foundState = FarSeeking, timeoutState = Searching):
         return state.FindAttempt.transitions(
-            vehicle.device.ISonar.UPDATE, foundState, Searching)
+            vehicle.device.ISonar.UPDATE, foundState, timeoutState)
 
     def enter(self):
         state.FindAttempt.enter(self)
