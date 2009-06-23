@@ -28,7 +28,7 @@ class Settling(TranslationSeeking):
     
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Settling, PingerSettling,
+        return TranslationSeeking.transitions(Settling, PingerLostSettling,
             { Settling.SETTLED : Dive })
     
     def enter(self):
@@ -43,7 +43,7 @@ class Dive(TranslationSeeking):
 
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Dive, PingerDive,
+        return TranslationSeeking.transitions(Dive, PingerLostDive,
             { ram.motion.basic.Motion.FINISHED : PreGrabSettling })
         
     def enter(self):
@@ -64,7 +64,7 @@ class PreGrabSettling(TranslationSeeking):
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(PreGrabSettling,
-            PingerPreGrabSettling,
+            PingerLostPreGrabSettling,
             { PreGrabSettling.SETTLED : PreGrabSettling,
               TranslationSeeking.CLOSE : PreGrabSettling,
               PreGrabSettling.MOVE_ON : Grabbing })
@@ -108,17 +108,17 @@ class SafeCloseSeeking(CloseSeeking):
     def enter(self):
         CloseSeeking.enter(self, timeout = 0)
 
-class PingerSettling(PingerLost):
+class PingerLostSettling(PingerLost):
     @staticmethod
     def transitions():
         return PingerLost.transitions(Settling, SafeCloseSeeking)
 
-class PingerDive(PingerLost):
+class PingerLostDive(PingerLost):
     @staticmethod
     def transitions():
         return PingerLost.transitions(Dive, Settling)
 
-class PingerPreGrabSettling(PingerLost):
+class PingerLostPreGrabSettling(PingerLost):
     @staticmethod
     def transitions():
         return PingerLost.transitions(PreGrabSettling, Settling)
