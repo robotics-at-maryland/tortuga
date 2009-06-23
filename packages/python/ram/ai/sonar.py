@@ -150,6 +150,7 @@ class TranslationSeeking(PingerState):
         self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
 
     def UPDATE(self, event):
+        PingerState.UPDATE(self, event)
         if self._isNewPing(event):
             # Converting from the vehicle reference frame, to the image space
             # reference frame used by the pipe motion
