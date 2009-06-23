@@ -10,9 +10,11 @@ import unittest
 
 # Project Imports
 import ram.ai.safe as safe
+import ram.ai.sonar as sonar
 import ram.ai.sonarSafe as sonarSafe
 import ext.core as core
 import ext.vision as vision
+import ext.vehicle as vehicle
 
 import ram.motion as motion
 import ram.motion.common
@@ -66,6 +68,12 @@ class TestSettling(GainsTestCase, aisupport.AITestCase):
         self.injectEvent(sonarSafe.Settling.SETTLED)
         self.assertCurrentState(sonarSafe.Dive)
 
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonarSafe.PingerSettling)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
 class TestDive(GainsTestCase, aisupport.AITestCase):
     def getCurrentMotion(self):
         return self.motionManager.currentMotion[0]
@@ -82,6 +90,12 @@ class TestDive(GainsTestCase, aisupport.AITestCase):
     def testFinished(self):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
         self.assertCurrentState(sonarSafe.PreGrabSettling)
+
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonarSafe.PingerDive)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
 
 class TestPreGrabSettling(GainsTestCase, aisupport.AITestCase):
     def setUp(self):
@@ -102,6 +116,12 @@ class TestPreGrabSettling(GainsTestCase, aisupport.AITestCase):
     def testSettle(self):
         self.injectEvent(sonarSafe.PreGrabSettling.SETTLED)
         #self.assertCurrentState(sonarSafe.Grabbing)
+
+    def testPingerLost(self):
+        self.releaseTimer(sonar.PingerState.TIMEOUT)
+        self.assertCurrentState(sonarSafe.PingerPreGrabSettling)
+
+        self.assertAlmostEqual(0, self.controller.speed, 3)
  
 class TestGrabbing(aisupport.AITestCase):
     def setUp(self):
@@ -179,3 +199,51 @@ class TestSurface(aisupport.AITestCase):
     def testFinished(self):
         self.injectEvent(ram.motion.basic.Motion.FINISHED)
         self.assert_(self.machine.complete)
+
+class TestPingerSettling(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonarSafe.PingerSettling)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonarSafe.Settling)
+
+class TestPingerDive(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonarSafe.PingerDive)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonarSafe.Dive)
+
+class TestPingerPreGrabSettling(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(sonarSafe.PingerPreGrabSettling)
+
+    def testStart(self):
+        self.assertAlmostEqual(0, self.controller.speed, 3)
+
+    def testTimeout(self):
+        self.releaseTimer(sonar.PingerLost.TIMEOUT)
+        self.assertCurrentState(sonar.Searching)
+
+    def testPingerFound(self):
+        self.injectEvent(vehicle.device.ISonar.UPDATE)
+        self.assertCurrentState(sonarSafe.PreGrabSettling)

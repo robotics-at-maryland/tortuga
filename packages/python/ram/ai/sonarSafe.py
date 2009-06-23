@@ -17,7 +17,7 @@ import ram.motion.safe
 #import ram.motion.search
 import ram.motion.common
 
-from ram.ai.sonar import PingerState, TranslationSeeking
+from ram.ai.sonar import PingerState, TranslationSeeking, PingerLost
 import ram.ai.safe as safe
 
 COMPLETE = core.declareEventType('COMPLETE')
@@ -27,7 +27,7 @@ class Settling(TranslationSeeking):
     
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Settling,
+        return TranslationSeeking.transitions(Settling, PingerSettling,
             { Settling.SETTLED : Dive })
     
     def enter(self):
@@ -42,7 +42,7 @@ class Dive(TranslationSeeking):
 
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(Dive,
+        return TranslationSeeking.transitions(Dive, PingerDive,
             { ram.motion.basic.Motion.FINISHED : PreGrabSettling })
         
     def enter(self):
@@ -63,6 +63,7 @@ class PreGrabSettling(TranslationSeeking):
     @staticmethod
     def transitions():
         return TranslationSeeking.transitions(PreGrabSettling,
+            PingerPreGrabSettling,
             { PreGrabSettling.SETTLED : PreGrabSettling,
               TranslationSeeking.CLOSE : PreGrabSettling,
               PreGrabSettling.MOVE_ON : Grabbing })
@@ -96,3 +97,18 @@ class Grabbing(safe.Grabbing):
     
 class Surface(safe.Surface):
     pass
+
+class PingerSettling(PingerLost):
+    @staticmethod
+    def transitions():
+        return PingerLost.transitions(Settling)
+
+class PingerDive(PingerLost):
+    @staticmethod
+    def transitions():
+        return PingerLost.transitions(Dive)
+
+class PingerPreGrabSettling(PingerLost):
+    @staticmethod
+    def transitions():
+        return PingerLost.transitions(PreGrabSettling)
