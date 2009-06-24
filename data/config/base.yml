@@ -27,10 +27,6 @@ Vehicle:
 
     depends_on: ["EventHub", "Logging"]
 
-    # Pressure tranducer calibration 
-    depthCalibSlope: 35.4
-    depthCalibIntercept: 1192
-
     # The list of devices to create for the vehicle
     Devices:
         # NOTE: All current numbers here are BS and need to updated
