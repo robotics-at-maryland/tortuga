@@ -231,6 +231,29 @@ class TestSeeking(BinTestCase):
     def testBinTracking(self):
         self.binTrackingHelper()
     
+    def _centered(self, event):
+        self._center = True
+        
+    def testCentered(self):
+        # Set up the binData
+        self.ai.data['binData']['currentID'] = 0
+        self.ai.data['binData']['currentIds'] = set([0])
+        self.ai.data['binData']['itemData'] = {0 : Mock(x = -1, y = -1)}
+        
+        # Subscribe to the centered event
+        self._center = False
+        self.qeventHub.subscribeToType(bin.Seeking.BIN_CENTERED, self._centered)
+        
+        # Send in a bin event that should be uncentered
+        self.publishQueuedBinFound(x = 1, y = 1, id = 1)
+        
+        # Check to make sure you aren't centered
+        self.assertFalse(self._center)
+        
+        # Send in a bin event that should be centered
+        self.publishQueuedBinFound(x = 0, y = 0, id = 2)
+        self.assertTrue(self._center)
+    
     def testBinLost(self):
         """Make sure losing the light goes back to search"""
         
@@ -391,7 +414,7 @@ class TestCheckEnd(BinTestCase):
     def testLeftBin(self):
         self.ai.data['binData']['currentID'] = 4
         self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['preferredDirection'],
+        self.assertEqual(self.ai.data['startSide'],
                          bin.BinSortingState.LEFT)
         
         self.qeventHub.publishEvents()
@@ -401,7 +424,7 @@ class TestCheckEnd(BinTestCase):
     def testCenterBin(self):
         self.ai.data['binData']['currentID'] = 3
         self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['preferredDirection'],
+        self.assertEqual(self.ai.data['startSide'],
                          bin.BinSortingState.RIGHT)
         
         self.qeventHub.publishEvents()
@@ -411,7 +434,7 @@ class TestCheckEnd(BinTestCase):
     def testRightBin(self):
         self.ai.data['binData']['currentID'] = 2
         self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['preferredDirection'],
+        self.assertEqual(self.ai.data['startSide'],
                          bin.BinSortingState.RIGHT)
         
         self.qeventHub.publishEvents()
@@ -422,6 +445,8 @@ class TestSeekEnd(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         
+        # set the default side to the left
+        self.ai.data['startSide'] = bin.BinSortingState.LEFT
         self.ai.data['binData'] = dict()
         bin.ensureBinTracking(self.qeventHub, self.ai)
         self.ai.data['binData']['currentID'] = 3
@@ -778,6 +803,8 @@ class TestSurfaceToMove(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         self.vehicle.depth = 10
+        # Set the start side to the left
+        self.ai.data['startSide'] = bin.BinSortingState.LEFT
         self.ai.data['preBinCruiseDepth'] = 5.0
         self.machine.start(bin.SurfaceToMove)
     
@@ -806,6 +833,9 @@ class TestSurfaceToMove(BinTestCase):
 class TestNextBin(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
+        # Set the startSide to the left so it knows that the routine started
+        # on the left side
+        self.ai.data['startSide'] = bin.BinSortingState.LEFT
         self.ai.data['binData'] = dict()
         bin.ensureBinTracking(self.qeventHub, self.ai)
         

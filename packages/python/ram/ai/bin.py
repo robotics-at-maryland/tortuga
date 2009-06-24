@@ -201,6 +201,7 @@ class BinSortingState(HoveringState):
     def hasBinToRight(self):
         currentBinId = self.ai.data['binData']['currentID']
         sortedBins = self._getSortedBins()
+        
         if self._direction == BinSortingState.RIGHT:
             return currentBinId != sortedBins[0]
         else:
@@ -220,10 +221,10 @@ class BinSortingState(HoveringState):
             raise Exception("ERROR Wrong Direction")
         self._direction = direction
     
-    def setPreferredSortDirection(self, direction):
+    def setStartSideDirection(self, direction):
         if (direction != BinSortingState.LEFT) and (direction != BinSortingState.RIGHT):
             raise Exception("ERROR Wrong Direction")
-        self.ai.data['preferredDirection'] = direction
+        self.ai.data['startSide'] = direction
     
     def _compareBins(self, idA, idB):
         """
@@ -325,18 +326,58 @@ class Searching(state.State):
 
 class Seeking(HoveringState):
     """When the vehicle is moving over the found bin"""
+    BIN_CENTERED = core.declareEventType("BIN_CENTERED")
+    
     @staticmethod
     def transitions():
         return HoveringState.transitions(Seeking,
-            { vision.EventType.BIN_CENTERED : Centering })
+            { Seeking.BIN_CENTERED : Centering })
+ 
+    def _compareByDistance(self, idA, idB):
+        """
+        Sorts the list with the closest bin at the start
+        
+        @type idA: int
+        @param idA: ID of the bin compare
+        
+        @type idB: int
+        @param idB: ID of the other bin to compare
+        """
+        binData = self.ai.data['binData']['itemData']
+        binADistance = math.Vector2(binData[idA].x, binData[idA].y).length()
+        binBDistance = math.Vector2(binData[idB].x, binData[idB].y).length()
+        
+        if binADistance < binBDistance:
+            return -1
+        else:
+            return 1
  
     def BIN_FOUND(self, event):
+        eventDistance = math.Vector2(event.x, event.y).length()
+        
+        # Change the currentID to the closest bin
+        currentBins = [b for b in self.ai.data['binData']['currentIds']]
+        if len(currentBins) > 0:
+            binIDs = sorted(currentBins, self._compareByDistance)
+            self.ai.data['binData']['currentID'] = binIDs[0]
+            
+            # If the new event is closer, then it is our current ID
+            currentIdEvent = self.ai.data['binData']['itemData'][binIDs[0]]
+            if eventDistance < math.Vector2(currentIdEvent.x,
+                                            currentIdEvent.y).length():
+                self.ai.data['binData']['currentID'] = event.id
+        
         # Disable angle tracking
         event.angle = math.Degree(0)
         HoveringState.BIN_FOUND(self, event)
         
+        if self._currentBin(event):
+            if eventDistance < self._centeredLimit:
+                self.publish(Seeking.BIN_CENTERED, core.Event())
+        
     def enter(self):
         HoveringState.enter(self)
+        self._centeredLimit = self._config.get('centeredLimit', 0.2)
 
 class Recover(state.FindAttempt):
     
@@ -383,7 +424,7 @@ class Centering(SettlingState):
     When the vehicle is settling over the first found bin, it uses the angle of
     entire bin array this time.
     
-    @cvar SETTLED: Event fired when vehile has settled over the bin
+    @cvar SETTLED: Event fired when vehicle has settled over the bin
     """
     SETTLED = core.declareEventType('SETTLED_')
     
@@ -417,7 +458,7 @@ class CheckEnd(BinSortingState):
     end
     """
     CONTINUE = core.declareEventType('CONTINUE')
-    
+         
     @staticmethod
     def transitions():
         return HoveringState.transitions(CheckEnd,
@@ -427,12 +468,12 @@ class CheckEnd(BinSortingState):
         BinSortingState.enter(self, BinSortingState.LEFT)
         
         if not self.hasBinToLeft():
-            self.ai.data['preferredDirection'] = BinSortingState.LEFT
+            self.ai.data['startSide'] = BinSortingState.LEFT
         elif not self.hasBinToRight():
-            self.ai.data['preferredDirection'] = BinSortingState.RIGHT
+            self.ai.data['startSide'] = BinSortingState.RIGHT
         else:
             # This direction doesn't matter
-            self.ai.data['preferredDirection'] = \
+            self.ai.data['startSide'] = \
                 self._config.get('startDirection', BinSortingState.RIGHT)
                 
         self.publish(CheckEnd.CONTINUE, core.Event())
@@ -464,7 +505,7 @@ class SeekEnd(BinSortingState):
         
     def enter(self):
         # Keep the hover motion going
-        BinSortingState.enter(self, self.ai.data.get('preferredDirection',
+        BinSortingState.enter(self, self.ai.data.get('startSide',
             BinSortingState.LEFT), useMultiAngle = True)
         
         # Set orientation to match the initial orientation
@@ -489,7 +530,7 @@ class SeekEnd(BinSortingState):
         
     def CENTERED(self, event):
         # Fix the current left most bin, as the currently tracked bin
-        if not self.fixEdgeBin():
+        if (not self.fixEdgeBin()) and (self._timer is None):
             # If already there
             self._startTimer()
         
@@ -753,8 +794,11 @@ class NextBin(BinSortingState):
     
     def enter(self):
         # Keep the hover motion going
-        BinSortingState.enter(self, BinSortingState.RIGHT,
-                              useMultiAngle = True)
+        direction = BinSortingState.RIGHT
+        if self.ai.data['startSide'] == BinSortingState.RIGHT:
+            direction = BinSortingState.LEFT
+            
+        BinSortingState.enter(self, direction, useMultiAngle = True)
         
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():

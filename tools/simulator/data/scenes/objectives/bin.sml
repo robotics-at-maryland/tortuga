@@ -26,7 +26,8 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-16, -1, -2]
+            position: [-17, 2, -2]
+            orientation: [0, 0, 1, 0]
     
     Objects:
         blackJackTable:
