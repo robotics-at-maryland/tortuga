@@ -10,8 +10,8 @@
 import ext.core
 import ext.math
 import ext.vehicle
+from ext.vehicle import IVehicle
 from sim.subsystems import Simulation
-from sim.vehicle import SimVehicle
 
 import ram.timer
 import ram.core as core
@@ -31,7 +31,7 @@ class Pinger(Visual):
     @two_step_init
     def __init__(self):
         Visual.__init__(self)
-        self._vehicle = None
+        self._robot = None
         self._sonarSys = None
         self._timeSinceLastPing = 0
         self._pingInterval = 0
@@ -53,22 +53,22 @@ class Pinger(Visual):
     def save(self, data_object):
         raise "Not yet implemented"
         
-    def setup(self, vehicle, sonarSys):
-        self._vehicle = vehicle
+    def setup(self, robot, sonarSys):
+        self._robot = robot
         self._sonarSys = sonarSys
 
     def update(self, timeSinceLastUpdate):
         self._timeSinceLastPing += timeSinceLastUpdate
         if self._timeSinceLastPing >= self._pingInterval:
-            if self._vehicle is not None:
+            if self._robot is not None:
                 self._doPing()
             self._timeSinceLastPing = 0
             
     def _doPing(self):
         event = ext.vehicle.SonarEvent()
 
-        relativePos = self.position - self._vehicle.robot.position
-        relativePos = self._vehicle.robot.orientation.Inverse() * relativePos 
+        relativePos = self.position - self._robot.position
+        relativePos = self._robot.orientation.Inverse() * relativePos 
         relativePos.normalise()
         event.direction = ext.math.Vector3(relativePos.x, relativePos.y,
             relativePos.z)
@@ -88,14 +88,15 @@ class SimSonar(ext.core.Subsystem):
         # Grab the vehicle
         sim = ext.core.Subsystem.getSubsystemOfType(Simulation, deps, 
                                                     nonNone = True)
-        self.vehicle = ext.core.Subsystem.getSubsystemOfType(SimVehicle, deps, 
-                                                             nonNone = True)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
+                                                        nonNone = True)
+        robot = vehicle.getDevice('SimulationDevice').robot
 
         # Grab the pinger object
         self._pingers = sim.scene.getObjectsByInterface(IPinger)
         assert len(self._pingers) <= 2
         for pinger in self._pingers:
-            pinger.setup(vehicle = self.vehicle, sonarSys = self)
+            pinger.setup(robot = robot, sonarSys = self)
 
     def backgrounded(self):
         return True

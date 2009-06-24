@@ -36,12 +36,110 @@ def convertToVector3(vType, vector):
 def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
-class SimThruster(device.IThruster):
-    def __init__(self, eventHub, name, simThruster):
-        device.IThruster.__init__(self, eventHub)
+class SimDevice(object):
+    def getName(self):
+        return self._name
+
+    def setPriority(self, priority):
+        pass
         
-        self._simThruster = simThruster
-        self._name = name
+    def getPriority(self):
+        return 0
+    
+    def setAffinity(self, core):
+        pass
+    
+    def getAffinity(self):
+        return 0
+
+    def background(self, interval = -1):
+        pass
+
+    def backgrounded(self):
+        return False
+    
+    def unbackground(self, join = False):
+        pass
+
+    def update(self, timestep):
+        pass
+    
+class SimulationDevice(SimDevice, device.IDevice):
+    
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IDevice.__init__(self, eventHub, self._name)
+
+        sim = subsystems.Simulation.SIMULATION
+        self.robot = sim.scene._robots['Tortuga']
+        self.scene = sim.scene
+        subsystems.Simulation.SIMULATION = None
+
+device.IDeviceMaker.registerDevice('SimulationDevice', SimulationDevice)
+
+
+class SimDepthSensor(SimDevice, device.IDepthSensor):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IDepthSensor.__init__(self, eventHub, self._name)
+        
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot        
+        
+    def getDepth(self):
+        # Down is positive for depth
+        return -3.281 * self.robot._main_part._node.position.z
+        
+    def getLocation(self):
+        return math.Vector3(0, 0, 0)
+
+device.IDeviceMaker.registerDevice('SimDepthSensor', SimDepthSensor)
+
+
+class SimIMU(SimDevice, device.IIMU):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IIMU.__init__(self, eventHub, self._name)
+    
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot        
+    
+    def _getActualOrientation(self):
+        return convertToQuaternion(math.Quaternion,
+                                  self.robot._main_part._node.orientation)
+
+    def getLinearAcceleration(self):
+        baseAccel = convertToVector3(math.Vector3,
+                                     self.robot._main_part.acceleration)
+        # Add in gravity
+        return baseAccel + math.Vector3(0, 0, -9.8)
+    
+    def getMagnetometer(self):
+        return self._getActualOrientation() * math.Vector3(0.5, 0, -1);
+    
+    def getAngularRate(self):
+        return convertToVector3(math.Vector3,
+                                self.robot._main_part.angular_accel) 
+        
+    def getOrientation(self):
+        return self._getActualOrientation()
+
+device.IDeviceMaker.registerDevice('SimIMU', SimIMU)
+
+
+class SimThruster(SimDevice, device.IThruster):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IThruster.__init__(self, eventHub, self._name)
+        
+        simDevice = vehicle.getDevice('SimulationDevice')
+        robot = simDevice.robot        
+        self._simThruster = getattr(robot.parts, config['simName'])
+        self._relAxis = config['relAxis']
         self._enabled = True
                 
     @property
@@ -52,13 +150,10 @@ class SimThruster(device.IThruster):
     def forceDirection(self):
         return convertToVector3(math.Vector3, self._simThruster.direction)
                 
-    def getName(self):
-        return self._name
-    
     def setForce(self, force):
         self._simThruster.force = force
         
-        event = vehicle.ThrusterEvent()
+        event = math.NumericEvent()
         event.number = self._simThruster.force
         self.publish(device.IThruster.FORCE_UPDATE, event)
     
@@ -74,19 +169,22 @@ class SimThruster(device.IThruster):
     def getMinForce(self):
         return self._simThruster.min_force
                 
-    def update(self, timestep):
-        pass
-    
     def setEnabled(self, state):
         self._enabled = state
     
     def isEnabled(self):
         return self._enabled
+    
+    def getOffset(self):
+        return pmath.fabs(getattr(self.relativePosition, self._relAxis))
+    
+device.IDeviceMaker.registerDevice('SimThruster', SimThruster)
 
-class SimPayloadSet(device.IPayloadSet):
+
+class SimPayloadSet(SimDevice, device.IPayloadSet):
     def __init__(self, eventHub, name, count = 2, scene = None, robot = None,
                  marker = True):
-        device.IPayloadSet.__init__(self, eventHub)
+        device.IPayloadSet.__init__(self, eventHub, name)
         
         self._scene = scene
         self._marker = marker
@@ -94,12 +192,6 @@ class SimPayloadSet(device.IPayloadSet):
         self._name = name
         self._initialCount = count
         self._count = count
-        
-    def getName(self):
-        return self._name
-        
-    def update(self, timestep):
-        pass
         
     def initialObjectCount(self):
         return self._initialCount
@@ -192,174 +284,49 @@ class SimPayloadSet(device.IPayloadSet):
         obj._body.setVelocity(robotOrient * ogre.Vector3(10, 0, 0))
         self._scene._objects.append(obj)  
 
-class SimVehicle(vehicle.IVehicle):
-    def __init__(self, config, deps):
-        eventHub = core.Subsystem.getSubsystemOfExactType(core.EventHub, deps)
-        vehicle.IVehicle.__init__(self, config.get('name', 'SimVehicle'),
-                                  eventHub)
+class SimMarkerDropper(SimPayloadSet): # SimPayloadSet
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        simDevice = vehicle.getDevice('SimulationDevice')
         
-        sim = core.Subsystem.getSubsystemOfType(subsystems.Simulation, deps)
-        self.robot = sim.scene._robots['Tortuga']
-        self._scene = sim.scene
-        self._devices = {}
+        SimPayloadSet.__init__(self, eventHub, self._name, count = 2, 
+                               scene = simDevice.scene, 
+                               robot = simDevice.robot, marker = True)
+
+device.IDeviceMaker.registerDevice('SimMarkerDropper', SimMarkerDropper)
+
+class SimTorpedoLauncher(SimPayloadSet): # SimPayloadSet
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        simDevice = vehicle.getDevice('SimulationDevice')
         
-        # Markers variables
-        self._markers = []
-        self._markerCount = 0
+        SimPayloadSet.__init__(self, eventHub, self._name, count = 2, 
+                               scene = simDevice.scene, 
+                               robot = simDevice.robot, marker = False)
+
+device.IDeviceMaker.registerDevice('SimTorpedoLauncher', SimTorpedoLauncher)
+
+
+class TrailMarker(SimDevice, device.IDevice):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IDevice.__init__(self, eventHub, self._name)
+
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot
+        self._scene = simDevice.scene     
+
+        # Settings
         self._dropMarkers = config.get('markers', True)
         self._markerInterval = config.get('markerInterval', 1)
+        
+        # State variables
+        self._markers = []
+        self._markerCount = 0
         self._timeSinceLastMarker = self._markerInterval
-    
-        # Add Sim Thruster objects
-        self._addDevice(SimThruster(eventHub, 'PortThruster', 
-                                    self.robot.parts.left_thruster))
-        self._addDevice(SimThruster(eventHub, 'StarboardThruster', 
-                                    self.robot.parts.right_thruster))
-        self._addDevice(SimThruster(eventHub, 'AftThruster', 
-                          self.robot.parts.aft_thruster))
-        self._addDevice(SimThruster(eventHub, 'ForeThruster', 
-                          self.robot.parts.front_thruster))
-        self._addDevice(SimThruster(eventHub, 'TopThruster', 
-                          self.robot.parts.top_thruster))
-        self._addDevice(SimThruster(eventHub, 'BotThruster', 
-                          self.robot.parts.bot_thruster))
-
-        # Add payload sets
-        self._addDevice(SimPayloadSet(eventHub, 'MarkerDropper', count = 2, 
-                                      scene = sim.scene, robot = self.robot))
-        self._addDevice(SimPayloadSet(eventHub, 'TorpedoLauncher', count = 2,
-                                      scene = sim.scene, robot = self.robot, 
-                                      marker = False))     
-    
-    def _addDevice(self, device):
-        name = device.getName()
-        self._devices[name] = device
-        setattr(self, name[0].lower() + name[1:], device)
-    
-    def getThrusters(self):
-        thrusters = []
-        for name in self.getDeviceNames():
-            device = self.getDevice(name)
-            if isinstance(device, vehicle.device.IThruster):
-                thrusters.append(device)
-        return thrusters
-    
-    def dropMarker(self):
-        self.markerDropper.releaseObject()
-    
-    def fireTorpedo(self):
-        self.torpedoLauncher.releaseObject()
-    
-    def getDevice(self, name):
-        return self._devices[name]
-    
-    def getDeviceNames(self):
-        return self._devices.keys()
-    
-    def getDepth(self):
-        # Down is positive for depth
-        return -3.281 * self.robot._main_part._node.position.z 
-    
-    def quaternionFromMagAccel(self, mag, accel):
-        """
-        Just here for reference, will be moved in the future
-        """
-        if accel == math.Vector3(0,0,0):
-            accel = math.Vector3(0, 0, 0.084214)
-        accel = accel + math.Vector3(0,0,-9.8);
-        mag.normalise();
         
-        n3 = accel * -1;
-        n3.normalise();
-        n2 = mag.crossProduct(accel);
-        n2.normalise();
-        n1 = n2.crossProduct(n3);
-        n1.normalise();
-        
-        return math.Quaternion(n1,n2,n3);
-
-    def getOrientation(self):
-        return self._getActualOrientation()
-        #return self.quaternionFromMagAccel(self.getMag(), self.getLinearAcceleration())
-    
-    def _getActualOrientation(self):
-        return convertToQuaternion(math.Quaternion,
-                                  self.robot._main_part._node.orientation)
-
-    def getLinearAcceleration(self):
-        baseAccel = convertToVector3(math.Vector3,
-                                     self.robot._main_part.acceleration)
-        # Add in gravity
-        return baseAccel + math.Vector3(0, 0, -9.8)
-    
-    def getMag(self):
-        return self._getActualOrientation() * math.Vector3(0.5, 0, -1);
-    
-    def getAngularRate(self):
-        return convertToVector3(math.Vector3,
-                                self.robot._main_part.angular_accel)   
-    
-    def _vectorToNumpyArray(self, vec):
-        return numpy.array([vec.x, vec.y, vec.z])
-    
-    def applyForcesAndTorques(self, force, torque):
-        if HAVE_NUMPY:
-            force.y = force.y * -1
-            thrusters = self.getThrusters()
-            m = len(thrusters)
-            A = numpy.zeros([6, m])
-        
-            for i in range(m):
-                thruster = thrusters[i]
-                maxThrusterForce = thruster.forceDirection * thruster.getMaxForce()
-                A[0:3,i] = self._vectorToNumpyArray(maxThrusterForce)
-                A[3:6,i] = self._vectorToNumpyArray(thruster.relativePosition.crossProduct(maxThrusterForce))
-        
-            b = numpy.array([force.x, force.y, force.z, torque.x, torque.y, torque.z])
-            (p, residuals, rank, s) = numpy.linalg.lstsq(A, b)
-        
-            for i in range(m):
-                thruster = thrusters[i]
-                thruster.setForce(thruster.getMaxForce() * p[i])
-        else:
-            # Determine Thruster forces based on thruster position
-            star = (force.x / 2) - (0.5 * torque.z / self.starboardThruster.relativePosition.y)
-            port = (force.x / 2) - (0.5 * torque.z / self.portThruster.relativePosition.y)
-            fore = (force.z / 2) - (0.5 * torque.y / self.foreThruster.relativePosition.x)
-            aft = (force.z / 2) - (0.5 * torque.y / self.aftThruster.relativePosition.x)
-            top = (force.y / 2) - (0.5 * torque.x / self.topThruster.relativePosition.z)
-            bot = (force.y / 2) + (0.5 * torque.x / self.botThruster.relativePosition.z)
-
-            self.starboardThruster.setForce(star)
-            self.portThruster.setForce(port)
-            self.foreThruster.setForce(fore)
-            self.aftThruster.setForce(aft)
-            self.topThruster.setForce(top)
-            self.botThruster.setForce(bot)
-
-            # Set forces exactly
-            #self.robot._main_part.set_local_force(
-            #    convertToVector3(ogre.Vector3, force), (0,0,0))
-            #self.robot._main_part.torque = convertToVector3(ogre.Vector3, torque)            
-    
-    def backgrounded(self):
-        return False
-    
-    def unbackground(self, join = True):
-        pass
-    
-    def update(self, timeSinceUpdate):
-        # Send Orientation Event
-        event = math.OrientationEvent()
-        event.orientation = self.getOrientation()
-        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
-        
-        # Send Depth Event
-        event = math.NumericEvent()
-        event.number = self.getDepth()
-        self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
-        
-        # Drop a visual marker if needed
+    def update(self, timeSinceUpdate):   
         if self._dropMarkers:
             self._timeSinceLastMarker += timeSinceUpdate
             if self._timeSinceLastMarker >= self._markerInterval:
@@ -388,5 +355,5 @@ class SimVehicle(vehicle.IVehicle):
     def setMarkerVisibility(self, value):
         for marker in self._markers:
             marker.visible = value
-
-core.SubsystemMaker.registerSubsystem('SimVehicle', SimVehicle)
+            
+device.IDeviceMaker.registerDevice('TrailMarker', TrailMarker)            

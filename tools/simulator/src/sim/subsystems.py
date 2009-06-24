@@ -59,7 +59,8 @@ class WindowListener(ogre.WindowEventListener):
 class Simulation(core.Subsystem):
     SHUTDOWN = core.declareEventType('SIMULATION_SHUTDOWN')
     UPDATE = core.declareEventType('UPDATE')
-
+    SIMULATION = None
+    
     def _getGUIFileName(self, config):
         guiBasePath = ''
         if wx.GetApp() is not None:
@@ -79,6 +80,7 @@ class Simulation(core.Subsystem):
     
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'Simulation'))
+        Simulation.SIMULATION = self
         self._windowListener = WindowListener(self.windowClosed)
         
         self._simulation = simulation.Simulation(config)

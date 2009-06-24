@@ -61,8 +61,72 @@ Subsystems:
         type: QueuedEventHub
 
     Vehicle:
-        type: SimVehicle
+        type: Vehicle
         depends_on: ["Simulation", "EventHub"]
+        
+        DepthSensorName: DepthSensor
+        Devices:
+            # Special device that holds references to the current simulation
+            # scene and robot
+            SimulationDevice:
+                type: SimulationDevice
+            
+            # Special simulation device that leaves the red balls behind the 
+            # robot
+            TrailMarker:
+                type: TrailMarker   
+                depends_on: ["SimulationDevice"]
+                
+            MarkerDropper:
+                type: SimMarkerDropper
+                depends_on: ["SimulationDevice"]
+            TorpedoLauncher:
+                type: SimTorpedoLauncher
+                depends_on: ['SimulationDevice']
+            #Sonar:
+            #    depends_on: ['SimulationDevice']
+            #    type: SimSonar
+    
+            # This entry creates a thruster
+            StarboardThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: right_thruster
+                relAxis: y
+            PortThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: left_thruster
+                relAxis: y
+            ForeThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: front_thruster
+                relAxis: x
+            AftThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: aft_thruster
+                relAxis: x
+            TopThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: top_thruster
+                relAxis: z
+            BottomThruster:
+                depends_on: ['SimulationDevice']
+                type: SimThruster
+                simName: bot_thruster
+                relAxis: z
+                
+            IMU: # MagBoom
+                depends_on: ['SimulationDevice']
+                type: SimIMU
+                
+            DepthSensor:
+                depends_on: ["SimulationDevice"]
+                type: SimDepthSensor
+
 
     # Exectures Motions
     MotionManager:

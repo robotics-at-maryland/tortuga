@@ -19,7 +19,7 @@ import ext.vision
 import ext.math
 from ext.vision import Symbol
 from sim.subsystems import Simulation
-from sim.vehicle import SimVehicle
+from ext.vehicle import IVehicle 
 
 import ram.sim
 import ram.core as core
@@ -671,8 +671,9 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Grab the scene we are operating in
         sim = ext.core.Subsystem.getSubsystemOfType(Simulation, deps, 
                                                     nonNone = True)
-        self.vehicle = ext.core.Subsystem.getSubsystemOfType(SimVehicle, deps, 
-                                                             nonNone = True)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
+                                                        nonNone = True)
+        self.robot = vehicle.getDevice('SimulationDevice').robot
         self._horizontalFOV = config.get('horizontalFOV', 107)
         self._verticalFOV = config.get('verticalFOV', 78)
         
@@ -791,8 +792,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         closest = None
         obj = None
         relativePos = None
-        robotPos = self.vehicle.robot.position + \
-            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
+        robotPos = self.robot.position + \
+            (self.robot.orientation * ogre.Vector3(0.5, 0, 0))
 
         for o in objects:
             toObj = o.position - robotPos
@@ -821,23 +822,23 @@ class IdealSimVision(ext.vision.VisionSystem):
         @return: (visible, x, y, angle)
         """
         
-        camVector = self.vehicle.robot.orientation * -ogre.Vector3.UNIT_Z
+        camVector = self.robot.orientation * -ogre.Vector3.UNIT_Z
         camVector.normalise()
 
         # Find Roll (X cordinate)
-        forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
+        forwardVector = self.robot.orientation * ogre.Vector3.UNIT_X
         rollPlane = ogre.Plane(forwardVector, 0) 
         rollVec = rollPlane.projectVector(relativePos).normalisedCopy()
         roll = ogre.Math.ACos(rollVec.dotProduct(camVector)).valueDegrees()
         
         # Find Pitch (Y cordinate)
-        rightVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_Y
+        rightVector = self.robot.orientation * ogre.Vector3.UNIT_Y
         pitchPlane = ogre.Plane(rightVector, 0) 
         pitchVec = pitchPlane.projectVector(relativePos).normalisedCopy()
         pitch = ogre.Math.ACos(pitchVec.dotProduct(camVector)).valueDegrees()
 
         # Add in sign
-        relativePos = self.vehicle.robot.orientation.UnitInverse() * relativePos
+        relativePos = self.robot.orientation.UnitInverse() * relativePos
         if relativePos.y < 0:
             roll *= -1
         if relativePos.x < 0:
@@ -876,7 +877,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         @return: (visible, x, y, angle)
         """
         
-        forwardVector = self.vehicle.robot.orientation * ogre.Vector3.UNIT_X
+        forwardVector = self.robot.orientation * ogre.Vector3.UNIT_X
         
         quat = forwardVector.getRotationTo(relativePos)
         yaw = -quat.getRoll(True).valueDegrees()
@@ -1005,8 +1006,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         backPipe = barbedWire.back
 
         # Get stats on both pipes
-        relPosFront = frontPipe.position - self.vehicle.robot.position
-        relPosBack = backPipe.position - self.vehicle.robot.position
+        relPosFront = frontPipe.position - self.robot.position
+        relPosBack = backPipe.position - self.robot.position
 
         frontVisible, frontX, frontY, azimuth, elevation, frontAngle = \
             self._forwardCheck(relPosFront, frontPipe)
@@ -1082,8 +1083,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         
         found = False
         visibleBins = 0
-        robotPos = self.vehicle.robot.position + \
-            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
+        robotPos = self.robot.position + \
+            (self.robot.orientation * ogre.Vector3(0.5, 0, 0))
 
         for pipe in self._pipes:
             relativePos = pipe.position - robotPos
@@ -1150,8 +1151,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         found = False
         visibleBins = 0
         lastAngle = ext.math.Degree(0)
-        robotPos = self.vehicle.robot.position + \
-            (self.vehicle.robot.orientation * ogre.Vector3(0.5, 0, 0))
+        robotPos = self.robot.position + \
+            (self.robot.orientation * ogre.Vector3(0.5, 0, 0))
 
         for bin in self._bins:
             relativePos = bin.position - robotPos
@@ -1323,7 +1324,7 @@ class RenderCameraListener(ogre.RenderTargetListener):
         """
         
         ogre.RenderTargetListener.__init__(self)
-        self._vehicle = vehicle
+        self._trailMarker = vehicle.getDevice('TrailMarker')
         self._camera = camera
         self._bufferAddress = ctypes.addressof(buffer_)
         self._texture = texture
@@ -1333,10 +1334,10 @@ class RenderCameraListener(ogre.RenderTargetListener):
         self._lastTime = 0
 
     def preRenderTargetUpdate(self, renderTargetEvent):
-        self._vehicle.setMarkerVisibility(False)
+        self._trailMarker.setMarkerVisibility(False)
 
     def postRenderTargetUpdate(self, renderTargetEvent):
-        self._vehicle.setMarkerVisibility(True)
+        self._trailMarker.setMarkerVisibility(True)
         
         now = ram.timer.time()
         if 0 == self._lastTime:
@@ -1378,14 +1379,15 @@ class RenderCameraListener(ogre.RenderTargetListener):
 
 class SimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
-        self.vehicle = ext.core.Subsystem.getSubsystemOfType(SimVehicle, deps, 
-                                                             nonNone = True)
+        vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
+                                                        nonNone = True)
+        self.robot = vehicle.getDevice('SimulationDevice').robot
 
         # Creates ogre.renderer.OGRE.Camera and attaches it to the vehicle
         forwardOgreCamera = Simulation._createCamera(
-            self.vehicle.robot, '_forward', (0.5, 0, 0), (1, 0, 0))
+            self.robot, '_forward', (0.5, 0, 0), (1, 0, 0))
         downwardOgreCamera = Simulation._createCamera( 
-            self.vehicle.robot, '_downward', (0.5, 0, -0.1), (0, 0, -1))
+            self.robot, '_downward', (0.5, 0, -0.1), (0, 0, -1))
         
         # Create _forwardCamera, _forwardBuffer, and _forwardTexture
         self._setupCameraRendering(forwardOgreCamera, 640, 480)
@@ -1406,13 +1408,13 @@ class SimVision(ext.vision.VisionSystem):
         self._cameraUpdateInterval = 1.0 / cameraRate
 
         # Setup render target listeners to do the copying of images
-        self._forwardCameraListener = RenderCameraListener(self.vehicle,
+        self._forwardCameraListener = RenderCameraListener(vehicle,
             self._forwardCamera, self._forwardBuffer, self._forwardTexture,
             self._cameraUpdateInterval)
         self._forwardTexture.getBuffer().getRenderTarget().addListener(
             self._forwardCameraListener)
         
-        self._downwardCameraListener = RenderCameraListener(self.vehicle,
+        self._downwardCameraListener = RenderCameraListener(vehicle,
             self._downwardCamera, self._downwardBuffer, self._downwardTexture,
             self._cameraUpdateInterval)
         self._downwardTexture.getBuffer().getRenderTarget().addListener(
