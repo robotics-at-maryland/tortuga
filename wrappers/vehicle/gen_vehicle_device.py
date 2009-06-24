@@ -53,6 +53,10 @@ def generate(module_builder, local_ns, global_ns):
     IThruster = expose_device(local_ns, 'IThruster')
     wrappedClasses.append(IThruster)
 
+    # Wrap the IDepthSensor class
+    IDepthSensor = expose_device(local_ns, 'IDepthSensor')
+    wrappedClasses.append(IDepthSensor)
+
     # Wrap marker interfaces (slightly abuse expose device)
     IVoltageProvider = expose_device(local_ns, 'IVoltageProvider',
                                      register = False)
@@ -68,6 +72,10 @@ def generate(module_builder, local_ns, global_ns):
     # Wrap the ITempSensor class
     ITempSensor = expose_device(local_ns, 'ITempSensor')
     wrappedClasses.append(ITempSensor)
+
+    # Wrap the IIMU class
+    IIMU = expose_device(local_ns, 'IIMU')
+    wrappedClasses.append(IIMU)
 
     # Wrap the ISonar class
     ISonar = expose_device(local_ns, 'ISonar')

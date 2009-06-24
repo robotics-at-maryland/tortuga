@@ -37,9 +37,11 @@ veh_wrapped_headers = ['IVehicle.h',
 dev_wrapped_headers = ['device/Common.h',
                        'device/IDevice.h',
                        'device/IThruster.h',
+                       'device/IDepthSensor.h',
                        'device/IPowerSource.h',
                        'device/ITempSensor.h',
                        'device/IPayloadSet.h',
+                       'device/IIMU.h',
                        'device/ISonar.h']
 
 # Tests
