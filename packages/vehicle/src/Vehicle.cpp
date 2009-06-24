@@ -300,7 +300,14 @@ void Vehicle::update(double timestep)
         publish(IVehicle::DEPTH_UPDATE, nevent);
     }
 
-    /// TODO Send the position update
+    /// TODO Send the position & velocity update
+
+    // Update the devices if we are not running the background
+    if (!backgrounded())
+    {
+        BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+            pair.second->update(timestep);
+    }
 }
 
 void Vehicle::setPriority(core::IUpdatable::Priority priority)
@@ -323,7 +330,7 @@ void Vehicle::setAffinity(size_t affinity)
     Updatable::setAffinity(affinity);    
 }
     
-void Vehicle::background(int interval) 
+void Vehicle::background(int interval)
 {
     core::ConfigNode deviceConfig(m_config["Devices"]);
     
