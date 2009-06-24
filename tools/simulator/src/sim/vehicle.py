@@ -27,6 +27,7 @@ import ext.vehicle as vehicle
 import ext.vehicle.device as device
 import ext.math as math
 import sim.subsystems as subsystems
+import sim.sonar as sonar
 import ram.sim.scene as scene
 import ram.sim.graphics as graphics
 
@@ -128,6 +129,34 @@ class SimIMU(SimDevice, device.IIMU):
         return self._getActualOrientation()
 
 device.IDeviceMaker.registerDevice('SimIMU', SimIMU)
+
+
+class SimSonar(SimDevice, device.ISonar):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.ISonar.__init__(self, eventHub, self._name)
+        
+        # Initialize variables
+        self._direction = math.Vector3.ZERO
+        self._range = 0
+        
+        # Subscribe to pings from the simulation
+        eventHub.subscribeToType(sonar.Pinger.PING, self._onSonarUpdate)
+        
+    def getDirection(self):
+        return self._direction
+
+    def getRange(self):
+        return self._range
+
+    def _onSonarUpdate(self, event):
+        self._direction = event.direction
+        self._range = event.range
+        
+        self.publish(device.ISonar.UPDATE, event)
+
+device.IDeviceMaker.registerDevice('SimSonar', SimSonar)
 
 
 class SimThruster(SimDevice, device.IThruster):

@@ -25,6 +25,8 @@ class IPinger(IObject):
     
 class Pinger(Visual):
     core.implements(IVisual, IPinger)
+    
+    PING = ext.core.declareEventType('PING')
 
     PING_COUNT = 0
     
@@ -78,7 +80,7 @@ class Pinger(Visual):
 
         event.pingerID = self._pingerID
 
-        self._sonarSys.publish(ext.vehicle.device.ISonar.UPDATE, event)
+        self._sonarSys.publish(Pinger.PING, event)
     
 class SimSonar(ext.core.Subsystem):
     def __init__(self, config, deps):
