@@ -85,11 +85,11 @@ int main()
         WriteI2C((0x52 << 1) | I2C_WRITE);/* Send a packet to address 0x52,
                                             informing it of a write */
         IdleI2C();                       /* Wait for the end of transmission */
-        WaitAck();                       /* Wait for the NACK/ACK bit to set */
-        if(!wasAck()) {                  /* If we've gotten a NACK we're done */
-            LATE= 0x0004;                /* Turn on the Red LED! */
-            continue;
-        }
+//        WaitAck();                       /* Wait for the NACK/ACK bit to set */
+//        if(!wasAck()) {                  /* If we've gotten a NACK we're done */
+ //           LATE= 0x0004;                /* Turn on the Red LED! */
+  //          continue;
+   //     }
         WriteI2C(i);                     /* Pass the byte to the i2c bus */
         IdleI2C();                       /* Wait for the transmission to end */
         WaitAck();                       /* Wait for the ACK/NACK bit to set */
