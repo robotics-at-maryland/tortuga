@@ -286,6 +286,62 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
     conn->disconnect();
 }
 
+void vector2Helper(math::Vector2* result, ram::core::EventPtr event)
+{
+    math::Vector2EventPtr nevent =
+    boost::dynamic_pointer_cast<ram::math::Vector2Event>(event);
+    *result = nevent->vector2;
+}
+
+TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
+{
+    MockPositionSensor* positionSensor =
+        new MockPositionSensor("PositionSensor");
+//    MockIMU* imu = new MockIMU("IMU");
+
+    veh->_addDevice(vehicle::device::IDevicePtr(positionSensor));
+//    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    
+    math::Vector2 result(0, 0);
+    math::Vector2 expected(5.7, 2);
+    positionSensor->position = expected;
+    
+    // Subscribe to the event
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::POSITION_UPDATE,
+        boost::bind(vector2Helper, &result, _1));
+
+    veh->update(0);
+    CHECK_EQUAL(expected, result);
+    
+    conn->disconnect();
+}
+
+TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
+{
+    MockVelocitySensor* velocitySensor =
+        new MockVelocitySensor("VelocitySensor");
+//    MockIMU* imu = new MockIMU("IMU");
+
+    veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
+//    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    
+    math::Vector2 result(0, 0);
+    math::Vector2 expected(5.7, 2);
+    velocitySensor->velocity = expected;
+    
+    // Subscribe to the event
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::VELOCITY_UPDATE,
+        boost::bind(vector2Helper, &result, _1));
+
+    veh->update(0);
+    CHECK_EQUAL(expected, result);
+    
+    conn->disconnect();
+}
+
+
 struct ThrusterVehicleFixture
 {
     ThrusterVehicleFixture() :
