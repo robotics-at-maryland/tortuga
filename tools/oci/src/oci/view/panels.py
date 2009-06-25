@@ -348,6 +348,7 @@ class EventRatePanel(wx.grid.Grid):
                 self.filter = filter_
             self.timeStamp = timeStamp
             self.active = active
+            self.timesInActive = 0
     
     def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
@@ -377,6 +378,7 @@ class EventRatePanel(wx.grid.Grid):
                 data.filter.append(timeDifference)
             data.timeStamp = event.timeStamp
             data.active = True
+            data.timesInActive = 0
         else:
             # If the event hasn't been seen before, create it in the table
             location = len(self._eventRateTable)
@@ -396,25 +398,54 @@ class EventRatePanel(wx.grid.Grid):
             self.AutoSizeColumn(1)
             
     def _timerHandler(self, event):
-        for data in self._eventRateTable.itervalues():
+        deleteQueue = []
+        for key in self._eventRateTable.iterkeys():
+            data = self._eventRateTable[key]
             rate = 0
             average = data.filter.getAverage() 
             if average != 0:
                 rate = 1.0 / average
                 
             currentTime = timer.time()
-            if (currentTime - data.timeStamp) > (10*average):
-                data.filter = filter.MovingAverageFilter(10)
-                rate = 0
-                data.active = False
+            if data.active:
+                if (currentTime - data.timeStamp) > (10*average):
+                    data.filter = filter.MovingAverageFilter(10)
+                    rate = 0
+                    data.active = False
+                    data.timesInActive = 1
+            else:
+                # If the event has been inactive for 5 seconds, then queue
+                # it for deletion
+                # This runs 4 times a second, so the number is 20
+                if data.timesInActive >= 20:
+                    self.DeleteRows(pos = data.location)
+                    list = [b for b in self._eventRateTable.itervalues()]
+                    for b in list:
+                        if b.location > data.location:
+                            b.location -= 1
+                    # Add the key for deletion upon exit
+                    deleteQueue.append(key)
+                # Otherwise iterate the count
+                data.timesInActive += 1
                 
             self.SetCellValue(data.location, 1, "%4.1f" % rate)
+            
+        # Delete any items in the deleteQueue
+        for toDelete in deleteQueue:
+            del self._eventRateTable[toDelete]
+            
+        # Autosize
+        self.AutoSizeColumn(0)
+        self.AutoSizeColumn(1)
         
     def _onClose(self, closeEvent):
         for conn in self._connections:
             conn.disconnect()
        
         closeEvent.Skip()
+    
+    def _compareLocations(self, dataA, dataB):
+        return dataA.location - dataB.location
     
     @staticmethod
     def getPanels(subsystems, parent):
