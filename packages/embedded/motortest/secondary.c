@@ -60,7 +60,7 @@ int main()
     /* The value of the equation given by the formula on the reference sheet is
      * 21.75 for a 10MHz clock (so a 2.5MHz FCY) running on a 100kHz i2c port.
      * Thus we set the Baud Rate Generator to 0x16 (22 in decimal) */
-    initI2C(0x16);
+    initI2C(0x52);
 
     /* Initialize the UART module */
     /* We set the baud to 9600 */
@@ -73,8 +73,14 @@ int main()
      * a simple loop which takes input on the UART and stores it on PORTE */
     LATE= 0x0002;
     while(1) {
-        waitAddr();  /* Wait for something on the I2C bus */
-        i= waitRX();  /* Get the data off the bus */
+        IFS0bits.SI2CIF= 0;
+        while(!IFS0bits.SI2CIF)
+            ;
+        if(waitRX()) {    /* Get the data off the bus */
+            LATE= 0x0004;
+            continue;
+        }
+        i= I2CRCV;
         U1TXREG= i;  /* Chuck the byte to the serial port. */
     }
 
@@ -249,7 +255,7 @@ byte wasAck(void) {
 
 /* This function waits for the master to send an address which matches */
 void waitAddr(void) {
-    while(I2CSTATbits.D_A)
+    while(!I2CSTATbits.D_A)
         ;
 }
 
@@ -258,8 +264,8 @@ byte waitRX(void) {
     long timeout= 0;
     while(!I2CSTATbits.RBF) {
         if(timeout++ == I2C_TIMEOUT)
-            return 0;
+            return 255;
     }
 
-    return I2CRCV;
+    return 0;
 }
