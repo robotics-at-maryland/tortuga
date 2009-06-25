@@ -46,6 +46,12 @@ typedef boost::shared_ptr<IPSU> IPSUPtr;
 class IDepthSensor;
 typedef boost::shared_ptr<IDepthSensor> IDepthSensorPtr;
 
+class IPositionSensor;
+typedef boost::shared_ptr<IPositionSensor> IPositionSensorPtr;
+
+class IVelocitySensor;
+typedef boost::shared_ptr<IVelocitySensor> IVelocitySensorPtr;
+    
 class IPayloadSet;
 typedef boost::shared_ptr<IPayloadSet> IPayloadSetPtr;
     

@@ -32,6 +32,8 @@
 #include "vehicle/test/include/MockIMU.h"
 #include "vehicle/test/include/MockThruster.h"
 #include "vehicle/test/include/MockDepthSensor.h"
+#include "vehicle/test/include/MockVelocitySensor.h"
+#include "vehicle/test/include/MockPositionSensor.h"
 
 using namespace ram;
 
@@ -156,6 +158,67 @@ TEST_FIXTURE(VehicleFixture, DepthSensor)
     double expectedDepth = depth + 0.252;
     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
 }
+
+TEST_FIXTURE(VehicleFixture, VelocitySensor)
+{
+    // Create mock velocity sensor and IMU
+    MockVelocitySensor* velocitySensor =
+        new MockVelocitySensor("VelocitySensor");
+//    MockIMU* imu = new MockIMU("IMU");
+//    imu->orientation = math::Quaternion::IDENTITY;
+
+    // Add the mock devices to our vehicle
+    veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
+//    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    // Check the velocity
+    math::Vector2 velocity = math::Vector2(2,5);
+    velocitySensor->velocity = velocity;
+    CHECK_CLOSE(velocity, veh->getVelocity(), 0.0001);
+
+    // Now check velocity correction for orientation
+
+    // The sensor is in the back, left, and upper corner of the vehicle
+    //velocitySensor->location = math::Vector3(-1, -0.2, 0.2);
+    // We are pitched forward down by 15 degrees
+    //math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
+    //imu->orientation = orientation;
+    // We add to the expected velocity because the downward pitch moves our sensor
+    // to a shallow velocity then we are really at
+    //math::Vector2 expectedVelocity = velocity + 0.252;
+    //CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
+}
+
+TEST_FIXTURE(VehicleFixture, PositionSensor)
+{
+    // Create mock position sensor and IMU
+    MockPositionSensor* positionSensor =
+        new MockPositionSensor("PositionSensor");
+//    MockIMU* imu = new MockIMU("IMU");
+//    imu->orientation = math::Quaternion::IDENTITY;
+
+    // Add the mock devices to our vehicle
+    veh->_addDevice(vehicle::device::IDevicePtr(positionSensor));
+//    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    // Check the position
+    math::Vector2 position = math::Vector2(2,5);
+    positionSensor->position = position;
+    CHECK_CLOSE(position, veh->getPosition(), 0.0001);
+
+    // Now check position correction for orientation
+
+    // The sensor is in the back, left, and upper corner of the vehicle
+    //positionSensor->location = math::Vector3(-1, -0.2, 0.2);
+    // We are pitched forward down by 15 degrees
+    //math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
+    //imu->orientation = orientation;
+    // We add to the expected position because the downward pitch moves our sensor
+    // to a shallow position then we are really at
+    //math::Vector2 expectedPosition = position + 0.252;
+    //CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.00001);
+}
+
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {

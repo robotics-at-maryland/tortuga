@@ -25,6 +25,8 @@
 #include "vehicle/include/device/IIMU.h"
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/IPayloadSet.h"
+#include "vehicle/include/device/IPositionSensor.h"
+#include "vehicle/include/device/IVelocitySensor.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 
@@ -79,6 +81,10 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_magBoom(device::IIMUPtr()),
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
+    m_velocitySensorName(config["VelocitySensorName"].asString("VelocitySensor")),
+    m_velocitySensor(device::IVelocitySensorPtr()),
+    m_positionSensorName(config["PositionSensorName"].asString("PositionSensor")),
+    m_positionSensor(device::IPositionSensorPtr()),
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
     m_markerDropper(device::IPayloadSetPtr()),
     m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
@@ -183,9 +189,14 @@ double Vehicle::getDepth()
 
 math::Vector2 Vehicle::getPosition()
 {
-    return math::Vector2::ZERO;
+    return getPositionSensor()->getPosition();
 }
 
+math::Vector2 Vehicle::getVelocity()
+{
+    return getVelocitySensor()->getVelocity();
+}
+    
 math::Vector3 Vehicle::getLinearAcceleration()
 {
     return getIMU()->getLinearAcceleration();
@@ -300,7 +311,20 @@ void Vehicle::update(double timestep)
         publish(IVehicle::DEPTH_UPDATE, nevent);
     }
 
-    /// TODO Send the position & velocity update
+    if (m_devices.end() != m_devices.find(m_positionSensorName))
+    {    
+        math::Vector2EventPtr velocityEvent(new math::Vector2Event());
+        velocityEvent->vector2 = getPosition();
+        publish(IVehicle::POSITION_UPDATE, velocityEvent);
+    }
+
+    if (m_devices.end() != m_devices.find(m_velocitySensorName))
+    {    
+        math::Vector2EventPtr velocityEvent(new math::Vector2Event());
+        velocityEvent->vector2 = getVelocity();
+        publish(IVehicle::VELOCITY_UPDATE, velocityEvent);
+    }
+
 
     // Update the devices if we are not running the background
     if (!backgrounded())
@@ -413,6 +437,27 @@ device::IPayloadSetPtr Vehicle::getTorpedoLauncher()
     return m_torpedoLauncher;
 }
 
+device::IVelocitySensorPtr Vehicle::getVelocitySensor()
+{
+    if (!m_velocitySensor)
+    {
+        m_velocitySensor = device::IDevice::castTo<device::IVelocitySensor>(
+            getDevice(m_velocitySensorName));
+    }
+    return m_velocitySensor;
+}
+    
+device::IPositionSensorPtr Vehicle::getPositionSensor()
+{
+    if (!m_positionSensor)
+    {
+        m_positionSensor = device::IDevice::castTo<device::IPositionSensor>(
+            getDevice(m_positionSensorName));
+    }
+    return m_positionSensor;
+}
+
+    
     
 bool Vehicle::lookupThrusterDevices()
 {

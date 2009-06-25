@@ -40,6 +40,8 @@ public:
     virtual double getDepth();
 
     virtual math::Vector2 getPosition();
+    
+    virtual math::Vector2 getVelocity();
 
     math::Vector3 getLinearAcceleration();
 
@@ -107,6 +109,12 @@ protected:
     /** Grabs the torpedo launcher device */
     device::IPayloadSetPtr getTorpedoLauncher();
     
+    /** Grabs the velocity sensor from the current list of devices*/
+    device::IVelocitySensorPtr getVelocitySensor();
+    
+    /** Grabs the position sensor from the current list of devices*/
+    device::IPositionSensorPtr getPositionSensor();
+    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
     
@@ -138,6 +146,12 @@ private:
     std::string m_depthSensorName;
     vehicle::device::IDepthSensorPtr m_depthSensor;
 
+    std::string m_velocitySensorName;
+    vehicle::device::IVelocitySensorPtr m_velocitySensor;
+
+    std::string m_positionSensorName;
+    vehicle::device::IPositionSensorPtr m_positionSensor;
+    
     std::string m_markerDropperName;
     vehicle::device::IPayloadSetPtr m_markerDropper;
 

@@ -30,6 +30,7 @@ public:
         IVehicle("MockVehicle"),
         depth(0),
         position(0, 0),
+        velocity(0, 0),
         linearAcceleration(0, 0, 0),
         angularRate(0, 0, 0),
         orientation(0,0,0,1),
@@ -61,6 +62,8 @@ public:
     virtual double getDepth()  { return depth; }
 
     virtual ram::math::Vector2 getPosition() { return position; }
+
+    virtual ram::math::Vector2 getVelocity() { return velocity; }
 
     virtual std::vector<std::string> getTemperatureNames()
     {
@@ -128,6 +131,7 @@ public:
     
     double depth;
     ram::math::Vector2 position;
+    ram::math::Vector2 velocity;
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 angularRate;
     ram::math::Quaternion orientation;

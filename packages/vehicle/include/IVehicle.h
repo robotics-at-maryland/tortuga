@@ -58,9 +58,11 @@ public:
 
     /** When the vehicles position changes (ram::math::Vector2Event) */
     static const core::Event::EventType POSITION_UPDATE;
-    
-    /* @{ */
 
+    /** When the vehicles velocity changes (ram::math::Vector2Event) */
+    static const core::Event::EventType VELOCITY_UPDATE;
+
+    /* @{ */
     
     virtual ~IVehicle();
 
@@ -73,8 +75,11 @@ public:
     /** Return the current vehicle depth in feet */
     virtual double getDepth() = 0;
 
-    /** The position in place position of the vehicle, in world frame */
+    /** The position of the vehicle, in world frame, in meters */
     virtual math::Vector2 getPosition() = 0;
+
+    /** The velocity of the vehicle, in world frame, in meters/second */
+    virtual math::Vector2 getVelocity() = 0;
     
     /** The linear of acceleration (w/gravity) in the vehicle's local frame */
     virtual math::Vector3 getLinearAcceleration() = 0;
