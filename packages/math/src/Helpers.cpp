@@ -13,6 +13,8 @@
 // Project Includes
 #include "core/include/Platform.h"
 #include "math/include/Helpers.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Matrix3.h"
 
 namespace ram {
 namespace math {
@@ -394,15 +396,10 @@ q - a quaternion with the parameterization:
 
 */
 void rotationMatrixFromQuaternion(double q[4], double * pRot){
-    *(pRot) = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3];
-    *(pRot+1) = 2*(q[0]*q[1]-q[2]*q[3]);
-    *(pRot+2) = 2*(q[0]*q[2]-q[1]*q[3]);
-    *(pRot+3) = 2*(q[0]*q[1]+q[2]*q[3]);
-    *(pRot+4) = -q[0]*q[0]+q[1]*q[1]-q[2]*q[2]+q[3]*q[3];
-    *(pRot+5) = 2*(q[1]*q[2]+q[0]*q[3]);
-    *(pRot+6) = 2*(q[0]*q[2]-q[1]*q[3]);
-    *(pRot+7) = 2*(q[1]*q[2]-q[0]*q[3]);
-    *(pRot+8) = -q[0]*q[0]-q[1]*q[1]+q[2]*q[2]+q[3]*q[3];
+    Quaternion quat(q);
+    Matrix3 result;
+    quat.ToRotationMatrix(result);
+    memcpy(pRot, &result, sizeof(double) * 9);
 }
 
 /*

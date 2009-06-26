@@ -13,8 +13,79 @@
 // Project Includes
 #include "control/include/ControlFunctions.h"
 #include "math/test/include/MathChecks.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Vector3.h"
 
 using namespace ram;
+
+TEST(TranslationController)
+{
+    // Depth test
+    control::DesiredState desired;
+    memset(&desired, sizeof(control::DesiredState), 0);
+    desired.depth = 1;
+
+    // At 0 depth, pitched down 45 degrees
+    control::MeasuredState measured = {0};
+    math::Quaternion orien(math::Degree(45), math::Vector3::UNIT_Y);
+    memcpy(measured.quaternion, orien.ptr(), sizeof(measured.quaternion));
+
+    control::ControllerState state = {0};
+    state.depthPGain = 1;
+    state.depthControlType = 1; // P controller
+
+    control::EstimatedState estimated;
+    memset(&estimated, sizeof(control::EstimatedState), 0);
+
+    // The expected
+    math::Vector3 expected(0.707106781, 0, -0.707106781);
+
+    // Run the controller
+    math::Vector3 result;
+    translationalController(&measured, &desired, &state, &estimated, 0.1,
+                            result.ptr());
+
+    CHECK_CLOSE(expected, result, 0.0001);
+    
+    // Speed test
+    desired.depth = 0;
+    desired.speed = 1;
+
+    // At 0 depth, pitched down 45 degrees
+    // Keeping old measured state
+    
+    state.depthPGain = 0;
+    state.speedPGain = 1;
+
+    // The expected
+    result = math::Vector3::ZERO;
+    expected = math::Vector3(0.707106781, 0, 0.707106781);
+
+    // Run the controller
+    translationalController(&measured, &desired, &state, &estimated, 0.1,
+                            result.ptr());
+
+    CHECK_CLOSE(expected, result, 0.0001);
+
+    // Combine
+    desired.depth = 1;
+
+    // At 0 depth, pitched down 45 degrees
+    // Keeping old measured state
+    
+    memset(&state, sizeof(state), 0);
+    state.depthPGain = 1;
+
+    // The expected
+    result = math::Vector3::ZERO;
+    expected = math::Vector3(0.707106781 * 2, 0, 0);
+
+    // Run the controller
+    translationalController(&measured, &desired, &state, &estimated, 0.1,
+                            result.ptr());
+
+    CHECK_CLOSE(expected, result, 0.0001);
+}
 
 TEST(BongWiePDRotationalController)
 {

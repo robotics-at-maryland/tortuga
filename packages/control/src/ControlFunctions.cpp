@@ -62,8 +62,6 @@ void translationalController(MeasuredState* measuredState,
                              double dt,
                              double* translationalForces){
 
-    double translationControlSignal[3];
-
     double depthControlSignal=0;
 
     /*Select type of Depth Controller
@@ -113,33 +111,25 @@ void translationalController(MeasuredState* measuredState,
 
     
     //now put single axis control signal in a proper inertial frame
-    double depthComponent[3];
-    depthComponent[0]=0;
-    depthComponent[1]=0;
-    depthComponent[2]=-depthControlSignal;
+    math::Vector3 depthComponent(0, 0, -depthControlSignal);
 
     //now rotate depth control component to the vehicle's coordinate frame
-    double rotationMatrix[3][3];
-    rotationMatrixFromQuaternion(measuredState->quaternion,&rotationMatrix[0][0]);
-    matrixMult3x1by3x3(rotationMatrix,depthComponent,&translationControlSignal[0]);
+    math::Quaternion quat(
+        math::Quaternion(measuredState->quaternion).Inverse());
+    math::Vector3 bodyFrameDepthComponent = quat * depthComponent;
 
-    /*
-    // Quaternion is bogus doing it manually
-    translationControlSignal[0] = 0;
-    translationControlSignal[1] = 0;
-    translationControlSignal[2] = -depthControlSignal;
-    */
             
-    //fore-aft control (open loop, not really control) done in vehicle coordinates
-    double foreAftComponent[3];
-    foreAftComponent[0] = (controllerState->speedPGain)*(desiredState->speed);
-    foreAftComponent[1] =
-        (controllerState->sidewaysSpeedPGain) * (desiredState->sidewaysSpeed);
-    foreAftComponent[2] = 0;
-
+    //fore-aft control (open loop, not really control) done in interial
+    // coordinates
+    math::Vector3 foreAftComponent(
+        (controllerState->speedPGain)*(desiredState->speed),
+        (controllerState->sidewaysSpeedPGain) * (desiredState->sidewaysSpeed),
+        0);
+    math::Vector3 bodyFrameforeAftComponent = quat * foreAftComponent;
 
     //combine fore-aft with depth control
-    matrixAdd3x1and3x1(translationControlSignal, foreAftComponent, &translationControlSignal[0]);
+    math::Vector3 translationControlSignal =
+        bodyFrameDepthComponent + bodyFrameforeAftComponent;
 
     //save to memory
     *(translationalForces) = translationControlSignal[0];
