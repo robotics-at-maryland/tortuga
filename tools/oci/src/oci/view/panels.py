@@ -380,13 +380,22 @@ class EventRatePanel(wx.grid.Grid):
             data.active = True
             data.timesInActive = 0
         else:
-            # If the event hasn't been seen before, create it in the table
-            location = len(self._eventRateTable)
-
             name = str(event.type)
-            name = name[name.find(' '):]
+            name = name[name.find(' ')+1:]
             
-            self.AppendRows(1)
+            list = [b for b in self._eventRateTable.itervalues()]
+            list.sort(cmp = self._compareLocations)
+            
+            # If the event hasn't been seen before, create it in the table
+            location = self._findLocation(list, name)
+            
+            # Insert a row at the location
+            self.InsertRows(pos = location)
+            
+            # Increment the location for all data below the new one
+            for oldValue in list:
+                if oldValue.location >= location:
+                    oldValue.location += 1
             
             self._eventRateTable[event.type] = \
                 EventRatePanel.EventData(name, location, event.timeStamp)
@@ -443,6 +452,12 @@ class EventRatePanel(wx.grid.Grid):
             conn.disconnect()
        
         closeEvent.Skip()
+        
+    def _findLocation(self, list, name, iter = 0):
+        size = len(list)
+        while (iter < size) and (list[iter].name < name):
+            iter += 1
+        return iter
     
     def _compareLocations(self, dataA, dataB):
         return dataA.location - dataB.location
