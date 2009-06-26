@@ -22,6 +22,7 @@
 #include "core/include/EventConnection.h"
 #include "core/test/include/BufferedAppender.h"
 
+#include "math/include/Events.h"
 #include "math/test/include/MathChecks.h"
 
 class TestSensorBoard : public ram::vehicle::device::SensorBoard
@@ -85,33 +86,25 @@ struct SensorBoardFixture
 
 const std::string BASE_CONFIG = "{ 'name' : 'SensorBoard',";
 const std::string BLANK_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
-        "'depthCalibIntercept' : 1}";
+        "'depthCalibIntercept' : 0}";
 const std::string LOC_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
         "'depthSensorLocation' : [1.0, 2.0, 3.0],"
-        "'depthCalibIntercept' : 1}";
+        "'depthCalibIntercept' : 0}";
 
 #define LENGTH(X) (sizeof(X)/sizeof(*X))
 
 TEST_FIXTURE(SensorBoardFixture, getDepth)
 {
-    //std::string config = BASE_CONFIG + "'depthCalibSlope' : 5,"
-        //"'depthCalibIntercept' : 0}";
-//
-    //TestSensorBoard* sb = new TestSensorBoard(
-        //ram::core::ConfigNode::fromString(config));
+    std::string config = BASE_CONFIG + "'depthCalibSlope' : 5,"
+        "'depthCalibIntercept' : 2}";
 
-    // This makes the zero point 15 counts
-    //int calibDepths[] = {5,10,15,20,25};
-    //for (size_t i = 0; i < LENGTH(calibDepths); ++i)
-    //{
-        //sb->depth = calibDepths[i];
-        //sb->update(0);
-    //}
-//
-    //sb->depth = 15 + 5;;
-    ////sb->update(0);
-    //CHECK_EQUAL(1.0, sb->getDepth());
-    //delete sb;
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(config));
+
+    sb->depth = 17; // (3 * slope) + intercept
+    sb->update(0);
+    CHECK_CLOSE(3.0, sb->getDepth(), 0.00001);
+    delete sb;
 }
 
 TEST_FIXTURE(SensorBoardFixture, getLocation)
@@ -354,6 +347,46 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
 
     delete testSb;
 }
+
+
+typedef std::vector<ram::math::NumericEventPtr>
+DepthSensorEventPtrList;
+
+void depthSensorUpdateHelper(DepthSensorEventPtrList* list,
+                             ram::core::EventPtr event)
+{
+    list->push_back(boost::dynamic_pointer_cast<
+                    ram::math::NumericEvent>(event));
+}
+
+TEST_FIXTURE(SensorBoardFixture, event_DEPTH_UPDATE)
+{
+    TestSensorBoard* sb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BLANK_CONFIG));
+
+    double expectedDepth = 6;
+
+    // Set values to be returned
+    sb->updateDone = true;
+    sb->depth = expectedDepth;
+
+    // Register handler and trigger and update
+    DepthSensorEventPtrList eventList;
+    ram::core::EventConnectionPtr conn = sb->subscribe(
+        ram::vehicle::device::IDepthSensor::UPDATE,
+        boost::bind(depthSensorUpdateHelper, &eventList, _1));
+    sb->update(0);
+
+    // Check to make sure we got the proper number of updates
+    CHECK_EQUAL(1u, eventList.size());
+
+    // Make sure the values were correct
+    CHECK_CLOSE(expectedDepth, eventList[0]->number, 0.00001);
+    
+    conn->disconnect();
+    delete sb;
+}
+
 
 typedef std::vector<ram::vehicle::PowerSourceEventPtr>
 PowerSourceEventPtrList;

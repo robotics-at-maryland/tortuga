@@ -14,8 +14,10 @@
 // Test Includes
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/test/include/MockDevice.h"
+#include "vehicle/test/include/MockIMU.h"
 
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockDevice, MockDevice);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockIMU, MockIMU);
 
 
 using namespace ram::vehicle;

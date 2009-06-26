@@ -16,6 +16,7 @@
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
 #include "math/include/Quaternion.h"
+#include "math/include/Vector3.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -29,6 +30,8 @@ class RAM_EXPORT IIMU : public IDevice         // For getName
              // boost::noncopyable
 {
 public:
+    static const core::Event::EventType UPDATE;
+    
     virtual ~IIMU();
 
     virtual math::Vector3 getLinearAcceleration() = 0;

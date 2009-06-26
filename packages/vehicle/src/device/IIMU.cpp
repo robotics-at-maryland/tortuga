@@ -10,6 +10,8 @@
 // Project Includes
 #include "vehicle/include/device/IIMU.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, UPDATE);
+
 namespace ram {
 namespace vehicle {
 namespace device {

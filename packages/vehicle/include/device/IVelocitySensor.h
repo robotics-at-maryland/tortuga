@@ -31,6 +31,8 @@ class RAM_EXPORT IVelocitySensor : public IDevice // For getName
              // boost::noncopyable
 {
 public:
+    static const core::Event::EventType UPDATE;
+    
     virtual ~IVelocitySensor();
 
     /** The current velocity the sensor is reading in meters/second */

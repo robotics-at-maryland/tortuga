@@ -131,6 +131,7 @@ void SensorBoard::update(double timestep)
     }
 
     int partialRet = SB_ERROR;
+    double depth = 0;
     {
         boost::mutex::scoped_lock lock(m_deviceMutex);
     
@@ -147,10 +148,12 @@ void SensorBoard::update(double timestep)
     
         // Now read depth and set its state
         int ret = readDepth();
-        double depth = (((double)ret) - m_depthCalibIntercept) /
-            m_depthCalibSlope; 
-         state.depth = depth;
+        depth = (((double)ret) - m_depthCalibIntercept) / m_depthCalibSlope; 
+        state.depth = depth;
     } // end deviceMutex lock
+
+    // Publish depth event
+    depthEvent(depth);
 
     // If we got the battery use status or the latest voltages recompute bus
     // Voltage
@@ -482,6 +485,13 @@ bool SensorBoard::handleReturn(int ret)
     return true;
 }
 
+void SensorBoard::depthEvent(double depth)
+{
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = depth;
+    publish(IDepthSensor::UPDATE, event);
+}
+    
 void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)
 {
     static int id2Enable[5] = {

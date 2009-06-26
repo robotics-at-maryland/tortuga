@@ -29,6 +29,14 @@ public:
 
     virtual ram::math::Vector2 getVelocity() { return velocity; }
     virtual ram::math::Vector3 getLocation() { return location; }
+
+    void publishUpdate(ram::math::Vector2 update)
+    {
+        velocity = update;
+        ram::math::Vector2EventPtr nevent(new ram::math::Vector2Event());
+        nevent->vector2 = update;
+        publish(ram::vehicle::device::IVelocitySensor::UPDATE, nevent);
+    }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();

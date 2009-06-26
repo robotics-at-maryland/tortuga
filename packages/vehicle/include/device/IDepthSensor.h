@@ -30,6 +30,8 @@ class RAM_EXPORT IDepthSensor : public IDevice         // For getName
              // boost::noncopyable
 {
 public:
+    static const core::Event::EventType UPDATE;
+    
     virtual ~IDepthSensor();
 
     /** The current depth the sensor is reading in feet */

@@ -29,11 +29,19 @@ public:
 
     virtual double getDepth() { return depth; }
     virtual ram::math::Vector3 getLocation() { return location; }
+
+    void publishUpdate(double update)
+    {
+        depth = update;
+        ram::math::NumericEventPtr nevent(new ram::math::NumericEvent());
+        nevent->number = update;
+        publish(ram::vehicle::device::IDepthSensor::UPDATE, nevent);
+    }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
     }
-
+    
     virtual void setPriority(ram::core::IUpdatable::Priority) {};
     virtual ram::core::IUpdatable::Priority getPriority() {
         return ram::core::IUpdatable::NORMAL_PRIORITY;

@@ -225,6 +225,9 @@ private:
 
     bool handleReturn(int ret);
 
+    /** Triggers the depth event  */
+    void depthEvent(double depth);
+    
     /** Triggers power source events */
     void powerSourceEvents(struct boardInfo* telemetry);
 

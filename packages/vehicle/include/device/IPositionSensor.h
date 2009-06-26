@@ -31,6 +31,8 @@ class RAM_EXPORT IPositionSensor : public IDevice // For getName
              // boost::noncopyable
 {
 public:
+    static const core::Event::EventType UPDATE;
+    
     virtual ~IPositionSensor();
 
     /** The current position the sensor is reading in meters */

@@ -19,9 +19,11 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
+
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix3.h"
+#include "math/include/Events.h"
 
 #include "drivers/imu/include/imuapi.h"
 
@@ -164,6 +166,7 @@ void IMU::update(double timestep)
 //                   magnetometer[1], magnetometer[2]);
 
             double quaternion[4] = {0,0,0,1};
+            math::Quaternion updateQuat;
             {
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
 
@@ -177,7 +180,8 @@ void IMU::update(double timestep)
 		difference = fabs(difference);
 				
 		if(difference < m_magCorruptThresh){
-		  quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+		  quaternionFromIMU(magnetometer, linearAcceleration,
+                                    quaternion);
 		}else{
 		  double quaternionOld[4] = {0,0,0,0};
 		  quaternionOld[0] = m_orientation.x;
@@ -188,7 +192,8 @@ void IMU::update(double timestep)
 		  omega[0] = m_filteredGyroX.getValue();
 		  omega[1] = m_filteredGyroY.getValue();
 		  omega[2] = m_filteredGyroZ.getValue();
-		  quaternionFromRate(quaternionOld, omega, timestep, quaternion);
+		  quaternionFromRate(quaternionOld, omega, timestep,
+                                     quaternion);
 		}
 
 				
@@ -197,12 +202,18 @@ void IMU::update(double timestep)
                 m_orientation.y = quaternion[1];
                 m_orientation.z = quaternion[2];
                 m_orientation.w = quaternion[3];
-
+                updateQuat = m_orientation;
 //                printf("Q: %7.4f %7.4f %7.4f %7.4f\n", m_orientation.x,
 //                       m_orientation.y, m_orientation.z,
 //                       m_orientation.w);
             }
 
+            // Send Event
+            math::OrientationEventPtr oevent(new math::OrientationEvent());
+            oevent->orientation = updateQuat;
+            publish(IIMU::UPDATE, oevent);
+
+            // Log data directly
             LOGGER.infoStream() << m_filteredAccelX.getValue() << " "
                                 << m_filteredAccelY.getValue() << " "
                                 << m_filteredAccelZ.getValue() << " "
@@ -223,11 +234,6 @@ void IMU::update(double timestep)
                                 << newState.gyroZ << " "
                                 << quaternion[0] << " " << quaternion[1] << " "
                                 << quaternion[2] << " " << quaternion[3];
-
-            // TODO: Make me events
-            // Nofity observers
-	    //            setChanged();
-	    //            notifyObservers(0, DataUpdate);
         }
     }
     // We didn't connect, try to reconnect

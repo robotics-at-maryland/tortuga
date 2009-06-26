@@ -68,7 +68,7 @@ TEST(DeviceCreation)
             "{"
             "'name' : 'TestVehicle',"
             "'Devices' : {"
-            "    'IMU' : {'type' : 'MockDevice'},"
+            "    'IMU' : {'type' : 'MockIMU'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             " },"
             "}";
@@ -82,7 +82,7 @@ TEST(DeviceCreation)
     CHECK_EQUAL("PSU", veh->getDevice("PSU")->getName());
 
     // Check to make sure the device got the right vehicle
-    MockDevice* dev = dynamic_cast<MockDevice*>(veh->getDevice("IMU").get());
+    MockDevice* dev = dynamic_cast<MockDevice*>(veh->getDevice("PSU").get());
     CHECK(dev);
     CHECK_EQUAL(veh, dev->vehicle.get());
     
@@ -202,7 +202,7 @@ TEST_FIXTURE(VehicleFixture, PositionSensor)
 //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
 
     // Check the position
-    math::Vector2 position = math::Vector2(2,5);
+    math::Vector2 position = math::Vector2(2, 5);
     positionSensor->position = position;
     CHECK_CLOSE(position, veh->getPosition(), 0.0001);
 
@@ -251,6 +251,7 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
         boost::bind(orientationHelper, &result, _1));
 
     veh->update(0);
+    imu->publishUpdate(expected);
     CHECK_EQUAL(expected, result);
     
     conn->disconnect();
@@ -281,6 +282,7 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
         boost::bind(depthHelper, &result, _1));
 
     veh->update(0);
+    depthSensor->publishUpdate(expected);
     CHECK_EQUAL(expected, result);
     
     conn->disconnect();
@@ -312,6 +314,7 @@ TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
         boost::bind(vector2Helper, &result, _1));
 
     veh->update(0);
+    positionSensor->publishUpdate(expected);
     CHECK_EQUAL(expected, result);
     
     conn->disconnect();
@@ -336,6 +339,7 @@ TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
         boost::bind(vector2Helper, &result, _1));
 
     veh->update(0);
+    velocitySensor->publishUpdate(expected);
     CHECK_EQUAL(expected, result);
     
     conn->disconnect();

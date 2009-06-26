@@ -29,6 +29,14 @@ public:
 
     virtual ram::math::Vector2 getPosition() { return position; }
     virtual ram::math::Vector3 getLocation() { return location; }
+
+    void publishUpdate(ram::math::Vector2 update)
+    {
+        position = update;
+        ram::math::Vector2EventPtr nevent(new ram::math::Vector2Event());
+        nevent->vector2 = update;
+        publish(ram::vehicle::device::IPositionSensor::UPDATE, nevent);
+    }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();

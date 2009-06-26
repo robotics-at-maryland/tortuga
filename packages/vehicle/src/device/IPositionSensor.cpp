@@ -10,6 +10,8 @@
 // Project Includes
 #include "vehicle/include/device/IPositionSensor.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IPositionSensor, UPDATE);
+
 namespace ram {
 namespace vehicle {
 namespace device {

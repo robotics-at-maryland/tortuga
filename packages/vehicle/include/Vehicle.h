@@ -89,34 +89,34 @@ public:
 
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
-
-    /** Records the next 5 depths readings and sets it as the offset */
-    void calibrateDepth();
     
 protected:
-    /** Grabs the IMU from the current list of devices */
-    device::IIMUPtr getIMU();
+    /** Get the depth directly from the depth sensor */
+    double getRawDepth();
 
-    /** Grabs the Mag Boom IMU from the current list of devices */
-    device::IIMUPtr getMagBoom();
-    
-    /** Grabs the depth sensor from the current list of devices*/
-    device::IDepthSensorPtr getDepthSensor();
+    /** Get the position directly from the position sensor */
+    math::Vector2 getRawPosition();
 
-    /** Grabs the marker dropper device */
-    device::IPayloadSetPtr getMarkerDropper();
+    /** Get the velocity directly from the velocity sensor */
+    math::Vector2 getRawVelocity();
 
-    /** Grabs the torpedo launcher device */
-    device::IPayloadSetPtr getTorpedoLauncher();
-    
-    /** Grabs the velocity sensor from the current list of devices*/
-    device::IVelocitySensorPtr getVelocitySensor();
-    
-    /** Grabs the position sensor from the current list of devices*/
-    device::IPositionSensorPtr getPositionSensor();
+    /** Get the orientation directly from the orientation sensor */
+    math::Quaternion getRawOrientation();
     
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
+
+    /** Called when the depth sensor has an update, publishes vehicle update */
+    void onDepthUpdate(core::EventPtr event);
+
+    /** Called when the IMU has an update, publishes vehicle update */
+    void onOrientationUpdate(core::EventPtr event);
+
+    /** Called when the position sensor has an update, publises vehicle up. */
+    void onPositionUpdate(core::EventPtr event);
+
+    /** Called when the velocity sensor has an update, publises vehicle up. */
+    void onVelocityUpdate(core::EventPtr event);
     
 private:
     core::ConfigNode m_config;
@@ -142,15 +142,20 @@ private:
     bool m_hasMagBoom;
     std::string m_magBoomName;
     vehicle::device::IIMUPtr m_magBoom;
+
+    core::EventConnectionPtr m_orientationConnection;
     
     std::string m_depthSensorName;
     vehicle::device::IDepthSensorPtr m_depthSensor;
-
+    core::EventConnectionPtr m_depthConnection;
+    
     std::string m_velocitySensorName;
     vehicle::device::IVelocitySensorPtr m_velocitySensor;
-
+    core::EventConnectionPtr m_velocityConnection;
+    
     std::string m_positionSensorName;
     vehicle::device::IPositionSensorPtr m_positionSensor;
+    core::EventConnectionPtr m_positionConnection;
     
     std::string m_markerDropperName;
     vehicle::device::IPayloadSetPtr m_markerDropper;

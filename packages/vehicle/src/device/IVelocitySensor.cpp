@@ -10,6 +10,8 @@
 // Project Includes
 #include "vehicle/include/device/IVelocitySensor.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IVelocitySensor, UPDATE);
+
 namespace ram {
 namespace vehicle {
 namespace device {
