@@ -25,6 +25,9 @@ namespace device {
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
 
+class IStateEstimator;
+typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
+    
 class IThruster;
 typedef boost::shared_ptr<IThruster> IThrusterPtr;
     

@@ -28,6 +28,7 @@
 #include "vehicle/include/device/IPayloadSet.h"
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/device/LoopStateEstimator.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 
@@ -76,6 +77,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_bottomThrusterName(
         config["BottomThrusterName"].asString("BottomThruster")),
     m_bottomThruster(device::IThrusterPtr()),
+    m_stateEstimatorName(config["StateEstimatorName"].asString("StateEstimator")),
+    m_stateEstimator(device::IStateEstimatorPtr()),
     m_imuName(config["IMUName"].asString("IMU")),
     m_imu(device::IIMUPtr()),
     m_hasMagBoom(false),
@@ -119,6 +122,16 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         }
     }
 
+    // Now lets create our default state estimator if we don't have one
+    if (!m_stateEstimator)
+    {
+        m_stateEstimator = device::IStateEstimatorPtr(
+            new device::LoopStateEstimator(
+                config,
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+    
     // If we specified a name of the mag boom we actually have one
     if (m_magBoomName.size() > 0)
         m_hasMagBoom = true;
@@ -285,6 +298,15 @@ void Vehicle::_addDevice(device::IDevicePtr device)
 {
     std::string name(device->getName());
     m_devices[name] = device;
+
+    device::LoopStateEstimator* loopEstimator =
+        boost::dynamic_pointer_cast<device::LoopStateEstimator>(
+            m_stateEstimator).get();
+    if (loopEstimator && (name == m_stateEstimatorName))
+    {
+        m_stateEstimator =
+            device::IDevice::castTo<device::IStateEstimator>(device);
+    }
     
     if ((!m_imu) && (name == m_imuName))
     {
@@ -559,7 +581,8 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
 {
     math::NumericEventPtr nevent =
         boost::dynamic_pointer_cast<math::NumericEvent>(event);
-    nevent->number = getDepth();
+    m_stateEstimator->depthUpdate(getDepth());
+    nevent->number = m_stateEstimator->getDepth();
     publish(IVehicle::DEPTH_UPDATE, event);
 }
 
@@ -567,7 +590,8 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
 {
     math::OrientationEventPtr oevent =
         boost::dynamic_pointer_cast<math::OrientationEvent>(event);
-    oevent->orientation = getOrientation();
+    m_stateEstimator->orientationUpdate(getOrientation());
+    oevent->orientation = m_stateEstimator->getOrientation();
     publish(IVehicle::ORIENTATION_UPDATE, event);
 }
 
@@ -575,18 +599,18 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
 {
     math::Vector2EventPtr oevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-    oevent->vector2 = getPosition();
+    m_stateEstimator->positionUpdate(getPosition());
+    oevent->vector2 = m_stateEstimator->getPosition();
     publish(IVehicle::POSITION_UPDATE, event);
-
 }
 
 void Vehicle::onVelocityUpdate(core::EventPtr event)
 {
     math::Vector2EventPtr oevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-    oevent->vector2 = getVelocity();
+    m_stateEstimator->velocityUpdate(getVelocity());
+    oevent->vector2 = m_stateEstimator->getVelocity();
     publish(IVehicle::VELOCITY_UPDATE, event);
-
 }
 
     
