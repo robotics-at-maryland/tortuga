@@ -118,7 +118,10 @@ int main(int argc, char *argv[])
             }
 		}
 		if (i >= begin && i < end && (i % skip == 0))
-			fwrite(diffs, sizeof(*diffs), N, stdout);
+                {
+                    int ret= fwrite(diffs, sizeof(*diffs), N, stdout);
+                    assert(ret==N);
+                }
 	}
 	return 0;
 }
