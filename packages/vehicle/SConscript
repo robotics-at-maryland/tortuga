@@ -5,9 +5,15 @@
 # Author: Joseph Lisee <jlisee@umd.edu>
 # File:  packages/vehicle/SConscript
 
+# Build System imports
+import buildfiles.libs as libs
+
 # Copy Our Build Environment
 Import('env')
 envl = env.Clone()
+
+ext_deps = []
+int_deps = ['vehicle']
 
 # Sources
 sources = env.Glob('src', '*.cpp')
@@ -16,19 +22,35 @@ sources.extend(env.Glob('src/device', '*.cpp'))
 # Doesn't Work
 # sources.remove('src/IVehicle.cpp')
 
-# If we aren't building the drivers, remove the sources that depend on them
+# If we aren't building the drivers or the vision code, remove the sources
+# that depend on them
 excludedDevices = ['IMU',
                    'PSU',
                    'SensorBoard',
-                   'SBMarkerDropper',
                    'SBPowerSource',
-                   'SBThruster',
+                   'SBPowerBus',
                    'SBTempSensor',
-                   'SBSonar']
+                   'SBThruster',
+                   'SBSonar',
+                   'SBMarkerDropper',
+                   'SBTorpedoLauncher',
+                   ]
+visionDevices = ['VisionVelocitySensor']
+
 if not env.HasFeature('drivers'):
     # Remove hardware devices
     for deviceName in excludedDevices:
         sources.remove('src/device/' + deviceName + '.cpp')
+        
+if not env.HasFeature('vision'):
+    # Remove hardware devices
+    for deviceName in visionDevices:
+        sources.remove('src/device/' + deviceName + '.cpp')
+else:
+    # Add the vision library to our linking
+    libs.add_internal(envl, 'vision')
+    int_deps.append('vision')
+        
 
 # Build Procducts (library will be called 'libram_vehicle.so')
 envl.RAMSharedLibrary('vehicle',  source = sources)
@@ -38,25 +60,34 @@ envl.RAMSharedLibrary('vehicle',  source = sources)
 envt = env.Clone()
 
 if env.HasFeature('drivers'):
+    ext_deps.append('Boost.ProgramOptions')
     envt.RAMProgram(target = 'ThrusterDemo', 
                     source = 'test/src/ThrusterDemo.cpp',
-                    int_deps = 'vehicle',
-                    ext_deps = ['Boost.ProgramOptions'])
+                    int_deps = int_deps,
+                    ext_deps = ext_deps)
 
     envt.RAMProgram(target = 'IMUDemo', 
                     source = 'test/src/IMUDemo.cpp',
-                    int_deps = 'vehicle')
+                    int_deps = int_deps)
 
 # Unit Tests
 exclude_list = []
 if not env.HasFeature('drivers'):
     # Slight list hacks until we fix the source code names
     excludedDevices[excludedDevices.index('IMU')] = 'nIMU'
-    excludedDevices.remove('SBMarkerDropper')
+
+    # We don't have a test for this one
     excludedDevices.remove('PSU')
+    excludedDevices.remove('SBPowerBus')
     
     for deviceName in excludedDevices:
         exclude_list.append('test/src/Test' + deviceName + '.cxx')
+        
+if not env.HasFeature('vision'):
+    for deviceName in visionDevices:
+        exclude_list.append('test/src/Test' + deviceName + '.cxx')
+
+
 
 envt = env.Clone()
-envt.Tests(int_deps = 'vehicle', exclude = exclude_list)
+envt.Tests(int_deps = int_deps, exclude = exclude_list)

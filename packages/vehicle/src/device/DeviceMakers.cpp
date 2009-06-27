@@ -26,7 +26,12 @@
 #include "vehicle/include/device/SBSonar.h"
 #include "vehicle/include/device/SBMarkerDropper.h"
 #include "vehicle/include/device/SBTorpedoLauncher.h"
-#endif
+#endif // RAM_WITH_DRIVERS
+
+#ifdef RAM_WITH_VISION
+#include "vehicle/include/device/VisionVelocitySensor.h"
+#endif // RAM_WITH_VISION
+
 
 // Register each device with the factor system
 #ifdef RAM_WITH_DRIVERS
@@ -46,8 +51,12 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,
                                    SBMarkerDropper);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBTorpedoLauncher,
                                    SBTorpedoLauncher);
-#endif
+#endif // RAM_WITH_DRIVERS
 
+#ifdef RAM_WITH_VISION
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::VisionVelocitySensor,
+                                   VisionVelocitySensor);
+#endif // RAM_WITH_VISION
 
 
 // In this case the static variable is safe
