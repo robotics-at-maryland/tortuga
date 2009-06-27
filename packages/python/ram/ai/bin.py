@@ -319,9 +319,12 @@ class Searching(state.State):
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
         self.ai.data['binData']['currentIds'] = set()
-        histogram = \
-            self.ai.data['binData']['histogram'].setdefault(event.id, dict())
-        histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
+        if event.symbol != vision.Symbol.UNKNOWN:
+            histogram = \
+                self.ai.data['binData']['histogram'].setdefault(
+                    event.id, dict())
+            histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
+            histogram['totalHits'] = histogram.get('totalHits', 0) + 1
 
     def enter(self):
         ensureBinTracking(self.queuedEventHub, self.ai)
@@ -408,9 +411,12 @@ class Recover(state.FindAttempt):
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
         self.ai.data['binData']['currentIds'] = set()
-        histogram = \
-            self.ai.data['binData']['histogram'].setdefault(event.id, dict())
-        histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
+        if event.symbol != vision.Symbol.UNKNOWN:
+            histogram = \
+                self.ai.data['binData']['histogram'].setdefault(
+                    event.id, dict())
+            histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
+            histogram['totalHits'] = histogram.get('totalHits', 0) + 1
 
     def enter(self):
         state.FindAttempt.enter(self)
