@@ -666,12 +666,15 @@ class TestExamine(BinTestCase):
         
         # Test counting variables
         
-    def assertSymbolCount(self, heart = 0, spade = 0, club = 0, diamond = 0):
-        s = self.machine.currentState()
-        self.assertEqual(s._hearts, heart)
-        self.assertEqual(s._spades, spade)
-        self.assertEqual(s._clubs, club)
-        self.assertEqual(s._diamonds, diamond)
+    def assertSymbolCount(self, id, symbols = {}):
+        histogram = self.ai.data['binData']['histogram'][id]
+
+        # Make sure they are the same size
+        self.assertEqual(len(symbols), len(histogram))
+        
+        # Check each entry to make sure they have the same values
+        for s in symbols.iterkeys():
+            self.assertEqual(symbols[s], histogram[s])
         
     def testSymbolCount(self):
         """
@@ -680,9 +683,10 @@ class TestExamine(BinTestCase):
         """
         self.ai.data['binData']['currentID'] = 3
         
-        # Test blank one
+        # Test a basic one
         self.injectBinFound(id = 4, symbol = vision.Symbol.HEART)
-        self.assertSymbolCount()
+        self.assertSymbolCount(id = 4, symbols = {vision.Symbol.HEART : 1,
+                                                  'totalHits' : 1})
         
         # Add some ones to populate
         self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
@@ -696,7 +700,11 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
 
-        self.assertSymbolCount(heart = 3, spade = 1, club = 4, diamond = 2)
+        self.assertSymbolCount(id = 3, symbols = {vision.Symbol.HEART : 3,
+                                                  vision.Symbol.SPADE : 1,
+                                                  vision.Symbol.CLUB : 4,
+                                                  vision.Symbol.DIAMOND : 2,
+                                                  'totalHits' : 10})
         
         # No try for target found
         self.assertFalse(self._targetFound)
@@ -725,7 +733,7 @@ class TestExamine(BinTestCase):
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
-        # Now release the determine event and make sure we have moved on
+        # Now start the machine and make sure we have moved on
         self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
@@ -733,12 +741,12 @@ class TestExamine(BinTestCase):
         self.assertAIDataValue('droppingSymbol', vision.Symbol.CLUB)
 
     def testRepeatFoundSymbol(self):
-        # Restrat after having dropped the club
+        # Restart after having dropped the club
         self.ai.data['droppedSymbols'] = set([vision.Symbol.CLUB])
+        self.ai.data['binData']['currentID'] = 3
         self.machine.start(bin.Examine)
 
-        # Send in a bunch of events
-        self.ai.data['binData']['currentID'] = 3 
+        # Send in a bunch of events 
         for i in xrange(0,14):
             self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
@@ -746,9 +754,9 @@ class TestExamine(BinTestCase):
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
-        # Now release the determine event and make sure we have not moved on
+        # Now start the event and make sure we have not moved on
         # because we have already seen this symbol
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
@@ -771,8 +779,8 @@ class TestExamine(BinTestCase):
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
-        # Now release the determine event and make sure we have moved on
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
+        # Now start the event and make sure we have moved on
+        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)

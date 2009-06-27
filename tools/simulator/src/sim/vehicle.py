@@ -115,7 +115,7 @@ class SimIMU(SimDevice, device.IIMU):
 
     def update(self, time):
         event = math.OrientationEvent()
-        event.orientation = getOrientation()
+        event.orientation = self.getOrientation()
         self.publish(device.IIMU.UPDATE, event)
     
     def _getActualOrientation(self):

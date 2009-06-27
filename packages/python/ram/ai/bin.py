@@ -624,62 +624,40 @@ class Examine(SettlingState):
         
     @staticmethod
     def transitions():
-        return SettlingState.transitions(Examine,
+        return HoveringState.transitions(Examine,
         { Examine.FOUND_TARGET : PreDropDive,
           Examine.DETERMINE_SYMBOL : Examine,
           Examine.MOVE_ON : SurfaceToMove })
-        
-    def BIN_FOUND(self, event):
-        """
-        Tallies bin hits
-        """
-        SettlingState.BIN_FOUND(self, event)
-        
-        # Count the hits
-        if self._currentBin(event):
-            symbol = event.symbol
-
-            # Only count total hits if its known
-            if symbol != vision.Symbol.UNKNOWN:
-                self._totalHits += 1
-
-            # Count hits hear
-            if symbol == vision.Symbol.HEART:
-                self._hearts += 1
-            elif symbol == vision.Symbol.CLUB:
-                self._clubs += 1
-            elif symbol == vision.Symbol.SPADE:
-                self._spades += 1
-            elif symbol == vision.Symbol.DIAMOND:
-                self._diamonds += 1
                 
     def DETERMINE_SYMBOL_(self, event):
         """
         Determine if we have found something and trigger FOUND_TARGET event 
         if we have
         """
+
+        currentID = self.ai.data['binData'].get('currentID', 0)
+        histogram = self.ai.data['binData']['histogram'].setdefault(
+            currentID, {'totalHits' : 0})
+        totalHits = histogram['totalHits']
         
         # Bail out if we have found nothing
-        if 0 == self._totalHits:
+        if 0 == totalHits:
             self.publish(Examine.MOVE_ON, core.Event())
             return
         
         # Convert to percentage of total hits
-        hearts = float(self._hearts) / self._totalHits
-        clubs = float(self._clubs) / self._totalHits
-        spades = float(self._spades) / self._totalHits
-        diamonds = float(self._diamonds) / self._totalHits
+        # Finds the percentage of the symbols in the histogram
+        percentages = {}
+        for symbol in histogram.iterkeys():
+            if symbol != 'totalHits':
+                percentages[symbol] = \
+                    float(histogram[symbol]) / totalHits
         
         # See if any of the types is over the needed percentage
         foundTarget = False
-        if hearts >= self._foundLimit:
-            foundTarget = self._checkSymbol(vision.Symbol.HEART)
-        elif clubs >= self._foundLimit:
-            foundTarget = self._checkSymbol(vision.Symbol.CLUB)
-        elif spades >= self._foundLimit:
-            foundTarget = self._checkSymbol(vision.Symbol.SPADE)
-        elif diamonds >= self._foundLimit:
-            foundTarget = self._checkSymbol(vision.Symbol.DIAMOND)
+        for symbol in percentages.iterkeys():
+            if percentages[symbol] >= self._foundLimit:
+                foundTarget = self._checkSymbol(symbol)
             
         # If we didn't find anything, time to move on
         if not foundTarget:
@@ -711,14 +689,30 @@ class Examine(SettlingState):
         return False
         
     def enter(self):
-        # Wait for 20 seconds while we examine things
-        SettlingState.enter(self, Examine.DETERMINE_SYMBOL, 5)
-        
-        self._hearts = 0
-        self._clubs = 0
-        self._spades = 0
-        self._diamonds = 0
-        self._totalHits = 0
+        # Checks to make sure there's binData and a currentID
+        if not self.ai.data.has_key('binData'):
+            SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
+                                self._config.get('waitTime', 5))
+        else:
+            binData = self.ai.data['binData']
+            currentID = binData['currentID']
+
+            # Checks to make sure that the currentID has a histogram
+            if not binData['histogram'].has_key(currentID):
+            # If it doesn't, settle for 5 seconds to get a proper histogram
+                SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
+                                    self._config.get('waitTime', 5))
+            else:
+                # If it does, make sure the histogram has enough data
+                if binData['histogram'][currentID]['totalHits'] >= \
+                        self._config.get('minimumHits', 100):
+                    # Continue immediately if it does have enough data
+                    SettlingState.enter(self, Examine.DETERMINE_SYMBOL, 0)
+                else:
+                    # If it doesn't have enough data, wait anyways
+                    SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
+                                        self._config.get('waitTime', 5))
+
         self._foundLimit = self._config.get('foundLimit', 0.8)
         
         # Load needed symbols
