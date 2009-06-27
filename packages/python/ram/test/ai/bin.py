@@ -29,6 +29,9 @@ class BinTestCase(aisupport.AITestCase):
     def injectBinFound(self, **kwargs):
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
+    def injectBinDropped(self, **kwargs):
+        self.injectEvent(vision.EventType.BIN_DROPPED, vision.BinEvent,
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
     def injectMultiBinAngle(self, **kwargs):
         self.injectEvent(vision.EventType.MULTI_BIN_ANGLE, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
@@ -104,6 +107,30 @@ class BinTestCase(aisupport.AITestCase):
             self.assertAlmostEqual(0, self.controller.speed, 3)
             self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
             self.assertLessThan(self.controller.yawChange, 0)
+
+        # Check to make sure the histogram is there
+        self.assertTrue(self.ai.data['binData'].has_key('histogram'))
+
+        histogram = self.ai.data['binData']['histogram']
+
+        # Drop bin id 3 and 6 since they're the ones left
+        self.injectBinDropped(id = 3)
+        self.injectBinDropped(id = 6)
+        
+        # Test if the histogram is empty
+        self.assertEqual(histogram, {})
+
+        # Inject a diamond symbol
+        self.injectBinFound(id = 0, symbol = vision.Symbol.DIAMOND)
+        self.assertTrue(histogram.has_key(0))
+        self.assertEqual(histogram[0][vision.Symbol.DIAMOND], 1)
+        self.assertEqual(histogram[0]['totalHits'], 1)
+
+        # Inject two spade symbols
+        for x in xrange(2):
+            self.injectBinFound(id = 0, symbol = vision.Symbol.SPADE)
+        self.assertEqual(histogram[0][vision.Symbol.SPADE], 2)
+        self.assertEqual(histogram[0]['totalHits'], 3)
             
     def publishQueuedBinFound(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 

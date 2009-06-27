@@ -31,6 +31,7 @@ def ensureBinTracking(qeventHub, ai):
     tracking.ensureItemTracking(qeventHub, ai, 'binData',
                                 vision.EventType.BIN_FOUND,
                                 vision.EventType.BIN_DROPPED)
+    ai.data['binData'].setdefault('histogram', {})
 
 class HoveringState(state.State):
     """
@@ -48,7 +49,8 @@ class HoveringState(state.State):
             trans = {}
         trans.update({vision.EventType.BIN_LOST : lostState,
                       vision.EventType.BIN_FOUND : myState,
-                      vision.EventType.MULTI_BIN_ANGLE : myState})
+                      vision.EventType.MULTI_BIN_ANGLE : myState,
+                      vision.EventType.BIN_DROPPED : myState})
         return trans
     
     def _currentBin(self, event):
@@ -59,6 +61,13 @@ class HoveringState(state.State):
     
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        if event.symbol != vision.Symbol.UNKNOWN:
+            histogram = \
+                self.ai.data['binData']['histogram'].setdefault(
+                    event.id, dict())
+            histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
+            histogram['totalHits'] = histogram.get('totalHits', 0) + 1
+
         if not self._useMultiAngle:
             # Use only the bin angle
             if self._first:
@@ -85,6 +94,13 @@ class HoveringState(state.State):
             
             self.ai.data["lastBinX"] = event.x
             self.ai.data["lastBinY"] = event.y
+
+    def BIN_DROPPED(self, event):
+        # Cleanup the histogram data
+        histogram = self.ai.data['binData']['histogram']
+
+        if histogram.has_key(event.id):
+            del histogram[event.id]
 
     def enter(self, useMultiAngle = False):
         """
@@ -303,6 +319,9 @@ class Searching(state.State):
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
         self.ai.data['binData']['currentIds'] = set()
+        histogram = \
+            self.ai.data['binData']['histogram'].setdefault(event.id, dict())
+        histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
 
     def enter(self):
         ensureBinTracking(self.queuedEventHub, self.ai)
@@ -389,6 +408,9 @@ class Recover(state.FindAttempt):
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
         self.ai.data['binData']['currentIds'] = set()
+        histogram = \
+            self.ai.data['binData']['histogram'].setdefault(event.id, dict())
+        histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
 
     def enter(self):
         state.FindAttempt.enter(self)
