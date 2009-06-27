@@ -54,4 +54,4 @@ TEST(quaternionFromMagAccel)
     CHECK_CLOSE(expectedOrientation3, result3, 0.0001);
 }
 
-} // SUITE(VehicleUtility) {
+} // SUITE(VehicleUtility)

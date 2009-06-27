@@ -23,8 +23,8 @@ namespace vehicle {
 namespace device {
 
 SonarStateEstimator::SonarStateEstimator(core::ConfigNode config,
-                                       core::EventHubPtr eventHub,
-                                       IVehiclePtr vehicle) :
+                                         core::EventHubPtr eventHub,
+                                         IVehiclePtr vehicle) :
     Device(config["name"].asString()),
     IStateEstimator(eventHub, config["name"].asString()),
     m_estimatedOrientation(math::Quaternion::IDENTITY),
@@ -107,6 +107,16 @@ void SonarStateEstimator::onSonarEvent(core::EventPtr event)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     SonarEventPtr sEvent = boost::dynamic_pointer_cast<SonarEvent>(event);
+
+    // TODO: Any possible angle corrections needed
+    // Remove Z component from direction
+//    math::Vector3 flatDirection(direction.x, direction.y, 0);
+
+    // Create the vector that points in the direction the vehicle is facing
+    // in the inertial frame
+//    math::Vector3 vehicleDirection =
+//        m_currentOrientation * math::Vector3::UNIT_X;
+//    referenceVector3.z = 0;
     
     // Calculate the angle
     math::Quaternion quat =
