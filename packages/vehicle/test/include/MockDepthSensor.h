@@ -18,6 +18,15 @@ class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
                         public ram::vehicle::device::Device
 {
 public:
+    MockDepthSensor(ram::core::ConfigNode config,
+                    ram::core::EventHubPtr eventHub,
+                    ram::vehicle::IVehiclePtr vehicle) :
+        ram::vehicle::device::IDepthSensor(eventHub,config["name"].asString()),
+        Device(config["name"].asString()),
+        depth(config["depth"].asDouble(0))
+    {
+    }
+    
     MockDepthSensor(std::string name) :
         Device(name),
         depth(0.0),

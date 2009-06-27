@@ -18,6 +18,18 @@ class MockPositionSensor : public ram::vehicle::device::IPositionSensor,
                            public ram::vehicle::device::Device
 {
 public:
+    MockPositionSensor(ram::core::ConfigNode config,
+                       ram::core::EventHubPtr eventHub,
+                       ram::vehicle::IVehiclePtr vehicle) :
+        ram::vehicle::device::IPositionSensor(eventHub,
+                                              config["name"].asString()),
+        Device(config["name"].asString()),
+        position(config["position"][0].asDouble(0),
+                 config["position"][1].asDouble(0))
+    {
+    }
+
+    
     MockPositionSensor(std::string name) :
         Device(name),
         position(0.0, 0.0),

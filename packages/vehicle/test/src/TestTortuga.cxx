@@ -114,6 +114,41 @@ TEST(DeviceCreation)
     delete veh;
 }
 
+TEST(ValueInitialization)
+{
+    // Create a vehicle with the some mock sensors that have initial state
+    std::string config =
+            "{"
+            "'name' : 'TestVehicle',"
+            "'DepthSensorName' : 'DepthSensor',"
+            "'Devices' : {"
+            "    'IMU' : {'type' : 'MockIMU', 'orientation' : [1, 2, 3, 4] },"
+            "    'DepthSensor' : {'type' : 'MockDepthSensor', 'depth' : 5.6},"
+            "    'VelocitySensor' : {'type' : 'MockVelocitySensor',"
+            "                        'velocity' : [5, 6]},"
+            "    'PositionSensor' : {'type' : 'MockPositionSensor',"
+            "                        'position' : [3, 8]}"
+            " },"
+            "}";
+
+    core::EventHubPtr eventHub(new core::EventHub());
+    vehicle::IVehicle* veh = 
+        new vehicle::Vehicle(core::ConfigNode::fromString(config),
+                             boost::assign::list_of(eventHub));
+
+    // Now make sure the state estimator has been made aware of those initial
+    // states
+    double expectedDepth = 5.6;
+    math::Quaternion expectedOrientation(1, 2, 3, 4);
+    math::Vector2 expectedVelocity(5, 6);
+    math::Vector2 expectedPosition(3, 8);
+    
+    CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.0001);
+    CHECK_CLOSE(expectedOrientation, veh->getOrientation(), 0.0001);
+    CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.0001);
+    CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.0001);
+}
+
 TEST_FIXTURE(VehicleFixture, IMU)
 {
     MockIMU* imu = new MockIMU("IMU");

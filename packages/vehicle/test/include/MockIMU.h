@@ -23,8 +23,12 @@ public:
     MockIMU(ram::core::ConfigNode config,
             ram::core::EventHubPtr eventHub,
             ram::vehicle::IVehiclePtr vehicle) :
-        ram::vehicle::device::IIMU(eventHub),
-        Device(config["name"].asString())
+        ram::vehicle::device::IIMU(eventHub, config["name"].asString()),
+        Device(config["name"].asString()),
+        orientation(config["orientation"][0].asDouble(0),
+                    config["orientation"][1].asDouble(0),
+                    config["orientation"][2].asDouble(0),
+                    config["orientation"][3].asDouble(1))
     {
     }
     

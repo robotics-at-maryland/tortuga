@@ -18,6 +18,17 @@ class MockVelocitySensor : public ram::vehicle::device::IVelocitySensor,
                            public ram::vehicle::device::Device
 {
 public:
+    MockVelocitySensor(ram::core::ConfigNode config,
+                       ram::core::EventHubPtr eventHub,
+                       ram::vehicle::IVehiclePtr vehicle) :
+        ram::vehicle::device::IVelocitySensor(eventHub,
+                                              config["name"].asString()),
+        Device(config["name"].asString()),
+        velocity(config["velocity"][0].asDouble(0),
+                 config["velocity"][1].asDouble(0))
+    {
+    }
+
     MockVelocitySensor(std::string name) :
         Device(name),
         velocity(0.0, 0.0),
