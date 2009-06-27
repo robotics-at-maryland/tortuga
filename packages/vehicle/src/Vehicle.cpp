@@ -197,17 +197,17 @@ std::vector<std::string> Vehicle::getDeviceNames()
     
 double Vehicle::getDepth()
 {
-    return getRawDepth();
+    return m_stateEstimator->getDepth();
 }
 
 math::Vector2 Vehicle::getPosition()
 {
-    return getRawPosition();
+    return m_stateEstimator->getPosition();
 }
 
 math::Vector2 Vehicle::getVelocity()
 {
-    return getRawVelocity();
+    return m_stateEstimator->getVelocity();
 }
     
 math::Vector3 Vehicle::getLinearAcceleration()
@@ -222,7 +222,7 @@ math::Vector3 Vehicle::getAngularRate()
     
 math::Quaternion Vehicle::getOrientation()
 {
-    return getRawOrientation();
+    return m_stateEstimator->getOrientation();
 }
     
 void Vehicle::safeThrusters()
@@ -581,8 +581,11 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
 {
     math::NumericEventPtr nevent =
         boost::dynamic_pointer_cast<math::NumericEvent>(event);
-    m_stateEstimator->depthUpdate(getDepth());
+    
+    // Feed the latest value to the estimator, then broadcast the results
+    m_stateEstimator->depthUpdate(getRawDepth());
     nevent->number = m_stateEstimator->getDepth();
+    
     publish(IVehicle::DEPTH_UPDATE, event);
 }
 
@@ -590,8 +593,11 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
 {
     math::OrientationEventPtr oevent =
         boost::dynamic_pointer_cast<math::OrientationEvent>(event);
-    m_stateEstimator->orientationUpdate(getOrientation());
+
+    // Feed the latest value to the estimator, then broadcast the results
+    m_stateEstimator->orientationUpdate(getRawOrientation());
     oevent->orientation = m_stateEstimator->getOrientation();
+    
     publish(IVehicle::ORIENTATION_UPDATE, event);
 }
 
@@ -599,8 +605,11 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
 {
     math::Vector2EventPtr oevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-    m_stateEstimator->positionUpdate(getPosition());
+
+    // Feed the latest value to the estimator, then broadcast the results
+    m_stateEstimator->positionUpdate(getRawPosition());
     oevent->vector2 = m_stateEstimator->getPosition();
+    
     publish(IVehicle::POSITION_UPDATE, event);
 }
 
@@ -608,8 +617,11 @@ void Vehicle::onVelocityUpdate(core::EventPtr event)
 {
     math::Vector2EventPtr oevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-    m_stateEstimator->velocityUpdate(getVelocity());
+
+    // Feed the latest value to the estimator, then broadcast the results
+    m_stateEstimator->velocityUpdate(getRawVelocity());
     oevent->vector2 = m_stateEstimator->getVelocity();
+    
     publish(IVehicle::VELOCITY_UPDATE, event);
 }
 
