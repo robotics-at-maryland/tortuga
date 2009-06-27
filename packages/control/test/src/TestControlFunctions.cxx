@@ -22,7 +22,7 @@ TEST(TranslationController)
 {
     // Depth test
     control::DesiredState desired;
-    memset(&desired, sizeof(control::DesiredState), 0);
+    memset(&desired, 0, sizeof(control::DesiredState));
     desired.depth = 1;
 
     // At 0 depth, pitched down 45 degrees
@@ -35,7 +35,7 @@ TEST(TranslationController)
     state.depthControlType = 1; // P controller
 
     control::EstimatedState estimated;
-    memset(&estimated, sizeof(control::EstimatedState), 0);
+    memset(&estimated, 0, sizeof(control::EstimatedState));
 
     // The expected
     math::Vector3 expected(0.707106781, 0, -0.707106781);
@@ -73,7 +73,7 @@ TEST(TranslationController)
     // At 0 depth, pitched down 45 degrees
     // Keeping old measured state
     
-    memset(&state, sizeof(state), 0);
+    // Turn on Depth
     state.depthPGain = 1;
 
     // The expected
