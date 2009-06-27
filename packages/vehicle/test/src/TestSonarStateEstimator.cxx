@@ -70,8 +70,37 @@ struct Fixture
     vehicle::IVehiclePtr vehicle;
 };
 
+TEST_FIXTURE(Fixture, getOrientation)
+{
+    createEstimator(BLANK_CONFIG);
+    
+    // Make sure orientation is just passed right through
+    math::Quaternion orientation(1,2,3,4);
+    estimator->orientationUpdate(orientation);
+    CHECK_CLOSE(orientation, estimator->getOrientation(), 0.0001);
+}
 
-TEST_FIXTURE(Fixture, Basic)
+TEST_FIXTURE(Fixture, getDepth)
+{
+    createEstimator(BLANK_CONFIG);
+    
+    // Make sure depth is just passed right through
+    double depth = 5.7;
+    estimator->depthUpdate(depth);
+    CHECK_CLOSE(depth, estimator->getDepth(), 0.0001);
+}
+
+TEST_FIXTURE(Fixture, getVelocity)
+{
+    createEstimator(BLANK_CONFIG);
+    
+    // Make sure velocity is just passed right through
+    math::Vector2 velocity(1.23, 5.6);
+    estimator->velocityUpdate(velocity);
+    CHECK_CLOSE(velocity, estimator->getVelocity(), 0.0001);
+}
+
+TEST_FIXTURE(Fixture, getPositionBasic)
 {
     // Create the state estimator with two pingers at (10,0) and (-10,0)
     // Initial vehicle depth, position, and velocity are 0, heading is North

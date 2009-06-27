@@ -131,6 +131,16 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
     }
+
+    // Now set the intial values of the estimator
+    if (m_depthSensor)
+        m_stateEstimator->depthUpdate(getRawDepth());
+    if (m_imu)
+        m_stateEstimator->orientationUpdate(getRawOrientation());
+    if (m_velocitySensor)
+        m_stateEstimator->velocityUpdate(getRawVelocity());
+    if (m_positionSensor)
+        m_stateEstimator->positionUpdate(getRawPosition());
     
     // If we specified a name of the mag boom we actually have one
     if (m_magBoomName.size() > 0)

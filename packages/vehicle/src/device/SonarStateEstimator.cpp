@@ -57,6 +57,9 @@ void SonarStateEstimator::orientationUpdate(math::Quaternion orientation)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentOrientation = orientation;
+
+    // We don't estimated orientation so lets pipe it straight through
+    m_estimatedOrientation = m_currentOrientation;
 }
 
 void SonarStateEstimator::velocityUpdate(math::Vector2 velocity)
@@ -65,18 +68,22 @@ void SonarStateEstimator::velocityUpdate(math::Vector2 velocity)
     m_currentVelocity = velocity;
 
     // Update the filter based on the new velocity
-    velocityUpdate(velocity);
+    velocityFilterUpdate(velocity);
 }
 
 void SonarStateEstimator::positionUpdate(math::Vector2 position)
 {
-    // Do nothing because we don't depend on another position sensors
+    // Do nothing because we don't depend on another position sensors its
+    // all estimated internally
 }
     
 void SonarStateEstimator::depthUpdate(double depth)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentDepth = depth;
+
+    // We don't estimated depth, so pipe it right through
+    m_estimatedDepth = m_currentDepth;
 }
     
 math::Quaternion SonarStateEstimator::getOrientation()
@@ -143,6 +150,8 @@ void SonarStateEstimator::pinger1FilterUpdate(math::Degree angle)
 void SonarStateEstimator::velocityFilterUpdate(math::Vector2 velocity)
 {
     // Put update code here
+    // Pipe it straight through right now
+    m_estimatedVelocity = velocity;
 }
 
     
