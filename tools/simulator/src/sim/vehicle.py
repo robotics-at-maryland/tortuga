@@ -88,6 +88,11 @@ class SimDepthSensor(SimDevice, device.IDepthSensor):
         
         simDevice = vehicle.getDevice('SimulationDevice')
         self.robot = simDevice.robot        
+
+    def update(self, time):
+        event = math.NumericEvent()
+        event.number = self.getDepth()
+        self.publish(device.IDepthSensor.UPDATE, event)
         
     def getDepth(self):
         # Down is positive for depth
@@ -107,6 +112,11 @@ class SimIMU(SimDevice, device.IIMU):
     
         simDevice = vehicle.getDevice('SimulationDevice')
         self.robot = simDevice.robot        
+
+    def update(self, time):
+        event = math.OrientationEvent()
+        event.orientation = getOrientation()
+        self.publish(device.IIMU.UPDATE, event)
     
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,
