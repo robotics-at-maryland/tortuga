@@ -368,7 +368,7 @@ TEST_FIXTURE(SensorBoardFixture, event_DEPTH_UPDATE)
 
     // Set values to be returned
     sb->updateDone = true;
-    sb->depth = expectedDepth;
+    sb->depth = (int)expectedDepth;
 
     // Register handler and trigger and update
     DepthSensorEventPtrList eventList;
