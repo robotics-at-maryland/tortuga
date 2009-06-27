@@ -22,6 +22,8 @@
 #include "vision/include/VelocityDetector.h"
 #include "vision/include/Events.h"
 
+#include "math/include/Events.h"
+
 #include "core/include/PropertySet.h"
 
 #ifndef M_PI
@@ -166,6 +168,11 @@ void VelocityDetector::processImage(Image* input, Image* output)
 
     // We are done with our work now last save the input for later use
     m_lastFrame->copyFrom(input);
+
+    // Now lets publish our result
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = getVelocity();
+    publish(EventType::VELOCITY_UPDATE, event);
 }
 
 math::Vector2 VelocityDetector::getVelocity()

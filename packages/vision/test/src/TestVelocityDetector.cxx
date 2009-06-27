@@ -23,6 +23,7 @@
 
 #include "vision/test/include/Utility.h"
 
+#include "math/include/Events.h"
 #include "math/test/include/MathChecks.h"
 
 //static boost::filesystem::path getImagesDir()
@@ -41,6 +42,8 @@ struct VelocityDetectorFixture
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString("{}"), eventHub)
     {
+        eventHub->subscribeToType(vision::EventType::VELOCITY_UPDATE,
+            boost::bind(&VelocityDetectorFixture::eventHandler, this, _1));
     }
 
     void determineVelocity(bool show = false)
@@ -63,10 +66,22 @@ struct VelocityDetectorFixture
 	}
     }
 
+    void eventHandler(core::EventPtr event_)
+    {
+        event = boost::dynamic_pointer_cast<math::Vector2Event>(event_);
+        if (event)
+            eventVelocity = event->vector2;
+        else
+            eventVelocity = math::Vector2::ZERO;
+    }
+    
     vision::OpenCVImage input1;
     vision::OpenCVImage input2;
     core::EventHubPtr eventHub;
     vision::VelocityDetector detector;
+    
+    math::Vector2EventPtr event;
+    math::Vector2 eventVelocity;
 };
 
 SUITE(VelocityDetector) {
@@ -88,10 +103,12 @@ TEST_FIXTURE(VelocityDetectorFixture, UpperLeft)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
     
     detector.useLKFlow();
     determineVelocity();
-    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);    
+    CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
 }
 
 TEST_FIXTURE(VelocityDetectorFixture, UpperRight)
@@ -111,10 +128,12 @@ TEST_FIXTURE(VelocityDetectorFixture, UpperRight)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
     
     detector.useLKFlow();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
 }
 
 TEST_FIXTURE(VelocityDetectorFixture, LowerLeft)
@@ -134,10 +153,12 @@ TEST_FIXTURE(VelocityDetectorFixture, LowerLeft)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
     
     detector.useLKFlow();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
 }
 
 TEST_FIXTURE(VelocityDetectorFixture, LowerRight)
@@ -157,10 +178,12 @@ TEST_FIXTURE(VelocityDetectorFixture, LowerRight)
     detector.usePhaseCorrelation();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
     
     detector.useLKFlow();
     determineVelocity();
     CHECK_CLOSE(expectedVelocity, detector.getVelocity(), 1.0);
+    CHECK_CLOSE(detector.getVelocity(), eventVelocity, 1.0);
 }
 
 

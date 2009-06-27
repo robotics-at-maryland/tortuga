@@ -49,6 +49,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType TARGET_LOST;
     static const core::Event::EventType BARBED_WIRE_FOUND;
     static const core::Event::EventType BARBED_WIRE_LOST;
+    static const core::Event::EventType VELOCITY_UPDATE;
 };
 
 class RAM_EXPORT ImageEvent : public core::Event

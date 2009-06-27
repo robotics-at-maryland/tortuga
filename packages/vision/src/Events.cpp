@@ -34,6 +34,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, TARGET_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, TARGET_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, VELOCITY_UPDATE);
 
 // This section is only needed when we are compiling the wrappers
 // This registers converters to work around some issues with Boost.Python
