@@ -342,7 +342,7 @@ else
     {
         m_found = false;
         m_centered = false;
-        publish(EventType::BIN_LOST, core::EventPtr(new core::Event()));
+        publish(EventType::BINS_LOST, core::EventPtr(new core::Event()));
     }
     
     if (binBlobs.size() > 0)

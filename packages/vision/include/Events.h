@@ -35,7 +35,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType PIPE_DROPPED;
     static const core::Event::EventType GATE_FOUND;
     static const core::Event::EventType BIN_FOUND;
-    static const core::Event::EventType BIN_LOST;
+    static const core::Event::EventType BINS_LOST;
     static const core::Event::EventType BIN_DROPPED;
     static const core::Event::EventType BIN_CENTERED;
     static const core::Event::EventType MULTI_BIN_ANGLE;

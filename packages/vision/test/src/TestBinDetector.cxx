@@ -60,7 +60,7 @@ struct BinDetectorFixture
             boost::bind(&BinDetectorFixture::foundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_CENTERED,
             boost::bind(&BinDetectorFixture::centeredHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::BIN_LOST,
+        eventHub->subscribeToType(vision::EventType::BINS_LOST,
             boost::bind(&BinDetectorFixture::lostHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_DROPPED,
             boost::bind(&BinDetectorFixture::droppedHandler, this, _1));
@@ -606,7 +606,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     CHECK_CLOSE(expectedY, event->y, 0.05);
 }
 
-TEST_FIXTURE(BinDetectorFixture, Events_BIN_LOST)
+TEST_FIXTURE(BinDetectorFixture, Events_BINS_LOST)
 {
     detector.setSymbolDetectionOn(false);
     // No light at all

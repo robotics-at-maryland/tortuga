@@ -288,7 +288,7 @@ class TestSeeking(BinTestCase):
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
-        self.injectEvent(vision.EventType.BIN_LOST)
+        self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.Recover)   
         
 class TestRecover(aisupport.AITestCase):
@@ -347,7 +347,7 @@ class TestCentering(BinTestCase):
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
-        self.injectEvent(vision.EventType.BIN_LOST)
+        self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.Recover)
     
     def testBinTracking(self):
@@ -407,7 +407,7 @@ class TestAligning(BinTestCase):
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
-        self.injectEvent(vision.EventType.BIN_LOST)
+        self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.Recover)
     
     def testBinTracking(self):
@@ -817,7 +817,7 @@ class TestSettleBeforeDrop(BinTestCase):
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
-        self.injectEvent(vision.EventType.BIN_LOST)
+        self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.Recover)
     
     def testBinTracking(self):

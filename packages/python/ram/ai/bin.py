@@ -47,7 +47,7 @@ class HoveringState(state.State):
             lostState = Recover
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.BIN_LOST : lostState,
+        trans.update({vision.EventType.BINS_LOST : lostState,
                       vision.EventType.BIN_FOUND : myState,
                       vision.EventType.MULTI_BIN_ANGLE : myState,
                       vision.EventType.BIN_DROPPED : myState})
@@ -286,7 +286,7 @@ class BinSortingState(HoveringState):
         currentBinId = self.ai.data['binData']['currentID']
         if len(sortedBins) == 0:
             #event = vision.BinEvent(0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
-            self.publish(vision.EventType.BIN_LOST, core.Event())
+            self.publish(vision.EventType.BINS_LOST, core.Event())
             return None
         else:
             mostEdgeBinId = sortedBins[0]
@@ -689,7 +689,7 @@ class Examine(SettlingState):
         return False
         
     def enter(self):
-        # Checks to make sure there's binData and a currentID
+        # Checks to make sure there's binData
         if not self.ai.data.has_key('binData'):
             SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
                                 self._config.get('waitTime', 5))
@@ -805,7 +805,7 @@ class NextBin(BinSortingState):
                 return results[0]
         except ValueError:
             # We have lost our shit
-            self.publish(vision.EventType.BIN_LOST, core.Event())
+            self.publish(vision.EventType.BINS_LOST, core.Event())
             return None
         
     

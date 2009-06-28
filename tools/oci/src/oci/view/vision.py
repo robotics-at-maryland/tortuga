@@ -268,7 +268,7 @@ class BinPanel(VisionPanel):
         self._subscribeToType(eventHub, ext.vision.EventType.MULTI_BIN_ANGLE, 
                              self._onMultiBinAngle)
         
-        self._subscribeToType(eventHub, ext.vision.EventType.BIN_LOST, 
+        self._subscribeToType(eventHub, ext.vision.EventType.BINS_LOST, 
                               self._onBinLost)
         
     def _createDataControls(self):
