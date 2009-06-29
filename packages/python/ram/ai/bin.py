@@ -705,10 +705,17 @@ class Examine(HoveringState):
 
         self._minimumHits = self._config.get('minimumHits', 200)
 
+        self._timeout = self._config.get('timeout', 5)
+
         self._foundLimit = self._config.get('foundLimit', 0.8)
         
         # Load needed symbols
         self._loadSymbolConfig()
+
+        if self._timeout >= 0:
+            self._timer = self.timerManager.newTimer(Examine.MOVE_ON,
+                                                     self._timeout)
+            self._timer.start()
         
 class PreDropDive(Dive):
     """

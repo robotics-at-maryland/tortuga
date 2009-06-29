@@ -792,6 +792,16 @@ class TestExamine(BinTestCase):
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
+
+    def testTimeout(self):
+        # Check to make sure that we are in Examine
+        self.assertCurrentState(bin.Examine)
+
+        # Release the timer
+        self.releaseTimer(bin.Examine.MOVE_ON)
+
+        # Check to make sure it has moved on
+        self.assertCurrentState(bin.SurfaceToMove)
         
     def testBinTracking(self):
         self.binTrackingHelper()
