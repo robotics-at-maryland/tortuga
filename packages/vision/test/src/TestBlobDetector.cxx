@@ -75,7 +75,9 @@ TEST_FIXTURE(BlobDetectorFixture, simpleBlobs)
     CHECK_CLOSE(100 * 200, blob.getSize(), 500);
     CHECK_EQUAL(200, blob.getCenterX());
     CHECK_EQUAL(200, blob.getCenterY());
-
+    // There are +1 the width/height, because the min/max X and Y are inclusive
+    CHECK_EQUAL(101, blob.getWidth());
+    CHECK_EQUAL(201, blob.getHeight());
 
     vision::BlobDetector::Blob blob2 = detector.getBlobs()[1];
     CHECK_EQUAL(400, blob2.getMaxX());
@@ -85,6 +87,9 @@ TEST_FIXTURE(BlobDetectorFixture, simpleBlobs)
     CHECK_CLOSE(100 * 10, blob2.getSize(), 500);
     CHECK_EQUAL(350, blob2.getCenterX());
     CHECK_EQUAL(400, blob2.getCenterY());
+    // There are +1 the width/height, because the min/max X and Y are inclusive
+    CHECK_EQUAL(101, blob2.getWidth());
+    CHECK_EQUAL(11, blob2.getHeight());
 }
 
 TEST_FIXTURE(BlobDetectorFixture, circleBlobs)

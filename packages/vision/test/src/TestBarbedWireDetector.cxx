@@ -88,7 +88,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, SinglePipe)
 
     double expectedTopX = 0 * 640.0/480.0;
     double expectedTopY = 0;
-    double expectedTopWidth = 200.0/640.0;
+    double expectedTopWidth = 201.0/640.0;
 
     double expectedBottomX = 0;
     double expectedBottomY = 0;
@@ -117,11 +117,11 @@ TEST_FIXTURE(BarbedWireDetectorFixture, DoublePipe)
 
     double expectedTopX = 0;
     double expectedTopY = 0;
-    double expectedTopWidth = 400.0/640.0;
+    double expectedTopWidth = 401.0/640.0;
 
     double expectedBottomX = (-120.0/320.0) * 640.0/480.0;
     double expectedBottomY = -0.5;
-    double expectedBottomWidth = 200.0/640.0;
+    double expectedBottomWidth = 201.0/640.0;
     
     // Check the events
     CHECK(found);
@@ -147,7 +147,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, OddAngle)
 
     double expectedTopX = 1.0/3.0;
     double expectedTopY = -0.5;
-    double expectedTopWidth = 300.0/640.0;
+    double expectedTopWidth = 301.0/640.0;
 
     double expectedBottomX = 0;
     double expectedBottomY = 0;
@@ -210,39 +210,6 @@ TEST_FIXTURE(BarbedWireDetectorFixture, LowerRight)
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
 }
-
-TEST_FIXTURE(BarbedWireDetectorFixture, SquareNess)
-{
-    // Perfect
-    makeColor(&input, 120, 120, 255);
-    drawBarbedWire(&input, 640/2, 480/2, 100, 100);
-    processImage(&input);
-    
-    double expectedSquareness = 1;
-    CHECK(found);
-    CHECK(event);
-    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
-    
-    // Skinny
-    makeColor(&input, 120, 120, 255);
-    drawBarbedWire(&input, 640/2, 480/2, 200, 100);
-    processImage(&input);
-    
-    expectedSquareness = 0.5;
-    CHECK(found);
-    CHECK(event);
-    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
-
-
-    // Skinnier
-    makeColor(&input, 120, 120, 255);
-    drawBarbedWire(&input, 640/2, 480/2, 300, 100);
-    processImage(&input);
-    
-    expectedSquareness = 1.0/3.0;
-    CHECK(found);
-    CHECK(event);
-    CHECK_CLOSE(expectedSquareness, event->squareNess, 0.005);
     }*/
 
 
@@ -290,7 +257,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveTop)
 
     double expectedTopX = 0 * 640.0/480.0;
     double expectedTopY = 0.808;
-    double expectedTopWidth = 300.0/640.0;
+    double expectedTopWidth = 301.0/640.0;
 
     double expectedBottomX = 0;
     double expectedBottomY = 0;
@@ -325,7 +292,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveBottom)
 
     double expectedTopX = 0 * 640.0/480.0;
     double expectedTopY = -0.808;
-    double expectedTopWidth = 500.0/640.0;
+    double expectedTopWidth = 501.0/640.0;
 
     double expectedBottomX = 0;
     double expectedBottomY = 0;

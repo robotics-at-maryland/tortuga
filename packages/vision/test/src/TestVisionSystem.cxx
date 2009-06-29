@@ -266,11 +266,11 @@ TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)
 
     double expectedTopX = 0;
     double expectedTopY = 0;
-    double expectedTopWidth = 400.0/640.0;
+    double expectedTopWidth = 401.0/640.0;
 
     double expectedBottomX = 0;
     double expectedBottomY = -0.5;
-    double expectedBottomWidth = 200.0/640.0;
+    double expectedBottomWidth = 201.0/640.0;
     
     // Check the events
     CHECK(barbedWireFound);

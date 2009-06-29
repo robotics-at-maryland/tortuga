@@ -34,7 +34,7 @@ class RAM_EXPORT BinDetector : public Detector
     {
     public:
         Bin();
-        Bin(BlobDetector::Blob blob, double x, double y,
+        Bin(BlobDetector::Blob blob, Image* source,
             math::Degree rotation, int id,  Symbol::SymbolType symbol);
 
         Symbol::SymbolType getSymbol() { return m_symbol; }
@@ -57,13 +57,6 @@ class RAM_EXPORT BinDetector : public Detector
 
     void processImage(Image* input, Image* output= 0);
     
-    void drawBinImage(Image* imgToShow, int binNumber, Image* output = 0);
-
-    /** redSymbol and rotatedRedSymbol must be the same size, rotates redSymbol,
-        which is the image containing the center of the bin into rotatedRedSymbol
-    */
-    void unrotateBin(math::Radian bin, Image* redSymbol, 
-		     Image* rotatedRedSymbol);
     bool found();
 
     /** X cord of the bin closest to the center of the screen */
@@ -87,7 +80,7 @@ class RAM_EXPORT BinDetector : public Detector
      *
      *  This places all the symbol images in <log_dir>/symbols/<symbol_type>
      *  directory.  Where <log_dir> is the runs log directory, and <symbol_type>
-     *  is heart, spade, club, diamond, or unknown.
+     *  is heart, spade, club, diamond, or unknown, or other newer symbols.
      *
      *  This only works when you are display debug images as well.
      *
@@ -97,11 +90,46 @@ class RAM_EXPORT BinDetector : public Detector
     void setSymbolImageLogging(bool value);
     
   private:
-    IplImage* scaledRedSymbol;
-
-  
+    /** Initializes all the values that are config based */
     void init(core::ConfigNode config);
 
+    /** Allocates all the scratch images */
+    void allocateImages(int width, int height);
+
+    /** Release all the scratch images */
+    void deleteImages();
+    
+    /** Filters the image all white is white, and everything else is black */
+    void filterForWhite(Image* input, Image* output);
+
+    /** Filters the image all white is white, and everything else is black */
+    void filterForBlack(Image* input, Image* output);
+
+    /** Filters the image all red is white, and everything else is black */
+    void filterForRed(Image* input, Image* output);
+
+    /** Places debug information from the colour filters on the output */
+    void filterDebugOutput(Image* output);
+
+    /** Finds all black blobs that are inside white blobs (ie. bins) */
+    void findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
+                      const BlobDetector::BlobList& blackBlobs,
+                      BlobDetector::BlobList& binBlobs);
+    
+    /** Determines the angle of the bin array (draws debug output if needed)
+     *
+     *  @param bins
+     *      The bins that make up the array we find the angle of
+     *  @param angle
+     *      The output parameter, set to the angle of the array
+     *  @param output
+     *      The image we write our debug information to
+     *  @return
+     *      True if its a valid angle that should be reported
+     */
+    bool findArrayAngle(const BinList& bins, math::Degree& angle,
+                        Image* output);
+    
     /** Processes the bin and fires off found event
      *
      *  It adds each process bin to the list of current bins.
@@ -110,86 +138,161 @@ class RAM_EXPORT BinDetector : public Detector
      *      The blob which bounds the black box of the bin
      *  @oaram detectorSymbol
      *      True if we are to find the symbol for symbol detection
+     *  @param binNum
+     *      The number of our bin in the array (0 - 3)
      *  @param output
      *      Our debug output image
+     *
+     *  @return
+     *      The bin structure containing infomation on the bin
      */
-    void processBin(BlobDetector::Blob bin, bool detectSymbol,
-                    BinList& newBins, int binNum, Image* ouput = 0);
+    BinDetector::Bin processBin(BlobDetector::Blob bin, bool detectSymbol,
+                                int binNum, Image* ouput);
 
+
+    /** Called by process bin, must be called regardless of whether we plan
+     *  to detect symbols, as this function sets the angle of the bin.
+     *
+     *  @return
+     *      True if we succeeded in finding the angle
+     */
+    bool calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
+                             math::Degree& foundAngle, Image* output = 0);
+
+    /** Crops the incoming image down so its a square surounding the symbol
+     *
+     *  @param redBinImage
+     *      The image to crop
+     *  @param storageBuffer
+     *      The buffer to use to store the result image in
+     *
+     *  @return
+     *       0 on failure, a valid pointer if success
+     */
+    Image* cropBinImage(Image* redBinImage, unsigned char* storageBuffer);
+    
     /** Called by process bin, if symbol detection is request is true
      *
      *  @param bin
      *      The blob which bounds the black box of the bin
      *  @param input
      *      The image to extract the symbol from
-     *  @param outptu
+     *  @param scratchBuffer
+     *      A buffer to use if a scratch image is needed
+     *  @param output
      *      Our debug output image
      */
     Symbol::SymbolType determineSymbol(Image* input,
-                                 Image* output = 0);
-    
-    
-    /** Called by process bin, must be called regardless of whether we plan
-     *  to detect symbols, as this function sets the angle of the bin.
-     */
-    math::Radian calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
-                                     Image* output = 0);
-
-    /** Extracts the image of the symbol an into a binImage of #binNum
-     *
-     *  The result is 128x128 pixels, and should be bounded around all of the
-     *  red in the center of the bin.
-     */
-    bool cropImage(IplImage* rotatedRedSymbol, int binNum);
+                                       unsigned char* scratchBuffer,
+                                       Image* output = 0);
 
     /** Logs the image of the symbol to file based on the symbol type */
     void logSymbolImage(Image* image, Symbol::SymbolType symbol);
     
-    bool m_found;
-/*    bool foundHeart;
-    bool foundSpade;
-    bool foundDiamond;
-    bool foundClub;
-    bool foundEmpty;*/
-    /** Determines if we should try and determine the symbol of the bin */
-    bool m_runSymbolDetector;
-    /** Determines whether or not we should write symbol images to disk */
-    bool m_logSymbolImages;
-    int numBinsFound;
-    IplImage* binFrame;
-    IplImage* rotated;
-    IplImage* bufferFrame;
-    IplImage* whiteMaskedFrame;
-    IplImage* blackMaskedFrame;
-    SuitDetector symbolDetector;
-    BlobDetector blobDetector;
+    /** Object that detects the current on screen blobs */
+    BlobDetector m_blobDetector;
 
-    IplImage* binImages[4];
-    /** Maximum distance for the bin to be considred "centered" */
-    double m_centeredLimit;
-    
-    /** Whether or not we are centered */
-    bool m_centered;
-    
-    /** The max distance between bins on different frames */
-    double m_sameBinThreshold;
-
-    /** The maximum aspect ratio a blob can have and still be called a bin*/
-    double m_maxAspectRatio;
+    /** Object that determines the symbol in the bin */
+    SuitDetector m_symbolDetector;
     
     /** Our current set of bins */
     BinList m_bins;
 
-    Symbol symbolCenteredOver;
+    /** Whether or not we found any bins last frame */
+    bool m_found;
 
-    /** Current bin ids */
-    int m_binID;
+    /** Whether or not we were centered last frame */
+    bool m_centered;
     
-    int m_blackMaskMinimumPercent;
-    int m_blackMaskMaxTotalIntensity;        
+    /** Maximum distance for the bin to be considred "centered" */
+    double m_centeredLimit;
+    
+    /** Determines if we should try and determine the symbol of the bin */
+    bool m_runSymbolDetector;
+
+    /** Determines whether or not we should write symbol images to disk */
+    bool m_logSymbolImages;
+
+    /** Each BGR value is the percent of total original value (for masking) */
+    Image* m_percents;
+
+    /** The input image where all white is white and everything else is black*/
+    Image* m_whiteMaskedFrame;
+
+    /** The input image where all black is white and everything else is black*/
+    Image* m_blackMaskedFrame;
+
+    /** The input image where all red is white and everything else is black*/
+    Image* m_redMaskedFrame;
+
+    /** Buffer we use to extract poritions of the image into
+     *  @note Its always just a bit bigger then the raw image
+     */
+    unsigned char* m_extractBuffer;
+
+    /** Buffer we use during image processing
+     *  @note Its always just a bit bigger then the raw image
+     */
+    unsigned char* m_scratchBuffer1;
+
+    /** Buffer we use during image processing
+     *  @note Its always just a bit bigger then the raw image
+     */
+    unsigned char* m_scratchBuffer2;
+    
+    /** Minimum percent for the white mask */
     int m_whiteMaskMinimumPercent;
+    
+    /** Minimum intensity of a pixel for it to be considered white */
     int m_whiteMaskMinimumIntensity;
-    bool m_incrediblyWashedOutImages;
+
+    /** Minimum percent for the white mask */
+    int m_blackMaskMinimumPercent;
+
+    /** Maximum intensity of a pixel for it to be considered black */
+    int m_blackMaskMaxTotalIntensity;        
+
+    /** Minimum percent of the total pixel value for red */
+    int m_redMinPercent;
+
+    /** Minimum value of Red pixel value for for red */
+    int m_redMinRValue;
+
+    /** Maximum value of Green pixel value for for red */
+    int m_redMaxGValue;
+
+    /** Maximum value of Blue pixel value for for red */
+    int m_redMaxBValue;
+    
+    /** Minimum pixel count of a black blob */
+    int m_blobMinBlackPixels;
+
+    /** Minimum pixel count of a white blob */
+    int m_blobMinWhitePixels;
+
+    /** Size of min red blob as a percent of the smallest black bin blob */
+    double m_blobMinRedPercent;
+
+    /** The maximum aspect ratio a blob can have and still be called a bin */
+    double m_binMaxAspectRatio;
+
+    /** The max distance between bins on different frames */
+    double m_binSameThreshold;
+
+    /** Pixel resolution for hough based bin angle detection */
+    int m_binHoughPixelRes;
+
+    /** Threshold for hough based bin angle detection */
+    int m_binHoughThreshold;
+
+    /** Minimum length of lines found when detemining bin angle */
+    int m_binHoughMinLineLength;
+
+    /** Maximum gap between lines for them to be joined */
+    int m_binHoughMaxLineGap;
+    
+    /** The ID of the next new bin to be found */
+    int m_binID;
 };
 
 } // namespace vision

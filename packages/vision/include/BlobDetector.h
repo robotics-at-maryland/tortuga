@@ -51,9 +51,9 @@ public:
         int getMaxY() const { return m_maxY; }
         int getMinY() const { return m_minY; }
 
-        int getHeight() const { return getMaxY() - getMinY(); }
+        int getHeight() const { return getMaxY() - getMinY() + 1; }
 
-        int getWidth() const { return getMaxX() - getMinX(); }
+        int getWidth() const { return getMaxX() - getMinX() + 1; }
 
         void draw(Image*, bool centroid = true, 
 		  unsigned char R = 0,

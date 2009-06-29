@@ -84,6 +84,30 @@ public:
                           unsigned char fillG = 0,
                           unsigned char fillB = 0);
 
+    /** Gives you an image that is a sub of the current one
+     *
+     *  @param source
+     *      The image to do the extract from
+     *  @param border
+     *      The border around the blob you want
+     *  @param upperLeftX
+     *      Upper left X coordinate of square to extract
+     *  @param upperLeftY
+     *      Upper left Y coordinate of square to extract
+     *  @param lowerRightX
+     *      Lower right X coordinate of square to extract
+     *  @param lowerRightY
+     *      Lower right Y coordinate of square to extract
+     *
+     *  @return
+     *      An image class using (but not owning) your buffer, you must delete
+     *      the image.
+     */
+    static Image* extractSubImage(Image* source, unsigned char* buffer,
+                                  int upperLeftX, int upperLeftY,
+                                  int lowerRightX, int lowerRightY);
+
+    
     /** Blits the images using the clear color to the destination image */
     static void blitImage(Image* toBlit, Image* src, Image* dest,
                           unsigned char R = 255,

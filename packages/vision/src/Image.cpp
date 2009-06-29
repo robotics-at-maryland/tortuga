@@ -73,6 +73,37 @@ void Image::transform(Image* src, Image* dest, math::Degree rotation,
                       CV_RGB(fillB, fillG, fillR));
 }
 
+Image* Image::extractSubImage(Image* source, unsigned char* buffer,
+                              int upperLeftX, int upperLeftY,
+                              int lowerRightX, int lowerRightY)
+{
+    unsigned char* sourceBuffer = source->getData();
+    unsigned char* srcPtr = sourceBuffer;
+    unsigned char* destPtr = buffer;
+    int width = lowerRightX - upperLeftX; //+ 1;
+    int height = lowerRightY - upperLeftY; //+ 1;
+
+    int yStart = upperLeftY;
+    int yEnd = yStart + height;
+
+    for (int y = yStart; y < yEnd; ++y)
+    {
+        // Get us to right row and column to start
+        int offset = (y * source->getWidth() * 3) + (upperLeftX * 3);
+        srcPtr = sourceBuffer + offset;
+        
+        for (int x = 0; x < (width * 3); ++x)
+        {
+            *destPtr = *srcPtr;
+            ++destPtr;
+            ++srcPtr;
+        }
+    }
+
+    return loadFromBuffer(buffer, width, height, false);
+}
+
+
 void Image::blitImage(Image* toBlit, Image* src, Image* dest,
                       unsigned char R, unsigned char G, unsigned char B,
                       int xOffset, int yOffset)

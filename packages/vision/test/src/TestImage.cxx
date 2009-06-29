@@ -64,6 +64,35 @@ TEST(transform)
     delete result;
 }
 
+TEST(extractSubImage)
+{
+    // TODO: Make me inclusive!
+    int width = 60;
+    int height = 150;
+    
+    vision::OpenCVImage src(512, 512);
+    vision::OpenCVImage expected(width, height);
+
+    // Prepare the source
+    vision::makeColor(&src, 255, 255, 255);
+    vision::drawSquare(&src, 200, 200, width, height, 0.0, CV_RGB(122,30,10));
+
+    // Prepare the expected
+    vision::makeColor(&expected, 122, 30, 10);
+
+    // Buffer to hold data in
+    unsigned char* buffer = new unsigned char[width * height * 3];
+
+    // Extract the image and check
+    vision::Image* result = vision::Image::extractSubImage(&src, buffer,
+                                                           170, 125, 230, 275);
+
+    CHECK_CLOSE(*result, *((vision::Image*)&expected), 0);
+    
+    delete result;
+    delete[] buffer;
+}
+
 TEST(blitImage)
 {
     vision::Image* expected = vision::Image::loadFromFile(
