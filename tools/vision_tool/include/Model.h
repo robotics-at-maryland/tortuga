@@ -21,6 +21,8 @@
 #include "core/include/EventPublisher.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Forward.h"
+#include "core/include/TimeVal.h"
+
 #include "vision/include/Common.h"
 
 class wxTimerEvent;
@@ -168,6 +170,12 @@ private:
     /** Timer used to trigger reading of new images */
     wxTimer* m_timer;
 
+    /** The next valid time to send an update */
+    core::TimeVal m_nextUpdate;
+
+    /** Time in seconds between updates */
+    double m_updateInterval;
+    
     /** The latest image decoded from the image source */
     vision::Image* m_latestImage;
 

@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <utility>
+#include <iostream>
 
 // Library Includes
 #include <wx/timer.h>
@@ -116,10 +117,17 @@ void Model::stop()
 
 void Model::start()
 {
+    if (running())
+        stop();
+    
     double fpsNum = fps();
     if (fpsNum == 0.0)
         fpsNum = 30;
-    m_timer->Start((int)(1000 / fpsNum));
+    m_updateInterval = 1.0 / fpsNum;
+
+    m_nextUpdate = core::TimeVal::timeOfDay() + core::TimeVal(m_updateInterval);
+    
+    m_timer->Start((int)(1000 / fpsNum), true);
 }
 
 bool Model::running()
@@ -148,6 +156,8 @@ void Model::seekToTime(double seconds)
     if (m_camera)
     {
         m_camera->seekToTime(seconds);
+        m_nextUpdate = core::TimeVal::timeOfDay() +
+            core::TimeVal(m_updateInterval * 2);
         sendNewImage();
     }
 }
@@ -252,7 +262,24 @@ core::PropertySetPtr Model::getDetectorPropertySet()
 void Model::onTimer(wxTimerEvent &event)
 {
     if (m_camera)
+    {
+        // Send an image
         sendNewImage();
+
+        // Advance the update the standard ammount
+        m_nextUpdate += core::TimeVal(m_updateInterval);
+
+        // Advance out next update until its in the future
+        while ((m_nextUpdate - core::TimeVal::timeOfDay()).get_double() < 0)
+        {
+            m_nextUpdate += core::TimeVal(m_updateInterval);
+            m_camera->seekToTime(currentTime() + m_updateInterval);
+        }
+
+        // Sleep until that time
+        core::TimeVal sleepTime(m_nextUpdate - core::TimeVal::timeOfDay());
+        m_timer->Start(sleepTime.get_double() * 1000, true);
+    }
 }
     
 void Model::sendNewImage(bool grabFromSource)
@@ -263,13 +290,14 @@ void Model::sendNewImage(bool grabFromSource)
         m_camera->update(0);
 	m_camera->getImage(m_latestImage);
     }
-    // If we havea  detector process the image so we can show the debug result
+
+    // If we have detector process the image so we can show the debug result
     if (m_detector)
     {
         m_detectorInput->copyFrom(m_latestImage);
-	m_detector->processImage(m_detectorInput, m_detectorOutput);
+        m_detector->processImage(m_detectorInput, m_detectorOutput);
     }
-
+    
     // Send the event
     vision::ImageEventPtr event(new vision::ImageEvent(m_imageToSend));
     publish(NEW_IMAGE, event);
