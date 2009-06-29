@@ -61,10 +61,14 @@ class HoveringState(state.State):
     
     def BIN_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        # Set up the histogram. setdefault will make sure that it sets up
+        # the histogram if it isn't set up and will get the histogram if
+        # it already exists
+        histogram = \
+            self.ai.data['binData']['histogram'].setdefault(
+                event.id, {})
+        histogram.setdefault('totalHits', 0)
         if event.symbol != vision.Symbol.UNKNOWN:
-            histogram = \
-                self.ai.data['binData']['histogram'].setdefault(
-                    event.id, dict())
             histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
             histogram['totalHits'] = histogram.get('totalHits', 0) + 1
 
@@ -614,28 +618,36 @@ class Aligning(SettlingState):
     def enter(self):
         SettlingState.enter(self, Aligning.ALIGNED, 5)
         
-class Examine(SettlingState):
+class Examine(HoveringState):
     """
     Turns on the symbol detector, and determines the type of the bin
     """
     FOUND_TARGET = core.declareEventType('FOUND_TARGET')
-    DETERMINE_SYMBOL = core.declareEventType('DETERMINE_SYMBOL_')
     MOVE_ON = core.declareEventType('MOVE_ON')
         
     @staticmethod
     def transitions():
         return HoveringState.transitions(Examine,
         { Examine.FOUND_TARGET : PreDropDive,
-          Examine.DETERMINE_SYMBOL : Examine,
           Examine.MOVE_ON : SurfaceToMove })
+
+    def BIN_FOUND(self, event):
+        HoveringState.BIN_FOUND(self, event)
+
+        # Only look at the current bin
+        if self._currentBin(event):
+            # Check if it's over the minimum required data
+            if self.ai.data['binData']['histogram'][event.id]['totalHits'] >= \
+                    self._minimumHits:
+                # Have it determine the symbol if it's got enough data
+                self._determineSymbols(event.id)
                 
-    def DETERMINE_SYMBOL_(self, event):
+    def _determineSymbols(self, currentID):
         """
         Determine if we have found something and trigger FOUND_TARGET event 
         if we have
         """
 
-        currentID = self.ai.data['binData'].get('currentID', 0)
         histogram = self.ai.data['binData']['histogram'].setdefault(
             currentID, {'totalHits' : 0})
         totalHits = histogram['totalHits']
@@ -658,7 +670,7 @@ class Examine(SettlingState):
         for symbol in percentages.iterkeys():
             if percentages[symbol] >= self._foundLimit:
                 foundTarget = self._checkSymbol(symbol)
-            
+
         # If we didn't find anything, time to move on
         if not foundTarget:
             self.publish(Examine.MOVE_ON, core.Event())
@@ -689,29 +701,9 @@ class Examine(SettlingState):
         return False
         
     def enter(self):
-        # Checks to make sure there's binData
-        if not self.ai.data.has_key('binData'):
-            SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
-                                self._config.get('waitTime', 5))
-        else:
-            binData = self.ai.data['binData']
-            currentID = binData['currentID']
+        HoveringState.enter(self)
 
-            # Checks to make sure that the currentID has a histogram
-            if not binData['histogram'].has_key(currentID):
-            # If it doesn't, settle for 5 seconds to get a proper histogram
-                SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
-                                    self._config.get('waitTime', 5))
-            else:
-                # If it does, make sure the histogram has enough data
-                if binData['histogram'][currentID]['totalHits'] >= \
-                        self._config.get('minimumHits', 100):
-                    # Continue immediately if it does have enough data
-                    SettlingState.enter(self, Examine.DETERMINE_SYMBOL, 0)
-                else:
-                    # If it doesn't have enough data, wait anyways
-                    SettlingState.enter(self, Examine.DETERMINE_SYMBOL,
-                                        self._config.get('waitTime', 5))
+        self._minimumHits = self._config.get('minimumHits', 200)
 
         self._foundLimit = self._config.get('foundLimit', 0.8)
         

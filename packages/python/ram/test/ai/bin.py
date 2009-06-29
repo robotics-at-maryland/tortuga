@@ -649,10 +649,11 @@ class TestExamine(BinTestCase):
         """Make sure we start diving"""
         self.assertCurrentMotion(motion.pipe.Hover)
         
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
-        self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.SurfaceToMove)
+        # Keeping just in case, but these aren't valid anymore
+        #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        #self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
+        #self.qeventHub.publishEvents()
+        #self.assertCurrentState(bin.SurfaceToMove)
 
     def testLoadSymbolConfig(self):
         expectedSymbols = set([vision.Symbol.CLUB, vision.Symbol.DIAMOND])
@@ -711,7 +712,10 @@ class TestExamine(BinTestCase):
         
     def testFoundSymbol(self):
         # Send in a bunch of events
-        self.ai.data['binData']['currentID'] = 3 
+        self.ai.data['binData']['currentID'] = 3
+
+        # We will send in 10 events before it calls distribute events
+        self.machine.currentState()._minimumHits = 10
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
@@ -721,7 +725,6 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
-        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
 
         # Put in a bunch of unknowns to make sure they aren't part of it
         self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
@@ -733,8 +736,8 @@ class TestExamine(BinTestCase):
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
-        # Now start the machine and make sure we have moved on
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)   
+        # The final event should call distribute events on its own
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
         self.assertCurrentState(bin.PreDropDive)
@@ -745,8 +748,11 @@ class TestExamine(BinTestCase):
         self.ai.data['droppedSymbols'] = set([vision.Symbol.CLUB])
         self.ai.data['binData']['currentID'] = 3
         self.machine.start(bin.Examine)
+ 
+        # Set the number of events it should require before trying
+        self.machine.currentState()._minimumHits = 15
 
-        # Send in a bunch of events 
+        # Send in a bunch of events
         for i in xrange(0,14):
             self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
@@ -756,14 +762,17 @@ class TestExamine(BinTestCase):
         
         # Now start the event and make sure we have not moved on
         # because we have already seen this symbol
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
         
     def testNoSymbolFound(self):
+        # Set the number of hits it should require before acting
+        self.machine.currentState()._minimumHits = 10
+
         # Send in a bunch of events
-        self.ai.data['binData']['currentID'] = 3 
+        self.ai.data['binData']['currentID'] = 3
         self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
@@ -773,14 +782,13 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
-        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
         # Make sure we haven't done anything yet
         self.assertCurrentState(bin.Examine)
         self.assertFalse(self._targetFound)
         
-        # Now start the event and make sure we have moved on
-        self.releaseTimer(bin.Examine.DETERMINE_SYMBOL)
+        # Inject the last event
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.SurfaceToMove)
