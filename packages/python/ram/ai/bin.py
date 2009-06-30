@@ -624,12 +624,14 @@ class Examine(HoveringState):
     """
     FOUND_TARGET = core.declareEventType('FOUND_TARGET')
     MOVE_ON = core.declareEventType('MOVE_ON')
-        
+    TIMEOUT = core.declareEventType('TIMEOUT_')
+
     @staticmethod
     def transitions():
         return HoveringState.transitions(Examine,
         { Examine.FOUND_TARGET : PreDropDive,
-          Examine.MOVE_ON : SurfaceToMove })
+          Examine.MOVE_ON : SurfaceToMove,
+          Examine.TIMEOUT : Examine })
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -641,7 +643,13 @@ class Examine(HoveringState):
                     self._minimumHits:
                 # Have it determine the symbol if it's got enough data
                 self._determineSymbols(event.id)
-                
+    
+    def TIMEOUT_(self, event):
+        if self.ai.data['binData'].has_key('currentID'):
+            self._determineSymbols(self.ai.data['binData']['currentID'])
+        else:
+            self.publish(Examine.MOVE_ON, core.Event())
+
     def _determineSymbols(self, currentID):
         """
         Determine if we have found something and trigger FOUND_TARGET event 
@@ -703,7 +711,7 @@ class Examine(HoveringState):
     def enter(self):
         HoveringState.enter(self)
 
-        self._minimumHits = self._config.get('minimumHits', 200)
+        self._minimumHits = self._config.get('minimumHits', 100)
 
         self._timeout = self._config.get('timeout', 5)
 
@@ -713,9 +721,13 @@ class Examine(HoveringState):
         self._loadSymbolConfig()
 
         if self._timeout >= 0:
-            self._timer = self.timerManager.newTimer(Examine.MOVE_ON,
+            self._timer = self.timerManager.newTimer(Examine.TIMEOUT,
                                                      self._timeout)
             self._timer.start()
+
+    def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
         
 class PreDropDive(Dive):
     """

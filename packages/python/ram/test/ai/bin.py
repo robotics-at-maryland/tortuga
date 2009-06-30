@@ -798,7 +798,8 @@ class TestExamine(BinTestCase):
         self.assertCurrentState(bin.Examine)
 
         # Release the timer
-        self.releaseTimer(bin.Examine.MOVE_ON)
+        self.releaseTimer(bin.Examine.TIMEOUT)
+        self.qeventHub.publishEvents()
 
         # Check to make sure it has moved on
         self.assertCurrentState(bin.SurfaceToMove)
