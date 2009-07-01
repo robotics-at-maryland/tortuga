@@ -720,45 +720,73 @@ class IdealSimVision(ext.vision.VisionSystem):
 
     def redLightDetectorOn(self):
         self._runRedLight = True
+        self.publish(ext.vision.EventType.RED_LIGHT_DETECTOR_ON,
+                     ext.core.Event())
     
     def redLightDetectorOff(self):
         self._runRedLight = False
-        
+        self.publish(ext.vision.EventType.RED_LIGHT_DETECTOR_OFF,
+                     ext.core.Event())
+
     def pipeLineDetectorOn(self):
         self._runOrangePipe = True
+        self.publish(ext.vision.EventType.PIPELINE_DETECTOR_ON,
+                     ext.core.Event())
         
     def pipeLineDetectorOff(self):
         self._runOrangePipe = False
+        self.publish(ext.vision.EventType.PIPELINE_DETECTOR_OFF,
+                     ext.core.Event())
         
     def binDetectorOn(self):
         self._runBin = True
+        self.publish(ext.vision.EventType.BIN_DETECTOR_ON,
+                     ext.core.Event())
         
     def binDetectorOff(self):
         self._runBin = False
+        self.publish(ext.vision.EventType.BIN_DETECTOR_OFF,
+                     ext.core.Event())
         
     def ductDetectorOn(self):
         self._runDuct = True
+        self.publish(ext.vision.EventType.DUCT_DETECTOR_ON,
+                     ext.core.Event())
         
     def ductDetectorOff(self):
         self._runDuct = False
+        self.publish(ext.vision.EventType.DUCT_DETECTOR_OFF,
+                     ext.core.Event())
 
     def downwardSafeDetectorOn(self):
         self._runDownSafeDetector = True
+        self.publish(ext.vision.EventType.SAFE_DETECTOR_ON,
+                     ext.core.Event())
         
     def downwardSafeDetectorOff(self):
         self._runDownSafeDetector = False
+        self.publish(ext.vision.EventType.SAFE_DETECTOR_OFF,
+                     ext.core.Event())
 
     def targetDetectorOn(self):
         self._runTarget = True
+        self.publish(ext.vision.EventType.TARGET_DETECTOR_ON,
+                     ext.core.Event())
         
     def targetDetectorOff(self):
         self._runTarget = False
+        self.publish(ext.vision.EventType.TARGET_DETECTOR_OFF,
+                     ext.core.Event())
 
     def barbedWireDetectorOn(self):
         self._runBarbedWire = True
+        self.publish(ext.vision.EventType.BARBED_WIRE_DETECTOR_ON,
+                     ext.core.Event())
 
     def barbedWireDetectorOff(self):
         self._runBarbedWire = False
+        self.publish(ext.vision.EventType.BARBED_WIRE_DETECTOR_OFF,
+                     ext.core.Event())
 
     def backgrounded(self):
         return False
