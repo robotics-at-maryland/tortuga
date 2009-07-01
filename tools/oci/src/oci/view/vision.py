@@ -157,16 +157,24 @@ class RedLightPanel(VisionPanel):
         # Events
         self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_FOUND, 
                               self._onBouyFound)
-                
-        self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_LOST, 
+
+        self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_LOST,
                               self._onBouyLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              RED_LIGHT_DETECTOR_ON,
+                              self._redLightDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              RED_LIGHT_DETECTOR_OFF,
+                              self._redLightDetectorOff)
                 
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
         self._createDataControl(controlName = '_elevation', 
-                                label = 'Elvevation: ')
+                                label = 'Elevation: ')
         self._createDataControl(controlName = '_range', label = 'Range: ')
         
     def _onBouyFound(self, event):
@@ -180,6 +188,18 @@ class RedLightPanel(VisionPanel):
     
     def _onBouyLost(self, event):
         self.disableControls()
+
+    def _redLightDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _redLightDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._azimuth.Value = ""
+        self._elevation.Value = ""
+        self._range.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
         
 class OrangePipePanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -197,6 +217,12 @@ class OrangePipePanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.PIPE_LOST, 
                              self._onPipeLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              PIPELINE_DETECTOR_ON, self._pipeLineDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              PIPELINE_DETECTOR_OFF, self._pipeLineDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -212,6 +238,16 @@ class OrangePipePanel(VisionPanel):
     
     def _onPipeLost(self, event):
         self.disableControls()
+
+    def _pipeLineDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _pipeLineDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._angle.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
         
         
 class SafePanel(VisionPanel):
@@ -230,6 +266,12 @@ class SafePanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.SAFE_LOST, 
                              self._onSafeLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              SAFE_DETECTOR_ON, self._safeDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              SAFE_DETECTOR_OFF, self._safeDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -245,6 +287,15 @@ class SafePanel(VisionPanel):
     
     def _onSafeLost(self, event):
         self.disableControls()
+
+    def _safeDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _safeDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
         
 class BinPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
@@ -270,6 +321,12 @@ class BinPanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.BINS_LOST, 
                               self._onBinLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BIN_DETECTOR_ON, self._binDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BIN_DETECTOR_OFF, self._binDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -315,6 +372,17 @@ class BinPanel(VisionPanel):
     def _onBinLost(self, event):
         self.disableControls()
 
+    def _binDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _binDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._angle.Value = ""
+        self._symbol.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+
 class DuctPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
         VisionPanel.__init__(self, parent, *args, **kwargs)
@@ -333,6 +401,12 @@ class DuctPanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.DUCT_LOST, 
                              self._onTargetLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              DUCT_DETECTOR_ON, self._ductDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              DUCT_DETECTOR_OFF, self._ductDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -353,6 +427,18 @@ class DuctPanel(VisionPanel):
     def _onTargetLost(self, event):
         self.disableControls()
 
+    def _ductDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _ductDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._range.Value = ""
+        self._alignment.Value = ""
+        self._aligned.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+
 class TargetPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
         VisionPanel.__init__(self, parent, *args, **kwargs)
@@ -371,6 +457,12 @@ class TargetPanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.TARGET_LOST, 
                              self._onTargetLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              TARGET_DETECTOR_ON, self._targetDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              TARGET_DETECTOR_OFF, self._targetDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
@@ -388,6 +480,17 @@ class TargetPanel(VisionPanel):
     
     def _onTargetLost(self, event):
         self.disableControls()
+
+    def _targetDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _targetDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._squareNess.Value = ""
+        self._range.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
 
 class BarbedWirePanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -408,6 +511,14 @@ class BarbedWirePanel(VisionPanel):
         
         self._subscribeToType(eventHub, ext.vision.EventType.BARBED_WIRE_LOST, 
                              self._onBarbedWireLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BARBED_WIRE_DETECTOR_ON,
+                              self._barbedWireDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BARBED_WIRE_DETECTOR_OFF,
+                              self._barbedWireDetectorOff)
         
     def _createDataControls(self):
         self._createDataControl(controlName = '_topX', label = 'Top X: ')
@@ -431,3 +542,16 @@ class BarbedWirePanel(VisionPanel):
     
     def _onBarbedWireLost(self, event):
         self.disableControls()
+
+    def _barbedWireDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+
+    def _barbedWireDetectorOff(self, event):
+        self._topX.Value = ""
+        self._topY.Value = ""
+        self._topWidth.Value = ""
+        self._bottomX.Value = ""
+        self._bottomY.Value = ""
+        self._bottomWidth.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
