@@ -99,7 +99,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     sizer = new wxBoxSizer(wxVERTICAL);
     wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, 
 							     m_detectorFrame);
-    sizer->Add(detectorControlPanel, 0, wxEXPAND, 0);
+    sizer->Add(detectorControlPanel, 1, wxEXPAND, 0);
 
     m_detectorFrame->SetSizer(sizer);
     m_detectorFrame->Show();

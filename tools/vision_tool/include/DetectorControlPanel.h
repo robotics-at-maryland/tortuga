@@ -14,7 +14,7 @@
 #include <vector>
 
 // Library Includes
-#include <wx/panel.h>
+#include <wx/scrolwin.h>
 
 // Project Includes
 #include "vision/include/Forward.h"
@@ -31,7 +31,7 @@ namespace ram {
 namespace tools {
 namespace visionvwr {
     
-class DetectorControlPanel: public wxPanel
+class DetectorControlPanel: public wxScrolledWindow
 {
 
 public:
@@ -51,6 +51,16 @@ private:
     /** Called when reset to defaults button is pressed */
     void onReset(wxCommandEvent& event);
 
+    /** Sets up all the needed scrolling parameters.
+     *
+     *  This function sets up the event handling necessary to handle
+     *  scrolling properly. Its called whenever we change out the
+     *  detector controllers.
+     */
+    void setupScrolling();
+
+    void onSize(wxSizeEvent& sizeEvent);
+    
     /** The object that is decoding the movie */
     Model* m_model;
 

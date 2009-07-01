@@ -9,7 +9,7 @@
 
 // STD Includes
 #include <cmath>
-
+#include <iostream>
 // Library Includes
 #include <wx/choice.h>
 #include <wx/sizer.h>
@@ -32,13 +32,13 @@ namespace ram {
 namespace tools {
 namespace visionvwr {
 
-BEGIN_EVENT_TABLE(DetectorControlPanel, wxPanel)
+BEGIN_EVENT_TABLE(DetectorControlPanel, wxScrolledWindow)
 END_EVENT_TABLE()
     
 DetectorControlPanel::DetectorControlPanel(Model* model,
                                      wxWindow *parent, wxWindowID id,
                                      const wxPoint &pos, const wxSize &size) :
-    wxPanel(parent, id, pos, size),
+    wxScrolledWindow(parent, id, pos, size),
     m_model(model),
     m_choice(0)
 {
@@ -73,6 +73,8 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
+    setupScrolling();
+    
     // Subscribe to model events
     m_model->subscribe(Model::DETECTOR_CHANGED,
         boost::bind(&DetectorControlPanel::onDetectorChanged, this, _1));
@@ -133,11 +135,11 @@ void DetectorControlPanel::onDetectorChanged(core::EventPtr event)
     }
 
     // Attempt to reset everything
-    sizer->SetSizeHints(this);
     sizer->Layout();
-    SetSize(GetSize());
     Refresh();
     Update();
+
+    setupScrolling();
 }
 
 void DetectorControlPanel::onReset(wxCommandEvent& event)
@@ -148,6 +150,34 @@ void DetectorControlPanel::onReset(wxCommandEvent& event)
     }
 }
 
+void DetectorControlPanel::setupScrolling()
+{
+    // Parameters to tweak the algorithm
+    bool scroll_x = true;
+    bool scroll_y = true;
+    int rate_x = 20;
+    int rate_y = 20;
+
+    if (!scroll_x)
+        rate_x = 0;
+    if (!scroll_y)
+        rate_y = 0;
+
+    // Round up the virtual size to be a multiple of the scroll rate
+    wxSizer* sizer = GetSizer();
+    wxSize minSize = sizer->GetMinSize();
+    int w = minSize.GetWidth();
+    int h = minSize.GetHeight();
+    if (rate_x)
+        w += rate_x - (w % rate_x);
+    if (rate_y)
+        h += rate_y - (h % rate_y);
+    
+    SetVirtualSize(minSize);
+    SetScrollRate(rate_x, rate_y);
+    SetVirtualSize(GetBestVirtualSize());
+}
+    
 } // namespace visionvwr
 } // namespace tools
 } // namespace ram
