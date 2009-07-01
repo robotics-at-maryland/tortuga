@@ -77,6 +77,14 @@ TEST(getPitch)
     CHECK_CLOSE(0, quat.getYaw().valueDegrees(), 0.0001);
     CHECK_CLOSE(0, quat.getRoll().valueDegrees(), 0.0001);
     CHECK_CLOSE(53, quat.getPitch().valueDegrees(), 0.0001);
+
+    Quaternion quat2(Degree(180), Vector3::UNIT_Z);
+    Quaternion quat3 = quat * quat2;
+
+    CHECK_CLOSE(180, quat3.getYaw().valueDegrees(), 0.0001);
+    // TO DO: Fix me
+    //CHECK_CLOSE(0, quat3.getRoll().valueDegrees(), 0.0001);
+    CHECK_CLOSE(53, quat3.getPitch().valueDegrees(), 0.0001);
 }
 
 TEST(getYaw)

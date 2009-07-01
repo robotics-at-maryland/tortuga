@@ -116,7 +116,10 @@ void translationalController(MeasuredState* measuredState,
     //now rotate depth control component to the vehicle's coordinate frame
     math::Quaternion quat(
         math::Quaternion(measuredState->quaternion).Inverse());
-    math::Vector3 bodyFrameDepthComponent = quat * depthComponent;
+    // Only really correct for pitch
+    math::Quaternion quatPitch(math::Degree(quat.getPitch()),
+                               math::Vector3::UNIT_Y);
+    math::Vector3 bodyFrameDepthComponent = quatPitch * depthComponent;
 
             
     //fore-aft control (open loop, not really control) done in interial
@@ -125,7 +128,7 @@ void translationalController(MeasuredState* measuredState,
         (controllerState->speedPGain)*(desiredState->speed),
         (controllerState->sidewaysSpeedPGain) * (desiredState->sidewaysSpeed),
         0);
-    math::Vector3 bodyFrameforeAftComponent = quat * foreAftComponent;
+    math::Vector3 bodyFrameforeAftComponent = quatPitch * foreAftComponent;
 
     //combine fore-aft with depth control
     math::Vector3 translationControlSignal =

@@ -67,11 +67,35 @@ TEST(TranslationController)
 
     CHECK_CLOSE(expected, result, 0.0001);
 
+
+    // Speed test with yaw
+    desired.depth = 0;
+    desired.speed = 1;
+
+    // At 0 depth, pitch 0, yawed 45 degrees
+    orien = math::Quaternion(math::Degree(45), math::Vector3::UNIT_Z);
+    memcpy(measured.quaternion, orien.ptr(), sizeof(measured.quaternion));
+    
+    state.depthPGain = 0;
+    state.speedPGain = 1;
+
+    // The expected
+    result = math::Vector3::ZERO;
+    expected = math::Vector3(1, 0, 0);
+
+    // Run the controller
+    translationalController(&measured, &desired, &state, &estimated, 0.1,
+                            result.ptr());
+
+    CHECK_CLOSE(expected, result, 0.0001);
+
+    
     // Combine
     desired.depth = 1;
 
     // At 0 depth, pitched down 45 degrees
-    // Keeping old measured state
+    orien = math::Quaternion(math::Degree(45), math::Vector3::UNIT_Y);
+    memcpy(measured.quaternion, orien.ptr(), sizeof(measured.quaternion));
     
     // Turn on Depth
     state.depthPGain = 1;
