@@ -156,6 +156,30 @@ TEST_FIXTURE(Fixture, getPropertyNames)
     CHECK_ARRAY_EQUAL(propNames, propSet.getPropertyNames(), propNames.size());
 }
 
+TEST_FIXTURE(Fixture, addPropertiesFromSet)
+{
+    // Our starter property set
+    propSet.addProperty(prop);
+
+    // Create our set we wish to add
+    core::PropertySet propSet2;
+
+    core::PropertyPtr prop2(
+        new core::VariableProperty<int>("val 2", "property", 6, &value));
+    core::PropertyPtr prop3(
+        new core::VariableProperty<int>("val 3", "property", 8, &value));
+
+    propSet2.addProperty(prop2);
+    propSet2.addProperty(prop3);
+
+    // Add the prop set to the original to the original
+    propSet.addPropertiesFromSet(&propSet2);
+    
+    std::vector<std::string> propNames =
+        boost::assign::list_of("val")("val 2")("val 3");
+    CHECK_ARRAY_EQUAL(propNames, propSet.getPropertyNames(), propNames.size());
+}
+
 
 
 

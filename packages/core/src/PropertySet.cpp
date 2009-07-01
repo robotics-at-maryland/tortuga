@@ -185,5 +185,13 @@ std::vector<std::string> PropertySet::getPropertyNames()
     return names;
 }
 
+
+void PropertySet::addPropertiesFromSet(PropertySet* propSet)
+{
+    BOOST_FOREACH(std::string propName, propSet->getPropertyNames())
+        addProperty(propSet->getProperty(propName));
+}
+    
+    
 } // namespace core
 } // namespace ram

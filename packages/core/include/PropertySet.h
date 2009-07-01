@@ -95,7 +95,7 @@ public:
                      typename FunctionProperty<T>::GetterFunc getter,
                      typename FunctionProperty<T>::SetterFunc setter,
 		     T min, T max);
-    
+   
     /** Gets the property object for a given property name. 
      *    @remarks
      *        Note that this property will need to be cast to a templated
@@ -110,6 +110,9 @@ public:
 
     /** Returns a list of all property names in alphabetical order*/
     std::vector<std::string> getPropertyNames();
+
+    /** Adds all the properties in the given set to this set */
+    void addPropertiesFromSet(PropertySet* propSet);
     
 protected:
     /** Loads the value into the given property */
