@@ -245,6 +245,9 @@ int PythonConfigNodeImp::asInt(const int def)
 NodeNameList PythonConfigNodeImp::subNodes()
 {
     try {
+        if (m_pyobj.ptr() == Py_None)
+            return NodeNameList();
+        
         // Make sure to pull in any nodes needed for includes
         includeIfNeeded(m_pyobj);
 
