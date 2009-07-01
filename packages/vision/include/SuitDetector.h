@@ -12,7 +12,7 @@
 
 // Project Includes
 #include "vision/include/Common.h"
-#include "vision/include/Detector.h"
+#include "vision/include/SymbolDetector.h"
 #include "vision/include/BlobDetector.h"
 #include "vision/include/Symbol.h"
 
@@ -23,8 +23,8 @@
 
 namespace ram {
 namespace vision {
-    
-class RAM_EXPORT SuitDetector : public Detector
+   
+class RAM_EXPORT SuitDetector : public SymbolDetector
 {
   public:
     Symbol::SymbolType suit;
@@ -44,6 +44,7 @@ class RAM_EXPORT SuitDetector : public Detector
     bool cyclicCompare(int[], int[], int[], int);
   private:
     Camera* cam;
+    IplImage* rightSize;
     IplImage* ratioImage;
     IplImage* analyzedImage;
 	IplImage* tempHoughImage;

@@ -29,6 +29,9 @@ class ColorFilter;
     
 class Detector;
 typedef boost::shared_ptr<Detector> DetectorPtr;
+
+class SymbolDetector;
+typedef boost::shared_ptr<SymbolDetector> SymbolDetectorPtr;
     
 } // namespace vision
 } // namespace ram

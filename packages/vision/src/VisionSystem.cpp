@@ -98,21 +98,23 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     // Detectors
     m_redLightDetector = DetectorPtr(
-        new RedLightDetector(config["RedLightDetector"], eventHub));
+        new RedLightDetector(getConfig(config, "RedLightDetector"), eventHub));
     m_binDetector = DetectorPtr(
-        new BinDetector(config["BinDetector"], eventHub));
+        new BinDetector(getConfig(config, "BinDetector"), eventHub));
     m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(config["PipelineDetector"], eventHub));
+        new OrangePipeDetector(getConfig(config, "PipelineDetector"),
+                                         eventHub));
     m_ductDetector = DetectorPtr(
-        new DuctDetector(config["DuctDetector"], eventHub));
+        new DuctDetector(getConfig(config, "DuctDetector"), eventHub));
     m_downwardSafeDetector = DetectorPtr(
-        new SafeDetector(config["SafeDetector"], eventHub));
+        new SafeDetector(getConfig(config, "SafeDetector"), eventHub));
     m_gateDetector = DetectorPtr(
-        new GateDetector(config["GateDetector"], eventHub));
+        new GateDetector(getConfig(config, "GateDetector"), eventHub));
     m_targetDetector = DetectorPtr(
-        new TargetDetector(config["TargetDetector"], eventHub));
+        new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
     m_barbedWireDetector = DetectorPtr(
-        new BarbedWireDetector(config["BarbedWireDetector"], eventHub));
+        new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
+                               eventHub));
     
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -141,6 +143,15 @@ void VisionSystem::createRecorders(core::ConfigNode recorderCfg,
         // Store it for later desctruction
         m_recorders.push_back(recorder);
     }
+}
+
+core::ConfigNode VisionSystem::getConfig(core::ConfigNode config,
+                                         std::string name)
+{
+    if (config.exists(name))
+        return config[name];
+    else
+        return core::ConfigNode::fromString("{}");
 }
     
 VisionSystem::~VisionSystem()

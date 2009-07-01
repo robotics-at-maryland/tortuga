@@ -27,6 +27,8 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
+#include "vision/include/DetectorMaker.h"
+#include "vision/include/SymbolDetector.h"
 
 #include "math/include/Vector2.h"
 
@@ -89,7 +91,7 @@ BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_blobDetector(config, eventHub),
-    m_symbolDetector(config,eventHub),
+    m_symbolDetector(SymbolDetectorPtr()),
     m_found(false),
     m_centered(false),
     m_runSymbolDetector(true),
@@ -334,6 +336,24 @@ void BinDetector::setSymbolImageLogging(bool value)
 
 void BinDetector::init(core::ConfigNode config)
 {
+    // Look up type for the symbol detector and validate it
+    std::string symbolDetectorType = "SuitDetector";
+    if (config.exists("symbolDetector"))
+        symbolDetectorType = config["symbolDetector"].asString();
+    assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
+           "Invalid symbol detector type");
+
+    // Create the detector
+    config.set("type", symbolDetectorType);
+    DetectorPtr detector = vision::DetectorMaker::newObject(
+        DetectorMakerParamType(config, core::EventHubPtr()));
+
+    // Convert it the proper type
+    m_symbolDetector =
+        boost::dynamic_pointer_cast<SymbolDetector>(detector);
+    assert(m_symbolDetector && "Symbol detector not of SymbolDetector type");
+
+    
     // NOTE: The property set automatically loads the value from the given
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
@@ -919,54 +939,46 @@ Symbol::SymbolType BinDetector::determineSymbol(Image* input,
                                                 unsigned char* scratchBuffer,
                                                 Image* output)
 {
-    // Get a proper size image for dans detector
-    Image* image = Image::loadFromBuffer(scratchBuffer, 128, 128, false);
-    cvResize(input->asIplImage(), image->asIplImage(), CV_INTER_LINEAR);
-    
-    m_symbolDetector.processImage(image ,output);
-    delete image;
+    m_symbolDetector->processImage(input, output);
     
     // Filter symbol type
-    Symbol::SymbolType symbolFound = m_symbolDetector.getSymbol(); 
-    Symbol::SymbolType symbol = Symbol::NONEFOUND;
+    Symbol::SymbolType symbolFound = m_symbolDetector->getSymbol(); 
+    Symbol::SymbolType symbol = Symbol::UNKNOWN;
 
-    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 || symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
+    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 ||
+        symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
     {
-        //seeClub = true;
         symbol = Symbol::CLUB;
-//        std::cout<<"Found Club Bin"<<std::endl;
-        
     }
-    else if (symbolFound == Symbol::SPADE || symbolFound == Symbol::SPADER90 || symbolFound == Symbol::SPADER180 || symbolFound == Symbol::SPADER270)
+    else if (symbolFound == Symbol::SPADE ||
+             symbolFound == Symbol::SPADER90 ||
+             symbolFound == Symbol::SPADER180 ||
+             symbolFound == Symbol::SPADER270)
     {
-        //seeSpade = true;
         symbol = Symbol::SPADE;
-//        std::cout<<"Found Spade Bin"<<std::endl;
-        
     }
-    else if (symbolFound == Symbol::HEART || symbolFound == Symbol::HEARTR90 || symbolFound == Symbol::HEARTR180 || symbolFound == Symbol::HEARTR270)
+    else if (symbolFound == Symbol::HEART ||
+             symbolFound == Symbol::HEARTR90 ||
+             symbolFound == Symbol::HEARTR180 ||
+             symbolFound == Symbol::HEARTR270)
     {
-        //seeHeart = true;
         symbol = Symbol::HEART;
-//        std::cout<<"Found Heart Bin"<<std::endl;
     }
-    else if (symbolFound == Symbol::DIAMOND || symbolFound == Symbol::DIAMONDR90 || symbolFound == Symbol::DIAMONDR180 || symbolFound == Symbol::DIAMONDR270)
+    else if (symbolFound == Symbol::DIAMOND ||
+             symbolFound == Symbol::DIAMONDR90 ||
+             symbolFound == Symbol::DIAMONDR180 ||
+             symbolFound == Symbol::DIAMONDR270)
     {
-        //seeDiamond = true;
         symbol = Symbol::DIAMOND;
-//        std::cout<<"Found Diamond Bin"<<std::endl;
     }
-    else if (symbolFound == Symbol::UNKNOWN)
+    else if (symbolFound == Symbol::SHIP ||
+             symbolFound == Symbol::AIRCRAFT ||
+             symbolFound == Symbol::TANK ||
+             symbolFound == Symbol::FACTORY)
     {
-        symbol = Symbol::UNKNOWN;
-//        std::cout<<"Found an unknown bin, rotate above it until we figure out what it is!"<<std::endl;
+        symbol = symbolFound;
     }
-    else if (symbolFound == Symbol::NONEFOUND)
-    {
-        //seeEmpty = true;
-        symbol = Symbol::NONEFOUND;
-//        std::cout<<"Found empty Bin"<<std::endl;
-    }
+    
     return symbol;
 }
 

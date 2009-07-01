@@ -123,7 +123,7 @@ namespace vision {
 
 SuitDetector::SuitDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
-    Detector(eventHub),
+    SymbolDetector(eventHub),
     cam(0),
     blobDetector(100)
 {
@@ -139,6 +139,7 @@ SuitDetector::SuitDetector(Camera* camera) :
 void SuitDetector::init(core::ConfigNode)
 {
     suit = Symbol::UNKNOWN;
+    rightSize = cvCreateImage(cvSize(128,128), 8,3);
 	analyzedImage = cvCreateImage(cvSize(640,480), 8,3);
 	ratioImage = cvCreateImage(cvSize(640,480),8,3);
 	tempHoughImage = cvCreateImage(cvSize(640,480),8,3);
@@ -146,6 +147,7 @@ void SuitDetector::init(core::ConfigNode)
 	
 SuitDetector::~SuitDetector()
 {
+    cvReleaseImage(&rightSize);
 	cvReleaseImage(&analyzedImage);
 	cvReleaseImage(&ratioImage);
 	cvReleaseImage(&tempHoughImage);
@@ -802,7 +804,17 @@ void SuitDetector::processImage(Image* input, Image* output)
 //    }
 //    cvReleaseImage(&percentsRotatedRed);
 
-    doEdgeRunning(scaledRedSuit);
+    if ((scaledRedSuit->width == 128) && (scaledRedSuit->height == 128))
+    {
+        doEdgeRunning(scaledRedSuit);
+    }
+    else
+    {
+        // Resize to 128 x 128
+        cvResize(scaledRedSuit, rightSize, CV_INTER_LINEAR);
+        // Now run the detector
+        doEdgeRunning(rightSize);
+    }
 }
 
 

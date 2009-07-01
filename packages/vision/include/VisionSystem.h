@@ -100,6 +100,8 @@ private:
     void init(core::ConfigNode config, core::EventHubPtr eventHub);
 
     void createRecorders(core::ConfigNode recorderCfg, CameraPtr camera);
+
+    core::ConfigNode getConfig(core::ConfigNode config, std::string name);
     
     CameraPtr m_forwardCamera;
     CameraPtr m_downwardCamera;

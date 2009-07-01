@@ -193,7 +193,7 @@ class RAM_EXPORT BinDetector : public Detector
     BlobDetector m_blobDetector;
 
     /** Object that determines the symbol in the bin */
-    SuitDetector m_symbolDetector;
+    SymbolDetectorPtr m_symbolDetector;
     
     /** Our current set of bins */
     BinList m_bins;
