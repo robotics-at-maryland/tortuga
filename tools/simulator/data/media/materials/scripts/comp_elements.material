@@ -150,6 +150,67 @@ material CompElement/HeartBin
 	}
 }
 
+material CompElement/ShipBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture ship.png
+			}
+		}
+	}
+}
+
+material CompElement/AircraftBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture aircraft.png
+			}
+		}
+	}
+}
+
+material CompElement/TankBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture tank.png
+			}
+		}
+	}
+}
+
+material CompElement/FactoryBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture factory.png
+			}
+		}
+	}
+}
+
+
 material CompElement/AirDuctSide
 {
     technique

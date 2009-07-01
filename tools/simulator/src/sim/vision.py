@@ -349,7 +349,8 @@ class Bin(Visual):
             
             _type = node.get('symbol', '').lower()
             self._symbol = Symbol.NONEFOUND
-            possibleSymbols = set(['heart','spade','club','diamond'])
+            possibleSymbols = set(['heart','spade','club','diamond', 'ship',
+                                   'factory', 'aircraft', 'tank'])
             if _type in possibleSymbols:
                 # Added the symbol name to the base (first letter caps
                 material = 'CompElement/' + _type[0].upper() + _type[1:] + 'Bin'
@@ -358,7 +359,11 @@ class Bin(Visual):
                 typeToFlag = {'club' : Symbol.CLUB, 
                               'heart' : Symbol.HEART,
                               'spade' : Symbol.SPADE, 
-                              'diamond' : Symbol.DIAMOND}
+                              'diamond' : Symbol.DIAMOND,
+                              'ship' : Symbol.SHIP,
+                              'factory' : Symbol.FACTORY,
+                              'aircraft' : Symbol.AIRCRAFT,
+                              'tank' : Symbol.TANK}
 
                 self._symbol = typeToFlag[_type]
 
