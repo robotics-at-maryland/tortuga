@@ -115,6 +115,32 @@ public:
                           unsigned char B = 255,
                           int xOffset = 0, int yOffset = 0);
 
+    /** Gives you an image that is a sub of the current one
+     *
+     *  @param source
+     *      The image to do the extract from
+     *  @param upperLeftX
+     *      Upper left X coordinate of square to examine
+     *  @param upperLeftY
+     *      Upper left Y coordinate of square to examine
+     *  @param lowerRightX
+     *      Lower right X coordinate of square to examine
+     *  @param lowerRightY
+     *      Lower right Y coordinate of square to examine
+     *  @param channel1
+     *      Will be set to the average value of the first channel in the image
+     *  @param channel2
+     *      Will be set to the average value of the second channel in the image
+     *  @param channel33
+     *      Will be set to the average value of the third channel in the image
+     *
+     */
+    static void getAveragePixelValues(Image* source,
+                                      int upperLeftX, int upperLeftY,
+                                      int lowerRightX, int lowerRightY,
+                                      double& channel1, double& channel2,
+                                      double& channel3);
+    
     /** To write must be smaller then source */
     static void drawImage(Image* toWrite, int x, int y, Image* src,
                           Image* dest);

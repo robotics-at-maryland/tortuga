@@ -155,6 +155,49 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
         }
     }
 }
+
+void Image::getAveragePixelValues(Image* source,
+                                  int upperLeftX, int upperLeftY,
+                                  int lowerRightX, int lowerRightY,
+                                  double& channel1, double& channel2,
+                                  double& channel3)
+{
+    unsigned char* sourceBuffer = source->getData();
+    unsigned char* srcPtr = sourceBuffer;
+
+    int width = lowerRightX - upperLeftX; //+ 1;
+    int height = lowerRightY - upperLeftY; //+ 1;
+
+    int yStart = upperLeftY;
+    int yEnd = yStart + height;
+
+    int channel1Total = 0;
+    int channel2Total = 0;
+    int channel3Total = 0;
+    int pixelCount = width * height;
+    
+    for (int y = yStart; y < yEnd; ++y)
+    {
+        // Get us to right row and column to start
+        int offset = (y * source->getWidth() * 3) + (upperLeftX * 3);
+        srcPtr = sourceBuffer + offset;
+        
+        for (int x = 0; x < width; x++)
+        {
+            // Accumulate the values for each pixel
+            channel1Total += *srcPtr;
+            channel2Total += *(srcPtr + 1);
+            channel3Total += *(srcPtr + 2);
+            srcPtr += 3;
+        }
+    }
+
+    // Computer averages
+    channel1 = ((double)channel1Total) / ((double)pixelCount);
+    channel2 = ((double)channel2Total) / ((double)pixelCount);
+    channel3 = ((double)channel3Total) / ((double)pixelCount);
+}
+    
     
 void Image::drawImage(Image* toWrite, int x, int y, Image* src, Image* dest)
 {

@@ -132,6 +132,32 @@ TEST(blitImage)
     CHECK_CLOSE(*result, *expected, 0);
 }
 
+TEST(getAveragePixelValues)
+{
+    vision::OpenCVImage src(512, 512);
+    vision::makeColor(&src, 0, 0, 0);
+    vision::drawSquare(&src, 200, 200, 100, 100, 0.0, CV_RGB(255,120,50));
+
+
+    double expectedChannel1 = 0.25 * 50;  // B
+    double expectedChannel2 = 0.25 * 120; // G
+    double expectedChannel3 = 0.25 * 255; // R
+    
+    double channel1 = 0;
+    double channel2 = 0;
+    double channel3 = 0;
+
+    // Actual box is (150, 150) -> (250, 250) we are going for on that places
+    // the white box in the upper left hand corner of a box 4 times as large
+    vision::Image::getAveragePixelValues(&src, 149, 149, 351, 351,
+                                         channel1, channel2, channel3);    
+
+    // Check results
+    CHECK_CLOSE(expectedChannel1, channel1, 0.0001);
+    CHECK_CLOSE(expectedChannel2, channel2, 0.0001);
+    CHECK_CLOSE(expectedChannel3, channel3, 0.0001);
+}
+
 void drawPattern(vision::Image* image, int x, int y)
 {
     vision::drawSquare(image, x, y, 128, 128, 0.0, CV_RGB(0,0,0));
