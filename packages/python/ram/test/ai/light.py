@@ -93,6 +93,7 @@ class TestSearching(support.AITestCase):
 class TestFindAttempt(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.machine.start(light.FindAttempt)
 
     def testLightFound(self):
@@ -102,6 +103,57 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentState(light.Align)
         self.assertEqual(5, self.ai.data['lastLightEvent'].x)
         self.assertEqual(6, self.ai.data['lastLightEvent'].y)
+        
+    def testBackwardsMovement(self):
+        # Stop the machine
+        self.machine.stop()
+        
+        # Set the range to a close enough value
+        self.ai.data['lastLightEvent'].range = 4
+        
+        # Restart the machine
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        
+    def testForwardsMovement(self):
+        # Stop the machine
+        self.machine.stop()
+        
+        # Set the range to far away but outside of the radius
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent(0.8, 0.8)
+        self.ai.data['lastLightEvent'].range = 10
+        
+        # Restart the machine
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        
+        # Now stop the machine and give it a valid value
+        self.machine.stop()
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
+        self.ai.data['lastLightEvent'].range = 10
+        
+        # Star the machine again
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), 1, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        
+    def testOtherCases(self):
+        # Stop the machine
+        self.machine.stop()
+        
+        # Set the range to in between the two ranges
+        self.ai.data['lastLightEvent'].range = 6
+        
+        # Restart the machine
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
     def testTimeout(self):
         self.assertCurrentState(light.FindAttempt)
@@ -138,6 +190,8 @@ class TestAlign(support.AITestCase):
     
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
+        # Add a lastLightEvent for FindAttempt
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.injectEvent(vision.EventType.LIGHT_LOST)
         self.assertCurrentState(light.FindAttempt)
         
@@ -177,6 +231,8 @@ class TestSeek(support.AITestCase):
     
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
+        # Add a lastLightEvent for FindAttempt
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.injectEvent(vision.EventType.LIGHT_LOST)
         self.assertCurrentState(light.FindAttempt)
         

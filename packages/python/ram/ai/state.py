@@ -72,13 +72,13 @@ class FindAttempt(State):
 
         return trans
 
-    def enter(self, default_timeout = 2):
+    def enter(self, timeout = 2):
         # Turn off all motions, hold the current heading
         self.motionManager.stopCurrentMotion()
         self.controller.holdCurrentHeading()
 
         # Create a timer event
-        self._timeout = self._config.get('timeout', default_timeout)
+        self._timeout = self._config.get('timeout', timeout)
         # Timer will only state if the timeout is a positive number
         # A timer of 0 will turn it off, along with any negative number
         if self._timeout > 0:

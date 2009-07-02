@@ -22,6 +22,7 @@ Requires the following subsystems:
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+import ext.math as math
 
 import ram.filter as filter
 import ram.ai.state as state
@@ -86,6 +87,40 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
                                              Align, Searching)
         
+    def enter(self):
+        state.FindAttempt.enter(self, timeout = 4)
+        
+        # If the range is very close, backup
+        # If the range is far and inside radius, move forwards slowly
+        # Otherwise, wait for a symbol before continuing
+        
+        event = self.ai.data['lastLightEvent']
+        
+        vectorLength = math.Vector2(event.x, event.y).length()
+        vehicleOrientation = self.vehicle.getOrientation().getYaw().valueDegrees()
+        
+        # Load the thresholds for searching
+        self._reverseSpeed = self._config.get('reverseSpeed', 4)
+        self._advanceSpeed = self._config.get('advancedSpeed', 1)
+        self._radius = self._config.get('radius', .7)
+        self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
+        self._farRangeThreshold = self._config.get('farRangeThreshold', 7)
+        
+        if event.range < self._closeRangeThreshold:
+            desiredDirection = math.Degree(vehicleOrientation + 180)
+            recoverMotion = motion.basic.MoveDirection(desiredDirection,
+                                                       self._reverseSpeed)
+            self.motionManager.setMotion(recoverMotion)
+        elif event.range > self._farRangeThreshold and \
+                vectorLength < self._radius:
+            desiredDirection = math.Degree(vehicleOrientation)
+            recoverMotion = motion.basic.MoveDirection(desiredDirection,
+                                                       self._advanceSpeed)
+            self.motionManager.setMotion(recoverMotion)
+        else:
+            # Do nothing
+            self.motionManager.stopCurrentMotion()
+
 class Align(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
@@ -95,7 +130,8 @@ class Align(state.State, StoreLightEvent):
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
-        self.controller.holdCurrentDepth()
+        if self._depthGain != 0:
+            self.controller.holdCurrentDepth()
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -106,7 +142,7 @@ class Align(state.State, StoreLightEvent):
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   vehicle = self.vehicle)
-        depthGain = self._config.get('depthGain', 3)
+        self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
         dDepthGain = self._config.get('dDepthGain', 0.5)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
@@ -118,7 +154,7 @@ class Align(state.State, StoreLightEvent):
                                                   desiredRange = desiredRange,
                                                   maxRangeDiff = 5,
                                                   maxSpeed = speed,
-                                                  depthGain = depthGain,
+                                                  depthGain = self._depthGain,
                                                   iDepthGain = iDepthGain,
                                                   dDepthGain = dDepthGain,
                                                   maxDepthDt = maxDepthDt)
