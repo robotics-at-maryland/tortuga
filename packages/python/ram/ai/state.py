@@ -97,6 +97,7 @@ class FindAttempt(State):
     def exit(self):
         if self.timer is not None:
             self.timer.stop()
+        self.motionManager.stopCurrentMotion()
 
 class End(State):
     """

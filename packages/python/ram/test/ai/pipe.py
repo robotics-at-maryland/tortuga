@@ -93,13 +93,19 @@ class TestPipeTracking(PipeTest):
         self.assertEqual(None, self._foundPipeEvent)
         self._foundPipeEvent = None
 
-class FindAttempt(PipeTest):
+class TestFindAttempt(PipeTest):
     def setUp(self):
         PipeTest.setUp(self)
+        # Set a lastPipeEvent with the same x and y
+        self.ai.data['lastPipeEvent'] = vision.PipeEvent(.5, .5, 0)
         self.machine.start(pipe.FindAttempt)
 
     def testStart(self):
+        cstate = self.machine.currentState()
+        
         self.assert_(self.visionSystem.pipeLineDetector)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(cstate._direction.valueDegrees(), 45, 5)
 
     def testPipeFound(self):
         self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)
@@ -126,7 +132,7 @@ class TestSearching(PipeTest):
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.pipeLineDetector)
-        
+
 def pipeFoundHelper(self, myState = None):
     # Standard directions
     self.publishQueuedPipeFound(x = 0.5, y = -0.5, angle = math.Degree(15.0))
@@ -265,7 +271,22 @@ def pipeFoundHelper(self, myState = None):
     self.publishQueuedPipeDropped(id = 2)
     self.assertEquals(self.ai.data['pipeData'].has_key('currentID'), False)
 
+    # Set up the next tests
+    self.ai.data['pipeData']['currentID'] = 2
+    
+    # One of the previous tests should have made the lastPipeEvent value
+    self.assertTrue(self.ai.data.has_key('lastPipeEvent'))
         
+    # Find the current pipe and check the event is called
+    del self.ai.data['lastPipeEvent']
+    self.publishQueuedPipeFound(id = 2)
+    self.assertTrue(self.ai.data.has_key('lastPipeEvent'))
+
+    # Find a different pipe and make sure it wasn't stored
+    del self.ai.data['lastPipeEvent']
+    self.publishQueuedPipeFound(id = 1)
+    self.assertFalse(self.ai.data.has_key('lastPipeEvent'))
+
 class TestSeeking(PipeTest):
     def setUp(self):
         PipeTest.setUp(self)
@@ -283,6 +304,9 @@ class TestSeeking(PipeTest):
         # Setup data
         self.ai.data['pipeData']['absoluteDirection'] = {}
         self.ai.data['pipeData']['currentID'] = 0
+
+        # Set the lastPipeEvent for FindAttempt
+        self.ai.data['lastPipeEvent'] = vision.PipeEvent()
         
         self.injectEvent(vision.EventType.PIPE_LOST)
 
@@ -310,6 +334,8 @@ class TestCentering(PipeTest):
         
     def testPipeLost(self):
         """Make sure we search when we lose the pipe"""
+        # Set the last pipe event for FindAttempt
+        self.ai.data['lastPipeEvent'] = vision.PipeEvent()
         self.injectEvent(vision.EventType.PIPE_LOST)
         self.assertCurrentState(pipe.FindAttempt)
     

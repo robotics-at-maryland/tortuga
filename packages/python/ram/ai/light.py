@@ -34,7 +34,7 @@ LIGHT_HIT = core.declareEventType('LIGHT_HIT')
 class StoreLightEvent(object):
     """
     Common subclass for states that have a LIGHT_FOUND transition, it stores 
-    the event is the ai.data.
+    the event in ai.data.
     """
     def LIGHT_FOUND(self, event):
         self.ai.data['lastLightEvent'] = event

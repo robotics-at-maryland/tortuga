@@ -9,9 +9,9 @@ GUI:
 
 Subsystems:
     VisionSystem:
-        type: SimVision
-        #type: IdealSimVision
-        cameraRate: 10
+        #type: SimVision
+        type: IdealSimVision
+        #cameraRate: 10
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
@@ -534,13 +534,13 @@ Subsystems:
         Scenes:
             # Each scene must be on the given scene_path, this for example is 
             # in 'data/scenes/nxtest.xml'
-            #Main: objectives/pipe.sml
+            Main: objectives/pipe.sml
             #Main: objectives/bin.sml
             #Main: objectives/duct.sml
             #Main: objectives/multi_pipe.sml
             #Main: objectives/barbedwire.sml
             #Main: objectives/target.sml
-            Main: objectives/buoy.sml
+            #Main: objectives/buoy.sml
             #Main: objectives/pinger.sml
             #Main: objectives/safe.sml
             #Main: transdec.sml
