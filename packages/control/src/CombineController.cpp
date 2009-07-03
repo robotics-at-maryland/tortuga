@@ -76,6 +76,16 @@ void CombineController::init(core::ConfigNode config)
     node = config["RotationalController"];
     m_rotController = RotationalControllerImpMaker::newObject(node);
 }
+
+void CombineController::setVelocity(math::Vector2 velocity)
+{
+    m_transController->setVelocity(velocity);
+}
+
+math::Vector2 CombineController::getVelocity()
+{
+    return m_transController->getVelocity();
+}
     
 void CombineController::setSpeed(double speed)
 {

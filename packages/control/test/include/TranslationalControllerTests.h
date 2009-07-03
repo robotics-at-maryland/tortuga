@@ -14,6 +14,9 @@
 #include "control/include/ITranslationalController.h"
 #include "core/test/include/Macros.h"
 
+TEST_UTILITY_FWD(setGetVelocity,
+                 (ram::control::ITranslationalController* controller));
+
 TEST_UTILITY_FWD(setGetSpeed,
                  (ram::control::ITranslationalController* controller));
 

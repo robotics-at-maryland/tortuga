@@ -20,6 +20,18 @@ TranslationalControllerBase::TranslationalControllerBase(
 {
     init(config);
 }
+
+void TranslationalControllerBase::setVelocity(math::Vector2 velocity)
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredVelocity = velocity;
+}
+
+math::Vector2 TranslationalControllerBase::getVelocity()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredVelocity;
+}
     
 void TranslationalControllerBase::setSpeed(double speed)
 {

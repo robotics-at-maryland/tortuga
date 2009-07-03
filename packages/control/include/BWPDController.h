@@ -47,6 +47,12 @@ public:
     virtual ~BWPDController();
     
     /** @copydoc IController::setSpeed() */
+    /** NOT IMPLEMENTED */
+    virtual void setVelocity(math::Vector2 velocity);
+
+    /** NOT IMPLEMENTED */
+    virtual math::Vector2 getVelocity();
+    
     virtual void setSpeed(double speed);
 
     virtual void setSidewaysSpeed(double speed);

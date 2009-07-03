@@ -27,6 +27,11 @@ public:
     
     virtual ~MockTranslationalController() {}
 
+    virtual void setVelocity(ram::math::Vector2 velocity) {
+        velocitySet = velocity; }
+
+    virtual ram::math::Vector2 getVelocity() { return velocity; }
+    
     virtual void setSpeed(double speed_) { speedSet = speed_; }
 
     virtual void setSidewaysSpeed(double sidewaysSpeed_) {
@@ -48,6 +53,7 @@ public:
         velocity = velocity_;
         return force; }
 
+    ram::math::Vector2 velocitySet;
     double speedSet;
     double speed;
     double sidewaysSpeedSet;

@@ -15,6 +15,14 @@
 
 using namespace ram;
 
+TEST_UTILITY_IMP(setGetVelocity,
+                 (ram::control::ITranslationalController* controller))
+{
+    ram::math::Vector2 velocity(1.5, 2.9);
+    controller->setVelocity(velocity);
+    CHECK_EQUAL(velocity, controller->getVelocity());
+}
+
 TEST_UTILITY_IMP(setGetSpeed,
                  (ram::control::ITranslationalController* controller))
 {

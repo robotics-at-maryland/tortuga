@@ -96,7 +96,16 @@ BWPDController::~BWPDController()
     delete m_controllerState;
     delete m_estimatedState;
 }
-    
+
+void BWPDController::setVelocity(math::Vector2 velocity)
+{
+}
+
+math::Vector2 BWPDController::getVelocity()
+{
+    return math::Vector2::ZERO;
+}
+   
 void BWPDController::setSpeed(double speed)
 {
     // Clamp speed

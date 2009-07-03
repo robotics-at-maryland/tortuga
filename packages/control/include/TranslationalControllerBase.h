@@ -30,7 +30,11 @@ public:
     TranslationalControllerBase(core::ConfigNode config);
     
     virtual ~TranslationalControllerBase() {}
-    
+
+    virtual void setVelocity(math::Vector2 velocity);
+
+    virtual math::Vector2 getVelocity();
+
     virtual void setSpeed(double speed);
 
     virtual void setSidewaysSpeed(double speed);
@@ -52,6 +56,8 @@ private:
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
+    math::Vector2 m_desiredVelocity;
+    
     double m_desiredSpeed;
 
     double m_desiredSidewaysSpeed;

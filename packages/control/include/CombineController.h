@@ -50,6 +50,8 @@ public:
      * \defgroup In plane controller methods
      */
     /* @{ */
+    virtual void setVelocity(math::Vector2 velocity);
+    virtual math::Vector2 getVelocity();
     virtual void setSpeed(double speed);
     virtual void setSidewaysSpeed(double speed);
     virtual double getSpeed();

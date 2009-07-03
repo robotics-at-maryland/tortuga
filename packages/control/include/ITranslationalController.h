@@ -26,8 +26,22 @@ class RAM_EXPORT ITranslationalController
 {
 public:
     virtual ~ITranslationalController() {}
+
+    /** Set the desired velocity in meters/second (vehicle frame)
+     *
+     *  Note this overrides speed based control, set a desired velocity will
+     *  implicity set an internal speed, to be fed to the vehicle.
+     */
+    virtual void setVelocity(math::Vector2 velocity) = 0;  
+
+    /** Get the current desired velocity */
+    virtual math::Vector2 getVelocity() = 0;
     
-    /** Set the current speed, clamped between -5 and 5 */
+    /** Set the current speed, clamped between -5 and 5
+     *
+     *  Setting this turns off the velocity based control, and gives direct
+     *  speed based control.
+     */
     virtual void setSpeed(double speed) = 0;
 
     /** Set how fast the vehicle is going side to side (positive = right) */

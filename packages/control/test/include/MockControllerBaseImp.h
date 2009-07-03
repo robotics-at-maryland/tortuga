@@ -63,6 +63,9 @@ public:
     }
    
 
+    virtual void setVelocity(ram::math::Vector2 /*velocity_*/) {}
+    virtual ram::math::Vector2 getVelocity()
+        { return ram::math::Vector2::ZERO; }
     virtual void setSpeed(double speed_) {}
     virtual void setSidewaysSpeed(double sidewaysSpeed_) {}
     virtual double getSpeed() { return 0; }

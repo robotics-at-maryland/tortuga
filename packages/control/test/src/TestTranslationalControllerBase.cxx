@@ -31,7 +31,12 @@ struct TranslationalControllerBaseFixture
 
 SUITE(TranslationalControllerBase)
 {
-
+    
+TEST_FIXTURE(TranslationalControllerBaseFixture, setGetVelocity)
+{
+    TEST_UTILITY_FUNC(setGetVelocity)(&controller);
+}
+    
 TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSpeed)
 {
     TEST_UTILITY_FUNC(setGetSpeed)(&controller);

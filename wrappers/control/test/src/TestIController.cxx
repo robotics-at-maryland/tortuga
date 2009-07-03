@@ -24,7 +24,13 @@ class MockController : public ram::control::IController
 {
 public:
     MockController(std::string name) : IController(name) {}
-	
+
+    virtual void setVelocity(ram::math::Vector2 velocity_) {
+        velocity = velocity_; }
+
+    virtual ram::math::Vector2 getVelocity() {
+        return ram::math::Vector2::ZERO; }
+    
     virtual void setSpeed(double speed_) { speed = speed_; }
 
     virtual void setSidewaysSpeed(double speed) { sidewaysSpeed = speed; }
@@ -73,7 +79,8 @@ public:
     virtual void background(int) {};
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
-    
+
+    ram::math::Vector2 velocity;
     double speed;
     double sidewaysSpeed;
     double depth;
