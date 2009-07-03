@@ -90,10 +90,6 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
     def enter(self):
         state.FindAttempt.enter(self, timeout = 4)
         
-        # If the range is very close, backup
-        # If the range is far and inside radius, move forwards slowly
-        # Otherwise, wait for a symbol before continuing
-        
         event = self.ai.data['lastLightEvent']
         
         vectorLength = math.Vector2(event.x, event.y).length()
@@ -102,23 +98,38 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         # Load the thresholds for searching
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
         self._advanceSpeed = self._config.get('advancedSpeed', 1)
+        #self._depthChangeSpeed = self._config.get('depthChangeSpeed', 1)
+        self._yawChange = self._config.get('yawChange', 15)
         self._radius = self._config.get('radius', .7)
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
-        self._farRangeThreshold = self._config.get('farRangeThreshold', 7)
+        self._farRangeThreshold = self._config.get('farRangeThreshold', 8)
         
         if event.range < self._closeRangeThreshold:
+            # If the range is very close, backup
             desiredDirection = math.Degree(vehicleOrientation + 180)
             recoverMotion = motion.basic.MoveDirection(desiredDirection,
                                                        self._reverseSpeed)
             self.motionManager.setMotion(recoverMotion)
+        elif vectorLength > self._radius:
+            # If the light is lost outside of the radius, turn towards it
+            #currentDepth = self.controller.getDepth()
+            #epthChange = motion.basic.RateChangeDepth(currentDepth + event.y,
+            #                                           self._depthChangeSpeed)
+            #self.motionManager.setMotion(depthChange)
+            if event.x > 0.0:
+                yawAngle = (0.0 - self._yawChange)
+            else:
+                yawAngle = self._yawChange
+            self.controller.yawVehicle(yawAngle)
         elif event.range > self._farRangeThreshold and \
                 vectorLength < self._radius:
+            # If the range is far and inside radius, move forwards slowly
             desiredDirection = math.Degree(vehicleOrientation)
             recoverMotion = motion.basic.MoveDirection(desiredDirection,
                                                        self._advanceSpeed)
             self.motionManager.setMotion(recoverMotion)
         else:
-            # Do nothing
+            # Otherwise, wait for a symbol before continuing
             self.motionManager.stopCurrentMotion()
 
 class Align(state.State, StoreLightEvent):

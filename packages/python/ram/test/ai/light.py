@@ -117,6 +117,28 @@ class TestFindAttempt(support.AITestCase):
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         
+    def testOutsideRadius(self):
+        # Stop the machine
+        self.machine.stop()
+        
+        # Set the light event to outside the radius but not in the inner range
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent(0.8, 0.8)
+        self.ai.data['lastLightEvent'].range = 7
+        
+        # Restart the machine
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(type(None))
+        self.assertLessThan(self.controller.yawChange, 0)
+        
+        # Stop the machine and set the last light event to the opposite side
+        self.machine.stop()
+        self.ai.data['lastLightEvent'].x = -0.8
+        
+        # Restart the machine
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion(type(None))
+        self.assertGreaterThan(self.controller.yawChange, 0)
+        
     def testForwardsMovement(self):
         # Stop the machine
         self.machine.stop()
@@ -130,6 +152,7 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentMotion(type(None))
         self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        self.assertLessThan(self.controller.yawChange, 0)
         
         # Now stop the machine and give it a valid value
         self.machine.stop()
