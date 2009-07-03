@@ -32,6 +32,9 @@ typedef boost::shared_ptr<Detector> DetectorPtr;
 
 class SymbolDetector;
 typedef boost::shared_ptr<SymbolDetector> SymbolDetectorPtr;
+
+class FANNSymbolDetector;
+typedef boost::shared_ptr<FANNSymbolDetector> FANNSymbolDetectorPtr;
     
 } // namespace vision
 } // namespace ram

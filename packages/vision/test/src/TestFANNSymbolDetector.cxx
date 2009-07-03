@@ -21,7 +21,7 @@
 #include "core/include/ConfigNode.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/FANNSymbolDetector.hpp"
+#include "vision/include/FANNSymbolDetector.h"
 
 using namespace ram;
 /*

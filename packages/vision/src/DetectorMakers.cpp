@@ -19,6 +19,7 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/FeatureDetector.h"
 #include "vision/include/SuitDetector.h"
+#include "vision/include/FANNSuitDetector.h"
 #include "vision/include/DuctDetector.h"
 #include "vision/include/DownwardDuctDetector.h"
 #include "vision/include/SafeDetector.h"
@@ -48,6 +49,9 @@ registerFeatureDetector("FeatureDetector");
 static DetectorMakerTemplate<SuitDetector>
 registerSuitDetector("SuitDetector");
 
+static DetectorMakerTemplate<FANNSuitDetector>
+registerFANNSuitDetector("FANNSuitDetector");
+    
 static DetectorMakerTemplate<DuctDetector>
 registerDuctDetector("DuctDetector");
 

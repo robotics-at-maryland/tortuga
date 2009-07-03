@@ -15,10 +15,9 @@
 // for change_extension
 #include <boost/filesystem/convenience.hpp>
 
-#include "vision/include/OpenCVImage.h"
-
 // header for this class
-#include "vision/include/ImageIdentifier.hpp"
+#include "vision/include/FANNTrainer.h"
+#include "vision/include/FANNSymbolDetector.h"
 
 #define DATA_MIN 0.0
 #define DATA_MAX 1.0
@@ -30,13 +29,13 @@
 namespace ram {
 namespace vision {
 
-ImageIdentifier::ImageIdentifier (const unsigned int images,
-                                  const unsigned int imageHeight,
-                                  const unsigned int imageWidth,
-                                  core::ConfigNode config)
+FANNTrainer::FANNTrainer(const unsigned int outputCount,
+                         FANNSymbolDetectorPtr detector,
+                         core::ConfigNode config) :
+    m_fannDetector(detector)
 {
     // the size of the input layer
-    const int inputSize = imageHeight * imageWidth;
+    const int inputSize = m_fannDetector->getNumberFeatures();
     
     // some config stuff
     m_cascade = config["UseCascade"].asInt(1);
@@ -51,7 +50,7 @@ ImageIdentifier::ImageIdentifier (const unsigned int images,
     unsigned int layerSizes[layers];
     if (config["PyramidNetwork"].asInt(1))
     { 
-        const int interval = (inputSize - images) / (layers - 1);
+        const int interval = (inputSize - outputCount) / (layers - 1);
         for (int i = 0; i < layers; ++i)
         {
             layerSizes[i] = inputSize - (interval * i);
@@ -60,7 +59,7 @@ ImageIdentifier::ImageIdentifier (const unsigned int images,
     {
         for (int i = 0; i < layers; ++i)
         {
-            layerSizes[i] = (i == layers - 1 ? images : inputSize);
+            layerSizes[i] = (i == layers - 1 ? outputCount : inputSize);
         }
     }
             
@@ -109,18 +108,9 @@ ImageIdentifier::ImageIdentifier (const unsigned int images,
     // generate some random starting weights
     m_net.randomize_weights(MIN_INIT_WEIGHT, MAX_INIT_WEIGHT);
 }
-        
-ImageIdentifier::ImageIdentifier (const std::string &file)
-{
-    loadFromFile (boost::filesystem::path (file));
-}
-    
-ImageIdentifier::ImageIdentifier (const boost::filesystem::path &file)
-{
-    loadFromFile (file);
-}
-        
-void ImageIdentifier::loadFromFile (const boost::filesystem::path &file)
+                
+/*
+void FANNTrainer::loadFromFile (const boost::filesystem::path &file)
 {
     boost::filesystem::path net = file;
     if (boost::filesystem::exists (net))
@@ -146,8 +136,8 @@ void ImageIdentifier::loadFromFile (const boost::filesystem::path &file)
         }
     }
 }
-        
-void ImageIdentifier::runTraining (FANN::training_data &data)
+*/        
+void FANNTrainer::runTraining (FANN::training_data &data)
 {
     data.scale_train_data(DATA_MIN, DATA_MAX);
     m_net.reset_MSE();    
@@ -166,7 +156,7 @@ void ImageIdentifier::runTraining (FANN::training_data &data)
     }
 }
         
-const void ImageIdentifier::runTest (FANN::training_data &data,
+const void FANNTrainer::runTest (FANN::training_data &data,
                                      std::ostream &out)
 {
     float MSE = 0.0;
@@ -176,31 +166,7 @@ const void ImageIdentifier::runTest (FANN::training_data &data,
         << " Bit fail: " << m_net.get_bit_fail() << "\n";
 }
     
-int ImageIdentifier::run (Image* input)
-{
-    const unsigned int size = (unsigned int)sqrt (m_net.get_num_input());
-    unsigned int highest_out = 0;
-    Image* resized = new OpenCVImage (size, size);
-    resized->copyFrom (input);
-    resized->setSize (size, size);
-    IplImage* grayInput = grayscale (*resized);
-    fann_type* inputData = new fann_type[m_net.get_num_input()];
-    loadImage (grayInput, inputData);
-    m_outValue = m_net.run (inputData);
-    for (unsigned int i = 0; i < m_net.get_num_output(); ++i)
-    {
-        if (m_outValue[i] > m_outValue[highest_out])
-        {
-            highest_out = i;
-        }
-    }
-    cvReleaseImage(&grayInput);
-    delete resized;
-    delete inputData;
-    return highest_out;
-}
-    
-const bool ImageIdentifier::save (const boost::filesystem::path &file)
+const bool FANNTrainer::save (const boost::filesystem::path &file)
 {
     bool value;
     boost::filesystem::path net = file;
@@ -217,28 +183,23 @@ const bool ImageIdentifier::save (const boost::filesystem::path &file)
     return value;
 }
         
-bool ImageIdentifier::addTrainData (unsigned int imageIndex,
-                                    FANN::training_data &data,
-                                    const std::vector<Image*> &images)
+bool FANNTrainer::addTrainData (unsigned int imageIndex,
+                                FANN::training_data &data,
+                                std::vector<Image*> &images)
 {
-    const unsigned int size = (unsigned int)sqrt (m_net.get_num_input());
     if (images.size() == 0 || imageIndex >= m_net.get_num_input())
         return false;
-
-    Image* resized = new OpenCVImage (size, size);
-    IplImage* gray;
+    
+    // Load up all images int
     fann_type** input = new fann_type*[images.size()];
     fann_type** output = new fann_type*[images.size()];
     for (unsigned int i = 0; i < images.size(); ++i)
     {
-        resized->copyFrom (images[i]);
-        resized->setSize (size, size);
-        gray = grayscale (*resized);
+        // Fill in the input with our feature detector
         input[i] = new fann_type[m_net.get_num_input()];
-        if (gray)
-            loadImage (gray, input[i]);
+        m_fannDetector->getImageFeatures(images[i], input[i]);
 
-        cvReleaseImage (&gray);
+        // Fill in the output array based on the current desired output
         output[i] = new fann_type[m_net.get_num_output()];
         for (unsigned int y = 0; y < m_net.get_num_output(); ++y)
         {
@@ -248,59 +209,33 @@ bool ImageIdentifier::addTrainData (unsigned int imageIndex,
                 output[i][y] = DATA_MIN;
         }
     }
+    
     if (data.length_train_data() == 0)
     {
+        // First training run
         data.set_train_data (images.size(), m_net.get_num_input(), input,
                              m_net.get_num_output(), output);
     }
     else
     {
+        // Already trained before, so lets merge data
         FANN::training_data newData;
         newData.set_train_data (images.size(), m_net.get_num_input(), input,
                                 m_net.get_num_output(), output);
         data.merge_train_data (newData);
     }
+    
+    // Clean up the input and output buffers
     for (unsigned int i = 0; i < images.size(); ++i)
     {
         delete input[i];
         delete output[i];
     }
-    delete resized;
     delete input;
     delete output;
+    
     return true;
 }    
-    
-void ImageIdentifier::loadImage (IplImage* src, fann_type* target)
-{
-    unsigned int u = 0;
-    for (int w = 0; w < src->width; ++w)
-    {
-        for (int h = 0; h < src->height; ++h)
-        {
-            target[u++] = getPixel (src, w, h);
-        }
-    }
-    if (u < m_net.get_num_input())
-    {
-        std::cout << "ImageIdentifier warning: image data is incomplete.\n";
-        while (u < m_net.get_num_input())
-        {
-            target[u++] = DATA_MIN;
-        }
-    }
-}
-        
-IplImage* ImageIdentifier::grayscale (IplImage* src)
-{
-    IplImage* dest = cvCreateImage (cvSize (src->width, src->height),
-                                    IPL_DEPTH_8U, 1);
-    if (src && dest && src->nChannels != 1)
-    {
-        cvCvtColor(src, dest, CV_BGR2GRAY);
-    }
-    return dest;
-}
     
 } // namespace vision
 } // namespace ram

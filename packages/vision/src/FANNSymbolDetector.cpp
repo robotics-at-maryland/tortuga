@@ -4,74 +4,101 @@
  * All rights reserved.
  *
  * Author: David Love <loved@umd.edu>
- * File:  packages/vision/src/FANNSymboleDetector.cpp
+ * File:  packages/vision/src/FANNSymboleDetector.h
  */
 
-#include <opencv/cv.h>
 
-#include "vision/include/OpenCVImage.h"
+// Library Includes
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#include <boost/filesystem.hpp>
 
-// header for this class
-#include "vision/include/FANNSymbolDetector.hpp"
+#include <floatfann.h>
+#include <fann_cpp.h>
 
-// some unfortuanate constants
-//  - these depend on the loaded network file for accuracy
-#define SYMBOL_CLUB 0
-#define SYMBOL_DIAMOND 1
-#define SYMBOL_HEART 2
-#define SYMBOL_SPADE 3
+// Project Includes
+#include "vision/include/FANNSymbolDetector.h"
+
+#include "core/include/PropertySet.h"
 
 namespace ram {
 namespace vision {
-        
-FANNSymbolDetector::FANNSymbolDetector(core::ConfigNode config,
-                                   core::EventHubPtr eventHub) :
-    Detector(eventHub),
-    m_imageDetector(ImageDetector(config, eventHub)),
-    m_analyzed(0)
+
+int FANNSymbolDetector::getNumberFeatures()
 {
+    return m_numberFeatures;
 }
-    
-void FANNSymbolDetector::processImage(Image* input, Image* output)
+
+int FANNSymbolDetector::getOutputCount()
 {
-    IplImage* edgeImage = cvCreateImage (cvSize (input->getWidth(),
-                                                 input->getHeight()),
-                                         IPL_DEPTH_8U, 1);
-    IplImage* newIn = ImageIdentifier::grayscale (input->asIplImage());
-    Image* edges = new OpenCVImage (edgeImage);
-    cvCanny (newIn, edges->asIplImage(), 25, 200, 3);
-    m_analyzed = edges->asIplImage();
-    m_imageDetector.processImage(edges);
-    if (output) {
-        output->copyFrom (edges);
-    }
+    return m_outputCount;
 }
-    
-IplImage* FANNSymbolDetector::getAnalyzedImage()
+
+int FANNSymbolDetector::runNN(Image* input)
 {
-    return m_analyzed;
-}
-    
-Symbol::SymbolType FANNSymbolDetector::getSymbol()
-{
-    switch (m_imageDetector.getResult())
+    // Grab the features from the image
+    getImageFeatures(input, m_features);
+
+    // Run the detector on the features
+    fann_type* outValue = m_net->run(m_features);
+
+    // Find the highest output of the network
+    unsigned int highest_out = 0;    
+    for (unsigned int i = 0; i < m_net->get_num_output(); ++i)
     {
-        case SYMBOL_CLUB:
-            return Symbol::CLUB;
-            break;
-        case SYMBOL_DIAMOND:
-            return Symbol::DIAMOND;
-            break;
-        case SYMBOL_HEART:
-            return Symbol::HEART;
-            break;
-        case SYMBOL_SPADE:
-            return Symbol::SPADE;
-            break;
-        default:
-            return Symbol::UNKNOWN;
-            break;
-    };
+        if (outValue[i] > outValue[highest_out])
+        {
+            highest_out = i;
+        }
+    }
+
+    // Determine if its above the threshold or not
+    if (outValue[highest_out] > m_outputThreshold)
+        return highest_out;
+    else
+        return -1;
+}
+
+int FANNSymbolDetector::getResult()
+{
+    return m_result;
+}
+    
+
+FANNSymbolDetector::FANNSymbolDetector(int numberOfFeatures, int outputCount,
+                                       core::ConfigNode config,
+                                       core::EventHubPtr eventHub) :
+    m_numberFeatures(numberOfFeatures),
+    m_outputCount(outputCount),
+    m_result(-1),
+    m_outputThreshold(0),
+    m_features(new fann_type(m_numberFeatures)),
+    m_net(new FANN::neural_net())
+{
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
+
+    // General properties
+    propSet->addProperty(config, false, "NNoutputThreshold",
+        "Minimum value for an output of the nueral network to be matched",
+        0.1, &m_outputThreshold, 0.0, 1.0);
+
+    // Get the base configuration file path
+
+    // Get the path from the SVN directory
+    assert(config.exists("nueralNetworkFile") &&
+           "Not nueral network file found");
+    std::string shortPath(config["nueralNetworkFile"].asString());
+
+    // Get the full path
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    boost::filesystem::path fullPath = root / shortPath;
+    assert(boost::filesystem::exists(fullPath) &&
+           "Nueral network file does not exists");
+    
+    // Load the network
+    assert(m_net->create_from_file(fullPath.file_string()) &&
+           "Nueral network file found, but error in loading");
 }
     
 } // namespace vision
