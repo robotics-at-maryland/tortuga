@@ -25,6 +25,9 @@ class RAM_EXPORT SymbolDetector : public Detector
 public:
     /** Get the current symbol */
     virtual Symbol::SymbolType getSymbol() = 0;
+
+    /** Whether or not the detector needs the image cropped to a square */
+    virtual bool needSquareCropped() = 0;
     
 protected:
     SymbolDetector(core::EventHubPtr eventHub = core::EventHubPtr());

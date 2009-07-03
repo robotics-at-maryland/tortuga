@@ -35,7 +35,8 @@ class RAM_EXPORT SuitDetector : public SymbolDetector
     void processImage(Image* input, Image* output= 0);
     void update();
     IplImage* getAnalyzedImage();
-    Symbol::SymbolType getSymbol();
+    virtual Symbol::SymbolType getSymbol();
+    virtual bool needSquareCropped() { return true; }
     //Fills numBackups if numBackups!=null
     int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int dir, int* numBackups = 0);
     void doEdgeRunning(IplImage*);

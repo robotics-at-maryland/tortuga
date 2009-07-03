@@ -12,6 +12,7 @@
 #include <cmath>
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 //#include <cassert>
 
 // Library Includes
@@ -80,7 +81,7 @@ void BinDetector::Bin::draw(Image* image)
     Image::writeText(image, ss.str(), tl.x, tl.y);
 
     std::stringstream ss2;
-    ss2 << getAngle().valueDegrees();
+    ss2 << std::setprecision(1) << getAngle().valueDegrees();
     Image::writeText(image, ss2.str(), br.x-30, br.y-15);
 
     // Now do the symbol
@@ -904,8 +905,11 @@ Image* BinDetector::cropBinImage(Image* redBinImage,
     }
 
     // Make the image sqaure on its biggest dimension
-    onlyRedSymbolRows = onlyRedSymbolCols = (onlyRedSymbolRows > onlyRedSymbolCols ? onlyRedSymbolRows : onlyRedSymbolCols);
+    if (m_symbolDetector->needSquareCropped())
+    {
+        onlyRedSymbolRows = onlyRedSymbolCols = (onlyRedSymbolRows > onlyRedSymbolCols ? onlyRedSymbolRows : onlyRedSymbolCols);
 
+    }
 
     // Sanity check on the sizes
     if (onlyRedSymbolRows >= (int)redBinImage->getWidth() ||
