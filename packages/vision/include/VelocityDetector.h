@@ -10,6 +10,9 @@
 #ifndef RAM_VELOCITYDETECTOR_H_05_27_2009
 #define RAM_VELOCITYDETECTOR_H_05_27_2009
 
+// Library Includes
+#include "fftw3.h"
+
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
@@ -51,9 +54,33 @@ class RAM_EXPORT VelocityDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
+    /** Allocate images at the desired size */
+    void allocateImages(int width, int height);
+
+    /** Delete images */
+    void deleteImages();
+    
     // Phase correlation functions and variables
     void phaseCorrelation(Image* output);
 
+    /** FFTW scratch space for image 1 */
+    fftw_complex* m_fftwImg1;
+
+    /** FFTW scratch space for image 2 */
+    fftw_complex* m_fftwImg2;
+
+    /** FFTW scratch space for the result */
+    fftw_complex* m_fftwRes;
+
+    /** FFTW plan for image 1 */
+    fftw_plan m_fftwPlan1;
+
+    /** FFTW plan for image 2 */
+    fftw_plan m_fftwPlan2;
+
+    /** FFTW plan for the result */
+    fftw_plan m_ifftwPlanRes;
+     
     /** Current frame as grey scale */
     IplImage* m_currentGreyScale;
 
@@ -66,7 +93,7 @@ class RAM_EXPORT VelocityDetector : public Detector
     /** Scale the debug phase correlation velocity line */
     double m_phaseLineScale;
     
-    // L-K Flow functions and variables
+    /** L-K Flow functions and variables */
     void LKFlow(Image* output);
     
     /** Scratch image for Shi-Tomasi Feature Tracking (32 bit float)*/
