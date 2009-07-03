@@ -41,7 +41,7 @@ class BasePanel(wx.Panel):
         for conn in self._connections:
             conn.disconnect()
         
-    def _createControls(self, name):
+    def _createControls(self, name, startEnable = False):
         # Creat box around controls
         box = wx.StaticBox(parent = self, label = name)
         topSizer = wx.StaticBoxSizer(box)
@@ -52,9 +52,9 @@ class BasePanel(wx.Panel):
         # Create controls
         self._createDataControls()
 
-        # Start off greyed out
+        # Start off greyed out if desired
         for control in self._generatedControls:
-            control.Enable(False)
+            control.Enable(startEnable)
         
         self.SetSizerAndFit(topSizer)
 
@@ -1020,6 +1020,60 @@ class ControlDebugPanel(BasePanel):
         
             panel = ControlDebugPanel(parent, eventHub)
             return [(paneInfo, panel, [controller])]
+        
+        return []
+
+
+class VelocityPosition(BasePanel):
+    implements(IPanelProvider)
+    
+    def __init__(self, parent, eventHub):
+        BasePanel.__init__(self, parent)#, *args, **kwargs)
+    
+        # Controls
+        self._createControls("Pos & Vel", startEnable = True)
+        
+        # Events
+        conn = eventHub.subscribeToType(ext.vehicle.IVehicle.VELOCITY_UPDATE,
+                                        self._onVelocityUpdate)
+        self._connections.append(conn)
+        
+        conn = eventHub.subscribeToType(ext.vehicle.IVehicle.POSITION_UPDATE,
+                                        self._onPositionUpdate)
+        self._connections.append(conn)
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+    
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_xPos', label = 'X Pos: ')
+        self._createDataControl(controlName = '_yPos', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_xVel', label = 'X Vel: ')
+        self._createDataControl(controlName = '_yVel', label = 'Y Vel: ')
+    
+    def _onVelocityUpdate(self, event):
+        vel = event.vector2
+        self._xVel.Value = "% 4.2f" % vel.x
+        self._yVel.Value = "% 4.2f" % vel.y
+
+    def _onPositionUpdate(self, event):
+        pos = event.vector2
+        self._xPos.Value = "% 4.2f" % pos.x
+        self._yPos.Value = "% 4.2f" % pos.y
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        vehicle = core.Subsystem.getSubsystemOfType(
+            ext.vehicle.IVehicle, subsystems)
+        
+        if vehicle is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Pos & Vel")
+            paneInfo = paneInfo.Caption("Pos & Vel").Right()
+        
+            panel = VelocityPosition(parent, eventHub)
+            return [(paneInfo, panel, [vehicle])]
         
         return []
 

@@ -97,6 +97,23 @@ class Vehicle(vehicle.IVehicle):
         event.orientation = self._orientation
         self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
         
+        # Position Update
+        x = 1.0 * math.sin(self._currentTime) + 1.0
+        y = 1.0 * math.sin(self._currentTime + 5) + 1.0
+        
+        event = ext.math.Vector2Event()
+        event.vector2 = ext.math.Vector2(x, y)
+        self.publish(vehicle.IVehicle.POSITION_UPDATE, event)
+        
+        # Velocity Update
+        x = 1.0 * math.sin(self._currentTime + 10) + 1.0
+        y = 1.0 * math.sin(self._currentTime + 15) + 1.0
+        
+        event = ext.math.Vector2Event()
+        event.vector2 = ext.math.Vector2(x, y)
+        self.publish(vehicle.IVehicle.VELOCITY_UPDATE, event)
+        
+        
         # Update Devices
         for device in self._devices.itervalues():
             device.update(timestep)
