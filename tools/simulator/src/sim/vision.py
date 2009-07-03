@@ -1021,8 +1021,7 @@ class IdealSimVision(ext.vision.VisionSystem):
 
     def _checkBarbedWire(self):
         """
-        Check for the Target (ie. "Machine Gun Nest"), the squareness is just
-        an approximation. 
+        Check for the Barbed Wire. 
         """
         # Drop out if we have no Barbed Wire
         if self._barbedWires is None:

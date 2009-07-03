@@ -150,6 +150,7 @@ class RedLightPanel(VisionPanel):
         self._azimuth = None
         self._elevation = None
         self._range = None
+        self._detector = False
 
         # Controls
         self._createControls("Bouy")
@@ -178,19 +179,21 @@ class RedLightPanel(VisionPanel):
         self._createDataControl(controlName = '_range', label = 'Range: ')
         
     def _onBouyFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y    
-        self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
-        self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
-        self._range.Value = "% 4.2f" % event.range
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y    
+            self._azimuth.Value = "% 4.2f" % event.azimuth.valueDegrees()
+            self._elevation.Value = "% 4.2f" % event.elevation.valueDegrees()
+            self._range.Value = "% 4.2f" % event.range
         
-        self.enableControls()
+            self.enableControls()
     
     def _onBouyLost(self, event):
         self.disableControls()
 
     def _redLightDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _redLightDetectorOff(self, event):
         self._x.Value = ""
@@ -200,6 +203,7 @@ class RedLightPanel(VisionPanel):
         self._range.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
         
 class OrangePipePanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -207,6 +211,7 @@ class OrangePipePanel(VisionPanel):
         self._x = None
         self._y = None
         self._angle = None
+        self._detector = False
 
         # Controls
         self._createControls("Orange Pipe")
@@ -230,17 +235,19 @@ class OrangePipePanel(VisionPanel):
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
         
     def _onPipeFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y    
-        self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y    
+            self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
         
-        self.enableControls()
+            self.enableControls()
     
     def _onPipeLost(self, event):
         self.disableControls()
 
     def _pipeLineDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _pipeLineDetectorOff(self, event):
         self._x.Value = ""
@@ -248,6 +255,7 @@ class OrangePipePanel(VisionPanel):
         self._angle.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
         
         
 class SafePanel(VisionPanel):
@@ -255,6 +263,7 @@ class SafePanel(VisionPanel):
         VisionPanel.__init__(self, parent, *args, **kwargs)
         self._x = None
         self._y = None
+        self._detector = False
         #self._angle = None
 
         # Controls
@@ -279,23 +288,26 @@ class SafePanel(VisionPanel):
         #self._createDataControl(controlName = '_angle', label = 'Angle: ')
         
     def _onSafeFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y    
-        #self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y    
+            #self._angle.Value = "% 4.2f" % event.angle.valueDegrees()
         
-        self.enableControls()
+            self.enableControls()
     
     def _onSafeLost(self, event):
         self.disableControls()
 
     def _safeDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _safeDetectorOff(self, event):
         self._x.Value = ""
         self._y.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
         
 class BinPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
@@ -305,6 +317,7 @@ class BinPanel(VisionPanel):
         self._angle = None
         self._symbol = None
         self._ai = ai
+        self._detector = False
         
         if self._ai is not None:
             ram.ai.bin.ensureBinTracking(eventHub, self._ai)
@@ -336,24 +349,26 @@ class BinPanel(VisionPanel):
         self._createDataControl(controlName = '_symbol', label = 'Symbol: ')
         
     def _onMultiBinAngle(self, event):
-        self._multiAngle.Value = "% 4.2f" % event.angle.valueDegrees()
+        if self._detector:
+            self._multiAngle.Value = "% 4.2f" % event.angle.valueDegrees()
         
     def _onBinFound(self, event):
-        obj = event
+        if self._detector:
+            obj = event
         
-        if self._ai is not None:
-            # Sorted closest to farthest
-            currentBinIDs = self._ai.data['binData'].get('currentIds', set())
-            currentBins = [b for b in currentBinIDs]
-            sortedBins = sorted(currentBins, self._distCompare)
-            obj = self._ai.data['binData']['itemData'][sortedBins[0]]
+            if self._ai is not None:
+                # Sorted closest to farthest
+                currentBinIDs = self._ai.data['binData'].get('currentIds', set())
+                currentBins = [b for b in currentBinIDs]
+                sortedBins = sorted(currentBins, self._distCompare)
+                obj = self._ai.data['binData']['itemData'][sortedBins[0]]
             
-        self._x.Value = "% 4.2f" % obj.x
-        self._y.Value = "% 4.2f" % obj.y
-        self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
-        self._symbol.Value = "%s" % obj.symbol
+            self._x.Value = "% 4.2f" % obj.x
+            self._y.Value = "% 4.2f" % obj.y
+            self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
+            self._symbol.Value = "%s" % obj.symbol
         
-        self.enableControls()
+            self.enableControls()
     
     def _distCompare(self, aID, bID):
         binData = self._ai.data['binData']['itemData']
@@ -374,6 +389,7 @@ class BinPanel(VisionPanel):
 
     def _binDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _binDetectorOff(self, event):
         self._x.Value = ""
@@ -382,6 +398,7 @@ class BinPanel(VisionPanel):
         self._symbol.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
 
 class DuctPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -391,6 +408,7 @@ class DuctPanel(VisionPanel):
         self._size = None
         self._alignment = None
         self._aligned = None
+        self._detector = False
 
         # Controls
         self._createControls("Target")
@@ -416,19 +434,21 @@ class DuctPanel(VisionPanel):
         self._createDataControl(controlName = '_aligned', label = 'Aligned: ')
         
     def _onTargetFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y
-        self._range.Value = "% 4.2f" % event.range
-        self._alignment.Value = "% 4.2f" % event.alignment
-        self._aligned.Value = "%s" % event.aligned
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y
+            self._range.Value = "% 4.2f" % event.range
+            self._alignment.Value = "% 4.2f" % event.alignment
+            self._aligned.Value = "%s" % event.aligned
         
-        self.enableControls()
+            self.enableControls()
     
     def _onTargetLost(self, event):
         self.disableControls()
 
     def _ductDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _ductDetectorOff(self, event):
         self._x.Value = ""
@@ -438,6 +458,7 @@ class DuctPanel(VisionPanel):
         self._aligned.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
 
 class TargetPanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -447,6 +468,7 @@ class TargetPanel(VisionPanel):
         self._size = None
         self._alignment = None
         self._aligned = None
+        self._detector = False
 
         # Controls
         self._createControls("Target")
@@ -471,18 +493,20 @@ class TargetPanel(VisionPanel):
         self._createDataControl(controlName = '_squareNess', label = 'SQ-Ns: ')
         
     def _onTargetFound(self, event):
-        self._x.Value = "% 4.2f" % event.x
-        self._y.Value = "% 4.2f" % event.y
-        self._squareNess.Value = "% 4.2f" % event.squareNess
-        self._range.Value = "% 4.2f" % event.range
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y
+            self._squareNess.Value = "% 4.2f" % event.squareNess
+            self._range.Value = "% 4.2f" % event.range
         
-        self.enableControls()
+            self.enableControls()
     
     def _onTargetLost(self, event):
         self.disableControls()
 
     def _targetDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _targetDetectorOff(self, event):
         self._x.Value = ""
@@ -491,6 +515,7 @@ class TargetPanel(VisionPanel):
         self._range.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False
 
 class BarbedWirePanel(VisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
@@ -501,6 +526,7 @@ class BarbedWirePanel(VisionPanel):
         self._bottomX = None
         self._bottomY = None
         self._bottomWidth = None
+        self._detector = False
 
         # Controls
         self._createControls("BarbedWire")
@@ -531,20 +557,22 @@ class BarbedWirePanel(VisionPanel):
                                 label = 'Bot Width: ')
         
     def _onBarbedWireFound(self, event):
-        self._topX.Value = "% 4.2f" % event.topX
-        self._topY.Value = "% 4.2f" % event.topY
-        self._topWidth.Value = "% 4.2f" % event.topWidth
-        self._bottomX.Value = "% 4.2f" % event.bottomX
-        self._bottomY.Value = "% 4.2f" % event.bottomY
-        self._bottomWidth.Value = "% 4.2f" % event.bottomWidth
+        if self._detector:
+            self._topX.Value = "% 4.2f" % event.topX
+            self._topY.Value = "% 4.2f" % event.topY
+            self._topWidth.Value = "% 4.2f" % event.topWidth
+            self._bottomX.Value = "% 4.2f" % event.bottomX
+            self._bottomY.Value = "% 4.2f" % event.bottomY
+            self._bottomWidth.Value = "% 4.2f" % event.bottomWidth
         
-        self.enableControls()
+            self.enableControls()
     
     def _onBarbedWireLost(self, event):
         self.disableControls()
 
     def _barbedWireDetectorOn(self, event):
         self._bouyLED.SetState(0)
+        self._detector = True
 
     def _barbedWireDetectorOff(self, event):
         self._topX.Value = ""
@@ -555,3 +583,4 @@ class BarbedWirePanel(VisionPanel):
         self._bottomWidth.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
+        self._detector = False

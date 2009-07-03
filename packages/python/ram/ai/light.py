@@ -156,7 +156,7 @@ class Align(state.State, StoreLightEvent):
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
         dDepthGain = self._config.get('dDepthGain', 0.5)
-        maxDepthDt = self._config.get('maxDepthDt', 0.3)
+        maxDepthDt = self._config.get('maxDepthDt', 1)
         desiredRange = self._config.get('desiredRange', 5)
         speed = self._config.get('speed', 3)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)

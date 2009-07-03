@@ -285,11 +285,30 @@ class AIPanel(wx.Panel):
         # Create Last controls
         lastLabel = wx.StaticText(self, label = 'Last State')
         layout.Add(lastLabel, (2, 0), flag = wx.ALIGN_CENTER)
-        self._lastState = wx.TextCtrl(self, size = textSize,
+        self._lastState1 = wx.TextCtrl(self, size = textSize,
                                       style = textStyle)
-        layout.Add(self._lastState, (3, 0), 
+        layout.Add(self._lastState1, (3, 0), 
                    flag = wx.ALIGN_CENTER | wx.EXPAND)
         
+        self._lastState2 = wx.TextCtrl(self, size = textSize,
+                                       style = textStyle)
+        layout.Add(self._lastState2, (4, 0),
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        self._lastState3 = wx.TextCtrl(self, size = textSize,
+                                       style = textStyle)
+        layout.Add(self._lastState3, (5, 0),
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        self._lastState4 = wx.TextCtrl(self, size = textSize,
+                                       style = textStyle)
+        layout.Add(self._lastState4, (6, 0),
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        
+        self._lastState5 = wx.TextCtrl(self, size = textSize,
+                                       style = textStyle)
+        layout.Add(self._lastState5, (7, 0),
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
 
         layout.AddGrowableCol(0)
         #layout.AddGrowableRow(1)
@@ -309,7 +328,11 @@ class AIPanel(wx.Panel):
         self._currentState.Value = '%s' % event.string
         
     def _onExited(self,event):
-        self._lastState.Value = '%s' % event.string
+        self._lastState5.Value = self._lastState4.Value
+        self._lastState4.Value = self._lastState3.Value
+        self._lastState3.Value = self._lastState2.Value
+        self._lastState2.Value = self._lastState1.Value
+        self._lastState1.Value = '%s' % event.string
        
     def _onClose(self, closeEvent):
         for conn in self._connections:
