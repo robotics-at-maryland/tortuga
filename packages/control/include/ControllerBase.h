@@ -109,6 +109,10 @@ protected:
      *      The current angularRate of the vehicle (radians/sec)
      *  @param depth
      *      The current depth of the vehicle (feet)
+     *  @param position
+     *      The current position of the vehicle
+     *  @param velocity
+     *      The current velocity of the vehicle
      *  @param translationalForceOut
      *      The new force to apply to the vehicle (newtons)
      *  @param rotationalTorqueOut
@@ -119,6 +123,8 @@ protected:
                           const math::Quaternion& orientation,
                           const math::Vector3& angularRate,
                           const double& depth,
+                          const math::Vector2& position,
+                          const math::Vector2& velocity,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut) = 0;
 

@@ -145,6 +145,8 @@ void ControllerBase::update(double timestep)
     math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
     math::Quaternion orientation(m_vehicle->getOrientation());
     math::Vector3 angularRate(m_vehicle->getAngularRate());
+    math::Vector2 position(m_vehicle->getPosition());
+    math::Vector2 velocity(m_vehicle->getVelocity());
     double depth = m_vehicle->getDepth();
     
     // Run the base values
@@ -153,7 +155,7 @@ void ControllerBase::update(double timestep)
 
     // Call the base class update function
     doUpdate(timestep, linearAcceleration, orientation, angularRate, depth,
-             translationalForce, rotationalTorque);
+             position, velocity, translationalForce, rotationalTorque);
 
     // Actually set motor values
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);

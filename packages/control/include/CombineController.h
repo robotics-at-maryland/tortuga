@@ -18,6 +18,10 @@
 
 #include "core/include/ConfigNode.h"
 
+#include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -89,6 +93,8 @@ protected:
                           const math::Quaternion& orientation,
                           const math::Vector3& angularRate,
                           const double& depth,
+                          const math::Vector2& position,
+                          const math::Vector2& velocity,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut);
 

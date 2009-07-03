@@ -48,7 +48,9 @@ double TranslationalControllerBase::getSidewaysSpeed()
 math::Vector3 TranslationalControllerBase::translationalUpdate(
     double timestep,
     math::Vector3 linearAcceleration,
-    math::Quaternion orientation)
+    math::Quaternion orientation,
+    math::Vector2 position,
+    math::Vector2 velocity)
 {
     return math::Vector3::ZERO;
 }

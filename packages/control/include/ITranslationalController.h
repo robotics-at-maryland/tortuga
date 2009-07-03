@@ -11,6 +11,7 @@
 #define RAM_CONTROL_ITRANSLATIONALCONTROLLER_08_31_2008
 
 // Project Includes
+#include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
@@ -52,7 +53,9 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
     /** Gets the needed vehicle force based on current vehicle state */
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation) = 0;
+                                              math::Quaternion orientation,
+                                              math::Vector2 position,
+                                              math::Vector2 velocity) = 0;
 };
     
 } // namespace control

@@ -169,13 +169,16 @@ void CombineController::doUpdate(const double& timestep,
                                  const math::Quaternion& orientation,
                                  const math::Vector3& angularRate,
                                  const double& depth,
+                                 const math::Vector2& position,
+                                 const math::Vector2& velocity,
                                  math::Vector3& translationalForceOut,
                                  math::Vector3& rotationalTorqueOut)
 {
     // Update controllers
     math::Vector3 inPlaneControlForce(
         m_transController->translationalUpdate(timestep, linearAcceleration,
-                                               orientation));
+                                               orientation, position,
+                                               velocity));
     math::Vector3 depthControlForce(
         m_depthController->depthUpdate(timestep, depth, orientation));
     math::Vector3 rotControlTorque(

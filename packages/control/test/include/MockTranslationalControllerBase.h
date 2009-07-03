@@ -23,11 +23,13 @@ public:
     virtual ram::math::Vector3 translationalUpdate(
         double timestep,
         ram::math::Vector3 linearAcceleration,
-        ram::math::Quaternion orientation)
+        ram::math::Quaternion orientation,
+        ram::math::Vector2 position,
+        ram::math::Vector2 velocity)
 
     {
         ram::control::TranslationalControllerBase::translationalUpdate(
-            timestep, linearAcceleration, orientation);
+            timestep, linearAcceleration, orientation, position, velocity);
         return ram::math::Vector3::ZERO;
     }
 };

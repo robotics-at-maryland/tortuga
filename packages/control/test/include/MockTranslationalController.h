@@ -38,10 +38,14 @@ public:
 
     virtual ram::math::Vector3 translationalUpdate(double timestep_,
         ram::math::Vector3 linearAcceleration_,
-        ram::math::Quaternion orientation_) {
+        ram::math::Quaternion orientation_,
+        ram::math::Vector2 position_,
+        ram::math::Vector2 velocity_) {
         timestep = timestep_;
         linearAcceleration = linearAcceleration_;
         orientation = orientation_;
+        position = position_;
+        velocity = velocity_;
         return force; }
 
     double speedSet;
@@ -52,6 +56,8 @@ public:
     ram::math::Vector3 linearAcceleration;
     ram::math::Quaternion orientation;
     ram::math::Vector3 force;
+    ram::math::Vector2 position;
+    ram::math::Vector2 velocity;
 };
 
 #endif	// RAM_CONTROL_TEST_TRANSLATIONALCONTROLLER_09_01_2008

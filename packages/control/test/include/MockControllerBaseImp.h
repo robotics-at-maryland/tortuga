@@ -35,6 +35,8 @@ public:
                           const ram::math::Quaternion& orientation_,
                           const ram::math::Vector3& angularRate_,
                           const double& depth_,
+                          const ram::math::Vector2& position_,
+                          const ram::math::Vector2& velocity_,
                           ram::math::Vector3& translationalForceOut_,
                           ram::math::Vector3& rotationalTorqueOut_)
     {
@@ -43,6 +45,8 @@ public:
         orientation = orientation_;
         angularRate = angularRate_;
         depth = depth_;
+        position = position_;
+        velocity = velocity_;
         translationalForceOut_ = translationalForceOut;
         rotationalTorqueOut_ = rotationalTorqueOut;
     }
@@ -91,6 +95,8 @@ public:
     ram::math::Vector3 linearAcceleration;
     ram::math::Quaternion orientation;
     ram::math::Vector3 angularRate;
+    ram::math::Vector2 position;
+    ram::math::Vector2 velocity;
     double depth;
     ram::math::Vector3 translationalForceOut;
     ram::math::Vector3 rotationalTorqueOut;

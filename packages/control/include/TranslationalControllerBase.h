@@ -41,7 +41,9 @@ public:
 
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation);
+                                              math::Quaternion orientation,
+                                              math::Vector2 position,
+                                              math::Vector2 velocity);
     
 private:
     /** Does all initialzation based on the configuration settings */
