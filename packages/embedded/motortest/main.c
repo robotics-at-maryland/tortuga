@@ -50,7 +50,10 @@ byte wasAck(void);
 /* The main function sets everything up then loops */
 int main()
 {
-    byte i;
+    byte i, j, complete_packet, chksum;
+    byte buff[128];
+
+    buff[0]= 0x00;
 
     /* Set up the Oscillator */
     initOSC();
@@ -74,34 +77,57 @@ int main()
      * a simple loop which takes input on the UART and stores it on PORTE */
     LATE= 0x0002;
     while(1) {
-        uartRXwait();
-        
-        i= uartRX();
-        U1TXREG= i;  /* As a debugging measure we chuck the byte back to the computer */
-        
-        LATE= 0x0000;
-        IdleI2C();                       /* Wait for the i2c bus to be idle */
-        StartI2C();                      /* Generate a start condition */
-        WriteI2C((0x52 << 1) | I2C_WRITE);/* Send a packet to address 0x52,
-                                            informing it of a write */
-        IdleI2C();                       /* Wait for the end of transmission */
-        WaitAck();                       /* Wait for the NACK/ACK bit to set */
-        if(!wasAck()) {                  /* If we've gotten a NACK we're done */
-            LATE= 0x0004;                /* Turn on the Red LED! */
-            continue;
+        complete_packet= 0;
+
+        while(!complete_packet) {
+            uartRXwait();
+            buff[0]= i= uartRX();
+            U1TXREG= '0' + i;
+            j= 0;
+            while(j++ < i) {
+                uartRXwait();
+                buff[j]= uartRX();
+            }
+
+            chksum= j= 0;
+            while(j < i) {
+                chksum+= buff[j];
+                j++;
+            }
+
+            if(chksum == buff[i]) {
+                U1TXREG= 'K';
+                complete_packet= 0x01;
+            } else {
+                U1TXREG= 'N';
+            }
         }
-        WriteI2C(i);                     /* Pass the byte to the i2c bus */
-        IdleI2C();                       /* Wait for the transmission to end */
-        WaitAck();                       /* Wait for the ACK/NACK bit to set */
-        if(!wasAck()) {                  /* We got a Nack??! OH NOES! */
-            LATE= 0x0001;                /* Turn on the blue LED*/
+        
+        LATE= 0x0000;                      /* Turn off the LED */
+        j= 1;
+        IdleI2C();                         /* Wait for the i2c bus to be idle */
+        StartI2C();                        /* Generate a start condition */
+        WriteI2C(buff[1]);                 /* Send a packet to the address,
+                                              informing it of a write */
+        IdleI2C();                         /* Wait for the end of transmission */
+        if(!wasAck()) {                    /* If we've gotten a NACK we're done */
+            LATE= 0x0004;                  /* Turn on the Red LED! */
             continue;
         }
 
-        StopI2C();                       /* Stop the bus, we're done. */
-        LATE= 0x0002;                    /* If we made it here, light up the
-                                            green LED so everyone knows how
-                                            cool we are. */
+        while(j++ < i - 1) {
+            WriteI2C(buff[j]);                 /* Pass the byte to the i2c bus */
+            IdleI2C();                         /* Wait for the transmission to end */
+            if(!wasAck()) {                    /* We got a Nack??! OH NOES! */
+                LATE= 0x0004;                  /* Turn on the blue LED*/
+                continue;
+            }
+        }
+
+        StopI2C();                         /* Stop the bus, we're done. */
+        LATE= 0x0002;                      /* If we made it here, light up the
+                                              green LED so everyone knows how
+                                              cool we are. */
     }
 
     return 0;
@@ -273,42 +299,22 @@ unsigned int WriteI2C(byte b)
 
     /* Jam the byte in the transmit buffer! */
     I2CTRN = b;
+
     return 0;
 }
 
-/* This is technically an inaccurate name.  This is not waiting for 
- * an Idle condition, it waits until we're not transmitting. */
+/* This function waits for any and all activity on the i2c bus to stop
+ * whether it's transmitting or recieving, this will wait. */
 unsigned int IdleI2C(void)
 {
     long timeout= 0;
 
-    /* Now we just loop until */
-    while(I2CSTATbits.TRSTAT) {
+    /* Wait until I2C Bus is Inactive */
+    while(I2CCONbits.SEN || I2CCONbits.PEN || I2CCONbits.RCEN || I2CCONbits.ACKEN || I2CSTATbits.TRSTAT) {
         if(timeout++ == I2C_TIMEOUT) {
             return 255;
         }
     }
-    return 0;
-}
-
-/* This function should oly be called after the master has done something
- * which should be ACK'd or NACK'd */
-unsigned int WaitAck(void) {
-    long timeout= 0;
-
-    /* This function waits on the Master i2c interrupt flag because I couldn't
-     * find anything else which was triggered by a NACK or ACK being written.
-     * Anyone who can find a better method should feel free to implement it */
-
-    /* We clear the interrupt flag we're waiting on, because a bunch of stuff
-     * *could* have triggered it. */
-    IFS0bits.MI2CIF= 0;
-    while(!IFS0bits.MI2CIF) {
-        if(timeout++ == I2C_TIMEOUT) {
-            return 255;
-        }
-    }
-
     return 0;
 }
 
