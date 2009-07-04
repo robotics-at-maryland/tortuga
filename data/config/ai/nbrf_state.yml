@@ -18,7 +18,7 @@ ram.ai.pipe.AlongPipe:
 
 # Light/Bouy sub task
 ram.ai.light.Start:
-    depth: 10.8
+    depth: 6.5
 ram.ai.light.Searching:
     sweepAngle: 35
     speed: 2
@@ -72,7 +72,7 @@ ram.ai.target.FireTorpedos:
 ram.ai.barbedwire.SeekingToRange:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    desiredRange: 0.7
+    desiredRange: 0.6
     translateGain: 2.5
     maxSpeed: 3
     maxRangeDiff: 0.5
@@ -86,7 +86,7 @@ ram.ai.barbedwire.SeekingToAligned:
     maxSpeed: 5
     maxRangeDiff: 0.5
     rangeGain: 5
-    desiredRange: 0.7
+    desiredRange: 0.55
 ram.ai.barbedwire.Aligning:
     depthGain: 0 #0.125
     maxDepthDt: 0.3
@@ -111,10 +111,10 @@ ram.ai.bin.SeekEnd:
     #maxSidewaysSpeed: 1.5
 ram.ai.bin.SurfaceToMove:
     binDepth: 12
-    offset: 4
+    offset: 5
 ram.ai.bin.Dive:
     binDepth: 12
-    offset: 4
+    offset: 5
     yawGain: 0.4
 ram.ai.bin.Alinging:
     speedGain: 7

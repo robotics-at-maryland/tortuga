@@ -27,6 +27,8 @@ Vehicle:
 
     depends_on: ["EventHub", "Logging"]
 
+    MagBoomName: MagBoom
+
     # The list of devices to create for the vehicle
     Devices:
         # NOTE: All current numbers here are BS and need to updated
@@ -149,8 +151,9 @@ Vehicle:
             direction: -1
             offset: 0.1967
             
-        IMU: # MagBoom
+        MagBoom:
             type: IMU
+            devfile: /dev/magboom
             update_interval: 5
             priority: high
 
@@ -164,10 +167,10 @@ Vehicle:
 
             localMagneticPitch: 60
 
-        #IMU:
-        #    type: IMU
-        #    update_interval: 5
-        #    priority: high
+        IMU:
+            type: IMU
+            update_interval: 5
+            priority: high
             # These are in VEHICLE FRAME
             # Pre-thruster change out
             #magXBias: 0.158325
@@ -190,13 +193,13 @@ Vehicle:
             #magYBias: 0.252917
             #magZBias: -0.183411
             # Tortuga 2 Redo
-        #    magXBias: 0.2010
-        #    magYBias: 0.2160
-        #    magZBias: -0.1899
+            magXBias: 0.2010
+            magYBias: 0.2160
+            magZBias: -0.1899
 
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
-        #    localMagneticPitch: 60
+            localMagneticPitch: 60
 RemoteController:
     type: RemoteController
     depends_on: ["Controller"]

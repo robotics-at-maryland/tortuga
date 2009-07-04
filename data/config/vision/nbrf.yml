@@ -30,8 +30,8 @@ RedLightDetector:
     redIntensity: 150
     maxAspectRatio: 2.0
 OrangePipeDetector:
-    rOverGMin: 0.75
-    rOverGMax: 1.5
+    rOverGMin: 1.05 #0.75
+    rOverGMax: 2.41 #1.5
     bOverRMax: 0.75
     centeredLimitt: 0.4
     minBrightness: 100
