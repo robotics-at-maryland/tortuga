@@ -6,7 +6,7 @@
  * Author: David Love <loved@umd.edu>
  * File:  packages/vision/src/FANNSymboleDetector.h
  */
-
+#include <iostream>
 
 // Library Includes
 #define BOOST_FILESYSTEM_NO_DEPRECATED
@@ -42,7 +42,7 @@ int FANNSymbolDetector::runNN(Image* input)
     fann_type* outValue = m_net->run(m_features);
 
     // Find the highest output of the network
-    unsigned int highest_out = 0;    
+    unsigned int highest_out = 0;
     for (unsigned int i = 0; i < m_net->get_num_output(); ++i)
     {
         if (outValue[i] > outValue[highest_out])
@@ -53,9 +53,10 @@ int FANNSymbolDetector::runNN(Image* input)
 
     // Determine if its above the threshold or not
     if (outValue[highest_out] > m_outputThreshold)
-        return highest_out;
+        m_result = highest_out;
     else
-        return -1;
+        m_result = -1;
+    return m_result;
 }
 
 int FANNSymbolDetector::getResult()
@@ -86,19 +87,22 @@ FANNSymbolDetector::FANNSymbolDetector(int numberOfFeatures, int outputCount,
     // Get the base configuration file path
 
     // Get the path from the SVN directory
-    assert(config.exists("nueralNetworkFile") &&
-           "Not nueral network file found");
-    std::string shortPath(config["nueralNetworkFile"].asString());
-
-    // Get the full path
-    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-    boost::filesystem::path fullPath = root / shortPath;
-    assert(boost::filesystem::exists(fullPath) &&
-           "Nueral network file does not exists");
+    if (config["training"].asInt(0) != 1)
+    {
+        assert(config.exists("nueralNetworkFile") &&
+               "Not nueral network file found");
+        std::string shortPath(config["nueralNetworkFile"].asString());
+        
+        // Get the full path
+        boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+        boost::filesystem::path fullPath = root / shortPath;
+        assert(boost::filesystem::exists(fullPath) &&
+               "Nueral network file does not exists");
     
-    // Load the network
-    assert(m_net->create_from_file(fullPath.file_string()) &&
-           "Nueral network file found, but error in loading");
+        // Load the network
+        assert(m_net->create_from_file(fullPath.file_string()) &&
+               "Nueral network file found, but error in loading");
+    }
 }
     
 } // namespace vision
