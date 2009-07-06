@@ -11,6 +11,8 @@
 #include <vector>
 
 #include <boost/filesystem/convenience.hpp>
+#include <boost/program_options.hpp>
+#include <boost/foreach.hpp>
 
 #include "vision/include/Image.h"
 #include "vision/include/FANNTrainer.h"
@@ -20,6 +22,7 @@
 #define NON_IMAGE_DIR_ARGS 3
 #define MIN_OUTPUT_COUNT 2
 
+namespace po = boost::program_options;
 namespace rv = ram::vision;
 
 namespace ram {
@@ -32,19 +35,72 @@ namespace ram {
 
 using namespace ram::NetworkTrainer;
 
-int main (int argc, char * const argv[]) {
+int main (int argc, char** argv)
+{
+    po::options_description desc("Allowed options");
+    po::positional_options_description p;
+    po::variables_map vm;
+
+    // Input file to read from
+    std::vector<std::string> imageFileDirs;
+    std::string fannDetectorType;
+    std::string networkFileName;
+    std::string configPath;
+    bool inputDebug = true;
+    
+    try
+    {
+        // Positional Options
+        p.add("detector", 1).
+            add("network-file-name", 1).
+            add("image-dirs", -1);
+
+        // Option Descriptions
+        desc.add_options()
+            ("help", "Produce help message")
+            ("debugOutput,d", po::bool_switch(&inputDebug),
+             "Show the input produced by the training images")
+            ("config,c", po::value<std::string>(&configPath)->
+             default_value("NONE"), "Path to config with detector settings")
+            ("detector", po::value<std::string>(&fannDetectorType),
+             "FANN Detector to turn images into NN input")
+            ("network-file-name", po::value<std::string>(&networkFileName),
+             "Name of the file to save the network to")
+            ("image-dirs", po::value< std::vector<std::string> >(&imageFileDirs),
+             "Directories where the input images for the network come")
+            ;
+        
+        po::store(po::command_line_parser(argc, argv).
+                  options(desc).positional(p).run(), vm);
+        po::notify(vm);
+    }
+    catch(std::exception& e)
+    {
+        std::cerr << "error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    if (vm.count("help"))
+    {
+        std::cout << "Usage: NetworkTrainer [options] <detector> <network-name>"
+                  << "<image-dirs>" << std::endl << desc << std::endl;
+        
+        return EXIT_FAILURE;
+    }
+
+
+    
     // check for enough args
     if (argc < NON_IMAGE_DIR_ARGS + MIN_OUTPUT_COUNT) {
         usage();
         return 0;
     }
     // get the number of images and thier size
-    std::string detectorName = std::string(argv[1]);
     // TODO load the config from somewhere
     ram::core::ConfigNode config(ram::core::ConfigNode::fromString("{}"));
 
     // Create the detector
-    config.set("type", detectorName);
+    config.set("type", fannDetectorType);
     config.set("training", 1);
     rv::DetectorPtr detector = rv::DetectorMaker::newObject(
         rv::DetectorMakerParamType(config, ram::core::EventHubPtr()));
@@ -69,28 +125,31 @@ int main (int argc, char * const argv[]) {
     // Load each set of training images, printing the index for each path
     // along the way
     FANN::training_data data;
-    
-    for (int dir = 0; dir < outputCount; ++dir) {
+    int index = 0;
+    BOOST_FOREACH(std::string dirName, imageFileDirs)
+    {
         std::vector<rv::Image*> imageList;
-        std::string dirName(argv[dir + NON_IMAGE_DIR_ARGS]);
         boost::filesystem::path dirPath(dirName);
 
         if (boost::filesystem::basename (dirPath) != "")
         {
             imageList = loadDirectory(dirPath);
-            bool result = test.addTrainData (dir, data, imageList);
+            bool result = test.addTrainData (index, data, imageList,
+                                             inputDebug);
             if (!result)
             {
                 std::cerr << "Error: with training: " << dirName << std::endl;
                 return -1;
             }
             std::cout << "Directory: '" << dirName << "' assigned index: "
-                      << dir << " (" << imageList.size() << " images)\n";
+                      << index << " (" << imageList.size() << " images)\n";
             for (unsigned int i = 0; i < imageList.size(); ++i) {
                 delete imageList[i];
             }
             imageList.clear();
         }
+
+        index++;
     }
     
     // print the original network
@@ -104,7 +163,8 @@ int main (int argc, char * const argv[]) {
     std::cout << "Running a network test (using existing training data).\n";
     test.runTest (data);
     // save the network
-    boost::filesystem::path savePath = boost::filesystem::path (argv[2]);
+    boost::filesystem::path savePath =
+        boost::filesystem::path(networkFileName);
     test.save (savePath);
     // done
     std::cout << "Done\n";
