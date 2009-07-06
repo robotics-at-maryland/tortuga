@@ -32,8 +32,9 @@ Scene:
     Objects:
         blackJackTable:
             type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
-            position: [-15, 1, -4]
+            position: [-15, 1, -2.753]
             orientation: [0, 0, 1, 45]
+            symbols: ['ship', 'tank', 'aircraft', 'factory']
             
         #blackJackTable:
         #    type: [ram.sim.graphics.IVisual, sim.vision.Bin]
