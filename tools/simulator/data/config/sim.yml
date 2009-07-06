@@ -223,7 +223,7 @@ Subsystems:
                 sidewaysSpeedGain: 3
                 speedGain: 3
             ram.ai.bin.Examine:
-                targetSymbols: ['Diamond', 'Heart']
+                targetSymbols: ['Aircraft', 'Tank']
             
             ram.ai.sonarCourse.PingerDive:
                 depth: 1.5
