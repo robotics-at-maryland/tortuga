@@ -175,6 +175,10 @@ void Image::getAveragePixelValues(Image* source,
     int channel2Total = 0;
     int channel3Total = 0;
     int pixelCount = width * height;
+
+    assert(yStart < (int)source->getHeight() && "Too much height");
+    assert(yEnd < (int)source->getHeight() && "Too much height");
+    assert((upperLeftX + width) < (int)source->getWidth() && "Too much width");
     
     for (int y = yStart; y < yEnd; ++y)
     {

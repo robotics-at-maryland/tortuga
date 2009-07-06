@@ -19,8 +19,11 @@
 namespace ram {
 namespace vision {
 
-/** Wraps ImageDetector to create a card-suit specific interface
-    identical to that of SymbolDetector */
+/** Implements FANNSymbolDetector to find the 2008 Symbols
+ *
+ *  Each feature it extracts is a pixel of the passed in image scaled to 64x64
+ *  pixels.
+ */
 class RAM_EXPORT FANNSuitDetector : public FANNSymbolDetector
 {
   public:
