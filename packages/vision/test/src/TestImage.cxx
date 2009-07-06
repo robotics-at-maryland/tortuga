@@ -91,6 +91,24 @@ TEST(extractSubImage)
     
     delete result;
     delete[] buffer;
+
+
+    // Now test with a real image
+    vision::Image* reference = vision::Image::loadFromFile(
+        (getImagesDir() / "testextract" / "ship.png").string());
+
+    width = reference->getWidth();
+    height = reference->getHeight();
+    buffer = new unsigned char[width * height * 3];
+
+    // Extract the whole image to check
+    result = vision::Image::extractSubImage(
+        reference, buffer, 0, 0, width, height);
+    CHECK_CLOSE(*result, *reference, 0);
+    
+    delete result;
+    delete[] buffer;
+    delete reference;
 }
 
 TEST(blitImage)

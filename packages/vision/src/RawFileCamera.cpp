@@ -78,7 +78,7 @@ RawFileCamera::~RawFileCamera()
     
     //fclose(m_file);
     close(m_file);
-    delete m_dataBuffer;
+    delete[] m_dataBuffer;
 }
 
 void RawFileCamera::update(double timestep)

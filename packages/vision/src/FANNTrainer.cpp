@@ -29,12 +29,12 @@
 namespace ram {
 namespace vision {
 
-FANNTrainer::FANNTrainer(const unsigned int outputCount,
-                         FANNSymbolDetectorPtr detector,
+FANNTrainer::FANNTrainer(FANNSymbolDetectorPtr detector,
                          core::ConfigNode config) :
     m_fannDetector(detector)
 {
     // the size of the input layer
+    int outputCount = m_fannDetector->getOutputCount();
     const int inputSize = m_fannDetector->getNumberFeatures();
     
     // some config stuff
@@ -49,14 +49,23 @@ FANNTrainer::FANNTrainer(const unsigned int outputCount,
     int layers = config["Layers"].asInt(3);
     unsigned int layerSizes[layers];
     if (config["PyramidNetwork"].asInt(1))
-    { 
+    {
+        // Make a pyramid of layers going from the input size, down to the
+        // output size
         const int interval = (inputSize - outputCount) / (layers - 1);
         for (int i = 0; i < layers; ++i)
         {
             layerSizes[i] = inputSize - (interval * i);
         }
-    } else
+
+        // No matter what the above does, make sure first layer == inputSize
+        // and last layer == outputCount
+        layerSizes[0] = inputSize;
+        layerSizes[layers - 1] = outputCount;
+    }
+    else
     {
+        // Make all layers equal input size but the last
         for (int i = 0; i < layers; ++i)
         {
             layerSizes[i] = (i == layers - 1 ? outputCount : inputSize);
@@ -107,6 +116,13 @@ FANNTrainer::FANNTrainer(const unsigned int outputCount,
     
     // generate some random starting weights
     m_net.randomize_weights(MIN_INIT_WEIGHT, MAX_INIT_WEIGHT);
+
+
+    // Ensure the network is setup properly
+    assert(m_fannDetector->getOutputCount() == (int)m_net.get_num_output() &&
+           "Wrong network output count");
+    assert(m_fannDetector->getNumberFeatures() == (int)m_net.get_num_input() &&
+           "Wrong network input count");
 }
                 
 /*
@@ -140,7 +156,7 @@ void FANNTrainer::loadFromFile (const boost::filesystem::path &file)
 void FANNTrainer::runTraining (FANN::training_data &data)
 {
     data.scale_train_data(DATA_MIN, DATA_MAX);
-    m_net.reset_MSE();    
+    m_net.reset_MSE();
     m_net.set_train_stop_function (FANN::STOPFUNC_MSE);
     m_net.set_training_algorithm (FANN::TRAIN_QUICKPROP);
     if (m_cascade)
@@ -154,6 +170,7 @@ void FANNTrainer::runTraining (FANN::training_data &data)
     {
         m_net.train_on_data (data, m_maxEpochs, m_reportEpochs, m_desiredError);
     }
+    std::cout << "Training complete, MSE: " << m_net.get_MSE() << std::endl;
 }
         
 const void FANNTrainer::runTest (FANN::training_data &data,
@@ -187,8 +204,18 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
                                 FANN::training_data &data,
                                 std::vector<Image*> &images)
 {
-    if (images.size() == 0 || imageIndex >= m_net.get_num_input())
+    if (images.size() == 0)
+    {
+        std::cerr << "ERROR: 0 images to train" << std::endl;
         return false;
+    }
+    if (imageIndex >= m_net.get_num_output())
+    {
+        std::cerr << "ERROR: imageIndex (" << imageIndex << ") >= "
+                  << "network number of output (" << m_net.get_num_input()
+                  << ")" << std::endl;
+        return false;
+    }
     
     // Load up all images int
     fann_type** input = new fann_type*[images.size()];
@@ -198,7 +225,7 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
         // Fill in the input with our feature detector
         input[i] = new fann_type[m_net.get_num_input()];
         m_fannDetector->getImageFeatures(images[i], input[i]);
-
+        
         // Fill in the output array based on the current desired output
         output[i] = new fann_type[m_net.get_num_output()];
         for (unsigned int y = 0; y < m_net.get_num_output(); ++y)
@@ -228,11 +255,11 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
     // Clean up the input and output buffers
     for (unsigned int i = 0; i < images.size(); ++i)
     {
-        delete input[i];
-        delete output[i];
+        delete[] input[i];
+        delete[] output[i];
     }
-    delete input;
-    delete output;
+    delete[] input;
+    delete[] output;
     
     return true;
 }    

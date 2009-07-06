@@ -40,7 +40,7 @@ int FANNSymbolDetector::runNN(Image* input)
 
     // Run the detector on the features
     fann_type* outValue = m_net->run(m_features);
-
+    
     // Find the highest output of the network
     unsigned int highest_out = 0;
     for (unsigned int i = 0; i < m_net->get_num_output(); ++i)
@@ -50,7 +50,7 @@ int FANNSymbolDetector::runNN(Image* input)
             highest_out = i;
         }
     }
-
+    
     // Determine if its above the threshold or not
     if (outValue[highest_out] > m_outputThreshold)
         m_result = highest_out;
@@ -72,7 +72,7 @@ FANNSymbolDetector::FANNSymbolDetector(int numberOfFeatures, int outputCount,
     m_outputCount(outputCount),
     m_result(-1),
     m_outputThreshold(0),
-    m_features(new fann_type(m_numberFeatures)),
+    m_features(new fann_type[numberOfFeatures]),
     m_net(new FANN::neural_net())
 {
     // NOTE: The property set automatically loads the value from the given
@@ -102,6 +102,12 @@ FANNSymbolDetector::FANNSymbolDetector(int numberOfFeatures, int outputCount,
         // Load the network
         assert(m_net->create_from_file(fullPath.file_string()) &&
                "Nueral network file found, but error in loading");
+
+        // Ensure it matches our parameters
+        assert(getOutputCount() == (int)m_net->get_num_output() &&
+               "Wrong network output count");
+        assert(getNumberFeatures() == (int)m_net->get_num_input() &&
+               "Wrong network input count");
     }
 }
     

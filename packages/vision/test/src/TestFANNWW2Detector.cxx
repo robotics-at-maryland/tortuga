@@ -9,6 +9,7 @@
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -17,7 +18,13 @@
 #include "vision/test/include/Utility.h"
 
 using namespace ram;
-
+/*
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "references";
+}
+*/
 SUITE(FANNWW2Detector) {
 
 struct FANNSymbolDetectorFixture
@@ -77,7 +84,39 @@ TEST_FIXTURE(FANNSymbolDetectorFixture, getImageFeatures)
     CHECK_EQUAL(192u, src2.getHeight());
     detector.getImageFeatures(&src2, results2);
     CHECK_ARRAY_CLOSE(expectedFeatures2, results2, 3, 0.1);
-
 }
+/*
+ Can't Seem to train a network for this
+TEST(Detection)
+{
+    // Actually test to see if it can recognize things
+    vision::FANNWW2Detector detector(
+        core::ConfigNode::fromString("{'nueralNetworkFile' : 'test.irn'}"));
 
+    // Load refernece images
+    vision::Image* ship = vision::Image::loadFromFile(
+        (getImagesDir() / "ship_fullsize_bw.png").string());
+    vision::Image* aircraft = vision::Image::loadFromFile(
+        (getImagesDir() / "aircraft_fullsize_bw.png").string());
+    vision::Image* tank = vision::Image::loadFromFile(
+        (getImagesDir() / "tank_fullsize_bw.png").string());
+    vision::Image* factory = vision::Image::loadFromFile(
+        (getImagesDir() / "factory_fullsize_bw.png").string());
+
+    // Run them through the detector and check the results
+    std::cout << "TEST RUN SHIP" << std::endl;
+    detector.processImage(ship);
+    CHECK_EQUAL(vision::Symbol::SHIP, detector.getSymbol());
+    std::cout << "TEST RUN AIRCRAFT" << std::endl;
+    detector.processImage(aircraft);
+    CHECK_EQUAL(vision::Symbol::AIRCRAFT, detector.getSymbol());
+    std::cout << "TEST RUN TANK" << std::endl;
+    detector.processImage(tank);
+    CHECK_EQUAL(vision::Symbol::TANK, detector.getSymbol());
+    std::cout << "TEST RUN FACTORY" << std::endl;
+    detector.processImage(factory);
+    CHECK_EQUAL(vision::Symbol::FACTORY, detector.getSymbol());
+    std::cout << "TEST RUN DONE" << std::endl;
+}
+*/
 } // SUITE(FANNWW2Detector)

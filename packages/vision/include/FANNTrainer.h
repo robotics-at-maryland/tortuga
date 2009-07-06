@@ -39,9 +39,9 @@ namespace vision {
 class RAM_EXPORT FANNTrainer {
   public:
     /** Build a new FANNTrainer **/
-    FANNTrainer(const unsigned int outputCount, FANNSymbolDetectorPtr detector,
+    FANNTrainer(const FANNSymbolDetectorPtr detector,
                 core::ConfigNode config =
-                ram::core::ConfigNode::fromString("{}"));
+                    ram::core::ConfigNode::fromString("{}"));
         
     /** Train on a given set of data **/
     void runTraining (FANN::training_data &data);

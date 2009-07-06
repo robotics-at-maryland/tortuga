@@ -141,7 +141,7 @@ TEST_FIXTURE(FANNFixture, test)
     // Train our nueral network
     vision::FANNSymbolDetectorPtr colorDetector(
         new ColorDetector("{ 'training' : 1 }"));
-    vision::FANNTrainer trainer(3, colorDetector);
+    vision::FANNTrainer trainer(colorDetector);
 
     // Load up the data
     FANN::training_data data;

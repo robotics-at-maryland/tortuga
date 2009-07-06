@@ -20,7 +20,6 @@
 #define SYMBOL_FACTORY 3
 #define SYMBOL_COUNT 4
 
-#define SYMBOL_COUNT 4
 #define FEATURE_COUNT 3
 
 
@@ -87,7 +86,6 @@ void FANNWW2Detector::getImageFeatures(Image* inputImage, float* features)
     }
     
     // Make sure the ratio is always positive
-    
     double ratio = 0;
     if (average2 != 0)
         ratio = average1/average2;

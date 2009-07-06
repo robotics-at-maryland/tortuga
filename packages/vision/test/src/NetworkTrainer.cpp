@@ -45,6 +45,7 @@ int main (int argc, char * const argv[]) {
 
     // Create the detector
     config.set("type", detectorName);
+    config.set("training", 1);
     rv::DetectorPtr detector = rv::DetectorMaker::newObject(
         rv::DetectorMakerParamType(config, ram::core::EventHubPtr()));
     
@@ -63,7 +64,7 @@ int main (int argc, char * const argv[]) {
             
     // build the testing network
     // TODO: try to load from file first, and the config information
-    rv::FANNTrainer test(outputCount, fannDetector);
+    rv::FANNTrainer test(fannDetector);
     
     // Load each set of training images, printing the index for each path
     // along the way
@@ -77,9 +78,14 @@ int main (int argc, char * const argv[]) {
         if (boost::filesystem::basename (dirPath) != "")
         {
             imageList = loadDirectory(dirPath);
-            test.addTrainData (dir, data, imageList);
+            bool result = test.addTrainData (dir, data, imageList);
+            if (!result)
+            {
+                std::cerr << "Error: with training: " << dirName << std::endl;
+                return -1;
+            }
             std::cout << "Directory: '" << dirName << "' assigned index: "
-                      << dir << "\n";
+                      << dir << " (" << imageList.size() << " images)\n";
             for (unsigned int i = 0; i < imageList.size(); ++i) {
                 delete imageList[i];
             }
