@@ -100,6 +100,7 @@ Scene:
                     distance: 9
                     heading: 10
                     depth: -2.753
+                    symbols: ['ship', 'tank', 'aircraft', 'factory']
             
             blackJackTable:
                 tableSonarPipe:

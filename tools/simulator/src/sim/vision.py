@@ -640,6 +640,13 @@ class Course(ram.sim.object.Object):
                 'position' : pos,
                 'orientation' : [0, 0, 1, -newHeading],
             }
+
+            # Add the other options into the config
+            notToAdd = set(['heading', 'depth', 'distance', 'offset', 'type'])
+            for key,value in pCfg.iteritems():
+                if key not in notToAdd:
+                    objCfg[key] = value
+            
             self._createObject(scene, objCfg)
 
             # Determine the new current position and heading
