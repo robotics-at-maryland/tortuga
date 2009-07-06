@@ -61,7 +61,7 @@ class RAM_EXPORT FANNTrainer {
      *  FANNTrainer
      */
     bool addTrainData (unsigned int imageIndex, FANN::training_data &data,
-                       std::vector<Image*> &images);
+                       std::vector<Image*> &images, bool debugOutput = false);
     
     
   private:

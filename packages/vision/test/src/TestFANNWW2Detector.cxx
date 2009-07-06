@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2009 Robotics at Maryland
- * Copyright (C) 2009 David Love
+ * Copyright (C) 2009 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
- * Author: David Love <loved@umd.edu>
- * File:  packages/vision/test/src/TestFANNSymbolDetector.cpp
+ * Author: Joseph Lisee <jlisee@umd.edu>
+ * File:  packages/vision/src/BasicWW2Detector.cpp
  */
 
 // Library Includes

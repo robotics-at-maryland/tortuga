@@ -359,6 +359,9 @@ void BinDetector::init(core::ConfigNode config)
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
 
+    // Add properties of the symbolDetector
+    propSet->addPropertiesFromSet(m_symbolDetector->getPropertySet().get());
+    
     // General properties
     propSet->addProperty(config, false, "centeredLimit",
         "Maximum distance for the bin to be considred \"centered\"",

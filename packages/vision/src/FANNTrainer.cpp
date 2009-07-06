@@ -202,7 +202,8 @@ const bool FANNTrainer::save (const boost::filesystem::path &file)
         
 bool FANNTrainer::addTrainData (unsigned int imageIndex,
                                 FANN::training_data &data,
-                                std::vector<Image*> &images)
+                                std::vector<Image*> &images,
+                                bool debugOutput)
 {
     if (images.size() == 0)
     {
@@ -220,6 +221,9 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
     // Load up all images int
     fann_type** input = new fann_type*[images.size()];
     fann_type** output = new fann_type*[images.size()];
+    double* inputAverage = new double[m_net.get_num_input()];
+    for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+        inputAverage[j] = 0;
     for (unsigned int i = 0; i < images.size(); ++i)
     {
         // Fill in the input with our feature detector
@@ -235,6 +239,29 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
             else
                 output[i][y] = DATA_MIN;
         }
+
+        // Print the results of each input
+        if (debugOutput)
+        {
+            for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+            {
+                std::cout << input[i][j] << " ";
+                inputAverage[j] += input[i][j];
+            }
+            std::cout << "| ";
+            for (unsigned int j = 0; j < m_net.get_num_output(); ++j)
+                std::cout << output[i][j] << " ";
+            std::cout << std::endl;
+        }
+    }
+
+    if (debugOutput)
+    {
+        // Average the actualy input
+        std::cout << "Training average: ";
+        for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+            std::cout << inputAverage[j] / images.size() << " ";
+        std::cout << std::endl;
     }
     
     if (data.length_train_data() == 0)
@@ -258,6 +285,7 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
         delete[] input[i];
         delete[] output[i];
     }
+    delete[] inputAverage;
     delete[] input;
     delete[] output;
     
