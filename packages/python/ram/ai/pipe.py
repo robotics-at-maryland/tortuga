@@ -394,26 +394,8 @@ class AlongPipe(PipeFollowingState):
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
         return PipeTrackingState.transitions(AlongPipe, trans)
 
-    def PIPE_LOST(self, event):
-        """
-        We were just told all current pipes are lost that means we can't have
-        a currentID, so lets drop it if we do have one
-        """
-        PipeFollowingState.PIPE_LOST(self, event)
-
-    def PIPE_DROPPED(self, event):
-        """Update the tracking system when a pipe is lost. If the pipe
-           dropped is the current pipe, find the closest pipe to the
-           vehicles orienatation and switch to it."""
-
-        pipeData = self.ai.data['pipeData']
-        
-        # Drop the currentID if we lost the pipe
-        if pipeData['currentID'] == event.id:
-            del pipeData['currentID']
-
     def FOUND_PIPE(self, event):
-        """Update the state of the light, this moves the vehicle"""
+        """Update the state of the pipe, this moves the vehicle"""
         
         # Determine if a new pipe has appeared in the field of view
         newPipeLoc = ext.math.Vector3(event.x, event.y, 0)
