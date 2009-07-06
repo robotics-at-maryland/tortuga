@@ -73,9 +73,12 @@ public:
     /** Whether or not a subnode actually exists */
     bool exists(std::string name);
     
-    /** Map a value to the the give string inside a config node */
+    /** Map a value to the the given string inside a config node */
     void set(std::string key, std::string str);
-             
+
+    /** Map a value to the the given int inside a config node */
+    void set(std::string key, int value);
+    
     /** Builds a config node from the given string, this uses the python ver. */
     static ConfigNode fromString(std::string data);
 

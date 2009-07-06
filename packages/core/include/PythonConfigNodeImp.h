@@ -83,6 +83,8 @@ public:
     
     /** Map a key to a given value */
     virtual void set(std::string key, std::string str);
+
+    virtual void set(std::string key, int value);
     
     /** Open a file using the python Yaml parser */
     static ConfigNodeImpPtr fromYamlFile(std::string filename);

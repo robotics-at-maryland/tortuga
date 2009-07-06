@@ -291,7 +291,7 @@ void PythonConfigNodeImp::set(std::string key, std::string str)
     try {
         m_pyobj[key] = py::str(str);
     } catch(py::error_already_set err) {
-        printf("ConfigNode (set) at: %s with key: %s Error:\n",
+        printf("ConfigNode (set string) at: %s with key: %s Error:\n",
 	       m_debugPath.c_str(), key.c_str());
         PyErr_Print();
 
@@ -299,6 +299,21 @@ void PythonConfigNodeImp::set(std::string key, std::string str)
     }
 }
 
+    
+void PythonConfigNodeImp::set(std::string key, int value)
+{
+    try {
+        m_pyobj[key] = py::object(value);
+    } catch(py::error_already_set err) {
+        printf("ConfigNode (set value) at: %s with key: %s Error:\n",
+	       m_debugPath.c_str(), key.c_str());
+        PyErr_Print();
+
+        throw err;
+    }
+}
+
+    
 struct null_deleter
 {
     void operator()(void const *) const

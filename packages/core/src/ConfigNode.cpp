@@ -91,6 +91,12 @@ void ConfigNode::set(std::string key, std::string str)
     m_impl->set(key, str);
 }
 
+void ConfigNode::set(std::string key, int value)
+{
+    assert(m_impl.get() && "No ConfigNode impl found");
+    m_impl->set(key, value);
+}
+    
 ConfigNode ConfigNode::fromString(std::string data)
 {
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));
