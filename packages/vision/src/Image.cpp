@@ -89,7 +89,7 @@ Image* Image::extractSubImage(Image* source, unsigned char* buffer,
     for (int y = yStart; y < yEnd; ++y)
     {
         // Get us to right row and column to start
-        int offset = (y * source->getWidth() * 3) + (upperLeftX * 3);
+        int offset = (y * source->asIplImage()->widthStep) + (upperLeftX * 3);
         srcPtr = sourceBuffer + offset;
         
         for (int x = 0; x < (width * 3); ++x)
@@ -183,7 +183,7 @@ void Image::getAveragePixelValues(Image* source,
     for (int y = yStart; y < yEnd; ++y)
     {
         // Get us to right row and column to start
-        int offset = (y * source->getWidth() * 3) + (upperLeftX * 3);
+        int offset = (y * source->asIplImage()->widthStep) + (upperLeftX * 3);
         srcPtr = sourceBuffer + offset;
         
         for (int x = 0; x < width; x++)
