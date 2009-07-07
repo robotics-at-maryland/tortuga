@@ -7,6 +7,7 @@
 
 # STD Imports
 import math
+from datetime import datetime
 
 # Library Imports
 import wx
@@ -259,7 +260,7 @@ class DepthPanel(wx.Panel):
 
 class AIPanel(wx.Panel):
     implements(IPanelProvider)
-    
+    fmt = "MM:SS.mm"
     def __init__(self, parent, eventHub, stateMachine, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
@@ -283,35 +284,14 @@ class AIPanel(wx.Panel):
                    flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Last controls
-        lastLabel = wx.StaticText(self, label = 'Last State')
+        lastLabel = wx.StaticText(self, label = 'Previous States')
         layout.Add(lastLabel, (2, 0), flag = wx.ALIGN_CENTER)
-        self._lastState1 = wx.TextCtrl(self, size = textSize,
-                                      style = textStyle)
-        layout.Add(self._lastState1, (3, 0), 
-                   flag = wx.ALIGN_CENTER | wx.EXPAND)
+        self._stateList = wx.ListBox(self, wx.ID_ANY, name = 'State List',
+                                     style = wx.TE_RIGHT | wx.LB_SINGLE)
+        layout.Add(self._stateList, (3, 0), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
-        self._lastState2 = wx.TextCtrl(self, size = textSize,
-                                       style = textStyle)
-        layout.Add(self._lastState2, (4, 0),
-                   flag = wx.ALIGN_CENTER | wx.EXPAND)
-        
-        self._lastState3 = wx.TextCtrl(self, size = textSize,
-                                       style = textStyle)
-        layout.Add(self._lastState3, (5, 0),
-                   flag = wx.ALIGN_CENTER | wx.EXPAND)
-        
-        self._lastState4 = wx.TextCtrl(self, size = textSize,
-                                       style = textStyle)
-        layout.Add(self._lastState4, (6, 0),
-                   flag = wx.ALIGN_CENTER | wx.EXPAND)
-        
-        self._lastState5 = wx.TextCtrl(self, size = textSize,
-                                       style = textStyle)
-        layout.Add(self._lastState5, (7, 0),
-                   flag = wx.ALIGN_CENTER | wx.EXPAND)
-
         layout.AddGrowableCol(0)
-        #layout.AddGrowableRow(1)
+        layout.AddGrowableRow(3)
         
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)
@@ -324,15 +304,20 @@ class AIPanel(wx.Panel):
                                         self._onExited)
         self._connections.append(conn)
         
+        self._startTime = timer.time()
+        
     def _onEntered(self,event):
         self._currentState.Value = '%s' % event.string
         
     def _onExited(self,event):
-        self._lastState5.Value = self._lastState4.Value
-        self._lastState4.Value = self._lastState3.Value
-        self._lastState3.Value = self._lastState2.Value
-        self._lastState2.Value = self._lastState1.Value
-        self._lastState1.Value = '%s' % event.string
+        # Get the time stamp and its difference from the beginning
+        timeStamp = datetime.fromtimestamp(event.timeStamp - self._startTime)
+        
+        # Format the string MM:SS.mm EventName
+        string = timeStamp.strftime("%M:%S.") + \
+            "%.0f" % (timeStamp.microsecond / 10000.0)
+        string = string + (' %s' % event.string)
+        self._stateList.InsertItems([string], pos = 0)
        
     def _onClose(self, closeEvent):
         for conn in self._connections:

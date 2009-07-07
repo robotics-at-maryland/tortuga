@@ -183,7 +183,7 @@ class PipeFollowingState(PipeTrackingState):
             # vehicle direction
             minID = None
             for i in pipeData['currentIds']:
-                if not i is pipeData['currentID']:
+                if i is not pipeData['currentID']:
                     if minID is None:
                         minID = i
                     else:
