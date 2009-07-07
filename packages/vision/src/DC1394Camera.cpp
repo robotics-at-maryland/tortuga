@@ -127,9 +127,8 @@ void DC1394Camera::update(double timestep)
     assert(DC1394_SUCCESS == err && "Could not capture a frame\n");
     
     // Convert to RGB and place in our new frame
+    m_newFrame->color_coding=DC1394_COLOR_CODING_RGB8;
     dc1394_convert_frames(frame, m_newFrame);
-//    dc1394_convert_to_RGB8(frame->image, m_newFrame->getData(), 640, 480,
-//                           frame->yuv_byte_order, frame->color_coding, 8);
 
     // Free the space back up on the queue
     err = dc1394_capture_enqueue(m_camera, frame);
