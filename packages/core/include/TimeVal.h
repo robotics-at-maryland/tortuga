@@ -53,8 +53,11 @@ namespace core {
 __inline int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
 
+
+#ifndef USEC_PER_SEC
 static const long USEC_PER_SEC = 1000000;
-    
+#endif
+
 /// @class TimeVal
 /// @brief A GTimeVal C++ wrapper interface.
 ///
