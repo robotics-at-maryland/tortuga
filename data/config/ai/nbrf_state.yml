@@ -18,7 +18,7 @@ ram.ai.pipe.AlongPipe:
 
 # Light/Bouy sub task
 ram.ai.light.Start:
-    depth: 6.5
+    depth: 5.5
 ram.ai.light.Searching:
     sweepAngle: 35
     speed: 2

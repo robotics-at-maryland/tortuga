@@ -39,13 +39,15 @@ OrangePipeDetector:
     minPixelsFound: 2000
     erodeIterations: 2
 BinDetector:
+    symbolDetector: BasicWW2Detector
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
     blackMaskMinimumPercent: 10
     blackMaskMaxTotalIntensity: 350
-    whiteMaskMinimumPercent: 24
+    whiteMaskMinimumPercent: 15
     whiteMaskMinimumIntensity: 137
+    redMinRValue: 70
     incrediblyWashedOut: 0
 DuctDetector:
     minRedOverGreen: 0.5
