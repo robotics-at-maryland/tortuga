@@ -45,13 +45,13 @@ BasicWW2Detector::BasicWW2Detector(core::ConfigNode config,
     assert(3 == m_fannDetector->getNumberFeatures());
 
     // General properties
-    addMinMaxProps("ship", m_shipFeaturesMin, m_shipFeaturesMax,
+    addMinMaxProps("Ship", m_shipFeaturesMin, m_shipFeaturesMax,
                    SHIP_DEFAULTS_MIN, SHIP_DEFAULTS_MAX, config);
-    addMinMaxProps("aircraft", m_aircraftFeaturesMin, m_aircraftFeaturesMax,
+    addMinMaxProps("Aircraft", m_aircraftFeaturesMin, m_aircraftFeaturesMax,
                    AIRCRAFT_DEFAULTS_MIN, AIRCRAFT_DEFAULTS_MAX, config);
-    addMinMaxProps("tank", m_tankFeaturesMin, m_tankFeaturesMax,
+    addMinMaxProps("Tank", m_tankFeaturesMin, m_tankFeaturesMax,
                    TANK_DEFAULTS_MIN, TANK_DEFAULTS_MAX, config);
-    addMinMaxProps("factory", m_factoryFeaturesMin, m_factoryFeaturesMax,
+    addMinMaxProps("Factory", m_factoryFeaturesMin, m_factoryFeaturesMax,
                    FACTORY_DEFAULTS_MIN, FACTORY_DEFAULTS_MAX, config);
 }
     
@@ -124,8 +124,8 @@ void BasicWW2Detector::addMinMaxProps(std::string name, double* minFeatures,
                                       double* maxDefaults,
                                       core::ConfigNode config)
 {
-    addFeatureProp("min", name, "Max", minFeatures, minDefaults, config);
-    addFeatureProp("max", name, "Min", maxFeatures, maxDefaults, config);
+    addFeatureProp("min", name, "Min", minFeatures, minDefaults, config);
+    addFeatureProp("max", name, "Max", maxFeatures, maxDefaults, config);
 }
 
 void BasicWW2Detector::addFeatureProp(std::string prefix, std::string suffix,
