@@ -282,14 +282,14 @@ class TestSeeking(BinTestCase):
         self.assertTrue(self._center)
     
     def testBinLost(self):
-        """Make sure losing the light goes back to search"""
+        """Make sure losing the bin goes back to search"""
         
         # For Recover
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.Recover)   
+        self.assertCurrentState(bin.Recover)
         
 class TestRecover(aisupport.AITestCase):
     def testStart(self):
@@ -348,7 +348,7 @@ class TestCentering(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.Recover)
+        self.assertCurrentState(bin.RecoverCentering)
     
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -408,7 +408,7 @@ class TestAligning(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.Recover)
+        self.assertCurrentState(bin.RecoverAligning)
     
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -467,6 +467,19 @@ class TestCheckEnd(BinTestCase):
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(bin.SeekEnd)
+        
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        # For CheckEnd
+        self.ai.data['binData']['currentID'] = 4
+        self.machine.start(bin.CheckEnd)
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverCheckEnd)
         
 class TestSeekEnd(BinTestCase):
     def setUp(self):
@@ -580,12 +593,21 @@ class TestSeekEnd(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.Recover)
+        self.assertCurrentState(bin.RecoverSeekEnd)
         
     def testAtEnd(self):
         self.injectEvent(bin.SeekEnd.AT_END)
         self.assertCurrentState(bin.Dive)
         
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverSeekEnd)
 
 class DiveTestCase(object):
     """
@@ -633,6 +655,16 @@ class TestDive(DiveTestCase, BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         DiveTestCase.setUp(self, myState = bin.Dive, nextState = bin.Aligning)
+        
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverDive)
         
 class TestExamine(BinTestCase):
     def setUp(self):
@@ -807,11 +839,31 @@ class TestExamine(BinTestCase):
     def testBinTracking(self):
         self.binTrackingHelper()
         
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverExamine)
+        
 class TestPreDropDive(DiveTestCase, BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         DiveTestCase.setUp(self, myState = bin.PreDropDive, 
                            nextState = bin.SettleBeforeDrop)
+        
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverPreDropDive)
         
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):
@@ -837,7 +889,7 @@ class TestSettleBeforeDrop(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.Recover)
+        self.assertCurrentState(bin.RecoverSettleBeforeDrop)
     
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -883,6 +935,16 @@ class TestSurfaceToMove(BinTestCase):
         
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(bin.NextBin)
+        
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverSurfaceToMove)
 
 class TestNextBin(BinTestCase):
     def setUp(self):
@@ -954,7 +1016,7 @@ class TestNextBin(BinTestCase):
         self.ai.data["lastBinY"] = 0
         self.qeventHub.publishEvents()
                 
-        self.assertCurrentState(bin.Recover)
+        self.assertCurrentState(bin.RecoverNextBin)
 #        self.assertEqual(3, self.ai.data['binData']['currentID'])
 #        self.assertFalse(self._atEnd)
 #        self.assertFalse(self._centered)
@@ -1001,6 +1063,16 @@ class TestNextBin(BinTestCase):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(bin.NextBin.AT_END)
         self.assertCurrentState(bin.SurfaceToCruise)
+        
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverNextBin)
         
 class TestDropMarker(BinTestCase):
     def setUp(self):
@@ -1064,6 +1136,16 @@ class TestDropMarker(BinTestCase):
 
         self.injectEvent(bin.DropMarker.CONTINUE)
         self.assertCurrentState(bin.SurfaceToMove)
+    
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverDropMarker)
         
 class TestSurface(BinTestCase):
     def setUp(self):
@@ -1100,3 +1182,13 @@ class TestSurface(BinTestCase):
         # Make sure we get the final event
         self.qeventHub.publishEvents()
         self.assert_(self._binComplete)
+    
+    def testBinLost(self):
+        """Make sure losing the bin goes back to search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(bin.RecoverSurfaceToCruise)

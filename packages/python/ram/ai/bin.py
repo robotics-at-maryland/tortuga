@@ -451,6 +451,55 @@ class Recover(state.FindAttempt):
         state.FindAttempt.exit(self)
         self.motionManager.stopCurrentMotion()
 
+class RecoverCentering(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(Centering)
+class RecoverCheckEnd(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(CheckEnd)
+class RecoverSeekEnd(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(SeekEnd)
+class RecoverDive(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(Dive)
+class RecoverAligning(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(Aligning)
+class RecoverExamine(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(Examine)
+class RecoverPreDropDive(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(PreDropDive)
+class RecoverSettleBeforeDrop(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(SettleBeforeDrop)
+class RecoverSurfaceToMove(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(SurfaceToMove)
+class RecoverNextBin(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(NextBin)
+class RecoverDropMarker(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(DropMarker)
+class RecoverSurfaceToCruise(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(SurfaceToCruise)
+
 class Centering(SettlingState):
     """
     When the vehicle is settling over the first found bin, it uses the angle of
@@ -463,7 +512,7 @@ class Centering(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Centering,
-            { Centering.SETTLED : CheckEnd })
+            { Centering.SETTLED : CheckEnd }, lostState = RecoverCentering)
     
     def SETTLED_(self, event):
         """
@@ -494,7 +543,7 @@ class CheckEnd(BinSortingState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(CheckEnd,
-            {CheckEnd.CONTINUE : SeekEnd} )
+            {CheckEnd.CONTINUE : SeekEnd}, lostState = RecoverCheckEnd)
         
     def enter(self):
         BinSortingState.enter(self, BinSortingState.LEFT)
@@ -522,7 +571,7 @@ class SeekEnd(BinSortingState):
         return HoveringState.transitions(SeekEnd,
             {BinSortingState.CENTERED_ : SeekEnd, 
              SeekEnd.POSSIBLE_END : SeekEnd,
-             SeekEnd.AT_END : Dive })
+             SeekEnd.AT_END : Dive }, lostState = RecoverSeekEnd)
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
@@ -576,7 +625,7 @@ class Dive(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Dive,
-        { motion.basic.Motion.FINISHED : Aligning })
+        { motion.basic.Motion.FINISHED : Aligning }, lostState = RecoverDive)
 
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -613,7 +662,7 @@ class Aligning(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Aligning,
-            { Aligning.ALIGNED : Examine })
+            { Aligning.ALIGNED : Examine }, lostState = RecoverAligning)
     
     def enter(self):
         SettlingState.enter(self, Aligning.ALIGNED, 5)
@@ -631,7 +680,7 @@ class Examine(HoveringState):
         return HoveringState.transitions(Examine,
         { Examine.FOUND_TARGET : PreDropDive,
           Examine.MOVE_ON : SurfaceToMove,
-          Examine.TIMEOUT : Examine })
+          Examine.TIMEOUT : Examine }, lostState = RecoverExamine)
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -737,7 +786,8 @@ class PreDropDive(Dive):
     @staticmethod
     def transitions():
         return SettlingState.transitions(PreDropDive,
-        { motion.basic.Motion.FINISHED : SettleBeforeDrop })
+        { motion.basic.Motion.FINISHED : SettleBeforeDrop },
+        lostState = RecoverPreDropDive)
         
     def enter(self):
         # Standard dive
@@ -754,7 +804,8 @@ class SettleBeforeDrop(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(SettleBeforeDrop,
-            { SettleBeforeDrop.SETTLED : DropMarker })
+            { SettleBeforeDrop.SETTLED : DropMarker },
+            lostState = RecoverSettleBeforeDrop)
     
     def enter(self):
         settleTime = self._config.get('settleTime', 3)
@@ -768,7 +819,8 @@ class SurfaceToMove(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(SurfaceToMove,
-            { motion.basic.Motion.FINISHED : NextBin })
+            { motion.basic.Motion.FINISHED : NextBin },
+            lostState = RecoverSurfaceToMove)
         
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -796,7 +848,8 @@ class NextBin(BinSortingState):
     def transitions():
         return HoveringState.transitions(NextBin,
             {BinSortingState.CENTERED_ : Dive, 
-             NextBin.AT_END : SurfaceToCruise })
+             NextBin.AT_END : SurfaceToCruise },
+             lostState = RecoverNextBin)
     
     def _getNextBin(self, sortedBins, currentBinId):
         """
@@ -854,7 +907,8 @@ class DropMarker(SettlingState):
         return SettlingState.transitions(DropMarker,
             { DropMarker.DROPPED : DropMarker,
               DropMarker.FINISHED : SurfaceToCruise,
-              DropMarker.CONTINUE : SurfaceToMove })
+              DropMarker.CONTINUE : SurfaceToMove },
+              lostState = RecoverDropMarker)
 
     def DROPPED_(self, event):
         markerNum = self.ai.data['markersDropped']
@@ -884,7 +938,8 @@ class SurfaceToCruise(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(SurfaceToCruise,
-            { motion.basic.Motion.FINISHED : End })
+            { motion.basic.Motion.FINISHED : End },
+            lostState = RecoverSurfaceToCruise)
         
     def enter(self):
         # Keep centered over the bin
