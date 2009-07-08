@@ -16,7 +16,8 @@ namespace control {
 TranslationalControllerBase::TranslationalControllerBase(
     core::ConfigNode config) :
     m_desiredSpeed(0),
-    m_desiredSidewaysSpeed(0)
+    m_desiredSidewaysSpeed(0),
+    m_controlMode(ControlMode::OPEN_LOOP)
 {
     init(config);
 }
@@ -25,6 +26,7 @@ void TranslationalControllerBase::setVelocity(math::Vector2 velocity)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_desiredVelocity = velocity;
+    m_controlMode = ControlMode::VELOCITY;
 }
 
 math::Vector2 TranslationalControllerBase::getVelocity()
@@ -37,12 +39,24 @@ void TranslationalControllerBase::setSpeed(double speed)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_desiredSpeed = speed;
+
+    if (m_controlMode != ControlMode::OPEN_LOOP)
+    {
+        m_desiredSidewaysSpeed = 0;
+        m_controlMode = ControlMode::OPEN_LOOP;
+    }
 }
 
 void TranslationalControllerBase::setSidewaysSpeed(double speed)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_desiredSidewaysSpeed = speed;
+    
+    if (m_controlMode != ControlMode::OPEN_LOOP)
+    {
+        m_desiredSpeed = 0;
+        m_controlMode = ControlMode::OPEN_LOOP;
+    }
 }
 
 double TranslationalControllerBase::getSpeed()
@@ -57,6 +71,13 @@ double TranslationalControllerBase::getSidewaysSpeed()
     return m_desiredSidewaysSpeed;
 }
 
+TranslationalControllerBase::ControlMode::ModeType
+    TranslationalControllerBase::getMode()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_controlMode;
+}
+    
 math::Vector3 TranslationalControllerBase::translationalUpdate(
     double timestep,
     math::Vector3 linearAcceleration,

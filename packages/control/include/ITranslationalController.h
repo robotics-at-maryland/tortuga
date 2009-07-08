@@ -61,7 +61,7 @@ public:
 /** Provides an interface for a implementation of a Translational Controller */
 class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
 {
-  public:
+  public:    
     virtual ~ITranslationalControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */

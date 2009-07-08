@@ -27,6 +27,16 @@ class RAM_EXPORT TranslationalControllerBase :
         public ITranslationalControllerImp
 {
 public:
+    /** The exact type of translation control we are undergoing */
+    struct ControlMode
+    {
+        enum ModeType {
+            OPEN_LOOP,
+            VELOCITY,
+            POSITION
+        };
+    };
+    
     TranslationalControllerBase(core::ConfigNode config);
     
     virtual ~TranslationalControllerBase() {}
@@ -48,6 +58,8 @@ public:
                                               math::Quaternion orientation,
                                               math::Vector2 position,
                                               math::Vector2 velocity);
+
+    virtual ControlMode::ModeType getMode();
     
 private:
     /** Does all initialzation based on the configuration settings */
@@ -61,6 +73,9 @@ private:
     double m_desiredSpeed;
 
     double m_desiredSidewaysSpeed;
+
+    /** What type of translation control we are doing */
+    ControlMode::ModeType m_controlMode;
 };
     
 } // namespace control
