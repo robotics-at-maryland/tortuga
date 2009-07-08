@@ -267,6 +267,7 @@ class Light(task.Task):
         if thisState is None:
             thisState = Light
         return { light.LIGHT_HIT : thisState,
+                 light.Continue.FINISH_MULTI_MOTION : thisState,
                  control.IController.AT_ORIENTATION : thisState,
                  Light.MOVE_ON : task.Next,
                  task.TIMEOUT : task.Next,
@@ -276,7 +277,7 @@ class Light(task.Task):
         """
         Moves on from this state only after we have successfully hit the light
         """
-        if self._hit:
+        if self._continue:
             self.publish(Light.MOVE_ON, core.Event())
 
     def LIGHT_HIT(self, event):
@@ -284,11 +285,13 @@ class Light(task.Task):
         Rotates the vehicle back to its initial orientation
         """
         self.controller.setDesiredOrientation(self._initialOrientation)
-        self._hit = True
+    
+    def FINISH_MULTI_MOTION(self, event):
+        self._continue = True
 
     def enter(self, defaultTimeout = 90):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
-        self._hit = False
+        self._continue = False
 
         # Save current orientation
         self.controller.holdCurrentHeading()
