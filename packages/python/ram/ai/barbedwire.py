@@ -25,6 +25,7 @@ import math
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+import ext.math
 
 import ram.filter as filter
 import ram.ai.state as state
@@ -32,6 +33,7 @@ import ram.motion as motion
 import ram.motion.search
 import ram.motion.seek
 import ram.motion.duct
+import ram.motion.pipe
 
 COMPLETE = core.declareEventType('COMPLETE')
 
@@ -247,7 +249,7 @@ class SeekingToRange(RangeXYHold):
         # other and there is no overlap)
         wellAligned = True
         
-        # Only run the check if the total with is low enough
+        # Only run the check if the total width is low enough
         haveBottomPipe = event.bottomWidth != -1
         totalWidth = event.topWidth + event.bottomWidth
         smallEnoughWidth = totalWidth < self._maxAlignCheckWidth
@@ -435,7 +437,7 @@ class Aligning(TargetAlignState, state.State):
     def transitions():
         return { vision.EventType.BARBED_WIRE_FOUND : Aligning,
                  vision.EventType.BARBED_WIRE_LOST : FindAttempt,
-                 Aligning.SETTLED : Through }
+                 Aligning.SETTLED : Under }
 
     def enter(self):
         TargetAlignState.enter(self)
@@ -447,6 +449,29 @@ class Aligning(TargetAlignState, state.State):
     def exit(self):
         TargetAlignState.exit(self)
         self.timer.stop()
+
+class Under(FilteredState, state.State, StoreBarbedWireEvent):
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BARBED_WIRE_LOST : Through,
+                 vision.EventType.BARBED_WIRE_FOUND : Under }
+
+    def BARBED_WIRE_FOUND(self, event):
+        # Do not change the angle
+        angle = ext.math.Degree(0)
+        self._bwire.setState(event.topX, event.topY, angle)
+
+    def enter(self):
+        # Use the same motion from AlongPipe
+        self._bwire = ram.motion.pipe.Pipe(0, 0, 0)
+
+        maxSpeed = self._config.get('forwardSpeed', 5)
+
+        motion = ram.motion.pipe.Follow(pipe = self._bwire,
+                                        speedGain = 5,
+                                        maxSpeed = maxSpeed,
+                                        maxSidewaysSpeed = 3)
+        self.motionManager.setMotion(motion)
         
 class Through(state.State):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')

@@ -17,6 +17,7 @@ import ext.math as math
 
 import ram.motion as motion
 import ram.motion.search
+import ram.motion.pipe
 
 import ram.test.ai.support as support
         
@@ -360,13 +361,70 @@ class TestAligning(AlignmentTest, support.AITestCase):
     def testStart(self):
         AlignmentTest.testStart(self)
         self.releaseTimer(barbedwire.Aligning.SETTLED)
-        self.assertCurrentState(barbedwire.Through)
+        self.assertCurrentState(barbedwire.Under)
         
     def testSettle(self):
         self.injectEvent(barbedwire.Aligning.SETTLED)
-        self.assertCurrentState(barbedwire.Through)
+        self.assertCurrentState(barbedwire.Under)
 
-class Through(support.AITestCase):       
+class TestUnder(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.machine.start(barbedwire.Under)
+
+    def _injectFoundEvent(self, topX, topY, topWidth, 
+                          bottomX = 0, bottomY = 0, bottomWidth = -1):
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = topX, topY = topY, topWidth = topWidth,
+                         bottomX = bottomX, bottomY = bottomY,
+                         bottomWidth = bottomWidth)
+
+    def testStraight(self):
+        # Inject the BarbedWire event
+        self._injectFoundEvent(0, 0, 0.5)
+
+        # Test to make sure its only going straight
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+
+    def testOffCenter(self):
+        # Inject the BarbedWire event to the right of the vehicle
+        self._injectFoundEvent(0.5, 0, 0.5)
+
+        # Test to make sure it strafes and moves forward
+        # It does NOT yaw
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+
+        # Inject one on the left
+        self._injectFoundEvent(-0.5, 0, 0.5)
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+
+        # Inject one above, it should not change depth
+        self._injectFoundEvent(0, -0.5, 0.5)
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+        self.assertAlmostEqual(self.controller.depth, 0, 5)
+
+        # Inject one below, it should not change depth
+        self._injectFoundEvent(0, 0.5, 0.5)
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+        self.assertAlmostEqual(self.controller.depth, 0, 5)
+
+class TestThrough(support.AITestCase):       
     def testStart(self):
         # Turn this on, so we make sure it goes off
         self.visionSystem.barbedWireDetector = True
