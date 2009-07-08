@@ -85,12 +85,34 @@ class MockVehicle(vehicle.IVehicle):
         self.orientation = ext.math.Quaternion.IDENTITY
         self.markersDropped = 0
         self.torpedosFired = 0
+        self.linAccel = ext.math.Vector3.ZERO
+        self.angRate = ext.math.Vector3.ZERO
+        self.force = ext.math.Vector3.ZERO
+        self.torque = ext.math.Vector3.ZERO
+        self.velocity = ext.math.Vector2.ZERO
+        self.position = ext.math.Vector2.ZERO
 
-    def getDepth(self):
-        return self.depth
+    def getLinearAcceleration(self):
+        return self.linAccel
     
     def getOrientation(self):
         return self.orientation
+    
+    def getAngularRate(self):
+        return self.angRate
+    
+    def getDepth(self):
+        return self.depth
+
+    def getVelocity(self):
+        return self.velocity
+
+    def getPosition(self):
+        return self.position
+    
+    def applyForcesAndTorques(self, force, torque):
+        self.force = force
+        self.torque = torque
 
     def dropMarker(self):
         self.markersDropped += 1

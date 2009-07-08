@@ -14,31 +14,7 @@ import ext.control as control
 import ext.vehicle as vehicle
 import ext.math as math
 
-class MockVehicle(vehicle.IVehicle):
-    def __init__(self):
-        vehicle.IVehicle.__init__(self, 'Test')
-        self.depth = 0
-        self.orien = math.Quaternion.IDENTITY
-        self.linAccel = math.Vector3.ZERO
-        self.angRate = math.Vector3.ZERO
-        self.force = math.Vector3.ZERO
-        self.torque = math.Vector3.ZERO
-        
-    def getLinearAcceleration(self):
-        return self.linAccel
-    
-    def getOrientation(self):
-        return self.orien
-    
-    def getAngularRate(self):
-        return self.angRate
-    
-    def getDepth(self):
-        return self.depth
-    
-    def applyForcesAndTorques(self, force, torque):
-        self.force = force
-        self.torque = torque
+from ram.test.motion.support import MockVehicle
 
 class TestBWPDController(unittest.TestCase):
     def setUp(self):
@@ -65,7 +41,7 @@ class TestBWPDController(unittest.TestCase):
     def testAtDepth(self):
         def handler(event):
             self.actualDepth = event.number
-        
+
         # Subscribe to the event
         self.controller.subscribe(control.IController.AT_DEPTH, handler)
 
