@@ -52,6 +52,8 @@ public:
     void targetDetectorOff();
     void barbedWireDetectorOn();
     void barbedWireDetectorOff();
+    void velocityDetectorOn();
+    void velocityDetectorOff();
 
     /** Calls setPriority on Cameras, VisionRunners, and Recorders
      *
@@ -119,6 +121,7 @@ private:
     DetectorPtr m_gateDetector;
     DetectorPtr m_targetDetector;
     DetectorPtr m_barbedWireDetector;
+    DetectorPtr m_velocityDetector;
 
     /** Flag which when true enables use of back/unback and update */
     bool m_testing;

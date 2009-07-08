@@ -27,6 +27,7 @@
 #include "vision/include/BarbedWireDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
+#include "vision/include/VelocityDetector.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
@@ -50,7 +51,8 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_targetDetector(DetectorPtr()),
-    m_barbedWireDetector(DetectorPtr())
+    m_barbedWireDetector(DetectorPtr()),
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -68,7 +70,8 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_ductDetector(DetectorPtr()),
     m_downwardSafeDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
-    m_targetDetector(DetectorPtr())
+    m_targetDetector(DetectorPtr()),
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -283,7 +286,17 @@ void VisionSystem::barbedWireDetectorOff()
     publish(EventType::BARBED_WIRE_DETECTOR_OFF,
 	    core::EventPtr(new core::Event()));
 }
-   
+
+void VisionSystem::velocityDetectorOn()
+{
+    m_downward->addDetector(m_velocityDetector);
+}
+    
+void VisionSystem::velocityDetectorOff()
+{
+    m_downward->removeDetector(m_velocityDetector);
+}
+    
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 {
 //    assert(m_testing && "Can't background when not testing");
