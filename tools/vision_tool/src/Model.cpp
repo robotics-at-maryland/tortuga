@@ -278,7 +278,7 @@ void Model::onTimer(wxTimerEvent &event)
 
         // Sleep until that time
         core::TimeVal sleepTime(m_nextUpdate - core::TimeVal::timeOfDay());
-        m_timer->Start(sleepTime.get_double() * 1000, true);
+        m_timer->Start((int)(sleepTime.get_double() * 1000), true);
     }
 }
     
