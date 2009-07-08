@@ -272,9 +272,9 @@ Controller:
     # Should not be negative
     depthPGain: 20
 
-    #inertia: [[0.501, 0, 0],
-    #          [0, 1.5, 0],
-    #          [0, 0, 1.5]]
+    inertia: [[0.201, 0, 0],
+              [0, 4, 0],
+              [0, 0, 1.288]]
 
     desiredSpeed: 0
     desiredDepth: 0.2

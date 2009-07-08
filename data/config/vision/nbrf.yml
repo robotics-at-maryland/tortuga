@@ -30,14 +30,14 @@ RedLightDetector:
     redIntensity: 150
     maxAspectRatio: 2.0
 OrangePipeDetector:
-    rOverGMin: 1.05 #0.75
-    rOverGMax: 2.41 #1.5
-    bOverRMax: 0.75
+    rOverGMin: 1.05 #0.75 (NEW# 0.88)
+    rOverGMax: 2.41 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
     centeredLimitt: 0.4
     minBrightness: 100
     minPixels: 3000
-    minPixelsFound: 2000
-    erodeIterations: 2
+    minPixelsFound: 1500
+    erodeIterations: 1
 BinDetector:
     symbolDetector: BasicWW2Detector
     centeredLimit: 0.2
