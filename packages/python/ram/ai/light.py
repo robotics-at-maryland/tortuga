@@ -50,6 +50,10 @@ class Start(state.State):
         return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
+        # Store the initial orientation
+        orientation = self.vehicle.getOrientation()
+        self.ai.data['lightStartOrientation'] = orientation.getYaw()
+
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 9.5),
@@ -239,8 +243,14 @@ class Continue(state.MultiMotion):
         self._upwardSpeed = self._config.get('upwardSpeed', 0.3)
         self._forwardSpeed = self._config.get('forwardSpeed', 3)
         self._forwardDuration = self._config.get('forwardDuration', 8)
+        self._turnSteps = self._config.get('turnSteps', 10)
+
+        # Load the original orientation
+        original = self.ai.data['lightStartOrientation']
         
         # Create the motions
+        self._rotate = motion.basic.ChangeHeading(desiredHeading = original,
+                                                  steps = self._turnSteps)
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
@@ -253,8 +263,9 @@ class Continue(state.MultiMotion):
             absolute = False)
         
         # Create the MultiMotion
-        state.MultiMotion.enter(self, self._backward, self._upward,
-                                self._forward)
+        state.MultiMotion.enter(self, self._rotate, self._backward,
+                                self._upward, self._forward)
 
 class End(state.State):
-    pass
+    def enter(self):
+        self.motionManager.stopCurrentMotion()

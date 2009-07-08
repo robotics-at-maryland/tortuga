@@ -42,6 +42,11 @@ class TestStart(support.AITestCase):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+
+        # Make sure it stored the original orientation
+        self.assertTrue(self.ai.data.has_key('lightStartOrientation'))
+        self.assertEqual(
+            self.ai.data['lightStartOrientation'].valueDegrees(), 0)
         
     def testConfig(self):
         self.assertEqual(TestStart.DEPTH, 
@@ -266,6 +271,9 @@ class TestSeek(support.AITestCase):
         
 class TestHit(support.AITestCase):       
     def testStart(self):
+        # For Continue
+        self.ai.data['lightStartOrientation'] = 45
+
         # Turn this on, so we make sure it goes off
         self.visionSystem.redLightDetector = True
         
@@ -282,7 +290,7 @@ class TestHit(support.AITestCase):
         
         # Now make sure we change direction
         self.releaseTimer(light.Hit.FORWARD_DONE)
-        self.assertLessThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.yawChange, 0)
         
         # Make sure we get the final event
         self.qeventHub.publishEvents()
@@ -294,11 +302,19 @@ class TestHit(support.AITestCase):
 class TestContinue(support.AITestCase):
     def testStart(self):
         # Start the state machine
+        self.ai.data['lightStartOrientation'] = 45
         self.machine.start(light.Continue)
         
         # Check to make sure it is in the first motion
         cstate = self.machine.currentState()
+
+        self.assertCurrentState(light.Continue)
+        self.assertCurrentMotion(motion.basic.ChangeHeading)
+        self.assertGreaterThan(self.controller.yawChange, 0)
         
+        cstate._rotate._finish()
+        self.qeventHub.publishEvents()
+
         self.assertCurrentState(light.Continue)
         self.assertCurrentMotion(motion.basic.TimedMoveDirection)
         self.assertLessThan(self.controller.speed, 0)
