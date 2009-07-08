@@ -121,7 +121,22 @@ void translationalController(MeasuredState* measuredState,
                                math::Vector3::UNIT_Y);
     math::Vector3 bodyFrameDepthComponent = quatPitch * depthComponent;
 
-            
+
+    if (controllerState->useVelocityControl)
+    {
+        // The error between our current and desired velocity
+        math::Vector2 velocityError = desiredState->velocity -
+            measuredState->velocity;
+        
+        // The actualy change in our speed
+        math::Vector2 speedDelta =
+            velocityError * controllerState->velocityPGain;
+
+        // Update the speeds
+        desiredState->speed += speedDelta.x;
+        desiredState->sidewaysSpeed += speedDelta.y;
+    }
+    
     //fore-aft control (open loop, not really control) done in interial
     // coordinates
     math::Vector3 foreAftComponent(
@@ -129,7 +144,7 @@ void translationalController(MeasuredState* measuredState,
         (controllerState->sidewaysSpeedPGain) * (desiredState->sidewaysSpeed),
         0);
     math::Vector3 bodyFrameforeAftComponent = quatPitch * foreAftComponent;
-
+        
     //combine fore-aft with depth control
     math::Vector3 translationControlSignal =
         bodyFrameDepthComponent + bodyFrameforeAftComponent;

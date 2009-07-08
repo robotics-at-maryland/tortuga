@@ -99,6 +99,9 @@ BWPDController::~BWPDController()
 
 void BWPDController::setVelocity(math::Vector2 velocity)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
+    m_desiredState->velocity = velocity;
+    m_controllerState->useVelocityControl = true;
 }
 
 math::Vector2 BWPDController::getVelocity()
@@ -116,6 +119,7 @@ void BWPDController::setSpeed(double speed)
     
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
     m_desiredState->speed = speed;
+    m_controllerState->useVelocityControl = false;
 }
 
 void BWPDController::setSidewaysSpeed(double speed)
@@ -128,6 +132,7 @@ void BWPDController::setSidewaysSpeed(double speed)
     
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
     m_desiredState->sidewaysSpeed = speed;
+    m_controllerState->useVelocityControl = false;
 }
 
 void BWPDController::setHeading(double degrees)
@@ -404,6 +409,8 @@ void BWPDController::update(double timestep)
 
     //std::cout << "W: " << angularRate << std::endl;
     m_measuredState->depth = m_vehicle->getDepth();
+
+    m_measuredState->velocity = m_vehicle->getVelocity();
     
     // Calculate new forces
     math::Vector3 translationalForce(0,0,0);
@@ -652,7 +659,9 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
     m_controllerState->sidewaysSpeedPGain =
         config["sidewaysSpeedPGain"].asInt(1);
-
+    m_controllerState->velocityPGain = config["velocityPGain"].asInt(1);
+    m_controllerState->useVelocityControl = false;
+    
     switch(m_controllerState->depthControlType)
     {
     case 1 :

@@ -42,6 +42,7 @@ struct RAM_EXPORT DesiredState{
     double depth;
     double quaternion[4];
     double angularRate[3];
+    math::Vector2 velocity;
 };
 
 // MeasuredState = struct('depth',1,
@@ -54,6 +55,7 @@ struct RAM_EXPORT MeasuredState{
     double magneticField[3];
     double quaternion[4];
     double angularRate[3];
+    math::Vector2 velocity;
 };
 
 struct RAM_EXPORT EstimatedState{
@@ -116,6 +118,8 @@ struct RAM_EXPORT ControllerState{
     
     double speedPGain;
     double sidewaysSpeedPGain;
+    double velocityPGain;
+    bool useVelocityControl;
     int depthControlType;
     math::Matrix2 depthA;
     math::Vector2 depthB;
