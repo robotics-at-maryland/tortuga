@@ -259,39 +259,17 @@ class Light(task.Task):
     also remembers its initial orientation and returns to that orientation 
     before moving onto the next state.
     """
-    
-    MOVE_ON = core.declareEventType('MOVE_ON')
 
     @staticmethod
     def _transitions(thisState = None):
         if thisState is None:
             thisState = Light
-        return { light.LIGHT_HIT : thisState,
-                 light.Continue.FINISH_MULTI_MOTION : thisState,
-                 control.IController.AT_ORIENTATION : thisState,
-                 Light.MOVE_ON : task.Next,
+        return { light.Continue.FINISH_MULTI_MOTION : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
-    
-    def AT_ORIENTATION(self, event):
-        """
-        Moves on from this state only after we have successfully hit the light
-        """
-        if self._continue:
-            self.publish(Light.MOVE_ON, core.Event())
-
-    def LIGHT_HIT(self, event):
-        """
-        Rotates the vehicle back to its initial orientation
-        """
-        self.controller.setDesiredOrientation(self._initialOrientation)
-    
-    def FINISH_MULTI_MOTION(self, event):
-        self._continue = True
 
     def enter(self, defaultTimeout = 90):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
-        self._continue = False
 
         # Save current orientation
         self.controller.holdCurrentHeading()
