@@ -14,6 +14,7 @@ import StringIO
 import ext.core as core
 import ram.ai.state as state
 import ram.ai.subsystem as aisys
+import ram.motion as motion
 
 import ram.test.ai.support as aisupport
 
@@ -592,6 +593,85 @@ class TestFindAttempt(aisupport.AITestCase):
         self.assertCurrentState(TestFindAttempt.FindAttemptState)
         self.injectEventTimeout()
         self.assertCurrentState(TestFindAttempt.TimeoutState)
+        
+class MultiMotionTest(state.MultiMotion):
+    @staticmethod
+    def transitions():
+        return state.MultiMotion.transitions(
+            currentState = MultiMotionTest,
+            nextState = state.End)
+        
+    def enter(self):
+        self.firstMotion = motion.basic.ChangeHeading(desiredHeading = 10,
+                                                      steps = 10)
+        self.secondMotion = motion.basic.RateChangeDepth(desiredDepth = 5,
+                                                        speed = 3)
+        self.thirdMotion = motion.basic.TimedMoveDirection(0, 3, 10)
+        self.fourthMotion = motion.basic.RateChangeDepth(desiredDepth = 0,
+                                                        speed = 3)
+        self.fifthMotion = motion.basic.TimedMoveDirection(180, 3, 10)
+        state.MultiMotion.enter(self, self.firstMotion, self.secondMotion,
+                                self.thirdMotion, self.fourthMotion,
+                                self.fifthMotion)
+
+class TestMultiMotion(aisupport.AITestCase):
+    def setUp(self):
+        aisupport.AITestCase.setUp(self)
+        self.machine.start(MultiMotionTest)
+        
+    def testMotion(self):
+        # Check to make sure it is in the first motion
+        cstate = self.machine.currentState()
+        
+        self.assertCurrentState(MultiMotionTest)
+        self.assertCurrentMotion(motion.basic.ChangeHeading)
+        
+        # Second motion
+        event = core.Event()
+        event.motion = cstate.firstMotion
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(MultiMotionTest)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+        # Third motion
+        event = core.Event()
+        event.motion = cstate.secondMotion
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(MultiMotionTest)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertGreaterThan(self.controller.speed, 0)
+        
+        # Fourth motion
+        event = core.Event()
+        event.motion = cstate.thirdMotion
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(MultiMotionTest)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+        # Fifth motion
+        event = core.Event()
+        event.motion = cstate.fourthMotion
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(MultiMotionTest)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertLessThan(self.controller.speed, 0)
+        
+        # End motion
+        event = core.Event()
+        event.motion = cstate.fifthMotion
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(type(None))
+        self.assertCurrentMotion(type(None))
         
 if __name__ == '__main__':
     unittest.main()

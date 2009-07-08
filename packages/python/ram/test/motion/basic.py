@@ -11,6 +11,7 @@ import math as pmath
 
 # Project Imports
 import ext.math as math
+import ext.core as core
 
 import ram.motion as motion
 import ram.motion.basic
@@ -94,6 +95,19 @@ class TestMotionManager(support.MotionTest):
         self.motionManager.stopCurrentMotion()
         self.assert_(m.stoped)
   
+        self.assertEqual(None, self.motionManager.currentMotion)
+        
+    def testMotionFinished(self):
+        m = support.MockMotion()
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(m, self.motionManager.currentMotion)
+        
+        event = core.Event()
+        event.motion = m
+        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        self.qeventHub.publishEvents()
+        
         self.assertEqual(None, self.motionManager.currentMotion)
   
 class TestChangeDepth(support.MotionTest):

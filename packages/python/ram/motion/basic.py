@@ -51,6 +51,8 @@ class MotionManager(core.Subsystem):
         
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
+        
+        self._qeventHub.subscribe(Motion.FINISHED, self, self._motionFinished)
             
     def setMotion(self, motion):
         """
@@ -131,8 +133,7 @@ class MotionManager(core.Subsystem):
         return (self._inPlaneMotion, self._depthMotion, 
                 self._orientationMotion)
       
-    def _stopMotion(self, motion):
-        motion.stop()
+    def _removeMotion(self, motion):
         if motion.type & Motion.IN_PLANE:
             assert not (self._inPlaneMotion is None)
             assert motion == self._inPlaneMotion
@@ -145,6 +146,13 @@ class MotionManager(core.Subsystem):
             assert not (self._orientationMotion is None)
             assert motion == self._orientationMotion
             self._orientationMotion = None
+    
+    def _stopMotion(self, motion):
+        motion.stop()
+        self._removeMotion(motion)
+            
+    def _motionFinished(self, event):
+        self._removeMotion(event.motion)
         
     def background(self):
         pass
@@ -267,7 +275,7 @@ class ChangeDepth(Motion):
     
     def _finish(self):
         """
-        Finishes off the motion, disconnects events, and putlishes finish event
+        Finishes off the motion, disconnects events, and publishes finish event
         """
         Motion._finish(self)
         self._conn.disconnect()
@@ -360,7 +368,7 @@ class ChangeHeading(Motion):
         @type  steps: int
         @param steps: Number of increments you wish to change heading in    
         """
-        Motion.__init__(self)
+        Motion.__init__(self, _type = Motion.ORIENTATION)
         
         self._steps = steps
         self._desiredHeading = desiredHeading
@@ -398,7 +406,7 @@ class ChangeHeading(Motion):
     
     def _finish(self):
         """
-        Finishes off the motion, disconnects events, and putlishes finish event
+        Finishes off the motion, disconnects events, and publishes finish event
         """
         Motion._finish(self)
         self._conn.disconnect()
@@ -449,7 +457,7 @@ class RateChangeHeading(Motion):
         self._rotProgress = 0.0
 
         self._timer  = timer.Timer(self, RateChangeHeading.NEXT_HEADING,
-                                   self._interval, repeat = True)
+                               self._interval, repeat = True)
         
         # Register to NEXT_HEADING events
         self._conn = self._eventHub.subscribeToType(
@@ -472,7 +480,7 @@ class RateChangeHeading(Motion):
         
     def _finish(self):
         """
-        Finishes off the motion, disconnects events, and putlishes finish event
+        Finishes off the motion, disconnects events, and publishes finish event
         """
         self._timer.stop()
         self._conn.disconnect()
