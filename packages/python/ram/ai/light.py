@@ -209,7 +209,7 @@ class Hit(state.State):
     
     @staticmethod
     def transitions():
-        return {Hit.FORWARD_DONE : End}
+        return {Hit.FORWARD_DONE : Continue}
 
     def enter(self):
         self.visionSystem.redLightDetectorOff()
@@ -224,7 +224,37 @@ class Hit(state.State):
     def exit(self):
         self.timer.stop()
         self.controller.setSpeed(0)
-        
-class End(state.State):
-    def enter(self):
         self.publish(LIGHT_HIT, core.Event())
+        
+class Continue(state.MultiMotion):
+    @staticmethod
+    def transitions():
+        return state.MultiMotion.transitions(Continue, End)
+    
+    def enter(self):
+        # Load config settings
+        self._backwardSpeed = self._config.get('backwardSpeed', 3)
+        self._backwardDuration = self._config.get('backwardDuration', 4)
+        self._upwardDepth = self._config.get('upwardDepth', 2.5)
+        self._upwardSpeed = self._config.get('upwardSpeed', 0.3)
+        self._forwardSpeed = self._config.get('forwardSpeed', 3)
+        self._forwardDuration = self._config.get('forwardDuration', 8)
+        
+        # Create the motions
+        self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
+            speed = self._backwardSpeed, duration = self._backwardDuration,
+            absolute = False)
+        currentDepth = self.controller.getDepth()
+        self._upward = motion.basic.RateChangeDepth(
+            desiredDepth = currentDepth - self._upwardDepth,
+            speed = self._upwardSpeed)
+        self._forward = motion.basic.TimedMoveDirection(desiredHeading = 0,
+            speed = self._forwardSpeed, duration = self._forwardDuration,
+            absolute = False)
+        
+        # Create the MultiMotion
+        state.MultiMotion.enter(self, self._backward, self._upward,
+                                self._forward)
+
+class End(state.State):
+    pass

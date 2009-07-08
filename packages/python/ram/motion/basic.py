@@ -52,7 +52,7 @@ class MotionManager(core.Subsystem):
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
         
-        self._qeventHub.subscribe(Motion.FINISHED, self, self._motionFinished)
+        self._qeventHub.subscribeToType(Motion.FINISHED, self._motionFinished)
             
     def setMotion(self, motion):
         """
@@ -494,23 +494,30 @@ class RateChangeHeading(Motion):
         
 class MoveDirection(Motion):
     """
-    Moves an absolute direction regardless of orientation
+    Moves a direction. If absolute is set to true, then it moves an absolute
+    direction regardless of orientation. If absolute is set to false, it moves
+    relative to the current heading.
     """
     
-    def __init__(self, desiredHeading, speed):
+    def __init__(self, desiredHeading, speed, absolute = True):
         """
         @type desiredHeading: double
         @param desiredHeading: compass heading in degrees (0 = north, + counter clockwise)
+        
+        @type absolute: boolean
+        @param absolute: the heading value as an absolute or relative value
         """
         Motion.__init__(self, _type = Motion.IN_PLANE)
         
         self._speed = speed
         self._direction = math.Quaternion(math.Degree(desiredHeading),
                                           math.Vector3.UNIT_Z)
+        self._absolute = absolute
+        
         self._connections = []
         
     def _start(self):
-        # Register to recieve ORIENTATION_UPDATE events
+        # Register to receive ORIENTATION_UPDATE events
         conn = self._eventHub.subscribe(vehicle.IVehicle.ORIENTATION_UPDATE,
                                         self._vehicle, self._onOrientation)
         self._connections.append(conn)
@@ -528,10 +535,13 @@ class MoveDirection(Motion):
         # Direction of desired vehicle motion
         desiredDirection = self._direction.getYaw(True).valueDegrees()
         
-        # Vehicle heading in degrees
-        vehicleHeading =  orientation.getYaw(True).valueDegrees()
+        if self._absolute:
+            # Vehicle heading in degrees
+            vehicleHeading =  orientation.getYaw(True).valueDegrees()
         
-        yawTransform = vehicleHeading - desiredDirection
+            yawTransform = vehicleHeading - desiredDirection
+        else:
+            yawTransform = desiredDirection
 
         # Find speed in vehicle cordinates
         baseSpeed = math.Vector3(self._speed, 0, 0)
@@ -562,8 +572,8 @@ class MoveDirection(Motion):
 class TimedMoveDirection(MoveDirection):
     COMPLETE = core.declareEventType('COMPLETE')
     
-    def __init__(self, desiredHeading, speed, duration):
-        MoveDirection.__init__(self, desiredHeading, speed)
+    def __init__(self, desiredHeading, speed, duration, absolute = True):
+        MoveDirection.__init__(self, desiredHeading, speed, absolute)
         self._duration = duration
         self._timer = None
         

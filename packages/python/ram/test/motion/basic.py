@@ -438,6 +438,16 @@ class TestMoveDirection(support.MotionTest):
         self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
         
         self.motionManager.stopCurrentMotion()
+    
+    def testRelativeDirection(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(60),
+                                          math.Vector3.UNIT_Z);
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5, absolute = False)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertEqual(0, self.controller.sidewaysSpeed)
 
 class TestTimedMoveDirection(TestMoveDirection):
     def makeClass(self, *args, **kwargs):

@@ -280,13 +280,50 @@ class TestHit(support.AITestCase):
             self._lightHit = True
         self.qeventHub.subscribeToType(light.LIGHT_HIT, lightHit)
         
-        # Now make sure we stop
+        # Now make sure we change direction
         self.releaseTimer(light.Hit.FORWARD_DONE)
-        self.assertEqual(0, self.controller.speed)
+        self.assertLessThan(self.controller.speed, 0)
         
         # Make sure we get the final event
         self.qeventHub.publishEvents()
         self.assert_(self._lightHit)
         
+        # Make sure it goes to Continue
+        self.assertCurrentState(light.Continue)
+
+class TestContinue(support.AITestCase):
+    def testStart(self):
+        # Start the state machine
+        self.machine.start(light.Continue)
+        
+        # Check to make sure it is in the first motion
+        cstate = self.machine.currentState()
+        
+        self.assertCurrentState(light.Continue)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertLessThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        
+        # Upward motion
+        cstate._backward._finish()
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(light.Continue)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+        # Forward motion
+        cstate._upward._finish()
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(light.Continue)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        
+        # Finish motion
+        cstate._forward._finish()
+        self.qeventHub.publishEvents()
+        
         # Make sure hit the end state
         self.assert_(self.machine.complete)
+        self.assertCurrentMotion(type(None))

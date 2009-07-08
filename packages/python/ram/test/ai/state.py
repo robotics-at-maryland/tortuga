@@ -627,18 +627,14 @@ class TestMultiMotion(aisupport.AITestCase):
         self.assertCurrentMotion(motion.basic.ChangeHeading)
         
         # Second motion
-        event = core.Event()
-        event.motion = cstate.firstMotion
-        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        cstate.firstMotion._finish()
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(MultiMotionTest)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
         # Third motion
-        event = core.Event()
-        event.motion = cstate.secondMotion
-        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        cstate.secondMotion._finish()
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(MultiMotionTest)
@@ -646,18 +642,14 @@ class TestMultiMotion(aisupport.AITestCase):
         self.assertGreaterThan(self.controller.speed, 0)
         
         # Fourth motion
-        event = core.Event()
-        event.motion = cstate.thirdMotion
-        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        cstate.thirdMotion._finish()
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(MultiMotionTest)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
         # Fifth motion
-        event = core.Event()
-        event.motion = cstate.fourthMotion
-        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        cstate.fourthMotion._finish()
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(MultiMotionTest)
@@ -665,9 +657,7 @@ class TestMultiMotion(aisupport.AITestCase):
         self.assertLessThan(self.controller.speed, 0)
         
         # End motion
-        event = core.Event()
-        event.motion = cstate.fifthMotion
-        self.motionManager.publish(motion.basic.Motion.FINISHED, event)
+        cstate.fifthMotion._finish()
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(type(None))
