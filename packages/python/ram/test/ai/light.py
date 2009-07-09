@@ -132,16 +132,17 @@ class TestFindAttempt(support.AITestCase):
         
         # Restart the machine
         self.machine.start(light.FindAttempt)
-        self.assertCurrentMotion(type(None))
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertLessThan(self.controller.yawChange, 0)
         
         # Stop the machine and set the last light event to the opposite side
         self.machine.stop()
         self.ai.data['lastLightEvent'].x = -0.8
+        self.ai.data['lastLightEvent'].y = 0.0
         
         # Restart the machine
         self.machine.start(light.FindAttempt)
-        self.assertCurrentMotion(type(None))
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         
     def testForwardsMovement(self):
@@ -154,7 +155,7 @@ class TestFindAttempt(support.AITestCase):
         
         # Restart the machine
         self.machine.start(light.FindAttempt)
-        self.assertCurrentMotion(type(None))
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         self.assertLessThan(self.controller.yawChange, 0)

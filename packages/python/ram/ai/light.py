@@ -102,7 +102,8 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         # Load the thresholds for searching
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
         self._advanceSpeed = self._config.get('advancedSpeed', 1)
-        #self._depthChangeSpeed = self._config.get('depthChangeSpeed', 1)
+        self._depthChange = self._config.get('depthChange', 1)
+        self._diveSpeed = self._config.get('diveSpeed', 0.3)
         self._yawChange = self._config.get('yawChange', 15)
         self._radius = self._config.get('radius', .7)
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
@@ -120,11 +121,24 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             #epthChange = motion.basic.RateChangeDepth(currentDepth + event.y,
             #                                           self._depthChangeSpeed)
             #self.motionManager.setMotion(depthChange)
-            if event.x > 0.0:
+            
+            # Yaw the vehicle if it's outside on an x-axis
+            yawAngle = 0.0
+            if event.x > self._radius:
                 yawAngle = (0.0 - self._yawChange)
-            else:
+            elif event.x < (0.0 - self._radius):
                 yawAngle = self._yawChange
             self.controller.yawVehicle(yawAngle)
+            
+            # Change the depth if it's outside on the y-axis
+            newDepth = self.controller.getDepth()
+            if event.y > self._radius:
+                newDepth = newDepth - self._depthChange
+            elif event.y < (0.0 - self._radius):
+                newDepth = newDepth + self._depthChange
+            dive = motion.basic.RateChangeDepth(desiredDepth = newDepth,
+                                                  speed = self._diveSpeed)
+            self.motionManager.setMotion(dive)
         elif event.range > self._farRangeThreshold and \
                 vectorLength < self._radius:
             # If the range is far and inside radius, move forwards slowly

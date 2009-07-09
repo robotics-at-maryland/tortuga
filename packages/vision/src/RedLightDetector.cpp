@@ -10,7 +10,7 @@
 // STD Includes
 #include <algorithm>
 #include <cmath>
-
+#include <limits>
 // Library Includes
 #include "highgui.h"
 #include <boost/foreach.hpp>
@@ -231,12 +231,29 @@ void RedLightDetector::processImage(Image* input, Image* output)
             boundLL.x = redBlob.getMinX();
             boundLL.y = redBlob.getMinY();
             redPixelCount = redBlob.getSize();
-            
+
+
             lightPixelRadius = sqrt((double)redPixelCount/M_PI);
             minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
         
             found=true; //completely ignoring the state machine for the time being.
 //	        	        cout<<"FOUND RED LIGHT "<<endl;
+	    // Transform to the AI's coordinates then publish the event
+	    Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
+					   m_redLightCenterX, m_redLightCenterY);
+	    publishFoundEvent(lightPixelRadius);
+	    
+	    // Tell the watcher we are really freaking close to the light
+	    int pixelSize = (int)(input->getHeight() * input->getWidth());
+	    pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
+					   m_bottomRemovePercentage));
+	    
+	    int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
+	    if (redPixelCount > pixelThreshold)
+	    {
+		publish(EventType::LIGHT_ALMOST_HIT,
+			core::EventPtr(new core::Event()));
+	    }
         }
     }	
     else
@@ -253,25 +270,6 @@ void RedLightDetector::processImage(Image* input, Image* output)
     }
 
     // Do all the needed work if the light is found
-    if (found)
-    {
-        // Transform to the AI's coordinates then publish the event
-        Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
-				       m_redLightCenterX, m_redLightCenterY);
-        publishFoundEvent(lightPixelRadius);
-        
-        // Tell the watcher we are really freaking close to the light
-	int pixelSize = (int)(input->getHeight() * input->getWidth());
-	pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
-				       m_bottomRemovePercentage));
-
-        int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
-        if (redPixelCount > pixelThreshold)
-        {
-            publish(EventType::LIGHT_ALMOST_HIT,
-                    core::EventPtr(new core::Event()));
-        }
-    }
 
     
 /*    if (found)
