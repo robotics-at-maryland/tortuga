@@ -131,10 +131,6 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         # Ensure vision system is on
         self.visionSystem.barbedWireDetectorOn()
         
-        # Create tracking object
-        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0, 
-                                                   vehicle = self.vehicle)
-        
         # Read in configuration settings
         self._yZero = self._config.get('yZero', 0.5)
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -153,6 +149,16 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         translateGain = self._config.get('translateGain', 1)
         iTranslateGain = self._config.get('iTranslateGain', 0.125)
         dTranslateGain = self._config.get('dTranslateGain', 0.25)
+        
+        # Create tracking object
+        # Initializing the range to the desired range so the vehicle won't
+        # move forward or backward (aka. no jerking backwards)
+        self._target = ram.motion.seek.PointTarget(azimuth = 0,
+                                                   elevation = 0,
+                                                   range = self._desiredRange,
+                                                   x = 0,
+                                                   y = 0,
+                                                   vehicle = self.vehicle)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
             desiredRange = self._desiredRange,
@@ -327,10 +333,6 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         # Ensure vision system is on
         self.visionSystem.barbedWireDetectorOn()
         
-        # Create tracking object
-        self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0, 
-                                            vehicle = self.vehicle)
-        
         # Read in configuration settings
         self._yZero = self._config.get('yZero', 0.5)
         self._depthGain = self._config.get('depthGain', 1)
@@ -341,6 +343,17 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
+        
+        # Create tracking object
+        # Initializing the range to the desired range so the vehicle won't
+        # move forward or backward (aka. no jerking backwards)
+        self._target = ram.motion.duct.Duct(azimuth = 0,
+                                            elevation = 0,
+                                            range = desiredRange,
+                                            x = 0,
+                                            y = 0,
+                                            alignment = 0,
+                                            vehicle = self.vehicle)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
