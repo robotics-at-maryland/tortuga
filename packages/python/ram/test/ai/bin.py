@@ -667,6 +667,21 @@ class TestDive(DiveTestCase, BinTestCase):
         self.assertCurrentState(bin.RecoverDive)
         self.assertAIDataValue('dive_offsetTheOffset', 0.25)
         
+    def testBinLostTooMuch(self):
+        """Make sure losing the too many times stops the search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        # For RecoverDive
+        self.ai.data['dive_offsetTheOffset'] = 1
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertAIDataValue('dive_offsetTheOffset', 1.25)
+        
 class TestExamine(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -866,6 +881,21 @@ class TestPreDropDive(DiveTestCase, BinTestCase):
         self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.RecoverPreDropDive)
         self.assertAIDataValue('predropdive_offsetTheOffset', 0.25)
+        
+    def testBinLostTooMuch(self):
+        """Make sure losing the too many times stops the search"""
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        # For RecoverDive
+        self.ai.data['predropdive_offsetTheOffset'] = 1
+        
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertAIDataValue('predropdive_offsetTheOffset', 1.25)
         
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):

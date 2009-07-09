@@ -407,6 +407,8 @@ class Seeking(HoveringState):
 
 class Recover(state.FindAttempt):
     
+    MOVE_ON = core.declareEventType('MOVE_ON')
+    
     @staticmethod
     def transitions(foundState = Seeking):
         return state.FindAttempt.transitions(vision.EventType.BIN_FOUND,
@@ -466,12 +468,19 @@ class RecoverSeekEnd(Recover):
 class RecoverDive(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(Dive)
+        trans = Recover.transitions(Dive)
+        trans.update({ Recover.MOVE_ON : SurfaceToMove })
+        
+        return trans
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
         self._increase = self._config.get('increase', 0.25)
+        self._maxIncrease = self._config.get('maxIncrease', 1)
         self.ai.data['dive_offsetTheOffset'] = \
             self.ai.data.get('dive_offsetTheOffset', 0) + self._increase
+            
+        if self.ai.data['dive_offsetTheOffset'] > 1:
+            self.publish(Recover.MOVE_ON, core.Event())
 class RecoverAligning(Recover):
     @staticmethod
     def transitions():
@@ -483,12 +492,19 @@ class RecoverExamine(Recover):
 class RecoverPreDropDive(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(PreDropDive)
+        trans = Recover.transitions(PreDropDive)
+        trans.update({ Recover.MOVE_ON : SurfaceToMove })
+        
+        return trans
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
         self._increase = self._config.get('increase', 0.25)
+        self._maxIncrease = self._config.get('maxIncrease', 1)
         self.ai.data['predropdive_offsetTheOffset'] = \
             self.ai.data.get('predropdive_offsetTheOffset', 0) + self._increase
+            
+        if self.ai.data['predropdive_offsetTheOffset'] > 1:
+            self.publish(Recover.MOVE_ON, core.Event())
 class RecoverSettleBeforeDrop(Recover):
     @staticmethod
     def transitions():
