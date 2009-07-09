@@ -102,7 +102,11 @@ ram.ai.barbedwire.Aligning:
     alignGain: 10
     maxSidewaysSpeed: 2.0
     desiredRange: 0.45
-       
+ram.ai.barbedwire.Under:
+    sidewaysSpeedGain: 3
+ram.ai.barbedwire.Through:
+    forwardTime: 7
+
 # Bin Sub task
 ram.ai.bin.Start:
     depth: 7
@@ -133,7 +137,7 @@ ram.ai.bin.Alinging:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.Examine:
-    targetSymbols: ['Factory', 'Ship']
+    targetSymbols: ['Aircraft', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5

@@ -32,7 +32,8 @@ Vehicle:
     # The list of devices to create for the vehicle
     Devices:
         # NOTE: All current numbers here are BS and need to updated
-
+        VelocitySensor:
+            type: VisionVelocitySensor
         SensorBoard:
             type: SensorBoard
             update_interval: 25
