@@ -665,6 +665,7 @@ class TestDive(DiveTestCase, BinTestCase):
         
         self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.RecoverDive)
+        self.assertAIDataValue('dive_offsetTheOffset', 0.5)
         
 class TestExamine(BinTestCase):
     def setUp(self):
@@ -864,6 +865,7 @@ class TestPreDropDive(DiveTestCase, BinTestCase):
         
         self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.RecoverPreDropDive)
+        self.assertAIDataValue('predropdive_offsetTheOffset', 0.5)
         
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):

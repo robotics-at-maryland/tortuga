@@ -422,8 +422,8 @@ class Recover(state.FindAttempt):
             histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
             histogram['totalHits'] = histogram.get('totalHits', 0) + 1
 
-    def enter(self):
-        state.FindAttempt.enter(self)
+    def enter(self, timeout = 2):
+        state.FindAttempt.enter(self, timeout)
         ensureBinTracking(self.queuedEventHub, self.ai)
         
         self._bin = ram.motion.common.Target(self.ai.data["lastBinX"],
@@ -467,6 +467,11 @@ class RecoverDive(Recover):
     @staticmethod
     def transitions():
         return Recover.transitions(Dive)
+    def enter(self):
+        Recover.enter(self, timeout = self._config.get('timeout', 4))
+        self._increase = self._config.get('increase', 0.5)
+        self.ai.data['dive_offsetTheOffset'] = \
+            self.ai.data.get('dive_offsetTheOffset', 0) + self._increase
 class RecoverAligning(Recover):
     @staticmethod
     def transitions():
@@ -479,6 +484,11 @@ class RecoverPreDropDive(Recover):
     @staticmethod
     def transitions():
         return Recover.transitions(PreDropDive)
+    def enter(self):
+        Recover.enter(self, timeout = self._config.get('timeout', 4))
+        self._increase = self._config.get('increase', 0.5)
+        self.ai.data['predropdive_offsetTheOffset'] = \
+            self.ai.data.get('predropdive_offsetTheOffset', 0) + self._increase
 class RecoverSettleBeforeDrop(Recover):
     @staticmethod
     def transitions():
@@ -632,7 +642,7 @@ class Dive(HoveringState):
         event.angle = math.Degree(0)
         HoveringState.BIN_FOUND(self, event)
         
-    def enter(self, useMultiAngle = False):
+    def enter(self, useMultiAngle = False, offsetTheOffset = None):
         # Keep the hover motion going (and use the bin angle)
         HoveringState.enter(self, useMultiAngle)
         
@@ -644,6 +654,10 @@ class Dive(HoveringState):
         # While keeping center, dive down
         binDepth = self._config.get('binDepth', 11)
         offset = self._config.get('offset', 1.5)
+        if offsetTheOffset is None:
+            offset = offset + self.ai.data.get('dive_offsetTheOffset', 0)
+        else:
+            offset = offset + offsetTheOffset
         
         diveMotion = motion.basic.RateChangeDepth(    
             desiredDepth = binDepth - offset,
@@ -791,7 +805,9 @@ class PreDropDive(Dive):
         
     def enter(self):
         # Standard dive
-        Dive.enter(self, useMultiAngle = False)
+        offsetTheOffset = self.ai.data.get('predropdive_offsetTheOffset', 0) + \
+            self.ai.data.get('dive_offsetTheOffset', 0)
+        Dive.enter(self, useMultiAngle = False, offsetTheOffset = offsetTheOffset)
         
 class SettleBeforeDrop(SettlingState):
     """
@@ -951,6 +967,12 @@ class SurfaceToCruise(HoveringState):
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)
+        
+        # If the offset values exist, delete them
+        if self.ai.data.has_key('dive_offsetTheOffset'):
+            del self.ai.data['dive_offsetTheOffset']
+        if self.ai.data.has_key('predropdive_offsetTheOffset'):
+            del self.ai.data['predropdive_offsetTheOffset']
 
 
 class End(state.State):
