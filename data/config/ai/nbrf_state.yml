@@ -29,7 +29,7 @@ ram.ai.light.Searching:
     sweepAngle: 35
     speed: 2
 ram.ai.light.Align:
-    alignGain: 0.125
+    alignGain: 8
     depthGain: 0 #0.05
     maxDepthDt: 0.30
 ram.ai.light.Seek:
@@ -64,7 +64,7 @@ ram.ai.target.SeekingToRange:
 ram.ai.target.SeekingToAligned:
     depthGain: 0 #0.125
     minSquareNess: 0.97
-    alignGain: 0.5
+    alignGain: 2
     filterSize: 1
     desiredRange: 0.45
 ram.ai.target.FireTorpedos:
@@ -88,7 +88,7 @@ ram.ai.barbedwire.SeekingToRange:
 ram.ai.barbedwire.SeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    alignGain: 0.05
+    alignGain: 20
     minAlignment: 0.1
     maxSidewaysSpeed: 1.0
     maxSpeed: 5
@@ -99,7 +99,7 @@ ram.ai.barbedwire.SeekingToAligned:
 ram.ai.barbedwire.Aligning:
     depthGain: 0 #0.125
     maxDepthDt: 0.3
-    alignGain: 0.1
+    alignGain: 10
     maxSidewaysSpeed: 2.0
     desiredRange: 0.45
        
