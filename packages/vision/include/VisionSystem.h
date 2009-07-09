@@ -19,6 +19,8 @@
 
 #include "vision/include/Common.h"
 
+#include "math/include/Math.h"
+
 // Must Be Included Last
 #include "vision/include/Export.h"
 
@@ -97,6 +99,56 @@ public:
      */
     virtual void update(double timestep);
 
+    /** Get horizontal field of view */
+    static math::Degree getFrontHorizontalFieldOfView();
+
+    /** Get vertical field of view */
+    static math::Degree getFrontVerticalFieldOfView();
+
+    /** Get horizontal pixel resolution */
+    static int getFrontHorizontalPixelResolution();
+
+    /** Get vertical pixel resolution */
+    static int getFrontVerticalPixelResolution();
+
+    /** Get horizontal field of view */
+    static math::Degree getDownHorizontalFieldOfView();
+
+    /** Get vertical field of view */
+    static math::Degree getDownVerticalFieldOfView();
+
+    /** Get horizontal pixel resolution */
+    static int getDownHorizontalPixelResolution();
+
+    /** Get vertical pixel resolution */
+    static int getDownVerticalPixelResolution();
+    
+protected:
+    /** Set horizontal field of view */
+    static void _setFrontHorizontalFieldOfView(math::Degree degree);
+
+    /** Set vertical field of view */
+    static void _setFrontVerticalFieldOfView(math::Degree degree);
+
+    /** Set horizontal pixel resolution */
+    static void _setFrontHorizontalPixelResolution(int pixels);
+
+    /** Set vertical pixel resolution */
+    static void _setFrontVerticalPixelResolution(int pixels);
+
+    /** Set horizontal field of view */
+    static void _setDownHorizontalFieldOfView(math::Degree degree);
+
+    /** Set vertical field of view */
+    static void _setDownVerticalFieldOfView(math::Degree degree);
+
+    /** Set horizontal pixel resolution */
+    static void _setDownHorizontalPixelResolution(int pixels);
+
+    /** Set vertical pixel resolution */
+    static void _setDownVerticalPixelResolution(int pixels);
+
+    
 private:
     /** Initializes all internal members */
     void init(core::ConfigNode config, core::EventHubPtr eventHub);
@@ -125,6 +177,16 @@ private:
 
     /** Flag which when true enables use of back/unback and update */
     bool m_testing;
+
+    static math::Degree s_frontHorizontalFieldOfView;
+    static math::Degree s_frontVeritcalFieldOfView;
+    static int s_frontHorizontalPixelResolution;
+    static int s_frontVerticalPixelResolution;
+    static math::Degree s_downHorizontalFieldOfView;
+    static math::Degree s_downVeritcalFieldOfView;
+    static int s_downHorizontalPixelResolution;
+    static int s_downVerticalPixelResolution;
+
 };
 
 } // namespace vision

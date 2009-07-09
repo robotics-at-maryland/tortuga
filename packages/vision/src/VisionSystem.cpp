@@ -38,6 +38,20 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 
 namespace ram {
 namespace vision {
+
+static math::Degree FISHEYE_HFO(107);
+static math::Degree FISHEYE_VFO(78);
+static math::Degree WIDE_HFO(150);
+static math::Degree WIDE_VFO(81);
+    
+math::Degree VisionSystem::s_frontHorizontalFieldOfView = FISHEYE_HFO;
+math::Degree VisionSystem::s_frontVeritcalFieldOfView = FISHEYE_VFO;
+int VisionSystem::s_frontHorizontalPixelResolution = 640;
+int VisionSystem::s_frontVerticalPixelResolution = 480;
+math::Degree VisionSystem::s_downHorizontalFieldOfView = WIDE_HFO;
+math::Degree VisionSystem::s_downVeritcalFieldOfView = WIDE_VFO;
+int VisionSystem::s_downHorizontalPixelResolution = 640;
+int VisionSystem::s_downVerticalPixelResolution = 480;
     
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
@@ -358,6 +372,86 @@ void VisionSystem::update(double timestep)
     // Update the recorders to record the data
     BOOST_FOREACH(Recorder* recorder, m_recorders)
         recorder->update(timestep);
+}
+
+math::Degree VisionSystem::getFrontHorizontalFieldOfView()
+{
+    return s_frontHorizontalFieldOfView;
+}
+
+math::Degree VisionSystem::getFrontVerticalFieldOfView()
+{
+    return s_frontVeritcalFieldOfView;
+}
+
+int VisionSystem::getFrontHorizontalPixelResolution()
+{
+    return s_frontHorizontalPixelResolution;
+}
+
+int VisionSystem::getFrontVerticalPixelResolution()
+{
+    return s_frontVerticalPixelResolution;
+}
+
+math::Degree VisionSystem::getDownHorizontalFieldOfView()
+{
+    return s_frontHorizontalFieldOfView;
+}
+
+math::Degree VisionSystem::getDownVerticalFieldOfView()
+{
+    return s_frontVeritcalFieldOfView;
+}
+
+int VisionSystem::getDownHorizontalPixelResolution()
+{
+    return s_frontHorizontalPixelResolution;
+}
+
+int VisionSystem::getDownVerticalPixelResolution()
+{
+    return s_frontVerticalPixelResolution;
+}
+    
+void VisionSystem::_setFrontHorizontalFieldOfView(math::Degree degree)
+{
+    s_frontHorizontalFieldOfView = degree;
+}
+
+void VisionSystem::_setFrontVerticalFieldOfView(math::Degree degree)
+{
+    s_frontVeritcalFieldOfView = degree;
+}
+
+void VisionSystem::_setFrontHorizontalPixelResolution(int pixels)
+{
+    s_frontHorizontalPixelResolution = pixels;
+}
+
+void VisionSystem::_setFrontVerticalPixelResolution(int pixels)
+{
+    s_frontVerticalPixelResolution = pixels;    
+}
+
+void VisionSystem::_setDownHorizontalFieldOfView(math::Degree degree)
+{
+    s_frontHorizontalFieldOfView = degree;
+}
+
+void VisionSystem::_setDownVerticalFieldOfView(math::Degree degree)
+{
+    s_frontVeritcalFieldOfView = degree;
+}
+
+void VisionSystem::_setDownHorizontalPixelResolution(int pixels)
+{
+    s_frontHorizontalPixelResolution = pixels;
+}
+
+void VisionSystem::_setDownVerticalPixelResolution(int pixels)
+{
+    s_frontVerticalPixelResolution = pixels;    
 }
     
 } // namespace vision
