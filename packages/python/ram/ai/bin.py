@@ -469,7 +469,7 @@ class RecoverDive(Recover):
         return Recover.transitions(Dive)
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
-        self._increase = self._config.get('increase', 0.5)
+        self._increase = self._config.get('increase', 0.25)
         self.ai.data['dive_offsetTheOffset'] = \
             self.ai.data.get('dive_offsetTheOffset', 0) + self._increase
 class RecoverAligning(Recover):
@@ -486,7 +486,7 @@ class RecoverPreDropDive(Recover):
         return Recover.transitions(PreDropDive)
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
-        self._increase = self._config.get('increase', 0.5)
+        self._increase = self._config.get('increase', 0.25)
         self.ai.data['predropdive_offsetTheOffset'] = \
             self.ai.data.get('predropdive_offsetTheOffset', 0) + self._increase
 class RecoverSettleBeforeDrop(Recover):
