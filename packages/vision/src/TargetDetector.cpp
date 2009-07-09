@@ -98,8 +98,8 @@ void TargetDetector::init(core::ConfigNode config)
                                  "U", "Blue Chrominance",
                                  "V", "Red Chrominance",
                                  0, 255,  // L defaults
-                                 0, 75,  // U defaults (0, 75) //(80,141)
-                                 137, 247); // V defaults (137, 181) //(98, 119)
+                                 0, 75,  // U defaults (0, 75)
+                                 137, 247); // V defaults (137, 181)
 
     /// TODO: add a found pixel drop off
 }
