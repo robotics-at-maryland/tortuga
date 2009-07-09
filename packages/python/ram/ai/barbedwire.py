@@ -459,18 +459,37 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
     def BARBED_WIRE_FOUND(self, event):
         # Do not change the angle
         angle = ext.math.Degree(0)
-        self._bwire.setState(event.topX, event.topY, angle)
+        if event.topY <= self._maxy:
+            self._bwire.setState(event.topX, event.topY, angle)
+        else:
+            if event.bottomWidth > 0 and event.bottomY <= self._maxy:
+                self._bwire.setState(event.bottomX, event.bottomY, angle)
 
     def enter(self):
         # Use the same motion from AlongPipe
         self._bwire = ram.motion.pipe.Pipe(0, 0, 0)
 
         maxSpeed = self._config.get('forwardSpeed', 5)
+        self._speedGain = self._config.get('speedGain', 5)
+        self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 1)
+        self._yawGain = self._config.get('yawGain', 0)
+        self._iSpeedGain = self._config.get('iSpeedGain', 0)
+        self._dSpeedGain = self._config.get('dSpeedGain', 0)
+        self._iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0)
+        self._dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0)
+        self._maxy = self._config.get('maxY', 0.8)
 
         motion = ram.motion.pipe.Follow(pipe = self._bwire,
-                                        speedGain = 5,
+                                        speedGain = self._speedGain,
                                         maxSpeed = maxSpeed,
-                                        maxSidewaysSpeed = 3)
+                                        iSpeedGain = self._iSpeedGain,
+                                        dSpeedGain = self._dSpeedGain,
+                                        maxSidewaysSpeed = self._maxSidewaysSpeed,
+                                        sidewaysSpeedGain = self._sidewaysSpeedGain,
+                                        iSidewaysSpeedGain = self._iSidewaysSpeedGain,
+                                        dSidewaysSpeedGain = self._dSidewaysSpeedGain,
+                                        yawGain = self._yawGain)
         self.motionManager.setMotion(motion)
         
 class Through(state.State):

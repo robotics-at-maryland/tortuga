@@ -63,17 +63,19 @@ class Hover(common.Hover):
         
     def _turn(self):
         """Determine turn"""
-        vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
-        vehicleHeading = vehicleHeading.valueDegrees()
-        absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
+        # If yawGain is zero, don't run any of this code
+        if self._yawGain != 0.0:
+            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading = vehicleHeading.valueDegrees()
+            absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
         
-        desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
-        desiredHeading = desiredHeading.valueDegrees()
+            desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
+            desiredHeading = desiredHeading.valueDegrees()
         
-        yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
+            yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
 
-        # Command the vehicle
-        self._controller.yawVehicle(yawCommand) 
+            # Command the vehicle
+            self._controller.yawVehicle(yawCommand) 
         
     def _seek(self):
         common.Hover._seek(self)

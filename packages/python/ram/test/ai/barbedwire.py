@@ -423,6 +423,23 @@ class TestUnder(support.AITestCase):
         self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
         self.assertAlmostEqual(self.controller.yawChange, 0, 5)
         self.assertAlmostEqual(self.controller.depth, 0, 5)
+        
+    def testTooHigh(self):
+        # Inject one barbed wire above the y threshold
+        self._injectFoundEvent(topX = -0.5, topY = 0.9, topWidth = 0.5)
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
+        
+        # Inject a full barbed wire event and make sure it only follows the
+        # bottom wire
+        self._injectFoundEvent(topX = -0.5, topY = 0.9, topWidth = 0.5,
+                               bottomX = 0.5, bottomY = 0.7, bottomWidth = 0.5)
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
 
 class TestThrough(support.AITestCase):       
     def testStart(self):
