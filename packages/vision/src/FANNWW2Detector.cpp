@@ -102,6 +102,10 @@ void FANNWW2Detector::getImageFeatures(Image* inputImage, float* features)
     else
         cornerSize = width / 8;
 
+    // If everything is too small 
+    if (cornerSize == 0)
+        cornerSize = 1;
+
     // Find the average in all the corners
     double average3, average4;
 
