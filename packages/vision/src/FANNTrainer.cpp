@@ -222,8 +222,14 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
     fann_type** input = new fann_type*[images.size()];
     fann_type** output = new fann_type*[images.size()];
     double* inputAverage = new double[m_net.get_num_input()];
+    double* inputMin = new double[m_net.get_num_input()];
+    double* inputMax = new double[m_net.get_num_input()];
     for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+    {
         inputAverage[j] = 0;
+        inputMin[j] = 10000000;
+        inputMax[j] = -10000000;
+    }
     for (unsigned int i = 0; i < images.size(); ++i)
     {
         // Fill in the input with our feature detector
@@ -245,8 +251,13 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
         {
             for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
             {
-                std::cout << input[i][j] << " ";
-                inputAverage[j] += input[i][j];
+                double inputVal = input[i][j];
+                std::cout << inputVal << " ";
+                inputAverage[j] += inputVal;
+                if (inputMax[j] < inputVal)
+                    inputMax[j] = inputVal;
+                if (inputMin[j] > inputVal)
+                    inputMin[j] = inputVal;
             }
             std::cout << "| ";
             for (unsigned int j = 0; j < m_net.get_num_output(); ++j)
@@ -261,6 +272,16 @@ bool FANNTrainer::addTrainData (unsigned int imageIndex,
         std::cout << "Training average: ";
         for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
             std::cout << inputAverage[j] / images.size() << " ";
+        std::cout << std::endl;
+
+        std::cout << "Training max: ";
+        for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+            std::cout << inputMax[j] << " ";
+        std::cout << std::endl;
+
+        std::cout << "Training min: ";
+        for (unsigned int j = 0; j < m_net.get_num_input(); ++j)
+            std::cout << inputMin[j] << " ";
         std::cout << std::endl;
     }
     

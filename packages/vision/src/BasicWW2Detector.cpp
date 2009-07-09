@@ -19,19 +19,19 @@ namespace vision {
 
 // Average: 2.43604 7.9089 0.400077    
 double BasicWW2Detector::SHIP_DEFAULTS_MIN[3] = {1.5, 5.0, 0.3};
-double BasicWW2Detector::SHIP_DEFAULTS_MAX[3] = {3.0, 10.0, 0.6};
+double BasicWW2Detector::SHIP_DEFAULTS_MAX[3] = {4.0, 10.0, 0.6};
 
 // Average: 1.06201 2.52522 0    
-double BasicWW2Detector::AIRCRAFT_DEFAULTS_MIN[3] = {1.0, 2.25, 0.0};
-double BasicWW2Detector::AIRCRAFT_DEFAULTS_MAX[3] = {1.2, 2.75, 0.25};
+double BasicWW2Detector::AIRCRAFT_DEFAULTS_MIN[3] = {1.0, 2, 0.0};
+double BasicWW2Detector::AIRCRAFT_DEFAULTS_MAX[3] = {1.4, 4, 0.35};
 
 // Average: 2.35522 1.55058 0.0508255
 double BasicWW2Detector::TANK_DEFAULTS_MIN[3] = {1.75, 1.3, 0.0};
 double BasicWW2Detector::TANK_DEFAULTS_MAX[3] = {2.75, 1.7, 0.25};
 
 // Average: 2.04122 2.01597 0.512011    
-double BasicWW2Detector::FACTORY_DEFAULTS_MIN[3] = {1.8, 1.8, 0.4};
-double BasicWW2Detector::FACTORY_DEFAULTS_MAX[3] = {2.2, 2.2, 0.7};
+double BasicWW2Detector::FACTORY_DEFAULTS_MIN[3] = {1.8, 1.8, 0.25};
+double BasicWW2Detector::FACTORY_DEFAULTS_MAX[3] = {2.2, 2.8, 0.7};
 
     
 BasicWW2Detector::BasicWW2Detector(core::ConfigNode config,
