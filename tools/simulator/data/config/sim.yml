@@ -189,11 +189,11 @@ Subsystems:
                 depthGain: 5
             ram.ai.duct.SeekingToAligned:
                 depthGain: 5
-                alignGain: 0.2
+                alignGain: 5
                 desiredRange: 0.5
                 maxAlignDiff: 2
             ram.ai.duct.Aligning:
-                alignGain: 0.2
+                alignGain: 5
                 desiredRange: 0.3
                 maxAlignDiff: 2
                 depthGain: 5
@@ -276,7 +276,7 @@ Subsystems:
                 depthGain: 0
             ram.ai.target.SeekingToAligned:
                 depthGain: 0
-                alignGain: 0.1
+                alignGain: 10
                 minSquareNess: 0.95
             ram.ai.target.FireTorpedos:
                 depthGain: 0
@@ -343,14 +343,14 @@ Subsystems:
             ram.ai.barbedwire.SeekingToAligned:
                 desiredRange: 0.5
                 maxSidewaysSpeed: 2
-                alignGain: 0.1
+                alignGain: 10
                 minAlignment: 0.05
                 depthGain: 0 #1
                 yZero: 0.5 #0.65     
             ram.ai.barbedwire.Aligning:
                 desiredRange: 0.5
                 maxSidewaysSpeed: 2
-                alignGain: 0.1
+                alignGain: 10
                 depthGain: 0 #1
                 yZero: 0.5 #0.65
             ram.ai.barbedwire.Through:

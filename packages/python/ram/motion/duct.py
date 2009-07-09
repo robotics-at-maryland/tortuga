@@ -70,7 +70,7 @@ class DuctSeekAlign(seek.SeekPointToRange):
         alignScale = alignDiff / self._maxAlignDiff
         
         # Find final scale, then cap
-        scale = baseScale * (alignScale/self._alignGain)
+        scale = baseScale * (alignScale * self._alignGain)
         
         if (scale < 0) and (scale < -1):
             scale = -1
