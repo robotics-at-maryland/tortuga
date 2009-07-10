@@ -125,7 +125,7 @@ ram.ai.bin.Alinging:
     sidewaysSpeedGain: 8
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
-ram.ai.bin.Examine:
+ram.ai.bin.PreDiveExamine:
     targetSymbols: ['Factory', 'Ship']
     speedGain: 5
     dSpeedGain: 1.5
@@ -133,7 +133,15 @@ ram.ai.bin.Examine:
     sidewaysSpeedGain: 8
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
-ram.ai.bin.PreDropDive:
+ram.ai.bin.PostDiveExamine:
+    targetSymbols: ['Factory', 'Ship']
+    speedGain: 5
+    dSpeedGain: 1.5
+    iSpeedGain: 0.5
+    sidewaysSpeedGain: 8
+    dSidewaysSpeedGain: 1.5
+    iSidewaysSpeedGain: 0.5
+ram.ai.bin.CloserLook:
     binDepth: 10
     offset: 2
 

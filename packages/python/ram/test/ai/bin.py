@@ -399,7 +399,7 @@ class TestAligning(BinTestCase):
         
         # Make sure timer works
         self.releaseTimer(bin.Aligning.ALIGNED)
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(bin.PreDiveExamine)
         
     def testBinLost(self):
         """Make sure we search when we lose the bin"""
@@ -424,7 +424,7 @@ class TestAligning(BinTestCase):
         self.ai.data['binData']['currentIds'] = set([3])
         # Inject settled event
         self.injectEvent(bin.Aligning.ALIGNED)
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(bin.PreDiveExamine)
         
 class TestCheckEnd(BinTestCase):
     def setUp(self):
@@ -681,15 +681,19 @@ class TestDive(DiveTestCase, BinTestCase):
         self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToMove)
         self.assertAIDataValue('dive_offsetTheOffset', 1.25)
-        
-class TestExamine(BinTestCase):
-    def setUp(self):
-        BinTestCase.setUp(self)
-        self._targetFound = False
-        self.qeventHub.subscribeToType(bin.Examine.FOUND_TARGET, 
+
+class ExamineTestCase(object):
+    def setUp(self, myState, nextState, failureState, recoverState):
+        self.qeventHub.subscribeToType(bin.Examine.FOUND_TARGET,
                                        self.targetFound)
-        self.machine.start(bin.Examine)
-        
+        self._targetFound = False
+        self.myState = myState
+        self.nextState = nextState
+        self.failureState = failureState
+        self.recoverState = recoverState
+
+        self.machine.start(self.myState)
+
     def targetFound(self, event):
         self._targetFound = True
         
@@ -781,21 +785,21 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.UNKNOWN)
         
         # Make sure we haven't done anything yet
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(self.myState)
         self.assertFalse(self._targetFound)
         
         # The final event should call distribute events on its own
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assert_(self._targetFound)
-        self.assertCurrentState(bin.PreDropDive)
+        self.assertCurrentState(self.nextState)
         self.assertAIDataValue('droppingSymbol', vision.Symbol.CLUB)
 
     def testRepeatFoundSymbol(self):
         # Restart after having dropped the club
         self.ai.data['droppedSymbols'] = set([vision.Symbol.CLUB])
         self.ai.data['binData']['currentID'] = 3
-        self.machine.start(bin.Examine)
+        self.machine.start(self.myState)
  
         # Set the number of events it should require before trying
         self.machine.currentState()._minimumHits = 15
@@ -805,7 +809,7 @@ class TestExamine(BinTestCase):
             self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         
         # Make sure we haven't done anything yet
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(self.myState)
         self.assertFalse(self._targetFound)
         
         # Now start the event and make sure we have not moved on
@@ -813,7 +817,7 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
-        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertCurrentState(self.failureState)
         
     def testNoSymbolFound(self):
         # Set the number of hits it should require before acting
@@ -832,25 +836,25 @@ class TestExamine(BinTestCase):
         self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
         
         # Make sure we haven't done anything yet
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(self.myState)
         self.assertFalse(self._targetFound)
         
         # Inject the last event
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
         self.assertFalse(self._targetFound)
-        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertCurrentState(self.failureState)
 
     def testTimeout(self):
         # Check to make sure that we are in Examine
-        self.assertCurrentState(bin.Examine)
+        self.assertCurrentState(self.myState)
 
         # Release the timer
         self.releaseTimer(bin.Examine.TIMEOUT)
         self.qeventHub.publishEvents()
 
         # Check to make sure it has moved on
-        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertCurrentState(self.failureState)
         
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -863,13 +867,58 @@ class TestExamine(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.RecoverExamine)
+        self.assertCurrentState(self.recoverState)
         
-class TestPreDropDive(DiveTestCase, BinTestCase):
+class TestPreDiveExamine(ExamineTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        DiveTestCase.setUp(self, myState = bin.PreDropDive, 
-                           nextState = bin.SettleBeforeDrop)
+        ExamineTestCase.setUp(self, myState = bin.PreDiveExamine,
+                              nextState = bin.CloserLook,
+                              failureState = bin.SurfaceToMove,
+                              recoverState = bin.RecoverPreDiveExamine)
+
+    def testNoSymbolFound(self):
+        # Set the number of hits it should require before acting
+        self.machine.currentState()._minimumHits = 10
+
+        # Send in a bunch of events
+        self.ai.data['binData']['currentID'] = 3
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.SPADE)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.DIAMOND)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.HEART)
+        
+        # Make sure we haven't done anything yet
+        self.assertCurrentState(bin.PreDiveExamine)
+        self.assertFalse(self._targetFound)
+        
+        # Inject the last event
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.qeventHub.publishEvents()
+        self.assertFalse(self._targetFound)
+        self.assertCurrentState(bin.CloserLook)
+
+    def testTimeoutNotEnoughHits(self):
+        # Check the current state
+        self.assertCurrentState(bin.PreDiveExamine)
+        self.assertFalse(self._targetFound)
+
+        # Release the timer
+        self.releaseTimer(bin.PreDiveExamine.LOOK_CLOSER)
+        self.qeventHub.publishEvents()
+
+        self.assertcurrentState(bin.CloserLook)
+        
+class TestCloserLook(DiveTestCase, BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        DiveTestCase.setUp(self, myState = bin.CloserLook, 
+                           nextState = bin.PostDiveExamine)
         
     def testBinLost(self):
         """Make sure losing the bin goes back to search"""
@@ -879,8 +928,8 @@ class TestPreDropDive(DiveTestCase, BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.RecoverPreDropDive)
-        self.assertAIDataValue('predropdive_offsetTheOffset', 0.25)
+        self.assertCurrentState(bin.RecoverCloserLook)
+        self.assertAIDataValue('closerlook_offsetTheOffset', 0.25)
         
     def testBinLostTooMuch(self):
         """Make sure losing the too many times stops the search"""
@@ -890,12 +939,20 @@ class TestPreDropDive(DiveTestCase, BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         # For RecoverDive
-        self.ai.data['predropdive_offsetTheOffset'] = 1
+        self.ai.data['closerlook_offsetTheOffset'] = 1
         
         self.injectEvent(vision.EventType.BINS_LOST)
         self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToMove)
-        self.assertAIDataValue('predropdive_offsetTheOffset', 1.25)
+        self.assertAIDataValue('closerlook_offsetTheOffset', 1.25)
+
+class TestPostDiveExamine(ExamineTestCase, BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        ExamineTestCase.setUp(self, myState = bin.PostDiveExamine,
+                              nextState = bin.SettleBeforeDrop,
+                              failureState = bin.SurfaceToMove,
+                              recoverState = bin.RecoverPostDiveExamine)
         
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):

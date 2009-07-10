@@ -129,14 +129,14 @@ ram.ai.bin.Dive:
     binDepth: 12
     offset: 5
     yawGain: 0.4
-ram.ai.bin.Alinging:
+ram.ai.bin.Aligning:
     speedGain: 7
     dSpeedGain: 1.5
     iSpeedGain: 0.5
     sidewaysSpeedGain: 8
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
-ram.ai.bin.Examine:
+ram.ai.bin.PreDiveExamine:
     targetSymbols: ['Aircraft', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
@@ -144,7 +144,15 @@ ram.ai.bin.Examine:
     sidewaysSpeedGain: 8
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
-ram.ai.bin.PreDropDive:
+ram.ai.bin.PostDiveExamine:
+    targetSymbols: ['Aircraft', 'Factory']
+    speedGain: 5
+    dSpeedGain: 1.5
+    iSpeedGain: 0.5
+    sidewaysSpeedGain: 8
+    dSidewaysSpeedGain: 1.5
+    iSidewaysSpeedGain: 0.5
+ram.ai.bin.CloserLook:
     binDepth: 12
     offset: 2
 # Sonar subtask

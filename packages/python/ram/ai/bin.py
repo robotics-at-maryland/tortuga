@@ -424,8 +424,10 @@ class Recover(state.FindAttempt):
             histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
             histogram['totalHits'] = histogram.get('totalHits', 0) + 1
 
-    def enter(self, timeout = 2):
-        state.FindAttempt.enter(self, timeout)
+    def enter(self, timeout = 4):
+        self._timeout = self._config.get('timeout', timeout)
+        state.FindAttempt.enter(self, self._timeout)
+
         ensureBinTracking(self.queuedEventHub, self.ai)
         
         self._bin = ram.motion.common.Target(self.ai.data["lastBinX"],
@@ -486,13 +488,19 @@ class RecoverAligning(Recover):
     def transitions():
         return Recover.transitions(Aligning)
 class RecoverExamine(Recover):
+    pass
+class RecoverPreDiveExamine(RecoverExamine):
     @staticmethod
     def transitions():
-        return Recover.transitions(Examine)
-class RecoverPreDropDive(Recover):
+        return RecoverExamine.transitions(foundState = PreDiveExamine)
+class RecoverPostDiveExamine(RecoverExamine):
     @staticmethod
     def transitions():
-        trans = Recover.transitions(PreDropDive)
+        return RecoverExamine.transitions(foundState = PostDiveExamine)
+class RecoverCloserLook(Recover):
+    @staticmethod
+    def transitions():
+        trans = Recover.transitions(CloserLook)
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
@@ -500,10 +508,10 @@ class RecoverPreDropDive(Recover):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
         self._increase = self._config.get('increase', 0.25)
         self._maxIncrease = self._config.get('maxIncrease', 1)
-        self.ai.data['predropdive_offsetTheOffset'] = \
-            self.ai.data.get('predropdive_offsetTheOffset', 0) + self._increase
+        self.ai.data['closerlook_offsetTheOffset'] = \
+            self.ai.data.get('closerlook_offsetTheOffset', 0) + self._increase
             
-        if self.ai.data['predropdive_offsetTheOffset'] > 1:
+        if self.ai.data['closerlook_offsetTheOffset'] > 1:
             self.publish(Recover.MOVE_ON, core.Event())
 class RecoverSettleBeforeDrop(Recover):
     @staticmethod
@@ -692,7 +700,7 @@ class Aligning(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Aligning,
-            { Aligning.ALIGNED : Examine }, lostState = RecoverAligning)
+            { Aligning.ALIGNED : PreDiveExamine }, lostState = RecoverAligning)
     
     def enter(self):
         SettlingState.enter(self, Aligning.ALIGNED, 5)
@@ -703,14 +711,14 @@ class Examine(HoveringState):
     """
     FOUND_TARGET = core.declareEventType('FOUND_TARGET')
     MOVE_ON = core.declareEventType('MOVE_ON')
-    TIMEOUT = core.declareEventType('TIMEOUT_')
+    TIMEOUT = core.declareEventType('TIMEOUT')
 
     @staticmethod
-    def transitions():
-        return HoveringState.transitions(Examine,
-        { Examine.FOUND_TARGET : PreDropDive,
-          Examine.MOVE_ON : SurfaceToMove,
-          Examine.TIMEOUT : Examine }, lostState = RecoverExamine)
+    def transitions(myState, foundTarget, moveOn, lostState):
+        return HoveringState.transitions(myState,
+        { Examine.FOUND_TARGET : foundTarget,
+          Examine.MOVE_ON : moveOn,
+          Examine.TIMEOUT : myState }, lostState = lostState)
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -722,12 +730,6 @@ class Examine(HoveringState):
                     self._minimumHits:
                 # Have it determine the symbol if it's got enough data
                 self._determineSymbols(event.id)
-    
-    def TIMEOUT_(self, event):
-        if self.ai.data['binData'].has_key('currentID'):
-            self._determineSymbols(self.ai.data['binData']['currentID'])
-        else:
-            self.publish(Examine.MOVE_ON, core.Event())
 
     def _determineSymbols(self, currentID):
         """
@@ -787,12 +789,12 @@ class Examine(HoveringState):
             return True
         return False
         
-    def enter(self):
+    def enter(self, timeout = 2):
         HoveringState.enter(self)
 
         self._minimumHits = self._config.get('minimumHits', 100)
 
-        self._timeout = self._config.get('timeout', 5)
+        self._timeout = self._config.get('timeout', timeout)
 
         self._foundLimit = self._config.get('foundLimit', 0.8)
         
@@ -807,23 +809,90 @@ class Examine(HoveringState):
     def exit(self):
         if self._timer is not None:
             self._timer.stop()
+
+class PreDiveExamine(Examine):
+
+    LOOK_CLOSER = core.declareEventType('LOOK_CLOSER')
+
+    @staticmethod
+    def transitions():
+        trans = Examine.transitions(myState = PreDiveExamine,
+                                    foundTarget = CloserLook,
+                                    moveOn = SurfaceToMove,
+                                    lostState = RecoverPreDiveExamine)
+        trans.update({PreDiveExamine.LOOK_CLOSER : CloserLook})
+
+        return trans
+
+    def TIMEOUT(self, event):
+        histogram = self.ai.data['binData']['histogram']
+        currentID = self.ai.data['binData'].get('currentID', None)
+
+        # Make sure there is a currentID
+        if currentID is not None:
+            # Check if the histogram has enough hits
+            if histogram[currentID]['totalHits'] >= self._minimumHits:
+                # If it does, determine the symbol now
+                self._determineSymbols(self.ai.data['binData']['currentID'])
+            else:
+                # If it doesn't, get a closer look
+                self.publish(PreDiveExamine.LOOK_CLOSER, core.Event())
+        else:
+            # If we don't have a currentID, something has gone horribly wrong
+            # Move on immediately
+            self.publish(Examine.MOVE_ON, core.Event())
+
+    def enter(self):
+        Examine.enter(self, timeout = 2)
         
-class PreDropDive(Dive):
+class CloserLook(Dive):
     """
     Drop down before dropping the marker.
     """
     
     @staticmethod
     def transitions():
-        return SettlingState.transitions(PreDropDive,
-        { motion.basic.Motion.FINISHED : SettleBeforeDrop },
-        lostState = RecoverPreDropDive)
+        return SettlingState.transitions(CloserLook,
+        { motion.basic.Motion.FINISHED : PostDiveExamine },
+        lostState = RecoverCloserLook)
         
     def enter(self):
         # Standard dive
-        offsetTheOffset = self.ai.data.get('predropdive_offsetTheOffset', 0) + \
+        offsetTheOffset = self.ai.data.get('closerlook_offsetTheOffset', 0) + \
             self.ai.data.get('dive_offsetTheOffset', 0)
         Dive.enter(self, useMultiAngle = False, offsetTheOffset = offsetTheOffset)
+
+class PostDiveExamine(Examine):
+    @staticmethod
+    def transitions():
+        return Examine.transitions(myState = PostDiveExamine,
+                                   foundTarget = SettleBeforeDrop,
+                                   moveOn = SurfaceToMove,
+                                   lostState = RecoverPostDiveExamine)
+
+    def TIMEOUT(self, event):
+        histogram = self.ai.data['binData']['histogram']
+        currentID = self.ai.data['binData'].get('currentID', None)
+
+        # Make sure there is a currentID
+        if currentID is not None:
+            # Check if it has half the number of hits it needs
+            # If so, go for it anyways
+            if histogram[currentID]['totalHits'] >= self.minimumHitsOnTimeout:
+                # If it does, determine the symbol now
+                self._determineSymbols(self.ai.data['binData']['currentID'])
+            else:
+                # If it doesn't, don't take a chance
+                self.publish(Examine.MOVE_ON, core.Event())
+        else:
+            # If we don't have a currentID, something has gone horribly wrong
+            # Move on immediately
+            self.publish(Examine.MOVE_ON, core.Event())
+
+    def enter(self):
+        Examine.enter(self, timeout = 3)
+        self._minimumHitsOnTimeout = self._config.get('minimumHitsOnTimeout',
+                                                      self._minimumHits/2)
         
 class SettleBeforeDrop(SettlingState):
     """
@@ -987,8 +1056,8 @@ class SurfaceToCruise(HoveringState):
         # If the offset values exist, delete them
         if self.ai.data.has_key('dive_offsetTheOffset'):
             del self.ai.data['dive_offsetTheOffset']
-        if self.ai.data.has_key('predropdive_offsetTheOffset'):
-            del self.ai.data['predropdive_offsetTheOffset']
+        if self.ai.data.has_key('closerlook_offsetTheOffset'):
+            del self.ai.data['closerlook_offsetTheOffset']
 
 
 class End(state.State):

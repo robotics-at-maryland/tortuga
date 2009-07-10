@@ -213,7 +213,7 @@ Subsystems:
             ram.ai.bin.Dive:
                 binDepth: 13 #15.4
                 offset: 5
-            ram.ai.bin.PreDropDive:
+            ram.ai.bin.CloserLook:
                 binDepth: 13
                 offset: 3.5
             ram.ai.bin.SurfaceToMove:
@@ -222,7 +222,9 @@ Subsystems:
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
                 speedGain: 3
-            ram.ai.bin.Examine:
+            ram.ai.bin.PreDiveExamine:
+                targetSymbols: ['Aircraft', 'Tank']
+            ram.ai.bin.PostDiveExamine:
                 targetSymbols: ['Aircraft', 'Tank']
             
             ram.ai.sonarCourse.PingerDive:
