@@ -79,13 +79,13 @@ Rv=F*vanLoan(1:n,n+1:end);
 
 %% dynamics for TRUE states
 Areal=[0 0 1 0 0 0 0 0;
-   0 0 0 1 0 0 0 0;
-   0 0 -c/m 0 0 0 0 0;
-   0 0 0 -c/m 0 0 0 0;
-   0 0 0 0 0 0 0 0;
-   0 0 0 0 0 0 0 0;
-   0 0 0 0 0 0 0 0;
-   0 0 0 0 0 0 0 0];
+       0 0 0 1 0 0 0 0;
+       0 0 -c/m 0 0 0 0 0;
+       0 0 0 -c/m 0 0 0 0;
+       0 0 0 0 0 0 0 0;
+       0 0 0 0 0 0 0 0;
+       0 0 0 0 0 0 0 0;
+       0 0 0 0 0 0 0 0];
 
 %use same B, C, and D as estimated dynamics
 
@@ -98,24 +98,24 @@ Areal=[0 0 1 0 0 0 0 0;
 P0 = diag([2 2 .5 .5 4 4 4 4]); % Initial Covariance Matrix
 Ak_prev = Ak; % "A" matrix is LTI so Ak_prev and Ak wont change
 %initial state estimate
-xhat0 = [ 52.5;  % x       
-       50;  % y            
+xhat0 = [ 0.5;  % x       
+       0.5;  % y            
        0;  % x_dot
         0;  % y_dot
-       -50;  % x1  (Pinger 1)
-       100;  % y1  (Pinger 1)
-       50;   % x2 (Pinger 2)
-       100];% y2 (Pinger 2)
+       100;  % x1  (Pinger 1)
+       -50;  % y1  (Pinger 1)
+       100;   % x2 (Pinger 2)
+       50];% y2 (Pinger 2)
 
 %true initial state   
-x0 = [ 52; %x
-      50; %y
+x0 = [ 0; %x
+      0; %y
       0; %x_dot
       0; %y_dot
-      -50; %x1
-      100; %y1
-      50; %x2
-      100]; %y2
+      100; %x1
+      -50; %y1
+      100; %x2
+      50]; %y2
    
 
   
@@ -146,11 +146,11 @@ for k=2:floor(t_end/Ts)
     noise_sensor=Cn*randn(2,1);
     %what the measurements would be without noise
     %angle to pinger 1
-    %theta1=atan2(y1-y,x1-x)
-    theta1=atan2(x(6,k)-x(2,k),x(5,k)-x(1,k));
+    %theta1=atan2(x1-x,y1-y)
+    theta1=atan2(x(5,k)-x(1,k),x(6,k)-x(2,k));
     %angle to pinger 2
-    %theta2=atan2(y2-y,x2-x)
-    theta2=atan2(x(8,k)-x(2,k),x(7,k)-x(1,k));
+    %theta2=atan2(x2-x,y2-y)
+    theta2=atan2(x(7,k)-x(1,k),x(8,k)-x(2,k));
     y(:,k)=[theta1; theta2]+noise_sensor;
     %y(:,k)=[theta1; theta2];
     
@@ -163,13 +163,13 @@ for k=2:floor(t_end/Ts)
     %
     %update step
     %compute C matrix (measurement model)
-    Citer=iterateMeasModel(x(:,k));
+    Citer=iterateMeasModel2(x(:,k));
     %compute kalman gain
     K=P_pred*Citer'*inv(Citer*P_pred*Citer'+Rn);%kalman gain
     %K=P_pred*C'*inv(C*P_pred*C')%kalman gain
     %state update
-    y1est=atan2(xhat_pred(6)-xhat_pred(2),xhat_pred(5)-xhat_pred(1));
-    y2est=atan2(xhat_pred(8)-xhat_pred(2),xhat_pred(7)-xhat_pred(1));
+    y1est=atan2(xhat_pred(5)-xhat_pred(1),xhat_pred(6)-xhat_pred(2));
+    y2est=atan2(xhat_pred(7)-xhat_pred(1),xhat_pred(8)-xhat_pred(2));
     xhat(:,k)=xhat_pred+K*(y(:,k)-[y1est y2est ]');
     P_t=(I-K*Citer)*P_pred;
     

@@ -1,4 +1,8 @@
-%
+function [Diverge] = ekfSLAMFunc2(xhat0, x0,plotData,Rv_cont,divergence_criteria)
+        %xhat0 = initial state guess
+        %x0 = true initial state
+        %plot = boolean whether to plot
+        %Rv_cont is our process noise    
 %
 % implementation of an EKF for SLAM navigation in a two 
 % beacon environment
@@ -8,9 +12,6 @@
 % Robotics@Maryland
 
 %clean up system
-clc
-clear
-close all
 
 %system properties
 c=4.5;%11.5;%robot drag (vehicle assumed to have symmetric drag)
@@ -59,9 +60,7 @@ D = [0 0; 0 0];
 
 
 
-%covariance of process noise (arbitrarily chosen) 
-Rv_cont=1e-122*diag([2 2]);%in N   CONTINUOUS TIME, needs discretization
-%Rv_cont=1e-8*diag([8 8]);
+
 %covariance of sensor noise
 Rn=(pi/180)*diag([2 2]);%in radian
 
@@ -97,26 +96,7 @@ Areal=[0 0 1 0 0 0 0 0;
 %% Initialize parameters
 P0 = diag([2 2 .5 .5 4 4 4 4]); % Initial Covariance Matrix
 Ak_prev = Ak; % "A" matrix is LTI so Ak_prev and Ak wont change
-%initial state estimate
-xhat0 = [ 52.5;  % x       
-       50;  % y            
-       0;  % x_dot
-        0;  % y_dot
-       -50;  % x1  (Pinger 1)
-       100;  % y1  (Pinger 1)
-       50;   % x2 (Pinger 2)
-       100];% y2 (Pinger 2)
 
-%true initial state   
-x0 = [ 52; %x
-      50; %y
-      0; %x_dot
-      0; %y_dot
-      -50; %x1
-      100; %y1
-      50; %x2
-      100]; %y2
-   
 
   
 I = eye(size(P0));
@@ -147,10 +127,10 @@ for k=2:floor(t_end/Ts)
     %what the measurements would be without noise
     %angle to pinger 1
     %theta1=atan2(y1-y,x1-x)
-    theta1=atan2(x(6,k)-x(2,k),x(5,k)-x(1,k));
+    theta1=atan2(x(5,k)-x(1,k),x(6,k)-x(2,k));
     %angle to pinger 2
     %theta2=atan2(y2-y,x2-x)
-    theta2=atan2(x(8,k)-x(2,k),x(7,k)-x(1,k));
+    theta2=atan2(x(7,k)-x(1,k),x(8,k)-x(2,k));
     y(:,k)=[theta1; theta2]+noise_sensor;
     %y(:,k)=[theta1; theta2];
     
@@ -168,8 +148,8 @@ for k=2:floor(t_end/Ts)
     K=P_pred*Citer'*inv(Citer*P_pred*Citer'+Rn);%kalman gain
     %K=P_pred*C'*inv(C*P_pred*C')%kalman gain
     %state update
-    y1est=atan2(xhat_pred(6)-xhat_pred(2),xhat_pred(5)-xhat_pred(1));
-    y2est=atan2(xhat_pred(8)-xhat_pred(2),xhat_pred(7)-xhat_pred(1));
+    y1est=atan2(xhat_pred(5)-xhat_pred(1),xhat_pred(6)-xhat_pred(2));
+    y2est=atan2(xhat_pred(7)-xhat_pred(1),xhat_pred(8)-xhat_pred(2));
     xhat(:,k)=xhat_pred+K*(y(:,k)-[y1est y2est ]');
     P_t=(I-K*Citer)*P_pred;
     
@@ -180,68 +160,78 @@ for k=2:floor(t_end/Ts)
     P_prev=P_t;
 end
 
-%position plot
-figure('name','Simulation Map')
-%plot(x(1,:),x(2,:),xhat(1,:),xhat(2,:))
-plot(x(1,:),x(2,:),'-',xhat(1,:),xhat(2,:),'-',x0(5),x0(6),'b*',x0(7),x0(8),'r*')
-legend('x','xhat','Pinger 1','Pinger 2')
-xlabel('x')
-ylabel('y')
+% Check if ekf Diverged
+if ((abs(xhat(1,end)-x(1,end)) > divergence_criteria)||(abs(xhat(2,end)-x(2,end)) > divergence_criteria))
+    Diverge = 1;
+else
+    Diverge = 0;
+end
+if (~isfinite(xhat(1,end)) || ~isfinite(xhat(2,end)))
+    Diverge = 1;
+end
+
+if plotData ==1
+    %position plot
+    figure('name','Simulation Map')
+    %plot(x(1,:),x(2,:),xhat(1,:),xhat(2,:))
+    plot(x(1,:),x(2,:),'-',xhat(1,:),xhat(2,:),'-',x0(5),x0(6),'b*',x0(7),x0(8),'r*')
+    legend('x','xhat','Pinger 1','Pinger 2')
+    xlabel('x')
+    ylabel('y')
 
 
-%estimates and true states of robot
-figure('name','Robot States')
-subplot(4,1,1)
-plot(time,x(1,:),time,xhat(1,:),time,xhat(1,:)+sqrt(P(1,:)),'r-.',time,xhat(1,:)-sqrt(P(1,:)),'r-.')
-ylabel('x')
-legend('true','estimated','\sigma')
-subplot(4,1,2)
-plot(time,x(2,:),time,xhat(2,:),time,xhat(2,:)+sqrt(P(10,:)),'r-.',time,xhat(2,:)-sqrt(P(10,:)),'r-.')
-ylabel('y')
-subplot(4,1,3)
-plot(time,x(3,:),time,xhat(3,:),time,xhat(3,:)+sqrt(P(19,:)),'r-.',time,xhat(3,:)-sqrt(P(19,:)),'r-.')
-ylabel('xdot')
-subplot(4,1,4)
-plot(time,x(4,:),time,xhat(4,:),time,xhat(4,:)+sqrt(P(28,:)),'r-.',time,xhat(4,:)-sqrt(P(28,:)),'r-.')
-ylabel('ydot')
+    %estimates and true states of robot
+    figure('name','Robot States')
+    subplot(4,1,1)
+    plot(time,x(1,:),time,xhat(1,:),time,xhat(1,:)+sqrt(P(1,:)),'r-.',time,xhat(1,:)-sqrt(P(1,:)),'r-.')
+    ylabel('x')
+    legend('true','estimated','\sigma')
+    subplot(4,1,2)
+    plot(time,x(2,:),time,xhat(2,:),time,xhat(2,:)+sqrt(P(10,:)),'r-.',time,xhat(2,:)-sqrt(P(10,:)),'r-.')
+    ylabel('y')
+    subplot(4,1,3)
+    plot(time,x(3,:),time,xhat(3,:),time,xhat(3,:)+sqrt(P(19,:)),'r-.',time,xhat(3,:)-sqrt(P(19,:)),'r-.')
+    ylabel('xdot')
+    subplot(4,1,4)
+    plot(time,x(4,:),time,xhat(4,:),time,xhat(4,:)+sqrt(P(28,:)),'r-.',time,xhat(4,:)-sqrt(P(28,:)),'r-.')
+    ylabel('ydot')
 
-% error in xhat
-% figure('name','xHat Error')
-% subplot(4,1,1)
-% plot(time,P(1,:))
-% subplot(4,1,2)
-% plot(time,P(10,:))
-% subplot(4,1,3)
-% plot(time,P(19,:))
-% subplot(4,1,4)
-% plot(time,P(28,:))
+    % error in xhat
+    % figure('name','xHat Error')
+    % subplot(4,1,1)
+    % plot(time,P(1,:))
+    % subplot(4,1,2)
+    % plot(time,P(10,:))
+    % subplot(4,1,3)
+    % plot(time,P(19,:))
+    % subplot(4,1,4)
+    % plot(time,P(28,:))
 
-%estimates and true states of pinger locations
-figure('name','Pinger States')
-subplot(4,1,1)
-plot(time,x(5,:),time,xhat(5,:),time,xhat(5,:)+sqrt(P(37,:)),'r-.',time,xhat(5,:)-sqrt(P(37,:)),'r-.')
-ylabel('x1')
-legend('true','estimated')
-subplot(4,1,2)
-plot(time,x(6,:),time,xhat(6,:),time,xhat(6,:)+sqrt(P(46,:)),'r-.',time,xhat(6,:)-sqrt(P(46,:)),'r-.')
-ylabel('y1')
-subplot(4,1,3)
-plot(time,x(7,:),time,xhat(7,:),time,xhat(7,:)+sqrt(P(55,:)),'r-.',time,xhat(7,:)-sqrt(P(55,:)),'r-.')
-ylabel('x2')
-subplot(4,1,4)
-plot(time,x(8,:),time,xhat(8,:),time,xhat(8,:)+sqrt(P(64,:)),'r-.',time,xhat(8,:)-sqrt(P(64,:)),'r-.')
-ylabel('y2')
+    %estimates and true states of pinger locations
+    figure('name','Pinger States')
+    subplot(4,1,1)
+    plot(time,x(5,:),time,xhat(5,:),time,xhat(5,:)+sqrt(P(37,:)),'r-.',time,xhat(5,:)-sqrt(P(37,:)),'r-.')
+    ylabel('x1')
+    legend('true','estimated')
+    subplot(4,1,2)
+    plot(time,x(6,:),time,xhat(6,:),time,xhat(6,:)+sqrt(P(46,:)),'r-.',time,xhat(6,:)-sqrt(P(46,:)),'r-.')
+    ylabel('y1')
+    subplot(4,1,3)
+    plot(time,x(7,:),time,xhat(7,:),time,xhat(7,:)+sqrt(P(55,:)),'r-.',time,xhat(7,:)-sqrt(P(55,:)),'r-.')
+    ylabel('x2')
+    subplot(4,1,4)
+    plot(time,x(8,:),time,xhat(8,:),time,xhat(8,:)+sqrt(P(64,:)),'r-.',time,xhat(8,:)-sqrt(P(64,:)),'r-.')
+    ylabel('y2')
 
-%measurement plot
-figure('name','Measurements')
-subplot(2,1,1)
-plot(time,y(1,:))
-ylabel('\theta_1')
-subplot(2,1,2)
-plot(time,y(2,:))
-ylabel('\theta_2')
-
-
+    %measurement plot
+    figure('name','Measurements')
+    subplot(2,1,1)
+    plot(time,y(1,:))
+    ylabel('\theta_1')
+    subplot(2,1,2)
+    plot(time,y(2,:))
+    ylabel('\theta_2')
+end
 
 % for t=1:t_end
 %     % Updating the predicted state and covariance forward in time

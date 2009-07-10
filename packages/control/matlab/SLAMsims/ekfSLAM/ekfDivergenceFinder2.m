@@ -14,14 +14,14 @@ Rv_cont=1e-4*diag([2 2]);%in N   CONTINUOUS TIME, needs discretization
 
 
 %%%%%%%% PARAMETERS %%%%%%%%%%%
-xmin = -65;
-xmax = 65;
-ymin = 90;
-ymax = 110;
+xmin = 90;
+xmax = 110;
+ymin = -70;
+ymax = 70;
 increment = 1;
 
-xpinger1 = -50; ypinger1 = 100;
-xpinger2 = 50; ypinger2 = 100;
+xpinger1 = 100; ypinger1 = -50;
+xpinger2 = 100; ypinger2 = 50;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -39,10 +39,10 @@ xpinger2 = 50; ypinger2 = 100;
             0;  % y
             0;  % x_dot
             0;  % y_dot
-            -50;  % x1  (Pinger 1)
-            100;  % y1  (Pinger 1)
-            50;  % x2 (Pinger 2)
-           100];% y2 (Pinger 2)
+            xpinger1;  % x1  (Pinger 1)
+            ypinger1;  % y1  (Pinger 1)
+            xpinger2;  % x2 (Pinger 2)
+            ypinger2];% y2 (Pinger 2)
         
         
         
