@@ -128,13 +128,13 @@ void translationalController(MeasuredState* measuredState,
         math::Vector2 velocityError = desiredState->velocity -
             measuredState->velocity;
         
-        // The actualy change in our speed
+        // The actual change in our speed
         math::Vector2 speedDelta =
             velocityError * controllerState->velocityPGain;
 
         // Update the speeds
-        desiredState->speed += speedDelta.x;
-        desiredState->sidewaysSpeed += speedDelta.y;
+        desiredState->speed += speedDelta.y;
+        desiredState->sidewaysSpeed += speedDelta.x;
     }
     
     //fore-aft control (open loop, not really control) done in interial

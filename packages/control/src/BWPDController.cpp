@@ -659,7 +659,7 @@ void BWPDController::init(core::ConfigNode config)
     m_controllerState->speedPGain = config["speedPGain"].asInt(1);
     m_controllerState->sidewaysSpeedPGain =
         config["sidewaysSpeedPGain"].asInt(1);
-    m_controllerState->velocityPGain = config["velocityPGain"].asInt(1);
+    m_controllerState->velocityPGain = config["velocityPGain"].asDouble(1);
     m_controllerState->useVelocityControl = false;
     
     switch(m_controllerState->depthControlType)
