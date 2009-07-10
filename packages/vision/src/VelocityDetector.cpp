@@ -42,7 +42,8 @@ VelocityDetector::VelocityDetector(core::ConfigNode config,
                                    core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_currentFrame(new OpenCVImage(640, 480)),
-    m_lastFrame(new OpenCVImage(640, 480))
+    m_lastFrame(new OpenCVImage(640, 480)),
+    m_first(true)
 {
     init(config);
 }
@@ -113,6 +114,14 @@ void VelocityDetector::processImage(Image* input, Image* output)
 
     // Copy the current frame locally
     m_currentFrame->copyFrom(input);
+    if (m_first)
+    {
+        // Initialize to the same as the current
+        m_lastFrame->copyFrom(input);      
+	cvCvtColor(m_lastFrame->asIplImage(), m_lastGreyScale, CV_BGR2GRAY);
+        m_first = false;
+    }
+
 
     if (0 != output)
     {

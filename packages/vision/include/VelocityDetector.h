@@ -143,6 +143,9 @@ class RAM_EXPORT VelocityDetector : public Detector
     /** The last frame we recieved, use to compare against */
     Image* m_lastFrame;
 
+    /** True only for the first run */
+    bool m_first;
+
     /** The last velocity we calculated */
     math::Vector2 m_velocity;
 };
