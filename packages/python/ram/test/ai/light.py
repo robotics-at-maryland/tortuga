@@ -46,7 +46,7 @@ class TestStart(support.AITestCase):
         # Make sure it stored the original orientation
         self.assertTrue(self.ai.data.has_key('lightStartOrientation'))
         self.assertEqual(
-            self.ai.data['lightStartOrientation'].valueDegrees(), 0)
+            self.ai.data['lightStartOrientation'], 0)
         
     def testConfig(self):
         self.assertEqual(TestStart.DEPTH, 

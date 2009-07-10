@@ -101,6 +101,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         vehicleOrientation = self.vehicle.getOrientation().getYaw().valueDegrees()
         
         # Load the thresholds for searching
+        self._yThreshold = self._config.get('yThreshold', 0.05)
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
         self._advanceSpeed = self._config.get('advancedSpeed', 1)
         self._closeDepthChange = self._config.get('closeDepthChange', 0.5)
@@ -122,10 +123,10 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             # Find the current depth and create the motion
             newDepth = self.controller.getDepth()
             changeDepth = False
-            if event.y > 0:
+            if event.y > self._yThreshold:
                 newDepth = newDepth - self._closeDepthChange
                 changeDepth = True
-            elif event.y < 0:
+            elif event.y < (0.0 - self._yThreshold):
                 newDepth = newDepth + self._closeDepthChange
                 changeDepth = True
             diveMotion = motion.basic.RateChangeDepth(desiredDepth = newDepth,
