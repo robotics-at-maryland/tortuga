@@ -302,7 +302,7 @@ class FarSeekingToRange(SeekingToRange):
                                           inRangeState = FarSeekingToAligned)
     
     def enter(self):
-        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
+        SeekingToRange.enter(self, maxAlignCheckWidth = 0.35, maxOverlap = 0.1)
         
 class CloseSeekingToRange(SeekingToRange):
     @staticmethod
@@ -446,7 +446,7 @@ class CloseSeekingToAligned(SeekingToAligned):
         return SeekingToAligned.transitions(CloseSeekingToAligned, Aligning)
     
     def enter(self):
-        SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.5,
+        SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.25,
                                rangeThreshold = 0.05)
 
 class SeekingToAligned2(TargetAlignState, state.State, StoreBarbedWireEvent):

@@ -352,22 +352,22 @@ Subsystems:
                 yZero: 0.5 #0.65
                 translateGain: 2.5
             ram.ai.barbedwire.CloseSeekingToRange:
-                desiredRange: 0.5
-                maxSpeed: 3.0
+                desiredRange: 0.25
+                maxSpeed: 2.0
                 depthGain: 0
                 yZero: 0.5 #0.65
-                translateGain: 2.5
+                translateGain: 1.5
             ram.ai.barbedwire.FarSeekingToAligned:
                 desiredRange: 0.5
                 maxSidewaysSpeed: 2
                 alignGain: 10
-                minAlignment: 0.05
+                minAlignment: 0.15
                 depthGain: 0 #1
                 yZero: 0.5 #0.65
             ram.ai.barbedwire.CloseSeekingToAligned:
-                desiredRange: 0.5
-                maxSidewaysSpeed: 2
-                alignGain: 10
+                desiredRange: 0.25
+                maxSidewaysSpeed: 1
+                alignGain: 5
                 minAlignment: 0.05
                 depthGain: 0 #1
                 yZero: 0.5 #0.65

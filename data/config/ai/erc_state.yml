@@ -82,16 +82,16 @@ ram.ai.barbedwire.FarSeekingToRange:
 ram.ai.barbedwire.CloseSeekingToRange:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    desiredRange: 0.7
-    translateGain: 2.5
-    maxSpeed: 3
+    desiredRange: 0.35
+    translateGain: 1.5
+    maxSpeed: 2
     maxRangeDiff: 0.5
-    rangeGain: 2.5
+    rangeGain: 1.5
 ram.ai.barbedwire.FarSeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
     alignGain: 20
-    minAlignment: 0.1
+    minAlignment: 0.2
     maxSidewaysSpeed: 1.0
     maxSpeed: 5
     maxRangeDiff: 0.5
@@ -100,13 +100,13 @@ ram.ai.barbedwire.FarSeekingToAligned:
 ram.ai.barbedwire.CloseSeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    alignGain: 20
+    alignGain: 10
     minAlignment: 0.1
     maxSidewaysSpeed: 1.0
-    maxSpeed: 5
+    maxSpeed: 2.5
     maxRangeDiff: 0.5
-    rangeGain: 5
-    desiredRange: 0.7
+    rangeGain: 2.5
+    desiredRange: 0.35
 ram.ai.barbedwire.Aligning:
     depthGain: 0 #0.125
     maxDepthDt: 0.3
