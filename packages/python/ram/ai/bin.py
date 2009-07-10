@@ -100,11 +100,51 @@ class HoveringState(state.State):
             self.ai.data["lastBinY"] = event.y
 
     def BIN_DROPPED(self, event):
+        self._cleanupHistogram(event.id)
+        
+        if self._currentBin(event):
+            # Check if we have other ids and switch to one of those
+            currentIds = self.ai.data['binData']['currentIds']
+            if currentIds is not None:
+                newEvent = self._findClosestBinIdEvent()
+                if newEvent is not None:
+                    self.ai.data['binData']['currentID'] = newEvent.id
+                
+    def _findClosestBinIdEvent(self):
+        closestIdEvent = None
+        currentBins = [b for b in self.ai.data['binData']['currentIds']]
+        if len(currentBins) > 0:
+            binIDs = sorted(currentBins, self._compareByDistance)
+            
+            closestIdEvent = self.ai.data['binData']['itemData'][binIDs[0]]
+        
+        return closestIdEvent
+                
+    def _compareByDistance(self, idA, idB):
+        """
+        Sorts the list with the closest bin at the start
+        
+        @type idA: int
+        @param idA: ID of the bin compare
+        
+        @type idB: int
+        @param idB: ID of the other bin to compare
+        """
+        binData = self.ai.data['binData']['itemData']
+        binADistance = math.Vector2(binData[idA].x, binData[idA].y).length()
+        binBDistance = math.Vector2(binData[idB].x, binData[idB].y).length()
+        
+        if binADistance < binBDistance:
+            return -1
+        else:
+            return 1
+                
+    def _cleanupHistogram(self, id):
         # Cleanup the histogram data
         histogram = self.ai.data['binData']['histogram']
 
-        if histogram.has_key(event.id):
-            del histogram[event.id]
+        if histogram.has_key(id):
+            del histogram[id]
 
     def enter(self, useMultiAngle = False):
         """
@@ -180,6 +220,13 @@ class BinSortingState(HoveringState):
         if self._currentBin(event): 
             if math.Vector2(event.x, event.y).length() < self._centeredRange:
                 self.publish(BinSortingState.CENTERED_, core.Event())
+                
+    def BIN_DROPPED(self, event):
+        # Do not use HoveringState's BIN_DROPPED
+        self._cleanupHistogram(event.id)
+        
+        if self._currentBin(event):
+            self.fixEdgeBin()
     
     def enter(self, direction, useMultiAngle = False):
         """
@@ -359,38 +406,19 @@ class Seeking(HoveringState):
         return HoveringState.transitions(Seeking,
             { Seeking.BIN_CENTERED : Centering })
  
-    def _compareByDistance(self, idA, idB):
-        """
-        Sorts the list with the closest bin at the start
-        
-        @type idA: int
-        @param idA: ID of the bin compare
-        
-        @type idB: int
-        @param idB: ID of the other bin to compare
-        """
-        binData = self.ai.data['binData']['itemData']
-        binADistance = math.Vector2(binData[idA].x, binData[idA].y).length()
-        binBDistance = math.Vector2(binData[idB].x, binData[idB].y).length()
-        
-        if binADistance < binBDistance:
-            return -1
-        else:
-            return 1
- 
     def BIN_FOUND(self, event):
         eventDistance = math.Vector2(event.x, event.y).length()
         
-        # Change the currentID to the closest bin
-        currentBins = [b for b in self.ai.data['binData']['currentIds']]
-        if len(currentBins) > 0:
-            binIDs = sorted(currentBins, self._compareByDistance)
-            self.ai.data['binData']['currentID'] = binIDs[0]
+        closestIdEvent = self._findClosestBinIdEvent()
+        if closestIdEvent is None:
+            self.ai.data['binData']['currentID'] = event.id
+        else:
+            closestIdDistance = math.Vector2(closestIdEvent.x,
+                                             closestIdEvent.y).length()
             
-            # If the new event is closer, then it is our current ID
-            currentIdEvent = self.ai.data['binData']['itemData'][binIDs[0]]
-            if eventDistance < math.Vector2(currentIdEvent.x,
-                                            currentIdEvent.y).length():
+            if closestIdDistance < eventDistance:
+                self.ai.data['binData']['currentID'] = closestIdEvent.id
+            else:
                 self.ai.data['binData']['currentID'] = event.id
         
         # Disable angle tracking
@@ -796,7 +824,7 @@ class Examine(HoveringState):
     def enter(self, timeout = 2):
         HoveringState.enter(self)
 
-        self._minimumHits = self._config.get('minimumHits', 100)
+        self._minimumHits = self._config.get('minimumHits', 40)
 
         self._timeout = self._config.get('timeout', timeout)
 

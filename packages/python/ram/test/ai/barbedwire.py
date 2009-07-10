@@ -369,6 +369,24 @@ class TestCloseSeekingToAligned(TestFarSeekingToAligned):
         TestFarSeekingToAligned.setUp(self, myState = barbedwire.CloseSeekingToAligned,
                                       nextState = barbedwire.Aligning)
         
+    def testAligned(self):
+        # Inject and event which has the target ahead, and at the needed range
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = 0.05, topY = -0.1, topWidth = 0.75,
+                         bottomX = 0.03, bottomY = -0.5, bottomWidth = 0.3)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.05)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.1)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.75)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomX, 0.03)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomY, -0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.3)
+        
+        # Make sure we get the ALIGNED event
+        self.qeventHub.publishEvents()
+        self.assert_(self._aligned)
+        self.assertCurrentState(self.nextState)
+        
 class TestAligning(AlignmentTest, support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)

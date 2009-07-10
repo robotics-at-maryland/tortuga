@@ -253,6 +253,8 @@ class TestSeeking(BinTestCase):
         
     def testBinFound(self):
         """Make sure new found events move the vehicle"""
+        # We need to inject a closer event of id 6 for binFoundHelper
+        self.publishQueuedBinFound(x = 0, y = 0, id = 6)
         self.binFoundHelper(False)
 
     def testBinTracking(self):

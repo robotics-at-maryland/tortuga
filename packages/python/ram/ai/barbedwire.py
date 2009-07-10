@@ -302,7 +302,7 @@ class FarSeekingToRange(SeekingToRange):
                                           inRangeState = FarSeekingToAligned)
     
     def enter(self):
-        SeekingToRange.enter(self, maxAlignCheckWidth = 0.35, maxOverlap = 0.1)
+        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
         
 class CloseSeekingToRange(SeekingToRange):
     @staticmethod
