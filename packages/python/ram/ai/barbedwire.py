@@ -206,7 +206,7 @@ class FindAttempt(state.FindAttempt, StoreBarbedWireEvent):
     @staticmethod
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.BARBED_WIRE_FOUND,
-                                             SeekingToRange, Searching)
+                                             FarSeekingToRange, Searching)
         
     def enter(self):
         state.FindAttempt.enter(self)
@@ -219,7 +219,7 @@ class Searching(state.State, StoreBarbedWireEvent):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.BARBED_WIRE_FOUND : SeekingToRange }
+        return { vision.EventType.BARBED_WIRE_FOUND : FarSeekingToRange }
 
     def enter(self):
         # Make sure the detector is on the vision system
@@ -241,9 +241,9 @@ class SeekingToRange(RangeXYHold):
     """
     
     @staticmethod
-    def transitions():
-        return RangeXYHold.transitions(SeekingToRange, {
-            RangeXYHold.IN_RANGE : SeekingToAligned })
+    def transitions(myState, inRangeState):
+        return RangeXYHold.transitions(myState, {
+            RangeXYHold.IN_RANGE : inRangeState })
 
     def BARBED_WIRE_FOUND(self, event):
         """
@@ -286,13 +286,32 @@ class SeekingToRange(RangeXYHold):
         else:
             self.publish(SeekingToRange.IN_RANGE, core.Event())    
 
-    def enter(self):
+    def enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1):
         # Do the normal enter functions
         RangeXYHold.enter(self)
         
         # Load config options
-        self._maxAlignCheckWidth = self._config.get('maxAlignCheckWidth', 0.7)
-        self._maxOverlap = self._config.get('maxOverlap', 0.1)
+        self._maxAlignCheckWidth = self._config.get('maxAlignCheckWidth',
+                                                    maxAlignCheckWidth)
+        self._maxOverlap = self._config.get('maxOverlap', maxOverlap)
+        
+class FarSeekingToRange(SeekingToRange):
+    @staticmethod
+    def transitions():
+        return SeekingToRange.transitions(myState = FarSeekingToRange,
+                                          inRangeState = FarSeekingToAligned)
+    
+    def enter(self):
+        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
+        
+class CloseSeekingToRange(SeekingToRange):
+    @staticmethod
+    def transitions():
+        return SeekingToRange.transitions(myState = CloseSeekingToRange,
+                                          inRangeState = CloseSeekingToAligned)
+        
+    def enter(self):
+        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
 
 class SeekingToRange2(RangeXYHold):
     """
@@ -380,11 +399,11 @@ class SeekingToAligned(TargetAlignState, state.State):
     CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
     
     @staticmethod
-    def transitions():
-        return { vision.EventType.BARBED_WIRE_FOUND : SeekingToAligned,
+    def transitions(myState, alignedState):
+        return { vision.EventType.BARBED_WIRE_FOUND : myState,
                  vision.EventType.BARBED_WIRE_LOST : FindAttempt,
-                 SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
-                 SeekingToAligned.ALIGNED : Aligning }
+                 SeekingToAligned.CHECK_DIRECTION : myState,
+                 SeekingToAligned.ALIGNED : alignedState }
 
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
@@ -402,13 +421,33 @@ class SeekingToAligned(TargetAlignState, state.State):
         # Update motion
         TargetAlignState.BARBED_WIRE_FOUND(self, event)
         
-    def enter(self):
+    def enter(self, minAlignment = 0.1, desiredRange = 0.5,
+              rangeThreshold = 0.05):
         TargetAlignState.enter(self)
         
         # Record threshold
-        self._minAlignment = self._config.get('minAlignment', 0.1)
-        self._desiredRange = self._config.get('desiredRange', 0.5)
-        self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
+        self._minAlignment = self._config.get('minAlignment', minAlignment)
+        self._desiredRange = self._config.get('desiredRange', desiredRange)
+        self._rangeThreshold = self._config.get('rangeThreshold', rangeThreshold)
+        
+class FarSeekingToAligned(SeekingToAligned):
+    @staticmethod
+    def transitions():
+        return SeekingToAligned.transitions(FarSeekingToAligned,
+                                            CloseSeekingToRange)
+        
+    def enter(self):
+        SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.5,
+                               rangeThreshold = 0.05)
+        
+class CloseSeekingToAligned(SeekingToAligned):
+    @staticmethod
+    def transitions():
+        return SeekingToAligned.transitions(CloseSeekingToAligned, Aligning)
+    
+    def enter(self):
+        SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.5,
+                               rangeThreshold = 0.05)
 
 class SeekingToAligned2(TargetAlignState, state.State, StoreBarbedWireEvent):
     """

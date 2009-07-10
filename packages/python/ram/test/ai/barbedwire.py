@@ -68,7 +68,7 @@ class TestFindAttempt(support.AITestCase):
         # Now change states
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0)
-        self.assertCurrentState(barbedwire.SeekingToRange)
+        self.assertCurrentState(barbedwire.FarSeekingToRange)
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0)
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0)
         
@@ -105,7 +105,7 @@ class TestSearching(support.AITestCase):
         # Now change states
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
                          vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0)
-        self.assertCurrentState(barbedwire.SeekingToRange)
+        self.assertCurrentState(barbedwire.FarSeekingToRange)
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0)
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0)
         
@@ -198,15 +198,18 @@ class TestRangeXYHoldNoDepth(TestRangeXYHold):
         self.qeventHub.publishEvents()
         self.assert_(self._inRange)
 
-class TestSeekingToRange(TestRangeXYHold):
-    def setUp(self):
-        TestRangeXYHold.setUp(self, barbedwire.SeekingToRange)
+class TestFarSeekingToRange(TestRangeXYHold):
+    def setUp(self, myState = barbedwire.FarSeekingToRange,
+              nextState = barbedwire.FarSeekingToAligned):
+        self.myState = myState
+        self.nextState = nextState
+        TestRangeXYHold.setUp(self, self.myState)
            
     def testInRange(self):
         TestRangeXYHold.testInRange(self)
 
         # Make sure we ended up in the right place
-        self.assertCurrentState(barbedwire.SeekingToAligned)
+        self.assertCurrentState(self.nextState)
         
     def testSideBySidePipesLeft(self):
         # Test top on the left
@@ -220,7 +223,7 @@ class TestSeekingToRange(TestRangeXYHold):
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomY, 0.25)
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.3)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(barbedwire.SeekingToAligned)
+        self.assertCurrentState(self.nextState)
         
     def testSideBySidePipesRight(self):
         # Test top on the right
@@ -228,7 +231,12 @@ class TestSeekingToRange(TestRangeXYHold):
                                bottomX = -0.25, bottomY = 0.5, 
                                bottomWidth = 0.3)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(barbedwire.SeekingToAligned)
+        self.assertCurrentState(self.nextState)
+        
+class TestCloseSeekingToRange(TestFarSeekingToRange):
+    def setUp(self):
+        TestFarSeekingToRange.setUp(self, myState = barbedwire.CloseSeekingToRange,
+                                    nextState = barbedwire.CloseSeekingToAligned)
         
 class AlignmentTest(object):
     def testStart(self):
@@ -299,10 +307,13 @@ class AlignmentTest(object):
         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
 
 
-class TestSeekingToAligned(AlignmentTest, support.AITestCase):
-    def setUp(self):
+class TestFarSeekingToAligned(AlignmentTest, support.AITestCase):
+    def setUp(self, myState = barbedwire.FarSeekingToAligned,
+              nextState = barbedwire.CloseSeekingToRange):
         support.AITestCase.setUp(self)
-        self.machine.start(barbedwire.SeekingToAligned)
+        self.myState = myState
+        self.nextState = nextState
+        self.machine.start(self.myState)
 
         # Subscribe to in range event
         self._aligned = False
@@ -327,7 +338,7 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Make sure we get the ALIGNED event
         self.qeventHub.publishEvents()
         self.assert_(self._aligned)
-        self.assertCurrentState(barbedwire.Aligning)
+        self.assertCurrentState(self.nextState)
         
     def testAlignedBadRange(self):
         # Inject and event which has the target ahead, and at the needed range
@@ -339,7 +350,7 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Make sure we get the ALIGNED event
         self.qeventHub.publishEvents()
         self.assertFalse(self._aligned)
-        self.assertCurrentState(barbedwire.SeekingToAligned)
+        self.assertCurrentState(self.myState)
 
     def testAlignedNoBottom(self):
         # Make sure we aren't called aligned if there is no bottom pipe
@@ -351,7 +362,12 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Make sure we didn't get the aligned event and stayed in the same state
         self.qeventHub.publishEvents()
         self.assertFalse(self._aligned)
-        self.assertCurrentState(barbedwire.SeekingToAligned)
+        self.assertCurrentState(self.myState)
+        
+class TestCloseSeekingToAligned(TestFarSeekingToAligned):
+    def setUp(self):
+        TestFarSeekingToAligned.setUp(self, myState = barbedwire.CloseSeekingToAligned,
+                                      nextState = barbedwire.Aligning)
         
 class TestAligning(AlignmentTest, support.AITestCase):
     def setUp(self):

@@ -71,7 +71,7 @@ ram.ai.target.FireTorpedos:
 # Barbed wire AI     
 ram.ai.barbedwire.Start:
     diveDepth: 6.2
-ram.ai.barbedwire.SeekingToRange:
+ram.ai.barbedwire.FarSeekingToRange:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
     desiredRange: 0.7
@@ -79,7 +79,25 @@ ram.ai.barbedwire.SeekingToRange:
     maxSpeed: 3
     maxRangeDiff: 0.5
     rangeGain: 2.5
-ram.ai.barbedwire.SeekingToAligned:
+ram.ai.barbedwire.CloseSeekingToRange:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    desiredRange: 0.7
+    translateGain: 2.5
+    maxSpeed: 3
+    maxRangeDiff: 0.5
+    rangeGain: 2.5
+ram.ai.barbedwire.FarSeekingToAligned:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    alignGain: 20
+    minAlignment: 0.1
+    maxSidewaysSpeed: 1.0
+    maxSpeed: 5
+    maxRangeDiff: 0.5
+    rangeGain: 5
+    desiredRange: 0.7
+ram.ai.barbedwire.CloseSeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
     alignGain: 20
