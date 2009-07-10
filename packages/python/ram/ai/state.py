@@ -473,7 +473,7 @@ class Machine(core.Subsystem):
         return self._branches
 
     @staticmethod
-    def writeStateGraph(fileobj, state, ordered = False):
+    def writeStateGraph(fileobj, state, ordered = False, noLoops = False):
         """
         Write the graph of the state machine starting at the given state to
         the fileobj.
@@ -492,7 +492,7 @@ class Machine(core.Subsystem):
         stateTransitionList = []
         traversedStates = []
         
-        Machine._traverse(state, stateTransitionList, traversedStates)
+        Machine._traverse(state, stateTransitionList, traversedStates, noLoops)
         
         # Sort list for determinism
         if ordered:
@@ -516,7 +516,7 @@ class Machine(core.Subsystem):
         fileobj.flush() # Push data to file
         
     @staticmethod
-    def _traverse(currentState,stateList,traversedList):
+    def _traverse(currentState,stateList,traversedList,noLoops=False):
         if 0 == len(currentState.transitions()):
             if not currentState in traversedList:
                     traversedList.append(currentState)
@@ -533,16 +533,18 @@ class Machine(core.Subsystem):
                 # Determine state names
                 startName = Machine._dottedName(currentState)
                 endName = Machine._dottedName(aiState)
-                
-                strStruct = "%s -> %s [label=%s,style=%s]" % \
-                    (startName, endName, eventName, style)
-                stateList.append(strStruct)
-                if not currentState in traversedList:
-                    traversedList.append(currentState)
 
-                # Don't recuse on a state we have already seen
-                if not aiState in traversedList:
-                    Machine._traverse(aiState,stateList,traversedList)
+                if (not noLoops) or (startName != endName):
+                    strStruct = "%s -> %s [label=%s,style=%s]" % \
+                        (startName, endName, eventName, style)
+                    stateList.append(strStruct)
+                    if not currentState in traversedList:
+                        traversedList.append(currentState)
+
+                    # Don't recuse on a state we have already seen
+                    if not aiState in traversedList:
+                        Machine._traverse(aiState, stateList,
+                                          traversedList, noLoops)
     @staticmethod
     def _dottedName(cls):
         return cls.__module__.replace('.','_') + '_' + cls.__name__

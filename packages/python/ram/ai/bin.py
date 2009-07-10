@@ -529,6 +529,10 @@ class RecoverDropMarker(Recover):
     @staticmethod
     def transitions():
         return Recover.transitions(DropMarker)
+class RecoverCheckDropped(Recover):
+    @staticmethod
+    def transitions():
+        return Recover.transitions(CheckDropped)
 class RecoverSurfaceToCruise(Recover):
     @staticmethod
     def transitions():
@@ -949,7 +953,7 @@ class NextBin(BinSortingState):
     def transitions():
         return HoveringState.transitions(NextBin,
             {BinSortingState.CENTERED_ : Dive, 
-             NextBin.AT_END : SurfaceToCruise },
+             NextBin.AT_END : CheckDropped },
              lostState = RecoverNextBin)
     
     def _getNextBin(self, sortedBins, currentBinId):
@@ -1032,13 +1036,47 @@ class DropMarker(SettlingState):
         droppingSymbol = self.ai.data['droppingSymbol']
         self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
         
+class CheckDropped(HoveringState):
+    """
+    Check if all of the markers have been dropped.
+    """
+    
+    FINISH = core.declareEventType('FINISH')
+    RESTART = core.declareEventType('RESTART')
+    
+    @staticmethod
+    def transitions():
+        return HoveringState.transitions(RecoverCheckDropped,
+            { CheckDropped.FINISH : SurfaceToCruise,
+              CheckDropped.RESTART : Dive }, lostState = RecoverCheckDropped)
+        
+    def enter(self):
+        self._maximumScans = self._config.get('maximumScans', 2)
+        data = self.ai.data
+        
+        if data.get('markersDropped', 0) < 2:
+            # We haven't gotten them all
+            # Increment the number of times through  and restart
+            data['numOfScans'] = data.get('numOfScans', 0) + 1
+            if data['startSide'] == BinSortingState.LEFT:
+                data['startSide'] = BinSortingState.RIGHT
+            else:
+                data['startSide'] = BinSortingState.LEFT
+            if data['numOfScans'] < self._maximumScans:
+                self.publish(CheckDropped.RESTART, core.Event())
+            else:
+                self.publish(CheckDropped.FINISH, core.Event())
+        else:
+            # We've dropped them all. Finish.
+            self.publish(CheckDropped.FINISH, core.Event())
+        
 class SurfaceToCruise(HoveringState):
     """
     Goes back to starting cruise depth we had before we started the bins
     """
     @staticmethod
     def transitions():
-        return SettlingState.transitions(SurfaceToCruise,
+        return HoveringState.transitions(SurfaceToCruise,
             { motion.basic.Motion.FINISHED : End },
             lostState = RecoverSurfaceToCruise)
         

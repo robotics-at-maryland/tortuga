@@ -1065,7 +1065,6 @@ class TestNextBin(BinTestCase):
         self.assertFalse(self._atEnd)
         self.assertFalse(self._centered)
         
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.ai.data['binData']['currentID'] = 3
         self.ai.data['binData']['currentIds'] = set([3,4])
         self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0)}
@@ -1074,6 +1073,9 @@ class TestNextBin(BinTestCase):
         
         self.assert_(self._atEnd)
         self.assertFalse(self._centered)
+        
+        # Make sure it loops through CheckDropped and goes to Dive
+        self.assertCurrentState(bin.Dive)
         
     def testStartNotEnd(self):
         self.assertFalse(self._atEnd)
@@ -1151,7 +1153,7 @@ class TestNextBin(BinTestCase):
     def testAtEnd(self):
         self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(bin.NextBin.AT_END)
-        self.assertCurrentState(bin.SurfaceToCruise)
+        self.assertCurrentState(bin.CheckDropped)
         
     def testBinLost(self):
         """Make sure losing the bin goes back to search"""
@@ -1202,6 +1204,7 @@ class TestDropMarker(BinTestCase):
 
         # Needed to DROPPED transition handler
         self.ai.data['markersDropped'] = 2
+
         # Needed for SurfaceToCruise
         self.ai.data['preBinCruiseDepth'] = 5.0 
 
@@ -1235,6 +1238,53 @@ class TestDropMarker(BinTestCase):
         
         self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.RecoverDropMarker)
+        
+class TestCheckDropped(BinTestCase):
+    def setUp(self):
+        BinTestCase.setUp(self)
+        self.ai.data['startSide'] = bin.BinSortingState.RIGHT
+        
+        # Needed for SurfaceToCruise
+        self.ai.data['preBinCruiseDepth'] = 5.0 
+        
+    def testNoMarkers(self):
+        self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        self.machine.start(bin.CheckDropped)
+        
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.Dive)
+        self.assertAIDataValue('startSide', bin.BinSortingState.LEFT)
+        self.assertAIDataValue('numOfScans', 1)
+        
+    def testOneMarker(self):
+        self.ai.data['markersDropped'] = 1
+        self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        self.machine.start(bin.CheckDropped)
+        
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.Dive)
+        self.assertAIDataValue('startSide', bin.BinSortingState.LEFT)
+        self.assertAIDataValue('numOfScans', 1)
+        
+    def testTwoMarkers(self):
+        self.ai.data['markersDropped'] = 2
+        self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        self.machine.start(bin.CheckDropped)
+        
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToCruise)
+        self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        
+    def testTooManyScans(self):
+        self.ai.data['markersDropped'] = 1
+        self.ai.data['numOfScans'] = 2
+        self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        self.machine.start(bin.CheckDropped)
+        
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToCruise)
+        self.assertAIDataValue('startSide', bin.BinSortingState.LEFT)
+        self.assertAIDataValue('numOfScans', 3)
         
 class TestSurface(BinTestCase):
     def setUp(self):
