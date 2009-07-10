@@ -132,6 +132,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_barbedWireDetector = DetectorPtr(
         new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
                                eventHub));
+    m_velocityDetector = DetectorPtr(
+        new VelocityDetector(getConfig(config, "VelocityDetector"),
+			     eventHub));
     
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -160,6 +163,18 @@ void VisionSystem::createRecorders(core::ConfigNode recorderCfg,
         // Store it for later desctruction
         m_recorders.push_back(recorder);
     }
+}
+
+void VisionSystem::addForwardDetector(DetectorPtr detector)
+{
+    assert(detector && "Can't use a NULL detector");
+    m_forward->addDetector(detector);
+}
+
+void VisionSystem::addDownwardDetector(DetectorPtr detector)
+{
+    assert(detector && "Can't use a NULL detector");
+    m_downward->addDetector(detector);
 }
 
 core::ConfigNode VisionSystem::getConfig(core::ConfigNode config,
@@ -191,7 +206,7 @@ VisionSystem::~VisionSystem()
 
 void VisionSystem::binDetectorOn()
 {
-    m_downward->addDetector(m_binDetector);
+    addDownwardDetector(m_binDetector);
     publish(EventType::BIN_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -205,7 +220,7 @@ void VisionSystem::binDetectorOff()
 
 void VisionSystem::pipeLineDetectorOn()
 {
-    m_downward->addDetector(m_pipelineDetector);
+    addDownwardDetector(m_pipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -219,7 +234,7 @@ void VisionSystem::pipeLineDetectorOff()
 
 void VisionSystem::ductDetectorOn()
 {
-    m_forward->addDetector(m_ductDetector);
+    addForwardDetector(m_ductDetector);
     publish(EventType::DUCT_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -233,7 +248,7 @@ void VisionSystem::ductDetectorOff()
 
 void VisionSystem::downwardSafeDetectorOn()
 {
-    m_downward->addDetector(m_downwardSafeDetector);
+    addDownwardDetector(m_downwardSafeDetector);
     publish(EventType::SAFE_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -247,7 +262,7 @@ void VisionSystem::downwardSafeDetectorOff()
     
 void VisionSystem::gateDetectorOn()
 {
-    m_forward->addDetector(m_gateDetector);
+    addForwardDetector(m_gateDetector);
     publish(EventType::GATE_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -261,7 +276,7 @@ void VisionSystem::gateDetectorOff()
 
 void VisionSystem::redLightDetectorOn()
 {
-    m_forward->addDetector(m_redLightDetector);
+    addForwardDetector(m_redLightDetector);
     publish(EventType::RED_LIGHT_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -275,7 +290,7 @@ void VisionSystem::redLightDetectorOff()
 
 void VisionSystem::targetDetectorOn()
 {
-    m_forward->addDetector(m_targetDetector);
+    addForwardDetector(m_targetDetector);
     publish(EventType::TARGET_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -289,7 +304,7 @@ void VisionSystem::targetDetectorOff()
 
 void VisionSystem::barbedWireDetectorOn()
 {
-    m_forward->addDetector(m_barbedWireDetector);
+    addForwardDetector(m_barbedWireDetector);
     publish(EventType::BARBED_WIRE_DETECTOR_ON,
 	    core::EventPtr(new core::Event()));
 }
@@ -303,7 +318,7 @@ void VisionSystem::barbedWireDetectorOff()
 
 void VisionSystem::velocityDetectorOn()
 {
-    m_downward->addDetector(m_velocityDetector);
+    addDownwardDetector(m_velocityDetector);
 }
     
 void VisionSystem::velocityDetectorOff()

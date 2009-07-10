@@ -122,38 +122,43 @@ public:
 
     /** Get vertical pixel resolution */
     static int getDownVerticalPixelResolution();
-    
-protected:
-    /** Set horizontal field of view */
+
+    /** Set horizontal field of view (Internal use only) */
     static void _setFrontHorizontalFieldOfView(math::Degree degree);
 
-    /** Set vertical field of view */
+    /** Set vertical field of view (Internal use only) */
     static void _setFrontVerticalFieldOfView(math::Degree degree);
 
-    /** Set horizontal pixel resolution */
+    /** Set horizontal pixel resolution (Internal use only) */
     static void _setFrontHorizontalPixelResolution(int pixels);
 
-    /** Set vertical pixel resolution */
+    /** Set vertical pixel resolution (Internal use only) */
     static void _setFrontVerticalPixelResolution(int pixels);
 
-    /** Set horizontal field of view */
+    /** Set horizontal field of view (Internal use only) */
     static void _setDownHorizontalFieldOfView(math::Degree degree);
 
-    /** Set vertical field of view */
+    /** Set vertical field of view (Internal use only) */
     static void _setDownVerticalFieldOfView(math::Degree degree);
 
-    /** Set horizontal pixel resolution */
+    /** Set horizontal pixel resolution (Internal use only) */
     static void _setDownHorizontalPixelResolution(int pixels);
 
-    /** Set vertical pixel resolution */
+    /** Set vertical pixel resolution (Internal use only) */
     static void _setDownVerticalPixelResolution(int pixels);
-
+    
     
 private:
     /** Initializes all internal members */
     void init(core::ConfigNode config, core::EventHubPtr eventHub);
 
     void createRecorders(core::ConfigNode recorderCfg, CameraPtr camera);
+
+    /** Add a detector to the forward runner */
+    void addForwardDetector(DetectorPtr detector);
+
+    /** Add a detector to the downward runner */
+    void addDownwardDetector(DetectorPtr detector);
 
     core::ConfigNode getConfig(core::ConfigNode config, std::string name);
     

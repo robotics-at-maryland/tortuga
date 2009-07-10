@@ -23,9 +23,19 @@
 
 #include "vision/test/include/MockCamera.h"
 
+#include "math/test/include/MathChecks.h"
+#include "math/include/Events.h"
+
 using namespace ram;
 
 void drawRedCircle(vision::Image* image, int x, int y, int radius = 50);
+
+static const std::string CONFIG = "{"
+  "'testing' : 1,"
+  "'VelocityDetector' : {"
+  "    'usePhaseCorrelation' : 1"
+  "}"
+"}";
 
 struct VisionSystemFixture
 {
@@ -54,7 +64,7 @@ struct VisionSystemFixture
         eventHub(new core::EventHub()),
         vision(vision::CameraPtr(forwardCamera),
                vision::CameraPtr(downwardCamera),
-               core::ConfigNode::fromString("{'testing' : 1}"),
+               core::ConfigNode::fromString(CONFIG),
                boost::assign::list_of(eventHub))
     {
         eventHub->subscribeToType(vision::EventType::LIGHT_FOUND,
@@ -67,6 +77,8 @@ struct VisionSystemFixture
             boost::bind(&VisionSystemFixture::targetFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BARBED_WIRE_FOUND,
             boost::bind(&VisionSystemFixture::barbedWireFoundHandler,this,_1));
+        eventHub->subscribeToType(vision::EventType::VELOCITY_UPDATE,
+            boost::bind(&VisionSystemFixture::velocityUpdateHandler,this,_1));
     }
 
     void runDetectorForward()
@@ -117,6 +129,12 @@ struct VisionSystemFixture
         barbedWireEvent =
             boost::dynamic_pointer_cast<vision::BarbedWireEvent>(event_);
     }
+
+    void velocityUpdateHandler(core::EventPtr event_)
+    {
+        velocityEvent =
+    	    boost::dynamic_pointer_cast<math::Vector2Event>(event_);
+    }
  
     
     bool redFound;
@@ -133,6 +151,8 @@ struct VisionSystemFixture
 
     bool barbedWireFound;
     vision::BarbedWireEventPtr barbedWireEvent;
+
+    math::Vector2EventPtr velocityEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -282,5 +302,31 @@ TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)
     CHECK_CLOSE(expectedBottomY, barbedWireEvent->bottomY, 0.000001);
     CHECK_CLOSE(expectedBottomWidth, barbedWireEvent->bottomWidth, 0.000001);
 }
+
+TEST_FIXTURE(VisionSystemFixture, VelocityDetector)
+{
+    vision.velocityDetectorOn();
+
+    // First image square in center
+    vision::makeColor(&downwardImage, 0, 0, 0);
+    drawSquare(&downwardImage, 320, 240, 100, 100, 0, CV_RGB(255,255,255));
+    runDetectorForward();
+
+    // Second image upper left -25 on x, -50 on y
+    vision::makeColor(&downwardImage, 0, 0, 0);
+    drawSquare(&downwardImage, 320 - 25, 240 - 50, 100, 100, 0, 
+	       CV_RGB(255,255,255));
+    runDetectorForward();
+
+    vision.velocityDetectorOff();
+    forwardCamera->unbackground(true);
+    
+    // Check the result
+    math::Vector2 expectedVelocity(25, -50);
+
+    CHECK(velocityEvent);
+    if (velocityEvent)
+        CHECK_CLOSE(expectedVelocity, velocityEvent->vector2, 1.0);
+ }
 
 } // SUITE(RedLightDetector)
