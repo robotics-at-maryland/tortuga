@@ -21,6 +21,9 @@
 static ram::core::SpecificEventConverter<ram::math::NumericEvent>
 RAM_MATH_NUMERICEVENT;
 
+static ram::core::SpecificEventConverter<ram::math::Vector2Event>
+RAM_MATH_VECTOR2EVENT;
+
 static ram::core::SpecificEventConverter<ram::math::Vector3Event>
 RAM_MATH_VECTOR3EVENT;
 
