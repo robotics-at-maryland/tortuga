@@ -13,6 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/Device.h"
+#include "math/include/Events.h"
 
 class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
                         public ram::vehicle::device::Device

@@ -67,12 +67,36 @@ public:
 private:
     /** Vision::EventType::VELOCITY_UPDATE event handler */
     void onVelocityUpdate(core::EventPtr event);
+
+    /** IDepthSensor::UPDATE event handler */
+    void onDepthUpdate(core::EventPtr event);
+
+    /** Gets the conversion from pixels to meters for the X dimension */
+    double getXConversionFactor();
+
+    /** Gets the conversion from pixels to meters for the Y dimension */
+    double getYConversionFactor();
     
     core::ReadWriteMutex m_mutex;
+    
+    /** The last velocity we calculated  */
     math::Vector2 m_velocity;
 
+    /** The current distance from the vehicle to the bottom of the pool */
+    double m_downwardDistance;
+    
+    /** The absolute depth of the bottom of the arena */
+    double m_bottomDepth;
+
+    /** The timestamp of the last event we recieved */
+    double m_lastTimeStamp;
+    
     /** VELOCITY_UPDATE event connection */
-    core::EventConnectionPtr m_connection;
+    core::EventConnectionPtr m_velocityConnection;
+
+    /** IDepthSensor UPDATE event connection */
+    core::EventConnectionPtr m_depthConnection;
+
 };
 
 } // namespace device

@@ -68,6 +68,9 @@ Subsystems:
         Devices:
             # Special device that holds references to the current simulation
             # scene and robot
+            VelocitySensor:
+                type: VisionVelocitySensor
+                
             SimulationDevice:
                 type: SimulationDevice
             
