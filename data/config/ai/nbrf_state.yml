@@ -156,7 +156,7 @@ ram.ai.bin.Aligning:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PreDiveExamine:
-    targetSymbols: ['Aircraft', 'Factory']
+    targetSymbols: ['Tank', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -172,8 +172,9 @@ ram.ai.bin.PostDiveExamine:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.CloserLook:
+    # This sets the depths the markers will be dropped
     binDepth: 12
-    offset: 2
+    offset: 2.5
 # Sonar subtask
 ram.ai.sonar.Start:
     diveDepth: 15
