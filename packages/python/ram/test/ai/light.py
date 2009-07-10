@@ -121,6 +121,26 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentMotion(motion.basic.MoveDirection)
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+
+        # Restart the machine, test light below
+        self.machine.stop()
+        self.ai.data['lastLightEvent'].x = 0
+        self.ai.data['lastLightEvent'].y = 1
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion((motion.basic.MoveDirection,
+                                  motion.basic.RateChangeDepth, None))
+        self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+
+        # Restart the machine
+        self.machine.stop()
+        self.ai.data['lastLightEvent'].x = 0
+        self.ai.data['lastLightEvent'].y = -1
+        self.machine.start(light.FindAttempt)
+        self.assertCurrentMotion((motion.basic.MoveDirection,
+                                  motion.basic.RateChangeDepth, None))
+        self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         
     def testOutsideRadius(self):
         # Stop the machine

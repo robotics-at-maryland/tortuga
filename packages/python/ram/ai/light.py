@@ -52,7 +52,8 @@ class Start(state.State):
     def enter(self):
         # Store the initial orientation
         orientation = self.vehicle.getOrientation()
-        self.ai.data['lightStartOrientation'] = orientation.getYaw()
+        self.ai.data['lightStartOrientation'] = \
+            orientation.getYaw().valueDegrees()
 
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
@@ -102,6 +103,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         # Load the thresholds for searching
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
         self._advanceSpeed = self._config.get('advancedSpeed', 1)
+        self._closeDepthChange = self._config.get('closeDepthChange', 0.5)
         self._depthChange = self._config.get('depthChange', 1)
         self._diveSpeed = self._config.get('diveSpeed', 0.3)
         self._yawChange = self._config.get('yawChange', 15)
@@ -110,11 +112,28 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         self._farRangeThreshold = self._config.get('farRangeThreshold', 8)
         
         if event.range < self._closeRangeThreshold:
-            # If the range is very close, backup
+            # If the range is very close, backup and change depth
+
+            # Find the backwards direction and create the motion
             desiredDirection = math.Degree(vehicleOrientation + 180)
             recoverMotion = motion.basic.MoveDirection(desiredDirection,
                                                        self._reverseSpeed)
+            
+            # Find the current depth and create the motion
+            newDepth = self.controller.getDepth()
+            changeDepth = False
+            if event.y > 0:
+                newDepth = newDepth - self._closeDepthChange
+                changeDepth = True
+            elif event.y < 0:
+                newDepth = newDepth + self._closeDepthChange
+                changeDepth = True
+            diveMotion = motion.basic.RateChangeDepth(desiredDepth = newDepth,
+                                                      speed = self._diveSpeed)
+            # Start necessary motions
             self.motionManager.setMotion(recoverMotion)
+            if changeDepth:
+                self.motionManager.setMotion(diveMotion)
         elif vectorLength > self._radius:
             # If the light is lost outside of the radius, turn towards it
             #currentDepth = self.controller.getDepth()
