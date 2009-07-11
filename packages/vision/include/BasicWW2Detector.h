@@ -57,29 +57,29 @@ class RAM_EXPORT BasicWW2Detector : public SymbolDetector
     /** Out current symbol */
     Symbol::SymbolType m_symbol;
     
-    double m_shipFeaturesMin[3];
-    double m_shipFeaturesMax[3];
+    double m_shipFeaturesMin[4];
+    double m_shipFeaturesMax[4];
 
-    double m_aircraftFeaturesMin[3];
-    double m_aircraftFeaturesMax[3];
+    double m_aircraftFeaturesMin[4];
+    double m_aircraftFeaturesMax[4];
        
-    double m_tankFeaturesMin[3];
-    double m_tankFeaturesMax[3];
+    double m_tankFeaturesMin[4];
+    double m_tankFeaturesMax[4];
 
-    double m_factoryFeaturesMin[3];
-    double m_factoryFeaturesMax[3];
+    double m_factoryFeaturesMin[4];
+    double m_factoryFeaturesMax[4];
 
-    static double SHIP_DEFAULTS_MIN[3];
-    static double SHIP_DEFAULTS_MAX[3];
+    static double SHIP_DEFAULTS_MIN[4];
+    static double SHIP_DEFAULTS_MAX[4];
     
-    static double AIRCRAFT_DEFAULTS_MIN[3];
-    static double AIRCRAFT_DEFAULTS_MAX[3];
+    static double AIRCRAFT_DEFAULTS_MIN[4];
+    static double AIRCRAFT_DEFAULTS_MAX[4];
 
-    static double TANK_DEFAULTS_MIN[3];
-    static double TANK_DEFAULTS_MAX[3];
+    static double TANK_DEFAULTS_MIN[4];
+    static double TANK_DEFAULTS_MAX[4];
 
-    static double FACTORY_DEFAULTS_MIN[3];
-    static double FACTORY_DEFAULTS_MAX[3];
+    static double FACTORY_DEFAULTS_MIN[4];
+    static double FACTORY_DEFAULTS_MAX[4];
 };
 	
 } // namespace vision

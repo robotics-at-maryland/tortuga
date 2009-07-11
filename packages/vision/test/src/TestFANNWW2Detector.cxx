@@ -44,7 +44,7 @@ TEST_FIXTURE(FANNSymbolDetectorFixture, needSquareCropped)
 
 TEST_FIXTURE(FANNSymbolDetectorFixture, getNumberFeatures)
 {
-    CHECK_EQUAL(3, detector.getNumberFeatures());
+    CHECK_EQUAL(4, detector.getNumberFeatures());
 }
 
 TEST_FIXTURE(FANNSymbolDetectorFixture, getOutputCount)
@@ -54,36 +54,38 @@ TEST_FIXTURE(FANNSymbolDetectorFixture, getOutputCount)
 
 TEST_FIXTURE(FANNSymbolDetectorFixture, getImageFeatures)
 {
-    // Test Wide images, with square in three corners
+    // Test Wide images, with square in three corners and on on the edge
     vision::OpenCVImage src(192, 96);
     vision::makeColor(&src, 0, 0, 0);
     vision::drawSquare(&src, 12, 12, 24, 24, 0.0, CV_RGB(255,255,255));
     vision::drawSquare(&src, 12, 83, 24, 24, 0.0, CV_RGB(255,255,255));
     vision::drawSquare(&src, 180, 12, 24, 24, 0.0, CV_RGB(255,255,255));
-    
-    float expectedFeatures[] = {2.0, 2.0, 0.75};
-    float results[] = {0, 0, 0};
+    vision::drawSquare(&src, 192/2, 12, 24, 24, 0.0, CV_RGB(255,255,255));
+
+    float expectedFeatures[] = {2.0, 3.0, 0.75, 0.25};
+    float results[] = {0, 0, 0, 0};
 
     CHECK_EQUAL(192u, src.getWidth());
     CHECK_EQUAL(96u, src.getHeight());
     detector.getImageFeatures(&src, results);
-    CHECK_ARRAY_CLOSE(expectedFeatures, results, 3, 0.1);
+    CHECK_ARRAY_CLOSE(expectedFeatures, results, 4, 0.1);
 
     
-    // Test tall images, with square in three corners
+    // Test tall images, with square in three corners on the edge
     vision::OpenCVImage src2(96, 192);
     vision::makeColor(&src2, 0, 0, 0);
     vision::drawSquare(&src2, 12, 12, 24, 24, 0.0, CV_RGB(255,255,255));
     vision::drawSquare(&src2, 84, 12, 24, 24, 0.0, CV_RGB(255,255,255));
     vision::drawSquare(&src2, 12, 180, 24, 24, 0.0, CV_RGB(255,255,255));
-    
-    float expectedFeatures2[] = {2.0, 2.0, 0.75};
-    float results2[] = {0, 0, 0};
+    vision::drawSquare(&src2, 12, 192/2, 24, 24, 0.0, CV_RGB(255,255,255));
+
+    float expectedFeatures2[] = {2.0, 3.1, 0.75, 0.255};
+    float results2[] = {0, 0, 0, 0};
 
     CHECK_EQUAL(96u, src2.getWidth());
     CHECK_EQUAL(192u, src2.getHeight());
     detector.getImageFeatures(&src2, results2);
-    CHECK_ARRAY_CLOSE(expectedFeatures2, results2, 3, 0.1);
+    CHECK_ARRAY_CLOSE(expectedFeatures2, results2, 4, 0.1);
 }
 /*
  Can't Seem to train a network for this

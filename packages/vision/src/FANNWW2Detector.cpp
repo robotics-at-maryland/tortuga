@@ -20,7 +20,7 @@
 #define SYMBOL_FACTORY 3
 #define SYMBOL_COUNT 4
 
-#define FEATURE_COUNT 3
+#define FEATURE_COUNT 4
 
 
 namespace ram {
@@ -132,6 +132,30 @@ void FANNWW2Detector::getImageFeatures(Image* inputImage, float* features)
 
     double averageCorner = (average1 + average2 + average3 + average4) / 4;
     features[2] = (float)averageCorner / 255.0f;
+
+    // Find the fill percent of the central region
+    if (wide)
+    {
+        // Wider then we are tall (ie. the image is wide)
+        int middle = width/2;
+
+        Image::getAveragePixelValues(inputImage,
+				     middle - cornerSize, 0,
+				     middle + cornerSize, height - 1,
+                                     average1, dummy2, dummy3);
+    }
+    else
+    {
+        // Taller then we are wide (ie. the image is skinny)
+        int middle = height/2;
+
+        Image::getAveragePixelValues(inputImage,
+				     0, middle - cornerSize,
+				     width - 1, middle + cornerSize,
+                                     average1, dummy2, dummy3);
+    }
+
+    features[3] = (float)average1 / 255.0f;
 }
     
 Symbol::SymbolType FANNWW2Detector::getSymbol()
