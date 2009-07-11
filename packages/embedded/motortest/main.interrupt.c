@@ -96,9 +96,6 @@ void _ISR _MI2CInterrupt() {
             break;
 
         case I2CSTATE_START:
-            WriteI2C(i2cBuf[0]); /* No matter what happens we want to send the
-                                    address and the W/R byte */
-
             if((i2cBuf[0] & 0x01) == I2C_WRITE) {
                 i2cPtr= 1;
                 i2cState= I2CSTATE_TRANS;
@@ -109,6 +106,9 @@ void _ISR _MI2CInterrupt() {
                 i2cPtr= 0;
                 i2cState= I2CSTATE_RX_ADR;
             }
+
+            WriteI2C(i2cBuf[0]); /* No matter what happens we want to send the
+                                    address and the R/W bit */
             break;
 
         case I2CSTATE_TRANS:
@@ -132,6 +132,7 @@ void _ISR _MI2CInterrupt() {
                 BorkedI2C(); /* We're Fucked! Stop the Bus! */
                 break;
             }
+
             WriteI2C(i2cBuf[i2cPtr++]);
             i2cState= I2CSTATE_TRANS;
             break;
@@ -142,6 +143,8 @@ void _ISR _MI2CInterrupt() {
                 break;
             }
 
+            LATE= 0x0000;
+
             i2cState= I2CSTATE_REC;
             I2CCONbits.RCEN= 1;
 
@@ -150,8 +153,10 @@ void _ISR _MI2CInterrupt() {
         case I2CSTATE_REC:
             /* Recieving is a bit more complex then sending we have to
              * get the byte out of the buffer, then generate an ACK */
+            LATE= 0x0002;
             i2cBuf[i2cPtr++]= I2CRCV;
-            I2CCONbits.ACKDT= I2C_ACK;
+            I2CSTATbits.I2COV= 0;
+            I2CCONbits.ACKDT= (i2cPtr >= packetSize ? I2C_ACK : I2C_NACK);
             I2CCONbits.ACKEN= 1;
             i2cState= I2CSTATE_ACK;
             break;
@@ -159,6 +164,7 @@ void _ISR _MI2CInterrupt() {
         case I2CSTATE_ACK:
             /* So now we've received a whole packet and ACK'd it.  If we have
              * more packets we'll need to wait to recieve them.  So go check! */
+            LATE= 0x0001;
 
             if(i2cPtr >= packetSize) {
                 StopI2C(); /* Stop the bus! We got everything! */
@@ -175,6 +181,7 @@ void _ISR _MI2CInterrupt() {
         case I2CSTATE_STOP:
             /* This is the end of the stop state. If we're here, in theory 
              * we got what we needed and we're done.  We're idle again! */
+            LATE= 0x0000;
             i2cState= I2CSTATE_IDLE;
             break;
 
@@ -255,9 +262,9 @@ int main()
             packetSize= buff[2];
             i2cBuf[0]= buff[1];
             StartI2C();
-            i2cState= I2CSTATE_START;/*
+            i2cState= I2CSTATE_START;
             while(i2cState != I2CSTATE_IDLE)
-                ;*/
+                ;
 
             /* Now we've got a packet! Push it out to the Uart */
             for(j= 0;j < packetSize;j++)
