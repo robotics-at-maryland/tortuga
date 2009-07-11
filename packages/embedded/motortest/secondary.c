@@ -34,8 +34,10 @@ void initI2C(byte);
 void initUART(byte);
 void initOSC(void);
 void initADC(void);
+
 void uartRXwait(void);
 byte uartRX(void);
+void writeUart(byte);
 
 byte AckI2C(void);
 unsigned int getI2C(void);
@@ -49,7 +51,9 @@ byte waitRX(void);
 /* The main function sets everything up then loops */
 int main()
 {
-    byte i;
+    byte i, packet_size,  buff[128];
+
+    packet_size= 0;
 
     /* Set up the Oscillator */
     initOSC();
@@ -60,7 +64,7 @@ int main()
     /* The value of the equation given by the formula on the reference sheet is
      * 21.75 for a 10MHz clock (so a 2.5MHz FCY) running on a 100kHz i2c port.
      * Thus we set the Baud Rate Generator to 0x16 (22 in decimal) */
-    initI2C(0x52);
+    initI2C(0x26);
 
     /* Initialize the UART module */
     /* We set the baud to 9600 */
@@ -73,15 +77,78 @@ int main()
      * a simple loop which takes input on the UART and stores it on PORTE */
     LATE= 0x0002;
     while(1) {
+        /* This should be the address part */
         IFS0bits.SI2CIF= 0;
+
         while(!IFS0bits.SI2CIF)
             ;
-        if(waitRX()) {    /* Get the data off the bus */
+
+        if(waitRX()) {    /* Wait for us to have the data off the bus */
             LATE= 0x0004;
             continue;
         }
-        i= I2CRCV;
-        U1TXREG= i;  /* Chuck the byte to the serial port. */
+
+        LATE= 0x0000;
+
+        /* If it wasn't an address, jump back! Just throw away everything until
+         * we get back to the beginning of a new packet. */
+        if(I2CSTATbits.D_A == 1) {
+            LATE= 0x0001;
+            i= I2CRCV; /* Thow away the byte to prevent overflow. */
+            continue;
+        }
+
+        i= I2CRCV; /* Get the byte out of the recieve buffer so we have space. */
+
+        if(I2CSTATbits.R_W == 1) {
+            for(i= packet_size - 1;i > 0;i--) {
+                I2CTRN= buff[i];
+
+                I2CCONbits.SCLREL= 1;
+
+                IFS0bits.SI2CIF= 0;
+
+                while(!IFS0bits.SI2CIF && !I2CSTATbits.P)
+                    ;
+
+                if(I2CSTATbits.P)
+                    break;
+            }
+            /* The last byte won't be ACK'd so we don't wait for an interrupt. */
+            I2CTRN= buff[0];
+
+        } else {
+            IFS0bits.SI2CIF= 0;
+
+            while(!IFS0bits.SI2CIF)
+                ;
+
+            if(waitRX()) {    /* Wait for us to have the data off the bus */
+                LATE= 0x0004;
+                continue;
+            }
+
+            packet_size= I2CRCV;
+            for(i= 0;i < packet_size;i++) {
+                IFS0bits.SI2CIF= 0;
+
+                while(!IFS0bits.SI2CIF)
+                    ;
+
+                if(waitRX()) {    /* Wait for us to have the data off the bus */
+                    LATE= 0x0004;
+                    continue;
+                }
+
+                buff[i]= I2CRCV;
+            }
+
+            /* Actually put it on the LCD */
+            for(i= 0;i < packet_size;i++)
+                writeUart(buff[i]);
+        }
+
+        LATE= 0x0002;
     }
 
     return 0;
@@ -156,6 +223,16 @@ void uartRXwait() {
 /* This function grabs a byte off the recieve buffer and returns it*/
 byte uartRX() {
     return U1RXREG;
+}
+
+/* This function *safely* writes a packet to the Uart1 output */
+void writeUart(byte packet) {
+    /* Wait for space to be available */
+    while(U1STAbits.UTXBF)
+        ;
+
+    /* Send the packet! */
+    U1TXREG= packet;
 }
 
 
@@ -262,6 +339,7 @@ void waitAddr(void) {
 /* This function waits for a byte to get into the buffer */
 byte waitRX(void) {
     long timeout= 0;
+
     while(!I2CSTATbits.RBF) {
         if(timeout++ == I2C_TIMEOUT)
             return 255;
