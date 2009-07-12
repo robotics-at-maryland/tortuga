@@ -87,10 +87,42 @@ class Searching(state.State, StoreLightEvent):
         self.motionManager.stopCurrentMotion()
 
 class FindAttempt(state.FindAttempt, StoreLightEvent):
+    REFOUND_LIGHT = core.declareEventType('REFOUND_LIGHT')
+    
     @staticmethod
     def transitions():
-        return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
+        trans = state.FindAttempt.transitions(FindAttempt.REFOUND_LIGHT,
                                              Align, Searching)
+        trans.update({ motion.basic.Motion.FINISHED : FindAttempt,
+                       vision.EventType.LIGHT_FOUND : FindAttempt })
+        
+        return trans
+    
+    def FINISHED(self, event):
+        self._finished = True
+        
+    def LIGHT_FOUND(self, event):
+        StoreLightEvent.LIGHT_FOUND(self, event)
+        
+        # Turn off the timer
+        if self.timer is not None:
+            self.timer.stop()
+            self.timer = None
+            
+        # Check if the motion is finished
+        if self._finished:
+            self.publish(FindAttempt.REFOUND_LIGHT, core.Event())
+            
+        # Check if we should finish it early
+        if ((0.0 - self._yThreshold) < event.y < self._yThreshold):
+            self.motionManager.stopCurrentMotion()
+            self.controller.holdCurrentDepth()
+            self.publish(FindAttempt.REFOUND_LIGHT, core.Event())
+            
+        # Stop the backwards motion
+        if self._recoverMotion is not None:
+            self.motionManager._stopMotion(self._recoverMotion)
+            self._recoverMotion = None
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 4)
@@ -104,7 +136,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         self._yThreshold = self._config.get('yThreshold', 0.05)
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
         self._advanceSpeed = self._config.get('advancedSpeed', 1)
-        self._closeDepthChange = self._config.get('closeDepthChange', 0.5)
+        self._closeDepthChange = self._config.get('closeDepthChange', 1)
         self._depthChange = self._config.get('depthChange', 1)
         self._diveSpeed = self._config.get('diveSpeed', 0.3)
         self._yawChange = self._config.get('yawChange', 15)
@@ -117,7 +149,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
 
             # Find the backwards direction and create the motion
             desiredDirection = math.Degree(vehicleOrientation + 180)
-            recoverMotion = motion.basic.MoveDirection(desiredDirection,
+            self._recoverMotion = motion.basic.MoveDirection(desiredDirection,
                                                        self._reverseSpeed)
             
             # Find the current depth and create the motion
@@ -132,9 +164,12 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             diveMotion = motion.basic.RateChangeDepth(desiredDepth = newDepth,
                                                       speed = self._diveSpeed)
             # Start necessary motions
-            self.motionManager.setMotion(recoverMotion)
+            self.motionManager.setMotion(self._recoverMotion)
             if changeDepth:
                 self.motionManager.setMotion(diveMotion)
+                self._finished = False
+            else:
+                self._finished = True
         elif vectorLength > self._radius:
             # If the light is lost outside of the radius, turn towards it
             #currentDepth = self.controller.getDepth()
@@ -159,6 +194,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             dive = motion.basic.RateChangeDepth(desiredDepth = newDepth,
                                                   speed = self._diveSpeed)
             self.motionManager.setMotion(dive)
+            self._finished = False
         elif event.range > self._farRangeThreshold and \
                 vectorLength < self._radius:
             # If the range is far and inside radius, move forwards slowly
@@ -166,8 +202,10 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             recoverMotion = motion.basic.MoveDirection(desiredDirection,
                                                        self._advanceSpeed)
             self.motionManager.setMotion(recoverMotion)
+            self._finished = True
         else:
             # Otherwise, wait for a symbol before continuing
+            self._finished = True
             self.motionManager.stopCurrentMotion()
 
 class Align(state.State, StoreLightEvent):

@@ -105,6 +105,7 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentState(light.FindAttempt)
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
                          6)
+        self.qeventHub.publishEvents()
         self.assertCurrentState(light.Align)
         self.assertEqual(5, self.ai.data['lastLightEvent'].x)
         self.assertEqual(6, self.ai.data['lastLightEvent'].y)
@@ -141,6 +142,17 @@ class TestFindAttempt(support.AITestCase):
                                   motion.basic.RateChangeDepth, None))
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        
+        # Inject a light event that isn't in the center
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, -1)
+        self.qeventHub.publishEvents()
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentState(light.FindAttempt)
+        
+        # Now inject one in the yThreshold
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
         
     def testOutsideRadius(self):
         # Stop the machine
