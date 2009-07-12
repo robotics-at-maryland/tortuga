@@ -772,10 +772,17 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
 
     // Make sure we are not outside the image
     upperLeftX = std::max(0, upperLeftX);
+    upperLeftX = std::min((int)m_blackMaskedFrame->getWidth() - 1, upperLeftX);
+
     upperLeftY = std::max(0, upperLeftY);
+    upperLeftY = std::min((int)m_blackMaskedFrame->getHeight() - 1, upperLeftY);
+
+    lowerRightX = std::max(0, lowerRightX);
     lowerRightX = std::min((int)m_blackMaskedFrame->getWidth() - 1,
                            lowerRightX);
-    lowerRightY = std::min((int)m_blackMaskedFrame->getWidth() - 1,
+
+    lowerRightY = std::max(0, lowerRightY);
+    lowerRightY = std::min((int)m_blackMaskedFrame->getHeight() - 1,
                            lowerRightY);
     
     Image* binImage = Image::extractSubImage(
