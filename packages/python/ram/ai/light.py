@@ -72,7 +72,12 @@ class Searching(state.State, StoreLightEvent):
     def enter(self):
         # Turn on the vision system
         self.visionSystem.redLightDetectorOn()
-
+        
+        # Set the start orientation if it isn't already set
+        orientation = self.vehicle.getOrientation()
+        self.ai.data.setdefault('lightStartOrientation',
+                                orientation.getYaw().valueDegrees())
+        
         # Create zig zag search to 
         self._legTime = self._config.get('legTime', 15)
         self._sweepAngle = self._config.get('sweepAngle', 60)
