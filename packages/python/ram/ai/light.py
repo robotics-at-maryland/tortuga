@@ -92,14 +92,26 @@ class Searching(state.State, StoreLightEvent):
         self.motionManager.stopCurrentMotion()
 
 class FindAttempt(state.FindAttempt, StoreLightEvent):
+    @staticmethod
+    def transitions():
+        return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
+                                             Align, Recover)
+        
+    def LIGHT_FOUND(self, event):
+        StoreLightEvent.LIGHT_FOUND(self, event)
+        
+    def enter(self):
+        state.FindAttempt.enter(self, timeout = 2)
+            
+class Recover(state.FindAttempt, StoreLightEvent):
     REFOUND_LIGHT = core.declareEventType('REFOUND_LIGHT')
     
     @staticmethod
     def transitions():
-        trans = state.FindAttempt.transitions(FindAttempt.REFOUND_LIGHT,
+        trans = state.FindAttempt.transitions(Recover.REFOUND_LIGHT,
                                              Align, Searching)
-        trans.update({ motion.basic.Motion.FINISHED : FindAttempt,
-                       vision.EventType.LIGHT_FOUND : FindAttempt })
+        trans.update({ motion.basic.Motion.FINISHED : Recover,
+                       vision.EventType.LIGHT_FOUND : Recover })
         
         return trans
     
@@ -116,13 +128,13 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             
         # Check if the motion is finished
         if self._finished:
-            self.publish(FindAttempt.REFOUND_LIGHT, core.Event())
+            self.publish(Recover.REFOUND_LIGHT, core.Event())
             
         # Check if we should finish it early
         if ((0.0 - self._yThreshold) < event.y < self._yThreshold):
             self.motionManager.stopCurrentMotion()
             self.controller.holdCurrentDepth()
-            self.publish(FindAttempt.REFOUND_LIGHT, core.Event())
+            self.publish(Recover.REFOUND_LIGHT, core.Event())
             
         # Stop the backwards motion
         if self._recoverMotion is not None:
@@ -140,7 +152,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         # Load the thresholds for searching
         self._yThreshold = self._config.get('yThreshold', 0.05)
         self._reverseSpeed = self._config.get('reverseSpeed', 4)
-        self._advanceSpeed = self._config.get('advancedSpeed', 1)
+        self._advanceSpeed = self._config.get('advanceSpeed', 1)
         self._closeDepthChange = self._config.get('closeDepthChange', 1)
         self._depthChange = self._config.get('depthChange', 1)
         self._diveSpeed = self._config.get('diveSpeed', 0.3)

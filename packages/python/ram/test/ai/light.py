@@ -94,15 +94,42 @@ class TestSearching(support.AITestCase):
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
-
+        
 class TestFindAttempt(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
-        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.machine.start(light.FindAttempt)
+        
+    def testStart(self):
+        self.assertCurrentState(light.FindAttempt)
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
+                
+    def testFound(self):
+        self.assertCurrentState(light.FindAttempt)
+        
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        
+        self.assertCurrentState(light.Align)
+        
+    def testTimeout(self):
+        self.assertCurrentState(light.FindAttempt)
+        
+        # For Recover
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent(0, 0)
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
+        
+        self.assertCurrentState(light.Recover)
+
+class TestRecover(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
+        self.machine.start(light.Recover)
 
     def testLightFound(self):
-        self.assertCurrentState(light.FindAttempt)
+        self.assertCurrentState(light.Recover)
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
                          6)
         self.qeventHub.publishEvents()
@@ -118,7 +145,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 4
         
         # Restart the machine
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(motion.basic.MoveDirection)
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
@@ -127,7 +154,7 @@ class TestFindAttempt(support.AITestCase):
         self.machine.stop()
         self.ai.data['lastLightEvent'].x = 0
         self.ai.data['lastLightEvent'].y = 1
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion((motion.basic.MoveDirection,
                                   motion.basic.RateChangeDepth, None))
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
@@ -137,7 +164,7 @@ class TestFindAttempt(support.AITestCase):
         self.machine.stop()
         self.ai.data['lastLightEvent'].x = 0
         self.ai.data['lastLightEvent'].y = -1
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion((motion.basic.MoveDirection,
                                   motion.basic.RateChangeDepth, None))
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
@@ -147,7 +174,7 @@ class TestFindAttempt(support.AITestCase):
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, -1)
         self.qeventHub.publishEvents()
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
-        self.assertCurrentState(light.FindAttempt)
+        self.assertCurrentState(light.Recover)
         
         # Now inject one in the yThreshold
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 0)
@@ -163,7 +190,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 7
         
         # Restart the machine
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertLessThan(self.controller.yawChange, 0)
         
@@ -173,7 +200,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].y = 0.0
         
         # Restart the machine
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         
@@ -190,7 +217,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 9
         
         # Make sure this does NOTHING
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(type(None))
         self.assertAlmostEqual(0, self.controller.speed, 5)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
@@ -205,7 +232,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 10
         
         # Restart the machine and make sure it does nothing
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(type(None))
         self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
@@ -217,7 +244,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 10
         
         # Star the machine again
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(motion.basic.MoveDirection)
         self.assertAlmostEqual(self.controller.getSpeed(), 1, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
@@ -235,7 +262,7 @@ class TestFindAttempt(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 6
         
         # Restart the machine
-        self.machine.start(light.FindAttempt)
+        self.machine.start(light.Recover)
         self.assertCurrentMotion(type(None))
         self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
@@ -246,7 +273,7 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentState(light.Align)
 
     def testTimeout(self):
-        self.assertCurrentState(light.FindAttempt)
+        self.assertCurrentState(light.Recover)
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(light.Searching)
 
@@ -280,8 +307,6 @@ class TestAlign(support.AITestCase):
     
     def testLightLost(self):
         """Make sure losing the light goes back to search"""
-        # Add a lastLightEvent for FindAttempt
-        self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.injectEvent(vision.EventType.LIGHT_LOST)
         self.assertCurrentState(light.FindAttempt)
         

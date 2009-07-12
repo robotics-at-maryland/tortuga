@@ -28,8 +28,8 @@ ram.ai.light.Start:
 ram.ai.light.Searching:
     sweepAngle: 0 #35
     speed: 2
-ram.ai.light.FindAttempt:
-    advancedSpeed: 2
+ram.ai.light.Recover:
+    advanceSpeed: 2
     reverseSpeed: 1.5
     diveSpeed: 0.1
 ram.ai.light.Align:
