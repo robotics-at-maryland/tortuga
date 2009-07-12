@@ -552,9 +552,19 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
                                const BlobDetector::BlobList& blackBlobs,
                                BlobDetector::BlobList& binBlobs)
 {
+    BlobDetector::BlobList nonBinBlobs;
+    double averageHeight = 0;
+    int foundBins = 0;
+
+    // TODO: Add fill percenter, full height percentage, border width
+    //       and aspect ratio to the configurable parameters
+
+
     // NOTE: all blobs sorted largest to smallest
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
+        bool matchedBlob = false;
+
         BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
         {
             // Sadly, this totally won't work at the edges of the screen...
@@ -564,18 +574,92 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
                 binBlobs.push_back(blackBlob);
-                
+                matchedBlob = true;
+		averageHeight += blackBlob.getHeight();
                 // Don't add it once for each white blob containing it,
                 // thatd be dumb.
                 break;
             }
-            else
-            {
-                //Not a bin.
-            }
         }
-    }
 
+	if (!matchedBlob)
+	    nonBinBlobs.push_back(blackBlob);
+    }
+    
+    // Determine the average height
+    foundBins = binBlobs.size();
+    averageHeight /= foundBins;
+
+    // Now lets go through the non bin blobs, and see if we can figure
+    // out if they are black blobs that have just grown so large they only
+    // have white on the sides
+    BOOST_FOREACH(BlobDetector::Blob blackBlob, nonBinBlobs)
+    {
+        double blobHeight = blackBlob.getHeight();
+        double imageHeight = m_whiteMaskedFrame->getHeight();
+        if (((blobHeight / imageHeight) > 0.9) && 
+            (blackBlob.getFillPercentage() > 0.8))
+        {
+            // We are a full height blob, which just might have white blobs on 
+            // the side
+
+            bool whiteLeft = false;
+            bool whiteRight = false;
+
+            // Attempt to find white blobs on the side
+            BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
+            {
+                double whiteblobHeight = blackBlob.getHeight();
+                if ((whiteblobHeight / imageHeight) > 0.9)
+                {
+                    // The white blob is full height as well
+                    if (blackBlob.boundsIntersect(whiteBlob, 12))
+                    {
+                        if (whiteBlob.getCenterX() < blackBlob.getCenterX())
+                            whiteLeft = true;
+                        else
+                           whiteRight = true;
+                    }
+                }
+            } // foreach white blob
+
+            // Determine if the black blob is on the edge
+            bool onLeftEdge = blackBlob.getMinX() <= 12;
+            bool onRightEdge = 
+              blackBlob.getMaxX() >= (int)(m_whiteMaskedFrame->getWidth() - 12);
+            
+            // If we are the edge and have a white on the other side or
+            // we have white on the both sides, we are a bin! If both sides
+	    // are on the edge, we are not a bin
+            if ((onLeftEdge || whiteLeft) && (onRightEdge || whiteRight) && 
+                !(onLeftEdge && onRightEdge))
+            {
+       	        if (whiteLeft && whiteRight)
+		{
+		    // If both edges are white we need to be a proper aspect
+		    // ratio
+		    if (blackBlob.getAspectRatio() < 3)
+		        binBlobs.push_back(blackBlob);
+		}
+		else 
+		{
+		    if (foundBins > 0)
+		    {
+		        // If we found a "normal" bin make sure this bins
+		        // height is similar to that one
+		        double heightError = 
+			    fabs(blackBlob.getHeight() - averageHeight);
+			if ((heightError / averageHeight) < 0.2)
+			    binBlobs.push_back(blackBlob);
+		    }
+		    else
+		    {
+		        binBlobs.push_back(blackBlob);
+		    }
+		}
+            }
+        } // if (blob of full height)
+    }
 }
 
 bool BinDetector::findArrayAngle(const BinList& bins, math::Degree& finalAngle,
@@ -729,7 +813,7 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
         {
             symbol = determineSymbol(cropped, m_scratchBuffer1, output);
 
-	    if (output && (binNum < 4))
+            if (output && (binNum < 4))
             {
                 // Scale the image to 128x128
                 Image* scaledBin =

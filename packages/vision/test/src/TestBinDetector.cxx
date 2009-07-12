@@ -36,11 +36,19 @@
 
 using namespace ram;
 
-/*static boost::filesystem::path getImagesDir()
+/*static boost::filesystem::path getRefrencesDir()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
     return root / "packages" / "vision" / "test" / "data" / "references";
-    }*/
+}*/
+
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "images"
+        / "testbin";
+}
+
 
 struct BinDetectorFixture
 {
@@ -80,7 +88,7 @@ struct BinDetectorFixture
         centered = true;
         event = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
-
+    
     void lostHandler(core::EventPtr event_)
     {
         found = false;
@@ -92,29 +100,29 @@ struct BinDetectorFixture
         dropped = true;
         droppedEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
-    
+
     void multiBinAngleHandler(core::EventPtr event_)
     {
         multiBinAngleEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
         receivedMultiBinAngleEvent = true;
-    }
+     }
 
     void processImage(vision::Image* image, bool show = false)
     {
         if (show)
-	{
-	    vision::OpenCVImage input(640, 480);
-	    input.copyFrom(image);
-	    vision::Image::showImage(&input, "Input");
-
-	    vision::OpenCVImage output(640, 480);
-	    detector.processImage(image, &output);
-	    vision::Image::showImage(&output, "Output");
-	}
-	else
+        {
+            vision::OpenCVImage input(640, 480);
+            input.copyFrom(image);
+            vision::Image::showImage(&input, "Input");
+            
+            vision::OpenCVImage output(640, 480);
+            detector.processImage(image, &output);
+            vision::Image::showImage(&output, "Output");
+        }
+        else
         {
             detector.processImage(image);
-	}
+        }
     }
 
     
@@ -131,9 +139,9 @@ struct BinDetectorFixture
 };
 
 SUITE(BinDetector) {
-
-// TODO Test upright, and onside angle
-
+    
+ // TODO Test upright, and onside angle
+    
 TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
 {
     detector.setSymbolDetectionOn(false);
@@ -174,7 +182,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
         receivedMultiBinAngleEvent = false;
         CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
-
+    
     vision::makeColor(&input, 0, 0, 255);
     drawBin(&input, 640*3/4, 480/4, 125, 90);
     drawBin(&input, 640/2, 480/4 + 640/4, 125, 90);
@@ -195,7 +203,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     printf("Starting Multi Bin Angles\n");
     detector.setSymbolDetectionOn(false);
     receivedMultiBinAngleEvent = false;
-    
+     
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     processImage(&input);
@@ -205,7 +213,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     
     processImage(&input);
     CHECK(!receivedMultiBinAngleEvent); 
-    
+
     drawBin(&input, 640/2, 480*3/4, 125, 90);
     processImage(&input);
     CHECK(receivedMultiBinAngleEvent);
@@ -217,7 +225,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
         CHECK_CLOSE(-90, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
 
-
+    
     vision::makeColor(&input, 0, 0, 255);
     processImage(&input);
     CHECK(!receivedMultiBinAngleEvent);
@@ -228,21 +236,21 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     processImage(&input);
     CHECK(receivedMultiBinAngleEvent);
     CHECK(multiBinAngleEvent);
-    
+
     if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
         CHECK_CLOSE(-90, multiBinAngleEvent->angle.valueDegrees(),.25);
     }
-
     
+
     vision::makeColor(&input, 0, 0, 255);
     processImage(&input);
     CHECK(!receivedMultiBinAngleEvent);
     
     drawBin(&input, 640/4, 480/3, 125, 0);
     drawBin(&input, 640*3/4, 480/3, 125, 0);
-    
+
     processImage(&input);
     CHECK(receivedMultiBinAngleEvent);
     CHECK(multiBinAngleEvent);
@@ -257,12 +265,12 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {
     detector.setSymbolDetectionOn(false);
-
+    
     // Blue Image with orange rectangle in it
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin (upper left)
     drawBin(&input, 640/4, 480/4, 130, 25);
-
+    
     // Process it
     processImage(&input);
     double expectedX = -0.5 * 640.0/480.0;
@@ -272,7 +280,7 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
-
+    
     // Check Events
     CHECK(found);
     CHECK(event);
@@ -323,7 +331,7 @@ TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
                     if (deg2 - thresh <= angle && deg2 + thresh >= angle)
                     {
                         //good
-                        good = true;
+                         good = true;
                     }
                 }
             }
@@ -334,22 +342,22 @@ TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
                 //this will display more info.
                 CHECK_CLOSE(deg2, event->angle.valueDegrees(), thresh);
             }
-        }
-//        printf("\n");
+         }
+        //        printf("\n");
     }
     printf("Finished BinSpinAngleTest:\n");
-
+    
 }
 /*
-FIX ME: I AM BROKEN!
-  
+ FIX ME: I AM BROKEN!
+
 TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
 { 
     detector.setSymbolDetectionOn(true);
     int right = 0;
     for (int deg = 0; deg < 360; deg+=10)
     {
-        
+
         vision::makeColor(&input, 0, 0, 255);
         vision::drawBin(&input, 100,100, 200, deg, vision::Club);
         vision::OpenCVImage output(640,480);
@@ -360,7 +368,7 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
         }
         else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
-            
+
         }
         else
         {
@@ -369,7 +377,7 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
 //        vision::Image::showImage(&output);
     }
     //CHECK(right >= 12);
-    
+
     right = 0;
     for (int deg = 0; deg < 360; deg+=10)
     {
@@ -383,7 +391,7 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
         }
         else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
-            
+
         }
         else
         {
@@ -406,7 +414,7 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
         }
         else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
-            
+
         }
         else
         {
@@ -419,22 +427,21 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
     right = 0;
     for (int deg = 0; deg < 360; deg+=10)
     {
-        vision::makeColor(&input, 0, 0, 255);
-        vision::drawBin(&input, 320,240, 200, deg, vision::Diamond);
-        vision::OpenCVImage output(640,480);
-        processImage(&input);
-        if (detector.getSymbol() == vision::Symbol::DIAMOND)
-        {
-            right++;
-        }
-        else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
-        {
-            
-        }
-        else
-        {
-            CHECK(false);
-        }
+       vision::makeColor(&input, 0, 0, 255);
+       vision::drawBin(&input, 320,240, 200, deg, vision::Diamond);
+       vision::OpenCVImage output(640,480);
+       processImage(&input);
+       if (detector.getSymbol() == vision::Symbol::DIAMOND)
+       {
+          right++;
+       }
+       else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
+       {
+       }
+       else
+       {
+           CHECK(false);
+       }
 
 }
     //CHECK(right >= 12);
@@ -446,10 +453,10 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
 {
     detector.setSymbolDetectionOn(true);
     vision::Image* ref = vision::Image::loadFromFile(
-        ((getImagesDir()/"distorted-grainy.png").string()));//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
-    
+        ((getReferencesDir()/"distorted-grainy.png").string()));//Negative flag means load as is, positive means force 3 channel, 0 means force grayscale
+
     CHECK(ref != NULL);
-    
+
     detector.processImage(ref);
     detector.setSymbolDetectionOn(false);
 }
@@ -459,33 +466,33 @@ TEST_FIXTURE(BinDetectorFixture, BinTracking)
     detector.setSymbolDetectionOn(false);
     vision::makeColor(&input, 0, 0, 255);
     vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
-    
+
     vision::drawBin(&input, 480,240, 150, 70, vision::Diamond);
-   
+
     processImage(&input);
-   
+
     vision::BinDetector::BinList bins = detector.getBins();
     std::vector<vision::BinDetector::Bin> binVect(bins.size());
     std::copy(bins.begin(), bins.end(), binVect.begin());
 
     CHECK_EQUAL(2u, bins.size());
-    
+
     int minId = binVect[0].getId();
     int maxId = binVect[1].getId();
-    
+
     if (maxId < minId)
     {
         minId = minId^maxId;
         maxId = maxId^minId;
         minId = minId^maxId;
     }
-    
+
     CHECK_EQUAL(0, minId);
     CHECK_EQUAL(1, maxId);
-    
+
     vision::makeColor(&input, 0, 0, 255);
     vision::drawBin(&input, 160,240, 150, 70, vision::Heart);
-    
+
     vision::drawBin(&input, 480,240, 150, 70, vision::Diamond);
 
     // Process Images
@@ -496,14 +503,14 @@ TEST_FIXTURE(BinDetectorFixture, BinTracking)
 
     minId = binVect[0].getId();
     maxId = binVect[1].getId();
-    
+
     if (maxId < minId)
     {
         minId = minId^maxId;
         maxId = maxId^minId;
         minId = minId^maxId;
     }
-    
+
     CHECK_EQUAL(0, minId);
     CHECK_EQUAL(1, maxId);
 }
@@ -518,10 +525,10 @@ TEST_FIXTURE(BinDetectorFixture, Left)
 
     // Process it
     processImage(&input);
-    
+
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0;
-    
+
     CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
@@ -543,10 +550,10 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
 
     // Process it
     processImage(&input);
-    
+
     double expectedX = 0.5 * 640.0/480.0;
     double expectedY = -0.5;
-    
+
     CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
@@ -571,7 +578,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
-    
+
     CHECK(detector.found());
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
@@ -590,11 +597,87 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     vision::makeColor(&input, 0, 0, 255);
     // draw the bin in center sideways
     drawBin(&input, 640/2, 480/2, 130, 90);
-    
+
     // Process it
     processImage(&input);
-    
+
     double expectedX = 0 * 640.0/480.0; 
+    double expectedY = 0;
+
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+TEST_FIXTURE(BinDetectorFixture, TopBin)
+{
+    detector.setSymbolDetectionOn(false);
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // Draw the bin so that its top white edge is not there
+    drawBin(&input, 640/2, 480/2 - 200, 240, 0);
+
+    // Process it
+    processImage(&input);
+
+    double expectedX = 0;
+    double expectedY = 2.0/3.0;
+
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+TEST_FIXTURE(BinDetectorFixture, FullBin)
+{
+    detector.setSymbolDetectionOn(false);
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // Draw the bin such that it does not have top or bottom white edges
+    drawBin(&input, 640/2, 480/2, 480, 0);
+
+    // Process it
+    processImage(&input);
+
+    double expectedX = 0;
+    double expectedY = 0;
+
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+TEST_FIXTURE(BinDetectorFixture, FullBin2)
+{
+    detector.setSymbolDetectionOn(false);
+     vision::Image* ref = vision::Image::loadFromFile(
+         ((getImagesDir()/"fullbin.png").string()));
+
+    // Process it
+    processImage(ref);
+    
+    vision::BinDetector::BinList bins = detector.getBins();
+    CHECK_EQUAL(1u, bins.size());
+
+    double expectedX = 0;
     double expectedY = 0;
     
     CHECK(detector.found());
@@ -607,6 +690,77 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     CHECK_CLOSE(expectedX, event->x, 0.05);
     CHECK_CLOSE(expectedY, event->y, 0.05);
 }
+
+
+TEST_FIXTURE(BinDetectorFixture, NoFullBin)
+{
+    detector.setSymbolDetectionOn(false);
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // No real bin, just a big square with the center cut out
+    drawSquare(&input, 640/2, 480/2, 640, 480, 0, CV_RGB(0, 0, 0));
+    drawSquare(&input, 640/2, 480/2, 500, 350, 0, CV_RGB(255, 255, 255));
+
+    // Process it
+    processImage(&input);
+    
+    CHECK(!detector.found());
+    CHECK(!found);
+    CHECK(!event);
+}
+
+
+TEST_FIXTURE(BinDetectorFixture, FullBinLeft)
+{
+    detector.setSymbolDetectionOn(false);
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // Draw the bin such that it does not have top, bottom or left white edges
+    drawBin(&input, 120, 480/2, 480, 0);
+
+    // Process it
+    processImage(&input);
+    
+    double expectedX = -0.833333;
+    double expectedY = 0;
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+TEST_FIXTURE(BinDetectorFixture, FullBinRight)
+{
+    detector.setSymbolDetectionOn(false);
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // Draw the bin such that it does not have top, bottom or right white edges
+    drawBin(&input, 640 - 120, 480/2, 480, 0);
+
+    // Process it
+    processImage(&input);
+    
+    double expectedX = 0.833333;
+    double expectedY = 0;
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+
+    // Check Events
+    CHECK(found);
+    CHECK(event);
+    CHECK_CLOSE(expectedX, event->x, 0.05);
+    CHECK_CLOSE(expectedY, event->y, 0.05);
+}
+
+
 
 TEST_FIXTURE(BinDetectorFixture, Events_BINS_LOST)
 {
