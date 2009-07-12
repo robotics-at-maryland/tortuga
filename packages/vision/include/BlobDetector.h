@@ -55,6 +55,9 @@ public:
 
         int getWidth() const { return getMaxX() - getMinX() + 1; }
 
+	double getFillPercentage() { 
+	  return ((double)getSize()) / ((double)(getHeight() * getWidth())); } 
+
         void draw(Image*, bool centroid = true, 
 		  unsigned char R = 0,
 		  unsigned char G = 0,
@@ -111,12 +114,18 @@ public:
                     m_maxY+addToBounds >= otherBlob.m_maxY); 
         }
 
-        bool boundsIntersect(Blob otherBlob)
+        bool boundsIntersect(Blob otherBlob, int addToBounds = 0)
         {
-            if (m_minX > otherBlob.m_maxX || m_maxX < otherBlob.m_minX)
+	    if (((m_minX - addToBounds) > otherBlob.m_maxX) || 
+		((m_maxX + addToBounds) < otherBlob.m_minX))
+	    {
                 return false;
-            if (m_minY > otherBlob.m_maxY || m_maxY < otherBlob.m_minY)
+	    }
+            if (((m_minY - addToBounds) > otherBlob.m_maxY) || 
+		((m_maxY + addToBounds) < otherBlob.m_minY))
+	    {
                 return false;
+	    }
             return true;
         }
 
