@@ -19,7 +19,7 @@ _FWDT ( WDT_OFF );
 #define byte unsigned char
 #define BYTE byte
 #define BUF_SIZE 256
-#define START_TIMEOUT 25000
+#define START_TIMEOUT 500000
 
 /* So the R/W bit is low for a write, and high for a read */
 /* In other words, if the master sends data, use I2C_WRITE, */
@@ -272,11 +272,11 @@ void _ISR _INT3Interrupt() {
     /* CLEAR THE INTERUPT FLAG! ALWAYS! */
     _INT3IF= 0;
 
-    LAT_ACT= LED_ON; /* Let us know you're doing things! */
+    LAT_STA= LED_ON; /* Let us know you're doing things! */
 
     checkBus();
 
-    LAT_ACT= LED_OFF; /* Let the user know we're done doing stuff */
+    LAT_STA= LED_OFF; /* Let the user know we're done doing stuff */
 }
 
 /* Checks to see what data is and isn't on the Bus */
@@ -467,6 +467,10 @@ int main()
     /* We set the baud to 9600 */
     initUART(0x0F);
 
+    /* Set up the bus stuff for its initial stuff */
+    TRIS_REQ= TRIS_RW= TRIS_IN;
+
+
     /* Turn on the Bus interrupt */
     _INT3IF= 0;
     REQ_INT_BIT= 1;
@@ -477,14 +481,41 @@ int main()
     LAT_STA= LED_ON;
 
     /* Wait for everything to settle down. */
-    for(timeout= 0;timeout < START_TIMEOUT;timeout++)
+    LAT_STA= LED_ON;
+    for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
         ;
+    LAT_STA= LED_OFF;
+    for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
+        ;
+    LAT_STA= LED_ON;
+    for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
+        ;
+    LAT_STA= LED_OFF;
+    for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
+        ;
+    LAT_STA= LED_ON;
+
+    _TRISF6= TRIS_OUT;
+    _TRISF7= TRIS_OUT;
+    _TRISF8= TRIS_OUT;
 
     while(1) {
         for(i= 0;i < 6;i++) {
-            temp= LATB & 0xFE3F;
-            LATB= temp | (i << 6);
+            temp= ~i;
+            _LATF6= !(temp & 0x01);
+            _LATF7= !(temp & 0x02);
+            _LATF8= !(temp & 0x04);
 
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+
+            packetSize= 4;
             temp= i2cBuf[0]= 0x52;
             temp+= i2cBuf[1]= motorSpeed[i];
             temp+= i2cBuf[2]= 0x64;
@@ -498,6 +529,12 @@ int main()
             if(i2cState == I2CSTATE_BORKED) {
                 /* We should probably do something with this info! */
                 LAT_ERR= LED_ON;
+                i2cState= I2CSTATE_IDLE;
+                for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
+                    ;
+                LAT_ERR= LED_OFF;
+                for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
+                    ;
             }
         }
     }
