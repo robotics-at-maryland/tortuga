@@ -19,14 +19,68 @@ import ram.ai.subsystem
 import ram.ai.bin
 from oci.view.panels import BasePanel
 
-class VisionPanel(BasePanel):
+class MasterVisionPanel(BasePanel):
     core.implements(view.IPanelProvider)
     
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
+        BasePanel.__init__(self, parent, *args, **kwargs)
+        
+        # Make sure we shut down all events on close
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        if vision is not None:
+            buoyPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
+            self._sizer.Add(buoyPanel)
+            
+            pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
+            self._sizer.Add(pipePanel)
+            
+            binPanel = BinPanel(self, self._childChangedSize, eventHub, vision, ai = ai)
+            self._sizer.Add(binPanel)
+            
+            targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
+            self._sizer.Add(targetPanel)
+
+            barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
+            self._sizer.Add(barbedWirePanel)
+            
+        self.SetSizerAndFit(self._sizer)
+        
+    def _childChangedSize(self):
+        self.SetSizerAndFit(self._sizer)
+        
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = ext.core.Subsystem.getSubsystemOfType(ext.core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem, 
+                                                       subsystems)
+        
+        ai = ext.core.Subsystem.getSubsystemOfType(
+                    ram.ai.subsystem.AI, subsystems)
+
+        if vision is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Vision")
+            paneInfo = paneInfo.Caption("Vision").Right()
+        
+            panel = MasterVisionPanel(parent, eventHub, vision, ai)
+            return [(paneInfo, panel, [vision])]
+        
+        return []
+        
+        
+
+class BaseVisionPanel(BasePanel):
+    
+    def __init__(self, parent, buttonHandler, *args, **kwargs):
         BasePanel.__init__(self, parent, *args, **kwargs)
         self._controlsShowing = True
         self._hide = None
         self._bouyLED = None
+        self._buttonHandler = buttonHandler
         
         # Make sure we shut down all events on close
         self.Bind(wx.EVT_CLOSE, self._onClose)
@@ -57,28 +111,47 @@ class VisionPanel(BasePanel):
         self._bouyLED.MinSize = size
         self.sizer.Add(self._bouyLED, 1, flag = wx.ALIGN_CENTER)
         
+        self.SetSizerAndFit(topSizer)
+        self._startSize = self.GetSize()
+        
         # Create controls\
         self._createDataControls()
-
+        
         # Start off greyed out
         for control in self._generatedControls:
             control.Enable(False)
         
         self.SetSizerAndFit(topSizer)
+        self._fullSize = self.GetSize()
+        
+        # Hide controls by default
+        self._toggleSize(False)
 
     def _createDataControls(self):
         pass
 
-    def _onButton(self, event):
-        if self._controlsShowing:
+    def _toggleSize(self, showControls):
+        if not showControls:
             self._hide.Label = "Show"
         else:
             self._hide.Label = "Hide"
         
-        self._controlsShowing = not self._controlsShowing
+        self._controlsShowing = showControls
         for i in xrange(2, (len(self._generatedControls) + 1) * 2):
             self.sizer.Show(i, self._controlsShowing)
         self.sizer.Layout()
+        
+        if showControls:
+            self.SetMinSize(self._fullSize)
+            self.SetClientSize(self._fullSize)
+        else:
+            self.SetMinSize(self._startSize)
+            self.SetClientSize(self._startSize)
+            
+        self._buttonHandler()
+
+    def _onButton(self, event):
+        self._toggleSize(showControls = not self._controlsShowing)
         
     def enableControls(self):
         for control in self._generatedControls:
@@ -92,59 +165,59 @@ class VisionPanel(BasePanel):
             control.Enable(False)
         self._bouyLED.SetState(0)
 
-    @staticmethod
-    def getPanels(subsystems, parent):
-        eventHub = ext.core.Subsystem.getSubsystemOfType(
-            ext.core.QueuedEventHub, subsystems)
+    #@staticmethod
+    #def getPanels(subsystems, parent):
+    #    eventHub = ext.core.Subsystem.getSubsystemOfType(
+    #        ext.core.QueuedEventHub, subsystems)
+    #    
+    #    vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem, 
+    #                                                   subsystems)
+    #    ai = ext.core.Subsystem.getSubsystemOfType(
+    #        ram.ai.subsystem.AI, subsystems)
+    #    
+    #    if vision is not None:
+    #        buoyPaneInfo = wx.aui.AuiPaneInfo().Name("Red Light")
+    #        buoyPaneInfo = buoyPaneInfo.Caption("Red Light").Left()
+    #        buoyPanel = RedLightPanel(parent, eventHub, vision)
+    #        
+    #        pipePaneInfo = wx.aui.AuiPaneInfo().Name("Orange Pipe")
+    #        pipePaneInfo = pipePaneInfo.Caption("Orange Pipe").Left()
+    #        pipePanel = OrangePipePanel(parent, eventHub, vision)
+    #        
+    #        binPaneInfo = wx.aui.AuiPaneInfo().Name("Bin")
+    #        binPaneInfo = binPaneInfo.Caption("Bin").Left()
+    #        binPanel = BinPanel(parent, eventHub, vision, ai = ai)
+
+    #        ductPaneInfo = wx.aui.AuiPaneInfo().Name("Duct")
+    #        ductPaneInfo = ductPaneInfo.Caption("Duct").Left()
+    #        ductPanel = DuctPanel(parent, eventHub, vision)
+    #        
+    #        safePaneInfo = wx.aui.AuiPaneInfo().Name("Safe")
+    #        safePaneInfo = safePaneInfo.Caption("Safe").Left()
+    #        safePanel = SafePanel(parent, eventHub, vision)
+    #        
+    #        targetPaneInfo = wx.aui.AuiPaneInfo().Name("Target")
+    #        targetPaneInfo = targetPaneInfo.Caption("Target").Left()
+    #        targetPanel = TargetPanel(parent, eventHub, vision)
+
+    #        barbedWirePaneInfo = wx.aui.AuiPaneInfo().Name("BarbedWire")
+    #        barbedWirePaneInfo = \
+    #            barbedWirePaneInfo.Caption("BarbedWire").Left()
+    #        barbedWirePanel = BarbedWirePanel(parent, eventHub, vision)
+
+    #        return [(buoyPaneInfo, buoyPanel, [vision]), 
+    #                (pipePaneInfo, pipePanel, [vision]), 
+    #                (binPaneInfo, binPanel, [vision]),
+    #                (ductPaneInfo, ductPanel, [vision]),
+    #                (safePaneInfo, safePanel, [vision]),
+    #                (barbedWirePaneInfo, barbedWirePanel, [vision]),
+    #                (targetPaneInfo, targetPanel, [vision])]
         
-        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem, 
-                                                       subsystems)
-        ai = ext.core.Subsystem.getSubsystemOfType(
-            ram.ai.subsystem.AI, subsystems)
-        
-        if vision is not None:
-            buoyPaneInfo = wx.aui.AuiPaneInfo().Name("Red Light")
-            buoyPaneInfo = buoyPaneInfo.Caption("Red Light").Left()
-            buoyPanel = RedLightPanel(parent, eventHub, vision)
-            
-            pipePaneInfo = wx.aui.AuiPaneInfo().Name("Orange Pipe")
-            pipePaneInfo = pipePaneInfo.Caption("Orange Pipe").Left()
-            pipePanel = OrangePipePanel(parent, eventHub, vision)
-            
-            binPaneInfo = wx.aui.AuiPaneInfo().Name("Bin")
-            binPaneInfo = binPaneInfo.Caption("Bin").Left()
-            binPanel = BinPanel(parent, eventHub, vision, ai = ai)
+    #    return []
 
-            ductPaneInfo = wx.aui.AuiPaneInfo().Name("Duct")
-            ductPaneInfo = ductPaneInfo.Caption("Duct").Left()
-            ductPanel = DuctPanel(parent, eventHub, vision)
-            
-            safePaneInfo = wx.aui.AuiPaneInfo().Name("Safe")
-            safePaneInfo = safePaneInfo.Caption("Safe").Left()
-            safePanel = SafePanel(parent, eventHub, vision)
-            
-            targetPaneInfo = wx.aui.AuiPaneInfo().Name("Target")
-            targetPaneInfo = targetPaneInfo.Caption("Target").Left()
-            targetPanel = TargetPanel(parent, eventHub, vision)
-
-            barbedWirePaneInfo = wx.aui.AuiPaneInfo().Name("BarbedWire")
-            barbedWirePaneInfo = \
-                barbedWirePaneInfo.Caption("BarbedWire").Left()
-            barbedWirePanel = BarbedWirePanel(parent, eventHub, vision)
-
-            return [(buoyPaneInfo, buoyPanel, [vision]), 
-                    (pipePaneInfo, pipePanel, [vision]), 
-                    (binPaneInfo, binPanel, [vision]),
-                    (ductPaneInfo, ductPanel, [vision]),
-                    (safePaneInfo, safePanel, [vision]),
-                    (barbedWirePaneInfo, barbedWirePanel, [vision]),
-                    (targetPaneInfo, targetPanel, [vision])]
-        
-        return []
-
-class RedLightPanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+class RedLightPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._azimuth = None
@@ -194,6 +267,7 @@ class RedLightPanel(VisionPanel):
     def _redLightDetectorOn(self, event):
         self._bouyLED.SetState(0)
         self._detector = True
+        self._toggleSize(True)
 
     def _redLightDetectorOff(self, event):
         self._x.Value = ""
@@ -204,10 +278,11 @@ class RedLightPanel(VisionPanel):
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
+        self._toggleSize(False)
         
-class OrangePipePanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+class OrangePipePanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._angle = None
@@ -248,6 +323,7 @@ class OrangePipePanel(VisionPanel):
     def _pipeLineDetectorOn(self, event):
         self._bouyLED.SetState(0)
         self._detector = True
+        self._toggleSize(True)
 
     def _pipeLineDetectorOff(self, event):
         self._x.Value = ""
@@ -256,11 +332,11 @@ class OrangePipePanel(VisionPanel):
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
+        self._toggleSize(False)
         
-        
-class SafePanel(VisionPanel):
+class SafePanel(BaseVisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+        BaseVisionPanel.__init__(self, parent, *args, **kwargs)
         self._x = None
         self._y = None
         self._detector = False
@@ -309,9 +385,9 @@ class SafePanel(VisionPanel):
         self._bouyLED.SetState(3)
         self._detector = False
         
-class BinPanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+class BinPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, ai, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._angle = None
@@ -390,6 +466,7 @@ class BinPanel(VisionPanel):
     def _binDetectorOn(self, event):
         self._bouyLED.SetState(0)
         self._detector = True
+        self._toggleSize(True)
 
     def _binDetectorOff(self, event):
         self._x.Value = ""
@@ -399,10 +476,11 @@ class BinPanel(VisionPanel):
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
+        self._toggleSize(False)
 
-class DuctPanel(VisionPanel):
+class DuctPanel(BaseVisionPanel):
     def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+        BaseVisionPanel.__init__(self, parent, *args, **kwargs)
         self._x = None
         self._y = None
         self._size = None
@@ -460,9 +538,9 @@ class DuctPanel(VisionPanel):
         self._bouyLED.SetState(3)
         self._detector = False
 
-class TargetPanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+class TargetPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._size = None
@@ -507,6 +585,7 @@ class TargetPanel(VisionPanel):
     def _targetDetectorOn(self, event):
         self._bouyLED.SetState(0)
         self._detector = True
+        self._toggleSize(True)
 
     def _targetDetectorOff(self, event):
         self._x.Value = ""
@@ -516,10 +595,11 @@ class TargetPanel(VisionPanel):
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
+        self._toggleSize(False)
 
-class BarbedWirePanel(VisionPanel):
-    def __init__(self, parent, eventHub, vision, *args, **kwargs):
-        VisionPanel.__init__(self, parent, *args, **kwargs)
+class BarbedWirePanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._topX = None
         self._topY = None
         self._topWidth = None
@@ -573,6 +653,7 @@ class BarbedWirePanel(VisionPanel):
     def _barbedWireDetectorOn(self, event):
         self._bouyLED.SetState(0)
         self._detector = True
+        self._toggleSize(True)
 
     def _barbedWireDetectorOff(self, event):
         self._topX.Value = ""
@@ -584,3 +665,4 @@ class BarbedWirePanel(VisionPanel):
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
+        self._toggleSize(False)
