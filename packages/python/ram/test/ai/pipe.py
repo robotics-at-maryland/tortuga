@@ -105,7 +105,7 @@ class TestFindAttempt(PipeTest):
         
         self.assert_(self.visionSystem.pipeLineDetector)
         self.assertCurrentMotion(motion.basic.MoveDirection)
-        self.assertAlmostEqual(cstate._direction.valueDegrees(), 45, 5)
+        self.assertAlmostEqual(cstate._direction.valueDegrees(), -45, 5)
 
     def testPipeFound(self):
         self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)

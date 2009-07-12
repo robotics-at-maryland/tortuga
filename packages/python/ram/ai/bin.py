@@ -377,10 +377,17 @@ class Recover(state.FindAttempt):
         ensureBinTracking(self.queuedEventHub, self.ai)
         
         # Will be in the next commit
-        #x = self.ai.data['lastBinX']
-        #y = self.ai.data['lastBinY']
+        x = self.ai.data['lastBinX']
+        y = self.ai.data['lastBinY']
         
-        #vector = math.Vector2()
+        ahead = math.Vector3(x, y, 0)
+        quat = math.Vector3.UNIT_Y.getRotationTo(ahead)
+        self._direction = quat.getYaw(True)
+        self._speed = self._config.get('speed', 0.5)
+
+        searchMotion = motion.basic.MoveDirection(self._direction, self._speed)
+
+        self.motionManager.setMotion(searchMotion)
         
 class LostCurrentBin(state.FindAttempt, HoveringState):
     """

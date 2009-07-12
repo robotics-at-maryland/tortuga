@@ -317,8 +317,9 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
 
         event = self.ai.data['lastPipeEvent']
 
-        self._direction = ext.math.Degree((180.0 / math.pi) * 
-            math.atan2(event.y, event.x))
+        ahead = ext.math.Vector3(event.x, event.y, 0)
+        quat = ext.math.Vector3.UNIT_Y.getRotationTo(ahead)
+        self._direction = quat.getYaw(True)
         self._speed = self._config.get('speed', 0.5)
 
         searchMotion = motion.basic.MoveDirection(self._direction, self._speed)

@@ -310,8 +310,8 @@ class TestRecover(aisupport.AITestCase):
         
         self.machine.start(TestRecover.MockRecover)
         
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertLessThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(bin.Start)
@@ -388,7 +388,8 @@ class TestLostCurrentBin(aisupport.AITestCase):
         self.assertCurrentState(TestLostCurrentBin.MockLostCurrentBin)
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(bin.SurfaceToMove)
-        
+
+
         
 class TestRecoverSeeking(aisupport.AITestCase):
     def testStart(self):
