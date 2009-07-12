@@ -1082,7 +1082,7 @@ class TestSettleBeforeDrop(BinTestCase):
     
     def testBinFound(self):
         """Make sure the loop back works"""
-        self.binFoundHelper()
+        self.binFoundHelper(shouldRotate = False)
     
     def testSettled(self):
         """Make sure we move on after settling"""

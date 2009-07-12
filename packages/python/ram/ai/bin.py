@@ -1014,6 +1014,11 @@ class SettleBeforeDrop(SettlingState):
             { SettleBeforeDrop.SETTLED : DropMarker },
             lostState = RecoverCloserLook,
             recoveryState = LostCurrentBinSettleBeforeDrop)
+
+    def BIN_FOUND(self, event):
+        # Disable Angle Trackingx
+        event.angle = math.Degree(0)
+        SettlingState.BIN_FOUND(self, event)
     
     def enter(self):
         settleTime = self._config.get('settleTime', 3)
