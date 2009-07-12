@@ -260,7 +260,7 @@ Controller:
     priority: high
     holdCurrentHeading: 1 # Set to 0 to always point north
     holdCurrentDepth: 1
-
+    initializationPause: 2
     orientationThreshold: 0.05
 
     adaptCtrlRotK: 5
