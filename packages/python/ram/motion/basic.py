@@ -52,7 +52,7 @@ class MotionManager(core.Subsystem):
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
         
-        self._qeventHub.subscribeToType(Motion.FINISHED, self._motionFinished)
+        self._eventHub.subscribeToType(Motion.FINISHED, self._motionFinished)
             
     def setMotion(self, motion):
         """

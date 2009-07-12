@@ -154,11 +154,10 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         
         if event.range < self._closeRangeThreshold:
             # If the range is very close, backup and change depth
-
             # Find the backwards direction and create the motion
-            desiredDirection = math.Degree(vehicleOrientation + 180)
-            self._recoverMotion = motion.basic.MoveDirection(desiredDirection,
-                                                       self._reverseSpeed)
+            self._recoverMotion = \
+	        motion.basic.MoveDirection(-180, self._reverseSpeed,
+		                           absolute = False)
             
             # Find the current depth and create the motion
             newDepth = self.vehicle.getDepth()
@@ -184,7 +183,6 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             #epthChange = motion.basic.RateChangeDepth(currentDepth + event.y,
             #                                           self._depthChangeSpeed)
             #self.motionManager.setMotion(depthChange)
-            
             # Yaw the vehicle if it's outside on an x-axis
             yawAngle = 0.0
             if event.x > self._radius:
@@ -207,14 +205,19 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
                 vectorLength < self._radius:
             # If the range is far and inside radius, move forwards slowly
             desiredDirection = math.Degree(vehicleOrientation)
-            recoverMotion = motion.basic.MoveDirection(desiredDirection,
-                                                       self._advanceSpeed)
+            recoverMotion = motion.basic.MoveDirection(0, self._advanceSpeed,
+	                                               absolute = False)
             self.motionManager.setMotion(recoverMotion)
             self._finished = True
         else:
             # Otherwise, wait for a symbol before continuing
             self._finished = True
             self.motionManager.stopCurrentMotion()
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+	self.controller.setSpeed(0)
+	self.controller.setSidewaysSpeed(0)
 
 class Align(state.State, StoreLightEvent):
     @staticmethod
@@ -323,7 +326,7 @@ class Continue(state.MultiMotion):
         self._upwardSpeed = self._config.get('upwardSpeed', 0.3)
         self._forwardSpeed = self._config.get('forwardSpeed', 3)
         self._forwardDuration = self._config.get('forwardDuration', 8)
-        self._turnSteps = self._config.get('turnSteps', 10)
+        self._turnSteps = self._config.get('turnSteps', 1)
 
         # Load the original orientation
         original = self.ai.data.get('lightStartOrientation', None)

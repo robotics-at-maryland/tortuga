@@ -447,7 +447,14 @@ class TestMoveDirection(support.MotionTest):
         self.motionManager.setMotion(m)
         
         self.assertEqual(5, self.controller.speed)
-        self.assertEqual(0, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        m = self.makeClass(desiredHeading = -180, speed = 5, absolute = False)
+        self.motionManager.setMotion(m)
+
+	self.assertEqual(-5, self.controller.speed)
+	self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
 
 class TestTimedMoveDirection(TestMoveDirection):
     def makeClass(self, *args, **kwargs):
