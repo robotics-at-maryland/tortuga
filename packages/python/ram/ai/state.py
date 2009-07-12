@@ -395,9 +395,12 @@ class Machine(core.Subsystem):
         transitionTable = newState.transitions()
         if self._qeventHub is not None:
             for eventType in transitionTable.iterkeys():
-                conn = self._qeventHub.subscribeToType(eventType, 
-                                                       self.injectEvent)
-                self._connections.append(conn)
+                if type(eventType) == type(self._enterState):
+                    raise Exception("Event type is actually a function")
+                else:
+                    conn = self._qeventHub.subscribeToType(eventType, 
+                                                           self.injectEvent)
+                    self._connections.append(conn)
         
         # Actual enter the state and record it as our new current state
         self._currentState = newState
