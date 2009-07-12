@@ -161,7 +161,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
                                                        self._reverseSpeed)
             
             # Find the current depth and create the motion
-            newDepth = self.controller.getDepth()
+            newDepth = self.vehicle.getDepth()
             changeDepth = False
             if event.y > self._yThreshold:
                 newDepth = newDepth - self._closeDepthChange
@@ -178,9 +178,9 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
                 self._finished = False
             else:
                 self._finished = True
-        elif vectorLength > self._radius:
+        elif vectorLength > self._radius and event.range < self._farRangeThreshold:
             # If the light is lost outside of the radius, turn towards it
-            #currentDepth = self.controller.getDepth()
+            #currentDepth = self.vehicle.getDepth()
             #epthChange = motion.basic.RateChangeDepth(currentDepth + event.y,
             #                                           self._depthChangeSpeed)
             #self.motionManager.setMotion(depthChange)
@@ -194,7 +194,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
             self.controller.yawVehicle(yawAngle)
             
             # Change the depth if it's outside on the y-axis
-            newDepth = self.controller.getDepth()
+            newDepth = self.vehicle.getDepth()
             if event.y > self._radius:
                 newDepth = newDepth - self._depthChange
             elif event.y < (0.0 - self._radius):
@@ -335,7 +335,7 @@ class Continue(state.MultiMotion):
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
-        currentDepth = self.controller.getDepth()
+        currentDepth = self.vehicle.getDepth()
         self._upward = motion.basic.RateChangeDepth(
             desiredDepth = currentDepth - self._upwardDepth,
             speed = self._upwardSpeed)
