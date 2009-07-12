@@ -376,6 +376,12 @@ class Recover(state.FindAttempt):
 
         ensureBinTracking(self.queuedEventHub, self.ai)
         
+        # Will be in the next commit
+        #x = self.ai.data['lastBinX']
+        #y = self.ai.data['lastBinY']
+        
+        #vector = math.Vector2()
+        
 class LostCurrentBin(state.FindAttempt, HoveringState):
     """
     When the vehicle loses its current ID it will attempt to find it
@@ -910,7 +916,7 @@ class LostCurrentBinPreDiveExamine(LostCurrentBinExamine):
     @staticmethod
     def transitions():
         return LostCurrentBinExamine.transitions(myState = LostCurrentBinPreDiveExamine,
-                                          lostState = RecoverPreDiveExamine,
+                                          lostState = RecoverDive,
                                           originalState = PreDiveExamine)
         
 class CloserLook(Dive):
