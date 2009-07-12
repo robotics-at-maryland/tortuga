@@ -285,5 +285,12 @@ Image* Image::loadFromBuffer(unsigned char* buffer, int width, int height,
     return new OpenCVImage(buffer, width, height, ownership);
 }
 
+bool Image::sameSize(Image* imageA, Image* imageB)
+{
+  return ((imageA->getWidth() == imageB->getWidth()) && 
+	  (imageB->getHeight() == imageB->getHeight()));
+}
+
+
 } // namespace vision
 } // namespace ram

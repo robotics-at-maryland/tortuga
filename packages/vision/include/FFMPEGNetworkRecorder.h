@@ -31,7 +31,8 @@ class RAM_EXPORT FFMPEGNetworkRecorder : public NetworkRecorder
   public:
     /** Creates a record which broadcasts data using TCP on the given port */
     FFMPEGNetworkRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                          boost::uint16_t port, int policyArg = 0);
+                          boost::uint16_t port, int policyArg = 0,
+                          int recordWidth = 640, int recordHeight = 480);
 
     virtual ~FFMPEGNetworkRecorder();
 

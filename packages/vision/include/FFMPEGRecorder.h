@@ -31,7 +31,8 @@ class RAM_EXPORT FFMPEGRecorder : public Recorder
 {
   public:
     FFMPEGRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                   std::string filename, int policyArg = 0);
+                   std::string filename, int policyArg = 0,
+                   int recordWidth = 640, int recordHeight = 480);
 
     virtual ~FFMPEGRecorder();
 
@@ -44,7 +45,7 @@ class RAM_EXPORT FFMPEGRecorder : public Recorder
     
   private:
     /** Add video to the stream */
-    AVStream* addVideoStream(int codec_id_);
+    AVStream* addVideoStream(int codec_id_, size_t width, size_t height);
     /** Open Video codecs allocates buffers */
     void openVideo();
     /** Allocates and AV frame */

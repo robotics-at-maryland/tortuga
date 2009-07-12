@@ -45,8 +45,9 @@ namespace ram {
 namespace vision {
 
 FFMPEGRecorder::FFMPEGRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                               std::string filename, int policyArg) :
-    Recorder(camera, policy, policyArg),
+                               std::string filename, int policyArg,
+                               int recordWidth, int recordHeight) :
+    Recorder(camera, policy, policyArg, recordWidth, recordHeight),
     m_formatContext(0),
     m_videoStream(0),
     m_format(0),
@@ -107,7 +108,9 @@ FFMPEGRecorder::FFMPEGRecorder(Camera* camera, Recorder::RecordingPolicy policy,
     // and initialize the codecs 
     if (m_format->video_codec != CODEC_ID_NONE)
     {
-        m_videoStream = addVideoStream(m_formatContext->video_codec_id);//m_format->video_codec);
+        m_videoStream = addVideoStream(m_formatContext->video_codec_id,
+                                       getRecordingWidth(),
+                                       getRecordingHeight());
     }
     else
     {
@@ -250,7 +253,8 @@ void FFMPEGRecorder::recordFrame(Image* image)
     }
 }
 
-AVStream* FFMPEGRecorder::addVideoStream(int codec_id_)
+AVStream* FFMPEGRecorder::addVideoStream(int codec_id_, size_t width,
+                                         size_t height)
 {
     CodecID codec_id = (CodecID)codec_id_;
     AVStream* videoStream = av_new_stream(m_formatContext, 0);
@@ -266,8 +270,8 @@ AVStream* FFMPEGRecorder::addVideoStream(int codec_id_)
     /* put sample parameters */
     c->bit_rate = 800000 * 4;
     /* resolution must be a multiple of two */
-    c->width = 640;
-    c->height = 480;
+    c->width = width;
+    c->height = height;
     /* time base: this is the fundamental unit of time (in seconds) in terms
        of which frame timestamps are represented. for fixed-fps content,
        timebase should be 1/framerate and timestamp increments should be

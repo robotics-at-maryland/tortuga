@@ -27,8 +27,9 @@ namespace vision {
 FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
     Camera* camera,
     Recorder::RecordingPolicy policy,
-    boost::uint16_t port, int policyArg) :
-    NetworkRecorder(camera, policy, port, policyArg),
+    boost::uint16_t port, int policyArg,
+    int recordWidth, int recordHeight) :
+    NetworkRecorder(camera, policy, port, policyArg, recordWidth, recordHeight),
     m_codecContext(0),
     m_convertContext(0),
     m_picture(0)
@@ -54,8 +55,8 @@ FFMPEGNetworkRecorder::FFMPEGNetworkRecorder(
     // put sample parameters
     m_codecContext->bit_rate = 400000;
     // Resolution must be a multiple of two
-    m_codecContext->width = 640;
-    m_codecContext->height = 480;
+    m_codecContext->width = getRecordingWidth();
+    m_codecContext->height = getRecordingHeight();
     // Frames per second
     m_codecContext->time_base= (AVRational){1,5};
     m_codecContext->gop_size = 10; // emit one intra frame every ten frames

@@ -53,10 +53,11 @@ class RAM_EXPORT Recorder : public core::Updatable
      *  @param camera  The camera to record images from
      *  @param policy  Determines how often images from the camera are recorded
      *  @param policyArg  An argument for use by the given recording policy.
-     *
+     *  @param recordWidth The final width of the image to record
+     *  @param recordHeight The final height of the image to record
      */
     Recorder(Camera* camera, Recorder::RecordingPolicy policy,
-             int policyArg = 0);
+             int policyArg = 0, int recordWidth = 640, int recordHeight = 480);
         
     ~Recorder();
 
@@ -64,6 +65,12 @@ class RAM_EXPORT Recorder : public core::Updatable
 
     /** Starts the background process thread, clear m_newFrame flag */
     virtual void background(int interval = -1);
+
+    /** Width of image we are recording in pixels */
+    size_t getRecordingWidth() const;
+
+    /** Height of image we are recording in pixels */
+    size_t getRecordingHeight() const;
 
     /** Creates a recorder from string the string
      *
@@ -100,6 +107,12 @@ class RAM_EXPORT Recorder : public core::Updatable
 
     /** Recording Policy specific data */
     int m_policyArg;
+
+    /** The width of theimage we are recording in pixels */
+    size_t m_width;
+
+    /** The height of the image we are recording in pixels */
+    size_t m_height;
     
     /** Protects access to m_nextFrame and m_newFrame */
     boost::mutex m_mutex;

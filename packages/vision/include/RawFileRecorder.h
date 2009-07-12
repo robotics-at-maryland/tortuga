@@ -71,7 +71,8 @@ class RAM_EXPORT RawFileRecorder : public Recorder
 
     
     RawFileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                 std::string rawfilename, int policyArg = 0);
+                    std::string rawfilename, int policyArg = 0,
+                    int recordWidth = 640, int recordHeight = 480);
 
     virtual ~RawFileRecorder();
 

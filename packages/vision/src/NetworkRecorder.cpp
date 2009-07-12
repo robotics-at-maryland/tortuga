@@ -48,8 +48,9 @@ namespace vision {
 
 NetworkRecorder::NetworkRecorder(Camera* camera,
                                  Recorder::RecordingPolicy policy,
-                                 boost::uint16_t port, int policyArg) :
-    Recorder(camera, policy, policyArg),
+                                 boost::uint16_t port, int policyArg,
+                                 int recordWidth, int recordHeight) :
+    Recorder(camera, policy, policyArg, recordWidth, recordHeight),
     m_port(port),
     m_listenSocket(-1),
     m_currentSocket(-1),
@@ -66,8 +67,8 @@ NetworkRecorder::NetworkRecorder(Camera* camera,
     error = WSAStartup( version, &wsaData );
 #endif
 
-    m_packet.width = htons(static_cast<boost::uint16_t>(camera->width()));
-    m_packet.height = htons(static_cast<boost::uint16_t>(camera->height()));
+    m_packet.width = htons(static_cast<boost::uint16_t>(getRecordingWidth()));
+    m_packet.height = htons(static_cast<boost::uint16_t>(getRecordingHeight()));
     m_packet.dataSize = 0;
     
     // Setup network

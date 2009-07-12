@@ -510,7 +510,8 @@ vision::Camera* createCamera(std::string input, std::string configPath)
 		std::cout <<"'" << input <<"' image file" << std::endl;
 		
 		vision::Image* img = vision::Image::loadFromFile(input);
-		vision::ImageCamera* c = new vision::ImageCamera(640, 480, 30);
+		vision::ImageCamera* c = new vision::ImageCamera(
+                    img->getWidth(), img->getHeight(), 30);
 		c->newImage(img);
 		//delete img;
 		return c;

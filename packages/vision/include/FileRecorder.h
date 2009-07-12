@@ -23,7 +23,8 @@ class RAM_EXPORT FileRecorder : public Recorder
 {
   public:
     FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                 std::string filename, int policyArg = 0);
+                 std::string filename, int policyArg = 0,
+                 int recordWidth = 640, int recordHeight = 480);
 
     virtual ~FileRecorder();
 

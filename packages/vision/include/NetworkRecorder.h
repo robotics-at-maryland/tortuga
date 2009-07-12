@@ -29,6 +29,14 @@ struct sockaddr_in;
 namespace ram {
 namespace vision {
 
+struct StreamStartHeader
+{
+    boost::uint16_t width;
+    boost::uint16_t height;
+    boost::uint32_t dataSize;
+};
+
+
 struct ImagePacketHeader
 {
     boost::uint16_t width;
@@ -42,7 +50,8 @@ class RAM_EXPORT NetworkRecorder : public Recorder
   public:
     /** Creates a record which broadcasts data using TCP on the given port */
     NetworkRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                    boost::uint16_t port, int policyArg = 0);
+                    boost::uint16_t port, int policyArg = 0,
+                    int recordWidth = 640, int recordHeight = 480);
 
     virtual ~NetworkRecorder();
 

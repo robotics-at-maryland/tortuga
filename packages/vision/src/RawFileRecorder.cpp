@@ -24,8 +24,9 @@ const boost::uint32_t RawFileRecorder::RMV_VERSION = 2;
     
 RawFileRecorder::RawFileRecorder(Camera* camera,
                                  Recorder::RecordingPolicy policy,
-                                 std::string filename, int policyArg) :
-    Recorder(camera, policy, policyArg),
+                                 std::string filename, int policyArg,
+                                 int recordWidth, int recordHeight) :
+    Recorder(camera, policy, policyArg, recordWidth, recordHeight),
     m_file(0),
     m_framenum(0),
     m_lastPacketSizeWritten(0)
@@ -53,10 +54,10 @@ RawFileRecorder::RawFileRecorder(Camera* camera,
     // Fill in the video header
     Header header = {0};
     header.magicNumber = MAGIC_NUMBER;
-    header.width = camera->width();
-    header.height = camera->height();
+    header.width = getRecordingWidth();
+    header.height = getRecordingHeight();
     /// TODO: Fix assumption about file bytes
-    header.packetSize = camera->width() * camera->height() * 3 + sizeof(Packet);
+    header.packetSize = header.width * header.height * 3 + sizeof(Packet);
     /// TODO: Fix assumption about BGR format
     header.format = (boost::uint32_t)Image::PF_BGR_8;
     header.framerate = fps;

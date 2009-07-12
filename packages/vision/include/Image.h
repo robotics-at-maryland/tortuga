@@ -153,6 +153,9 @@ public:
     static Image* loadFromBuffer(unsigned char* buffer, int width,
                                  int height, bool ownership);
     
+    /** Returns true if both images are the same size */
+    static bool sameSize(Image* imageA, Image* imageB);
+
     /** Makes the current image an exact copy of the source */
     virtual void copyFrom (const Image* src) = 0;
     
