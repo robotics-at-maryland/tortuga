@@ -977,7 +977,7 @@ class PostDiveExamine(Examine):
         if currentID is not None:
             # Check if it has half the number of hits it needs
             # If so, go for it anyways
-            if histogram[currentID]['totalHits'] >= self.minimumHitsOnTimeout:
+            if histogram[currentID]['totalHits'] >= self._minimumHitsOnTimeout:
                 # If it does, determine the symbol now
                 self._determineSymbols(self.ai.data['binData']['currentID'])
             else:
