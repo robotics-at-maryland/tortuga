@@ -80,11 +80,6 @@ BWPDController::BWPDController(core::ConfigNode config,
     m_controllerState(0)
 {
     init(config);
-
-    if (config["holdCurrentHeading"].asInt(0))
-        holdCurrentHeading();
-    if (config["holdCurrentDepth"].asInt(0))
-        holdCurrentDepth();
 }
 
 BWPDController::~BWPDController()
@@ -391,6 +386,20 @@ void BWPDController::setBuoyantTorqueCorrection(double x, double y, double z)
 
 void BWPDController::update(double timestep)
 {
+    if (m_initializationPause > 0)
+    {
+        m_initializationPause -= timestep;
+    	return;
+    }
+    else
+    {
+        if (m_holdStartOrientation)
+	{
+	    holdCurrentHeading();
+	    m_holdStartOrientation = false;
+	}
+    }
+
     // Grab latest state (preform small hack to copy it over for the controller)
     math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
     memcpy(&m_measuredState->linearAcceleration[0],
@@ -506,7 +515,12 @@ void BWPDController::update(double timestep)
 	 << m_controllerState->adaptCtrlParams[8][0] << " "
 	 << m_controllerState->adaptCtrlParams[9][0] << " "
 	 << m_controllerState->adaptCtrlParams[10][0] << " "
-	 << m_controllerState->adaptCtrlParams[11][0];
+         << m_controllerState->adaptCtrlParams[11][0] << " "
+                        << m_measuredState->velocity.x << " "
+                        << m_measuredState->velocity.y << " "
+                        << m_desiredState->velocity.x << " "
+                        << m_desiredState->velocity.y << " "
+                        << m_controllerState->useVelocityControl;
     
     // logging for gyro bias observer controller
     /*LOGGER.infoStream() << m_measuredState->quaternion[0] << " "
@@ -785,13 +799,19 @@ void BWPDController::init(core::ConfigNode config)
     // old logging header
     LOGGER.infoStream() << "% M-Quat M-AngRate M-Depth D-Quat D-AngRate"
         << " D-Depth D-Speed RotTorq"
-        << " TranForce AdaptCtrlParams(12 values) Time"
+        << " TranForce AdaptCtrlParams(12 values) M-Vel D-Vel Vel-InUse Time"
     // for adaptive rotational controller gains`
      	<< " (AdaptGains- K:" << m_controllerState->adaptCtrlRotK 
         << " Gamma: " << m_controllerState->adaptCtrlRotGamma
 	<< " Lambda: " << m_controllerState->adaptCtrlRotLambda << ")";
     //gyro bias observer controller header
 //    LOGGER.info("% M-Quat M-AngRate M-Depth D-Quat D-AngRate D-Depth D-Speed RotTorq TransForce qhat what bhat");
+
+    if (config["holdCurrentHeading"].asInt(0))
+        m_holdStartOrientation = true;
+    if (config["holdCurrentDepth"].asInt(0))
+        holdCurrentDepth();
+    m_initializationPause = config["initializationPause"].asDouble(0);
 
 }
 

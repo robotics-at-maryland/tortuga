@@ -168,6 +168,12 @@ private:
     /** Contains settings for the controller */
     core::ConfigNode m_config;
     
+    /** True if we are holding starting orientation */
+    bool m_holdStartOrientation;
+
+    /** The pause during which we wait for the vehicle to initialize */
+    double m_initializationPause;
+    
     /** Syncs asscess to the desired state */
     core::ReadWriteMutex m_desiredEstimatedStateMutex;
     
