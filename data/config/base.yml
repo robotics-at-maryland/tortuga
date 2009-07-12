@@ -33,6 +33,7 @@ Vehicle:
     Devices:
         # NOTE: All current numbers here are BS and need to updated
         VelocitySensor:
+            depends_on: ["SensorBoard"]
             type: VisionVelocitySensor
         SensorBoard:
             type: SensorBoard
@@ -272,7 +273,7 @@ Controller:
     sidewaysSpeedPGain: 3
     # Should not be negative
     depthPGain: 20
-
+    velocityPGain: 0.1
     inertia: [[0.201, 0, 0],
               [0, 4, 0],
               [0, 0, 1.288]]
