@@ -1010,7 +1010,7 @@ class LostCurrentBinPostDiveExamine(LostCurrentBin):
     @staticmethod
     def transitions():
         return LostCurrentBin.transitions(myState = LostCurrentBinPostDiveExamine,
-                                          lostState = RecoverPostDiveExamine,
+                                          lostState = RecoverCloserLook,
                                           originalState = PostDiveExamine)
         
 class SettleBeforeDrop(SettlingState):
