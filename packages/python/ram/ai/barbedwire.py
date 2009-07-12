@@ -362,6 +362,7 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
+        yawGain = self._config.get('yawGain', 1.0)
         
         # Create tracking object
         # Initializing the range to the desired range so the vehicle won't
@@ -382,7 +383,8 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
             depthGain = self._depthGain,
-            maxDepthDt = maxDepthDt)
+            maxDepthDt = maxDepthDt,
+            yawGain = yawGain)
         
         self.motionManager.setMotion(motion)
         

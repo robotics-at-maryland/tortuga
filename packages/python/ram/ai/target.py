@@ -352,6 +352,7 @@ class TargetAlignState(FilteredState):
         alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
+        yawGain = self._config.get('yawGain', 1.0)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
@@ -363,7 +364,8 @@ class TargetAlignState(FilteredState):
             depthGain = depthGain,
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
-            maxDepthDt = maxDepthDt)
+            maxDepthDt = maxDepthDt,
+            yawGain = yawGain)
         
         self.motionManager.setMotion(motion)
         
