@@ -1051,6 +1051,42 @@ class TestPostDiveExamine(ExamineTestCase, BinTestCase):
                               failureState = bin.SurfaceToMove,
                               recoverState = bin.RecoverCloserLook)
         
+    def testTimeoutMinimumHits(self):
+        self.machine.start(bin.PostDiveExamine)
+        
+        bin.ensureBinTracking(self.qeventHub, self.ai)
+        
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['histogram'][3] = {'totalHits' : 0}
+        
+        cstate = self.machine.currentState()
+        
+        cstate._minimumHitsOnTimeout = 4
+        cstate._minimumHits = 8
+        
+        # Release the timer without enough hits
+        self.releaseTimer(bin.Examine.TIMEOUT)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SurfaceToMove)
+        
+        self.machine.stop()
+        self.machine.start(bin.PostDiveExamine)
+        
+        cstate = self.machine.currentState()
+        
+        cstate._minimumHitsOnTimeout = 4
+        cstate._minimumHits = 8
+        
+        # Inject 4 events
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
+        
+        self.releaseTimer(bin.Examine.TIMEOUT)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.SettleBeforeDrop)
+        
 class TestSettleBeforeDrop(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
