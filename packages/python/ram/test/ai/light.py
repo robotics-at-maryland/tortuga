@@ -177,6 +177,11 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         
+        # Test that we find it
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
+        
     def testForwardsMovement(self):
         # Stop the machine
         self.machine.stop()
@@ -203,6 +208,11 @@ class TestFindAttempt(support.AITestCase):
         self.assertAlmostEqual(self.controller.getSpeed(), 1, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         
+        # Test that we find it
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
+        
     def testOtherCases(self):
         # Stop the machine
         self.machine.stop()
@@ -215,6 +225,11 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentMotion(type(None))
         self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        
+        # Test that we find it
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
 
     def testTimeout(self):
         self.assertCurrentState(light.FindAttempt)

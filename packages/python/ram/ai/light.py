@@ -149,6 +149,9 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
         self._farRangeThreshold = self._config.get('farRangeThreshold', 8)
         
+        # Create so the other FindAttempt motions won't crash
+        self._recoverMotion = None
+        
         if event.range < self._closeRangeThreshold:
             # If the range is very close, backup and change depth
 
@@ -323,11 +326,12 @@ class Continue(state.MultiMotion):
         self._turnSteps = self._config.get('turnSteps', 10)
 
         # Load the original orientation
-        original = self.ai.data['lightStartOrientation']
+        original = self.ai.data.get('lightStartOrientation', None)
         
         # Create the motions
-        self._rotate = motion.basic.ChangeHeading(desiredHeading = original,
-                                                  steps = self._turnSteps)
+        if original is not None:
+            self._rotate = motion.basic.ChangeHeading(desiredHeading = original,
+                                                      steps = self._turnSteps)
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
@@ -340,8 +344,12 @@ class Continue(state.MultiMotion):
             absolute = False)
         
         # Create the MultiMotion
-        state.MultiMotion.enter(self, self._rotate, self._backward,
-                                self._upward, self._forward)
+        if original is None:
+            state.MultiMotion.enter(self, self._backward, self._upward,
+                                    self._forward)
+        else:
+            state.MultiMotion.enter(self, self._rotate, self._backward,
+                                    self._upward, self._forward)
 
 class End(state.State):
     def enter(self):
