@@ -26,8 +26,12 @@ ram.ai.pipe.AlongPipe:
 ram.ai.light.Start:
     depth: 5.5
 ram.ai.light.Searching:
-    sweepAngle: 35
+    sweepAngle: 0 #35
     speed: 2
+ram.ai.light.FindAttempt:
+    advancedSpeed: 2
+    reverseSpeed: 1.5
+    diveSpeed: 0.1
 ram.ai.light.Align:
     alignGain: 8
     depthGain: 0 #0.05
@@ -38,7 +42,9 @@ ram.ai.light.Seek:
 ram.ai.light.Hit:
     duration: 2
     speed: 2.5
-
+ram.ai.light.Continue:
+    backwardDuration: 2
+    forwardDuration: 7
 # Duct Sub task
 ram.ai.duct.SeekingToRange:
     filterSize: 10
