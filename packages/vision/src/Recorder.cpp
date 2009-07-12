@@ -175,11 +175,13 @@ Recorder* Recorder::createRecorderFromString(const std::string& str,
         return 0;
     }
     std::string typeStr = matcher[1];
-    std::string argStr = matcher[3];
 
     // Now split up the arguments
     std::vector<std::string> args;
-    ba::split(args, argStr, ba::is_any_of(","));
+    std::string argStr = matcher[3];
+    if (argStr.size() > 0)
+        ba::split(args, argStr, ba::is_any_of(","));
+    
 
     // The first two args are always size
     if (args.size() == 1u)

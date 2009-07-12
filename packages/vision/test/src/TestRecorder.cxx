@@ -123,6 +123,15 @@ TEST_FIXTURE(RecorderFixture, createFromString)
     CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
     
     delete recorder;
+
+    recorder = vision::Recorder::createRecorderFromString(
+        "50000", &camera, message, vision::Recorder::MAX_RATE, 5);
+
+    CHECK_EQUAL(640u, recorder->getRecordingWidth());
+    CHECK_EQUAL(480u, recorder->getRecordingHeight());
+    CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
+
+    delete recorder;
 }
 
 
