@@ -345,14 +345,29 @@ class TestLostCurrentBin(aisupport.AITestCase):
         def transitions():
             return {"NO" : "TRANSITION"}
         
-    def setUp(self):
+    def setUp(self, myState = None, recover = None, foundState = None):
         aisupport.AITestCase.setUp(self)
+
+        if myState is None:
+            self.myState = TestLostCurrentBin.MockLostCurrentBin
+        else:
+            self.myState = myState
+
+        if recover is None:
+            self.recover = TestLostCurrentBin.MockRecover
+        else:
+            self.recover = recover
+
+        if foundState is None:
+            self.foundState = TestLostCurrentBin.MockFoundState
+        else:
+            self.foundState = foundState
         
         # Data. currentID must be something that it won't accidently create.
         self.ai.data['lastBinX'] = 0.5
         self.ai.data['lastBinY'] = -0.5
         
-        self.machine.start(TestLostCurrentBin.MockLostCurrentBin)
+        self.machine.start(self.myState)
         
         self.ai.data['binData']['currentID'] = 10
         self.ai.data['binData']['currentIds'] = set([3,4])
@@ -364,14 +379,14 @@ class TestLostCurrentBin(aisupport.AITestCase):
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 4)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(TestLostCurrentBin.MockLostCurrentBin)
+        self.assertCurrentState(self.myState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 10)
         
         # Now a new one outside the threshold
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 5)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(TestLostCurrentBin.MockLostCurrentBin)
+        self.assertCurrentState(self.myState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 10)
         
         # Now the correct bin
@@ -379,18 +394,69 @@ class TestLostCurrentBin(aisupport.AITestCase):
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.5,
                          y = -0.5, id = 6)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(TestLostCurrentBin.MockFoundState)
+        self.assertCurrentState(self.foundState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 6)
+
+    def testBinsLost(self):
+        # Inject BINS_LOST
+        self.injectEvent(vision.EventType.BINS_LOST)
+        self.assertCurrentState(self.recover)
         
     def testTimeout(self):
         self.ai.data['startSide'] = bin.BinSortingState.RIGHT
         
-        self.assertCurrentState(TestLostCurrentBin.MockLostCurrentBin)
+        self.assertCurrentState(self.myState)
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(bin.SurfaceToMove)
 
+class TestLostCurrentBinDive(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinDive,
+                                 recover = bin.RecoverDive,
+                                 foundState = bin.Dive)
 
-        
+class TestLostCurrentBinAligning(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinAligning,
+                                 recover = bin.RecoverDive,
+                                 foundState = bin.Aligning)
+
+class TestLostCurrentBinPreDiveExamine(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinPreDiveExamine,
+                                 recover = bin.RecoverDive,
+                                 foundState = bin.PreDiveExamine)
+
+class TestLostCurrentBinCloserLook(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinCloserLook,
+                                 recover = bin.RecoverCloserLook,
+                                 foundState = bin.CloserLook)
+
+class TestLostCurrentBinPostDiveExamine(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinPostDiveExamine,
+                                 recover = bin.RecoverCloserLook,
+                                 foundState = bin.PostDiveExamine)
+
+class TestLostCurrentBinSettleBeforeDrop(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinSettleBeforeDrop,
+                                 recover = bin.RecoverCloserLook,
+                                 foundState = bin.SettleBeforeDrop)
+
+class TestLostCurrentBinSurfaceToMove(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinSurfaceToMove,
+                                 recover = bin.RecoverSurfaceToMove,
+                                 foundState = bin.SurfaceToMove)
+
+class TestLostCurrentBinNextBin(TestLostCurrentBin):
+    def setUp(self):
+        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinNextBin,
+                                 recover = bin.RecoverSurfaceToMove,
+                                 foundState = bin.SurfaceToMove)
+
 class TestRecoverSeeking(aisupport.AITestCase):
     def testStart(self):
         self.vehicle.depth = 9

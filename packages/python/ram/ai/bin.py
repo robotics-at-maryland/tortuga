@@ -1041,7 +1041,7 @@ class LostCurrentBinSettleBeforeDrop(LostCurrentBin):
     @staticmethod
     def transitions():
         return LostCurrentBin.transitions(myState = LostCurrentBinSettleBeforeDrop,
-                                          lostState = RecoverSettleBeforeDrop,
+                                          lostState = RecoverCloserLook,
                                           originalState = SettleBeforeDrop)
        
 class SurfaceToMove(HoveringState):
@@ -1203,10 +1203,10 @@ class CheckDropped(HoveringState):
     
     @staticmethod
     def transitions():
-        return HoveringState.transitions(RecoverCheckDropped,
+        return HoveringState.transitions(CheckDropped,
             { CheckDropped.FINISH : SurfaceToCruise,
-              CheckDropped.RESTART : Dive }, lostState = RecoverCheckDropped,
-              recoveryState = LostCurrentBinCheckDropped)
+              CheckDropped.RESTART : Dive }, lostState = CheckDropped,
+              recoveryState = CheckDropped)
         
     def enter(self):
         self._maximumScans = self._config.get('maximumScans', 2)
@@ -1227,18 +1227,6 @@ class CheckDropped(HoveringState):
         else:
             # We've dropped them all. Finish.
             self.publish(CheckDropped.FINISH, core.Event())
-            
-class RecoverCheckDropped(Recover):
-    @staticmethod
-    def transitions():
-        return Recover.transitions(CheckDropped)
-    
-class LostCurrentBinCheckDropped(LostCurrentBin):
-    @staticmethod
-    def transitions():
-        return LostCurrentBin.transitions(myState = LostCurrentBinCheckDropped,
-                                          lostState = RecoverCheckDropped,
-                                          originalState = CheckDropped)
         
 class SurfaceToCruise(HoveringState):
     """
