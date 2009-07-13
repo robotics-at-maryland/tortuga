@@ -15,6 +15,7 @@ import ext.core as core
 import ram.ai.state as state
 import ram.ai.subsystem as aisys
 import ram.motion as motion
+import ram.logloader as logloader
 
 import ram.test.ai.support as aisupport
 
@@ -294,16 +295,24 @@ class TestStateMachine(unittest.TestCase):
         # Check enter event
         nextStateName = '%s.%s' % (nextState.__class__.__module__,
                                    nextState.__class__.__name__)
+        eventStr = enterRecv.event.string
         self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.event.type)
         self.assertEquals(self.machine, enterRecv.event.sender)
-        self.assertEquals(nextStateName, enterRecv.event.string)
+        self.assertEquals(nextStateName, eventStr)
+        
+        # Ensure the state resolves to the proper state
+        self.assertEqual(nextState.__class__, logloader.resolve(eventStr))
 
         # Check exit event
         startStateName = '%s.%s' % (startState.__class__.__module__,
                                    startState.__class__.__name__)
+        eventStr = exitRecv.event.string
         self.assertEquals(state.Machine.STATE_EXITED, exitRecv.event.type)
         self.assertEquals(self.machine, exitRecv.event.sender)
         self.assertEquals(startStateName, exitRecv.event.string)
+        
+        # Ensure the state resolves to the proper state
+        self.assertEqual(startState.__class__, logloader.resolve(eventStr))
         
         # Check completion event
         self.machine.injectEvent(self._makeEvent(MockEventSource.ANOTHER_EVT))
