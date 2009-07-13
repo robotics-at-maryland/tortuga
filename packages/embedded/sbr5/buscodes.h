@@ -121,20 +121,28 @@
 
 #define BUS_CMD_BFIN_STOP       0x4F
 #define BUS_CMD_BFIN_START      0x50
+
 /* NOTE: Since there was no space for BATT6_ON and
  * BATT6_OFF I used 0x51 and 0x52 above
  * --Kit (5/23/2009) */
-/* Next free is 0x53 */
+
+#define BUS_CMD_SET_MOT_SPEEDS  0x53
+#define BUS_CMD_KILL_MOTORS     0x54
+#define BUS_CMD_SET_MOT_N       0x55
+/* Next free is 0x56 */
+
+
+/* I wanted a more Unique response to a ping.
+ * Ideally, the response would be 0xBEEF or 0xDEAD or 0xABADBABE
+ * Perhaps 0xFEEF1F0 like FEE FI FO FUM or 0xAC like the start of ACK
+ *
+ * For now, I think the response will have to be 0xA5 which is 10100101
+ * which, while not as fun, is symmetric, and hard to have happen randomly. */
+#define BUS_CMD_PING_RESP 0xA5;
 
 
 
-
-
-
-/* Can someone define what host commands are??
- * I think they're what IC1 gets from the host,
- * but nothing is particularly well defined in
- * this file...
+/* Host commands are commands which the computron sends to senior ic1.
  * --Kit (5/23/2009) */
 #define HOST_CMD_SYNC               0xFF
 
