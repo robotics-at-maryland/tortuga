@@ -130,12 +130,12 @@ class TestRecover(support.AITestCase):
 
     def testLightFound(self):
         self.assertCurrentState(light.Recover)
-        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
-                         6)
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0.5, 0, range = 7)
         self.qeventHub.publishEvents()
         self.assertCurrentState(light.Align)
-        self.assertEqual(5, self.ai.data['lastLightEvent'].x)
-        self.assertEqual(6, self.ai.data['lastLightEvent'].y)
+        self.assertEqual(0.5, self.ai.data['lastLightEvent'].x)
+        self.assertEqual(0, self.ai.data['lastLightEvent'].y)
         
     def testBackwardsMovement(self):
         # Stop the machine
@@ -155,25 +155,36 @@ class TestRecover(support.AITestCase):
         self.ai.data['lastLightEvent'].x = 0
         self.ai.data['lastLightEvent'].y = 1
         self.machine.start(light.Recover)
-        self.assertCurrentMotion((motion.basic.MoveDirection,
-                                  motion.basic.RateChangeDepth, None))
+        self.assertCurrentMotion(motion.basic.MoveDirection)
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+
+        # Now inject an event to cause it to change depth
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0, 1)
+        self.qeventHub.publishEvents()
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        self.assertCurrentState(light.Recover)
 
         # Restart the machine
         self.machine.stop()
         self.ai.data['lastLightEvent'].x = 0
         self.ai.data['lastLightEvent'].y = -1
+        self.ai.data['lastLightEvent'].range = 4
         self.machine.start(light.Recover)
-        self.assertCurrentMotion((motion.basic.MoveDirection,
-                                  motion.basic.RateChangeDepth, None))
+        self.assertCurrentMotion(motion.basic.MoveDirection)
         self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         
-        # Inject a light event that isn't in the center
-        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0, -1)
+        # Now inject an event to cause it to change depth
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0, 1)
         self.qeventHub.publishEvents()
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
         self.assertCurrentState(light.Recover)
         
         # Now inject one in the yThreshold

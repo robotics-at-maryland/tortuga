@@ -102,7 +102,7 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 2)
-            
+
 class Recover(state.FindAttempt, StoreLightEvent):
     REFOUND_LIGHT = core.declareEventType('REFOUND_LIGHT')
     
@@ -120,26 +120,46 @@ class Recover(state.FindAttempt, StoreLightEvent):
         
     def LIGHT_FOUND(self, event):
         StoreLightEvent.LIGHT_FOUND(self, event)
-        
-        # Turn off the timer
-        if self.timer is not None:
-            self.timer.stop()
-            self.timer = None
+
+        if self._recoverMethod == "Close Range":
+            # Turn off the timer and backwards motion
+            if self.timer is not None:
+                self.timer.stop()
+                self.timer = None
+
+                self.motionManager._stopMotion(self._recoverMotion)
+                
+                # Create the depth motion if needed
+                newDepth = self.vehicle.getDepth()
+                changeDepth = False
+                if event.y > self._yThreshold:
+                    newDepth = newDepth - self._closeDepthChange
+                    changeDepth = True
+                elif event.y < (0.0 - self._yThreshold):
+                    newDepth = newDepth + self._closeDepthChange
+                    changeDepth = True
+                print newDepth
+                
+                # Start the depth motion if necessary
+                if changeDepth:
+                    self._diveMotion = motion.basic.RateChangeDepth(
+                        desiredDepth = newDepth, speed = self._diveSpeed)
+                    self.motionManager.setMotion(self._diveMotion)
+                    self._finished = False
+                else:
+                    self._finished = True
             
-        # Check if the motion is finished
-        if self._finished:
+            # Check if the motion is finished
+            if self._finished:
+                self.publish(Recover.REFOUND_LIGHT, core.Event())
+            
+            # Check if we should finish it early
+            if ((0.0 - self._yThreshold) < event.y < self._yThreshold):
+                self.motionManager.stopCurrentMotion()
+                self.controller.holdCurrentDepth()
+                self.publish(Recover.REFOUND_LIGHT, core.Event())
+        else:
             self.publish(Recover.REFOUND_LIGHT, core.Event())
-            
-        # Check if we should finish it early
-        if ((0.0 - self._yThreshold) < event.y < self._yThreshold):
-            self.motionManager.stopCurrentMotion()
-            self.controller.holdCurrentDepth()
-            self.publish(Recover.REFOUND_LIGHT, core.Event())
-            
-        # Stop the backwards motion
-        if self._recoverMotion is not None:
-            self.motionManager._stopMotion(self._recoverMotion)
-            self._recoverMotion = None
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 4)
@@ -148,6 +168,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
         
         vectorLength = math.Vector2(event.x, event.y).length()
         vehicleOrientation = self.vehicle.getOrientation().getYaw().valueDegrees()
+        self._recoverMethod = "Default"
         
         # Load the thresholds for searching
         self._yThreshold = self._config.get('yThreshold', 0.05)
@@ -161,41 +182,19 @@ class Recover(state.FindAttempt, StoreLightEvent):
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
         self._farRangeThreshold = self._config.get('farRangeThreshold', 8)
         
-        # Create so the other FindAttempt motions won't crash
-        self._recoverMotion = None
-        
         if event.range < self._closeRangeThreshold:
             # If the range is very close, backup and change depth
             # Find the backwards direction and create the motion
+            self._recoverMethod = "Close Range"
             self._recoverMotion = \
 	        motion.basic.MoveDirection(-180, self._reverseSpeed,
 		                           absolute = False)
             
-            # Find the current depth and create the motion
-            newDepth = self.vehicle.getDepth()
-            changeDepth = False
-            if event.y > self._yThreshold:
-                newDepth = newDepth - self._closeDepthChange
-                changeDepth = True
-            elif event.y < (0.0 - self._yThreshold):
-                newDepth = newDepth + self._closeDepthChange
-                changeDepth = True
-            diveMotion = motion.basic.RateChangeDepth(desiredDepth = newDepth,
-                                                      speed = self._diveSpeed)
-            # Start necessary motions
+            # Set the backwards motion
             self.motionManager.setMotion(self._recoverMotion)
-            if changeDepth:
-                self.motionManager.setMotion(diveMotion)
-                self._finished = False
-            else:
-                self._finished = True
+            self._finished = False
         elif vectorLength > self._radius and event.range < self._farRangeThreshold:
-            # If the light is lost outside of the radius, turn towards it
-            #currentDepth = self.vehicle.getDepth()
-            #epthChange = motion.basic.RateChangeDepth(currentDepth + event.y,
-            #                                           self._depthChangeSpeed)
-            #self.motionManager.setMotion(depthChange)
-            # Yaw the vehicle if it's outside on an x-axis
+            self._recoverMethod = "Mid Range"
             yawAngle = 0.0
             if event.x > self._radius:
                 yawAngle = (0.0 - self._yawChange)
@@ -215,6 +214,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
             self._finished = False
         elif event.range > self._farRangeThreshold and \
                 vectorLength < self._radius:
+            self._recoverMethod = "Far Range"
             # If the range is far and inside radius, move forwards slowly
             desiredDirection = math.Degree(vehicleOrientation)
             recoverMotion = motion.basic.MoveDirection(0, self._advanceSpeed,
