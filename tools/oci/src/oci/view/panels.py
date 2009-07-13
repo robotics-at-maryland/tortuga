@@ -307,7 +307,8 @@ class AIPanel(wx.Panel):
         self._startTime = timer.time()
         
     def _onEntered(self,event):
-        self._currentState.Value = '%s' % event.string
+        fullClassName = str(event.string)
+        self._currentState.Value = '%s' % fullClassName.split('.')[-1]
         
     def _onExited(self,event):
         # Get the time stamp and its difference from the beginning

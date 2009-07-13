@@ -273,8 +273,9 @@ class TestStateMachine(unittest.TestCase):
         self.assertEqual(None, self.machine.currentState())
         
         # Ensure we entered and exited the exit state
-        self.assertEquals(End.__name__, enterRecv.event.string)
-        self.assertEquals(End.__name__, exitRecv.event.string)
+        endName = '%s.%s' % (End.__module__, End.__name__)
+        self.assertEquals(endName, enterRecv.event.string)
+        self.assertEquals(endName, exitRecv.event.string)
 
     def testEvents(self):
         enterRecv = Reciever()
@@ -289,16 +290,20 @@ class TestStateMachine(unittest.TestCase):
         nextState = self.machine.currentState()
 
         self.assertNotEqual(startState, nextState)
-
+        
         # Check enter event
+        nextStateName = '%s.%s' % (nextState.__class__.__module__,
+                                   nextState.__class__.__name__)
         self.assertEquals(state.Machine.STATE_ENTERED, enterRecv.event.type)
         self.assertEquals(self.machine, enterRecv.event.sender)
-        self.assertEquals(nextState.__class__.__name__, enterRecv.event.string)
+        self.assertEquals(nextStateName, enterRecv.event.string)
 
         # Check exit event
+        startStateName = '%s.%s' % (startState.__class__.__module__,
+                                   startState.__class__.__name__)
         self.assertEquals(state.Machine.STATE_EXITED, exitRecv.event.type)
         self.assertEquals(self.machine, exitRecv.event.sender)
-        self.assertEquals(startState.__class__.__name__, exitRecv.event.string)
+        self.assertEquals(startStateName, exitRecv.event.string)
         
         # Check completion event
         self.machine.injectEvent(self._makeEvent(MockEventSource.ANOTHER_EVT))
