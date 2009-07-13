@@ -28,7 +28,9 @@ import ext.vehicle.device
 import ext.control
 import ext.core as core
 
+from ram.logloader import resolve
 import ram.ai.state 
+import ram.ai.task as task
 import ram.filter as filter
 import ram.timer as timer
 
@@ -274,24 +276,32 @@ class AIPanel(wx.Panel):
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
         textSize = wx.Size(textWidth, wx.DefaultSize.height) 
         textStyle = wx.TE_RIGHT | wx.TE_READONLY
+
+        # Create Current Task controls
+        currentLabel = wx.StaticText(self, label = 'Current Task')
+        layout.Add(currentLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        self._currentTask = wx.TextCtrl(self, size = textSize,
+                                         style = textStyle)
+        layout.Add(self._currentTask, (1, 0), 
+                   flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Current controls
         currentLabel = wx.StaticText(self, label = 'Current State')
-        layout.Add(currentLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(currentLabel, (2, 0), flag = wx.ALIGN_CENTER)
         self._currentState = wx.TextCtrl(self, size = textSize,
                                          style = textStyle)
-        layout.Add(self._currentState, (1, 0), 
+        layout.Add(self._currentState, (3, 0), 
                    flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Last controls
         lastLabel = wx.StaticText(self, label = 'Previous States')
-        layout.Add(lastLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(lastLabel, (4, 0), flag = wx.ALIGN_CENTER)
         self._stateList = wx.ListBox(self, wx.ID_ANY, name = 'State List',
                                      style = wx.TE_RIGHT | wx.LB_SINGLE)
-        layout.Add(self._stateList, (3, 0), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._stateList, (5, 0), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         layout.AddGrowableCol(0)
-        layout.AddGrowableRow(3)
+        layout.AddGrowableRow(5)
         
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)
@@ -308,16 +318,24 @@ class AIPanel(wx.Panel):
         
     def _onEntered(self,event):
         fullClassName = str(event.string)
-        self._currentState.Value = '%s' % fullClassName.split('.')[-1]
+        
+        # Recreate the class
+        stateClass = resolve(fullClassName)
+        if issubclass(stateClass, task.Task):
+            # It's a task, put it there
+            self._currentTask.Value = '%s' % fullClassName.split('.')[-1]
+        else:
+            self._currentState.Value = '%s' % fullClassName.split('.')[-1]
         
     def _onExited(self,event):
         # Get the time stamp and its difference from the beginning
         timeStamp = datetime.fromtimestamp(event.timeStamp - self._startTime)
+        fullClassName = str(event.string)
         
         # Format the string MM:SS.mm EventName
         string = timeStamp.strftime("%M:%S.") + \
             "%.0f" % (timeStamp.microsecond / 10000.0)
-        string = string + (' %s' % event.string)
+        string = string + (' %s' % fullClassName.split('.')[-1])
         self._stateList.InsertItems([string], pos = 0)
        
     def _onClose(self, closeEvent):
