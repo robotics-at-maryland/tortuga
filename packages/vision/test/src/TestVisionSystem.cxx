@@ -327,6 +327,6 @@ TEST_FIXTURE(VisionSystemFixture, VelocityDetector)
     CHECK(velocityEvent);
     if (velocityEvent)
         CHECK_CLOSE(expectedVelocity, velocityEvent->vector2, 1.0);
- }
+}
 
 } // SUITE(RedLightDetector)

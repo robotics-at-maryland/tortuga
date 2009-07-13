@@ -11,7 +11,7 @@
 #define RAM_VISION_VISIONSYSTEM_H_01_29_2008
 
 // STD Includes
-#include <vector>
+#include <map>
 
 // Project Includes
 #include "core/include/Subsystem.h"
@@ -57,6 +57,28 @@ public:
     void velocityDetectorOn();
     void velocityDetectorOff();
 
+    /** Creates a recorder based on the string with the given policy
+     *
+     *  @param recorderString
+     *      A string of the same format that is passed to
+     *      Recorder::createRecorderFromString.
+     *  @param policy
+     *      -1 if you want to record as many frames as possible, otherwise its
+     *      the max frame rate you wish to record at.
+     */
+    void addForwardRecorder(std::string recorderString, int policy,
+                            bool debugPrint = false);
+    void addDownwardRecorder(std::string recorderString, int policy,
+                             bool debugPrint = false);
+    
+    /** Removes the recorder, shutting it down
+     *
+     *  @param recorderString
+     *      Must be the same string that was passed to "addRecorder"
+     */
+    void removeForwardRecorder(std::string recorderString);
+    void removeDownwardRecorder(std::string recorderString);
+    
     /** Calls setPriority on Cameras, VisionRunners, and Recorders
      *
      *  @note Only valid when in testing mode, set by 'testing' in config file
@@ -152,7 +174,11 @@ private:
     /** Initializes all internal members */
     void init(core::ConfigNode config, core::EventHubPtr eventHub);
 
-    void createRecorders(core::ConfigNode recorderCfg, CameraPtr camera);
+    void createRecordersFromConfig(core::ConfigNode recorderCfg,
+                                   CameraPtr camera);
+
+    void createRecorder(CameraPtr camera, std::string recorderString,
+                        int frameRate, bool debugPrint = false);
 
     /** Add a detector to the forward runner */
     void addForwardDetector(DetectorPtr detector);
@@ -165,7 +191,9 @@ private:
     CameraPtr m_forwardCamera;
     CameraPtr m_downwardCamera;
 
-    std::vector<Recorder*> m_recorders;
+    typedef std::map<std::string, Recorder*> StrRecorderMap;
+    typedef StrRecorderMap::value_type StrRecorderMapPair;
+    StrRecorderMap m_recorders;
     
     VisionRunner* m_forward;
     VisionRunner* m_downward;

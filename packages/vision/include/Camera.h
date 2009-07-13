@@ -119,7 +119,7 @@ public:
 protected:
     /** No argument constructor
      *
-     *  You can not give the Camera and ram::core::EventHub to pass events on
+     *  You can not give the Camera a ram::core::EventHub to pass events on
      *  too because we wish to control the access to the image pointers.
      */
     Camera();

@@ -105,9 +105,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     // Recorders
     if (config.exists("ForwardRecorders"))
-        createRecorders(config["ForwardRecorders"], m_forwardCamera);
+        createRecordersFromConfig(config["ForwardRecorders"], m_forwardCamera);
     if (config.exists("DownwardRecorders"))
-        createRecorders(config["DownwardRecorders"], m_downwardCamera);
+        createRecordersFromConfig(config["DownwardRecorders"], m_downwardCamera);
     
     // Detector runners (go as fast as possible)
     m_forward = new VisionRunner(m_forwardCamera.get(), Recorder::NEXT_FRAME);
@@ -141,30 +141,41 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_downwardCamera->background(-1);
 }
     
-void VisionSystem::createRecorders(core::ConfigNode recorderCfg,
-                                   CameraPtr camera)
+void VisionSystem::createRecordersFromConfig(core::ConfigNode recorderCfg,
+                                             CameraPtr camera)
 {
     BOOST_FOREACH(std::string recorderString, recorderCfg.subNodes())
     {
-        Recorder::RecordingPolicy policy = Recorder::MAX_RATE;
-
         // Get in the rate, or the signal to record every frame
-        int policyArg = recorderCfg[recorderString].asInt();
-        if (policyArg <= 0)
-            policy = Recorder::NEXT_FRAME;
+        int frameRate = recorderCfg[recorderString].asInt();
 
-        // Create the actual recorder
-        std::string message;
-        Recorder* recorder = Recorder::createRecorderFromString(
-            recorderString, camera.get(), message, policy, policyArg,
-            core::Logging::getLogDir().string());
-        std::cout << "RECORDING>>>> "  << message << std::endl;
-
-        // Store it for later desctruction
-        m_recorders.push_back(recorder);
+        // Create the recorder
+        createRecorder(camera, recorderString, frameRate, true);
     }
 }
+    
+void VisionSystem::createRecorder(CameraPtr camera, std::string recorderString,
+                                  int frameRate, bool debugPrint)
+{
+    Recorder::RecordingPolicy policy = Recorder::MAX_RATE;
 
+    // Get in the rate, or the signal to record every frame
+    int policyArg = frameRate;
+    if (policyArg <= 0)
+        policy = Recorder::NEXT_FRAME;
+
+    // Create the actual recorder
+    std::string message;
+    Recorder* recorder = Recorder::createRecorderFromString(
+        recorderString, camera.get(), message, policy, policyArg,
+        core::Logging::getLogDir().string());
+    if (debugPrint)
+        std::cout << "RECORDING>>>> "  << message << std::endl;
+
+    // Store it for later desctruction
+    m_recorders[recorderString] = recorder;
+}
+    
 void VisionSystem::addForwardDetector(DetectorPtr detector)
 {
     assert(detector && "Can't use a NULL detector");
@@ -196,8 +207,8 @@ VisionSystem::~VisionSystem()
     m_downwardCamera->unbackground(true);
 
     // Stop recorders
-    BOOST_FOREACH(Recorder* recorder, m_recorders)
-        delete recorder;
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        delete pair.second;
     
     // Shutdown our detectors running on our cameras
     delete m_forward;
@@ -325,6 +336,52 @@ void VisionSystem::velocityDetectorOff()
 {
     m_downward->removeDetector(m_velocityDetector);
 }
+
+
+void VisionSystem::addForwardRecorder(std::string recorderString, int frameRate,
+                                      bool debugPrint)
+{
+    if (m_recorders.end() == m_recorders.find(recorderString))
+    {
+        if (m_forwardCamera)
+        {
+            createRecorder(m_forwardCamera, recorderString, frameRate,
+                           debugPrint);
+        }
+    }
+}
+
+void VisionSystem::addDownwardRecorder(std::string recorderString,
+                                       int frameRate,
+                                       bool debugPrint)
+{
+    if (m_recorders.end() == m_recorders.find(recorderString))
+    {
+        if (m_downwardCamera)
+        {
+            createRecorder(m_downwardCamera, recorderString, frameRate,
+                           debugPrint);
+        }
+    }
+}
+    
+void VisionSystem::removeForwardRecorder(std::string recorderString)
+{
+    if (m_recorders.end() != m_recorders.find(recorderString))
+    {
+        delete m_recorders[recorderString];
+        m_recorders.erase(recorderString);
+    }
+}
+
+void VisionSystem::removeDownwardRecorder(std::string recorderString)
+{
+    if (m_recorders.end() != m_recorders.find(recorderString))
+    {
+        delete m_recorders[recorderString];
+        m_recorders.erase(recorderString);
+    }
+}
     
 void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 {
@@ -334,9 +391,9 @@ void VisionSystem::setPriority(core::IUpdatable::Priority priority)
 
     m_forward->setPriority(priority);
     m_downward->setPriority(priority);
-    
-    BOOST_FOREACH(Recorder* recorder, m_recorders)
-        recorder->setPriority(priority);
+
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->setPriority(priority);
 }
     
 void VisionSystem::background(int interval)
@@ -351,8 +408,8 @@ void VisionSystem::background(int interval)
     m_downward->background(interval);
 
     // Start recorders
-    BOOST_FOREACH(Recorder* recorder, m_recorders)
-        recorder->background(interval);
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->background(interval);
 }
         
 void VisionSystem::unbackground(bool join)
@@ -368,8 +425,8 @@ void VisionSystem::unbackground(bool join)
     m_downward->unbackground(join);
 
     // Stop recorders
-    BOOST_FOREACH(Recorder* recorder, m_recorders)
-        recorder->unbackground(join);
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->unbackground(join);
 }
 
 void VisionSystem::update(double timestep)
@@ -385,8 +442,8 @@ void VisionSystem::update(double timestep)
     m_downward->update(timestep);
 
     // Update the recorders to record the data
-    BOOST_FOREACH(Recorder* recorder, m_recorders)
-        recorder->update(timestep);
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->update(timestep);
 }
 
 math::Degree VisionSystem::getFrontHorizontalFieldOfView()
