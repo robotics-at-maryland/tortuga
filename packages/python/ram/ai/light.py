@@ -138,7 +138,6 @@ class Recover(state.FindAttempt, StoreLightEvent):
                 elif event.y < (0.0 - self._yThreshold):
                     newDepth = newDepth + self._closeDepthChange
                     changeDepth = True
-                print newDepth
                 
                 # Start the depth motion if necessary
                 if changeDepth:

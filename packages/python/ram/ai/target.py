@@ -35,6 +35,14 @@ import ram.motion.duct
 
 COMPLETE = core.declareEventType('COMPLETE')
 
+class StoreTargetEvent(object):
+    """
+    Common subclass for states that have a LIGHT_FOUND transition, it stores 
+    the event in ai.data.
+    """
+    def TARGET_FOUND(self, event):
+        self.ai.data['lastTargetEvent'] = event
+
 class FilteredState(object):
     """
     Provides filter on the inputs from the vision system
@@ -68,7 +76,7 @@ class FilteredState(object):
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
 
-class RangeXYHold(FilteredState, state.State):
+class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
     """
     Base state that holds the target centered in X, Y and depth without yawing.
     It will also throw off an event whenever it is within range and centering
@@ -89,6 +97,7 @@ class RangeXYHold(FilteredState, state.State):
         
     def TARGET_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
+        StoreTargetEvent.TARGET_FOUND(self, event)
         self._updateFilters(event)
         
         y = self._filterdY
@@ -165,7 +174,7 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.FindAttempt):
+class FindAttempt(state.FindAttempt, StoreTargetEvent):
     """
     Attempt to find the target, before starting search pattern.  This will
     catch the object if its front of the vehicle.
@@ -174,13 +183,48 @@ class FindAttempt(state.FindAttempt):
     @staticmethod
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.TARGET_FOUND,
-                                       SeekingToCentered, Searching)
+                                       SeekingToCentered, Recover)
         
     def enter(self):
         state.FindAttempt.enter(self)
         self.visionSystem.targetDetectorOn()
 
-class Searching(state.State):
+class Recover(state.FindAttempt, StoreTargetEvent):
+    """
+    Move backwards if we were too close
+    """
+    @staticmethod
+    def transitions():
+        return state.FindAttempt.transitions(vision.EventType.TARGET_FOUND,
+                                             SeekingToCentered, Searching)
+
+    def enter(self, timeout = 3):
+        state.FindAttempt.enter(self)
+        self.visionSystem.targetDetectorOn()
+
+        event = self.ai.data['lastTargetEvent']
+        
+        self._recoverMethod = "Default"
+        
+        # Load the thresholds for searching
+        self._reverseSpeed = self._config.get('reverseSpeed', 3)
+        self._closeRangeThreshold = self._config.get('closeRangeThreshold', 0.5)
+        
+        if event.range < self._closeRangeThreshold:
+            # If the range is very close, backup and change depth
+            # Find the backwards direction and create the motion
+            self._recoverMethod = "Close Range"
+            self._recoverMotion = \
+	        motion.basic.MoveDirection(-180, self._reverseSpeed,
+		                           absolute = False)
+            
+            # Set the backwards motion
+            self.motionManager.setMotion(self._recoverMotion)
+        else:
+            # Otherwise, wait for a symbol before continuing
+            self.motionManager.stopCurrentMotion()
+
+class Searching(state.State, StoreTargetEvent):
     """
     Runs a zig-zag search pattern until it finds the duct
     """
@@ -319,8 +363,9 @@ class FireTorpedos(RangeXYHold):
             # All torpedos fired, lets get out of this state
             self.publish(FireTorpedos.MOVE_ON, core.Event())
         
-class TargetAlignState(FilteredState):
+class TargetAlignState(FilteredState, StoreTargetEvent):
     def TARGET_FOUND(self, event):
+        StoreTargetEvent.TARGET_FOUND(self, event)
         self._updateFilters(event)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0

@@ -94,13 +94,56 @@ class TestFindAttempt(support.AITestCase):
         self.assertEquals(self.machine.currentState()._timeout,
                           TestFindAttempt.TIMEOUT)
         
+        # For Recover
+        self.ai.data['lastTargetEvent'] = vision.TargetEvent()
+
         # Release timer
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         
         # Test that the timeout worked properly
-        self.assertCurrentState(target.Searching)
+        self.assertCurrentState(target.Recover)
         self.assert_(self.visionSystem.targetDetector)
 
+class TestRecover(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.ai.data['lastTargetEvent'] = vision.TargetEvent()
+        self.machine.start(target.Recover)
+
+    def testLightFound(self):
+        self.assertCurrentState(target.Recover)
+        self.injectEvent(vision.EventType.TARGET_FOUND,
+                         vision.TargetEvent, 0.5, 0, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(target.SeekingToCentered)
+        self.assertEqual(0.5, self.ai.data['lastTargetEvent'].x)
+        self.assertEqual(0, self.ai.data['lastTargetEvent'].y)
+        
+    def testBackwardsMovement(self):
+        # Stop the machine
+        self.machine.stop()
+        
+        # Set the range to a close enough value
+        self.ai.data['lastTargetEvent'].range = 0.4
+        
+        # Restart the machine
+        self.machine.start(target.Recover)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+
+        # Restart the machine, test light below
+        self.machine.stop()
+        self.ai.data['lastTargetEvent'].x = 0
+        self.ai.data['lastTargetEvent'].y = 1
+        self.machine.start(target.Recover)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+
+        # Now inject an event to cause it to change depth
+        self.injectEvent(vision.EventType.TARGET_FOUND)
+        self.assertCurrentState(target.SeekingToCentered)
         
 class TestSearching(support.AITestCase):
     def setUp(self):
@@ -256,8 +299,6 @@ class TestFireTorpedos(TestRangeXYHold):
         self.assertEqual(2, self.ai.data['torpedosFired'])
         self.assertEqual(2, self.vehicle.torpedosFired)
         self.assert_(self.machine.complete)
-
-        
 
 class AlignmentTest(object):
     def testStart(self):
