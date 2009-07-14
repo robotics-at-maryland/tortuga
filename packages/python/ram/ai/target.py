@@ -163,7 +163,7 @@ class Start(state.State):
     
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : FindAttempt }
+        return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
         diveMotion = motion.basic.RateChangeDepth(

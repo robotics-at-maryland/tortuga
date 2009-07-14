@@ -50,7 +50,7 @@ class TestStart(support.AITestCase):
         
     def testFinish(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(target.FindAttempt)
+        self.assertCurrentState(target.Searching)
 
 class TestFindAttempt(support.AITestCase):
     TIMEOUT = 2
