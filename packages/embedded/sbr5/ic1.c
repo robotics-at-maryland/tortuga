@@ -1,18 +1,18 @@
 /*
-    SBR5 = Define this for Sensor Board Revision 5.
+    SBR5 = Define this for Sensor Board Revision 5 and 6.
            This is the first generation of the backplane-aware sensor board.
            This board is listed as SensorBoardRev5 in Eagle
 
-    SBR7 = Define this for Sensor Board Revision 7. This
+    SBR7 = Define this for Sensor Board Revision 7 and 8. This
            This is the second generation of the backplane-aware sensor board.
            Originally two were made.
            This is listed as SensorBoardRev7 in Eagle and was made at Goddard
            only a few days before leaving.
 */
 
-#define SBR5
-//#define SBR7
-
+//#define SBR5
+#define SBR7
+#define MOTORBOARD
 
 
 #include <p30fxxxx.h>
@@ -66,6 +66,7 @@ _FWDT ( WDT_OFF );
     #define LAT_IRQ3     _LATB4
     #define LAT_IRQ4     _LATB3
     #define LAT_IRQ5     _LATB7
+    #define LAT_IRQ6     _LATB8
 
     #define USB_PRESENT     1
 #else
@@ -79,6 +80,7 @@ _FWDT ( WDT_OFF );
     #define LAT_IRQ3     _LATB4
     #define LAT_IRQ4     _LATB6
     #define LAT_IRQ5     _LATB7
+    #define LAT_IRQ6     _LATB8
 
     #define USB_PRESENT     0
 #endif
@@ -96,6 +98,7 @@ _FWDT ( WDT_OFF );
 #define IRQ_DISTRO      3
 #define IRQ_BALANCER    4
 #define IRQ_SONAR       5
+#define IRQ_MOTOR       6
 
 #define SLAVE_ID_POWERBOARD IRQ_DISTRO
 
@@ -113,6 +116,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_BARS       IRQ_DISTRO
 #define SLAVE_ID_IMOTOR     IRQ_DISTRO
 #define SLAVE_ID_VLOW       IRQ_DISTRO
+#define SLAVE_ID_MOTOR      IRQ_MOTOR
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -158,7 +162,11 @@ _FWDT ( WDT_OFF );
 
 
 /* How many chips are in the POST list? */
-#define NUM_SLAVES  6
+#ifndef MOTORBOARD
+    #define NUM_SLAVES  6
+#else
+    #define NUM_SLAVES  7
+#endif
 
 
 #ifndef SBR5
@@ -167,8 +175,11 @@ _FWDT ( WDT_OFF );
     #endif
 #endif
 
-static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR};
-
+#ifndef MOTORBOARD
+    static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR};
+#else
+    static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR, IRQ_MOTOR};
+#endif
 
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
@@ -179,6 +190,28 @@ signed int waitchar(byte timeout);
 
 
 byte failsafeTripped = 0;   /* Gets set to 1 */
+
+/* Takes the high and low byte from a 16bit speed packet and scales it
+ * to the new 8-bit format. */
+byte convertSpeed(byte high, byte low) {
+    byte ret;
+    short therealchunk= high;
+    long multTemp;
+
+    therealchunk<<= 8;
+    therealchunk|= low;
+    multTemp= therealchunk;
+
+    multTemp*= 102;
+    multTemp>>= 10;
+
+    if(multTemp < 0)
+        ret= 0x7F + multTemp;
+    else
+        ret= 0x80 + multTemp;
+
+    return ret;
+}
 
 /* Read byte from bus */
 byte readBus()
@@ -282,6 +315,9 @@ void setReq(byte req, byte val)
 
     if(req == 5)
         LAT_IRQ5 = val;   /* IRQ 5 - B7 */
+
+    if(req == 6)
+        LAT_IRQ6 = val;   /* IRQ 6 - B8 */
 }
 
 
@@ -432,8 +468,8 @@ void _ISR _T1Interrupt(void)
 void initMasterUart()
 {
     U1MODE = 0x0000;
-//    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
-    U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
+    U1BRG = 1;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
+//    U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
@@ -793,6 +829,7 @@ void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
 */
 void checkFailsafe()
 {
+#ifndef MOTORBOARD
     if(failsafeTripped == 1)
     {
         failsafeTripped = 0;
@@ -829,6 +866,13 @@ void checkFailsafe()
         busWriteByte(BUS_CMD_THRUSTER5_OFF, SLAVE_ID_THRUSTERS);
         busWriteByte(BUS_CMD_THRUSTER6_OFF, SLAVE_ID_THRUSTERS);
     }
+#else
+    if(failsafeTripped == 1)
+    {
+        failsafeTripped= 0;
+        busWriteByte(BUS_CMD_KILL_MOTORS, SLAVE_ID_MOTOR);
+    }
+#endif
 }
 
 /* Flash the yellow LED on and off n times */
@@ -906,7 +950,7 @@ int main(void)
 
     ADPCFG = 0xFFFF;
     LATB = 0;
-    TRISB = 0x100;
+    TRISB = 0x000;    /* We want ALL of portB to be outputs. */
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
@@ -1870,6 +1914,8 @@ int main(void)
                 }
 
                 t1 = 0;
+
+#ifndef MOTORBOARD
                 if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
                 if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
                 if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
@@ -1893,6 +1939,14 @@ int main(void)
                 if(busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[10], SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[11], SLAVE_ID_MM6) != 0) t1++;
+#else
+                busWriteByte(BUS_CMD_SET_MOT_SPEEDS, SLAVE_ID_MOTOR);
+
+                for(i= 0;i < 6;i++) {
+                    if(busWriteByte(convertSpeed(rxBuf[i], rxBuf[i+1]), SLAVE_ID_MOTOR))
+                        t1++;
+                }
+#endif
 
                 /* Inform distro board of new speeds */
                 if(busWriteByte(BUS_CMD_MOTRSPEEDS, SLAVE_ID_THRUSTERS) == 0)
