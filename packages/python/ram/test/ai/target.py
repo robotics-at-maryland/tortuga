@@ -108,9 +108,9 @@ class TestRecover(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
         self.ai.data['lastTargetEvent'] = vision.TargetEvent()
-        self.machine.start(target.Recover)
 
     def testLightFound(self):
+        self.machine.start(target.Recover)
         self.assertCurrentState(target.Recover)
         self.injectEvent(vision.EventType.TARGET_FOUND,
                          vision.TargetEvent, 0.5, 0, 0, 0)
@@ -119,10 +119,7 @@ class TestRecover(support.AITestCase):
         self.assertEqual(0.5, self.ai.data['lastTargetEvent'].x)
         self.assertEqual(0, self.ai.data['lastTargetEvent'].y)
         
-    def testBackwardsMovement(self):
-        # Stop the machine
-        self.machine.stop()
-        
+    def testBackwardsMovement(self):        
         # Set the range to a close enough value
         self.ai.data['lastTargetEvent'].range = 0.4
         
@@ -142,6 +139,19 @@ class TestRecover(support.AITestCase):
         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
         # Now inject an event to cause it to change depth
+        self.injectEvent(vision.EventType.TARGET_FOUND)
+        self.assertCurrentState(target.SeekingToCentered)
+
+    def testNoEvent(self):
+        # Get rid of the event that was created
+        del self.ai.data['lastTargetEvent']
+
+        self.machine.start(target.Recover)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(0, self.controller.getSpeed(), 5)
+        self.assertAlmostEqual(0, self.controller.getSidewaysSpeed(), 5)
+
+        # Check that injecting an event doesn't do anything bad
         self.injectEvent(vision.EventType.TARGET_FOUND)
         self.assertCurrentState(target.SeekingToCentered)
         

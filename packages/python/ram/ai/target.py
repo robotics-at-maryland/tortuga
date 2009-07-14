@@ -202,7 +202,7 @@ class Recover(state.FindAttempt, StoreTargetEvent):
         state.FindAttempt.enter(self)
         self.visionSystem.targetDetectorOn()
 
-        event = self.ai.data['lastTargetEvent']
+        event = self.ai.data.get('lastTargetEvent', None)
         
         self._recoverMethod = "Default"
         
@@ -210,7 +210,11 @@ class Recover(state.FindAttempt, StoreTargetEvent):
         self._reverseSpeed = self._config.get('reverseSpeed', 3)
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 0.5)
         
-        if event.range < self._closeRangeThreshold:
+        if event is None:
+            # If there was no event, do this
+            self._recoverMethod = "None"
+            self.motionManager.stopCurrentMotion()
+        elif event.range < self._closeRangeThreshold:
             # If the range is very close, backup and change depth
             # Find the backwards direction and create the motion
             self._recoverMethod = "Close Range"
