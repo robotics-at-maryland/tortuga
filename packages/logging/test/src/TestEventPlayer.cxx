@@ -39,6 +39,16 @@ namespace bf = boost::filesystem;
 
 class TestEventPlayer : public logging::EventPlayer
 {
+public:
+    TestEventPlayer(core::ConfigNode config, core::SubsystemList deps,
+                    double startTime) :
+        logging::EventPlayer(config, deps),
+        timeOfDay(startTime),
+        sleptTime(-1)
+    {
+        m_startTime = startTime;
+    }
+    
     double timeOfDay;
     double sleptTime;
     
@@ -104,7 +114,7 @@ struct Fixture
         oa << event;
     }
     
-    EventList writeOutTestEvents()
+    EventList writeOutTestEvents(double startTime = 0.0)
     {    
         std::ofstream ofs;
         ofs.open(filename.c_str(), std::ios::out | std::ios::app |
@@ -114,10 +124,10 @@ struct Fixture
         ram::logging::registerTypes(oa);
 
         EventList events;
-        insertEvent("0", 0, 0, events, oa);
-        insertEvent("1", 0, 0.3, events, oa);
-        insertEvent("2", 0, 0.8, events, oa);
-        insertEvent("3", 0, 1.5, events, oa);
+        insertEvent("0", 0, startTime + 0, events, oa);
+        insertEvent("1", 0, startTime + 0.3, events, oa);
+        insertEvent("2", 0, startTime + 0.8, events, oa);
+        insertEvent("3", 0, startTime + 1.5, events, oa);
 
         ofs.close();
         
@@ -136,13 +146,17 @@ TEST_FIXTURE(Fixture, BasicPlayer)
     EventList events = writeOutTestEvents();
     
     // Create our logger
-    logging::EventPlayer* player =
-        new logging::EventPlayer(core::ConfigNode::fromString(config),
-                                 boost::assign::list_of(eventHub));
+    TestEventPlayer* player =
+        new TestEventPlayer(core::ConfigNode::fromString(config),
+                            boost::assign::list_of(eventHub), 0);
 
     // Go through and update to make sure all the events are published
     for (unsigned int i = 0; i < events.size(); ++i)
+    {
         player->update(0);
+        // Make sure the current time updates properly
+        CHECK_EQUAL(events[i]->timeStamp, player->currentTime());
+    }
 
     // Check to make sure we got the right number of events
     CHECK_EQUAL(events.size(), publishedEvents.size());
@@ -153,43 +167,54 @@ TEST_FIXTURE(Fixture, BasicPlayer)
         CHECK_EQUAL(events[i]->sender, publishedEvents[i]->sender);
         CHECK_EQUAL(events[i]->timeStamp, publishedEvents[i]->timeStamp);
     }
+}
+
+TEST_FIXTURE(Fixture, Sleeping)
+{
+    static const double RECORDED_TIME = 12;
+    static const double PLAYBACK_TIME = 124;
+    static const double OFFSET = PLAYBACK_TIME - RECORDED_TIME;
     
-/*    
-    // A named publisher so that it can properly be recorded
-    ram::core::EventPublisher publisher(eventHub, "PublisherName");
-    ram::core::EventPublisher unNamedPublisher(eventHub);
+    // The events we wrote to the file (starting at 12 seconds)
+    EventList events = writeOutTestEvents(RECORDED_TIME);
     
-    // Send an event through the publisher
-    core::StringEventPtr event1(new ram::core::StringEvent());
-    event1->string = "Test";
-    publisher.publish("Bob", event1);
-    expected.push_back(event1);
+    // Create our logger
+    TestEventPlayer* player =
+        new TestEventPlayer(core::ConfigNode::fromString(config),
+                            boost::assign::list_of(eventHub),
+                            PLAYBACK_TIME);
 
-    core::StringEventPtr event2(new ram::core::StringEvent());
-    event2->string = "My Other String";
-    unNamedPublisher.publish("Other", event2);
-    expected.push_back(event2);
+    
+    // Do the first update
+    player->update(0);
+    CHECK_EQUAL(-1, player->sleptTime);
+    CHECK_EQUAL(events[0]->timeStamp - RECORDED_TIME, player->currentTime());
+    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(events[0]->timeStamp + OFFSET,
+                publishedEvents[0]->timeStamp, 0.0001);
 
-    // Close down the logger and force the events to disk
-    delete logger;
+    // The next update (with no time advacement)
+    player->update(0);
+    CHECK_CLOSE(0.3, player->sleptTime, 0.0001);
+    CHECK_EQUAL(events[1]->timeStamp - RECORDED_TIME, player->currentTime());
+    CHECK_EQUAL(events[1]->type, publishedEvents[1]->type);
+    CHECK_EQUAL(events[1]->sender, publishedEvents[1]->sender);
+    CHECK_CLOSE(events[1]->timeStamp + OFFSET,
+                publishedEvents[1]->timeStamp, 0.0001);
 
-    // Compare
-    EventList results =  readBackAllEvents();
-    CHECK_EQUAL(expected.size(), results.size());
+    // Now another update that should have no sleep in it
+    player->timeOfDay = PLAYBACK_TIME + 1;
+    player->sleptTime = -1;
+    player->update(0);
 
-    CHECK_EQUAL(expected[0]->type, results[0]->type);
-    CHECK_EQUAL(expected[0]->timeStamp, results[0]->timeStamp);
-    CHECK_EQUAL(expected[0]->sender, results[0]->sender);
-    CHECK_EQUAL(
-        boost::dynamic_pointer_cast<core::StringEvent>(expected[0])->string,
-        boost::dynamic_pointer_cast<core::StringEvent>(results[0])->string);
+    CHECK_CLOSE(-1, player->sleptTime, 0.0001);
+    CHECK_EQUAL(events[2]->timeStamp - RECORDED_TIME, player->currentTime());
+    CHECK_EQUAL(events[2]->type, publishedEvents[2]->type);
+    CHECK_EQUAL(events[2]->sender, publishedEvents[2]->sender);
+    CHECK_CLOSE(events[2]->timeStamp + OFFSET,
+                publishedEvents[2]->timeStamp, 0.0001);
 
-    CHECK_EQUAL(expected[1]->type, results[1]->type);
-    CHECK_EQUAL(expected[1]->timeStamp, results[1]->timeStamp);
-    CHECK(!results[1]->sender);
-    CHECK_EQUAL(
-        boost::dynamic_pointer_cast<core::StringEvent>(expected[1])->string,
-        boost::dynamic_pointer_cast<core::StringEvent>(results[1])->string);*/
 }
 
 } // SUITE(EventLogger)

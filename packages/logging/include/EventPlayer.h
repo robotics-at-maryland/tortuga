@@ -67,6 +67,9 @@ protected:
     virtual double getTimeOfDay();
     
     virtual void eventSleep(double seconds);
+
+    /** The the subsystem started up */
+    double m_startTime;
     
 private:
     /** Creates all parts of the underlying logging system */
@@ -81,9 +84,6 @@ private:
     /** Protects access to the file */
     core::ReadWriteMutex m_mutex;
     
-    /** The the subsystem started up */
-    double m_startTime;
-
     /** The time for the first event in the log file */
     double m_firstEventTime;
     

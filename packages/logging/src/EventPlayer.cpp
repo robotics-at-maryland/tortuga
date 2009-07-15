@@ -36,8 +36,8 @@ namespace logging {
 
 EventPlayer::EventPlayer(core::ConfigNode config) :
     Subsystem(config["name"].asString("EventPlayer")),
-    m_archive(0), //m_logFile)
     m_startTime(0),
+    m_archive(0), //m_logFile)
     m_firstEventTime(-1)
 {
     init(config, core::SubsystemList());
@@ -45,8 +45,8 @@ EventPlayer::EventPlayer(core::ConfigNode config) :
     
 EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
     Subsystem(config["name"].asString("EventPlayer"), deps),
-    m_archive(0), //m_logFile)
     m_startTime(0),
+    m_archive(0), //m_logFile)
     m_firstEventTime(-1)
 {
     init(config, deps);
@@ -110,7 +110,7 @@ void EventPlayer::update(double)
         // If in the "past" send the event, other wise sleep until it must be
         // sent out
         double now = getTimeOfDay();
-        if (event->timeStamp < now)
+        if (now < event->timeStamp)
         {
             // Compute the time needed to sleep in seconds
             double sleepTime = event->timeStamp - now;
