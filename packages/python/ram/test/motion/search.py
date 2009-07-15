@@ -126,15 +126,43 @@ class TestForwardZigZag(support.MotionTest):
         self.assertEquals(mockTimerA, mockTimerB)
 
     def testDirection(self):
-        # Once it is in the correct direction, then it acts like a normal zigZag motion
-        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35, speed = 8, direction = 180)
+        # Once it is in the correct direction,
+        # then it acts like a normal zigZag motion
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35,
+                                        speed = 8, direction = 60)
 
         # Start the motion
         self.motionManager.setMotion(m)
 
         # Ensure we only turn half way on the first turn and the
         # direction is correct
-        expectedYaw = 180 + 35/2.0
+        expectedYaw = 60 + 35/2.0
+        self.assertEqual(expectedYaw, self.controller.yawChange)
+        self.assertEqual(0, self.controller.speed)
+
+        orientation = math.Quaternion(math.Degree(expectedYaw),
+                                      math.Vector3.UNIT_Z)
+        self.controller.publishAtOrientation(orientation)
+        self.qeventHub.publishEvents()
+        
+        # Ensure we only go half time of the first leg and at the right speed
+        mockTimer = MockTimer.LOG[motion.search.ForwardZigZag.LEG_COMPLETE]
+        self.assert_(mockTimer.started)
+        self.assertEqual(3, mockTimer.sleepTime)
+        self.assertEqual(8, self.controller.speed)
+
+    def testOppositeDirection(self):
+        # Once it is in the correct direction, 
+        # then it acts like a normal zigZag motion
+        m = motion.search.ForwardZigZag(legTime = 6, sweepAngle = 35,
+                                        speed = 8, direction = -60)
+
+        # Start the motion
+        self.motionManager.setMotion(m)
+
+        # Ensure we only turn half way on the first turn and the
+        # direction is correct
+        expectedYaw = -60 - 35/2.0
         self.assertEqual(expectedYaw, self.controller.yawChange)
         self.assertEqual(0, self.controller.speed)
 

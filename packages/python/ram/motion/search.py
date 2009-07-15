@@ -44,11 +44,15 @@ class ForwardZigZag(Motion):
         self._connections.append(conn)
 
         if self._direction is None:
+            currentAngle = 0
             desiredAngle = 0
         else:
             vehicle = self._vehicle.getOrientation()
             currentAngle = vehicle.getYaw().valueDegrees()
             desiredAngle = self._direction - currentAngle
+
+        if currentAngle - desiredAngle > 0:
+            self._sweepAngle *= -1
 
         self._controller.yawVehicle(desiredAngle + (self._sweepAngle / 2.0))
         self._sweepAngle *= -1
