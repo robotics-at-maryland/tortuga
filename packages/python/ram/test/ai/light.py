@@ -175,16 +175,18 @@ class TestRecover(support.AITestCase):
         self.ai.data['lastLightEvent'].range = 4
         self.machine.start(light.Recover)
         self.assertCurrentMotion(motion.basic.MoveDirection)
-        self.assertAlmostEqual(self.controller.getSpeed(), -4.0, 5)
-        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        self.assertAlmostEqual(-4.0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
         
         # Now inject an event to cause it to change depth
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
                          0, 1)
         self.qeventHub.publishEvents()
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
-        self.assertAlmostEqual(self.controller.getSpeed(), 0, 5)
-        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
         self.assertCurrentState(light.Recover)
         
         # Now inject one in the yThreshold
@@ -287,6 +289,23 @@ class TestRecover(support.AITestCase):
         self.assertCurrentState(light.Recover)
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(light.Searching)
+
+    def testNoEvent(self):
+        self.machine.stop()
+
+        del self.ai.data['lastLightEvent']
+
+        self.machine.start(light.Recover)
+
+        self.assertCurrentState(light.Recover)
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
+
+        # Make sure it doesn't crash when receiving a light event
+        self.injectEvent(vision.EventType.LIGHT_FOUND)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
 
 class TestAlign(support.AITestCase):
     def setUp(self):

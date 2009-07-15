@@ -97,9 +97,6 @@ class FindAttempt(state.FindAttempt, StoreLightEvent):
         return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
                                              Align, Recover)
         
-    def LIGHT_FOUND(self, event):
-        StoreLightEvent.LIGHT_FOUND(self, event)
-        
     def enter(self):
         state.FindAttempt.enter(self, timeout = 2)
 
@@ -163,10 +160,8 @@ class Recover(state.FindAttempt, StoreLightEvent):
     def enter(self):
         state.FindAttempt.enter(self, timeout = 4)
         
-        event = self.ai.data['lastLightEvent']
+        event = self.ai.data.get('lastLightEvent', None)
         
-        vectorLength = math.Vector2(event.x, event.y).length()
-        vehicleOrientation = self.vehicle.getOrientation().getYaw().valueDegrees()
         self._recoverMethod = "Default"
         
         # Load the thresholds for searching
@@ -181,49 +176,58 @@ class Recover(state.FindAttempt, StoreLightEvent):
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 5)
         self._farRangeThreshold = self._config.get('farRangeThreshold', 8)
         
-        if event.range < self._closeRangeThreshold:
-            # If the range is very close, backup and change depth
-            # Find the backwards direction and create the motion
-            self._recoverMethod = "Close Range"
-            self._recoverMotion = \
-	        motion.basic.MoveDirection(-180, self._reverseSpeed,
-		                           absolute = False)
-            
-            # Set the backwards motion
-            self.motionManager.setMotion(self._recoverMotion)
-            self._finished = False
-        elif vectorLength > self._radius and event.range < self._farRangeThreshold:
-            self._recoverMethod = "Mid Range"
-            yawAngle = 0.0
-            if event.x > self._radius:
-                yawAngle = (0.0 - self._yawChange)
-            elif event.x < (0.0 - self._radius):
-                yawAngle = self._yawChange
-            self.controller.yawVehicle(yawAngle)
-            
-            # Change the depth if it's outside on the y-axis
-            newDepth = self.vehicle.getDepth()
-            if event.y > self._radius:
-                newDepth = newDepth - self._depthChange
-            elif event.y < (0.0 - self._radius):
-                newDepth = newDepth + self._depthChange
-            dive = motion.basic.RateChangeDepth(desiredDepth = newDepth,
-                                                  speed = self._diveSpeed)
-            self.motionManager.setMotion(dive)
-            self._finished = False
-        elif event.range > self._farRangeThreshold and \
-                vectorLength < self._radius:
-            self._recoverMethod = "Far Range"
-            # If the range is far and inside radius, move forwards slowly
-            desiredDirection = math.Degree(vehicleOrientation)
-            recoverMotion = motion.basic.MoveDirection(0, self._advanceSpeed,
-	                                               absolute = False)
-            self.motionManager.setMotion(recoverMotion)
-            self._finished = True
-        else:
-            # Otherwise, wait for a symbol before continuing
-            self._finished = True
+        if event is None:
+            self._recoverMethod = "None"
             self.motionManager.stopCurrentMotion()
+        else:
+            vectorLength = math.Vector2(event.x, event.y).length()
+            vehicleOrientation = \
+                self.vehicle.getOrientation().getYaw().valueDegrees()
+
+            if event.range < self._closeRangeThreshold:
+                # If the range is very close, backup and change depth
+                # Find the backwards direction and create the motion
+                self._recoverMethod = "Close Range"
+                self._recoverMotion = \
+                    motion.basic.MoveDirection(-180, self._reverseSpeed,
+                                                absolute = False)
+            
+                # Set the backwards motion
+                self.motionManager.setMotion(self._recoverMotion)
+                self._finished = False
+            elif vectorLength > self._radius and event.range < \
+                    self._farRangeThreshold:
+                self._recoverMethod = "Mid Range"
+                yawAngle = 0.0
+                if event.x > self._radius:
+                    yawAngle = (0.0 - self._yawChange)
+                elif event.x < (0.0 - self._radius):
+                    yawAngle = self._yawChange
+                self.controller.yawVehicle(yawAngle)
+            
+                # Change the depth if it's outside on the y-axis
+                newDepth = self.vehicle.getDepth()
+                if event.y > self._radius:
+                    newDepth = newDepth - self._depthChange
+                elif event.y < (0.0 - self._radius):
+                    newDepth = newDepth + self._depthChange
+                dive = motion.basic.RateChangeDepth(desiredDepth = newDepth,
+                                                    speed = self._diveSpeed)
+                self.motionManager.setMotion(dive)
+                self._finished = False
+            elif event.range > self._farRangeThreshold and \
+                    vectorLength < self._radius:
+                self._recoverMethod = "Far Range"
+                # If the range is far and inside radius, move forwards slowly
+                desiredDirection = math.Degree(vehicleOrientation)
+                recoverMotion = motion.basic.MoveDirection(
+                    0, self._advanceSpeed, absolute = False)
+                self.motionManager.setMotion(recoverMotion)
+                self._finished = True
+            else:
+                # Otherwise, wait for a symbol before continuing
+                self._finished = True
+                self.motionManager.stopCurrentMotion()
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
