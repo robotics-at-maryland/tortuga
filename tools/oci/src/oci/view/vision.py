@@ -114,7 +114,7 @@ class BaseVisionPanel(BasePanel):
         self.SetSizerAndFit(topSizer)
         self._startSize = self.GetSize()
         
-        # Create controls\
+        # Create controls
         self._createDataControls()
         
         # Start off greyed out

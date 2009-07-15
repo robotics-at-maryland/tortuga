@@ -370,18 +370,24 @@ core.SubsystemMaker.registerSubsystem('DemoSonar', DemoSonar)
 class DemoVisionSystem(vision.VisionSystem):
     def __init__(self, config, deps_):
         # Initialize super class with fake cameras
-        config = core.ConfigNode.fromString(str(config))
+        cfg = core.ConfigNode.fromString(str(config))
         deps = core.SubsystemList()
         for d in deps_:
             deps.append(d)
         
         cam1 = vision.Camera(640,480)
         cam2 = vision.Camera(640,480)
-        vision.VisionSystem.__init__(self, cam1, cam2, config, deps)
+        vision.VisionSystem.__init__(self, cam1, cam2, cfg, deps)
         
-        self._currentTime = 0;
+        self._currentTime = 0
+        self._sendEvents = False
+        if 1 == config.get('sendEvents', 1):
+            self._sendEvents = True
 
     def update(self, timestep):
+        if not self._sendEvents:
+            return
+        
         self._currentTime += timestep
         
         sinVal = math.sin(self._currentTime)

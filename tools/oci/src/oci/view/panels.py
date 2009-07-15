@@ -464,7 +464,7 @@ class EventRatePanel(wx.grid.Grid):
                 # Otherwise iterate the count
                 data.timesInActive += 1
                 
-            self.SetCellValue(data.location, 1, "%4.1f" % rate)
+            self.SetCellValue(data.location, 1, "%5.2f" % rate)
             
         # Delete any items in the deleteQueue
         for toDelete in deleteQueue:
@@ -589,7 +589,7 @@ class PayloadPanel(wx.Panel):
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
 
-        if (vehicle is not None) or (controller is not None):
+        if (vehicle is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Payload")
             paneInfo = paneInfo.Caption("Payload").Right()
         
@@ -829,7 +829,7 @@ class SonarPanel(wx.Panel):
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
 
-        if (vehicle is not None) or (controller is not None):
+        if (vehicle is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Sonar")
             paneInfo = paneInfo.Caption("Sonar").Right()
         
