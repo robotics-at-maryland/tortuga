@@ -56,6 +56,7 @@ class TestStart(support.AITestCase):
 class TestFindAttempt(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
+        self.ai.data['lastBarbedWireEvent'] = vision.BarbedWireEvent()
         self.machine.start(barbedwire.FindAttempt)
     
     def testStart(self):
@@ -67,10 +68,10 @@ class TestFindAttempt(support.AITestCase):
     def testTargetFound(self):
         # Now change states
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
-                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0)
+                         vision.BarbedWireEvent, 0.5, -0.5, 0, 0, 0, 0)
         self.assertCurrentState(barbedwire.FarSeekingToRange)
-        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0)
-        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, 0)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.5)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.barbedWireDetector)
@@ -90,6 +91,25 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentState(barbedwire.Searching)
         self.assert_(self.visionSystem.barbedWireDetector)
 
+    def testNoEvent(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Remove the barbed wire event
+        del self.ai.data['lastBarbedWireEvent']
+
+        # Restart the machine
+        self.machine.start(barbedwire.FindAttempt)
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
+
+        # Now inject an event to make sure it works
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0.5, -0.5, 0, 0, 0, 0)
+        self.assertCurrentState(barbedwire.FarSeekingToRange)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topX, 0.5)
+        self.assertEqual(self.ai.data['lastBarbedWireEvent'].topY, -0.5)
         
 class TestSearching(support.AITestCase):
     def setUp(self):
