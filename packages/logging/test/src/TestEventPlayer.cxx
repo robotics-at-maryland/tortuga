@@ -80,7 +80,7 @@ struct Fixture
         filename = ss.str();
 
         std::stringstream ss2;
-        ss2 << "{ 'fileName' : '../../" << filename << "'}";
+        ss2 << "{ 'fileName' : '" << filename << "'}";
         config = ss2.str();
 
         eventHub->subscribeToAll(boost::bind(&Fixture::handleEvent, this, _1));

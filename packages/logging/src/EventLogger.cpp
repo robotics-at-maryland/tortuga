@@ -135,9 +135,6 @@ void EventLogger::queueEvent(core::EventPtr event)
 
 void EventLogger::writeEvent(core::EventPtr event)
 {
-    static core::StringEvent oldStringEvent;
-    static std::string stringEventTypeName(typeid(oldStringEvent).name());
-    
     std::string typeName(typeid(*(event.get())).name());
     try
     {
@@ -149,20 +146,9 @@ void EventLogger::writeEvent(core::EventPtr event)
     {
         if (ex.code == boost::archive::archive_exception::unregistered_class)
         {
-            if (stringEventTypeName == typeName)
-            {
-                core::StringEvent* oldStringEvent =
-                    (core::StringEvent*)event.get();
-                core::StringEventPtr stringEvent(new core::StringEvent());
-                stringEvent->string = oldStringEvent->string;
-                (*m_archive) << stringEvent;                
-            }
-            else
-            {
-                std::cerr << "Could not convert: " << typeName << event->type
-                          << std::endl;
-                m_unconvertableTypes.insert(typeName);
-            }
+            std::cerr << "Could not convert: " << typeName << event->type
+                      << std::endl;
+            m_unconvertableTypes.insert(typeName);
         }
         else
         {

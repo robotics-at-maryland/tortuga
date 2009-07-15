@@ -181,8 +181,7 @@ void EventPlayer::init(core::ConfigNode config, core::SubsystemList deps)
 {
     // Open our log file
     std::string fileName = config["fileName"].asString("event.log");
-    std::string filePath = (core::Logging::getLogDir() / fileName).string();
-    m_logFile.open(filePath.c_str());
+    m_logFile.open(fileName.c_str());
 
     assert(m_logFile.is_open() && "Could not open log file");
     
