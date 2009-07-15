@@ -116,18 +116,16 @@ void EventPlayer::update(double)
             double sleepTime = event->timeStamp - now;
             eventSleep(sleepTime);
         }
+
+        if (event->sender)
+        {
+            // Republish the event with the events sender
+            event->sender->publish(event->type, event);
+        }
         else
         {
-            if (event->sender)
-            {
-                // Republish the event with the events sender
-                event->sender->publish(event->type, event);
-            }
-            else
-            {
-                // Republish just to the event hub
-                m_eventHub->publish(event);
-            }
+            // Republish just to the event hub
+            m_eventHub->publish(event);
         }
     }
 }
@@ -186,6 +184,8 @@ void EventPlayer::init(core::ConfigNode config, core::SubsystemList deps)
     std::string filePath = (core::Logging::getLogDir() / fileName).string();
     m_logFile.open(filePath.c_str());
 
+    assert(m_logFile.is_open() && "Could not open log file");
+    
     // Get length of file:  
     m_logFile.seekg (0, std::ios::end);
     m_fileLength = m_logFile.tellg();
