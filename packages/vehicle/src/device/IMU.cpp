@@ -42,6 +42,7 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/imu")),
     m_serialFD(-1),
+    m_imuNum(config["num"].asInt(0)),
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
@@ -90,7 +91,8 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
 	
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
     //	   m_magYBias, m_magZBias);
-    LOGGER.info("% Accel Mag Gyro Accel-Raw Mag-Raw Gyro-Raw Quat TimeStamp");
+    LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
+                " Gyro-Raw Quat TimeStamp");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -214,7 +216,8 @@ void IMU::update(double timestep)
             publish(IIMU::UPDATE, oevent);
 
             // Log data directly
-            LOGGER.infoStream() << m_filteredAccelX.getValue() << " "
+            LOGGER.infoStream() << m_imuNum << " "
+                                << m_filteredAccelX.getValue() << " "
                                 << m_filteredAccelY.getValue() << " "
                                 << m_filteredAccelZ.getValue() << " "
                                 << m_filteredMagX.getValue() << " "

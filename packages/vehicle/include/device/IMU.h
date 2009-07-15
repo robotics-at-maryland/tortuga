@@ -124,6 +124,9 @@ private:
     /** File descriptor for the serial device file once open */
     int m_serialFD;
 
+    /** IMU number for the log file */
+    int m_imuNum;
+
     /** Rotates data from the IMU to the Vehicle frame */
     double m_IMUToVehicleFrame[3][3];
 
@@ -132,11 +135,11 @@ private:
     double m_magYBias;
     double m_magZBias;
 
-	/** Magnetic Corruption Threshold based on experimental vehicle data **/
-	double m_magCorruptThresh;
+    /** Magnetic Corruption Threshold based on experimental vehicle data **/
+    double m_magCorruptThresh;
 
-	/** Nominal value of magnetic vector length obtained experimentally **/
-	double m_magNominalLength;
+    /** Nominal value of magnetic vector length obtained experimentally **/
+    double m_magNominalLength;
     
     /** Protects acces to public state */
     core::ReadWriteMutex m_orientationMutex;

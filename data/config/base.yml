@@ -155,6 +155,7 @@ Vehicle:
             
         MagBoom:
             type: IMU
+            num: 1
             devfile: /dev/magboom
             update_interval: 5
             priority: high
@@ -171,6 +172,7 @@ Vehicle:
 
         IMU:
             type: IMU
+            num: 0
             update_interval: 5
             priority: high
             # These are in VEHICLE FRAME
