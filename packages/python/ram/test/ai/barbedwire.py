@@ -42,6 +42,7 @@ class TestStart(support.AITestCase):
         """Make sure we are diving with no target detector on"""
         self.assertFalse(self.visionSystem.barbedWireDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertAIDataValue('barbedWireInitialDirection', 0)
         
     def testConfig(self):
         # Test the config settings
@@ -120,6 +121,21 @@ class TestSearching(support.AITestCase):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.barbedWireDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('barbedWireInitialDirection', 0)
+
+    def testStartAlternate(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Now set the initial direction to something other than 0
+        self.ai.data['barbedWireInitialDirection'] = -45
+        
+        # Restart the machine
+        self.machine.start(barbedwire.Searching)
+        self.assert_(self.visionSystem.barbedWireDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('barbedWireInitialDirection', -45)
+        self.assertLessThan(self.controller.yawChange, 0)
                 
     def testTargetFound(self):
         # Now change states
