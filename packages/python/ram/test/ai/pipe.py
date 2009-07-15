@@ -114,6 +114,25 @@ class TestFindAttempt(PipeTest):
     def testTimeout(self):
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(pipe.Searching)
+
+    def testNoPipe(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Remove the last pipe event
+        del self.ai.data['lastPipeEvent']
+
+        # Start up FindAttempt
+        self.machine.start(pipe.FindAttempt)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertAlmostEqual(0, self.controller.yawChange, 5)
+
+        # Now try injecting an event to make sure it works correctly
+        self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(pipe.Seeking)
         
 class TestSearching(PipeTest):
     def setUp(self):

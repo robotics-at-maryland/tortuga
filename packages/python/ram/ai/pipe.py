@@ -315,16 +315,20 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
 
         self.visionSystem.pipeLineDetectorOn()
 
-        event = self.ai.data['lastPipeEvent']
+        event = self.ai.data.get('lastPipeEvent', None)
 
-        ahead = ext.math.Vector3(event.x, event.y, 0)
-        quat = ext.math.Vector3.UNIT_Y.getRotationTo(ahead)
-        self._direction = quat.getYaw(True)
-        self._speed = self._config.get('speed', 0.5)
+        if event is not None:
+            ahead = ext.math.Vector3(event.x, event.y, 0)
+            quat = ext.math.Vector3.UNIT_Y.getRotationTo(ahead)
+            self._direction = quat.getYaw(True)
+            self._speed = self._config.get('speed', 0.5)
 
-        searchMotion = motion.basic.MoveDirection(self._direction, self._speed)
+            searchMotion = \
+                motion.basic.MoveDirection(self._direction, self._speed)
 
-        self.motionManager.setMotion(searchMotion)
+            self.motionManager.setMotion(searchMotion)
+        else:
+            self.motionManager.stopCurrentMotion()
 
 class Searching(PipeTrackingState):
     """When the vehicle is looking for a pipe"""
@@ -333,6 +337,11 @@ class Searching(PipeTrackingState):
     def transitions():
         return PipeTrackingState.transitions(Searching,
             { PipeTrackingState.FOUND_PIPE : Seeking })
+
+    def FOUND_PIPE(self, event):
+        currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
+        if event.id == currentID:
+            self.ai.data['lastPipeEvent'] = event
 
     def enter(self):
         PipeTrackingState.enter(self)
@@ -448,6 +457,11 @@ class BetweenPipes(PipeTrackingState):
                                              {PipeTrackingState.FOUND_PIPE : Seeking,
                                               BetweenPipes.LOST_PATH : End })
     
+    def FOUND_PIPE(self, event):
+        currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
+        if event.id == currentID:
+            self.ai.data['lastPipeEvent'] = event
+
     def enter(self):
         """We have driving off the 'end' of the pipe set a timeout"""
         PipeTrackingState.enter(self)
