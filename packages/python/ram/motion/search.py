@@ -18,7 +18,7 @@ import ram.motion.basic as basic
 class ForwardZigZag(Motion):
     LEG_COMPLETE = core.declareEventType('LEG_COMPLETE')
     
-    def __init__(self, legTime, sweepAngle, speed):
+    def __init__(self, legTime, sweepAngle, speed, direction = None):
         """
         Drives a forward zig-zag pattern
         """
@@ -31,6 +31,7 @@ class ForwardZigZag(Motion):
         self._connections = []
         self._timer = None
         self._inLeg = False
+        self._direction = direction
         
     def _start(self):
         # Register to recieve AT_ORIENTATION events
@@ -42,7 +43,14 @@ class ForwardZigZag(Motion):
                                               self._legFinished)
         self._connections.append(conn)
 
-        self._controller.yawVehicle(self._sweepAngle / 2.0)
+        if self._direction is None:
+            desiredAngle = 0
+        else:
+            vehicle = self._vehicle.getOrientation()
+            currentAngle = vehicle.getYaw().valueDegrees()
+            desiredAngle = self._direction - currentAngle
+
+        self._controller.yawVehicle(desiredAngle + (self._sweepAngle / 2.0))
         self._sweepAngle *= -1
         
     def _atOrientation(self, event):
