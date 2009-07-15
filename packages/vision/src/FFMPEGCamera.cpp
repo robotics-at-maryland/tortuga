@@ -135,7 +135,8 @@ void FFMPEGCamera::update(double timestep)
     readNextFrame();
 
     // Copy image to public side of the interface
-    Image* newImage = new OpenCVImage(m_pictureBuffer, 640, 480, false);
+    Image* newImage = new OpenCVImage(m_pictureBuffer, m_width,
+                                      m_height, false);
 
     // Notfiy everyone that the image is uploaded
     capturedImage(newImage);
