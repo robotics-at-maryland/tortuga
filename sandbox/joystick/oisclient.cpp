@@ -463,7 +463,7 @@ int main(int argc, char ** argv)
 			  }
 			#elif defined OIS_LINUX_PLATFORM
 			  checkX11Events();
-			  usleep( 250 );
+			  usleep( 10 * 1000 );
 	       	sendCmd(sockfd, CMD_NOTHING, 0);
 		sendCmd(sockfd, CMD_ANGLEYAW, yawCmd);
        		sendCmd(sockfd, CMD_ANGLEPITCH, pitchCmd);
