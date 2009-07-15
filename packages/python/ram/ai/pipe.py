@@ -291,6 +291,10 @@ class Start(state.State):
         return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
+        orientation = self.vehicle.getOrientation()
+        self.ai.data['pipeStartOrientation'] = \
+            orientation.getYaw().valueDegrees()
+
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 6),
@@ -349,11 +353,17 @@ class Searching(PipeTrackingState):
         # Turn on the vision system
         self.visionSystem.pipeLineDetectorOn()
 
+        # Set the start orientation if it isn't already set
+        orientation = self.vehicle.getOrientation()
+        direction = self.ai.data.setdefault('pipeStartOrientation',
+                                            orientation.getYaw().valueDegrees())
+
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
             legTime = 5,
             sweepAngle = 0,
-            speed = self._config.get('forwardSpeed', 2))
+            speed = self._config.get('forwardSpeed', 2),
+            direction = direction)
 
         self.motionManager.setMotion(zigZag)
 

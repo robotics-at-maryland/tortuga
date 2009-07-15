@@ -41,7 +41,8 @@ class TestStart(support.AITestCase):
         """Make sure we are diving with no target detector on"""
         self.assertFalse(self.visionSystem.targetDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
-        
+        self.assertAIDataValue('targetStartOrientation', 0)
+
     def testConfig(self):
         # Test the config settings
         m = self.motionManager.currentMotion
@@ -164,7 +165,22 @@ class TestSearching(support.AITestCase):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.targetDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
-                
+        self.assertAIDataValue('targetStartOrientation', 0)
+
+    def testStartAlternate(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Now set the initial direction to something other than 0
+        self.ai.data['targetStartOrientation'] = -45
+        
+        # Restart the machine
+        self.machine.start(target.Searching)
+        self.assert_(self.visionSystem.targetDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('targetStartOrientation', -45)
+        self.assertLessThan(self.controller.yawChange, 0)
+
     def testTargetFound(self):
         # Now change states
         self.injectEvent(vision.EventType.TARGET_FOUND, 

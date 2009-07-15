@@ -438,6 +438,11 @@ class Start(state.State):
         return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
+        # Store the initial direction
+        orientation = self.vehicle.getOrientation()
+        self.ai.data['binStartOrientation'] = \
+            orientation.getYaw().valueDegrees()
+
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 7),
@@ -466,6 +471,10 @@ class Searching(state.State):
     def enter(self):
         ensureBinTracking(self.queuedEventHub, self.ai)
         
+        orientation = self.vehicle.getOrientation()
+        direction = self.ai.data.setdefault(
+            'binStartOrientation', orientation.getYaw().valueDegrees())
+
         # Turn on the vision system
         self.visionSystem.binDetectorOn()
 
@@ -476,7 +485,8 @@ class Searching(state.State):
         zigZag = motion.search.ForwardZigZag(
             legTime = self._config.get('legTime', 5),
             sweepAngle = self._config.get('sweepAngle', 45),
-            speed = self._config.get('speed', 2.5))
+            speed = self._config.get('speed', 2.5),
+            direction = direction)
 
         self.motionManager.setMotion(zigZag)
 

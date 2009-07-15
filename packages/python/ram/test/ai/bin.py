@@ -202,6 +202,7 @@ class TestStart(aisupport.AITestCase):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.binDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertAIDataValue('binStartOrientation', 0)
         
     def testFinish(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
@@ -227,6 +228,21 @@ class TestSearching(BinTestCase):
         self.assert_(self.visionSystem.binDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         self.assertAIDataValue('preBinCruiseDepth', self.controller.depth)
+        self.assertAIDataValue('binStartOrientation', 0)
+
+    def testStartAlternate(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Now set the initial direction to something other than 0
+        self.ai.data['binStartOrientation'] = -45
+        
+        # Restart the machine
+        self.machine.start(bin.Searching)
+        self.assert_(self.visionSystem.binDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('binStartOrientation', -45)
+        self.assertLessThan(self.controller.yawChange, 0)
                 
     def testBinFound(self):
         # Now change states

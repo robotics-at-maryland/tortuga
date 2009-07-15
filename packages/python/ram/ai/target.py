@@ -166,6 +166,12 @@ class Start(state.State):
         return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
+        # Store the initial orientation
+        orientation = self.vehicle.getOrientation()
+        self.ai.data['targetStartOrientation'] = \
+            orientation.getYaw().valueDegrees()
+
+        # Set the dive motion
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('diveDepth', 12),
             speed = self._config.get('diveSpeed', 1.0/3.0))
@@ -241,11 +247,17 @@ class Searching(state.State, StoreTargetEvent):
         # Make sure the detector is on the vision system
         self.visionSystem.targetDetectorOn()
 
+        # Set the start orientation if it isn't already set
+        orientation = self.vehicle.getOrientation()
+        direction = self.ai.data.setdefault('targetStartOrientation',
+                                orientation.getYaw().valueDegrees())
+
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
             legTime = 15,
             sweepAngle = 60,
-            speed = 2.5)
+            speed = 2.5,
+            direction = direction)
         self.motionManager.setMotion(zigZag)
 
     def exit(self):

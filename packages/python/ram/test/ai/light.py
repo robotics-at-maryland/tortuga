@@ -42,11 +42,7 @@ class TestStart(support.AITestCase):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
-
-        # Make sure it stored the original orientation
-        self.assertTrue(self.ai.data.has_key('lightStartOrientation'))
-        self.assertEqual(
-            self.ai.data['lightStartOrientation'], 0)
+        self.assertAIDataValue('lightStartOrientation', 0)
         
     def testConfig(self):
         self.assertEqual(TestStart.DEPTH, 
@@ -78,7 +74,22 @@ class TestSearching(support.AITestCase):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.redLightDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('lightStartOrientation', 0)
+
+    def testStartAlternate(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Now set the initial direction to something other than 0
+        self.ai.data['lightStartOrientation'] = -45
         
+        # Restart the machine
+        self.machine.start(light.Searching)
+        self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('lightStartOrientation', -45)
+        self.assertLessThan(self.controller.yawChange, 0)
+
     def testConfig(self):
         self.assertEqual(10, self.machine.currentState()._legTime)
         self.assertEqual(9, self.machine.currentState()._sweepAngle)

@@ -75,7 +75,7 @@ class Searching(state.State, StoreLightEvent):
         
         # Set the start orientation if it isn't already set
         orientation = self.vehicle.getOrientation()
-        self.ai.data.setdefault('lightStartOrientation',
+        direction = self.ai.data.setdefault('lightStartOrientation',
                                 orientation.getYaw().valueDegrees())
         
         # Create zig zag search to 
@@ -85,7 +85,8 @@ class Searching(state.State, StoreLightEvent):
         zigZag = motion.search.ForwardZigZag(
             legTime = self._legTime,
             sweepAngle = self._sweepAngle,
-            speed = self._speed)
+            speed = self._speed,
+            direction = direction)
         self.motionManager.setMotion(zigZag)
 
     def exit(self):

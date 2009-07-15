@@ -190,9 +190,9 @@ class Start(state.State):
     
     def enter(self):
         # Set the initial direction
-        vehicle = self.vehicle.getOrientation()
-        self.ai.data['barbedWireInitialDirection'] = \
-            vehicle.getYaw().valueDegrees()
+        orientation = self.vehicle.getOrientation()
+        self.ai.data['barbedWireStartOrientation'] = \
+            orientation.getYaw().valueDegrees()
 
         # Create the dive motion and start the vehicle
         diveMotion = motion.basic.RateChangeDepth(
@@ -231,9 +231,9 @@ class Searching(state.State, StoreBarbedWireEvent):
         # Make sure the detector is on the vision system
         self.visionSystem.barbedWireDetectorOn()
 
-        vehicle = self.vehicle.getOrientation()
-        direction = self.ai.data.setdefault('barbedWireInitialDirection',
-                                vehicle.getYaw().valueDegrees())
+        orientation = self.vehicle.getOrientation()
+        direction = self.ai.data.setdefault('barbedWireStartOrientation',
+                                orientation.getYaw().valueDegrees())
 
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(

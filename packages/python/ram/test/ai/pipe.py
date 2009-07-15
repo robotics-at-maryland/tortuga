@@ -42,6 +42,7 @@ class TestStart(PipeTest):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.pipeLineDetector)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertAIDataValue('pipeStartOrientation', 0)
         
     def testFinish(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
@@ -143,6 +144,21 @@ class TestSearching(PipeTest):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.pipeLineDetector)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('pipeStartOrientation', 0)
+
+    def testStartAlternate(self):
+        # Stop the machine
+        self.machine.stop()
+
+        # Now set the initial direction to something other than 0
+        self.ai.data['pipeStartOrientation'] = -45
+        
+        # Restart the machine
+        self.machine.start(pipe.Searching)
+        self.assert_(self.visionSystem.pipeLineDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertAIDataValue('pipeStartOrientation', -45)
+        self.assertLessThan(self.controller.yawChange, 0)
                 
     def testPipeFound(self):
         # Now change states
@@ -319,7 +335,7 @@ class TestSeeking(PipeTest):
         pipeFoundHelper(self, pipe.Seeking)
     
     def testPipeLost(self):
-        """Make sure losing the light goes back to search"""
+        """Make sure losing the pipe goes back to search"""
         # Setup data
         self.ai.data['pipeData']['absoluteDirection'] = {}
         self.ai.data['pipeData']['currentID'] = 0
