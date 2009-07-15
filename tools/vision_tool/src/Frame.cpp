@@ -130,7 +130,7 @@ void Frame::onClose(wxCloseEvent& event)
 void Frame::onAbout(wxCommandEvent& WXUNUSED(event))
 {
     wxMessageBox(_T("An application to view live or recored video"),
-                 _T("About Vision Viewer"), wxOK | wxICON_INFORMATION, this);
+                 _T("About Vision Tool"), wxOK | wxICON_INFORMATION, this);
 }
 
 void Frame::onOpenFile(wxCommandEvent& event)
@@ -145,7 +145,7 @@ void Frame::onOpenFile(wxCommandEvent& event)
 	wxString filename;
 	wxString extension;
 	wxFileName::SplitPath(filepath, NULL, &filename, &extension);
-	SetTitle(wxString(_T("Vision Viewer - ")) + filename + _T(".") + 
+	SetTitle(wxString(_T("Vision Tool - ")) + filename + _T(".") + 
 		 extension);
     }
 }
