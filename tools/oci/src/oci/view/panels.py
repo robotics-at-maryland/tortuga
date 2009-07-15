@@ -694,8 +694,8 @@ class SonarPanel(wx.Panel):
         self._connections = []
         self._vehicleOrientation = ext.math.Quaternion.IDENTITY;
         self._pingerOrientations = [ext.math.Quaternion.IDENTITY];
-        self._lastPingCount = 0
-        self._currentPingerID = 0
+        self._lastPingCount = -1
+        self._currentPingerID = -1
         self._pingerEvents = {}
         
         layout =  wx.GridBagSizer(10, 10)
@@ -807,7 +807,9 @@ class SonarPanel(wx.Panel):
         
     def _onPingerChoice(self, event):
         self._currentPingerID = event.GetSelection()
-        self._updateNumericDisplay(self._pingerEvents[self._currentPingerID])
+        if -1 != self._lastPingCount:
+            event = self._pingerEvents[self._currentPingerID]
+            self._updateNumericDisplay(event)
 
     def _onOrientationUpdate(self, event):
         self._vehicleOrientation = event.orientation
