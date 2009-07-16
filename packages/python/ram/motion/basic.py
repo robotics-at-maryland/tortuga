@@ -467,15 +467,13 @@ class RateChangeHeading(Motion):
     def _onTimer(self, event):
         self._rotProgress += self._rotFactor
         
-        currentHeading = self._controller.getDesiredOrientation().getYaw(True)
-        currentHeading = currentHeading.valueDegrees()
-        
-        if (pmath.fabs(currentHeading - self._desiredHeading) > 0.01):
+        if self._rotProgress <= 1.0:
             newOrien = math.Quaternion.Slerp(self._rotProgress, 
                                              self._srcOrient,
                                              self._destOrient, True)
             self._controller.setDesiredOrientation(newOrien)
         else:
+            self._controller.setDesiredOrientation(self._destOrient)
             self._finish()
         
     def _finish(self):
@@ -522,6 +520,13 @@ class MoveDirection(Motion):
                                         self._vehicle, self._onOrientation)
         self._connections.append(conn)
         
+        # Set the desired direction if it's not absolute
+        if not self._absolute:
+            heading = self._vehicle.getOrientation().getYaw()
+            orientation = math.Quaternion(math.Degree(heading),
+                                          math.Vector3.UNIT_Z)
+            self._direction = orientation * self._direction
+        
         self._update()
         
     def _update(self):
@@ -535,13 +540,10 @@ class MoveDirection(Motion):
         # Direction of desired vehicle motion
         desiredDirection = self._direction.getYaw(True).valueDegrees()
         
-        if self._absolute:
-            # Vehicle heading in degrees
-            vehicleHeading =  orientation.getYaw(True).valueDegrees()
+        # Vehicle heading in degrees
+        vehicleHeading = orientation.getYaw(True).valueDegrees()
         
-            yawTransform = vehicleHeading - desiredDirection
-        else:
-            yawTransform = desiredDirection
+        yawTransform = vehicleHeading - desiredDirection
 
         # Find speed in vehicle cordinates
         baseSpeed = math.Vector3(self._speed, 0, 0)

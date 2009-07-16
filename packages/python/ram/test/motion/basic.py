@@ -452,9 +452,28 @@ class TestMoveDirection(support.MotionTest):
         m = self.makeClass(desiredHeading = -180, speed = 5, absolute = False)
         self.motionManager.setMotion(m)
 
-	self.assertEqual(-5, self.controller.speed)
-	self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertEqual(-5, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        
+    def testDirectionAfterTurn(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(60),
+                                                   math.Vector3.UNIT_Z)
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5, absolute = False)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
 
+        # Now turn the vehicle 90 degrees and make sure it's still heading
+        # the same direction
+        self.vehicle.orientation = math.Quaternion(math.Degree(150),
+                                                   math.Vector3.UNIT_Z)
+        self.vehicle.publishOrientationUpdate(self.vehicle.orientation)
+        self.qeventHub.publishEvents()
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertEqual(5, self.controller.sidewaysSpeed)
 
 class TestTimedMoveDirection(TestMoveDirection):
     def makeClass(self, *args, **kwargs):
