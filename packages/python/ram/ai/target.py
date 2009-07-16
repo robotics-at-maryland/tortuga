@@ -348,7 +348,8 @@ class FireTorpedos(RangeXYHold):
         Fires the torpedos only when armed, disarms the torpedos afterward so
         that next will be fired only after the delay period.
         """
-        if self._armed:
+        if self._armed and self.ai.data.get('torpedosFired', 0) \
+                < FireTorpedos.NUMBER_TORPEDOS:
             self.vehicle.fireTorpedo()
 
             # Diarm torpeos, must be armed again, after a wait for the current
@@ -373,7 +374,9 @@ class FireTorpedos(RangeXYHold):
 
         self._timer = None
         self._delay = self._config.get('fireDelay', 2)
-        self._armed = True
+        self._armed = True # False
+
+        #self._resetFireTimer(delay = self._config.get('startFireDelay', 0.5))
 
     def exit(self):
         if self._timer is not None:
@@ -383,14 +386,17 @@ class FireTorpedos(RangeXYHold):
     def armed(self):
         return self._armed
     
-    def _resetFireTimer(self):
+    def _resetFireTimer(self, delay = None):
         """
         Initiates a timer which arms the firing of a torpedo after the desired
         delay
         """
+        if delay is None:
+            delay = self._delay
+
         if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
             self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
-                                                     self._delay)
+                                                     delay)
             self._timer.start()
         else:
             # All torpedos fired, lets get out of this state
