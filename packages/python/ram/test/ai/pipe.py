@@ -321,6 +321,28 @@ def pipeFoundHelper(self, myState = None):
     del self.ai.data['lastPipeEvent']
     self.publishQueuedPipeFound(id = 1)
     self.assertFalse(self.ai.data.has_key('lastPipeEvent'))
+    
+    # Delete pipe data for the next tests
+    self.ai.data['pipeData'] = {'currentIds' : set(),
+                                'trackingEnabled' : True}
+    
+    # Publish a found event
+    event = self._createEvent(vision.EventType.PIPE_FOUND,
+                              vision.PipeEvent, 0,0,0, id = 1)
+    self.qeventHub.publish(vision.EventType.PIPE_FOUND, event)
+    
+    # Now lose it
+    event = self._createEvent(vision.EventType.PIPE_DROPPED,
+                              vision.PipeEvent, 0,0,0, id = 1)
+    self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
+    
+    # Publish the events
+    self.qeventHub.publishEvents()
+    
+    # Make sure it didn't crash and isn't doing anything
+    self.assertAlmostEqual(0, self.controller.speed, 2)
+    self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 2)
+    self.assertAlmostEqual(0, self.controller.yawChange, 5)
 
 class TestSeeking(PipeTest):
     def setUp(self):

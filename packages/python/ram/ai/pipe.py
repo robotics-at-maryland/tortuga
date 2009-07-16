@@ -98,7 +98,7 @@ class PipeTrackingState(state.State):
                 else:
                     self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
             else: # If there isn't a biasDirection, raise an error
-                raise Exception("A threshold is set with no bnewiasDirection")
+                raise Exception("A threshold is set with no biasDirection")
         else:
             # If a currentID exists or there is no threshold set, call FOUND_PIPE
             self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
@@ -209,53 +209,57 @@ class PipeFollowingState(PipeTrackingState):
         
         # Get the currentID
         pipeData.setdefault('currentID', event.id)
-        if self._currentPipe(event):
-            self.ai.data['lastPipeEvent'] = event
-
-        # Check if this pipe exists
-        if not pipeData['itemData'].has_key(pipeData['currentID']):
-            # If it doesn't, set the currentID to event.id
-            pipeData['currentID'] = event.id
-
-        # Only do work if we are biasing the direction
-        if self._biasDirection is not None:    
-            # If the pipe event is not the currently followed pipe
-            if not self._currentPipe(event):
-                # If the new pipe is closer to the biasDirection, switch
-                currentPipeDifference = ext.math.Degree(self._biasDirection) - \
-                    pipeData['absoluteDirection'][pipeData['currentID']]
-                newPipeDifference = ext.math.Degree(self._biasDirection) - \
-                    pipeData['absoluteDirection'][event.id]
-
-                if math.fabs(newPipeDifference.valueDegrees()) < \
-                        math.fabs(currentPipeDifference.valueDegrees()):
-                    pipeData['currentID'] = event.id
-                    self._pipe.setState(event.x, event.y, angle)
-            else: # Otherwise continue normally
-                # Check difference between actual and "biasDirection"
-                difference = self._biasDirection - \
-                    pipeData['absoluteDirection'][event.id]
-                    
-                if math.fabs(difference.valueDegrees()) > 90:
-                    # We are pointing the wrong direction, so lets switch
-                    # it around
-                    if angle.valueDegrees() < 0:
-                        angle = ext.math.Degree(180) + angle
-                    else:
-                        angle = ext.math.Degree(-180) + angle
-                self._pipe.setState(event.x, event.y, angle)
         
-        else: # If we are not biasing the direction
-            # If the pipe event is not the currently followed pipe
-            if not self._currentPipe(event):
-                # If the new pipe is closer to our current direction, switch
-                if math.fabs(angle.valueDegrees()) < math.fabs(
-                            pipeData['itemData'][pipeData['currentID']].angle.
-                            valueDegrees()):
-                    pipeData['currentID'] = event.id
+        # Check if this pipe still exists
+        if pipeData['currentID'] in pipeData['currentIds']:
+            if self._currentPipe(event):
+                self.ai.data['lastPipeEvent'] = event
+
+            # Check if this pipe exists
+            if not pipeData['itemData'].has_key(pipeData['currentID']):
+                # If it doesn't, set the currentID to event.id
+                pipeData['currentID'] = event.id
+
+            # Only do work if we are biasing the direction
+            if self._biasDirection is not None:    
+                # If the pipe event is not the currently followed pipe
+                if not self._currentPipe(event):
+                    # If the new pipe is closer to the biasDirection, switch
+                    currentPipeDifference = \
+                        ext.math.Degree(self._biasDirection) - \
+                        pipeData['absoluteDirection'][pipeData['currentID']]
+                    newPipeDifference = ext.math.Degree(self._biasDirection) - \
+                        pipeData['absoluteDirection'][event.id]
+
+                    if math.fabs(newPipeDifference.valueDegrees()) < \
+                            math.fabs(currentPipeDifference.valueDegrees()):
+                        pipeData['currentID'] = event.id
+                        self._pipe.setState(event.x, event.y, angle)
+                else: # Otherwise continue normally
+                    # Check difference between actual and "biasDirection"
+                    difference = self._biasDirection - \
+                        pipeData['absoluteDirection'][event.id]
+                    
+                    if math.fabs(difference.valueDegrees()) > 90:
+                        # We are pointing the wrong direction, so lets switch
+                        # it around
+                        if angle.valueDegrees() < 0:
+                            angle = ext.math.Degree(180) + angle
+                        else:
+                            angle = ext.math.Degree(-180) + angle
                     self._pipe.setState(event.x, event.y, angle)
-            else: # Otherwise continue normally
-                self._pipe.setState(event.x, event.y, angle)
+        
+            else: # If we are not biasing the direction
+                # If the pipe event is not the currently followed pipe
+                if not self._currentPipe(event):
+                    # If the new pipe is closer to our current direction, switch
+                    if math.fabs(angle.valueDegrees()) < \
+                            math.fabs(pipeData['itemData'][pipeData['currentID']]
+                                      .angle.valueDegrees()):
+                        pipeData['currentID'] = event.id
+                        self._pipe.setState(event.x, event.y, angle)
+                else: # Otherwise continue normally
+                    self._pipe.setState(event.x, event.y, angle)
 
     def enter(self):
         PipeTrackingState.enter(self)
