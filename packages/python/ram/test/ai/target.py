@@ -191,8 +191,12 @@ class TestSearching(support.AITestCase):
         self.assert_(self.visionSystem.targetDetector)
         
 class TestRangeXYHold(support.AITestCase):
-    def setUp(self, stateType = target.RangeXYHold):
+    def setUp(self, stateType = target.RangeXYHold,
+              lostState = target.FindAttempt,
+              recoverState = target.SeekingToCentered):
         self._stateType = stateType
+        self._lostState = lostState
+        self._recoverState = recoverState
         support.AITestCase.setUp(self)
         self.machine.start(stateType)
     
@@ -214,7 +218,11 @@ class TestRangeXYHold(support.AITestCase):
     def testTargetLost(self):
         """Make sure losing the target goes back to search"""
         self.injectEvent(vision.EventType.TARGET_LOST)
-        self.assertCurrentState(target.FindAttempt)
+        self.assertCurrentState(self._lostState)
+
+        # Check that finding the target moves back
+        self.injectEvent(vision.EventType.TARGET_FOUND)
+        self.assertCurrentState(self._recoverState)
         
     def testInRange(self):
         # Subscribe to in range event
@@ -280,7 +288,9 @@ class TestSeekingToCentered(TestRangeXYHold):
 
 class TestSeekingToRange(TestRangeXYHold):
     def setUp(self):
-        TestRangeXYHold.setUp(self, target.SeekingToRange)
+        TestRangeXYHold.setUp(self, target.SeekingToRange,
+                              target.FindAttemptRange,
+                              target.SeekingToRange)
            
     def testInRange(self):
         TestRangeXYHold.testInRange(self)
@@ -290,7 +300,9 @@ class TestSeekingToRange(TestRangeXYHold):
 
 class TestFireTorpedos(TestRangeXYHold):
     def setUp(self):
-        TestRangeXYHold.setUp(self, target.FireTorpedos)
+        TestRangeXYHold.setUp(self, target.FireTorpedos,
+                              target.FindAttemptFireTorpedos,
+                              target.FireTorpedos)
 
     def testArmTorpedos(self):
         self.assertFalse(self.machine.currentState().armed)
@@ -327,6 +339,15 @@ class TestFireTorpedos(TestRangeXYHold):
         self.assert_(self.machine.complete)
 
 class AlignmentTest(object):
+    # This is not a real setUp function, but it must be called anyways
+    def setUp(self, myState, lostState, recoverState = None):
+        self._myState = myState
+        self._lostState = lostState
+        if recoverState is None:
+            self._recoverState = myState
+        else:
+            self._recoverState = recoverState
+
     def testStart(self):
         self.assertCurrentMotion(motion.duct.DuctSeekAlign)
     
@@ -346,11 +367,17 @@ class AlignmentTest(object):
     def testTargetLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.TARGET_LOST)
-        self.assertCurrentState(target.FindAttempt)
+        self.assertCurrentState(self._lostState)
+
+        # Check that finding the target moves back
+        self.injectEvent(vision.EventType.TARGET_FOUND)
+        self.assertCurrentState(self._recoverState)
 
 class TestSeekingToAligned(AlignmentTest, support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
+        AlignmentTest.setUp(self, target.SeekingToAligned,
+                            target.FindAttemptAligned)
         self.machine.start(target.SeekingToAligned)
 
     def testAligned(self):
@@ -411,6 +438,9 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
 class TestAligning(AlignmentTest, support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
+        AlignmentTest.setUp(self, target.Aligning,
+                            target.FindAttempt,
+                            target.SeekingToCentered)
         self.machine.start(target.Aligning)
         
     def testStart(self):

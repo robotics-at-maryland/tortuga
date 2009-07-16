@@ -86,13 +86,15 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
     IN_RANGE = core.declareEventType('IN_RANGE')
     
     @staticmethod   
-    def transitions(myState = None, trans = None):
+    def transitions(myState = None, trans = None, lostState = None):
         if myState is None:
             myState = RangeXYHold
+        if lostState is None:
+            lostState = FindAttempt
         if trans is None:
             trans = {}
         trans.update({vision.EventType.TARGET_FOUND : myState,
-                      vision.EventType.TARGET_LOST : FindAttempt })
+                      vision.EventType.TARGET_LOST : lostState })
         return trans
         
     def TARGET_FOUND(self, event):
@@ -187,13 +189,30 @@ class FindAttempt(state.FindAttempt, StoreTargetEvent):
     """
 
     @staticmethod
-    def transitions():
+    def transitions(myState = None):
+        if myState is None:
+            myState = SeekingToCentered
         return state.FindAttempt.transitions(vision.EventType.TARGET_FOUND,
-                                       SeekingToCentered, Recover)
+                                       myState, Recover)
         
     def enter(self):
         state.FindAttempt.enter(self)
         self.visionSystem.targetDetectorOn()
+
+class FindAttemptRange(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = SeekingToRange)
+
+class FindAttemptAligned(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = SeekingToAligned)
+
+class FindAttemptFireTorpedos(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = FireTorpedos)
 
 class Recover(state.FindAttempt, StoreTargetEvent):
     """
@@ -304,7 +323,8 @@ class SeekingToRange(RangeXYHold):
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
-            RangeXYHold.IN_RANGE : SeekingToAligned })
+            RangeXYHold.IN_RANGE : SeekingToAligned },
+                                       lostState = FindAttemptRange)
         
 class FireTorpedos(RangeXYHold):
     """
@@ -321,7 +341,7 @@ class FireTorpedos(RangeXYHold):
         return RangeXYHold.transitions(FireTorpedos, {
             RangeXYHold.IN_RANGE : FireTorpedos,
             FireTorpedos.ARM_TORPEDOS: FireTorpedos,
-            FireTorpedos.MOVE_ON : End})
+            FireTorpedos.MOVE_ON : End}, lostState = FindAttemptFireTorpedos)
 
     def IN_RANGE(self, event):
         """
@@ -445,7 +465,7 @@ class SeekingToAligned(TargetAlignState, state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.TARGET_FOUND : SeekingToAligned,
-                 vision.EventType.TARGET_LOST : FindAttempt,
+                 vision.EventType.TARGET_LOST : FindAttemptAligned,
                  SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
                  SeekingToAligned.ALIGNED : FireTorpedos }
 
