@@ -373,6 +373,24 @@ class TestRateChangeHeading(support.MotionTest):
 
         self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
         self.assertEqual(True, self.motionFinished)
+
+    def testNoTurn(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(10),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Go to 10 degrees, at 10 degrees a second, with a 10Hz update rate
+        m = motion.basic.RateChangeHeading(desiredHeading = 10, speed = 10, 
+                                           rate = 10) 
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # Start
+        self.motionManager.setMotion(m)
+
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(10, self._getControllerHeading(), 1)
+        self.assertEqual(True, self.motionFinished)
           
 class TestMoveDirection(support.MotionTest):
     def makeClass(self, *args, **kwargs):

@@ -452,17 +452,20 @@ class RateChangeHeading(Motion):
         # Determine slerp variables
         absHeadingDifference = pmath.fabs(currentHeading - self._desiredHeading)
 
-        stepCount = absHeadingDifference / (self._speed / self._rate)
-        self._rotFactor = 1.0 / (stepCount)
-        self._rotProgress = 0.0
+        if absHeadingDifference != 0:
+            stepCount = absHeadingDifference / (self._speed / self._rate)
+            self._rotFactor = 1.0 / (stepCount)
+            self._rotProgress = 0.0
 
-        self._timer  = timer.Timer(self, RateChangeHeading.NEXT_HEADING,
-                               self._interval, repeat = True)
+            self._timer  = timer.Timer(self, RateChangeHeading.NEXT_HEADING,
+                                       self._interval, repeat = True)
         
-        # Register to NEXT_HEADING events
-        self._conn = self._eventHub.subscribeToType(
-            RateChangeHeading.NEXT_HEADING, self._onTimer)
-        self._timer.start()
+            # Register to NEXT_HEADING events
+            self._conn = self._eventHub.subscribeToType(
+                RateChangeHeading.NEXT_HEADING, self._onTimer)
+            self._timer.start()
+        else:
+            self._finish()
 
     def _onTimer(self, event):
         self._rotProgress += self._rotFactor
@@ -480,8 +483,10 @@ class RateChangeHeading(Motion):
         """
         Finishes off the motion, disconnects events, and publishes finish event
         """
-        self._timer.stop()
-        self._conn.disconnect()
+        if self._conn is not None:
+            self._conn.disconnect()
+        if self._timer is not None:
+            self._timer.stop()
         Motion._finish(self)
 
     def stop(self):
