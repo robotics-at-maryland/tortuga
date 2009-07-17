@@ -395,9 +395,12 @@ class FireTorpedos(RangeXYHold):
             delay = self._delay
 
         if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
-            self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
-                                                     delay)
-            self._timer.start()
+            if delay > 0:
+                self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
+                                                         delay)
+                self._timer.start()
+            else:
+                self._armed = True
         else:
             # All torpedos fired, lets get out of this state
             self.publish(FireTorpedos.MOVE_ON, core.Event())
