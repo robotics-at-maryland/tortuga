@@ -414,7 +414,7 @@ class ChangeHeading(Motion):
 class RateChangeHeading(Motion):
     NEXT_HEADING = core.declareEventType('NEXT_HEADING')
     
-    def __init__(self, desiredHeading, speed, rate = 10):
+    def __init__(self, desiredHeading, speed, rate = 10, absolute = True):
         """
         @type  desiredHeading: float
         @param desiredHeading: Heading you wish to sub to be at
@@ -431,6 +431,7 @@ class RateChangeHeading(Motion):
         self._interval = 1 / float(rate)
         self._conn = None
         self._timer = None
+        self._absolute = absolute
         
         self._rotFactor = 0.0
         self._rotProgress = 0.0
@@ -439,6 +440,10 @@ class RateChangeHeading(Motion):
         # Grab current State
         currentOrient = self._vehicle.getOrientation()
         currentHeading = currentOrient.getYaw(True).valueDegrees()
+        
+        if not self._absolute:
+            heading = self._vehicle.getOrientation().getYaw().valueDegrees()
+            self._desiredHeading = heading + self._desiredHeading
         
         # Generate our source and dest orientation
         self._srcOrient = math.Quaternion(math.Degree(currentHeading),

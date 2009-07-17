@@ -391,6 +391,41 @@ class TestRateChangeHeading(support.MotionTest):
 
         self.assertAlmostEqual(10, self._getControllerHeading(), 1)
         self.assertEqual(True, self.motionFinished)
+        
+    def testRelativeTurn(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(30),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
+        m = motion.basic.RateChangeHeading(desiredHeading = 30, speed = 10, 
+                                           rate = 10, absolute = False)
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # Start
+        self.motionManager.setMotion(m)
+
+        mockTimer = \
+            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
+        self.assert_(mockTimer.repeat)
+        self.assertEqual(mockTimer.sleepTime, 0.1)
+
+        # Check thirty steps
+        expectedHeading = 30
+        for i in xrange(0, 30):
+            expectedHeading += 1
+            mockTimer.finish()
+            self.qeventHub.publishEvents()
+            self.assertAlmostEqual(expectedHeading, 
+                                   self._getControllerHeading(), 3)
+        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
+
+        # Make sure more events don't let it keep going        
+        mockTimer.finish()
+        self.qeventHub.publishEvents()
+
+        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
+        self.assertEqual(True, self.motionFinished)
           
 class TestMoveDirection(support.MotionTest):
     def makeClass(self, *args, **kwargs):
