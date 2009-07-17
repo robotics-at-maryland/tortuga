@@ -108,6 +108,49 @@ struct OrangePipeDetectorFixture
 
 SUITE(OrangePipeDetector) {
 
+TEST_FIXTURE(OrangePipeDetectorFixture, TestLUV)
+{
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw orange square (upper left, remember image rotated 90 deg)
+    drawSquare(&input, 640/4, 480/4, 50, 230, 25, CV_RGB(230,180,40));
+
+    // Process it
+    detector.setUseLUVFilter(true);
+    processImage(&input);
+    
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    math::Degree expectedAngle(25);
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(2));
+}
+
+TEST_FIXTURE(OrangePipeDetectorFixture, TestNoLUV)
+{
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw orange square (upper left, remember image rotated 90 deg)
+    drawSquare(&input, 640/4, 480/4, 50, 230, 25, CV_RGB(230,180,40));
+
+    // Process it
+    detector.setUseLUVFilter(false);
+    processImage(&input);
+    
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    math::Degree expectedAngle(25);
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+    CHECK_CLOSE(expectedAngle, detector.getAngle(), math::Degree(2));
+}
+
+
 // TODO Test upright, and onside angle
 TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
 {

@@ -43,6 +43,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     double getY();
 
     math::Degree getAngle();
+
+    /** Set whether or not to use the LUV filter */
+    void setUseLUVFilter(bool value);
     
   private:
     void init(core::ConfigNode config);

@@ -139,6 +139,11 @@ math::Degree OrangePipeDetector::getAngle()
     return m_angle;
 }
 
+void OrangePipeDetector::setUseLUVFilter(bool value)
+{
+    m_useLUVFilter = value;
+}   
+
 OrangePipeDetector::~OrangePipeDetector()
 {
 }
