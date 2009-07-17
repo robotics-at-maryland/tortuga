@@ -202,6 +202,10 @@ class PipeFollowingState(PipeTrackingState):
         """Update the state of the light, this moves the vehicle"""
         pipeData = self.ai.data['pipeData']
         angle = event.angle
+        
+        if event.id not in pipeData['currentIds']:
+            # Stop, it's an old event
+            return
 
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()

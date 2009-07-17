@@ -362,7 +362,22 @@ def pipeFoundHelper(self, myState = None):
     self.assertAlmostEqual(0, self.controller.yawChange, 5)
     self.assert_(self._foundPipe)
     
+    # Test to make sure it changes the currentID when it receives a new event
     self.publishQueuedPipeFound(id = 2)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 2)
+    
+    # Now do it for a side event
+    event = self._createEvent(vision.EventType.PIPE_FOUND,
+                              vision.PipeEvent, 0,0,0, id = 3)
+    self.qeventHub.publish(vision.EventType.PIPE_FOUND, event)
+    
+    # Now lose it
+    event = self._createEvent(vision.EventType.PIPE_DROPPED,
+                              vision.PipeEvent, 0,0,0, id = 3)
+    self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
+    
+    self.qeventHub.publishEvents()
+    
     self.assertDataValue(self.ai.data['pipeData'], 'currentID', 2)
 
 class TestSeeking(PipeTest):
