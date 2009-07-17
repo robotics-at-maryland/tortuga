@@ -24,28 +24,30 @@ RedLightDetector:
     foundMinPixelScale: 0.85
     lostMinPixelScale: 0.75
     almostHitPercentage: 0.17
-    topRemovePercentage: 0.0
+    topRemovePercentage: 0.1
     bottomRemovePercentage: 0.0
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
 OrangePipeDetector:
-    rOverGMin: 0.75
-    rOverGMax: 1.5
-    bOverRMax: 0.75
+    rOverGMin: 1.25 #0.75 (NEW# 0.88)
+    rOverGMax: 3.06 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
     centeredLimitt: 0.4
     minBrightness: 100
     minPixels: 3000
-    minPixelsFound: 2000
-    erodeIterations: 2
+    minPixelsFound: 1500
+    erodeIterations: 1
 BinDetector:
+    symbolDetector: BasicWW2Detector
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
     blackMaskMinimumPercent: 10
     blackMaskMaxTotalIntensity: 350
-    whiteMaskMinimumPercent: 24
+    whiteMaskMinimumPercent: 15
     whiteMaskMinimumIntensity: 137
+    redMinRValue: 44
     incrediblyWashedOut: 0
 DuctDetector:
     minRedOverGreen: 0.5
@@ -81,14 +83,22 @@ SafeDetector:
     minTotal: 100
 
 TargetDetector:
-    filtUMax: 79
+    dilateIterations: 2
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 74
     filtUMin: 0
-    filtVMax: 179
-    filtVMin: 130
+    filtVMax: 171
+    filtVMin: 135
  
 BarbedWireDetector:
     bottomRemovePercentage: 0.1
-    filtVMax: 247
+    filtLMax: 215
+    filtLMin: 144
+    filtVMax: 169
     filtVMin: 121
     filtUMax: 75
-    filtUMin: 0
+    filtUMin: 52
+VelocityDetector:
+    usePhaseCorrelation: 0
+    useLKFlow: 1

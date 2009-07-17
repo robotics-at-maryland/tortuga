@@ -4,7 +4,7 @@ ram.ai.course.Pipe:
 
 # Gate sub task
 ram.ai.gate.Start:
-    depth: 4 
+    depth: 7 
     speed: 0.33
 ram.ai.gate.Forward:
     time: 15
@@ -12,16 +12,26 @@ ram.ai.gate.Forward:
 
 # Pipe task
 ram.ai.pipe.Start:
-    depth: 7
+    depth: 4.5
+ram.ai.Seeking:
+    speedGain: 3
+    maxSpeed: 4
+ram.ai.Centering:
+    speedGain: 3
+    maxSpeed: 4
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
 
 # Light/Bouy sub task
 ram.ai.light.Start:
-    depth: 3.2
+    depth: 2.3
 ram.ai.light.Searching:
-    sweepAngle: 35
+    sweepAngle: 0 #35
     speed: 2
+ram.ai.light.Recover:
+    advanceSpeed: 2
+    reverseSpeed: 1.5
+    diveSpeed: 0.1
 ram.ai.light.Align:
     alignGain: 8
     depthGain: 0 #0.05
@@ -32,7 +42,9 @@ ram.ai.light.Seek:
 ram.ai.light.Hit:
     duration: 2
     speed: 2.5
-
+ram.ai.light.Continue:
+    backwardDuration: 2
+    forwardDuration: 7
 # Duct Sub task
 ram.ai.duct.SeekingToRange:
     filterSize: 10
@@ -46,7 +58,7 @@ ram.ai.duct.Aligning:
 
 # Target Task
 ram.ai.target.Start:
-    diveDepth: 4.7
+    diveDepth: 7
 ram.ai.target.SeekingToCentered:
     depthGain: 0
     maxSpeed: 3
@@ -70,50 +82,57 @@ ram.ai.target.FireTorpedos:
        
 # Barbed wire AI     
 ram.ai.barbedwire.Start:
-    diveDepth: 6.2
+    diveDepth: 5.5
 ram.ai.barbedwire.FarSeekingToRange:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    desiredRange: 0.7
+    desiredRange: 0.55
     translateGain: 2.5
     maxSpeed: 3
     maxRangeDiff: 0.5
     rangeGain: 2.5
-ram.ai.barbedwire.CloseSeekingToRange:
-    depthGain: 0 #0.1
-    maxDepthDt: 0.3
-    desiredRange: 0.35
-    translateGain: 1.5
-    maxSpeed: 2
-    maxRangeDiff: 0.5
-    rangeGain: 1.5
+    rangeThreshold: 0.15
 ram.ai.barbedwire.FarSeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
     alignGain: 20
-    minAlignment: 0.2
+    minAlignment: 0.25
     maxSidewaysSpeed: 1.0
     maxSpeed: 5
     maxRangeDiff: 0.5
     rangeGain: 5
-    desiredRange: 0.7
+    desiredRange: 0.5
+    rangeThreshold: 0.15
+ram.ai.barbedwire.CloseSeekingToRange:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    desiredRange: 0.45
+    translateGain: 2.5
+    maxSpeed: 3
+    maxRangeDiff: 0.5
+    rangeGain: 2.5
 ram.ai.barbedwire.CloseSeekingToAligned:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
-    alignGain: 10
+    alignGain: 20
     minAlignment: 0.1
     maxSidewaysSpeed: 1.0
-    maxSpeed: 2.5
+    maxSpeed: 5
     maxRangeDiff: 0.5
-    rangeGain: 2.5
-    desiredRange: 0.35
+    rangeGain: 5
+    desiredRange: 0.4
+    rangeThreshold: 0.1
 ram.ai.barbedwire.Aligning:
     depthGain: 0 #0.125
     maxDepthDt: 0.3
     alignGain: 10
     maxSidewaysSpeed: 2.0
-    desiredRange: 0.5
-       
+    desiredRange: 0.35
+ram.ai.barbedwire.Under:
+    sidewaysSpeedGain: 3
+ram.ai.barbedwire.Through:
+    forwardTime: 7
+
 # Bin Sub task
 ram.ai.bin.Start:
     depth: 4
@@ -130,13 +149,13 @@ ram.ai.bin.SeekEnd:
     sidewaysSpeedGain: 7
     #maxSidewaysSpeed: 1.5
 ram.ai.bin.SurfaceToMove:
-    binDepth: 10
-    offset: 4
+    binDepth: 9.75
+    offset: 5
 ram.ai.bin.Dive:
-    binDepth: 10
-    offset: 4
+    binDepth: 9.75
+    offset: 5
     yawGain: 0.4
-ram.ai.bin.Alinging:
+ram.ai.bin.Aligning:
     speedGain: 7
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -144,7 +163,7 @@ ram.ai.bin.Alinging:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PreDiveExamine:
-    targetSymbols: ['Factory', 'Ship']
+    targetSymbols: ['Tank', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -152,7 +171,7 @@ ram.ai.bin.PreDiveExamine:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PostDiveExamine:
-    targetSymbols: ['Factory', 'Ship']
+    targetSymbols: ['Tank', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -160,12 +179,13 @@ ram.ai.bin.PostDiveExamine:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.CloserLook:
-    binDepth: 10
-    offset: 2
+    # This sets the depths the markers will be dropped
+    binDepth: 9.75
+    offset: 3
 
 # Sonar subtask
 ram.ai.sonar.Start:
-    diveDepth: 4
+    diveDepth: 3
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 1.5
     sidewaysSpeedGain: 3
@@ -223,7 +243,7 @@ ram.ai.sonarSafe.Dive:
     #Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1
-    safeDepth: 7.5
+    safeDepth: 7.6
     depthOffset: 1
     diveRate: 0.1
     maxSidewaysSpeed: 2.25
@@ -245,6 +265,15 @@ ram.ai.sonarSafe.Grabbing:
     depthOffset: 1
 
 # Gate + Pipes + Bouy + Bins + VisSafe + Octagon Mission
+#ram.ai.course.PipeGate:
+#    depth: 3i
+#ram.ai.course.Pipe1:
+#    depth: 4.17
+ram.ai.course.Pipe2:
+    biasDirection: 70
+    threshold: 45
+
+
 ram.ai.course.PingerDive:
     depth: 1.5
 ram.ai.course.SafeDive:

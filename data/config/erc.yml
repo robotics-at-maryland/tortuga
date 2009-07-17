@@ -10,14 +10,14 @@ Subsystems:
         depends_on: ["EventHub", "Vehicle"]
         priority: "low"
 
-        #ForwardRecorders:
+        ForwardRecorders:
         #    forward.avi: 5 # Really compressed @ 5Hz
         #    forward.rmv: 5 # Raw video at 10Hz
-        #    "50000": 5 # Really compressed streaming @ 5hz
-        #DownwardRecorders:
+            "50012(320,240)": 5 # Really compressed streaming @ 5hz
+        DownwardRecorders:
         #    downward.avi: 5 # Really compressed @ 5Hz
         #    downward.rmv: 5 # Raw video at 10Hz
-        #    "50001": 5 # Really compressed streaming @ 5hz
+            "50013(320,240)": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
         INCLUDE: data/config/vision/erc.yml
