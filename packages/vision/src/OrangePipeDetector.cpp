@@ -24,6 +24,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
+#include "vision/include/ColorFilter.h"
 
 #include "math/include/Vector2.h"
 
@@ -53,6 +54,8 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_lineX = 0;
     m_lineY = 0;
     m_found = false;
+    m_filter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_useLUVFilter = false;
     
     // Detection variables
     // NOTE: The property set automatically loads the value from the given
@@ -69,7 +72,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "erodeIterations",
         "How many times to erode the filtered image",
-        3, &m_erodeIterations);
+        1, &m_erodeIterations);
 
     propSet->addProperty(config, false, "rOverGMin",
        "Red/Green minimum ratio", 1.0, &m_rOverGMin, 0.0, 5.0);
@@ -77,6 +80,19 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "Red/Green maximum ratio", 2.0, &m_rOverGMax, 0.0, 5.0);
     propSet->addProperty(config, false, "bOverRMax",
         "Blue/Red maximum ratio",  0.4, &m_bOverRMax, 0.0, 5.0);
+
+
+    // Newer Color filter properties
+    propSet->addProperty(config, false, "useLUVFilter",
+        "Use LUV based color filter",  true, &m_useLUVFilter);
+    
+    m_filter->addPropertiesToSet(propSet, &config,
+                                 "L", "L*",
+                                 "U", "Blue Chrominance",
+                                 "V", "Red Chrominance",
+                                 0, 129,  // L defaults
+                                 14, 200,  // U defaults
+                                 126, 255); // V defaults
 }
 
 void OrangePipeDetector::filterForOrangeOld(Image* image)
@@ -97,6 +113,12 @@ void OrangePipeDetector::filterForOrangeOld(Image* image)
     }
 }
 
+void OrangePipeDetector::filterForOrangeNew(Image* image)
+{
+    // Filter the image so all green is white, and everything else is black
+    m_filter->filterImage(image);
+}
+    
 bool OrangePipeDetector::found()
 {
     return m_found;
@@ -133,7 +155,10 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Mask orange takes frame, then alter image, then strictness (true=more
 
     // Filter the image for the proper color
-    filterForOrangeOld(input);
+    if (m_useLUVFilter)
+        filterForOrangeNew(input);
+    else
+        filterForOrangeOld(input);
 
     // 3 x 3 default erosion element, default 3 iterations.
     cvErode(input->asIplImage(), input->asIplImage(), 0, m_erodeIterations);

@@ -50,6 +50,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Use Dan's custom mask_orange function */
     void filterForOrangeOld(Image* image);
 
+    /** Use LUV color mask function  */
+    void filterForOrangeNew(Image* image);
+    
     /** Use the color filter to filter for orange */
     //    void filterForOrange();
 
@@ -67,6 +70,12 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     double m_bOverRMax;
     bool m_found;
 
+    /** Filters for orange */
+    ColorFilter* m_filter;
+
+    /** Whether or not to use the newer LUV color filter */
+    bool m_useLUVFilter;
+    
     /** Maximum distance for the pipe to be considred "centered" */
     double m_centeredLimit;
 
