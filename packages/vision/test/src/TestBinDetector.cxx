@@ -262,6 +262,49 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     }
 }
 
+TEST_FIXTURE(BinDetectorFixture, TestLUV)
+{
+    detector.setSymbolDetectionOn(false);
+    
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw the bin (upper left)
+    drawBin(&input, 640/4, 480/4, 130, 25);
+    
+    // Process it
+    detector.setUseLUVFilter(true);
+    processImage(&input);
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    math::Degree expectedAngle(25);
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+}
+
+TEST_FIXTURE(BinDetectorFixture, TestNoLUV)
+{
+    detector.setSymbolDetectionOn(false);
+    
+    // Blue Image with orange rectangle in it
+    vision::makeColor(&input, 0, 0, 255);
+    // draw the bin (upper left)
+    drawBin(&input, 640/4, 480/4, 130, 25);
+    
+    // Process it
+    detector.setUseLUVFilter(false);
+    processImage(&input);
+    double expectedX = -0.5 * 640.0/480.0;
+    double expectedY = 0.5;
+    math::Degree expectedAngle(25);
+    
+    CHECK(detector.found());
+    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
+}
+
+
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {
     detector.setSymbolDetectionOn(false);

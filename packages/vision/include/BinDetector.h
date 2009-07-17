@@ -88,6 +88,9 @@ class RAM_EXPORT BinDetector : public Detector
      *      True if you wish to log, false if not.
      */
     void setSymbolImageLogging(bool value);
+
+    /** Set whether or not to use the LUV filter */
+    void setUseLUVFilter(bool value);
     
   private:
     /** Initializes all the values that are config based */
@@ -293,6 +296,18 @@ class RAM_EXPORT BinDetector : public Detector
     
     /** The ID of the next new bin to be found */
     int m_binID;
+
+    /** Use LUV color filter */
+    bool m_useLUVFilter;
+    
+    /** LUV based filter for white */
+    ColorFilter* m_whiteFilter;
+
+    /** LUV based filter for black */
+    ColorFilter* m_blackFilter;
+
+    /** LUV based filter for red */
+    ColorFilter* m_redFilter;
 };
 
 } // namespace vision

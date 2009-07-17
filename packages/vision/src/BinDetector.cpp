@@ -30,6 +30,7 @@
 #include "vision/include/Events.h"
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/SymbolDetector.h"
+#include "vision/include/ColorFilter.h"
 
 #include "math/include/Vector2.h"
 
@@ -121,7 +122,11 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_binHoughThreshold(0),
     m_binHoughMinLineLength(0),
     m_binHoughMaxLineGap(0),
-    m_binID(0)
+    m_binID(0),
+    m_useLUVFilter(0),
+    m_whiteFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_blackFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_redFilter(new ColorFilter(0, 255, 0, 255, 0, 255))
 {
     // Load all config based settings
     init(config);
@@ -154,9 +159,12 @@ void BinDetector::processImage(Image* input, Image* out)
     if (out)
         out->copyFrom(input);
     
-    // Create the percents images for the white, black and red filters
-    m_percents->copyFrom(input);
-    to_ratios(m_percents->asIplImage());
+    if (!m_useLUVFilter)
+    {
+        // Create the percents images for the white, black and red filters
+        m_percents->copyFrom(input);
+        to_ratios(m_percents->asIplImage());
+    }
     
     // Filter for white, black, and red
     filterForWhite(input, m_whiteMaskedFrame);
@@ -335,6 +343,11 @@ void BinDetector::setSymbolImageLogging(bool value)
     m_logSymbolImages = value;
 }
 
+void BinDetector::setUseLUVFilter(bool value)
+{
+    m_useLUVFilter = value;
+}
+    
 void BinDetector::init(core::ConfigNode config)
 {
     // Look up type for the symbol detector and validate it
@@ -430,6 +443,35 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "binHoughMaxLineGap",
         "Maximum gap between lines for them to be joined",
         50, &m_binHoughMaxLineGap, 0, 300); // 50 in Dans version
+
+    // Color filter
+    propSet->addProperty(config, false, "useLUVFilter",
+        "Use LUV based color filter",  false, &m_useLUVFilter);
+
+    m_whiteFilter->addPropertiesToSet(propSet, &config,
+                                      "whiteL", "L* (White)",
+                                      "whiteU", "Blue Chrominance (White)",
+                                      "whiteV", "Red Chrominance (White)",
+                                      125, 255,  // L defaults // 180,255
+                                      0, 255,  // U defaults // 76, 245
+                                      0, 255); // V defaults // 200,255
+
+    m_blackFilter->addPropertiesToSet(propSet, &config,
+                                      "blackL", "L* (Black)",
+                                      "blackU", "Blue Chrominance (Black)",
+                                      "blackV", "Red Chrominance (Black)",
+                                      0, 124,  // L defaults // 180,255
+                                      0, 255,  // U defaults // 76, 245
+                                      0, 255); // V defaults // 200,255
+
+    
+    m_redFilter->addPropertiesToSet(propSet, &config,
+                                    "redL", "L* (Red)",
+                                    "redU", "Blue Chrominance (Red)",
+                                    "redV", "Red Chrominance (Red)",
+                                    0, 255,  // L defaults // 180,255
+                                    0, 200,  // U defaults // 76, 245
+                                    200, 255); // V defaults // 200,255
 }
 
 void BinDetector::allocateImages(int width, int height)
@@ -459,37 +501,58 @@ void BinDetector::deleteImages()
     
 void BinDetector::filterForWhite(Image* input, Image* output)
 {
-    white_mask(m_percents->asIplImage(), input->asIplImage(),
-               output->asIplImage(),
-               m_whiteMaskMinimumPercent, m_whiteMaskMinimumIntensity);
+    if (m_useLUVFilter)
+    {
+        m_whiteFilter->filterImage(input, output);
+    }
+    else
+    {
+        white_mask(m_percents->asIplImage(), input->asIplImage(),
+                   output->asIplImage(),
+                   m_whiteMaskMinimumPercent, m_whiteMaskMinimumIntensity);
+    }
 }
 
 void BinDetector::filterForBlack(Image* input, Image* output)
 {
-    black_mask(m_percents->asIplImage(), input->asIplImage(),
-               output->asIplImage(),
-               m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
+    if (m_useLUVFilter)
+    {
+        m_blackFilter->filterImage(input, output);
+    }
+    else
+    {
+        black_mask(m_percents->asIplImage(), input->asIplImage(),
+                   output->asIplImage(),
+                   m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
+    }
 }
 
 void BinDetector::filterForRed(Image* input, Image* output)
 {
-    int size = m_percents->getWidth() * m_percents->getHeight() * 3;
-    unsigned char* percentData = m_percents->getData();
-    unsigned char* inputData = input->getData();
-    unsigned char* outputData = output->getData();
-
-    for (int count = 0; count < size; count += 3)
+    if (m_useLUVFilter)
     {
-        if ((percentData[count+2] > m_redMinPercent) && // min R Percent
-            (inputData[count+2] > m_redMinRValue) && // min R
-            (inputData[count] < m_redMaxGValue) && // max G
-            (inputData[count+1] < m_redMaxBValue)) // max B
+        m_redFilter->filterImage(input, output);
+    }
+    else
+    {
+        int size = m_percents->getWidth() * m_percents->getHeight() * 3;
+        unsigned char* percentData = m_percents->getData();
+        unsigned char* inputData = input->getData();
+        unsigned char* outputData = output->getData();
+
+        for (int count = 0; count < size; count += 3)
         {
-            outputData[count]=outputData[count+1]=outputData[count+2]=255;
-        }
-        else
-        {
-            outputData[count]=outputData[count+1]=outputData[count+2]=0;
+            if ((percentData[count+2] > m_redMinPercent) && // min R Percent
+                (inputData[count+2] > m_redMinRValue) && // min R
+                (inputData[count] < m_redMaxGValue) && // max G
+                (inputData[count+1] < m_redMaxBValue)) // max B
+            {
+                outputData[count]=outputData[count+1]=outputData[count+2]=255;
+            }
+            else
+            {
+                outputData[count]=outputData[count+1]=outputData[count+2]=0;
+            }
         }
     }
 }
