@@ -58,7 +58,7 @@ ram.ai.duct.Aligning:
 
 # Target Task
 ram.ai.target.Start:
-    diveDepth: 8.2
+    diveDepth: 7.3
 ram.ai.target.SeekingToCentered:
     depthGain: 0
     maxSpeed: 3
@@ -268,6 +268,9 @@ ram.ai.course.PingerDive:
     depth: 1.5
 ram.ai.course.SafeDive:
     depth: 8
+ram.ai.course.Pipe:
+    biasDirection: -25
+    threshold: 50
 
 # Gate + Safe + Octagon Mission
 ram.ai.sonarCourse.PingerDive:
