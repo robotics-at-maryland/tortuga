@@ -107,8 +107,7 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
             y = 0
         
         # We ignore azimuth and elevation because we aren't using them
-        self._target.setState(0, 0, self._filterdRange, self._filterdX, 
-                              self._filterdY)
+        self._target.setState(0, 0, self._filterdRange, self._filterdX, y)
         
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
