@@ -53,7 +53,7 @@ class MainFrame(wx.Frame):
         
         # Add panels for all the current subsystems
         self._mgr = wx.aui.AuiManager(self)
-        self._addShell(subsystems)
+        self._addShell(config, subsystems)
         self._addSubsystemPanels(subsystems)
         self._mgr.Update()
         
@@ -131,7 +131,7 @@ class MainFrame(wx.Frame):
         menuItem = menu.Append(-1, name)
         self.Bind(wx.EVT_MENU, self._layoutChange(name), menuItem)
     
-    def _addShell(self, subsystems):
+    def _addShell(self, config, subsystems):
         introText = 'Current Subsystems:\n'
         # Build locals
         locals = {}
@@ -142,6 +142,21 @@ class MainFrame(wx.Frame):
             locals[name] = subsystem
             introText += '%s: %s\n' % (name, type(subsystem))
         
+        # Load python file
+        try:
+            shellBasePath = os.environ['RAM_SVN_DIR']
+            shellInitFile = config.get('shellInitFile', 
+                                       'tools/oci/src/shellinit.py')
+            shellinit = os.path.abspath(os.path.join(shellBasePath, shellInitFile))
+            pyFile = open(shellinit, 'r')
+
+            introText += '%s' % ("\nRunning python file " + \
+                                     shellInitFile + ".\n")
+        except:
+            pyFile = None
+            introText += '%s' % ("\nNo file found named " + \
+                                     shellInitFile + ".\n")
+
         # Create shell
         self._shell = ShellPanel(self, locals = locals, introText = introText)
         
@@ -152,6 +167,11 @@ class MainFrame(wx.Frame):
 
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Center()
+
+        # Run the python file
+        if pyFile is not None:
+            self._shell.push(pyFile.read(), silent = True)
+
         self._addSubsystemPanel(paneInfo, self._shell, [])
     
     def _loadLayout(self, guiData):
