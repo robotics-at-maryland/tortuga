@@ -335,13 +335,16 @@ class FireTorpedos(RangeXYHold):
     NUMBER_TORPEDOS = 2
     ARM_TORPEDOS = core.declareEventType('ARM_TORPEDOS_')
     MOVE_ON = core.declareEventType('MOVE_ON')
+    MISALIGNED = core.declareEventType('MISALIGNED')
 
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(FireTorpedos, {
             RangeXYHold.IN_RANGE : FireTorpedos,
             FireTorpedos.ARM_TORPEDOS: FireTorpedos,
-            FireTorpedos.MOVE_ON : End}, lostState = FindAttemptFireTorpedos)
+            FireTorpedos.MOVE_ON : End,
+            FireTorpedos.MISALIGNED : SeekingToAligned },
+            lostState = FindAttemptFireTorpedos)
 
     def IN_RANGE(self, event):
         """
@@ -350,7 +353,12 @@ class FireTorpedos(RangeXYHold):
         """
         if self._armed and self.ai.data.get('torpedosFired', 0) \
                 < FireTorpedos.NUMBER_TORPEDOS:
-            self.vehicle.fireTorpedo()
+            squareNess = self._filterdAlign + 1
+            if squareNess > self._minSquareNess:
+                self.vehicle.fireTorpedo()
+            else:
+                self.publish(FireTorpedos.MISALIGNED, core.Event())
+                return
 
             # Diarm torpeos, must be armed again, after a wait for the current
             # torpedo to get through
@@ -375,6 +383,7 @@ class FireTorpedos(RangeXYHold):
         self._timer = None
         self._delay = self._config.get('fireDelay', 2)
         self._armed = False
+        self._minSquareNess = self._config.get('minSquareNess', 0.85)
 
         self._resetFireTimer(delay = self._config.get('startFireDelay', 0))
 

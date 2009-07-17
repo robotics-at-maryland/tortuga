@@ -224,7 +224,7 @@ class TestRangeXYHold(support.AITestCase):
         self.injectEvent(vision.EventType.TARGET_FOUND)
         self.assertCurrentState(self._recoverState)
         
-    def testInRange(self):
+    def testInRange(self, squareNess = 1):
         # Subscribe to in range event
         self._inRange = False
         def inRange(event):
@@ -235,7 +235,8 @@ class TestRangeXYHold(support.AITestCase):
         # Inject and event which has the duct ahead, and at the needed range
         self.injectEvent(vision.EventType.TARGET_FOUND, 
                          vision.TargetEvent, 0, 0, 0, 0,
-                         x = 0.05, y = -0.1, range = 0.53, squareNess = 1)
+                         x = 0.05, y = -0.1, range = 0.53, 
+                         squareNess = squareNess)
         
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()
@@ -318,12 +319,11 @@ class TestFireTorpedos(TestRangeXYHold):
         self.assertCurrentState(target.FireTorpedos)
 
     def testInRangeArmed(self):
-        # Arm the torpedo
-        self.releaseTimer(target.FireTorpedos.ARM_TORPEDOS)
+        # Torpedo starts armed
         self.assert_(self.machine.currentState().armed)
 
         # Fire first torpedo
-        TestRangeXYHold.testInRange(self)
+        TestRangeXYHold.testInRange(self, squareNess = 1)
         self.assertEqual(1, self.ai.data['torpedosFired'])
         self.assertEqual(1, self.vehicle.torpedosFired)
         self.assertCurrentState(target.FireTorpedos)
@@ -335,9 +335,20 @@ class TestFireTorpedos(TestRangeXYHold):
         
         # Fire second torpedo
         TestRangeXYHold.testInRange(self)
+        self.qeventHub.publishEvents()
         self.assertEqual(2, self.ai.data['torpedosFired'])
         self.assertEqual(2, self.vehicle.torpedosFired)
         self.assert_(self.machine.complete)
+        
+    def testNotAligned(self):
+        # Torpedo starts armed
+        self.assert_(self.machine.currentState().armed)
+
+        # Fire first torpedo
+        TestRangeXYHold.testInRange(self, squareNess = 0)
+        self.qeventHub.publishEvents()
+        self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
+        self.assertCurrentState(target.SeekingToAligned)
 
 class AlignmentTest(object):
     # This is not a real setUp function, but it must be called anyways
