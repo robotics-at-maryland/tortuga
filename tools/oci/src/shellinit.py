@@ -18,8 +18,11 @@ def up(depthChange, speed = 0.3):
 def down(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() + depthChange, speed = speed)
 
-def yaw(yawChange, speed = 30):
-    motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = False))
+def yaw(yawChange, speed = 30, absolute = False):
+    motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
+
+def yaw2(yawChange, speed = 30):
+    yaw(yawChange, speed, absolute = True)
 
 def allStop():
     stateMachine.stop()
