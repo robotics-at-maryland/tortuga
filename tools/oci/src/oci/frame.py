@@ -143,18 +143,18 @@ class MainFrame(wx.Frame):
             introText += '%s: %s\n' % (name, type(subsystem))
         
         # Load python file
-        try:
-            shellBasePath = os.environ['RAM_SVN_DIR']
-            shellInitFile = config.get('shellInitFile', 
+        shellBasePath = os.environ['RAM_SVN_DIR']
+        shellInitFile = config.get('shellInitFile', 
                                        'tools/oci/src/shellinit.py')
-            shellinit = os.path.abspath(os.path.join(shellBasePath, shellInitFile))
+        shellinit = os.path.abspath(os.path.join(shellBasePath, shellInitFile))
+        try:
             pyFile = open(shellinit, 'r')
 
             introText += '%s' % ("\nRunning python file " + \
                                      shellInitFile + ".\n")
-        except:
+        except IOError:
             pyFile = None
-            introText += '%s' % ("\nNo file found named " + \
+            introText += '%s' % ("\nWARNING: No file found named " + \
                                      shellInitFile + ".\n")
 
         # Create shell
@@ -170,7 +170,11 @@ class MainFrame(wx.Frame):
 
         # Run the python file
         if pyFile is not None:
-            self._shell.push(pyFile.read(), silent = True)
+            for line in pyFile.readlines():
+                self._shell.push(line.rstrip(), silent = True)
+                #self._shell.run(line, prompt = False, verbose = False)
+            #self._shell.runfile(shellinit)
+            #self._shell.push("print 'Finished loading file'", silent = True)
 
         self._addSubsystemPanel(paneInfo, self._shell, [])
     
