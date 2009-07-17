@@ -349,9 +349,9 @@ def pipeFoundHelper(self, myState = None):
     self.qeventHub.publish(vision.EventType.PIPE_FOUND, event)
     
     # Now lose it
-    #event = self._createEvent(vision.EventType.PIPE_DROPPED,
-    #                          vision.PipeEvent, 0,0,0, id = 1)
-    #self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
+    event = self._createEvent(vision.EventType.PIPE_DROPPED,
+                              vision.PipeEvent, 0,0,0, id = 1)
+    self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
     
     # Publish the events
     self.qeventHub.publishEvents()
@@ -361,6 +361,9 @@ def pipeFoundHelper(self, myState = None):
     self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 2)
     self.assertAlmostEqual(0, self.controller.yawChange, 5)
     self.assert_(self._foundPipe)
+    
+    self.publishQueuedPipeFound(id = 2)
+    self.assertDataValue(self.ai.data['pipeData'], 'currentID', 2)
 
 class TestSeeking(PipeTest):
     def setUp(self):
