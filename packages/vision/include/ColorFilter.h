@@ -35,9 +35,9 @@ public:
     /** Run the Filter on the input image, debug results to output Image
      *
      *  @param input   The image to run the detector on
-     *  @param output  Debug image will be copied to this image
+     *  @param output  Place results, (its input if NULL)
      */
-    virtual void filterImage(Image* input);
+    virtual void filterImage(Image* input, Image* output = 0);
 
 
     /**

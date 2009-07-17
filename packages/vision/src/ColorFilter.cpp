@@ -75,23 +75,29 @@ void ColorFilter::setupRanges()
 	   m_channel3High - m_channel3Low + 1);
 }
 
-void ColorFilter::filterImage(Image* input)
+void ColorFilter::filterImage(Image* input, Image* output)
 {
     int numPixels = input->getWidth() * input->getHeight();
-    unsigned char* data = input->getData();
+    unsigned char* inputData = input->getData();
+    unsigned char* outputData = 0;
+    if (output)
+        outputData = output->getData();
+    else
+        outputData = input->getData();
 
     for (int i = 0; i < numPixels; ++i)
     {
         unsigned char result = 
-	  m_channel1Range[*data] & 
-	  m_channel2Range[*(data + 1)] &
-	  m_channel3Range[*(data + 2)];
+	  m_channel1Range[*inputData] & 
+	  m_channel2Range[*(inputData + 1)] &
+	  m_channel3Range[*(inputData + 2)];
 
-	*data = result;
-	*(data + 1) = result;
-	*(data + 2) = result;
+	*outputData = result;
+	*(outputData + 1) = result;
+	*(outputData + 2) = result;
 
-	data += 3;
+	inputData += 3;
+        outputData += 3;
     }
 }
 
