@@ -374,9 +374,9 @@ class FireTorpedos(RangeXYHold):
 
         self._timer = None
         self._delay = self._config.get('fireDelay', 2)
-        self._armed = True # False
+        self._armed = False
 
-        #self._resetFireTimer(delay = self._config.get('startFireDelay', 0.5))
+        self._resetFireTimer(delay = self._config.get('startFireDelay', 0))
 
     def exit(self):
         if self._timer is not None:

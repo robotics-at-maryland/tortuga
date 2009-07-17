@@ -305,18 +305,12 @@ class TestFireTorpedos(TestRangeXYHold):
                               target.FireTorpedos)
 
     def testArmTorpedos(self):
-        self.machine.currentState()._armed = False
-        self.machine.currentState()._resetFireTimer()
-
         self.assertFalse(self.machine.currentState().armed)
         self.releaseTimer(target.FireTorpedos.ARM_TORPEDOS)
         self.assert_(self.machine.currentState().armed)
            
     def testInRangeUnarmed(self):
         """Make sure the nothing is fired and we haven't transitioned"""
-        self.machine.currentState()._armed = False
-        self.machine.currentState()._resetFireTimer()
-
         TestRangeXYHold.testInRange(self)
 
         self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
@@ -324,7 +318,7 @@ class TestFireTorpedos(TestRangeXYHold):
 
     def testInRangeArmed(self):
         # Arm the torpedo
-        #self.releaseTimer(target.FireTorpedos.ARM_TORPEDOS)
+        self.releaseTimer(target.FireTorpedos.ARM_TORPEDOS)
         self.assert_(self.machine.currentState().armed)
 
         # Fire first torpedo
