@@ -260,6 +260,8 @@ class PipeFollowingState(PipeTrackingState):
                         self._pipe.setState(event.x, event.y, angle)
                 else: # Otherwise continue normally
                     self._pipe.setState(event.x, event.y, angle)
+        else:
+            pipeData['currentID'] = event.id
 
     def enter(self):
         PipeTrackingState.enter(self)
