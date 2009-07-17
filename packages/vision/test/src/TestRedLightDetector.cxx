@@ -49,6 +49,24 @@ struct RedLightDetectorFixture
             boost::bind(&RedLightDetectorFixture::almostHitHandler, this, _1));
     }
 
+    void processImage(vision::Image* image, bool show = false)
+    {
+        if (show)
+	{
+	    vision::OpenCVImage input(640, 480);
+	    input.copyFrom(image);
+	    vision::Image::showImage(&input, "Input");
+
+	    vision::OpenCVImage output(640, 480);
+	    detector.processImage(image, &output);
+	    vision::Image::showImage(&output, "Output");
+	}
+	else
+        {
+            detector.processImage(image);
+	}
+    }
+    
     void foundHandler(core::EventPtr event_)
     {
         found = true;
@@ -83,7 +101,7 @@ TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
     drawRedCircle(&input, 640/2, 240);
 
     // Process it
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
@@ -110,7 +128,7 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     makeColor(&input, 0, 0, 255);
     drawRedCircle(&input, 640/4, 480/4);
     
-    detector.processImage(&input);
+    processImage(&input);
     
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;
@@ -131,31 +149,36 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     CHECK(false == almostHit);
 }
 
-TEST_FIXTURE(RedLightDetectorFixture, LowerRight)
+TEST_FIXTURE(RedLightDetectorFixture, TestLUV)
 {
     // Blue Image with red circle in lower right
     makeColor(&input, 0, 0, 255);
     drawRedCircle(&input, 640 - 640/4, 480/4 * 3);
-    
-    detector.processImage(&input);
+
+    detector.setUseLUVFilter(true);
+    processImage(&input);
 
     double expectedX = 0.5 * 640.0/480.0;
     double expectedY = -0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found);
+}
 
-    // Check the events
-    CHECK(found);
-    CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.005);
-    CHECK_CLOSE(expectedY, event->y, 0.005);
-    CHECK_CLOSE(3, event->range, 0.1);
-    CHECK_CLOSE(math::Degree(-78.0/4), event->azimuth, math::Degree(0.4));
-    CHECK_CLOSE(math::Degree(-105.0/4), event->elevation, math::Degree(0.4));
+TEST_FIXTURE(RedLightDetectorFixture, TestNOLUV)
+{
+    // Now without the LUV
+    makeColor(&input, 0, 0, 255);
+    drawRedCircle(&input, 640 - 640/4, 480/4 * 3);
+    
+    detector.setUseLUVFilter(false);
+    processImage(&input);
 
-    // Make sure we haven't "almost hit" the light
-    CHECK(false == almostHit);
+    double expectedX = 0.5 * 640.0/480.0;
+    double expectedY = -0.5;
+    CHECK_CLOSE(expectedX, detector.getX(), 0.005);
+    CHECK_CLOSE(expectedY, detector.getY(), 0.005);
+    CHECK(detector.found);
 }
 
 TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
@@ -163,13 +186,13 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
     // No light at all
     makeColor(&input, 0, 0, 255);
     
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == false);
     CHECK(!event);
 
     // Now we found the light (Upper Left)
     drawRedCircle(&input, 640/4, 480/4);
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found);
     CHECK(event);
     CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
@@ -177,13 +200,13 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
 
     // Now we lost the light
     makeColor(&input, 0, 0, 255);
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == false);
     CHECK(!event);
 
     // Make sure we don't get another lost event
     found = true;
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(found == true);
 }
 
@@ -194,7 +217,7 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
     drawRedCircle(&input, 640/2, 240, 140);
 
     // Process it
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
@@ -228,7 +251,7 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT_TOPBOT)
     drawRedCircle(&input, 640/2, 240, 100);
 
     // Process it
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
@@ -258,7 +281,7 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
     drawRedCircle(&input, 640/2, 45);
 
     // Check with a non top removed detector
-    detector.processImage(&input);
+    processImage(&input);
     double expectedX = 0  * 640.0/480.0;
     double expectedY = 0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -281,7 +304,7 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveBottom)
     drawRedCircle(&input, 640/2, 435);
 
     // Check with a non top removed detector
-    detector.processImage(&input);
+    processImage(&input);
     double expectedX = 0  * 640.0/480.0;
     double expectedY = -0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -303,14 +326,14 @@ TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
     // Same area as normal circle just bad bounding box
     drawSquare(&input, 640/2, 480/2, 155, 55, 0, CV_RGB(255,0,0));
 
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(false == detector.found);    
 
     // Now flip it up right
     makeColor(&input, 0, 0, 255);
     drawSquare(&input, 640/2, 480/2, 55, 155, 0, CV_RGB(255,0,0));
 
-    detector.processImage(&input);
+    processImage(&input);
     CHECK(false == detector.found);    
 
     // Now test the square *with* the light and make sure we get the light
@@ -319,7 +342,7 @@ TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
     drawSquare(&input, 640/2, 480/2, 80, 240, 0, CV_RGB(255,0,0));
     drawRedCircle(&input, 640 - 640/4, 480/4 * 3);
 
-    detector.processImage(&input);
+    processImage(&input);
 
     double expectedX = 0.5 * 640.0/480.0;
     double expectedY = -0.5;

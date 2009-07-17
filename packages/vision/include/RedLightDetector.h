@@ -49,6 +49,9 @@ class RAM_EXPORT RedLightDetector : public Detector
     void setTopRemovePercentage(double percent);
     /** The percent of the bottom of the image blacked out */
     void setBottomRemovePercentage(double percent);
+
+    /** Set whether or not to use the LUV filter */
+    void setUseLUVFilter(bool value);
     
     void show(char* window);
     IplImage* getAnalyzedImage();
@@ -56,6 +59,12 @@ class RAM_EXPORT RedLightDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
+    /** Use Dan's custom redorange function */
+    void filterForRedOld(IplImage* image, IplImage* flashFrame);
+
+    /** Use LUV color mask function  */
+    void filterForRedNew(IplImage* image);
+    
     // Process current state, and publishes LIGHT_FOUND event
     void publishFoundEvent(double lightPixelRadius);
 
@@ -110,8 +119,12 @@ class RAM_EXPORT RedLightDetector : public Detector
     /** The threshold of the intensity of red in the image */
     int m_redIntensity;
 
-    
+    /** Filters for orange */
+    ColorFilter* m_filter;
 
+    /** Whether or not to use the newer LUV color filter */
+    bool m_useLUVFilter;
+    
     /** The ammout the aspect ratio of the bounding box can be non-square */
     //double m_aspectRatioDeviation;
 };

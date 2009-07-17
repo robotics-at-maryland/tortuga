@@ -21,11 +21,12 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/Events.h"
+#include "vision/include/ColorFilter.h"
 
 #include "core/include/PropertySet.h"
 
 #ifndef M_PI
-#define M_PI 3.14159
+#define M_PI 3.1415926
 #endif
 
 namespace ram {
@@ -34,13 +35,15 @@ namespace vision {
 RedLightDetector::RedLightDetector(core::ConfigNode config,
                                    core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    cam(0),
+    m_filter(0)
 {
     init(config);
 }
     
 RedLightDetector::RedLightDetector(Camera* camera) :
-    cam(camera)    
+    cam(camera),
+    m_filter(0)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -87,6 +90,19 @@ void RedLightDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "maxAspectRatio",
         "Max aspect ratio of the blob",
         2.0, &m_maxAspectRatio);
+
+    // Color filter
+    propSet->addProperty(config, false, "useLUVFilter",
+        "Use LUV based color filter",  false, &m_useLUVFilter);
+
+    m_filter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_filter->addPropertiesToSet(propSet, &config,
+                                 "L", "L*",
+                                 "U", "Blue Chrominance",
+                                 "V", "Red Chrominance",
+                                 0, 255,  // L defaults // 180,255
+                                 0, 200,  // U defaults // 76, 245
+                                 200, 255); // V defaults // 200,255
     
     // State machine variables 
     found=false;
@@ -135,6 +151,11 @@ void RedLightDetector::setBottomRemovePercentage(double percent)
     m_bottomRemovePercentage = percent;
 }
 
+void RedLightDetector::setUseLUVFilter(bool value)
+{
+    m_useLUVFilter = value;
+}
+    
 void RedLightDetector::show(char* window)
 {
     //Chris:  If you want to see an image other than the raw image with a box drawn if light found
@@ -194,14 +215,18 @@ void RedLightDetector::processImage(Image* input, Image* output)
     }
 
     // Process Image
-    to_ratios(image);
     CvPoint boundUR = {0};
     CvPoint boundLL = {0};
     boundUR.x = 0;
     boundUR.y = 0;
     boundLL.x = 0;
     boundLL.y = 0;
-    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
+
+    if (m_useLUVFilter)
+        filterForRedNew(flashFrame);
+    else
+        filterForRedOld(image, flashFrame);
+
     
     // Find the red blobs
     m_blobDetector.setMinimumBlobSize(minRedPixels);
@@ -318,6 +343,18 @@ void RedLightDetector::processImage(Image* input, Image* output)
     }
 }
 
+
+void RedLightDetector::filterForRedOld(IplImage* image, IplImage* flashFrame)
+{
+    to_ratios(image);
+    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
+}
+
+void RedLightDetector::filterForRedNew(IplImage* image)
+{
+    m_filter->filterImage(new OpenCVImage(image, false));
+}
+    
 void RedLightDetector::publishFoundEvent(double lightPixelRadius)
 {
     if (found)
