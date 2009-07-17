@@ -42,7 +42,7 @@ class AI(core.Subsystem):
                 
         # Store inter state data
         self._data = {}
-        
+        self._data['config'] = cfg.get('config', {})
         
         # Build list of next states
         self._nextTaskMap = {}

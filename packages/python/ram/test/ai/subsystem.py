@@ -45,6 +45,7 @@ class TestAI(unittest.TestCase):
         
         aiSys.data['Bob'] = 10
         self.assertEqual(10, aiSys.data['Bob'])
+        self.assertEqual({}, aiSys.data['config'])
 
     def testDiconnect(self):
         stateMachine = ai.state.Machine({'name' : 'MyMachine'})
@@ -71,7 +72,7 @@ class TestAI(unittest.TestCase):
         self.assert_(self.connB)
     
     
-class TestAI(AITestCase):
+class TestAITasks(AITestCase):
     def setUp(self):
         cfg = {'Ai' : {
              'taskOrder' : ['ram.test.ai.task.TaskA',
