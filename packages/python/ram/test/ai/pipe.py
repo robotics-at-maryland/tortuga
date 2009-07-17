@@ -323,8 +323,25 @@ def pipeFoundHelper(self, myState = None):
     self.assertFalse(self.ai.data.has_key('lastPipeEvent'))
     
     # Delete pipe data for the next tests
-    self.ai.data['pipeData'] = {'currentIds' : set(),
-                                'trackingEnabled' : True}
+    #self.ai.data['pipeData'] = {'currentIds' : set(),
+    #                            'trackingEnabled' : True}
+    
+    # Subscribe to the PIPE_FOUND event and FOUND_PIPE event
+    # Make sure that the id was stored before FOUND_PIPE happens
+    del self.ai.data['pipeData']['absoluteDirection']
+    del self.ai.data['pipeData']['currentID']
+    del self.ai.data['pipeData']['currentIds']
+    self.ai.data['pipeData']['currentIds'] = set()
+    del self.ai.data['pipeData']['itemData']
+    self.ai.data['pipeData']['itemData'] = {}
+    
+    self._foundPipe = False
+    def foundPipeHandler(event):
+        self._foundPipe = True
+        self.qeventHub.publishEvents()
+
+    self.qeventHub.subscribeToType(pipe.PipeTrackingState.FOUND_PIPE,
+                                       foundPipeHandler)
     
     # Publish a found event
     event = self._createEvent(vision.EventType.PIPE_FOUND,
@@ -332,9 +349,9 @@ def pipeFoundHelper(self, myState = None):
     self.qeventHub.publish(vision.EventType.PIPE_FOUND, event)
     
     # Now lose it
-    event = self._createEvent(vision.EventType.PIPE_DROPPED,
-                              vision.PipeEvent, 0,0,0, id = 1)
-    self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
+    #event = self._createEvent(vision.EventType.PIPE_DROPPED,
+    #                          vision.PipeEvent, 0,0,0, id = 1)
+    #self.qeventHub.publish(vision.EventType.PIPE_DROPPED, event)
     
     # Publish the events
     self.qeventHub.publishEvents()
@@ -343,6 +360,7 @@ def pipeFoundHelper(self, myState = None):
     self.assertAlmostEqual(0, self.controller.speed, 2)
     self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 2)
     self.assertAlmostEqual(0, self.controller.yawChange, 5)
+    self.assert_(self._foundPipe)
 
 class TestSeeking(PipeTest):
     def setUp(self):
