@@ -65,7 +65,7 @@ class PingerState(state.State):
         self._maxSpeed = self._config.get('maxSpeed', 1)
         self._maxSidewaysSpeed = 0
         self._sidewaysSpeedGain = 0
-    
+     
     def enter(self, timeout = 2.5):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
         self._lastTime = 0
@@ -81,6 +81,7 @@ class PingerState(state.State):
         self.motionManager.setMotion(motion)
 
         # Set up the ping timer
+        self._pingChecker = None
         self._timeout = self._config.get('timeout', timeout)
         if self._timeout > 0:
             self._pingChecker = self.timerManager.newTimer(
