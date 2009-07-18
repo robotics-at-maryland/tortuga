@@ -94,14 +94,17 @@ class PipeTrackingState(state.State):
                             (absPipeDirection - self._threshold <= \
                                  self._biasDirection + ext.math.Degree(180) <= \
                                  absPipeDirection + self._threshold)):
-                        self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+                        self._foundPipe(self, event)
+                        self.publish(PipeTrackingState.FOUND_PIPE, core.Event())
                 else:
-                    self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+                    self._foundPipe(self, event)
+                    self.publish(PipeTrackingState.FOUND_PIPE, core.Event())
             else: # If there isn't a biasDirection, raise an error
                 raise Exception("A threshold is set with no biasDirection")
         else:
             # If a currentID exists or there is no threshold set, call FOUND_PIPE
-            self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+            self._foundPipe(self, event)
+            self.publish(PipeTrackingState.FOUND_PIPE, core.Event())
             
     def enter(self):
         # Ensure pipe tracking

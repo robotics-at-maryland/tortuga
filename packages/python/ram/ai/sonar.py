@@ -88,6 +88,8 @@ class PingerState(state.State):
             self._pingChecker.start()
 
     def exit(self):
+        if self._pingChecker is not None:
+            self._pingChecker.stop()
         self.motionManager.stopCurrentMotion()
         
 class Start(state.State):
