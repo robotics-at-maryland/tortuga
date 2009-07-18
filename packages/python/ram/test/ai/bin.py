@@ -544,7 +544,7 @@ class TestCentering(BinTestCase):
         self.ai.data['binData']['currentIds'] = set([3])
         # Inject settled event
         self.injectEvent(bin.Centering.SETTLED)
-        self.assertCurrentState(bin.CheckEnd)
+        self.assertCurrentState(bin.SeekEnd)
 
     def testStoreDesiredQuaternion(self):
         # Setup a desired orientation                                       
@@ -606,61 +606,6 @@ class TestAligning(BinTestCase):
         self.injectEvent(bin.Aligning.ALIGNED)
         self.assertCurrentState(bin.PreDiveExamine)
         
-class TestCheckEnd(BinTestCase):
-    def setUp(self):
-        BinTestCase.setUp(self)
-        
-        self.ai.data['binData'] = dict()
-        bin.ensureBinTracking(self.qeventHub, self.ai)
-
-        self.ai.data['binData']['currentIds'] = set([2,3,4])
-        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1),
-                                               3 : Mock(x = 0),
-                                               2 : Mock(x = 1)}
-        
-    def testLeftBin(self):
-        self.ai.data['binData']['currentID'] = 4
-        self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['startSide'],
-                         bin.BinSortingState.LEFT)
-        
-        self.qeventHub.publishEvents()
-        
-        self.assertCurrentState(bin.SeekEnd)
-        
-    def testCenterBin(self):
-        self.ai.data['binData']['currentID'] = 3
-        self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['startSide'],
-                         bin.BinSortingState.RIGHT)
-        
-        self.qeventHub.publishEvents()
-        
-        self.assertCurrentState(bin.SeekEnd)
-        
-    def testRightBin(self):
-        self.ai.data['binData']['currentID'] = 2
-        self.machine.start(bin.CheckEnd)
-        self.assertEqual(self.ai.data['startSide'],
-                         bin.BinSortingState.RIGHT)
-        
-        self.qeventHub.publishEvents()
-        
-        self.assertCurrentState(bin.SeekEnd)
-        
-    def testBinLost(self):
-        """Make sure losing the bin goes back to search"""
-        # For CheckEnd
-        self.ai.data['binData']['currentID'] = 4
-        self.machine.start(bin.CheckEnd)
-        
-        # For Recover
-        self.ai.data["lastBinX"] = 0
-        self.ai.data["lastBinY"] = 0
-        
-        self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.RecoverCheckEnd)
-        
 class TestSeekEnd(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -672,7 +617,8 @@ class TestSeekEnd(BinTestCase):
         self.ai.data['binData']['currentID'] = 3
         self.ai.data['binData']['currentIds'] = set([3,4])
         self.ai.data['binData']['itemData'] = {4 : Mock(x = -1),
-                                               3 : Mock(x = 0)}
+                                               3 : Mock(x = 0),
+                                               2 : Mock(x = 1)}
         self.machine.start(bin.SeekEnd)
         
         self._centered = False
@@ -696,6 +642,39 @@ class TestSeekEnd(BinTestCase):
 
         # Make sure we have the proper orientation
         self.assertEqual(expected, self.controller.desiredOrientation)
+        
+    def testLeftBin(self):
+        self.machine.stop()
+        self.ai.data['binData']['currentID'] = 4
+        self.machine.start(bin.SeekEnd)
+        self.assertEqual(self.ai.data['startSide'],
+                         bin.BinSortingState.LEFT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        
+    def testCenterBin(self):
+        self.machine.stop()
+        self.ai.data['binData']['currentID'] = 3
+        self.machine.start(bin.SeekEnd)
+        self.assertEqual(self.ai.data['startSide'],
+                         bin.BinSortingState.RIGHT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
+        
+    def testRightBin(self):
+        self.machine.stop()
+        self.ai.data['binData']['currentID'] = 2
+        self.machine.start(bin.SeekEnd)
+        self.assertEqual(self.ai.data['startSide'],
+                         bin.BinSortingState.RIGHT)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.SeekEnd)
 
     def testBinFound(self):
         """Make sure the loop back works"""

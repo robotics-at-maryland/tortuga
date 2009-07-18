@@ -573,7 +573,7 @@ class Centering(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Centering,
-            { Centering.SETTLED : CheckEnd }, lostState = RecoverCentering)
+            { Centering.SETTLED : SeekEnd }, lostState = RecoverCentering)
     
     def SETTLED_(self, event):
         """
@@ -599,37 +599,6 @@ class RecoverCentering(Recover):
     def transitions():
         return Recover.transitions(Centering)
         
-class CheckEnd(BinSortingState):
-    """
-    Checks if it's already at the end of the bins before trying to find the
-    end
-    """
-    CONTINUE = core.declareEventType('CONTINUE')
-         
-    @staticmethod
-    def transitions():
-        return HoveringState.transitions(CheckEnd,
-            {CheckEnd.CONTINUE : SeekEnd}, lostState = RecoverCheckEnd)
-        
-    def enter(self):
-        BinSortingState.enter(self, BinSortingState.LEFT)
-        
-        if not self.hasBinToLeft():
-            self.ai.data['startSide'] = BinSortingState.LEFT
-        elif not self.hasBinToRight():
-            self.ai.data['startSide'] = BinSortingState.RIGHT
-        else:
-            # This direction doesn't matter
-            self.ai.data['startSide'] = \
-                self._config.get('startDirection', BinSortingState.RIGHT)
-                
-        self.publish(CheckEnd.CONTINUE, core.Event())
-        
-class RecoverCheckEnd(Recover):
-    @staticmethod
-    def transitions():
-        return Recover.transitions(CheckEnd)
-        
 class SeekEnd(BinSortingState):
     """
     Goes to the left most visible bin
@@ -654,11 +623,24 @@ class SeekEnd(BinSortingState):
         if not self.fixEdgeBin():
             # If already there
             self.publish(SeekEnd.AT_END, core.Event())
+            
+    def _checkEnd(self):
+        if not self.hasBinToLeft():
+            self.ai.data['startSide'] = BinSortingState.LEFT
+        elif not self.hasBinToRight():
+            self.ai.data['startSide'] = BinSortingState.RIGHT
+        else:
+            # This direction doesn't matter
+            self.ai.data['startSide'] = \
+                self._config.get('startDirection', BinSortingState.RIGHT)
         
     def enter(self):
         # Keep the hover motion going
         BinSortingState.enter(self, self.ai.data.get('startSide',
             BinSortingState.LEFT), useMultiAngle = True)
+        
+        # Check if it is already at the end and set the direction to move
+        self._checkEnd()
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):

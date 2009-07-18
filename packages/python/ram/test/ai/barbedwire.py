@@ -26,10 +26,14 @@ class TestStart(support.AITestCase):
     DIVE_SPEED = 2
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                        'bwireDepth' : TestStart.DEPTH,
+                }
+            },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.barbedwire.Start' : {
-                        'diveDepth' : TestStart.DEPTH,
                         'diveSpeed' : TestStart.DIVE_SPEED,
                     },
                 }

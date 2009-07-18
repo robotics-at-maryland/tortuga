@@ -25,10 +25,14 @@ class TestStart(aisupport.AITestCase):
     
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                    'sonarDepth' : TestStart.DEPTH,
+                },
+            },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.sonar.Start' : {
-                        'diveDepth' : TestStart.DEPTH,
                         'diveSpeed' : TestStart.DIVE_SPEED,
                     },
                 }
