@@ -121,8 +121,8 @@ buoyant=fb*[(rb(2)*Rot(3,3)-rb(3)*Rot(2,3));
             (rb(1)*Rot(2,3)-rb(2)*Rot(1,3))];
 
 %propagate actual vehicle dynamics
-dw=inv(H)*(S(H*w)*w+u-drag-buoyant);
-%dw=inv(H)*(S(H*w)*w-drag-buoyant);
+%dw=inv(H)*(S(H*w)*w+u-drag-buoyant);%with control
+dw=inv(H)*(S(H*w)*w-drag-buoyant);%turn off control
 
 %propagate actual vehicle kinematics
 dq=(1/2)*Q(q)*w;

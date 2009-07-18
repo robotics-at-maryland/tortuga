@@ -1,0 +1,12 @@
+this folder contains a calibration of two IMUs on tortuga 2  on 2009-7-16
+
+the directory stationary contains an imu.log file for when the vehicle was on flat level ground pointing north.  data was gathered for a few minutes
+
+the directory rotating contains an imu.log file for ten minutes worth of data gathered while the vehicle was rotated by hand in the water in every conceivable orientation
+
+the matlab file calibration.m looks in the directories mentioned above to compute information about each IMU's biases and orientation offset.  the information is sent out to the matlab command line.  from here it should be appropriately copied to Tortuga's config file.  the matlab file also produces several plots that should help in interpreting the raw data collected and help understand the biases and offsets output to the command line.
+
+
+joseph galante
+2009-7-18
+

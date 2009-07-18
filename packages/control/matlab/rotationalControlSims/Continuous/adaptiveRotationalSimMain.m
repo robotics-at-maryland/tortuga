@@ -13,7 +13,7 @@ q0=q0/norm(q0);
 %q0=[0 0 0 1]';
 
 %initial angular rate
-w0=(pi/180)*[0 10 0]';
+w0=(pi/180)*[10 0 0]';
 
 %initial desired position
 qd0=[0 0 0 1]';
@@ -99,7 +99,7 @@ m_inertial = [0.1 0 -0.1732]';
 
 %% timing
 t0=0;
-te=30;
+te=300;
 
 %% simulation
 options=odeset;
@@ -191,7 +191,7 @@ ylabel('H_1_,_1')
 subplot(3,2,2)
 plot(time,H(1,2)*ones(length(time),1),time,ahat(:,2),'linewidth',4)
 ylabel('H_1_,_2')
-legend('estimated','actual')
+legend('actual','estimated')
 subplot(3,2,3)
 plot(time,H(1,3)*ones(length(time),1),time,ahat(:,3),'linewidth',4)
 ylabel('H_1_,_3')
