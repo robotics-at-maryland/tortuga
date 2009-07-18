@@ -152,7 +152,7 @@ Subsystems:
         #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
         #            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
         #            'ram.ai.course.Bin', 'ram.ai.course.Pinger',
-        #            'ram.ai.course.Octagaon']
+        #            'ram.ai.course.Octagon']
 
         # Demo course with the barbed wire                    
         #taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
@@ -166,7 +166,7 @@ Subsystems:
                     'ram.ai.course.BarbedWire', 'ram.ai.course.Pipe2', 
                     'ram.ai.course.Target', 'ram.ai.course.Pipe3',
                     'ram.ai.course.Bin', 'ram.ai.course.Pinger', 
-                    'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon',
+                    'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon',
                     'ram.ai.course.Pipe']
         type: AI
 
@@ -177,8 +177,14 @@ Subsystems:
            targetDepth: 5.5
            binStartDepth: 7
            binDepth: 13
+           targetSymbols: ['Aircraft', 'Tank']
+           sonarDepth: 11
            safeDepth: 15
+           #safeDepthOffset: 2
            safeOffset: -0.35
+           #PipeGate:
+           #    biasDirection: 0
+           #    threshold: 0
            #Pipe:
            #    biasDirection: 10
            #    threshold: 30
@@ -250,10 +256,6 @@ Subsystems:
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
                 speedGain: 3
-            ram.ai.bin.PreDiveExamine:
-                targetSymbols: ['Aircraft', 'Tank']
-            ram.ai.bin.PostDiveExamine:
-                targetSymbols: ['Aircraft', 'Tank']
             
             ram.ai.sonarCourse.PingerDive:
                 depth: 1.5

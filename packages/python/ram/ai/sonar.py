@@ -100,7 +100,7 @@ class Start(state.State):
 
     def enter(self):
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('diveDepth', 2),
+            desiredDepth = self.ai.data['config'].get('sonarDepth', 2),
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)

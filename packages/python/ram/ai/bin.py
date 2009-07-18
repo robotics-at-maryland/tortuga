@@ -844,7 +844,8 @@ class Examine(HoveringState):
             self.publish(Examine.MOVE_ON, core.Event())
                     
     def _loadSymbolConfig(self):
-        targetSymbols = self._config.get('targetSymbols', ['Club', 'Diamond'])
+        targetSymbols = self.ai.data['config'].get(
+                            'targetSymbols', ['Club', 'Diamond'])
         
         possibleTargetSymbols = set()
         for symbol in targetSymbols:

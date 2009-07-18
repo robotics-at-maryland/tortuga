@@ -3,3 +3,19 @@ taskOrder: ['ram.ai.course.PipeGate',
             'ram.ai.course.BarbedWire', 'ram.ai.course.Pipe2',
             'ram.ai.course.Target', 'ram.ai.course.Pinger', 
             'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon']
+
+config:
+    lightDepth: 2.3
+    pipeDepth: 4.5
+    bwireDepth: 5.5
+    targetDepth: 7
+    binStartDepth: 4
+    binDepth: 9.75
+    targetSymbols: ['Tank', 'Factory']
+    sonarDepth: 3
+    safeDepth: 10
+    safeDepthOffset: 1
+    safeOffset: -0.4
+    Pipe2:
+        biasDirection: 70
+        threshold: 45

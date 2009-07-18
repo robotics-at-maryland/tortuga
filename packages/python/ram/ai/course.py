@@ -153,9 +153,11 @@ class PipeGate(task.Task):
         task.Task.enter(self)
         
         self.ai.data['pipeBiasDirection'] = \
-            self._config.get('biasDirection', None)
+            self.ai.data['config'].get('PipeGate', {}).get(
+                    'biasDirection', None)
         self.ai.data['pipeThreshold'] = \
-            self._config.get('threshold', None)
+            self.ai.data['config'].get('PipeGate', {}).get(
+                    'threshold', None)
         
         # Branch off state machine for finding the pipe
         if self.ai.data.get('foundPipeEarly', False):
@@ -483,7 +485,7 @@ class SafeSonar(task.Task):
         task.Task.exit(self)
         self.stateMachine.stopBranch(sonarSafe.Settling)
 
-class Octagaon(task.Task):
+class Octagon(task.Task):
     """
     Surface in the octagon with or without the treasure, but with the sonar on
     """

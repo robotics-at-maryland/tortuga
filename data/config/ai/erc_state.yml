@@ -11,8 +11,6 @@ ram.ai.gate.Forward:
     speed: 2
 
 # Pipe task
-ram.ai.pipe.Start:
-    depth: 4.5
 ram.ai.Seeking:
     speedGain: 3
     maxSpeed: 4
@@ -23,8 +21,6 @@ ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
 
 # Light/Bouy sub task
-ram.ai.light.Start:
-    depth: 2.3
 ram.ai.light.Searching:
     sweepAngle: 0 #35
     speed: 2
@@ -57,8 +53,6 @@ ram.ai.duct.Aligning:
     desiredRange: 0.5
 
 # Target Task
-ram.ai.target.Start:
-    diveDepth: 7
 ram.ai.target.SeekingToCentered:
     depthGain: 0
     maxSpeed: 3
@@ -80,9 +74,7 @@ ram.ai.target.FireTorpedos:
     rangeThreshold: 0.03
     filterSize: 1
        
-# Barbed wire AI     
-ram.ai.barbedwire.Start:
-    diveDepth: 5.5
+# Barbed wire AI
 ram.ai.barbedwire.FarSeekingToRange:
     depthGain: 0 #0.1
     maxDepthDt: 0.3
@@ -134,8 +126,6 @@ ram.ai.barbedwire.Through:
     forwardTime: 7
 
 # Bin Sub task
-ram.ai.bin.Start:
-    depth: 4
 ram.ai.bin.Seeking:
     speedGain: 3
     maxSpeed: 3
@@ -149,10 +139,8 @@ ram.ai.bin.SeekEnd:
     sidewaysSpeedGain: 7
     #maxSidewaysSpeed: 1.5
 ram.ai.bin.SurfaceToMove:
-    binDepth: 9.75
     offset: 5
 ram.ai.bin.Dive:
-    binDepth: 9.75
     offset: 5
     yawGain: 0.4
 ram.ai.bin.Aligning:
@@ -163,7 +151,6 @@ ram.ai.bin.Aligning:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PreDiveExamine:
-    targetSymbols: ['Tank', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -171,7 +158,6 @@ ram.ai.bin.PreDiveExamine:
     dSidewaysSpeedGain: 1.5
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PostDiveExamine:
-    targetSymbols: ['Tank', 'Factory']
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -180,12 +166,9 @@ ram.ai.bin.PostDiveExamine:
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.CloserLook:
     # This sets the depths the markers will be dropped
-    binDepth: 9.75
     offset: 3
 
 # Sonar subtask
-ram.ai.sonar.Start:
-    diveDepth: 3
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 1.5
     sidewaysSpeedGain: 3
@@ -209,28 +192,19 @@ ram.ai.safe.Seeking:
     sidewaysSpeedGain: 4
     maxSidewaysSpeed: 2
 ram.ai.safe.Dive:
-    safeDepth: 10
-    depthOffset: 1
     diveRate: 0.3
-ram.ai.safe.Grabbing:
-    safeDepth: 10 
-    depthOffset: 1
 ram.ai.safe.Offsetting:
     speedGain: 1.5
     maxSpeed: 1.2
     sidewaysSpeedGain: 1.5
     maxSidewaysSpeed: 1.2
-    offset: -0.4
     centeredRange: 0.6
     sanity: YES
-ram.ai.safe.Centering:
-    offset: -0.4
 ram.ai.safe.Settling:
     speedGain: 0.7
     maxSpeed: 1.2
     sidewaysSpeedGain: 4
     maxSidewaysSpeed: 1.5
-    offset: -0.4
     duration: 5
 
 # SONAR & Safe subtask

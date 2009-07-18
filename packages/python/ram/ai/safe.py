@@ -111,7 +111,7 @@ class PreGrabDive(SafeTrackingState):
         
     def enter(self):
         safeDepth = self._config.get('safeDepth', 22)
-        offset = self._config.get('depthOffset', 2)
+        self._offset = self.ai.data['config'].get('safeDepthOffset', 2)
         diveRate = self._config.get('diveRate', 0.4)
         
         targetDepth = safeDepth - offset
@@ -204,7 +204,7 @@ class Grabbing(state.State):
         
         # Setup dive
         safeDepth = self._config.get('safeDepth', 22)
-        offset = self._config.get('depthOffset', 2)
+        self._offset = self.ai.data['config'].get('safeDepthOffset', 2)
         diveRate = self._config.get('diveRate', 0.5)
         
         targetDepth = safeDepth + offset
