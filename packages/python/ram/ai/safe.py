@@ -129,7 +129,7 @@ class Offsetting(SafeTrackingState):
             { motion.basic.Motion.FINISHED : Centering })
         
     def enter(self):
-        self._offset = self._config.get('offset', -0.7)
+        self._offset = self.ai.data['config'].get('safeOffset', -0.7)
         self._speed = self._config.get('offsetSpeed', 0.06)
         SafeTrackingState.enter(self)
         
@@ -157,7 +157,7 @@ class Centering(SafeCentering):
         SafeCentering.SAFE_FOUND(self, event)
         
     def enter(self):
-        self._offset = self._config.get('offset', -0.7)
+        self._offset = self.ai.data['config'].get('safeOffset', -0.7)
         SafeCentering.enter(self)
 
         
@@ -180,7 +180,7 @@ class Settling(SafeTrackingState):
                                                 self._config.get('duration', 5))
         self.timer.start()
         
-        self._offset = self._config.get('offset', -0.7)
+        self._offset = self.ai.data['config'].get('safeOffset', -0.7)
         SafeTrackingState.enter(self)
 
     def exit(self):

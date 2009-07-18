@@ -307,7 +307,7 @@ class Start(state.State):
 
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 6),
+            desiredDepth = self.ai.data['config'].get('pipeDepth', 6),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         

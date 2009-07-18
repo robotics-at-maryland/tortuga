@@ -166,8 +166,31 @@ Subsystems:
                     'ram.ai.course.BarbedWire', 'ram.ai.course.Pipe2', 
                     'ram.ai.course.Target', 'ram.ai.course.Pipe3',
                     'ram.ai.course.Bin', 'ram.ai.course.Pinger', 
-                    'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon']
+                    'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon',
+                    'ram.ai.course.Pipe']
         type: AI
+
+        config:
+           lightDepth: 4
+           pipeDepth: 3
+           bwireDepth: 5
+           targetDepth: 5.5
+           binStartDepth: 7
+           binDepth: 13
+           safeDepth: 15
+           safeOffset: -0.35
+           #Pipe:
+           #    biasDirection: 10
+           #    threshold: 30
+           #Pipe1:
+           #    biasDirection: 5
+           #    threshold: 20
+           #Pipe2:
+           #    biasDirection: 0
+           #    threshold: 0
+           #Pipe3:
+           #    biasDirection: 0
+           #    threshold: 0
 
     StateMachine:
         type: StateMachine
@@ -211,7 +234,6 @@ Subsystems:
 
             # Bin Settings
             ram.ai.bin.Start:
-                depth: 7 #5
                 speed: 1
             ram.ai.bin.Searching:
                 sweepAngle: 0
@@ -220,13 +242,10 @@ Subsystems:
                 sidewaysSpeedGain: 10
                 speedGain: 7
             ram.ai.bin.Dive:
-                binDepth: 13 #15.4
                 offset: 5
             ram.ai.bin.CloserLook:
-                binDepth: 13
                 offset: 3.5
             ram.ai.bin.SurfaceToMove:
-                binDepth: 13 #15.4
                 offset: 5
             ram.ai.bin.NextBin:
                 sidewaysSpeedGain: 3
@@ -240,17 +259,6 @@ Subsystems:
                 depth: 1.5
             ram.ai.sonarCourse.SafeDive:
                 depth: 5
-    
-            ram.ai.safe.PreGrabDive:
-                safeDepth: 15
-            ram.ai.safe.Grabbing:
-                safeDepth: 15
-            ram.ai.safe.Offsetting:
-                offset: -0.35
-            ram.ai.safe.Centering:
-                offset: -0.35
-            ram.ai.safe.Settling:
-                offset: -0.35
 
             # Gate sub task
             ram.ai.gate.Start:
@@ -263,7 +271,6 @@ Subsystems:
             # Light/Bouy sub task
             ram.ai.light.Start:
                 speed: 1.5
-                depth: 4
             ram.ai.light.Searching:
                 sweepAngle: 0
                 speed: 2
@@ -279,7 +286,6 @@ Subsystems:
                 
             # Target AI
             ram.ai.target.Start:
-                diveDepth: 5.5
                 diveSpeed: 1
             ram.ai.target.SeekingToCentered:
                 depthGain: 0
@@ -343,8 +349,6 @@ Subsystems:
                 depthOffset: 1
 
             # Barbed wire AI
-            ram.ai.barbedwire.Start:
-                diveDepth: 5
             ram.ai.barbedwire.FarSeekingToRange:
                 desiredRange: 0.5
                 maxSpeed: 3.0

@@ -445,7 +445,7 @@ class Start(state.State):
 
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 7),
+            desiredDepth = self.ai.data['config'].get('binStartDepth', 7),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         
@@ -717,7 +717,7 @@ class Dive(HoveringState):
                 self.ai.data['binArrayOrientation'])
 
         # While keeping center, dive down
-        binDepth = self._config.get('binDepth', 11)
+        binDepth = self.ai.data['config'].get('binDepth', 11)
         offset_ = self._config.get('offset', offset)
         offset_ = offset_ + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
@@ -1076,7 +1076,7 @@ class SurfaceToMove(HoveringState):
         HoveringState.enter(self)
         
         # Also surface
-        binDepth = self._config.get('binDepth', 11)
+        binDepth = self.ai.data['config'].get('binDepth', 11)
         offset = self._config.get('offset', 2)
         
         offset = offset + self.ai.data.get('dive_offsetTheOffset', 0) + \

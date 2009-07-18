@@ -196,7 +196,7 @@ class Start(state.State):
 
         # Create the dive motion and start the vehicle
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('diveDepth', 12),
+            desiredDepth = self.ai.data['config'].get('bwireDepth', 12),
             speed = self._config.get('diveSpeed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         

@@ -12,6 +12,8 @@ import ram.motion.search as search
 def diveTo(depth, speed = 0.3):
     motionManager.setMotion(basic.RateChangeDepth(depth, speed))
 
+dive = diveTo
+
 def up(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() - depthChange, speed = speed)
 
@@ -33,5 +35,10 @@ def allStop():
     controller.holdCurrentHeading()
 
 s = allStop
+stop = allStop
+
+def start(state):
+    allStop()
+    stateMachine.start(state)
 
 # End of file (this line is required)

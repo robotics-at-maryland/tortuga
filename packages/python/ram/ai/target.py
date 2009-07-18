@@ -174,7 +174,7 @@ class Start(state.State):
 
         # Set the dive motion
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('diveDepth', 12),
+            desiredDepth = self.ai.data['config'].get('targetDepth', 12),
             speed = self._config.get('diveSpeed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         
