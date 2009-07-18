@@ -2,7 +2,7 @@ taskOrder: ['ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Pipe1',
             'ram.ai.course.BarbedWire', 'ram.ai.course.Pipe2',
             'ram.ai.course.Target', 'ram.ai.course.Pinger', 
-            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagaon']
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
     lightDepth: 2.3
