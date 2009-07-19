@@ -17,7 +17,7 @@
 #include "math/include/Vector3.h"
 
 using namespace ram;
-/*
+
 TEST(TranslationController)
 {
     // Depth test
@@ -110,7 +110,7 @@ TEST(TranslationController)
 
     CHECK_CLOSE(expected, result, 0.0001);
 }
-*/
+
 TEST(BongWiePDRotationalController)
 {
     // First is north along horizontal (desired)
