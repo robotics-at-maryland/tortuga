@@ -80,8 +80,6 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_sockfd(-1),
     m_controller(core::Subsystem::getSubsystemOfType<control::IController>(deps))
 {
-    m_controller =
-        boost::static_pointer_cast<control::IController>(deps[0]);
     assert(m_controller.get() != 0 && "Did not get controller");
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
     m_minDepth = config["minDepth"].asDouble(MIN_DEPTH);
