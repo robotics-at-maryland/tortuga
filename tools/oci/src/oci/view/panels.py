@@ -259,6 +259,59 @@ class DepthPanel(wx.Panel):
             return [(paneInfo, panel, [vehicle])]
         
         return []
+    
+class StopPanel(wx.Panel):
+    implements(IPanelProvider)
+    def __init__(self, parent, stateMachine, controller, motionManager, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self._stateMachine = stateMachine
+        self._controller = controller
+        self._motionManager = motionManager
+        
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        
+        self._connections = []
+        
+        self._stop = wx.Button(self, label = "Stop")
+        self._stop.Bind(wx.EVT_BUTTON, self._onStop)
+        
+    def _stopMotion(self):
+        self._stateMachine.stop()
+        self._motionManager.stopCurrentMotion()
+        self._controller.setSpeed(0)
+        self._controller.setSidewaysSpeed(0)
+        self._controller.holdCurrentDepth()
+        self._controller.holdCurrentHeading()
+        
+    def _onStop(self, event):
+        self._stopMotion()
+    
+    def _onClose(self, closeEvent):
+        for conn in self._connections:
+            conn.disconnect()
+        
+        closeEvent.Skip()
+        
+    @staticmethod
+    def getPanels(subsystems, parent):
+        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
+                                                    subsystems)
+        
+        controller = core.Subsystem.getSubsystemOfType(
+            ext.control.IController, subsystems)
+        
+        motionManager = core.Subsystem.getSubsystemOfType(ram.motion.basic.MotionManager,
+                                                    subsystems)
+
+        if machine is not None and controller is not None and motionManager is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Stop")
+            paneInfo = paneInfo.Caption("Stop").Right()
+        
+            panel = StopPanel(parent, machine, controller, motionManager)
+            return [(paneInfo, panel, [controller])]
+        
+        return []
 
 class AIPanel(wx.Panel):
     implements(IPanelProvider)
@@ -444,7 +497,7 @@ class EventRatePanel(wx.grid.Grid):
                 
             currentTime = timer.time()
             if data.active:
-                if (currentTime - data.timeStamp) > (10*average):
+                if (currentTime - data.timeStamp) > 5:
                     data.filter = filter.MovingAverageFilter(10)
                     rate = 0
                     data.active = False
