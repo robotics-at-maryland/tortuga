@@ -260,11 +260,13 @@ class DepthPanel(wx.Panel):
         
         return []
     
-class StopPanel(wx.Panel):
+class MovementPanel(wx.Panel):
     implements(IPanelProvider)
     def __init__(self, parent, stateMachine, controller, motionManager, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
+        layout =  wx.BoxSizer(wx.HORIZONTAL)
+
         self._stateMachine = stateMachine
         self._controller = controller
         self._motionManager = motionManager
@@ -272,9 +274,12 @@ class StopPanel(wx.Panel):
         self.Bind(wx.EVT_CLOSE, self._onClose)
         
         self._connections = []
-        
-        self._stop = wx.Button(self, label = "Stop")
-        self._stop.Bind(wx.EVT_BUTTON, self._onStop)
+
+        stopButton = wx.Button(self, label = "Stop")
+        layout.Add(stopButton, flag = wx.ALIGN_CENTER | wx.ALL)
+        stopButton.Bind(wx.EVT_BUTTON, self._onStop)
+
+        self.SetSizer(layout)
         
     def _stopMotion(self):
         self._stateMachine.stop()
@@ -283,7 +288,7 @@ class StopPanel(wx.Panel):
         self._controller.setSidewaysSpeed(0)
         self._controller.holdCurrentDepth()
         self._controller.holdCurrentHeading()
-        
+
     def _onStop(self, event):
         self._stopMotion()
     
@@ -305,11 +310,11 @@ class StopPanel(wx.Panel):
                                                     subsystems)
 
         if machine is not None and controller is not None and motionManager is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Stop")
-            paneInfo = paneInfo.Caption("Stop").Right()
+            paneInfo = wx.aui.AuiPaneInfo().Name("Movement")
+            paneInfo = paneInfo.Caption("Movement").Right()
         
-            panel = StopPanel(parent, machine, controller, motionManager)
-            return [(paneInfo, panel, [controller])]
+            panel = MovementPanel(parent, machine, controller, motionManager)
+            return [(paneInfo, panel, [motionManager])]
         
         return []
 
@@ -384,12 +389,25 @@ class AIPanel(wx.Panel):
         # Get the time stamp and its difference from the beginning
         timeStamp = datetime.fromtimestamp(event.timeStamp - self._startTime)
         fullClassName = str(event.string)
+        eventName = '%s' % fullClassName.split('.')[-1]
+        stateClass = resolve(fullClassName)
         
+        # Check if the exited state is still shown as the current task/state
+        if issubclass(stateClass, task.Task):
+            # It's a task, remove the task
+            if self._currentTask.Value == eventName:
+                self._currentTask.Value = ""
+        else:
+            # It's a state, remove the state
+            if self._currentState.Value == eventName:
+                self._currentState.Value = ""
+
         # Format the string MM:SS.mm EventName
         string = timeStamp.strftime("%M:%S.") + \
             "%.0f" % (timeStamp.microsecond / 10000.0)
-        string = string + (' %s' % fullClassName.split('.')[-1])
-        self._stateList.InsertItems([string], pos = 0)
+        string = string + " " + eventName
+        self._stateList.Insert(string, pos = 0)
+        self._stateList.EnsureVisible(0)
        
     def _onClose(self, closeEvent):
         for conn in self._connections:
