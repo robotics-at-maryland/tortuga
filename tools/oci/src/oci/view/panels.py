@@ -583,7 +583,7 @@ class PayloadPanel(wx.Panel):
         
         # Determine the size of the sizer
         markerCount = markerDropper.initialObjectCount()
-        torpedoCount = torpedoLauncher.initialObjectCount()
+        torpedoCount = 2#torpedoLauncher.initialObjectCount()
         if markerCount > torpedoCount:
             raise "ERROR marker count bigger then torpedo count, FIX ME!!"
         

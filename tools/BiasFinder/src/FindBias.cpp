@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <cstdio>
 
 // UNIX Includes
 #include <signal.h>
@@ -86,7 +87,11 @@ int main (){
           minZ = imuData.magZ;
 
       std::cout << imuData.magX << " " << imuData.magY << " "
-                << imuData.magZ << ";" << std::endl;
+                << imuData.magZ << std::endl;
+      //printf("%7.5f (%7.5f) %7.5f (%7.5f) %7.5f (%7.5f)\n", 
+      //       imuData.magX, (minX + maxX)/2, 
+	//     imuData.magY, (minY + maxY)/2,
+	  //   imuData.magZ, (minZ + maxZ)/2);
       
       usleep(100000);
   }

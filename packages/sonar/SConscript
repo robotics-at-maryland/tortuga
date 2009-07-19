@@ -78,7 +78,7 @@ if not envt['bfin']:
                     source = 'src/tools/chop.cpp',
                     int_deps = ['sonar'])
     
-    envt.RAMProgram(target = 'comparedft',
-                    source = 'src/tools/comparedft.cpp',
-                    int_deps = ['sonar'],
-                    ext_deps = ['Boost.ProgramOptions', 'fftw'])
+#    envt.RAMProgram(target = 'comparedft',
+#                    source = 'src/tools/comparedft.cpp',
+#                    int_deps = ['sonar'],
+#                    ext_deps = ['Boost.ProgramOptions', 'fftw'])

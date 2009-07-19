@@ -34,12 +34,14 @@ def ensureItemTracking(qeventHub, ai, name, foundEvent, lostEvent):
 
             id = event.id
             # Remove from the set of current bins
-            data['currentIds'].remove(id)
+            if id in data['currentIds']:
+                data['currentIds'].remove(id)
     
             # Remove from our data list
-            itemData = data['itemData']
-            del itemData[id]
-            data['itemData'] = itemData
+            if data['itemData'].has_key(id):
+                itemData = data['itemData']
+                del itemData[id]
+                data['itemData'] = itemData
             
         connA = qeventHub.subscribeToType(foundEvent, itemFound)
         connB = qeventHub.subscribeToType(lostEvent, itemLost)

@@ -167,6 +167,11 @@ ram.ai.bin.PostDiveExamine:
 ram.ai.bin.CloserLook:
     # This sets the depths the markers will be dropped
     offset: 3
+ram.ai.bin.RecoverDive:
+    increase: 0
+ram.ai.bin.RecoverCloserLook:
+    increase: 0
+
 # Sonar subtask
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 1.5

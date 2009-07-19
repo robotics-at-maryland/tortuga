@@ -625,14 +625,17 @@ class SeekEnd(BinSortingState):
             self.publish(SeekEnd.AT_END, core.Event())
             
     def _checkEnd(self):
-        if not self.hasBinToLeft():
-            self.ai.data['startSide'] = BinSortingState.LEFT
-        elif not self.hasBinToRight():
-            self.ai.data['startSide'] = BinSortingState.RIGHT
-        else:
-            # This direction doesn't matter
-            self.ai.data['startSide'] = \
-                self._config.get('startDirection', BinSortingState.RIGHT)
+	# Check if we've lost the bins already. If so, wait for
+	# BIN_DROPPED to take over
+	if len(self.ai.data['binData']['currentIds']) > 0:
+	    if not self.hasBinToLeft():
+       	        self.ai.data['startSide'] = BinSortingState.LEFT
+            elif not self.hasBinToRight():
+            	self.ai.data['startSide'] = BinSortingState.RIGHT
+            else:
+                # This direction doesn't matter
+                self.ai.data['startSide'] = \
+                    self._config.get('startDirection', BinSortingState.RIGHT)
         
     def enter(self):
         # Keep the hover motion going
@@ -858,7 +861,7 @@ class Examine(HoveringState):
 
         self._timeout = self._config.get('timeout', timeout)
 
-        self._foundLimit = self._config.get('foundLimit', 0.8)
+        self._foundLimit = self._config.get('foundLimit', 0.7)
         
         # Load needed symbols
         self._loadSymbolConfig()
