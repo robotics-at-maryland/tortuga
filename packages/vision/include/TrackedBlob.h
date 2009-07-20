@@ -34,26 +34,32 @@ public:
     TrackedBlob(BlobDetector::Blob blob, Image* sourceImage, int id);
     
     /** Gets the center in normalized cordinates -1 -> 1 */
-    double getX(){ return m_normX; }
+    double getX() const { return m_normX; }
     
     /** Gets the center in normalized cordinates -1 -> 1 */
-    double getY() { return m_normY; }
+    double getY() const { return m_normY; }
     
     /** Angle of vertical (not always applicable) */
-    math::Degree getAngle(){ return m_angle;}
+    math::Degree getAngle() const { return m_angle;}
     
     void setAngle(math::Degree ang) { m_angle = ang; } //Does this work?
     
     int getId() const { return m_id; }
     
     /** Computes the distance between the blob centers */
-    double distanceTo(TrackedBlob& otherTrackedBlob);
+    double distanceTo(const TrackedBlob& otherTrackedBlob) const;
     
     /** Distance from normalized cordinates (0,0) center, -1 -> 1 */
-    double distanceTo(double x, double y);
+    double distanceTo(double x, double y) const;
     
-    bool operator==(const TrackedBlob& other) {
+    bool operator==(const TrackedBlob& other) const {
         return (m_id == other.getId()); }
+
+    bool operator<(const TrackedBlob& other) const {
+        return (m_id < other.getId()); }
+
+    bool operator>(const TrackedBlob& other) const {
+        return (m_id < other.getId()); }
     
     void _setId(int id) { m_id = id; }
     
@@ -69,6 +75,12 @@ public:
      */
     template <class T>
     static void updateIds(T* oldList, T* newList, double distanceThreshold);
+
+    template <class T, class K>
+    static void updateIds(T* oldList, T* newList, K* lostBlobMap,
+                          double distanceThreshold,
+                          int lostFrameCount);
+
     
 private:
     double m_normX;
@@ -111,6 +123,103 @@ void TrackedBlob::updateIds(T* oldList, T* newList, double distanceThreshold)
     }
 }
 
+template <class T, class K>
+void TrackedBlob::updateIds(T* oldList, T* newList, K* lostBlobMap,
+                            double distanceThreshold,
+                            int lostFrameCount)
+{
+    typename T::iterator newListIter = newList->begin();
+    typename T::iterator newListEnd = newList->end();
+    for (;newListIter != newListEnd; newListIter++)
+    {
+        // Go through the list of current blobs and find the closest blob
+        double currentMin = 10000;
+        typename T::iterator currentBlob = oldList->begin();
+        typename T::iterator oldListIter = oldList->begin();
+        typename T::iterator oldListEnd = oldList->end();
+        for (;oldListIter != oldListEnd; oldListIter++)
+        {
+            double distance = oldListIter->distanceTo(*newListIter);
+            if (distance < currentMin)
+            {
+                currentMin = distance;
+                currentBlob = oldListIter;
+            }
+        }
+
+        // Go through the list of previous blobs and find the closest blob
+        double mapMin = 10000;
+        typename K::iterator mapBlob = lostBlobMap->begin();
+        typename K::iterator oldMapIter = lostBlobMap->begin();
+        typename K::iterator oldMapEnd = lostBlobMap->end();
+        for (;oldMapIter != oldMapEnd; oldMapIter++)
+        {
+            double distance = oldMapIter->first.distanceTo(*newListIter);
+            if (distance < mapMin)
+            {
+                mapMin = distance;
+                mapBlob = oldMapIter;
+            }
+        }
+
+        // If its close enough, we transfer the ID
+        if ((currentMin < distanceThreshold) && (currentMin <= mapMin))
+        {
+            // Transfer Id
+            newListIter->_setId(currentBlob->getId());
+            // Remove from list to search against
+            oldList->erase(currentBlob);
+        }
+        else if ((mapMin < distanceThreshold) && (mapMin < currentMin))
+        {
+            // Transfer Id
+            newListIter->_setId(mapBlob->first.getId());
+            // Remove from map of previous blobs we are still trying to map
+            oldList->erase(currentBlob);
+        }
+    } // foreach blob in newList
+
+    if (lostFrameCount > 0)
+    {
+        // Move all the dropped bins the map
+        typename T::iterator oldListIter = oldList->begin();
+        typename T::iterator oldListEnd = oldList->end();
+        for (;oldListIter != oldListEnd; oldListIter++)
+        {
+            lostBlobMap->insert(
+                typename K::value_type(*oldListEnd, lostFrameCount));
+        }
+        oldList->clear();
+        
+        // Now go through and decrement the count for all the blobs and
+        // add the ones to remove to the list of oldBlobs
+        typename K::iterator oldMapIter = lostBlobMap->begin();
+        typename K::iterator oldMapEnd = lostBlobMap->end();
+        for (;oldMapIter != oldMapEnd; oldMapIter++)
+        {
+            if (oldMapIter->second == 0)
+            {
+                // We have lost this blob, report it
+                oldList->push_back(oldMapIter->first);
+            }
+            else
+            {
+                // Decrement how many frames its been lost
+                oldMapIter->second -= 1;
+            }
+        }
+
+        // Removed the dropped blobs from the map
+        oldListIter = oldList->begin();
+        oldListEnd = oldList->end();
+        for (;oldListIter != oldListEnd; oldListIter++)
+        {
+            lostBlobMap->erase(*oldListIter);
+        }
+    } // frameCount > 0
+}
+
+    
 } // namespace vision
 } // namespace ram
 
