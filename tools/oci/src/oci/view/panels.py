@@ -7,7 +7,6 @@
 
 # STD Imports
 import math
-import time
 from datetime import datetime
 
 # Library Imports
@@ -363,6 +362,14 @@ class AIPanel(wx.Panel):
                                      style = wx.TE_RIGHT | wx.LB_SINGLE)
         layout.Add(self._stateList, (5, 0), span = (1, 2), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
+        clearButton = wx.Button(self, label = 'Clear')
+        layout.Add(clearButton, (6, 0), flag = wx.ALIGN_CENTER)
+        clearButton.Bind(wx.EVT_BUTTON, self._onClear)
+        
+        freezeButton = wx.Button(self, label = 'Freeze')
+        layout.Add(freezeButton, (6, 1), flag = wx.ALIGN_CENTER)
+        freezeButton.Bind(wx.EVT_BUTTON, self._onFreeze)
+        
         layout.AddGrowableCol(0)
         layout.AddGrowableCol(1)
         layout.AddGrowableRow(5)
@@ -379,6 +386,7 @@ class AIPanel(wx.Panel):
         self._connections.append(conn)
         
         # Set the time we start for the previous states log
+        self._firstRun = True
         self._startTime = timer.time()
         
         # Set these for the timer to know whether to update the task and state
@@ -391,6 +399,9 @@ class AIPanel(wx.Panel):
         self._timer.Bind(wx.EVT_TIMER, self._onTimer)
         
     def _onEntered(self,event):
+        if self._firstRun:
+            self._startTime = timer.time()
+            self._firstRun = False
         fullClassName = str(event.string)
         
         # Recreate the class
@@ -432,6 +443,17 @@ class AIPanel(wx.Panel):
         self._stateList.EnsureVisible(0)
         
         self._timer.Stop()
+        
+    def _onClear(self, event):
+        self._firstRun = True
+        self._currentState.Value = ""
+        self._currentTask.Value = ""
+        self._taskTimer.SetLabel("00:00.00")
+        self._stateTimer.SetLabel("00:00.00")
+        self._stateList.Clear()
+        
+    def _onFreeze(self, event):
+        print "This feature is not implemented yet."
        
     def _onTimer(self, event):
         currentTime = timer.time()
