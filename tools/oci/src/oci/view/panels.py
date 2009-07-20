@@ -366,9 +366,9 @@ class AIPanel(wx.Panel):
         layout.Add(clearButton, (6, 0), flag = wx.ALIGN_CENTER)
         clearButton.Bind(wx.EVT_BUTTON, self._onClear)
         
-        freezeButton = wx.Button(self, label = 'Freeze')
-        layout.Add(freezeButton, (6, 1), flag = wx.ALIGN_CENTER)
-        freezeButton.Bind(wx.EVT_BUTTON, self._onFreeze)
+        self._freezeButton = wx.Button(self, label = 'Freeze')
+        layout.Add(self._freezeButton, (6, 1), flag = wx.ALIGN_CENTER)
+        self._freezeButton.Bind(wx.EVT_BUTTON, self._onFreeze)
         
         layout.AddGrowableCol(0)
         layout.AddGrowableCol(1)
@@ -384,6 +384,10 @@ class AIPanel(wx.Panel):
         conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_EXITED,
                                         self._onExited)
         self._connections.append(conn)
+        
+        # Set the frozen value to False
+        self._frozen = False
+        self._exitList = []
         
         # Set the time we start for the previous states log
         self._firstRun = True
@@ -439,22 +443,31 @@ class AIPanel(wx.Panel):
 
         # Format the string MM:SS.mm EventName
         string = string + " " + eventName
-        self._stateList.Insert(string, pos = 0)
-        self._stateList.EnsureVisible(0)
+        if self._frozen:
+            self._exitList.append(string)
+        else:
+            self._stateList.Insert(string, pos = 0)
+            self._stateList.EnsureVisible(0)
         
         self._timer.Stop()
         
     def _onClear(self, event):
         self._firstRun = True
-        self._currentState.Value = ""
-        self._currentTask.Value = ""
         self._taskTimer.SetLabel("00:00.00")
         self._stateTimer.SetLabel("00:00.00")
         self._stateList.Clear()
         
     def _onFreeze(self, event):
-        print "This feature is not implemented yet."
-       
+        if self._frozen:
+            self._frozen = False
+            for x in self._exitList:
+                self._stateList.Insert(x, pos = 0)
+            self._stateList.EnsureVisible(0)
+            self._freezeButton.SetLabel('Freeze')
+        else:
+            self._frozen = True
+            self._freezeButton.SetLabel('Continue')
+            
     def _onTimer(self, event):
         currentTime = timer.time()
         if self._taskRunning:
