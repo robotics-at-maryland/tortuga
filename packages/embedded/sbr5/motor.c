@@ -19,11 +19,17 @@ _FWDT ( WDT_OFF );
 #define byte unsigned char
 #define BYTE byte
 #define BUF_SIZE 256
-#define START_TIMEOUT 500000
 
-/* So the R/W bit is low for a write, and high for a read */
-/* In other words, if the master sends data, use I2C_WRITE, */
-/* if the master is receiving data use I2C_READ */
+/* This defines how long we should hold off on starting up to let the motors
+ * get completely started, preventing premature i2c errors. */
+#define START_TIMEOUT 500000
+/* This defines how many main loop iterations the error led should stay on
+ * after we get a failure on the i2c bus. */
+#define ERR_TIMEOUT   125000
+
+/* So the R/W bit is low for a write, and high for a read
+ * In other words, if the master sends data, use I2C_WRITE,
+ * if the master is receiving data use I2C_READ */
 #define I2C_TIMEOUT 100000
 #define I2C_READ 1
 #define I2C_WRITE 0
@@ -129,10 +135,14 @@ void writeBus(byte);
 
 /* Goes through and sets all motors to 0 */
 void kill_motors() {
-    unsigned int i;
+    motorSpeed[0]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[1]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[2]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[3]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[4]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[5]= 0x80; /* Set all speeds to 0 */
 
-    for(i= 0;i < 6;i++)
-        motorSpeed[i]= 0x80; /* Set all speeds to 0 */
+    return;
 }
 
 /* This function does whatever we need to do when we're borked. */
@@ -267,16 +277,23 @@ void _ISR _MI2CInterrupt() {
     }
 }
 
-/* This is the interrupt vector for getting things off the bus */
-void _ISR _INT3Interrupt() {
-    /* CLEAR THE INTERUPT FLAG! ALWAYS! */
-    _INT3IF= 0;
+/* Put the bus in the high impedence state */
+void freeBus() {
+    TRISD= TRISD | 0xFF00;
+    TRIS_AKN= TRIS_IN;
+}
 
-    LAT_STA= LED_ON; /* Let us know you're doing things! */
+/* Make the bus pins into outputs and put the data on those pins */
+void writeBus(byte data) {
+    TRISD= TRISD & 0x00FF; /* Make the data pins outputs */
 
-    checkBus();
+    LATD= (LATD & 0x00FF);
+    LATD= LATD | (((unsigned int) data) << 8);
+}
 
-    LAT_STA= LED_OFF; /* Let the user know we're done doing stuff */
+/* Get the data off the bus */
+byte readBus() {
+    return (0xFF & (PORTD >> 8));
 }
 
 /* Checks to see what data is and isn't on the Bus */
@@ -323,24 +340,6 @@ void checkBus() {
         /* Let go of everything! */
         freeBus();
     }
-}
-
-/* Put the bus in the high impedence state */
-void freeBus() {
-    TRISD= TRISD | 0xFF00;
-    TRIS_AKN= TRIS_IN;
-}
-
-/* Make the bus pins into outputs and put the data on those pins */
-void writeBus(byte data) {
-    TRISD= TRISD & 0x00FF; /* Make the data pins outputs */
-
-    LATD= (LATD & 0x00FF) | (((unsigned int) data) << 8);
-}
-
-/* Get the data off the bus */
-byte readBus() {
-    return (0xFF & ((PORTD & 0xFF00) >> 8));
 }
 
 /* If Master writes us data, this gets called */
@@ -443,11 +442,23 @@ void processData(byte data)
     }
 }
 
+/* This is the interrupt vector for getting things off the bus */
+void _ISR _INT3Interrupt() {
+    /* CLEAR THE INTERUPT FLAG! ALWAYS! */
+    _INT3IF= 0;
+
+    LAT_ACT= LED_ON; /* Let us know you're doing things! */
+
+    checkBus();
+
+    LAT_ACT= LED_OFF; /* Let the user know we're done doing stuff */
+}
+
 /* The main function sets everything up then loops */
 int main()
 {
     unsigned int i, j, temp;
-    unsigned long timeout;
+    unsigned long timeout, err_reset;
 
     /* Set up the Oscillator */
     initOSC();
@@ -470,6 +481,9 @@ int main()
     /* Set up the bus stuff for its initial stuff */
     TRIS_REQ= TRIS_RW= TRIS_IN;
 
+    /* Turn off all the servos intially and set up PORTD as it should be */
+    LATD= 0x0000;
+    TRISD= 0xFF00;
 
     /* Turn on the Bus interrupt */
     _INT3IF= 0;
@@ -481,19 +495,18 @@ int main()
     LAT_STA= LED_ON;
 
     /* Wait for everything to settle down. */
-    LAT_STA= LED_ON;
+    LAT_ACT= LED_ON;
     for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
         ;
-    LAT_STA= LED_OFF;
+    LAT_ACT= LED_OFF;
     for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
         ;
-    LAT_STA= LED_ON;
+    LAT_ACT= LED_ON;
     for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
         ;
-    LAT_STA= LED_OFF;
+    LAT_ACT= LED_OFF;
     for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
         ;
-    LAT_STA= LED_ON;
 
     _TRISF6= TRIS_OUT;
     _TRISF7= TRIS_OUT;
@@ -517,8 +530,8 @@ int main()
 
             packetSize= 4;
             temp= i2cBuf[0]= 0x52;
-            temp+= i2cBuf[1]= motorSpeed[i];
-            temp+= i2cBuf[2]= 0x64;
+            temp+= (i2cBuf[1]= motorSpeed[i]);
+            temp+= (i2cBuf[2]= 0x64);
             i2cBuf[3]= temp & 0xFF;
 
             StartI2C();
@@ -529,13 +542,14 @@ int main()
             if(i2cState == I2CSTATE_BORKED) {
                 /* We should probably do something with this info! */
                 LAT_ERR= LED_ON;
+                err_reset= ERR_TIMEOUT;
                 i2cState= I2CSTATE_IDLE;
-                for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
-                    ;
-                LAT_ERR= LED_OFF;
-                for(timeout= 0;timeout < (START_TIMEOUT >> 2);timeout++)
-                    ;
             }
+
+            if(LAT_ERR == LED_ON)
+                if(err_reset-- == 0)
+                    LAT_ERR= LED_OFF;
+
         }
     }
 
