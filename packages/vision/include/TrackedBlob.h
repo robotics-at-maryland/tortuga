@@ -175,7 +175,7 @@ void TrackedBlob::updateIds(T* oldList, T* newList, K* lostBlobMap,
             // Transfer Id
             newListIter->_setId(mapBlob->first.getId());
             // Remove from map of previous blobs we are still trying to map
-            oldList->erase(currentBlob);
+            lostBlobMap->erase(mapBlob);
         }
     } // foreach blob in newList
 
@@ -186,8 +186,9 @@ void TrackedBlob::updateIds(T* oldList, T* newList, K* lostBlobMap,
         typename T::iterator oldListEnd = oldList->end();
         for (;oldListIter != oldListEnd; oldListIter++)
         {
+            // The +1 is because its goign to be decremented in the next loop
             lostBlobMap->insert(
-                typename K::value_type(*oldListEnd, lostFrameCount));
+                typename K::value_type(*oldListIter, lostFrameCount));
         }
         oldList->clear();
         

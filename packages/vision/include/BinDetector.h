@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <list>
+#include <map>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -48,8 +49,8 @@ class RAM_EXPORT BinDetector : public Detector
     };
 
     typedef std::list<Bin> BinList;
+    typedef std::map<Bin, int> BinLostMap;
     typedef BinList::iterator BinListIter;
-
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
@@ -201,6 +202,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** Our current set of bins */
     BinList m_bins;
 
+    /** The bins we currently can't see but might in the future */
+    BinLostMap m_lostBins;
+
     /** Whether or not we found any bins last frame */
     bool m_found;
 
@@ -282,6 +286,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** The max distance between bins on different frames */
     double m_binSameThreshold;
 
+    /** The number of frames something must be lost before we report it */
+    int m_binLostFrames;
+    
     /** Pixel resolution for hough based bin angle detection */
     int m_binHoughPixelRes;
 

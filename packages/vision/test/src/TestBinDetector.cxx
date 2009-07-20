@@ -29,6 +29,7 @@
 #include "vision/include/Events.h"
 
 #include "core/include/EventHub.h"
+#include "core/include/PropertySet.h"
 
 #include "vision/test/include/Utility.h"
 
@@ -81,6 +82,7 @@ struct BinDetectorFixture
     {
         found = true;
         event = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
+        foundEvents.push_back(event);
     }
 
     void centeredHandler(core::EventPtr event_)
@@ -93,12 +95,14 @@ struct BinDetectorFixture
     {
         found = false;
         event = vision::BinEventPtr();
+        lostEvents.push_back(event_);
     }
 
     void droppedHandler(core::EventPtr event_)
     {
         dropped = true;
         droppedEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
+        droppedEvents.push_back(droppedEvent);
     }
 
     void multiBinAngleHandler(core::EventPtr event_)
@@ -109,6 +113,10 @@ struct BinDetectorFixture
 
     void processImage(vision::Image* image, bool show = false)
     {
+        foundEvents.clear();
+        lostEvents.clear();
+        droppedEvents.clear();
+        
         if (show)
         {
             vision::OpenCVImage input(640, 480);
@@ -136,6 +144,9 @@ struct BinDetectorFixture
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
     vision::BinDetector detector;
+    std::vector<vision::BinEventPtr> foundEvents;
+    std::vector<core::EventPtr> lostEvents;
+    std::vector<vision::BinEventPtr> droppedEvents;
 };
 
 SUITE(BinDetector) {
@@ -408,7 +419,28 @@ TEST_FIXTURE(BinDetectorFixture, SuperSymbolTest)
         if (detector.getSymbol() == vision::Symbol::CLUB)
         {
             right++;
+BinList newBins;
+
+        int binNumber = 0;
+        BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
+        {
+            newBins.push_back(processBin(binBlob, m_runSymbolDetector,
+                                         binNumber, out));
+            binNumber++;
         }
+
+        // Sort through our new bins and match them to the old ones
+        TrackedBlob::updateIds(&m_bins, &newBins, &m_lostBins,
+                               m_binSameThreshold, m_binLostFrames);
+
+        // Anybody left we didn't find this iteration, so its been dropped
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSymbol(), bin.getAngle()));
+            event->id = bin.getId();
+            publish(EventType::BIN_DROPPED, event);
+        }        }
         else if (detector.getSymbol() == vision::Symbol::UNKNOWN)
         {
 
@@ -887,6 +919,89 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
     CHECK(dropped);
     CHECK(droppedEvent);
     CHECK_EQUAL((*lostIds.begin()), droppedEvent->id);
+}
+
+TEST_FIXTURE(BinDetectorFixture, BinLostFrames)
+{
+    detector.getPropertySet()->getProperty("binLostFrames")->set(1);
+    detector.setSymbolDetectionOn(false);
+    
+    // Place a bin on screen
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/2, 480/2, 100, 0);
+
+    processImage(&input);
+
+    // Make sure we haven't dropped anything and record the ID
+    CHECK_EQUAL(0u, droppedEvents.size());
+    CHECK_EQUAL(1u, foundEvents.size());
+    CHECK_EQUAL(0u, lostEvents.size());
+    int id = foundEvents[0]->id;
+
+    // Now make the object disappear (but make sure we haven't missed anything)
+    makeColor(&input, 0, 0, 255);
+    processImage(&input);
+
+    // Nothing dropped or found
+    CHECK_EQUAL(0u, droppedEvents.size());
+    CHECK_EQUAL(0u, foundEvents.size());
+    CHECK_EQUAL(0u, lostEvents.size());
+
+    // Now actually make it come back
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/2, 480/2, 100, 0);
+    processImage(&input);    
+
+    // Its found
+    CHECK_EQUAL(0u, droppedEvents.size());
+    CHECK_EQUAL(1u, foundEvents.size());
+    CHECK_EQUAL(0u, lostEvents.size());
+    if (1u == foundEvents.size())
+        CHECK_EQUAL(id, foundEvents[0]->id);
+    
+    // Now another blank
+    makeColor(&input, 0, 0, 255);
+    processImage(&input);
+    CHECK_EQUAL(0u, droppedEvents.size());
+    CHECK_EQUAL(0u, foundEvents.size());
+    CHECK_EQUAL(0u, lostEvents.size());
+
+    // This final black image drops it
+    makeColor(&input, 0, 0, 255);
+    processImage(&input);
+    
+    CHECK_EQUAL(1u, droppedEvents.size());
+    CHECK_EQUAL(0u, foundEvents.size());
+    CHECK_EQUAL(1u, lostEvents.size());
+    if (1u == droppedEvents.size())
+        CHECK_EQUAL(id, droppedEvents[0]->id);
+}
+
+TEST_FIXTURE(BinDetectorFixture, BinDropped)
+{
+    detector.getPropertySet()->getProperty("binLostFrames")->set(0);
+    detector.setSymbolDetectionOn(false);
+    
+    // Place a bin on screen
+    makeColor(&input, 0, 0, 255);
+    drawBin(&input, 640/2, 480/2, 100, 0);
+
+    processImage(&input);
+
+    // Make sure we haven't dropped anything and record the ID
+    CHECK_EQUAL(0u, droppedEvents.size());
+    CHECK_EQUAL(1u, foundEvents.size());
+    CHECK_EQUAL(0u, lostEvents.size());
+    int id = foundEvents[0]->id;
+
+    // Now make the object disappear and check the ID
+    makeColor(&input, 0, 0, 255);
+    processImage(&input);
+
+    CHECK_EQUAL(1u, droppedEvents.size());
+    CHECK_EQUAL(0u, foundEvents.size());
+    CHECK_EQUAL(1u, lostEvents.size());
+    CHECK_EQUAL(id, droppedEvents[0]->id);
 }
 
 TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)

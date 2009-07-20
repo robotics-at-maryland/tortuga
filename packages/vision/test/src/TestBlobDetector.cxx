@@ -1,11 +1,10 @@
-
 /*
  * Copyright (C) 2008 Robotics at Maryland
  * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/test/src/TestOrangePipeDetector.cxx
+ * File:  packages/vision/test/src/TestBlobDetector.cxx
  */
 
 // Library Includes

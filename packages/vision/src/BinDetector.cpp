@@ -118,6 +118,7 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_blobMinRedPercent(0),
     m_binMaxAspectRatio(0),
     m_binSameThreshold(0),
+    m_binLostFrames(0),
     m_binHoughPixelRes(0),
     m_binHoughThreshold(0),
     m_binHoughMinLineLength(0),
@@ -170,18 +171,6 @@ void BinDetector::processImage(Image* input, Image* out)
     filterForWhite(input, m_whiteMaskedFrame);
     filterForRed(input, m_redMaskedFrame);
     filterForBlack(input, m_blackMaskedFrame);
-
-    // And the red and black filter into the black
-    unsigned char* blackData = m_blackMaskedFrame->getData();
-    unsigned char* redData = m_redMaskedFrame->getData();
-    int size = input->getWidth() * input->getHeight() * 3;
-    for (int i = 0; i < size; ++i)
-    {
-        if (*redData)
-            *blackData = 255;
-        redData++;
-        blackData++;
-    }
     
     // Update debug image with black, white and red color info
     filterDebugOutput(out);
@@ -226,7 +215,8 @@ void BinDetector::processImage(Image* input, Image* out)
         }
 
         // Sort through our new bins and match them to the old ones
-        TrackedBlob::updateIds(&m_bins, &newBins, m_binSameThreshold);
+        TrackedBlob::updateIds(&m_bins, &newBins, &m_lostBins,
+                               m_binSameThreshold, m_binLostFrames);
 
         // Anybody left we didn't find this iteration, so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)
@@ -286,10 +276,30 @@ void BinDetector::processImage(Image* input, Image* out)
     }
     else if (m_found)
     {
-        // Publish lost event
-        m_found = false;
-        m_centered = false;
-        publish(EventType::BINS_LOST, core::EventPtr(new core::Event()));
+        // Lets update the ids with no new bins
+        BinList emptyBins;
+        TrackedBlob::updateIds(&m_bins, &emptyBins, &m_lostBins,
+                               m_binSameThreshold, m_binLostFrames);
+
+        // Anybody left has run out of lost frames so its been dropped
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSymbol(), bin.getAngle()));
+            event->id = bin.getId();
+            publish(EventType::BIN_DROPPED, event);
+        }
+
+        // Our new bins are now "the bins"
+        m_bins = emptyBins;
+
+        if (0 == m_lostBins.size())
+        {
+            // Publish lost event
+            m_found = false;
+            m_centered = false;
+            publish(EventType::BINS_LOST, core::EventPtr(new core::Event()));
+        }
     }
 }
 
@@ -431,6 +441,10 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
         0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
+    propSet->addProperty(config, false, "binLostFrames",
+       "How many frames a bin must be missing before reporting lost",
+        0, &m_binLostFrames, 0, 30);
+
     propSet->addProperty(config, false, "binHoughPixelRes",
         "Pixel resolution for hough based bin angle detection",
         3, &m_binHoughPixelRes, 0, 100); // 3 in Dans version
@@ -524,6 +538,18 @@ void BinDetector::filterForBlack(Image* input, Image* output)
         black_mask(m_percents->asIplImage(), input->asIplImage(),
                    output->asIplImage(),
                    m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
+    }
+
+    // And the red and black filter into the black
+    unsigned char* blackData = m_blackMaskedFrame->getData();
+    unsigned char* redData = m_redMaskedFrame->getData();
+    int size = input->getWidth() * input->getHeight() * 3;
+    for (int i = 0; i < size; ++i)
+    {
+        if (*redData)
+            *blackData = 255;
+        redData++;
+        blackData++;
     }
 }
 

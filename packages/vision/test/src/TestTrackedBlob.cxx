@@ -71,7 +71,7 @@ TEST(updateIdsWithMap)
 
     // Input
     LostBlobMap lostBlobs = ba::map_list_of
-        (vision::TrackedBlob(dummyBlob, 0, 0, 1), 0) // To be lost
+        (vision::TrackedBlob(dummyBlob, 5, 5, 1), 0) // To be lost
         (vision::TrackedBlob(dummyBlob, 0.5, 0.5, 2), 0) // To be linked up
         (vision::TrackedBlob(dummyBlob, 2, 2, 22), 1); // To be decremeted
     
@@ -85,13 +85,12 @@ TEST(updateIdsWithMap)
     vision::TrackedBlob::updateIds(&oldList, &newList, &lostBlobs, 0.25, 1);
 
     // Expected output
-    BlobList expectedOld = ba::list_of(vision::TrackedBlob(dummyBlob, 1, 1, 4))
-        (vision::TrackedBlob(dummyBlob, 0, 0, 1));
+    BlobList expectedOld = ba::list_of(vision::TrackedBlob(dummyBlob, 5, 5, 1));
 
     BlobList expectedNew = ba::list_of
         (vision::TrackedBlob(dummyBlob, 0.1, 0.1, 3))
         (vision::TrackedBlob(dummyBlob, -1, -1, 6))
-        (vision::TrackedBlob(dummyBlob, 0.6, 0.6, 1));
+        (vision::TrackedBlob(dummyBlob, 0.6, 0.6, 2));
 
     CHECK_EQUAL(expectedOld.size(), oldList.size());
     for (unsigned int i = 0; i << expectedOld.size(); ++i)
@@ -101,10 +100,13 @@ TEST(updateIdsWithMap)
     for (unsigned int i = 0; i << expectedNew.size(); ++i)
         CHECK_EQUAL(expectedNew[i], newList[i]);
 
-    CHECK_EQUAL(1u, lostBlobs.size());
+    CHECK_EQUAL(2u, lostBlobs.size());
     vision::TrackedBlob oldBlob(dummyBlob, 2, 2, 22);
+    vision::TrackedBlob newOldBlob(dummyBlob, 1, 1, 4);
     CHECK(lostBlobs.end() != lostBlobs.find(oldBlob));
+    CHECK(lostBlobs.end() != lostBlobs.find(newOldBlob));
     CHECK_EQUAL(0, lostBlobs[oldBlob]);
+    CHECK_EQUAL(0, lostBlobs[newOldBlob]);
 }
 
 } // SUITE(TrackedBlob)
