@@ -76,12 +76,12 @@ TrackedBlob::TrackedBlob(BlobDetector::Blob blob, Image* sourceImage, int id) :
 }
 
     
-double TrackedBlob::distanceTo(TrackedBlob& otherTrackedBlob)
+double TrackedBlob::distanceTo(const TrackedBlob& otherTrackedBlob) const
 {
     return distanceTo(otherTrackedBlob.getX(), otherTrackedBlob.getY());
 }
 
-double TrackedBlob::distanceTo(double x, double y)
+double TrackedBlob::distanceTo(double x, double y) const
 {
     math::Vector2 mCenter(getX(), getY());
     math::Vector2 otherCenter(x, y);
