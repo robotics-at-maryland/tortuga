@@ -140,11 +140,11 @@ class DemoMachine(ram.ai.state.Machine):
         exitEvent = core.StringEvent()
         
         if math.sin(self._currentTime) > 0:
-            event.string = A.__name__
-            exitEvent.string = B.__name__
+            event.string = A.__module__ + "." + A.__name__
+            exitEvent.string = B.__module__ + "." + B.__name__
         else:
-            event.string = B.__name__
-            exitEvent.string = A.__name__
+            event.string = B.__module__  + "." + B.__name__
+            exitEvent.string = A.__module__ + "." + A.__name__
             
         self.publish(ram.ai.state.Machine.STATE_EXITED, exitEvent)
         self.publish(ram.ai.state.Machine.STATE_ENTERED, event)

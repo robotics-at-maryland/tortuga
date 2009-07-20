@@ -7,6 +7,7 @@
 
 # STD Imports
 import math
+import time
 from datetime import datetime
 
 # Library Imports
@@ -338,27 +339,32 @@ class AIPanel(wx.Panel):
         # Create Current Task controls
         currentLabel = wx.StaticText(self, label = 'Current Task')
         layout.Add(currentLabel, (0, 0), flag = wx.ALIGN_CENTER)
+        self._taskTimer = wx.StaticText(self, label = '00:00.00')
+        layout.Add(self._taskTimer, (0, 1), flag = wx.ALIGN_CENTER)
         self._currentTask = wx.TextCtrl(self, size = textSize,
                                          style = textStyle)
-        layout.Add(self._currentTask, (1, 0), 
+        layout.Add(self._currentTask, (1, 0), span = (1, 2),
                    flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Current controls
         currentLabel = wx.StaticText(self, label = 'Current State')
         layout.Add(currentLabel, (2, 0), flag = wx.ALIGN_CENTER)
+        self._stateTimer = wx.StaticText(self, label = '00:00.00')
+        layout.Add(self._stateTimer, (2, 1), flag = wx.ALIGN_CENTER)
         self._currentState = wx.TextCtrl(self, size = textSize,
                                          style = textStyle)
-        layout.Add(self._currentState, (3, 0), 
+        layout.Add(self._currentState, (3, 0), span = (1, 2),
                    flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         # Create Last controls
         lastLabel = wx.StaticText(self, label = 'Previous States')
-        layout.Add(lastLabel, (4, 0), flag = wx.ALIGN_CENTER)
+        layout.Add(lastLabel, (4, 0), span = (1, 2), flag = wx.ALIGN_CENTER)
         self._stateList = wx.ListBox(self, wx.ID_ANY, name = 'State List',
                                      style = wx.TE_RIGHT | wx.LB_SINGLE)
-        layout.Add(self._stateList, (5, 0), flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(self._stateList, (5, 0), span = (1, 2), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
         layout.AddGrowableCol(0)
+        layout.AddGrowableCol(1)
         layout.AddGrowableRow(5)
         
         self.SetSizerAndFit(layout)
@@ -372,7 +378,17 @@ class AIPanel(wx.Panel):
                                         self._onExited)
         self._connections.append(conn)
         
+        # Set the time we start for the previous states log
         self._startTime = timer.time()
+        
+        # Set these for the timer to know whether to update the task and state
+        # timers
+        self._taskRunning = False
+        self._stateRunning = False
+        
+        # Start the timer for the current task and state
+        self._timer = wx.Timer()
+        self._timer.Bind(wx.EVT_TIMER, self._onTimer)
         
     def _onEntered(self,event):
         fullClassName = str(event.string)
@@ -381,13 +397,19 @@ class AIPanel(wx.Panel):
         stateClass = resolve(fullClassName)
         if issubclass(stateClass, task.Task):
             # It's a task, put it there
+            self._taskRunning = True
+            self._taskTimeStamp = timer.time()
             self._currentTask.Value = '%s' % fullClassName.split('.')[-1]
         else:
+            self._stateRunning = True
+            self._stateTimeStamp = timer.time()
             self._currentState.Value = '%s' % fullClassName.split('.')[-1]
+            
+        if not self._timer.IsRunning():
+            self._timer.Start(milliseconds = 100)
         
     def _onExited(self,event):
         # Get the time stamp and its difference from the beginning
-        timeStamp = datetime.fromtimestamp(event.timeStamp - self._startTime)
         fullClassName = str(event.string)
         eventName = '%s' % fullClassName.split('.')[-1]
         stateClass = resolve(fullClassName)
@@ -395,20 +417,38 @@ class AIPanel(wx.Panel):
         # Check if the exited state is still shown as the current task/state
         if issubclass(stateClass, task.Task):
             # It's a task, remove the task
+            string = self._timeStamp(self._startTime, event.timeStamp)
             if self._currentTask.Value == eventName:
                 self._currentTask.Value = ""
         else:
             # It's a state, remove the state
+            string = self._timeStamp(self._startTime, event.timeStamp)
             if self._currentState.Value == eventName:
                 self._currentState.Value = ""
 
         # Format the string MM:SS.mm EventName
-        string = timeStamp.strftime("%M:%S.") + \
-            "%.0f" % (timeStamp.microsecond / 10000.0)
         string = string + " " + eventName
         self._stateList.Insert(string, pos = 0)
         self._stateList.EnsureVisible(0)
+        
+        self._timer.Stop()
        
+    def _onTimer(self, event):
+        currentTime = timer.time()
+        if self._taskRunning:
+            string = self._timeStamp(self._taskTimeStamp, currentTime)
+            self._taskTimer.SetLabel(string)
+        if self._stateRunning:
+            string = self._timeStamp(self._stateTimeStamp, currentTime)
+            self._stateTimer.SetLabel(string)
+            
+    def _timeStamp(self, startTime, endTime):
+        timeStamp = datetime.fromtimestamp(endTime - startTime)
+        string = timeStamp.strftime("%M:%S.") + \
+            "%.0f" % (timeStamp.microsecond / 10000.0)
+            
+        return string
+        
     def _onClose(self, closeEvent):
         for conn in self._connections:
             conn.disconnect()
