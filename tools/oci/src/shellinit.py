@@ -41,4 +41,18 @@ def start(state):
     allStop()
     stateMachine.start(state)
 
+def fstream(port = 50000, size = (320, 240), rate = 5):
+    path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
+    visionSystem.addForwardRecorder(path, rate)
+
+def dstream(port = 50001, size = (320, 240), rate = 5):
+    path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
+    visionSystem.addDownwardRecorder(path, rate)
+
+def fsremove(name = '50000(320,240)'):
+    visionSystem.removeForwardRecorder(name)
+
+def dsremove(name = '50001(320,240)'):
+    visionSystem.removeDownwardRecorder(name)
+
 # End of file (this line is required)
