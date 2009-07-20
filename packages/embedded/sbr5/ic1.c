@@ -14,7 +14,6 @@
 #define SBR7
 #define MOTORBOARD
 
-
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
@@ -468,8 +467,8 @@ void _ISR _T1Interrupt(void)
 void initMasterUart()
 {
     U1MODE = 0x0000;
-    U1BRG = 1;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
-//    U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
+//    U1BRG = 1;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
+    U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
     U1STAbits.UTXEN = 1;   // Enable transmit
