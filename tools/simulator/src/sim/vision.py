@@ -8,6 +8,7 @@
 # STD Imports
 import math
 import ctypes
+from ctypes import byref, c_ubyte
 import random
 
 # Library Imports
@@ -1390,8 +1391,11 @@ class RenderCameraListener(ogre.RenderTargetListener):
 
             self._lastTime = now
 
-    def _updateCamera(self, timeSinceLastUpdate):
+    def _updateCamera(self, timeSinceLastUpdate, bufferAddress = None):
         # Lock all of the texture buffer
+        if bufferAddress is None:
+            bufferAddress = self._bufferAddress
+
         textureBuffer = self._texture.getBuffer()
         lockBox = ogre.Box(0, 0, 640, 480)
         textureBuffer.lock(lockBox, ogre.HardwareBuffer.HBL_NORMAL)
@@ -1407,7 +1411,7 @@ class RenderCameraListener(ogre.RenderTargetListener):
                                            640 * 480)
 
         # Create our temporary image
-        self._image = ext.vision.Image.loadFromBuffer(self._bufferAddress,
+        self._image = ext.vision.Image.loadFromBuffer(bufferAddress,
                                                       640, 480, False)
         # Send image to camera
         self._camera.capturedImage(self._image)
@@ -1418,9 +1422,9 @@ class RenderCameraListener(ogre.RenderTargetListener):
 
 class SimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
-        vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
+        self._vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
                                                         nonNone = True)
-        self.robot = vehicle.getDevice('SimulationDevice').robot
+        self.robot = self._vehicle.getDevice('SimulationDevice').robot
 
         # Creates ogre.renderer.OGRE.Camera and attaches it to the vehicle
         forwardOgreCamera = Simulation._createCamera(
@@ -1446,19 +1450,22 @@ class SimVision(ext.vision.VisionSystem):
         cameraRate = config.get('cameraRate', 10)
         self._cameraUpdateInterval = 1.0 / cameraRate
 
+        self._setupCameraListeners()
+        
+    def _setupCameraListeners(self):
         # Setup render target listeners to do the copying of images
-        self._forwardCameraListener = RenderCameraListener(vehicle,
+        self._forwardCameraListener = RenderCameraListener(self._vehicle,
             self._forwardCamera, self._forwardBuffer, self._forwardTexture,
             self._cameraUpdateInterval)
         self._forwardTexture.getBuffer().getRenderTarget().addListener(
             self._forwardCameraListener)
         
-        self._downwardCameraListener = RenderCameraListener(vehicle,
+        self._downwardCameraListener = RenderCameraListener(self._vehicle,
             self._downwardCamera, self._downwardBuffer, self._downwardTexture,
             self._cameraUpdateInterval)
         self._downwardTexture.getBuffer().getRenderTarget().addListener(
             self._downwardCameraListener)
-        
+
     def _setupCameraRendering(self, camera, width, height):
         """
         @type  camera: ogre.renderer.OGRE.Camera
@@ -1495,3 +1502,47 @@ class SimVision(ext.vision.VisionSystem):
 
 
 ext.core.SubsystemMaker.registerSubsystem('SimVision', SimVision)
+
+class CrappyCameraListener(RenderCameraListener):
+    def __init__(self, vehicle, camera, buffer_, texture, updateInterval, failureRate = "0"):
+        RenderCameraListener.__init__(self, vehicle, camera, buffer_, texture, updateInterval)
+        # Failure rate is a percentage. 0% means they never fail. 100% means
+        # they always fail
+        self._failureRate = failureRate
+        self._permanentBufferAddress = buffer_
+        # Seed the random number generator with the current time
+        random.seed(ram.timer.time())
+
+    def _updateCamera(self, timeSinceLastUpdate):
+        # Get a random number.
+        num = random.random()
+
+        # Check if it's in the failure rate
+        if num < self._failureRate:
+            # If so, send in a blank buffer
+            RenderCameraListener._updateCamera(self, timeSinceLastUpdate,
+                                               bufferAddress = None)
+        else:
+            # Otherwise, use the normal method
+            RenderCameraListener._updateCamera(self, timeSinceLastUpdate)
+
+class CrappyVision(SimVision):
+    def __init__(self, config, deps):
+        self._failureRate = config.get('failureRate')
+        SimVision.__init__(self, config, deps)
+
+    def _setupCameraListeners(self):
+        # Setup render target listeners to do the copying of images
+        self._forwardCameraListener = CrappyCameraListener(self._vehicle,
+            self._forwardCamera, self._forwardBuffer, self._forwardTexture,
+            self._cameraUpdateInterval, failureRate = self._failureRate)
+        self._forwardTexture.getBuffer().getRenderTarget().addListener(
+            self._forwardCameraListener)
+        
+        self._downwardCameraListener = CrappyCameraListener(self._vehicle,
+            self._downwardCamera, self._downwardBuffer, self._downwardTexture,
+            self._cameraUpdateInterval, failureRate = self._failureRate)
+        self._downwardTexture.getBuffer().getRenderTarget().addListener(
+            self._downwardCameraListener)
+
+ext.core.SubsystemMaker.registerSubsystem('CrappyVision', CrappyVision)
