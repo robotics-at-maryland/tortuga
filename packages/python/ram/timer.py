@@ -183,7 +183,7 @@ class TimerManager(ext.core.Subsystem):
         Create a Timer object which publishes using this object.
         
         @rtype: ram.timer.Timer
-        @return: A Timer objects which uses this object ot publish its event
+        @return: A Timer objects which uses this object to publish its event
         """
         return Timer(self, eventType, duration)
 

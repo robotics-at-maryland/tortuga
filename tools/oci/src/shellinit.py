@@ -1,3 +1,5 @@
+import wx
+import ext.core as core
 import ram.ai.light as light
 import ram.ai.pipe as pipe
 import ram.ai.bin as bin
@@ -7,6 +9,8 @@ import ram.ai.course as course
 import ram.motion as motion
 import ram.motion.basic as basic
 import ram.motion.search as search
+import ram.timer as timer
+from datetime import datetime
 
 # Helper methods
 def diveTo(depth, speed = 0.3):
@@ -54,5 +58,28 @@ def fsremove(name = '50000(320,240)'):
 
 def dsremove(name = '50001(320,240)'):
     visionSystem.removeDownwardRecorder(name)
+
+# This is the helper function for takeXClip. Don't use it.
+def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
+    # All comments are needed. Do not add blank lines!
+    TIMEOUT = core.declareEventType('TIMEOUT')
+    def stop(event):
+        removeRecorder(name)
+    queuedEventHub.subscribeToType(TIMEOUT, stop)
+    # If no name was given, create one out of the time
+    if name is None:
+        timeStamp = datetime.fromtimestamp(timer.time())
+        name = timeStamp.strftime("%Y%m%d%H%M%S")
+    # Add the forward recorder
+    addRecorder(name + extension, rate)
+    # Create the timer
+    clipTimer = timerManager.newTimer(TIMEOUT, seconds)
+    clipTimer.start()
+
+def takeFClip(seconds, name = None, extension = ".avi", rate = 5):
+    recordClip(visionSystem.addForwardRecorder, visionSystem.removeForwardRecorder, seconds, name, extension, rate)
+
+def takeDClip(seconds, name = None, extension = ".avi", rate = 5):
+    recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
 
 # End of file (this line is required)
