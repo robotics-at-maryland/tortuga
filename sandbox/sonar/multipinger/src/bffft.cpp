@@ -18,14 +18,12 @@
 ram::sonar::fft_fract16<BLOCKSIZE> fft;
 
 static fract16 dftIn[BLOCKSIZE];
-static fract16 readIn[NCHANNELS][BLOCKSIZE];
+static fract16 readIn[BLOCKSIZE][NCHANNELS];
 static uint64_t totalPower[BLOCKSIZE];
 static uint8_t hist[BLOCKSIZE];
 
 int main(int argc, char* argv[])
 {
-    printf("Computing fft of channel 0 from stdin...\n");
-    
     while (1 == fread(*readIn, sizeof(readIn), 1, stdin))
     {
         for (int i = 0 ; i < BLOCKSIZE ; i ++)
