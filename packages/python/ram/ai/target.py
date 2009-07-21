@@ -270,11 +270,15 @@ class Searching(state.State, StoreTargetEvent):
         direction = self.ai.data.setdefault('targetStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
+        legTime = self._config.get('legTime', 5)
+        sweepAngle = self._config.get('sweepAngle', 30)
+        speed = self._config.get('speed', 2.5)
+
         # Create zig zag search to 
         zigZag = motion.search.ForwardZigZag(
-            legTime = 15,
-            sweepAngle = 60,
-            speed = 2.5,
+            legTime = legTime,
+            sweepAngle = sweepAngle,
+            speed = speed,
             direction = direction)
         self.motionManager.setMotion(zigZag)
 
