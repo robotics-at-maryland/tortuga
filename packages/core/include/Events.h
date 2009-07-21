@@ -19,6 +19,8 @@ namespace core {
 struct StringEvent : public core::Event
 {
     std::string string;
+
+    virtual EventPtr clone();
 };
 
 typedef boost::shared_ptr<StringEvent> StringEventPtr;

@@ -24,6 +24,8 @@ struct PowerSourceEvent : public core::Event
     bool inUse;
     float voltage;
     float current;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<PowerSourceEvent> PowerSourceEventPtr;
@@ -33,6 +35,8 @@ struct TempSensorEvent : public core::Event
     int id;
     /** Temperature in degrees C */
     int temp;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<TempSensorEvent> TempSensorEventPtr;
@@ -44,6 +48,8 @@ struct ThrusterEvent : public core::Event
     double current;
     /** Whether or not the thruster is accepts commands */
     bool enabled;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<ThrusterEvent> ThrusterEventPtr;
@@ -67,6 +73,8 @@ struct SonarEvent : public core::Event
 
     /** The pinger from which the ping was found */
     unsigned char pingerID;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<SonarEvent> SonarEventPtr;

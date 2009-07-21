@@ -22,6 +22,8 @@ namespace math {
 struct OrientationEvent : public core::Event
 {
     Quaternion orientation;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<OrientationEvent> OrientationEventPtr;
@@ -29,6 +31,8 @@ typedef boost::shared_ptr<OrientationEvent> OrientationEventPtr;
 struct Vector2Event : public core::Event
 {
     Vector2 vector2;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<Vector2Event> Vector2EventPtr;
@@ -36,6 +40,8 @@ typedef boost::shared_ptr<Vector2Event> Vector2EventPtr;
 struct Vector3Event : public core::Event
 {
     Vector3 vector3;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<Vector3Event> Vector3EventPtr;
@@ -43,6 +49,8 @@ typedef boost::shared_ptr<Vector3Event> Vector3EventPtr;
 struct NumericEvent : public core::Event
 {
     double number;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<NumericEvent> NumericEventPtr;

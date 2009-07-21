@@ -23,6 +23,8 @@ namespace control {
 struct ParamSetupEvent : public core::Event
 {
     std::vector<std::string> labels;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<ParamSetupEvent> ParamSetupEventPtr;
@@ -30,6 +32,8 @@ typedef boost::shared_ptr<ParamSetupEvent> ParamSetupEventPtr;
 struct ParamUpdateEvent : public core::Event
 {
     std::vector<double> values;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<ParamUpdateEvent> ParamUpdateEventPtr;

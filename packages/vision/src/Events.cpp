@@ -81,3 +81,101 @@ static ram::core::SpecificEventConverter<ram::vision::BarbedWireEvent>
 RAM_VISION_BARBED_WIREEVENT;
 
 #endif // RAM_WITH_WRAPPERS
+
+namespace ram {
+namespace vision {
+
+core::EventPtr ImageEvent::clone()
+{
+    ImageEventPtr event = ImageEventPtr(new ImageEvent());
+    copyInto(event);
+    // Not yet implemetned
+    return event;
+}
+
+core::EventPtr RedLightEvent::clone()
+{
+    RedLightEventPtr event = RedLightEventPtr(new RedLightEvent());
+    copyInto(event);
+    event->azimuth = azimuth;
+    event->elevation = elevation;
+    event->range = range;
+    event->x = x;
+    event->y = y;
+    event->pixCount = pixCount;
+    return event;
+}
+
+core::EventPtr PipeEvent::clone()
+{
+    PipeEventPtr event = PipeEventPtr(new PipeEvent());
+    copyInto(event);
+    event->id = id;
+    event->x = x;
+    event->y = y;
+    event->angle = angle;
+    return event;
+}
+
+core::EventPtr BinEvent::clone()
+{
+    BinEventPtr event = BinEventPtr(new BinEvent());
+    copyInto(event);
+    event->id = id;
+    event->x = x;
+    event->y = y;
+    event->symbol = symbol;
+    event->angle = angle;
+    return event;
+}
+
+core::EventPtr DuctEvent::clone()
+{
+    DuctEventPtr event = DuctEventPtr(new DuctEvent());
+    copyInto(event);
+    event->x = x;
+    event->y = y;
+    event->range = range;
+    event->alignment = alignment;
+    event->aligned = aligned;
+    event->visible = visible;
+    return event;
+}
+
+core::EventPtr SafeEvent::clone()
+{
+    SafeEventPtr event = SafeEventPtr(new SafeEvent());
+    copyInto(event);
+    event->x = x;
+    event->y = y;
+    return event;
+}
+
+core::EventPtr TargetEvent::clone()
+{
+    TargetEventPtr event = TargetEventPtr(new TargetEvent());
+    copyInto(event);
+    event->x = x;
+    event->y = y;
+    event->squareNess = squareNess;
+    event->range = range;
+    return event;
+}
+
+core::EventPtr BarbedWireEvent::clone()
+{
+    BarbedWireEventPtr event = BarbedWireEventPtr(new BarbedWireEvent());
+    copyInto(event);
+    event->topX = topX;
+    event->topY = topY;
+    event->topWidth = topWidth;
+    event->bottomX = bottomX;
+    event->bottomY = bottomY;
+    event->bottomWidth = bottomWidth;
+    return event;
+}
+
+    
+    
+} // namespace vision
+} // namespace ram

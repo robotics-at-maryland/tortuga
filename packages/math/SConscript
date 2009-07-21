@@ -28,4 +28,4 @@ envl.RAMSharedLibrary('math',  source = sources)
 # Tests
 if not env['bfin']:
     envt = env.Clone()
-    envt.Tests(int_deps = 'math', ext_deps = ext_deps)
+    envt.Tests(int_deps = ['math','core'], ext_deps = ext_deps)

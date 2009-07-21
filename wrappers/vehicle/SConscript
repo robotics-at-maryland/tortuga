@@ -22,6 +22,11 @@ extra_dev_sources = envl.Glob('src/device', '*.cpp')
 
 # Link to libram_pattern.so library
 libs.add_internal(envl, 'vehicle')
+eventFeatures = ['math', 'vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        libs.add_internal(envl, feature)
+
 
 # Pattern library directories
 base_dir = os.path.join(os.environ['RAM_SVN_DIR'], 'packages', 'vehicle')
@@ -47,17 +52,23 @@ dev_wrapped_headers = ['device/Common.h',
 # Tests
 root_src = os.path.dirname(env.GetBuildPath('SConscript'))
 
+int_deps = ['vehicle']
+eventFeatures = ['math', 'vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        int_deps.append(feature)
+
 envt = env.Clone()
 test_veh, veh_runner = envt.Tests(target = 'TestVehicle',
                                   source = 'test/src/TestIVehicle.cxx',
                                   search_dir = root_src + '/test/src',
-                                  int_deps = 'vehicle',
+                                  int_deps = int_deps,
                                   ext_deps = 'Boost.Python', run = False)
 
 test_dev, dev_runner = envt.Tests(target = 'TestDevices',
                                   source = 'test/src/device/TestIDevices.cxx',
                                   search_dir = root_src + '/test/src/device',
-                                  int_deps = 'vehicle',
+                                  int_deps = int_deps,
                                   ext_deps = 'Boost.Python', run = False)
 
 # Python sources

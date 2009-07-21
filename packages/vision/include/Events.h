@@ -77,6 +77,8 @@ public:
     ImageEvent() : image(0) {}
 
     Image* image;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<ImageEvent> ImageEventPtr;
@@ -96,6 +98,8 @@ public:
     double x;
     double y;
     int pixCount;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
@@ -113,6 +117,8 @@ public:
     double x;
     double y;
     math::Degree angle;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<PipeEvent> PipeEventPtr;
@@ -134,6 +140,8 @@ public:
     int id;
     Symbol::SymbolType symbol;
     math::Degree angle;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<BinEvent> BinEventPtr;
@@ -160,6 +168,8 @@ public:
     double alignment;
     bool aligned;
     bool visible;
+
+    virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<DuctEvent> DuctEventPtr;
@@ -175,6 +185,8 @@ class RAM_EXPORT SafeEvent : public core::Event
 
     double x;
     double y;
+
+    virtual core::EventPtr clone();
 };
     
 typedef boost::shared_ptr<SafeEvent> SafeEventPtr;
@@ -204,6 +216,8 @@ class RAM_EXPORT TargetEvent : public core::Event
     double y;
     double squareNess;
     double range;
+
+    virtual core::EventPtr clone();
 };
     
 typedef boost::shared_ptr<TargetEvent> TargetEventPtr;
@@ -239,6 +253,8 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
     double bottomX;
     double bottomY;
     double bottomWidth;
+
+    virtual core::EventPtr clone();
 };
     
 typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;

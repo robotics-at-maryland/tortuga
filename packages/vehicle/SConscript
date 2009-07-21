@@ -15,6 +15,11 @@ envl = env.Clone()
 ext_deps = []
 int_deps = ['vehicle']
 
+eventFeatures = ['math', 'vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        int_deps.append(feature)
+
 # Sources
 sources = env.Glob('src', '*.cpp')
 sources.extend(env.Glob('src/device', '*.cpp'))

@@ -20,5 +20,19 @@ Event::Event() :
 {
 }
 
+EventPtr Event::clone()
+{
+    EventPtr event = EventPtr(new Event());
+    copyInto(event);
+    return event;
+}
+
+void Event::copyInto(EventPtr inEvent)
+{
+    inEvent->type = type;
+    inEvent->sender = sender;
+    inEvent->timeStamp = timeStamp;
+}    
+    
 } // namespace core
 } // namespace ram

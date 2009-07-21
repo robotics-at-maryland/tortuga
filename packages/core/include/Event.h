@@ -28,11 +28,14 @@ namespace core {
 /** Base class for information to be passed between publisher and subscriber */
 struct RAM_EXPORT Event
 {
+    typedef std::string EventType;
+    
     Event();
     
     virtual ~Event() {};
-    
-    typedef std::string EventType;
+
+    /** Provides a deep copy of the event object */
+    virtual EventPtr clone();
 
     /** A unique identifier for a stream of events from an EventPublisher */
     EventType type;
@@ -46,6 +49,10 @@ struct RAM_EXPORT Event
      *  approximately microseconds
      */
     double timeStamp;
+
+  protected:
+    /** Copies all elements of the event into the given event */
+    void copyInto(EventPtr inEvent);
 };
     
 } // namespace core
