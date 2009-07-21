@@ -460,7 +460,7 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
         
     def enter(self):
         HoveringState.enter(self)
-        state.FindAttempt.enter(self)
+        state.FindAttempt.enter(self, timeout = self._config.get('timeout', 3))
         self._threshold = self._config.get('threshold', 0.1)
         
         self._currentIds = self.ai.data['binData']['currentIds']
@@ -618,7 +618,7 @@ class Centering(SettlingState):
         if not self.ai.data.has_key('binArrayOrientation'):
             # Level ourselves out
             self.controller.holdCurrentHeading()
-            # Store result heding
+            # Store result heading
             self.ai.data['binArrayOrientation'] = \
                 self.controller.getDesiredOrientation()
 
@@ -680,6 +680,7 @@ class SeekEnd(BinSortingState):
         
         # Check if it is already at the end and set the direction to move
         self._checkEnd()
+        self.setSortDirection(self.ai.data['startSide'])
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):

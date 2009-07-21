@@ -27,8 +27,10 @@ def down(depthChange, speed = 0.3):
 def yaw(yawChange, speed = 30, absolute = False):
     motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
 
-def yaw2(yawChange, speed = 30):
+def yawTo(yawChange, speed = 30):
     yaw(yawChange, speed, absolute = True)
+
+yaw2 = yawTo
 
 def allStop():
     stateMachine.stop()
