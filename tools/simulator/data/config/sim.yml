@@ -11,7 +11,9 @@ Subsystems:
     VisionSystem:
         #type: SimVision
         type: IdealSimVision
+        #type: CrappyVision
         #cameraRate: 10
+        #failureRate: .03
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
         # Recording Settings
@@ -249,8 +251,12 @@ Subsystems:
                 speedGain: 7
             ram.ai.bin.Dive:
                 offset: 5
+            ram.ai.bin.RecoverDive:
+                increase: 0
             ram.ai.bin.CloserLook:
                 offset: 3.5
+            ram.ai.bin.RecoverCloserLook:
+                increase: 0
             ram.ai.bin.SurfaceToMove:
                 offset: 5
             ram.ai.bin.NextBin:

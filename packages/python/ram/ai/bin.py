@@ -233,7 +233,7 @@ class BinSortingState(HoveringState):
             if math.Vector2(event.x, event.y).length() < self._centeredRange:
                 self.publish(BinSortingState.CENTERED_, core.Event())
                 
-    def LOST_CURRENT_BIN(self, event):
+    def LOST_CURRENT_BIN_(self, event):
         # Erase HoveringState's LOST_CURRENT_BIN
         pass
     
@@ -344,13 +344,8 @@ class BinSortingState(HoveringState):
         """
         # Compare to current ID
         currentBinId = self.ai.data['binData']['currentID']
-        if len(sortedBins) == 0:
-            #event = vision.BinEvent(0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
-            self.publish(vision.EventType.BINS_LOST, core.Event())
-            return None
-        else:
-            mostEdgeBinId = sortedBins[0]
-            return mostEdgeBinId
+        mostEdgeBinId = sortedBins[0]
+        return mostEdgeBinId
         
 class Recover(state.FindAttempt):
     MOVE_ON = core.declareEventType('MOVE_ON')
@@ -362,7 +357,6 @@ class Recover(state.FindAttempt):
         
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
-        self.ai.data['binData']['currentIds'] = set()
         if event.symbol != vision.Symbol.UNKNOWN:
             histogram = \
                 self.ai.data['binData']['histogram'].setdefault(
@@ -670,6 +664,10 @@ class SeekEnd(BinSortingState):
         if (not self.fixEdgeBin()) and (self._timer is None):
             # If already there
             self._startTimer()
+            
+    def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
         
 class RecoverSeekEnd(Recover):
     @staticmethod
@@ -727,7 +725,7 @@ class RecoverDive(Recover):
         self.ai.data['dive_offsetTheOffset'] = \
             self.ai.data.get('dive_offsetTheOffset', 0) + self._increase
             
-        if self.ai.data['dive_offsetTheOffset'] > 1:
+        if self.ai.data['dive_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
             depth = self.vehicle.getDepth()
@@ -952,7 +950,7 @@ class RecoverCloserLook(Recover):
         self.ai.data['closerlook_offsetTheOffset'] = \
             self.ai.data.get('closerlook_offsetTheOffset', 0) + self._increase
             
-        if self.ai.data['closerlook_offsetTheOffset'] > 1:
+        if self.ai.data['closerlook_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
             depth = self.vehicle.getDepth()
@@ -1132,7 +1130,7 @@ class NextBin(BinSortingState):
             direction = BinSortingState.LEFT
             
         BinSortingState.enter(self, direction, useMultiAngle = True)
-        
+
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():
             # If already there
@@ -1141,14 +1139,14 @@ class NextBin(BinSortingState):
 class RecoverNextBin(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(NextBin)
+        return Recover.transitions(Dive)
     
 class LostCurrentBinNextBin(LostCurrentBin):
     @staticmethod
     def transitions():
         return LostCurrentBin.transitions(myState = LostCurrentBinNextBin,
-                                          lostState = RecoverSurfaceToMove,
-                                          originalState = SurfaceToMove)
+                                          lostState = RecoverNextBin,
+                                          originalState = Dive)
         
 class DropMarker(SettlingState):
     """

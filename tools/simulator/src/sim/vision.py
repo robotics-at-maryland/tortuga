@@ -1391,10 +1391,16 @@ class RenderCameraListener(ogre.RenderTargetListener):
 
             self._lastTime = now
 
-    def _updateCamera(self, timeSinceLastUpdate, bufferAddress = None):
+    def _sendImage(self, bufferAddress):
+        # Create our temporary image
+        self._image = ext.vision.Image.loadFromBuffer(bufferAddress,
+                                                      640, 480, False)
+        # Send image to camera
+        self._camera.capturedImage(self._image)
+        
+
+    def _updateCamera(self, timeSinceLastUpdate):
         # Lock all of the texture buffer
-        if bufferAddress is None:
-            bufferAddress = self._bufferAddress
 
         textureBuffer = self._texture.getBuffer()
         lockBox = ogre.Box(0, 0, 640, 480)
@@ -1410,12 +1416,9 @@ class RenderCameraListener(ogre.RenderTargetListener):
                                            ogre.PixelFormat.PF_R8G8B8,
                                            640 * 480)
 
-        # Create our temporary image
-        self._image = ext.vision.Image.loadFromBuffer(bufferAddress,
-                                                      640, 480, False)
-        # Send image to camera
-        self._camera.capturedImage(self._image)
-        
+        # Send of the image to the vision system
+        self._sendImage(self._bufferAddress)
+
         textureBuffer.unlock()
 
         
@@ -1504,12 +1507,15 @@ class SimVision(ext.vision.VisionSystem):
 ext.core.SubsystemMaker.registerSubsystem('SimVision', SimVision)
 
 class CrappyCameraListener(RenderCameraListener):
-    def __init__(self, vehicle, camera, buffer_, texture, updateInterval, failureRate = "0"):
-        RenderCameraListener.__init__(self, vehicle, camera, buffer_, texture, updateInterval)
+    def __init__(self, vehicle, camera, buffer_, texture, updateInterval,
+                 failureRate = "0"):
+        RenderCameraListener.__init__(self, vehicle, camera, buffer_, texture,
+                                      updateInterval)
         # Failure rate is a percentage. 0% means they never fail. 100% means
         # they always fail
+        self._vehicle = vehicle
         self._failureRate = failureRate
-        self._permanentBufferAddress = buffer_
+        self._vehicle._loseOnNextFrame = False
         # Seed the random number generator with the current time
         random.seed(ram.timer.time())
 
@@ -1518,10 +1524,11 @@ class CrappyCameraListener(RenderCameraListener):
         num = random.random()
 
         # Check if it's in the failure rate
-        if num < self._failureRate:
+        if self._vehicle._loseOnNextFrame or (num < self._failureRate):
             # If so, send in a blank buffer
-            RenderCameraListener._updateCamera(self, timeSinceLastUpdate,
-                                               bufferAddress = None)
+            self._vehicle._loseOnNextFrame = False
+            ctypes.memset(self._bufferAddress, 0, 640*480*3)
+            self._sendImage(self._bufferAddress)
         else:
             # Otherwise, use the normal method
             RenderCameraListener._updateCamera(self, timeSinceLastUpdate)

@@ -382,6 +382,7 @@ class TestLostCurrentBin(aisupport.AITestCase):
         # Data. currentID must be something that it won't accidently create.
         self.ai.data['lastBinX'] = 0.5
         self.ai.data['lastBinY'] = -0.5
+        self.ai.data['startSide'] = bin.BinSortingState.RIGHT
         
         self.machine.start(self.myState)
         
@@ -470,8 +471,8 @@ class TestLostCurrentBinSurfaceToMove(TestLostCurrentBin):
 class TestLostCurrentBinNextBin(TestLostCurrentBin):
     def setUp(self):
         TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinNextBin,
-                                 recover = bin.RecoverSurfaceToMove,
-                                 foundState = bin.SurfaceToMove)
+                                 recover = bin.RecoverNextBin,
+                                 foundState = bin.Dive)
 
 class TestRecoverSeeking(aisupport.AITestCase):
     def testStart(self):
@@ -739,20 +740,6 @@ class TestSeekEnd(BinTestCase):
         self.assertFalse(self._centered)
         self.assert_(self._atEnd)
         self.assertEqual(2, self.ai.data['binData']['currentID'])
-        
-    def testCenteredNoBins(self):
-        # Try no more bins
-        self.ai.data['binData']['currentID'] = 3
-        self.ai.data['binData']['currentIds'] = set()
-        self.assertCurrentState(bin.SeekEnd)
-        self.injectEvent(bin.SeekEnd.CENTERED_)
-        
-        # For Recover
-        self.ai.data["lastBinX"] = 0
-        self.ai.data["lastBinY"] = 0
-        
-        self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.RecoverSeekEnd)
         
     def testAtEnd(self):
         self.injectEvent(bin.SeekEnd.AT_END)
@@ -1359,6 +1346,45 @@ class TestNextBin(BinTestCase):
         
         self.injectEvent(vision.EventType.BINS_LOST)
         self.assertCurrentState(bin.RecoverNextBin)
+        
+    def testLostFound(self):
+        """
+        Make sure it doesn't go into CheckDropped unless it's at the end
+        after it recovers from a lost event
+        """
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        # For Recover
+        self.ai.data["lastBinX"] = 0
+        self.ai.data["lastBinY"] = 0
+        
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([2,3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0),
+                                               2 : Mock(x = 1)}
+        self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+        
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        self.publishQueuedBinDropped(id = 4)
+        self.publishQueuedBinDropped(id = 2)
+        self.publishQueuedBinDropped(id = 3)
+        self.injectEvent(vision.EventType.BINS_LOST)
+        
+        self.assertCurrentState(bin.RecoverNextBin)
+        
+        self.publishQueuedBinFound(id = 4)
+        self.publishQueuedBinFound(id = 2)
+        self.publishQueuedBinFound(id = 3)
+        self.qeventHub.publishEvents()
+        
+        self.assertDataValue(self.ai.data['binData'], 'currentID', 4)
+        
+        self.assertFalse(self._atEnd)
+        self.assertCurrentState(bin.Dive)
         
 class TestDropMarker(BinTestCase):
     def setUp(self):
