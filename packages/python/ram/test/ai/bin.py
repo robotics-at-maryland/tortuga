@@ -1449,7 +1449,8 @@ class TestDropMarker(BinTestCase):
         self.publishQueuedBinFound(id = 0, x = 0, y = 0,
                                    angle = math.Degree(0.5))
         self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
+
+        self.assertAIDataValue('markersDropped', 2)
         self.assertCurrentState(bin.SurfaceToCruise)
 
     def testFinished(self):
@@ -1459,6 +1460,23 @@ class TestDropMarker(BinTestCase):
 
         self.injectEvent(bin.DropMarker.FINISHED)
         self.assertCurrentState(bin.SurfaceToCruise)
+
+    def testTimeout(self):
+        """Ensure the timeout drops the marker anyways"""
+        
+        # Publish a bad BIN_FOUND to make sure it doesn't cause the drop
+        self.publishQueuedBinFound(id = 0, x = 0.5, y = -0.5,
+                                   angle = math.Degree(0.5))
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.DropMarker)
+
+        # Now release the timer and check that the marker has dropped
+        self.releaseTimer(bin.DropMarker.DROP)
+        self.qeventHub.publishEvents()
+
+        # Make sure the marker was dropped
+        self.assertAIDataValue('markersDropped', 1)
+        self.assertCurrentState(bin.SurfaceToMove)
 
     def testContinue(self):
         """Ensure CONTINUE -> SurfaceToMove"""
@@ -1476,7 +1494,7 @@ class TestDropMarker(BinTestCase):
         self.ai.data["lastBinY"] = 0
         
         self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.DropMarker)
+        self.assertCurrentState(bin.RecoverCloserLook)
         
 class TestCheckDropped(BinTestCase):
     def setUp(self):

@@ -1160,7 +1160,7 @@ class LostCurrentBinNextBin(LostCurrentBin):
                                           lostState = RecoverNextBin,
                                           originalState = Dive)
         
-class DropMarker(HoveringState):
+class DropMarker(SettlingState):
     """
     Drops the marker on the bin, then either continues searching, or surfaces
     based on the how many markers its dropped.
@@ -1168,13 +1168,16 @@ class DropMarker(HoveringState):
 
     FINISHED = core.declareEventType('FINISHED')
     CONTINUE = core.declareEventType('CONTINUE')
+    DROP = core.declareEventType('DROP_')
     
     @staticmethod
     def transitions():
-        return HoveringState.transitions(DropMarker,
+        return SettlingState.transitions(DropMarker,
             { DropMarker.FINISHED : SurfaceToCruise,
-              DropMarker.CONTINUE : SurfaceToMove },
-              lostState = DropMarker, recoveryState = DropMarker)
+              DropMarker.CONTINUE : SurfaceToMove,
+              DropMarker.DROP : DropMarker }, 
+              lostState = RecoverCloserLook,
+              recoveryState = LostCurrentBinCloserLook)
 
     def _dropMarker(self):
         # Increment marker dropped count
@@ -1194,6 +1197,10 @@ class DropMarker(HoveringState):
         else:
             self.publish(DropMarker.FINISHED, core.Event())
 
+    def DROP_(self, event):
+        # Drop the marker when the timeout happens regardless
+        self._dropMarker()
+
     def BIN_FOUND(self, event):
         # Zero out the angle
         event.angle = math.Degree(0)
@@ -1209,7 +1216,7 @@ class DropMarker(HoveringState):
                 self._dropMarker()
 
     def enter(self):
-        HoveringState.enter(self)
+        SettlingState.enter(self, DropMarker.DROP, 5)
 
         self._threshold = self._config.get('threshold', 0.05)
         
