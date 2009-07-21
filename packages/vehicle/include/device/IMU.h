@@ -135,6 +135,11 @@ private:
     double m_magYBias;
     double m_magZBias;
 
+    /** Bias based on flaws in the gyro */
+    double m_gyroXBias;
+    double m_gyroYBias;
+    double m_gyroZBias;
+    
     /** Magnetic Corruption Threshold based on experimental vehicle data **/
     double m_magCorruptThresh;
 

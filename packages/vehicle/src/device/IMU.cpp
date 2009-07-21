@@ -46,6 +46,9 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_magXBias(0),
     m_magYBias(0),
     m_magZBias(0),
+    m_gyroXBias(0),
+    m_gyroYBias(0),
+    m_gyroZBias(0),
     m_magCorruptThresh(100),
     m_magNominalLength(0),
     m_orientation(0,0,0,1),
@@ -78,11 +81,15 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_IMUToVehicleFrame[2][2] =
         config["imuToVehicleRotMatrix"][2][2].asDouble(0);
 
-	// Load Bias Values
+    // Load Bias Values
     m_magXBias = config["magXBias"].asDouble();
     m_magYBias = config["magYBias"].asDouble();
     m_magZBias = config["magZBias"].asDouble();
+    m_gyroXBias = config["gyroXBias"].asDouble();
+    m_gyroYBias = config["gyroYBias"].asDouble();
+    m_gyroZBias = config["gyroZBias"].asDouble();
 
+    
 	// Load Magnetic Corruption Threshold, default is ridiculously large acceptable range
 	m_magCorruptThresh = config["magCorruptThresh"].asDouble(2);
 
@@ -300,9 +307,9 @@ void IMU::rotateAndFilterData(const RawIMUData* newState)
     magnetometer[1] = newState->magY - m_magYBias;
     magnetometer[2] = newState->magZ - m_magZBias;
 
-    gyro[0] = newState->gyroX;
-    gyro[1] = newState->gyroY;
-    gyro[2] = newState->gyroZ;
+    gyro[0] = newState->gyroX - m_gyroXBias;
+    gyro[1] = newState->gyroY - m_gyroYBias;
+    gyro[2] = newState->gyroZ - m_gyroZBias;
 
     // Rotate The Data
     double rotatedLinearAcceleration[3];
