@@ -1429,7 +1429,8 @@ class TestDropMarker(BinTestCase):
         self.publishQueuedBinFound(id = 0, x = 0, y = 0,
                                    angle = math.Degree(0.5))
         self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
+
+        self.assertAIDataValue('markersDropped', 1)
         self.assertCurrentState(bin.SurfaceToMove)
         
     def testDroppedSecond(self):

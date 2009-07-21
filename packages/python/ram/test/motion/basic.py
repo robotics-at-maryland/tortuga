@@ -87,7 +87,40 @@ class TestMotionManager(support.MotionTest):
         self.motionManager.setMotion(mPlaneOrien)
         self.assertEqual(mPlaneOrien, self.motionManager.currentMotion)
         
+    def testQueuedMotions(self):
+        def _handler(event):
+            self._finished = True
+
+        self._finished = False
+        self.qeventHub.subscribeToType(
+            motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED, _handler)
+
+        m1 = motion.basic.RateChangeDepth(9, 0.3)
+        m2 = motion.basic.MoveDirection(0, 3)
         
+        self.motionManager.queueMotion(m1)
+        self.motionManager.queueMotion(m2)
+        
+        # Test that it hasn't set any motion
+        self.assertEqual(None, self.motionManager.currentMotion)
+        self.motionManager.start()
+
+        # Make sure it started the first motion
+        self.assertEqual(m1, self.motionManager.currentMotion)
+        self.assertFalse(self._finished)
+        
+        # Finish the motion
+        m1._finish()
+        self.qeventHub.publishEvents()
+        self.assertEqual(m2, self.motionManager.currentMotion)
+        self.assertFalse(self._finished)
+
+        # Now finish the second motion and make sure it publishes the event
+        m2._finish()
+        self.qeventHub.publishEvents()
+        self.assertEqual(None, self.motionManager.currentMotion)
+        self.assert_(self._finished)
+
     def testStopCurrentMotion(self):
         m = support.MockMotion()
         self.motionManager.setMotion(m)
