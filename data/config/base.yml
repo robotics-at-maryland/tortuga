@@ -160,13 +160,24 @@ Vehicle:
             update_interval: 5
             priority: high
 
-            imuToVehicleRotMatrix: [[ 0.9140, -0.4048, -0.0273],
-                                    [-0.4057, -0.9123, -0.0554],
-                                    [-0.0024,  0.0617, -0.9981]] 
+            #imuToVehicleRotMatrix: [[ 0.9140, -0.4048, -0.0273],
+            #                        [-0.4057, -0.9123, -0.0554],
+            #                        [-0.0024,  0.0617, -0.9981]] 
 
-            magXBias: -0.0702
-            magYBias:  0.0056
-            magZBias:  0.0124
+            imuToVehicleRotMatrix: [[0.6022, -0.7980, 0.0253]
+                                    [-0.7975, -0.5997, 0.0655]
+                                    [-0.0371, -0.0597, -0.9975]]
+
+            #magXBias: -0.0702
+            #magYBias:  0.0056
+            #magZBias:  0.0124
+            magXBias: -0.0735
+            magYBias: 0.0056
+            magZBias: -0.0109
+
+            gyroXBias: 0.0013
+            gyroYBias: 0.0499
+            gyroZBias: -0.0501
 
             localMagneticPitch: 60
 
@@ -197,9 +208,21 @@ Vehicle:
             #magYBias: 0.252917
             #magZBias: -0.183411
             # Tortuga 2 Redo
-            magXBias: 0.2010
-            magYBias: 0.2160
-            magZBias: -0.1899
+            #magXBias: 0.2010
+            #magYBias: 0.2160
+            #magZBias: -0.1899
+            # Tortuga 2.5
+            magXBias: -0.1698
+            magYBias: -0.1691
+            magZBias: -0.2362
+
+            gyroXBias: 0.0216
+            gyroYBias: -0.0148
+            gyroZBias: -0.0242
+
+            imuToVehicleRotMatrix: [[-0.8794, 0.0060, -0.4761]
+                                    [0.4759, 0.0424, -0.8785]
+                                    [0.0149, -0.9991, -0.0401]]
 
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
