@@ -77,7 +77,6 @@ class FindAttempt(State):
         # Turn off all motions, hold the current heading
         self.motionManager.stopCurrentMotion()
         self.controller.holdCurrentHeading()
-        self.controller.holdCurrentDepth()
         self.controller.setSpeed(0)
         self.controller.setSidewaysSpeed(0)
 
