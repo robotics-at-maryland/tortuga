@@ -13,10 +13,17 @@ Import('env')
 envl = env.Clone()
 
 ext_deps = []
+int_deps = ['core', 'logging']
 # Only need boost if we are compling the wrappers
 if env.HasFeature('wrappers'):
     libs.add_external(envl, 'Boost.Python')
     ext_deps = ['Boost.Python']
+
+eventFeatures = ['math', 'vehicle', 'vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        print "Adding features:",feature
+        int_deps.append(feature)
 
 # Sources
 sources = envl.Glob('src', '*.cpp')
@@ -26,4 +33,4 @@ envl.RAMSharedLibrary('logging',  source = sources)
 
 # Tests
 envt = env.Clone()
-envt.Tests(int_deps = 'logging', ext_deps = ext_deps)
+envt.Tests(int_deps = int_deps, ext_deps = ext_deps)

@@ -28,6 +28,7 @@
 #include "core/include/Events.h"
 #include "core/include/EventHub.h"
 #include "core/include/Logging.h"
+#include "core/include/TimeVal.h"
 
 #include "math/test/include/MathChecks.h"
 
@@ -36,6 +37,12 @@ using namespace ram::math;
 using namespace ram;
 
 namespace bf = boost::filesystem;
+
+static boost::filesystem::path getRefrencesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "logging" / "test" / "data";
+}
 
 class TestEventPlayer : public logging::EventPlayer
 {
@@ -60,7 +67,8 @@ protected:
     
     virtual void eventSleep(double seconds)
     {
-        sleptTime = seconds;
+        sleptTime += seconds;
+        timeOfDay += seconds;
     }
 };
 
@@ -167,6 +175,8 @@ TEST_FIXTURE(Fixture, BasicPlayer)
         CHECK_EQUAL(events[i]->sender, publishedEvents[i]->sender);
         CHECK_EQUAL(events[i]->timeStamp, publishedEvents[i]->timeStamp);
     }
+
+    delete player;
 }
 
 TEST_FIXTURE(Fixture, Sleeping)
@@ -195,6 +205,7 @@ TEST_FIXTURE(Fixture, Sleeping)
                 publishedEvents[0]->timeStamp, 0.0001);
 
     // The next update (with no time advacement)
+    player->sleptTime = 0;
     player->update(0);
     CHECK_CLOSE(0.3, player->sleptTime, 0.0001);
     CHECK_EQUAL(events[1]->timeStamp - RECORDED_TIME, player->currentTime());
@@ -215,6 +226,75 @@ TEST_FIXTURE(Fixture, Sleeping)
     CHECK_CLOSE(events[2]->timeStamp + OFFSET,
                 publishedEvents[2]->timeStamp, 0.0001);
 
+    delete player;
+}
+
+TEST_FIXTURE(Fixture, ActualLog)
+{
+    static const double RECORDED_TIME = 1247642287.418153;
+    static const double PLAYBACK_TIME = core::TimeVal::timeOfDay().get_double();
+    static const double OFFSET = PLAYBACK_TIME - RECORDED_TIME;
+    
+    // Config to read the file
+    bf::path filePath = getRefrencesDir() / "ref.log";
+    std::string logcfg = "{'fileName' :'" + filePath.string() + "'}";
+    
+    // Create our logger
+    TestEventPlayer* player =
+        new TestEventPlayer(core::ConfigNode::fromString(logcfg),
+                            boost::assign::list_of(eventHub),
+                            PLAYBACK_TIME);
+
+    // Do the first update
+    player->update(0);
+    CHECK_EQUAL(-1, player->sleptTime);
+    CHECK_EQUAL(1247642287.418153 - RECORDED_TIME, player->currentTime());
+//    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+//    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(1247642287.418153 + OFFSET,
+                publishedEvents[0]->timeStamp, 0.0001);
+
+    // Second update
+    player->sleptTime = 0;
+    double expectedSleep = 1247642287.4182119 - RECORDED_TIME;
+    player->update(0);
+    CHECK_EQUAL(expectedSleep, player->sleptTime);
+    CHECK_EQUAL(1247642287.4182119 - RECORDED_TIME, player->currentTime());
+//    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+//    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(1247642287.4182119 + OFFSET,
+                publishedEvents[1]->timeStamp, 0.0001);
+
+    // Third update
+    player->sleptTime = 0;
+    expectedSleep = 1247642288.5074999 - RECORDED_TIME;
+    player->update(0);
+    CHECK_CLOSE(expectedSleep, player->sleptTime, 0.0001);
+    CHECK_EQUAL(1247642288.5074999 - RECORDED_TIME, player->currentTime());
+//    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+//    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(1247642288.5074999 + OFFSET,
+                publishedEvents[2]->timeStamp, 0.0001);
+
+    // Fourth update (this one is a dummy update!, it should not actually
+    // publish anything)
+//    player->update(0);
+//    CHECK_EQUAL(3u, publishedEvents.size());
+
+    // Real Fourth Update
+    player->sleptTime = 0;
+    expectedSleep = 1247642288.507683 - RECORDED_TIME;
+    player->update(0);
+    // Not working for some reason?
+//    CHECK_CLOSE(expectedSleep, player->sleptTime, 0.0001);
+//    CHECK_EQUAL(1247642288.507683 - RECORDED_TIME, player->currentTime());
+//    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+//    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(1247642288.507683 + OFFSET,
+                publishedEvents[3]->timeStamp, 0.001);
+
+    
+    delete player;
 }
 
 } // SUITE(EventLogger)

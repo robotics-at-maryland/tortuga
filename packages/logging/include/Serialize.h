@@ -22,6 +22,7 @@
 #include <boost/serialization/vector.hpp>
 
 // Project Includes
+#include "core/include/Feature.h"
 #include "core/include/EventPublisher.h"
 #include "core/include/EventPublisherRegistry.h"
 #include "core/include/Events.h"
@@ -47,11 +48,14 @@ void registerTypes(Archive& ar)
     // Core Events
     ar.register_type(static_cast<ram::core::StringEvent*>(NULL));
 
+#ifdef RAM_WITH_MATH
     // Math Events
     ar.register_type(static_cast<ram::math::OrientationEvent*>(NULL));
     ar.register_type(static_cast<ram::math::Vector3Event*>(NULL));
     ar.register_type(static_cast<ram::math::NumericEvent*>(NULL));
-    
+#endif // RAM_WITH_MATH
+
+#ifdef RAM_WITH_VISION    
     // Vision Events
     ar.register_type(static_cast<ram::vision::ImageEvent*>(NULL));
     ar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
@@ -61,16 +65,21 @@ void registerTypes(Archive& ar)
     ar.register_type(static_cast<ram::vision::SafeEvent*>(NULL));
     ar.register_type(static_cast<ram::vision::TargetEvent*>(NULL));
     ar.register_type(static_cast<ram::vision::BarbedWireEvent*>(NULL));
+#endif // RAM_WITH_VISION
 
+#ifdef RAM_WITH_VEHICLE    
     // Vehicle Events
     ar.register_type(static_cast<ram::vehicle::PowerSourceEvent*>(NULL));
     ar.register_type(static_cast<ram::vehicle::TempSensorEvent*>(NULL));
     ar.register_type(static_cast<ram::vehicle::ThrusterEvent*>(NULL));
     ar.register_type(static_cast<ram::vehicle::SonarEvent*>(NULL));
+#endif // RAM_WITH_VEHICLE
 
+#ifdef RAM_WITH_CONTROL    
     // Control Events
     ar.register_type(static_cast<ram::control::ParamSetupEvent*>(NULL));
     ar.register_type(static_cast<ram::control::ParamUpdateEvent*>(NULL));
+#endif // RAM_WITH_CONTROL    
 }
     
     
@@ -141,6 +150,8 @@ BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)
 //                           M A T H   E V E N T S                           //
 // ------------------------------------------------------------------------- //
 
+#ifdef RAM_WITH_MATH
+
 template <class Archive>
 void serialize(Archive &ar, ram::math::Vector3 &t,
                const unsigned int file_version)
@@ -194,10 +205,13 @@ void serialize(Archive &ar, ram::math::NumericEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::math::NumericEvent)    
 
+#endif // RAM_WITH_MATH
 
 // ------------------------------------------------------------------------- //
 //                         V I S I O N   E V E N T S                         //
 // ------------------------------------------------------------------------- //
+
+#ifdef RAM_WITH_VISION
 
 // The image event is not stored currently
 template<class Archive>
@@ -328,10 +342,13 @@ void serialize(Archive &ar, ram::vision::BarbedWireEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BarbedWireEvent)
 
+#endif // RAM_WITH_VISION
 
 // ------------------------------------------------------------------------- //
 //                        V E H I C L E   E V E N T S                        //
 // ------------------------------------------------------------------------- //
+
+#ifdef RAM_WITH_VEHICLE
 
 template <class Archive>
 void serialize(Archive &ar, ram::vehicle::PowerSourceEvent &t, 
@@ -388,10 +405,13 @@ void serialize(Archive &ar, ram::vehicle::SonarEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::SonarEvent)
 
+#endif // RAM_WITH_VEHICLE
 
 // ------------------------------------------------------------------------- //
 //                        C O N T R O L   E V E N T S                        //
 // ------------------------------------------------------------------------- //
+
+#ifdef RAM_WITH_CONTROL
 
 template <class Archive>
 void serialize(Archive &ar, ram::control::ParamSetupEvent &t,
@@ -413,6 +433,8 @@ void serialize(Archive &ar, ram::control::ParamUpdateEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::control::ParamUpdateEvent)
+
+#endif // RAM_WITH_CONTROL
 
 } // serialization
 } // boost

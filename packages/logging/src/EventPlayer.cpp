@@ -13,6 +13,7 @@
 
 // STD Includes
 #include <iostream>
+#include <iomanip>
 
 // Library Includes
 #include <boost/bind.hpp>
@@ -36,7 +37,7 @@ namespace logging {
 
 EventPlayer::EventPlayer(core::ConfigNode config) :
     Subsystem(config["name"].asString("EventPlayer")),
-    m_startTime(0),
+    m_startTime(core::TimeVal::timeOfDay().get_double()),
     m_archive(0), //m_logFile)
     m_firstEventTime(-1)
 {
@@ -45,7 +46,7 @@ EventPlayer::EventPlayer(core::ConfigNode config) :
     
 EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
     Subsystem(config["name"].asString("EventPlayer"), deps),
-    m_startTime(0),
+    m_startTime(core::TimeVal::timeOfDay().get_double()),
     m_archive(0), //m_logFile)
     m_firstEventTime(-1)
 {
@@ -88,7 +89,8 @@ void EventPlayer::update(double)
     // While there are still events left in the log
     if (m_logFile.tellg() < m_fileLength)
     {
-        ram::core::EventPtr event;
+        ram::core::EventPtr event = ram::core::EventPtr();
+        double sendTime = 0;
         {
             core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
             
@@ -97,37 +99,42 @@ void EventPlayer::update(double)
 
             // Grab our first event time if needed
             if (-1 == m_firstEventTime)
+            {
                 m_firstEventTime = event->timeStamp;
-        
-            // Fix timestamp so its a the same time relative to this programs
-            // start as it is to the log files start
-            double delta = event->timeStamp - m_firstEventTime;
-            event->timeStamp = m_startTime + delta;
+            }
 
+            // Grab essentially the place we are in the log file
+            double delta = event->timeStamp - m_firstEventTime;
             m_currentTime = delta;
+            sendTime = m_startTime + delta;
         }
-        
-        // If in the "past" send the event, other wise sleep until it must be
-        // sent out
+
+        // If in the "past" send the event, other wise sleep until it must
+        // be sent out
         double now = getTimeOfDay();
-        if (now < event->timeStamp)
+        while (now < sendTime)
         {
             // Compute the time needed to sleep in seconds
-            double sleepTime = event->timeStamp - now;
+            double sleepTime = sendTime - now;
             eventSleep(sleepTime);
+            now = getTimeOfDay();
         }
-
-        if (event->sender)
+        
+        // Clone the event to send
+        core::EventPtr eventToSend(event->clone());
+        eventToSend->timeStamp = sendTime;
+            
+        if (eventToSend->sender)
         {
             // Republish the event with the events sender
-            event->sender->publish(event->type, event);
+            eventToSend->sender->publish(eventToSend->type, eventToSend);
         }
         else
         {
             // Republish just to the event hub
-            m_eventHub->publish(event);
+            m_eventHub->publish(eventToSend);
         }
-    }
+    } // If we aren't at the end of the log file
 }
 
 void EventPlayer::setPriority(core::IUpdatable::Priority priority)
