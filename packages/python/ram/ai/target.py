@@ -300,7 +300,8 @@ class SeekingToCentered(RangeXYHold):
         
     def POINT_ALIGNED(self, event):
         """When aligned we are at a good depth so hold it"""
-        self.controller.holdCurrentDepth()
+        if self._depthGain != 0:
+            self.controller.holdCurrentDepth()
         
     def TARGET_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
