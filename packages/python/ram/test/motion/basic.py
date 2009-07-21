@@ -98,12 +98,7 @@ class TestMotionManager(support.MotionTest):
         m1 = motion.basic.RateChangeDepth(9, 0.3)
         m2 = motion.basic.MoveDirection(0, 3)
         
-        self.motionManager.queueMotion(m1)
-        self.motionManager.queueMotion(m2)
-        
-        # Test that it hasn't set any motion
-        self.assertEqual(None, self.motionManager.currentMotion)
-        self.motionManager.start()
+        self.motionManager.setQueuedMotions(m1, m2)
 
         # Make sure it started the first motion
         self.assertEqual(m1, self.motionManager.currentMotion)

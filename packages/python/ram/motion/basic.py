@@ -59,13 +59,12 @@ class MotionManager(core.Subsystem):
         self._queuedMotions = []
         self._queueActive = False
             
-    def setMotion(self, motion):
+    def _setMotion(self, motion):
         """
         Stops the current motion and starts this one
         """
         eventPublisher = core.EventPublisher(self._eventHub)
         started = False
-        
         
         if motion.type & Motion.IN_PLANE:
             if self._inPlaneMotion is not None:
@@ -95,9 +94,17 @@ class MotionManager(core.Subsystem):
                 self._orientationMotion.start(self._controller, self._vehicle, 
                                               self._qeventHub, eventPublisher)
 
-    def queueMotion(self, motion):
-        self._queuedMotions.append(motion)
-        self._queueActive = True
+    def setMotion(self, motion):
+        self._queuedMotions = []
+        self._setMotion(motion)
+
+    def setQueuedMotions(self, motion, *motions):
+        self.setMotion(motion)
+        self.queueMotions(*motions)
+
+    def queueMotions(self, *motions):
+        for m in motions:
+            self._queuedMotions.append(m)
 
     def stopCurrentMotion(self):
         """
@@ -164,25 +171,17 @@ class MotionManager(core.Subsystem):
     def _motionFinished(self, event):
         self._removeMotion(event.motion)
         # Start any remaining motions
-        self.start()
+        self._startQueuedMotion()
 
     def _startQueuedMotion(self):
         # Check if there are any queued motions
         if len(self._queuedMotions) == 0:
             # Publish the queued event finish
             self.publish(MotionManager.QUEUED_MOTIONS_FINISHED, core.Event())
-            self._queueActive = False
         else:
             # Start the queued motion    
             motion = self._queuedMotions.pop(0)
-            self.setMotion(motion)
-
-    def start(self):
-        if self._queueActive and \
-                self._inPlaneMotion is None and \
-                self._depthMotion is None and \
-                self._orientationMotion is None:
-            self._startQueuedMotion()
+            self._setMotion(motion)
         
     def background(self):
         pass
