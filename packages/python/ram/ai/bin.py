@@ -1014,7 +1014,7 @@ class PostDiveExamine(Examine):
     @staticmethod
     def transitions():
         return Examine.transitions(myState = PostDiveExamine,
-                                   foundTarget = SettleBeforeDrop,
+                                   foundTarget = DropMarker,
                                    moveOn = SurfaceToMove,
                                    lostState = RecoverCloserLook,
                                    recoveryState = LostCurrentBinPostDiveExamine)
@@ -1049,38 +1049,7 @@ class LostCurrentBinPostDiveExamine(LostCurrentBin):
         return LostCurrentBin.transitions(myState = LostCurrentBinPostDiveExamine,
                                           lostState = RecoverCloserLook,
                                           originalState = PostDiveExamine)
-        
-class SettleBeforeDrop(SettlingState):
-    """
-    Gives the vehicle some time to settle over the bins before dropping the
-    marker
-    """
-    
-    SETTLED = core.declareEventType('SETTLED')
-    
-    @staticmethod
-    def transitions():
-        return SettlingState.transitions(SettleBeforeDrop,
-            { SettleBeforeDrop.SETTLED : DropMarker },
-            lostState = RecoverCloserLook,
-            recoveryState = LostCurrentBinSettleBeforeDrop)
-
-    def BIN_FOUND(self, event):
-        # Disable Angle Trackingx
-        event.angle = math.Degree(0)
-        SettlingState.BIN_FOUND(self, event)
-    
-    def enter(self):
-        settleTime = self._config.get('settleTime', 3)
-        SettlingState.enter(self, SettleBeforeDrop.SETTLED, settleTime)
-    
-class LostCurrentBinSettleBeforeDrop(LostCurrentBin):
-    @staticmethod
-    def transitions():
-        return LostCurrentBin.transitions(myState = LostCurrentBinSettleBeforeDrop,
-                                          lostState = RecoverCloserLook,
-                                          originalState = SettleBeforeDrop)
-       
+               
 class SurfaceToMove(HoveringState):
     """
     Goes back to starting cruise depth we had before we started the bins
@@ -1191,34 +1160,23 @@ class LostCurrentBinNextBin(LostCurrentBin):
                                           lostState = RecoverNextBin,
                                           originalState = Dive)
         
-class DropMarker(SettlingState):
+class DropMarker(HoveringState):
     """
     Drops the marker on the bin, then either continues searching, or surfaces
     based on the how many markers its dropped.
     """
 
-    DROPPED = core.declareEventType('DROPPED_')
     FINISHED = core.declareEventType('FINISHED')
     CONTINUE = core.declareEventType('CONTINUE')
     
     @staticmethod
     def transitions():
-        return SettlingState.transitions(DropMarker,
-            { DropMarker.DROPPED : DropMarker,
-              DropMarker.FINISHED : SurfaceToCruise,
+        return HoveringState.transitions(DropMarker,
+            { DropMarker.FINISHED : SurfaceToCruise,
               DropMarker.CONTINUE : SurfaceToMove },
               lostState = DropMarker, recoveryState = DropMarker)
 
-    def DROPPED_(self, event):
-        markerNum = self.ai.data['markersDropped']
-        if markerNum < 2:
-            self.publish(DropMarker.CONTINUE, core.Event())
-        else:
-            self.publish(DropMarker.FINISHED, core.Event())
-
-    def enter(self):
-        SettlingState.enter(self, DropMarker.DROPPED, 5)
-
+    def _dropMarker(self):
         # Increment marker dropped count
         markerNum = self.ai.data.get('markersDropped',0)
         self.ai.data['markersDropped'] = markerNum + 1
@@ -1229,6 +1187,31 @@ class DropMarker(SettlingState):
         # Mark that we dropped the symbol
         droppingSymbol = self.ai.data['droppingSymbol']
         self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
+
+        markerNum = self.ai.data['markersDropped']
+        if markerNum < 2:
+            self.publish(DropMarker.CONTINUE, core.Event())
+        else:
+            self.publish(DropMarker.FINISHED, core.Event())
+
+    def BIN_FOUND(self, event):
+        # Zero out the angle
+        event.angle = math.Degree(0)
+        HoveringState.BIN_FOUND(self, event)
+
+        # Only check the current bin
+        if self._currentBin(event):
+            negativeThreshold = (0.0 - self._threshold)
+            # Check if it is in the threshold
+            if (negativeThreshold < event.x < self._threshold) and \
+                    (negativeThreshold < event.y < self._threshold):
+                # Drop the marker if it is
+                self._dropMarker()
+
+    def enter(self):
+        HoveringState.enter(self)
+
+        self._threshold = self._config.get('threshold', 0.05)
         
 class CheckDropped(HoveringState):
     """

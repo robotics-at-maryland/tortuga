@@ -459,12 +459,6 @@ class TestLostCurrentBinPostDiveExamine(TestLostCurrentBin):
                                  recover = bin.RecoverCloserLook,
                                  foundState = bin.PostDiveExamine)
 
-class TestLostCurrentBinSettleBeforeDrop(TestLostCurrentBin):
-    def setUp(self):
-        TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinSettleBeforeDrop,
-                                 recover = bin.RecoverCloserLook,
-                                 foundState = bin.SettleBeforeDrop)
-
 class TestLostCurrentBinSurfaceToMove(TestLostCurrentBin):
     def setUp(self):
         TestLostCurrentBin.setUp(self, myState = bin.LostCurrentBinSurfaceToMove,
@@ -719,8 +713,9 @@ class TestSeekEnd(BinTestCase):
         # We are in the center
         self.ai.data['binData']['currentID'] = 3
         self.ai.data['binData']['currentIds'] = set([2,3,4])
-        self.ai.data['binData']['itemData'] = {2 : Mock(x = -1), 3 : Mock(x = 0),
-                                   4 : Mock(x = 1)}
+        self.ai.data['binData']['itemData'] = {2 : Mock(x = -1),
+                                               3 : Mock(x = 0),
+                                               4 : Mock(x = 1)}
         
         self.assertFalse(self._centered)
         self.assertFalse(self._atEnd)
@@ -730,7 +725,7 @@ class TestSeekEnd(BinTestCase):
         
         self.assertFalse(self._centered)
         self.assertFalse(self._atEnd)
-        self.assertEqual(2, self.ai.data['binData']['currentID'])
+        self.assertEqual(4, self.ai.data['binData']['currentID'])
         self.assertCurrentState(bin.SeekEnd)
         
         # Now we are on the left, make sure another center, gets us the right
@@ -743,7 +738,7 @@ class TestSeekEnd(BinTestCase):
         
         self.assertFalse(self._centered)
         self.assert_(self._atEnd)
-        self.assertEqual(2, self.ai.data['binData']['currentID'])
+        self.assertEqual(4, self.ai.data['binData']['currentID'])
         
     def testAtEnd(self):
         self.injectEvent(bin.SeekEnd.AT_END)
@@ -1100,7 +1095,7 @@ class TestPostDiveExamine(ExamineTestCase, BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         ExamineTestCase.setUp(self, myState = bin.PostDiveExamine,
-                              nextState = bin.SettleBeforeDrop,
+                              nextState = bin.DropMarker,
                               failureState = bin.SurfaceToMove,
                               recoverState = bin.RecoverCloserLook)
         
@@ -1138,48 +1133,8 @@ class TestPostDiveExamine(ExamineTestCase, BinTestCase):
         
         self.releaseTimer(bin.Examine.TIMEOUT)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.SettleBeforeDrop)
-        
-class TestSettleBeforeDrop(BinTestCase):
-    def setUp(self):
-        BinTestCase.setUp(self)
-        self.machine.start(bin.SettleBeforeDrop)
-        
-    def testStart(self):
-        """Make sure the motion and the timer are setup properly"""
-        self.machine.stop()
-        self.machine.start(bin.SettleBeforeDrop)
-        
-        self.assertCurrentMotion(motion.pipe.Hover)
-        
-        # Make sure timer works
-        self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
-        self.releaseTimer(bin.SettleBeforeDrop.SETTLED)
         self.assertCurrentState(bin.DropMarker)
-        
-    def testBinLost(self):
-        """Make sure we search when we lose the bin"""
-        # For Recover
-        self.ai.data["lastBinX"] = 0
-        self.ai.data["lastBinY"] = 0
-        
-        self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.RecoverCloserLook)
-    
-    def testBinTracking(self):
-        self.binTrackingHelper()
-    
-    def testBinFound(self):
-        """Make sure the loop back works"""
-        self.binFoundHelper(shouldRotate = False)
-    
-    def testSettled(self):
-        """Make sure we move on after settling"""
-        # Inject settled event
-        self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
-        self.injectEvent(bin.SettleBeforeDrop.SETTLED)
-        self.assertCurrentState(bin.DropMarker)
-        
+                
 class TestSurfaceToMove(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
@@ -1447,20 +1402,18 @@ class TestDropMarker(BinTestCase):
         BinTestCase.setUp(self)
         self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.machine.start(bin.DropMarker)
+        self.ai.data['binData']['currentID'] = 0
     
     def testStart(self):
         """Make sure we start diving, and drop a marker """
         self.assertCurrentMotion(motion.pipe.Hover)
         self.assertCurrentState(bin.DropMarker)
 
-#        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.releaseTimer(bin.DropMarker.DROPPED)
+        self.publishQueuedBinFound(x = 0, y = 0, angle = math.Degree(0))
+        self.qeventHub.publishEvents()
+
         self.assertCurrentState(bin.SurfaceToMove)
         self.assertAIDataValue('droppedSymbols', set([vision.Symbol.CLUB]))
-        
-    def testBinFound(self):
-        """Make sure the loop back works"""
-        self.binFoundHelper()
         
     def testBinTracking(self):
         self.binTrackingHelper()
@@ -1468,11 +1421,14 @@ class TestDropMarker(BinTestCase):
     def testDroppedFirst(self):
         """Make sure we move on after dropping the second marker"""
 
-        # Needed to DROPPED transition handler
-        self.ai.data['markersDropped'] = 1
+        # Try an invalid event first
+        self.publishQueuedBinFound(id = 0, x = 0.1, y = 0.1,
+                                   angle = math.Degree(0.5))
 
         # Inject event and test the response
-        self.injectEvent(bin.DropMarker.DROPPED)
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0.5))
+        self.qeventHub.publishEvents()
         self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToMove)
         
@@ -1480,13 +1436,19 @@ class TestDropMarker(BinTestCase):
         """Make sure we move on after dropping the second marker"""
 
         # Needed to DROPPED transition handler
-        self.ai.data['markersDropped'] = 2
+        self.ai.data['markersDropped'] = 1
 
         # Needed for SurfaceToCruise
         self.ai.data['preBinCruiseDepth'] = 5.0 
 
+        # Try an invalid event first
+        self.publishQueuedBinFound(id = 0, x = 0.1, y = 0.1,
+                                   angle = math.Degree(0.5))
+
         # Inject event and test the response
-        self.injectEvent(bin.DropMarker.DROPPED)
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0.5))
+        self.qeventHub.publishEvents()
         self.qeventHub.publishEvents()
         self.assertCurrentState(bin.SurfaceToCruise)
 
