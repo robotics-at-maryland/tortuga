@@ -15,6 +15,8 @@
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+#include "core/include/Feature.h"
+
 #include "logging/include/Serialize.h"
 
 #include "vision/include/Events.h"
@@ -83,6 +85,7 @@ TEST_FIXTURE(Fixture, Event)
     CHECK_EQUAL(event->timeStamp, result->timeStamp);
 }
 
+#ifdef RAM_WITH_VISION
 TEST_FIXTURE(Fixture, RedLightEvent)
 {
     // Create the event and load it with data
@@ -108,5 +111,6 @@ TEST_FIXTURE(Fixture, RedLightEvent)
   CHECK_EQUAL(result->range, redLightEvent->range);
   CHECK_EQUAL(result->pixCount, redLightEvent->pixCount);
 }
+#endif // RAM_WITH_VISION
 
 } // SUITE(Serialization)
