@@ -22,6 +22,7 @@ import ram.motion.pipe
 
 import ram.test.ai.support as aisupport
 from ram.test import Mock
+from ram.test.motion.support import MockTimer
         
 # Helper functions
 
@@ -313,7 +314,7 @@ class TestRecover(aisupport.AITestCase):
     class MockRecover(bin.Recover):
         @staticmethod
         def transitions():
-            return bin.Recover.transitions(TestRecover.MockFoundState)
+            return bin.Recover.transitions(TestRecover.MockRecover, TestRecover.MockFoundState)
         
     class MockFoundState(state.State):
         @staticmethod
@@ -340,13 +341,15 @@ class TestRecover(aisupport.AITestCase):
         
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
+        self.releaseTimer(bin.Recover.RETURN)
         self.assertCurrentState(TestRecover.MockFoundState)
         
 class TestLostCurrentBin(aisupport.AITestCase):
     class MockRecover(bin.Recover):
         @staticmethod
         def transitions():
-            return bin.Recover.transitions(TestLostCurrentBin.MockFoundState)
+            return bin.Recover.transitions(TestLostCurrentBin.MockRecover,
+                                           TestLostCurrentBin.MockFoundState)
         
     class MockLostCurrentBin(bin.LostCurrentBin):
         @staticmethod
@@ -499,6 +502,7 @@ class TestRecoverSeeking(aisupport.AITestCase):
         
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
                          0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
+        self.releaseTimer(bin.Recover.RETURN)
         self.assertCurrentState(bin.Seeking)
 
 
@@ -1356,6 +1360,53 @@ class TestNextBin(BinTestCase):
         self.assertFalse(self._centered)
         
         # For Recover
+        self.ai.data["lastBinX"] = 1
+        self.ai.data["lastBinY"] = 0
+        
+        self.ai.data['binData']['currentID'] = 3
+        self.ai.data['binData']['currentIds'] = set([2,3,4])
+        self.ai.data['binData']['itemData'] = {4 : Mock(x = -1), 3 : Mock(x = 0),
+                                               2 : Mock(x = 1)}
+        self.machine.start(bin.NextBin)
+        self.qeventHub.publishEvents()
+        
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        self.publishQueuedBinDropped(id = 4)
+        self.publishQueuedBinDropped(id = 2)
+        self.publishQueuedBinDropped(id = 3)
+        self.injectEvent(vision.EventType.BINS_LOST)
+        
+        self.assertCurrentState(bin.RecoverNextBin)
+        
+        self.publishQueuedBinFound(x = 0, id = 5)
+        self.publishQueuedBinFound(x = 1, id = 6)
+        self.publishQueuedBinFound(x = -1, id = 7)
+        self.qeventHub.publishEvents()
+        
+        self.assertTrue(self.machine.currentState()._delay is not None)
+        
+        # Make sure the timeout has been stopped
+        self.assertTrue(MockTimer.LOG[state.FindAttempt.TIMEOUT].stopped)
+        self.assertFalse(MockTimer.LOG[bin.Recover.RETURN].stopped)
+        
+        self.releaseTimer(bin.Recover.RETURN)
+        
+        self.assertDataValue(self.ai.data['binData'], 'currentID', 6)
+        
+        self.assertFalse(self._atEnd)
+        self.assertCurrentState(bin.Dive)
+        
+    def testLostFoundLost(self):
+        """
+        Make sure it doesn't go into CheckDropped unless it's at the end
+        after it recovers from a lost event
+        """
+        self.assertFalse(self._atEnd)
+        self.assertFalse(self._centered)
+        
+        # For Recover
         self.ai.data["lastBinX"] = 0
         self.ai.data["lastBinY"] = 0
         
@@ -1376,15 +1427,20 @@ class TestNextBin(BinTestCase):
         
         self.assertCurrentState(bin.RecoverNextBin)
         
-        self.publishQueuedBinFound(id = 4)
-        self.publishQueuedBinFound(id = 2)
-        self.publishQueuedBinFound(id = 3)
-        self.qeventHub.publishEvents()
+        self.publishQueuedBinFound(x = -1, id = 5)
         
-        self.assertDataValue(self.ai.data['binData'], 'currentID', 4)
+        self.publishQueuedBinDropped(id = 5)
+        self.injectEvent(vision.EventType.BINS_LOST)
+        
+        self.assertTrue(MockTimer.LOG[bin.Recover.RETURN].stopped)
+        self.assertFalse(MockTimer.LOG[state.FindAttempt.TIMEOUT].stopped)
         
         self.assertFalse(self._atEnd)
-        self.assertCurrentState(bin.Dive)
+        self.assertCurrentState(bin.RecoverNextBin)
+        
+        # Make sure it's able to start the delay timer again
+        self.publishQueuedBinFound(id = 6)
+        self.assertFalse(MockTimer.LOG[bin.Recover.RETURN].stopped)
         
 class TestDropMarker(BinTestCase):
     def setUp(self):

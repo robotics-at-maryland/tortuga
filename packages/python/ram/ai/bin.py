@@ -349,20 +349,61 @@ class BinSortingState(HoveringState):
         
 class Recover(state.FindAttempt):
     MOVE_ON = core.declareEventType('MOVE_ON')
+    RETURN = core.declareEventType('RETURN_')
     
     @staticmethod
-    def transitions(foundState):
-        return state.FindAttempt.transitions(vision.EventType.BIN_FOUND,
+    def transitions(myState, foundState):
+        trans = state.FindAttempt.transitions(Recover.RETURN,
                                              foundState, Start)
+        trans.update({vision.EventType.BIN_FOUND : myState,
+                      vision.EventType.BINS_LOST : myState})
+        
+        return trans
         
     def BIN_FOUND(self, event):
-        self.ai.data['binData']['currentID'] = event.id
         if event.symbol != vision.Symbol.UNKNOWN:
             histogram = \
                 self.ai.data['binData']['histogram'].setdefault(
                     event.id, dict())
             histogram[event.symbol] = histogram.get(event.symbol, 0) + 1
             histogram['totalHits'] = histogram.get('totalHits', 0) + 1
+            
+        # Create a delay timer to get all the bins before going back
+        if self._delay is None:
+            # Turn off the old timer
+            if self.timer is not None:
+                self.timer.stop()
+            
+            self._delay = self.timerManager.newTimer(Recover.RETURN, 0.5)
+            self._delay.start()
+            
+    def BINS_LOST(self, event):
+        # Restart the timeout timer and stop the delay timer
+        if self._delay is not None:
+            self._delay.stop()
+            self._delay = None
+            
+        self.timer = \
+            self.timerManager.newTimer(state.FindAttempt.TIMEOUT, self._timeout)
+        self.timer.start()
+                
+    def RETURN_(self, event):
+        location = math.Vector2(self.ai.data['lastBinX'], self.ai.data['lastBinY'])
+        foundId = None
+        foundIdDistance = None
+        binData = self.ai.data['binData']
+        currentBins = [b for b in binData['currentIds']]
+        for id in currentBins:
+            binLocation = math.Vector2(binData['itemData'][id].x,
+                                       binData['itemData'][id].y)
+            if foundId is None:
+                foundId = id
+                foundIdDistance = (binLocation - location).length()
+            else:
+                if (binLocation - location).length() < foundIdDistance:
+                    foundId = id
+                    foundIdDistance = (binLocation - location).length()
+        self.ai.data['binData']['currentID'] = foundId
     
     def enter(self, timeout = 4):
         self._timeout = self._config.get('timeout', timeout)
@@ -378,6 +419,7 @@ class Recover(state.FindAttempt):
         quat = math.Vector3.UNIT_Y.getRotationTo(ahead)
         self._direction = quat.getYaw(True)
         self._speed = self._config.get('speed', 0.5)
+        self._delay = None
 
         searchMotion = motion.basic.MoveDirection(self._direction, self._speed)
 
@@ -526,7 +568,7 @@ class Seeking(HoveringState):
 class RecoverSeeking(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(Seeking)
+        return Recover.transitions(RecoverSeeking, Seeking)
 
     def enter(self, timeout = 4):
         Recover.enter(self, timeout)
@@ -591,7 +633,7 @@ class Centering(SettlingState):
 class RecoverCentering(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(Centering)
+        return Recover.transitions(RecoverCentering, Centering)
         
 class SeekEnd(BinSortingState):
     """
@@ -672,7 +714,7 @@ class SeekEnd(BinSortingState):
 class RecoverSeekEnd(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(SeekEnd)
+        return Recover.transitions(RecoverSeekEnd, SeekEnd)
    
 class Dive(HoveringState):
     """
@@ -714,7 +756,7 @@ class Dive(HoveringState):
 class RecoverDive(Recover):
     @staticmethod
     def transitions():
-        trans = Recover.transitions(Dive)
+        trans = Recover.transitions(RecoverDive, Dive)
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
@@ -939,7 +981,7 @@ class CloserLook(Dive):
 class RecoverCloserLook(Recover):
     @staticmethod
     def transitions():
-        trans = Recover.transitions(CloserLook)
+        trans = Recover.transitions(RecoverCloserLook, CloserLook)
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
@@ -1075,7 +1117,7 @@ class SurfaceToMove(HoveringState):
 class RecoverSurfaceToMove(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(SurfaceToMove)
+        return Recover.transitions(RecoverSurfaceToMove, SurfaceToMove)
     
 class LostCurrentBinSurfaceToMove(LostCurrentBin):
     @staticmethod
@@ -1139,7 +1181,7 @@ class NextBin(BinSortingState):
 class RecoverNextBin(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(Dive)
+        return Recover.transitions(RecoverNextBin, Dive)
     
 class LostCurrentBinNextBin(LostCurrentBin):
     @staticmethod
@@ -1252,7 +1294,7 @@ class SurfaceToCruise(HoveringState):
 class RecoverSurfaceToCruise(Recover):
     @staticmethod
     def transitions():
-        return Recover.transitions(SurfaceToCruise)
+        return Recover.transitions(RecoverSurfaceToCruise, SurfaceToCruise)
 
 class End(state.State):
     def enter(self):
