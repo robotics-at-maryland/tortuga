@@ -1398,8 +1398,7 @@ class RenderCameraListener(ogre.RenderTargetListener):
         # Send image to camera
         self._camera.capturedImage(self._image)
         
-
-    def _updateCamera(self, timeSinceLastUpdate):
+    def _copyImage(self, timeSinceLastUpdate):
         # Lock all of the texture buffer
 
         textureBuffer = self._texture.getBuffer()
@@ -1416,12 +1415,13 @@ class RenderCameraListener(ogre.RenderTargetListener):
                                            ogre.PixelFormat.PF_R8G8B8,
                                            640 * 480)
 
-        # Send of the image to the vision system
-        self._sendImage(self._bufferAddress)
-
         textureBuffer.unlock()
 
-        
+    def _updateCamera(self, timeSinceLastUpdate):
+        self._copyImage(timeSinceLastUpdate)
+
+        # Send of the image to the vision system
+        self._sendImage(self._bufferAddress)        
 
 class SimVision(ext.vision.VisionSystem):
     def __init__(self, config, deps):
@@ -1527,7 +1527,10 @@ class CrappyCameraListener(RenderCameraListener):
         if self._vehicle._loseOnNextFrame or (num < self._failureRate):
             # If so, send in a blank buffer
             self._vehicle._loseOnNextFrame = False
-            ctypes.memset(self._bufferAddress, 0, 640*480*3)
+            self._copyImage(timeSinceLastUpdate)
+            for x in xrange(480):
+                offset = 160*3 + (640*3 * x)
+                ctypes.memset(self._bufferAddress + offset, 0, 320*3)
             self._sendImage(self._bufferAddress)
         else:
             # Otherwise, use the normal method

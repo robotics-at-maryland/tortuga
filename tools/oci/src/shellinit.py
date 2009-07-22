@@ -11,6 +11,7 @@ import ram.motion.basic as basic
 import ram.motion.search as search
 import ram.timer as timer
 from datetime import datetime
+from pprint import pprint
 
 # Helper methods
 def diveTo(depth, speed = 0.3):

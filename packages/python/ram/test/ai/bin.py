@@ -424,8 +424,8 @@ class TestLostCurrentBin(aisupport.AITestCase):
             self.foundState = foundState
         
         # Data. currentID must be something that it won't accidently create.
-        self.ai.data['lastBinX'] = 0.5
-        self.ai.data['lastBinY'] = -0.5
+        self.ai.data['lastBinX'] = 0.25
+        self.ai.data['lastBinY'] = -0.25
         self.ai.data['startSide'] = bin.BinSortingState.RIGHT
         
         self.machine.start(self.myState)
@@ -452,8 +452,8 @@ class TestLostCurrentBin(aisupport.AITestCase):
         
         # Now the correct bin
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.5,
-                         y = -0.5, id = 6)
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.25,
+                         y = -0.25, id = 6)
         self.qeventHub.publishEvents()
         self.assertCurrentState(self.foundState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 6)
@@ -468,7 +468,8 @@ class TestLostCurrentBin(aisupport.AITestCase):
         
         self.assertCurrentState(self.myState)
         self.releaseTimer(state.FindAttempt.TIMEOUT)
-        self.assertCurrentState(bin.SurfaceToMove)
+        self.assertCurrentState(self.foundState)
+        self.assertDataValue(self.ai.data['binData'], 'currentID', 3)
 
 class TestLostCurrentBinDive(TestLostCurrentBin):
     def setUp(self):

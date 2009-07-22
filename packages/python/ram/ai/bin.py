@@ -42,8 +42,8 @@ class HoveringState(state.State):
     LOST_CURRENT_BIN = core.declareEventType('LOST_CURRENT_BIN_')
     
     @staticmethod
-    def transitions(myState, trans = None, lostState = None,
-                    recoveryState = None):
+    def transitions(myState, lostState = None,
+                    recoveryState = None, trans = None):
         if lostState is None:
             lostState = Recover
         if recoveryState is None:
@@ -108,19 +108,28 @@ class HoveringState(state.State):
         
         if self._currentBin(event):
             # Say we've lost the current bin
-            self.publish(HoveringState.LOST_CURRENT_BIN, core.Event())
+            if len(self.ai.data['binData']['currentIds'].
+                   difference([event.id])):
+                self.publish(HoveringState.LOST_CURRENT_BIN, core.Event())
             
     def LOST_CURRENT_BIN_(self, event):
         """
-        Default actions for losing the current bin. Overwrite if something else
-        is desired
+        Default actions for losing the current bin. This does not occur
+        if a recoveryState was set.
         """
-        # Check if we have other ids and switch to one of those
-        currentIds = self.ai.data['binData']['currentIds']
-        if currentIds is not None:
-            newEvent = self._findClosestBinIdEvent()
-            if newEvent is not None:
-                self.ai.data['binData']['currentID'] = newEvent.id
+        # Check if it loops back to itself on this state
+        recoveryState = \
+            self.__class__.transitions()[HoveringState.LOST_CURRENT_BIN]
+        if recoveryState == self.__class__:
+            # Check if we have other ids and switch to one of those
+            currentIds = self.ai.data['binData']['currentIds']
+            if currentIds is not None:
+                newEvent = self._findClosestBinIdEvent()
+                if newEvent is not None:
+                    self.ai.data['binData']['currentID'] = newEvent.id
+                else:
+                    raise Exception("Lost the currentID"\
+                                        "without a proper recovery!")
                 
     def _findClosestBinIdEvent(self):
         closestIdEvent = None
@@ -232,10 +241,6 @@ class BinSortingState(HoveringState):
         if self._currentBin(event): 
             if math.Vector2(event.x, event.y).length() < self._centeredRange:
                 self.publish(BinSortingState.CENTERED_, core.Event())
-                
-    def LOST_CURRENT_BIN_(self, event):
-        # Erase HoveringState's LOST_CURRENT_BIN
-        pass
     
     def enter(self, direction, useMultiAngle = False):
         """
@@ -427,16 +432,17 @@ class Recover(state.FindAttempt):
         
 class LostCurrentBin(state.FindAttempt, HoveringState):
     """
-    When the vehicle loses its current ID it will attempt to find it
+    When the vehicle loses its current ID it will attempt to find it.
+    If it fails to find it, it will choose a new ID and continue.
     """
     REFOUND_BIN = core.declareEventType('REFOUND_BIN')
     
     @staticmethod
     def transitions(myState, lostState, originalState):
         trans = HoveringState.transitions(myState, lostState = lostState)
-        trans = state.FindAttempt.transitions(vision.EventType.BIN_FOUND,
-                                             myState, SurfaceToMove, trans = trans)
-        trans.update({LostCurrentBin.REFOUND_BIN : originalState})
+        trans.update(state.FindAttempt.transitions(vision.EventType.BIN_FOUND,
+                      myState, originalState, trans = trans))
+        trans.update({ LostCurrentBin.REFOUND_BIN : originalState })
         
         return trans
     
@@ -457,6 +463,16 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
             else:
                 # Add it to the currentIDs and continue searching
                 self._currentIds.add(event.id)
+
+    def TIMEOUT(self, event):
+        currentIds = self.ai.data['binData']['currentIds']
+        if currentIds is not None:
+            newEvent = self._findClosestBinIdEvent()
+            if newEvent is not None:
+                self.ai.data['binData']['currentID'] = newEvent.id
+            else:
+                # Something went horribly wrong
+                raise Exception("Lost the Current ID without anyway back!")
         
     def enter(self):
         HoveringState.enter(self)
@@ -553,7 +569,8 @@ class Seeking(HoveringState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(Seeking,
-            { Seeking.BIN_CENTERED : Centering }, lostState = RecoverSeeking)
+            lostState = RecoverSeeking,
+            trans = { Seeking.BIN_CENTERED : Centering })
  
     def BIN_FOUND(self, event):
         eventDistance = math.Vector2(event.x, event.y).length()
@@ -626,7 +643,8 @@ class Centering(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Centering,
-            { Centering.SETTLED : SeekEnd }, lostState = RecoverCentering)
+            lostState = RecoverCentering,
+            trans = { Centering.SETTLED : SeekEnd })
     
     def SETTLED_(self, event):
         """
@@ -662,9 +680,10 @@ class SeekEnd(BinSortingState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(SeekEnd,
-            {BinSortingState.CENTERED_ : SeekEnd, 
-             SeekEnd.POSSIBLE_END : SeekEnd,
-             SeekEnd.AT_END : Dive }, lostState = RecoverSeekEnd)
+            lostState = RecoverSeekEnd, recoveryState = LostCurrentBinSeekEnd,
+            trans = { BinSortingState.CENTERED_ : SeekEnd, 
+                      SeekEnd.POSSIBLE_END : SeekEnd,
+                      SeekEnd.AT_END : Dive })
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
@@ -733,6 +752,13 @@ class RecoverSeekEnd(Recover):
     @staticmethod
     def transitions():
         return Recover.transitions(RecoverSeekEnd, SeekEnd)
+
+class LostCurrentBinSeekEnd(LostCurrentBin):
+    @staticmethod
+    def transitions():
+        return LostCurrentBin.transitions(LostCurrentBinSeekEnd,
+                                          RecoverSeekEnd,
+                                          SeekEnd)
    
 class Dive(HoveringState):
     """
@@ -742,8 +768,8 @@ class Dive(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Dive,
-        { motion.basic.Motion.FINISHED : Aligning }, lostState = RecoverDive,
-        recoveryState = LostCurrentBinDive)
+        lostState = RecoverDive, recoveryState = LostCurrentBinDive,
+        trans = { motion.basic.Motion.FINISHED : Aligning })
 
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -813,8 +839,8 @@ class Aligning(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(Aligning,
-            { Aligning.ALIGNED : PreDiveExamine }, lostState = RecoverDive,
-            recoveryState = LostCurrentBinAligning)
+            lostState = RecoverDive, recoveryState = LostCurrentBinAligning,
+            trans = { Aligning.ALIGNED : PreDiveExamine })
     
     def enter(self):
         SettlingState.enter(self, Aligning.ALIGNED, 5)
@@ -835,12 +861,12 @@ class Examine(HoveringState):
     TIMEOUT = core.declareEventType('TIMEOUT')
 
     @staticmethod
-    def transitions(myState, foundTarget, moveOn, lostState, recoveryState):
+    def transitions(myState, lostState, recoveryState, foundTarget, moveOn):
         return HoveringState.transitions(myState,
-        { Examine.FOUND_TARGET : foundTarget,
-          Examine.MOVE_ON : moveOn,
-          Examine.TIMEOUT : myState }, lostState = lostState,
-          recoveryState = recoveryState)
+        lostState = lostState, recoveryState = recoveryState,
+        trans = { Examine.FOUND_TARGET : foundTarget,
+                  Examine.MOVE_ON : moveOn,
+                  Examine.TIMEOUT : myState })
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -944,10 +970,10 @@ class PreDiveExamine(Examine):
     @staticmethod
     def transitions():
         trans = Examine.transitions(myState = PreDiveExamine,
-                                    foundTarget = CloserLook,
-                                    moveOn = SurfaceToMove,
-                                    lostState = RecoverDive,
-                                    recoveryState = LostCurrentBinPreDiveExamine)
+                                   lostState = RecoverDive,
+                                   recoveryState = LostCurrentBinPreDiveExamine,
+                                   foundTarget = CloserLook,
+                                   moveOn = SurfaceToMove)
         trans.update({PreDiveExamine.LOOK_CLOSER : CloserLook})
 
         return trans
@@ -976,9 +1002,10 @@ class PreDiveExamine(Examine):
 class LostCurrentBinPreDiveExamine(LostCurrentBinExamine):
     @staticmethod
     def transitions():
-        return LostCurrentBinExamine.transitions(myState = LostCurrentBinPreDiveExamine,
-                                          lostState = RecoverDive,
-                                          originalState = PreDiveExamine)
+        return LostCurrentBinExamine.transitions(
+            myState = LostCurrentBinPreDiveExamine,
+            lostState = RecoverDive,
+            originalState = PreDiveExamine)
         
 class CloserLook(Dive):
     """
@@ -988,8 +1015,8 @@ class CloserLook(Dive):
     @staticmethod
     def transitions():
         return SettlingState.transitions(CloserLook,
-        { motion.basic.Motion.FINISHED : PostDiveExamine },
-        lostState = RecoverCloserLook, recoveryState = LostCurrentBinCloserLook)
+        lostState = RecoverCloserLook, recoveryState = LostCurrentBinCloserLook,
+        trans = { motion.basic.Motion.FINISHED : PostDiveExamine })
         
     def enter(self):
         # Standard dive
@@ -1003,6 +1030,7 @@ class RecoverCloserLook(Recover):
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
+
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
         self._increase = self._config.get('increase', 0.25)
@@ -1031,10 +1059,10 @@ class PostDiveExamine(Examine):
     @staticmethod
     def transitions():
         return Examine.transitions(myState = PostDiveExamine,
-                                   foundTarget = DropMarker,
-                                   moveOn = SurfaceToMove,
-                                   lostState = RecoverCloserLook,
-                                   recoveryState = LostCurrentBinPostDiveExamine)
+                                  lostState = RecoverCloserLook,
+                                  recoveryState = LostCurrentBinPostDiveExamine,
+                                  foundTarget = DropMarker,
+                                  moveOn = SurfaceToMove)
 
     def TIMEOUT(self, event):
         histogram = self.ai.data['binData']['histogram']
@@ -1063,9 +1091,10 @@ class PostDiveExamine(Examine):
 class LostCurrentBinPostDiveExamine(LostCurrentBin):
     @staticmethod
     def transitions():
-        return LostCurrentBin.transitions(myState = LostCurrentBinPostDiveExamine,
-                                          lostState = RecoverCloserLook,
-                                          originalState = PostDiveExamine)
+        return LostCurrentBin.transitions(
+            myState = LostCurrentBinPostDiveExamine,
+            lostState = RecoverCloserLook,
+            originalState = PostDiveExamine)
                
 class SurfaceToMove(HoveringState):
     """
@@ -1075,9 +1104,9 @@ class SurfaceToMove(HoveringState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(SurfaceToMove,
-            { motion.basic.Motion.FINISHED : NextBin },
             lostState = RecoverSurfaceToMove,
-            recoveryState = LostCurrentBinSurfaceToMove)
+            recoveryState = LostCurrentBinSurfaceToMove,
+            trans = { motion.basic.Motion.FINISHED : NextBin })
         
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -1119,9 +1148,9 @@ class NextBin(BinSortingState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(NextBin,
-            {BinSortingState.CENTERED_ : Dive, 
-             NextBin.AT_END : CheckDropped },
-             lostState = RecoverNextBin, recoveryState = LostCurrentBinNextBin)
+            lostState = RecoverNextBin, recoveryState = LostCurrentBinNextBin,
+            trans = { BinSortingState.CENTERED_ : Dive, 
+                      NextBin.AT_END : CheckDropped })
     
     def _getNextBin(self, sortedBins, currentBinId):
         """
@@ -1190,11 +1219,11 @@ class DropMarker(SettlingState):
     @staticmethod
     def transitions():
         return SettlingState.transitions(DropMarker,
-            { DropMarker.FINISHED : SurfaceToCruise,
-              DropMarker.CONTINUE : SurfaceToMove,
-              DropMarker.DROP : DropMarker }, 
-              lostState = RecoverCloserLook,
-              recoveryState = LostCurrentBinCloserLook)
+            lostState = RecoverCloserLook,
+            recoveryState = LostCurrentBinCloserLook,
+            trans = { DropMarker.FINISHED : SurfaceToCruise,
+                      DropMarker.CONTINUE : SurfaceToMove,
+                      DropMarker.DROP : DropMarker })
 
     def _dropMarker(self):
         # Increment marker dropped count
@@ -1248,9 +1277,9 @@ class CheckDropped(HoveringState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(CheckDropped,
-            { CheckDropped.FINISH : SurfaceToCruise,
-              CheckDropped.RESTART : Dive }, lostState = CheckDropped,
-              recoveryState = CheckDropped)
+            lostState = CheckDropped,
+            trans = { CheckDropped.FINISH : SurfaceToCruise,
+                      CheckDropped.RESTART : Dive })
         
     def enter(self):
         self._maximumScans = self._config.get('maximumScans', 2)
@@ -1279,8 +1308,8 @@ class SurfaceToCruise(HoveringState):
     @staticmethod
     def transitions():
         return HoveringState.transitions(SurfaceToCruise,
-            { motion.basic.Motion.FINISHED : End },
-            lostState = RecoverSurfaceToCruise)
+            lostState = RecoverSurfaceToCruise,
+            trans = { motion.basic.Motion.FINISHED : End })
         
     def enter(self):
         # Keep centered over the bin
