@@ -459,6 +459,7 @@ int main()
 {
     unsigned int i, j, temp;
     unsigned long timeout, err_reset;
+    byte activeSpeed[6];
 
     /* Set up the Oscillator */
     initOSC();
@@ -513,7 +514,15 @@ int main()
     _TRISF8= TRIS_OUT;
 
     while(1) {
+        /* Avoid a race condition!!! */
+        REQ_INT_BIT= 0;
+        for(i= 0;i < 6;i++)
+            activeSpeed[i]= motorSpeed[i];
+        REQ_INT_BIT= 1;
+
         for(i= 0;i < 6;i++) {
+            /*temp= LATB & 0xFE3F;
+            LATB= temp | (i << 6);*/
             temp= ~i;
             _LATF6= !(temp & 0x01);
             _LATF7= !(temp & 0x02);
@@ -527,19 +536,29 @@ int main()
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
 
             packetSize= 4;
             temp= i2cBuf[0]= 0x52;
-            temp+= (i2cBuf[1]= motorSpeed[i]);
+            temp+= (i2cBuf[1]= activeSpeed[i]);
             temp+= (i2cBuf[2]= 0x64);
             i2cBuf[3]= temp & 0xFF;
 
             StartI2C();
 
-            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED)
+            timeout= 0;
+
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && timeout++ < ERR_TIMEOUT)
                 ;
 
-            if(i2cState == I2CSTATE_BORKED) {
+            if(i2cState == I2CSTATE_BORKED || timeout >= ERR_TIMEOUT) {
                 /* We should probably do something with this info! */
                 LAT_ERR= LED_ON;
                 err_reset= ERR_TIMEOUT;
@@ -549,7 +568,6 @@ int main()
             if(LAT_ERR == LED_ON)
                 if(err_reset-- == 0)
                     LAT_ERR= LED_OFF;
-
         }
     }
 
