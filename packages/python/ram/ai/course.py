@@ -128,6 +128,7 @@ class Pipe(task.Task):
         
     def exit(self):
         del self.ai.data['pipeBiasDirection']
+        del self.ai.data['pipeThreshold']
         
         task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Start)
@@ -173,7 +174,82 @@ class PipeGate(task.Task):
             self.stateMachine.stopBranch(pipe.Searching)
 
         self.visionSystem.pipeLineDetectorOff()
-        
+
+class PipeObjective(task.Task, pipe.PipeTrackingState):
+    """
+    Search for the pipe while doing a multi motion
+    """
+    
+    TIMEOUT = core.declareEventType('TIMEOUT')
+
+    @staticmethod
+    def _transitions(myState):
+        trans = pipe.PipeTrackingState.transitions(myState)
+
+        trans.update({ motion.basic.MotionManager.
+                       QUEUED_MOTIONS_FINISHED : state.Branch(pipe.Searching),
+                       pipe.PipeTrackingState.
+                       FOUND_PIPE : state.Branch(pipe.Seeking),
+                       PipeObjective.TIMEOUT : state.Branch(pipe.Searching),
+                       pipe.Centering.SETTLED : task.Next })
+
+        return trans
+
+    def FOUND_PIPE(self, event):
+        self.motionManager.stopCurrentMotion()
+        self._foundPipe = True
+
+    def enter(self, motion, *motionList):
+        pipe.PipeTrackingState.enter(self)
+        task.Task.enter(self)
+
+        self.visionSystem.pipeLineDetectorOn()
+
+        self._foundPipe = False
+        self._className = type(self).__name__
+        self.ai.data['pipeBiasDirection'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'biasDirection', None)
+        self.ai.data['pipeThreshold'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'threshold', None)
+
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+            'timeout', 30)
+
+        self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
+        self.timer.start()
+
+        self._motion = motion
+        self._motionList = motionList
+        self.motionManager.setQueuedMotions(motion, *motionList)
+
+    def exit(self):
+        del self.ai.data['pipeBiasDirection']
+        del self.ai.data['pipeThreshold']
+
+        task.Task.exit(self)
+
+        if self.timer is not None:
+            self.timer.stop()
+
+        if self.stateMachine.branches.has_key(pipe.Seeking):
+            self.stateMachine.stopBranch(pipe.Seeking)
+        elif self.stateMachine.branches.has_key(pipe.Searching):
+            self.stateMachine.stopBranch(pipe.Searching)
+
+class PipeBarbedWire(PipeObjective):
+    @staticmethod
+    def _transitions():
+        return PipeObjective._transitions(PipeBarbedWire)
+
+    def enter(self):
+        m1 = motion.basic.RateChangeDepth(3, 0.3)
+        m2 = motion.basic.RateChangeHeading(-30, 10, absolute = False)
+        m3 = motion.search.ForwardZigZag(5, 30, 3)
+
+        PipeObjective.enter(self, m1, m2, m3)
+
 class PipeStaged(Pipe):
     """
     Find and hover over the second pipe in the course

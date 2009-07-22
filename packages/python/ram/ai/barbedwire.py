@@ -569,7 +569,7 @@ class Through(state.State):
 
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
         self.timer = self.timerManager.newTimer(
-            Through.FORWARD_DONE, self._config.get('forwardTime', 15))
+            Through.FORWARD_DONE, self._config.get('forwardTime', 8))
         self.timer.start()
         self.controller.setSidewaysSpeed(0)
         self.controller.setSpeed(3)

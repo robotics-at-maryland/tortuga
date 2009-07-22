@@ -31,6 +31,7 @@ import ram.ai.sonarSafe as sonarSafe
 import ram.motion as motion
 import ram.motion.basic
 import ram.motion.pipe
+import ram.motion.search
 
 import ram.test.ai.support as support
 from ram.test.motion.support import MockTimer
@@ -358,7 +359,95 @@ class TestPipeStaged(PipeTestCase):
         self.assertFalse(self.machine.branches.has_key(pipe.Start))
         self.assertFalse(self.visionSystem.pipeLineDetector)
         self.assertEqual(expected, self.controller.desiredOrientation)
+
+class PipeObjectiveTest(object):
+    def setUp(self, myState, endState, motion, *motionList):
+        self.myState = myState
+        self.endState = endState
+        self.motion = motion
+        self.motionList = motionList
+
+    def testStart(self):
+        self.assertCurrentState(self.myState)
+
+        # Make sure we've started the first motion
+        self.assertCurrentMotion(self.motion)
+
+        # We should have no branches yet
+        self.assertCurrentBranches([])
+
+    def testMultiMotion(self):
+        self.assertCurrentState(self.myState)
+        self.assertCurrentMotion(self.motion)
+
+        # There should be no branches
+        self.assertCurrentBranches([])
+
+        # Now finish the first motion
+        self.machine.currentState()._motion._finish()
+
+        # Now make sure it goes through all motions and doesn't enter
+        # any branches without a timeout or found pipe
+        for m, name in zip(self.machine.currentState()._motionList,
+                           self.motionList):
+            self.assertCurrentState(self.myState)
+            self.assertCurrentBranches([])
+            self.assertCurrentMotion(name)
+            m._finish()
+
+        self.qeventHub.publishEvents()
+        # When it's finished, make sure that it starts the searching branch
+        self.assertCurrentState(self.myState)
+        self.assertCurrentBranches([pipe.Searching])
+
+    def testPipeFound(self):
+        self.assertCurrentState(self.myState)
+        self.assertCurrentMotion(self.motion)
+
+        # There should be no branches
+        self.assertCurrentBranches([])
+
+        self.publishQueuedEvent(self.ai, vision.EventType.PIPE_FOUND,
+                                vision.PipeEvent,0,0,0, id = 0)
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
         
+        # Check if it branched into seeking
+        self.assertCurrentState(self.myState)
+        self.assertCurrentMotion(motion.pipe.Hover)
+        self.assertCurrentBranches([pipe.Seeking])
+
+    def testTimeout(self):
+        self.assertCurrentState(self.myState)
+        self.assertCurrentMotion(self.motion)
+
+        # There should be no branches
+        self.assertCurrentBranches([])
+
+        self.releaseTimer(course.PipeObjective.TIMEOUT)
+        
+        # Check if it branched into seeking
+        self.assertCurrentState(self.myState)
+        self.assertCurrentBranches([pipe.Searching])
+
+class TestPipeBarbedWire(PipeObjectiveTest, support.AITestCase):
+    def setUp(self):
+        PipeObjectiveTest.setUp(self, course.PipeBarbedWire, course.Target,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
+        cfg = { 'Ai' : {'taskOrder' :
+                        [ 'ram.ai.course.PipeBarbedWire',
+                          'ram.ai.course.Target' ]} }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.PipeBarbedWire)
+
 class TestLight(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
