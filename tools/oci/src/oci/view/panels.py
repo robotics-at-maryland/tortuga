@@ -1252,6 +1252,144 @@ class VelocityPosition(BasePanel):
         
         return []
 
+class EventPlayerPanel(wx.Panel):
+    implements(IPanelProvider)
+
+    FORMAT_HOURS = 1
+    FORMAT_MINUTES = 2
+    FORMAT_SECONDS = 3
+    FPS = 30
+
+    def __init__(self, parent, eventPlayer, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+
+        # TODO: Figure out how to properly do this
+        self._eventPlayer = eventPlayer
+        self._format = EventPlayerPanel.FORMAT_SECONDS
+        self._sliderDown = False
+
+        self._play = wx.Button(self, label = "Play")
+        self._stop = wx.Button(self, label = "Stop")
+        self._slider = wx.Slider(self, 0, 0, 100)
+        self._text = wx.StaticText(self, label = '0.00 / 0.00',
+                             style = wx.ALIGN_RIGHT)
+
+        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._sizer.Add(self._play, proportion = 0,
+                        flag = wx.ALIGN_CENTER | wx.ALL, border = 3)
+        self._sizer.Add(self._stop, proportion = 0,
+                        flag = wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM,
+                        border = 3)
+        self._sizer.Add(self._slider, proportion = 1,
+                        flag = wx.ALIGN_CENTER | wx.ALIGN_CENTER |
+                        wx.TOP | wx.BOTTOM, border = 3)
+        self._sizer.Add(self._text, proportion = 0,
+                        flag = wx.ALIGN_CENTER | wx.ALL, border = 3)
+        self._sizer.SetSizeHints(self)
+
+        # Subscribe to eventPlayer events
+        # ???
+
+        # Bind the play/stop buttons
+        self._play.Bind(wx.EVT_BUTTON, self._onPlay)
+        self._stop.Bind(wx.EVT_BUTTON, self._onStop)
+
+        # Bind the slider events
+        #self._slider.Bind(wx.EVT_SCROLL, self._onScroll)
+
+        self.SetSizer(self._sizer)
+
+    def _onNewImage(self, event):
+        self._updateTimeDisplay()
+        if not self._sliderDown:
+            self._slider.SetValue(self._eventPlayer.currentTime() * \
+                                      EventPlayerPanel.FPS)
+
+    def _onImageSourceChanged(self, event):
+        if not self._sliderDown:
+            self._slider.Enable()
+            self._slider.SetRange(0, (EventPlayerPanel.FPS*duration))
+
+        self._determineTimeFormat()
+        self._updateTimeDisplay()
+        self._sizer.RecalcSizes()
+        self._sizer.Layout()
+
+    def _onPlay(self, event):
+        self._eventPlayer.start()
+
+    def _onStop(self, event):
+        self._eventPlayer.stop()
+
+    def _onThumbTrack(self, event):
+        self._sliderDown = True
+        self._updateBasedOnSliderEvent(event)
+
+    def _onThumbRelease(self, event):
+        self._sliderDown = False
+
+    def _onScrollChanged(self, event):
+        self._updateBasedOnSliderEvent(event)
+
+    def _updateBasedOnSliderEvent(self, event):
+        timeStamp = event.GetPosition() / EventPlayerPanel.FPS
+        self._eventPlayer.seekToTime(timeStamp)
+        self._updateTimeDisplay()
+
+    def _updateTimeDisplay(self):
+        time = breakUpTime(self._eventPlayer.currentTime())
+        totalTime = breakUpTime(self._eventPlayer.duration())
+
+        if self._format == MediaControlPanel.FORMAT_HOURS:
+            label = '%02d:%02d:%4.2f / %02d:%02d:%4.2f' % \
+                (time[0], time[1], time[2], totalTime[0], totalTime[1],
+                 totalTime[2])
+        elif self._format == MediaControlPanel.FORMAT_MINUTES:
+            label = '%02d:%4.2f / %02d:%4.2f' % \
+                (time[1], time[2], totalTime[1], totalTime[2])
+        elif self._format == MediaControlPanel.FORMAT_SECONDS:
+            label = '%4.2f / 4.2f' % (time[2], totalTime[2])
+        else:
+            label = 'ERROR'
+
+        self._text.SetLabel(label)
+
+    def _determineTimeFormat(self):
+        duration = self._eventPlayer.duration()
+        time = self._breakUpTime(duration)
+
+        if 0 != time[0]:
+            self._format = FORMAT_HOURS
+        elif 0 != time[1]:
+            self._format = FORMAT_MINUTES
+        else:
+            self._format = FORMAT_SECONDS
+
+    def _breakUpTime(self, seconds):
+        outHours = math.floor(seconds/3600)
+        seconds -= outHours * 3600
+
+        outMinutes = math.floor(seconds/60)
+
+        outSeconds = seconds - outMinutes * 60
+
+        return (outHours, outMinutes, outSeconds)
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventPlayer = core.Subsystem.getSubsystemOfType(
+            subsystemMod.DemoEventPlayer, subsystems)
+
+        if eventPlayer is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Demo Event Player")
+            paneInfo = paneInfo.Caption("Demo Event Player").Left()
+
+            return [(paneInfo, EventPlayerPanel(parent, eventPlayer),
+                     [eventPlayer])]
+
+        return []
+
+
 #class DemoSonarPanel(wx.Panel):
 #    implements(IPanelProvider)
 #    

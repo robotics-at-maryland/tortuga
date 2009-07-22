@@ -306,6 +306,20 @@ class TempSensor(device.ITempSensor):
         event.number = self.temp
         self.publish(device.ITempSensor.UPDATE, event)
 
+class DemoEventPlayer(core.Subsystem):
+    """
+    Event Player demo
+    """
+
+    def __init__(self, config, deps):
+        core.Subsystem.__init__(self, config['name'], deps)
+
+    def update(self, timestep):
+        pass
+
+# Register Subsystem so it can be created from a config file
+core.SubsystemMaker.registerSubsystem('DemoEventPlayer', DemoEventPlayer)
+
 class DemoSonar(core.Subsystem):
     """
     Sonar system demo, has an x and y positiion of the sonar

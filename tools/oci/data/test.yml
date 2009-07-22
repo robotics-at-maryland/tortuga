@@ -27,3 +27,7 @@ Subsystems:
     Controller:
         type: DemoController
         depends_on: ["EventHub"]
+
+    EventPlayer:
+        type: DemoEventPlayer
+        depends_on: ["EventHub"]
