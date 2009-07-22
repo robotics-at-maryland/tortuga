@@ -20,7 +20,7 @@ Subsystems:
         #ForwardRecorders:
             #forward.avi: 5 # Really compressed @ 5Hz
             #forward.rmv: 10 # Raw video at 10Hz
-            #"50000": 5 # Really compressed streaming @ 5hz
+            #"50000(320,240)": 5 # Really compressed streaming @ 5hz
         #DownwardRecorders:
             #downward.avi: 5 # Really compressed @ 5Hz
             #downward.rmv: 10 # Raw video at 10Hz
@@ -34,8 +34,8 @@ Subsystems:
 #           almostHitPixels: 61440.0
 
         VelocityDetector:
-            usePhaseCorrelation: 1
-            useLKFlow: 0
+            usePhaseCorrelation: 0
+            useLKFlow: 1
            
         DuctDetector:
             centerAlignedThreshold: 50
@@ -94,9 +94,9 @@ Subsystems:
             TorpedoLauncher:
                 type: SimTorpedoLauncher
                 depends_on: ['SimulationDevice']
-            #Sonar:
-            #    depends_on: ['SimulationDevice']
-            #    type: SimSonar
+            Sonar:
+                depends_on: ['SimulationDevice']
+                type: SimSonar
     
             # This entry creates a thruster
             StarboardThruster:
@@ -438,6 +438,7 @@ Subsystems:
         angularDGain: 1
         speedPGain: 3
         sidewaysSpeedPGain: 3
+        velocityPGain: 0.5
 
         #Select type of Rotational Gyro Bias Controller
         gyroPDType: 0
@@ -448,7 +449,7 @@ Subsystems:
         #                       (3 for observer control for a 4d depth state)
         #                       (4 for observer control with scaling for a 4d depth state)
         #                       (5 for PID control)
-        depthControlType: 1
+        depthControlType: 5
         dtMin: .001
         dtMax: .05
         #parameters for depth P controller
@@ -472,16 +473,20 @@ Subsystems:
         #depthKd: 20
 
         # PID 3
-        depthKp: 80
-        depthKi: 0.2
-        depthKd: 30
+        #depthKp: 80
+        #depthKi: 0.2
+        #depthKd: 30
 
         # PID 4
         #depthKp: 30
         #depthKi: 0.5
         #depthKd: 10
-             
 
+        # Settings for PID Depth Controller (#5)
+        depthKp: 20.0 #10.0
+        depthKi: 1.0
+        depthKd: 1.0
+        
         depthSumError: 0
         depthPrevX: 0
 
