@@ -124,7 +124,7 @@ class TestSearching(support.AITestCase):
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.barbedWireDetector)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
         self.assertAIDataValue('barbedWireStartOrientation', 0)
 
     def testStartAlternate(self):
@@ -137,6 +137,11 @@ class TestSearching(support.AITestCase):
         # Restart the machine
         self.machine.start(barbedwire.Searching)
         self.assert_(self.visionSystem.barbedWireDetector)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Finish that motion and continue to the ForwardZigZag
+        self.machine.currentState()._forwardMotion._finish()
+
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         self.assertAIDataValue('barbedWireStartOrientation', -45)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -151,6 +156,33 @@ class TestSearching(support.AITestCase):
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.barbedWireDetector)
+
+    def testMultiMotion(self):
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Now finish the motion and make sure it enters the next one
+        self.machine.currentState()._forwardMotion._finish()
+
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+
+class TestAlternateSearching(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.barbedwire.Searching' : {
+                        'duration' : 0
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(barbedwire.Searching)
+
+    def testStart(self):
+        self.assertCurrentState(barbedwire.Searching)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
         
 class TestRangeXYHold(support.AITestCase):
     def setUp(self, stateType = barbedwire.RangeXYHold, cfg = None):

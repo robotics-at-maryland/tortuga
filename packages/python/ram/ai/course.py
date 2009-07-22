@@ -458,29 +458,13 @@ class Target(task.Task):
     
     @staticmethod
     def _transitions():
-        return { Target.MOVE_ON : task.Next,
-                 task.TIMEOUT : task.Next,
-                 target.COMPLETE : Target,
-                 control.IController.AT_ORIENTATION : Target,
+        return { task.TIMEOUT : task.Next,
+                 target.COMPLETE : task.Next,
                  'GO' : state.Branch(target.Start) }
-        
-    def COMPLETE(self, event):
-        self._complete = True
-        self.controller.yawVehicle(self._finalTurn)
-        
-    def AT_ORIENTATION(self, event):
-        if self._complete:
-            self.publish(Target.MOVE_ON, core.Event())
     
     def enter(self, defaultTimeout = 180):
         # Initialize task part of class
         task.Task.enter(self, defaultTimeout = defaultTimeout)
-        
-        # Tagged when the state finishes
-        self._complete = False
-        
-        # Read in configuration parameters
-        self._finalTurn = self._config.get('finalTurn', 90)
         
         # Start the sub state
         self.stateMachine.start(state.Branch(target.Start))

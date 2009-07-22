@@ -567,7 +567,8 @@ class TestLightStaged(TestLight):
 class TestBarbedWire(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
-                        ['ram.ai.course.BarbedWire', 'ram.ai.course.Pipe'] } }
+                        ['ram.ai.course.BarbedWire',
+                         'ram.ai.course.PipeBarbedWire'] } }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.BarbedWire)
         self._stateType = course.BarbedWire
@@ -587,7 +588,7 @@ class TestBarbedWire(support.AITestCase):
         """
         
         self.injectEvent(barbedwire.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(course.Pipe)
+        self.assertCurrentState(course.PipeBarbedWire)
         
         # Make sure the light seeking branch is gone
         self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
@@ -605,24 +606,15 @@ class TestBarbedWire(support.AITestCase):
         self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
-        self.assertCurrentState(course.Pipe)
+        self.assertCurrentState(course.PipeBarbedWire)
         self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
         self.assertFalse(self.visionSystem.barbedWireDetector)
         
 class TestTarget(support.AITestCase):
-    FINAL_TURN = 65
-    
     def setUp(self):
         cfg = { 
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.course.Target' : {
-                        'finalTurn' : TestTarget.FINAL_TURN
-                    },
-                }
-            }, 
             'Ai' : {'taskOrder' : 
-                    ['ram.ai.course.Target', 'ram.ai.course.Pipe'] } 
+                    ['ram.ai.course.Target', 'ram.ai.course.PipeTarget'] } 
         }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Target)
@@ -639,49 +631,12 @@ class TestTarget(support.AITestCase):
         
     def testTargetDone(self):
         """
-        Make sure that we start a turn once we finish the target
+        Make sure that we go to the next task once we finish the target
         """
         
         # Make sure we are still in the same state
         self.injectEvent(target.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(course.Target)
-        
-        # Make sure we are turning
-        self.assertEqual(TestTarget.FINAL_TURN, self.controller.yawChange)
-        
-        
-    def testTurnFinished(self):
-        """
-        Make sure once the turns finished we publish the move on event
-        """
-        
-        # Subscribe to move on event
-        self._moveOn = False
-        def handler(event):
-            self._moveOn = True
-        self.qeventHub.subscribeToType(course.Target.MOVE_ON, handler)
-                
-        # Start the turn
-        self.injectEvent(target.COMPLETE, sendToBranches = True)
-        self.assertCurrentState(course.Target)
-        
-        # Finish the turn
-        self.controller.publishAtOrientation(
-            math.Quaternion(math.Degree(TestTarget.FINAL_TURN),
-                            math.Vector3.UNIT_Z))
-        
-        # Make sure have published the move on event
-        self.qeventHub.publishEvents()
-        self.assert_(self._moveOn)
-        
-    def testMoveOn(self):
-        # Send the move on event
-        self.injectEvent(course.Target.MOVE_ON, sendToBranches = True)
-        
-        # Make sure we have moved on properly
-        self.assertCurrentState(course.Pipe)
-        self.assertFalse(self.machine.branches.has_key(target.Start))
-        self.assertFalse(self.visionSystem.targetDetector)
+        self.assertCurrentState(course.PipeTarget)
         
     def testTimeout(self):
         """
@@ -695,7 +650,7 @@ class TestTarget(support.AITestCase):
         self.releaseTimer(self.machine.currentState().timeoutEvent)
         
         # Test that the timeout worked properly
-        self.assertCurrentState(course.Pipe)
+        self.assertCurrentState(course.PipeTarget)
         self.assertFalse(self.machine.branches.has_key(target.Start))
         self.assertFalse(self.visionSystem.targetDetector)
         

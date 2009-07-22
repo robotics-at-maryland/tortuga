@@ -227,7 +227,7 @@ class TestSearching(BinTestCase):
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.binDetector)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
         self.assertAIDataValue('preBinCruiseDepth', self.controller.depth)
         self.assertAIDataValue('binStartOrientation', 0)
 
@@ -241,6 +241,11 @@ class TestSearching(BinTestCase):
         # Restart the machine
         self.machine.start(bin.Searching)
         self.assert_(self.visionSystem.binDetector)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Finish that motion and continue to the ForwardZigZag
+        self.machine.currentState()._forwardMotion._finish()
+
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         self.assertAIDataValue('binStartOrientation', -45)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -259,7 +264,33 @@ class TestSearching(BinTestCase):
     
     def testBinTracking(self):
         self.binTrackingHelper()
-    
+
+    def testMultiMotion(self):
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Now finish the motion and make sure it enters the next one
+        self.machine.currentState()._forwardMotion._finish()
+
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+class TestAlternateSearching(BinTestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.bin.Searching' : {
+                        'duration' : 0
+                    },
+                }
+            }
+        }
+        BinTestCase.setUp(self, cfg = cfg)
+        self.machine.start(bin.Searching)
+
+    def testStart(self):
+        self.assertCurrentState(bin.Searching)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
 class TestSeeking(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)

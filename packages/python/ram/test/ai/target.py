@@ -169,7 +169,7 @@ class TestSearching(support.AITestCase):
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.targetDetector)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
         self.assertAIDataValue('targetStartOrientation', 0)
 
     def testStartAlternate(self):
@@ -182,6 +182,11 @@ class TestSearching(support.AITestCase):
         # Restart the machine
         self.machine.start(target.Searching)
         self.assert_(self.visionSystem.targetDetector)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Finish that motion and continue to the ForwardZigZag
+        self.machine.currentState()._forwardMotion._finish()
+
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         self.assertAIDataValue('targetStartOrientation', -45)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -194,6 +199,14 @@ class TestSearching(support.AITestCase):
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.targetDetector)
+
+    def testMultiMotion(self):
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Now finish the motion and make sure it enters the next one
+        self.machine.currentState()._forwardMotion._finish()
+
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
         
 class TestRangeXYHold(support.AITestCase):
     def setUp(self, stateType = target.RangeXYHold,

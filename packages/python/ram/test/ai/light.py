@@ -60,6 +60,8 @@ class TestSearching(support.AITestCase):
             'StateMachine' : {
                 'States' : {
                     'ram.ai.light.Searching' : {
+                        'duration' : 4,
+                        'forwardSpeed' : 5,
                         'legTime' : 10,
                         'sweepAngle'  : 9,
                         'speed' : 8,
@@ -73,7 +75,7 @@ class TestSearching(support.AITestCase):
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.redLightDetector)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
         self.assertAIDataValue('lightStartOrientation', 0)
 
     def testStartAlternate(self):
@@ -86,6 +88,11 @@ class TestSearching(support.AITestCase):
         # Restart the machine
         self.machine.start(light.Searching)
         self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Finish that motion and continue to the ForwardZigZag
+        self.machine.currentState()._forwardMotion._finish()
+
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         self.assertAIDataValue('lightStartOrientation', -45)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -94,7 +101,9 @@ class TestSearching(support.AITestCase):
         self.assertEqual(10, self.machine.currentState()._legTime)
         self.assertEqual(9, self.machine.currentState()._sweepAngle)
         self.assertEqual(8, self.machine.currentState()._speed)
-            
+        self.assertEqual(4, self.machine.currentState()._duration)
+        self.assertEqual(5, self.machine.currentState()._forwardSpeed)
+
     def testLightFound(self):
         # Now change states
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 5, 
@@ -105,6 +114,32 @@ class TestSearching(support.AITestCase):
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.redLightDetector)
+
+    def testMultiMotion(self):
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Now finish the motion and make sure it enters the next one
+        self.machine.currentState()._forwardMotion._finish()
+
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+class TestAlternateSearching(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.light.Searching' : {
+                        'duration' : 0
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(light.Searching)
+
+    def testStart(self):
+        self.assertCurrentState(light.Searching)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
         
 class TestFindAttempt(support.AITestCase):
     def setUp(self):
