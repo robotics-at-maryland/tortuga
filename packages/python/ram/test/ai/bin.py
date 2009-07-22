@@ -1409,7 +1409,8 @@ class TestDropMarker(BinTestCase):
         self.assertCurrentMotion(motion.pipe.Hover)
         self.assertCurrentState(bin.DropMarker)
 
-        self.publishQueuedBinFound(x = 0, y = 0, angle = math.Degree(0))
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0))
         self.qeventHub.publishEvents()
 
         self.assertCurrentState(bin.SurfaceToMove)

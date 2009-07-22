@@ -104,43 +104,6 @@ class FindAttempt(State):
             self.timer.stop()
         self.motionManager.stopCurrentMotion()
         
-class MultiMotion(State):
-    """
-    Default state for multiple motions in succession.
-    
-    ONLY USE MOTIONS THAT FINISH (the publish Motion.FINISHED at some point)
-    """
-    
-    FINISH_MULTI_MOTION = core.declareEventType("FINISH_MULTI_MOTION")
-    
-    @staticmethod
-    def transitions(currentState, nextState = None):
-        if nextState is None:
-            nextState = End
-        return {motion.basic.Motion.FINISHED : currentState,
-                MultiMotion.FINISH_MULTI_MOTION : nextState }
-        
-    def FINISHED(self, event):
-        self._currentMotionNumber += 1
-        if self._numberOfMotions > self._currentMotionNumber:
-            self.motionManager.setMotion(
-                self._motionList[self._currentMotionNumber])
-        else:
-            self.publish(MultiMotion.FINISH_MULTI_MOTION, core.Event())
-    
-    def enter(self, *motions):
-        self._numberOfMotions = len(motions)
-        self._motionList = motions
-        self._currentMotionNumber = 0
-        
-        if self._numberOfMotions == 0:
-            self.publish(MultiMotion.FINISH_MULTI_MOTION, core.Event())
-        else:
-            self.motionManager.setMotion(self._motionList[0])
-            
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
-
 class End(State):
     """
     State machine which demarks a valid end point for a state machine

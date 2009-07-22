@@ -385,7 +385,7 @@ class TestLight(support.AITestCase):
         """
         
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
-        self.injectEvent(light.Continue.FINISH_MULTI_MOTION, sendToBranches = True)
+        self.injectEvent(light.COMPLETE, sendToBranches = True)
         self.controller.publishAtOrientation(math.Quaternion.IDENTITY)
         self.qeventHub.publishEvents();
 
@@ -426,7 +426,7 @@ class TestLight(support.AITestCase):
 
         # Hit the light
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
-        self.injectEvent(light.Continue.FINISH_MULTI_MOTION, sendToBranches = True)
+        self.injectEvent(light.COMPLETE, sendToBranches = True)
         self.controller.publishAtOrientation(math.Quaternion.IDENTITY)
         self.qeventHub.publishEvents();
         self.assertCurrentState(course.Pipe)

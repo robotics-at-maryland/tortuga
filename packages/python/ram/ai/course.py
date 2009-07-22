@@ -269,7 +269,7 @@ class Light(task.Task):
     def _transitions(thisState = None):
         if thisState is None:
             thisState = Light
-        return { light.Continue.FINISH_MULTI_MOTION : task.Next,
+        return { light.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
 

@@ -31,6 +31,7 @@ import ram.motion.search
 import ram.motion.seek
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
+COMPLETE = core.declareEventType('COMPLETE')
 
 class StoreLightEvent(object):
     """
@@ -329,10 +330,10 @@ class Hit(state.State):
         self.controller.setSpeed(0)
         self.publish(LIGHT_HIT, core.Event())
         
-class Continue(state.MultiMotion):
+class Continue(state.State):
     @staticmethod
     def transitions():
-        return state.MultiMotion.transitions(Continue, End)
+        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : End }
     
     def enter(self):
         # Load config settings
@@ -362,14 +363,15 @@ class Continue(state.MultiMotion):
             speed = self._forwardSpeed, duration = self._forwardDuration,
             absolute = False)
         
-        # Create the MultiMotion
+        # Queue the motions
         if original is None:
-            state.MultiMotion.enter(self, self._backward, self._upward,
-                                    self._forward)
+            self.motionManager.setQueuedMotions(self._backward, self._upward,
+                                                self._forward)
         else:
-            state.MultiMotion.enter(self, self._rotate, self._backward,
-                                    self._upward, self._forward)
+            self.motionManager.setQueuedMotions(self._rotate, self._backward,
+                                                self._upward, self._forward)
 
 class End(state.State):
     def enter(self):
         self.motionManager.stopCurrentMotion()
+        self.publish(COMPLETE, core.Event())
