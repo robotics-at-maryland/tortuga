@@ -175,6 +175,7 @@ class TestSearching(support.AITestCase):
     def testStartAlternate(self):
         # Stop the machine
         self.machine.stop()
+        self.ai.data['firstSearching'] = True
 
         # Now set the initial direction to something other than 0
         self.ai.data['targetStartOrientation'] = -45
@@ -206,6 +207,33 @@ class TestSearching(support.AITestCase):
         # Now finish the motion and make sure it enters the next one
         self.machine.currentState()._forwardMotion._finish()
 
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+    def testReenter(self):
+        # Restart the state with firstSearching set to False
+        self.machine.stop()
+        self.ai.data['firstSearching'] = False
+
+        # Make sure it skips the TimedMoveDirection
+        self.machine.start(target.Searching)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+class TestAlternateSearching(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.target.Searching' : {
+                        'duration' : 0
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(target.Searching)
+
+    def testStart(self):
+        self.assertCurrentState(target.Searching)
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         
 class TestRangeXYHold(support.AITestCase):

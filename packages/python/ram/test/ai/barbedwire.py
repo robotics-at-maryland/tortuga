@@ -130,6 +130,7 @@ class TestSearching(support.AITestCase):
     def testStartAlternate(self):
         # Stop the machine
         self.machine.stop()
+        self.ai.data['firstSearching'] = True
 
         # Now set the initial direction to something other than 0
         self.ai.data['barbedWireStartOrientation'] = -45
@@ -165,6 +166,14 @@ class TestSearching(support.AITestCase):
 
         self.assertCurrentMotion(motion.search.ForwardZigZag)
 
+    def testReenter(self):
+        # Restart the state with firstSearching set to False
+        self.machine.stop()
+        self.ai.data['firstSearching'] = False
+
+        # Make sure it skips the TimedMoveDirection
+        self.machine.start(barbedwire.Searching)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
 
 class TestAlternateSearching(support.AITestCase):
     def setUp(self):

@@ -177,6 +177,8 @@ class Start(state.State):
             desiredDepth = self.ai.data['config'].get('targetDepth', 12),
             speed = self._config.get('diveSpeed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
+
+        self.ai.data['firstSearching'] = True
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -290,11 +292,12 @@ class Searching(state.State, StoreTargetEvent):
             speed = speed,
             direction = direction)
 
-        if self._duration > 0:
+        if self.ai.data.get('firstSearching', True) and self._duration > 0:
             self.motionManager.setQueuedMotions(self._forwardMotion,
                                                 self._zigZag)
         else:
             self.motionManager.setMotion(self._zigZag)
+        self.ai.data['firstSearching'] = False
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
