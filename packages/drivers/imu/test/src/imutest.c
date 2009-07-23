@@ -17,11 +17,16 @@
 
 int main(int argc, char ** argv)
 {
-    int fd = openIMU("/dev/imu");
+    const char* deviceFile = "/dev/imu";
+
+    if (argc == 2)
+        deviceFile = argv[1];
+
+    int fd = openIMU(deviceFile);
 
     if(fd == -1)
     {
-        printf("Could not find device!\n");
+        printf("Could not find device: \"%s\"\n", deviceFile);
         exit(1);
     }
 
