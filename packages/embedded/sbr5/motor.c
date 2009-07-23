@@ -517,16 +517,19 @@ int main()
         /* Avoid a race condition!!! */
         REQ_INT_BIT= 0;
         for(i= 0;i < 6;i++)
-            activeSpeed[i]= motorSpeed[i];
+            writeUart(activeSpeed[i]= motorSpeed[i]);
         REQ_INT_BIT= 1;
 
         for(i= 0;i < 6;i++) {
-            /*temp= LATB & 0xFE3F;
-            LATB= temp | (i << 6);*/
-            temp= ~i;
+            /*temp= LATF & 0xFE3F;
+            LATF= temp | (i << 6);*/
+            /*temp= ~i;
             _LATF6= !(temp & 0x01);
             _LATF7= !(temp & 0x02);
-            _LATF8= !(temp & 0x04);
+            _LATF8= !(temp & 0x04);*/
+            _LATF6= i & 0x01;
+            _LATF7= (i & 0x02) >> 1;
+            _LATF8= (i & 0x04) >> 2;
 
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
