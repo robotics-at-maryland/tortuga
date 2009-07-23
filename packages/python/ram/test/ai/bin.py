@@ -834,7 +834,7 @@ class DiveTestCase(object):
         self.binTrackingHelper()
         
     def testDiveFinished(self):
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.Motion.FINISHED)
         self.assertCurrentState(self.nextState)
 
@@ -1334,7 +1334,7 @@ class TestNextBin(BinTestCase):
         self.assertCurrentState(bin.Dive)
         
     def testAtEnd(self):
-        self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
+        #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(bin.NextBin.AT_END)
         self.assertCurrentState(bin.CheckDropped)
         
@@ -1445,6 +1445,10 @@ class TestDropMarker(BinTestCase):
         self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.machine.start(bin.DropMarker)
         self.ai.data['binData']['currentID'] = 0
+
+        def binComplete(event):
+            self._binComplete = True
+        self.qeventHub.subscribeToType(bin.COMPLETE, binComplete)
     
     def testStart(self):
         """Make sure we start diving, and drop a marker """
@@ -1483,7 +1487,7 @@ class TestDropMarker(BinTestCase):
         self.ai.data['markersDropped'] = 1
 
         # Needed for SurfaceToCruise
-        self.ai.data['preBinCruiseDepth'] = 5.0 
+        #self.ai.data['preBinCruiseDepth'] = 5.0 
 
         # Try an invalid event first
         self.publishQueuedBinFound(id = 0, x = 0.1, y = 0.1,
@@ -1495,15 +1499,37 @@ class TestDropMarker(BinTestCase):
         self.qeventHub.publishEvents()
 
         self.assertAIDataValue('markersDropped', 2)
-        self.assertCurrentState(bin.SurfaceToCruise)
+        
+        self.assert_(self.machine.complete)
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._binComplete)
+
+        # Test the offset data has been deleted
+        self.assertFalse(self.ai.data.has_key(
+                'dive_offsetTheOffset'))
+        self.assertFalse(self.ai.data.has_key(
+                'closerlook_offsetTheOffset'))
 
     def testFinished(self):
         """Ensure FINISHED -> SurfaceToCruise"""
         # Needed for SurfaceToCruise
-        self.ai.data['preBinCruiseDepth'] = 5.0 
+        #self.ai.data['preBinCruiseDepth'] = 5.0 
 
         self.injectEvent(bin.DropMarker.FINISHED)
-        self.assertCurrentState(bin.SurfaceToCruise)
+        
+        self.assert_(self.machine.complete)
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._binComplete)
+
+        # Test the offset data has been deleted
+        self.assertFalse(self.ai.data.has_key(
+                'dive_offsetTheOffset'))
+        self.assertFalse(self.ai.data.has_key(
+                'closerlook_offsetTheOffset'))
 
     def testTimeout(self):
         """Ensure the timeout drops the marker anyways"""
@@ -1525,7 +1551,7 @@ class TestDropMarker(BinTestCase):
     def testContinue(self):
         """Ensure CONTINUE -> SurfaceToMove"""
         # Needed for SurfaceToCruise
-        self.ai.data['preBinCruiseDepth'] = 5.0 
+        #self.ai.data['preBinCruiseDepth'] = 5.0 
 
         self.injectEvent(bin.DropMarker.CONTINUE)
         self.assertCurrentState(bin.SurfaceToMove)
@@ -1544,9 +1570,13 @@ class TestCheckDropped(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         self.ai.data['startSide'] = bin.BinSortingState.RIGHT
-        
+
+        def binComplete(event):
+            self._binComplete = True
+        self.qeventHub.subscribeToType(bin.COMPLETE, binComplete)
+
         # Needed for SurfaceToCruise
-        self.ai.data['preBinCruiseDepth'] = 5.0 
+        #self.ai.data['preBinCruiseDepth'] = 5.0 
         
     def testNoMarkers(self):
         self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
@@ -1573,8 +1603,18 @@ class TestCheckDropped(BinTestCase):
         self.machine.start(bin.CheckDropped)
         
         self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.SurfaceToCruise)
+        
+        self.assert_(self.machine.complete)
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._binComplete)
         self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        # Test the offset data has been deleted
+        self.assertFalse(self.ai.data.has_key(
+                'dive_offsetTheOffset'))
+        self.assertFalse(self.ai.data.has_key(
+                'closerlook_offsetTheOffset'))
         
     def testTooManyScans(self):
         self.ai.data['markersDropped'] = 1
@@ -1583,7 +1623,17 @@ class TestCheckDropped(BinTestCase):
         self.machine.start(bin.CheckDropped)
         
         self.qeventHub.publishEvents()
-        self.assertCurrentState(bin.SurfaceToCruise)
+        
+        self.assert_(self.machine.complete)
+        
+        # Make sure we get the final event
+        self.qeventHub.publishEvents()
+        self.assert_(self._binComplete)
+        # Test the offset data has been deleted
+        self.assertFalse(self.ai.data.has_key(
+                'dive_offsetTheOffset'))
+        self.assertFalse(self.ai.data.has_key(
+                'closerlook_offsetTheOffset'))
         self.assertAIDataValue('startSide', bin.BinSortingState.LEFT)
         self.assertAIDataValue('numOfScans', 3)
         
@@ -1596,17 +1646,9 @@ class TestSurface(BinTestCase):
     
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""
-        self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
         #self.assertLessThan(self.controller.depth, 10)
-        
-    def testBinFound(self):
-        """Make sure the loop back works"""
-        self.binFoundHelper()
-        
-    def testBinTracking(self):
-        self.binTrackingHelper()
         
     def testDiveFinished(self):
         # Subscribe to end event
@@ -1622,13 +1664,9 @@ class TestSurface(BinTestCase):
         # Make sure we get the final event
         self.qeventHub.publishEvents()
         self.assert_(self._binComplete)
-    
-    def testBinLost(self):
-        """Make sure losing the bin goes back to search"""
-        
-        # For Recover
-        self.ai.data["lastBinX"] = 0
-        self.ai.data["lastBinY"] = 0
-        
-        self.injectEvent(vision.EventType.BINS_LOST)
-        self.assertCurrentState(bin.RecoverSurfaceToCruise)
+
+        # Test the offset data has been deleted
+        self.assertFalse(self.ai.data.has_key(
+                'dive_offsetTheOffset'))
+        self.assertFalse(self.ai.data.has_key(
+                'closerlook_offsetTheOffset'))

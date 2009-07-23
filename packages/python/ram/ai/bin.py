@@ -1221,7 +1221,7 @@ class DropMarker(SettlingState):
         return SettlingState.transitions(DropMarker,
             lostState = RecoverCloserLook,
             recoveryState = LostCurrentBinCloserLook,
-            trans = { DropMarker.FINISHED : SurfaceToCruise,
+            trans = { DropMarker.FINISHED : End,
                       DropMarker.CONTINUE : SurfaceToMove,
                       DropMarker.DROP : DropMarker })
 
@@ -1278,7 +1278,7 @@ class CheckDropped(HoveringState):
     def transitions():
         return HoveringState.transitions(CheckDropped,
             lostState = CheckDropped,
-            trans = { CheckDropped.FINISH : SurfaceToCruise,
+            trans = { CheckDropped.FINISH : End,
                       CheckDropped.RESTART : Dive })
         
     def enter(self):
@@ -1301,39 +1301,29 @@ class CheckDropped(HoveringState):
             # We've dropped them all. Finish.
             self.publish(CheckDropped.FINISH, core.Event())
         
-class SurfaceToCruise(HoveringState):
+class SurfaceToCruise(state.State):
     """
     Goes back to starting cruise depth we had before we started the bins
     """
     @staticmethod
     def transitions():
-        return HoveringState.transitions(SurfaceToCruise,
-            lostState = RecoverSurfaceToCruise,
-            trans = { motion.basic.Motion.FINISHED : End })
+        return { motion.basic.Motion.FINISHED : End }
         
     def enter(self):
-        # Keep centered over the bin
-        HoveringState.enter(self)
-        
-        # Also surface
+        # Surface
         surfaceMotion = motion.basic.RateChangeDepth(
             desiredDepth = self.ai.data['preBinCruiseDepth'],
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)
-        
+
+class End(state.State):
+    def enter(self):
         # If the offset values exist, delete them
         if self.ai.data.has_key('dive_offsetTheOffset'):
             del self.ai.data['dive_offsetTheOffset']
         if self.ai.data.has_key('closerlook_offsetTheOffset'):
             del self.ai.data['closerlook_offsetTheOffset']
 
-class RecoverSurfaceToCruise(Recover):
-    @staticmethod
-    def transitions():
-        return Recover.transitions(RecoverSurfaceToCruise, SurfaceToCruise)
-
-class End(state.State):
-    def enter(self):
         self.visionSystem.binDetectorOff()
         self.publish(COMPLETE, core.Event())
