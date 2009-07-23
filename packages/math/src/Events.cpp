@@ -9,12 +9,15 @@
 
 // Project Includes
 #include "core/include/Feature.h"
-#include "math/include/Events.h"
 
 // This section is only needed when we are compiling the wrappers
 // This registers converters to work around some issues with Boost.Python
 // automatic down casting
-#if defined(RAM_WITH_WRAPPERS) && defined(RAM_WITH_CORE)
+#if defined(RAM_WITH_CORE)
+
+#include "math/include/Events.h"
+
+#if defined(RAM_WITH_WRAPPERS) 
 
 #include "core/include/EventConverter.h"
 
@@ -69,3 +72,5 @@ core::EventPtr NumericEvent::clone()
     
 } // namespace math
 } // namespace ram
+
+#endif // RAM_WITH_CORE
