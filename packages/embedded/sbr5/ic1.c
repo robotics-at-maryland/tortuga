@@ -202,6 +202,9 @@ byte convertSpeed(byte high, byte low) {
     multTemp= therealchunk;
 
     multTemp*= 102;
+    /* We need a bias for negative numbers */
+    if(multTemp < 0)
+        multTemp+= 0x3FF;
     multTemp>>= 10;
 
     if(multTemp < 0)
@@ -1941,7 +1944,7 @@ int main(void)
 #else
                 busWriteByte(BUS_CMD_SET_MOT_SPEEDS, SLAVE_ID_MOTOR);
 
-                for(i= 0;i < 6;i++) {
+                for(i= 0;(i >> 1) < 6;i+= 2) {
                     if(busWriteByte(convertSpeed(rxBuf[i], rxBuf[i+1]), SLAVE_ID_MOTOR))
                         t1++;
                 }
