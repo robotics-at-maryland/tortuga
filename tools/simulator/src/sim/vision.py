@@ -1508,7 +1508,7 @@ ext.core.SubsystemMaker.registerSubsystem('SimVision', SimVision)
 
 class CrappyCameraListener(RenderCameraListener):
     def __init__(self, vehicle, camera, buffer_, texture, updateInterval,
-                 failureRate = "0"):
+                 failureRate = "0", location = (0, 0), size = (640, 480)):
         RenderCameraListener.__init__(self, vehicle, camera, buffer_, texture,
                                       updateInterval)
         # Failure rate is a percentage. 0% means they never fail. 100% means
@@ -1516,6 +1516,20 @@ class CrappyCameraListener(RenderCameraListener):
         self._vehicle = vehicle
         self._failureRate = failureRate
         self._vehicle._loseOnNextFrame = False
+        self._x = location[0]
+        self._y = location[1]
+        if self._x + size[0] > 640:
+            self._width = 640 - self._x
+        else:
+            self._width = size[0]
+        if self._y + size[1] > 480:
+            self._height = 480 - self._y
+        else:
+            self._height = size[1]
+
+        print self._x, self._y
+        print self._width, self._height
+
         # Seed the random number generator with the current time
         random.seed(ram.timer.time())
 
@@ -1528,9 +1542,9 @@ class CrappyCameraListener(RenderCameraListener):
             # If so, send in a blank buffer
             self._vehicle._loseOnNextFrame = False
             self._copyImage(timeSinceLastUpdate)
-            for x in xrange(480):
-                offset = 160*3 + (640*3 * x)
-                ctypes.memset(self._bufferAddress + offset, 0, 320*3)
+            for i in xrange(self._y, self._y + self._height):
+                offset = self._x*3 + (640*3 * i)
+                ctypes.memset(self._bufferAddress + offset, 0, self._width*3)
             self._sendImage(self._bufferAddress)
         else:
             # Otherwise, use the normal method
@@ -1539,19 +1553,25 @@ class CrappyCameraListener(RenderCameraListener):
 class CrappyVision(SimVision):
     def __init__(self, config, deps):
         self._failureRate = config.get('failureRate')
+        self._x = config.get('x', 0)
+        self._y = config.get('y', 0)
+        self._width = config.get('width', 640)
+        self._height = config.get('height', 480)
         SimVision.__init__(self, config, deps)
 
     def _setupCameraListeners(self):
         # Setup render target listeners to do the copying of images
         self._forwardCameraListener = CrappyCameraListener(self._vehicle,
             self._forwardCamera, self._forwardBuffer, self._forwardTexture,
-            self._cameraUpdateInterval, failureRate = self._failureRate)
+            self._cameraUpdateInterval, failureRate = self._failureRate,
+            location = (self._x, self._y), size = (self._width, self._height))
         self._forwardTexture.getBuffer().getRenderTarget().addListener(
             self._forwardCameraListener)
         
         self._downwardCameraListener = CrappyCameraListener(self._vehicle,
             self._downwardCamera, self._downwardBuffer, self._downwardTexture,
-            self._cameraUpdateInterval, failureRate = self._failureRate)
+            self._cameraUpdateInterval, failureRate = self._failureRate,
+            location = (self._x, self._y), size = (self._width, self._height))
         self._downwardTexture.getBuffer().getRenderTarget().addListener(
             self._downwardCameraListener)
 
