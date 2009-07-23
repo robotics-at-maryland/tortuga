@@ -88,13 +88,15 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
     IN_RANGE = core.declareEventType('IN_RANGE')
     
     @staticmethod   
-    def transitions(myState = None, trans = None):
+    def transitions(myState = None, lostState = None, trans = None):
         if myState is None:
             myState = RangeXYHold
+        if lostState is None:
+            lostState = FindAttempt
         if trans is None:
             trans = {}
         trans.update({vision.EventType.BARBED_WIRE_FOUND : myState,
-                      vision.EventType.BARBED_WIRE_LOST : FindAttempt })
+                      vision.EventType.BARBED_WIRE_LOST : lostState })
         return trans
         
     def BARBED_WIRE_FOUND(self, event):
@@ -186,7 +188,7 @@ class Start(state.State):
     
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : FindAttempt }
+        return { motion.basic.Motion.FINISHED : Searching }
     
     def enter(self):
         # Set the initial direction
@@ -212,9 +214,11 @@ class FindAttempt(state.FindAttempt, StoreBarbedWireEvent):
     """
 
     @staticmethod
-    def transitions():
+    def transitions(foundState = None):
+        if foundState is None:
+            foundState = FarSeekingToRange
         return state.FindAttempt.transitions(vision.EventType.BARBED_WIRE_FOUND,
-                                             FarSeekingToRange, Searching)
+                                             foundState, Searching)
         
     def enter(self):
         state.FindAttempt.enter(self)
@@ -246,11 +250,15 @@ class Searching(state.State, StoreBarbedWireEvent):
             duration = self._duration,
             absolute = False)
 
+        self._legTime = self._config.get('legTime', 15)
+        self._sweepAngle = self._config.get('sweepAngle', 60)
+        self._speed = self._config.get('speed', 2.5)
+
         # Create zig zag search to 
         self._zigZag = motion.search.ForwardZigZag(
-            legTime = 15,
-            sweepAngle = 60,
-            speed = 2.5,
+            legTime = self._legTime,
+            sweepAngle = self._sweepAngle,
+            speed = self._speed,
             direction = direction)
 
         if self.ai.data.get('firstSearching', True) and self._duration > 0:
@@ -270,9 +278,10 @@ class SeekingToRange(RangeXYHold):
     """
     
     @staticmethod
-    def transitions(myState, inRangeState):
-        return RangeXYHold.transitions(myState, {
-            RangeXYHold.IN_RANGE : inRangeState })
+    def transitions(myState, lostState, inRangeState):
+        return RangeXYHold.transitions(myState = myState,
+            lostState = lostState,
+            trans = { RangeXYHold.IN_RANGE : inRangeState })
 
     def BARBED_WIRE_FOUND(self, event):
         """
@@ -328,6 +337,7 @@ class FarSeekingToRange(SeekingToRange):
     @staticmethod
     def transitions():
         return SeekingToRange.transitions(myState = FarSeekingToRange,
+                                          lostState = FindAttempt,
                                           inRangeState = FarSeekingToAligned)
     
     def enter(self):
@@ -337,11 +347,18 @@ class CloseSeekingToRange(SeekingToRange):
     @staticmethod
     def transitions():
         return SeekingToRange.transitions(myState = CloseSeekingToRange,
+                                          lostState = CloseRangeFindAttempt,
                                           inRangeState = CloseSeekingToAligned)
         
     def enter(self):
         SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
 
+class CloseRangeFindAttempt(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(CloseSeekingToRange)
+
+# Not used
 class SeekingToRange2(RangeXYHold):
     """
     Heads toward the target until it reaches the desired range
@@ -430,9 +447,9 @@ class SeekingToAligned(TargetAlignState, state.State):
     CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
     
     @staticmethod
-    def transitions(myState, alignedState):
+    def transitions(myState, lostState, alignedState):
         return { vision.EventType.BARBED_WIRE_FOUND : myState,
-                 vision.EventType.BARBED_WIRE_LOST : FindAttempt,
+                 vision.EventType.BARBED_WIRE_LOST : lostState,
                  SeekingToAligned.CHECK_DIRECTION : myState,
                  SeekingToAligned.ALIGNED : alignedState }
 
@@ -465,20 +482,33 @@ class FarSeekingToAligned(SeekingToAligned):
     @staticmethod
     def transitions():
         return SeekingToAligned.transitions(FarSeekingToAligned,
+                                            FarAlignedFindAttempt,
                                             CloseSeekingToRange)
         
     def enter(self):
         SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.5,
                                rangeThreshold = 0.05)
         
+class FarAlignedFindAttempt(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(FarSeekingToAligned)
+
 class CloseSeekingToAligned(SeekingToAligned):
     @staticmethod
     def transitions():
-        return SeekingToAligned.transitions(CloseSeekingToAligned, Aligning)
+        return SeekingToAligned.transitions(CloseSeekingToAligned,
+                                            CloseAlignedFindAttempt,
+                                            Aligning)
     
     def enter(self):
         SeekingToAligned.enter(self, minAlignment = 0.1, desiredRange = 0.25,
                                rangeThreshold = 0.05)
+
+class CloseAlignedFindAttempt(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(CloseSeekingToAligned)
 
 class SeekingToAligned2(TargetAlignState, state.State, StoreBarbedWireEvent):
     """
@@ -519,7 +549,7 @@ class Aligning(TargetAlignState, state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.BARBED_WIRE_FOUND : Aligning,
-                 vision.EventType.BARBED_WIRE_LOST : FindAttempt,
+                 vision.EventType.BARBED_WIRE_LOST : AligningFindAttempt,
                  Aligning.SETTLED : Under }
 
     def enter(self):
@@ -532,6 +562,11 @@ class Aligning(TargetAlignState, state.State):
     def exit(self):
         TargetAlignState.exit(self)
         self.timer.stop()
+
+class AligningFindAttempt(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(Aligning)
 
 class Under(FilteredState, state.State, StoreBarbedWireEvent):
     @staticmethod

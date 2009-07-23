@@ -56,7 +56,7 @@ class TestStart(support.AITestCase):
         
     def testFinish(self):
         self.injectEvent(motion.basic.Motion.FINISHED)
-        self.assertCurrentState(barbedwire.FindAttempt)
+        self.assertCurrentState(barbedwire.Searching)
 
 class TestFindAttempt(support.AITestCase):
     def setUp(self):
@@ -194,10 +194,12 @@ class TestAlternateSearching(support.AITestCase):
         self.assertCurrentMotion(motion.search.ForwardZigZag)
         
 class TestRangeXYHold(support.AITestCase):
-    def setUp(self, stateType = barbedwire.RangeXYHold, cfg = None):
+    def setUp(self, stateType = barbedwire.RangeXYHold,
+              lostState = barbedwire.FindAttempt, cfg = None):
         if cfg is None:
             cfg = {}
         self._stateType = stateType
+        self.lostState = lostState
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(stateType)
     
@@ -235,7 +237,7 @@ class TestRangeXYHold(support.AITestCase):
     def testTargetLost(self):
         """Make sure losing the target goes back to search"""
         self.injectEvent(vision.EventType.BARBED_WIRE_LOST)
-        self.assertCurrentState(barbedwire.FindAttempt)
+        self.assertCurrentState(self.lostState)
         
     def testInRange(self):
         # Inject and event which has the duct ahead, and at the needed range
@@ -281,10 +283,11 @@ class TestRangeXYHoldNoDepth(TestRangeXYHold):
 
 class TestFarSeekingToRange(TestRangeXYHold):
     def setUp(self, myState = barbedwire.FarSeekingToRange,
+              lostState = barbedwire.FindAttempt,
               nextState = barbedwire.FarSeekingToAligned):
         self.myState = myState
         self.nextState = nextState
-        TestRangeXYHold.setUp(self, self.myState)
+        TestRangeXYHold.setUp(self, self.myState, lostState)
            
     def testInRange(self):
         TestRangeXYHold.testInRange(self)
@@ -316,8 +319,10 @@ class TestFarSeekingToRange(TestRangeXYHold):
         
 class TestCloseSeekingToRange(TestFarSeekingToRange):
     def setUp(self):
-        TestFarSeekingToRange.setUp(self, myState = barbedwire.CloseSeekingToRange,
-                                    nextState = barbedwire.CloseSeekingToAligned)
+        TestFarSeekingToRange.setUp(self,
+            myState = barbedwire.CloseSeekingToRange,
+            lostState = barbedwire.CloseRangeFindAttempt,
+            nextState = barbedwire.CloseSeekingToAligned)
         
 class AlignmentTest(object):
     def testStart(self):
@@ -346,7 +351,7 @@ class AlignmentTest(object):
     def testTargetLost(self):
         """Make sure losing the light goes back to search"""
         self.injectEvent(vision.EventType.BARBED_WIRE_LOST)
-        self.assertCurrentState(barbedwire.FindAttempt)
+        self.assertCurrentState(self.lostState)
 
     def _sendAlignEvent(self, topX, bottomX, topY = 0.5):
         self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
@@ -390,9 +395,11 @@ class AlignmentTest(object):
 
 class TestFarSeekingToAligned(AlignmentTest, support.AITestCase):
     def setUp(self, myState = barbedwire.FarSeekingToAligned,
+              lostState = barbedwire.FarAlignedFindAttempt,
               nextState = barbedwire.CloseSeekingToRange):
         support.AITestCase.setUp(self)
         self.myState = myState
+        self.lostState = lostState
         self.nextState = nextState
         self.machine.start(self.myState)
 
@@ -447,8 +454,10 @@ class TestFarSeekingToAligned(AlignmentTest, support.AITestCase):
         
 class TestCloseSeekingToAligned(TestFarSeekingToAligned):
     def setUp(self):
-        TestFarSeekingToAligned.setUp(self, myState = barbedwire.CloseSeekingToAligned,
-                                      nextState = barbedwire.Aligning)
+        TestFarSeekingToAligned.setUp(self,
+            myState = barbedwire.CloseSeekingToAligned,
+            lostState = barbedwire.CloseAlignedFindAttempt,
+            nextState = barbedwire.Aligning)
         
     def testAligned(self):
         # Inject and event which has the target ahead, and at the needed range
@@ -471,6 +480,7 @@ class TestCloseSeekingToAligned(TestFarSeekingToAligned):
 class TestAligning(AlignmentTest, support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
+        self.lostState = barbedwire.AligningFindAttempt
         self.machine.start(barbedwire.Aligning)
         
     def testStart(self):
