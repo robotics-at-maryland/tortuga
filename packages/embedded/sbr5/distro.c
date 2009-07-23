@@ -73,6 +73,14 @@ _FWDT ( WDT_OFF );
 #define IN_KILLSW   _RD15
 #define TRIS_KILLSW _TRISD15
 
+/* The 18_V enable pin in the schematic is now the DCP enable pin */
+#define LAT_DCP_EN   _LATA7
+#define TRIS_DCP_EN  _TRISA7
+
+/* The AUX_EN will enable the computron's power */
+#define TRIS_AUX_EN  _TRISD12
+#define LAT_AUX_EN   _LATD12
+
 
 /* LED Bar and Fan output definitions */
 /* Level specification */
@@ -1087,6 +1095,11 @@ void main()
     LAT_LED_ERR = LED_ON;
     LAT_LED_OVR = LED_ON;
 
+    LAT_AUX_EN = 1;
+    TRIS_AUX_EN = TRIS_OUT;
+
+    TRIS_DCP_EN = TRIS_IN;
+
 //    while(1);
 
     initBus();
@@ -1112,6 +1125,9 @@ void main()
 
 
     for(l=0; l<55000; l++);
+
+    LAT_DCP_EN = 0;
+    TRIS_DCP_EN = TRIS_OUT;
 
     LAT_LED_STA1 = ~LED_ON;
     LAT_LED_STA2 = ~LED_ON;
