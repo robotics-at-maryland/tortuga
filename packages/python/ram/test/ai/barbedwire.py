@@ -487,9 +487,41 @@ class TestAligning(AlignmentTest, support.AITestCase):
         AlignmentTest.testStart(self)
         self.releaseTimer(barbedwire.Aligning.SETTLED)
         self.assertCurrentState(barbedwire.Under)
+
+    def testSettleEarly(self):
+        # Inject a non centered event
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = 0.05, topY = -0.1, topWidth = 0.75,
+                         bottomX = 0.03, bottomY = -0.5, bottomWidth = 0.3)
+        self.qeventHub.publishEvents()
+
+        # Make sure it hasn't settled
+        self.assertCurrentState(barbedwire.Aligning)
+
+        # Now inject an event without a second pipe
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = 0.04, topY = -0.04, topWidth = 0.75,
+                         bottomX = 0, bottomY = 0, bottomWidth = -1)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(barbedwire.Aligning)
+
+        self.injectEvent(vision.EventType.BARBED_WIRE_FOUND, 
+                         vision.BarbedWireEvent, 0, 0, 0, 0, 0, 0,
+                         topX = 0.03, topY = -0.04, topWidth = 0.75,
+                         bottomX = 0.04, bottomY = -0.3, bottomWidth = 0.65)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(barbedwire.Under)
         
     def testSettle(self):
         self.injectEvent(barbedwire.Aligning.SETTLED)
+        self.assertCurrentState(barbedwire.Under)
+
+    def testTimeout(self):
+        self.releaseTimer(barbedwire.Aligning.SETTLED)
         self.assertCurrentState(barbedwire.Under)
 
 class TestUnder(support.AITestCase):
@@ -566,15 +598,42 @@ class TestUnder(support.AITestCase):
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertAlmostEqual(0, self.controller.yawChange, 5)
 
+    def testLoseDuring(self):
+        # Turn this on, so we make sure it goes off
+        self.visionSystem.barbedWireDetector = True
+
+        # Inject the BarbedWire event
+        self._injectFoundEvent(0, 0, 0.5)
+
+        # Test to make sure its only going straight
+        self.assertCurrentMotion(motion.pipe.Follow)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertAlmostEqual(self.controller.sidewaysSpeed, 0, 5)
+        self.assertAlmostEqual(self.controller.yawChange, 0, 5)
+
+        # Make sure that it goes to Through when its lost, but
+        # the detector is still on
+        self.injectEvent(vision.EventType.BARBED_WIRE_LOST)
+
+        self.assertCurrentState(barbedwire.Through)
+        self.assertEqual(True, self.visionSystem.barbedWireDetector)
+
+        # Refind the barbed wire
+        self._injectFoundEvent(0, 0, 0.5)
+
+        # Test to make sure it's back in Under and the detector is on
+        self.assertCurrentState(barbedwire.Under)
+        self.assertEqual(True, self.visionSystem.barbedWireDetector)
+
 class TestThrough(support.AITestCase):       
     def testStart(self):
         # Turn this on, so we make sure it goes off
         self.visionSystem.barbedWireDetector = True
-        
+
         # Make sure we start driving forward
         self.machine.start(barbedwire.Through)
         self.assert_(self.controller.speed > 0)
-        self.assertEqual(False, self.visionSystem.barbedWireDetector)
+        self.assertEqual(True, self.visionSystem.barbedWireDetector)
 
         # Subscribe to end events
         self._throughDuct = False
@@ -599,3 +658,4 @@ class TestThrough(support.AITestCase):
         
         # Make sure hit the end state
         self.assert_(self.machine.complete)
+        self.assertEqual(False, self.visionSystem.barbedWireDetector)

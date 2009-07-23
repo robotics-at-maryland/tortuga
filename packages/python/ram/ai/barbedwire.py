@@ -552,9 +552,22 @@ class Aligning(TargetAlignState, state.State):
                  vision.EventType.BARBED_WIRE_LOST : AligningFindAttempt,
                  Aligning.SETTLED : Under }
 
+    def BARBED_WIRE_FOUND(self, event):
+        TargetAlignState.BARBED_WIRE_FOUND(self, event)
+
+        negativeThreshold = (0.0 - self._threshold)
+        if event.bottomWidth != -1:
+            if (negativeThreshold < event.topX < self._threshold) and \
+                    (negativeThreshold < event.bottomX < self._threshold):
+                if self.timer is not None:
+                    self.timer.stop()
+                self.publish(Aligning.SETTLED, core.Event())
+
     def enter(self):
         TargetAlignState.enter(self)
         
+        self._threshold = self._config.get('threshold', 0.05)
+
         self.timer = self.timerManager.newTimer(
             Aligning.SETTLED, self._config.get('settleTime', 15))
         self.timer.start()
@@ -576,6 +589,8 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
 
     def BARBED_WIRE_FOUND(self, event):
         # Do not change the angle
+        StoreBarbedWireEvent.BARBED_WIRE_FOUND(self, event)
+
         angle = ext.math.Degree(0)
         if event.topY <= self._maxy:
             self._bwire.setState(event.topX, event.topY, angle)
@@ -610,15 +625,16 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
                                         yawGain = self._yawGain)
         self.motionManager.setMotion(motion)
         
-class Through(state.State):
+class Through(state.State, StoreBarbedWireEvent):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')
     
     @staticmethod
     def transitions():
-        return {Through.FORWARD_DONE : End}
+        return { vision.EventType.BARBED_WIRE_FOUND : Under,
+                 Through.FORWARD_DONE : End }
 
     def enter(self):
-        self.visionSystem.barbedWireDetectorOff()
+        #self.visionSystem.barbedWireDetectorOff()
 
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
         self.timer = self.timerManager.newTimer(
@@ -633,4 +649,5 @@ class Through(state.State):
         
 class End(state.State):
     def enter(self):
+        self.visionSystem.barbedWireDetectorOff()
         self.publish(COMPLETE, core.Event())
