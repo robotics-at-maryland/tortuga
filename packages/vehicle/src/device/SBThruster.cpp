@@ -68,7 +68,8 @@ void SBThruster::setForce(double force)
     int motorCount;
     
     // Convert force here (using calibration factor)
-    double motorVoltage = m_sensorBoard->getMainBusVoltage();
+    //double motorVoltage = m_sensorBoard->getMainBusVoltage();
+    double motorVoltage = 1;
     motorCount =
         (int)(((force / m_calibrationFactor - b) * 1023) / motorVoltage);
 
@@ -103,12 +104,12 @@ double SBThruster::getForce()
 
 double SBThruster::getMaxForce()
 {
-    return (((1023.0 * 27) / 1023) + 0.0) * m_calibrationFactor;
+  return m_calibrationFactor; //(((1023.0 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
     
 double SBThruster::getMinForce()
 {
-    return (((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
+  return -m_calibrationFactor; //(((-1023 * 27) / 1023) + 0.0) * m_calibrationFactor;
 }
 
 bool SBThruster::isEnabled()
