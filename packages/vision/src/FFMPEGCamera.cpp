@@ -127,6 +127,8 @@ FFMPEGCamera::~FFMPEGCamera()
     av_free(this->m_RGBframe);
     av_free(this->m_frame);
     av_close_input_file(this->m_formatContext);
+
+    sws_freeContext(m_convertContext);
 }
 
 void FFMPEGCamera::update(double timestep)
