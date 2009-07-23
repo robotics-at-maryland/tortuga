@@ -433,16 +433,28 @@ class BinPanel(BaseVisionPanel):
             obj = event
         
             if self._ai is not None:
-                # Sorted closest to farthest
-                currentBinIDs = self._ai.data['binData'].get('currentIds', set())
-                currentBins = [b for b in currentBinIDs]
-                sortedBins = sorted(currentBins, self._distCompare)
-                obj = self._ai.data['binData']['itemData'][sortedBins[0]]
+                # Use the current bin before anything else if it exists
+                if self._ai.data['binData'].has_key('currentID'):
+                    id = self._ai.data['binData']['currentID']
+                    obj = self._ai.data['binData']['itemData'].get(id, None)
+                else:
+                    # Sorted closest to farthest
+                    currentBinIDs = self._ai.data['binData'].get(
+                        'currentIds', set())
+                    currentBins = [b for b in currentBinIDs]
+                    sortedBins = sorted(currentBins, self._distCompare)
+                    obj = self._ai.data['binData']['itemData'][sortedBins[0]]
             
-            self._x.Value = "% 4.2f" % obj.x
-            self._y.Value = "% 4.2f" % obj.y
-            self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
-            self._symbol.Value = "%s" % obj.symbol
+            if obj is not None:
+                self._x.Value = "% 4.2f" % obj.x
+                self._y.Value = "% 4.2f" % obj.y
+                self._angle.Value = "% 4.2f" % obj.angle.valueDegrees()
+                self._symbol.Value = "%s" % obj.symbol
+            else:
+                self._x.Value = "NO ID"
+                self._y.Value = "NO ID"
+                self._angle.Value = "NO ID"
+                self._symbol.Value = "NO ID"
         
             self.enableControls()
     

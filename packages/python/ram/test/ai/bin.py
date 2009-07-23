@@ -452,8 +452,8 @@ class TestLostCurrentBin(aisupport.AITestCase):
         
         # Now the correct bin
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.25,
-                         y = -0.25, id = 6)
+                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.30,
+                         y = -0.30, id = 6)
         self.qeventHub.publishEvents()
         self.assertCurrentState(self.foundState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 6)

@@ -214,10 +214,27 @@ class SettlingState(HoveringState):
     A specialization of the hover state which hovers for the given time.
     """
     def enter(self, eventType, eventTime, useMultiAngle = False):
+        self._eventType = eventType
+        self._threshold = self._config.get('threshold', 0.05)
+
         self.timer = self.timerManager.newTimer(eventType, eventTime)
         self.timer.start()
         
         HoveringState.enter(self, useMultiAngle)
+
+    def BIN_FOUND(self, event):
+        HoveringState.BIN_FOUND(self, event)
+
+        # Only check the current bin
+        if self._currentBin(event):
+            negativeThreshold = (0.0 - self._threshold)
+            # Check if it is in the threshold
+            if (negativeThreshold < event.x < self._threshold) and \
+                    (negativeThreshold < event.y < self._threshold):
+                # It is settled. Stop the timer and move on.
+                if self.timer is not None:
+                    self.timer.stop()
+                self.publish(self._eventType, core.Event())
 
     def exit(self):
         HoveringState.exit(self)
@@ -454,9 +471,10 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
             oldX = self.ai.data['lastBinX']
             oldY = self.ai.data['lastBinY']
             
-            if ((oldX - self._threshold) < event.x < \
-                    (oldX + self._threshold)) and ((oldY - self._threshold) < \
-                    event.y < (oldY + self._threshold)):
+            if ((oldX - self._recoverThreshold) < event.x < \
+                    (oldX + self._recoverThreshold)) and \
+                    ((oldY - self._recoverThreshold) < \
+                    event.y < (oldY + self._recoverThreshold)):
                 # We've found the bin
                 self.ai.data['binData']['currentID'] = event.id
                 self.publish(LostCurrentBin.REFOUND_BIN, core.Event())
@@ -477,7 +495,7 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
     def enter(self):
         HoveringState.enter(self)
         state.FindAttempt.enter(self, timeout = self._config.get('timeout', 3))
-        self._threshold = self._config.get('threshold', 0.1)
+        self._recoverThreshold = self._config.get('recoverThreshold', 0.2)
         
         self._currentIds = self.ai.data['binData']['currentIds']
     
@@ -1250,21 +1268,10 @@ class DropMarker(SettlingState):
     def BIN_FOUND(self, event):
         # Zero out the angle
         event.angle = math.Degree(0)
-        HoveringState.BIN_FOUND(self, event)
-
-        # Only check the current bin
-        if self._currentBin(event):
-            negativeThreshold = (0.0 - self._threshold)
-            # Check if it is in the threshold
-            if (negativeThreshold < event.x < self._threshold) and \
-                    (negativeThreshold < event.y < self._threshold):
-                # Drop the marker if it is
-                self._dropMarker()
+        SettlingState.BIN_FOUND(self, event)
 
     def enter(self):
         SettlingState.enter(self, DropMarker.DROP, 5)
-
-        self._threshold = self._config.get('threshold', 0.05)
         
 class CheckDropped(HoveringState):
     """
