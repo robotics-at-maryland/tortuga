@@ -32,9 +32,10 @@ class Reciever(object):
         self.called = True
 
 class TestEventPublisher(unittest.TestCase):
+    EVTP_NAME = "OUR_NAME"
     
     def setUp(self):
-        self.epub = core.EventPublisher()
+        self.epub = core.EventPublisher(name = TestEventPublisher.EVTP_NAME)
 
     def memberHandler(self, event):
         pass
@@ -82,7 +83,7 @@ class TestEventPublisher(unittest.TestCase):
         self.epub.subscribe("Test", self.memberHandler)
 
     def testSend(self):
-        # Handler for the function
+        self.epub = core.EventPublisher(name = TestEventPublisher.EVTP_NAME)        # Handler for the function
         reciever = Reciever()
 
         # Register function to recieve the event
@@ -139,6 +140,32 @@ class TestEventPublisher(unittest.TestCase):
         self.assert_(self.aCalled)
         self.assert_(self.bCalled)
 
+    def testLookupByName(self):
+        self.called = False
+        def recieve(event):
+            self.called = True
+
+        # Create a publisher with an event hub
+        eventHub = core.EventHub()
+        mypub = core.EventPublisher(eventHub = eventHub,
+                                    name = TestEventPublisher.EVTP_NAME)
+
+        # Look it up and make sure it works
+        epub = core.EventPublisher.lookupByName(TestEventPublisher.EVTP_NAME)
+        self.assertNotEquals(None, epub)
+        self.assertEquals(TestEventPublisher.EVTP_NAME, epub.getPublisherName())
+
+        # Subscribe to the new one (which is wrapper of the same underlying
+        # C++ object as self.epub)
+        # BUG: This line below should work instead of the one two down
+#        eventHub.subscribe("TestEvent", epub, recieve)
+        eventHub.subscribe("TestEvent", mypub, recieve)
+
+        # Send through our local
+        mypub.publish("TestEvent", core.Event())
+
+        # Make sure we got it
+        self.assert_(self.called)
 
 class TestQueuedEventPublisher(unittest.TestCase):
     def test(self):
