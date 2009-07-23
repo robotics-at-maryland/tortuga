@@ -7,7 +7,7 @@ ram.ai.gate.Start:
     depth: 7 
     speed: 0.33
 ram.ai.gate.Forward:
-    time: 15
+    time: 3 #15
     speed: 2
 
 # Pipe task

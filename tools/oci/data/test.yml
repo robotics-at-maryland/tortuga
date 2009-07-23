@@ -31,3 +31,15 @@ Subsystems:
     EventPlayer:
         type: DemoEventPlayer
         depends_on: ["EventHub"]
+
+    Monitor:
+        type: Monitor
+        depends_on: ["QueuedEventHub", "Vehicle"]
+
+        Battery1:
+            publisher: "Vehicle.Device.Batt 1"
+            eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+            property: number
+            display: "Battery 1 Low"
+            warning: 27
+            critical: 26

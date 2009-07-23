@@ -1,8 +1,9 @@
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Light', 'ram.ai.course.Pipe',
-            'ram.ai.course.Bin', 
-            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon']
+            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+            'ram.ai.course.Bin', 'ram.ai.course.PipeBin',
+            'ram.ai.course.Target', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
     lightDepth: 5.5
@@ -16,6 +17,22 @@ config:
     safeDepth: 10
     safeDepthOffset: 1
     safeOffset: -0.4
-    Pipe:
-        biasDirection: -25
-        threshold: 50
+    Pipe1:
+        biasDirection: 0
+        #threshold: 50
+    PipeBarbedWire:
+        biasDirection: -100
+        #threshold: 0
+        rotation: 0
+        duration: 0
+        legTime: 5
+        sweepAngle: 30
+        sweepSpeed: 3
+    PipeBin:
+        biasDirection: -110
+        #threshold: 0
+        rotation: -40
+        duration: 0
+        legTime: 3
+        sweepAngle: 45
+        sweepSpeed: 3

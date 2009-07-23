@@ -233,7 +233,7 @@ class Thruster(device.IThruster):
         
 class PowerSource(device.IPowerSource):
     def __init__(self, eventHub, name, offset):
-        device.IPowerSource.__init__(self, eventHub)
+        device.IPowerSource.__init__(self, eventHub, name)
         self._offset = offset
         self._currentTime = 0.0
         self._name = name
