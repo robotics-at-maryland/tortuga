@@ -24,7 +24,8 @@ public:
                     ram::vehicle::IVehiclePtr vehicle) :
         ram::vehicle::device::IDepthSensor(eventHub,config["name"].asString()),
         Device(config["name"].asString()),
-        depth(config["depth"].asDouble(0))
+        depth(config["depth"].asDouble(0)),
+        location(ram::math::Vector3::ZERO)
     {
     }
     
@@ -37,7 +38,7 @@ public:
     double depth;
     ram::math::Vector3 location;
 
-    virtual double getDepth() { return depth; }
+    virtual double getDepth() { return depth;}
     virtual ram::math::Vector3 getLocation() { return location; }
 
     void publishUpdate(double update)
