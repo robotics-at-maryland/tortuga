@@ -14,11 +14,14 @@ ram.ai.gate.Forward:
 ram.ai.Seeking:
     speedGain: 3
     maxSpeed: 4
+    yawGain: 0.25
 ram.ai.Centering:
     speedGain: 3
     maxSpeed: 4
+    yawGain: 0.25
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
+    yawGain: 0.25
 
 # Light/Bouy sub task
 ram.ai.light.Searching:

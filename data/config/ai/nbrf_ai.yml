@@ -6,10 +6,10 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
-    lightDepth: 5.5
+    lightDepth: 6
     pipeDepth: 7
     bwireDepth: 11.3
-    targetDepth: 7.3
+    targetDepth: 7.5
     binStartDepth: 7
     binDepth: 12
     targetSymbols: ['Tank', 'Factory']
@@ -18,10 +18,10 @@ config:
     safeDepthOffset: 1
     safeOffset: -0.4
     Pipe1:
-        biasDirection: 0
+        #biasDirection: 0
         #threshold: 50
     PipeBarbedWire:
-        biasDirection: -100
+        #biasDirection: -100
         #threshold: 0
         rotation: 0
         duration: 0
@@ -29,7 +29,7 @@ config:
         sweepAngle: 30
         sweepSpeed: 3
     PipeBin:
-        biasDirection: -110
+        #biasDirection: -110
         #threshold: 0
         rotation: -40
         duration: 0
