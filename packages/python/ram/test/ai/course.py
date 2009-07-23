@@ -522,6 +522,30 @@ class TestLight(support.AITestCase):
 
         # Make sure we are not at the proper orientation
         self.assertEqual(expected, self.controller.desiredOrientation)
+
+class TestPipeTarget(PipeObjectiveTest, support.AITestCase):
+    def setUp(self):
+        PipeObjectiveTest.setUp(self, course.PipeTarget, course.Bin,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
+        cfg = { 'Ai' : {'taskOrder' :
+                        [ 'ram.ai.course.PipeTarget',
+                          'ram.ai.course.Bin' ]} }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.PipeTarget)
+
+class TestPipeBin(PipeObjectiveTest, support.AITestCase):
+    def setUp(self):
+        PipeObjectiveTest.setUp(self, course.PipeBin, course.Pinger,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
+        cfg = { 'Ai' : {'taskOrder' :
+                        [ 'ram.ai.course.PipeBin',
+                          'ram.ai.course.Pinger' ]} }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.PipeBin)
        
 class TestLightStaged(TestLight):
     def setUp(self):

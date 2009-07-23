@@ -286,6 +286,30 @@ class PipeTarget(PipeObjective):
 
         PipeObjective.enter(self, m1, m2, m3)
 
+class PipeBin(PipeObjective):
+    @staticmethod
+    def _transitions():
+        return PipeObjective._transitions(PipeBin)
+
+    def enter(self):
+        self._rotation = self.ai.data['config'].get('PipeBin', {}).get(
+                'rotation', -30)
+        self._legTime = self.ai.data['config'].get('PipeBin', {}).get(
+            'legTime', 5)
+        self._sweepAngle = self.ai.data['config'].get('PipeBin', {}).get(
+            'sweepAngle', 30)
+        self._sweepSpeed = self.ai.data['config'].get('PipeBin', {}).get(
+            'sweepSpeed', 3)
+
+        m1 = motion.basic.RateChangeDepth(
+            self.ai.data['config'].get('pipeDepth', 6), 0.3)
+        m2 = motion.basic.RateChangeHeading(
+            self._rotation, 10, absolute = False)
+        m3 = motion.search.ForwardZigZag(self._legTime, self._sweepAngle,
+                                         self._sweepSpeed)
+
+        PipeObjective.enter(self, m1, m2, m3)
+
 class PipeStaged(Pipe):
     """
     Find and hover over the second pipe in the course
