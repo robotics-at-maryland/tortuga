@@ -150,5 +150,5 @@ int main(int argc, char ** argv)
 
     REG(ADDR_LED) = 0x00;
 
-    return 0; // hi joe // hi steve, still watching svn?
+    return 0; // hi joe // hi steve, still watching svn? // evil wombat has via dreams 
 }
