@@ -110,8 +110,25 @@ void PropertyControl::setToDefault()
 {
     // Reset underlying property
     setPropertyValue(m_defaultValue);
-    // Set the text box to reflect that
-    m_text->SetValue(m_defaultValue);
+
+    // Set the underlying control to relfect that
+    switch (m_prop->getType())
+    {
+        case core::Property::PT_INT:
+        case core::Property::PT_DOUBLE:
+            m_text->SetValue(m_defaultValue);
+            break;
+
+        case core::Property::PT_BOOL:
+            m_checkBox->SetValue(m_prop->getAsBool());
+            break;
+            
+        default:
+            assert(false && "Error improper property type");
+            break;
+    }
+
+    
 }
 
 void PropertyControl::onTextUpdated(wxCommandEvent& event)
@@ -206,7 +223,18 @@ void PropertyControl::setPropertyValue(wxString value)
                     m_prop->set(val);
             }
             break;
+        case core::Property::PT_BOOL:
+            {
+                int val = 0;
+                converted = value.ToLong((long int*)&val);
+                if (converted)
+                {
+                    m_prop->set((bool)(val == 1));
+                }
+            }
+            break;
         default:
+            assert(false && "Error improper property type");
             break;
     }
 
@@ -216,7 +244,15 @@ void PropertyControl::setPropertyValue(wxString value)
         m_label->SetBackgroundColour(wxNullColour);
 
         // Read back the property and display it
-        m_text->ChangeValue(wxString(m_prop->toString().c_str(), wxConvUTF8));
+        if (m_text)
+        {
+            m_text->ChangeValue(wxString(m_prop->toString().c_str(),
+                                         wxConvUTF8));
+        }
+        else
+        {
+            m_checkBox->SetValue(m_prop->getAsBool());
+        }
 
         // Notify the model so it updates any processing it has to do
         m_model->detectorPropertiesChanged();
