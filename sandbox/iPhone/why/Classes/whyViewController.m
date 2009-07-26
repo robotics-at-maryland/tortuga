@@ -8,7 +8,7 @@
 
 #import "whyViewController.h"
 #define PORT 9219
-#define IP_ADDR "127.0.0.1"
+#define IP_ADDR "192.168.10.10"
 
 #define CMD_NOTHING     0
 
@@ -110,6 +110,7 @@ BOOL client_started = NO;
 
 /* Triggered by the button being pressed */
 -(IBAction) pressed_why_button:(id)sender{
+    
     [self create_client:PORT :(char **)IP_ADDR];
     
     /* Increases the speed */
@@ -167,6 +168,18 @@ BOOL client_started = NO;
       
     }
     
+    /* Side Step Left */
+    if(sender == self.increase_side_step_speed_button){
+        
+        [self send_command:sockfd :CMD_INCTSETSPEED :3];
+        
+    }    
+    /* Side Step Right */
+    if(sender == self.decrease_side_step_speed_button){
+        
+        [self send_command:sockfd :CMD_DECTSETSPEED :-3];
+        
+    } 
 }
 
 /* Sends the command to the server */
