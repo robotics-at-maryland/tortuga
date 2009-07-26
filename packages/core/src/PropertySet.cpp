@@ -25,6 +25,11 @@ THE SOFTWARE.
 -----------------------------------------------------------------------------
 */
 
+// STD Includes
+#include <iostream>
+#include <cassert>
+#include <cstdlib>
+
 // Library Includes
 #include <boost/foreach.hpp>
 
@@ -191,7 +196,26 @@ void PropertySet::addPropertiesFromSet(PropertySet* propSet)
     BOOST_FOREACH(std::string propName, propSet->getPropertyNames())
         addProperty(propSet->getProperty(propName));
 }
-    
+
+bool PropertySet::verifyConfig(core::ConfigNode config, bool assertOnError)
+{
+    BOOST_FOREACH(std::string nodeName, config.subNodes())
+    {
+        if (m_propertyMap.find(nodeName) == m_propertyMap.end())
+        {
+            if (assertOnError)
+            {
+                std::cerr << "Is not a valid config property \"" << nodeName
+                          << "\"" << std::endl;
+                assert(false && "Invalide property name");
+                exit(1);
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
     
 } // namespace core
 } // namespace ram

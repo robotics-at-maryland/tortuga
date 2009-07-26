@@ -486,6 +486,9 @@ void BinDetector::init(core::ConfigNode config)
                                     0, 255,  // L defaults // 180,255
                                     0, 200,  // U defaults // 76, 245
                                     200, 255); // V defaults // 200,255
+
+    // Make sure the configuration is valid
+    propSet->verifyConfig(config);
 }
 
 void BinDetector::allocateImages(int width, int height)

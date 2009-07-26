@@ -310,7 +310,7 @@ public:
 protected:    
     virtual void setValue(const boost::any& value)
     {
-        *m_valuePtr = boost::any_cast<T>(value);;
+        *m_valuePtr = boost::any_cast<T>(value);
     }
     
     virtual boost::any getValue() const

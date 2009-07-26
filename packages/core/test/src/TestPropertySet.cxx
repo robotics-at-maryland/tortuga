@@ -180,7 +180,34 @@ TEST_FIXTURE(Fixture, addPropertiesFromSet)
     CHECK_ARRAY_EQUAL(propNames, propSet.getPropertyNames(), propNames.size());
 }
 
+TEST_FIXTURE(Fixture, verifyConfig)
+{
+    // Our starter property set
+    propSet.addProperty(prop);
+    core::PropertyPtr prop2(
+        new core::VariableProperty<int>("val 2", "property", 6, &value));
+    core::PropertyPtr prop3(
+        new core::VariableProperty<int>("val 3", "property", 8, &value));
 
+    propSet.addProperty(prop2);
+    propSet.addProperty(prop3);
 
+    // Now the total list of valid properties is "val", "val 2", "val 3"
+
+    // Try a config that sets all the values
+    ram::core::ConfigNode config1(ram::core::ConfigNode::fromString(
+                                      "{ 'val' : 0, 'val 3' : 5}"));
+    CHECK(propSet.verifyConfig(config1));
+    
+    // Try a config that doesn't set all the values
+    ram::core::ConfigNode config2(ram::core::ConfigNode::fromString(
+                                      "{ 'val' : 0, 'val 3' : 5}"));
+    CHECK(propSet.verifyConfig(config2));
+
+    // Try a config that doesn't set a non existent the value
+    ram::core::ConfigNode config3(ram::core::ConfigNode::fromString(
+                                      "{ 'val 2' : 0, 'val 4' : 5}"));
+    CHECK_EQUAL(false, propSet.verifyConfig(config3));
+}
 
 } // SUITE(PropertySet)

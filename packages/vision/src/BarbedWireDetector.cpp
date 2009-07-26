@@ -84,6 +84,9 @@ void BarbedWireDetector::init(core::ConfigNode config)
                                  137, 247); // V defaults (98, 119)
 
     /// TODO: add a found pixel drop off
+
+    // Make sure the configuration is valid
+    propSet->verifyConfig(config);
 }
     
 BarbedWireDetector::~BarbedWireDetector()

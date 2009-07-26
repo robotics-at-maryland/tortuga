@@ -113,6 +113,17 @@ public:
 
     /** Adds all the properties in the given set to this set */
     void addPropertiesFromSet(PropertySet* propSet);
+
+    /** Verify the config not only contains keys for the current properties
+     *
+     *  @param assertOnError
+     *      Causes the function to assert on error, leading to a program crash
+     *      if the config is invalid.
+     *
+     *  @return
+     *      True if the keys are valie
+     */
+    bool verifyConfig(core::ConfigNode config, bool assertOnError = false);
     
 protected:
     /** Loads the value into the given property */

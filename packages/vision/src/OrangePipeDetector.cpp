@@ -93,6 +93,10 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                  0, 129,  // L defaults
                                  14, 200,  // U defaults
                                  126, 255); // V defaults
+
+    
+    // Make sure the configuration is valid
+    propSet->verifyConfig(config);
 }
 
 void OrangePipeDetector::filterForOrangeOld(Image* image)
