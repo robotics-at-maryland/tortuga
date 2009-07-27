@@ -370,10 +370,17 @@ class PipeStaged(Pipe):
         self._moveOn()
         
     def DO_TIMEOUT_(self, event):
+
         self._moveOn()
         
     def _moveOn(self):
         # Go back to the gates orientation
+        #gateOrientation = \
+        #    self.ai.data['gateOrientation'].getYaw().valueDegrees()
+        #self._rotationMotion = motion.basic.RateChangeHeading(
+        #    desiredHeading = gateOrientation, speed = 10, absolute = False)
+
+        #self.motionManager.setMotion(self._rotationMotion)
         self.controller.setDesiredOrientation(self.ai.data['gateOrientation'])
         
         # Move on to the Light hitting task
@@ -417,22 +424,44 @@ class Light(task.Task):
     def _transitions(thisState = None):
         if thisState is None:
             thisState = Light
-        return { light.COMPLETE : task.Next,
+        return { motion.basic.Motion.FINISHED : thisState,
+                 light.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
+
+    def FINISHED(self, event):
+        # Branch after the first finished motion only
+        if self._first:
+            self.stateMachine.start(state.Branch(light.Start, 
+                                                 branchingEvent = event))
+            self._first = False
 
     def enter(self, defaultTimeout = 90):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
 
         # Save current orientation
-        self.controller.holdCurrentHeading()
-        self._initialOrientation = self.controller.getDesiredOrientation()
-        
-        self.stateMachine.start(state.Branch(light.Start))
+        #self.controller.holdCurrentHeading()
+        #self._initialOrientation = self.controller.getDesiredOrientation()
+
+        # Turn the vehicle if needed
+        self._className = type(self).__name__
+        self._heading = self.ai.data['config'].get(self._className, {}).get(
+            'heading', 0)
+        self._speed = self.ai.data['config'].get(self._className, {}).get(
+            'speed', 10)
+        self._absolute = self.ai.data['config'].get(self._className, {}).get(
+            'absolute', False)
+
+        self._first = True
+        self._headingChange = motion.basic.RateChangeHeading(
+            desiredHeading = self._heading, speed = self._speed,
+            absolute = self._absolute)
+        self.motionManager.setMotion(self._headingChange)
     
     def exit(self):
         task.Task.exit(self)
-        self.stateMachine.stopBranch(light.Start)
+        if not self._first:
+            self.stateMachine.stopBranch(light.Start)
         self.visionSystem.redLightDetectorOff()
     
 class LightStaged(Light):
@@ -476,17 +505,38 @@ class BarbedWire(task.Task):
     """
     @staticmethod
     def _transitions():
-        return { barbedwire.COMPLETE : task.Next,
+        return { motion.basic.Motion.FINISHED : BarbedWire,
+                 barbedwire.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(barbedwire.Start) }
     
+    def FINISHED(self, event):
+        # Branch after the first finished motion only
+        if self._first:
+            self.stateMachine.start(state.Branch(barbedwire.Start,
+                                                 branchingEvent = event))
+            self._first = False
+
     def enter(self, defaultTimeout = 120):
         task.Task.enter(self, defaultTimeout = defaultTimeout)
-        self.stateMachine.start(state.Branch(barbedwire.Start))
+
+        self._heading = self.ai.data['config'].get('BarbedWire', {}).get(
+            'heading', 0)
+        self._speed = self.ai.data['config'].get('BarbedWire', {}).get(
+            'speed', 10)
+        self._absolute = self.ai.data['config'].get('BarbedWire', {}).get(
+            'absolute', False)
+
+        self._first = True
+        self._headingChange = motion.basic.RateChangeHeading(
+            desiredHeading = self._heading, speed = self._speed,
+            absolute = self._absolute)
+        self.motionManager.setMotion(self._headingChange)
     
     def exit(self):
         task.Task.exit(self)
-        self.stateMachine.stopBranch(barbedwire.Start)
+        if not self._first:
+            self.stateMachine.stopBranch(barbedwire.Start)
         self.visionSystem.barbedWireDetectorOff()
     
 class Target(task.Task):
@@ -498,36 +548,76 @@ class Target(task.Task):
     
     @staticmethod
     def _transitions():
-        return { task.TIMEOUT : task.Next,
+        return { motion.basic.Motion.FINISHED : Target,
+                 task.TIMEOUT : task.Next,
                  target.COMPLETE : task.Next,
                  'GO' : state.Branch(target.Start) }
+
+    def FINISHED(self, event):
+        # Branch after the first finished motion only
+        if self._first:
+            self.stateMachine.start(state.Branch(target.Start,
+                                                 branchingEvent = event))
+            self._first = False
     
     def enter(self, defaultTimeout = 180):
         # Initialize task part of class
         task.Task.enter(self, defaultTimeout = defaultTimeout)
         
-        # Start the sub state
-        self.stateMachine.start(state.Branch(target.Start))
+        self._heading = self.ai.data['config'].get('Target', {}).get(
+            'heading', 0)
+        self._speed = self.ai.data['config'].get('Target', {}).get(
+            'speed', 10)
+        self._absolute = self.ai.data['config'].get('Target', {}).get(
+            'absolute', False)
+
+        self._first = True
+        self._headingChange = motion.basic.RateChangeHeading(
+            desiredHeading = self._heading, speed = self._speed,
+            absolute = self._absolute)
+        self.motionManager.setMotion(self._headingChange)
     
     def exit(self):
         task.Task.exit(self)
-        self.stateMachine.stopBranch(target.Start)
+        if not self._first:
+            self.stateMachine.stopBranch(target.Start)
         self.visionSystem.targetDetectorOff()
     
 class Bin(task.Task):
     @staticmethod
     def _transitions():
-        return { bin.COMPLETE : task.Next,
+        return { motion.basic.Motion.FINISHED : Bin,
+                 bin.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(bin.Start) }
 
+    def FINISHED(self, event):
+        # Branch after the first finished motion only
+        if self._first:
+            self.stateMachine.start(state.Branch(bin.Start,
+                                                 branchingEvent = event))
+            self._first = False
+
     def enter(self):
         task.Task.enter(self, defaultTimeout = 600)
-        self.stateMachine.start(state.Branch(bin.Start))
+
+        self._heading = self.ai.data['config'].get('Bin', {}).get(
+            'heading', 0)
+        self._speed = self.ai.data['config'].get('Bin', {}).get(
+            'speed', 10)
+        self._absolute = self.ai.data['config'].get('Bin', {}).get(
+            'absolute', False)
+
+        self._first = True
+        self._headingChange = motion.basic.RateChangeHeading(
+            desiredHeading = self._heading, speed = self._speed,
+            absolute = self._absolute)
+        self.motionManager.setMotion(self._headingChange)
     
     def exit(self):
         task.Task.exit(self)
-        self.stateMachine.stopBranch(bin.Start)
+        if not self._first:
+            self.stateMachine.stopBranch(bin.Start)
         self.visionSystem.binDetectorOff()
         
 class Pinger(task.Task):

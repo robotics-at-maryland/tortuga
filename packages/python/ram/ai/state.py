@@ -130,12 +130,16 @@ class Branch(object):
     """
     A marker class indication we branch the state machine
     """
-    def __init__(self, state):
+    def __init__(self, state, branchingEvent = None):
         """
         @type state: ram.ai.state.State
         @param state: The state to branch to
+
+        @type branchingEvent: core.Event
+        @param branchingEvent: The event that caused the branch, if any
         """
         self.state = state
+        self.branchingEvent = branchingEvent
 
 class Machine(core.Subsystem):
     """
@@ -253,7 +257,7 @@ class Machine(core.Subsystem):
         if Branch == type(startState):
             # Determine if we are branching
             branching = True
-            self._branchToState(startState.state)
+            self._branchToState(startState.state, startState.branchingEvent)
         else:
             self._root = startState
             self._started = True
@@ -345,7 +349,7 @@ class Machine(core.Subsystem):
                 # Create an instance of the next state's class
                 self._enterState(nextState)
             elif branching:
-                self._branchToState(nextState)
+                self._branchToState(nextState, branchingEvent = event)
                 
         # Record previous event
         self._previousEvent = event
@@ -426,7 +430,7 @@ class Machine(core.Subsystem):
         
         self._currentState = None
 
-    def _branchToState(self, nextState):
+    def _branchToState(self, nextState, branchingEvent = None):
         if self._branches.has_key(nextState):
             raise Exception("Already branched to this state")
         
@@ -435,10 +439,15 @@ class Machine(core.Subsystem):
         for subsystem in self._subsystems.itervalues():
             deps.append(subsystem)
         branchedMachine = Machine(self._config, deps)
-        
+
         # Start it up with the proper state
         branchedMachine.start(nextState)
-        
+
+        # Set the previous state to avoid unwanted transitions caused by
+        # the event that led us hear, triggering a transition in the newly
+        # created state machine
+        branchedMachine._previousEvent = branchingEvent
+
         # Store new state machine
         self._branches[nextState] = branchedMachine
 
