@@ -22,10 +22,12 @@ _FWDT ( WDT_OFF );
 
 /* This defines how long we should hold off on starting up to let the motors
  * get completely started, preventing premature i2c errors. */
-#define START_TIMEOUT 500000
-/* This defines how many main loop iterations the error led should stay on
- * after we get a failure on the i2c bus. */
-#define ERR_TIMEOUT   125000
+#define START_TIMEOUT    500000
+/* This defines how many loop iterations before we consider the i2c bus to be
+ * unresponsive */
+#define ERR_TIMEOUT      125000
+/* How many loops should we keep an error LED on? */
+#define SHOW_ERR_TIMEOUT 10
 
 /* So the R/W bit is low for a write, and high for a read
  * In other words, if the master sends data, use I2C_WRITE,
@@ -50,7 +52,8 @@ _FWDT ( WDT_OFF );
 #define I2CSTATE_STOP   0x06
 
 /* This is an error state where something isn't ACK'd or some other bad state*/
-#define I2CSTATE_BORKED 0xFE
+#define I2CSTATE_STOPPING_BORKED 0xFD
+#define I2CSTATE_BORKED          0xFE
 
 /* Here are the states needed for stevebus communication */
 #define STATE_TOP_LEVEL      0x00
@@ -96,7 +99,7 @@ byte i2cState= I2CSTATE_IDLE;
 byte i2cBuf[BUF_SIZE];
 unsigned int i2cPtr= 0;
 unsigned int packetSize= 0;
-
+unsigned int i2c_timeout;
 
 /* Here's the Stevebus buffer and other variables */
 byte busState= STATE_TOP_LEVEL;
@@ -114,10 +117,12 @@ void initUART(byte);
 void initOSC(void);
 void initADC(void);
 
+/* The UART related functions */
 void uartRXwait(void);
 byte uartRX(void);
 void writeUart(byte);
 
+/* The I2C related functions */
 byte AckI2C(void);
 unsigned int getI2C(void);
 void StartI2C(void);
@@ -127,11 +132,21 @@ unsigned int WriteI2C(byte);
 unsigned int IdleI2C(void);
 unsigned int WaitAck(void);
 unsigned int wasAckI2C(void);
+void resetI2C_registers(void);
 
+/* The steveBus related functions */
 void checkBus(void);
 void freeBus(void);
 byte readBus(void);
 void writeBus(byte);
+void processData(byte);
+
+/*****************************************************************************/
+/*****************************************************************************/
+/* This is the end of the prototypes, defines, and other such setup nonsense */
+/*****************************************************************************/
+/*****************************************************************************/
+
 
 /* Goes through and sets all motors to 0 */
 void kill_motors() {
@@ -148,7 +163,7 @@ void kill_motors() {
 /* This function does whatever we need to do when we're borked. */
 void BorkedI2C() {
     i2cBuf[0]= i2cState;
-    i2cState= I2CSTATE_BORKED;
+    i2cState= I2CSTATE_STOPPING_BORKED;
     StopI2C();        /* Generate the Stop condition */
 }
 
@@ -158,7 +173,7 @@ void _ISR _MI2CInterrupt() {
     _MI2CIF= 0;
 
     /* The master i2c interrupt routine is just a big 'ol state machine
-     * So get the current stte and figure out what the hell should be
+     * So get the current state and figure out what the hell should be
      * happening.  Then do stuff based on that. */
     switch(i2cState) {
         case I2CSTATE_IDLE:
@@ -261,6 +276,12 @@ void _ISR _MI2CInterrupt() {
             /* This is the end of the stop state. If we're here, in theory 
              * we got what we needed and we're done.  We're idle again! */
             i2cState= I2CSTATE_IDLE;
+            break;
+        }
+
+        case I2CSTATE_STOPPING_BORKED:
+        {
+            i2cState= I2CSTATE_BORKED;
             break;
         }
 
@@ -457,7 +478,7 @@ void _ISR _INT3Interrupt() {
 /* The main function sets everything up then loops */
 int main()
 {
-    unsigned int i, j, temp;
+    unsigned int i, temp;
     unsigned long timeout, err_reset;
     byte activeSpeed[6];
 
@@ -516,20 +537,23 @@ int main()
     while(1) {
         /* Avoid a race condition!!! */
         REQ_INT_BIT= 0;
-        for(i= 0;i < 6;i++)
-            writeUart(activeSpeed[i]= motorSpeed[i]);
+        for(i= 0;i < 6;i++) {
+            activeSpeed[i]= motorSpeed[i];
+            /* Debug */
+            //writeUart(activeSpeed[i]);
+        }
         REQ_INT_BIT= 1;
 
         for(i= 0;i < 6;i++) {
-            /*temp= LATF & 0xFE3F;
-            LATF= temp | (i << 6);*/
+            temp= LATF & 0xFE3F;
+            LATF= temp | (i << 6);
             /*temp= ~i;
             _LATF6= !(temp & 0x01);
             _LATF7= !(temp & 0x02);
             _LATF8= !(temp & 0x04);*/
-            _LATF6= i & 0x01;
+            /*_LATF6= i & 0x01;
             _LATF7= (i & 0x02) >> 1;
-            _LATF8= (i & 0x04) >> 2;
+            _LATF8= (i & 0x04) >> 2;*/
 
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
@@ -561,16 +585,40 @@ int main()
             while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && timeout++ < ERR_TIMEOUT)
                 ;
 
-            if(i2cState == I2CSTATE_BORKED || timeout >= ERR_TIMEOUT) {
+            if(timeout >= ERR_TIMEOUT) {
+                BorkedI2C();
+                while(i2cState != I2CSTATE_BORKED)
+                    ;
+            }
+
+            if(i2cState == I2CSTATE_BORKED) {
                 /* We should probably do something with this info! */
                 LAT_ERR= LED_ON;
-                err_reset= ERR_TIMEOUT;
+                err_reset= SHOW_ERR_TIMEOUT;
+                resetI2C_registers();
                 i2cState= I2CSTATE_IDLE;
             }
 
             if(LAT_ERR == LED_ON)
                 if(err_reset-- == 0)
                     LAT_ERR= LED_OFF;
+
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
+            Nop();Nop();Nop();Nop();Nop();
         }
     }
 
@@ -719,7 +767,7 @@ unsigned int RestartI2C(void)
     return 0;
 }
 
-/* This function generates the stop condition and reports a timeout */
+/* This function generates the stop condition */
 unsigned int StopI2C(void)
 {
     I2CCONbits.PEN = 1;        /* Generate the Stop condition */
@@ -731,9 +779,11 @@ unsigned int WriteI2C(byte b)
 {
     /* So make sure there's space in the transmit buffer before we stick
      * anything in there */
-    if(I2CSTATbits.TBF) {
+    /* So for now, we'll pretend like there's never anything in the buffer
+     * because there shouldn't be, and besides that, we really don't care. */
+/*    if(I2CSTATbits.TBF) {
         return 0xFF;
-    }
+    }*/
 
     /* Jam the byte in the transmit buffer! */
     I2CTRN = b;
@@ -750,4 +800,9 @@ unsigned int IdleI2C(void)
 /* returns 0 if the previous sent byte was NACK'd, non-0 otherwise */
 unsigned int wasAckI2C(void) {
     return (I2CSTATbits.ACKSTAT == I2C_ACK);
+}
+
+/* This should stop any of the dumb errors we're getting. */
+void resetI2C_registers(void) {
+    I2CSTAT= 0x0000; /* Wipe out I2CSTAT */
 }
