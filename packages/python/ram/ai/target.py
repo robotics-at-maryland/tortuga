@@ -96,7 +96,14 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
         trans.update({vision.EventType.TARGET_FOUND : myState,
                       vision.EventType.TARGET_LOST : lostState })
         return trans
-        
+
+    @staticmethod
+    def getattr():
+        return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
+                    'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                    'desiredRange', 'maxRangeDiff', 'maxSpeed',
+                    'translateGain'])
+
     def TARGET_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
         StoreTargetEvent.TARGET_FOUND(self, event)
@@ -165,6 +172,10 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['diveSpeed'])
     
     def enter(self):
         # Store the initial orientation
@@ -224,6 +235,11 @@ class Recover(state.FindAttempt, StoreTargetEvent):
         return state.FindAttempt.transitions(vision.EventType.TARGET_FOUND,
                                              SeekingToCentered, Searching)
 
+    @staticmethod
+    def getattr():
+        return set(['reverseSpeed', 'closeRangeThreshold']).union(
+            state.FindAttempt.getattr())
+
     def enter(self, timeout = 3):
         state.FindAttempt.enter(self)
         self.visionSystem.targetDetectorOn()
@@ -262,6 +278,11 @@ class Searching(state.State, StoreTargetEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.TARGET_FOUND : SeekingToCentered }
+
+    @staticmethod
+    def getattr():
+        return set(['duration', 'forwardSpeed', 'legTime', 'sweepAngle',
+                    'speed'])
 
     def enter(self):
         # Make sure the detector is on the vision system
@@ -366,6 +387,11 @@ class FireTorpedos(RangeXYHold):
             FireTorpedos.MOVE_ON : End,
             FireTorpedos.MISALIGNED : SeekingToAligned },
             lostState = FindAttemptFireTorpedos)
+
+    @staticmethod
+    def getattr():
+        return set(['fireDelay', 'minSquareNess', 'startFireDelay']).union(
+            RangeXYHold.getattr())
 
     def IN_RANGE(self, event):
         """
@@ -505,6 +531,13 @@ class SeekingToAligned(TargetAlignState, state.State):
                  SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
                  SeekingToAligned.ALIGNED : FireTorpedos }
 
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
+                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
+                    'minSquareNess', 'checkDelay'])
+
     def TARGET_FOUND(self, event):
         # Update motion
         TargetAlignState.TARGET_FOUND(self, event)
@@ -552,6 +585,13 @@ class Aligning(TargetAlignState, state.State):
                  vision.EventType.TARGET_LOST : FindAttempt,
                  Aligning.SETTLED : Through }
 
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
+                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
+                    'settleTime'])
+
     def enter(self):
         TargetAlignState.enter(self)
         
@@ -569,6 +609,10 @@ class Through(state.State):
     @staticmethod
     def transitions():
         return {Through.FORWARD_DONE : End}
+
+    @staticmethod
+    def getattr():
+        return set(['forwardTime'])
 
     def enter(self):
         self.visionSystem.targetDetectorOff()

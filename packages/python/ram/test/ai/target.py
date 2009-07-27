@@ -33,7 +33,6 @@ class TestStart(support.AITestCase):
             'StateMachine' : {
                 'States' : {
                     'ram.ai.target.Start' : {
-                        'diveDepth' : TestStart.DEPTH,
                         'diveSpeed' : TestStart.DIVE_SPEED,
                     },
                 }

@@ -26,10 +26,14 @@ class TestStart(support.AITestCase):
     
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                    'lightDepth' : TestStart.DEPTH
+                    },
+                },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.light.Start' : {
-                        'depth' : TestStart.DEPTH,
                         'speed'  : TestStart.SPEED
                     },
                 }

@@ -173,6 +173,7 @@ Subsystems:
         type: AI
 
         config:
+           gateDepth: 4
            lightDepth: 4
            pipeDepth: 3
            bwireDepth: 5
@@ -182,7 +183,7 @@ Subsystems:
            targetSymbols: ['Aircraft', 'Tank']
            sonarDepth: 11
            safeDepth: 15
-           #safeDepthOffset: 2
+           safeDepthOffset: 1
            safeOffset: -0.35
            #PipeGate:
            #    biasDirection: 0
@@ -228,12 +229,6 @@ Subsystems:
                 pipeDelay: 0
             ram.ai.course.Light:
                 timeout: 90
-            ram.ai.course.Pipe2:
-                biasDirection: 45
-                threshold: 25
-            ram.ai.course.Pipe3:
-                biasDirection: 180
-                threshold: 45
             ram.ai.course.Target:
                 timeout: 180
         
@@ -277,14 +272,13 @@ Subsystems:
                 sidewaysSpeedGain: 3
                 speedGain: 3
             
-            ram.ai.sonarCourse.PingerDive:
-                depth: 1.5
-            ram.ai.sonarCourse.SafeDive:
-                depth: 5
+            #ram.ai.sonarCourse.PingerDive:
+            #    depth: 1.5
+            #ram.ai.sonarCourse.SafeDive:
+            #    depth: 5
 
             # Gate sub task
             ram.ai.gate.Start:
-                depth: 4 
                 speed: 3
             ram.ai.gate.Forward:
                 time: 10
@@ -303,7 +297,7 @@ Subsystems:
                 alignmentThreshold: 0.05
             ram.ai.light.Seek:
                 depthGain: 0 # 0.125
-                maxDepthDt: 0.3
+                #maxDepthDt: 0.3
                 speed: 2
                 
             # Target AI
@@ -321,8 +315,8 @@ Subsystems:
                 depthGain: 0
 
             # Sonar subtask
-            ram.ai.sonar.Start:
-                diveDepth: 11
+            #ram.ai.sonar.Start:
+            #    diveDepth: 11
             ram.ai.sonar.CloseSeeking:
                 maxSidewaysSpeed: 1
                 sidewaysSpeedGain: 2
@@ -351,8 +345,8 @@ Subsystems:
                 #Hilton Pool
                 #safeDepth: 6.5
                 #depthOffset: 1
-                safeDepth: 10.5
-                depthOffset: 1
+                #safeDepth: 10.5
+                #depthOffset: 1
                 diveRate: 0.2
                 maxSidewaysSpeed: 3
                 sidewaysSpeedGain: 3
@@ -363,12 +357,12 @@ Subsystems:
                 sidewaysSpeedGain: 2
                 maxSpeed: 2
                 speedGain: 2
-            ram.ai.sonarSafe.Grabbing:
+            #ram.ai.sonarSafe.Grabbing:
                 # Hilton Pool
                 #safeDepth: 6.5
                 #depthOffset: 1.5
-                safeDepth: 10.5
-                depthOffset: 1
+                #safeDepth: 10.5
+                #depthOffset: 1
 
             # Barbed wire AI
             ram.ai.barbedwire.FarSeekingToRange:
@@ -412,7 +406,7 @@ Subsystems:
             ram.ai.pipe.Start:
                 speed: 3
             ram.ai.pipe.Searching:
-                speed: 4
+                forwardSpeed: 4
                 
     #RemoteController:
     #    type: RemoteController

@@ -128,11 +128,15 @@ class TestPreGrabSettling(GainsTestCase, aisupport.AITestCase):
 class TestGrabbing(aisupport.AITestCase):
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                    'safeDepth' : 8,
+                    'safeDepthOffset' : 2,
+                    },
+                },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.sonarSafe.Grabbing' : {
-                        'safeDepth' : 8,
-                        'depthOffset' : 2,
                         'diveRate' : 0.8,
                     },
                 }

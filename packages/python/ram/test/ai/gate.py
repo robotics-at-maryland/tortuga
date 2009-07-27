@@ -21,10 +21,14 @@ from ram.test.motion.support import MockTimer
 class TestGate(support.AITestCase):
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                    'gateDepth' : 7,
+                    },
+                },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.gate.Start' : {
-                        'depth' : 7,
                         'speed' : 2,
                     },
                     'ram.ai.gate.Forward' : {

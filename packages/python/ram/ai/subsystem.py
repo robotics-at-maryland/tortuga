@@ -43,6 +43,8 @@ class AI(core.Subsystem):
         # Store inter state data
         self._data = {}
         self._data['config'] = cfg.get('config', {})
+
+        self._checkConfig(self._data['config'])
         
         # Build list of next states
         self._nextTaskMap = {}
@@ -80,6 +82,32 @@ class AI(core.Subsystem):
             # Store results
             self._failureTaskMap[taskClass] = failureTaskClass
     
+    def _checkConfig(self, cfg):
+        options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
+                         'targetDepth', 'binStartDepth', 'binDepth',
+                         'targetSymbols', 'sonarDepth', 'safeDepth',
+                         'safeDepthOffset', 'safeOffset'])
+        pipeOptions = set(['biasDirection', 'threshold'])
+        pipeObjective = set(['biasDirection', 'threshold', 'rotation',
+                             'legTime', 'sweepAngle', 'sweepSpeed'])
+        for item in cfg.iterkeys():
+            if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
+                    item == 'Pipe3' or item == 'PipeGate':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in pipeOptions:
+                        raise Exception("'%s' is not a valid config"
+                                        "option for %s." % (innerItem, item))
+            elif item == 'PipeBarbedWire' or item == 'PipeBin' or \
+                    item == 'PipeTarget':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in pipeObjective:
+                        raise Exception("'%s' is not a valid config"
+                                        "option for %s." % (innerItem, item))
+            else:
+                if item not in options:
+                    raise Exception("'%s' is not a valid config option." % (
+                            item))
+
     # IUpdatable methods
     def update(self, timeStep):
         print 'AI'

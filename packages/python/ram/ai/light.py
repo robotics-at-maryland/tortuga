@@ -49,6 +49,10 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
     
     def enter(self):
         # Store the initial orientation
@@ -71,6 +75,11 @@ class Searching(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_FOUND : Align }
+
+    @staticmethod
+    def getattr():
+        return set(['duration', 'forwardSpeed', 'legTime', 'sweepAngle',
+                    'speed'])
 
     def enter(self):
         # Turn on the vision system
@@ -130,6 +139,13 @@ class Recover(state.FindAttempt, StoreLightEvent):
                        vision.EventType.LIGHT_FOUND : Recover })
         
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['yThreshold', 'reverseSpeed', 'advanceSpeed',
+                    'closeDepthChange', 'depthChange', 'diveSpeed',
+                    'yawChange', 'radius', 'closeRangeThreshold',
+                    'farRangeThreshold']).union(state.FindAttempt.getattr())
     
     def FINISHED(self, event):
         self._finished = True
@@ -260,6 +276,11 @@ class Align(state.State, StoreLightEvent):
                  vision.EventType.LIGHT_FOUND : Align,
                  ram.motion.seek.SeekPoint.POINT_ALIGNED : Seek }
 
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                    'desiredRange', 'speed', 'alignmentThreshold'])
+
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
         if self._depthGain != 0:
@@ -302,6 +323,10 @@ class Seek(state.State, StoreLightEvent):
                  vision.EventType.LIGHT_FOUND : Seek,
                  vision.EventType.LIGHT_ALMOST_HIT : Hit }
 
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'speed'])
+
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         StoreLightEvent.LIGHT_FOUND(self, event)
@@ -332,6 +357,10 @@ class Hit(state.State):
     def transitions():
         return {Hit.FORWARD_DONE : Continue}
 
+    @staticmethod
+    def getattr():
+        return set(['duration', 'speed'])
+
     def enter(self):
         self.visionSystem.redLightDetectorOff()
 
@@ -351,6 +380,12 @@ class Continue(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : End }
+
+    @staticmethod
+    def getattr():
+        return set(['backwardSpeed', 'backwardDuraction', 'upwardDepth',
+                    'upwardSpeed', 'forwardSpeed', 'forwardDuration',
+                    'turnSteps'])
     
     def enter(self):
         # Load config settings

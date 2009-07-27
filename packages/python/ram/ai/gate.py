@@ -45,11 +45,15 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Forward }
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
     
     def enter(self):
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 5),
+            desiredDepth = self.ai.data['config'].get('gateDepth', 5),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         
@@ -66,6 +70,10 @@ class Forward(state.State):
     @staticmethod
     def transitions():
         return {Forward.DONE : End}
+
+    @staticmethod
+    def getattr():
+        return set(['speed', 'time'])
 
     def enter(self):
         # Full speed ahead!!

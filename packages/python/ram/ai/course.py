@@ -51,6 +51,10 @@ class Gate(task.Task):
                  Gate.PIPE_ON : Gate,
                  'GO' : state.Branch(gate.Start) }
 
+    @staticmethod
+    def getattr():
+        return set(['pipeDelay']).union(task.Task.getattr())
+
     def PIPE_FOUND(self, event):
         self.ai.data['foundPipeEarly'] = True
 
@@ -97,6 +101,10 @@ class Pipe(task.Task):
         return { pipe.Centering.SETTLED : currentState,
                  Pipe.COMPLETE : task.Next,
                 'GO' : state.Branch(pipe.Start) }
+
+    @staticmethod
+    def getattr():
+        return set(['pipesToFind']).union(task.Task.getattr())
         
     def SETTLED(self, event):
         """
@@ -328,6 +336,10 @@ class PipeStaged(Pipe):
                  PipeStaged.LOST_TIMEOUT : PipeStaged,
                  PipeStaged.MOVE_ON : task.Next })
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['lostTimeout', 'doTimeout']).union(task.Task.getattr())
         
     def PIPE_LOST(self, event):
         if self.lostTimer is None:
@@ -437,6 +449,10 @@ class LightStaged(Light):
             vision.EventType.LIGHT_FOUND : LightStaged,
             LightStaged.DO_TIMEOUT : task.Next })
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['doTimeout']).union(task.Task.getattr())
     
     def LIGHT_FOUND(self, event):
         # Stop old
@@ -542,6 +558,10 @@ class SafeDive(task.Task):
         return { motion.basic.Motion.FINISHED : task.Next,
                  'GO' : state.Branch(sonar.Hovering) } 
 
+    @staticmethod
+    def getattr():
+        return set(['depth', 'diveSpeed']).union(task.Task.getattr())
+
     def enter(self):
         task.Task.enter(self)
         # Activate the sonar system
@@ -611,6 +631,10 @@ class Octagon(task.Task):
     @staticmethod
     def _transitions():
         return { motion.basic.Motion.FINISHED : task.Next }
+
+    @staticmethod
+    def getattr():
+        return set(['depth', 'diveSpeed']).union(task.Task.getattr())
 
     def enter(self):
         task.Task.enter(self)

@@ -27,6 +27,11 @@ class SafeTrackingState(state.State):
         trans.update({vision.EventType.SAFE_LOST : Searching,
                       vision.EventType.SAFE_FOUND : myState})
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['speedGain', 'sidewaysSpeedGain', 'maxSpeed',
+                    'maxSidewaysSpeed'])
     
     def SAFE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -60,15 +65,18 @@ class SafeTrackingState(state.State):
 class SafeCentering(SafeTrackingState):
     CENTERED = core.declareEventType('CENTERED')
     
+    @staticmethod
+    def getattr():
+        return set(['centeredRange']).union(SafeTrackingState.getattr())
+
     def SAFE_FOUND(self, event):
         SafeTrackingState.SAFE_FOUND(self, event)
         
         if math.Vector2(event.x, event.y).length() < self._centeredRange:
             self.publish(Seeking.CENTERED, core.Event())
-
             
     def enter(self):
-        self._centeredRange = self._config.get('centertedRange', 0.2)
+        self._centeredRange = self._config.get('centeredRange', 0.2)
         SafeTrackingState.enter(self)
         
         
@@ -108,9 +116,13 @@ class PreGrabDive(SafeTrackingState):
     def transitions():
         return SafeTrackingState.transitions(PreGrabDive,
             { ram.motion.basic.Motion.FINISHED : Offsetting })
+
+    @staticmethod
+    def getattr():
+        return set(['diveRate']).union(SafeTrackingState.getattr())
         
     def enter(self):
-        safeDepth = self._config.get('safeDepth', 22)
+        safeDepth = self.ai.data['config'].get('safeDepth', 22)
         offset = self.ai.data['config'].get('safeDepthOffset', 2)
         diveRate = self._config.get('diveRate', 0.4)
         
@@ -127,6 +139,10 @@ class Offsetting(SafeTrackingState):
     def transitions():
         return SafeTrackingState.transitions(Offsetting,
             { motion.basic.Motion.FINISHED : Centering })
+
+    @staticmethod
+    def getattr():
+        return set(['offsetSpeed']).union(SafeTrackingState.getattr())
         
     def enter(self):
         self._offset = self.ai.data['config'].get('safeOffset', -0.7)
@@ -170,6 +186,11 @@ class Settling(SafeTrackingState):
     def transitions():
         return SafeTrackingState.transitions(Settling,
             { Settling.SETTLED : Grabbing })
+
+    @staticmethod
+    def getattr():
+        return set(['duration', 'safeOffset']).union(
+            SafeTrackingState.getattr())
         
     def SAFE_FOUND(self, event):
         event.y = event.y - self._offset
@@ -196,6 +217,10 @@ class Grabbing(state.State):
     def transitions():
         return {Grabbing.GRABBED : Surface,
                 ram.motion.basic.Motion.FINISHED : Surface }
+
+    @staticmethod
+    def getattr():
+        return set(['diveRate', 'duration'])
     
     def enter(self):
         # Timer to expire motion
@@ -203,7 +228,7 @@ class Grabbing(state.State):
                                                 self._config.get('duration', 10))
         
         # Setup dive
-        safeDepth = self._config.get('safeDepth', 22)
+        safeDepth = self.ai.data['config'].get('safeDepth', 22)
         offset = self.ai.data['config'].get('safeDepthOffset', 2)
         diveRate = self._config.get('diveRate', 0.5)
         
@@ -222,6 +247,10 @@ class Surface(state.State):
     @staticmethod
     def transitions():
         return { ram.motion.basic.Motion.FINISHED : End }
+
+    @staticmethod
+    def getattr():
+        return set(['depth', 'diveRate'])
         
     def enter(self):
         depth = self._config.get('depth', 0)

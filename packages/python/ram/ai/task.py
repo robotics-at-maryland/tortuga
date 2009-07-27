@@ -97,6 +97,10 @@ class Task(state.State):
             newTrans[eventType] = nextState
             
         return newTrans
+
+    @staticmethod
+    def getattr():
+        return set(['timeout'])
     
     def enter(self, defaultTimeout = None):
         if self._hasTimeout:

@@ -4,7 +4,6 @@ ram.ai.course.Pipe:
 
 # Gate sub task
 ram.ai.gate.Start:
-    depth: 7 
     speed: 0.33
 ram.ai.gate.Forward:
     time: 15

@@ -527,6 +527,9 @@ class StateTestConfig(state.State):
     @staticmethod
     def transitions():
         return {'TEST' : StateTestConfig }
+    @staticmethod
+    def getattr():
+        return set(['val', 'other'])
     def getConfig(self, val):
         return self._config[val]
 

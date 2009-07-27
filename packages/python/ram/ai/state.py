@@ -12,6 +12,7 @@ import types
 # Project Imports
 import ram.motion as motion
 import ext.core as core
+from ram.logloader import resolve
 
 class State(object):
     """
@@ -33,6 +34,13 @@ class State(object):
         Returns a map of eventTypes -> resulting states, loopbacks are allowed
         """
         return {}
+
+    @staticmethod
+    def getattr():
+        """
+        Returns the possible config values of the state
+        """
+        return set([])
 
     def enter(self):
         """
@@ -72,6 +80,10 @@ class FindAttempt(State):
                       FindAttempt.TIMEOUT : timeoutState})
 
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['holdDepth', 'timeout'])
 
     def enter(self, timeout = 2):
         # Turn off all motions, hold the current heading
@@ -183,6 +195,8 @@ class Machine(core.Subsystem):
         self._connections = []
         self._subsystems = {}
         self._branches = {}
+
+        self._configCheck(cfg.get('States', {}))
         
         # Deal with Subsystems
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
@@ -198,6 +212,14 @@ class Machine(core.Subsystem):
             # Handle special AI case where it needs a reference to us
             if name.lower() == 'ai' and hasattr(subsystem, '_stateMachine'):
                 subsystem._stateMachine = self
+
+    def _configCheck(self, cfg):
+        for name, options in cfg.iteritems():
+            class_ = resolve(name)
+            attr = class_.getattr()
+            for item in options.iterkeys():
+                if item not in attr:
+                    raise Exception("'%s' is not in %s." % (item, class_))
 
     def update(self, timeStep):
         print 'STATE UPDATE'

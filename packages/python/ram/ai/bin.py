@@ -56,6 +56,13 @@ class HoveringState(state.State):
                       HoveringState.LOST_CURRENT_BIN : recoveryState,
                       vision.EventType.BIN_DROPPED : myState})
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['filterLimit', 'sidewaysSpeedGain', 'speedGain',
+                    'yawGain', 'maxSpeed', 'maxSidewaysSpeed',
+                    'iSpeedGain', 'iSidewaysSpeedGain', 'dSpeedGain',
+                    'dSidewaysSpeedGain'])
     
     def _currentBin(self, event):
         return self.ai.data['binData'].get('currentID', 0) == event.id
@@ -213,6 +220,10 @@ class SettlingState(HoveringState):
     """
     A specialization of the hover state which hovers for the given time.
     """
+    @staticmethod
+    def getattr():
+        return set(['threshold']).union(HoveringState.getattr())
+
     def enter(self, eventType, eventTime, useMultiAngle = False):
         self._eventType = eventType
         self._threshold = self._config.get('threshold', 0.05)
@@ -251,6 +262,10 @@ class BinSortingState(HoveringState):
     
     CENTERED_ = core.declareEventType('CENTERED')
     
+    @staticmethod
+    def getattr():
+        return set(['centeredRange']).union(HoveringState.getattr())
+
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
 
@@ -381,6 +396,10 @@ class Recover(state.FindAttempt):
                       vision.EventType.BINS_LOST : myState})
         
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['timeout', 'speed']).union(state.FindAttempt.getattr())
         
     def BIN_FOUND(self, event):
         if event.symbol != vision.Symbol.UNKNOWN:
@@ -462,6 +481,11 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
         trans.update({ LostCurrentBin.REFOUND_BIN : originalState })
         
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['timeout', 'recoverThreshold']).union(
+            HoveringState.getattr()).union(state.FindAttempt.getattr())
     
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -506,6 +530,10 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
     
     def enter(self):
         # Store the initial direction
@@ -529,6 +557,11 @@ class Searching(state.State):
     @staticmethod
     def transitions():
         return { vision.EventType.BIN_FOUND : Seeking }
+
+    @staticmethod
+    def getattr():
+        return set(['duration', 'forwardSpeed', 'legTime', 'sweepAngle',
+                    'speed'])
 
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
@@ -589,6 +622,10 @@ class Seeking(HoveringState):
         return HoveringState.transitions(Seeking,
             lostState = RecoverSeeking,
             trans = { Seeking.BIN_CENTERED : Centering })
+
+    @staticmethod
+    def getattr():
+        return set(['centeredLimit']).union(HoveringState.getattr())
  
     def BIN_FOUND(self, event):
         eventDistance = math.Vector2(event.x, event.y).length()
@@ -621,6 +658,12 @@ class RecoverSeeking(Recover):
     @staticmethod
     def transitions():
         return Recover.transitions(RecoverSeeking, Seeking)
+
+    @staticmethod
+    def getattr():
+        return set(['speedGain', 'sidewaysSpeedGain', 'yawGain',
+                    'maxSpeed', 'maxSidewaysSpeed']).union(
+            HoveringState.getattr())
 
     def enter(self, timeout = 4):
         Recover.enter(self, timeout)
@@ -702,6 +745,10 @@ class SeekEnd(BinSortingState):
             trans = { BinSortingState.CENTERED_ : SeekEnd, 
                       SeekEnd.POSSIBLE_END : SeekEnd,
                       SeekEnd.AT_END : Dive })
+
+    @staticmethod
+    def getattr():
+        return set(['timeout']).union(BinSortingState.getattr())
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
@@ -789,6 +836,10 @@ class Dive(HoveringState):
         lostState = RecoverDive, recoveryState = LostCurrentBinDive,
         trans = { motion.basic.Motion.FINISHED : Aligning })
 
+    @staticmethod
+    def getattr():
+        return set(['offset', 'diveSpeed']).union(HoveringState.getattr())
+
     def BIN_FOUND(self, event):
         # Disable angle tracking
         event.angle = math.Degree(0)
@@ -822,6 +873,12 @@ class RecoverDive(Recover):
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['timeout', 'increase', 'maxIncrease', 'diveSpeed']).union(
+            HoveringState.getattr())
+
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
         self._increase = self._config.get('increase', 0.25)
@@ -885,6 +942,11 @@ class Examine(HoveringState):
         trans = { Examine.FOUND_TARGET : foundTarget,
                   Examine.MOVE_ON : moveOn,
                   Examine.TIMEOUT : myState })
+
+    @staticmethod
+    def getattr():
+        return set(['minimumHits', 'timeout', 'foundLimit']).union(
+            HoveringState.getattr())
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -1035,6 +1097,10 @@ class CloserLook(Dive):
         return SettlingState.transitions(CloserLook,
         lostState = RecoverCloserLook, recoveryState = LostCurrentBinCloserLook,
         trans = { motion.basic.Motion.FINISHED : PostDiveExamine })
+
+    @staticmethod
+    def getattr():
+        return set(['offset']).union(Dive.getattr())
         
     def enter(self):
         # Standard dive
@@ -1048,6 +1114,11 @@ class RecoverCloserLook(Recover):
         trans.update({ Recover.MOVE_ON : SurfaceToMove })
         
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['timeout', 'increase', 'maxIncrease', 'diveSpeed']).union(
+            Recover.getattr())
 
     def enter(self):
         Recover.enter(self, timeout = self._config.get('timeout', 4))
@@ -1081,6 +1152,10 @@ class PostDiveExamine(Examine):
                                   recoveryState = LostCurrentBinPostDiveExamine,
                                   foundTarget = DropMarker,
                                   moveOn = SurfaceToMove)
+
+    @staticmethod
+    def getattr():
+        return set(['minimumHitsOnTimeout']).union(Examine.getattr())
 
     def TIMEOUT(self, event):
         histogram = self.ai.data['binData']['histogram']
@@ -1125,6 +1200,10 @@ class SurfaceToMove(HoveringState):
             lostState = RecoverSurfaceToMove,
             recoveryState = LostCurrentBinSurfaceToMove,
             trans = { motion.basic.Motion.FINISHED : NextBin })
+
+    @staticmethod
+    def getattr():
+        return set(['offset', 'surfaceSpeed']).union(HoveringState.getattr())
         
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -1287,6 +1366,10 @@ class CheckDropped(HoveringState):
             lostState = CheckDropped,
             trans = { CheckDropped.FINISH : End,
                       CheckDropped.RESTART : Dive })
+
+    @staticmethod
+    def getattr():
+        return set(['maximumScans']).union(HoveringState.getattr())
         
     def enter(self):
         self._maximumScans = self._config.get('maximumScans', 2)
@@ -1315,6 +1398,10 @@ class SurfaceToCruise(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : End }
+
+    @staticmethod
+    def getattr():
+        return set(['surfaceSpeed'])
         
     def enter(self):
         # Surface

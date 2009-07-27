@@ -40,6 +40,10 @@ class PingerState(state.State):
                       PingerState.TIMEOUT : timeoutState})
         return trans
 
+    @staticmethod
+    def getattr():
+        return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout'])
+
     def UPDATE(self, event):
         if self._timeout > 0:
             self._pingChecker.stop()
@@ -101,6 +105,10 @@ class Start(state.State):
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
 
+    @staticmethod
+    def getattr():
+        return set(['diveSpeed'])
+
     def enter(self):
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self.ai.data['config'].get('sonarDepth', 2),
@@ -147,7 +155,12 @@ class TranslationSeeking(PingerState):
     Feeds the pinger data into the target and causes the vehicle to translate
     toward the pinger.
     """
-    CLOSE = core.declareEventType('CLOSE')    
+    CLOSE = core.declareEventType('CLOSE')
+
+    @staticmethod
+    def getattr():
+        return set(['maxSidewaysSpeed', 'sidewaysSpeedGain']).union(
+            PingerState.getattr())
     
     def _loadSettings(self):
         PingerState._loadSettings(self)
@@ -176,6 +189,10 @@ class FarSeeking(TranslationSeeking):
     def transitions():
         return TranslationSeeking.transitions(FarSeeking, PingerLost,
             { TranslationSeeking.CLOSE : CloseSeeking } ) 
+
+    @staticmethod
+    def getattr():
+        return set(['midRangeZ']).union(TranslationSeeking.getattr())
                  
     def _loadSettings(self):
         TranslationSeeking._loadSettings(self)
@@ -190,6 +207,10 @@ class CloseSeeking(TranslationSeeking):
     def transitions():
         return TranslationSeeking.transitions(CloseSeeking, PingerLostClose,
             { TranslationSeeking.CLOSE : End } ) 
+
+    @staticmethod
+    def getattr():
+        return set(['closeZ']).union(TranslationSeeking.getattr())
 
     def _loadSettings(self):
         PingerState._loadSettings(self)

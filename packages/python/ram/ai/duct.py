@@ -129,6 +129,11 @@ class SeekingToRange(FilteredState, state.State, StoreDuctEvent):
         return { vision.EventType.DUCT_FOUND : SeekingToRange,
                  vision.EventType.DUCT_LOST : FindAttempt,
                  SeekingToRange.IN_RANGE : SeekingToAligned }
+
+    @staticmethod
+    def getattr():
+        return set(['rangeThreshold', 'frontThreshold', 'depthGain',
+                    'desiredRange', 'maxRangeDiff', 'maxSpeed'])
         
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -229,6 +234,12 @@ class SeekingToAligned(DuctAlignState, state.State):
                  vision.EventType.DUCT_LOST : FindAttempt,
                  SeekingToAligned.ALIGNED : Aligning }
 
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'desiredRange', 'maxRangeDiff',
+                    'maxAlignDiff', 'alignGain', 'maxSpeed',
+                    'maxSidewaysSpeed', 'yawGain'])
+
     def DUCT_FOUND(self, event):
         DuctAlignState.DUCT_FOUND(self, event)
         
@@ -245,6 +256,12 @@ class Aligning(DuctAlignState, state.State):
         return { vision.EventType.DUCT_FOUND : Aligning,
                  vision.EventType.DUCT_LOST : FindAttempt,
                  Aligning.SETTLED : Through }
+
+    @staticmethod
+    def getattr():
+        return set(['depthGain', 'desiredRange', 'maxRangeDiff',
+                    'maxAlignDiff', 'alignGain', 'maxSpeed',
+                    'maxSidewaysSpeed', 'yawGain', 'settleTime'])
 
     def enter(self):
         DuctAlignState.enter(self)
@@ -263,6 +280,10 @@ class Through(state.State):
     @staticmethod
     def transitions():
         return {Through.FORWARD_DONE : End}
+
+    @staticmethod
+    def getattr():
+        return set(['forwardTime'])
 
     def enter(self):
         self.visionSystem.ductDetectorOff()

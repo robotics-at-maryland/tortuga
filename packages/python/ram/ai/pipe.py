@@ -143,6 +143,12 @@ class PipeFollowingState(PipeTrackingState):
         
         return PipeTrackingState.transitions(myState, trans)
 
+    @staticmethod
+    def getattr():
+        return set(['speedGain', 'dSpeedGain', 'iSpeedGain',
+                    'sidewaysSpeedGain', 'iSidewaysSpeedGain',
+                    'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed'])
+
     def PIPE_LOST(self, event):
         """
         We were just told all current pipes are lost that means we can't have
@@ -299,6 +305,10 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
     
     def enter(self):
         orientation = self.vehicle.getOrientation()
@@ -322,6 +332,10 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             foundState = Seeking
         return state.FindAttempt.transitions(
             PipeTrackingState.FOUND_PIPE, foundState, Searching)
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
 
     def enter(self):
         PipeTrackingState.enter(self)
@@ -351,6 +365,10 @@ class Searching(PipeTrackingState):
     def transitions():
         return PipeTrackingState.transitions(Searching,
             { PipeTrackingState.FOUND_PIPE : Seeking })
+
+    @staticmethod
+    def getattr():
+        return set(['forwardSpeed'])
 
     def FOUND_PIPE(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -424,6 +442,11 @@ class AlongPipe(PipeFollowingState):
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
         return PipeTrackingState.transitions(AlongPipe, trans)
 
+    @staticmethod
+    def getattr():
+        return set(['angleDistance', 'forwardSpeed']).union(
+            PipeFollowingState.getattr())
+
     def FOUND_PIPE(self, event):
         """Update the state of the pipe, this moves the vehicle"""
         
@@ -476,6 +499,10 @@ class BetweenPipes(PipeTrackingState):
         return PipeTrackingState.transitions(BetweenPipes,
                                              {PipeTrackingState.FOUND_PIPE : Seeking,
                                               BetweenPipes.LOST_PATH : End })
+
+    @staticmethod
+    def getattr():
+        return set(['forwardTime', 'forwardSpeed'])
     
     def FOUND_PIPE(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)

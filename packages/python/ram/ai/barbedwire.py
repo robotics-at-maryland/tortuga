@@ -87,7 +87,7 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
     
     IN_RANGE = core.declareEventType('IN_RANGE')
     
-    @staticmethod   
+    @staticmethod
     def transitions(myState = None, lostState = None, trans = None):
         if myState is None:
             myState = RangeXYHold
@@ -98,6 +98,13 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         trans.update({vision.EventType.BARBED_WIRE_FOUND : myState,
                       vision.EventType.BARBED_WIRE_LOST : lostState })
         return trans
+
+    @staticmethod
+    def getattr():
+        return set(['yZero', 'rangeThreshold', 'frontThreshold', 'depthGain',
+             'iDepthGain', 'dDepthGain', 'maxDepthDt', 'desiredRange',
+             'maxRangeDiff', 'maxSpeed', 'rangeGain', 'translateGain',
+             'iTranslateGain', 'dTranslateGain'])
         
     def BARBED_WIRE_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
@@ -189,6 +196,10 @@ class Start(state.State):
     @staticmethod
     def transitions():
         return { motion.basic.Motion.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['diveSpeed'])
     
     def enter(self):
         # Set the initial direction
@@ -232,6 +243,11 @@ class Searching(state.State, StoreBarbedWireEvent):
     @staticmethod
     def transitions():
         return { vision.EventType.BARBED_WIRE_FOUND : FarSeekingToRange }
+
+    @staticmethod
+    def getattr():
+        return set(['duration', 'forwardSpeed', 'legTime', 'sweepAngle',
+                    'speed'])
 
     def enter(self):
         # Make sure the detector is on the vision system
@@ -282,6 +298,11 @@ class SeekingToRange(RangeXYHold):
         return RangeXYHold.transitions(myState = myState,
             lostState = lostState,
             trans = { RangeXYHold.IN_RANGE : inRangeState })
+
+    @staticmethod
+    def getattr():
+        return set(['maxAlignCheckWidth', 'maxOverlap']).union(
+            RangeXYHold.getattr())
 
     def BARBED_WIRE_FOUND(self, event):
         """
@@ -453,6 +474,13 @@ class SeekingToAligned(TargetAlignState, state.State):
                  SeekingToAligned.CHECK_DIRECTION : myState,
                  SeekingToAligned.ALIGNED : alignedState }
 
+    @staticmethod
+    def getattr():
+        return set(['yZero', 'depthGain', 'maxDepthDt', 'desiredRange',
+                    'maxRangeDiff', 'maxAlignDiff', 'alignGain', 'maxSpeed',
+                    'maxSidewaysSpeed', 'yawGain', 'minAlignment',
+                    'desiredRange', 'rangeThreshold'])
+
     def BARBED_WIRE_FOUND(self, event):
         # Publish aligned event if needed
         alignment = math.fabs(event.topX) + math.fabs(event.bottomX)
@@ -552,6 +580,12 @@ class Aligning(TargetAlignState, state.State):
                  vision.EventType.BARBED_WIRE_LOST : AligningFindAttempt,
                  Aligning.SETTLED : Under }
 
+    @staticmethod
+    def getattr():
+        return set(['yZero', 'depthGain', 'maxDepthDt', 'desiredRange',
+                    'maxRangeDiff', 'maxAlignDiff', 'alignGain', 'maxSpeed',
+                    'maxSidewaysSpeed', 'yawGain', 'threshold', 'settleTime'])
+
     def BARBED_WIRE_FOUND(self, event):
         TargetAlignState.BARBED_WIRE_FOUND(self, event)
 
@@ -586,6 +620,13 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
     def transitions():
         return { vision.EventType.BARBED_WIRE_LOST : Through,
                  vision.EventType.BARBED_WIRE_FOUND : Under }
+
+    @staticmethod
+    def getattr():
+        return set(['forwardSpeed', 'speedGain', 'maxSidewaysSpeed',
+                    'sidewaysSpeedGain', 'yawGain', 'iSpeedGain',
+                    'dSpeedGain', 'iSidewaysSpeedGain', 'dSidewaysSpeedGain',
+                    'maxY'])
 
     def BARBED_WIRE_FOUND(self, event):
         # Do not change the angle
@@ -627,6 +668,10 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
         
 class Through(state.State, StoreBarbedWireEvent):
     FORWARD_DONE = core.declareEventType('FORWARD_DONE')
+
+    @staticmethod
+    def getattr():
+        return set(['forwardTime'])
     
     @staticmethod
     def transitions():

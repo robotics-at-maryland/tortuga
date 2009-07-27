@@ -31,6 +31,10 @@ class Settling(TranslationSeeking):
         return TranslationSeeking.transitions(Settling, PingerLostSettling,
             { Settling.SETTLED : Dive })
     
+    @staticmethod
+    def getattr():
+        return set(['duration']).union(TranslationSeeking.getattr())
+
     def enter(self):
         duration = self._config.get('duration', 20)
         self.timer = self.timerManager.newTimer(Settling.SETTLED, duration)
@@ -45,10 +49,15 @@ class Dive(TranslationSeeking):
     def transitions():
         return TranslationSeeking.transitions(Dive, PingerLostDive,
             { ram.motion.basic.Motion.FINISHED : PreGrabSettling })
+
+    @staticmethod
+    def getattr():
+        return set(['safeDepth', 'depthOffset', 'diveRate']).union(
+            TranslationSeeking.getattr())
         
     def enter(self):
-        safeDepth = self._config.get('safeDepth', 22)
-        offset = self._config.get('depthOffset', 2)
+        safeDepth = self.ai.data['config'].get('safeDepth', 22)
+        offset = self.ai.data['config'].get('safeDepthOffset', 2)
         diveRate = self._config.get('diveRate', 0.4)
         
         targetDepth = safeDepth - offset
@@ -68,6 +77,10 @@ class PreGrabSettling(TranslationSeeking):
             { PreGrabSettling.SETTLED : PreGrabSettling,
               TranslationSeeking.CLOSE : PreGrabSettling,
               PreGrabSettling.MOVE_ON : Grabbing })
+
+    @staticmethod
+    def getattr():
+        return set(['duration']).union(TranslationSeeking.getattr())
     
     def CLOSE(self, event):
         if self._timerDone:
