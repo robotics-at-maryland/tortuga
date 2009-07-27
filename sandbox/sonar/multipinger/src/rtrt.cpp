@@ -36,6 +36,12 @@ uint32_t sqrBuf[N][NCHANNELS];
 uint64_t ssqrBuf[N][NCHANNELS];
 complex<float> sdftComplex[NCHANNELS];
 uint64_t ssqr[NCHANNELS];
+int16_t trig[N][NCHANNELS];
+
+uint32_t toa[NCHANNELS];
+uint32_t holdoff;
+static const uint32_t maxHoldoff = 50000;
+static const uint16_t maxTDOA = 1000;
 
 template<class T>
 T absSquared(const complex<T>& z)
@@ -44,8 +50,12 @@ T absSquared(const complex<T>& z)
 int main(int argc, char* argv[])
 {
     unsigned int idx = 0;
+    unsigned long long int sampleCount = 0;
     
     int16_t sample[NCHANNELS];
+    
+    for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+        toa[channel] = maxTDOA;
     
     while (1 == fread(sample, sizeof(sample), 1, stdin))
     {
@@ -76,7 +86,11 @@ int main(int argc, char* argv[])
             sampleBuf[idx][channel] = sample[channel];
             
             // Update probability
-#if 1
+#if 0
+            // Method 1 corrected: cumulative distribution function
+            const float prob = (1 - cdf(ssqrNoise, ssqrDelayed)) * cdf(sdftPing, sdft);
+            probScaled[channel] = 100 * prob;
+#elif 1
             // Method 1: cumulative distribution function
             const float prob = (1 - cdf(ssqrNoise, ssqrDelayed)) * cdf(sdftPing, sdft) / (1 + cdf(ssqrPing, ssqrDelayed) - cdf(sdftNoise, sdft));
             probScaled[channel] = 100 * prob;
@@ -85,12 +99,61 @@ int main(int argc, char* argv[])
             const float prob = pdf(ssqrNoise, ssqrDelayed) * pdf(sdftPing, sdft) / (pdf(ssqrPing, ssqrDelayed) + pdf(sdftNoise, sdft));
             probScaled[channel] = 1000 * prob;
 #endif
+            trig[idx][channel] = probScaled[channel];
+            
+            if (holdoff == 0)
+            {
+                if (toa[channel] == maxTDOA)
+                {
+                    if (trig[(idx+N/2) % N][channel] >= 100)
+                    {
+                        bool pingFound = true;
+                        for (unsigned int i = -32 ; i <= 32  ; i ++)
+                            if (trig[(i+N/2) % N][channel] > trig[(idx+N/2) % N][channel])
+                            {
+                                pingFound = false;
+                                break;
+                            }
+                        if (pingFound)
+                            toa[channel] = 0;
+                    }
+                } else if (++toa[channel] == maxTDOA) {
+                    for (unsigned int ch = 0 ; ch  < NCHANNELS ; ch++)
+                        toa[ch] = maxTDOA;
+                    holdoff = maxHoldoff;
+                }
+            }
+            
         }
         
-        fwrite(probScaled, sizeof(probScaled), 1, stdout);
+        bool pingFound = true;
+        for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+            if (toa[channel] == maxTDOA)
+            {
+                pingFound = false;
+                break;
+            }
+        if (pingFound)
+        {
+            unsigned int channel;
+            for (channel = 0 ; channel < NCHANNELS - 1 ; channel ++)
+                printf("%llu,", sampleCount - toa[channel] - 256 - 128);
+            printf("%llu\n", sampleCount - toa[channel] - 256 - 128);
+            
+            for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
+                toa[channel] = maxTDOA;
+            holdoff = maxHoldoff;
+        }
+                
+        //fwrite(probScaled, sizeof(probScaled), 1, stdout);
         
         if (++idx >= N)
             idx = 0;
+        
+        ++sampleCount;
+        
+        if (holdoff > 0)
+            --holdoff;
     }
     
     return 0;

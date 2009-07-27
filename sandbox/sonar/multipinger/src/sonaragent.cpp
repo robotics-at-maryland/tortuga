@@ -415,7 +415,7 @@ int main(int argc, char** argv)
                 bool pingFound = true;
                 
 #ifdef DEBUG
-                    printf("Ch | Noise mean | Noise variance\n");
+                    //printf("Ch | Noise mean | Noise variance\n");
 #endif
                 
                 
@@ -436,7 +436,7 @@ int main(int argc, char** argv)
                     const uint64_t noiseThreshold = 3 * noiseVariance;
                     
 #ifdef DEBUG
-                    printf(" %d | %10d | %d \n", channel, noiseMean, (int)std::sqrt((uint32_t)(noiseVariance >> LOG2_BLOCKSIZE)));
+                    //printf(" %d | %10d | %d \n", channel, noiseMean, (int)std::sqrt((uint32_t)(noiseVariance >> LOG2_BLOCKSIZE)));
 #endif
                     
                     unsigned int lookBackBlock;
@@ -498,15 +498,14 @@ int main(int argc, char** argv)
                 {
                     // TODO: report ping
                     
-#ifdef DEBUG
-                    static int pingCount = 0;
-                    
                     float freq = (float)triggerHarmonic*SAMPFREQ/BLOCKSIZE*0.001f;
                     printf("signal at %02.3f kHz, block %d\n", freq, blockIndex);
                     for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
                         printf("   channel %d at lag %d\n", channel, lags[channel]);
                     printf("   TDOAS: %d %d %d\n", lags[1]-lags[0],lags[2]-lags[0],lags[3]-lags[0]);
                     
+#ifdef DEBUG
+                    static int pingCount = 0;
                     char fname[256];
                     sprintf(fname, "ping%d.out", pingCount++);
                     

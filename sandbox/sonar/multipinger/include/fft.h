@@ -75,8 +75,8 @@ namespace ram {
                 
                 for (int i = 0 ; i < N ; i ++)
                 {
-                    dftOut[i].re = fftwOut[i][0];
-                    dftOut[i].im = fftwOut[i][1];
+                    dftOut[i].re = (int16_t)((int64_t)fftwOut[i][0] >> 8);
+                    dftOut[i].im = (int16_t)((int64_t)fftwOut[i][1] >> 8);
                 }
 #endif
             }
