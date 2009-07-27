@@ -81,7 +81,7 @@ int closeDevice(int fd)
 
 #define PACKET_LENGTH 31
 int reportPing(int fd, byte status, double vectorX, double vectorY, double vectorZ,
-               uint16_t range, uint32_t timeStamp, uint32_t sampleNoi, byte pingerID)
+               uint16_t range, uint32_t timeStamp, uint32_t sampleNo, byte pingerID)
 {
     int retCode, i= 0;
     if(fd < 0)

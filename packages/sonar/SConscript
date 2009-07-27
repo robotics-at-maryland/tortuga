@@ -62,6 +62,11 @@ envt.RAMProgram(target = 'sonard',
                 source = 'src/sonard/main.cpp',
                 int_deps = ['sonar'])
 
+envt.RAMProgram(target = 'sonard_multipinger',
+                source = 'src/multipinger/main.cpp',
+                int_deps = ['sonar'],
+                CPPFLAGS = ['-O3'])
+
 envt.RAMProgram(target = 'rtspectrogram',
                 source = 'src/tools/rtspectrogram.cpp',
                 int_deps = ['sonar'],

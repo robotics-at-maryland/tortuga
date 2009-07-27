@@ -403,6 +403,12 @@ public:
 
 	/** In place matrix inversion */
 	bool invert();
+    
+    inline MatrixN inverse() const {
+        MatrixN inv(*this);
+        inv.invert();
+        return inv;
+    }
 
         /** Preform an inplace Cholesky Factorization
          *
