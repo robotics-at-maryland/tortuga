@@ -12,20 +12,14 @@
 
 // Library Includes
 #include <boost/regex.hpp>
+#include <boost/tuple/tuple.hpp>
 
 // Project Includes
 #include "vision/include/Camera.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
-
-// For createCamera factory method
-#include "vision/include/ImageCamera.h"
-#include "vision/include/NetworkCamera.h"
-#include "vision/include/FFMPEGNetworkCamera.h"
-#include "vision/include/OpenCVCamera.h"
-#include "vision/include/DC1394Camera.h"
-
+#include "vision/include/CameraMaker.h"
 #include "vision/include/VisionSystem.h"
 
 RAM_CORE_EVENT_TYPE(ram::vision::Camera, RAW_IMAGE_CAPTURED);
@@ -109,10 +103,10 @@ void Camera::unbackground(bool join)
     m_imageLatch.countDown();
 }
 
-vision::Camera* Camera::createCamera(const std::string input,
-                                     const std::string configPath,
-                                     std::string& message,
-                                     const std::string cameraName)
+CameraPtr Camera::createCamera(const std::string input,
+                               const std::string configPath,
+                               std::string& message,
+                               const std::string cameraName)
 {
     std::stringstream ss;    
     
@@ -141,7 +135,7 @@ vision::Camera* Camera::createCamera(const std::string input,
         }
     }
 
-    Camera* camera = 0;
+    CameraPtr camera;
     if (found)
     {
         ss << " Using section \"" << nodeUsed << "\" for "
@@ -160,63 +154,11 @@ vision::Camera* Camera::createCamera(const std::string input,
     return camera;
 }
 
-vision::Camera* Camera::createCamera(const std::string input,
-                                     core::ConfigNode config,
-                                     std::string& message)
+CameraPtr Camera::createCamera(const std::string input,
+                               core::ConfigNode config,
+                               std::string& message)
 {
-    static boost::regex camnum("\\d+");
-    static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
-    static boost::regex image("[^\\.]+.(jpg|png)");
-    std::stringstream ss;
-    ss << "Images coming from: ";
-    
-    if (boost::regex_match(input, camnum))
-    {
-        int camnum = boost::lexical_cast<int>(input);
-        if (camnum >= 100)
-        {
-            size_t num = (size_t)camnum - 100;
-            ss << "DC1394 Camera num:" << num;
-
-            message = ss.str();
-            return new vision::DC1394Camera(config, num);
-        }
-        else
-        {
-            ss << "Using OpenCV Camera #" << camnum;
-            message = ss.str();
-            return new vision::OpenCVCamera(camnum, true);
-        }
-    }
-
-    boost::smatch what;
-    if (boost::regex_match(input, what, hostnamePort))
-    {
-        std::string hostname = what.str(1);
-        boost::uint16_t port =
-            boost::lexical_cast<boost::uint16_t>(what.str(2));
-        ss << "Streaming images from host: \"" << hostname
-           << "\" on port " << port;
-//        return new vision::NetworkCamera(hostname, port);
-        return new vision::FFMPEGNetworkCamera(hostname, port);
-    }
-	
-    if (boost::regex_match(input, image))
-    {
-        ss <<"'" << input <<"' image file";
-	
-        vision::Image* img = vision::Image::loadFromFile(input);
-        vision::ImageCamera* c = new vision::ImageCamera(
-            img->getWidth(), img->getHeight(), 30);
-        c->newImage(img);
-        //delete img;
-        message = ss.str();
-        return c;
-    }
-    
-    ss << "'" << input << "' video file";
-    message = ss.str();
-    return new vision::OpenCVCamera(input);
+    return CameraMaker::newObject(CameraMakerParamType(input, config, message));
 }
 
     

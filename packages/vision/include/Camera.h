@@ -116,7 +116,7 @@ public:
     /** Stop the camera running in the background */
     virtual void unbackground(bool join = false);
 
-    static vision::Camera* createCamera(
+    static CameraPtr createCamera(
         const std::string input,
         const std::string configPath,
         std::string& message,
@@ -127,9 +127,9 @@ public:
      *
      *  This can be a NetworkCamera, and FFMPEG camera, etc.
      */
-    static vision::Camera* createCamera(const std::string input,
-                                        core::ConfigNode config,
-                                        std::string& message);
+    static CameraPtr createCamera(const std::string input,
+                                  core::ConfigNode config,
+                                  std::string& message);
     
 protected:
     /** No argument constructor
