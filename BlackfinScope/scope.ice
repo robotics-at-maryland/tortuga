@@ -1,5 +1,3 @@
-#include "Ice/BuiltinSequences.ice"
-
 module ram {
     
     module sonar {
@@ -12,9 +10,11 @@ module ram {
                 TriggerModeAuto
             };
             
+            sequence<short> ShortSeq;
+            
             struct OscilloscopeCapture {
                 
-                Ice::ShortSeq rawData;
+                ShortSeq rawData;
                 long timestamp;
                 
             };
