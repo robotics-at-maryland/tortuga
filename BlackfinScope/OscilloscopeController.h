@@ -19,4 +19,5 @@
 }
 - (IBAction)triggerChannelChanged: (id)sender;
 - (IBAction)triggerModeChanged: (id)sender;
+- (IBAction)triggerSlopeChanged: (id)sender;
 @end

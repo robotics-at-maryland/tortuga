@@ -25,4 +25,9 @@
     [oscPrx SetTriggerMode: [sender selectedSegment]];
 }
 
+- (IBAction)triggerSlopeChanged: (id)sender
+{
+    [oscPrx SetTriggerSlope: [sender selectedSegment]];
+}
+
 @end

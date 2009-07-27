@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		A4A3B7B0101E5F06006A4F5D /* scope.ice */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.slice; name = scope.ice; path = ../BlackfinScope/scope.ice; sourceTree = SOURCE_ROOT; };
 		A4F23205101E481500A64BF1 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConstruct; sourceTree = "<group>"; };
 		A4F23227101E547600A64BF1 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -15,6 +16,7 @@
 		08FB7794FE84155DC02AAC07 /* scoped */ = {
 			isa = PBXGroup;
 			children = (
+				A4A3B7B0101E5F06006A4F5D /* scope.ice */,
 				A4F23227101E547600A64BF1 /* src */,
 				A4F23205101E481500A64BF1 /* SConstruct */,
 			);

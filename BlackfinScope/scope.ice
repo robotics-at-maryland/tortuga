@@ -10,6 +10,11 @@ module ram {
                 TriggerModeAuto
             };
             
+            enum TriggerSlope {
+                TriggerSlopeRising,
+                TriggerSlopeFalling
+            };
+            
             sequence<short> ShortSeq;
             
             struct OscilloscopeCapture {
@@ -33,6 +38,7 @@ module ram {
                 idempotent void SetTriggerChannel(short channel);
                 idempotent void SetTriggerLevel(short level);
                 idempotent void SetTriggerHoldoff(int holdoff);
+                idempotent void SetTriggerSlope(TriggerSlope slope);
                 
                 idempotent void SetHorizontalPosition(int timeShift);
                 idempotent void SetHorizontalZoom(short powerOfTwo);
