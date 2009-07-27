@@ -17,6 +17,9 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
+#include "math/include/VectorN.h"
+#include "math/include/MatrixN.h"
+
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -51,7 +54,19 @@ public:
 
     virtual math::Vector2 getPosition();
     
+    math::Vector2 getLeftPingerEstimatedPosition();
+
+    math::Vector2 getRightPingerEstimatedPosition();
+
     virtual double getDepth();
+
+    /** Create a linearized measurement model based on state estimator */
+    static void createMeasurementModel(const math::VectorN& xHat, 
+                                       math::MatrixN& result);
+
+    /** Computes the angle from the north inertial unit vector to the pinger*/
+    static math::Radian findAbsPingerAngle(math::Quaternion vehicleOrientation,
+                                           math::Vector3 relativePingerVector);
 
     // Device Options
     virtual std::string getName() { return Device::getName(); }
@@ -82,8 +97,11 @@ public:
         //return Updatable::backgrounded();
     };
 
-    
 protected:
+    /** Returns the change in time between estimator updates */
+    virtual double getDeltaT();
+    
+private:
     /** Recieves updates from the Sonar system to update estimated */
     void onSonarEvent(core::EventPtr event);
 
@@ -91,13 +109,13 @@ protected:
      *
      *  @note The mutex is already held during this call
      */
-    void pinger0FilterUpdate(math::Degree angle);
+    void pingerLeftFilterUpdate(math::Degree angle, double dt);
 
     /** Called to update the state esimated filter based on a new pinger angle
      *
      *  @note The mutex is already held during this call
      */
-    void pinger1FilterUpdate(math::Degree angle);
+    void pingerRightFilterUpdate(math::Degree angle, double dt);
 
     /** Called to update the state esimated filter based on a new velocity
      *
@@ -127,15 +145,15 @@ protected:
 
     /** The current sensed depth */
     double m_currentDepth;
-    
-    /** The position of the pinger associated with ID 0 */
-    math::Vector2 m_pinger0Position;
-
-    /** The position of the pinger associated with ID 1 */
-    math::Vector2 m_pinger1Position;
 
     /** The connection to the sonar events */
     core::EventConnectionPtr m_sonarConnection;
+
+    /** The last time we got an update */
+    double m_lastUpdateTime;
+
+    /** The "xHat" vector (2D robot pos/vel and pinger positions) */
+    math::VectorN m_stateHat;
 };
     
 } // namespace device

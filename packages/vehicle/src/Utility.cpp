@@ -36,6 +36,9 @@ math::Quaternion Utility::quaternionFromMagAccel(const math::Vector3& mag,
 
     math::Quaternion result;
     math::quaternionFromnCb((double (*)[3])(nCb[0]), result.ptr());
+
+		//shouldn't it be this though???!?!?!?!?!
+		//math::quaternionFromnCb((double (*)[3])(bCn[0]), result.ptr());
     
     return result;
 }

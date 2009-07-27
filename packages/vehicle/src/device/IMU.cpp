@@ -380,10 +380,15 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     bCn.SetColumn(1, n2);
     bCn.SetColumn(2, n3);
     
+	//legacy version
     Matrix3 nCb = bCn.Transpose();
 
-
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
+		/*
+		but shouldn't it be
+		quaternionFromnCb((double (*)[3])(bCn[0]), quaternion);
+		*/
+
 }
 
 /*

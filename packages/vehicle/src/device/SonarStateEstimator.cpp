@@ -17,6 +17,7 @@
 #include "vehicle/include/Events.h"
 
 #include "core/include/EventConnection.h"
+#include "core/include/TimeVal.h"
 
 namespace ram {
 namespace vehicle {
@@ -33,14 +34,17 @@ SonarStateEstimator::SonarStateEstimator(core::ConfigNode config,
     m_estimatedDepth(0),
     m_currentOrientation(math::Quaternion::IDENTITY),
     m_currentVelocity(math::Vector2::ZERO),
-    m_currentDepth(0),
-    
-    // Load the initial pinger positions
-    m_pinger0Position(config["pinger0Position"][0].asDouble(10),
-                      config["pinger0Position"][1].asDouble(0)),
-    m_pinger1Position(config["pinger1Position"][0].asDouble(-10),
-                      config["pinger1Position"][1].asDouble(0))
+    m_lastUpdateTime(core::TimeVal::timeOfDay().get_double()),
+    m_stateHat(0.0 , 8) // 8 elements long, all start out 0
+
 {
+    // Initialize the the xHat (state) vector (all elements currently zero)
+    // +X goes north, +Y goes west (at Transdec)
+    m_stateHat[4] = config["pingerLeftPosition"][0].asDouble(30); // X
+    m_stateHat[5] = config["pingerLeftPosition"][0].asDouble(10); // Y
+    m_stateHat[6] = config["pingerRightPosition"][0].asDouble(30); // X
+    m_stateHat[7] = config["pingerRightPosition"][0].asDouble(-10); // Y
+
     // Subscribe to the the sonar events
     std::string sonarDeviceName  = config["sonarDeviceName"].asString("Sonar");
     IDevicePtr sonarDevice(vehicle->getDevice(sonarDeviceName));
@@ -110,39 +114,69 @@ double SonarStateEstimator::getDepth()
     return m_estimatedDepth;
 }
 
+void SonarStateEstimator::createMeasurementModel(const math::VectorN& xHat, 
+                                                 math::MatrixN& result)
+{
+    // Make the output the proper size
+    result.resize(2,8);
+
+    // Do work!
+}
+
+math::Radian SonarStateEstimator::findAbsPingerAngle(
+    math::Quaternion 
+    vehicleOrientation,
+    math::Vector3 relativePingerVector)
+{
+    return math::Radian(0);
+}
+
+math::Vector2 SonarStateEstimator::getLeftPingerEstimatedPosition()
+{
+    return math::Vector2(m_stateHat[4], m_stateHat[5]);
+}
+
+math::Vector2 SonarStateEstimator::getRightPingerEstimatedPosition()
+{
+    return math::Vector2(m_stateHat[6], m_stateHat[7]);
+}
+
+double SonarStateEstimator::getDeltaT()
+{
+    return m_lastUpdateTime - core::TimeVal::timeOfDay().get_double();
+}
+
 void SonarStateEstimator::onSonarEvent(core::EventPtr event)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     SonarEventPtr sEvent = boost::dynamic_pointer_cast<SonarEvent>(event);
-
-    // TODO: Any possible angle corrections needed
-    // Remove Z component from direction
-//    math::Vector3 flatDirection(direction.x, direction.y, 0);
-
-    // Create the vector that points in the direction the vehicle is facing
-    // in the inertial frame
-//    math::Vector3 vehicleDirection =
-//        m_currentOrientation * math::Vector3::UNIT_X;
-//    referenceVector3.z = 0;
     
     // Calculate the angle
-    math::Quaternion quat =
-        math::Vector3::UNIT_X.getRotationTo(sEvent->direction);
-    math::Degree angle(quat.getYaw(true));
+    math::Radian angle = findAbsPingerAngle(m_currentOrientation,
+                                            sEvent->direction);
     
+    // Calculate the deltaT since the last update
+    double dt = getDeltaT();
+
     // Call pinger update
     if (sEvent->pingerID == 0)
-        pinger0FilterUpdate(angle);
+        pingerRightFilterUpdate(angle, dt);
     else
-        pinger1FilterUpdate(angle);
+        pingerLeftFilterUpdate(angle, dt);
+
+    // Don't forget to update m_velocity and m_position from the latest xHat
+
+    // Mark the time this update was finished so we can calculate the dt
+    // next frame
+    m_lastUpdateTime = core::TimeVal::timeOfDay().get_double();
 }
 
-void SonarStateEstimator::pinger0FilterUpdate(math::Degree angle)
+void SonarStateEstimator::pingerLeftFilterUpdate(math::Degree angle, double dt)
 {
     // Put update code here
 }
     
-void SonarStateEstimator::pinger1FilterUpdate(math::Degree angle)
+void SonarStateEstimator::pingerRightFilterUpdate(math::Degree angle, double dt)
 {
     // Put update code here
 }
