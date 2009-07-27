@@ -154,15 +154,10 @@ private:
     /** Sends the DETECTOR_CHANGED event */
     void sendDetectorChanged();
 
-    /** Attempts to find the vision system configuration section */
-    core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
-					    std::string& nodeUsed);
-
     /** Attempts to create a detector by using settings from the given config */
     vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
 						 core::ConfigNode cfg,
 						 std::string& nodeUsed);
-
 
     /** Source of the images when send to clients */
     vision::Camera* m_camera;

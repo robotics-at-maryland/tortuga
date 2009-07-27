@@ -32,6 +32,10 @@ enum TestSuitType
     Spade,
     Club,
     Diamond,
+    Tank,
+    Ship,
+    Aircraft,
+    Factory,
     None
 };
     

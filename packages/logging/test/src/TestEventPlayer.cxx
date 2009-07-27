@@ -51,13 +51,27 @@ public:
                     double startTime) :
         logging::EventPlayer(config, deps),
         timeOfDay(startTime),
-        sleptTime(-1)
+        sleptTime(-1),
+        backgroundCount(0),
+        unbackgroundCount(0)
     {
         m_startTime = startTime;
     }
     
     double timeOfDay;
     double sleptTime;
+    int backgroundCount;
+    int unbackgroundCount;
+
+    virtual void background(int interval)
+    {
+        backgroundCount++;
+    }
+    
+    virtual void unbackground(bool join = false)
+    {
+        unbackgroundCount++;
+    }
     
 protected:
     virtual double getTimeOfDay()
@@ -92,6 +106,13 @@ struct Fixture
         config = ss2.str();
 
         eventHub->subscribeToAll(boost::bind(&Fixture::handleEvent, this, _1));
+        
+        eventHub->subscribeToType(logging::EventPlayer::START,
+                                  boost::bind(&Fixture::handleStartEvent, this,
+                                              _1));
+        eventHub->subscribeToType(logging::EventPlayer::STOP,
+                                  boost::bind(&Fixture::handleStopEvent, this,
+                                              _1));
     }
 
     ~Fixture()
@@ -104,9 +125,23 @@ struct Fixture
 
     void handleEvent(core::EventPtr event)
     {
-        publishedEvents.push_back(event);
+        bool stopEvent = event->type == logging::EventPlayer::STOP;
+        bool startEvent = event->type == logging::EventPlayer::START;
+        // Don't record events the player itself generates
+        if (!stopEvent && !startEvent)
+            publishedEvents.push_back(event);
     }
 
+    void handleStartEvent(core::EventPtr event)
+    {
+        startEvents.push_back(event);
+    }
+
+    void handleStopEvent(core::EventPtr event)
+    {
+        stopEvents.push_back(event);
+    }
+    
     void insertEvent(core::Event::EventType type,
                      core::EventPublisher* sender,
                      double timeStamp,
@@ -143,6 +178,8 @@ struct Fixture
     }
 
     EventList publishedEvents;
+    EventList startEvents;
+    EventList stopEvents;
     core::EventHubPtr eventHub;
     std::string filename;
     std::string config;
@@ -227,6 +264,62 @@ TEST_FIXTURE(Fixture, Sleeping)
                 publishedEvents[2]->timeStamp, 0.0001);
 
     delete player;
+}
+
+TEST_FIXTURE(Fixture, StartStop)
+{
+    static const double RECORDED_TIME = 12;
+    static const double PLAYBACK_TIME = 124;
+    static const double OFFSET = PLAYBACK_TIME - RECORDED_TIME;
+    
+    // The events we wrote to the file (starting at 12 seconds)
+    EventList events = writeOutTestEvents(RECORDED_TIME);
+    
+    // Create our logger
+    TestEventPlayer* player =
+        new TestEventPlayer(core::ConfigNode::fromString(config),
+                            boost::assign::list_of(eventHub),
+                            PLAYBACK_TIME);
+
+    CHECK_EQUAL(0, player->unbackgroundCount);
+    CHECK_EQUAL(0, player->backgroundCount);
+    CHECK_EQUAL(0u, startEvents.size());
+    CHECK_EQUAL(0u, stopEvents.size());
+
+    
+    // Do the first update
+    player->update(0);
+    CHECK_EQUAL(-1, player->sleptTime);
+    CHECK_EQUAL(events[0]->timeStamp - RECORDED_TIME, player->currentTime());
+    CHECK_EQUAL(events[0]->type, publishedEvents[0]->type);
+    CHECK_EQUAL(events[0]->sender, publishedEvents[0]->sender);
+    CHECK_CLOSE(events[0]->timeStamp + OFFSET,
+                publishedEvents[0]->timeStamp, 0.0001);
+
+    // Now stop for 10 seconds
+    player->stop();
+    CHECK_EQUAL(1, player->unbackgroundCount);
+    CHECK_EQUAL(0, player->backgroundCount);
+    CHECK_EQUAL(0u, startEvents.size());
+    CHECK_EQUAL(1u, stopEvents.size());
+    
+    player->timeOfDay = PLAYBACK_TIME + 10;
+    
+    player->start();
+    CHECK_EQUAL(1, player->unbackgroundCount);
+    CHECK_EQUAL(1, player->backgroundCount);
+    CHECK_EQUAL(1u, startEvents.size());
+    CHECK_EQUAL(1u, stopEvents.size());
+    
+    // The next update (with no time advacement) should still sleep
+    player->sleptTime = 0;
+    player->update(0);
+    CHECK_CLOSE(0.3, player->sleptTime, 0.0001);
+    CHECK_EQUAL(events[1]->timeStamp - RECORDED_TIME, player->currentTime());
+    CHECK_EQUAL(events[1]->type, publishedEvents[1]->type);
+    CHECK_EQUAL(events[1]->sender, publishedEvents[1]->sender);
+    CHECK_CLOSE(events[1]->timeStamp + OFFSET + 10,
+                publishedEvents[1]->timeStamp, 0.0001);
 }
 
 TEST_FIXTURE(Fixture, ActualLog)

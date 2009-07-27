@@ -31,6 +31,12 @@ namespace logging {
 class EventPlayer : public core::Subsystem, public core::Updatable
 {
 public:
+    /** Sent when ever the player starts replaying events */
+    static const core::Event::EventType START;
+    
+    /** Sent when ever the player stops replaying events */
+    static const core::Event::EventType STOP;
+    
     EventPlayer(core::ConfigNode config);
     EventPlayer(core::ConfigNode config, core::SubsystemList deps);
     ~EventPlayer();
@@ -43,6 +49,12 @@ public:
 
     /** Get the current time in the log (in seconds since start) */
     virtual double currentTime();
+
+    /** Stops the current playback */
+    virtual void start();
+
+    /** Starts the current event playback*/
+    virtual void stop();
     
     // IUpdatable methods
 
@@ -89,6 +101,12 @@ private:
     
     /** The current time we are at*/
     double m_currentTime;
+
+    /** The time at which the EventPlayer was stopped */
+    double m_stoppedTime;
+
+    /** How much time the player has been stopped (offsets the start time) */
+    double m_stopageTime;
     
     /** The length of the file we are reading */
     int m_fileLength;

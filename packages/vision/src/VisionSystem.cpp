@@ -93,12 +93,24 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
 void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
-        m_forwardCamera = CameraPtr(new DC1394Camera(config["ForwardCamera"],
-                                                     (size_t)0));
+    {
+        core::ConfigNode cameraConfig(config["ForwardCamera"]);
+        std::string cameraStr = cameraConfig["typeStr"].asString("100");
+        std::string message;
+        m_forwardCamera = CameraPtr(Camera::createCamera(cameraStr,
+                                                         cameraConfig,
+                                                         message));
+    }
 
     if (!m_downwardCamera)
-        m_downwardCamera = CameraPtr(new DC1394Camera(config["DownwardCamera"],
-                                                      (size_t)1));
+    {
+        core::ConfigNode cameraConfig(config["DownwardCamera"]);
+        std::string cameraStr = cameraConfig["typeStr"].asString("101");
+        std::string message;
+        m_downwardCamera = CameraPtr(Camera::createCamera(cameraStr,
+                                                          cameraConfig,
+                                                          message));
+    }
 
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;
@@ -524,6 +536,34 @@ void VisionSystem::_setDownHorizontalPixelResolution(int pixels)
 void VisionSystem::_setDownVerticalPixelResolution(int pixels)
 {
     s_frontVerticalPixelResolution = pixels;    
+}
+
+core::ConfigNode VisionSystem::findVisionSystemConfig(core::ConfigNode cfg,
+                                                      std::string& nodeUsed)
+{
+    core::ConfigNode config(core::ConfigNode::fromString("{}"));
+    // Attempt to find the section deeper in the file
+    if (cfg.exists("Subsystems"))
+    {
+        cfg = cfg["Subsystems"];
+        
+        // Attempt to find a VisionSystem subsystem
+        core::NodeNameList nodeNames(cfg.subNodes());
+        BOOST_FOREACH(std::string nodeName, nodeNames)
+        {
+            core::ConfigNode subsysCfg(cfg[nodeName]);
+            if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
+                ("SimVision" == subsysCfg["type"].asString("NONE")))
+            {
+                config = subsysCfg;
+                std::stringstream ss;
+                ss << "Subsystem:" << nodeName << ":" << nodeUsed;
+                nodeUsed = ss.str();
+            }
+        }
+    }
+
+    return config;
 }
     
 } // namespace vision

@@ -168,7 +168,10 @@ public:
 
     /** Set vertical pixel resolution (Internal use only) */
     static void _setDownVerticalPixelResolution(int pixels);
-    
+
+    /** Attempts to find the vision system configuration section */
+    static core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
+                                                   std::string& nodeUsed);
     
 private:
     /** Initializes all internal members */

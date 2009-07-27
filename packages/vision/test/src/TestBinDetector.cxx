@@ -1051,13 +1051,14 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     CHECK_CLOSE(0, event->x, 0.05);
     CHECK_CLOSE(0, event->y, 0.05);
 }
-/*
+
 TEST_FIXTURE(BinDetectorFixture, Symbol)
 {
     // Bin in center
     makeColor(&input, 0, 0, 255);
-    drawBin(&input, 200, 150, 130, 25, vision::Heart);
+//    drawBin(&input, 130/2, 130*3/4, 130, 25, vision::Ship);
+    drawBin(&input, 320, 240, 130, 0, vision::Ship);
 //    vision::Image::showImage(&input);
 }
-*/
+
 } // SUITE(BinDetector)

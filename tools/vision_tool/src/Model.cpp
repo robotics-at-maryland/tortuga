@@ -23,6 +23,7 @@
 #include "core/include/EventPublisher.h"
 #include "core/include/PropertySet.h"
 
+#include "vision/include/VisionSystem.h"
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
@@ -202,7 +203,7 @@ void Model::changeToDetector(std::string detectorType)
 
         if (!m_detector)
         {
-	    cfg = findVisionSystemConfig(cfg, nodeUsed);
+	    cfg = vision::VisionSystem::findVisionSystemConfig(cfg, nodeUsed);
 	    if (nodeUsed.size() > 0)
 	    {
 	        m_detector = createDetectorFromConfig(detectorType, cfg, 
@@ -311,34 +312,6 @@ void Model::sendImageSourceChanged()
 void Model::sendDetectorChanged()
 {
     publish(DETECTOR_CHANGED, core::EventPtr(new core::Event));
-}
-
-core::ConfigNode Model::findVisionSystemConfig(core::ConfigNode cfg,
-					       std::string& nodeUsed)
-{
-    core::ConfigNode config(core::ConfigNode::fromString("{}"));
-    // Attempt to find the section deeper in the file
-    if (cfg.exists("Subsystems"))
-    {
-        cfg = cfg["Subsystems"];
-        
-        // Attempt to find a VisionSystem subsystem
-        core::NodeNameList nodeNames(cfg.subNodes());
-        BOOST_FOREACH(std::string nodeName, nodeNames)
-        {
-            core::ConfigNode subsysCfg(cfg[nodeName]);
-            if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
-                ("SimVision" == subsysCfg["type"].asString("NONE")))
-            {
-                config = subsysCfg;
-                std::stringstream ss;
-                ss << "Subsystem:" << nodeName << ":" << nodeUsed;
-                nodeUsed = ss.str();
-            }
-        }
-    }
-
-    return config;
 }
 
 vision::DetectorPtr Model::createDetectorFromConfig(std::string detectorType,

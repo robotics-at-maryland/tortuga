@@ -32,6 +32,9 @@
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::logging::EventPlayer, EventPlayer);
 
+RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, START);
+RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, STOP);
+
 namespace ram {
 namespace logging {
 
@@ -39,7 +42,11 @@ EventPlayer::EventPlayer(core::ConfigNode config) :
     Subsystem(config["name"].asString("EventPlayer")),
     m_startTime(core::TimeVal::timeOfDay().get_double()),
     m_archive(0), //m_logFile)
-    m_firstEventTime(-1)
+    m_firstEventTime(-1),
+    m_currentTime(-1),
+    m_stoppedTime(-1),
+    m_stopageTime(0),
+    m_fileLength(-1)
 {
     init(config, core::SubsystemList());
 }
@@ -48,7 +55,11 @@ EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
     Subsystem(config["name"].asString("EventPlayer"), deps),
     m_startTime(core::TimeVal::timeOfDay().get_double()),
     m_archive(0), //m_logFile)
-    m_firstEventTime(-1)
+    m_firstEventTime(-1),
+    m_currentTime(-1),
+    m_stoppedTime(-1),
+    m_stopageTime(0),
+    m_fileLength(-1)
 {
     init(config, deps);
 }
@@ -84,6 +95,38 @@ double EventPlayer::currentTime()
     return m_currentTime;
 }
 
+void EventPlayer::start()
+{
+    {
+        // Determine how much time we have been stopped
+        core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
+        double timeStopped = getTimeOfDay() - m_stoppedTime;
+
+        // Add that to our stopage time so playback still works
+        m_stopageTime += timeStopped;
+
+        // Now start backup the background thread
+        background(-1);
+    }
+
+    publish(START, core::EventPtr(new core::Event()));
+}
+
+void EventPlayer::stop()
+{
+    // Stop the background thread
+    unbackground(true);;
+
+    // Record when stopped playback
+    {
+        core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
+        m_stoppedTime = getTimeOfDay();
+    }
+
+    publish(STOP, core::EventPtr(new core::Event()));
+}
+
+    
 void EventPlayer::update(double)
 {
     // While there are still events left in the log
@@ -106,7 +149,7 @@ void EventPlayer::update(double)
             // Grab essentially the place we are in the log file
             double delta = event->timeStamp - m_firstEventTime;
             m_currentTime = delta;
-            sendTime = m_startTime + delta;
+            sendTime = m_startTime + delta + m_stopageTime;
         }
 
         // If in the "past" send the event, other wise sleep until it must
