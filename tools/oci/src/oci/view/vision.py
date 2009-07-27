@@ -132,9 +132,9 @@ class BaseVisionPanel(BasePanel):
 
     def _toggleSize(self, showControls):
         if not showControls:
-            self._hide.Label = "Show"
+            self._hide.Label = "On"
         else:
-            self._hide.Label = "Hide"
+            self._hide.Label = "Off"
         
         self._controlsShowing = showControls
         for i in xrange(2, (len(self._generatedControls) + 1) * 2):
@@ -224,6 +224,7 @@ class RedLightPanel(BaseVisionPanel):
         self._elevation = None
         self._range = None
         self._detector = False
+        self._vision = vision
 
         # Controls
         self._createControls("Bouy")
@@ -251,6 +252,15 @@ class RedLightPanel(BaseVisionPanel):
                                 label = 'Elevation: ')
         self._createDataControl(controlName = '_range', label = 'Range: ')
         
+    def _onButton(self, event):
+        """
+        Overwrite the default onButton so this one just turns the detector on
+        """
+        if self._detector:
+            self._vision.redLightDetectorOff()
+        else:
+            self._vision.redLightDetectorOn()
+
     def _onBouyFound(self, event):
         if self._detector:
             self._x.Value = "% 4.2f" % event.x
@@ -287,6 +297,7 @@ class OrangePipePanel(BaseVisionPanel):
         self._y = None
         self._angle = None
         self._detector = False
+        self._vision = vision
 
         # Controls
         self._createControls("Orange Pipe")
@@ -308,6 +319,12 @@ class OrangePipePanel(BaseVisionPanel):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
+
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.pipeLineDetectorOff()
+        else:
+            self._vision.pipeLineDetectorOn()
         
     def _onPipeFound(self, event):
         if self._detector:
@@ -394,6 +411,7 @@ class BinPanel(BaseVisionPanel):
         self._symbol = None
         self._ai = ai
         self._detector = False
+        self._vision = vision
         
         if self._ai is not None:
             ram.ai.bin.ensureBinTracking(eventHub, self._ai)
@@ -423,6 +441,12 @@ class BinPanel(BaseVisionPanel):
         self._createDataControl(controlName = '_angle', label = 'Angle: ')
         self._createDataControl(controlName = '_multiAngle', label = 'M-Ang: ')
         self._createDataControl(controlName = '_symbol', label = 'Symbol: ')
+
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.binDetectorOff()
+        else:
+            self._vision.binDetectorOn()
         
     def _onMultiBinAngle(self, event):
         if self._detector:
@@ -559,6 +583,7 @@ class TargetPanel(BaseVisionPanel):
         self._alignment = None
         self._aligned = None
         self._detector = False
+        self._vision = vision
 
         # Controls
         self._createControls("Target")
@@ -582,6 +607,12 @@ class TargetPanel(BaseVisionPanel):
         self._createDataControl(controlName = '_range', label = 'Range: ')
         self._createDataControl(controlName = '_squareNess', label = 'SQ-Ns: ')
         
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.targetDetectorOff()
+        else:
+            self._vision.targetDetectorOn()
+
     def _onTargetFound(self, event):
         if self._detector:
             self._x.Value = "% 4.2f" % event.x
@@ -619,6 +650,7 @@ class BarbedWirePanel(BaseVisionPanel):
         self._bottomY = None
         self._bottomWidth = None
         self._detector = False
+        self._vision = vision
 
         # Controls
         self._createControls("BarbedWire")
@@ -648,6 +680,12 @@ class BarbedWirePanel(BaseVisionPanel):
         self._createDataControl(controlName = '_bottomWidth',
                                 label = 'Bot Width: ')
         
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.barbedWireDetectorOff()
+        else:
+            self._vision.barbedWireDetectorOn()
+
     def _onBarbedWireFound(self, event):
         if self._detector:
             self._topX.Value = "% 4.2f" % event.topX

@@ -62,6 +62,18 @@ def fsremove(name = '50000(320,240)'):
 def dsremove(name = '50001(320,240)'):
     visionSystem.removeDownwardRecorder(name)
 
+# Quick detector functions
+lightOn = visionSystem.redLightDetectorOn
+lightOff = visionSystem.redLightDetectorOff
+pipeOn = visionSystem.pipeLineDetectorOn
+pipeOff = visionSystem.pipeLineDetectorOff
+bwireOn = visionSystem.barbedWireDetectorOn
+bwireOff = visionSystem.barbedWireDetectorOff
+binOn = visionSystem.binDetectorOn
+binOff = visionSystem.binDetectorOff
+targetOn = visionSystem.targetDetectorOn
+targetOff = visionSystem.targetDetectorOff
+
 # This is the helper function for takeXClip. Don't use it.
 def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
     # All comments are needed. Do not add blank lines!
