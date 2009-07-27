@@ -26,7 +26,7 @@ distro.o : distro.c buscodes.h uart.c i2c.c
 balancer.o : balancer.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F6014A $(CFLAGS) -Wunused-function -c $< -o $@
 
-motor.o : motor.c buscodes.h servo.h timer.h servo.c
+motor.o : motor.c buscodes.h typedef.h servo.h servo.c
 	$(CC) -mcpu=30F6010A $(CFLAGS) -Wunused-function -c $< -o $@
 
 ic4.o : ic4.c buscodes.h uart.c i2c.c
