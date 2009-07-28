@@ -116,6 +116,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_IMOTOR     IRQ_DISTRO
 #define SLAVE_ID_VLOW       IRQ_DISTRO
 #define SLAVE_ID_MOTOR      IRQ_MOTOR
+#define SLAVE_ID_SERVOS     IRQ_MOTOR
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -1037,7 +1038,7 @@ int main(void)
         if(IN_USBDETECT != USB_PRESENT)
         {
             showString("Lost Mini...    ", 0);
-            showString("                ", 1);
+            showString("      ;_;       ", 1);
 
             LAT_LED_ACT = ~LED_ON;  // Red on
             LAT_LED_ERR = LED_ON;   // Yellow off
@@ -1049,7 +1050,8 @@ int main(void)
                 LAT_LED_ERR = ~LAT_LED_ERR;
             }
 
-            showString("USB Restored...", 0);
+            showString("USB Restored... ", 0);
+            showString("     d^_^b      ", 1);
         }
 
         long t1, t2;
@@ -2172,6 +2174,87 @@ int main(void)
                 }
 
                 sendByte(cs + HOST_REPLY_BATTCURRENT);
+                break;
+            }
+
+            case HOST_CMD_SERVO_ENABLE:
+            {
+                /* Get the mask and the checksum */
+                for(i= 0;i < 2;i++)
+                    rxBuf[i]= waitchar(1);
+
+                if(rxBuf[1] != (rxBuf[0] + HOST_CMD_SERVO_ENABLE))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SERVO_ENABLE, SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[0], SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+            case HOST_CMD_SET_SERVO_POS:
+            {
+                /* Get the servonum, and the two bytes of position, and the checksum */
+                for(i= 0;i < 4;i++)
+                    rxBuf[i]= waitchar(1);
+
+                if(rxBuf[3] != (rxBuf[0] + rxBuf[1] + rxBuf[2] + HOST_CMD_SERVO_ENABLE))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_SERVO_POS, SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[0], SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[1], SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[2], SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_SERVO_POWER_ON:
+            {
+                simpleCmd(HOST_CMD_SERVO_POWER_ON, HOST_REPLY_SUCCESS, SLAVE_ID_SERVOS, BUS_CMD_SERVO_POWER_ON);
+                break;
+            }
+
+            case HOST_CMD_SERVO_POWER_OFF:
+            {
+                simpleCmd(HOST_CMD_SERVO_POWER_OFF, HOST_REPLY_SUCCESS, SLAVE_ID_SERVOS, BUS_CMD_SERVO_POWER_OFF);
                 break;
             }
         }
