@@ -345,6 +345,9 @@ int setServoEnable(int fd, unsigned char servoMask);
 int setServoPosition(int fd, unsigned char servoNumber,
                      unsigned short position);
 
+
+/** Power cycles the motor board */
+int resetMotorBoard(int fd);
     
 int lcdBacklight(int fd, int state);
 

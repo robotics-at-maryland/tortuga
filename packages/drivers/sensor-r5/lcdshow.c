@@ -87,7 +87,8 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -noblink (stop animation)\n");
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
-
+        printf("\tlcdshow -mtrreset (power cycles the motor board)\n");
+        
 	    return -1;
     }
 
@@ -208,6 +209,13 @@ int main(int argc, char ** argv)
         // Send the command
         int ret;
         if((ret = setServoPosition(fd, servoNum, servoPosition)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    if(strcmp(argv[1], "-mtrreset") == 0)
+    {
+        int ret;
+        if((ret = resetMotorBoard(fd)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 

@@ -1124,3 +1124,13 @@ int setServoPosition(int fd, unsigned char servoNumber, unsigned short position)
 
     return SB_ERROR;
 }
+
+int resetMotorBoard(int fd)
+{
+    unsigned char buf[2]={HOST_CMD_MTR_RST, HOST_CMD_MTR_RST};
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+    return SB_HWFAIL;
+}
