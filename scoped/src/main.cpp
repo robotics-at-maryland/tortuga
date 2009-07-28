@@ -13,14 +13,18 @@ private:
     bool hasViewer;
     ram::sonar::scope::ViewerPrx viewerPrx;
     
-    int iHoldoff;
-    int iSkip;
+    volatile int iHoldoff;
+    volatile int iSkip;
+    bool isCapturing;
     
-    short horizontalZoom;
-    short triggerChannel;
-    short triggerLevel;
-    int triggerHoldoff;
-    ::ram::sonar::scope::TriggerSlope triggerSlope;
+    volatile short horizontalZoom;
+    volatile short triggerChannel;
+    volatile short triggerLevel;
+    volatile int triggerHoldoff;
+    volatile ::ram::sonar::scope::TriggerMode triggerMode;
+    volatile ::ram::sonar::scope::TriggerSlope triggerSlope;
+    
+    ::ram::sonar::scope::OscilloscopeCapture lastCapture;
     
     
     static suseconds_t getMicroseconds()
@@ -59,17 +63,23 @@ private:
     
     
     
+    uint64_t iSample;
     uint16_t iBuf;
-    static const unsigned int LOG2_BUFSIZE = 12;
-    static const unsigned int BUFSIZE = 1 << LOG2_BUFSIZE;
+    static const unsigned int BUFSIZE = 800;
+    int16_t lastSample[4];
     int16_t buf[BUFSIZE][4];
 public:
     
     OscilloscopeImpl() :
     hasViewer(false), horizontalZoom(0),
-    iHoldoff(0), iSkip(0), iBuf(0),
+    iHoldoff(0), iSkip(0), iBuf(0), isCapturing(false), iSample(0),
     triggerChannel(0), triggerLevel(0), triggerHoldoff(0),
-    triggerSlope(::ram::sonar::scope::TriggerSlopeRising) {}
+    triggerMode(::ram::sonar::scope::TriggerModeStop),
+    triggerSlope(::ram::sonar::scope::TriggerSlopeRising)
+    {
+        lastCapture.rawData = ::ram::sonar::scope::ShortSeq(BUFSIZE * 4);
+        lastCapture.timestamp = 0;
+    }
     
     virtual void SetViewer(const ::ram::sonar::scope::ViewerPrx& viewerPrx, const ::Ice::Current&)
     {
@@ -77,8 +87,9 @@ public:
         hasViewer = true;
     }
     
-    virtual void SetTriggerMode(::ram::sonar::scope::TriggerMode, const ::Ice::Current&)
+    virtual void SetTriggerMode(::ram::sonar::scope::TriggerMode triggerMode, const ::Ice::Current&)
     {
+        this->triggerMode = triggerMode;
     }
     
     virtual void SetTriggerChannel(::Ice::Short triggerChannel, const ::Ice::Current&)
@@ -101,9 +112,11 @@ public:
         this->triggerSlope = triggerSlope;
     }
     
+    /*
     virtual void SetHorizontalPosition(::Ice::Int, const ::Ice::Current&)
     {
     }
+    */
     
     virtual void SetHorizontalZoom(::Ice::Short zoom, const ::Ice::Current&)
     {
@@ -112,6 +125,7 @@ public:
     
     virtual ::ram::sonar::scope::OscilloscopeCapture GetLastCapture(const ::Ice::Current&)
     {
+        return lastCapture;
     }
     
     void run()
@@ -129,25 +143,21 @@ public:
             if (iHoldoff > 0)
                 --iHoldoff;
             
+            ++iSample;
+            
             ++iSkip;
             
-            int16_t lastValueForTrigger = buf[iBuf][triggerChannel];
-            
-            ++iBuf;
-            
-            if (iBuf >= LOG2_BUFSIZE)
-                iBuf = 0;
+            int16_t lastValueForTrigger = lastSample[triggerChannel];
+            memcpy(lastSample, sample, sizeof(sample));
             
             if (iSkip >= (1 << horizontalZoom))
             {
                 // use this sample and reset the skip counter
                 iSkip = 0;
                 
-                memcpy(buf[iBuf], sample, sizeof(sample));
-                
-                if (iHoldoff == 0)
+                if (iHoldoff == 0 && !isCapturing && triggerMode != ::ram::sonar::scope::TriggerModeStop)
                 {
-                    int16_t thisValueForTrigger = buf[iBuf][triggerChannel];
+                    int16_t thisValueForTrigger = sample[triggerChannel];
                     
                     int16_t trigLev = triggerLevel;
                     if (
@@ -158,8 +168,34 @@ public:
                          thisValueForTrigger <= trigLev)
                         )
                     {
-                        // trigger occurred
+                        isCapturing = true;
+                        iBuf = 0;
+                    }
+                }
+                
+                if (isCapturing)
+                {
+                    memcpy(buf[iBuf++], sample, sizeof(sample));
+                    if (iBuf >= BUFSIZE)
+                    {
+                        isCapturing = false;
                         
+                        if (triggerMode == ::ram::sonar::scope::TriggerModeRun)
+                            triggerMode = ::ram::sonar::scope::TriggerModeStop;
+                        
+                        copy(*buf, buf[BUFSIZE], lastCapture.rawData.begin());
+                        lastCapture.timestamp = (iSample << 1) / 1000;
+                        
+                        iHoldoff = triggerHoldoff;
+                        
+                        if (hasViewer)
+                        {
+                            try {
+                                viewerPrx->NotifyCapture();
+                            } catch (const Ice::Exception& ex) {
+                                cerr << ex << endl;
+                            }
+                        }
                     }
                 }
             }

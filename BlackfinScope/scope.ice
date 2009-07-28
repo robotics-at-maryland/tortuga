@@ -5,8 +5,8 @@ module ram {
         module scope {
             
             enum TriggerMode {
-                TriggerModeRun,
                 TriggerModeStop,
+                TriggerModeRun,
                 TriggerModeAuto
             };
             
@@ -40,7 +40,7 @@ module ram {
                 idempotent void SetTriggerHoldoff(int holdoff);
                 idempotent void SetTriggerSlope(TriggerSlope slope);
                 
-                idempotent void SetHorizontalPosition(int timeShift);
+                //idempotent void SetHorizontalPosition(int timeShift);
                 idempotent void SetHorizontalZoom(short powerOfTwo);
                 
                 OscilloscopeCapture GetLastCapture();

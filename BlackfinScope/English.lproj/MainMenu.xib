@@ -744,85 +744,6 @@
 						<object class="NSCustomView" id="558203280">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">268</int>
-							<object class="NSMutableArray" key="NSSubviews">
-								<bool key="EncodedWithXMLCoder">YES</bool>
-								<object class="NSSegmentedControl" id="656144592">
-									<reference key="NSNextResponder" ref="558203280"/>
-									<int key="NSvFlags">268</int>
-									<string key="NSFrame">{{178, 58}, {125, 22}}</string>
-									<reference key="NSSuperview" ref="558203280"/>
-									<bool key="NSEnabled">YES</bool>
-									<object class="NSSegmentedCell" key="NSCell" id="441159732">
-										<int key="NSCellFlags">-2080244224</int>
-										<int key="NSCellFlags2">0</int>
-										<object class="NSFont" key="NSSupport" id="707118416">
-											<string key="NSName">LucidaGrande</string>
-											<double key="NSSize">1.300000e+01</double>
-											<int key="NSfFlags">1044</int>
-										</object>
-										<reference key="NSControlView" ref="656144592"/>
-										<object class="NSMutableArray" key="NSSegmentImages">
-											<bool key="EncodedWithXMLCoder">YES</bool>
-											<object class="NSSegmentItem">
-												<string key="NSSegmentItemLabel">AUTO</string>
-												<int key="NSSegmentItemImageScaling">0</int>
-											</object>
-											<object class="NSSegmentItem">
-												<double key="NSSegmentItemWidth">3.200000e+01</double>
-												<string type="base64-UTF8" key="NSSegmentItemLabel">4piQA</string>
-												<int key="NSSegmentItemTag">1</int>
-												<bool key="NSSegmentItemSelected">YES</bool>
-												<int key="NSSegmentItemImageScaling">0</int>
-											</object>
-											<object class="NSSegmentItem">
-												<double key="NSSegmentItemWidth">3.200000e+01</double>
-												<object class="NSCustomResource" key="NSSegmentItemImage">
-													<string key="NSClassName">NSImage</string>
-													<string key="NSResourceName">NSGoRightTemplate</string>
-												</object>
-												<int key="NSSegmentItemImageScaling">0</int>
-											</object>
-										</object>
-										<int key="NSSelectedSegment">1</int>
-										<int key="NSSegmentStyle">4</int>
-									</object>
-								</object>
-								<object class="NSSegmentedControl" id="53130725">
-									<reference key="NSNextResponder" ref="558203280"/>
-									<int key="NSvFlags">268</int>
-									<string key="NSFrame">{{105, 58}, {67, 22}}</string>
-									<reference key="NSSuperview" ref="558203280"/>
-									<bool key="NSEnabled">YES</bool>
-									<object class="NSSegmentedCell" key="NSCell" id="1048862688">
-										<int key="NSCellFlags">67239424</int>
-										<int key="NSCellFlags2">0</int>
-										<object class="NSFont" key="NSSupport" id="35883037">
-											<string key="NSName">LucidaGrande</string>
-											<double key="NSSize">1.300000e+01</double>
-											<int key="NSfFlags">16</int>
-										</object>
-										<reference key="NSControlView" ref="53130725"/>
-										<object class="NSMutableArray" key="NSSegmentImages">
-											<bool key="EncodedWithXMLCoder">YES</bool>
-											<object class="NSSegmentItem">
-												<double key="NSSegmentItemWidth">3.200000e+01</double>
-												<string type="base64-UTF8" key="NSSegmentItemLabel">4p6aA</string>
-												<string key="NSSegmentItemTooltip">Trigger on rising edge</string>
-												<bool key="NSSegmentItemSelected">YES</bool>
-												<int key="NSSegmentItemImageScaling">0</int>
-											</object>
-											<object class="NSSegmentItem">
-												<double key="NSSegmentItemWidth">3.200000e+01</double>
-												<string type="base64-UTF8" key="NSSegmentItemLabel">4p6YA</string>
-												<string key="NSSegmentItemTooltip">Trigger on falling edge</string>
-												<int key="NSSegmentItemTag">1</int>
-												<int key="NSSegmentItemImageScaling">0</int>
-											</object>
-										</object>
-										<int key="NSSegmentStyle">4</int>
-									</object>
-								</object>
-							</object>
 							<string key="NSFrame">{{20, 155}, {800, 600}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<string key="NSClassName">OscilloscopeView</string>
@@ -836,7 +757,11 @@
 							<object class="NSSegmentedCell" key="NSCell" id="381244621">
 								<int key="NSCellFlags">-2080244224</int>
 								<int key="NSCellFlags2">0</int>
-								<reference key="NSSupport" ref="35883037"/>
+								<object class="NSFont" key="NSSupport" id="113026967">
+									<string key="NSName">LucidaGrande</string>
+									<double key="NSSize">1.300000e+01</double>
+									<int key="NSfFlags">16</int>
+								</object>
 								<reference key="NSControlView" ref="402814449"/>
 								<object class="NSMutableArray" key="NSSegmentImages">
 									<bool key="EncodedWithXMLCoder">YES</bool>
@@ -931,7 +856,11 @@
 												<int key="NSCellFlags">67239424</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents"/>
-												<reference key="NSSupport" ref="707118416"/>
+												<object class="NSFont" key="NSSupport" id="707118416">
+													<string key="NSName">LucidaGrande</string>
+													<double key="NSSize">1.300000e+01</double>
+													<int key="NSfFlags">1044</int>
+												</object>
 												<reference key="NSControlView" ref="158995826"/>
 												<double key="NSMaxValue">1.600000e+01</double>
 												<double key="NSMinValue">0.000000e+00</double>
@@ -1251,7 +1180,7 @@
 											<reference key="NSSuperview" ref="551224165"/>
 											<bool key="NSEnabled">YES</bool>
 											<object class="NSSliderCell" key="NSCell" id="111983007">
-												<int key="NSCellFlags">67239424</int>
+												<int key="NSCellFlags">604110336</int>
 												<int key="NSCellFlags2">0</int>
 												<string key="NSContents"/>
 												<reference key="NSSupport" ref="707118416"/>
@@ -1307,6 +1236,75 @@
 							<int key="NSBoxType">0</int>
 							<int key="NSTitlePosition">6</int>
 							<bool key="NSTransparent">NO</bool>
+						</object>
+						<object class="NSSegmentedControl" id="302218420">
+							<reference key="NSNextResponder" ref="439893737"/>
+							<int key="NSvFlags">268</int>
+							<string key="NSFrame">{{121, 213}, {71, 25}}</string>
+							<reference key="NSSuperview" ref="439893737"/>
+							<bool key="NSEnabled">YES</bool>
+							<object class="NSSegmentedCell" key="NSCell" id="141193109">
+								<int key="NSCellFlags">67239424</int>
+								<int key="NSCellFlags2">0</int>
+								<reference key="NSSupport" ref="113026967"/>
+								<reference key="NSControlView" ref="302218420"/>
+								<object class="NSMutableArray" key="NSSegmentImages">
+									<bool key="EncodedWithXMLCoder">YES</bool>
+									<object class="NSSegmentItem">
+										<double key="NSSegmentItemWidth">3.200000e+01</double>
+										<string type="base64-UTF8" key="NSSegmentItemLabel">4p6aA</string>
+										<string key="NSSegmentItemTooltip">Trigger on rising edge</string>
+										<bool key="NSSegmentItemSelected">YES</bool>
+										<int key="NSSegmentItemImageScaling">0</int>
+									</object>
+									<object class="NSSegmentItem">
+										<double key="NSSegmentItemWidth">3.200000e+01</double>
+										<string type="base64-UTF8" key="NSSegmentItemLabel">4p6YA</string>
+										<string key="NSSegmentItemTooltip">Trigger on falling edge</string>
+										<int key="NSSegmentItemTag">1</int>
+										<int key="NSSegmentItemImageScaling">0</int>
+									</object>
+								</object>
+								<int key="NSSegmentStyle">2</int>
+							</object>
+						</object>
+						<object class="NSSegmentedControl" id="656144592">
+							<reference key="NSNextResponder" ref="439893737"/>
+							<int key="NSvFlags">268</int>
+							<string key="NSFrame">{{199, 213}, {125, 25}}</string>
+							<reference key="NSSuperview" ref="439893737"/>
+							<bool key="NSEnabled">YES</bool>
+							<object class="NSSegmentedCell" key="NSCell" id="441159732">
+								<int key="NSCellFlags">-2080244224</int>
+								<int key="NSCellFlags2">0</int>
+								<reference key="NSSupport" ref="707118416"/>
+								<reference key="NSControlView" ref="656144592"/>
+								<object class="NSMutableArray" key="NSSegmentImages">
+									<bool key="EncodedWithXMLCoder">YES</bool>
+									<object class="NSSegmentItem">
+										<double key="NSSegmentItemWidth">3.000000e+01</double>
+										<string type="base64-UTF8" key="NSSegmentItemLabel">4piQA</string>
+										<bool key="NSSegmentItemSelected">YES</bool>
+										<int key="NSSegmentItemImageScaling">0</int>
+									</object>
+									<object class="NSSegmentItem">
+										<double key="NSSegmentItemWidth">3.000000e+01</double>
+										<object class="NSCustomResource" key="NSSegmentItemImage">
+											<string key="NSClassName">NSImage</string>
+											<string key="NSResourceName">NSGoRightTemplate</string>
+										</object>
+										<string key="NSSegmentItemLabel"/>
+										<int key="NSSegmentItemTag">1</int>
+										<int key="NSSegmentItemImageScaling">0</int>
+									</object>
+									<object class="NSSegmentItem">
+										<double key="NSSegmentItemWidth">6.100000e+01</double>
+										<string key="NSSegmentItemLabel">AUTO</string>
+										<int key="NSSegmentItemImageScaling">0</int>
+									</object>
+								</object>
+								<int key="NSSegmentStyle">4</int>
+							</object>
 						</object>
 					</object>
 					<string key="NSFrameSize">{834, 765}</string>
@@ -1649,7 +1647,7 @@
 					<object class="IBActionConnection" key="connection">
 						<string key="label">triggerSlopeChanged:</string>
 						<reference key="source" ref="542692206"/>
-						<reference key="destination" ref="53130725"/>
+						<reference key="destination" ref="302218420"/>
 					</object>
 					<int key="connectionID">538</int>
 				</object>
@@ -2244,6 +2242,8 @@
 							<reference ref="453995713"/>
 							<reference ref="23315437"/>
 							<reference ref="402814449"/>
+							<reference ref="302218420"/>
+							<reference ref="656144592"/>
 						</object>
 						<reference key="parent" ref="972006081"/>
 					</object>
@@ -2257,8 +2257,6 @@
 						<reference key="object" ref="558203280"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="656144592"/>
-							<reference ref="53130725"/>
 						</object>
 						<reference key="parent" ref="439893737"/>
 					</object>
@@ -2495,37 +2493,37 @@
 						<reference key="parent" ref="402814449"/>
 					</object>
 					<object class="IBObjectRecord">
-						<int key="objectID">529</int>
-						<reference key="object" ref="656144592"/>
-						<object class="NSMutableArray" key="children">
-							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="441159732"/>
-						</object>
-						<reference key="parent" ref="558203280"/>
-					</object>
-					<object class="IBObjectRecord">
-						<int key="objectID">530</int>
-						<reference key="object" ref="441159732"/>
-						<reference key="parent" ref="656144592"/>
-					</object>
-					<object class="IBObjectRecord">
 						<int key="objectID">531</int>
 						<reference key="object" ref="542692206"/>
 						<reference key="parent" ref="1049"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">536</int>
-						<reference key="object" ref="53130725"/>
+						<reference key="object" ref="302218420"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="1048862688"/>
+							<reference ref="141193109"/>
 						</object>
-						<reference key="parent" ref="558203280"/>
+						<reference key="parent" ref="439893737"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">537</int>
-						<reference key="object" ref="1048862688"/>
-						<reference key="parent" ref="53130725"/>
+						<reference key="object" ref="141193109"/>
+						<reference key="parent" ref="302218420"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">529</int>
+						<reference key="object" ref="656144592"/>
+						<object class="NSMutableArray" key="children">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<reference ref="441159732"/>
+						</object>
+						<reference key="parent" ref="439893737"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">530</int>
+						<reference key="object" ref="441159732"/>
+						<reference key="parent" ref="656144592"/>
 					</object>
 				</object>
 			</object>
@@ -2714,6 +2712,8 @@
 					<string>527.IBPluginDependency</string>
 					<string>528.IBPluginDependency</string>
 					<string>529.IBPluginDependency</string>
+					<string>529.IBSegmentedControlTracker.RoundRobinState</string>
+					<string>529.IBSegmentedControlTracker.WasGrowing</string>
 					<string>530.IBPluginDependency</string>
 					<string>531.IBPluginDependency</string>
 					<string>536.IBPluginDependency</string>
@@ -2908,7 +2908,7 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<integer value="0"/>
+					<integer value="0" id="8"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -2936,6 +2936,8 @@
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
+					<reference ref="8"/>
+					<reference ref="8"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
