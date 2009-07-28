@@ -10,13 +10,13 @@ ram.ai.gate.Forward:
     speed: 2
 
 # Pipe task
-ram.ai.Seeking:
+ram.ai.pipe.Seeking:
     speedGain: 3
-    maxSpeed: 4
+    forwardSpeed: 4
     yawGain: 0.25
-ram.ai.Centering:
+ram.ai.pipe.Centering:
     speedGain: 3
-    maxSpeed: 4
+    forwardSpeed: 4
     yawGain: 0.25
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
@@ -31,7 +31,6 @@ ram.ai.light.Recover:
     reverseSpeed: 1.5
     diveSpeed: 0.1
 ram.ai.light.Align:
-    alignGain: 8
     depthGain: 0 #0.05
     maxDepthDt: 0.30
 ram.ai.light.Seek:
@@ -43,6 +42,16 @@ ram.ai.light.Hit:
 ram.ai.light.Continue:
     backwardDuration: 2
     forwardDuration: 7
+# Duct Sub task
+ram.ai.duct.SeekingToRange:
+    filterSize: 10
+    desiredRange: 0.5
+ram.ai.duct.SeekingToAligned:
+    filterSize: 10
+    desiredRange: 0.5
+ram.ai.duct.Aligning:
+    filterSize: 10
+    desiredRange: 0.5
 
 # Target Task
 ram.ai.target.SeekingToCentered:
@@ -187,15 +196,15 @@ ram.ai.sonar.Hovering:
 ram.ai.safe.Seeking:
     sidewaysSpeedGain: 4
     maxSidewaysSpeed: 2
-ram.ai.safe.Dive:
+ram.ai.safe.PreGrabDive:
     diveRate: 0.3
 ram.ai.safe.Offsetting:
     speedGain: 1.5
     maxSpeed: 1.2
     sidewaysSpeedGain: 1.5
     maxSidewaysSpeed: 1.2
-    centeredRange: 0.6
-    sanity: YES
+    #centeredRange: 0.6
+    #sanity: YES
 ram.ai.safe.Settling:
     speedGain: 0.7
     maxSpeed: 1.2
@@ -213,8 +222,6 @@ ram.ai.sonarSafe.Dive:
     #Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1
-    safeDepth: 19
-    depthOffset: 1
     diveRate: 0.1
     maxSidewaysSpeed: 2.25
     sidewaysSpeedGain: 2.25
@@ -225,11 +232,11 @@ ram.ai.sonarSafe.PreGrabSettling:
     sidewaysSpeedGain: 3
     maxSpeed: 3
     speedGain: 3
-    duration: 15 
+    duration: 15
     closeZ: 0.99
-ram.ai.sonarSafe.Grabbing:
+#ram.ai.sonarSafe.Grabbing:
     # Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1.5
-    safeDepth: 19
-    depthOffset: 1
+    #safeDepth: 19
+    #depthOffset: 1
