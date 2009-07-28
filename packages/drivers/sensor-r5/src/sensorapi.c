@@ -1053,7 +1053,7 @@ char* sbErrorToText(int ret)
     };
 
     if ((ret >= -4) && (ret <= 0))
-        return toText[ret + 5];
+        return toText[ret + 4];
     else
         return "Unknown";
 }
