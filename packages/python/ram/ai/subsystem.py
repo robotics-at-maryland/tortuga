@@ -89,7 +89,7 @@ class AI(core.Subsystem):
                          'safeDepthOffset', 'safeOffset'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
-                             'legTime', 'sweepAngle', 'sweepSpeed'])
+                             'duration', 'legTime', 'sweepAngle', 'sweepSpeed'])
         moveOptions = set(['heading', 'speed', 'absolute',
                            'forwardDuration', 'forwardSpeed'])
         for item in cfg.iterkeys():
