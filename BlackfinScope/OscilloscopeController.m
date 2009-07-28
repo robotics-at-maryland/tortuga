@@ -2,8 +2,8 @@
 //  OscilloscopeController.m
 //  BlackfinScope
 //
-//  Created by Lady 3Jane Marie-France Tessier-Ashpool on 7/27/09.
-//  Copyright 2009 TRX Systems. All rights reserved.
+//  Created by Leo Singer on 7/27/09.
+//  Copyright 2009 Robotics@Maryland. All rights reserved.
 //
 
 #import "OscilloscopeController.h"
