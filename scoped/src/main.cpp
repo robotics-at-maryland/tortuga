@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <string.h>
 #include <cmath>
+#include <stdlib.h>
 #include "scope.h"
 
 using namespace std;
@@ -53,8 +54,8 @@ private:
         ++sampleCount;
         
         int16_t val;
-        if ((sampleCount / 1000) % 20 == 0)
-            val = (int16_t)(sin(2 * M_PI * sampleCount / 25) * 10000);
+        if ((sampleCount / 1000) % 100 == 0)
+            val = (int16_t)(sin(2 * M_PI * sampleCount / 25) * 200) + (((double)rand()/RAND_MAX)*2-1)*100;
         else
             val = 0;
         

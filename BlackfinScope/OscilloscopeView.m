@@ -18,8 +18,17 @@
         graticulePath = nil;
         axesPath = nil;
         lastCapture = nil;
+        
+        for (int i = 0 ; i < 4 ; i ++)
+            verticalSensitivity[i] = 0;
     }
     return self;
+}
+
+- (IBAction)verticalSensitivityChanged:(id)sender
+{
+    verticalSensitivity[[sender tag]] = [sender floatValue];
+    [self setNeedsDisplay:YES];
 }
 
 - (void)drawRect:(NSRect)rect {
@@ -60,6 +69,27 @@
     }
     [axesPath stroke];
     
+    if (lastCapture != nil)
+    {
+        short* data = [lastCapture.rawData bytes];
+        for (int channel = 0 ; channel < 4 ; channel ++)
+        {
+            NSBezierPath* wave = [NSBezierPath bezierPath];
+            [wave moveToPoint:NSMakePoint(0, data[channel])];
+            
+            for (int i = 1 ; i < 800 ; i ++)
+                [wave lineToPoint:NSMakePoint(i, data[i * 4 + channel])];
+            
+            [wave setLineWidth:2.0];
+            
+            NSAffineTransform* transform = [NSAffineTransform transform];
+            [transform translateXBy:0 yBy:height/2];
+            [transform scaleXBy:1.0 yBy:1.0/(1 << verticalSensitivity[channel])];
+            [wave transformUsingAffineTransform:transform];
+            
+            [wave stroke];
+        }
+    }
     
     // Draw the border
     NSRect borderRect = NSMakeRect(0, 0, width, height);

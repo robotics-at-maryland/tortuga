@@ -15,6 +15,9 @@
     NSBezierPath* axesPath;
     ramsonarscopeOscilloscopeCapture* lastCapture;
     
+    int verticalSensitivity[4];
+    
 }
 @property(retain) ramsonarscopeOscilloscopeCapture* lastCapture;
+- (IBAction)verticalSensitivityChanged:(id)sender;
 @end
