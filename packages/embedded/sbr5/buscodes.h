@@ -129,7 +129,12 @@
 #define BUS_CMD_SET_MOT_SPEEDS  0x53
 #define BUS_CMD_KILL_MOTORS     0x54
 #define BUS_CMD_SET_MOT_N       0x55
-/* Next free is 0x56 */
+
+#define BUS_CMD_SERVO_POWER_ON  0x56
+#define BUS_CMD_SERVO_POWER_OFF 0x57
+#define BUS_CMD_SERVO_ENABLE    0x58
+#define BUS_CMD_SET_SERVO_POS   0x59
+/* Next free is 0x5A */
 
 
 /* I wanted a more Unique response to a ping.
@@ -225,6 +230,10 @@
 
 #define HOST_CMD_BFIN_STATE         0x2C
 
+#define HOST_CMD_SERVO_ENABLE       0x2D
+#define HOST_CMD_SET_SERVO_POS      0x2E
+#define HOST_CMD_SERVO_POWER_ON     0x2F
+#define HOST_CMD_SERVO_POWER_OFF    0x30
 
 
 /* So we have host commands, Bus commands,
