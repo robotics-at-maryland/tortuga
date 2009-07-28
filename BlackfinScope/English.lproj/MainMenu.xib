@@ -8,7 +8,7 @@
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="372"/>
+			<integer value="520"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -757,7 +757,7 @@
 							<object class="NSSegmentedCell" key="NSCell" id="381244621">
 								<int key="NSCellFlags">-2080244224</int>
 								<int key="NSCellFlags2">0</int>
-								<object class="NSFont" key="NSSupport" id="113026967">
+								<object class="NSFont" key="NSSupport" id="391825855">
 									<string key="NSName">LucidaGrande</string>
 									<double key="NSSize">1.300000e+01</double>
 									<int key="NSfFlags">16</int>
@@ -1237,17 +1237,17 @@
 							<int key="NSTitlePosition">6</int>
 							<bool key="NSTransparent">NO</bool>
 						</object>
-						<object class="NSSegmentedControl" id="302218420">
+						<object class="NSSegmentedControl" id="319289708">
 							<reference key="NSNextResponder" ref="439893737"/>
 							<int key="NSvFlags">268</int>
 							<string key="NSFrame">{{121, 213}, {71, 25}}</string>
 							<reference key="NSSuperview" ref="439893737"/>
 							<bool key="NSEnabled">YES</bool>
-							<object class="NSSegmentedCell" key="NSCell" id="141193109">
+							<object class="NSSegmentedCell" key="NSCell" id="239526566">
 								<int key="NSCellFlags">67239424</int>
 								<int key="NSCellFlags2">0</int>
-								<reference key="NSSupport" ref="113026967"/>
-								<reference key="NSControlView" ref="302218420"/>
+								<reference key="NSSupport" ref="391825855"/>
+								<reference key="NSControlView" ref="319289708"/>
 								<object class="NSMutableArray" key="NSSegmentImages">
 									<bool key="EncodedWithXMLCoder">YES</bool>
 									<object class="NSSegmentItem">
@@ -1647,9 +1647,17 @@
 					<object class="IBActionConnection" key="connection">
 						<string key="label">triggerSlopeChanged:</string>
 						<reference key="source" ref="542692206"/>
-						<reference key="destination" ref="302218420"/>
+						<reference key="destination" ref="319289708"/>
 					</object>
 					<int key="connectionID">538</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">horizontalZoomChanged:</string>
+						<reference key="source" ref="542692206"/>
+						<reference key="destination" ref="1002589171"/>
+					</object>
+					<int key="connectionID">541</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -2242,7 +2250,7 @@
 							<reference ref="453995713"/>
 							<reference ref="23315437"/>
 							<reference ref="402814449"/>
-							<reference ref="302218420"/>
+							<reference ref="319289708"/>
 							<reference ref="656144592"/>
 						</object>
 						<reference key="parent" ref="972006081"/>
@@ -2499,17 +2507,17 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">536</int>
-						<reference key="object" ref="302218420"/>
+						<reference key="object" ref="319289708"/>
 						<object class="NSMutableArray" key="children">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<reference ref="141193109"/>
+							<reference ref="239526566"/>
 						</object>
 						<reference key="parent" ref="439893737"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">537</int>
-						<reference key="object" ref="141193109"/>
-						<reference key="parent" ref="302218420"/>
+						<reference key="object" ref="239526566"/>
+						<reference key="parent" ref="319289708"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">529</int>
@@ -2890,8 +2898,8 @@
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{-132, 1151}, {834, 765}}</string>
-					<string>{{-132, 1151}, {834, 765}}</string>
+					<string>{{59, 934}, {834, 765}}</string>
+					<string>{{59, 934}, {834, 765}}</string>
 					<reference ref="9"/>
 					<string>{{33, 99}, {480, 360}}</string>
 					<string>{3.40282e+38, 3.40282e+38}</string>
@@ -2998,7 +3006,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">538</int>
+			<int key="maxID">541</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3010,6 +3018,7 @@
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSMutableArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>horizontalZoomChanged:</string>
 							<string>triggerChannelChanged:</string>
 							<string>triggerModeChanged:</string>
 							<string>triggerSlopeChanged:</string>
@@ -3019,11 +3028,23 @@
 							<string>id</string>
 							<string>id</string>
 							<string>id</string>
+							<string>id</string>
 						</object>
 					</object>
 					<object class="NSMutableDictionary" key="outlets">
-						<string key="NS.key.0">oscPrx</string>
-						<string key="NS.object.0">id</string>
+						<bool key="EncodedWithXMLCoder">YES</bool>
+						<object class="NSMutableArray" key="dict.sortedKeys">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>adapter</string>
+							<string>communicator</string>
+							<string>oscPrx</string>
+						</object>
+						<object class="NSMutableArray" key="dict.values">
+							<bool key="EncodedWithXMLCoder">YES</bool>
+							<string>id</string>
+							<string>id</string>
+							<string>id</string>
+						</object>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>

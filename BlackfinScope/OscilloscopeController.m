@@ -7,9 +7,29 @@
 //
 
 #import "OscilloscopeController.h"
+#import "scope.h"
+#import <Ice/Ice.h>
 
 
 @implementation OscilloscopeController
+
+- (void)awakeFromNib
+{
+    communicator = [ICEUtil createCommunicator: 0
+                                          argv: nil];
+    
+    adapter = [communicator createObjectAdapterWithEndpoints: @"oscViewer"
+                                                   endpoints: @"default -p 10001"];
+    
+    id<ICEObjectPrx> selfPrx = [adapter addWithUUID: self];
+    
+    oscPrx = [ramsonarscopeOscilloscopePrx uncheckedCast:
+                [communicator stringToProxy: @"osc:default -p 10000"]];
+    
+    [oscPrx SetViewer: (id<ramsonarscopeViewerPrx>) selfPrx];
+    
+    [oscPrx retain];
+}
 
 - (void)NotifyCapture:(ICECurrent*)current {
     ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
@@ -28,6 +48,11 @@
 - (IBAction)triggerSlopeChanged: (id)sender
 {
     [oscPrx SetTriggerSlope: [sender selectedSegment]];
+}
+
+- (IBAction)horizontalZoomChanged: (id)sender
+{
+    [oscPrx SetHorizontalZoom: [sender value]];
 }
 
 @end

@@ -13,6 +13,8 @@
 
 @interface OscilloscopeController : ramsonarscopeViewer <ramsonarscopeViewer> {
 
+    id<ICECommunicator> communicator;
+    id<ICEObjectAdapter> adapter;
     id<ramsonarscopeOscilloscopePrx> oscPrx;
     OscilloscopeView* viewPrx;
     
@@ -20,4 +22,5 @@
 - (IBAction)triggerChannelChanged: (id)sender;
 - (IBAction)triggerModeChanged: (id)sender;
 - (IBAction)triggerSlopeChanged: (id)sender;
+- (IBAction)horizontalZoomChanged: (id)sender;
 @end
