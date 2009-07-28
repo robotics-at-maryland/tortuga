@@ -1,5 +1,6 @@
 #include <iostream>
 #include <IceE/IceE.h>
+#include <IceE/Thread.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <string.h>
@@ -8,7 +9,7 @@
 
 using namespace std;
 
-class OscilloscopeImpl : virtual public ram::sonar::scope::Oscilloscope {
+class OscilloscopeImpl : virtual public ram::sonar::scope::Oscilloscope, virtual public IceUtil::Thread {
 private:
     bool hasViewer;
     ram::sonar::scope::ViewerPrx viewerPrx;
@@ -158,6 +159,10 @@ public:
     {
         cerr << "GetLastCapture" << endl;
         return lastCapture;
+    }
+    
+    void start()
+    {
     }
     
     void run()
