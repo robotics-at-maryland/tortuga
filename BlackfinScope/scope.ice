@@ -26,7 +26,7 @@ module ram {
             
             interface Viewer {
                 
-                void NotifyCapture();
+                idempotent void NotifyCapture();
                 
             };
             

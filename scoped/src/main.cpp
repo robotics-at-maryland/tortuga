@@ -76,7 +76,7 @@ public:
     hasViewer(false), horizontalZoom(0),
     iHoldoff(0), iSkip(0), iBuf(0), isCapturing(false), iSample(0),
     triggerChannel(0), triggerLevel(0), triggerHoldoff(0),
-    triggerMode(::ram::sonar::scope::TriggerModeAuto),
+    triggerMode(::ram::sonar::scope::TriggerModeStop),
     triggerSlope(::ram::sonar::scope::TriggerSlopeRising)
     {
         lastCapture.rawData = ::ram::sonar::scope::ShortSeq(BUFSIZE * 4);
@@ -161,11 +161,8 @@ public:
         return lastCapture;
     }
     
-    void start()
-    {
-    }
-    
-    void run()
+protected:
+    virtual void run()
     {
         cerr << "run" << endl;
         
@@ -262,7 +259,7 @@ int main(int argc, char* argv[])
         IceUtil::Handle<OscilloscopeImpl> osc = new OscilloscopeImpl;
         adapter->add(osc, ic->stringToIdentity("osc"));
         adapter->activate();
-        osc->run();
+        osc->start();
         ic->waitForShutdown();
         
     } catch (const Ice::Exception& e) {

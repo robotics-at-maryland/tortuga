@@ -32,7 +32,8 @@
 }
 
 - (void)NotifyCapture:(ICECurrent*)current {
-    ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
+    NSLog(@"NotifyCapture");
+    //ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
 }
 
 - (IBAction)triggerChannelChanged: (id)sender
