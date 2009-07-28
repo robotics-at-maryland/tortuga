@@ -119,11 +119,12 @@ class PreGrabDive(SafeTrackingState):
 
     @staticmethod
     def getattr():
-        return set(['diveRate']).union(SafeTrackingState.getattr())
+        return set(['diveRate', 'depthOffset']).union(
+            SafeTrackingState.getattr())
         
     def enter(self):
         safeDepth = self.ai.data['config'].get('safeDepth', 22)
-        offset = self.ai.data['config'].get('safeDepthOffset', 2)
+        offset = self._config.get('depthOffset', 2)
         diveRate = self._config.get('diveRate', 0.4)
         
         targetDepth = safeDepth - offset
@@ -220,7 +221,7 @@ class Grabbing(state.State):
 
     @staticmethod
     def getattr():
-        return set(['diveRate', 'duration'])
+        return set(['diveRate', 'duration', 'depthOffset'])
     
     def enter(self):
         # Timer to expire motion
@@ -229,7 +230,7 @@ class Grabbing(state.State):
         
         # Setup dive
         safeDepth = self.ai.data['config'].get('safeDepth', 22)
-        offset = self.ai.data['config'].get('safeDepthOffset', 2)
+        offset = self._config.get('depthOffset', 2)
         diveRate = self._config.get('diveRate', 0.5)
         
         targetDepth = safeDepth + offset

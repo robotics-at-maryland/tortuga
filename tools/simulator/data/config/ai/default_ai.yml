@@ -30,7 +30,6 @@ config:
     targetSymbols: ['Aircraft', 'Tank']
     sonarDepth: 11
     safeDepth: 15
-    safeDepthOffset: 1
     safeOffset: -0.35
     #PipeGate:
     #    biasDirection: 0

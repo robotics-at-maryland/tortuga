@@ -133,7 +133,8 @@ class SeekingToRange(FilteredState, state.State, StoreDuctEvent):
     @staticmethod
     def getattr():
         return set(['rangeThreshold', 'frontThreshold', 'depthGain',
-                    'desiredRange', 'maxRangeDiff', 'maxSpeed'])
+                    'desiredRange', 'maxRangeDiff', 'maxSpeed',
+                    'filterSize'])
         
     def DUCT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -241,7 +242,7 @@ class SeekingToAligned(DuctAlignState, state.State):
     def getattr():
         return set(['depthGain', 'desiredRange', 'maxRangeDiff',
                     'maxAlignDiff', 'alignGain', 'maxSpeed',
-                    'maxSidewaysSpeed', 'yawGain'])
+                    'maxSidewaysSpeed', 'yawGain', 'filterSize'])
 
     def DUCT_FOUND(self, event):
         DuctAlignState.DUCT_FOUND(self, event)
@@ -264,7 +265,8 @@ class Aligning(DuctAlignState, state.State):
     def getattr():
         return set(['depthGain', 'desiredRange', 'maxRangeDiff',
                     'maxAlignDiff', 'alignGain', 'maxSpeed',
-                    'maxSidewaysSpeed', 'yawGain', 'settleTime'])
+                    'maxSidewaysSpeed', 'yawGain', 'settleTime',
+                    'filterSize'])
 
     def enter(self):
         DuctAlignState.enter(self)

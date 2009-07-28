@@ -281,7 +281,9 @@ class Align(state.State, StoreLightEvent):
     @staticmethod
     def getattr():
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
-                    'desiredRange', 'speed', 'alignmentThreshold'])
+                    'desiredRange', 'speed', 'alignmentThreshold',
+                    'translate', 'translateGain', 'iTranslateGain',
+                    'dTranslateGain'])
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
@@ -304,6 +306,10 @@ class Align(state.State, StoreLightEvent):
         maxDepthDt = self._config.get('maxDepthDt', 1)
         desiredRange = self._config.get('desiredRange', 5)
         speed = self._config.get('speed', 3)
+        translate = self._config.get('translate', False)
+        translateGain = self._config.get('translateGain', 1.0)
+        iTranslateGain = self._config.get('iTranslateGain', 0)
+        dTranslateGain = self._config.get('dTranslateGain', 0)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
         motion = ram.motion.seek.SeekPointToRange(target = self._light,
                                                   alignmentThreshold = alignmentThreshold,
@@ -313,7 +319,11 @@ class Align(state.State, StoreLightEvent):
                                                   depthGain = self._depthGain,
                                                   iDepthGain = iDepthGain,
                                                   dDepthGain = dDepthGain,
-                                                  maxDepthDt = maxDepthDt)
+                                                  maxDepthDt = maxDepthDt,
+                                                  translate = translate,
+                                                  translateGain = translateGain,
+                                                iTranslateGain = iTranslateGain,
+                                                dTranslateGain = dTranslateGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -387,7 +397,7 @@ class Continue(state.State):
 
     @staticmethod
     def getattr():
-        return set(['backwardSpeed', 'backwardDuraction', 'upwardDepth',
+        return set(['backwardSpeed', 'backwardDuration', 'upwardDepth',
                     'upwardSpeed', 'forwardSpeed', 'forwardDuration',
                     'turnSteps'])
     

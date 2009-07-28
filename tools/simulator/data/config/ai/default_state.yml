@@ -122,7 +122,7 @@ ram.ai.sonarSafe.Dive:
     #safeDepth: 6.5
     #depthOffset: 1
     #safeDepth: 10.5
-    #depthOffset: 1
+    depthOffset: 1
     diveRate: 0.2
     maxSidewaysSpeed: 3
     sidewaysSpeedGain: 3
@@ -133,12 +133,12 @@ ram.ai.sonarSafe.PreGrabSettling:
     sidewaysSpeedGain: 2
     maxSpeed: 2
     speedGain: 2
-#ram.ai.sonarSafe.Grabbing:
+ram.ai.sonarSafe.Grabbing:
     # Hilton Pool
     #safeDepth: 6.5
     #depthOffset: 1.5
     #safeDepth: 10.5
-    #depthOffset: 1
+    depthOffset: 1
 
 # Barbed wire AI
 ram.ai.barbedwire.FarSeekingToRange:

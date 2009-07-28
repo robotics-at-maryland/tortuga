@@ -86,7 +86,7 @@ class AI(core.Subsystem):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                          'targetDepth', 'binStartDepth', 'binDepth',
                          'targetSymbols', 'sonarDepth', 'safeDepth',
-                         'safeDepthOffset', 'safeOffset'])
+                         'safeOffset'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed'])

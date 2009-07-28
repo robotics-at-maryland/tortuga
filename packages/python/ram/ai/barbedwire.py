@@ -104,7 +104,7 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         return set(['yZero', 'rangeThreshold', 'frontThreshold', 'depthGain',
              'iDepthGain', 'dDepthGain', 'maxDepthDt', 'desiredRange',
              'maxRangeDiff', 'maxSpeed', 'rangeGain', 'translateGain',
-             'iTranslateGain', 'dTranslateGain'])
+             'iTranslateGain', 'dTranslateGain', 'filterSize'])
         
     def BARBED_WIRE_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
@@ -431,6 +431,7 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
         alignGain = self._config.get('alignGain', 1.0)
+        rangeGain = self._config.get('rangeGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1)
         yawGain = self._config.get('yawGain', 1.0)
@@ -453,6 +454,7 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
+            rangeGain = rangeGain,
             depthGain = self._depthGain,
             maxDepthDt = maxDepthDt,
             yawGain = yawGain)
@@ -481,8 +483,8 @@ class SeekingToAligned(TargetAlignState, state.State):
     @staticmethod
     def getattr():
         return set(['yZero', 'depthGain', 'maxDepthDt', 'desiredRange',
-                    'maxRangeDiff', 'maxAlignDiff', 'alignGain', 'maxSpeed',
-                    'maxSidewaysSpeed', 'yawGain', 'minAlignment',
+                    'maxRangeDiff', 'maxAlignDiff', 'alignGain', 'rangeGain',
+                    'maxSpeed', 'maxSidewaysSpeed', 'yawGain', 'minAlignment',
                     'desiredRange', 'rangeThreshold'])
 
     def BARBED_WIRE_FOUND(self, event):

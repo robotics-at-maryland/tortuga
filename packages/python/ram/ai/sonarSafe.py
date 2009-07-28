@@ -52,12 +52,12 @@ class Dive(TranslationSeeking):
 
     @staticmethod
     def getattr():
-        return set(['safeDepth', 'depthOffset', 'diveRate']).union(
+        return set(['safeDepth', 'diveRate', 'depthOffset']).union(
             TranslationSeeking.getattr())
         
     def enter(self):
         safeDepth = self.ai.data['config'].get('safeDepth', 22)
-        offset = self.ai.data['config'].get('safeDepthOffset', 2)
+        offset = self._config.get('depthOffset', 2)
         diveRate = self._config.get('diveRate', 0.4)
         
         targetDepth = safeDepth - offset

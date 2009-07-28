@@ -102,7 +102,7 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
         return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
                     'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxSpeed',
-                    'translateGain'])
+                    'translateGain', 'filterSize'])
 
     def TARGET_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
@@ -540,7 +540,7 @@ class SeekingToAligned(TargetAlignState, state.State):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
                     'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'minSquareNess', 'checkDelay'])
+                    'minSquareNess', 'checkDelay', 'filterSize'])
 
     def TARGET_FOUND(self, event):
         # Update motion
@@ -594,7 +594,7 @@ class Aligning(TargetAlignState, state.State):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
                     'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'settleTime'])
+                    'settleTime', 'filterSize'])
 
     def enter(self):
         TargetAlignState.enter(self)
