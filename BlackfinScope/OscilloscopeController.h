@@ -23,9 +23,12 @@
     
 }
 - (void) NotifyCapture:(ICECurrent *)current;
+- (IBAction)scopeModeChanged: (id)sender;
 - (IBAction)triggerLevelChanged: (id)sender;
 - (IBAction)triggerChannelChanged: (id)sender;
 - (IBAction)triggerModeChanged: (id)sender;
 - (IBAction)triggerSlopeChanged: (id)sender;
 - (IBAction)horizontalZoomChanged: (id)sender;
+
+- (void) updateSpectrum;
 @end

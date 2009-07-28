@@ -25,15 +25,38 @@ module ram {
                 
             };
             
+            
+            sequence<int> IntSeq;
+            
+            struct SpectrumCapture {
+                
+                IntSeq currentLevels;
+                IntSeq peakLevels;
+                long timestamp;
+                
+            };
+            
             interface Viewer {
                 
                 idempotent void NotifyCapture();
                 
             };
             
+            enum ScopeMode {
+                ScopeModeOscilloscope,
+                ScopeModeSpectrumAnalyzer
+            };
+            
             interface Oscilloscope {
                 
+                
+                // Configuration routines
+                
                 idempotent void SetViewer(Viewer* v);
+                idempotent void SetScopeMode(ScopeMode mode);
+                
+                
+                // Oscilloscope routines
                 
                 idempotent void SetTriggerMode(TriggerMode mode);
                 idempotent void SetTriggerChannel(short channel);
@@ -45,6 +68,12 @@ module ram {
                 idempotent void SetHorizontalZoom(short powerOfTwo);
                 
                 OscilloscopeCapture GetLastCapture();
+                
+                
+                
+                // Spectrum analyzer routines
+                
+                SpectrumCapture GetLastSpectrum();
                 
             };
             

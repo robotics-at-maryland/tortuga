@@ -16,8 +16,10 @@
     NSBezierPath* graticulePath;
     NSBezierPath* axesPath;
     ramsonarscopeOscilloscopeCapture* lastCapture;
+    ramsonarscopeSpectrumCapture* lastSpectrum;
     
     @public
+    ramsonarscopeScopeMode scopeMode;
     short triggerLevel;
     short triggerChannel;
     int verticalSensitivity[4];
@@ -27,6 +29,7 @@
     
 }
 @property(retain) ramsonarscopeOscilloscopeCapture* lastCapture;
+@property(retain) ramsonarscopeSpectrumCapture* lastSpectrum;
 - (IBAction)verticalSensitivityChanged:(id)sender;
 - (IBAction)verticalPositionChanged: (id)sender;
 - (IBAction)visibleChannelsChanged:(id)sender;
