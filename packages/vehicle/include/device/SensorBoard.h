@@ -208,7 +208,7 @@ protected:
     virtual void dropMarker(int markerNum);
 
     virtual void setServoPosition(unsigned char servoNumber,
-                                 unsigned short position);
+                                  unsigned short position);
 
     virtual void syncBoard();
     

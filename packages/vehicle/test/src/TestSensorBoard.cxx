@@ -25,6 +25,8 @@
 #include "math/include/Events.h"
 #include "math/test/include/MathChecks.h"
 
+#include "drivers/sensor-r5/include/sensorapi.h"
+
 class TestSensorBoard : public ram::vehicle::device::SensorBoard
 {
 public:
@@ -372,11 +374,11 @@ TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
 
     // Fire first torpedo
     CHECK_EQUAL(0, sb->fireTorpedo());
-    CHECK_EQUAL(1, testSb->servoUsed);
+    CHECK_EQUAL(SERVO_1, testSb->servoUsed);
     CHECK_EQUAL(8000, testSb->servoPosition);
-    // Fire first torpedo
+    // Fire second torpedo
     CHECK_EQUAL(1, sb->fireTorpedo());
-    CHECK_EQUAL(2, testSb->servoUsed);
+    CHECK_EQUAL(SERVO_2, testSb->servoUsed);
     CHECK_EQUAL(7000, testSb->servoPosition);
     
     // Fire non-existent torpedo
