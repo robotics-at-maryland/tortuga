@@ -562,7 +562,7 @@ int displayText(int fd, int line, const char* text)
 int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
 {
     int i=0;
-    unsigned char buf[14]={0x12, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0x00};
+    unsigned char buf[14]={HOST_CMD_SETSPEED, 0,0, 0,0, 0,0, 0,0, 0,0, 0,0, 0x00};
 //    printf("Sending speeds: %d %d %d %d\n", s1, s2, s3, s4);
 
 
@@ -592,13 +592,13 @@ int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6)
     writeData(fd, buf, 14);
     readData(fd, buf, 1);
 
-    if(buf[0] == 0xBC)
+    if(buf[0] == HOST_REPLY_SUCCESS)
         return SB_OK;
 
-    if(buf[0] == 0xCC)
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
         return SB_BADCC;
 
-    if(buf[0] == 0xDF)
+    if(buf[0] == HOST_REPLY_FAILURE)
         return SB_HWFAIL;
 
     return SB_ERROR;
@@ -1074,4 +1074,53 @@ char* tempSensorIDToText(int id)
         return toText[id];
     else
         return "ERROR: Id out of range";
+}
+
+int setServoPower(int fd, unsigned char power)
+{
+    unsigned char buf[2];
+    if(power) {
+        buf[0]= buf[1]= HOST_CMD_SERVO_POWER_ON;
+    } else {
+        buf[0]= buf[1]= HOST_CMD_SERVO_POWER_OFF;
+    }
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int setServoEnable(int fd, unsigned char servoMask)
+{
+    return simpleWrite(fd, HOST_CMD_SERVO_ENABLE, servoMask, 0xFF);
+}
+
+int setServoPosition(int fd, unsigned char servoNumber, unsigned short position)
+{
+    unsigned char buf[5]= { HOST_CMD_SET_SERVO_POS, servoNumber, 0, 0, HOST_CMD_SET_SERVO_POS + servoNumber };
+    buf[4]+= buf[2]= (position >> 8) & 0xFF;
+    buf[4]+= buf[3]= position & 0xFF;
+
+    writeData(fd, buf, 5);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
 }
