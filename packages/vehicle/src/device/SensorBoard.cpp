@@ -67,6 +67,9 @@ SensorBoard::SensorBoard(int deviceFD,
     m_state.thrusterValues[4] = 0;
     m_state.thrusterValues[5] = 0;
 
+    m_servo1FirePosition = config["servo1FirePosition"].asInt(4000);
+    m_servo2FirePosition = config["servo2FirePosition"].asInt(4000);
+    
     // If we get a negative FD, don't try to talk to the board
     if (deviceFD >= 0)
         establishConnection();
@@ -98,6 +101,8 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_state.thrusterValues[4] = 0;
     m_state.thrusterValues[5] = 0;
 
+    m_servo1FirePosition = config["servo1FirePosition"].asInt(4000);
+    m_servo2FirePosition = config["servo2FirePosition"].asInt(4000);
 
     // Connect to the sensor board
     establishConnection();
@@ -395,7 +400,11 @@ int SensorBoard::fireTorpedo()
     int torpedoFired = -1;
     if (torpedoNum < NUMBER_OF_TORPEDOS)
     {
-        fireTorpedo(torpedoNum);
+        if (torpedoNum == 0)
+            setServoPosition(SERVO_1, m_servo1FirePosition);
+        else if (torpedoNum == 1)
+            setServoPosition(SERVO_2, m_servo2FirePosition);
+        
         torpedoFired = torpedoNum;
         torpedoNum++;
     }
@@ -444,10 +453,11 @@ void SensorBoard::dropMarker(int markerNum)
     handleReturn(::dropMarker(m_deviceFD, markerNum));
 }
 
-void SensorBoard::fireTorpedo(int torpedoNum)
+void SensorBoard::setServoPosition(unsigned char servoNumber,
+                                  unsigned short position)
 {
-//    handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
-}
+    handleReturn(::setServoPosition(m_deviceFD, servoNumber, position));    
+}  
     
 void SensorBoard::syncBoard()
 {

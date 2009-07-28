@@ -33,7 +33,9 @@ public:
         SensorBoard(-1, config, eventHub),
         updateDone(false),
         thrusterState(0),
-        markerDropped(-1)
+        markerDropped(-1),
+        servoUsed(-1),
+        servoPosition(-1)
     {
         memset(speeds, 0, sizeof(int) * 6);
         memset(&currentTelemetry, 0, sizeof(struct boardInfo));
@@ -46,6 +48,8 @@ public:
     int thrusterState;
     int batteryState;
     int markerDropped;
+    int servoUsed;
+    int servoPosition;
     
 protected:
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
@@ -75,6 +79,13 @@ protected:
 
     virtual void dropMarker(int markerNum) { markerDropped = markerNum; }
 
+    virtual void setServoPosition(unsigned char servoNumber,
+                                 unsigned short position)
+    {
+        servoUsed = servoNumber;
+        servoPosition = position;
+    }
+    
     // Does nothing
     virtual void syncBoard() {}
     
@@ -84,10 +95,12 @@ struct SensorBoardFixture
 {
 };
 
-const std::string BASE_CONFIG = "{ 'name' : 'SensorBoard',";
-const std::string BLANK_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
+const std::string START_CONFIG = "{ 'name' : 'SensorBoard',";
+const std::string BASE_CONFIG = START_CONFIG + "'depthCalibSlope' : 1,"
+        "'depthCalibIntercept' : 0,";
+const std::string BLANK_CONFIG = START_CONFIG + "'depthCalibSlope' : 1,"
         "'depthCalibIntercept' : 0}";
-const std::string LOC_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
+const std::string LOC_CONFIG = START_CONFIG + "'depthCalibSlope' : 1,"
         "'depthSensorLocation' : [1.0, 2.0, 3.0],"
         "'depthCalibIntercept' : 0}";
 
@@ -95,7 +108,7 @@ const std::string LOC_CONFIG = BASE_CONFIG + "'depthCalibSlope' : 1,"
 
 TEST_FIXTURE(SensorBoardFixture, getDepth)
 {
-    std::string config = BASE_CONFIG + "'depthCalibSlope' : 5,"
+    std::string config = START_CONFIG + "'depthCalibSlope' : 5,"
         "'depthCalibIntercept' : 2}";
 
     TestSensorBoard* sb = new TestSensorBoard(
@@ -348,6 +361,31 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
     delete testSb;
 }
 
+TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
+{
+    TestSensorBoard* testSb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BASE_CONFIG +
+            "'servo1FirePosition' : 8000,"
+            "'servo2FirePosition' : 7000}"));
+    ram::vehicle::device::SensorBoard* sb =
+        (ram::vehicle::device::SensorBoard*)testSb;
+
+    // Fire first torpedo
+    CHECK_EQUAL(0, sb->fireTorpedo());
+    CHECK_EQUAL(1, testSb->servoUsed);
+    CHECK_EQUAL(8000, testSb->servoPosition);
+    // Fire first torpedo
+    CHECK_EQUAL(1, sb->fireTorpedo());
+    CHECK_EQUAL(2, testSb->servoUsed);
+    CHECK_EQUAL(7000, testSb->servoPosition);
+    
+    // Fire non-existent torpedo
+    CHECK_EQUAL(-1, sb->fireTorpedo());
+    CHECK_EQUAL(2, testSb->servoUsed);
+    CHECK_EQUAL(7000, testSb->servoPosition);
+
+    delete testSb;
+}
 
 typedef std::vector<ram::math::NumericEventPtr>
 DepthSensorEventPtrList;

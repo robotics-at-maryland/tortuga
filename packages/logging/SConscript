@@ -29,7 +29,7 @@ for feature in eventFeatures:
 sources = envl.Glob('src', '*.cpp')
 
 if not env.HasFeature('vision'):
-    sources.remove("PlaybackCamera.cpp")
+    sources.remove("src/PlaybackCamera.cpp")
 
 # Build Procducts (library will be called 'libram_logging.so')
 envl.RAMSharedLibrary('logging',  source = sources)

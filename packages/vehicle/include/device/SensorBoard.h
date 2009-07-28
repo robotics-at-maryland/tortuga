@@ -207,7 +207,8 @@ protected:
     
     virtual void dropMarker(int markerNum);
 
-    virtual void fireTorpedo(int torpedoNum);
+    virtual void setServoPosition(unsigned char servoNumber,
+                                 unsigned short position);
 
     virtual void syncBoard();
     
@@ -268,6 +269,12 @@ private:
     
     /** The file descriptor which is connected to the SB's USB port */
     int m_deviceFD;
+
+    /** The fire servo position for the first servo */
+    int m_servo1FirePosition;
+
+    /** The fire servo position for the second servo */
+    int m_servo2FirePosition;
 };
     
 } // namespace device
