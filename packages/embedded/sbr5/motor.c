@@ -73,6 +73,11 @@ byte ping_val;
 #define STATE_SERVO_ENABLE   0x03
 #define STATE_SET_SERVO_POS  0x04
 
+/* Timeout value */
+// Specifies number of Tcy to wait for I2C ack before borking
+#define BORK_TIMEOUT_PERIOD	20
+
+
 /*
  * Bus = D8-D15
  * Req = A14
@@ -679,6 +684,16 @@ int main()
 
     /* Initialize the servo junk */
     InitServos();
+    
+    /* Initialize timeout timer */
+    // Timer runs continuously
+	OpenTimer1( T1_ON & 
+            T1_IDLE_CON &
+            T1_GATE_OFF &
+            T1_PS_1_1 &
+            T1_SOURCE_INT,
+            BORK_TIMEOUT_PERIOD);
+
 
     /* Set up the bus stuff for its initial stuff */
     TRIS_REQ= TRIS_RW= TRIS_IN;
@@ -776,12 +791,14 @@ int main()
 
             StartI2C();
 
-            timeout= 0;
+            // Start timer
+            TMR1 = 0;
+            T1IF = 0;
 
-            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && timeout++ < ERR_TIMEOUT)
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !T1IF)
                 writeUart('E');
 
-            if(timeout >= ERR_TIMEOUT) {
+            if(T1IF) {
                 BorkedI2C();
                 while(i2cState != I2CSTATE_BORKED)
                     writeUart('F');
