@@ -12,8 +12,6 @@
 #define SERVO_H
 
 #include <p30fxxxx.h>
-//#include <timer.h>
-//#include <outcompare.h>
 
 #include "typedef.h"
 
@@ -32,14 +30,14 @@
 
 // SERVO CHANNEL SELECTION
 // disable if OC channel is not implemented or not used as a servo
-//#define SERVO_USE_OC1
-//#define SERVO_USE_OC2
-//#define SERVO_USE_OC3
-//#define SERVO_USE_OC4
-//#define SERVO_USE_OC5
-//#define SERVO_USE_OC6
-//#define SERVO_USE_OC7
-//#define SERVO_USE_OC8
+#define SERVO_USE_OC1
+#define SERVO_USE_OC2
+#define SERVO_USE_OC3
+#define SERVO_USE_OC4
+#define SERVO_USE_OC5
+#define SERVO_USE_OC6
+#define SERVO_USE_OC7
+#define SERVO_USE_OC8
 
 
 // Determine buffer size

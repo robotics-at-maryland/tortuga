@@ -1,14 +1,10 @@
 /*
-
 	Capertech Autopilot Version 1.0
-	
 	Servo.h
-	
 	Handles control of the Output Compare PWM pins
-	
 */
 
-#include "Servo.h"
+#include "servo.h"
 
 #if NUM_SERVOS != 0
 

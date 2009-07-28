@@ -1,7 +1,10 @@
 #include <p30fxxxx.h>
 #include <stdio.h>
 #include <string.h>
+#include <outcompare.h>
+#include <timer.h>
 #include "buscodes.h"
+#include "servo.c"
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -24,8 +27,10 @@ _FWDT ( WDT_OFF );
  * get completely started, preventing premature i2c errors. */
 #define START_TIMEOUT    500000
 /* This defines how many loop iterations before we consider the i2c bus to be
- * unresponsive */
-#define ERR_TIMEOUT      125000
+ * unresponsive (it takes 320 micro seconds to transmit 32 bits, and we're
+ * running at 2.5MHz (FCY) which gives ~800 instructions.  2000 just to be on
+ * the safe side) */
+#define ERR_TIMEOUT      2000
 /* How many loops should we keep an error LED on? */
 #define SHOW_ERR_TIMEOUT 10
 
@@ -60,6 +65,9 @@ _FWDT ( WDT_OFF );
 #define STATE_SET_MOT_SPEEDS 0x01
 #define STATE_SET_MOT_N      0x02
 
+#define STATE_SERVO_ENABLE   0x03
+#define STATE_SET_SERVO_POS  0x04
+
 /*
  * Bus = D8-D15
  * Req = A14
@@ -91,8 +99,38 @@ _FWDT ( WDT_OFF );
 #define TRIS_ACT    _TRISB7
 #define LAT_ACT     _LATB7
 
+/* Servo Pin definitions */
+#define WAH_ON             1
+#define WAH_OFF            0
+
+#define TRIS_SERVO_WAH_INH _TRISA10
+#define LAT_SERVO_WAH_INH  _LATA10
+
+#define SERVO_ENABLED      0
+#define SERVO_DISABLED     1
+
+#define TRIS_SERVO_01_EN   _TRISF1
+#define LAT_SERVO_01_EN    _LATF1
+#define TRIS_SERVO_23_EN   _TRISF0
+#define LAT_SERVO_23_EN    _LATF0
+#define TRIS_SERVO_45_EN   _TRISG1
+#define LAT_SERVO_45_EN    _LATG1
+#define TRIS_SERVO_67_EN   _TRISG0
+#define LAT_SERVO_67_EN    _LATG0
+
+#define LAT_SERVO_0_EN     LAT_SERVO_01_EN
+#define LAT_SERVO_1_EN     LAT_SERVO_01_EN
+#define LAT_SERVO_2_EN     LAT_SERVO_23_EN
+#define LAT_SERVO_3_EN     LAT_SERVO_23_EN
+#define LAT_SERVO_4_EN     LAT_SERVO_45_EN
+#define LAT_SERVO_5_EN     LAT_SERVO_45_EN
+#define LAT_SERVO_6_EN     LAT_SERVO_67_EN
+#define LAT_SERVO_7_EN     LAT_SERVO_67_EN
+
+
 /* Here are some motor board variables */
 byte motorSpeed[6];
+unsigned int servoSpeed[8];
 
 /* Here's the buffer for i2c and additional variables */
 byte i2cState= I2CSTATE_IDLE;
@@ -108,6 +146,8 @@ byte rxBuf[BUF_SIZE];
 byte txBuf[BUF_SIZE];
 unsigned int rxPtr= 0;
 unsigned int txPtr= 0;
+
+unsigned int tmp_servo_speed;
 
 /**********************************************/
 /* These are the prototypes for the functions */
@@ -406,6 +446,134 @@ void processData(byte data)
                     busState= STATE_SET_MOT_N;
                     break;
                 }
+
+                case BUS_CMD_SERVO_POWER_ON:
+                {
+                    LAT_SERVO_WAH_INH= WAH_ON;
+                    break;
+                }
+
+                case BUS_CMD_SERVO_POWER_OFF:
+                {
+                    LAT_SERVO_WAH_INH= WAH_OFF;
+                    break;
+                }
+
+                case BUS_CMD_SERVO_ENABLE:
+                {
+                    busState= STATE_SERVO_ENABLE;
+                    break;
+                }
+
+                case BUS_CMD_SET_SERVO_POS:
+                {
+                    nParam= 0;
+                    busState= STATE_SET_SERVO_POS;
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        case BUS_CMD_SET_SERVO_POS:
+        {
+            rxBuf[nParam++]= data;
+
+            if(nParam == 3) {
+                /* Consolidate the two speed bytes into one short */
+                tmp_servo_speed= rxBuf[1];
+                tmp_servo_speed= (tmp_servo_speed << 8) | rxBuf[2];
+
+                /* Actually hand the data to the interrupts */
+                SetServo(rxBuf[0], tmp_servo_speed);
+
+                /* We're done! Go back to the beginning! */
+                busState= STATE_TOP_LEVEL;
+            }
+
+            break;
+        }
+
+        case BUS_CMD_SERVO_ENABLE:
+        {
+            /* Servo stuff for 0 and 1 */
+            if((data & 0x01)) {
+                LAT_SERVO_0_EN= SERVO_ENABLED;
+                EnableServo(0x00);
+            } else {
+                DisableServo(0x00);
+            }
+
+            if((data & 0x02)) {
+                LAT_SERVO_1_EN= SERVO_ENABLED;
+                EnableServo(0x01);
+            } else {
+                DisableServo(0x01);
+            }
+
+            if(!(data & 0x01) && !(data & 0x02)) {
+                LAT_SERVO_01_EN= SERVO_DISABLED;
+            }
+
+            /* Servo stuff for 2 and 3 */
+
+            if((data & 0x04)) {
+                LAT_SERVO_2_EN= SERVO_ENABLED;
+                EnableServo(0x02);
+            } else {
+                DisableServo(0x02);
+            }
+
+            if((data & 0x08)) {
+                LAT_SERVO_3_EN= SERVO_ENABLED;
+                EnableServo(0x03);
+            } else {
+                DisableServo(0x03);
+            }
+
+            if(!(data & 0x04) && !(data & 0x08)) {
+                LAT_SERVO_23_EN= SERVO_DISABLED;
+            }
+
+            /* Servo stuff for 4 and 5 */
+
+            if((data & 0x10)) {
+                LAT_SERVO_4_EN= SERVO_ENABLED;
+                EnableServo(0x04);
+            } else {
+                DisableServo(0x04);
+            }
+
+            if((data & 0x20)) {
+                LAT_SERVO_5_EN= SERVO_ENABLED;
+                EnableServo(0x05);
+            } else {
+                DisableServo(0x05);
+            }
+
+            if(!(data & 0x10) && !(data & 0x20)) {
+                LAT_SERVO_45_EN= SERVO_DISABLED;
+            }
+
+            /* Servo stuff for 6 and 7 */
+
+            if((data & 0x40)) {
+                LAT_SERVO_6_EN= SERVO_ENABLED;
+                EnableServo(0x06);
+            } else {
+                DisableServo(0x06);
+            }
+
+            if((data & 0x80)) {
+                LAT_SERVO_7_EN= SERVO_ENABLED;
+                EnableServo(0x07);
+            } else {
+                DisableServo(0x07);
+            }
+
+            if(!(data & 0x40) && !(data & 0x80)) {
+                LAT_SERVO_67_EN= SERVO_DISABLED;
             }
 
             break;
@@ -500,12 +668,29 @@ int main()
     /* We set the baud to 9600 */
     initUART(0x0F);
 
+    /* Initialize the servo junk */
+    InitServos();
+
     /* Set up the bus stuff for its initial stuff */
     TRIS_REQ= TRIS_RW= TRIS_IN;
 
     /* Turn off all the servos intially and set up PORTD as it should be */
     LATD= 0x0000;
     TRISD= 0xFF00;
+
+    /* Set up all the extra servo enable and disable stuff */
+    LAT_SERVO_WAH_INH= WAH_OFF;
+    TRIS_SERVO_WAH_INH= TRIS_OUT;
+
+    LAT_SERVO_01_EN= SERVO_DISABLED;
+    LAT_SERVO_23_EN= SERVO_DISABLED;
+    LAT_SERVO_45_EN= SERVO_DISABLED;
+    LAT_SERVO_67_EN= SERVO_DISABLED;
+
+    TRIS_SERVO_01_EN= TRIS_OUT;
+    TRIS_SERVO_23_EN= TRIS_OUT;
+    TRIS_SERVO_45_EN= TRIS_OUT;
+    TRIS_SERVO_67_EN= TRIS_OUT;
 
     /* Turn on the Bus interrupt */
     _INT3IF= 0;
@@ -658,8 +843,8 @@ void initUART(byte baud_rate) {
     /* Set the baud rate */
     U1BRG= 0x0000 | baud_rate;
 
-    /* Set up the UART settings: 8 bits, 1 stop bit, no parity, alternate IO */
-    U1MODE= 0x0C00;
+    /* Set up the UART settings: 8 bits, 1 stop bit, no parity, standard IO */
+    U1MODE= 0x0000;
 
     /* Everything that we need is set up, so go ahead and activate the UART */
     U1MODEbits.UARTEN= 1;

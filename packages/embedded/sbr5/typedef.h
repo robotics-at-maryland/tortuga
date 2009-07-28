@@ -7,8 +7,6 @@
 #ifndef TYPEDEF_H
 #define TYPEDEF_H
 
-#include <p30fxxxx.h>
-
 typedef		unsigned char		BYTE;
 typedef		unsigned int		WORD16;
 typedef 	unsigned long		WORD32;
