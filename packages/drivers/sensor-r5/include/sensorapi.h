@@ -148,10 +148,10 @@
 
 /* Servo defines */
 #define SERVO_1      1
-#define SERVO_2      2
+#define SERVO_2      3
 
 #define SERVO_ENABLE_1      0x01
-#define SERVO_ENABLE_2      0x02
+#define SERVO_ENABLE_2      0x03
 
 #define SERVO_POWER_ON 1
 #define SERVO_POWER_OFF 0
