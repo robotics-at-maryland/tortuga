@@ -55,7 +55,7 @@ private:
         
         int16_t val;
         if ((sampleCount / 1000) % 20 == 0)
-            val = sin(2 * M_PI * sampleCount / 25) * 10000;
+            val = (int16_t)(sin(2 * M_PI * sampleCount / 25) * 10000);
         else
             val = 0;
         
