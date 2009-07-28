@@ -287,7 +287,7 @@ class SeekPoint(Motion):
 
 class SeekPointToRange(SeekPoint):
     """
-    Seeks a point, but stops a certain range
+    Seeks a point, but stops at a certain range
     """
     def __init__(self, target, desiredRange, maxRangeDiff, rangeGain = 1.0, 
                  maxSpeed = 0.0, depthGain = 1, translate = False, 

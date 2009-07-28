@@ -19,6 +19,9 @@ Requires the following subsystems:
  - controller - ext.control.IController
 """
 
+# Standard imports
+import math as pmath
+
 # Project Imports
 import ext.core as core
 import ext.vision as vision
@@ -272,23 +275,32 @@ class Recover(state.FindAttempt, StoreLightEvent):
 	self.controller.setSidewaysSpeed(0)
 
 class Align(state.State, StoreLightEvent):
+
+    SEEK_LIGHT = core.declareEventType('SEEK_LIGHT')
+
     @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_LOST : FindAttempt,
                  vision.EventType.LIGHT_FOUND : Align,
-                 ram.motion.seek.SeekPoint.POINT_ALIGNED : Seek }
+                 motion.seek.SeekPoint.POINT_ALIGNED : Align,
+                 Align.SEEK_LIGHT : Seek }
 
     @staticmethod
     def getattr():
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'speed', 'alignmentThreshold',
                     'translate', 'translateGain', 'iTranslateGain',
-                    'dTranslateGain'])
+                    'dTranslateGain', 'planeThreshold'])
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
         if self._depthGain != 0:
             self.controller.holdCurrentDepth()
+        self._aligned = True
+
+    def _compareChange(self, values):
+        return abs(values[0]) < self._planeThreshold and \
+            abs(values[1]) < self._planeThreshold
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -296,10 +308,16 @@ class Align(state.State, StoreLightEvent):
         self._light.setState(event.azimuth, event.elevation, event.range,
                              event.x, event.y, event.timeStamp)
 
+        change = self._light.changeOverTime()
+        if self._aligned and self._compareChange((change[3], change[4])):
+            self.publish(Align.SEEK_LIGHT, core.Event())
+
     def enter(self):
+        self._aligned = False
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
                                                   vehicle = self.vehicle)
+        self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
         dDepthGain = self._config.get('dDepthGain', 0.5)

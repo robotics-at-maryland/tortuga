@@ -408,8 +408,30 @@ class TestAlign(support.AITestCase):
         
     def testSeek(self):
         """Make sure we try to hit the light when close"""
+        # Test that the state doesn't change until it gets a POINT_ALIGNED
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0.5, azimuth = math.Degree(15))
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0.5, azimuth = math.Degree(15))
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
+
+        # Inject the POINT_ALIGNED event and see if it holds depth
         self.injectEvent(ram.motion.seek.SeekPoint.POINT_ALIGNED)
+        self.qeventHub.publishEvents()
         self.assertEqual(1, self.controller.depthHolds)
+
+        # Now give another light event with too high of a change on only one
+        # axis
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0, azimuth = math.Degree(15))
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(light.Align)
+
+        # Now inject the same event so the change is 0
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
+                         0, y = 0, azimuth = math.Degree(15))
+        self.qeventHub.publishEvents()
         self.assertCurrentState(light.Seek)
         
 class TestSeek(support.AITestCase):

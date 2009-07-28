@@ -131,13 +131,13 @@ class TestGrabbing(aisupport.AITestCase):
             'Ai' : {
                 'config' : {
                     'safeDepth' : 8,
-                    'safeDepthOffset' : 2,
                     },
                 },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.sonarSafe.Grabbing' : {
                         'diveRate' : 0.8,
+                        'depthOffset' : 2,
                     },
                 }
             }
