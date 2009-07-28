@@ -20,14 +20,14 @@ Subsystems:
             "50001(320,240)": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
-        INCLUDE: data/config/vision/pool.yml
+        INCLUDE: data/config/vision/sd_marina.yml
         
 
     Ai:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: data/config/ai/pool_ai.yml
+         INCLUDE: data/config/ai/sd_marina_ai.yml
 
 
     StateMachine:
