@@ -19,6 +19,8 @@
 #include "core/include/EventConnection.h"
 #include "core/include/TimeVal.h"
 
+#include "math/include/Math.h"
+
 namespace ram {
 namespace vehicle {
 namespace device {
@@ -119,16 +121,43 @@ void SonarStateEstimator::createMeasurementModel(const math::VectorN& xHat,
 {
     // Make the output the proper size
     result.resize(2,8);
-
-    // Do work!
+    double temp = pow((xHat[4]-xHat[0])/(xHat[5]-xHat[1]),2);
+    result[0][0] = (1/(1+temp))*(-1/(xHat[5]-xHat[1]));
+    result[0][1] = (1/(1+temp))*(xHat[4]-xHat[0])/(pow(xHat[5]-xHat[1],2));
+    result[0][2] = 0;
+    result[0][3] = 0;
+    result[0][4] = (1/(1+temp))*(1/(xHat[5]-xHat[1]));
+    result[0][5] = (1/(1+temp))*(-1)*(xHat[4]-xHat[0])/(pow(xHat[5]-xHat[1],2));
+    result[0][6] = 0;
+    result[0][7] = 0;
+    
+    double temp2 = pow((xHat[6]-xHat[0])/(xHat[7]-xHat[1]),2);
+    result[1][0] = (1/(1+temp2))*(-1/(xHat[7]-xHat[1]));
+    result[1][1] = (1/(1+temp2))*(xHat[6]-xHat[0])/(pow(xHat[7]-xHat[1],2));
+    result[1][2] = 0;
+    result[1][3] = 0;
+    result[1][4] = 0;
+    result[1][5] = 0;
+    result[1][6] = (1/(1+temp2))*(1/(xHat[7]-xHat[1]));
+    result[1][7] = (1/(1+temp2))*(-1)*(xHat[6]-xHat[0])/(pow(xHat[7]-xHat[1],2));
 }
 
 math::Radian SonarStateEstimator::findAbsPingerAngle(
-    math::Quaternion 
-    vehicleOrientation,
+    math::Quaternion vehicleOrientation,
     math::Vector3 relativePingerVector)
 {
-    return math::Radian(0);
+    //create output variable
+    math::Radian theta = math::Radian(0);
+    //get vehicle's in plane orientation
+    math::Radian yaw = vehicleOrientation.getYaw();
+    //compute pinger orientation relative to vehicle's orientation
+    math::Radian pingerDirectionBodyFrame 
+        = math::Radian(math::Math::ATan2(relativePingerVector[1],
+                                   relativePingerVector[0]));
+    //add relative pinger orientation to absolute vehicle orientation 
+    //which is thus the absolute pinger orientation
+    theta=yaw+pingerDirectionBodyFrame;
+    return theta;
 }
 
 math::Vector2 SonarStateEstimator::getLeftPingerEstimatedPosition()

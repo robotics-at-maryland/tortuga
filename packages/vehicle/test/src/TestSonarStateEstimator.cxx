@@ -119,13 +119,13 @@ TEST_FIXTURE(Fixture, getVelocity)
 TEST_FIXTURE(Fixture, createMeasurementModel)
 {
     math::MatrixN result(2, 8); // 2x8 matrix
-    double rawXHat[] = {0, 0, 0, 0, 0, 0, 0, 0};
+    double rawXHat[] = {0, 0, 0, 0, 30, 10, 30, -10};
     math::VectorN xHat(rawXHat, 8); // 8 dim vector filled with 0's
     
     // The expected result
     double rawExpectedResult[] =
-        {0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0};
+        {-0.01, 0.03, 0, 0, 0.01, -0.03, 0, 0,
+         0.01, 0.03, 0, 0, 0, 0, -0.01, -0.03};
     math::MatrixN expectedResult(rawExpectedResult, 2, 8);
 
     // Run the function and check the result
@@ -147,8 +147,8 @@ TEST_FIXTURE(Fixture, findAbsPingerAngle)
     math::Degree pingerAngle(
         vehicle::device::SonarStateEstimator::findAbsPingerAngle(orientation,
                                                                  pingerVector));
-    //CHECK_CLOSE(expectedPingerAngle.valueDegrees(), 
-    //            pingerAngle.valueDegrees(), 0.0001);
+    CHECK_CLOSE(expectedPingerAngle.valueDegrees(), 
+                pingerAngle.valueDegrees(), 0.0001);
 }
 
 

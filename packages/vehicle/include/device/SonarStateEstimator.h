@@ -154,6 +154,13 @@ private:
 
     /** The "xHat" vector (2D robot pos/vel and pinger positions) */
     math::VectorN m_stateHat;
+
+    /** dynamical model for sub for in plane translation 
+        dxdt = A*x
+        dxdt = A*x+B*u  (future work)
+    **/
+    math::MatrixN A;
+    
 };
     
 } // namespace device
