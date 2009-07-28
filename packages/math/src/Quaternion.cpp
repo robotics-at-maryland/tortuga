@@ -636,11 +636,18 @@ namespace math {
 	//ensure quaternions are of unit length
 	(*this).normalise();
 	q.normalise();
+//  isn't this wrong?  replaced with Julie Thienel's version
         result.x =  (q.w * x) + (q.z * y) - (q.y * z) - (q.x * w);
         result.y = -(q.z * x) + (q.w * y) + (q.x * z) - (q.y * w);
         result.z =  (q.y * x) - (q.x * y) + (q.w * z) - (q.z * w);
         result.w =  (q.x * x) + (q.y * y) + (q.z * z) + (q.w * w);
 
+/*//Julie Thienel's version
+        result.x =  (q.w * x) - (q.z * y) + (q.y * z) - (q.x * w);
+        result.y =  (q.z * x) + (q.w * y) - (q.x * z) - (q.y * w);
+        result.z = -(q.y * x) + (q.x * y) + (q.w * z) - (q.z * w);
+        result.w =  (q.x * x) + (q.y * y) + (q.z * z) + (q.w * w);
+*/
         return result;
     }
 	

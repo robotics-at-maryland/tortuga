@@ -55,6 +55,16 @@ public:
         *this = o;
     }
     
+    inline MatrixN(const Real value, int rows_, int cols_)
+	{
+		rows = rows_;
+		cols = cols_;
+		int rc = rows*cols;
+		data = new Real[rc];
+		for (int i = 0; i < rows*cols; ++i)
+		  data[i] = value;
+	}
+
 	inline MatrixN(int rows_, int cols_)
 	{
 		rows = rows_;
@@ -307,6 +317,9 @@ public:
 
 	inline void resize(int rows_, int cols_)
 	{
+		if ((rows == rows_) && (cols == cols_))
+			return;
+	  
 		if (data)
 		{
 			Real *newData = new Real[rows_ * cols_];
