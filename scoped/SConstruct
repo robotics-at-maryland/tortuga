@@ -11,6 +11,7 @@ if ARGUMENTS.get('bfin', 1):
 
 
 env.Append(CPPFLAGS = ['-O3'])
+env.Append(CPPDEFINES = ['NDEBUG'])
 env.Append(CPPPATH = ['/opt/IceE-1.3.0/include'])
 env.Append(LIBPATH = ['/opt/IceE-1.3.0/lib'])
 env.Append(LIBS = ['IceE'])

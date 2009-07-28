@@ -8,7 +8,6 @@
 		<string key="IBDocument.HIToolboxVersion">353.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="372"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -737,7 +736,7 @@
 				<nil key="NSViewClass"/>
 				<string key="NSWindowContentMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<object class="NSView" key="NSWindowView" id="439893737">
-					<reference key="NSNextResponder"/>
+					<nil key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<object class="NSMutableArray" key="NSSubviews">
 						<bool key="EncodedWithXMLCoder">YES</bool>
@@ -873,11 +872,11 @@
 												<string key="NSContents"/>
 												<reference key="NSSupport" ref="707118416"/>
 												<reference key="NSControlView" ref="158995826"/>
-												<double key="NSMaxValue">5.000000e+00</double>
+												<double key="NSMaxValue">7.000000e+00</double>
 												<double key="NSMinValue">0.000000e+00</double>
 												<double key="NSValue">0.000000e+00</double>
 												<double key="NSAltIncValue">0.000000e+00</double>
-												<int key="NSNumberOfTickMarks">6</int>
+												<int key="NSNumberOfTickMarks">8</int>
 												<int key="NSTickMarkPosition">1</int>
 												<bool key="NSAllowsTickMarkValuesOnly">YES</bool>
 												<bool key="NSVertical">NO</bool>
@@ -897,11 +896,11 @@
 												<string key="NSContents"/>
 												<reference key="NSSupport" ref="707118416"/>
 												<reference key="NSControlView" ref="73834544"/>
-												<double key="NSMaxValue">5.000000e+00</double>
+												<double key="NSMaxValue">7.000000e+00</double>
 												<double key="NSMinValue">0.000000e+00</double>
 												<double key="NSValue">0.000000e+00</double>
 												<double key="NSAltIncValue">0.000000e+00</double>
-												<int key="NSNumberOfTickMarks">6</int>
+												<int key="NSNumberOfTickMarks">8</int>
 												<int key="NSTickMarkPosition">1</int>
 												<bool key="NSAllowsTickMarkValuesOnly">YES</bool>
 												<bool key="NSVertical">NO</bool>
@@ -921,11 +920,11 @@
 												<string key="NSContents"/>
 												<reference key="NSSupport" ref="707118416"/>
 												<reference key="NSControlView" ref="990983096"/>
-												<double key="NSMaxValue">5.000000e+00</double>
+												<double key="NSMaxValue">7.000000e+00</double>
 												<double key="NSMinValue">0.000000e+00</double>
 												<double key="NSValue">0.000000e+00</double>
 												<double key="NSAltIncValue">0.000000e+00</double>
-												<int key="NSNumberOfTickMarks">6</int>
+												<int key="NSNumberOfTickMarks">8</int>
 												<int key="NSTickMarkPosition">1</int>
 												<bool key="NSAllowsTickMarkValuesOnly">YES</bool>
 												<bool key="NSVertical">NO</bool>
@@ -945,11 +944,11 @@
 												<string key="NSContents"/>
 												<reference key="NSSupport" ref="707118416"/>
 												<reference key="NSControlView" ref="288603810"/>
-												<double key="NSMaxValue">5.000000e+00</double>
+												<double key="NSMaxValue">7.000000e+00</double>
 												<double key="NSMinValue">0.000000e+00</double>
 												<double key="NSValue">0.000000e+00</double>
 												<double key="NSAltIncValue">0.000000e+00</double>
-												<int key="NSNumberOfTickMarks">6</int>
+												<int key="NSNumberOfTickMarks">8</int>
 												<int key="NSTickMarkPosition">1</int>
 												<bool key="NSAllowsTickMarkValuesOnly">YES</bool>
 												<bool key="NSVertical">NO</bool>
@@ -1546,7 +1545,6 @@
 						</object>
 					</object>
 					<string key="NSFrameSize">{1218, 630}</string>
-					<reference key="NSSuperview"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
@@ -2056,6 +2054,14 @@
 						<reference key="destination" ref="757666050"/>
 					</object>
 					<int key="connectionID">585</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">delegate</string>
+						<reference key="source" ref="972006081"/>
+						<reference key="destination" ref="542692206"/>
+					</object>
+					<int key="connectionID">591</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -3426,8 +3432,8 @@
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{134, 1028}, {1218, 630}}</string>
-					<string>{{134, 1028}, {1218, 630}}</string>
+					<string>{{74, 140}, {1218, 630}}</string>
+					<string>{{74, 140}, {1218, 630}}</string>
 					<reference ref="9"/>
 					<string>{{33, 99}, {480, 360}}</string>
 					<string>{3.40282e+38, 3.40282e+38}</string>
@@ -3550,7 +3556,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">590</int>
+			<int key="maxID">591</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">

@@ -1,11 +1,10 @@
 #ifdef __BFIN
 #include "addresses.h"
-#else
+#endif
+
 #include <stdlib.h>
 #include <sys/time.h>
 #include <cmath>
-#endif
-
 #include <iostream>
 #include <IceE/IceE.h>
 #include <IceE/Thread.h>
@@ -34,7 +33,7 @@ private:
     ::ram::sonar::scope::OscilloscopeCapture lastCapture;
     IceUtil::Mutex lastCaptureMutex;
     
-#ifndef __BFIN
+#if defined(__BFIN)
     static suseconds_t getMicroseconds()
     {
         struct timeval tv;
@@ -55,7 +54,7 @@ private:
     
     bool isSampleAvailable()
     {
-#ifdef __BFIN
+#if defined(__BFIN)
         return REG(ADDR_FIFO_COUNT1A) >= 2;
 #else
         static suseconds_t lastTriggered = getMicroseconds();
@@ -72,7 +71,7 @@ private:
     
     void getSample(int16_t sample[4])
     {
-#ifdef __BFIN
+#if defined(__BFIN)
         sample[0] = REG(ADDR_FIFO_OUT1A);
         sample[1] = REG(ADDR_FIFO_OUT1B);
         sample[2] = REG(ADDR_FIFO_OUT2A);
@@ -88,7 +87,7 @@ private:
             val = 0;
         
         for (int i = 0 ; i < 4 ; i ++)
-            sample[i] = val + (((double)rand()/RAND_MAX)*2-1)*50;
+            sample[i] = (int16_t)(val + (((double)rand()/RAND_MAX)*2-1)*50);
 #endif
     }
     
@@ -114,12 +113,15 @@ public:
     
     virtual void SetViewer(const ::ram::sonar::scope::ViewerPrx& viewerPrx, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetViewer: " << viewerPrx << endl;
+#endif
         this->viewerPrx = viewerPrx;
     }
     
     virtual void SetTriggerMode(::ram::sonar::scope::TriggerMode triggerMode, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetTriggerMode: ";
         switch (triggerMode)
         {
@@ -134,29 +136,37 @@ public:
                 break;
         }
         cerr << endl;
+#endif
         this->triggerMode = triggerMode;
     }
     
     virtual void SetTriggerChannel(::Ice::Short triggerChannel, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetTriggerChannel: " << triggerChannel << endl;
+#endif
         this->triggerChannel = triggerChannel;
     }
     
     virtual void SetTriggerLevel(::Ice::Short triggerLevel, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetTriggerLevel: " << triggerLevel << endl;
+#endif
         this->triggerLevel = triggerLevel;
     }
     
     virtual void SetTriggerHoldoff(::Ice::Int triggerHoldoff, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetTriggerHoldoff: " << triggerHoldoff << endl;
+#endif
         this->triggerHoldoff = triggerHoldoff;
     }
     
     virtual void SetTriggerSlope(::ram::sonar::scope::TriggerSlope triggerSlope, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetTriggerSlope: ";
         switch (triggerSlope)
         {
@@ -168,6 +178,7 @@ public:
                 break;
         }
         cerr << endl;
+#endif
         this->triggerSlope = triggerSlope;
     }
     
@@ -179,21 +190,27 @@ public:
     
     virtual void SetHorizontalZoom(::Ice::Short zoom, const ::Ice::Current&)
     {
+#ifndef NDEBUG
         cerr << "SetHorizontalZoom: " << zoom << endl;
+#endif
         horizontalZoom = zoom;
     }
     
     virtual ::ram::sonar::scope::OscilloscopeCapture GetLastCapture(const ::Ice::Current&)
     {
         IceUtil::Mutex::Lock lock(lastCaptureMutex);
+#ifndef NDEBUG
         cerr << "GetLastCapture" << endl;
+#endif
         return lastCapture;
     }
     
 protected:
     virtual void run()
     {
+#ifndef NDEBUG
         cerr << "run" << endl;
+#endif
         initADCs();
         
         while (true)
@@ -259,9 +276,17 @@ protected:
                         
                         iHoldoff = triggerHoldoff;
                         
+#ifndef NDEBUG
                         cerr << "Acquired" << endl;
+#endif
                         try {
+#ifndef NDEBUG
+                            cerr << "Pre-NotifyCapture" << endl;
+#endif
                             viewerPrx->NotifyCapture();
+#ifndef NDEBUG
+                            cerr << "Post-NotifyCapture" << endl;
+#endif
                         } catch (const Ice::Exception& ex) {
                             cerr << "Exception while calling NotifyCapture:" << endl;
                             cerr << ex << endl;

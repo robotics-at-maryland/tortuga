@@ -25,7 +25,7 @@
     [adapter activate];
     
     oscPrx = [ramsonarscopeOscilloscopePrx uncheckedCast:
-                [communicator stringToProxy: @"osc:default -p 10000"]];
+                [communicator stringToProxy: @"osc:default -h 192.168.10.19 -p 10000"]];
     
     [oscPrx SetViewer: (id<ramsonarscopeViewerPrx>) selfPrx];
     
@@ -78,6 +78,10 @@
 - (IBAction)horizontalZoomChanged: (id)sender
 {
     [oscPrx SetHorizontalZoom: [sender floatValue]];
+}
+
+- (void)windowWillClose:(NSNotification *)aNotification {
+    [NSApp terminate:self];
 }
 
 @end
