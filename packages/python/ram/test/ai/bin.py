@@ -286,10 +286,10 @@ class TestSearching(BinTestCase):
 class TestAlternateSearching(BinTestCase):
     def setUp(self):
         cfg = {
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.bin.Searching' : {
-                        'duration' : 0
+            'Ai' : {
+                'config' : {
+                    'Bin' : {
+                        'forwardDuration' : 0
                     },
                 }
             }

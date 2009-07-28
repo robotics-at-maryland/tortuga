@@ -178,10 +178,10 @@ class TestSearching(support.AITestCase):
 class TestAlternateSearching(support.AITestCase):
     def setUp(self):
         cfg = {
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.barbedwire.Searching' : {
-                        'duration' : 0
+            'Ai' : {
+                'config' : {
+                    'BarbedWire' : {
+                        'forwardDuration' : 0
                     },
                 }
             }

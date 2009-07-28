@@ -90,7 +90,8 @@ class AI(core.Subsystem):
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'legTime', 'sweepAngle', 'sweepSpeed'])
-        turnOptions = set(['heading', 'speed', 'absolute'])
+        moveOptions = set(['heading', 'speed', 'absolute',
+                           'forwardDuration', 'forwardSpeed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
                     item == 'Pipe3' or item == 'PipeGate' or \
@@ -109,7 +110,7 @@ class AI(core.Subsystem):
                     or item == 'Target' or item == 'Bin' or \
                     item == 'LightStaged':
                 for innerItem in cfg[item].iterkeys():
-                    if innerItem not in turnOptions:
+                    if innerItem not in moveOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:

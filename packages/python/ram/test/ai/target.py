@@ -220,10 +220,10 @@ class TestSearching(support.AITestCase):
 class TestAlternateSearching(support.AITestCase):
     def setUp(self):
         cfg = {
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.target.Searching' : {
-                        'duration' : 0
+            'Ai' : {
+                'config' : {
+                    'Target' : {
+                        'forwardDuration' : 0
                     },
                 }
             }

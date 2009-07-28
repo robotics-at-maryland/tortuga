@@ -61,11 +61,17 @@ class TestStart(support.AITestCase):
 class TestSearching(support.AITestCase):
     def setUp(self):
         cfg = {
+            'Ai' : {
+                'config' : {
+                    'Light' : {
+                        'forwardDuration' : 4,
+                        'forwardSpeed' : 5,
+                    },
+                },
+            },
             'StateMachine' : {
                 'States' : {
                     'ram.ai.light.Searching' : {
-                        'duration' : 4,
-                        'forwardSpeed' : 5,
                         'legTime' : 10,
                         'sweepAngle'  : 9,
                         'speed' : 8,
@@ -140,10 +146,10 @@ class TestSearching(support.AITestCase):
 class TestAlternateSearching(support.AITestCase):
     def setUp(self):
         cfg = {
-            'StateMachine' : {
-                'States' : {
-                    'ram.ai.light.Searching' : {
-                        'duration' : 0
+            'Ai' : {
+                'config' : {
+                    'Light' : {
+                        'forwardDuration' : 0
                     },
                 }
             }

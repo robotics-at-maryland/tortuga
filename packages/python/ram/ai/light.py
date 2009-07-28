@@ -78,8 +78,7 @@ class Searching(state.State, StoreLightEvent):
 
     @staticmethod
     def getattr():
-        return set(['duration', 'forwardSpeed', 'legTime', 'sweepAngle',
-                    'speed'])
+        return set(['legTime', 'sweepAngle', 'speed'])
 
     def enter(self):
         # Turn on the vision system
@@ -91,8 +90,10 @@ class Searching(state.State, StoreLightEvent):
                                 orientation.getYaw().valueDegrees())
 
         # Create the forward motion
-        self._duration = self._config.get('duration', 2)
-        self._forwardSpeed = self._config.get('forwardSpeed', 3)
+        self._duration = self.ai.data['config'].get('Light', {}).get(
+            'forwardDuration', 2)
+        self._forwardSpeed = self.ai.data['config'].get('Light', {}).get(
+            'forwardSpeed', 3)
         self._forwardMotion = motion.basic.TimedMoveDirection(
             desiredHeading = 0,
             speed = self._forwardSpeed,
