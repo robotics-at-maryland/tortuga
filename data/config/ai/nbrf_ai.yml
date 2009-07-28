@@ -18,8 +18,8 @@ config:
     safeDepthOffset: 1
     safeOffset: -0.4
     Pipe1:
-        #biasDirection: 0
-        #threshold: 50
+        biasDirection: 0
+        threshold: 50
     PipeBarbedWire:
         #biasDirection: -100
         #threshold: 0
