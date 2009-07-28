@@ -3,6 +3,12 @@ import os
 # Import path from environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
 
+if ARGUMENTS.get('bfin', 1):
+    t = Tool('bfin-linux-uclibc', ['buildfiles/tools'])
+    if t.exists(env):
+        t(env)
+
+
 env.Append(CPPPATH = ['/opt/IceE-1.3.0/include'])
 env.Append(LIBPATH = ['/opt/IceE-1.3.0/lib'])
 env.Append(LIBS = ['IceE'])
