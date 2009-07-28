@@ -68,6 +68,12 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -bfreset (reboots the Blackfin processor)\n");
         printf("\tlcdshow -sonar (retrieve latest sonar telemetry)\n");
 
+        printf("\nServo commands:\n");
+        printf("\tlcdshow -srvpwron (turns on the servo power supply)\n");
+        printf("\tlcdshow -srvpwroff (turns off the servo power supply)\n");
+        printf("\tlcdshow -srvenable (sends servo enable mask)\n");
+        printf("\tlcdshow -srvsetpos (sets the servo position)\n");
+        
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
         printf("\tlcdshow -status (show sensor readings)\n");
@@ -156,6 +162,57 @@ int main(int argc, char ** argv)
 //         printf("reply was 0x%02x\n", resetBlackfin(fd));
     }
 
+    if(strcmp(argv[1], "-srvpwron") == 0)
+    {
+        int ret;
+        if((ret = setServoPower(fd, 1)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    if(strcmp(argv[1], "-srvpwroff") == 0)
+    {
+        int ret;
+        if((ret = setServoPower(fd, 0)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    if(strcmp(argv[1], "-srvenable") == 0)
+    {
+        // Read in commands
+        if(argc != 3)
+        {
+            printf("Bad number of arguments expected 2\n");
+            close(fd);
+            exit(1);
+        }
+        int servoMask = atoi(argv[2]);
+        
+        // Send the command
+        int ret;
+        if((ret = setServoEnable(fd, servoMask)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    if(strcmp(argv[1], "-srvsetpos") == 0)
+    {
+        // Read in commands
+        if(argc != 4)
+        {
+            printf("Bad number of arguments expected 3\n");
+            close(fd);
+            exit(1);
+        }
+        int servoNum = atoi(argv[2]);
+        int servoPosition = atoi(argv[3]);
+        
+        // Send the command
+        int ret;
+        if((ret = setServoPosition(fd, servoNum, servoPosition)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    
+    
 
 	if(strcmp(argv[1], "-setspeed") == 0)
 	{
