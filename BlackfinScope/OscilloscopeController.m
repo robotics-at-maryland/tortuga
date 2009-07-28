@@ -36,6 +36,8 @@
     NSLog(@"NotifyCapture");
     ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
     [triggerModeControl setSelectedSegment: [capture newTriggerMode]];
+    view.lastCapture = capture;
+    [view setNeedsDisplay:YES];
 }
 
 - (IBAction)triggerChannelChanged: (id)sender

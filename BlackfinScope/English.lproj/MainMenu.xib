@@ -1667,6 +1667,14 @@
 					</object>
 					<int key="connectionID">542</int>
 				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">view</string>
+						<reference key="source" ref="542692206"/>
+						<reference key="destination" ref="558203280"/>
+					</object>
+					<int key="connectionID">544</int>
+				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
 				<object class="NSArray" key="orderedObjects">
@@ -3014,7 +3022,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">542</int>
+			<int key="maxID">544</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -3047,6 +3055,7 @@
 							<string>communicator</string>
 							<string>oscPrx</string>
 							<string>triggerModeControl</string>
+							<string>view</string>
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
@@ -3054,6 +3063,7 @@
 							<string>id</string>
 							<string>id</string>
 							<string>NSSegmentedControl</string>
+							<string>OscilloscopeView</string>
 						</object>
 					</object>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">

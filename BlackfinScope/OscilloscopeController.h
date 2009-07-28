@@ -18,8 +18,7 @@
     id<ramsonarscopeOscilloscopePrx> oscPrx;
     
     IBOutlet NSSegmentedControl* triggerModeControl;
-    
-    OscilloscopeView* viewPrx;
+    IBOutlet OscilloscopeView* view;
     
 }
 - (void) NotifyCapture:(ICECurrent *)current;

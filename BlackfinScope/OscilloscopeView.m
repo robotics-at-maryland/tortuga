@@ -10,12 +10,14 @@
 
 
 @implementation OscilloscopeView
+@synthesize lastCapture;
 
 - (id)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         graticulePath = nil;
         axesPath = nil;
+        lastCapture = nil;
     }
     return self;
 }

@@ -13,7 +13,8 @@
 
     NSBezierPath* graticulePath;
     NSBezierPath* axesPath;
+    ramsonarscopeOscilloscopeCapture* lastCapture;
     
 }
-
+@property(retain) ramsonarscopeOscilloscopeCapture* lastCapture;
 @end
