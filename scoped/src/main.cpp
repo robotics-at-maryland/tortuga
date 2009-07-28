@@ -1,12 +1,17 @@
+#ifdef __BFIN
+#include "addresses.h"
+#else
+#include <stdlib.h>
+#include <sys/time.h>
+#include <cmath>
+#endif
+
 #include <iostream>
 #include <IceE/IceE.h>
 #include <IceE/Thread.h>
 #include <IceE/Mutex.h>
 #include <stdint.h>
-#include <sys/time.h>
 #include <string.h>
-#include <cmath>
-#include <stdlib.h>
 #include "scope.h"
 
 using namespace std;
@@ -29,15 +34,30 @@ private:
     ::ram::sonar::scope::OscilloscopeCapture lastCapture;
     IceUtil::Mutex lastCaptureMutex;
     
+#ifndef __BFIN
     static suseconds_t getMicroseconds()
     {
         struct timeval tv;
         gettimeofday(&tv, NULL);
         return tv.tv_usec;
     }
+#endif
+    
+    void initADCs()
+    {
+#ifdef __BFIN
+        // Initialize ADC
+        REG(ADDR_ADCONFIG) = 0x8000;
+        REG(ADDR_ADPRESCALER) = 0x0000;
+        REG(ADDR_ADCONFIG) = 0x4044;
+#endif
+    }
     
     bool isSampleAvailable()
     {
+#ifdef __BFIN
+        return REG(ADDR_FIFO_COUNT1A) >= 2;
+#else
         static suseconds_t lastTriggered = getMicroseconds();
         
         suseconds_t now = getMicroseconds();
@@ -47,10 +67,17 @@ private:
             return true;
         } else
             return false;
+#endif
     }
     
     void getSample(int16_t sample[4])
     {
+#ifdef __BFIN
+        sample[0] = REG(ADDR_FIFO_OUT1A);
+        sample[1] = REG(ADDR_FIFO_OUT1B);
+        sample[2] = REG(ADDR_FIFO_OUT2A);
+        sample[3] = REG(ADDR_FIFO_OUT2B);
+#else
         static uint64_t sampleCount = 0;
         ++sampleCount;
         
@@ -62,6 +89,7 @@ private:
         
         for (int i = 0 ; i < 4 ; i ++)
             sample[i] = val + (((double)rand()/RAND_MAX)*2-1)*50;
+#endif
     }
     
     
@@ -166,9 +194,11 @@ protected:
     virtual void run()
     {
         cerr << "run" << endl;
+        initADCs();
         
         while (true)
         {
+            
             // Busy wait until a sample is available
             while (!isSampleAvailable())
                 ;
