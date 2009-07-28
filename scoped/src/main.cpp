@@ -83,32 +83,61 @@ public:
     
     virtual void SetViewer(const ::ram::sonar::scope::ViewerPrx& viewerPrx, const ::Ice::Current&)
     {
+        cerr << "SetViewer: " << viewerPrx << endl;
         this->viewerPrx = viewerPrx;
         hasViewer = true;
     }
     
     virtual void SetTriggerMode(::ram::sonar::scope::TriggerMode triggerMode, const ::Ice::Current&)
     {
+        cerr << "SetTriggerMode: ";
+        switch (triggerMode)
+        {
+            case ::ram::sonar::scope::TriggerModeStop:
+                cerr << "Stop";
+                break;
+            case ::ram::sonar::scope::TriggerModeRun:
+                cerr << "Run";
+                break;
+            case ::ram::sonar::scope::TriggerModeAuto:
+                cerr << "Auto";
+                break;
+        }
+        cerr << endl;
         this->triggerMode = triggerMode;
     }
     
     virtual void SetTriggerChannel(::Ice::Short triggerChannel, const ::Ice::Current&)
     {
+        cerr << "SetTriggerChannel: " << triggerChannel << endl;
         this->triggerChannel = triggerChannel;
     }
     
     virtual void SetTriggerLevel(::Ice::Short triggerLevel, const ::Ice::Current&)
     {
+        cerr << "SetTriggerLevel: " << triggerLevel << endl;
         this->triggerLevel = triggerLevel;
     }
     
     virtual void SetTriggerHoldoff(::Ice::Int triggerHoldoff, const ::Ice::Current&)
     {
+        cerr << "SetTriggerHoldoff: " << triggerHoldoff << endl;
         this->triggerHoldoff = triggerHoldoff;
     }
     
     virtual void SetTriggerSlope(::ram::sonar::scope::TriggerSlope triggerSlope, const ::Ice::Current&)
     {
+        cerr << "SetTriggerSlope: ";
+        switch (triggerSlope)
+        {
+            case ram::sonar::scope::TriggerSlopeRising:
+                cerr << "Rising";
+                break;
+            case ram::sonar::scope::TriggerSlopeFalling:
+                cerr << "Falling";
+                break;
+        }
+        cerr << endl;
         this->triggerSlope = triggerSlope;
     }
     
@@ -120,16 +149,20 @@ public:
     
     virtual void SetHorizontalZoom(::Ice::Short zoom, const ::Ice::Current&)
     {
+        cerr << "SetHorizontalZoom: " << zoom << endl;
         horizontalZoom = zoom;
     }
     
     virtual ::ram::sonar::scope::OscilloscopeCapture GetLastCapture(const ::Ice::Current&)
     {
+        cerr << "GetLastCapture" << endl;
         return lastCapture;
     }
     
     void run()
     {
+        cerr << "run" << endl;
+        
         while (true)
         {
             // Busy wait until a sample is available
