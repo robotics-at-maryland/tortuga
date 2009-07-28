@@ -31,6 +31,7 @@ private:
     {
         struct timeval tv;
         gettimeofday(&tv, NULL);
+        return tv.tv_usec;
     }
     
     bool isSampleAvailable()
@@ -38,7 +39,7 @@ private:
         static suseconds_t lastTriggered = getMicroseconds();
         
         suseconds_t now = getMicroseconds();
-        if (now - lastTriggered > 100)
+        if (uint8_t(now - lastTriggered) > 100)
         {
             lastTriggered = now;
             return true;
@@ -53,7 +54,7 @@ private:
         
         int16_t val;
         if ((sampleCount / 1000) % 20 == 0)
-            val = sin(2 * M_PI * sampleCount * 20000);
+            val = sin(2 * M_PI * sampleCount / 25) * 10000;
         else
             val = 0;
         
@@ -74,7 +75,7 @@ public:
     hasViewer(false), horizontalZoom(0),
     iHoldoff(0), iSkip(0), iBuf(0), isCapturing(false), iSample(0),
     triggerChannel(0), triggerLevel(0), triggerHoldoff(0),
-    triggerMode(::ram::sonar::scope::TriggerModeStop),
+    triggerMode(::ram::sonar::scope::TriggerModeAuto),
     triggerSlope(::ram::sonar::scope::TriggerSlopeRising)
     {
         lastCapture.rawData = ::ram::sonar::scope::ShortSeq(BUFSIZE * 4);
@@ -221,11 +222,13 @@ public:
                         
                         iHoldoff = triggerHoldoff;
                         
+                        cerr << "Acquired" << endl;
                         if (hasViewer)
                         {
                             try {
                                 viewerPrx->NotifyCapture();
                             } catch (const Ice::Exception& ex) {
+                                cerr << "Exception while calling NotifyCapture:" << endl;
                                 cerr << ex << endl;
                             }
                         }

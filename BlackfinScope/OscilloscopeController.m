@@ -52,7 +52,7 @@
 
 - (IBAction)horizontalZoomChanged: (id)sender
 {
-    [oscPrx SetHorizontalZoom: [sender value]];
+    [oscPrx SetHorizontalZoom: [sender floatValue]];
 }
 
 @end
