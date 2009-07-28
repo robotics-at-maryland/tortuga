@@ -23,6 +23,11 @@ _FWDT ( WDT_OFF );
 #define BYTE byte
 #define BUF_SIZE 256
 
+/* Debug! FUCK EVERYTHIGN! */
+#define PING_FUCKED 0x25
+#define PING_NORMAL 0x00
+byte ping_val;
+
 /* This defines how long we should hold off on starting up to let the motors
  * get completely started, preventing premature i2c errors. */
 #define START_TIMEOUT    500000
@@ -202,7 +207,6 @@ void kill_motors() {
 
 /* This function does whatever we need to do when we're borked. */
 void BorkedI2C() {
-    i2cBuf[0]= i2cState;
     i2cState= I2CSTATE_STOPPING_BORKED;
     StopI2C();        /* Generate the Stop condition */
 }
@@ -215,11 +219,12 @@ void _ISR _MI2CInterrupt() {
     /* The master i2c interrupt routine is just a big 'ol state machine
      * So get the current state and figure out what the hell should be
      * happening.  Then do stuff based on that. */
+    //writeUart('0' + i2cState);
     switch(i2cState) {
         case I2CSTATE_IDLE:
         {
             /* If we're in this state we shouldn't be in this function! */
-            BorkedI2C();
+            //BorkedI2C();
             break;
         }
 
@@ -417,7 +422,8 @@ void processData(byte data)
             {
                 case BUS_CMD_PING:
                 {
-                    txBuf[0]= 0;
+                    txBuf[0]= ping_val;
+                    ping_val= PING_FUCKED;
                     break;
                 }
 
@@ -646,6 +652,7 @@ void _ISR _INT3Interrupt() {
 /* The main function sets everything up then loops */
 int main()
 {
+    byte heartBeat= 0;
     unsigned int i, temp;
     unsigned long timeout, err_reset;
     byte activeSpeed[6];
@@ -655,6 +662,8 @@ int main()
 
     for(i= 0;i < 6;i++)
         motorSpeed[i]= 0x80;
+
+    ping_val= PING_NORMAL;
 
     /* Set up the ADCs*/
     initADC();
@@ -729,16 +738,18 @@ int main()
         }
         REQ_INT_BIT= 1;
 
+        ping_val= PING_NORMAL;
+
         for(i= 0;i < 6;i++) {
-            temp= LATF & 0xFE3F;
-            LATF= temp | (i << 6);
+            /*temp= LATF & 0xFE3F;
+            LATF= temp | (i << 6);*/
             /*temp= ~i;
             _LATF6= !(temp & 0x01);
             _LATF7= !(temp & 0x02);
             _LATF8= !(temp & 0x04);*/
-            /*_LATF6= i & 0x01;
+            _LATF6= i & 0x01;
             _LATF7= (i & 0x02) >> 1;
-            _LATF8= (i & 0x04) >> 2;*/
+            _LATF8= (i & 0x04) >> 2;
 
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
@@ -768,12 +779,12 @@ int main()
             timeout= 0;
 
             while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && timeout++ < ERR_TIMEOUT)
-                ;
+                writeUart('E');
 
             if(timeout >= ERR_TIMEOUT) {
                 BorkedI2C();
                 while(i2cState != I2CSTATE_BORKED)
-                    ;
+                    writeUart('F');
             }
 
             if(i2cState == I2CSTATE_BORKED) {
@@ -804,6 +815,8 @@ int main()
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
+
+            writeUart(heartBeat++);
         }
     }
 
