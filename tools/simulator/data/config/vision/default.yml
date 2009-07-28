@@ -1,0 +1,27 @@
+RedLightDetector:       
+   intialMinPixels: 400
+   foundMinPixelScale: 0.85
+   lostMinPixelScale: 0.75
+   # About 20% of the total pixels
+   almostHitPixels: 61440.0
+
+VelocityDetector:
+    usePhaseCorrelation: 0
+    useLKFlow: 1
+   
+DuctDetector:
+    centerAlignedThreshold: 50
+    alignedThreshold: 2
+    minRedOverGreen: 0.9
+    maxRedOverGreen: 1.1
+    minRedOverBlue: 2.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    minBlackPercent: 15
+    maxBlackTotal: 100
+    dilateIterations: 0
+    erodeIterations: 0
+    defaultGrowThreshX: 0.05
+    defaultGrowThreshY: 0.05
+    minXOverYToUpGrowThresh: 1.5
+    uppedGrowThreshX: 0.5
+    uppedGrowThreshY: 0.05

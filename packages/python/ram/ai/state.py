@@ -184,7 +184,7 @@ class Machine(core.Subsystem):
             deps = []
         if cfg is None:
             cfg = {}
-            
+
         core.Subsystem.__init__(self, cfg.get('name', 'StateMachine'),
                                 deps)
 
@@ -219,11 +219,12 @@ class Machine(core.Subsystem):
 
     def _configCheck(self, cfg):
         for name, options in cfg.iteritems():
-            class_ = resolve(name)
-            attr = class_.getattr()
-            for item in options.iterkeys():
-                if item not in attr:
-                    raise Exception("'%s' is not in %s." % (item, class_))
+            if name != "INCLUDE" and name != "INCLUDE_LOADED":
+                class_ = resolve(name)
+                attr = class_.getattr()
+                for item in options.iterkeys():
+                    if item not in attr:
+                        raise Exception("'%s' is not in %s." % (item, class_))
 
     def update(self, timeStep):
         print 'STATE UPDATE'
