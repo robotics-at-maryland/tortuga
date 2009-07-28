@@ -19,15 +19,60 @@
         axesPath = nil;
         lastCapture = nil;
         
+        triggerLevel = 0;
+        triggerChannel = 0;
+        
+        channelColors[0] = [NSColor cyanColor];
+        channelColors[1] = [NSColor magentaColor];
+        channelColors[2] = [NSColor orangeColor];
+        channelColors[3] = [NSColor blackColor];
+        
         for (int i = 0 ; i < 4 ; i ++)
+        {
             verticalSensitivity[i] = 0;
+            verticalPosition[i] = 0;
+            visibleChannels[i] = YES;
+        }
     }
     return self;
 }
 
 - (IBAction)verticalSensitivityChanged:(id)sender
 {
-    verticalSensitivity[[sender tag]] = [sender floatValue];
+    int val = [sender floatValue];
+    
+    if ([verticalSensitivityCoupled state] == NSOnState)
+        for (int channel = 0 ; channel < 4 ; channel ++)
+            verticalSensitivity[channel] = val;
+    else
+        verticalSensitivity[[sender tag]] = val;
+    
+    [self setNeedsDisplay:YES];
+}
+
+- (IBAction)verticalPositionChanged:(id)sender
+{
+    int val = [sender floatValue]/10 * 300 * (1 << verticalSensitivity[[sender tag]]);
+    
+    if ([verticalPositionCoupled state] == NSOnState)
+        for (int channel = 0 ; channel < 4 ; channel ++)
+            verticalPosition[channel] = val;
+    else
+        verticalPosition[[sender tag]] = val;
+    
+    [self setNeedsDisplay:YES];
+}
+
+- (IBAction)visibleChannelsChanged:(id)sender
+{
+    for (int i = 0 ; i < 4 ; i ++)
+        visibleChannels[i] = [sender isSelectedForSegment:i];
+    [self setNeedsDisplay:YES];
+}
+
+- (IBAction)channelColorsChanged:(id)sender
+{
+    channelColors[[sender tag]] = [sender color];
     [self setNeedsDisplay:YES];
 }
 
@@ -36,6 +81,12 @@
     int width = [self frame].size.width;
     int height = [self frame].size.height;
     
+    NSRect borderRect = NSMakeRect(0, 0, width, height);
+    
+    [[NSColor whiteColor] set];
+    NSRectFill(borderRect);
+    
+    [[NSColor blackColor] setStroke];
     
     // Draw the graticule
     if (graticulePath == nil)
@@ -74,28 +125,58 @@
         short* data = [lastCapture.rawData bytes];
         for (int channel = 0 ; channel < 4 ; channel ++)
         {
-            NSBezierPath* wave = [NSBezierPath bezierPath];
-            [wave moveToPoint:NSMakePoint(0, data[channel])];
-            
-            for (int i = 1 ; i < 800 ; i ++)
-                [wave lineToPoint:NSMakePoint(i, data[i * 4 + channel])];
-            
-            [wave setLineWidth:2.0];
-            
-            NSAffineTransform* transform = [NSAffineTransform transform];
-            [transform translateXBy:0 yBy:height/2];
-            [transform scaleXBy:1.0 yBy:1.0/(1 << verticalSensitivity[channel])];
-            [wave transformUsingAffineTransform:transform];
-            
-            [wave stroke];
+            if (visibleChannels[channel])
+            {
+                NSBezierPath* wave = [NSBezierPath bezierPath];
+                [wave moveToPoint:NSMakePoint(0, data[channel])];
+                
+                for (int i = 1 ; i < 800 ; i ++)
+                    [wave lineToPoint:NSMakePoint(i, data[i * 4 + channel])];
+                
+                [wave setLineWidth:1.0];
+                
+                NSAffineTransform* transform = [NSAffineTransform transform];
+                [transform translateXBy:0 yBy:height/2];
+                [transform scaleXBy:1.0 yBy:-1.0/(1 << verticalSensitivity[channel])];
+                [transform translateXBy:0 yBy:verticalPosition[channel]];
+                [wave transformUsingAffineTransform:transform];
+                
+                [channelColors[channel] setStroke];
+                [wave stroke];
+            }
         }
     }
     
+    // Draw trigger line
+    {
+        NSBezierPath* triggerPath = [NSBezierPath bezierPath];
+        [triggerPath moveToPoint:NSMakePoint(0, triggerLevel)];
+        [triggerPath lineToPoint:NSMakePoint(width, triggerLevel)];
+        
+        NSAffineTransform* transform = [NSAffineTransform transform];
+        [transform translateXBy:0 yBy:height/2];
+        [transform scaleXBy:1.0 yBy:-1.0/(1 << verticalSensitivity[triggerChannel])];
+        [transform translateXBy:0 yBy:verticalPosition[triggerChannel]];
+        
+        [triggerPath transformUsingAffineTransform:transform];
+        
+        [[NSColor grayColor] setStroke];
+        [triggerPath stroke];
+    }
+    
     // Draw the border
-    NSRect borderRect = NSMakeRect(0, 0, width, height);
     NSFrameRect(borderRect);
 }
 
+- (IBAction)presetsTile:(id)sender
+{
+    for (int channel = 0 ; channel < 4 ; channel ++)
+    {
+        verticalPosition[channel] = (channel * 0.5 - 0.75) * (double)300 * (1 << verticalSensitivity[channel]);
+    }
+    
+    [self setNeedsDisplay:YES];
+}
 
 
 @end

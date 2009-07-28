@@ -18,10 +18,12 @@
     id<ramsonarscopeOscilloscopePrx> oscPrx;
     
     IBOutlet NSSegmentedControl* triggerModeControl;
+    IBOutlet NSProgressIndicator* triggerProgressIndicator;
     IBOutlet OscilloscopeView* view;
     
 }
 - (void) NotifyCapture:(ICECurrent *)current;
+- (IBAction)triggerLevelChanged: (id)sender;
 - (IBAction)triggerChannelChanged: (id)sender;
 - (IBAction)triggerModeChanged: (id)sender;
 - (IBAction)triggerSlopeChanged: (id)sender;

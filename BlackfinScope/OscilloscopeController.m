@@ -29,6 +29,11 @@
     
     [oscPrx SetViewer: (id<ramsonarscopeViewerPrx>) selfPrx];
     
+    [oscPrx SetTriggerMode:ramsonarscopeTriggerModeStop];
+    [oscPrx SetTriggerSlope:ramsonarscopeTriggerSlopeRising];
+    [oscPrx SetTriggerLevel:0];
+    [oscPrx SetHorizontalZoom:0];
+    
     [oscPrx retain];
 }
 
@@ -38,15 +43,30 @@
     [triggerModeControl setSelectedSegment: [capture newTriggerMode]];
     view.lastCapture = capture;
     [view setNeedsDisplay:YES];
+    [triggerProgressIndicator stopAnimation: self];
+}
+
+- (IBAction)triggerLevelChanged: (id)sender
+{
+    short val = [sender floatValue]/10 * 300 * (1 << view->verticalSensitivity[view->triggerChannel]);
+    [oscPrx SetTriggerLevel:val];
+    view->triggerLevel = val;
+    [view setNeedsDisplay:YES];
 }
 
 - (IBAction)triggerChannelChanged: (id)sender
 {
-    [oscPrx SetTriggerChannel: [sender selectedSegment]];
+    short val = [sender selectedSegment];
+    [oscPrx SetTriggerChannel: val];
+    view->triggerChannel = val;
+    [view setNeedsDisplay:YES];
 }
 
 - (IBAction)triggerModeChanged: (id)sender
 {
+    if ([sender selectedSegment] == ramsonarscopeTriggerModeRun)
+        [triggerProgressIndicator startAnimation: self];
+    
     [oscPrx SetTriggerMode: [sender selectedSegment]];
 }
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <IceE/IceE.h>
 #include <IceE/Thread.h>
+#include <IceE/Mutex.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <string.h>
@@ -26,7 +27,7 @@ private:
     volatile ::ram::sonar::scope::TriggerSlope triggerSlope;
     
     ::ram::sonar::scope::OscilloscopeCapture lastCapture;
-    
+    IceUtil::Mutex lastCaptureMutex;
     
     static suseconds_t getMicroseconds()
     {
@@ -54,13 +55,13 @@ private:
         ++sampleCount;
         
         int16_t val;
-        if ((sampleCount / 1000) % 100 == 0)
-            val = (int16_t)(sin(2 * M_PI * sampleCount / 25) * 200) + (((double)rand()/RAND_MAX)*2-1)*100;
+        if ((sampleCount / 1000) % 5 == 0)
+            val = (int16_t)(sin(2 * M_PI * sampleCount / 25) * sin(M_PI * (sampleCount % 1000) / 1000) * 200);
         else
             val = 0;
         
         for (int i = 0 ; i < 4 ; i ++)
-            sample[i] = val;
+            sample[i] = val + (((double)rand()/RAND_MAX)*2-1)*50;
     }
     
     
@@ -75,7 +76,7 @@ public:
     OscilloscopeImpl() :
     horizontalZoom(0),
     iHoldoff(0), iSkip(0), iBuf(0), isCapturing(false), iSample(0),
-    triggerChannel(0), triggerLevel(0), triggerHoldoff(0),
+    triggerChannel(0), triggerLevel(0), triggerHoldoff(1000),
     triggerMode(::ram::sonar::scope::TriggerModeStop),
     triggerSlope(::ram::sonar::scope::TriggerSlopeRising)
     {
@@ -156,6 +157,7 @@ public:
     
     virtual ::ram::sonar::scope::OscilloscopeCapture GetLastCapture(const ::Ice::Current&)
     {
+        IceUtil::Mutex::Lock lock(lastCaptureMutex);
         cerr << "GetLastCapture" << endl;
         return lastCapture;
     }
@@ -218,17 +220,18 @@ protected:
                         if (triggerMode == ::ram::sonar::scope::TriggerModeRun)
                             triggerMode = ::ram::sonar::scope::TriggerModeStop;
                         
-                        copy(*buf, buf[BUFSIZE], lastCapture.rawData.begin());
-                        lastCapture.timestamp = (iSample << 1) / 1000;
-                        lastCapture.newTriggerMode = triggerMode;
+                        {
+                            IceUtil::Mutex::Lock lock(lastCaptureMutex);
+                            copy(*buf, buf[BUFSIZE], lastCapture.rawData.begin());
+                            lastCapture.timestamp = (iSample << 1) / 1000;
+                            lastCapture.newTriggerMode = triggerMode;
+                        }
                         
                         iHoldoff = triggerHoldoff;
                         
                         cerr << "Acquired" << endl;
                         try {
-                            cerr << "Pre-NotifyCapture" << endl;
                             viewerPrx->NotifyCapture();
-                            cerr << "Post-NotifyCapture" << endl;
                         } catch (const Ice::Exception& ex) {
                             cerr << "Exception while calling NotifyCapture:" << endl;
                             cerr << ex << endl;
