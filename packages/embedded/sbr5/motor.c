@@ -793,12 +793,12 @@ int main()
 
             // Start timer
             TMR1 = 0;
-            T1IF = 0;
+            _T1IF = 0;
 
-            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !T1IF)
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !_T1IF)
                 writeUart('E');
 
-            if(T1IF) {
+            if(_T1IF) {
                 BorkedI2C();
                 while(i2cState != I2CSTATE_BORKED)
                     writeUart('F');
