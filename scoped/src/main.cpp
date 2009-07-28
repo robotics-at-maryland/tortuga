@@ -11,7 +11,6 @@ using namespace std;
 
 class OscilloscopeImpl : virtual public ram::sonar::scope::Oscilloscope, virtual public IceUtil::Thread {
 private:
-    bool hasViewer;
     ram::sonar::scope::ViewerPrx viewerPrx;
     
     volatile int iHoldoff;
@@ -73,7 +72,7 @@ private:
 public:
     
     OscilloscopeImpl() :
-    hasViewer(false), horizontalZoom(0),
+    horizontalZoom(0),
     iHoldoff(0), iSkip(0), iBuf(0), isCapturing(false), iSample(0),
     triggerChannel(0), triggerLevel(0), triggerHoldoff(0),
     triggerMode(::ram::sonar::scope::TriggerModeStop),
@@ -87,7 +86,6 @@ public:
     {
         cerr << "SetViewer: " << viewerPrx << endl;
         this->viewerPrx = viewerPrx;
-        hasViewer = true;
     }
     
     virtual void SetTriggerMode(::ram::sonar::scope::TriggerMode triggerMode, const ::Ice::Current&)
@@ -221,18 +219,18 @@ protected:
                         
                         copy(*buf, buf[BUFSIZE], lastCapture.rawData.begin());
                         lastCapture.timestamp = (iSample << 1) / 1000;
+                        lastCapture.newTriggerMode = triggerMode;
                         
                         iHoldoff = triggerHoldoff;
                         
                         cerr << "Acquired" << endl;
-                        if (hasViewer)
-                        {
-                            try {
-                                viewerPrx->NotifyCapture();
-                            } catch (const Ice::Exception& ex) {
-                                cerr << "Exception while calling NotifyCapture:" << endl;
-                                cerr << ex << endl;
-                            }
+                        try {
+                            cerr << "Pre-NotifyCapture" << endl;
+                            viewerPrx->NotifyCapture();
+                            cerr << "Post-NotifyCapture" << endl;
+                        } catch (const Ice::Exception& ex) {
+                            cerr << "Exception while calling NotifyCapture:" << endl;
+                            cerr << ex << endl;
                         }
                     }
                 }
@@ -247,11 +245,10 @@ protected:
 int main(int argc, char* argv[])
 {
     int status = 0;
-    Ice::CommunicatorPtr ic;
+    
+    Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
     
     try {
-        
-        ic = Ice::initialize(argc, argv);
         
         Ice::ObjectAdapterPtr adapter = ic->createObjectAdapterWithEndpoints(
             "scoped", "default -p 10000");

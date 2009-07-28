@@ -21,6 +21,7 @@ module ram {
                 
                 ShortSeq rawData;
                 long timestamp;
+                TriggerMode newTriggerMode;
                 
             };
             

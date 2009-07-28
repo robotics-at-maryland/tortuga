@@ -16,9 +16,13 @@
     id<ICECommunicator> communicator;
     id<ICEObjectAdapter> adapter;
     id<ramsonarscopeOscilloscopePrx> oscPrx;
+    
+    IBOutlet NSSegmentedControl* triggerModeControl;
+    
     OscilloscopeView* viewPrx;
     
 }
+- (void) NotifyCapture:(ICECurrent *)current;
 - (IBAction)triggerChannelChanged: (id)sender;
 - (IBAction)triggerModeChanged: (id)sender;
 - (IBAction)triggerSlopeChanged: (id)sender;

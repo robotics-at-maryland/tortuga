@@ -22,6 +22,7 @@
                                                    endpoints: @"default -p 10001"];
     
     id<ICEObjectPrx> selfPrx = [adapter addWithUUID: self];
+    [adapter activate];
     
     oscPrx = [ramsonarscopeOscilloscopePrx uncheckedCast:
                 [communicator stringToProxy: @"osc:default -p 10000"]];
@@ -33,7 +34,8 @@
 
 - (void)NotifyCapture:(ICECurrent*)current {
     NSLog(@"NotifyCapture");
-    //ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
+    ramsonarscopeOscilloscopeCapture* capture = [oscPrx GetLastCapture];
+    [triggerModeControl setSelectedSegment: [capture newTriggerMode]];
 }
 
 - (IBAction)triggerChannelChanged: (id)sender

@@ -7,7 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-
+#import "scope.h"
 
 @interface OscilloscopeView : NSView {
 
