@@ -142,11 +142,19 @@
 #define BATT5_INUSE       0x10
 #define BATT6_INUSE       0x20
 
-
-
 #define ANIMATION_NONE      0
 #define ANIMATION_REDBLUE   1
 #define ANIMATION_REDGREEN  2
+
+/* Servo defines */
+#define SERVO_1      1
+#define SERVO_2      2
+
+#define SERVO_ENABLE_1      0x01
+#define SERVO_ENABLE_2      0x02
+
+#define SERVO_POWER_ON 1
+#define SERVO_POWER_OFF 0
 
 /* Bits of the status response */
 /* Water is present */
@@ -299,11 +307,45 @@ int readThrusterState(int fd);
 
 int hardKill(int fd);
 
-/** This doesn't do anything anymore. Return value is undefined.
- * Marker dropper support to return in the next revision hopefully.
- */
+/** This drops the marker (accepts only 0 and 1 for markerNum) */
 int dropMarker(int fd, int markerNum);
 
+/** Enables and disables the servo power supply
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param power
+ *      A non-zero value turns on the servo power, and zero value turns off
+ *      the servo power.
+ */
+int setServoPower(int fd, unsigned char power);
+
+/** Sets the enable state of the each servo
+ *
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param servoMask
+ *      Sets the enable states of the servo, each bit of the byte that is 1
+ *      turns activates a servo.  If the bit is 0 that servo signal is disabled.
+ *      Currently we have only two servos, so bits 1 & 2 are the only usable
+ *      ones.
+ */    
+int setServoEnable(int fd, unsigned char servoMask);
+
+/** Sets the position of desired servo
+ *
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param servoNumber
+ *      The specific servo to turn on and off.
+ *  @param position
+ *      A 16 bit number that specifies the position of the servo. These numbers
+ *      varry per servo so they must be specifically calibrated.
+ *
+ */
+int setServoPosition(int fd, unsigned char servoNumber,
+                     unsigned short position);
+
+    
 int lcdBacklight(int fd, int state);
 
 /** Either enables or disables a desired thruster */
