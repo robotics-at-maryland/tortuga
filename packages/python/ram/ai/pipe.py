@@ -32,6 +32,7 @@ import ram.ai.tracking as tracking
 import ram.motion as motion
 import ram.motion.search
 import ram.motion.pipe
+import ram.timer
 
 def ensurePipeTracking(qeventHub, ai):        
     tracking.ensureItemTracking(qeventHub, ai, 'pipeData',
@@ -107,7 +108,7 @@ class PipeTrackingState(state.State):
         # Ensure pipe tracking
         ensurePipeTracking(self.queuedEventHub, self.ai)
         
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
 
         self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
         self._threshold = self.ai.data.get('pipeThreshold', None)
@@ -131,6 +132,10 @@ class PipeTrackingState(state.State):
         return self.ai.data['pipeData'].get('currentID', 0) == event.id
 
 class PipeFollowingState(PipeTrackingState):
+    """
+    State for following a pipe. Returns True if the FOUND_PIPE it is given
+    is valid. False if the FOUND_PIPE was outdated.
+    """
     @staticmethod
     def transitions(myState = None, trans = None):
         if myState is None:
@@ -202,7 +207,8 @@ class PipeFollowingState(PipeTrackingState):
                 pipeData['currentID'] = minID
                 self._pipe.setState(pipeData['itemData'][minID].x,
                                     pipeData['itemData'][minID].y,
-                                    pipeData['itemData'][minID].angle)
+                                    pipeData['itemData'][minID].angle,
+                                    pipeData['itemData'][minID].timeStamp)
 
     def FOUND_PIPE(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -211,7 +217,7 @@ class PipeFollowingState(PipeTrackingState):
         
         if event.id not in pipeData['currentIds']:
             # Stop, it's an old event
-            return
+            return False
 
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()
@@ -244,7 +250,8 @@ class PipeFollowingState(PipeTrackingState):
                     if math.fabs(newPipeDifference.valueDegrees()) < \
                             math.fabs(currentPipeDifference.valueDegrees()):
                         pipeData['currentID'] = event.id
-                        self._pipe.setState(event.x, event.y, angle)
+                        self._pipe.setState(event.x, event.y, angle,
+                                            event.timeStamp)
                 else: # Otherwise continue normally
                     # Check difference between actual and "biasDirection"
                     difference = self._biasDirection - \
@@ -257,7 +264,8 @@ class PipeFollowingState(PipeTrackingState):
                             angle = ext.math.Degree(180) + angle
                         else:
                             angle = ext.math.Degree(-180) + angle
-                    self._pipe.setState(event.x, event.y, angle)
+                    self._pipe.setState(event.x, event.y, angle,
+                                        event.timeStamp)
         
             else: # If we are not biasing the direction
                 # If the pipe event is not the currently followed pipe
@@ -267,16 +275,20 @@ class PipeFollowingState(PipeTrackingState):
                             math.fabs(pipeData['itemData'][pipeData['currentID']]
                                       .angle.valueDegrees()):
                         pipeData['currentID'] = event.id
-                        self._pipe.setState(event.x, event.y, angle)
+                        self._pipe.setState(event.x, event.y, angle,
+                                            event.timeStamp)
                 else: # Otherwise continue normally
-                    self._pipe.setState(event.x, event.y, angle)
+                    self._pipe.setState(event.x, event.y, angle,
+                                        event.timeStamp)
         else:
             pipeData['currentID'] = event.id
+
+        return True
 
     def enter(self):
         PipeTrackingState.enter(self)
         
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)
@@ -416,12 +428,32 @@ class Centering(PipeFollowingState):
         return PipeFollowingState.transitions(Centering,
             { Centering.SETTLED : AlongPipe })
 
+    def _checkChange(self, values):
+        return abs(values[0]) < self._planeThreshold and \
+            abs(values[1]) < self._planeThreshold and \
+            abs(values[2]) < self._angleThreshold
+
+#    def FOUND_PIPE(self, event):
+#        status = PipeFollowingState.FOUND_PIPE(self, event)
+
+        # Check to make sure it's not an outdated event
+#        if status:
+            # Check the change over time. If it's low enough,
+            # declare it settled
+            #if self._checkChange((event.x, event.y,
+            #                      event.angle.valueDegrees())):
+            #    if self.timer is not None:
+            #        self.timer.stop()
+            #    self.publish(Centering.SETTLED, core.Event())
+
     def enter(self):
+        self._planeThreshold = self._config.get('planeThreshold', 0.03)
+        self._angleThreshold = self._config.get('angleThreshold', 0.03)
+
         self.timer = self.timerManager.newTimer(Centering.SETTLED, 5)
         self.timer.start()
         
         PipeFollowingState.enter(self)
-        
 
     def exit(self):
         #print '"Exiting Seek, going to follow"'

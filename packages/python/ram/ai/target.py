@@ -114,7 +114,7 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
             y = 0
         
         # We ignore azimuth and elevation because we aren't using them
-        self._target.setState(0, 0, self._filterdRange, self._filterdX, self._filterdY)
+        self._target.setState(0, 0, self._filterdRange, self._filterdX, self._filterdY, event.timeStamp)
         
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
@@ -132,6 +132,7 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
         
         # Create tracking object
         self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                   timeStamp = None,
                                                    vehicle = self.vehicle)
         
         # Read in configuration settings
@@ -356,7 +357,8 @@ class SeekingToCentered(RangeXYHold):
         self._target.setState(0, 0, self._filterdRange, #- self._offset +
                               #self._desiredRange, 
                               self._filterdX,
-                              self._filterdY)
+                              self._filterdY,
+                              event.timeStamp)
         
 class SeekingToRange(RangeXYHold):
     """
@@ -471,7 +473,8 @@ class TargetAlignState(FilteredState, StoreTargetEvent):
         elevation = self._filterdY * -80.0/2.0
         self._target.setState(azimuth, elevation, self._filterdRange, 
                               self._filterdX, self._filterdY, 
-                              self._filterdAlign * self._alignSign)
+                              self._filterdAlign * self._alignSign,
+                              event.timeStamp)
         
     def enter(self):
         FilteredState.enter(self)

@@ -123,7 +123,8 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         
         # Finally set the state (We ignore azimuth and elevation because we 
         # aren't using them)
-        self._target.setState(0, 0, range = range, x = event.topX, y = y)
+        self._target.setState(0, 0, range = range, x = event.topX, y = y,
+                              timeStamp = event.timeStamp)
         
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
@@ -167,6 +168,7 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
                                                    range = self._desiredRange,
                                                    x = 0,
                                                    y = 0,
+                                                   timeStamp = None,
                                                    vehicle = self.vehicle)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
@@ -412,7 +414,8 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         alignment = event.bottomX - event.topX
         self._target.setState(azimuth, elevation, range = range,
                               x = event.topX, y = y, 
-                              alignment = alignment)
+                              alignment = alignment,
+                              timeStamp = event.timeStamp)
         
     def enter(self):
         FilteredState.enter(self)
@@ -635,14 +638,16 @@ class Under(FilteredState, state.State, StoreBarbedWireEvent):
 
         angle = ext.math.Degree(0)
         if event.topY <= self._maxy:
-            self._bwire.setState(event.topX, event.topY, angle)
+            self._bwire.setState(event.topX, event.topY, angle,
+                                 timeStamp = event.timeStamp)
         else:
             if event.bottomWidth > 0 and event.bottomY <= self._maxy:
-                self._bwire.setState(event.bottomX, event.bottomY, angle)
+                self._bwire.setState(event.bottomX, event.bottomY, angle,
+                                     timeStamp = event.timeStamp)
 
     def enter(self):
         # Use the same motion from AlongPipe
-        self._bwire = ram.motion.pipe.Pipe(0, 0, 0)
+        self._bwire = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
 
         maxSpeed = self._config.get('forwardSpeed', 5)
         self._speedGain = self._config.get('speedGain', 5)

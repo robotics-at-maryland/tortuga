@@ -1459,6 +1459,12 @@ class TestDropMarker(BinTestCase):
                                    angle = math.Degree(0))
         self.qeventHub.publishEvents()
 
+        # Check to make sure it doesn't drop without two hits first
+        self.assertCurrentState(bin.DropMarker)
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0))
+        self.qeventHub.publishEvents()
+
         self.assertCurrentState(bin.SurfaceToMove)
         self.assertAIDataValue('droppedSymbols', set([vision.Symbol.CLUB]))
         
@@ -1473,6 +1479,12 @@ class TestDropMarker(BinTestCase):
                                    angle = math.Degree(0.5))
 
         # Inject event and test the response
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0.5))
+        self.qeventHub.publishEvents()
+
+        # Check to make sure it hasn't dropped without a second event
+        self.assert_(not self.ai.data.has_key('markersDropped'))
         self.publishQueuedBinFound(id = 0, x = 0, y = 0,
                                    angle = math.Degree(0.5))
         self.qeventHub.publishEvents()
@@ -1494,6 +1506,12 @@ class TestDropMarker(BinTestCase):
                                    angle = math.Degree(0.5))
 
         # Inject event and test the response
+        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+                                   angle = math.Degree(0.5))
+        self.qeventHub.publishEvents()
+
+        # Check to make sure it hasn't dropped without a second hit
+        self.assertAIDataValue('markersDropped', 1)
         self.publishQueuedBinFound(id = 0, x = 0, y = 0,
                                    angle = math.Degree(0.5))
         self.qeventHub.publishEvents()

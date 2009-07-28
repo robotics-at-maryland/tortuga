@@ -105,7 +105,7 @@ class HoveringState(state.State):
         
         # Only listen to the current bin ID
         if self._currentBin(event):
-            self._bin.setState(event.x, event.y, event.angle)
+            self._bin.setState(event.x, event.y, event.angle, event.timeStamp)
             
             self.ai.data["lastBinX"] = event.x
             self.ai.data["lastBinY"] = event.y
@@ -188,7 +188,7 @@ class HoveringState(state.State):
         self._first = True
         self._filterLimit = self._config.get('filterLimit', 75)
         
-        self._bin = ram.motion.pipe.Pipe(0,0,0)
+        self._bin = ram.motion.pipe.Pipe(0,0,0,timeStamp = None)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
         speedGain = self._config.get('speedGain', 5)
         yawGain = self._config.get('yawGain', 1)
@@ -222,30 +222,39 @@ class SettlingState(HoveringState):
     """
     @staticmethod
     def getattr():
-        return set(['threshold']).union(HoveringState.getattr())
+        return set(['planeThreshold', 'angleThreshold']).union(
+            HoveringState.getattr())
 
-    def enter(self, eventType, eventTime, useMultiAngle = False):
-        self._eventType = eventType
-        self._threshold = self._config.get('threshold', 0.05)
-
-        self.timer = self.timerManager.newTimer(eventType, eventTime)
-        self.timer.start()
-        
-        HoveringState.enter(self, useMultiAngle)
+    def _compareChange(self, values):
+        # Compare the values to their thresholds
+        # 0 = x : planeThreshold
+        # 1 = y : planeThreshold
+        # 2 = angle : angleThreshold
+        return abs(values[0]) < self._planeThreshold and \
+            abs(values[1]) < self._planeThreshold and \
+            abs(values[2]) < self._angleThreshold
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
 
         # Only check the current bin
         if self._currentBin(event):
-            negativeThreshold = (0.0 - self._threshold)
             # Check if it is in the threshold
-            if (negativeThreshold < event.x < self._threshold) and \
-                    (negativeThreshold < event.y < self._threshold):
+            if self._compareChange(self._bin.changeOverTime()):
                 # It is settled. Stop the timer and move on.
                 if self.timer is not None:
                     self.timer.stop()
                 self.publish(self._eventType, core.Event())
+
+    def enter(self, eventType, eventTime, useMultiAngle = False):
+        self._eventType = eventType
+        self._planeThreshold = self._config.get('planeThreshold', 0.03)
+        self._angleThreshold = self._config.get('angleThreshold', 0.03)
+
+        self.timer = self.timerManager.newTimer(eventType, eventTime)
+        self.timer.start()
+        
+        HoveringState.enter(self, useMultiAngle)
 
     def exit(self):
         HoveringState.exit(self)

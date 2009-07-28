@@ -71,7 +71,7 @@ class PingerState(state.State):
         self._sidewaysSpeedGain = 0
      
     def enter(self, timeout = 2.5):
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0)
+        self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
         self._lastTime = 0
 
         self._loadSettings()
@@ -173,7 +173,7 @@ class TranslationSeeking(PingerState):
             # Converting from the vehicle reference frame, to the image space
             # reference frame used by the pipe motion
             self._pipe.setState(-event.direction.y, event.direction.x, 
-                                ext.math.Degree(0))
+                                ext.math.Degree(0), event.timeStamp)
             
             if math.fabs(event.direction.z) > math.fabs(self._closeZ):
                  self.publish(TranslationSeeking.CLOSE, core.Event())

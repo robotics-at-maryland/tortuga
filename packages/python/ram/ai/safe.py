@@ -35,10 +35,10 @@ class SafeTrackingState(state.State):
     
     def SAFE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        self._safe.setState(event.x, event.y)#, event.angle)
+        self._safe.setState(event.x, event.y, event.timeStamp)#, event.angle)
 
     def enter(self):
-        self._safe = ram.motion.common.Target(0,0)
+        self._safe = ram.motion.common.Target(0, 0, timeStamp = None)
 
         speedGain = self._config.get('speedGain', 3)
         sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',1)

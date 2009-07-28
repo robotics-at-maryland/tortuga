@@ -12,6 +12,7 @@ import math
 import ext.core
 import ram.core as core
 import ram.motion.common as common
+import ram.timer
 from ram.motion.basic import Motion
 
 class Pipe(common.Target):
@@ -19,12 +20,18 @@ class Pipe(common.Target):
     Represents the pipe we are trying to follow
     """
     
-    def __init__(self, x, y, relativeAngle):
-        common.Target.__init__(self, x, y)
-        self.setState(x, y, relativeAngle, publish = False)
+    def __init__(self, x, y, relativeAngle, timeStamp = ram.timer.time()):
+        common.Target.__init__(self, x, y, timeStamp)
+        self.prevRelativeAngle = None
+        self.relativeAngle = relativeAngle
 
-    def setState(self, x, y, relativeAngle, publish = True):
-        common.Target.setState(self, x, y, False)
+    def setState(self, x, y, relativeAngle, timeStamp, publish = True):
+        common.Target.setState(self, x, y, timeStamp, False)
+        
+        # Store the old values
+        self.prevRelativeAngle = self.relativeAngle
+
+        # Store the new values
         self.relativeAngle = relativeAngle
 
         # Change them to degrees if they are ext.math.Degree/Radian types
@@ -33,6 +40,16 @@ class Pipe(common.Target):
 
         if publish:
             self.publish(Pipe.UPDATE, ext.core.Event())
+
+    def changeOverTime(self):
+        diff = common.Target.changeOverTime(self)
+        if self.prevTimeStamp is not None:
+            diffAngle = self.relativeAngle - self.prevRelativeAngle
+            diffTime = self.timeStamp - self.prevTimeStamp
+
+            return diff + ((diffAngle / diffTime),)
+        else:
+            return diff + (float('inf'),)
     
 class Hover(common.Hover):
     """

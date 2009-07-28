@@ -18,6 +18,7 @@ import ext.math as math
 import ram.motion as motion
 import ram.motion.seek
 import ram.test.motion.support as support
+import ram.timer
 
 class TestPointTarget(unittest.TestCase):
     def testRelativeDepth(self):
@@ -48,31 +49,53 @@ class TestPointTarget(unittest.TestCase):
         azimuth = 10
         elevation = 10
         range = 5
+        timeStamp = 1
         
-        p = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0, 
-                                    x = 0, y = 0)
+        p = motion.seek.PointTarget(azimuth = 5, elevation = 5, range = 3, 
+                                    x = 2, y = 1, timeStamp = None)
 
         p.setState(azimuth = azimuth, elevation = elevation, 
-                   range = range, x = x, y = y)
+                   range = range, x = x, y = y, timeStamp = timeStamp)
+
+        # Test new values
         self.assertEqual(x, p.x)
         self.assertEqual(y, p.y)
         self.assertEqual(azimuth, p.azimuth)
         self.assertEqual(elevation, p.elevation)
         self.assertEqual(range, p.range)
+        self.assertEqual(timeStamp, p.timeStamp)
+
+        # Test old values
+        self.assertEqual(2, p.prevX)
+        self.assertEqual(1, p.prevY)
+        self.assertEqual(5, p.prevAzimuth)
+        self.assertEqual(5, p.prevElevation)
+        self.assertEqual(3, p.prevRange)
+        self.assertEqual(None, p.prevTimeStamp)
         
         # Test set state with a level vehicle present
         mockVehicle = support.MockVehicle()
         
-        p = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0, 
-                                    x = 0, y = 0, vehicle = mockVehicle)
+        p = motion.seek.PointTarget(azimuth = 5, elevation = 5, range = 3, 
+                                    x = 2, y = 1, timeStamp = None,
+                                    vehicle = mockVehicle)
 
         p.setState(azimuth = azimuth, elevation = elevation, 
-                   range = range, x = x, y = y)
+                   range = range, x = x, y = y, timeStamp = timeStamp)
         self.assertEqual(x, p.x)
         self.assertEqual(y, p.y)
         self.assertEqual(azimuth, p.azimuth)
         self.assertEqual(elevation, p.elevation)
         self.assertEqual(range, p.range)
+        self.assertEqual(timeStamp, p.timeStamp)
+
+        # Test old values
+        self.assertEqual(2, p.prevX)
+        self.assertEqual(1, p.prevY)
+        self.assertEqual(5, p.prevAzimuth)
+        self.assertEqual(5, p.prevElevation)
+        self.assertEqual(3, p.prevRange)
+        self.assertEqual(None, p.prevTimeStamp)
         
         # Test with un-level vehicle pitched downward 11.25 degrees 
         # or 1/8 the FOV
@@ -81,12 +104,19 @@ class TestPointTarget(unittest.TestCase):
         motion.seek.PointTarget.VERTICAL_FOV = 90
         
         p.setState(azimuth = azimuth, elevation = elevation, 
-                   range = range, x = x, y = y)
+                   range = range, x = x, y = y, timeStamp = timeStamp)
         self.assertEqual(x, p.x)
         self.assertAlmostEqual(0.25, p.y, 5)
         self.assertEqual(azimuth, p.azimuth)
         self.assertEqual(elevation, p.elevation)
         self.assertEqual(range, p.range)
+
+        self.assertEqual(x, p.prevX)
+        self.assertEqual(y, p.prevY)
+        self.assertEqual(azimuth, p.prevAzimuth)
+        self.assertEqual(elevation, p.prevElevation)
+        self.assertEqual(range, p.prevRange)
+        self.assertEqual(timeStamp, p.prevTimeStamp)
         
 
 class SeekPointTest(support.MotionTest):
@@ -286,19 +316,22 @@ class TestSeekPoint(SeekPointTest):
         self.assertAlmostEqual(5, self.controller.depth, 3)
 
         # Update the buoy and make sure the motion updates the controller
-        Buoy.setState(azimuth = 15, elevation = 30, range = 0, y = 1, x = 0)
+        Buoy.setState(azimuth = 15, elevation = 30, range = 0, y = 1, x = 0,
+                      timeStamp = None)
         self.assertAlmostEqual(15, self.controller.yawChange, 4)
         self.assertAlmostEqual(4, self.controller.depth, 4)
 
         # Make sure a second update works
-        Buoy.setState(azimuth = -25, elevation = -30, range = 0, y = -1, x = 0)
+        Buoy.setState(azimuth = -25, elevation = -30, range = 0, y = -1, x = 0,
+                      timeStamp = None)
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
 
         # Stop motion and make sure updates there is not a change in the
         # controller from further state changes
         m.stop()
-        Buoy.setState(azimuth = 15, elevation = 9, range = 0, x = 0, y = -2)
+        Buoy.setState(azimuth = 15, elevation = 9, range = 0, x = 0, y = -2,
+                      timeStamp = None)
         self.assertAlmostEqual(-25, self.controller.yawChange, 4)
         self.assertAlmostEqual(6, self.controller.depth, 4)
 
@@ -317,7 +350,8 @@ class TestSeekPoint(SeekPointTest):
                                        x = 0, y = 0)
         
         # Start up the motion
-        Buoy.setState(azimuth = 50, elevation = 30, range = 0, x = 1, y = 1)
+        Buoy.setState(azimuth = 50, elevation = 30, range = 0, x = 1, y = 1,
+                      timeStamp = None)
         m = motion.seek.SeekPoint(target = Buoy)
         self.motionManager.setMotion(m)
         
@@ -326,7 +360,8 @@ class TestSeekPoint(SeekPointTest):
         self.assertFalse(self._aligned)
         
         # Feed data which does trigger the event
-        Buoy.setState(azimuth = 0, elevation = 0, range = 0, y = 0, x = 0)
+        Buoy.setState(azimuth = 0, elevation = 0, range = 0, y = 0, x = 0,
+                      timeStamp = None)
         self.qeventHub.publishEvents()
         self.assertTrue(self._aligned)
 

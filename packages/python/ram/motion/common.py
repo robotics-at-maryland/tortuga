@@ -82,16 +82,36 @@ class Target(ext.core.EventPublisher):
     """
     UPDATE = ext.core.declareEventType('UPDATE')
     
-    def __init__(self, x, y):
+    def __init__(self, x, y, timeStamp = ram.timer.time()):
         ext.core.EventPublisher.__init__(self)
-        Target.setState(self, x, y, publish = False)
+        self.x = None
+        self.y = None
+        self.timeStamp = None
+        Target.setState(self, x, y, timeStamp, publish = False)
 
-    def setState(self, x, y, publish = True):
+    def setState(self, x, y, timeStamp, publish = True):
+        # Store the old values
+        self.prevX = self.x
+        self.prevY = self.y
+        self.prevTimeStamp = self.timeStamp
+
+        # Store the new values
         self.x = x
         self.y = y
+        self.timeStamp = timeStamp
 
         if publish:
             self.publish(Target.UPDATE, ext.core.Event())
+
+    def changeOverTime(self):
+        if self.prevTimeStamp is not None:
+            diffX = self.x - self.prevX
+            diffY = self.y - self.prevY
+            diffTime = self.timeStamp - self.prevTimeStamp
+
+            return ((diffX / diffTime), (diffY / diffTime))
+        else:
+            return (float('inf'), float('inf'))
     
 class Hover(Motion):
     """

@@ -24,17 +24,36 @@ class PointTarget(ext.core.EventPublisher):
     UPDATE = ext.core.declareEventType('UPDATE')
     VERTICAL_FOV = 78.0 # TODO: Make me configurable
     
-    def __init__(self, azimuth, elevation, range, x, y, vehicle = None):
+    def __init__(self, azimuth, elevation, range, x, y,
+                 timeStamp = timer.time(), vehicle = None):
         ext.core.EventPublisher.__init__(self)
         self._vehicle = vehicle
-        self.setState(azimuth, elevation, range, x, y, publish = False)
+        self.azimuth = None
+        self.elevation = None
+        self.range = None
+        self.x = None
+        self.y = None
+        self.timeStamp = None
+        PointTarget.setState(self, azimuth, elevation, range, x, y, timeStamp,
+                      publish = False)
 
-    def setState(self, azimuth, elevation, range, x, y, publish = True):
+    def setState(self, azimuth, elevation, range, x, y, timeStamp,
+                 publish = True):
+        # Store the old values
+        self.prevAzimuth = self.azimuth
+        self.prevElevation = self.elevation
+        self.prevRange = self.range
+        self.prevX = self.x
+        self.prevY = self.y
+        self.prevTimeStamp = self.timeStamp
+
+        # Store the new values
         self.azimuth = azimuth
         self.elevation = elevation
         self.range = range
         self.x = x
         self.y = y
+        self.timeStamp = timeStamp
 
         # If we have vehicle do the correction
         if self._vehicle is not None:
@@ -54,6 +73,23 @@ class PointTarget(ext.core.EventPublisher):
 
         if publish:
             self.publish(PointTarget.UPDATE, ext.core.Event())
+
+    def changeOverTime(self):
+        if self.prevTimeStamp is not None:
+            diffAzimuth = self.azimuth - self.prevAzimuth
+            diffElevation = self.elevation - self.prevElevation
+            diffRange = self.range - self.prevRange
+            diffX = self.x - self.prevX
+            diffY = self.y - self.prevY
+            diffTime = self.timeStamp - self.prevTimeStamp
+
+            return ((diffAzimuth / diffTime), (diffElevation / diffTime),
+                    (diffRange / diffTime), (diffX / diffTime),
+                    (diffY / diffTime))
+        else:
+            return (float('inf'), float('inf'), float('inf'), float('inf'),
+                    float('inf'))
+
         
     class relativeDepth(core.cls_property):
         """

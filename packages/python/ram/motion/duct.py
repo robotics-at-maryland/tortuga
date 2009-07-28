@@ -7,20 +7,36 @@
 
 # Project Imports
 import ram.motion.seek as seek
+import ram.timer
 
 class Duct(seek.PointTarget):
     def __init__(self, azimuth, elevation, range, x, y, alignment, 
-                 vehicle = None):
+                 timeStamp = ram.timer.time(), vehicle = None):
         seek.PointTarget.__init__(self, azimuth, elevation, range, x, y, 
-                                  vehicle)
-        self.setState(azimuth, elevation, range, x, y, alignment,
-                      publish = False)
-
-    def setState(self, azimuth, elevation, range, x, y, alignment = 0,
-                 publish = True):
+                                  timeStamp, vehicle)
+        self.prevAlignment = None
         self.alignment = alignment
+
+    def setState(self, azimuth, elevation, range, x, y, alignment,
+                 timeStamp, publish = True):
+        # Store the old values
+        self.prevAlignment = self.alignment
+
+        # Store the new values
+        self.alignment = alignment
+
         seek.PointTarget.setState(self, azimuth, elevation, range, x, y, 
-                                  publish)
+                                  timeStamp, publish)
+
+    def changeOverTime(self):
+        diff = seek.PointTarget.changeOverTime(self)
+        if self.prevTimeStamp is not None:
+            diffAlignment = self.alignment - self.prevAlignment
+            diffTime = self.timeStamp - self.prevTimeStamp
+
+            return diff + ((diffAlignment / diffTime),)
+        else:
+            return diff + (float('inf'),)
 
 class DuctSeekAlign(seek.SeekPointToRange):
     """

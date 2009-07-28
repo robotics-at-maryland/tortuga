@@ -29,6 +29,7 @@ import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.search
 import ram.motion.seek
+import ram.timer
 
 LIGHT_HIT = core.declareEventType('LIGHT_HIT')
 COMPLETE = core.declareEventType('COMPLETE')
@@ -291,10 +292,11 @@ class Align(state.State, StoreLightEvent):
         """Update the state of the light, this moves the vehicle"""
         StoreLightEvent.LIGHT_FOUND(self, event)
         self._light.setState(event.azimuth, event.elevation, event.range,
-                             event.x, event.y)
+                             event.x, event.y, event.timeStamp)
 
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                  timeStamp = None,
                                                   vehicle = self.vehicle)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
@@ -332,10 +334,11 @@ class Seek(state.State, StoreLightEvent):
         """Update the state of the light, this moves the vehicle"""
         StoreLightEvent.LIGHT_FOUND(self, event)
         self._light.setState(event.azimuth, event.elevation, event.range,
-                             event.x, event.y)
+                             event.x, event.y, event.timeStamp)
 
     def enter(self):
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                  timeStamp = None,
                                                   vehicle = self.vehicle)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)

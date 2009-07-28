@@ -144,7 +144,8 @@ class SeekingToRange(FilteredState, state.State, StoreDuctEvent):
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
         self._duct.setState(azimuth, elevation, self._filterdRange,
-                            self._filterdX, self._filterdY)
+                            self._filterdX, self._filterdY,
+                            timeStamp = event.timeStamp)
         
         rangeError = math.fabs(self._filterdRange - self._desiredRange)
         frontDistance = math.sqrt(self._filterdX ** 2 + self._filterdY ** 2)
@@ -159,7 +160,8 @@ class SeekingToRange(FilteredState, state.State, StoreDuctEvent):
         self.visionSystem.ductDetectorOn()
         
         # Create tracking object
-        self._duct = ram.motion.seek.PointTarget(0, 0, 0, 0, 0)
+        self._duct = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                 timeStamp = None)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -189,7 +191,8 @@ class DuctAlignState(FilteredState, StoreDuctEvent):
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
         self._duct.setState(azimuth, elevation, self._filterdRange, 
-                            self._filterdX, self._filterdY, self._filterdAlign)
+                            self._filterdX, self._filterdY, self._filterdAlign,
+                            timeStamp = event.timeStamp)
         
     def enter(self):
         FilteredState.enter(self)
@@ -198,7 +201,7 @@ class DuctAlignState(FilteredState, StoreDuctEvent):
         self.visionSystem.ductDetectorOn()
         
         # Create tracking object
-        self._duct = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0)
+        self._duct = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0, timeStamp = None)
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
