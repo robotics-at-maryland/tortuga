@@ -29,6 +29,13 @@ RedLightDetector:
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 236
+    filtUMin: 0
+    filtVMax: 255
+    filtVMin: 200
+    useLUVFilter: 1
 OrangePipeDetector:
     rOverGMin: 1.05 #0.75 (NEW# 0.88)
     rOverGMax: 2.41 #1.5 (NEW# 2.16)
@@ -38,6 +45,13 @@ OrangePipeDetector:
     minPixels: 3000
     minPixelsFound: 1500
     erodeIterations: 1
+    filtLMax: 210
+    filtLMin: 0
+    filtUMax: 200
+    filtUMin: 14
+    filtVMax: 255
+    filtVMin: 126
+    useLUVFilter: 1
 BinDetector:
     symbolDetector: BasicWW2Detector
     centeredLimit: 0.2
@@ -49,6 +63,25 @@ BinDetector:
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
     incrediblyWashedOut: 0
+    filtblackLMax: 255
+    filtblackLMin: 231
+    filtblackUMax: 255
+    filtblackUMin: 0
+    filtblackVMax: 178
+    filtblackVMin: 6
+    filtredLMax: 255
+    filtredLMin: 0
+    filtredUMax: 200
+    filtredUMin: 0
+    filtredVMax: 187
+    filtredVMin: 113
+    filtwhiteLMax: 255
+    filtwhiteLMin: 179
+    filtwhiteUMax: 201
+    filtwhiteUMin: 17
+    filtwhiteVMax: 255
+    filtwhiteVMin: 100
+    useLUVFilter: 1
 DuctDetector:
     minRedOverGreen: 0.5
     maxRedOverGreen: 1.5
