@@ -7,36 +7,36 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
 
 config:
     gateDepth: 4
-    lightDepth: 6
+    lightDepth: 4.75
     pipeDepth: 7
-    bwireDepth: 11.3
-    targetDepth: 7.5
+    bwireDepth: 10
+    targetDepth: 8.1
     binStartDepth: 7
     binDepth: 12
     targetSymbols: ['Tank', 'Factory']
-    sonarDepth: 15
-    safeDepth: 10
+    sonarDepth: 5
+    safeDepth: 9
     safeDepthOffset: 1
     safeOffset: -0.4
     Gate:
         time: 30
         speed: 3
-    Pipe1:
-        biasDirection: 0
-        threshold: 50
-    PipeBarbedWire:
-        #biasDirection: -100
-        #threshold: 0
-        rotation: 0
-        duration: 0
-        legTime: 5
-        sweepAngle: 30
-        sweepSpeed: 3
-    PipeBin:
+    #Pipe1:
+    #    biasDirection: 0
+    #    threshold: 50
+    #PipeBarbedWire:
+    #    biasDirection: -100
+    #    threshold: 0
+    #    rotation: 0
+    #    duration: 0
+    #    legTime: 5
+    #    sweepAngle: 30
+    #    sweepSpeed: 3
+    #PipeBin:
         #biasDirection: -110
         #threshold: 0
-        rotation: -40
-        duration: 0
-        legTime: 3
-        sweepAngle: 45
-        sweepSpeed: 3
+    #    rotation: -40
+    #    duration: 0
+    #    legTime: 3
+    #    sweepAngle: 45
+    #    sweepSpeed: 3
