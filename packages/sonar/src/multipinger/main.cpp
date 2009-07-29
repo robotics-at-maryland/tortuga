@@ -80,6 +80,17 @@ static uint64_t power[NCHANNELS];
 /// CODE ///////////////////////////////////////////////////////////////////////
 
 
+void initADCs()
+{
+#ifdef __BFIN
+    // Initialize ADC
+    REG(ADDR_ADCONFIG) = 0x8000;
+    REG(ADDR_ADPRESCALER) = 0x0000;
+    REG(ADDR_ADCONFIG) = 0x4044;
+#endif
+}
+
+
 /**
  * Determine if a sample can be read from the ADCs.
  * @return true if at least 1 sample is available to be read,
@@ -204,6 +215,8 @@ int main()
 #ifdef __BFIN
     fd = openDevice();
 #endif
+    
+    initADCs();
     
     while (true)
     {
