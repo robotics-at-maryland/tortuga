@@ -29,10 +29,13 @@ import ext.control
 import ext.core as core
 
 from ram.logloader import resolve
-import ram.ai.state 
+import ram.ai.state
 import ram.ai.task as task
 import ram.filter as filter
 import ram.timer as timer
+import ram.motion as motion
+import ram.motion.common
+import ram.motion.pipe
 
 class BasePanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
@@ -45,7 +48,7 @@ class BasePanel(wx.Panel):
             conn.disconnect()
         
     def _createControls(self, name, startEnable = False):
-        # Creat box around controls
+        # Create box around controls
         box = wx.StaticBox(parent = self, label = name)
         topSizer = wx.StaticBoxSizer(box)
         
@@ -1389,6 +1392,97 @@ class EventPlayerPanel(wx.Panel):
 
         return []
 
+class SeekObjectivePanel(BasePanel):
+    implements(IPanelProvider)
+
+    def __init__(self, parent, eventHub, machine, *args, **kwargs):
+        BasePanel.__init__(self, parent, *args, **kwargs)
+
+        # Make sure we shut down all events on close
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+
+        self._eventHub = eventHub
+        self._machine = machine
+        self._targetHub = None
+
+        self._createControls("Objective")
+
+        # Create the reference to the object we will track
+        self._target = None
+
+        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_ENTERED,
+                                        self._onEntered)
+        self._connections.append(conn)
+
+        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_EXITED,
+                                        self._onExited)
+        self._connections.append(conn)
+
+        self._targetConnections = []
+
+    def enableControls(self):
+        for control in self._generatedControls:
+            control.Enable()
+
+    def disableControls(self):
+        for control in self._generatedControls:
+            control.Disable()
+
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+
+    def _onEntered(self, event):
+        # Iterate through the new event's attributes to find a tracked
+        # object
+        cstate = self._machine.currentState()
+
+        for var in dir(cstate):
+            if isinstance(getattr(cstate, var), motion.common.Target):
+                # We have found the target, now track it
+                self._target = getattr(cstate, var)
+                # Subscribe to this target's update events and store the
+                # connection as our first connection
+                self._targetConnections.insert(0, self._target.subscribe(
+                    motion.common.Target.UPDATE, self._onUpdate))
+                self.enableControls()
+
+    def _onExited(self, event):
+        # Delete the last connection as it is the one that exited
+        if len(self._targetConnections) > 0:
+            # Stop the connection and remove it
+            self._targetConnections.pop().disconnect()
+            
+        self._target = None
+        self.disableControls()
+
+    def _onUpdate(self, event):
+        if self._target is not None:
+            errorAdj = self._target.errorAdj()
+            self._x.Value = "% 4.2f" % errorAdj[0]
+            self._y.Value = "% 4.2f" % errorAdj[1]
+
+    def _onClose(self, event):
+        for conn in self._targetConnections:
+            conn.disconnect()
+        BasePanel._onClose(self, event)
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+        
+        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
+                                                    subsystems)
+
+        if eventHub is not None and machine is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Seek Objective")
+            paneInfo = paneInfo.Caption("Seek Objective").Left()
+
+            return [(paneInfo, SeekObjectivePanel(parent, eventHub, machine),
+                     [machine])]
+
+        return []
 
 #class DemoSonarPanel(wx.Panel):
 #    implements(IPanelProvider)

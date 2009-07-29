@@ -94,7 +94,7 @@ class BaseVisionPanel(BasePanel):
         self._connections.append(conn)
                 
     def _createControls(self, name):
-        # Creat box around controls
+        # Create box around controls
         box = wx.StaticBox(parent = self, label = name)
         topSizer = wx.StaticBoxSizer(box)
         
@@ -102,7 +102,7 @@ class BaseVisionPanel(BasePanel):
         topSizer.Add(self.sizer, 1, wx.EXPAND)
         
         # Buoy Text and Label
-        self._hide = wx.Button(self, label = "Hide")
+        self._hide = wx.Button(self, label = "Off")
         self.sizer.Add(self._hide, 1, flag = wx.ALIGN_CENTER)
         self._hide.Bind(wx.EVT_BUTTON, self._onButton)
 

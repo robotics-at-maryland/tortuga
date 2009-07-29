@@ -226,25 +226,14 @@ class SettlingState(HoveringState):
             HoveringState.getattr())
 
     def _compareChange(self, pvalues, dvalues):
-        # Compare the values to their thresholds
-        # Find the displacement and the velocity of the
-        # x, y, and angle values.
-
-        # Unpack the values given
-        x, y, angle = pvalues
-        dx, dy, dangle = dvalues
-
-        # Use the formula and get a definitive value from the equation
-        finalx = self._kp * abs(x) + self._kd * abs(dx)
-        finaly = self._kp * abs(y) + self._kd * abs(dy)
-        # angle is in Degrees, dangle is a float
-        finalAngle = self._kp * abs(angle.valueDegrees()) + \
-            self._kd * abs(dangle)
+        # Get the error adjustments
+        errorAdj = self._bin.errorAdj()
 
         # Return true if all of the values are in the thresholds
-        return finalx < self._planeThreshold and \
-            finaly < self._planeThreshold and \
-            finalAngle < self._angleThreshold
+        # x = [0], y = [1], angle = [2]
+        return errorAdj[0] < self._planeThreshold and \
+            errorAdj[1] < self._planeThreshold and \
+            errorAdj[2] < self._angleThreshold
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)

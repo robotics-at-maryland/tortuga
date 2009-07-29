@@ -386,6 +386,11 @@ void VisionSystem::removeForwardRecorder(std::string recorderString)
         delete m_recorders[recorderString];
         m_recorders.erase(recorderString);
     }
+    else
+    {
+        std::cerr<<"Could not remove forward recorder: "<<
+	  recorderString<<std::endl;
+    }
 }
 
 void VisionSystem::removeDownwardRecorder(std::string recorderString)
@@ -394,6 +399,11 @@ void VisionSystem::removeDownwardRecorder(std::string recorderString)
     {
         delete m_recorders[recorderString];
         m_recorders.erase(recorderString);
+    }
+    else
+    {
+        std::cerr<<"Could not remove downward recorder: "<<
+	  recorderString<<std::endl;
     }
 }
     

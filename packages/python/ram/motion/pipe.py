@@ -20,8 +20,9 @@ class Pipe(common.Target):
     Represents the pipe we are trying to follow
     """
     
-    def __init__(self, x, y, relativeAngle, timeStamp = ram.timer.time()):
-        common.Target.__init__(self, x, y, timeStamp)
+    def __init__(self, x, y, relativeAngle, timeStamp = ram.timer.time(),
+                 kp = 1.0, kd = 1.0):
+        common.Target.__init__(self, x, y, timeStamp, kp, kd)
         self.prevRelativeAngle = None
         self.relativeAngle = relativeAngle
 
@@ -50,6 +51,14 @@ class Pipe(common.Target):
             return diff + ((diffAngle / diffTime),)
         else:
             return diff + (float('inf'),)
+
+    def errorAdj(self):
+        adj = common.Target.errorAdj(self)
+       
+        errorAngle = self._kp * abs(self.relativeAngle) + \
+            self._kd * Pipe.changeOverTime(self)[2]
+
+        return adj + (errorAngle,)
     
 class Hover(common.Hover):
     """

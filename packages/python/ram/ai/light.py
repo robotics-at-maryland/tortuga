@@ -290,7 +290,7 @@ class Align(state.State, StoreLightEvent):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'speed', 'alignmentThreshold',
                     'translate', 'translateGain', 'iTranslateGain',
-                    'dTranslateGain', 'planeThreshold'])
+                    'dTranslateGain', 'planeThreshold', 'kp', 'kd'])
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
@@ -322,11 +322,12 @@ class Align(state.State, StoreLightEvent):
             self.publish(Align.SEEK_LIGHT, core.Event())
 
     def enter(self):
-        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  vehicle = self.vehicle)
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
+        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                                  timeStamp = None,
+                                                  vehicle = self.vehicle,
+                                                  kp = self._kp, kd = self._kd)
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)

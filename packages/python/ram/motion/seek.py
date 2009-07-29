@@ -17,25 +17,22 @@ from ram.motion.basic import Motion
 
 import ext.core
 
-class PointTarget(ext.core.EventPublisher):
+class PointTarget(common.Target):
     """
     This represents the state of the target 
     """
-    UPDATE = ext.core.declareEventType('UPDATE')
     VERTICAL_FOV = 78.0 # TODO: Make me configurable
     
     def __init__(self, azimuth, elevation, range, x, y,
-                 timeStamp = timer.time(), vehicle = None):
-        ext.core.EventPublisher.__init__(self)
+                 timeStamp = timer.time(), vehicle = None, kp = 1.0, kd = 1.0):
+        common.Target.__init__(self, x, y, timeStamp, kp, kd)
         self._vehicle = vehicle
-        self.azimuth = None
-        self.elevation = None
-        self.range = None
-        self.x = None
-        self.y = None
-        self.timeStamp = None
-        PointTarget.setState(self, azimuth, elevation, range, x, y, timeStamp,
-                      publish = False)
+        self.prevAzimuth = None
+        self.prevElevation = None
+        self.prevRange = None
+        self.azimuth = azimuth
+        self.elevation = elevation
+        self.range = range
 
     def setState(self, azimuth, elevation, range, x, y, timeStamp,
                  publish = True):
@@ -43,17 +40,11 @@ class PointTarget(ext.core.EventPublisher):
         self.prevAzimuth = self.azimuth
         self.prevElevation = self.elevation
         self.prevRange = self.range
-        self.prevX = self.x
-        self.prevY = self.y
-        self.prevTimeStamp = self.timeStamp
 
         # Store the new values
         self.azimuth = azimuth
         self.elevation = elevation
         self.range = range
-        self.x = x
-        self.y = y
-        self.timeStamp = timeStamp
 
         # If we have vehicle do the correction
         if self._vehicle is not None:
@@ -63,7 +54,7 @@ class PointTarget(ext.core.EventPublisher):
             pitch = self._vehicle.getOrientation().getPitch(True)
             realAngle = angle - pitch.valueDegrees()
             # Now use actual angle of the object to get the real X value
-            self.y = realAngle / (PointTarget.VERTICAL_FOV/2.0)
+            y = realAngle / (PointTarget.VERTICAL_FOV/2.0)
 
         # Change them to degrees if they are ext.math.Degree/Radian types
         if hasattr(self.azimuth, 'valueDegrees'):
@@ -71,8 +62,7 @@ class PointTarget(ext.core.EventPublisher):
         if hasattr(self.elevation, 'valueDegrees'):
             self.elevation = self.elevation.valueDegrees()
 
-        if publish:
-            self.publish(PointTarget.UPDATE, ext.core.Event())
+        common.Target.setState(self, x, y, timeStamp, publish)
 
     def changeOverTime(self):
         if self.prevTimeStamp is not None:

@@ -79,7 +79,8 @@ def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
     # All comments are needed. Do not add blank lines!
     TIMEOUT = core.declareEventType('TIMEOUT')
     def stop(event):
-        removeRecorder(name)
+        print '"finish record"'
+        removeRecorder(name + extension)
     queuedEventHub.subscribeToType(TIMEOUT, stop)
     # If no name was given, create one out of the time
     if name is None:
@@ -91,10 +92,10 @@ def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
     clipTimer = timerManager.newTimer(TIMEOUT, seconds)
     clipTimer.start()
 
-def takeFClip(seconds, name = None, extension = ".avi", rate = 5):
+def takeFClip(seconds, name = None, extension = ".rmv", rate = 5):
     recordClip(visionSystem.addForwardRecorder, visionSystem.removeForwardRecorder, seconds, name, extension, rate)
 
-def takeDClip(seconds, name = None, extension = ".avi", rate = 5):
+def takeDClip(seconds, name = None, extension = ".rmv", rate = 5):
     recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
 
 # End of file (this line is required)

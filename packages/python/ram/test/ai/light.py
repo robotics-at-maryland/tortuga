@@ -444,7 +444,7 @@ class TestSeek(support.AITestCase):
         
     def testLightFound(self):
         """Make sure new found events move the vehicle"""
-        # Light  dead ahead and below us
+        # Light dead ahead and below us
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = -0.5, azimuth = math.Degree(15))
         

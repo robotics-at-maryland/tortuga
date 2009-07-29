@@ -82,11 +82,14 @@ class Target(ext.core.EventPublisher):
     """
     UPDATE = ext.core.declareEventType('UPDATE')
     
-    def __init__(self, x, y, timeStamp = ram.timer.time()):
+    def __init__(self, x, y, timeStamp = ram.timer.time(), kp = 1.0,
+                 kd = 1.0):
         ext.core.EventPublisher.__init__(self)
         self.x = None
         self.y = None
         self.timeStamp = None
+        self._kp = kp
+        self._kd = kd
         Target.setState(self, x, y, timeStamp, publish = False)
 
     def setState(self, x, y, timeStamp, publish = True):
@@ -112,6 +115,18 @@ class Target(ext.core.EventPublisher):
             return ((diffX / diffTime), (diffY / diffTime))
         else:
             return (float('inf'), float('inf'))
+
+    def errorAdj(self):
+        # Unpack the values given
+        x, y = self.x, self.y
+        dx, dy = Target.changeOverTime(self)
+
+        # Compute the difference between where the bin is and where it is
+        # in our camera frame
+        errorX = self._kp * abs(x) + self._kd * abs(dx)
+        errorY = self._kp * abs(y) + self._kd * abs(dy)
+
+        return (errorX, errorY)
     
 class Hover(Motion):
     """
