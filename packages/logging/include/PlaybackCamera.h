@@ -21,7 +21,9 @@ namespace logging {
 class PlaybackCamera : public ram::vision::Camera
 {
 public:
-    PlaybackCamera(vision::CameraPtr camera);
+    static const std::string PLAYBACK_STR;
+    
+    PlaybackCamera(vision::CameraPtr camera, core::EventHubPtr eventHub);
 
     virtual ~PlaybackCamera();
 
@@ -58,6 +60,12 @@ protected:
     virtual void nextFrameSleep(double seconds);
 
 private:
+    /** EventPlayer::STOP handler, stops the playing */
+    void stopHandler(core::EventPtr event);
+
+    /** EventPlayer::START handler, starts the playing */
+    void startHandler(core::EventPtr event);
+    
     vision::CameraPtr m_camera;
 
     /** Protects access to the next update time */
