@@ -296,11 +296,19 @@ class Align(state.State, StoreLightEvent):
         """Holds the current depth when we find we are aligned"""
         if self._depthGain != 0:
             self.controller.holdCurrentDepth()
-        self._aligned = True
 
-    def _compareChange(self, values):
-        return abs(values[0]) < self._planeThreshold and \
-            abs(values[1]) < self._planeThreshold
+    def _compareChange(self, pvalues, dvalues):
+        x, y = pvalues
+        dx, dy = dvalues
+
+        if self._depthGain == 0:
+            y = 0
+
+        finalx = self._kp * abs(x) + self._kd * abs(dx)
+        finaly = self._kp * abs(y) + self._kd * abs(dy)
+
+        return finalx < self._planeThreshold and \
+            finaly < self._planeThreshold
 
     def LIGHT_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
@@ -309,14 +317,16 @@ class Align(state.State, StoreLightEvent):
                              event.x, event.y, event.timeStamp)
 
         change = self._light.changeOverTime()
-        if self._aligned and self._compareChange((change[3], change[4])):
+        if self._compareChange((event.x, event.y),
+                               (change[3], change[4])):
             self.publish(Align.SEEK_LIGHT, core.Event())
 
     def enter(self):
-        self._aligned = False
         self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
                                                   vehicle = self.vehicle)
+        self._kp = self._config.get('kp', 1.0)
+        self._kd = self._config.get('kd', 1.0)
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)

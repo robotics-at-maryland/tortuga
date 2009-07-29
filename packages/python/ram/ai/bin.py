@@ -261,8 +261,8 @@ class SettlingState(HoveringState):
 
     def enter(self, eventType, eventTime, useMultiAngle = False):
         self._eventType = eventType
-        self._kp = self._config.get('kp', 1)
-        self._kd = self._config.get('kd', 1)
+        self._kp = self._config.get('kp', 1.0)
+        self._kd = self._config.get('kd', 1.0)
         self._planeThreshold = self._config.get('planeThreshold', 0.3)
         self._angleThreshold = self._config.get('angleThreshold', 5)
 
