@@ -7,6 +7,9 @@
  * File:  packages/drivers/bfin_spartan/src/report.c
  */
 
+// Comment out to use new pinger report format that includes pinger ID
+#define BFIN_SPARTAN_USE_LEGACY_REPORTPING
+
 // STD Includes
 #include <stdio.h>
 
@@ -79,10 +82,16 @@ int closeDevice(int fd)
 }
 
 
+#ifdef BFIN_SPARTAN_USE_LEGACY_REPORTPING
 #define PACKET_LENGTH 29
+#else
+#define PACKET_LENGTH 31
+#endif
+
 int reportPing(int fd, byte status, double vectorX, double vectorY, double vectorZ,
-               uint16_t range, uint32_t timeStamp, uint32_t sampleNo)
+               uint16_t range, uint32_t timeStamp, uint32_t sampleNo, byte pingerID)
 {
+    int retCode, i= 0;
     if(fd < 0)
         return -1;
 
@@ -101,7 +110,11 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     signed short vY = vectorY * 10000.0;
     signed short vZ = vectorZ * 10000.0;
 
-    buf[6] = 0x00;  /* A freaking sentinel byte */
+    /* Every 5th byte we jam in a sentinel byte.  These prevent the {0xFF,0xFF,
+     * 0xFF,0xFF,0xFF} packet (which deliniates the start of a full packet) 
+     * from being sent.  This way no matter what we send, we never restart the
+     * receiving PIC. */
+    buf[6] = 0x00;  /* sentinel byte */
 
     /* All values big-endian */
     buf[7] = (vX >> 8) & 0xFF;
@@ -134,16 +147,22 @@ int reportPing(int fd, byte status, double vectorX, double vectorY, double vecto
     buf[25] = (sampleNo >> 8) & 0xFF;
     buf[26] = (sampleNo & 0xFF);
 
+#ifndef BFIN_SPARTAN_USE_LEGACY_REPORTPING
+    buf[27] = 0x00; /* Sentinel byte */
+
+    buf[28] = pingerID;
+    
+    buf[29] = 0x00; /* not a sentinel byte, but who cares? */
+#endif
+
     byte cs = 0;
 
-    int i=0;
-    for(i=6; i<27; i++)
+    for(i=6; i<PACKET_LENGTH-2; i++)
         cs += buf[i];
 
-    buf[27] = cs;
-    buf[28] = 0x00;
+    buf[PACKET_LENGTH-2] = cs;
 
-    int retCode = write(fd, buf, PACKET_LENGTH);
+    retCode = write(fd, buf, PACKET_LENGTH);
 
     if(retCode == PACKET_LENGTH)
         return 0;

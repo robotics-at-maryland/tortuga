@@ -33,14 +33,7 @@ int main(int argc, char *argv[])
 	{
 		++sampleCount;
 		if (sampleCount > startSample && sampleCount <= stopSample)
-		{
-		    if((sizeof(adcdata_t) * nChannels) !=
-		       fwrite(sample, sizeof(adcdata_t), nChannels, stdout))
-		    {
-		      fprintf(stderr, "Error writing data to file.\n");
-		      return EXIT_FAILURE;       
-		    }
-		}
+			fwrite(sample, sizeof(adcdata_t), nChannels, stdout);
 	}
 	return 0;
 }

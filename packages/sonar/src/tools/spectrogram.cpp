@@ -74,14 +74,7 @@ int main(int argc, char *argv[])
 			L1[k] = fixed::magL1(spectrum.getAmplitude(k, 0));
 		}
 		if (sampleCount >= begin && (sampleCount < end || end < 0) && (sampleCount % skip == 0))
-		{
-		  if((sizeof(myadc::DOUBLE_WIDE::SIGNED) * N) != 
-		     fwrite(L1, sizeof(myadc::DOUBLE_WIDE::SIGNED), N, stdout))
-		  {
-		    std::cerr << "Error writing to file" << std::endl;
-		    return EXIT_FAILURE; 
-		  }
-		}
+			fwrite(L1, sizeof(myadc::DOUBLE_WIDE::SIGNED), N, stdout);
 	}
 	return 0;
 }

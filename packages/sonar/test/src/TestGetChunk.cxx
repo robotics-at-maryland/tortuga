@@ -82,17 +82,8 @@ int main(int argc, char* argv[])
 
     //Now, print it
     for(int j=0; j<ENV_CALC_FRAME; j++)
-    {
         for(int i=0; i<NCHANNELS; i++)
-        {
-	  if(sizeof(adcdata_t) != 
-	     fwrite(&data[i][j], sizeof(adcdata_t),1, f))
-          {
-	    fprintf(stderr,"Could not write to output file\n");
-	    return -1;
-	  }
-	}
-    }
+            fwrite(&data[i][j], sizeof(adcdata_t),1, f);
 
     for(int i=0; i<NCHANNELS; i++)
     {

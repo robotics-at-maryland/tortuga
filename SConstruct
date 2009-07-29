@@ -75,6 +75,8 @@ if env['bfin']:
                 '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc')
     env.Replace(CXX = 
                 '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++')
+    env.Replace(AS = 
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-as')
 
 Help(opts.GenerateHelpText(env))
 

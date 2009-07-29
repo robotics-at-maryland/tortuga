@@ -4,5 +4,5 @@
 if [[ $1 == 'clean' ]];then
 	scons --clean -Q
 else
-	scons -Q with_features=$1
+	scons -Q -j3 with_features=$1
 fi

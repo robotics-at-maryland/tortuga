@@ -1,21 +1,19 @@
-/**
- * @file packages/sonar/include/PingDetect.h
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/include/PingDetect.h
  */
 
-#ifndef _RAM_SONAR_PINGDETECT_H
-#define _RAM_SONAR_PINGDETECT_H
+#ifndef _RAM_SONAR_PINGD
+#define _RAM_SONAR_PINGD
 
 // Project Includes
 #include "sonar/include/spectrum/SparseSDFTSpectrum.h"
 #include "sonar/include/adctypes.h"
 #include "sonar/include/Sonar.h"
-
-#include <bitset>
 
 namespace ram {
 namespace sonar {
@@ -30,26 +28,19 @@ namespace sonar {
  */
 class pingDetect
 {
+    int numchan; //number of channels actually used
     int count; //counts how many samples were received since last update
-    std::bitset<NCHANNELS> detected; //stores the hydrophones that detected the ping
-    
-    /**
-     * Array of the maximum Fourier magnitudes on each channel at each k-band
-     */
-    adcmath_t maxMag[NCHANNELS][nKBands];
-    
-    /**
-     * Level of the smallest maximum in the zeroth k-band of each channel
-     */
-    adcmath_t minmax[NCHANNELS];
-    
+    int detected; //stores the hydrophones that detected the ping
+    adcmath_t currmax[NCHANNELS][nKBands]; //current maximum value
+    adcmath_t minmax[NCHANNELS]; //minima over the frames
     int threshold[NCHANNELS]; //thresholds for detecting the pings
     int ping_detect_frame; //the width of frames over which the max is calculated
     SparseSDFTSpectrum<adc<16>, DFT_FRAME, NCHANNELS, nKBands> spectrum; //Fourier transform class
 
     public:
-    pingDetect(const int* hydro_threshold, const int* bands, int p_detect_frame);
-    const std::bitset<NCHANNELS>& p_update(adcdata_t *sample);
+    pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame);
+    ~pingDetect();
+    int p_update(adcdata_t *sample);
     void reset_minmax();
     void purge();
 }; //pingDetect

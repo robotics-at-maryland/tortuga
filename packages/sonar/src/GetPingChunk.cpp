@@ -1,10 +1,10 @@
-/**
- * @file packages/sonar/src/GetPingChunk.cpp
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/src/GetPingChunk.cpp
  */
 
 // STD Includes
@@ -19,75 +19,99 @@
 #include "drivers/bfin_spartan/include/spartan.h"
 #include "drivers/bfin_spartan/include/dataset.h"
 
+using namespace std;
+
 namespace ram {
 namespace sonar {
 
 getPingChunk::getPingChunk(const int* kBands)
-	: pdetect(PD_THRESHOLDS, kBands, PING_DETECT_FRAME)
+	: pdetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME)
+{}
+
+getPingChunk::~getPingChunk()
 {}
 
 int
 getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet)
 {
     //Initialize some things
-    int lastDetectedIndex = 0;
-    int lastPingIndex[NCHANNELS];
-    std::bitset<NCHANNELS> lastDetectedFlag;
+    last_detected=0;
     pdetect.purge(); //re-zero the parameters, even if I already have done it again.  Doesn't hurt that much, since it was done once
-    bzero(lastPingIndex, sizeof(*lastPingIndex) * NCHANNELS);
-
-    adcdata_t sample[NCHANNELS];
-    for(int i=0 ; i < dataSet->size ; i++)
+    for(int channel=0; channel<NCHANNELS; channel++)
     {
-        for (int channel = 0 ; channel < NCHANNELS ; channel++)
-            sample[channel] = getSample(dataSet, channel, i);
+        last_ping_index[channel]=0;
+        last_value[channel]=0;
+    }
 
-        const std::bitset<NCHANNELS> detectedFlag = pdetect.p_update(sample);
+    for(int i=0; i<dataSet->size; i++)
+    {
+        sample[0] = getSample(dataSet, 0, i);
+        sample[1] = getSample(dataSet, 1, i);
+        sample[2] = getSample(dataSet, 2, i);
+        sample[3] = getSample(dataSet, 3, i);
 
-        if (i < DFT_FRAME) //The DFT initializes to 0, so I ignore all points before it
+        detected=pdetect.p_update(sample);
+
+        if(i<DFT_FRAME) //The DFT initializes to 0, so I ignore all points before it
             continue;
-        else if (i == DFT_FRAME)
+        else if(i==DFT_FRAME)
             pdetect.reset_minmax();
 
-        if (i - lastDetectedIndex > MAX_PING_SEP)
+        if(i-last_detected>MAX_PING_SEP)
         {
-            lastDetectedFlag.reset();
-            lastDetectedIndex = 0;
+            for(int j=0; j<NCHANNELS; j++)
+                last_value[j]=0;
+            last_detected=0;
         }
 
-        if (detectedFlag.any())
+        if(detected !=0)
         {
-            lastDetectedIndex = i;
-            for (int channel = 0 ; channel < NCHANNELS ; channel ++)
-                if (detectedFlag[channel] && !lastDetectedFlag[channel])
-                    lastPingIndex[channel] = i;
-            lastDetectedFlag |= detectedFlag;
+            last_detected=i;
+            if(((detected & 1) != 0) && (last_value[0]!=1))
+            {
+                last_value[0]=1;
+                last_ping_index[0]=i;
+            }
+            if(((detected & 2) != 0) && (last_value[1]!=1))
+            {
+                last_value[1]=1;
+                last_ping_index[1]=i;
+            }
+            if(((detected & 4) != 0) && (last_value[2]!=1))
+            {
+                last_value[2]=1;
+                last_ping_index[2]=i;
+            }
+            if(((detected & 8) != 0) && (last_value[3]!=1))
+            {
+                last_value[3]=1;
+                last_ping_index[3]=i;
+            }
         }
 
-        if (lastDetectedFlag.count() == NCHANNELS)
+        if((last_value[0]==1) &&
+           (last_value[1]==1) &&
+           (last_value[2]==1) &&
+           (last_value[3]==1))
         {
-            bool tooCloseToStart = false;
-            for (int channel = 0 ; channel < NCHANNELS ; channel++)
-                if (lastPingIndex[channel] < ENV_CALC_FRAME)
-                {
-                    tooCloseToStart = true;
-                    break;
-                }
-            
-            if (tooCloseToStart) //too close to the start, skip it
+            if((last_ping_index[0]<ENV_CALC_FRAME) || //too close to the start, skip it
+               (last_ping_index[1]<ENV_CALC_FRAME) || 
+               (last_ping_index[2]<ENV_CALC_FRAME) || 
+               (last_ping_index[3]<ENV_CALC_FRAME))
             {
                 pdetect.reset_minmax();
-                lastDetectedFlag.reset();
+                for(int channel=0; channel<NCHANNELS; channel++)
+                    last_value[channel]=0;
             }
             else
             {
-                for(int channel = 0 ; channel < NCHANNELS ; channel++)
+                for(int channel=0; channel<NCHANNELS; channel++)
                 {
-                    for(int k=0; k < ENV_CALC_FRAME ; k++)
-                        data[channel][k] = getSample(dataSet, channel, k+lastPingIndex[channel]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
-                    locations[channel] = lastPingIndex[channel]-ENV_CALC_FRAME+1;
+                    for(int k=0; k<ENV_CALC_FRAME; k++)
+                        data[channel][k]=getSample(dataSet, channel, k+last_ping_index[channel]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
+                    locations[channel]=last_ping_index[channel]-ENV_CALC_FRAME+1;
                 }
-                //std::cout << "Ping Detected at " << locations[0] << std::endl;
+                //cout<<"Ping Detected at "<<locations[0]<<endl;
 
                 return 1;
             }
@@ -96,5 +120,5 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
     return 0;
 }
 
-} // namespace sonar
-} // namespace ram
+}//sonar
+}//ram

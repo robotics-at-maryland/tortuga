@@ -1,10 +1,10 @@
-/**
- * @file packages/sonar/src/sonard/main.cpp
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/src/sonard/main.cpp
  */
 
 /* 
@@ -149,7 +149,8 @@ int main(int argc, char* argv[])
                         ping.direction[2],
                         (uint16_t) ping.distance,
                         (uint32_t) temp_time.tv_sec*1000+temp_time.tv_usec/1000,
-                        (uint32_t) loop_counter);
+                        (uint32_t) loop_counter,
+                        (byte) 0 /*pingerID, not implemented*/);
 
                 //Now find out when we need to wake up
                 sleep_time=(NOMINAL_PING_DELAY-(SMALL_DATASET*500)/SAMPRATE)*1000;

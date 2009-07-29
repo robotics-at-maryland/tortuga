@@ -1,10 +1,10 @@
-/**
- * @file packages/sonar/src/PingDetect.cpp
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/src/PingDetect.cpp
  */
 
 // STD Includes
@@ -15,8 +15,7 @@
 #include "sonar/include/fixed/fixed.h"
 #include "sonar/include/PingDetect.h"
 
-namespace ram {
-namespace sonar {
+using namespace ram::sonar;
 
 /* Constructor for pingDetect class.  Initializes the Fourier Transform,
  * counting variables
@@ -26,13 +25,20 @@ namespace sonar {
  *              A "ping" is registered only if the k-band of interest has the
  *              greatest magnitude of all the k-bands provided.
  */
-pingDetect::pingDetect(const int* hydro_threshold, const int* bands, int p_detect_frame)
+pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, int p_detect_frame)
 	: spectrum(bands)
 {
-    ping_detect_frame = p_detect_frame;
-    for(int channel = 0; channel < NCHANNELS ; channel++)
-        threshold[channel] = hydro_threshold[channel];
+    numchan=nchan;
+    ping_detect_frame=p_detect_frame;
+
+    for(int channel=0; channel<numchan; channel++)
+        threshold[channel]=hydro_threshold[channel];
+    
     purge();
+}
+        
+pingDetect::~pingDetect()
+{
 }
 
 /* Re-initializes the parameters for a new calculation.
@@ -42,11 +48,13 @@ void pingDetect::purge()
 {
     count=0;
     detected=0;
-    
-    bzero(*maxMag, sizeof(**maxMag) * NCHANNELS * nKBands);
-    
-    for(int channel = 0 ; channel < NCHANNELS ; channel++)
+
+    for(int channel=0; channel<numchan; channel++)
+    {
+        for(int i=0; i<nKBands; i++)
+            currmax[channel][i] = 0;
         minmax[channel] = adc<16>::DOUBLE_WIDE::SIGNED_MAX;
+    }
 }
         
 /* Updates the Fourier Transform with sample then updates the min-max
@@ -55,41 +63,40 @@ void pingDetect::purge()
  * 1 -for channel 1, 2 -for ch 2, 4-for ch 3, 8- for chan 4.
  * So, the value is 0 if there were no pings found, 15 if all 4 found.
  */
-const std::bitset<NCHANNELS>&
+int
 pingDetect::p_update(adcdata_t *sample)
 {
-    detected.reset();
+    detected = 0;
     spectrum.update(sample);
-    for (int channel = 0 ; channel < NCHANNELS ; channel++)
+    for(int channel=0; channel<numchan; channel++)
     {
         for (int kBand = 0 ; kBand < nKBands ; kBand ++)
         {
-            const adc<16>::DOUBLE_WIDE::SIGNED& mag
-                = fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand,channel));
-            if(mag > maxMag[channel][kBand])
-                maxMag[channel][kBand] = mag; //update the maximum
+            adc<16>::DOUBLE_WIDE::SIGNED temp = fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand,channel));
+            if(temp>currmax[channel][kBand])
+                currmax[channel][kBand]=temp; //update the maximum
         }
     }
 
     ++count;
-    if (count == ping_detect_frame) //if at the end of max frame
+    if(count==ping_detect_frame) //if at the end of max frame
     {
-        count = 0;
-        for (int channel = 0 ; channel < NCHANNELS ; channel++)
+        count=0;
+        for(int channel=0; channel<numchan; channel++)
         {
-            if (maxMag[channel][0] < minmax[channel])
-                minmax[channel] = maxMag[channel][0];
-            else if(maxMag[channel][0] > (threshold[channel] * minmax[channel]))
+            if(currmax[channel][0]<minmax[channel])
+                minmax[channel]=currmax[channel][0];
+            else if(currmax[channel][0] > (threshold[channel]*minmax[channel]))
             {
                 bool firstBandIsLoudest = true;
                 for (int kBand = 1 ; kBand < nKBands ; kBand ++)
-                    if ((FREQ_REJECT_RATIO * maxMag[channel][kBand]) > maxMag[channel][0])
+                    if ((FREQ_REJECT_RATIO*currmax[channel][kBand])>currmax[channel][0])
                         firstBandIsLoudest = false;
                 if (firstBandIsLoudest)
-                    detected.set(channel);
+                    detected += (1 << channel); //Adds 1 for channel 1, 2 for 2, 4 for 3, 8 for 4
             }
             for (int kBand = 0 ; kBand < nKBands ; kBand ++)
-                maxMag[channel][kBand]=0; //reset max, so that it works with the update max for loop
+                currmax[channel][kBand]=0; //reset max, so that it works with the update max for loop
         }
     }
 
@@ -104,9 +111,6 @@ pingDetect::p_update(adcdata_t *sample)
 void
 pingDetect::reset_minmax()
 {
-    for(int channel = 0 ; channel < NCHANNELS ; channel++)
-        minmax[channel] = adcmath_t(1) << 30;
+    for(int k=0; k<numchan; k++)
+        minmax[k] = adcmath_t(1) << 30;
 }
-
-} // namespace sonar
-} // namespace ram
