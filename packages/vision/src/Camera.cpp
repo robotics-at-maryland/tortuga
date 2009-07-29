@@ -106,6 +106,7 @@ void Camera::unbackground(bool join)
 CameraPtr Camera::createCamera(const std::string input,
                                const std::string configPath,
                                std::string& message,
+                               core::EventHubPtr eventHub,
                                const std::string cameraName)
 {
     std::stringstream ss;    
@@ -156,11 +157,12 @@ CameraPtr Camera::createCamera(const std::string input,
 
 CameraPtr Camera::createCamera(const std::string input,
                                core::ConfigNode config,
-                               std::string& message)
+                               std::string& message,
+                               core::EventHubPtr eventHub)
 {
-    return CameraMaker::newObject(CameraMakerParamType(input, config, message));
+    return CameraMaker::newObject(CameraMakerParamType(input, config, message,
+                                                       eventHub));
 }
-
     
 void Camera::cleanup()
 {

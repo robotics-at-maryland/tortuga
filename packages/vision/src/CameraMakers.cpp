@@ -37,7 +37,6 @@ static const boost::regex CAMNUM("\\d+");
 static const boost::regex HOSTNAME_PORT("([a-zA-Z0-9.-_]+):(\\d{1,5})");
 static const boost::regex IMAGE("[^\\.]+.(jpg|png)");
 
-
 // ------------------------------------------------------------------------- //
 //                        I M A G E   C A M E R A                            //
 // ------------------------------------------------------------------------- //
@@ -222,6 +221,11 @@ std::string CameraKeyExtractor::extractKey(CameraMakerParamType& params)
         return "ImageCamera";
     }
 
+    if (input.find("PLAYBACK:") != std::string::npos)
+    {
+        return "PlaybackCamera";
+    }
+    
     std::string extension = bfs::path(input).extension();
 
     if (".rmv" == extension)

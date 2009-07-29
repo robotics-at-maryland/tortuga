@@ -120,6 +120,7 @@ public:
         const std::string input,
         const std::string configPath,
         std::string& message,
+        core::EventHubPtr eventHub = core::EventHubPtr(),
         const std::string cameraName = "ForwardCamera");
 
     
@@ -127,9 +128,11 @@ public:
      *
      *  This can be a NetworkCamera, and FFMPEG camera, etc.
      */
-    static CameraPtr createCamera(const std::string input,
-                                  core::ConfigNode config,
-                                  std::string& message);
+    static CameraPtr createCamera(
+        const std::string input,
+        core::ConfigNode config,
+        std::string& message,
+        core::EventHubPtr eventHub = core::EventHubPtr());
     
 protected:
     /** No argument constructor

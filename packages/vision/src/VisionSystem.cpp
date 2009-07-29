@@ -99,7 +99,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         std::string message;
         m_forwardCamera = CameraPtr(Camera::createCamera(cameraStr,
                                                          cameraConfig,
-                                                         message));
+                                                         message,
+                                                         eventHub));
     }
 
     if (!m_downwardCamera)
@@ -109,7 +110,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         std::string message;
         m_downwardCamera = CameraPtr(Camera::createCamera(cameraStr,
                                                           cameraConfig,
-                                                          message));
+                                                          message,
+                                                          eventHub));
     }
 
     // Read int as bool

@@ -18,6 +18,7 @@
 #include "vision/include/Camera.h"
 #include "pattern/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
+#include "core/include/Common.h"
 
 // Must Be Included last
 #include "vision/include/Export.h"
@@ -30,7 +31,8 @@
 namespace ram {
 namespace vision {
 
-typedef boost::tuple<const std::string, core::ConfigNode, std::string&>
+typedef boost::tuple<const std::string, core::ConfigNode, std::string&,
+                     core::EventHubPtr>
 CameraMakerParamType;
 
 /** Extracts the key (type) of the camera from the creation input */    

@@ -43,9 +43,6 @@ using namespace ram;
 
 static const char* PROCESSED_WINDOW = "Processed Image";
 
-/** Creates the camera based on the input stream */
-vision::Camera* createCamera(std::string input, std::string configPath);
-
 /** Creates a recorder based on the input stream */
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera);
 
@@ -57,10 +54,6 @@ vision::DetectorPtr createDetector(std::string dectorType,
 vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
                                              core::ConfigNode cfg,
                                              std::string& nodeUsed);
-
-/** Attempts to find the vision sytem config, nodeName is "" if it fails */
-core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
-                                        std::string& nodeUsed);
 
 /** Print out all the detectors properties and values */
 void dumpDetectorProperties(vision::DetectorPtr detector);
@@ -157,7 +150,10 @@ int main(int argc, char** argv)
     }
     
     // Setup camera and OpenCV Window, and the Recorder
-    vision::Camera* camera = createCamera(input, configPath);
+    std::string message;
+    vision::CameraPtr camera = vision::Camera::createCamera(input, configPath,
+                                                          message);
+    std::cout << message << std::endl;
     vision::Image* frame = new vision::OpenCVImage(camera->width(),
                                                    camera->height());
     vision::Image* outputImage = new vision::OpenCVImage(camera->width(),
@@ -248,7 +244,7 @@ int main(int argc, char** argv)
     if (show)
         cvDestroyWindow(PROCESSED_WINDOW);
 
-    delete camera;
+    camera = vision::CameraPtr();
     delete recorder;
 
     delete recordCamera;
@@ -363,35 +359,6 @@ vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
     return vision::DetectorPtr();
 }
 
-core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
-                                        std::string& nodeUsed)
-{
-    core::ConfigNode config(core::ConfigNode::fromString("{}"));
-    // Attempt to find the section deeper in the file
-    if (cfg.exists("Subsystems"))
-    {
-        cfg = cfg["Subsystems"];
-        
-        // Attempt to find a VisionSystem subsystem
-        core::NodeNameList nodeNames(cfg.subNodes());
-        BOOST_FOREACH(std::string nodeName, nodeNames)
-        {
-            core::ConfigNode subsysCfg(cfg[nodeName]);
-            if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
-                ("SimVision" == subsysCfg["type"].asString("NONE")))
-            {
-                config = subsysCfg;
-                std::stringstream ss;
-                ss << "Subsystem:" << nodeName << ":" << nodeUsed;
-                nodeUsed = ss.str();
-            }
-        }
-    }
-
-    return config;
-}
-
-
 void dumpDetectorProperties(vision::DetectorPtr detector)
 {
     core::PropertySetPtr propSet(detector->getPropertySet());
@@ -435,88 +402,4 @@ vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
 void brokenPipeHandler(int signum)
 {
     std::cout<<"Broken Pipe Ignored"<<std::endl;
-}
-
-vision::Camera* createCamera(std::string input, std::string configPath)
-{
-    static boost::regex camnum("\\d+");
-    static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
-	static boost::regex image("[^\\.]+.(jpg|png)");
-    std::cout << "Images coming from: ";
-    
-    if (boost::regex_match(input, camnum))
-    {
-        int camnum = boost::lexical_cast<int>(input);
-        if (camnum >= 100)
-        {
-            size_t num = (size_t)camnum - 100;
-            std::cout << "DC1394 Camera num:" << num << std::endl;
-
-            // Look up the configuration for the camera
-            bool found = false;
-            std::string nodeUsed;
-            core::ConfigNode config(core::ConfigNode::fromString("{}"));
-            if ("NONE" != configPath)
-            {
-                core::ConfigNode cfg(core::ConfigNode::fromFile(configPath));
-                
-                if (cfg.exists("ForwardCamera"))
-                {
-                    config = cfg["ForwardCamera"];
-                    found = true;
-                }
-                else
-                {
-                    cfg = findVisionSystemConfig(cfg, nodeUsed);
-                    if (nodeUsed.size() > 0 && cfg.exists("ForwardCamera"))
-                    {
-                        config = cfg["ForwardCamera"];
-                        found = true;
-                    }
-
-                }
-            }
-
-            if (found)
-            {
-                std::cout << "Using section \"" << nodeUsed << "\" for "
-                          << " \"ForwardCamera\" from config file: \""
-                          << configPath << "\"" << std::endl;
-            }
-            
-            return new vision::DC1394Camera(config, num);
-        }
-        else
-        {
-            std::cout << "Using OpenCV Camera #" << camnum << std::endl;
-            return new vision::OpenCVCamera(camnum, true);
-        }
-    }
-
-    boost::smatch what;
-    if (boost::regex_match(input, what, hostnamePort))
-    {
-        std::string hostname = what.str(1);
-        boost::uint16_t port =
-            boost::lexical_cast<boost::uint16_t>(what.str(2));
-        std::cout << "Streaming images from host: \"" << hostname
-                  << "\" on port " << port << std::endl;
-//        return new vision::NetworkCamera(hostname, port);
-        return new vision::FFMPEGNetworkCamera(hostname, port);
-    }
-	
-	if (boost::regex_match(input, image))
-	{
-		std::cout <<"'" << input <<"' image file" << std::endl;
-		
-		vision::Image* img = vision::Image::loadFromFile(input);
-		vision::ImageCamera* c = new vision::ImageCamera(
-                    img->getWidth(), img->getHeight(), 30);
-		c->newImage(img);
-		//delete img;
-		return c;
-	}
-	
-    std::cout << "'" << input << "' video file" << std::endl;
-    return new vision::OpenCVCamera(input);
 }

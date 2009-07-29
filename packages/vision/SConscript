@@ -66,9 +66,13 @@ envt.RAMProgram(target = 'SuitHistoCalculator',
 
 
 # Detector Test
+detectorIntDeps = ['vision']
+if env.HasFeature('logging'):
+    detectorIntDeps.append('logging')
+
 envt.RAMProgram(target = 'DetectorTest', 
                 source = 'test/src/DetectorTest.cpp',
-                int_deps = ['vision'],
+                int_deps = detectorIntDeps,
                 ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
 
 # Network Trainer
