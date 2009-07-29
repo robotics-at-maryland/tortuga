@@ -225,14 +225,26 @@ class SettlingState(HoveringState):
         return set(['planeThreshold', 'angleThreshold']).union(
             HoveringState.getattr())
 
-    def _compareChange(self, values):
+    def _compareChange(self, pvalues, dvalues):
         # Compare the values to their thresholds
-        # 0 = x : planeThreshold
-        # 1 = y : planeThreshold
-        # 2 = angle : angleThreshold
-        return abs(values[0]) < self._planeThreshold and \
-            abs(values[1]) < self._planeThreshold and \
-            abs(values[2]) < self._angleThreshold
+        # Find the displacement and the velocity of the
+        # x, y, and angle values.
+
+        # Unpack the values given
+        x, y, angle = pvalues
+        dx, dy, dangle = dvalues
+
+        # Use the formula and get a definitive value from the equation
+        finalx = self._kp * abs(x) + self._kd * abs(dx)
+        finaly = self._kp * abs(y) + self._kd * abs(dy)
+        # angle is in Degrees, dangle is a float
+        finalAngle = self._kp * abs(angle.valueDegrees()) + \
+            self._kd * abs(dangle)
+
+        # Return true if all of the values are in the thresholds
+        return finalx < self._planeThreshold and \
+            finaly < self._planeThreshold and \
+            finalAngle < self._angleThreshold
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -240,7 +252,8 @@ class SettlingState(HoveringState):
         # Only check the current bin
         if self._currentBin(event):
             # Check if it is in the threshold
-            if self._compareChange(self._bin.changeOverTime()):
+            if self._compareChange((event.x, event.y, event.angle),
+                                   self._bin.changeOverTime()):
                 # It is settled. Stop the timer and move on.
                 if self.timer is not None:
                     self.timer.stop()
@@ -248,8 +261,10 @@ class SettlingState(HoveringState):
 
     def enter(self, eventType, eventTime, useMultiAngle = False):
         self._eventType = eventType
-        self._planeThreshold = self._config.get('planeThreshold', 0.03)
-        self._angleThreshold = self._config.get('angleThreshold', 0.03)
+        self._kp = self._config.get('kp', 1)
+        self._kd = self._config.get('kd', 1)
+        self._planeThreshold = self._config.get('planeThreshold', 0.3)
+        self._angleThreshold = self._config.get('angleThreshold', 5)
 
         self.timer = self.timerManager.newTimer(eventType, eventTime)
         self.timer.start()
