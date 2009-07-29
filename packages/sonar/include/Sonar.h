@@ -46,9 +46,9 @@ static const int MAX_SENSOR_SEPARATION = 1000; //mm, determines maximum alllowab
 static const int MAX_PING_SEP=(SAMPRATE*MAX_SENSOR_SEPARATION)/(1000*SPEED_OF_SOUND); //pts., maximum separation between adjacent pings
 static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones with respect to hydrophone 0
 {
-    {0, 0.4},			//hydrophone 1  {x, y} units is meters
-    {0.4596, 0},		//hydrophone 2  {x, y}
-    {0.4568, 0.403}		//hydrophone 3  {x, y}
+    {0, 41.656},        //hydrophone 1  {x, y} units is meters
+    {51.9684, 0.635},   //hydrophone 2
+    {51.9684, 43.18}    //hydrophone 3
 };
 
 

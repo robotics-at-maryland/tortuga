@@ -35,9 +35,9 @@ static const double SPEED_OF_SOUND = 1500; // meters per second
 static const double SAMPLE_RATE = 500000; // samples per second
 static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones with respect to hydrophone 0
 {
-    {0, 0.4},			//hydrophone 1  {x, y} units is meters
-    {0.4596, 0},		//hydrophone 2  {x, y}
-    {0.4568, 0.403}		//hydrophone 3  {x, y}
+    {0, 41.656},        //hydrophone 1  {x, y} units is meters
+    {51.9684, 0.635},   //hydrophone 2
+    {51.9684, 43.18}    //hydrophone 3
 };
 static const MatrixN H(*hydroPlanarArray, 3, 2);
 static const MatrixN Hpinv = (H.transpose() * H).inverse() * H.transpose();
