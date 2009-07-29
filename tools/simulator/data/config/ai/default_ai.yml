@@ -31,6 +31,9 @@ config:
     sonarDepth: 11
     safeDepth: 15
     safeOffset: -0.35
+    Gate:
+         time: 30
+         speed: 3
     #PipeGate:
     #    biasDirection: 0
     #    threshold: 0

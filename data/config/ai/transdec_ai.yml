@@ -6,6 +6,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
+    gateDepth: 4
     lightDepth: 6
     pipeDepth: 7
     bwireDepth: 11.3
@@ -17,6 +18,9 @@ config:
     safeDepth: 10
     safeDepthOffset: 1
     safeOffset: -0.4
+    Gate:
+        time: 30
+        speed: 3
     Pipe1:
         biasDirection: 0
         threshold: 50

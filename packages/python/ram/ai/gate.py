@@ -71,18 +71,15 @@ class Forward(state.State):
     def transitions():
         return {Forward.DONE : End}
 
-    @staticmethod
-    def getattr():
-        return set(['speed', 'time'])
-
     def enter(self):
         # Full speed ahead!!
-        self.controller.setSpeed(self._config.get('speed',3))
+        self.controller.setSpeed(self.ai.data['config'].get('Gate', {}).get(
+                'speed',3))
         
         # Timer goes off in X seconds then sends off DONE
         self.timer = self.timerManager.newTimer(
             eventType = Forward.DONE, 
-            duration = self._config.get('time', 10))
+            duration = self.ai.data['config'].get('Gate', {}).get('time', 10))
         self.timer.start()
     
     def exit(self):

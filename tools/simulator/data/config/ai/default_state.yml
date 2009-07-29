@@ -53,13 +53,6 @@ ram.ai.bin.NextBin:
 #ram.ai.sonarCourse.SafeDive:
 #    depth: 5
 
-# Gate sub task
-ram.ai.gate.Start:
-    speed: 3
-ram.ai.gate.Forward:
-    time: 10
-    speed: 3
-
 # Light/Bouy sub task
 ram.ai.light.Start:
     speed: 1.5
