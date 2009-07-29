@@ -361,7 +361,7 @@ protected:
                 {
                     iBuf = 0;
                     
-                    if (iDecay++ == 1)
+                    if (iDecay++ == 10)
                     {
                         iDecay = 0;
                         
@@ -371,7 +371,7 @@ protected:
                             for (int channel = 0 ; channel < 4 ; channel ++)
                             {
                                 int32_t& peakLevel = lastSpectrum.peakLevels[i * 4 + channel];
-                                peakLevel = ((uint64_t)peakLevel << 4) / ((1 << 4) + 1);
+                                peakLevel = ((uint64_t)peakLevel << 11) / ((1 << 11) + 1);
                             }
                         }
                     }
