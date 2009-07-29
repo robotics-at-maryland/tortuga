@@ -27,7 +27,7 @@ Subsystems:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: data/config/ai/transdec_ai.yml
+         INCLUDE: data/config/ai/transdec_competition.yml
 
 
     StateMachine:

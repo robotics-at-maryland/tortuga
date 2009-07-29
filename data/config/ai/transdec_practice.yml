@@ -1,0 +1,42 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+            'ram.ai.course.Bin', 'ram.ai.course.PipeBin',
+            'ram.ai.course.Target', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 4
+    lightDepth: 5
+    pipeDepth: 7
+    bwireDepth: 10
+    targetDepth: 8.3
+    binStartDepth: 7
+    binDepth: 12
+    targetSymbols: ['Tank', 'Factory']
+    sonarDepth: 5
+    safeDepth: 9
+    safeDepthOffset: 1
+    safeOffset: -0.4
+    Gate:
+        time: 30
+        speed: 3
+    #Pipe1:
+    #    biasDirection: 0
+    #    threshold: 50
+    #PipeBarbedWire:
+    #    biasDirection: -100
+    #    threshold: 0
+    #    rotation: 0
+    #    duration: 0
+    #    legTime: 5
+    #    sweepAngle: 30
+    #    sweepSpeed: 3
+    #PipeBin:
+        #biasDirection: -110
+        #threshold: 0
+    #    rotation: -40
+    #    duration: 0
+    #    legTime: 3
+    #    sweepAngle: 45
+    #    sweepSpeed: 3
