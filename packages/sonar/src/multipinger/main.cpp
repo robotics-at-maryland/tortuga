@@ -200,8 +200,10 @@ int main()
     uint64_t noisePower[NCHANNELS];
     for (unsigned int channel = 0 ; channel < NCHANNELS ; channel ++)
         noisePower[channel] = (uint64_t)(((uint64_t)1 << POWER_OVERSAMPLEBITS*2) * BLOCKSIZE * stds[channel] * stds[channel]);
-    
+
+#ifdef __BFIN
     fd = openDevice();
+#endif
     
     while (true)
     {
@@ -333,8 +335,10 @@ int main()
         
         ++iSample;
     } // while (true)
-    
+
+#ifdef __BFIN
     closeDevice(fd);
+#endif
     
     return 0;
 }

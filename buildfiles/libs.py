@@ -283,7 +283,7 @@ def _get_internal_lib(env, name):
 
             'sonar' : InternalLibrary('sonar',
                                       int_deps = ['math', 'bfin_spartan'],
-                                      ext_deps = ['Boost']),
+                                      ext_deps = ['Boost', 'fftw']),
 
             'network' : InternalLibrary('network',
                                         int_deps = ['core', 'control'],

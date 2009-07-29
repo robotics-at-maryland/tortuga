@@ -69,6 +69,10 @@ envt.RAMProgram(target = 'SuitHistoCalculator',
 detectorIntDeps = ['vision']
 if env.HasFeature('logging'):
     detectorIntDeps.append('logging')
+    eventFeatures = ['math', 'control']
+    for feature in eventFeatures:
+        if env.HasFeature(feature):
+            detectorIntDeps.append(feature)
 
 envt.RAMProgram(target = 'DetectorTest', 
                 source = 'test/src/DetectorTest.cpp',

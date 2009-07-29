@@ -11,6 +11,8 @@
 #ifndef _RAM_SONAR_PULSETRIGGER_H
 #define _RAM_SONAR_PULSETRIGGER_H
 
+#include <cstring>
+
 namespace ram { namespace sonar {
 
 template<class T, int N, int nChannels>

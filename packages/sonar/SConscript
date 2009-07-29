@@ -39,18 +39,6 @@ envl.Append(CPPPATH = ['..', 'include'])
 # Unit Tests
 envt = envb.Clone()
 
-# Only build fftw3 if its here
-conf = envt.Configure()
-envt.Append(LIBPATH = ['/opt/local/lib'], CPPPATH = ['/opt/local/include'])
-have_fftw3 = False
-if conf.CheckLib('fftw3', language='C++', autoadd=1):
-    sources = env.Glob('test/src', '*.cpp')
-    envt = conf.Finish()
-    envt.Tests(int_deps = 'sonar', source = sources)
-    have_fftw3 = True
-else:
-    print("WARNING!  Not running sonar unit tests because fftw3 is not available.")
-
 envt.RAMProgram(target = 'testGetChunk',
                 source = 'test/src/TestGetChunk.cxx',
                 int_deps = ['sonar'])
@@ -100,9 +88,7 @@ if not envt['bfin']:
                     source = 'src/tools/chop.cpp',
                     int_deps = ['sonar'])
     
-    if have_fftw3:
-        envt.Append(CPPPATH = ['/opt/local/include'], LIBPATH = ['/opt/local/lib'], LIBS = ['fftw3'])
-        envt.RAMProgram(target = 'comparedft',
-                        source = 'src/tools/comparedft.cpp',
-                        int_deps = ['sonar'],
-						ext_deps = ['Boost.ProgramOptions'])
+    envt.RAMProgram(target = 'comparedft',
+                    source = 'src/tools/comparedft.cpp',
+                    int_deps = ['sonar'],
+                    ext_deps = ['Boost.ProgramOptions'])

@@ -67,7 +67,7 @@ tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 
 env = Environment(ENV = os.environ,
                   options = opts,
-                  tools = ['default','gccxml','pypp'],
+                  tools = ['default', 'gccxml', 'pypp'],
                   toolpath = [tpath])
 
 if env['bfin']:
