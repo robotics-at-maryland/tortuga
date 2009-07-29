@@ -31,7 +31,7 @@ RedLightDetector:
     maxAspectRatio: 2.0
     filtLMax: 255
     filtLMin: 0
-    filtUMax: 236
+    filtUMax: 255
     filtUMin: 0
     filtVMax: 255
     filtVMin: 200
@@ -64,20 +64,20 @@ BinDetector:
     redMinRValue: 70
     incrediblyWashedOut: 0
     filtblackLMax: 255
-    filtblackLMin: 231
+    filtblackLMin: 44
     filtblackUMax: 255
     filtblackUMin: 0
-    filtblackVMax: 178
+    filtblackVMax: 118
     filtblackVMin: 6
     filtredLMax: 255
     filtredLMin: 0
     filtredUMax: 200
     filtredUMin: 0
-    filtredVMax: 187
+    filtredVMax: 255
     filtredVMin: 113
     filtwhiteLMax: 255
     filtwhiteLMin: 179
-    filtwhiteUMax: 201
+    filtwhiteUMax: 255
     filtwhiteUMin: 17
     filtwhiteVMax: 255
     filtwhiteVMin: 100
@@ -116,10 +116,15 @@ SafeDetector:
     minTotal: 100
 
 TargetDetector:
-    filtUMax: 79
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 72
     filtUMin: 0
-    filtVMax: 179
-    filtVMin: 130
+    filtVMax: 255
+    filtVMin: 134
+    dilateIterations: 3
+    erodeIterations: 2
+    minAspectRatio: 0.75
  
 BarbedWireDetector:
     bottomRemovePercentage: 0.1
