@@ -85,7 +85,7 @@ public:
 				m_insertionOrder(new int[window]), m_heap(CircularArray<Node> (
 						window)) {
         assert ((window - 1) % 4 == 0);
-		for (int i = 1; i <= m_max; ++i)
+		for (int i = 1; i <= (int)m_max; ++i)
 			m_insertionOrder[i - 1] = (i % 2 ? -1 : 1) * (i / 2);
 	}
 	~DoubleHeap() {
@@ -103,7 +103,7 @@ public:
 		const T& v = m_heap[i].m_data;
 		m_heap[i].m_data = data;
 		m_heap[i].m_order = m_insertionOrderIndex++;
-		if (m_insertionOrderIndex == m_max)
+		if (m_insertionOrderIndex == (int)m_max)
 			m_insertionOrderIndex = 0;
 		balance(i);
 		return v;

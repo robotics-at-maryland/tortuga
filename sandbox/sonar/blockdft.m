@@ -19,7 +19,7 @@ N = length(dat);
 fclose(fid);
 
 % Subtract off the mean.
-dat -= repmat(mean(dat,2), 1, length(dat));
+% dat -= repmat(mean(dat,2), 1, length(dat));
 
 % ADC sample rate
 sampRate = 500000;
@@ -104,6 +104,7 @@ for blockNum=10:blockCount
 	if !edgeFound(channel)
 	  lookBackRange = (blockStartIndex:blockStopIndex)-lookBack;
 	  lookBackBlock = dat(channel, lookBackRange);
+	  lookBackBlock -= int16(sum(int32(lookBackBlock)) / blockSize);
 	  if sum(abs(lookBackBlock) > quietThresh) < blockSize/20
 	    edgeFound(channel) = 1;
 	    edgeIndex(channel) = blockStopIndex - lookBack;
@@ -118,7 +119,7 @@ for blockNum=10:blockCount
       end
     end
     if all(edgeFound)
-      tdoas = -(edgeIndex(1)-edgeIndex(2:4));
+      tdoas = (edgeIndex(1)-edgeIndex(2:4));
       disp(sprintf("   TDOAS: %d %d %d", tdoas(1), tdoas(2), tdoas(3)));
     end
     

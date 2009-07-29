@@ -30,13 +30,13 @@ void DesktopBlockDFT::readBlock()
     
     for (int channel = 0 ; channel < NCHANNELS ; channel ++)
         for (int i = 0 ; i < BLOCKSIZE ; i ++)
-            block[channel][i] = blockTemp[i][channel];
+            blocks[channel][currentBlock][i] = blockTemp[i][channel];
 }
 
 void DesktopBlockDFT::doDFT(int channel)
 {
     for (int i = 0 ; i < BLOCKSIZE ; i ++)
-        fftwIn[i] = block[channel][i];
+        fftwIn[i] = blocks[channel][currentBlock][i];
     
     fftw_execute(fftwPlan);
     

@@ -7,11 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
 		8DD76F6A0486A84900D96B5E /* blockdft.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E8B029090EE04C91782 /* blockdft.1 */; };
+		A48104840F95BA26009291A8 /* NoiseFloorEstimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A48104830F95BA26009291A8 /* NoiseFloorEstimator.cpp */; };
 		A49708DF0F90145C00484D7A /* BlockDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A49708DE0F90145C00484D7A /* BlockDFT.cpp */; };
 		A49708E80F9014A400484D7A /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A49708E70F9014A400484D7A /* libfftw3.a */; };
 		A497090F0F90184600484D7A /* DesktopBlockDFT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A497090E0F90184600484D7A /* DesktopBlockDFT.cpp */; };
+		A4DAD1F50F9E32FF00E7F20E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,6 +31,8 @@
 /* Begin PBXFileReference section */
 		08FB7796FE84155DC02AAC07 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		8DD76F6C0486A84900D96B5E /* blockdft */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = blockdft; sourceTree = BUILT_PRODUCTS_DIR; };
+		A48104820F959EC1009291A8 /* NoiseFloorEstimator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoiseFloorEstimator.h; sourceTree = "<group>"; };
+		A48104830F95BA26009291A8 /* NoiseFloorEstimator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NoiseFloorEstimator.cpp; sourceTree = "<group>"; };
 		A49708DD0F90145C00484D7A /* BlockDFT.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockDFT.h; sourceTree = "<group>"; };
 		A49708DE0F90145C00484D7A /* BlockDFT.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BlockDFT.cpp; sourceTree = "<group>"; };
 		A49708E70F9014A400484D7A /* libfftw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3.a; path = /opt/local/lib/libfftw3.a; sourceTree = "<absolute>"; };
@@ -73,6 +76,8 @@
 				A497090E0F90184600484D7A /* DesktopBlockDFT.cpp */,
 				A4970A280F9030A600484D7A /* BlackfinBlockDFT.h */,
 				A4970A2B0F9030B800484D7A /* BlackfinBlockDFT.cpp */,
+				A48104820F959EC1009291A8 /* NoiseFloorEstimator.h */,
+				A48104830F95BA26009291A8 /* NoiseFloorEstimator.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -136,9 +141,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
 				A49708DF0F90145C00484D7A /* BlockDFT.cpp in Sources */,
 				A497090F0F90184600484D7A /* DesktopBlockDFT.cpp in Sources */,
+				A48104840F95BA26009291A8 /* NoiseFloorEstimator.cpp in Sources */,
+				A4DAD1F50F9E32FF00E7F20E /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

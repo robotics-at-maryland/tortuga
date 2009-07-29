@@ -17,12 +17,14 @@ enum
     NCHANNELS = 4,
     SAMPFREQ = 500000,
     
+    LOOKBACKSAMPLES = BLOCKLOOKBACK * BLOCKSIZE,
+    
     HARMONIC_MIN = 10,
     HARMONIC_MAX = 20,
     HARMONIC_COUNT = HARMONIC_MAX - HARMONIC_MIN,
     
     HOLDOFF_BLOCKCOUNT = (int)(0.1 * SAMPFREQ / BLOCKSIZE), // 100 millisecond holdoff
-    QUIET_THRESH = 150,
+    QUIET_THRESH = 150
     
 };
 
@@ -32,18 +34,21 @@ typedef struct {
 
 class BlockDFT {
 protected:
-    int16_t block[NCHANNELS][BLOCKSIZE];
+    int16_t blocks[NCHANNELS][BLOCKLOOKBACK][BLOCKSIZE];
     complex_int16_t dft[BLOCKSIZE];
+    int currentBlock;
+    unsigned long blockIndex;
+    
+    virtual void doDFT(int channel) =0;
+    virtual void readBlock() =0;
 private:
-    int16_t power[BLOCKSIZE];
+    uint16_t power[BLOCKSIZE];
     int16_t holdoff;
 public:
     void processBlock();
     BlockDFT();
     virtual ~BlockDFT();
     virtual void purge();
-    virtual void readBlock() =0;
-    virtual void doDFT(int channel) =0;
 };
 
 #endif

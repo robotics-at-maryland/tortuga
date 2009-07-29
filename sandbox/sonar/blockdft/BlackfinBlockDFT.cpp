@@ -33,5 +33,5 @@ void BlackfinBlockDFT::doDFT(int channel)
 {
     int block_exponent;
     // Fourier transform the current block.
-    rfft_fr16(block[channel], dft, rfftTwid, 1, BLOCKSIZE, &block_exponent, 0);
+    rfft_fr16(blocks[channel][currentBlock], dft, rfftTwid, 1, BLOCKSIZE, &block_exponent, 0);
 }
