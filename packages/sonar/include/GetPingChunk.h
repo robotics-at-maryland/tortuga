@@ -38,7 +38,7 @@ class getPingChunk {
     int last_value[NCHANNELS];
 
     public:
-    getPingChunk();
+    getPingChunk(const int* kBands);
     ~getPingChunk();
     int getChunk(adcdata_t** data, int* locations, struct dataset* dataSet);
 };

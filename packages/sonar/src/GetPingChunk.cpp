@@ -24,7 +24,7 @@ using namespace std;
 namespace ram {
 namespace sonar {
 
-getPingChunk::getPingChunk()
+getPingChunk::getPingChunk(const int* kBands)
 	: pdetect(PD_THRESHOLDS, NCHANNELS, kBands, PING_DETECT_FRAME)
 {}
 
@@ -36,11 +36,11 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
 {
     //Initialize some things
     last_detected=0;
-    pdetect.zero_values(); //re-zero the parameters, even if I already have done it again.  Doesn't hurt that much, since it was done once
-    for(int i=0; i<NCHANNELS; i++)
+    pdetect.purge(); //re-zero the parameters, even if I already have done it again.  Doesn't hurt that much, since it was done once
+    for(int channel=0; channel<NCHANNELS; channel++)
     {
-        last_ping_index[i]=0;
-        last_value[i]=0;
+        last_ping_index[channel]=0;
+        last_value[channel]=0;
     }
 
     for(int i=0; i<dataSet->size; i++)
@@ -100,16 +100,16 @@ getPingChunk::getChunk(adcdata_t** data, int* locations, struct dataset* dataSet
                (last_ping_index[3]<ENV_CALC_FRAME))
             {
                 pdetect.reset_minmax();
-                for(int j=0; j<NCHANNELS; j++)
-                    last_value[j]=0;
+                for(int channel=0; channel<NCHANNELS; channel++)
+                    last_value[channel]=0;
             }
             else
             {
-                for(int j=0; j<NCHANNELS; j++)
+                for(int channel=0; channel<NCHANNELS; channel++)
                 {
                     for(int k=0; k<ENV_CALC_FRAME; k++)
-                        data[j][k]=getSample(dataSet, j, k+last_ping_index[j]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
-                    locations[j]=last_ping_index[j]-ENV_CALC_FRAME+1;
+                        data[channel][k]=getSample(dataSet, channel, k+last_ping_index[channel]-ENV_CALC_FRAME+1+DFT_FRAME/2); //might need to be tweaked
+                    locations[channel]=last_ping_index[channel]-ENV_CALC_FRAME+1;
                 }
                 //cout<<"Ping Detected at "<<locations[0]<<endl;
 

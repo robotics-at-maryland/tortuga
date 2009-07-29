@@ -31,16 +31,10 @@ pingDetect::pingDetect(const int* hydro_threshold, int nchan, const int* bands, 
     numchan=nchan;
     ping_detect_frame=p_detect_frame;
 
-    count=0;
-    detected=0;
-
-    for(int k=0; k<numchan; k++)
-    {
-        threshold[k]=hydro_threshold[k];
-        for(int i=0; i<nKBands; i++)
-            currmax[k][i] = 0;
-        minmax[k] = adcmath_t(1) << 30;
-    }
+    for(int channel=0; channel<numchan; channel++)
+        threshold[channel]=hydro_threshold[channel];
+    
+    purge();
 }
         
 pingDetect::~pingDetect()
@@ -50,16 +44,16 @@ pingDetect::~pingDetect()
 /* Re-initializes the parameters for a new calculation.
  * Similar to the constructor
  */
-void pingDetect::zero_values()
+void pingDetect::purge()
 {
     count=0;
     detected=0;
 
-    for(int k=0; k<numchan; k++)
+    for(int channel=0; channel<numchan; channel++)
     {
         for(int i=0; i<nKBands; i++)
-            currmax[k][i] = 0;
-        minmax[k] = adcmath_t(1) << 30;
+            currmax[channel][i] = 0;
+        minmax[channel] = adc<16>::DOUBLE_WIDE::SIGNED_MAX;
     }
 }
         
@@ -72,13 +66,13 @@ void pingDetect::zero_values()
 int
 pingDetect::p_update(adcdata_t *sample)
 {
-    detected=0;
+    detected = 0;
     spectrum.update(sample);
     for(int channel=0; channel<numchan; channel++)
     {
         for (int kBand = 0 ; kBand < nKBands ; kBand ++)
         {
-            adc<16>::QUADRUPLE_WIDE::SIGNED temp=adcmath_t(fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand,channel)));
+            adc<16>::DOUBLE_WIDE::SIGNED temp = fixed::magL1(spectrum.getAmplitudeForBinIndex(kBand,channel));
             if(temp>currmax[channel][kBand])
                 currmax[channel][kBand]=temp; //update the maximum
         }

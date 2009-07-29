@@ -26,9 +26,23 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     sonarPing ping;
     int found;
-    getDirEdge edge_detector;
-
-    if(argc == 1)
+    
+    int myKBands[nKBands];
+    for (int i = 0 ; i < nKBands ; i ++)
+        myKBands[i] = kBands[i];
+    for (int argIndex = 1 ; argIndex < argc ; argIndex ++)
+    {
+        if (strcmp(argv[argIndex], "--swap-bands") == 0)
+        {
+            int temp = myKBands[0];
+            myKBands[0] = myKBands[1];
+            myKBands[1] = temp;
+        } else {
+            fprintf(stderr, "Using dataset %s\n", argv[argIndex]);
+            dataSet = loadDataset(argv[argIndex]);
+        }
+    }
+    if(dataSet == NULL)
     {
         dataSet = createDataset(0xA0000*2);
         if(dataSet == NULL)
@@ -42,11 +56,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Analyzing samples...\n");
         //greenLightOff();
     }
-    else
-    {
-        fprintf(stderr, "Using dataset %s\n", argv[1]);
-        dataSet = loadDataset(argv[1]);
-    }
+    
+    getDirEdge edge_detector(myKBands);
 
     if(dataSet == NULL)
     {

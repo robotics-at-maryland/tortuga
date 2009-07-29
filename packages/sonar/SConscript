@@ -48,6 +48,8 @@ if conf.CheckLib('fftw3', language='C++', autoadd=1):
     envt = conf.Finish()
     envt.Tests(int_deps = 'sonar', source = sources)
     have_fftw3 = True
+else:
+    print("WARNING!  Not running sonar unit tests because fftw3 is not available.")
 
 envt.RAMProgram(target = 'testGetChunk',
                 source = 'test/src/TestGetChunk.cxx',
@@ -71,7 +73,13 @@ envt.RAMProgram(target = 'sonard',
                 source = 'src/sonard/main.cpp',
                 int_deps = ['sonar'])
 
+envt.RAMProgram(target = 'rtspectrogram',
+                source = 'src/tools/rtspectrogram.cpp',
+                int_deps = ['sonar'],
+                CPPFLAGS = ['-O3'])
+
 if not envt['bfin']:
+    envt.Append(CPPFLAGS = ['-O3'])
     envt.RAMProgram(target = 'spectrogram',
                     source = 'src/tools/spectrogram.cpp',
                     int_deps = ['sonar'],
