@@ -26,8 +26,8 @@
         [adapter activate];
         
         oscPrx = [ramsonarscopeOscilloscopePrx uncheckedCast:
-                  [communicator stringToProxy: @"osc:default -h localhost -p 10000"]];
-    //                [communicator stringToProxy: @"osc:default -h 192.168.10.19 -p 10000"]];
+                  //[communicator stringToProxy: @"osc:default -h localhost -p 10000"]];
+                  [communicator stringToProxy: @"osc:default -h 192.168.10.19 -p 10000"]];
         
         [oscPrx SetViewer: (id<ramsonarscopeViewerPrx>) selfPrx];
         [oscPrx SetScopeMode: ramsonarscopeScopeModeOscilloscope];

@@ -213,8 +213,8 @@
                             needsFreqLabel = YES;
                         }
                         
-                        CGFloat curLevelBarHeight = logf(currentLevel) / logf(1 << 16) * 600;
-                        CGFloat peakLevelBarHeight = logf(peakLevel) / logf(1 << 16) * 600;
+                        CGFloat curLevelBarHeight = logf(currentLevel) / logf(1 << 30) * 600;
+                        CGFloat peakLevelBarHeight = logf(peakLevel) / logf(1 << 30) * 600;
                         
                         if (peakLevelBarHeight > highestBarHeight)
                             highestBarHeight = peakLevelBarHeight;
