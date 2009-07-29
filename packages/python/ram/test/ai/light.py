@@ -467,7 +467,12 @@ class TestSeek(support.AITestCase):
         # Add a lastLightEvent for FindAttempt
         self.ai.data['lastLightEvent'] = vision.RedLightEvent()
         self.injectEvent(vision.EventType.LIGHT_LOST)
-        self.assertCurrentState(light.FindAttempt)
+        self.assertCurrentState(light.FindAttemptSeek)
+
+        # Test that it reenters Seek when it's refound
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0, 0)
+        self.assertCurrentState(light.Seek)
         
     def testHit(self):
         """Make sure finding the light changes to hit"""

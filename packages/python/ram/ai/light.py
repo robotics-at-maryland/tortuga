@@ -126,12 +126,19 @@ class Searching(state.State, StoreLightEvent):
 
 class FindAttempt(state.FindAttempt, StoreLightEvent):
     @staticmethod
-    def transitions():
+    def transitions(myState = None):
+        if myState is None:
+            myState = Align
         return state.FindAttempt.transitions(vision.EventType.LIGHT_FOUND,
-                                             Align, Recover)
+                                             myState, Recover)
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 2)
+
+class FindAttemptSeek(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(Seek)
 
 class Recover(state.FindAttempt, StoreLightEvent):
     REFOUND_LIGHT = core.declareEventType('REFOUND_LIGHT')
@@ -361,7 +368,7 @@ class Align(state.State, StoreLightEvent):
 class Seek(state.State, StoreLightEvent):
     @staticmethod
     def transitions():
-        return { vision.EventType.LIGHT_LOST : FindAttempt,
+        return { vision.EventType.LIGHT_LOST : FindAttemptSeek,
                  vision.EventType.LIGHT_FOUND : Seek,
                  vision.EventType.LIGHT_ALMOST_HIT : Hit }
 

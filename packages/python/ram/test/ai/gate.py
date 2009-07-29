@@ -24,6 +24,10 @@ class TestGate(support.AITestCase):
             'Ai' : {
                 'config' : {
                     'gateDepth' : 7,
+                    'Gate' : {
+                        'speed' : 5,
+                        'time' : 15,
+                        },
                     },
                 },
             'StateMachine' : {
@@ -31,10 +35,6 @@ class TestGate(support.AITestCase):
                     'ram.ai.gate.Start' : {
                         'speed' : 2,
                     },
-                    'ram.ai.gate.Forward' : {
-                        'speed' : 5,
-                         'time' : 15
-                    }
                 }
             }
         }
