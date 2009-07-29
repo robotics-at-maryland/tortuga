@@ -240,6 +240,10 @@ def _get_internal_lib(env, name):
     vehicle_int_deps = ['core', 'pattern','math','logging']
     if env.HasFeature('drivers'):
         vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
+    # Determine the sonar deps
+    sonar_deps = ['Boost']
+    if not env['bfin']:
+        sonar_deps.append('fftw')
     
     # This delays creation of these until after the module is loaded so the 
     # classes can be at the bottom of the file
@@ -283,7 +287,7 @@ def _get_internal_lib(env, name):
 
             'sonar' : InternalLibrary('sonar',
                                       int_deps = ['math', 'bfin_spartan'],
-                                      ext_deps = ['Boost', 'fftw']),
+                                      ext_deps = sonar_deps),
 
             'network' : InternalLibrary('network',
                                         int_deps = ['core', 'control'],
@@ -652,7 +656,8 @@ class ConfigLibrary(Library):
         This runs the config tool and merges its result flags into the given
         environment.  It will then check library version and headers.
         """
-        old_libs = set(env.get('LIBS', []))
+        #Not current used (doesn't work with SCons instances in the list)
+        #old_libs = set(env.get('LIBS', []))
 
         # Cache the run of the shell command
         if self._config_cmd_output is None:
