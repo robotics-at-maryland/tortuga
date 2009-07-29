@@ -8,7 +8,7 @@
 #include <cmath>
 
 #ifdef __BFIN
-#include "drivers/bfin_spartan/include/spartan.h"
+#include "drivers/bfin_spartan/include/addresses.h"
 #include "drivers/bfin_spartan/include/report.h"
 #endif
 
