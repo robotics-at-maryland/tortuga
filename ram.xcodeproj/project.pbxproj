@@ -9,6 +9,8 @@
 /* Begin PBXFileReference section */
 		5F6A335A0E33E65D009FA642 /* tools */ = {isa = PBXFileReference; lastKnownFileType = folder; path = tools; sourceTree = "<group>"; };
 		5FB2FCB80E340388008ACB0D /* wrappers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = wrappers; sourceTree = "<group>"; };
+		A45F3DDF101FF28B003E0C20 /* SConstruct */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConstruct; sourceTree = "<group>"; };
+		A495D243101FDE5E00AA16A1 /* buildfiles */ = {isa = PBXFileReference; lastKnownFileType = folder; path = buildfiles; sourceTree = "<group>"; };
 		A4AD61020E3301A0005BA8A3 /* packages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = packages; sourceTree = SOURCE_ROOT; };
 		A4AD61030E3301A0005BA8A3 /* sandbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sandbox; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -17,6 +19,8 @@
 		08FB7794FE84155DC02AAC07 /* trunk */ = {
 			isa = PBXGroup;
 			children = (
+				A45F3DDF101FF28B003E0C20 /* SConstruct */,
+				A495D243101FDE5E00AA16A1 /* buildfiles */,
 				A4AD61020E3301A0005BA8A3 /* packages */,
 				A4AD61030E3301A0005BA8A3 /* sandbox */,
 				5F6A335A0E33E65D009FA642 /* tools */,

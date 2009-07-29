@@ -302,7 +302,7 @@ def setup_printing(env):
             sys.stdout.write("Making: %s...\n" %(' and '.join([str(x) for x in
                                                              target])))
             # Save real cmd to log file
-            open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
+            #open(env['CMD_LOGFILE'], 'a').write("%s\n"%s)
 
           
     env['PRINT_CMD_LINE_FUNC'] = print_cmd_line

@@ -416,8 +416,14 @@ public:
 
 	/** In place matrix inversion */
 	bool invert();
-
-        /** Preform an inplace Cholesky Factorization
+    
+    inline MatrixN inverse() const {
+        MatrixN inv(*this);
+        inv.invert();
+        return inv;
+    }
+    
+    /** Preform an inplace Cholesky Factorization
          *
          *  This function uses only the diagonal and upper triangle of the
          *  current matrix.  The initial matrix has to be symmetric positive

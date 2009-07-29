@@ -67,7 +67,7 @@ tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 
 env = Environment(ENV = os.environ,
                   options = opts,
-                  tools = ['default','gccxml','pypp'],
+                  tools = ['default','pypp'],
                   toolpath = [tpath])
 
 if env['bfin']:
@@ -75,6 +75,8 @@ if env['bfin']:
                 '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc')
     env.Replace(CXX = 
                 '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++')
+    env.Replace(AS = 
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-as')
 
 Help(opts.GenerateHelpText(env))
 

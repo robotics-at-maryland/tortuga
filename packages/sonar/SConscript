@@ -69,9 +69,20 @@ envt.RAMProgram(target = 'testPingDetect',
 
 envt = envb.Clone()
 
+if envt['bfin']:
+    envt.Append(ASFLAGS = ['-mfdpic'])
+    fr16patch = envt.Library(target = 'fr16patch',
+                    source = ['src/fr16patch/cos_fr16.asm', 'src/fr16patch/sin_fr16.asm'])
+    envt.Append(LIBS = ['m', 'bfdsp', fr16patch])
+
 envt.RAMProgram(target = 'sonard',
                 source = 'src/sonard/main.cpp',
                 int_deps = ['sonar'])
+
+envt.RAMProgram(target = 'sonard_multipinger',
+                source = 'src/multipinger/main.cpp',
+                int_deps = ['sonar'],
+                CPPFLAGS = ['-O3'])
 
 envt.RAMProgram(target = 'rtspectrogram',
                 source = 'src/tools/rtspectrogram.cpp',
