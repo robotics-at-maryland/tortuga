@@ -1,15 +1,15 @@
-/**
- * @file packages/sonar/include/GetPingChunk.h
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/include/GetPingChunk.h
  */
 
 
-#ifndef _RAM_SONAR_GETPINGCHUNK_H
-#define _RAM_SONAR_GETPINGCHUNK_H
+#ifndef _RAM_SONAR_PING_CHUNK
+#define _RAM_SONAR_PING_CHUNK
 
 #include "PingDetect.h"
 
@@ -30,10 +30,16 @@ namespace sonar {
  * locations is a pointer to an NCHANNEL-sized array of integers storing the locations of the first points in the data arrays with respect to the dataSet
  */
 class getPingChunk {
+    int detected;
     pingDetect pdetect;
+    adcdata_t sample[NCHANNELS];
+    int last_detected;
+    int last_ping_index[NCHANNELS];
+    int last_value[NCHANNELS];
 
     public:
-    getPingChunk(const int* kBands);
+    getPingChunk();
+    ~getPingChunk();
     int getChunk(adcdata_t** data, int* locations, struct dataset* dataSet);
 };
 

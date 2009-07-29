@@ -11,9 +11,9 @@
 #define _RAM_FFTWSPECTRUM_H
 
 #include "Spectrum.h"
-#include "fixed/fixed.h"
 #include <string.h>
 #include <fftw3.h>
+#include <iostream>
 
 namespace ram {
 namespace sonar {
@@ -57,7 +57,7 @@ public:
 	FFTWSpectrum()
 	{
 		double* in_re = *dataDouble;
-		fftw_complex* out_c = (fftw_complex*) ((void*)(*fourierDouble));
+		fftw_complex* out_c = reinterpret_cast<fftw_complex*> (*fourierDouble);
 		const int dim = N;
 		
 		purge();
@@ -118,8 +118,8 @@ public:
 			//	FFTW thinks it's smart because it takes care of aliasing.
 			for (int k = 0 ; 2*k < N ; k ++)
 			{
-				fourier[k][channel].real() = fixed::round<typename ADC::DOUBLE_WIDE::SIGNED>(fourierDouble[k][channel].real());
-				fourier[k][channel].imag() = fixed::round<typename ADC::DOUBLE_WIDE::SIGNED>(fourierDouble[k][channel].imag());
+				fourier[k][channel].real() = fourierDouble[k][channel].real();
+				fourier[k][channel].imag() = fourierDouble[k][channel].imag();
 			}
 			for (int k = N / 2 ; k < N ; k ++)
 			{

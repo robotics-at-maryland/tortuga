@@ -20,7 +20,6 @@
 
 // Project Includes
 #include "adctypes.h"
-#include "fixed/fixed.h"
 
 namespace ram {
 namespace sonar {
@@ -40,7 +39,7 @@ static const double frequencyOfInterest = 25000;
 static const double frequencyRedHerring = 27000;
 
 //===============ARRAY PROPERTIES==================
-static const unsigned short NCHANNELS = 4; // CHANGING THIS PARAMETER IS NOT SUPPORTED
+static const int NCHANNELS = 4; // CHANGING THIS PARAMETER IS NOT SUPPORTED
 static const int SAMPRATE = 500000; //Hz, sampling rate of the array
 static const int MAX_SENSOR_SEPARATION = 1000; //mm, determines maximum alllowable distance between pings, make it slightly larger than the real value
 static const int MAX_PING_SEP=(SAMPRATE*MAX_SENSOR_SEPARATION)/(1000*SPEED_OF_SOUND); //pts., maximum separation between adjacent pings
@@ -54,9 +53,9 @@ static const double hydroPlanarArray[3][2] =  //m, coordinate of hydrophones wit
 
 //================PROGRAM SETTINGS=================
 //-----------------DFT SETTINGS----------------------
-static const int DFT_FRAME=512; //pts., size of interval to do fourier over
-static const int kBandOfInterest = (int) fixed::round<int>(frequencyOfInterest*DFT_FRAME/SAMPRATE);
-static const int kBandRedHerring = (int) fixed::round<int>(frequencyRedHerring*DFT_FRAME/SAMPRATE);
+static const int DFT_FRAME=500; //pts., size of interval to do fourier over
+static const int kBandOfInterest = (int) (frequencyOfInterest*DFT_FRAME/SAMPRATE);
+static const int kBandRedHerring = (int) (frequencyRedHerring*DFT_FRAME/SAMPRATE);
 static const int nKBands = 2; //number of frequency bands to examine
 static const int kBands[]= {kBandOfInterest, kBandRedHerring}; //Kbands relevant for DFT
 
@@ -69,7 +68,7 @@ static const int ENV_CALC_FRAME=1024; //the length of the piece that is extracte
 //---------------PING QUALITY SETTINGS-----------------
 static const float PING_FIT_THRESHOLD=0.1;
 static const float VECTOR_QUAL_THRESHOLD=1.2;
-static const float FREQ_REJECT_RATIO=1.1; //the ratio of primary to secondary (false) frequencies for which the ping is assumed to be false and is rejected
+static const int FREQ_REJECT_RATIO=2; //the ratio of primary to secondary (false) frequencies for which the ping is assumed to be false and is rejected
 
 } // namespace sonar
 } // namespace ram

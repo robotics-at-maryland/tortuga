@@ -26,17 +26,16 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 	FFTWSpectrum<myadc, N, nChannels> refSpectrum;
 	SDFTSpectrum<myadc, N, nChannels> sbjSpectrum;
 	
-	for (long i = 0 ; i < nSamples ; i ++)
+	for (int i = 0 ; i < nSamples ; i ++)
 	{
-        myadc::SIGNED sample[nChannels];
+		adcdata_t sample[nChannels];
 		for (int channel = 0 ; channel < nChannels ; channel ++)
-			sample[channel] = (myadc::SIGNED)(((double)rand() / RAND_MAX) * myadc::SIGNED_MAX);
+			sample[channel] = (adcdata_t)(((double)rand() / RAND_MAX) * (1 << 15));
 		
 		refSpectrum.update(sample);
 		sbjSpectrum.update(sample);
 		
 		for (int channel = 0 ; channel < nChannels ; channel ++)
-        {
 			for (int k = 0 ; k < N ; k++)
 			{
 				const std::complex<myadc::DOUBLE_WIDE::SIGNED>& refResult = refSpectrum.getAmplitude(k, channel);
@@ -46,6 +45,5 @@ TEST(FFTWSpectrumGivesSameResultsAsSDFT)
 				CHECK_CLOSE(refResult.real(), sbjResult.real(), 4096);
 				CHECK_CLOSE(refResult.imag(), sbjResult.imag(), 4096);
 			}
-        }
 	}
 }

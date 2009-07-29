@@ -1,10 +1,10 @@
-/**
- * @file packages/sonar/src/sonard/main.cpp
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/src/sonard/main.cpp
  */
 
 /* 
@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
     struct timeval curr_time;
     struct timeval temp_time;
     int sleep_time;
+    getDirEdge edge_detector;
 
     //Initialize the communication port to the main cpu
     int fd=openDevice();
@@ -68,31 +69,20 @@ int main(int argc, char* argv[])
     cout<<"Starting\n";
     gettimeofday(&start_time, NULL);
             //cout<<"Now: "<<start_time.tv_sec<<" "<<start_time.tv_usec<<endl;
-    
-    if (!((argc == nKBands + 1) || (argc == nKBands + 2)))
+
+    //First, load the initial dataset
+    if(argc == 1)
     {
-        cerr << nKBands + 1 << " or " << nKBands + 2 << " input parameters are required." << endl;
-        return -1;
-    }
-    int myKBands[nKBands];
-    for (int i = 0 ; i < nKBands ; i ++)
-    {
-        myKBands[i] = fixed::round<int>(atof(argv[1 + i])*DFT_FRAME/SAMPRATE);
-        double freqEquiv = (double)myKBands[i] * SAMPRATE / DFT_FRAME;
-        std::cout << "Band " << i << " set to " << myKBands[i]
-            << " (" << freqEquiv << " kHz)" << std::endl;
-    }
-    if (argc == nKBands + 2)
-    {
-        cout<<"Using dataset \n"<<argv[nKBands+1]<<endl;
-        dataSet = loadDataset(argv[nKBands+1]);
-        do_loop=0;
-    } else {
         dataSet=getDataset(dataSet, status);
         do_loop=1; //infinite loop, since I am running off the hydrophones
     }
-    getDirEdge edge_detector(myKBands);
-    
+    else
+    {
+        cout<<"Using dataset \n"<<argv[1]<<endl;
+        dataSet = loadDataset(argv[1]);
+        do_loop=0;
+    }
+
     do
     {
         if(loop_counter!=0) //already loaded the dataset for the first run

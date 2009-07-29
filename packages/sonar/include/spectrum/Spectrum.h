@@ -10,6 +10,7 @@
 #define _RAM_SPECTRUM_H
 
 
+//#include "../Sonar.h"
 #include "../adctypes.h"
 #include <complex>
 

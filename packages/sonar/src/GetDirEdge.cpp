@@ -1,10 +1,10 @@
-/**
- * @file packages/sonar/src/GetDirEdge.cpp
+/*
+ * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008 Michael Levashov
+ * All rights reserved.
  *
- * @author Michael Levashov
- * @author Copyright (C) 2008 Robotics at Maryland
- * @author Copyright (C) 2008 Michael Levashov
- * @author All rights reserved.
+ * Author: Michael Levashov
+ * File:  packages/sonar/src/GetDirEdge.cpp
  */
 
 // STD Includes
@@ -28,8 +28,8 @@ namespace sonar {
 using namespace ram::math;
 using namespace std;
 
-getDirEdge::getDirEdge(const int* kBands)
-    : chunk(kBands), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2), tdoa_errors(3,1)
+getDirEdge::getDirEdge()
+    : chunk(), tdoas(3,1), temp_calc(3,3), hydro_array(3,2), ping_matr(3,2), tdoa_errors(3,1)
 {
     for(int j=0; j<NCHANNELS; j++)
         data[j]=new adcdata_t [ENV_CALC_FRAME];
@@ -50,91 +50,90 @@ getDirEdge::~getDirEdge()
         delete[] data[j];
 }
 
+/* Resets the parameters that are normally initialized in the constructor
+ */
+void getDirEdge::zero_values()
+{
+    for(int i=0; i<NCHANNELS; i++)
+    {
+        total[i]=0;
+        abstotal[i]=0;
+        pingpoints[i]=0;
+    }
+    fit_error=0;
+}
+    
 int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
 {
+    //Zero the appropriate values
+    zero_values();
+
     if((ping_found=chunk.getChunk(data, locations, dataSet))==0)
         return 0;
     else if(ping_found != 1)
         return -1;
-    
-    int pingpoints[NCHANNELS];
 
-    // For each channel ...
-    for(int channel=0; channel<NCHANNELS; channel++)
+    for(int i=0; i<NCHANNELS; i++)
     {
-        // Find the average signal over the detected range -- the DC offset. 
-        adc<16>::DOUBLE_WIDE::SIGNED average = 0;
         for(int j=0; j<ENV_CALC_FRAME; j++)
-            average += data[channel][j];
-        average /= ENV_CALC_FRAME;
+            total[i]+=data[i][j];
 
-        // Find the average magnitude of the signal, with the DC offset removed.
-        adc<16>::DOUBLE_WIDE::SIGNED absaverage = 0;
+        average[i]=total[i]/ENV_CALC_FRAME;
+
         for(int j=0; j<ENV_CALC_FRAME; j++)
-            absaverage += fixed::abs(data[channel][j] - average);
-        absaverage /= ENV_CALC_FRAME;
-        
-        // Then, crawl through the samples one more time, and find where the 
-        // signal minus the DC offset exceeds the average magnitude for the first
-        // time.  This should be the rising edge.
-        pingpoints[channel] = -1;
+            abstotal[i]+=fixed::abs(data[i][j]-average[i]);
+
+        absaverage[i]=abstotal[i]/ENV_CALC_FRAME;
+
         for(int j=0; j<ENV_CALC_FRAME; j++)
-        {
-            if(data[channel][j] - average > absaverage)
+            if(data[i][j]-average[i]>absaverage[i])
             {
-                // Refine the estimate of the time of arrival with the new
-                // information.
-                pingpoints[channel] = locations[channel]+j;
+                pingpoints[i]=locations[i]+j;
                 break;
             }
-        }
-        if (pingpoints[channel] == -1)
-            return -1;
     }
+    //cout<<"Positions "<<" "<<pingpoints[0]<<"/"<<dataSet->size<<endl;
 
-    // Compute time delays on arrival (TDOAS) from times of arrival
-    for(int channel=0; channel<NCHANNELS-1; channel++)
-        tdoas[channel][0]=(SPEED_OF_SOUND * double(pingpoints[channel+1]-pingpoints[0]))/SAMPRATE;
+    if((pingpoints[0]==0) ||
+       (pingpoints[1]==0) ||
+       (pingpoints[2]==0) ||
+       (pingpoints[3]==0))
+        return -1;
 
-    // Compute direction of pinger
+    for(int i=0; i<NCHANNELS-1; i++)
+        tdoas[i][0]=(SPEED_OF_SOUND* double(pingpoints[i+1]-pingpoints[0]))/SAMPRATE;
+
+    //cout<<"Distance norm: "<<tdoas[1][0]*tdoas[1][0]/(hydro_array[0][1]*hydro_array[0][1])+tdoas[2][0]*tdoas[2][0]/(hydro_array[1][0]*hydro_array[1][0])<<endl;
+
     ping_matr=temp_calc*tdoas;
-
-    // Compute variance between expected TDOA vector, giving location solution,
-    // and actual TDOA vector.
     tdoa_errors=hydro_array*ping_matr-tdoas;
-    float fit_error = 0;
-    for(int channel=0; channel<NCHANNELS-1; channel++)
-        fit_error+=tdoa_errors[channel][0]*tdoa_errors[channel][0];
 
-    // If the variance is too great, reject the ping.
+    for(int i=0; i<NCHANNELS-1; i++)
+        fit_error+=tdoa_errors[i][0]*tdoa_errors[i][0];
+
+    //cout<<"Fit error: "<<fit_error<<endl;
     if(fit_error > PING_FIT_THRESHOLD)
     {
         cout<<"BAD FIT\n";
         return 0;
     }
 
-    // Fill in the sonar ping, as a vector towards the pinger
+    //Fill in the sonar ping, as a vector towards the pinger
     for(int i=0; i<2; i++)
         ping->direction[i]=-ping_matr[i][0];
     
     //force it to be positive, since we know that the pinger is below
     
-    // x^2+y^2
     double temp=ping->direction[0]*ping->direction[0]+ping->direction[1]*ping->direction[1];
-    if(temp > 1) // If the vector is non-normalized...
+    if(temp > 1)
     {
-        if(temp>VECTOR_QUAL_THRESHOLD) // By a certain amount ...
+        if(temp>VECTOR_QUAL_THRESHOLD)
         {
-            // Then reject the ping.
             cout<<"BAD VECTOR\n";
             return 0;
         }
         else
-        {
-            // The normality was within our specified tolerance, but just barely,
-            // so take the altitude to be zero.
             ping->direction[2]=0;
-        }
     }
     else
         ping->direction[2]=-std::sqrt(1-temp);
@@ -142,7 +141,6 @@ int getDirEdge::getEdge(sonarPing* ping, dataset *dataSet)
     ping->point_num=pingpoints[0];
     ping->distance=0;
 
-    // Return success
     return 1;
 }
 } //sonar

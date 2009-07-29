@@ -30,11 +30,13 @@ int main(int argc, char* argv[])
 {
     //kBands defined in Sonar.h!
     int thresholds[]={50,50,50,50};
-    pingDetect pdetect(thresholds, kBands,PING_DETECT_FRAME);
+    int detected;
+    pingDetect pdetect(thresholds, NCHANNELS, kBands,PING_DETECT_FRAME);
+    adcdata_t sample[NCHANNELS];
     struct dataset * dataSet = NULL;
-    int lastDetectedIndex = 0;
-    int lastPingIndex[NCHANNELS]={0,0,0,0};
-    std::bitset<NCHANNELS> lastDetectedFlag;
+    int last_detected=0;
+    int last_ping_index[NCHANNELS]={0,0,0,0};
+    int last_value[NCHANNELS]={0, 0, 0, 0};
 
     if(argc == 1)
     {
@@ -63,41 +65,60 @@ int main(int argc, char* argv[])
     }
     for(int i=0; i<dataSet->size; i++)
     {
-        adcdata_t sample[NCHANNELS];
-        for (int channel = 0 ; channel < NCHANNELS ; channel++)
-            sample[channel] = getSample(dataSet, channel, i);
-        const std::bitset<NCHANNELS> detectedFlag = pdetect.p_update(sample);
+        sample[0] = getSample(dataSet, 0, i);
+        sample[1] = getSample(dataSet, 1, i);
+        sample[2] = getSample(dataSet, 2, i);
+        sample[3] = getSample(dataSet, 3, i);
+        detected=pdetect.p_update(sample);
 
-        if (i == DFT_FRAME)
+        if(i==DFT_FRAME)
             pdetect.reset_minmax();
 
-        if (i - lastDetectedIndex > MAX_PING_SEP)
+        if(i-last_detected>MAX_PING_SEP)
         {
-            lastDetectedFlag.reset();
-            lastDetectedIndex = 0;
+            for(int i=0; i<NCHANNELS; i++)
+                last_value[i]=0;
+            last_detected=0;
         }
-        
-        if (detectedFlag.any())
+
+        if(detected !=0)
         {
-            lastDetectedIndex = i;
-            for (int channel = 0 ; channel < NCHANNELS ; channel ++)
+            last_detected=i;
+            if(((detected & 1) != 0) && (last_value[0]!=1))
             {
-                if (detectedFlag[channel] && !lastDetectedFlag[channel])
-                {
-                    std::cout << "Hydrophone " << channel 
-                              << " detected a ping at point " 
-                              << i + 1 << std::endl;
-                    lastDetectedFlag.set(channel);
-                    lastPingIndex[channel] = i;
-                }
+                cout<<"Hydrophone 0 detected a ping at point "<<i+1<<endl;
+                last_value[0]=1;
+                last_ping_index[0]=i;
+            }
+            if(((detected & 2) != 0) && (last_value[1]!=1))
+            {
+                cout<<"Hydrophone 1 detected a ping at point "<<i+1<<endl;
+                last_value[1]=1;
+                last_ping_index[1]=i;
+            }
+            if(((detected & 4) != 0) && (last_value[2]!=1))
+            {
+                cout<<"Hydrophone 2 detected a ping at point "<<i+1<<endl;
+                last_value[2]=1;
+                last_ping_index[2]=i;
+            }
+            if(((detected & 8) != 0) && (last_value[3]!=1))
+            {
+                cout<<"Hydrophone 3 detected a ping at point "<<i+1<<endl;
+                last_value[3]=1;
+                last_ping_index[3]=i;
             }
         }
 
-        if (lastDetectedFlag.count() == NCHANNELS)
+        if((last_value[0]==1) &&
+           (last_value[1]==1) &&
+           (last_value[2]==1) &&
+           (last_value[3]==1))
         {
-            std::cout << "Ping detected at " << i+1-PING_DETECT_FRAME/2 << "!" << std::endl;
+            cout<<"Ping detected at "<<i+1-PING_DETECT_FRAME/2<<"!\n";
             pdetect.reset_minmax();
-            lastDetectedFlag.reset();
+            for(int i=0; i<NCHANNELS; i++)
+                last_value[i]=0;
         }
     }
 

@@ -22,23 +22,13 @@ int main(int argc, char* argv[])
     struct dataset * dataSet = NULL;
     adcdata_t* data[NCHANNELS];
     int locations[NCHANNELS];
-    
-    int myKBands[nKBands];
-    for (int i = 0 ; i < nKBands ; i ++)
-        myKBands[i] = kBands[i];
-    for (int argIndex = 1 ; argIndex < argc ; argIndex ++)
-    {
-        if (strcmp(argv[argIndex], "--swap-bands") == 0)
-        {
-            int temp = myKBands[0];
-            myKBands[0] = myKBands[1];
-            myKBands[1] = temp;
-        } else {
-            fprintf(stderr, "Using dataset %s\n", argv[argIndex]);
-            dataSet = loadDataset(argv[argIndex]);
-        }
-    }
-    if(dataSet == NULL)
+    getPingChunk chunk;
+    FILE* f;
+
+    for(int j=0; j<NCHANNELS; j++)
+        data[j]=new adcdata_t [ENV_CALC_FRAME];
+
+    if(argc == 1)
     {
         dataSet = createDataset(0xA0000*2);
         if(dataSet == NULL)
@@ -52,12 +42,11 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Analyzing samples...\n");
         //greenLightOff();
     }
-
-    getPingChunk chunk(myKBands);
-    FILE* f;
-
-    for(int j=0; j<NCHANNELS; j++)
-        data[j]=new adcdata_t [ENV_CALC_FRAME];
+    else
+    {
+        fprintf(stderr, "Using dataset %s\n", argv[1]);
+        dataSet = loadDataset(argv[1]);
+    }
 
     if(dataSet == NULL)
     {
@@ -65,14 +54,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int result = chunk.getChunk(data, locations, dataSet);
+    chunk.getChunk(data, locations, dataSet);
 
-    if (result != 1)
-    {
-        fprintf(stderr, "Did not find a ping!\n");
-        return -1;
-    }
-    
     f=fopen("out_file.bin","w");
     if (f==NULL)
     {
@@ -82,17 +65,8 @@ int main(int argc, char* argv[])
 
     //Now, print it
     for(int j=0; j<ENV_CALC_FRAME; j++)
-    {
         for(int i=0; i<NCHANNELS; i++)
-        {
-	  if(sizeof(adcdata_t) != 
-	     fwrite(&data[i][j], sizeof(adcdata_t),1, f))
-          {
-	    fprintf(stderr,"Could not write to output file\n");
-	    return -1;
-	  }
-	}
-    }
+            fwrite(&data[i][j], sizeof(adcdata_t),1, f);
 
     for(int i=0; i<NCHANNELS; i++)
     {
