@@ -27,7 +27,7 @@ int closeDevice(int fd);
 
 /** Can be called many times with the same device fd */
 int reportPing(int fd, byte status, double vectorX, double vectorY, double vectorZ,
-               uint16_t range, uint32_t timeStamp, uint32_t sampleNo);
+               uint16_t range, uint32_t timeStamp, uint32_t sampleNo, byte pingerID);
 
 
 #ifdef __cplusplus
