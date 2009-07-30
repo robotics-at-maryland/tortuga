@@ -285,6 +285,9 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Minimum percentage a bin has to be filled to be a bin */
     double m_binMinFillPercentage;
+
+    /** The maximum number of bin overlaps aloud */
+    int m_binMaxOverlaps;
     
     /** The max distance between bins on different frames */
     double m_binSameThreshold;

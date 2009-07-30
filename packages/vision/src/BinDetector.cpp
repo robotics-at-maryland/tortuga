@@ -118,6 +118,7 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_blobMinRedPercent(0),
     m_binMaxAspectRatio(0),
     m_binMinFillPercentage(0),
+    m_binMaxOverlaps(0),
     m_binSameThreshold(0),
     m_binLostFrames(0),
     m_binHoughPixelRes(0),
@@ -440,8 +441,11 @@ void BinDetector::init(core::ConfigNode config)
        "The maximum aspect ratio the black blob of a bin can have",
         3.0, &m_binMaxAspectRatio, 0.0, 10.0);
     propSet->addProperty(config, false, "binMinFillPrecentage",
-       "The maximum aspect ratio the black blob of a bin can have",
+       "The minimum amount of the black bob that must be filled to be a bin",
         0.0, &m_binMinFillPercentage, 0.0, 1.0);
+    propSet->addProperty(config, false, "binMaxOverlaps",
+       "The minimum amount of the black bob that must be filled to be a bin",
+        2, &m_binMaxOverlaps, 0, 10);
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
         0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
@@ -649,6 +653,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
                                BlobDetector::BlobList& binBlobs)
 {
     BlobDetector::BlobList nonBinBlobs;
+    BlobDetector::BlobList candidateBins;
     double averageHeight = 0;
     int foundBins = 0;
 
@@ -660,7 +665,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
     BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
     {
         bool matchedBlob = false;
-
+        
         BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
         {
             // Sadly, this totally won't work at the edges of the screen...
@@ -670,7 +675,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
                 (blackBlob.getFillPercentage() > m_binMinFillPercentage))
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
-                binBlobs.push_back(blackBlob);
+                candidateBins.push_back(blackBlob);
                 matchedBlob = true;
 		averageHeight += blackBlob.getHeight();
                 // Don't add it once for each white blob containing it,
@@ -736,7 +741,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
 		    // If both edges are white we need to be a proper aspect
 		    // ratio
 		    if (blackBlob.getAspectRatio() < 3)
-		        binBlobs.push_back(blackBlob);
+		        candidateBins.push_back(blackBlob);
 		}
 		else 
 		{
@@ -747,15 +752,40 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
 		        double heightError = 
 			    fabs(blackBlob.getHeight() - averageHeight);
 			if ((heightError / averageHeight) < 0.2)
-			    binBlobs.push_back(blackBlob);
+			    candidateBins.push_back(blackBlob);
 		    }
 		    else
 		    {
-		        binBlobs.push_back(blackBlob);
+		        candidateBins.push_back(blackBlob);
 		    }
 		}
             }
         } // if (blob of full height)
+    }
+
+
+    // Filter all the candidates and remove ones that overlap
+    BOOST_FOREACH(BlobDetector::Blob bin, candidateBins)
+    {
+        // Count the number of overlaps
+        int binOverlaps = 0;
+        BlobDetector::BlobList::const_iterator iter = candidateBins.begin();
+        while (iter != candidateBins.end())
+        {
+            if (bin.boundsIntersect(*iter) &&
+                (bin.getCenterX() != iter->getCenterX()) &&
+                (bin.getCenterY() != iter->getCenterY()))
+            {
+                std::cout << "Intersects(" << candidateBins.size()
+                          << std::endl;
+                binOverlaps++;
+            }
+            iter++;
+        }
+
+        // Only add if its under the overlap count
+        if (binOverlaps < m_binMaxOverlaps)
+            binBlobs.push_back(bin);
     }
 }
 
