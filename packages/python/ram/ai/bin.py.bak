@@ -663,6 +663,8 @@ class Seeking(HoveringState):
             else:
                 self.ai.data['binData']['currentID'] = event.id
         
+        # Disable angle tracking
+        event.angle = math.Degree(0)
         HoveringState.BIN_FOUND(self, event)
         
         if self._currentBin(event):
@@ -670,7 +672,7 @@ class Seeking(HoveringState):
                 self.publish(Seeking.BIN_CENTERED, core.Event())
         
     def enter(self):
-        HoveringState.enter(self, shouldRotate = False)
+        HoveringState.enter(self)
         self._centeredLimit = self._config.get('centeredLimit', 0.2)
 
 class RecoverSeeking(Recover):
@@ -812,8 +814,7 @@ class SeekEnd(BinSortingState):
                                   BinSortingState.LEFT), useMultiAngle = True)
         else:
             BinSortingState.enter(self, self.ai.data.get('startSide',
-                                  BinSortingState.LEFT), useMultiAngle = True,
-                                  shouldRotate = False)
+                                  BinSortingState.LEFT), useMultiAngle = False)
         
         # Check if it is already at the end and set the direction to move
         self._checkEnd()
@@ -882,14 +883,8 @@ class Dive(HoveringState):
         HoveringState.BIN_FOUND(self, event)
         
     def enter(self, useMultiAngle = False, offset = 1.5):
-        self._binDirection = self.ai.data['config'].get('Bin', {}).get(
-            'binDirection', None)
-
         # Keep the hover motion going (and use the bin angle)
-        if self._binDirection is None:
-            HoveringState.enter(self, useMultiAngle)
-        else:
-            HoveringState.enter(self, useMultiAngle, shouldRotate = False)
+        HoveringState.enter(self, useMultiAngle)
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
@@ -958,12 +953,16 @@ class Aligning(SettlingState):
         return SettlingState.transitions(Aligning,
             lostState = RecoverDive, recoveryState = LostCurrentBinAligning,
             trans = { Aligning.ALIGNED : PreDiveExamine })
+
+    def BIN_FOUND(self, event):
+        if not self._adjustAngle:
+            event.angle = math.Degree(0)
+        SettlingState.BIN_FOUND(self, event)
     
     def enter(self):
         self._adjustAngle = self.ai.data['config'].get('Bin', {}).get(
             'adjustAngle', True)
-        SettlingState.enter(self, Aligning.ALIGNED, 5,
-                            shouldRotate = self._adjustAngle)
+        SettlingState.enter(self, Aligning.ALIGNED, 5)
     
 class LostCurrentBinAligning(LostCurrentBin):
     @staticmethod
@@ -1067,13 +1066,10 @@ class Examine(HoveringState):
         return False
         
     def enter(self, timeout = 2):
+        HoveringState.enter(self)
+
         self._adjustAngle = self.ai.data['config'].get('Bin', {}).get(
             'adjustAngle', True)
-
-        if self._adjustAngle:
-            HoveringState.enter(self)
-        else:
-            HoveringState.enter(self, shouldRotate = False)
 
         self._minimumHits = self._config.get('minimumHits', 40)
 
@@ -1266,13 +1262,7 @@ class SurfaceToMove(HoveringState):
         
     def enter(self):
         # Keep centered over the bin
-        self._binDirection = self.ai.data['config'].get('Bin', {}).get(
-            'binDirection', None)
-
-        if self._binDirection is None:
-            HoveringState.enter(self)
-        else:
-            HoveringState.enter(self, shouldRotate = False)
+        HoveringState.enter(self)
         
         # Also surface
         binDepth = self.ai.data['config'].get('binDepth', 11)
@@ -1349,8 +1339,7 @@ class NextBin(BinSortingState):
         if self._binDirection is None:
             BinSortingState.enter(self, direction, useMultiAngle = True)
         else:
-            BinSortingState.enter(self, direction, useMultiAngle = True,
-                                  shouldRotate = False)
+            BinSortingState.enter(self, direction, useMultiAngle = False)
 
         # Fix the current left most bin, as the currently tracked bin
         if not self.fixEdgeBin():
@@ -1416,12 +1405,7 @@ class DropMarker(SettlingState):
         SettlingState.BIN_FOUND(self, event)
 
     def enter(self):
-        self._binDirection = self.ai.data['config'].get('Bin', {}).get(
-            'binDirection', None)
-        if self._binDirection is None:
-            SettlingState.enter(self, DropMarker.DROP, 5)
-        else:
-            SettlingState.enter(self, DropMarker.DROP, 5, shouldRotate = False)
+        SettlingState.enter(self, DropMarker.DROP, 5)
         
 class CheckDropped(HoveringState):
     """
@@ -1447,8 +1431,6 @@ class CheckDropped(HoveringState):
         HoveringState.BIN_FOUND(self, event)
         
     def enter(self):
-        HoveringState.enter(self, shouldRotate = False)
-
         self._maximumScans = self._config.get('maximumScans', 2)
         data = self.ai.data
         
