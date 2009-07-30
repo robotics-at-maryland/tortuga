@@ -948,10 +948,10 @@ class SonarPanel(wx.Panel):
 
     def _updateNumericDisplay(self, event):
         direction = event.direction
-        if self._currentPingerID == event.pingerID:
-            self._x.Value = '% 6.4f' % direction.x
-            self._y.Value = '% 6.4f' % direction.y
-            self._z.Value = '% 6.4f' % direction.z
+        #if self._currentPingerID == event.pingerID:
+        self._x.Value = '% 6.4f' % direction.x
+        self._y.Value = '% 6.4f' % direction.y
+        self._z.Value = '% 6.4f' % direction.z
         self._pingCount.Value = '% 8.1f' % event.pingCount
         
     def _onPingerChoice(self, event):
