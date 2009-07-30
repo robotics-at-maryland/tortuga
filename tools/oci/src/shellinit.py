@@ -78,10 +78,11 @@ targetOff = visionSystem.targetDetectorOff
 def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
     # All comments are needed. Do not add blank lines!
     TIMEOUT = core.declareEventType('TIMEOUT')
+    conn = None
     def stop(event):
-        print '"finish record"'
         removeRecorder(name + extension)
-    queuedEventHub.subscribeToType(TIMEOUT, stop)
+        conn.disconnect()
+    conn = queuedEventHub.subscribeToType(TIMEOUT, stop)
     # If no name was given, create one out of the time
     if name is None:
         timeStamp = datetime.fromtimestamp(timer.time())
