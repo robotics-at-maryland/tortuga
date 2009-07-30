@@ -47,10 +47,10 @@ OrangePipeDetector:
     erodeIterations: 1
     filtLMax: 210
     filtLMin: 0
-    filtUMax: 200
+    filtUMax: 255
     filtUMin: 14
     filtVMax: 255
-    filtVMin: 126
+    filtVMin: 201 # 123
     useLUVFilter: 1
 BinDetector:
     symbolDetector: BasicWW2Detector

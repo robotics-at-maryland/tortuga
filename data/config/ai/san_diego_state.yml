@@ -173,10 +173,10 @@ ram.ai.bin.RecoverCloserLook:
 # Sonar subtask
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 1.5
-    sidewaysSpeedGain: 3
+    sidewaysSpeedGain: 5
     maxSpeed: 1.5
-    speedGain: 3
-    closeZ: 0.98
+    speedGain: 5
+    closeZ: 0.975
 ram.ai.sonar.FarSeeking:
     maxSidewaysSpeed: 1
     sidewaysSpeedGain: 2
