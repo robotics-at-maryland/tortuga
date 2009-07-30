@@ -196,16 +196,17 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
 
         trans.update({ motion.basic.MotionManager.
                        QUEUED_MOTIONS_FINISHED : state.Branch(pipe.Searching),
-                       pipe.PipeTrackingState.
-                       FOUND_PIPE : state.Branch(pipe.Seeking),
+                       pipe.PipeTrackingState.FOUND_PIPE : myState,
                        PipeObjective.TIMEOUT : state.Branch(pipe.Searching),
                        pipe.Centering.SETTLED : task.Next })
 
         return trans
 
     def FOUND_PIPE(self, event):
-        self.motionManager.stopCurrentMotion()
-        self._foundPipe = True
+        if not self._foundPipe:
+            self.stateMachine.start(state.Branch(pipe.Seeking))
+            self.motionManager.stopCurrentMotion()
+            self._foundPipe = True
 
     def enter(self, motion, *motionList):
         pipe.PipeTrackingState.enter(self)
