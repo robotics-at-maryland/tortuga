@@ -133,6 +133,45 @@ TEST_FIXTURE(Fixture, createMeasurementModel)
     CHECK_CLOSE(expectedResult, result, 0.0001);
 }
 
+TEST_FIXTURE(Fixture, discretizeModel)
+{
+    // expected Ak
+    math::MatrixN resultAk(8,8);
+    double rawAk[] = {1, 0, 0.9502, 0, 0, 0, 0, 0,
+                      0, 1, 0, 0.9502, 0, 0, 0, 0,
+                      0, 0, 0.0498, 0, 0, 0, 0, 0,
+                      0, 0, 0, 0.0498, 0, 0, 0, 0, 
+                      0, 0, 0, 0, 1, 0, 0, 0, 
+                      0, 0, 0, 0, 0, 1, 0, 0,
+                      0, 0, 0, 0, 0, 0, 1, 0,
+                      0, 0, 0, 0, 0, 0, 0, 1};
+    math::MatrixN expectedAk(rawAk,8,8);
+    // expected Rv
+    math::MatrixN resultRv(8,8);
+    double rawRv[] = {3.1967, 0, 0.9029, 0, 0, 0, 0, 0,
+                    0, 3.1967, 0, 0.9029, 0, 0, 0, 0,
+                    0.9029, 0, 0.9975, 0, 0, 0, 0, 0,
+                    0, 0.9029, 0, 0.9975, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 
+                    0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0};
+    math::MatrixN expectedRv(rawRv,8,8);
+
+    // run the function
+//    static void discretizeModel(double dragDensity, double rvMag, double ts,
+//                                math::MatrixN& Ak, math::MatrixN& Rv);
+    double dragDensity = 1.0;
+    double rvMag = 2.0; 
+    double ts = 3.0;
+    vehicle::device::SonarStateEstimator::discretizeModel(dragDensity,rvMag,ts,resultAk,resultRv);
+    
+    //check the result
+    CHECK_CLOSE(expectedAk,resultAk,0.0001);
+    CHECK_CLOSE(expectedRv,resultRv,0.0001);
+
+}
+
 TEST_FIXTURE(Fixture, findAbsPingerAngle)
 {
     // Vehicle 30 degrees to the left, pinger 45 to the left relative

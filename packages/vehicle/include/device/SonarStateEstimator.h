@@ -64,6 +64,11 @@ public:
     static void createMeasurementModel(const math::VectorN& xHat, 
                                        math::MatrixN& result);
 
+    /** Create a discrete time model of the system dynamics and noise
+        propagation matrix based on the change in time between samples */
+    static void discretizeModel(double dragDensity, double rvMag, double ts,
+                                math::MatrixN& Ak, math::MatrixN& Rv);
+
     /** Computes the angle from the north inertial unit vector to the pinger*/
     static math::Radian findAbsPingerAngle(math::Quaternion vehicleOrientation,
                                            math::Vector3 relativePingerVector);
@@ -155,11 +160,14 @@ private:
     /** The "xHat" vector (2D robot pos/vel and pinger positions) */
     math::VectorN m_stateHat;
 
-    /** dynamical model for sub for in plane translation 
+    /** The state covariance matrix */
+    math::MatrixN m_Rv;
+
+    /** linear time invariant dynamical model for sub for in-plane translation 
         dxdt = A*x
         dxdt = A*x+B*u  (future work)
     **/
-    math::MatrixN A;
+    math::MatrixN m_A;
     
 };
     

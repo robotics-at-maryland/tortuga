@@ -37,8 +37,8 @@ SonarStateEstimator::SonarStateEstimator(core::ConfigNode config,
     m_currentOrientation(math::Quaternion::IDENTITY),
     m_currentVelocity(math::Vector2::ZERO),
     m_lastUpdateTime(core::TimeVal::timeOfDay().get_double()),
-    m_stateHat(0.0 , 8) // 8 elements long, all start out 0
-
+    m_stateHat(0.0 , 8), // 8 elements long, all start out 0
+    m_A(0.0,8,8)//8x8 matrix, all values initialized to 0
 {
     // Initialize the the xHat (state) vector (all elements currently zero)
     // +X goes north, +Y goes west (at Transdec)
@@ -46,6 +46,24 @@ SonarStateEstimator::SonarStateEstimator(core::ConfigNode config,
     m_stateHat[5] = config["pingerLeftPosition"][0].asDouble(10); // Y
     m_stateHat[6] = config["pingerRightPosition"][0].asDouble(30); // X
     m_stateHat[7] = config["pingerRightPosition"][0].asDouble(-10); // Y
+
+    // grab "drag density" from config file
+    //couldn't think of a better name for this term
+    //its actually dragDensity = c/m where c is drag coefficient and m is mass
+    double dragDensity = config["dragDensity"].asDouble(0.1607);
+    //fictitious dynamics for pinger locations
+    //implemented as d/dt(pingerPosition_x) = -pingerDynamics*pingerPosition_x
+    //implemented as d/dt(pingerPosition_y) = -pingerDynamics*pingerPosition_y
+    double pingerDynamics = config["pingerDynamics"].asDouble(-0.1);
+    //now populate A matrix (state dynamics)
+    m_A[0][2]=1;
+    m_A[1][3]=1;
+    m_A[2][2]=-dragDensity;
+    m_A[3][3]=-dragDensity;
+    m_A[4][4]=pingerDynamics;
+    m_A[5][5]=pingerDynamics;
+    m_A[6][6]=pingerDynamics;
+    m_A[7][7]=pingerDynamics;
 
     // Subscribe to the the sonar events
     std::string sonarDeviceName  = config["sonarDeviceName"].asString("Sonar");
@@ -121,6 +139,8 @@ void SonarStateEstimator::createMeasurementModel(const math::VectorN& xHat,
 {
     // Make the output the proper size
     result.resize(2,8);
+
+    // populate with derivative of measurement model H evaluated at xHat
     double temp = pow((xHat[4]-xHat[0])/(xHat[5]-xHat[1]),2);
     result[0][0] = (1/(1+temp))*(-1/(xHat[5]-xHat[1]));
     result[0][1] = (1/(1+temp))*(xHat[4]-xHat[0])/(pow(xHat[5]-xHat[1],2));
@@ -141,6 +161,45 @@ void SonarStateEstimator::createMeasurementModel(const math::VectorN& xHat,
     result[1][6] = (1/(1+temp2))*(1/(xHat[7]-xHat[1]));
     result[1][7] = (1/(1+temp2))*(-1)*(xHat[6]-xHat[0])/(pow(xHat[7]-xHat[1],2));
 }
+
+
+void SonarStateEstimator::discretizeModel(double dragDensity, 
+                                          double rvMag, 
+                                          double ts,
+                                          math::MatrixN& Ak, 
+                                          math::MatrixN& Rv)
+{
+    //create temporary variables
+    double eminusts=math::Math::Exp(-ts*dragDensity);
+    double eplusts=math::Math::Exp(ts*dragDensity);
+    //resize and populate Ak matrix
+    Ak = math::MatrixN(0.0,8,8);
+    Ak[0][0]=1;
+    Ak[1][1]=1;
+    Ak[2][2]=eminusts;
+    Ak[3][3]=eminusts;
+    Ak[4][4]=1;
+    Ak[5][5]=1;
+    Ak[6][6]=1;
+    Ak[7][7]=1;
+    Ak[0][2]=-(eminusts-1)/dragDensity;
+    Ak[1][3]=-(eminusts-1)/dragDensity;
+
+    //create Rv = Ak*Rtemp
+    math::MatrixN Rtemp = math::MatrixN(0.0,8,8);
+    Rtemp[0][0]=0.5*rvMag*(eminusts-eplusts+2*ts*dragDensity)/(dragDensity*dragDensity*dragDensity);
+    Rtemp[2][0]=0.5*rvMag*(eminusts+eplusts-2)/(dragDensity*dragDensity);
+    Rtemp[1][1]=0.5*rvMag*(eminusts-eplusts+2*ts*dragDensity)/(dragDensity*dragDensity*dragDensity);
+    Rtemp[3][1]=0.5*rvMag*(eminusts+eplusts-2)/(dragDensity*dragDensity);
+    Rtemp[0][2]=-0.5*rvMag*(eminusts+eplusts-2)/(dragDensity*dragDensity);
+    Rtemp[2][2]=-0.5*rvMag*(eminusts-eplusts)/dragDensity;
+    Rtemp[1][3]=-0.5*rvMag*(eminusts+eplusts-2)/(dragDensity*dragDensity);
+    Rtemp[3][3]=-0.5*rvMag*(eminusts-eplusts)/dragDensity;
+ 
+    Rv.resize(8,8);
+    Rv=Ak*Rtemp;
+}
+
 
 math::Radian SonarStateEstimator::findAbsPingerAngle(
     math::Quaternion vehicleOrientation,
@@ -203,6 +262,8 @@ void SonarStateEstimator::onSonarEvent(core::EventPtr event)
 void SonarStateEstimator::pingerLeftFilterUpdate(math::Degree angle, double dt)
 {
     // Put update code here
+
+    //you'll need Math::Exp()
 }
     
 void SonarStateEstimator::pingerRightFilterUpdate(math::Degree angle, double dt)
