@@ -218,7 +218,7 @@ ram.ai.sonarSafe.Settling:
 ram.ai.sonarSafe.Dive:
     #Hilton Pool
     #safeDepth: 6.5
-    #depthOffset: 1
+    depthOffset: 1
     diveRate: 0.1
     maxSidewaysSpeed: 2.25
     sidewaysSpeedGain: 2.25
@@ -236,4 +236,4 @@ ram.ai.sonarSafe.PreGrabSettling:
     #safeDepth: 6.5
     #depthOffset: 1.5
     #safeDepth: 19
-    #depthOffset: 1
+    depthOffset: 1

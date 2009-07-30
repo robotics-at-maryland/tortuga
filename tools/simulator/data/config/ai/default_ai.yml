@@ -28,7 +28,7 @@ config:
     binStartDepth: 7
     binDepth: 13
     targetSymbols: ['Aircraft', 'Tank']
-    sonarDepth: 11
+    sonarDepth: 8
     safeDepth: 15
     safeOffset: -0.35
     Gate:

@@ -31,12 +31,12 @@ Scene:
     Objects:        
         pinger1:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [-15, -2, -1]
+            position: [-15, -2, -5]
             ID: 0
             
         pinger2:
             type: [sim.sonar.IPinger, sim.sonar.Pinger]
-            position: [-15, 2, -1]
+            position: [-15, 2, -5]
             ID: 1
             delay: 1
         

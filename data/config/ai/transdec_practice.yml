@@ -16,7 +16,6 @@ config:
     targetSymbols: ['Tank', 'Factory']
     sonarDepth: 5
     safeDepth: 9
-    safeDepthOffset: 1
     safeOffset: -0.4
     Gate:
         time: 30
