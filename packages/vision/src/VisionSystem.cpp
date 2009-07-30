@@ -133,7 +133,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_binDetector = DetectorPtr(
         new BinDetector(getConfig(config, "BinDetector"), eventHub));
     m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(getConfig(config, "PipelineDetector"),
+        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
                                          eventHub));
     m_ductDetector = DetectorPtr(
         new DuctDetector(getConfig(config, "DuctDetector"), eventHub));
