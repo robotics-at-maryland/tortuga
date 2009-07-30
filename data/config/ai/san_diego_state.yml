@@ -127,6 +127,8 @@ ram.ai.bin.Seeking:
     maxSidewaysSpeed: 3
 ram.ai.bin.Centering:
     yawGain: 0.4
+    sidewaysSpeedGain: 1
+    speedGain: 1
 ram.ai.bin.SeekEnd:
     #maxSpeed: 2
     speedGain: 7
@@ -137,19 +139,21 @@ ram.ai.bin.SurfaceToMove:
 ram.ai.bin.Dive:
     offset: 5
     yawGain: 0.4
+    speedGain: 1
+    sidewaysSpeedGain: 1
 ram.ai.bin.Aligning:
-    speedGain: 7
-    dSpeedGain: 1.5
+    speedGain: 4
+    dSpeedGain: 1.0
     iSpeedGain: 0.5
-    sidewaysSpeedGain: 8
-    dSidewaysSpeedGain: 1.5
+    sidewaysSpeedGain: 4
+    dSidewaysSpeedGain: 1.0
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PreDiveExamine:
-    speedGain: 5
-    dSpeedGain: 1.5
+    speedGain: 4
+    dSpeedGain: 1.0
     iSpeedGain: 0.5
-    sidewaysSpeedGain: 8
-    dSidewaysSpeedGain: 1.5
+    sidewaysSpeedGain: 4
+    dSidewaysSpeedGain: 1.0
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PostDiveExamine:
     speedGain: 5
