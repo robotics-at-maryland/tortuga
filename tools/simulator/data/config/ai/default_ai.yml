@@ -21,7 +21,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
 
 config:
     gateDepth: 4
-    lightDepth: 4
+    lightDepth: 5
     pipeDepth: 3
     bwireDepth: 5
     targetDepth: 5.5

@@ -238,8 +238,8 @@ class SettlingState(HoveringState):
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
 
-        # Only check the current bin
-        if self._currentBin(event):
+        # Only do if we allow early timeouts and it is the current bin
+        if self._earlyTimeout and self._currentBin(event):
             # Check if it is in the threshold
             if self._compareChange((event.x, event.y, event.angle),
                                    self._bin.changeOverTime()):
@@ -252,8 +252,10 @@ class SettlingState(HoveringState):
         self._eventType = eventType
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
-        self._planeThreshold = self._config.get('planeThreshold', 0.3)
+        self._planeThreshold = self._config.get('planeThreshold', 0.1)
         self._angleThreshold = self._config.get('angleThreshold', 5)
+        self._earlyTimeout = self.ai.data['config'].get('Bin', {}).get(
+            'earlyTimeout', False)
 
         self.timer = self.timerManager.newTimer(eventType, eventTime)
         self.timer.start()

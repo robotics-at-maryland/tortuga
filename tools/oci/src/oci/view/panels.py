@@ -1433,10 +1433,19 @@ class SeekObjectivePanel(BasePanel):
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
 
     def _onEntered(self, event):
-        # Iterate through the new event's attributes to find a tracked
-        # object
+        # Get the current state
         cstate = self._machine.currentState()
 
+        # Check if there are any branches. If there are, we are in a task
+        # and need to check the first branch instead
+        if len(self._machine.branches) > 0:
+            # This will just take the first branch as the entered branch
+            # TODO: Think of a better way to do this that isn't as fragile
+            #print self._machine.branches.values()
+            #print type(self._machine.branches.values()[0])
+            cstate = self._machine.branches.values()[0].currentState()
+
+        # Check the state for any tracked objects in the attributes
         for var in dir(cstate):
             if isinstance(getattr(cstate, var), motion.common.Target):
                 # We have found the target, now track it
