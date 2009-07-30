@@ -195,18 +195,23 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         trans = pipe.PipeTrackingState.transitions(myState)
 
         trans.update({ motion.basic.MotionManager.
-                       QUEUED_MOTIONS_FINISHED : state.Branch(pipe.Searching),
+                       QUEUED_MOTIONS_FINISHED : myState,
                        pipe.PipeTrackingState.FOUND_PIPE : myState,
                        PipeObjective.TIMEOUT : state.Branch(pipe.Searching),
                        pipe.Centering.SETTLED : task.Next })
 
         return trans
 
+    def QUEUED_MOTIONS_FINISHED(self, event):
+        if not self._branched:
+            self.stateMachine.start(state.Branch(pipe.Searching))
+            self._branched = True
+
     def FOUND_PIPE(self, event):
-        if not self._foundPipe:
-            self.stateMachine.start(state.Branch(pipe.Seeking))
+        if not self._branched:
             self.motionManager.stopCurrentMotion()
-            self._foundPipe = True
+            self.stateMachine.start(state.Branch(pipe.Seeking))
+            self._branched = True
 
     def enter(self, motion, *motionList):
         pipe.PipeTrackingState.enter(self)
@@ -214,7 +219,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
 
         self.visionSystem.pipeLineDetectorOn()
 
-        self._foundPipe = False
+        self._branched = False
         self._className = type(self).__name__
         self.ai.data['pipeBiasDirection'] = \
             self.ai.data['config'].get(self._className, {}).get(

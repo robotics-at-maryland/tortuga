@@ -1461,8 +1461,9 @@ class TestDropMarker(BinTestCase):
 
         # Check to make sure it doesn't drop without two hits first
         self.assertCurrentState(bin.DropMarker)
-        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
-                                   angle = math.Degree(0))
+        #self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+        #                           angle = math.Degree(0))
+        self.releaseTimer(bin.DropMarker.DROP)
         self.qeventHub.publishEvents()
 
         self.assertCurrentState(bin.SurfaceToMove)
@@ -1485,8 +1486,9 @@ class TestDropMarker(BinTestCase):
 
         # Check to make sure it hasn't dropped without a second event
         self.assert_(not self.ai.data.has_key('markersDropped'))
-        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
-                                   angle = math.Degree(0.5))
+        #self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+        #                           angle = math.Degree(0.5))
+        self.releaseTimer(bin.DropMarker.DROP)
         self.qeventHub.publishEvents()
 
         self.assertAIDataValue('markersDropped', 1)
@@ -1512,8 +1514,9 @@ class TestDropMarker(BinTestCase):
 
         # Check to make sure it hasn't dropped without a second hit
         self.assertAIDataValue('markersDropped', 1)
-        self.publishQueuedBinFound(id = 0, x = 0, y = 0,
-                                   angle = math.Degree(0.5))
+        #self.publishQueuedBinFound(id = 0, x = 0, y = 0,
+        #                           angle = math.Degree(0.5))
+        self.releaseTimer(bin.DropMarker.DROP)
         self.qeventHub.publishEvents()
 
         self.assertAIDataValue('markersDropped', 2)

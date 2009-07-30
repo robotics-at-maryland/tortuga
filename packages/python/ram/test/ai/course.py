@@ -400,6 +400,11 @@ class PipeObjectiveTest(object):
         self.assertCurrentState(self.myState)
         self.assertCurrentBranches([pipe.Searching])
 
+        # Make sure another queued motions finished doesn't branch twice
+        self.injectEvent(motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED)
+        self.assertCurrentState(self.myState)
+        self.assertCurrentBranches([pipe.Searching])
+
     def testPipeFound(self):
         self.assertCurrentState(self.myState)
         self.assertCurrentMotion(self.motion)
@@ -410,15 +415,16 @@ class PipeObjectiveTest(object):
         self.publishQueuedEvent(self.ai, vision.EventType.PIPE_FOUND,
                                 vision.PipeEvent,0,0,0, id = 0)
         self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
         
         # Check if it branched into seeking
+        self.assertCurrentState(self.myState)
+        self.assertCurrentMotion(motion.pipe.Hover)
+        self.assertCurrentBranches([pipe.Seeking])
+
+        # Check that another pipe found doesn't try to branch again
+        self.publishQueuedEvent(self.ai, vision.EventType.PIPE_FOUND,
+                                vision.PipeEvent,0,0,0, id = 0)
+        self.qeventHub.publishEvents()
         self.assertCurrentState(self.myState)
         self.assertCurrentMotion(motion.pipe.Hover)
         self.assertCurrentBranches([pipe.Seeking])
