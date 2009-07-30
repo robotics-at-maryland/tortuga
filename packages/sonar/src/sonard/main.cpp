@@ -50,17 +50,6 @@ dataset* getDataset(dataset *dataSet, int length);
 
 int main(int argc, char* argv[])
 {
-    struct dataset * dataSet = NULL;
-    sonarPing ping;
-    int ping_found;
-    int do_loop=0; //whether to continue the main loop or not
-    int status=-1;   //FOUR states: 0-couldn't find with large dataset,  1-couldn't find with small, 2-found with large, 3-found with small
-    int loop_counter=0;
-    struct timeval start_time;
-    struct timeval curr_time;
-    struct timeval temp_time;
-    int sleep_time;
-
     if (argc != nKBands)
     {
         cerr << nKBands << " input parameters are required." << endl;

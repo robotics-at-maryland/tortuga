@@ -29,7 +29,7 @@ sources.extend(env.Glob('src/fixed', '*.cpp'))
 	
 # Build Library (will be called 'sonar.so')
 # All build settings for the library are stored in buildfiles/libs.py
-envl.RAMSharedLibrary('sonar',  source = sources)
+envl.RAMSharedLibrary('sonar',  source = sources, LIBS = ['pthread'])
 envl.Append(CPPPATH = ['..', 'include'])
 
 # --------------------------------------------------------------------------- #

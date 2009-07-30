@@ -48,12 +48,12 @@ using namespace std;
 
 dataset* getDataset(dataset *dataSet, int length);
 
-pthread_mutex_t _PingTracker_adc_mutex;
-pthread_mutex_t _PingTracker_report_mutex;
+pthread_mutex_t _PingerTracker_adc_mutex;
+pthread_mutex_t _PingerTracker_report_mutex;
 
 int fd;
 
-void* PingTracker_run(void* inArgsBuf)
+void* PingerTracker_run(void* inArgsBuf)
 {
     int* inArgs = (int*)inArgsBuf;
     struct dataset * dataSet = NULL;
@@ -127,7 +127,7 @@ void* PingTracker_run(void* inArgsBuf)
                 timersub((&curr_time), (&start_time), (&temp_time));
 
                 //Now, send data to the main computer
-                pthread_mutex_lock(&_PingTracker_report_mutex);
+                pthread_mutex_lock(&_PingerTracker_report_mutex);
                 reportPing(fd,
                         status,
                         ping.direction[0],
@@ -137,7 +137,7 @@ void* PingTracker_run(void* inArgsBuf)
                         (uint32_t) temp_time.tv_sec*1000+temp_time.tv_usec/1000,
                         (uint32_t) loop_counter,
                         (byte) inArgs[2] /* pingerID */);
-                pthread_mutex_unlock(&_PingTracker_report_mutex);
+                pthread_mutex_unlock(&_PingerTracker_report_mutex);
 
                 //Now find out when we need to wake up
                 sleep_time=(NOMINAL_PING_DELAY-(SMALL_DATASET*500)/SAMPRATE)*1000;
@@ -167,33 +167,33 @@ void* PingTracker_run(void* inArgsBuf)
 }
 
 
-void PingTracker_go(const int* requestedKBands)
+void PingerTracker_go(const int* requestedKBands)
 {
     fd = openDevice();
     
-    pthread_mutex_init(&_PingTracker_adc_mutex, NULL);
-    pthread_mutex_init(&_PingTracker_report_mutex, NULL);
+    pthread_mutex_init(&_PingerTracker_adc_mutex, NULL);
+    pthread_mutex_init(&_PingerTracker_report_mutex, NULL);
     
     int inArgs0[] = {requestedKBands[0], requestedKBands[1], 0};
     int inArgs1[] = {requestedKBands[1], requestedKBands[0], 1};
     pthread_t thread0;
     pthread_t thread1;
-    pthread_create(&thread0, NULL, PingTracker_run, inArgs0);
-    pthread_create(&thread1, NULL, PingTracker_run, inArgs1);
+    pthread_create(&thread0, NULL, PingerTracker_run, inArgs0);
+    pthread_create(&thread1, NULL, PingerTracker_run, inArgs1);
     
-    NULL* dummy;
-    pthread_join(&thread0, &dummy);
-    pthread_join(&thread1, &dummy);
+    void* dummy;
+    pthread_join(thread0, &dummy);
+    pthread_join(thread1, &dummy);
     
-    pthread_mutex_destroy(&_PingTracker_adc_mutex);
-    pthread_mutex_destroy(&_PingTracker_report_mutex);
+    pthread_mutex_destroy(&_PingerTracker_adc_mutex);
+    pthread_mutex_destroy(&_PingerTracker_report_mutex);
     
     closeDevice(fd);
 }
 
 dataset* getDataset(dataset *dataSet, int status)
 {
-    pthread_mutex_lock(&_PingTracker_adc_mutex);
+    pthread_mutex_lock(&_PingerTracker_adc_mutex);
     
     int length;  
 
@@ -213,7 +213,7 @@ dataset* getDataset(dataset *dataSet, int status)
     captureSamples(dataSet);
     //greenLightOff();
     
-    pthread_mutex_unlock(&_PingTracker_adc_mutex);
+    pthread_mutex_unlock(&_PingerTracker_adc_mutex);
 
     return dataSet;
 }

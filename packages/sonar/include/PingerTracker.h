@@ -12,6 +12,6 @@
 
 // Project Includes
 
-void PingTracker_go(const int* requestedKBands);
+void PingerTracker_go(const int* requestedKBands);
 
 #endif
