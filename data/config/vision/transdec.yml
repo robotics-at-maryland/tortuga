@@ -74,7 +74,7 @@ BinDetector:
     filtredUMax: 200
     filtredUMin: 0
     filtredVMax: 255
-    filtredVMin: 113
+    filtredVMin: 70
     filtwhiteLMax: 255
     filtwhiteLMin: 179
     filtwhiteUMax: 255
@@ -127,9 +127,12 @@ TargetDetector:
     minAspectRatio: 0.75
  
 BarbedWireDetector:
-    bottomRemovePercentage: 0.1
+    topRemovePercentage: 0.2
+    bottomRemovePercentage: 0.5
+    filtLMax: 255
+    filtLmin: 0
     filtVMax: 247
-    filtVMin: 121
+    filtVMin: 130
     filtUMax: 75
     filtUMin: 0
 VelocityDetector:
