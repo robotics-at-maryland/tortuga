@@ -49,6 +49,10 @@ BinDetector:
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
     incrediblyWashedOut: 0
+    filtblackLMax: 61
+    filtblackUMax: 221
+    filtwhiteLMin: 93
+    useLUVFilter: 1
 DuctDetector:
     minRedOverGreen: 0.5
     maxRedOverGreen: 1.5
