@@ -73,8 +73,12 @@ class Hover(common.Hover):
         @type  pipe: ram.motion.pipe.Pipe
         @param pipe: Target to attempt to reach
         """
+        _mtype = Motion.IN_PLANE
+        if yawGain > 0:
+            _mtype = Motion.IN_PLANE | Motion.ORIENTATION
+        
         common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed,
-                              _type = Motion.IN_PLANE | Motion.ORIENTATION,
+                              _type = _mtype,
                               speedGain = speedGain, 
                               sidewaysSpeedGain = sidewaysSpeedGain,
                               iSpeedGain = iSpeedGain, dSpeedGain = dSpeedGain, 

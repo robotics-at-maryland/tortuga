@@ -48,7 +48,13 @@ class TestHover(ram.test.motion.common.TestHover):
         m = self.makeClass(pipe = pipe, maxSpeed = 1,
                            maxSidewaysSpeed = 1)
         expType = motion.basic.Motion.IN_PLANE | motion.basic.Motion.ORIENTATION
-        self.assertEquals(expType, m.type)    
+        self.assertEquals(expType, m.type)
+
+        pipe = motion.pipe.Pipe(x = 0, y = 0, relativeAngle = 15)
+        m = self.makeClass(pipe = pipe, maxSpeed = 1,
+                           maxSidewaysSpeed = 1, yawGain = 0)
+        expType = motion.basic.Motion.IN_PLANE
+        self.assertEquals(expType, m.type)
     
     def testAngle(self):
         # Dead center, with yawGain = 1
