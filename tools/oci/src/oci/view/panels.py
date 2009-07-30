@@ -1392,106 +1392,106 @@ class EventPlayerPanel(wx.Panel):
 
         return []
 
-class SeekObjectivePanel(BasePanel):
-    implements(IPanelProvider)
+#class SeekObjectivePanel(BasePanel):
+#    implements(IPanelProvider)
 
-    def __init__(self, parent, eventHub, machine, *args, **kwargs):
-        BasePanel.__init__(self, parent, *args, **kwargs)
+#    def __init__(self, parent, eventHub, machine, *args, **kwargs):
+#        BasePanel.__init__(self, parent, *args, **kwargs)
 
         # Make sure we shut down all events on close
-        self.Bind(wx.EVT_CLOSE, self._onClose)
+#        self.Bind(wx.EVT_CLOSE, self._onClose)
 
-        self._eventHub = eventHub
-        self._machine = machine
-        self._targetHub = None
+#        self._eventHub = eventHub
+#        self._machine = machine
+#        self._targetHub = None
 
-        self._createControls("Objective")
+#        self._createControls("Objective")
 
         # Create the reference to the object we will track
-        self._target = None
+#        self._target = None
 
-        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_ENTERED,
-                                        self._onEntered)
-        self._connections.append(conn)
+#        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_ENTERED,
+#                                        self._onEntered)
+#        self._connections.append(conn)
 
-        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_EXITED,
-                                        self._onExited)
-        self._connections.append(conn)
+#        conn = eventHub.subscribeToType(ram.ai.state.Machine.STATE_EXITED,
+#                                        self._onExited)
+#        self._connections.append(conn)
 
-        self._targetConnections = []
+#        self._targetConnections = []
 
-    def enableControls(self):
-        for control in self._generatedControls:
-            control.Enable()
+#    def enableControls(self):
+#        for control in self._generatedControls:
+#            control.Enable()
 
-    def disableControls(self):
-        for control in self._generatedControls:
-            control.Disable()
+#    def disableControls(self):
+#        for control in self._generatedControls:
+#            control.Disable()
 
-    def _createDataControls(self):
-        self._createDataControl(controlName = '_x', label = 'X Pos: ')
-        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+#    def _createDataControls(self):
+#        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+#        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
 
-    def _onEntered(self, event):
+#    def _onEntered(self, event):
         # Get the current state
-        cstate = self._machine.currentState()
+#        cstate = self._machine.currentState()
 
         # Check if there are any branches. If there are, we are in a task
         # and need to check the first branch instead
-        if len(self._machine.branches) > 0:
+#        if len(self._machine.branches) > 0:
             # This will just take the first branch as the entered branch
             # TODO: Think of a better way to do this that isn't as fragile
             #print self._machine.branches.values()
             #print type(self._machine.branches.values()[0])
-            cstate = self._machine.branches.values()[0].currentState()
+#            cstate = self._machine.branches.values()[0].currentState()
 
         # Check the state for any tracked objects in the attributes
-        for var in dir(cstate):
-            if isinstance(getattr(cstate, var), motion.common.Target):
+#        for var in dir(cstate):
+#            if isinstance(getattr(cstate, var), motion.common.Target):
                 # We have found the target, now track it
-                self._target = getattr(cstate, var)
+#                self._target = getattr(cstate, var)
                 # Subscribe to this target's update events and store the
                 # connection as our first connection
-                self._targetConnections.insert(0, self._target.subscribe(
-                    motion.common.Target.UPDATE, self._onUpdate))
-                self.enableControls()
+#                self._targetConnections.insert(0, self._target.subscribe(
+#                    motion.common.Target.UPDATE, self._onUpdate))
+#                self.enableControls()
 
-    def _onExited(self, event):
+#    def _onExited(self, event):
         # Delete the last connection as it is the one that exited
-        if len(self._targetConnections) > 0:
+#        if len(self._targetConnections) > 0:
             # Stop the connection and remove it
-            self._targetConnections.pop().disconnect()
+#            self._targetConnections.pop().disconnect()
             
-        self._target = None
-        self.disableControls()
+#        self._target = None
+#        self.disableControls()
 
-    def _onUpdate(self, event):
-        if self._target is not None:
-            errorAdj = self._target.errorAdj()
-            self._x.Value = "% 4.2f" % errorAdj[0]
-            self._y.Value = "% 4.2f" % errorAdj[1]
+#    def _onUpdate(self, event):
+#        if self._target is not None:
+#            errorAdj = self._target.errorAdj()
+#            self._x.Value = "% 4.2f" % errorAdj[0]
+#            self._y.Value = "% 4.2f" % errorAdj[1]
 
-    def _onClose(self, event):
-        for conn in self._targetConnections:
-            conn.disconnect()
-        BasePanel._onClose(self, event)
+#    def _onClose(self, event):
+#        for conn in self._targetConnections:
+#            conn.disconnect()
+#        BasePanel._onClose(self, event)
 
-    @staticmethod
-    def getPanels(subsystems, parent):
-        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
-                                                     subsystems, nonNone = True)
+#    @staticmethod
+#    def getPanels(subsystems, parent):
+#        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+#                                                     subsystems, nonNone = True)
         
-        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
-                                                    subsystems)
+#        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
+#                                                    subsystems)
 
-        if eventHub is not None and machine is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Seek Objective")
-            paneInfo = paneInfo.Caption("Seek Objective").Left()
+#        if eventHub is not None and machine is not None:
+#            paneInfo = wx.aui.AuiPaneInfo().Name("Seek Objective")
+#            paneInfo = paneInfo.Caption("Seek Objective").Left()
 
-            return [(paneInfo, SeekObjectivePanel(parent, eventHub, machine),
-                     [machine])]
+#            return [(paneInfo, SeekObjectivePanel(parent, eventHub, machine),
+#                     [machine])]
 
-        return []
+#        return []
 
 #class DemoSonarPanel(wx.Panel):
 #    implements(IPanelProvider)
