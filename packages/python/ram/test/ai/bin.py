@@ -634,9 +634,9 @@ class TestAligning(BinTestCase):
     def testBinTracking(self):
         self.binTrackingHelper()
     
-    def testBinFound(self):
+    def testBinFound(self, shouldRotate = True):
         """Make sure the loop back works"""
-        self.binFoundHelper()
+        self.binFoundHelper(shouldRotate = shouldRotate)
     
     def testSettled(self):
         """Make sure we move on after settling"""
@@ -646,6 +646,24 @@ class TestAligning(BinTestCase):
         # Inject settled event
         self.injectEvent(bin.Aligning.ALIGNED)
         self.assertCurrentState(bin.PreDiveExamine)
+
+class TestAlternateAligning(TestAligning):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'Bin' : {
+                        'adjustAngle' : False,
+                    },
+                },
+            },
+        }
+        BinTestCase.setUp(self, cfg = cfg)
+        self.machine.start(bin.Aligning)
+
+    def testBinFound(self):
+        """Make sure the loop back works"""
+        self.binFoundHelper(shouldRotate = False)
         
 class TestSeekEnd(BinTestCase):
     def setUp(self):
@@ -1066,6 +1084,7 @@ class TestPreDiveExamine(ExamineTestCase):
 
     def testNoSymbolFound(self):
         # Set the number of hits it should require before acting
+        print "inject last event"
         self.machine.currentState()._minimumHits = 10
 
         # Send in a bunch of events
@@ -1087,6 +1106,11 @@ class TestPreDiveExamine(ExamineTestCase):
         # Inject the last event
         self.injectBinFound(id = 3, symbol = vision.Symbol.CLUB)
         self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvents()
+
         self.assertFalse(self._targetFound)
         self.assertCurrentState(bin.CloserLook)
 
@@ -1096,10 +1120,14 @@ class TestPreDiveExamine(ExamineTestCase):
         self.assertFalse(self._targetFound)
 
         # Release the timer
-        self.releaseTimer(bin.PreDiveExamine.LOOK_CLOSER)
+        self.releaseTimer(bin.Examine.TIMEOUT)
         self.qeventHub.publishEvents()
+        self.assertCurrentState(bin.CloserLook)
 
-        self.assertcurrentState(bin.CloserLook)
+    def testTurn(self):
+        self.ai.data['binData']['currentID'] = 3
+        self.injectBinFound(id = 3, x = 0, y = 0, angle = math.Degree(15))
+        self.assertGreaterThan(0, self.controller.yawChange)
         
 class TestCloserLook(DiveTestCase, BinTestCase):
     def setUp(self):

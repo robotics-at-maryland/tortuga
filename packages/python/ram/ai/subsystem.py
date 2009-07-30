@@ -92,6 +92,8 @@ class AI(core.Subsystem):
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed'])
         moveOptions = set(['heading', 'speed', 'absolute',
                            'forwardDuration', 'forwardSpeed'])
+        binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
+                          'forwardSpeed', 'adjustAngle', 'binDirection'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
@@ -108,10 +110,14 @@ class AI(core.Subsystem):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Light' or item == 'BarbedWire' \
-                    or item == 'Target' or item == 'Bin' or \
-                    item == 'LightStaged':
+                    or item == 'Target' or item == 'LightStaged':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in moveOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Bin':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in binOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Gate':
