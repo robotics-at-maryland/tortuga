@@ -117,6 +117,7 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_blobMinWhitePixels(0),
     m_blobMinRedPercent(0),
     m_binMaxAspectRatio(0),
+    m_binMinFillPercentage(0),
     m_binSameThreshold(0),
     m_binLostFrames(0),
     m_binHoughPixelRes(0),
@@ -438,6 +439,9 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "binMaxAspectRatio",
        "The maximum aspect ratio the black blob of a bin can have",
         3.0, &m_binMaxAspectRatio, 0.0, 10.0);
+    propSet->addProperty(config, false, "binMinFillPrecentage",
+       "The maximum aspect ratio the black blob of a bin can have",
+        0.0, &m_binMinFillPercentage, 0.0, 1.0);
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
         0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
@@ -662,7 +666,8 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             // Sadly, this totally won't work at the edges of the screen...
             // crap damn.
             if (whiteBlob.containsInclusive(blackBlob, 2) &&
-                blackBlob.getAspectRatio() < m_binMaxAspectRatio)
+                (blackBlob.getAspectRatio() < m_binMaxAspectRatio) &&
+                (blackBlob.getFillPercentage() > m_binMinFillPercentage))
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
                 binBlobs.push_back(blackBlob);

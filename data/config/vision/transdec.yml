@@ -54,6 +54,7 @@ OrangePipeDetector:
     useLUVFilter: 1
 BinDetector:
     symbolDetector: BasicWW2Detector
+    binMinFillPercentage: 0.3
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
@@ -129,6 +130,7 @@ TargetDetector:
 BarbedWireDetector:
     topRemovePercentage: 0.2
     bottomRemovePercentage: 0.5
+    dilateIterations: 3
     filtLMax: 255
     filtLmin: 0
     filtVMax: 247

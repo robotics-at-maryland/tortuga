@@ -283,6 +283,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** The maximum aspect ratio a blob can have and still be called a bin */
     double m_binMaxAspectRatio;
 
+    /** Minimum percentage a bin has to be filled to be a bin */
+    double m_binMinFillPercentage;
+    
     /** The max distance between bins on different frames */
     double m_binSameThreshold;
 
