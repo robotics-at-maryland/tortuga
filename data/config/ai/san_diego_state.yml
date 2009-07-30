@@ -5,11 +5,11 @@ ram.ai.course.Pipe:
 # Pipe task
 ram.ai.pipe.Seeking:
     speedGain: 3
-    forwardSpeed: 4
+    forwardSpeed: 3
     yawGain: 0.25
 ram.ai.pipe.Centering:
     speedGain: 3
-    forwardSpeed: 4
+    forwardSpeed: 3
     yawGain: 0.25
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
@@ -236,4 +236,4 @@ ram.ai.sonarSafe.PreGrabSettling:
     #safeDepth: 6.5
     #depthOffset: 1.5
     #safeDepth: 19
-    depthOffset: 1
+    #depthOffset: 1

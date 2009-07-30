@@ -8,7 +8,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
 config:
     gateDepth: 4
     lightDepth: 6
-    pipeDepth: 7
+    pipeDepth: 0.5
     bwireDepth: 11.3
     targetDepth: 7.5
     binStartDepth: 1
@@ -24,8 +24,8 @@ config:
         biasDirection: 0
         threshold: 50
     PipeBarbedWire:
-        #biasDirection: -100
-        #threshold: 0
+        biasDirection: 30
+        threshold: 0
         rotation: 0
         duration: 0
         legTime: 5
