@@ -68,6 +68,7 @@ ram.ai.target.FireTorpedos:
     desiredRange: 0.35
     rangeThreshold: 0.03
     filterSize: 1
+    fireDelay: 2
        
 # Barbed wire AI     
 ram.ai.barbedwire.FarSeekingToRange:

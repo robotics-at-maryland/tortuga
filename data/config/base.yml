@@ -43,7 +43,7 @@ Vehicle:
             depthCalibIntercept: 1182
             # Position is for Tortuga 2 measured in inches as (-11, 1.5, 3)
             depthSensorLocation: [-0.916666667, 0.125, 0.25]
-            servo1FirePosition: 4000 # Range 256-4352
+            servo1FirePosition: 256 # Range 256-4352
             servo2FirePosition: 4000 # Range 256-4352
         MarkerDropper:
             type: SBMarkerDropper
