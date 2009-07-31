@@ -25,6 +25,7 @@ import ext.core
 import ext.math
 import ext.control
 
+import ram.logloader as logloader
 import ram.ai.gate
 #import ram.ai.sonarCourse
 #import ram.ai.buoySonarCourse
@@ -47,12 +48,15 @@ def main(argv = None):
 
     defaultConfigPath = os.path.abspath(
         os.path.join(os.environ['RAM_SVN_DIR'], 'tools', 'oci', 'data', 
-                     'test.yml'))
+                     'transdec.yml'))
     
     parser = optparse.OptionParser()
     parser.add_option("-c", "--config", dest = "configPath", 
                       default = defaultConfigPath,
                       help = "The path to the config file")
+    parser.add_option("-s", "--state", dest = "startState",
+                      default = "ram.ai.course.Gate",
+                      help = "The state we are starting with")
     (options, args) = parser.parse_args(argv)
 
     # Create our C++ app
@@ -60,15 +64,15 @@ def main(argv = None):
 
     # Hackish way to grab state machine then start the vehicle
     stateMachine = app.getSubsystem("StateMachine")
-    #stateMachine.start(ram.ai.sonarCourse.Gate)
+    stateMachine.start(logloader.resolve(options.startState))
     #stateMachine.start(ram.ai.buoySonarCourse.Gate)
     #stateMachine.start(ram.ai.buoyPipeSonarCourse.Gate)
     #stateMachine.start(ram.ai.sonar.Searching)
 
     # Run the main loop such that only the QueuedEventHub is being updated,
     # and its waits for events, basically leave all the CPU to other stuff
-    queuedEventHub = app.getSubsystem("QueuedEventHub")
-    queuedEventHub.setWaitUpdate(True)
+    #queuedEventHub = app.getSubsystem("QueuedEventHub")
+    #queuedEventHub.setWaitUpdate(True)
     app.mainLoop(singleSubsystem = True)
     
     # Built a list of subsystems
