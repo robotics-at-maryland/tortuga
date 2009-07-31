@@ -122,33 +122,33 @@ ram.ai.barbedwire.Through:
 
 # Bin Sub task
 ram.ai.bin.Seeking:
-    #yawGain: 0
+    yawGain: 0
     speedGain: 3
     maxSpeed: 3
     sidewaysSpeedGain: 3
     maxSidewaysSpeed: 3
 ram.ai.bin.Centering:
     yawGain: 0.4
-    #yawGain: 0
+    yawGain: 0
     sidewaysSpeedGain: 1
     speedGain: 1
 ram.ai.bin.SeekEnd:
     #maxSpeed: 2
-    #yawGain: 0
+    yawGain: 0
     speedGain: 7
     sidewaysSpeedGain: 7
     #maxSidewaysSpeed: 1.5
 ram.ai.bin.SurfaceToMove:
-    #yawGain: 0
+    yawGain: 0
     offset: 4
 ram.ai.bin.Dive:
     offset: 4
     yawGain: 0.4
-    #yawGain: 0
+    yawGain: 0
     speedGain: 1
     sidewaysSpeedGain: 1
 ram.ai.bin.Aligning:
-    #yawGain: 0
+    yawGain: 0
     speedGain: 4
     dSpeedGain: 1.0
     iSpeedGain: 0.5
@@ -156,7 +156,7 @@ ram.ai.bin.Aligning:
     dSidewaysSpeedGain: 1.0
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PreDiveExamine:
-    #yawGain: 0
+    yawGain: 0
     speedGain: 4
     dSpeedGain: 1.0
     iSpeedGain: 0.5
@@ -164,7 +164,7 @@ ram.ai.bin.PreDiveExamine:
     dSidewaysSpeedGain: 1.0
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.PostDiveExamine:
-    #yawGain: 0
+    yawGain: 0
     speedGain: 5
     dSpeedGain: 1.5
     iSpeedGain: 0.5
@@ -173,7 +173,7 @@ ram.ai.bin.PostDiveExamine:
     iSidewaysSpeedGain: 0.5
 ram.ai.bin.CloserLook:
     # This sets the depths the markers will be dropped
-    #yawGain: 0
+    yawGain: 0
     offset: 3
 ram.ai.bin.RecoverDive:
     increase: 0
@@ -183,9 +183,9 @@ ram.ai.bin.RecoverCloserLook:
 # Sonar subtask
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 1.5
-    sidewaysSpeedGain: 4
+    sidewaysSpeedGain: 5
     maxSpeed: 1.5
-    speedGain: 4
+    speedGain: 5
     closeZ: 0.975
 ram.ai.sonar.FarSeeking:
     maxSidewaysSpeed: 1
