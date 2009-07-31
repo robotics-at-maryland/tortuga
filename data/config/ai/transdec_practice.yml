@@ -21,10 +21,12 @@ config:
     Light:
         forwardDuration: 10
     Bin:
+        duration: 30
         forwardDuration: 30
         heading: -15 # -45
         absolute: True
     Target:
+        duration: 30
         forwardDuration: 30
         heading: 35 # 5
         absolute: True

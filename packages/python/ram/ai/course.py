@@ -568,12 +568,12 @@ class Target(task.Task):
     
     @staticmethod
     def _transitions():
-        return { motion.basic.Motion.FINISHED : Target,
+        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : Target,
                  task.TIMEOUT : task.Next,
                  target.COMPLETE : task.Next,
                  'GO' : state.Branch(target.Start) }
 
-    def FINISHED(self, event):
+    def QUEUED_MOTIONS_FINISHED(self, event):
         # Branch after the first finished motion only
         if self._first:
             self.stateMachine.start(state.Branch(target.Start,
@@ -590,12 +590,17 @@ class Target(task.Task):
             'speed', 10)
         self._absolute = self.ai.data['config'].get('Target', {}).get(
             'absolute', False)
+        self._duration = self.ai.data['config'].get('Target', {}).get(
+            'duration', 0)
 
         self._first = True
         self._headingChange = motion.basic.RateChangeHeading(
             desiredHeading = self._heading, speed = self._speed,
             absolute = self._absolute)
-        self.motionManager.setMotion(self._headingChange)
+        self._forward = motion.basic.TimedMoveDirection(
+            desiredHeading = 0, speed = 3, duration = self._duration,
+            absolute = False)
+        self.motionManager.setQueuedMotions(self._headingChange, self._forward)
     
     def exit(self):
         task.Task.exit(self)
@@ -607,12 +612,12 @@ class Target(task.Task):
 class Bin(task.Task):
     @staticmethod
     def _transitions():
-        return { motion.basic.Motion.FINISHED : Bin,
+        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : Bin,
                  bin.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(bin.Start) }
 
-    def FINISHED(self, event):
+    def QUEUED_MOTIONS_FINISHED(self, event):
         # Branch after the first finished motion only
         if self._first:
             self.stateMachine.start(state.Branch(bin.Start,
@@ -628,12 +633,17 @@ class Bin(task.Task):
             'speed', 10)
         self._absolute = self.ai.data['config'].get('Bin', {}).get(
             'absolute', False)
+        self._duration = self.ai.data['config'].get('Bin', {}).get(
+            'duration', 0)
 
         self._first = True
         self._headingChange = motion.basic.RateChangeHeading(
             desiredHeading = self._heading, speed = self._speed,
             absolute = self._absolute)
-        self.motionManager.setMotion(self._headingChange)
+        self._forward = motion.basic.TimedMoveDirection(
+            desiredHeading = 0, speed = 3, duration = self._duration,
+            absolute = False)
+        self.motionManager.setQueuedMotions(self._headingChange, self._forward)
     
     def exit(self):
         task.Task.exit(self)

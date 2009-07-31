@@ -91,9 +91,10 @@ class AI(core.Subsystem):
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed'])
         moveOptions = set(['heading', 'speed', 'absolute',
-                           'forwardDuration', 'forwardSpeed'])
+                           'forwardDuration', 'forwardSpeed', 'duration'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
-                          'forwardSpeed', 'adjustAngle', 'binDirection'])
+                          'forwardSpeed', 'adjustAngle', 'binDirection',
+                          'duration'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
