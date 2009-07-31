@@ -123,7 +123,7 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 
-    if(strcmp(argv[1], "-setovr") == 0)
+    else if(strcmp(argv[1], "-setovr") == 0)
     {
 		if(argc != 4)
 		{
@@ -135,22 +135,22 @@ int main(int argc, char ** argv)
 		printf("reply was 0x%02x\n", setOvrParams(fd, atoi(argv[2]), atoi(argv[3])));
 	}
 
-    if(strcmp(argv[1], "-bfreset") == 0)
+    else if(strcmp(argv[1], "-bfreset") == 0)
     {
         printf("reply was 0x%02x\n", resetBlackfin(fd));
     }
 
-    if(strcmp(argv[1], "-bfstart") == 0)
+    else if(strcmp(argv[1], "-bfstart") == 0)
     {
         printf("reply was 0x%02x\n", startBlackfin(fd));
     }
 
-    if(strcmp(argv[1], "-bfstop") == 0)
+    else if(strcmp(argv[1], "-bfstop") == 0)
     {
         printf("reply was 0x%02x\n", stopBlackfin(fd));
     }
 
-    if(strcmp(argv[1], "-sonar") == 0)
+    else if(strcmp(argv[1], "-sonar") == 0)
     {
         struct sonarData sd;
         getSonarData(fd, &sd);
@@ -163,21 +163,21 @@ int main(int argc, char ** argv)
 //         printf("reply was 0x%02x\n", resetBlackfin(fd));
     }
 
-    if(strcmp(argv[1], "-srvpwron") == 0)
+    else if(strcmp(argv[1], "-srvpwron") == 0)
     {
         int ret;
         if((ret = setServoPower(fd, 1)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
-    if(strcmp(argv[1], "-srvpwroff") == 0)
+    else if(strcmp(argv[1], "-srvpwroff") == 0)
     {
         int ret;
         if((ret = setServoPower(fd, 0)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
-    if(strcmp(argv[1], "-srvenable") == 0)
+    else if(strcmp(argv[1], "-srvenable") == 0)
     {
         // Read in commands
         if(argc != 3)
@@ -194,7 +194,7 @@ int main(int argc, char ** argv)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
-    if(strcmp(argv[1], "-srvsetpos") == 0)
+    else if(strcmp(argv[1], "-srvsetpos") == 0)
     {
         // Read in commands
         if(argc != 4)
@@ -212,7 +212,7 @@ int main(int argc, char ** argv)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
-    if(strcmp(argv[1], "-mtrreset") == 0)
+    else if(strcmp(argv[1], "-mtrreset") == 0)
     {
         int ret;
         if((ret = resetMotorBoard(fd)) != SB_OK)
@@ -222,7 +222,7 @@ int main(int argc, char ** argv)
     
     
 
-	if(strcmp(argv[1], "-setspeed") == 0)
+	else if(strcmp(argv[1], "-setspeed") == 0)
 	{
 		if(argc != 8)
 		{
@@ -239,7 +239,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
-    if(strcmp(argv[1], "-status") == 0)
+    else if(strcmp(argv[1], "-status") == 0)
     {
         int ret;
         int bStat = -1;
@@ -458,7 +458,7 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-check") == 0)
+    else if(strcmp(argv[1], "-check") == 0)
     {
         int ret = pingBoard(fd);
 
@@ -478,7 +478,7 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-marker") == 0)
+    else if(strcmp(argv[1], "-marker") == 0)
     {
         if(argc == 3)
         {
@@ -501,7 +501,7 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-safe") == 0)
+    else if(strcmp(argv[1], "-safe") == 0)
     {
         int i;
         unsigned int cmdList[]=
@@ -532,7 +532,7 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-battoff") == 0)
+    else if(strcmp(argv[1], "-battoff") == 0)
     {
         unsigned int cmdList[]=
         {
@@ -560,7 +560,7 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-batton") == 0)
+    else if(strcmp(argv[1], "-batton") == 0)
     {
         unsigned int cmdList[]=
         {
@@ -588,7 +588,7 @@ int main(int argc, char ** argv)
         return 0;
     }
 
-    if(strcmp(argv[1], "-unsafe") == 0)
+    else if(strcmp(argv[1], "-unsafe") == 0)
     {
         int i;
         unsigned int cmdList[]=
@@ -622,7 +622,7 @@ int main(int argc, char ** argv)
 
 
 
-    if(strcmp(argv[1], "-baroff") == 0)
+    else if(strcmp(argv[1], "-baroff") == 0)
     {
         int i;
         unsigned int cmdList[]=
@@ -655,7 +655,7 @@ int main(int argc, char ** argv)
 
 
 
-    if(strcmp(argv[1], "-baron") == 0)
+    else if(strcmp(argv[1], "-baron") == 0)
     {
         int i;
         unsigned int cmdList[]=
@@ -687,7 +687,7 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-setbars") == 0)
+    else if(strcmp(argv[1], "-setbars") == 0)
     {
     	if(argc == 1)
 	{
@@ -705,7 +705,7 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-noblink") == 0)
+    else if(strcmp(argv[1], "-noblink") == 0)
     {
         setAnimation(fd, ANIMATION_NONE);
         close(fd);
@@ -713,28 +713,28 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-redblue") == 0)
+    else if(strcmp(argv[1], "-redblue") == 0)
     {
         setAnimation(fd, ANIMATION_REDBLUE);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-redgreen") == 0)
+    else if(strcmp(argv[1], "-redgreen") == 0)
     {
         setAnimation(fd, ANIMATION_REDGREEN);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-tstop") == 0)
+    else if(strcmp(argv[1], "-tstop") == 0)
     {
         setSpeeds(fd, 0, 0, 0, 0, 0, 0);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-hardkill") == 0)
+    else if(strcmp(argv[1], "-hardkill") == 0)
     {
         hardKill(fd);
         close(fd);
@@ -742,14 +742,14 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-diagon") == 0)
+    else if(strcmp(argv[1], "-diagon") == 0)
     {
         setDiagnostics(fd, 1);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-diagoff") == 0)
+    else if(strcmp(argv[1], "-diagoff") == 0)
     {
         setDiagnostics(fd, 0);
         close(fd);
@@ -757,42 +757,42 @@ int main(int argc, char ** argv)
     }
 
 
-    if(strcmp(argv[1], "-bloff") == 0)
+    else if(strcmp(argv[1], "-bloff") == 0)
     {
         lcdBacklight(fd, LCD_BL_OFF);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-blon") == 0)
+    else if(strcmp(argv[1], "-blon") == 0)
     {
         lcdBacklight(fd, LCD_BL_ON);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-blfl") == 0)
+    else if(strcmp(argv[1], "-blfl") == 0)
     {
         lcdBacklight(fd, LCD_BL_FLASH);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-intpower") == 0)
+    else if(strcmp(argv[1], "-intpower") == 0)
     {
         switchToInternalPower(fd);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-extpower") == 0)
+    else if(strcmp(argv[1], "-extpower") == 0)
     {
         switchToExternalPower(fd);
         close(fd);
         return 0;
     }
 
-    if(strcmp(argv[1], "-c") == 0)
+    else if(strcmp(argv[1], "-c") == 0)
     {
         displayText(fd, 0, "");
         displayText(fd, 1, "");
@@ -802,35 +802,40 @@ int main(int argc, char ** argv)
 
 
 
-    if(strcmp(argv[1], "-s") == 0)
+    else if(strcmp(argv[1], "-s") == 0)
     {
         displayText(fd, 0, "Please attach   ");
         displayText(fd, 1, "Start magnet    ");
 
         while((readStatus(fd) & STATUS_STARTSW) == 0)
-	{
-		usleep(100*1000);
-	}
+        {
+            usleep(100*1000);
+        }
 
         displayText(fd, 0, "Ready to start  ");
     	displayText(fd, 1, "");
 
     	while((readStatus(fd) & STATUS_STARTSW))
-	{
-		usleep(100*1000);
-	}
-	displayText(fd, 0, "Running...");
-	close(fd);
-	return 0;
+        {
+            usleep(100*1000);
+        }
+        displayText(fd, 0, "Running...");
+        close(fd);
+        return 0;
     }
 
 
-    if(strcmp(argv[1], "-t") == 0)
+    else if(strcmp(argv[1], "-t") == 0)
     {
         displayText(fd, 0, argv[2]);
 
         if(argc == 4)
             displayText(fd, 1, argv[3]);
+    }
+    
+    else {
+        printf("error: too much bullshit: %s\n", argv[1]);
+        return -1;
     }
 
     close(fd);
