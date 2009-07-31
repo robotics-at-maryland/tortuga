@@ -73,7 +73,8 @@ class Start(state.State):
         self.ai.data['firstSearching'] = True
         
     def exit(self):
-        self.motionManager.stopCurrentMotion()
+        #self.motionManager.stopCurrentMotion()
+        pass
 
 class Searching(state.State, StoreLightEvent):
     @staticmethod

@@ -750,10 +750,11 @@ class Centering(SettlingState):
                                 useMultiAngle = True)
         else:
             SettlingState.enter(self, Centering.SETTLED, 5,
-                                useMultiAngle = False, shouldRotate = False)
-            self.motionManager.setMotion(motion.basic.RateChangeHeading(
-                    desiredHeading = self._binDirection, speed = 10,
-                    absolute = True))
+                                useMultiAngle = True, shouldRotate = False)
+            
+            self.controller.setDesiredOrientation(
+                math.Quaternion(math.Degree(self._binDirection),
+                                            math.Vector3.UNIT_Z))
         
 class RecoverCentering(Recover):
     @staticmethod

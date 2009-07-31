@@ -188,7 +188,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
     Search for the pipe while doing a multi motion
     """
     
-    TIMEOUT = core.declareEventType('TIMEOUT')
+    TIMEOUT = core.declareEventType('TIMEOUT_')
 
     @staticmethod
     def _transitions(myState):
@@ -197,7 +197,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         trans.update({ motion.basic.MotionManager.
                        QUEUED_MOTIONS_FINISHED : myState,
                        pipe.PipeTrackingState.FOUND_PIPE : myState,
-                       PipeObjective.TIMEOUT : state.Branch(pipe.Searching),
+                       PipeObjective.TIMEOUT : myState,
                        pipe.Centering.SETTLED : task.Next })
 
         return trans
@@ -206,11 +206,21 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         if not self._branched:
             self.stateMachine.start(state.Branch(pipe.Searching))
             self._branched = True
+            if self.timer is not None:
+                self.timer.stop()
 
     def FOUND_PIPE(self, event):
         if not self._branched:
             self.motionManager.stopCurrentMotion()
             self.stateMachine.start(state.Branch(pipe.Seeking))
+            self._branched = True
+            if self.timer is not None:
+                self.timer.stop()
+
+    def TIMEOUT_(self, event):
+        if not self._branched:
+            self.motionManager.stopCurrentMotion()
+            self.stateMachine.start(state.Branch(pipe.Searching))
             self._branched = True
 
     def enter(self, motion, *motionList):
@@ -251,6 +261,8 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self.stateMachine.stopBranch(pipe.Seeking)
         elif self.stateMachine.branches.has_key(pipe.Searching):
             self.stateMachine.stopBranch(pipe.Searching)
+
+        self.visionSystem.pipeLineDetectorOff()
 
 class PipeBarbedWire(PipeObjective):
     @staticmethod
@@ -469,6 +481,7 @@ class Light(task.Task):
         if not self._first:
             self.stateMachine.stopBranch(light.Start)
         self.visionSystem.redLightDetectorOff()
+        self.motionManager.stopCurrentMotion()
     
 class LightStaged(Light):
     """
@@ -544,6 +557,7 @@ class BarbedWire(task.Task):
         if not self._first:
             self.stateMachine.stopBranch(barbedwire.Start)
         self.visionSystem.barbedWireDetectorOff()
+        self.motionManager.stopCurrentMotion()
     
 class Target(task.Task):
     """
@@ -588,6 +602,7 @@ class Target(task.Task):
         if not self._first:
             self.stateMachine.stopBranch(target.Start)
         self.visionSystem.targetDetectorOff()
+        self.motionManager.stopCurrentMotion()
     
 class Bin(task.Task):
     @staticmethod
@@ -625,6 +640,7 @@ class Bin(task.Task):
         if not self._first:
             self.stateMachine.stopBranch(bin.Start)
         self.visionSystem.binDetectorOff()
+        self.motionManager.stopCurrentMotion()
         
 class Pinger(task.Task):
     """
