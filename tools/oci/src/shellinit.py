@@ -48,19 +48,41 @@ def start(state):
     allStop()
     stateMachine.start(state)
 
+class RecorderManager(object):
+    def __init__(self):
+        self._recorders = {}
+    def fstream(self, port = 50000, size = (320, 240), rate = 5):
+        path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
+        visionSystem.addForwardRecorder(path, rate)
+        self._recorders[path] = path
+    def dstream(self, port = 50001, size = (320, 240), rate = 5):
+        path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
+        visionSystem.addDownwardRecorder(path, rate)
+        self._recorders[path] = path
+    def removefs(self, port = 50000):
+        for name in self._recorders.iterkeys():
+            if name.find(str(port)) != -1:
+                visionSystem.removeForwardRecorder(name)
+    def removeds(self, port = 50001):
+        for name in self._recorders.iterkeys():
+            if name.find(str(port)) != -1:
+                visionSystem.removeDownwardRecorder(name)
+
+recorder = RecorderManager()
 def fstream(port = 50000, size = (320, 240), rate = 5):
-    path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
-    visionSystem.addForwardRecorder(path, rate)
+    recorder.fstream(port, size, rate)
 
 def dstream(port = 50001, size = (320, 240), rate = 5):
-    path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
-    visionSystem.addDownwardRecorder(path, rate)
+    recorder.dstream(port, size, rate)
 
-def fsremove(name = '50000(320,240)'):
-    visionSystem.removeForwardRecorder(name)
+def removefs(port = 50000):
+    recorder.removefs(port)
 
-def dsremove(name = '50001(320,240)'):
-    visionSystem.removeDownwardRecorder(name)
+def removeds(port = 50001):
+    recorder.removeds(port)
+
+fsremove = removefs
+dsremove = removeds
 
 # Quick detector functions
 lightOn = visionSystem.redLightDetectorOn
