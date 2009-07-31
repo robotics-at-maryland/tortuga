@@ -37,7 +37,9 @@ public:
         thrusterState(0),
         markerDropped(-1),
         servoUsed(-1),
-        servoPosition(-1)
+        servoPosition(-1),
+        servoEnable(-1),
+        servoPower(-1)
     {
         memset(speeds, 0, sizeof(int) * 6);
         memset(&currentTelemetry, 0, sizeof(struct boardInfo));
@@ -52,6 +54,8 @@ public:
     int markerDropped;
     int servoUsed;
     int servoPosition;
+    int servoEnable;
+    int servoPower;
     
 protected:
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
@@ -87,6 +91,17 @@ protected:
         servoUsed = servoNumber;
         servoPosition = position;
     }
+
+    virtual void setServoEnable(unsigned char mask)
+    {
+        servoEnable = mask;
+    }
+
+    virtual void setServoPower(unsigned char power)
+    {
+        servoPower = power;
+    }
+
     
     // Does nothing
     virtual void syncBoard() {}
@@ -376,14 +391,19 @@ TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
     CHECK_EQUAL(0, sb->fireTorpedo());
     CHECK_EQUAL(SERVO_1, testSb->servoUsed);
     CHECK_EQUAL(8000, testSb->servoPosition);
+    CHECK_EQUAL(SERVO_ENABLE_1, testSb->servoEnable);
+    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
     // Fire second torpedo
     CHECK_EQUAL(1, sb->fireTorpedo());
     CHECK_EQUAL(SERVO_2, testSb->servoUsed);
     CHECK_EQUAL(7000, testSb->servoPosition);
+    CHECK_EQUAL(SERVO_ENABLE_2, testSb->servoEnable);
+    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
+
     
     // Fire non-existent torpedo
     CHECK_EQUAL(-1, sb->fireTorpedo());
-    CHECK_EQUAL(2, testSb->servoUsed);
+    CHECK_EQUAL(SERVO_2, testSb->servoUsed);
     CHECK_EQUAL(7000, testSb->servoPosition);
 
     delete testSb;

@@ -210,6 +210,10 @@ protected:
     virtual void setServoPosition(unsigned char servoNumber,
                                   unsigned short position);
 
+    virtual void setServoEnable(unsigned char mask);
+
+    virtual void setServoPower(unsigned char power);
+    
     virtual void syncBoard();
     
 private:

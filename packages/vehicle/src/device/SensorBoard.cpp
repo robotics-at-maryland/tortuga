@@ -400,10 +400,19 @@ int SensorBoard::fireTorpedo()
     int torpedoFired = -1;
     if (torpedoNum < NUMBER_OF_TORPEDOS)
     {
+        // Yes this code looks weird, but MotorBoard r3 has some bugs that we
+        // need to code around
         if (torpedoNum == 0)
+        {
             setServoPosition(SERVO_1, m_servo1FirePosition);
+            setServoEnable(SERVO_ENABLE_1);
+            setServoPower(SERVO_POWER_ON);
+        }
         else if (torpedoNum == 1)
+        {
             setServoPosition(SERVO_2, m_servo2FirePosition);
+            setServoEnable(SERVO_ENABLE_2);
+        }
         
         torpedoFired = torpedoNum;
         torpedoNum++;
@@ -458,6 +467,16 @@ void SensorBoard::setServoPosition(unsigned char servoNumber,
 {
     handleReturn(::setServoPosition(m_deviceFD, servoNumber, position));    
 }  
+
+void SensorBoard::setServoEnable(unsigned char mask)
+{
+    handleReturn(::setServoEnable(m_deviceFD, mask));    
+}  
+
+void SensorBoard::setServoPower(unsigned char power)
+{
+    handleReturn(::setServoPower(m_deviceFD, power));    
+}
     
 void SensorBoard::syncBoard()
 {
