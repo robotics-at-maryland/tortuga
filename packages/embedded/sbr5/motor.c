@@ -16,6 +16,9 @@ _FBORPOR( PWRT_64 );
 /* Turn off the watchdog timer. */
 _FWDT ( WDT_OFF );
 
+/* Turn on/off excess dumb code */
+//#define DEBUG_ON
+
 /* Some defines which will help keep us sane. */
 #define TRIS_OUT 0
 #define TRIS_IN  1
@@ -75,7 +78,7 @@ byte ping_val;
 
 /* Timeout value */
 // Specifies number of Tcy to wait for I2C ack before borking
-#define BORK_TIMEOUT_PERIOD	20
+#define BORK_TIMEOUT_PERIOD	2000
 
 
 /*
@@ -197,7 +200,6 @@ void processData(byte);
 /*****************************************************************************/
 /*****************************************************************************/
 
-
 /* Goes through and sets all motors to 0 */
 void kill_motors() {
     motorSpeed[0]= 0x80; /* Set all speeds to 0 */
@@ -235,17 +237,8 @@ void _ISR _MI2CInterrupt() {
 
         case I2CSTATE_START:
         {
-            if((i2cBuf[0] & 0x01) == I2C_WRITE) {
-                i2cPtr= 1;
-                i2cState= I2CSTATE_TRANS;
-            } else {
-                /* So, this transition is a bit odd, we set the pointer, then
-                 * we have to make sure some slave ACK'd the address, THEN we
-                 * can wait for bytes */
-                i2cPtr= 0;
-                i2cState= I2CSTATE_RX_ADR;
-            }
-
+            i2cPtr= 1;
+            i2cState= I2CSTATE_TRANS;
             WriteI2C(i2cBuf[0]); /* No matter what happens we want to send the
                                     address and the R/W bit */
             break;
@@ -419,6 +412,8 @@ void processData(byte data)
     unsigned int i;
     txPtr = 0;
 
+    writeUart(busState);
+
     switch(busState)
     {
         case STATE_TOP_LEVEL:     /* New commands */
@@ -482,22 +477,38 @@ void processData(byte data)
                     busState= STATE_SET_SERVO_POS;
                     break;
                 }
+
+                case BUS_CMD_MTR_RST:
+                {
+                    asm("reset");
+                }
             }
 
             break;
         }
 
-        case BUS_CMD_SET_SERVO_POS:
+        case STATE_SET_SERVO_POS:
         {
             rxBuf[nParam++]= data;
 
             if(nParam == 3) {
+#ifdef DEBUG_ON
+                writeUart(rxBuf[1]);
+                writeUart(rxBuf[2]);
+#endif
                 /* Consolidate the two speed bytes into one short */
                 tmp_servo_speed= rxBuf[1];
                 tmp_servo_speed= (tmp_servo_speed << 8) | rxBuf[2];
 
                 /* Actually hand the data to the interrupts */
                 SetServo(rxBuf[0], tmp_servo_speed);
+
+#ifdef DEBUG_ON
+                writeUart(OC1R >> 8);
+                writeUart(OC1R);
+                writeUart(OC1RS >> 8);
+                writeUart(OC1RS);
+#endif
 
                 /* We're done! Go back to the beginning! */
                 busState= STATE_TOP_LEVEL;
@@ -506,7 +517,7 @@ void processData(byte data)
             break;
         }
 
-        case BUS_CMD_SERVO_ENABLE:
+        case STATE_SERVO_ENABLE:
         {
             /* Servo stuff for 0 and 1 */
             if((data & 0x01)) {
@@ -586,6 +597,8 @@ void processData(byte data)
             if(!(data & 0x40) && !(data & 0x80)) {
                 LAT_SERVO_67_EN= SERVO_DISABLED;
             }
+
+            busState= STATE_TOP_LEVEL;
 
             break;
         }
@@ -749,7 +762,7 @@ int main()
         for(i= 0;i < 6;i++) {
             activeSpeed[i]= motorSpeed[i];
             /* Debug */
-            //writeUart(activeSpeed[i]);
+            writeUart(activeSpeed[i]);
         }
         REQ_INT_BIT= 1;
 
@@ -799,9 +812,7 @@ int main()
                 writeUart('E');
 
             if(_T1IF) {
-                BorkedI2C();
-                while(i2cState != I2CSTATE_BORKED)
-                    writeUart('F');
+                resetI2C_registers();
             }
 
             if(i2cState == I2CSTATE_BORKED) {
@@ -809,7 +820,6 @@ int main()
                 LAT_ERR= LED_ON;
                 err_reset= SHOW_ERR_TIMEOUT;
                 resetI2C_registers();
-                i2cState= I2CSTATE_IDLE;
             }
 
             if(LAT_ERR == LED_ON)
@@ -833,7 +843,15 @@ int main()
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
 
+            i2cState= I2CSTATE_IDLE;
+            resetI2C_registers();
+
             writeUart(heartBeat++);
+
+#ifdef DEBUG_ON
+             if(uartRXCheck())
+                 processData(uartRX());
+#endif
         }
     }
 
@@ -907,6 +925,12 @@ void uartRXwait() {
     while(!U1STAbits.URXDA)
         ;
 }
+
+#ifdef DEBUG_ON
+unsigned int uartRXCheck() {
+    return U1STAbits.URXDA;
+}
+#endif
 
 /* This function grabs a byte off the recieve buffer and returns it*/
 byte uartRX() {
@@ -1019,5 +1043,7 @@ unsigned int wasAckI2C(void) {
 
 /* This should stop any of the dumb errors we're getting. */
 void resetI2C_registers(void) {
+    I2CCONbits.I2CEN= 0;
     I2CSTAT= 0x0000; /* Wipe out I2CSTAT */
+    I2CCONbits.I2CEN= 1;
 }

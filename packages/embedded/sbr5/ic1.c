@@ -874,6 +874,13 @@ void checkFailsafe()
     {
         failsafeTripped= 0;
         busWriteByte(BUS_CMD_KILL_MOTORS, SLAVE_ID_MOTOR);
+
+        busWriteByte(BUS_CMD_THRUSTER1_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER2_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER3_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER4_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER5_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER6_OFF, SLAVE_ID_THRUSTERS);
     }
 #endif
 }
@@ -935,7 +942,7 @@ void post()
         if(pingChip(postList[i]) != 0) /* Someone failed */
         {
             LAT_LED_ERR = LED_ON;
-            for(j=0; j<4; j++)
+            for(j=0; j<2; j++)
             {
                 /* Flash error light 3 times */
                 blink(postList[i]+1);
@@ -2183,7 +2190,11 @@ int main(void)
                 for(i= 0;i < 2;i++)
                     rxBuf[i]= waitchar(1);
 
-                if(rxBuf[1] != (rxBuf[0] + HOST_CMD_SERVO_ENABLE))
+                t1= 0;
+                t1+= rxBuf[0];
+                t1+= HOST_CMD_SERVO_ENABLE;
+
+                if(rxBuf[1] != (t1 & 0xFF))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -2212,7 +2223,14 @@ int main(void)
                 for(i= 0;i < 4;i++)
                     rxBuf[i]= waitchar(1);
 
-                if(rxBuf[3] != (rxBuf[0] + rxBuf[1] + rxBuf[2] + HOST_CMD_SERVO_ENABLE))
+                t1= 0;
+
+                for(i=0; i<3; i++)
+                    t1 += rxBuf[i];
+
+                t1 += HOST_CMD_SET_SERVO_POS;
+
+                if(rxBuf[3] != (t1 & 0xFF))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -2224,20 +2242,30 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(rxBuf[0], SLAVE_ID_SERVOS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
+                for(i= 0;i < 3;i++) {
+                    if(busWriteByte(rxBuf[i], SLAVE_ID_SERVOS) != 0)
+                    {
+                        sendByte(HOST_REPLY_FAILURE);
+                        i= 0xFF;
+                        break;
+                    }
+                }
+
+                if(i == 0xFF)
+                    break;
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_SERVO_POWER_ON:
+            {
+                if(waitchar(1) != HOST_CMD_SERVO_POWER_ON) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(rxBuf[1], SLAVE_ID_SERVOS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(busWriteByte(rxBuf[2], SLAVE_ID_SERVOS) != 0)
-                {
+                if(busWriteByte(BUS_CMD_SERVO_POWER_ON, SLAVE_ID_SERVOS) != 0) {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
@@ -2246,15 +2274,35 @@ int main(void)
                 break;
             }
 
-            case HOST_CMD_SERVO_POWER_ON:
+            case HOST_CMD_SERVO_POWER_OFF:
             {
-                simpleCmd(HOST_CMD_SERVO_POWER_ON, HOST_REPLY_SUCCESS, SLAVE_ID_SERVOS, BUS_CMD_SERVO_POWER_ON);
+                if(waitchar(1) != HOST_CMD_SERVO_POWER_OFF) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SERVO_POWER_OFF, SLAVE_ID_SERVOS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
 
-            case HOST_CMD_SERVO_POWER_OFF:
+            case HOST_CMD_MTR_RST:
             {
-                simpleCmd(HOST_CMD_SERVO_POWER_OFF, HOST_REPLY_SUCCESS, SLAVE_ID_SERVOS, BUS_CMD_SERVO_POWER_OFF);
+                if(waitchar(1) != HOST_CMD_MTR_RST) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_MTR_RST, SLAVE_ID_SERVOS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
         }

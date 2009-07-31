@@ -6,9 +6,7 @@
 
 #include "servo.h"
 
-#if NUM_SERVOS != 0
 
-#warning SERVO MODULE ACTIVE
 
 // Module-level variables
 WORD16 ServoPositions[NUM_SERVOS];
@@ -153,14 +151,11 @@ void SetServo( BYTE Channel, WORD16 Position )
 #ifdef SERVO_USE_OC8
 		case 7:
 #endif
-			if( ServoPositions[Channel] != Position )
-			{
 				if( Position < PWM_MAX_POSITION )
 				{
 					// Update the holding registers
 					ServoPositions[Channel] = Position;
 				}
-			}
 	}		
 }
 
@@ -420,7 +415,7 @@ void InitServos()
 	OpenTimer2( T2_ON &
 				T2_IDLE_CON &
 				T2_GATE_OFF &
-				T2_PS_1_8 &
+				T2_PS_1_1 &
 				T2_SOURCE_INT,
 				PWM_PERIOD );
 
@@ -454,4 +449,3 @@ void InitServos()
 }
 
 
-#endif

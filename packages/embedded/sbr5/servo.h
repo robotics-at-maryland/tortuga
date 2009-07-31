@@ -18,7 +18,7 @@
 ////////////////////////////////////
 //GLOBAL DEVICE PARAMTERS
 
-#define DEV_FOSC	(80000000)
+#define DEV_FOSC	(10000000)
 #define DEV_FCY		(DEV_FOSC/4)
 #define DEV_TCY		(4/(float)DEV_FOSC)
 
@@ -26,7 +26,7 @@
 
 // SERVO OUTPUT POLARITY
 // (enable to make servo outputs active low
-//#define PWM_INVERT
+#define PWM_INVERT
 
 // SERVO CHANNEL SELECTION
 // disable if OC channel is not implemented or not used as a servo
@@ -65,9 +65,9 @@
 
 // Timer2 period value
 // 22ms Refresh rate
-#define PWM_PERIOD 				(WORD16)(0.022/(DEV_TCY*8))
+#define PWM_PERIOD 		        (WORD16)(0.022/(DEV_TCY))
 
-#define PWM_CLICK_TIME			(DEV_TCY*8)
+#define PWM_CLICK_TIME			(DEV_TCY)
 
 // allow 333 us delay at beginning
 // alot each servo 2.6ms
