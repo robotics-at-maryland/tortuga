@@ -189,7 +189,7 @@ void BinDetector::processImage(Image* input, Image* out)
 
     // Find bins
     BlobDetector::BlobList binBlobs;
-    findBinBlobs(whiteBlobs, blackBlobs, binBlobs);
+    findBinBlobs(whiteBlobs, blackBlobs, binBlobs, out);
     
     if (out)
     {
@@ -445,7 +445,7 @@ void BinDetector::init(core::ConfigNode config)
         0.0, &m_binMinFillPercentage, 0.0, 1.0);
     propSet->addProperty(config, false, "binMaxOverlaps",
        "The minimum amount of the black bob that must be filled to be a bin",
-        2, &m_binMaxOverlaps, 0, 10);
+        20, &m_binMaxOverlaps, 0, 20);
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
         0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
@@ -650,7 +650,8 @@ void BinDetector::filterDebugOutput(Image* out)
 
 void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
                                const BlobDetector::BlobList& blackBlobs,
-                               BlobDetector::BlobList& binBlobs)
+                               BlobDetector::BlobList& binBlobs,
+                               Image* output)
 {
     BlobDetector::BlobList nonBinBlobs;
     BlobDetector::BlobList candidateBins;
@@ -764,29 +765,54 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
     }
 
 
-    // Filter all the candidates and remove ones that overlap
-    BOOST_FOREACH(BlobDetector::Blob bin, candidateBins)
+    bool removed = true;
+    while (removed)
     {
-        // Count the number of overlaps
-        int binOverlaps = 0;
-        BlobDetector::BlobList::const_iterator iter = candidateBins.begin();
-        while (iter != candidateBins.end())
+        removed = false;
+        
+        // Filter all the candidates and remove ones that overlap
+        BlobDetector::BlobList::iterator mainIter = candidateBins.begin();
+        while (mainIter != candidateBins.end())
         {
-            if (bin.boundsIntersect(*iter) &&
-                (bin.getCenterX() != iter->getCenterX()) &&
-                (bin.getCenterY() != iter->getCenterY()))
+            // Count the number of overlaps
+            int binOverlaps = 0;
+            BlobDetector::BlobList::const_iterator iter = candidateBins.begin();
+            while (iter != candidateBins.end())
             {
-                std::cout << "Intersects(" << candidateBins.size()
-                          << std::endl;
-                binOverlaps++;
+                if (mainIter->boundsIntersect(*iter) &&
+                    (mainIter->getCenterX() != iter->getCenterX()) &&
+                    (mainIter->getCenterY() != iter->getCenterY()))
+                {
+                    binOverlaps++;
+                }
+                iter++;
             }
-            iter++;
+
+            // Only add if its under the overlap count
+            if (binOverlaps > m_binMaxOverlaps)
+            {
+                // We found a bad bin remove and start over again
+                removed = true;
+                break;
+            }
+            else
+            {
+                // Advance through
+                mainIter++;
+            }
         }
 
-        // Only add if its under the overlap count
-        if (binOverlaps < m_binMaxOverlaps)
-            binBlobs.push_back(bin);
+        // Remove the bad bin
+        if (removed)
+        {
+            candidateBins.erase(mainIter);
+            if (output)
+                mainIter->draw(output);
+        }
     }
+
+    // Anybody left is really a bin
+    binBlobs = candidateBins;
 }
 
 bool BinDetector::findArrayAngle(const BinList& bins, math::Degree& finalAngle,

@@ -319,6 +319,9 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveBottom)
     detectorBottomRemoved.processImage(&input, &out);
     CHECK(false == detectorBottomRemoved.found);
 }
+
+//TODO: Test remove left and right
+
 TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
 {
     // Make sure we don't say a rectangle is a bouy

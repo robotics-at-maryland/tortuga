@@ -118,7 +118,8 @@ class RAM_EXPORT BinDetector : public Detector
     /** Finds all black blobs that are inside white blobs (ie. bins) */
     void findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
                       const BlobDetector::BlobList& blackBlobs,
-                      BlobDetector::BlobList& binBlobs);
+                      BlobDetector::BlobList& binBlobs,
+                      Image* output);
     
     /** Determines the angle of the bin array (draws debug output if needed)
      *

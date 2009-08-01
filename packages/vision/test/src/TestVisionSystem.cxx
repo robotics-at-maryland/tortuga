@@ -238,8 +238,11 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
     // Check Events
     CHECK(binFound);
     CHECK(binEvent);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, binEvent->x, 0.05);
-    CHECK_CLOSE(0.5, binEvent->y, 0.1);
+    if (binEvent)
+    {
+        CHECK_CLOSE(-0.5 * 640.0/480.0, binEvent->x, 0.05);
+        CHECK_CLOSE(0.5, binEvent->y, 0.1);
+    }
 }
 
 TEST_FIXTURE(VisionSystemFixture, TargetDetector)

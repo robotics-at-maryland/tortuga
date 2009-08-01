@@ -168,7 +168,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles3)
     CHECK(receivedMultiBinAngleEvent);
     CHECK(multiBinAngleEvent);
     
-    if (receivedMultiBinAngleEvent);
+    if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
         CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),2);
@@ -188,7 +188,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
     CHECK(receivedMultiBinAngleEvent);
     CHECK(multiBinAngleEvent);
     
-    if (receivedMultiBinAngleEvent);
+    if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
         CHECK_CLOSE(-45, multiBinAngleEvent->angle.valueDegrees(),.25);
@@ -202,7 +202,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles2)
     CHECK(receivedMultiBinAngleEvent);
     CHECK(multiBinAngleEvent);
     
-    if (receivedMultiBinAngleEvent);
+    if (receivedMultiBinAngleEvent)
     {
         receivedMultiBinAngleEvent = false;
         CHECK_CLOSE(45, multiBinAngleEvent->angle.valueDegrees(),.25);
@@ -338,8 +338,11 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
@@ -611,8 +614,11 @@ TEST_FIXTURE(BinDetectorFixture, Left)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, LowerRight)
@@ -636,8 +642,11 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, CenterUp)
@@ -661,8 +670,11 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, CenterSideways)
@@ -686,8 +698,11 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, TopBin)
@@ -711,8 +726,11 @@ TEST_FIXTURE(BinDetectorFixture, TopBin)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, FullBin)
@@ -736,8 +754,11 @@ TEST_FIXTURE(BinDetectorFixture, FullBin)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, FullBin2)
@@ -762,8 +783,11 @@ TEST_FIXTURE(BinDetectorFixture, FullBin2)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 
@@ -806,8 +830,11 @@ TEST_FIXTURE(BinDetectorFixture, FullBinLeft)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, FullBinRight)
@@ -831,8 +858,11 @@ TEST_FIXTURE(BinDetectorFixture, FullBinRight)
     // Check Events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.05);
-    CHECK_CLOSE(expectedY, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(expectedX, event->x, 0.05);
+        CHECK_CLOSE(expectedY, event->y, 0.05);
+    }
 }
 
 
@@ -852,8 +882,11 @@ TEST_FIXTURE(BinDetectorFixture, Events_BINS_LOST)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(0.5  * 640.0/480.0, event->x, 0.05);
-    CHECK_CLOSE(-0.5, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(0.5  * 640.0/480.0, event->x, 0.05);
+        CHECK_CLOSE(-0.5, event->y, 0.05);
+    }
 
     // Now we lost the bin
     makeColor(&input, 0, 0, 255);
@@ -918,7 +951,8 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_DROPPED)
     // Now make sure we got the right dropped event
     CHECK(dropped);
     CHECK(droppedEvent);
-    CHECK_EQUAL((*lostIds.begin()), droppedEvent->id);
+    if (droppedEvent)
+        CHECK_EQUAL((*lostIds.begin()), droppedEvent->id);
 }
 
 TEST_FIXTURE(BinDetectorFixture, BinLostFrames)
@@ -1013,9 +1047,12 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK(!centered);
-    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
-    CHECK_CLOSE(-0.5, event->y, 0.05);    
+    if (event)
+    {
+        CHECK(!centered);
+        CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
+        CHECK_CLOSE(-0.5, event->y, 0.05);
+    }
 
     // Now bin is dead center
     makeColor(&input, 0, 0, 255);
@@ -1026,8 +1063,11 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     // Make sure we get the centered event
     CHECK(centered);
     CHECK(event);
-    CHECK_CLOSE(0, event->x, 0.05);
-    CHECK_CLOSE(0, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(0, event->x, 0.05);
+        CHECK_CLOSE(0, event->y, 0.05);
+    }
 
     // Blank image
     centered = false;
@@ -1048,8 +1088,11 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     CHECK(found);
     CHECK(centered);
     CHECK(event);
-    CHECK_CLOSE(0, event->x, 0.05);
-    CHECK_CLOSE(0, event->y, 0.05);
+    if (event)
+    {
+        CHECK_CLOSE(0, event->x, 0.05);
+        CHECK_CLOSE(0, event->y, 0.05);
+    }
 }
 
 TEST_FIXTURE(BinDetectorFixture, Symbol)

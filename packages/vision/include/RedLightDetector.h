@@ -113,6 +113,12 @@ class RAM_EXPORT RedLightDetector : public Detector
     /** Percentage of the image to remove from the bottom */
     double m_bottomRemovePercentage;
 
+    /** Percentage of the image to remove from the left */
+    double m_leftRemovePercentage;
+
+    /** Percentage of the image to remove from the right */
+    double m_rightRemovePercentage;
+    
     /** The threshold of the percentage of red in the image */
     double m_redPercentage;
 

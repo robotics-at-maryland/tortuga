@@ -79,6 +79,14 @@ void RedLightDetector::init(core::ConfigNode config)
         "% of the screen from the bottom to be blacked out",
         0.0, &m_bottomRemovePercentage);
 
+    propSet->addProperty(config, false, "leftRemovePercentage",
+        "% of the screen from the left to be blacked out",
+        0.0, &m_leftRemovePercentage);
+
+    propSet->addProperty(config, false, "rightRemovePercentage",
+        "% of the screen from the right to be blacked out",
+        0.0, &m_rightRemovePercentage);
+    
     propSet->addProperty(config, false, "redPercentage",
         "Minimum % of total color in the pixel which must be red",
         40.0, &m_redPercentage);
@@ -207,6 +215,7 @@ void RedLightDetector::processImage(Image* input, Image* output)
         memset(image->imageData, 0, bytesToBlack);
         memset(flashFrame->imageData, 0, bytesToBlack);
     }
+    
 
     if (m_bottomRemovePercentage != 0)
     {
@@ -217,6 +226,31 @@ void RedLightDetector::processImage(Image* input, Image* output)
         memset(&(flashFrame->imageData[flashFrame->width * flashFrame->height * 3 - bytesToBlack]), 0, bytesToBlack);
     }
 
+    if (m_rightRemovePercentage != 0)
+    {
+        size_t lineSize = image->width * 3;
+        size_t bytesToBlack = (int)(m_rightRemovePercentage * lineSize);;
+        for (int i = 0; i < image->height; ++i)
+        {
+            size_t offset = i * lineSize - bytesToBlack;
+            memset(image->imageData + offset, 0, bytesToBlack);
+            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+        }
+    }
+
+    if (m_leftRemovePercentage != 0)
+    {
+        size_t lineSize = image->width * 3;
+        size_t bytesToBlack = (int)(m_leftRemovePercentage * lineSize);;
+        for (int i = 0; i < image->height; ++i)
+        {
+            size_t offset = i * lineSize;
+            memset(image->imageData + offset, 0, bytesToBlack);
+            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+        }
+    }
+
+    
     // Process Image
     CvPoint boundUR = {0};
     CvPoint boundLL = {0};
