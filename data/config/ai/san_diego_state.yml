@@ -34,7 +34,7 @@ ram.ai.light.Hit:
     duration: 2
     speed: 2.5
 ram.ai.light.Continue:
-    backwardDuration: 2
+    backwardDuration: 0
     forwardDuration: 5
 # Duct Sub task
 ram.ai.duct.SeekingToRange:

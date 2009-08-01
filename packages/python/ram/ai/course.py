@@ -640,10 +640,12 @@ class Bin(task.Task):
         self._headingChange = motion.basic.RateChangeHeading(
             desiredHeading = self._heading, speed = self._speed,
             absolute = self._absolute)
+        self._depthChange = motion.basic.RateChangeDepth(
+            desiredDepth = 4.5, speed = (1.0/3.0))
         self._forward = motion.basic.TimedMoveDirection(
             desiredHeading = 0, speed = 3, duration = self._duration,
             absolute = False)
-        self.motionManager.setQueuedMotions(self._headingChange, self._forward)
+        self.motionManager.setQueuedMotions(self._headingChange, self._depthChange, self._forward)
     
     def exit(self):
         task.Task.exit(self)

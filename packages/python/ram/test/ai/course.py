@@ -59,6 +59,7 @@ class PipeTestCase(support.AITestCase):
         self.assertEqual(0, self.controller.sidewaysSpeed)
         
         # For the time being this is off
+        print self.motionManager._depthMotion, self.motionManager._inPlaneMotion, self.motionManager._orientationMotion, self.motionManager._queuedMotions
         self.assertFalse(self.visionSystem.pipeLineDetector)
         
     def injectPipeEvent(self, x, y, angle):
@@ -724,6 +725,8 @@ class TestTarget(support.AITestCase):
         # Finish the motion and check if it has entered the state
         self.machine.currentState()._headingChange._finish()
         self.qeventHub.publishEvents()
+        self.machine.currentState()._forward._finish()
+        self.qeventHub.publishEvents()
         
         self.assertCurrentBranches([target.Start])
         #self.assert_(self.visionSystem.barbedWireDetector)
@@ -787,6 +790,8 @@ class TestBin(support.AITestCase):
         self.machine.currentState()._headingChange._finish()
         self.qeventHub.publishEvents()
         
+        self.machine.currentState()._forward._finish()
+        self.qeventHub.publishEvents()
         self.assertCurrentBranches([bin.Start])
         #self.assert_(self.visionSystem.binDetector)
         
@@ -797,6 +802,9 @@ class TestBin(support.AITestCase):
 
         # Finish the motion and check if it has entered the state
         self.machine.currentState()._headingChange._finish()
+        self.qeventHub.publishEvents()
+
+        self.machine.currentState()._forward._finish()
         self.qeventHub.publishEvents()
         
         self.injectEvent(bin.COMPLETE, sendToBranches = True)
@@ -816,6 +824,9 @@ class TestBin(support.AITestCase):
         
         # Finish the motion and check if it has entered the state
         self.machine.currentState()._headingChange._finish()
+        self.qeventHub.publishEvents()
+
+        self.machine.currentState()._forward._finish()
         self.qeventHub.publishEvents()
 
         # Release timer
