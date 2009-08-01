@@ -1,16 +1,16 @@
-taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
-            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
-            'ram.ai.course.Bin', 'ram.ai.course.Pipe2',
-            'ram.ai.course.Target', 'ram.ai.course.Pinger',
-            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+taskOrder: ['ram.ai.course.Gate'] #, 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+#            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+#            'ram.ai.course.Bin', 'ram.ai.course.Pipe2',
+#            'ram.ai.course.Target', 'ram.ai.course.Pinger',
+#            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
-    gateDepth: 4
+    gateDepth: 1.7
     lightDepth: 6
     pipeDepth: 0.5
     bwireDepth: 11.3
-    targetDepth: 7.5
+    targetDepth: 0.7
     binStartDepth: 1
     binDepth: 2.25
     targetSymbols: ['Aircraft', 'Factory']
@@ -18,7 +18,7 @@ config:
     safeDepth: 10
     safeOffset: -0.4
     Gate:
-        time: 30
+        time: 3
         speed: 3
     Pipe1:
         biasDirection: 0
