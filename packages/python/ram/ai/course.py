@@ -302,11 +302,13 @@ class PipeTarget(PipeObjective):
             'sweepAngle', 30)
         self._sweepSpeed = self.ai.data['config'].get('PipeTarget', {}).get(
             'sweepSpeed', 3)
+        self._absolute = self.ai.data['config'].get('PipeTarget', {}).get(
+            'absolute', False)
 
         m1 = motion.basic.RateChangeDepth(
             self.ai.data['config'].get('pipeDepth', 6), 0.3)
         m2 = motion.basic.RateChangeHeading(
-            self._rotation, 10, absolute = False)
+            self._rotation, 10, absolute = self._absolute)
         m3 = motion.search.ForwardZigZag(self._legTime, self._sweepAngle,
                                          self._sweepSpeed)
 
@@ -580,7 +582,7 @@ class Target(task.Task):
                                                  branchingEvent = event))
             self._first = False
     
-    def enter(self, defaultTimeout = 180):
+    def enter(self, defaultTimeout = 120):
         # Initialize task part of class
         task.Task.enter(self, defaultTimeout = defaultTimeout)
         

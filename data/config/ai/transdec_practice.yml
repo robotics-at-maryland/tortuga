@@ -1,5 +1,6 @@
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Bin',
+            'ram.ai.course.PipeTarget', 'ram.ai.course.Target',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon']
 
@@ -21,14 +22,15 @@ config:
     Light:
         forwardDuration: 10
     Bin:
-        duration: 45
-        forwardDuration: 30
-        heading: -48 # -63 True compass heading
+        duration: 30
+        forwardDuration: 10
+        heading: 72
         absolute: True
-        binDirection: 67 # 42 True compass heading
+        binDirection: 42
         adjustAngle: False
-    #Target:
-    #    duration: 5
-    #    forwardDuration: 30
-    #    heading: 35 # 5
-    #    absolute: True
+    PipeTarget:
+        rotation: -60
+        absolute: True
+    Target:
+        duration: 5
+        forwardDuration: 10

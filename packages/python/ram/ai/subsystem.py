@@ -44,7 +44,7 @@ class AI(core.Subsystem):
         self._data = {}
         self._data['config'] = cfg.get('config', {})
 
-        self._checkConfig(self._data['config'])
+#        self._checkConfig(self._data['config'])
         
         # Build list of next states
         self._nextTaskMap = {}
@@ -89,7 +89,8 @@ class AI(core.Subsystem):
                          'safeOffset'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
-                             'duration', 'legTime', 'sweepAngle', 'sweepSpeed'])
+                             'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
+                             'absolute'])
         moveOptions = set(['heading', 'speed', 'absolute',
                            'forwardDuration', 'forwardSpeed', 'duration'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',

@@ -39,3 +39,7 @@ config:
         legTime: 3
         sweepAngle: 45
         sweepSpeed: 3
+    Bin:
+        heading: 45
+    Target;
+        heading: -25
