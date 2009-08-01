@@ -147,11 +147,13 @@
 #define ANIMATION_REDGREEN  2
 
 /* Servo defines */
-#define SERVO_1      0
-#define SERVO_2      2
 
-#define SERVO_ENABLE_1      0x01
-#define SERVO_ENABLE_2      0x04
+/* Yes these are the same MotorBoard r3 has some wiring bugs */
+#define SERVO_1      7
+#define SERVO_2      7
+
+#define SERVO_ENABLE_1      0xFF
+#define SERVO_ENABLE_2      0xC0
 
 #define SERVO_POWER_ON 1
 #define SERVO_POWER_OFF 0
