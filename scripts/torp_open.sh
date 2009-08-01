@@ -1,28 +1,22 @@
 #! /bin/sh
 
 # This script opens the starboard & port torpedo launchers for loading
-# It currently works around bugs in MotorBoard r3, it must always do starboard
-# then port
+# It currently works around bugs in MotorBoard r3.
+
 # DO NOT USE WHILE THE VEHICLE IS RUNNING
 
 echo "Opening Starboard ..."
 lcdshow -srvpwroff
-sleep 1
-lcdshow -srvsetpos 7 4000
-sleep 1
-lcdshow -srvenable 255
-sleep 1
+lcdshow -srvsetpos 6 4000
+lcdshow -srvenable 64
 lcdshow -srvpwron
 sleep 2
 lcdshow -srvpwroff
 
 echo "Opening Port ..."
 lcdshow -srvpwroff
-sleep 1
-lcdshow -srvsetpos 7 256
-sleep 1
-lcdshow -srvenable 192
-sleep 1
+lcdshow -srvsetpos 5 256
+lcdshow -srvenable 32
 lcdshow -srvpwron
 sleep 2
 lcdshow -srvpwroff
