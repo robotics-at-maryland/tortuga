@@ -149,11 +149,11 @@
 /* Servo defines */
 
 /* Yes these are the same MotorBoard r3 has some wiring bugs */
-#define SERVO_1      7
-#define SERVO_2      7
+#define SERVO_1      6
+#define SERVO_2      5
 
-#define SERVO_ENABLE_1      0xFF
-#define SERVO_ENABLE_2      0xC0
+#define SERVO_ENABLE_1      0x40
+#define SERVO_ENABLE_2      0x20
 
 #define SERVO_POWER_ON 1
 #define SERVO_POWER_OFF 0
