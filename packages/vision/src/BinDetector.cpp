@@ -772,6 +772,9 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
         
         // Filter all the candidates and remove ones that overlap
         BlobDetector::BlobList::iterator mainIter = candidateBins.begin();
+        BlobDetector::BlobList::iterator iterToRemove =
+            candidateBins.end();
+        int removeOverlaps = 0;
         while (mainIter != candidateBins.end())
         {
             // Count the number of overlaps
@@ -789,25 +792,24 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             }
 
             // Only add if its under the overlap count
-            if (binOverlaps > m_binMaxOverlaps)
+            if (binOverlaps > m_binMaxOverlaps && binOverlaps > removeOverlaps)
             {
+                removeOverlaps = binOverlaps;
+                iterToRemove = mainIter;
                 // We found a bad bin remove and start over again
                 removed = true;
-                break;
             }
-            else
-            {
-                // Advance through
-                mainIter++;
-            }
+            
+            // Advance through
+            mainIter++;
         }
 
         // Remove the bad bin
         if (removed)
         {
-            candidateBins.erase(mainIter);
+            candidateBins.erase(iterToRemove);
             if (output)
-                mainIter->draw(output);
+                iterToRemove->draw(output);
         }
     }
 
