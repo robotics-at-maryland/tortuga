@@ -1,6 +1,5 @@
-taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon']
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
     gateDepth: 4
@@ -10,12 +9,12 @@ config:
     targetDepth: 8.1
     binStartDepth: 7
     binDepth: 12
-    targetSymbols: ['Tank', 'Factory']
+    targetSymbols: ['Aircraft', 'Ship']
     sonarDepth: 5
     safeDepth: 9
     safeOffset: -0.4
     Gate:
-        time: 30
+        time: 35
         speed: 3
     Light:
         forwardDuration: 10

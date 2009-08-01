@@ -10,7 +10,7 @@ config:
     targetDepth: 8.1
     binStartDepth: 7
     binDepth: 12
-    targetSymbols: ['Tank', 'Factory']
+    targetSymbols: ['Aircraft', 'Ship']
     sonarDepth: 5
     safeDepth: 9
     safeOffset: -0.4

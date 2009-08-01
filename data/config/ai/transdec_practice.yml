@@ -23,9 +23,9 @@ config:
     Bin:
         duration: 45
         forwardDuration: 30
-        #heading: -15 # -45
-        heading: -37
+        heading: -48 # -63 True compass heading
         absolute: True
+        binDirection: 67 # 42 True compass heading
         adjustAngle: False
     #Target:
     #    duration: 5
