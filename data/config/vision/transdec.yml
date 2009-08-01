@@ -24,8 +24,10 @@ RedLightDetector:
     foundMinPixelScale: 0.85
     lostMinPixelScale: 0.75
     almostHitPercentage: 0.17
-    topRemovePercentage: 0.0
-    bottomRemovePercentage: 0.0
+    topRemovePercentage: 0.25
+    bottomRemovePercentage: 0.25
+    leftRemovePercentage: 0
+    rightRemovePercentage: 0.25
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
@@ -55,6 +57,8 @@ OrangePipeDetector:
 BinDetector:
     symbolDetector: BasicWW2Detector
     binMinFillPercentage: 0.3
+    binLostFrames: 5
+    binMaxOverlap: 4
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
