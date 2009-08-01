@@ -87,10 +87,14 @@ SafeDetector:
     minTotal: 100
 
 TargetDetector:
-    filtUMax: 79
+    dilateIterations: 3
+    erodeIterations: 2
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 88
     filtUMin: 0
-    filtVMax: 179
-    filtVMin: 130
+    filtVMax: 255
+    filtVMin: 148
  
 BarbedWireDetector:
     bottomRemovePercentage: 0.1

@@ -138,5 +138,5 @@ BarbedWireDetector:
     filtUMax: 75
     filtUMin: 0
 VelocityDetector:
-    usePhaseCorrelation: 0
-    useLKFlow: 1
+    usePhaseCorrelation: 1
+    useLKFlow: 0
