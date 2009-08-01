@@ -46,6 +46,8 @@ class PipeTestCase(support.AITestCase):
         self.assertCurrentBranches([self.testState])
         
     def checkSettled(self, nextState = None):
+        print self.machine.currentState()
+        print self.motionManager.currentMotion, self.motionManager._queuedMotions
         self.injectEvent(pipe.Centering.SETTLED, sendToBranches = True)
         self.qeventHub.publishEvents()
         if not (nextState is None):
@@ -53,13 +55,15 @@ class PipeTestCase(support.AITestCase):
         
         # Make sure the gate.Dive branch is gone
         self.assertFalse(self.machine.branches.has_key(self.testState))
-        
+        print self.machine.currentState()
+        print self.machine.branches
+        print self.motionManager.currentMotion, self.motionManager._queuedMotions
+
         # Make sure we are not moving
         self.assertEqual(0, self.controller.speed)
         self.assertEqual(0, self.controller.sidewaysSpeed)
         
         # For the time being this is off
-        print self.motionManager._depthMotion, self.motionManager._inPlaneMotion, self.motionManager._orientationMotion, self.motionManager._queuedMotions
         self.assertFalse(self.visionSystem.pipeLineDetector)
         
     def injectPipeEvent(self, x, y, angle):
@@ -789,8 +793,11 @@ class TestBin(support.AITestCase):
         # Finish the motion and check if it has entered the state
         self.machine.currentState()._headingChange._finish()
         self.qeventHub.publishEvents()
+
+        self.machine.currentState()._depthChange._finish()
+        self.qeventHub.publishEvents()
         
-        self.machine.currentState()._forward._finish()
+        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
         self.qeventHub.publishEvents()
         self.assertCurrentBranches([bin.Start])
         #self.assert_(self.visionSystem.binDetector)
@@ -804,7 +811,7 @@ class TestBin(support.AITestCase):
         self.machine.currentState()._headingChange._finish()
         self.qeventHub.publishEvents()
 
-        self.machine.currentState()._forward._finish()
+        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
         self.qeventHub.publishEvents()
         
         self.injectEvent(bin.COMPLETE, sendToBranches = True)
@@ -826,7 +833,7 @@ class TestBin(support.AITestCase):
         self.machine.currentState()._headingChange._finish()
         self.qeventHub.publishEvents()
 
-        self.machine.currentState()._forward._finish()
+        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
         self.qeventHub.publishEvents()
 
         # Release timer

@@ -27,7 +27,7 @@ Subsystems:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: data/config/ai/transdec_qual_light_only.yml
+         INCLUDE: data/config/ai/transdec_qual_sonar.yml
 
 
     StateMachine:

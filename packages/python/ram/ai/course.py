@@ -614,8 +614,7 @@ class Bin(task.Task):
     def _transitions():
         return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : Bin,
                  bin.COMPLETE : task.Next,
-                 task.TIMEOUT : task.Next,
-                 'GO' : state.Branch(bin.Start) }
+                 task.TIMEOUT : task.Next }
 
     def QUEUED_MOTIONS_FINISHED(self, event):
         # Branch after the first finished motion only
