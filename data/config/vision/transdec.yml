@@ -57,18 +57,18 @@ OrangePipeDetector:
 BinDetector:
     blackIsRed: 0
     symbolDetector: BasicWW2Detector
-    binMinFillPercentage: 0.3
+    binMinFillPrecentage: 0.3
     binLostFrames: 5
     binMaxOverlaps: 3
     centeredLimit: 0.2
-    sameBinThreshold: 0.2
-    maxAspectRatio: 3
+    #binSameThreshold: 0.2
+    #binMaxAspectRatio: 3
     blackMaskMinimumPercent: 10
     blackMaskMaxTotalIntensity: 350
     whiteMaskMinimumPercent: 15
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
-    incrediblyWashedOut: 0
+    #incrediblyWashedOut: 0
     filtblackLMax: 235 #255
     filtblackLMin: 48 #44
     filtblackUMax: 255

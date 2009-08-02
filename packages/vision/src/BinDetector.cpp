@@ -456,7 +456,7 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "binMaxAspectRatio",
        "The maximum aspect ratio the black blob of a bin can have",
         3.0, &m_binMaxAspectRatio, 0.0, 10.0);
-    propSet->addProperty(config, false, "binMinFillPercentage",
+    propSet->addProperty(config, false, "binMinFillPrecentage",
        "The minimum amount of the black bob that must be filled to be a bin",
         0.0, &m_binMinFillPercentage, 0.0, 1.0);
     propSet->addProperty(config, false, "binMaxOverlaps",
@@ -512,7 +512,7 @@ void BinDetector::init(core::ConfigNode config)
                                     200, 255); // V defaults // 200,255
 
     // Make sure the configuration is valid
-    propSet->verifyConfig(config, true);
+    //propSet->verifyConfig(config, true);
 }
 
 void BinDetector::allocateImages(int width, int height)

@@ -104,7 +104,7 @@ void TargetDetector::init(core::ConfigNode config)
     /// TODO: add a found pixel drop off
 
     // Make sure the configuration is valid
-    propSet->verifyConfig(config, true);
+    //propSet->verifyConfig(config, true);
 }
     
 TargetDetector::~TargetDetector()

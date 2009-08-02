@@ -96,7 +96,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
 
     
     // Make sure the configuration is valid
-    propSet->verifyConfig(config, true);
+    //propSet->verifyConfig(config, true);
 }
 
 void OrangePipeDetector::filterForOrangeOld(Image* image)
