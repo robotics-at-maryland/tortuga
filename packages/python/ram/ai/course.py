@@ -242,7 +242,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
                     'threshold', None)
 
         timeout = self.ai.data['config'].get(self._className, {}).get(
-            'timeout', 30)
+            'taskTimeout', 30)
 
         self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
         self.timer.start()
@@ -603,14 +603,16 @@ class Target(task.Task):
             'absolute', False)
         self._duration = self.ai.data['config'].get('Target', {}).get(
             'duration', 0)
+        self._travelSpeed = self.ai.data['config'].get('Target', {}).get(
+            'travelSpeed', 3)
 
         self._first = True
         self._headingChange = motion.basic.RateChangeHeading(
             desiredHeading = self._heading, speed = self._speed,
             absolute = self._absolute)
         self._forward = motion.basic.TimedMoveDirection(
-            desiredHeading = 0, speed = 3, duration = self._duration,
-            absolute = False)
+            desiredHeading = 0, speed = self._travelSpeed,
+            duration = self._duration, absolute = False)
         self.motionManager.setQueuedMotions(self._headingChange, self._forward)
     
     def exit(self):
@@ -650,6 +652,8 @@ class Bin(task.Task):
             'absolute', False)
         self._duration = self.ai.data['config'].get('Bin', {}).get(
             'duration', 0)
+        self._travelSpeed = self.ai.data['config'].get('Bin', {}).get(
+            'travelSpeed', 3)
 
         self._first = True
         self._headingChange = motion.basic.RateChangeHeading(
@@ -658,8 +662,8 @@ class Bin(task.Task):
         self._depthChange = motion.basic.RateChangeDepth(
             desiredDepth = 4.5, speed = (1.0/3.0))
         self._forward = motion.basic.TimedMoveDirection(
-            desiredHeading = 0, speed = 3, duration = self._duration,
-            absolute = False)
+            desiredHeading = 0, speed = self._travelSpeed,
+            duration = self._duration, absolute = False)
         self.motionManager.setQueuedMotions(self._headingChange,
                                             self._depthChange, self._forward)
 
