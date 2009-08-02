@@ -637,7 +637,7 @@ class Bin(task.Task):
                                                  branchingEvent = event))
             self._first = False
 
-    def enter(self, defaultTimeout = 150):
+    def enter(self, defaultTimeout = 240):
         timeout = self.ai.data['config'].get('Bin', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
