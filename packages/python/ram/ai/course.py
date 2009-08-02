@@ -120,11 +120,13 @@ class Pipe(task.Task):
             self.publish(Pipe.COMPLETE, core.Event())
     
     def enter(self, defaultTimeout = 60):
-        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
         
         self._pipesToFind = self._config.get('pipesToFind', 1)
         self._pipeCount = 0
-        self._className = type(self).__name__
         self.ai.data['pipeBiasDirection'] = \
             self.ai.data['config'].get(self._className, {}).get(
                     'biasDirection', None)
@@ -458,14 +460,16 @@ class Light(task.Task):
             self._first = False
 
     def enter(self, defaultTimeout = 90):
-        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
 
         # Save current orientation
         #self.controller.holdCurrentHeading()
         #self._initialOrientation = self.controller.getDesiredOrientation()
 
         # Turn the vehicle if needed
-        self._className = type(self).__name__
         self._heading = self.ai.data['config'].get(self._className, {}).get(
             'heading', 0)
         self._speed = self.ai.data['config'].get(self._className, {}).get(
@@ -540,7 +544,9 @@ class BarbedWire(task.Task):
             self._first = False
 
     def enter(self, defaultTimeout = 120):
-        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        timeout = self.ai.data['config'].get('BarbedWire', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
 
         self._heading = self.ai.data['config'].get('BarbedWire', {}).get(
             'heading', 0)
@@ -585,7 +591,9 @@ class Target(task.Task):
     
     def enter(self, defaultTimeout = 120):
         # Initialize task part of class
-        task.Task.enter(self, defaultTimeout = defaultTimeout)
+        timeout = self.ai.data['config'].get('Target', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
         
         self._heading = self.ai.data['config'].get('Target', {}).get(
             'heading', 0)
@@ -629,8 +637,10 @@ class Bin(task.Task):
                                                  branchingEvent = event))
             self._first = False
 
-    def enter(self):
-        task.Task.enter(self, defaultTimeout = 150)
+    def enter(self, defaultTimeout = 150):
+        timeout = self.ai.data['config'].get('Bin', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
 
         self._heading = self.ai.data['config'].get('Bin', {}).get(
             'heading', 0)
@@ -650,7 +660,8 @@ class Bin(task.Task):
         self._forward = motion.basic.TimedMoveDirection(
             desiredHeading = 0, speed = 3, duration = self._duration,
             absolute = False)
-        self.motionManager.setQueuedMotions(self._headingChange, self._depthChange, self._forward)
+        self.motionManager.setQueuedMotions(self._headingChange,
+                                            self._depthChange, self._forward)
 
         self.timer = None
         self._failure = False
@@ -674,7 +685,9 @@ class RandomBin(task.Task):
                  'GO' : state.Branch(bin.Start) }
 
     def enter(self):
-        task.Task.enter(self, defaultTimeout = 60)
+        timeout = self.ai.data['config'].get('RandomBin', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
 
         if self.ai.data.get('binComplete', False):
             self.publish(RandomBin.MOVE_ON, core.Event())
@@ -771,10 +784,12 @@ class SafeSonar(task.Task):
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(sonarSafe.Settling) }
     
-    def enter(self):
+    def enter(self, defaultTimeout = 500):
         # TODO: base the timeout off an offset from how much time we have left
         # in the mission
-        task.Task.enter(self, defaultTimeout = 500)
+        timeout = self.ai.data['config'].get('SafeSonar', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
         
         self.stateMachine.start(state.Branch(sonarSafe.Settling))
     
