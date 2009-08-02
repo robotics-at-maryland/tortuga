@@ -254,12 +254,21 @@ class RAM_EXPORT BinDetector : public Detector
     /** Minimum intensity of a pixel for it to be considered white */
     int m_whiteMaskMinimumIntensity;
 
+    /** Treat red as black */
+    bool m_blackIsRed;
+    
     /** Minimum percent for the white mask */
     int m_blackMaskMinimumPercent;
 
     /** Maximum intensity of a pixel for it to be considered black */
     int m_blackMaskMaxTotalIntensity;        
 
+    /** Erosion iterations on the red filtered image */
+    int m_redErodeIterations;
+
+    /** Dilation iterations on the red filtered image */
+    int m_redDilateIterations;
+    
     /** Minimum percent of the total pixel value for red */
     int m_redMinPercent;
 
