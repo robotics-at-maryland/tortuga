@@ -24,19 +24,19 @@ RedLightDetector:
     foundMinPixelScale: 0.85
     lostMinPixelScale: 0.75
     almostHitPercentage: 0.17
-    topRemovePercentage: 0.25
-    bottomRemovePercentage: 0.25
+    topRemovePercentage: 0.15
+    bottomRemovePercentage: 0.15
     leftRemovePercentage: 0
-    rightRemovePercentage: 0.25
+    rightRemovePercentage: 0.2
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
     filtLMax: 255
-    filtLMin: 0
+    filtLMin: 1
     filtUMax: 255
-    filtUMin: 0
+    filtUMin: 95
     filtVMax: 255
-    filtVMin: 200
+    filtVMin: 129
     useLUVFilter: 1
 OrangePipeDetector:
     rOverGMin: 1.05 #0.75 (NEW# 0.88)
@@ -59,7 +59,7 @@ BinDetector:
     symbolDetector: BasicWW2Detector
     binMinFillPercentage: 0.3
     binLostFrames: 5
-    binMaxOverlap: 4
+    binMaxOverlaps: 3
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
@@ -69,24 +69,24 @@ BinDetector:
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
     incrediblyWashedOut: 0
-    filtblackLMax: 208 #255
-    filtblackLMin: 0 #44
+    filtblackLMax: 235 #255
+    filtblackLMin: 48 #44
     filtblackUMax: 255
     filtblackUMin: 0
-    filtblackVMax: 118
-    filtblackVMin: 6
-    filtredLMax: 255
+    filtblackVMax: 255
+    filtblackVMin: 40
+    filtredLMax: 233
     filtredLMin: 0
     filtredUMax: 255
-    filtredUMin: 0
-    filtredVMax: 105 #255
-    filtredVMin: 47 #179
+    filtredUMin: 83 #90 for dark, 85 for mid-brightness
+    filtredVMax: 255 #255
+    filtredVMin: 118 #179
     filtwhiteLMax: 255
-    filtwhiteLMin: 179
+    filtwhiteLMin: 221
     filtwhiteUMax: 255
-    filtwhiteUMin: 17
+    filtwhiteUMin: 0
     filtwhiteVMax: 255
-    filtwhiteVMin: 100
+    filtwhiteVMin: 0
     useLUVFilter: 1
 DuctDetector:
     minRedOverGreen: 0.5
