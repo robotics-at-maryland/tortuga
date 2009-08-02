@@ -28,6 +28,7 @@ import ram.ai.light as light
 import ram.ai.barbedwire as barbedwire
 import ram.ai.target as target
 import ram.ai.bin as bin
+import ram.ai.randombin as randombin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
@@ -618,6 +619,9 @@ class Bin(task.Task):
                  bin.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next }
 
+    def COMPLETE(self, event):
+        self.ai.data['binComplete'] = True
+
     def QUEUED_MOTIONS_FINISHED(self, event):
         # Branch after the first finished motion only
         if self._first:
@@ -626,7 +630,7 @@ class Bin(task.Task):
             self._first = False
 
     def enter(self):
-        task.Task.enter(self, defaultTimeout = 600)
+        task.Task.enter(self, defaultTimeout = 150)
 
         self._heading = self.ai.data['config'].get('Bin', {}).get(
             'heading', 0)
@@ -647,11 +651,40 @@ class Bin(task.Task):
             desiredHeading = 0, speed = 3, duration = self._duration,
             absolute = False)
         self.motionManager.setQueuedMotions(self._headingChange, self._depthChange, self._forward)
+
+        self.timer = None
+        self._failure = False
     
     def exit(self):
         task.Task.exit(self)
         if not self._first:
             self.stateMachine.stopBranch(bin.Start)
+        self.visionSystem.binDetectorOff()
+        self.motionManager.stopCurrentMotion()
+
+class RandomBin(task.Task):
+
+    MOVE_ON = core.declareEventType('MOVE_ON')
+
+    @staticmethod
+    def _transitions():
+        return { bin.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 RandomBin.MOVE_ON : task.Next,
+                 'GO' : state.Branch(bin.Start) }
+
+    def enter(self):
+        task.Task.enter(self, defaultTimeout = 60)
+
+        if self.ai.data.get('binComplete', False):
+            self.publish(RandomBin.MOVE_ON, core.Event())
+        else:
+            self.stateMachine.start(state.Branch(randombin.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+        if not self.ai.data.get('binComplete', False):
+            self.stateMachine.stopBranch(randombin.Start)
         self.visionSystem.binDetectorOff()
         self.motionManager.stopCurrentMotion()
         
