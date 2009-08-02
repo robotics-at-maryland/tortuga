@@ -282,6 +282,9 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         }
     }
 
+    err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
+                                                &m_vValue);
+    std::cout << "Set U: " << m_uValue << " V: " << m_vValue << std::endl;
     
     // Grab image size
     err = dc1394_get_image_size_from_video_mode(m_camera, videoMode,
