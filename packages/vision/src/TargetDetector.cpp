@@ -1,4 +1,4 @@
-]/*
+/*
  * Copyright (C) 2009 Robotics at Maryland
  * Copyright (C) 2009 Joseph Lisee
  * All rights reserved.

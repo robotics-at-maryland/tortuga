@@ -203,8 +203,8 @@ bool PropertySet::verifyConfig(core::ConfigNode config, bool assertOnError)
     {
         if (m_propertyMap.find(nodeName) == m_propertyMap.end())
         {
-            if (assertOnError)
-            {
+            if (assertOnError && (nodeName != "type") && (nodeName != "name"))
+            { 
                 std::cerr << "Is not a valid config property \"" << nodeName
                           << "\"" << std::endl;
                 assert(false && "Invalide property name");
