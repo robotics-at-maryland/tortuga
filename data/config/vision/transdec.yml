@@ -55,6 +55,7 @@ OrangePipeDetector:
     filtVMin: 201 # 123
     useLUVFilter: 1
 BinDetector:
+    blackIsRed: 0
     symbolDetector: BasicWW2Detector
     binMinFillPercentage: 0.3
     binLostFrames: 5
@@ -68,18 +69,18 @@ BinDetector:
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
     incrediblyWashedOut: 0
-    filtblackLMax: 255
-    filtblackLMin: 44
+    filtblackLMax: 208 #255
+    filtblackLMin: 0 #44
     filtblackUMax: 255
     filtblackUMin: 0
     filtblackVMax: 118
     filtblackVMin: 6
     filtredLMax: 255
     filtredLMin: 0
-    filtredUMax: 200
+    filtredUMax: 255
     filtredUMin: 0
-    filtredVMax: 255
-    filtredVMin: 70
+    filtredVMax: 105 #255
+    filtredVMin: 47 #179
     filtwhiteLMax: 255
     filtwhiteLMin: 179
     filtwhiteUMax: 255
