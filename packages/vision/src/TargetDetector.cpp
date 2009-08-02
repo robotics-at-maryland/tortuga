@@ -1,4 +1,4 @@
-/*
+]/*
  * Copyright (C) 2009 Robotics at Maryland
  * Copyright (C) 2009 Joseph Lisee
  * All rights reserved.
@@ -104,7 +104,7 @@ void TargetDetector::init(core::ConfigNode config)
     /// TODO: add a found pixel drop off
 
     // Make sure the configuration is valid
-    propSet->verifyConfig(config);
+    propSet->verifyConfig(config, true);
 }
     
 TargetDetector::~TargetDetector()

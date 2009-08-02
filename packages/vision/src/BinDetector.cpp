@@ -109,6 +109,8 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_whiteMaskMinimumIntensity(0),
     m_blackMaskMinimumPercent(0),
     m_blackMaskMaxTotalIntensity(0),
+    m_redErodeIterations(0),
+    m_redDilateIterations(0),
     m_redMinPercent(0),
     m_redMinRValue(0),
     m_redMaxGValue(0),
@@ -167,6 +169,10 @@ void BinDetector::processImage(Image* input, Image* out)
         // Create the percents images for the white, black and red filters
         m_percents->copyFrom(input);
         to_ratios(m_percents->asIplImage());
+    }
+    else
+    {
+        cvCvtColor(input->asIplImage(), input->asIplImage(), CV_BGR2Luv);
     }
     
     // Filter for white, black, and red
@@ -396,6 +402,9 @@ void BinDetector::init(core::ConfigNode config)
         false, &m_logSymbolImages);
     
     // Black mask properties
+    propSet->addProperty(config, false, "blackIsRed",
+        "Treat red as black",
+        true, &m_blackIsRed);
     propSet->addProperty(config, false, "blackMaskMinimumPercent",
         "% of for the black mask minimum",
         10, &m_blackMaskMinimumPercent, 0, 100);
@@ -424,6 +433,13 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "redMaxBValue",
         "Maximum value of Blue pixel value for for red",
         170, &m_redMaxBValue, 0, 255);
+    propSet->addProperty(config, false, "redErodeIterations",
+        "Erosion iterations on the red filtered image",
+	0, &m_redErodeIterations, 0, 10);
+    propSet->addProperty(config, false, "redDilateIterations",
+        "Dilation iterations on the red filtered image",
+         0, &m_redDilateIterations, 0, 10);
+    
 
     // Blob detector properties
     propSet->addProperty(config, false, "blobMinBlackPixels",
@@ -496,7 +512,7 @@ void BinDetector::init(core::ConfigNode config)
                                     200, 255); // V defaults // 200,255
 
     // Make sure the configuration is valid
-    propSet->verifyConfig(config);
+    propSet->verifyConfig(config, true);
 }
 
 void BinDetector::allocateImages(int width, int height)
@@ -552,15 +568,18 @@ void BinDetector::filterForBlack(Image* input, Image* output)
     }
 
     // And the red and black filter into the black
-    unsigned char* blackData = m_blackMaskedFrame->getData();
-    unsigned char* redData = m_redMaskedFrame->getData();
-    int size = input->getWidth() * input->getHeight() * 3;
-    for (int i = 0; i < size; ++i)
+    if (m_blackIsRed)
     {
-        if (*redData)
-            *blackData = 255;
-        redData++;
-        blackData++;
+        unsigned char* blackData = m_blackMaskedFrame->getData();
+        unsigned char* redData = m_redMaskedFrame->getData();
+        int size = input->getWidth() * input->getHeight() * 3;
+        for (int i = 0; i < size; ++i)
+        {
+            if (*redData)
+                *blackData = 255;
+            redData++;
+            blackData++;
+        }
     }
 }
 
@@ -592,6 +611,18 @@ void BinDetector::filterForRed(Image* input, Image* output)
             }
         }
     }
+
+    if (m_redErodeIterations)
+    {
+      cvErode(output->asIplImage(), output->asIplImage(), 0, 
+	      m_redErodeIterations);
+    }
+    if (m_redDilateIterations)
+    {
+      cvDilate(output->asIplImage(), output->asIplImage(), 0, 
+	       m_redDilateIterations);
+    }
+
 }
 
 void BinDetector::filterDebugOutput(Image* out)
@@ -696,7 +727,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
     // Now lets go through the non bin blobs, and see if we can figure
     // out if they are black blobs that have just grown so large they only
     // have white on the sides
-    BOOST_FOREACH(BlobDetector::Blob blackBlob, nonBinBlobs)
+/*    BOOST_FOREACH(BlobDetector::Blob blackBlob, nonBinBlobs)
     {
         double blobHeight = blackBlob.getHeight();
         double imageHeight = m_whiteMaskedFrame->getHeight();
@@ -763,7 +794,7 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             }
         } // if (blob of full height)
     }
-
+*/
 
     bool removed = true;
     while (removed)

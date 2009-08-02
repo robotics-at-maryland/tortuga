@@ -113,7 +113,7 @@ void RedLightDetector::init(core::ConfigNode config)
                                  200, 255); // V defaults // 200,255
 
     // Make sure the configuration is valid
-    propSet->verifyConfig(config);
+    propSet->verifyConfig(config, true);
     
     // State machine variables 
     found=false;
@@ -389,7 +389,10 @@ void RedLightDetector::filterForRedOld(IplImage* image, IplImage* flashFrame)
 
 void RedLightDetector::filterForRedNew(IplImage* image)
 {
-    m_filter->filterImage(new OpenCVImage(image, false));
+    cvCvtColor(image, image, CV_BGR2Luv);
+    Image* tmpImage = new OpenCVImage(image, false);
+    m_filter->filterImage(tmpImage);
+    delete tmpImage;
 }
     
 void RedLightDetector::publishFoundEvent(double lightPixelRadius)

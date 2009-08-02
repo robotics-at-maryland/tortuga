@@ -42,14 +42,14 @@ using namespace ram;
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
     return root / "packages" / "vision" / "test" / "data" / "references";
 }*/
-
+ /*
 static boost::filesystem::path getImagesDir()
 {
     boost::filesystem::path root(getenv("RAM_SVN_DIR"));
     return root / "packages" / "vision" / "test" / "data" / "images"
         / "testbin";
 }
-
+ */
 
 struct BinDetectorFixture
 {
@@ -704,7 +704,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
         CHECK_CLOSE(expectedY, event->y, 0.05);
     }
 }
-
+/*
 TEST_FIXTURE(BinDetectorFixture, TopBin)
 {
     detector.setSymbolDetectionOn(false);
@@ -864,7 +864,7 @@ TEST_FIXTURE(BinDetectorFixture, FullBinRight)
         CHECK_CLOSE(expectedY, event->y, 0.05);
     }
 }
-
+*/
 
 
 TEST_FIXTURE(BinDetectorFixture, Events_BINS_LOST)

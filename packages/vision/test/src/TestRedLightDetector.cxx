@@ -149,7 +149,7 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     CHECK(false == almostHit);
 }
 
-TEST_FIXTURE(RedLightDetectorFixture, TestLUV)
+/*TEST_FIXTURE(RedLightDetectorFixture, TestLUV)
 {
     // Blue Image with red circle in lower right
     makeColor(&input, 0, 0, 255);
@@ -163,7 +163,7 @@ TEST_FIXTURE(RedLightDetectorFixture, TestLUV)
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found);
-}
+    }*/
 
 TEST_FIXTURE(RedLightDetectorFixture, TestNOLUV)
 {
