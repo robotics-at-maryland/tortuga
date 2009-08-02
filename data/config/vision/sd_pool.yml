@@ -38,8 +38,12 @@ OrangePipeDetector:
     minPixels: 3000
     minPixelsFound: 1500
     erodeIterations: 1
+
 BinDetector:
     symbolDetector: BasicWW2Detector
+    binMinFillPercentage: 0.3
+    binLostFrames: 5
+    binMaxOverlap: 4
     centeredLimit: 0.2
     sameBinThreshold: 0.2
     maxAspectRatio: 3
@@ -49,10 +53,25 @@ BinDetector:
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
     incrediblyWashedOut: 0
-    filtblackLMax: 61
-    filtblackUMax: 221
-    filtwhiteLMin: 93
-    useLUVFilter: 1
+    filtblackLMax: 255
+    filtblackLMin: 0
+    filtblackUMax: 79
+    filtblackUMin: 14
+    filtblackVMax: 90
+    filtblackVMin: 0
+    filtredLMax: 255
+    filtredLMin: 0
+    filtredUMax: 98
+    filtredUMin: 0
+    filtredVMax: 255
+    filtredVMin: 70
+    filtwhiteLMax: 245
+    filtwhiteLMin: 25
+    filtwhiteUMax: 255
+    filtwhiteUMin: 0
+    filtwhiteVMax: 255
+    filtwhiteVMin: 100
+    useLUVFilter: 1    
 DuctDetector:
     minRedOverGreen: 0.5
     maxRedOverGreen: 1.5
