@@ -226,12 +226,12 @@ ram.ai.sonarSafe.Settling:
     sidewaysSpeedGain: 2.25
     maxSpeed: 2.25
     speedGain: 2.25
-    duration: 10
+    duration: 5
 ram.ai.sonarSafe.Dive:
     #Hilton Pool
     #safeDepth: 6.5
     depthOffset: 1
-    diveRate: 0.1
+    diveRate: 0.15
     maxSidewaysSpeed: 2.25
     sidewaysSpeedGain: 2.25
     maxSpeed: 2.25
@@ -242,7 +242,7 @@ ram.ai.sonarSafe.PreGrabSettling:
     maxSpeed: 3
     speedGain: 3
     duration: 5
-    closeZ: 0.99
+    closeZ: 0.985
 #ram.ai.sonarSafe.Grabbing:
     # Hilton Pool
     #safeDepth: 6.5

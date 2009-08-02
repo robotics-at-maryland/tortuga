@@ -21,9 +21,9 @@ config:
     Light:
         forwardDuration: 10
     Bin:
-        duration: 60
-        forwardDuration: 30
-        heading: -15 # -45
+        duration: 30
+        forwardDuration: 10
+        heading: 15 # -45
         absolute: True
         binDirection: 45
         adjustAngle: False
