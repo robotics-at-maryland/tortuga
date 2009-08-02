@@ -406,7 +406,7 @@ class Hit(state.State):
     
     @staticmethod
     def transitions():
-        return {Hit.FORWARD_DONE : Continue}
+        return {Hit.FORWARD_DONE : End}
 
     @staticmethod
     def getattr():

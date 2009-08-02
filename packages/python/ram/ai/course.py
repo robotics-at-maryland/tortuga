@@ -654,13 +654,15 @@ class Bin(task.Task):
             'duration', 0)
         self._travelSpeed = self.ai.data['config'].get('Bin', {}).get(
             'travelSpeed', 3)
+        self._travelDepth = self.ai.data['config'].get('Bin', {}).get(
+            'travelDepth', 2.5)
 
         self._first = True
         self._headingChange = motion.basic.RateChangeHeading(
             desiredHeading = self._heading, speed = self._speed,
             absolute = self._absolute)
         self._depthChange = motion.basic.RateChangeDepth(
-            desiredDepth = 4.5, speed = (1.0/3.0))
+            desiredDepth = self._travelDepth, speed = (1.0/3.0))
         self._forward = motion.basic.TimedMoveDirection(
             desiredHeading = 0, speed = self._travelSpeed,
             duration = self._duration, absolute = False)

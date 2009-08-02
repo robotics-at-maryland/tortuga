@@ -23,24 +23,25 @@ config:
         forwardDuration: 10
         taskTimeout: 90
     Bin:
-        duration: 30
-        forwardDuration: 10
+        duration: 22
+        forwardDuration: 5
         heading: 15 # -45
         absolute: True
         binDirection: 45
         adjustAngle: False
         travelSpeed: 5
+        travelDepth: 2.5
         taskTimeout: 240
     PipeTarget:
-        rotation: 
+        rotation: 115
         absolute: True
-        biasDirection:
+        biasDirection: 115
         threshold: 30
         taskTimeout: 30
     Target:
         heading: 0
         absolute: False
-        duration:
-        forwardDuration: 10
+        duration: 13
+        forwardDuration: 5
         travelSpeed: 5
         taskTimeout: 120
