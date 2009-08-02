@@ -36,7 +36,7 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/san_diego_state.yml
+            INCLUDE: data/config/ai/sd_pool_state.yml
 
 
     # Includes all common subsystems    

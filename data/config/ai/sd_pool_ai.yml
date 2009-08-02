@@ -1,9 +1,10 @@
-taskOrder: ['ram.ai.course.Gate'] #, 'ram.ai.course.PipeGate',
-#            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
-#            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
-#            'ram.ai.course.Bin', 'ram.ai.course.Pipe2',
-#            'ram.ai.course.Target', 'ram.ai.course.Pinger',
-#            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+            'ram.ai.course.Bin', 
+'ram.ai.course.RandomBin', 'ram.ai.course.Pipe2',
+            'ram.ai.course.Target', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
 
 config:
     gateDepth: 1.7
@@ -11,9 +12,9 @@ config:
     pipeDepth: 0.5
     bwireDepth: 11.3
     targetDepth: 0.7
-    binStartDepth: 1
-    binDepth: 2.25
-    targetSymbols: ['Aircraft', 'Factory']
+    binStartDepth: 1.2
+    binDepth: 2.6
+    targetSymbols: ['Heart', 'Spade']
     sonarDepth: 15
     safeDepth: 10
     safeOffset: -0.4
@@ -40,6 +41,7 @@ config:
         sweepAngle: 45
         sweepSpeed: 3
     Bin:
-        heading: 45
-    Target;
+        binDirection: 180
+        taskTimeout: 30
+    Target:
         heading: -25
