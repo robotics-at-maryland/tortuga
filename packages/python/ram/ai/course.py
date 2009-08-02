@@ -684,7 +684,7 @@ class RandomBin(task.Task):
                  RandomBin.MOVE_ON : task.Next,
                  'GO' : state.Branch(bin.Start) }
 
-    def enter(self):
+    def enter(self, defaultTimeout = 60):
         timeout = self.ai.data['config'].get('RandomBin', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)

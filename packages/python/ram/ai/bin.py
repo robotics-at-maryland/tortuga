@@ -557,6 +557,8 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial direction
+        self.ai.data['numOfScans'] = 0
+
         orientation = self.vehicle.getOrientation()
         self.ai.data['binStartOrientation'] = \
             orientation.getYaw().valueDegrees()
@@ -1461,7 +1463,8 @@ class CheckDropped(HoveringState):
                 data['startSide'] = BinSortingState.RIGHT
             else:
                 data['startSide'] = BinSortingState.LEFT
-            if data['numOfScans'] < self._maximumScans:
+            if data['numOfScans'] == -1 or \
+	    	data['numOfScans'] < self._maximumScans:
                 self.publish(CheckDropped.RESTART, core.Event())
             else:
                 self.publish(CheckDropped.FINISH, core.Event())
