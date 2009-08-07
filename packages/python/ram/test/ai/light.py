@@ -498,9 +498,8 @@ class TestHit(support.AITestCase):
             self._lightHit = True
         self.qeventHub.subscribeToType(light.LIGHT_HIT, lightHit)
         
-        # Now make sure we change direction
+        # Now make sure it continues after finishing the forward motion
         self.releaseTimer(light.Hit.FORWARD_DONE)
-        self.assertGreaterThan(self.controller.yawChange, 0)
         
         # Make sure we get the final event
         self.qeventHub.publishEvents()
@@ -519,8 +518,7 @@ class TestContinue(support.AITestCase):
         cstate = self.machine.currentState()
 
         self.assertCurrentState(light.Continue)
-        self.assertCurrentMotion(motion.basic.ChangeHeading)
-        self.assertGreaterThan(self.controller.yawChange, 0)
+        self.assertCurrentMotion(motion.basic.RateChangeHeading)
         
         cstate._rotate._finish()
         self.qeventHub.publishEvents()

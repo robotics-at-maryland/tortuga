@@ -376,6 +376,18 @@ class Machine(core.Subsystem):
         fullClassName = '%s.%s' % (newStateClass.__module__, 
                                    newStateClass.__name__)
         stateCfg = self._config.get('States', {})
+
+        # Get the superclasses of the state
+        #stateList = resolve(fullClassName).__mro__
+
+        # Load the superclass config values, skipping object
+        #config = {}
+        #for index in xrange(len(stateList) - 2, 0, -1):
+            #print "loading", stateList[index]
+        #    config.update(stateCfg.get(stateList[index], {}))
+
+        # Load this states config values
+        #config.update(stateCfg.get(fullClassName, {}))
         config = stateCfg.get(fullClassName, {})
         
         # Add self to the list of subsystems

@@ -46,8 +46,6 @@ class PipeTestCase(support.AITestCase):
         self.assertCurrentBranches([self.testState])
         
     def checkSettled(self, nextState = None):
-        #print self.machine.currentState()
-        #print self.motionManager.currentMotion, self.motionManager._queuedMotions
         self.injectEvent(pipe.Centering.SETTLED, sendToBranches = True)
         self.qeventHub.publishEvents()
         if not (nextState is None):
@@ -55,13 +53,10 @@ class PipeTestCase(support.AITestCase):
         
         # Make sure the gate.Dive branch is gone
         self.assertFalse(self.machine.branches.has_key(self.testState))
-        #print self.machine.currentState()
-        #print self.machine.branches
-        #print self.motionManager.currentMotion, self.motionManager._queuedMotions
 
         # Make sure we are not moving
-        #self.assertEqual(0, self.controller.speed)
-        #self.assertEqual(0, self.controller.sidewaysSpeed)
+        self.assertEqual(0, self.controller.speed)
+        self.assertEqual(0, self.controller.sidewaysSpeed)
         
         # For the time being this is off
         self.assertFalse(self.visionSystem.pipeLineDetector)
@@ -723,26 +718,14 @@ class TestTarget(support.AITestCase):
         Make sure that when we start we are doing the right thing
         """
         self.assertCurrentState(self._stateType)
-
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
-
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
-        self.machine.currentState()._forward._finish()
-        self.qeventHub.publishEvents()
         
         self.assertCurrentBranches([target.Start])
-        #self.assert_(self.visionSystem.barbedWireDetector)
+        #self.assert_(self.visionSystem.targetDetector)
         
     def testTargetDone(self):
         """
         Make sure that we go to the next task once we finish the target
         """
-        
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
 
         # Make sure we are still in the same state
         self.injectEvent(target.COMPLETE, sendToBranches = True)
@@ -756,10 +739,6 @@ class TestTarget(support.AITestCase):
         self.machine.stop()
         self.machine.start(self._stateType)
 
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
-        
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)
         
@@ -788,17 +767,6 @@ class TestBin(support.AITestCase):
         """
         self.assertCurrentState(course.Bin)
 
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
-
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
-
-        self.machine.currentState()._depthChange._finish()
-        self.qeventHub.publishEvents()
-        
-        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
-        self.qeventHub.publishEvents()
         self.assertCurrentBranches([bin.Start])
         #self.assert_(self.visionSystem.binDetector)
         
@@ -807,13 +775,7 @@ class TestBin(support.AITestCase):
         Make sure that we move on once we hit the light
         """
 
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
-
-        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
-        self.qeventHub.publishEvents()
-        
+        # Check that it continues to the next task
         self.injectEvent(bin.COMPLETE, sendToBranches = True)
         self.assertCurrentState(course.Pipe)
         
@@ -828,13 +790,6 @@ class TestBin(support.AITestCase):
         # Restart with a working timer
         self.machine.stop()
         self.machine.start(course.Bin)
-        
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
-
-        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
-        self.qeventHub.publishEvents()
 
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)

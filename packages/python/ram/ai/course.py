@@ -577,105 +577,46 @@ class Target(task.Task):
     
     @staticmethod
     def _transitions():
-        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : Target,
-                 task.TIMEOUT : task.Next,
+        return { task.TIMEOUT : task.Next,
                  target.COMPLETE : task.Next,
                  'GO' : state.Branch(target.Start) }
-
-    def QUEUED_MOTIONS_FINISHED(self, event):
-        # Branch after the first finished motion only
-        if self._first:
-            self.stateMachine.start(state.Branch(target.Start,
-                                                 branchingEvent = event))
-            self._first = False
     
     def enter(self, defaultTimeout = 120):
         # Initialize task part of class
         timeout = self.ai.data['config'].get('Target', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
-        
-        self._heading = self.ai.data['config'].get('Target', {}).get(
-            'heading', 0)
-        self._speed = self.ai.data['config'].get('Target', {}).get(
-            'speed', 10)
-        self._absolute = self.ai.data['config'].get('Target', {}).get(
-            'absolute', False)
-        self._duration = self.ai.data['config'].get('Target', {}).get(
-            'duration', 0)
-        self._travelSpeed = self.ai.data['config'].get('Target', {}).get(
-            'travelSpeed', 3)
 
-        self._first = True
-        self._headingChange = motion.basic.RateChangeHeading(
-            desiredHeading = self._heading, speed = self._speed,
-            absolute = self._absolute)
-        self._forward = motion.basic.TimedMoveDirection(
-            desiredHeading = 0, speed = self._travelSpeed,
-            duration = self._duration, absolute = False)
-        self.motionManager.setQueuedMotions(self._headingChange, self._forward)
+        self.stateMachine.start(state.Branch(target.Start))
     
     def exit(self):
         task.Task.exit(self)
-        if not self._first:
-            self.stateMachine.stopBranch(target.Start)
+
+        self.stateMachine.stopBranch(target.Start)
         self.visionSystem.targetDetectorOff()
         self.motionManager.stopCurrentMotion()
     
 class Bin(task.Task):
     @staticmethod
     def _transitions():
-        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : Bin,
-                 bin.COMPLETE : task.Next,
-                 task.TIMEOUT : task.Next }
+        return { bin.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(bin.Start) }
 
     def COMPLETE(self, event):
         self.ai.data['binComplete'] = True
-
-    def QUEUED_MOTIONS_FINISHED(self, event):
-        # Branch after the first finished motion only
-        if self._first:
-            self.stateMachine.start(state.Branch(bin.Start,
-                                                 branchingEvent = event))
-            self._first = False
 
     def enter(self, defaultTimeout = 240):
         timeout = self.ai.data['config'].get('Bin', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
 
-        self._heading = self.ai.data['config'].get('Bin', {}).get(
-            'heading', 0)
-        self._speed = self.ai.data['config'].get('Bin', {}).get(
-            'speed', 10)
-        self._absolute = self.ai.data['config'].get('Bin', {}).get(
-            'absolute', False)
-        self._duration = self.ai.data['config'].get('Bin', {}).get(
-            'duration', 0)
-        self._travelSpeed = self.ai.data['config'].get('Bin', {}).get(
-            'travelSpeed', 3)
-        self._travelDepth = self.ai.data['config'].get('Bin', {}).get(
-            'travelDepth', 2.5)
-
-        self._first = True
-        self._headingChange = motion.basic.RateChangeHeading(
-            desiredHeading = self._heading, speed = self._speed,
-            absolute = self._absolute)
-        self._depthChange = motion.basic.RateChangeDepth(
-            desiredDepth = self._travelDepth, speed = (1.0/3.0))
-        self._forward = motion.basic.TimedMoveDirection(
-            desiredHeading = 0, speed = self._travelSpeed,
-            duration = self._duration, absolute = False)
-        self.motionManager.setQueuedMotions(self._headingChange,
-                                            self._depthChange, self._forward)
-
-        self.timer = None
-        self._failure = False
+        self.stateMachine.start(state.Branch(bin.Start))
     
     def exit(self):
         task.Task.exit(self)
-        if not self._first:
-            self.stateMachine.stopBranch(bin.Start)
+
+        self.stateMachine.stopBranch(bin.Start)
         self.visionSystem.binDetectorOff()
         self.motionManager.stopCurrentMotion()
 

@@ -406,7 +406,7 @@ class Hit(state.State):
     
     @staticmethod
     def transitions():
-        return {Hit.FORWARD_DONE : End}
+        return { Hit.FORWARD_DONE : Continue }
 
     @staticmethod
     def getattr():
@@ -446,15 +446,15 @@ class Continue(state.State):
         self._upwardSpeed = self._config.get('upwardSpeed', 0.3)
         self._forwardSpeed = self._config.get('forwardSpeed', 3)
         self._forwardDuration = self._config.get('forwardDuration', 8)
-        self._turnSteps = self._config.get('turnSteps', 1)
+        self._turnSpeed = self._config.get('turnSpeed', 10)
 
         # Load the original orientation
         original = self.ai.data.get('lightStartOrientation', None)
         
         # Create the motions
         if original is not None:
-            self._rotate = motion.basic.ChangeHeading(desiredHeading = original,
-                                                      steps = self._turnSteps)
+            self._rotate = motion.basic.RateChangeHeading(
+                desiredHeading = original, speed = self._turnSpeed)
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
