@@ -13,21 +13,19 @@
 # Demo course with everything
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Pipe1',
-            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire', 
-            'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
-            'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
+            'ram.ai.course.Bin', 'ram.ai.course.Bin',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon', 'ram.ai.course.Pipe']
+            'ram.ai.course.Octagon']
 
 config:
     gateDepth: 4
-    lightDepth: 5
-    pipeDepth: 3
+    lightDepth: 4.75
+    pipeDepth: 6
     bwireDepth: 8.3
     targetDepth: 5.5
     binStartDepth: 7
     binDepth: 13
-    targetSymbols: ['Aircraft', 'Ship']
+    targetSymbols: ['Aircraft', 'Tank']
     sonarDepth: 8
     safeDepth: 15
     safeOffset: -0.35
@@ -49,19 +47,25 @@ config:
     #Pipe3:
     #    biasDirection: 0
     #    threshold: 0
-    #PipeBarbedWire:
-    #    biasDirection: 0
-    #    threshold: 0
-    #    rotation: -30
+    PipeBarbedWire:
+        biasDirection: 30
+        threshold: 45
+        rotation: -20
     #    legTime: 5
     #    sweepAngle: 30
     #    sweepSpeed: 3
-    #PipeTarget:
-    #    biasDirection: 0
-    #    threshold: 0
-    #    rotation: -30
+    PipeTarget:
+        biasDirection: 174
+        threshold: 45
+        rotation: 90
     #    legTime: 5
     #    sweepAngle: 30
     #    sweepSpeed: 3
+    Light:
+        forwardDuration: 10
     BarbedWire:
-         orientation: -20
+        forwardDuration: 10
+    Target:
+        forwardDuration: 10
+    Bin:
+        forwardDuration: 10

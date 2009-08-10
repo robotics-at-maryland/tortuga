@@ -28,45 +28,128 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-27, -10, 0]
+            #position: [-27, -10, 0]
+            #orientation: [0, 0, 1, -55]
+            position: [-25, -1, 0]
+            orientation: [0, 0, 1, 60]
             #position: [-22, -19, -3.05]
     
     Objects:
-#        gate:
-#            type: [Trigger, ram.sim.physics.Trigger]
-#            position: [-18, 0, 0]
-#            Physical:
-#                mass: 0
-#                Shape:
-#                    type: box
-#                    size: [1, 1, 1]
-#                contact_information:
-#                    SubMat: ['GATE_ENTERED', 'GATE_EXITED']
-        
-#        buoy1:
-#            type: [sim.vision.IBuoy, sim.vision.Buoy]
-#            position: [-15, 1, -1]
+        course:
+            type: [sim.vision.ICourse, sim.vision.Course]
 
-        
-        pipe1:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [-22, -19, -3.05]
-            orientation: [0, 0, 1, -45]
-                
-        pipe2:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [-12, -28, -3.05]
-            orientation: [0, 0, 1, 0]
+            startType: [sim.vision.IPipe, sim.vision.Pipe]
+            start: pipe1
+            startPos: [-22, -19]
+            startDepth: -3.05
+            startHeading: 45
 
-        pipe3:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [2, -28, -3.05]
-            orientation: [0, 0, 1, -45]
-                
-        pipe4:
-            type: [sim.vision.IPipe, sim.vision.Pipe]
-            position: [11, -37, -3.05]
-            orientation: [0, 0, 1, 45]
+            pipe1:        
+                buoy:
+                    type: [sim.vision.IBuoy, sim.vision.Buoy]
+                    distance: 6
+                    depth: -1.425
+
+            buoy:
+                pipe2:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 2
+                    depth: -3.05
+                    heading: -45
+
+            pipe2:
+                barbedwire:
+                    type: [sim.vision.IBarbedWire, sim.vision.BarbedWire]
+                    distance: 7
+                    depth: -0.953
+                    heading: -5
+
+            barbedwire:
+                rightpipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 0
+                    heading: 60
+                    offset: -0.7
+                    depth: -3.05
+                leftpipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 2
+                    heading: -35
+                    offset: 0.7
+                    depth: -3.05
+
+            leftpipe:
+                bin:
+                    type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
+                    distance: 6
+                    heading: 30
+                    depth: -3.9
+                    symbols: ['ship', 'tank', 'aircraft', 'factory']
+
+            rightpipe:
+                target:
+                    type: [ram.sim.object.IObject, sim.vision.Target]
+                    distance: 8
+                    heading: -10
+                    depth: -1.67
+
+        course2:
+            type: [sim.vision.ICourse, sim.vision.Course]
+
+            startType: [sim.vision.IPipe, sim.vision.Pipe]
+            start: pipe3
+            startPos: [-22, 6]
+            startDepth: -3.05
+            startHeading: -60
+
+            pipe3:        
+                buoy2:
+                    type: [sim.vision.IBuoy, sim.vision.Buoy]
+                    distance: 6
+                    depth: -1.425
+
+            buoy2:
+                pipe4:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 2
+                    depth: -3.05
+                    heading: 10
+
+            pipe4:
+                barbedwire2:
+                    type: [sim.vision.IBarbedWire, sim.vision.BarbedWire]
+                    distance: 7
+                    depth: -0.953
+                    heading: -5
+
+            barbedwire2:
+                rightpipe2:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 2
+                    heading: 70
+                    offset: -0.7
+                    depth: -3.05
+                leftpipe2:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 2
+                    heading: -5
+                    offset: 0.5
+                    depth: -3.05
+
+            leftpipe2:
+                bin2:
+                    type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
+                    distance: 6
+                    heading: 20
+                    depth: -3.9
+                    symbols: ['ship', 'tank', 'aircraft', 'factory']
+
+            rightpipe2:
+                target2:
+                    type: [ram.sim.object.IObject, sim.vision.Target]
+                    distance: 8
+                    heading: -30
+                    depth: -1.67
 
         tank_walls:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]

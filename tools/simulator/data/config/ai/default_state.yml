@@ -2,7 +2,7 @@
 ram.ai.course.Pipe:
     pipesToFind: 3
 ram.ai.course.Gate:
-    pipeDelay: 0
+    pipeDelay: 20
 ram.ai.course.Light:
     timeout: 90
 ram.ai.course.Target:
@@ -35,16 +35,39 @@ ram.ai.bin.Seeking:
     sidewaysSpeedGain: 10
     speedGain: 7
 ram.ai.bin.Dive:
-    offset: 5
+    offset: 4.5
 ram.ai.bin.RecoverDive:
     increase: 0
 ram.ai.bin.CloserLook:
-    offset: 3.5
+    offset: 3
 ram.ai.bin.RecoverCloserLook:
     increase: 0
 ram.ai.bin.SurfaceToMove:
-    offset: 5
+    offset: 4.5
 ram.ai.bin.NextBin:
+    sidewaysSpeedGain: 3
+    speedGain: 3
+
+# Randombin Settings
+ram.ai.randombin.Start:
+    speed: 1
+ram.ai.randombin.Searching:
+    sweepAngle: 0
+    speed: 5
+ram.ai.randombin.Seeking:
+    sidewaysSpeedGain: 10
+    speedGain: 7
+ram.ai.randombin.Dive:
+    offset: 4.5
+ram.ai.randombin.RecoverDive:
+    increase: 0
+ram.ai.randombin.CloserLook:
+    offset: 3
+ram.ai.randombin.RecoverCloserLook:
+    increase: 0
+ram.ai.randombin.SurfaceToMove:
+    offset: 4.5
+ram.ai.randombin.NextBin:
     sidewaysSpeedGain: 3
     speedGain: 3
 
@@ -68,6 +91,8 @@ ram.ai.light.Seek:
     depthGain: 0 # 0.125
     #maxDepthDt: 0.3
     speed: 2
+ram.ai.light.Continue:
+    backwardDuration: 0
 
 # Target AI
 ram.ai.target.Start:
@@ -168,6 +193,26 @@ ram.ai.barbedwire.Aligning:
     yZero: 0.5 #0.65
 ram.ai.barbedwire.Through:
     forwardTime: 20
+
+ram.ai.altbwire.SeekingToRange:
+    desiredRange: 0.5
+    maxSpeed: 3.0
+    depthGain: 0
+    translateGain: 2.5
+ram.ai.altbwire.SeekingToAligned:
+    desiredRange: 0.5
+    maxSidewaysSpeed: 2
+    alignGain: 10
+    minAlignment: 0.15
+    depthGain: 0 #1
+ram.ai.altbwire.Aligning:
+    desiredRange: 0.5
+    maxSidewaysSpeed: 2
+    alignGain: 2
+    depthGain: 0 #1
+ram.ai.altbwire.Through:
+    forwardTime: 20
+
 
 # Pipe AI
 ram.ai.pipe.BetweenPipes:

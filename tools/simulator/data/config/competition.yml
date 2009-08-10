@@ -30,7 +30,7 @@ Subsystems:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: tools/simulator/data/config/ai/erc_course_alternate.yml
+         INCLUDE: tools/simulator/data/config/ai/transdec_final.yml
 
 
     StateMachine:
@@ -39,7 +39,7 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: tools/simulator/data/config/ai/default_state.yml
+            INCLUDE: tools/simulator/data/config/ai/san_diego_state.yml
 
 
     # Includes all common subsystems    

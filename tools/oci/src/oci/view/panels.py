@@ -26,6 +26,7 @@ import ext.math
 import ext.vehicle
 import ext.vehicle.device
 import ext.control
+import ext.vision
 import ext.core as core
 
 from ram.logloader import resolve
@@ -1389,6 +1390,42 @@ class EventPlayerPanel(wx.Panel):
 
             return [(paneInfo, EventPlayerPanel(parent, eventPlayer),
                      [eventPlayer])]
+
+        return []
+
+class RecorderPanel(wx.Panel):
+    implements(IPanelProvider)
+
+    def __init__(self, parent, vision, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+
+        layout = wx.GridBagSizer(10, 10)
+
+        streamLabel = wx.StaticText(self, label = 'Streaming')
+        layout.Add(streamLabel, (0, 0), flag = wx.ALIGN_CENTER,
+                   span = (1, 2))
+
+        self._fstreamButton = wx.Button(self, label = "Forward On")
+        layout.Add(self._fstreamButton, (1, 0), flag = wx.ALIGN_CENTER)
+
+        self._dstreamButton = wx.Button(self, label = "Downward On")
+        layout.Add(self._dstreamButton, (1,1), flag = wx.ALIGN_CENTER)
+
+        layout.AddGrowableRow(0)
+        layout.AddGrowableCol(0)
+        self.SetSizerAndFit(layout)
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem,
+                                             subsystems)
+
+        if vision is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Recorder")
+            paneInfo = paneInfo.Caption("Recorder").Left()
+
+            return [(paneInfo, RecorderPanel(parent, vision),
+                     [vision])]
 
         return []
 

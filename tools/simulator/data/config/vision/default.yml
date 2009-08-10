@@ -25,3 +25,7 @@ DuctDetector:
     minXOverYToUpGrowThresh: 1.5
     uppedGrowThreshX: 0.5
     uppedGrowThreshY: 0.05
+
+OrangePipeDetector:
+    filtUMax: 230
+    filtUMin: 155

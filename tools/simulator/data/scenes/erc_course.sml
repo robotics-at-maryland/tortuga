@@ -27,7 +27,7 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-10, -23, 0]
+            position: [-10, 10, 0]
             orientation: [0, 0, 1, 45]
     
     Objects:        
@@ -37,14 +37,14 @@ Scene:
             startType: [sim.vision.IPipe, sim.vision.Pipe]
             start: pipe1
             startPos: [-6, -18]
-            startDepth: -2.353
+            startDepth: -2.753
             startHeading: -35
             
             pipe1:
                 buoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
                     distance: 8
-                    depth: -1.22
+                    depth: -1.425
 
             buoy:
                 pipe2:
@@ -99,7 +99,7 @@ Scene:
                     type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
                     distance: 9
                     heading: 10
-                    depth: -2.753
+                    depth: -3.9
                     symbols: ['ship', 'tank', 'aircraft', 'factory']
             
             blackJackTable:
@@ -133,8 +133,7 @@ Scene:
          
         ground:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
-            position: [0, 0, -3.353]
-            orientation: [1, 0, 0, -2.095]
+            position: [0, 0, -5]
             
             Graphical:
                 mesh: 'PLANE:ground'
@@ -153,12 +152,12 @@ Scene:
                 
         north_wall:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject] 
-            position: [12.5, 0, -2.134]
+            position: [12.5, 0, -2.5]
             
             Graphical:
                 mesh: 'PLANE:far_wall'
                 width: 50
-                height: 4.267
+                height: 5
                 normal: [-1, 0, 0]
                 upvec: [0, 0, 1]
                 material: 'Simple/FlatMetal'
@@ -174,12 +173,12 @@ Scene:
         
         south_wall:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
-            position: [-12.5, 0, -2.134]
+            position: [-12.5, 0, -2.5]
             
             Graphical:
                 mesh: 'PLANE:rear_wall'
                 width: 50
-                height: 4.267
+                height: 5
                 normal: [1, 0, 0]
                 upvec: [0, 0, 1]
                 material: 'Simple/FlatMetal'
@@ -195,13 +194,13 @@ Scene:
                 
         west_wall:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
-            position: [0, 25, -2.134]
+            position: [0, 25, -2.5]
             #orientation: [0, 1, 0, -90]
             
             Graphical:
                 mesh: 'PLANE:right_wall'
                 width: 25
-                height: 4.267
+                height: 5
                 normal: [0, -1, 0]
                 upvec: [0, 0, 1]
                 material: 'Simple/FlatMetal'
@@ -217,13 +216,13 @@ Scene:
         
         east_wall:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
-            position: [0, -25, -1.219]
+            position: [0, -25, -2.5]
             #orientation: [0, 1, 0, 90]
             
             Graphical:
                 mesh: 'PLANE:left_wall'
                 width: 25
-                height: 2.438
+                height: 5
                 normal: [0, 1, 0]
                 upvec: [0, 0, 1]
                 material: 'Simple/FlatMetal'
