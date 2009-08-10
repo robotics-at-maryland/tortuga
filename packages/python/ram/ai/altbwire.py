@@ -97,16 +97,9 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         # Todo: consider filter removal
         #self._updateFilters(event)
 
-        # Check if the bottom pipe is closer than the top pipe
-        if event.bottomWidth > event.topWidth:
-            # If it is, use the bottom pipe instead
-            x = event.bottomX
-            y = event.bottomY
-            width = event.bottomWidth
-        else:
-            x = event.topX
-            y = event.topY
-            width = event.topWidth
+        x = event.topX
+        y = event.topY
+        width = event.topWidth
         
         # Determine y value based on whether we are ignoring depth or not, 
         # also store this event
@@ -125,7 +118,6 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
         rangeError = math.fabs(range - self._desiredRange)
-        #print "RE",rangeError,"AR",rge,"DR",self._desiredRange
         frontDistance = math.sqrt(x ** 2 + y ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
@@ -225,7 +217,7 @@ class FindAttempt(state.FindAttempt, StoreBarbedWireEvent):
     @staticmethod
     def transitions(foundState = None):
         if foundState is None:
-            foundState = FarSeekingToRange
+            foundState = SeekingToRange
         return state.FindAttempt.transitions(vision.EventType.BARBED_WIRE_FOUND,
                                              foundState, Searching)
         
@@ -240,7 +232,7 @@ class Searching(state.State, StoreBarbedWireEvent):
     
     @staticmethod
     def transitions():
-        return { vision.EventType.BARBED_WIRE_FOUND : FarSeekingToRange }
+        return { vision.EventType.BARBED_WIRE_FOUND : SeekingToRange }
 
     @staticmethod
     def getattr():
@@ -293,10 +285,10 @@ class SeekingToRange(RangeXYHold):
     """
     
     @staticmethod
-    def transitions(myState, lostState, inRangeState):
-        return RangeXYHold.transitions(myState = myState,
-            lostState = lostState,
-            trans = { RangeXYHold.IN_RANGE : inRangeState })
+    def transitions():
+        return RangeXYHold.transitions(myState = SeekingToRange,
+            lostState = FindAttempt,
+            trans = { RangeXYHold.IN_RANGE : SeekingToAligned })
 
     @staticmethod
     def getattr():
@@ -311,31 +303,6 @@ class SeekingToRange(RangeXYHold):
         self._maxAlignCheckWidth = self._config.get('maxAlignCheckWidth',
                                                     maxAlignCheckWidth)
         self._maxOverlap = self._config.get('maxOverlap', maxOverlap)
-        
-class FarSeekingToRange(SeekingToRange):
-    @staticmethod
-    def transitions():
-        return SeekingToRange.transitions(myState = FarSeekingToRange,
-                                          lostState = FindAttempt,
-                                          inRangeState = FarSeekingToAligned)
-    
-    def enter(self):
-        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
-        
-class CloseSeekingToRange(SeekingToRange):
-    @staticmethod
-    def transitions():
-        return SeekingToRange.transitions(myState = CloseSeekingToRange,
-                                          lostState = CloseRangeFindAttempt,
-                                          inRangeState = CloseSeekingToAligned)
-        
-    def enter(self):
-        SeekingToRange.enter(self, maxAlignCheckWidth = 0.7, maxOverlap = 0.1)
-
-class CloseRangeFindAttempt(FindAttempt):
-    @staticmethod
-    def transitions():
-        return FindAttempt.transitions(CloseSeekingToRange)
 
 # Not used
 class SeekingToRange2(RangeXYHold):
@@ -356,15 +323,18 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
         StoreBarbedWireEvent.BARBED_WIRE_FOUND(self, event)
 
         # Check if the bottom pipe is closer than the top pipe
-        if event.bottomWidth > event.topWidth:
-            # If it is, use the bottom pipe instead
-            x = event.bottomX
-            y = event.bottomY
-            width = event.bottomWidth
-        else:
-            x = event.topX
-            y = event.topY
-            width = event.topWidth
+        #if event.bottomWidth > event.topWidth:
+        #    # If it is, use the bottom pipe instead
+        #    x = event.bottomX
+        #    y = event.bottomY
+        #    width = event.bottomWidth
+        #else:
+        #    x = event.topX
+        #    y = event.topY
+        #    width = event.topWidth
+        x = event.topX
+        y = event.topY
+        width = event.topWidth
         
         """Update the state of the light, this moves the vehicle"""
         azimuth = x * -107.0/2.0
@@ -442,11 +412,11 @@ class SeekingToAligned(TargetAlignState, state.State):
     CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
     
     @staticmethod
-    def transitions(myState, lostState, alignedState):
-        return { vision.EventType.BARBED_WIRE_FOUND : myState,
-                 vision.EventType.BARBED_WIRE_LOST : lostState,
-                 SeekingToAligned.CHECK_DIRECTION : myState,
-                 SeekingToAligned.ALIGNED : alignedState }
+    def transitions():
+        return { vision.EventType.BARBED_WIRE_FOUND : SeekingToAligned,
+                 vision.EventType.BARBED_WIRE_LOST : AlignedFindAttempt,
+                 SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
+                 SeekingToAligned.ALIGNED : Aligning }
 
     @staticmethod
     def getattr():
@@ -485,36 +455,10 @@ class SeekingToAligned(TargetAlignState, state.State):
         self._desiredRange = self._config.get('desiredRange', desiredRange)
         self._rangeThreshold = self._config.get('rangeThreshold', rangeThreshold)
         
-class FarSeekingToAligned(SeekingToAligned):
+class AlignedFindAttempt(FindAttempt):
     @staticmethod
     def transitions():
-        return SeekingToAligned.transitions(FarSeekingToAligned,
-                                            FarAlignedFindAttempt,
-                                            CloseSeekingToRange)
-        
-    def enter(self):
-        SeekingToAligned.enter(self, desiredRange = 0.5, rangeThreshold = 0.05)
-        
-class FarAlignedFindAttempt(FindAttempt):
-    @staticmethod
-    def transitions():
-        return FindAttempt.transitions(FarSeekingToAligned)
-
-class CloseSeekingToAligned(SeekingToAligned):
-    @staticmethod
-    def transitions():
-        return SeekingToAligned.transitions(CloseSeekingToAligned,
-                                            CloseAlignedFindAttempt,
-                                            Through)
-    
-    def enter(self):
-        SeekingToAligned.enter(self, minAlignment = 1, desiredRange = 0.25,
-                               rangeThreshold = 0.05)
-
-class CloseAlignedFindAttempt(FindAttempt):
-    @staticmethod
-    def transitions():
-        return FindAttempt.transitions(CloseSeekingToAligned)
+        return FindAttempt.transitions(SeekingToAligned)
 
 class SeekingToAligned2(TargetAlignState, state.State, StoreBarbedWireEvent):
     """
@@ -556,7 +500,7 @@ class Aligning(TargetAlignState, state.State):
     def transitions():
         return { vision.EventType.BARBED_WIRE_FOUND : Aligning,
                  vision.EventType.BARBED_WIRE_LOST : AligningFindAttempt,
-                 Aligning.SETTLED : Under }
+                 Aligning.SETTLED : Through }
 
     @staticmethod
     def getattr():
@@ -618,6 +562,9 @@ class Through(state.State, StoreBarbedWireEvent):
 
         self.motionManager.setQueuedMotions(self._diveMotion,
                                             self._forwardMotion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
         
 class End(state.State):
     def enter(self):
