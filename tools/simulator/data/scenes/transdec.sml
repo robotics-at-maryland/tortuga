@@ -27,11 +27,11 @@ Scene:
     
     Robots:
         Tortuga: 
-            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            #position: [-27, -10, 0]
-            #orientation: [0, 0, 1, -55]
-            position: [-25, -1, 0]
-            orientation: [0, 0, 1, 60]
+            path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga3.rml'
+            position: [-27, -10, 0]
+            orientation: [0, 0, 1, -55]
+            #position: [-25, -1, 0]
+            #orientation: [0, 0, 1, 60]
             #position: [-22, -19, -3.05]
     
     Objects:
@@ -54,29 +54,29 @@ Scene:
                 pipe2:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
-                    depth: -3.05
+                    depth: -4.2672
                     heading: -45
 
             pipe2:
                 barbedwire:
                     type: [sim.vision.IBarbedWire, sim.vision.BarbedWire]
                     distance: 7
-                    depth: -0.953
+                    depth: -2.1336
                     heading: -5
 
             barbedwire:
                 rightpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
-                    distance: 0
+                    distance: 2
                     heading: 60
                     offset: -0.7
-                    depth: -3.05
+                    depth: -4.2672
                 leftpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: -35
                     offset: 0.7
-                    depth: -3.05
+                    depth: -4.2672
 
             leftpipe:
                 bin:
@@ -86,12 +86,50 @@ Scene:
                     depth: -3.9
                     symbols: ['ship', 'tank', 'aircraft', 'factory']
 
+            bin:
+                targetPipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 0
+                    heading: -80
+                    offset: -3
+                    depth: -4.2672
+                binSonarPipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 1.5
+                    heading: 60
+                    depth: -4.2672
+
+            target:
+                binPipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: -1
+                    heading: 50
+                    offset: 0.5
+                    depth: -4.2672
+                targetSonarPipe:
+                    type: [sim.vision.IPipe, sim.vision.Pipe]
+                    distance: 0.5
+                    heading: 110
+                    offset: 1
+                    depth: -4.2672
+
             rightpipe:
                 target:
                     type: [ram.sim.object.IObject, sim.vision.Target]
                     distance: 8
                     heading: -10
-                    depth: -1.67
+                    depth: -2.46888
+
+            binSonarPipe:
+                sonar:
+                    type: [sim.sonar.IPinger, sim.sonar.Pinger]
+                    distance: 8
+                    depth: -4.572
+
+                safe:
+                    type: [sim.vision.ISafe, sim.vision.Safe]
+                    distance: 8
+                    depth: -4.2672
 
         course2:
             type: [sim.vision.ICourse, sim.vision.Course]
@@ -112,7 +150,7 @@ Scene:
                 pipe4:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
-                    depth: -3.05
+                    depth: -4.2672
                     heading: 10
 
             pipe4:
@@ -128,13 +166,13 @@ Scene:
                     distance: 2
                     heading: 70
                     offset: -0.7
-                    depth: -3.05
+                    depth: -4.2672
                 leftpipe2:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
                     heading: -5
                     offset: 0.5
-                    depth: -3.05
+                    depth: -4.2672
 
             leftpipe2:
                 bin2:
