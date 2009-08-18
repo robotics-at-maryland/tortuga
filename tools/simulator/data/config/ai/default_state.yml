@@ -192,7 +192,7 @@ ram.ai.barbedwire.Aligning:
     depthGain: 0 #1
     yZero: 0.5 #0.65
 ram.ai.barbedwire.Through:
-    forwardTime: 20
+    forwardTime: 18
 
 ram.ai.altbwire.SeekingToRange:
     desiredRange: 0.5

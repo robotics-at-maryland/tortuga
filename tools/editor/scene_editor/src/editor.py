@@ -1,12 +1,14 @@
 import wx
+import yaml
 
 class Object(object):
 
     BUOY = 1
 
-    def __init__(self, type_, pos, depth = 0):
+    def __init__(self, type_, pos, rotation = 0, depth = 0):
         self._type = Object.getObjectType(type_)
         self._pos = pos
+        self._rotation = rotation
         self._depth = depth
 
     def DrawObject(self, dc):
@@ -34,11 +36,30 @@ class Editor(wx.Panel):
         self._gridOn = gridOn
 
         self._objects = []
+
+        self.LoadSceneFile('/home/jsternberg/ram_code/tools/simulator/data/scenes/nbrf_tank.sml')
         
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
     def AddObject(self, obj):
         self._objects.Append(obj)
+
+    def EnableGrid(self, gridOn = True):
+        self._gridOn = gridOn
+
+    def DisableGrid(self):
+        self.EnableGrid(gridOn = False)
+
+    def LoadSceneFile(self, fileName):
+        data = {}
+        try:
+            stream = file(fileName, 'r')
+            data = yaml.load(stream)
+            stream.close()
+            print data
+        except (IOError, yaml.YAMLError):
+            # File does not exist, ignore
+            pass
 
     def Resize(self, size):
         width, height = size
