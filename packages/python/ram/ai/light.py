@@ -52,7 +52,7 @@ class Start(state.State):
     """
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : Searching }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():
@@ -116,8 +116,8 @@ class Searching(state.State, StoreLightEvent):
             direction = direction)
 
         if self.ai.data.get('firstSearching', True) and self._duration > 0:
-            self.motionManager.setQueuedMotions(self._forwardMotion,
-                                                self._zigZag)
+            self.motionManager.setMotion(self._forwardMotion,
+                                         self._zigZag)
         else:
             self.motionManager.setMotion(self._zigZag)
         self.ai.data['firstSearching'] = False
@@ -148,7 +148,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
     def transitions():
         trans = state.FindAttempt.transitions(Recover.REFOUND_LIGHT,
                                              Align, Searching)
-        trans.update({ motion.basic.Motion.FINISHED : Recover,
+        trans.update({ motion.basic.MotionManager.FINISHED : Recover,
                        vision.EventType.LIGHT_FOUND : Recover })
         
         return trans
@@ -177,6 +177,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
                 # Create the depth motion if needed
                 newDepth = self.vehicle.getDepth()
                 changeDepth = False
+                
                 if event.y > self._yThreshold:
                     newDepth = newDepth - self._closeDepthChange
                     changeDepth = True
@@ -430,7 +431,7 @@ class Hit(state.State):
 class Continue(state.State):
     @staticmethod
     def transitions():
-        return { motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED : End }
+        return { motion.basic.MotionManager.FINISHED : End }
 
     @staticmethod
     def getattr():
@@ -468,10 +469,10 @@ class Continue(state.State):
         
         # Queue the motions
         if original is None:
-            self.motionManager.setQueuedMotions(self._backward, self._upward,
+            self.motionManager.setMotion(self._backward, self._upward,
                                                 self._forward)
         else:
-            self.motionManager.setQueuedMotions(self._rotate, self._backward,
+            self.motionManager.setMotion(self._rotate, self._backward,
                                                 self._upward, self._forward)
 
 class End(state.State):

@@ -52,7 +52,7 @@ class TestGate(support.AITestCase):
         self.assertEqual(2, m._speed)
                 
         # Now make sure we go to forward after diving
-        self.injectEvent(motion.basic.Motion.FINISHED)   
+        self.injectEvent(motion.basic.MotionManager.FINISHED)   
         self.assertCurrentState(gate.Forward)   
 
         

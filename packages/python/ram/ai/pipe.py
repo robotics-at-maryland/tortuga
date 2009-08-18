@@ -316,7 +316,7 @@ class PipeFollowingState(PipeTrackingState):
 class Start(state.State):
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : Searching }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():

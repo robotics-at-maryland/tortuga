@@ -45,7 +45,7 @@ class TestStart(PipeTest):
         self.assertAIDataValue('pipeStartOrientation', 0)
         
     def testFinish(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(pipe.Searching)
 
 class TestPipeTracking(PipeTest):

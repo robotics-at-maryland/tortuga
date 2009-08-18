@@ -55,7 +55,7 @@ class TestStart(support.AITestCase):
                          self.motionManager.currentMotion.speed)
         
     def testFinish(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(light.Searching)
         
 class TestSearching(support.AITestCase):

@@ -44,7 +44,7 @@ class Start(state.State):
     
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : Forward }
+        return { motion.basic.MotionManager.FINISHED : Forward }
 
     @staticmethod
     def getattr():

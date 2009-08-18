@@ -93,12 +93,12 @@ class TestMotionManager(support.MotionTest):
 
         self._finished = False
         self.qeventHub.subscribeToType(
-            motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED, _handler)
+            motion.basic.MotionManager.FINISHED, _handler)
 
         m1 = motion.basic.RateChangeDepth(9, 0.3)
         m2 = motion.basic.MoveDirection(0, 3)
         
-        self.motionManager.setQueuedMotions(m1, m2)
+        self.motionManager.setMotion(m1, m2)
 
         # Make sure it started the first motion
         self.assertEqual(m1, self.motionManager.currentMotion)

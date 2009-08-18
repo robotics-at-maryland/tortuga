@@ -186,7 +186,7 @@ class TestStart(aisupport.AITestCase):
         self.assertAIDataValue('binStartOrientation', 0)
         
     def testFinish(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(randombin.Searching)
    
 class TestTracking(BinTestCase):
@@ -655,7 +655,7 @@ class DiveTestCase(object):
         
     def testDiveFinished(self):
         #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(self.nextState)
 
 class TestDive(DiveTestCase, BinTestCase):
@@ -742,7 +742,7 @@ class TestSurfaceToMove(BinTestCase):
         self.ai.data['binData']['currentID'] = 3
         self.ai.data['binData']['currentIds'] = set([3])
         
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(randombin.NextBin)
         
     def testBinLost(self):
@@ -1074,7 +1074,7 @@ class TestSurface(BinTestCase):
         self.qeventHub.subscribeToType(randombin.COMPLETE, binComplete)
         
         # Finish the state machine
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assert_(self.machine.complete)
         
         # Make sure we get the final event

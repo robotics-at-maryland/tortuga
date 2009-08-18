@@ -90,7 +90,8 @@ class TestPipeBias(PipeTestCase):
         self.assertCurrentBranchState(pipe.Start, pipe.Start)
         
         # Get us from the start state to the Seeking state
-        self.injectEvent(motion.basic.Motion.FINISHED, sendToBranches = True)
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
         self.assertCurrentBranchState(pipe.Start, pipe.Searching)
         
         self.publishQueuedPipeFound(x = 0, y = 0, angle = math.Degree(0))
@@ -385,6 +386,7 @@ class PipeObjectiveTest(object):
 
         # Now finish the first motion
         self.machine.currentState()._motion._finish()
+        self.qeventHub.publishEvents()
 
         # Now make sure it goes through all motions and doesn't enter
         # any branches without a timeout or found pipe
@@ -394,6 +396,7 @@ class PipeObjectiveTest(object):
             self.assertCurrentBranches([])
             self.assertCurrentMotion(name)
             m._finish()
+            self.qeventHub.publishEvents()
 
         self.qeventHub.publishEvents()
         # When it's finished, make sure that it starts the searching branch
@@ -401,7 +404,7 @@ class PipeObjectiveTest(object):
         self.assertCurrentBranches([pipe.Searching])
 
         # Make sure another queued motions finished doesn't branch twice
-        self.injectEvent(motion.basic.MotionManager.QUEUED_MOTIONS_FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(self.myState)
         self.assertCurrentBranches([pipe.Searching])
 
@@ -842,7 +845,7 @@ class TestSafeDive(support.AITestCase):
         self.assertCurrentBranches([sonar.Hovering])
                 
     def testDiveFinished(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(course.SafeVision)
         
         # Make sure the pinger seeking branch is gone
@@ -942,6 +945,6 @@ class TestOctagon(support.AITestCase):
         self.assertCurrentState(course.Octagon)
                 
     def testDiveFinished(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assert_(self.machine.complete)
 

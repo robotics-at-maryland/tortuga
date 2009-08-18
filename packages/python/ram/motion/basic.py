@@ -28,7 +28,7 @@ class MotionManager(core.Subsystem):
      - ext.core.QueuedEventHub
     """
 
-    QUEUED_MOTIONS_FINISHED = core.declareEventType('QUEUED_MOTIONS_FINISHED')
+    FINISHED = core.declareEventType('FINISHED')
     
     def __init__(self, config, deps):
         """
@@ -94,15 +94,12 @@ class MotionManager(core.Subsystem):
                 self._orientationMotion.start(self._controller, self._vehicle, 
                                               self._qeventHub, eventPublisher)
 
-    def setMotion(self, motion):
+    def setMotion(self, motion, *motions):
         self._queuedMotions = []
         self._setMotion(motion)
+        self._queueMotions(*motions)
 
-    def setQueuedMotions(self, motion, *motions):
-        self.setMotion(motion)
-        self.queueMotions(*motions)
-
-    def queueMotions(self, *motions):
+    def _queueMotions(self, *motions):
         for m in motions:
             self._queuedMotions.append(m)
 
@@ -176,8 +173,8 @@ class MotionManager(core.Subsystem):
     def _startQueuedMotion(self):
         # Check if there are any queued motions
         if len(self._queuedMotions) == 0:
-            # Publish the queued event finish
-            self.publish(MotionManager.QUEUED_MOTIONS_FINISHED, core.Event())
+            # Publish the queued event finish if there's no queued motions
+            self.publish(MotionManager.FINISHED, core.Event())
         else:
             # Start the queued motion    
             motion = self._queuedMotions.pop(0)

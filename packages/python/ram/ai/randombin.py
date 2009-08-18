@@ -526,7 +526,7 @@ class Start(state.State):
     """
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : Searching }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():
@@ -595,8 +595,8 @@ class Searching(state.State):
             direction = direction)
 
         if self.ai.data.get('firstSearching', True) and self._duration > 0:
-            self.motionManager.setQueuedMotions(self._forwardMotion,
-                                                self._zigZag)
+            self.motionManager.setMotion(self._forwardMotion,
+                                         self._zigZag)
         else:
             self.motionManager.setMotion(self._zigZag)
 
@@ -741,7 +741,7 @@ class Dive(HoveringState):
     def transitions():
         return SettlingState.transitions(Dive,
         lostState = RecoverDive, recoveryState = LostCurrentBinDive,
-        trans = { motion.basic.Motion.FINISHED : Aligning })
+        trans = { motion.basic.MotionManager.FINISHED : Aligning })
 
     @staticmethod
     def getattr():
@@ -852,7 +852,7 @@ class CloserLook(Dive):
     def transitions():
         return SettlingState.transitions(CloserLook,
         lostState = RecoverCloserLook, recoveryState = LostCurrentBinCloserLook,
-        trans = { motion.basic.Motion.FINISHED : DropMarker })
+        trans = { motion.basic.MotionManager.FINISHED : DropMarker })
 
     @staticmethod
     def getattr():
@@ -910,7 +910,7 @@ class SurfaceToMove(HoveringState):
         return SettlingState.transitions(SurfaceToMove,
             lostState = RecoverSurfaceToMove,
             recoveryState = LostCurrentBinSurfaceToMove,
-            trans = { motion.basic.Motion.FINISHED : NextBin })
+            trans = { motion.basic.MotionManager.FINISHED : NextBin })
 
     @staticmethod
     def getattr():
@@ -1073,7 +1073,7 @@ class SurfaceToCruise(state.State):
     """
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : End }
+        return { motion.basic.MotionManager.FINISHED : End }
 
     @staticmethod
     def getattr():

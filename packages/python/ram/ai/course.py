@@ -197,15 +197,14 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
     def _transitions(myState):
         trans = pipe.PipeTrackingState.transitions(myState)
 
-        trans.update({ motion.basic.MotionManager.
-                       QUEUED_MOTIONS_FINISHED : myState,
+        trans.update({ motion.basic.MotionManager.FINISHED : myState,
                        pipe.PipeTrackingState.FOUND_PIPE : myState,
                        PipeObjective.TIMEOUT : myState,
                        pipe.Centering.SETTLED : task.Next })
 
         return trans
 
-    def QUEUED_MOTIONS_FINISHED(self, event):
+    def FINISHED(self, event):
         if not self._branched:
             self.stateMachine.start(state.Branch(pipe.Searching))
             self._branched = True
@@ -249,7 +248,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
 
         self._motion = motion
         self._motionList = motionList
-        self.motionManager.setQueuedMotions(motion, *motionList)
+        self.motionManager.setMotion(motion, *motionList)
 
     def exit(self):
         del self.ai.data['pipeBiasDirection']
@@ -447,7 +446,7 @@ class Light(task.Task):
     def _transitions(thisState = None):
         if thisState is None:
             thisState = Light
-        return { motion.basic.Motion.FINISHED : thisState,
+        return { motion.basic.MotionManager.FINISHED : thisState,
                  light.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(light.Start) }
@@ -531,7 +530,7 @@ class BarbedWire(task.Task):
     """
     @staticmethod
     def _transitions():
-        return { motion.basic.Motion.FINISHED : BarbedWire,
+        return { motion.basic.MotionManager.FINISHED : BarbedWire,
                  barbedwire.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(barbedwire.Start) }
@@ -673,7 +672,7 @@ class SafeDive(task.Task):
     """
     @staticmethod
     def _transitions():
-        return { motion.basic.Motion.FINISHED : task.Next,
+        return { motion.basic.MotionManager.FINISHED : task.Next,
                  'GO' : state.Branch(sonar.Hovering) } 
 
     @staticmethod
@@ -750,7 +749,7 @@ class Octagon(task.Task):
     """
     @staticmethod
     def _transitions():
-        return { motion.basic.Motion.FINISHED : task.Next }
+        return { motion.basic.MotionManager.FINISHED : task.Next }
 
     @staticmethod
     def getattr():

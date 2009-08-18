@@ -172,7 +172,7 @@ class Start(state.State):
     
     @staticmethod
     def transitions():
-        return { motion.basic.Motion.FINISHED : Searching }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():
@@ -316,8 +316,8 @@ class Searching(state.State, StoreTargetEvent):
             direction = direction)
 
         if self.ai.data.get('firstSearching', True) and self._duration > 0:
-            self.motionManager.setQueuedMotions(self._forwardMotion,
-                                                self._zigZag)
+            self.motionManager.setMotion(self._forwardMotion,
+                                         self._zigZag)
         else:
             self.motionManager.setMotion(self._zigZag)
         self.ai.data['firstSearching'] = False

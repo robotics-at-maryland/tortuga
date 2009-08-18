@@ -54,7 +54,7 @@ class TestStart(support.AITestCase):
         self.assertEqual(TestStart.DIVE_SPEED, m.speed)
         
     def testFinish(self):
-        self.injectEvent(motion.basic.Motion.FINISHED)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(target.Searching)
 
 class TestFindAttempt(support.AITestCase):
