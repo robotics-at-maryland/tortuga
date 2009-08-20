@@ -775,3 +775,61 @@ class RecoverFromSafe(task.Task):
     Dives to good pinger depth, and activates the sonar
     """
     pass
+
+class TaskMovement(task.Task):
+    """
+    A pre-determined move that changes depth, changes heading, then moves
+    forward for a pre-determined amount of time. It dynamically loads its
+    class name.
+
+    A RateChangeDepth -> RateChangeHeading -> TimedMoveDirection.
+    """
+
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next }
+
+    @staticmethod
+    def getattr():
+        return set(['depth', 'heading', 'speed', 'duration',
+                    'turnSpeed', 'depthSpeed']).union(
+            task.Task.getattr())
+
+    def enter(self, *motions):
+        task.Task.enter(self)
+
+        # Dynamically load the name of the class
+        self._className = type(self).__name__
+
+        # Load all of the config values from the ai file (so they are easily
+        # changed)
+        self._depth = self.ai.data['config'].get(self._className, {}).get(
+            'depth', 3)
+        self._depthSpeed = self.ai.data['config'].get(self._className, {}).get(
+            'depthSpeed', (1.0/3.0))
+        self._heading = self.ai.data['config'].get(self._className, {}).get(
+            'heading', 0)
+        self._headingSpeed = self.ai.data['config'].get(self._className,
+                                                        {}).get(
+            'turnSpeed', 10)
+        self._speed = self.ai.data['config'].get(self._className, {}).get(
+            'speed', 3)
+        self._duration = self.ai.data['config'].get(self._className, {}).get(
+            'duration', 5)
+
+        # Create the motions
+        self._depthMotion = motion.basic.RateChangeDepth(self._depth,
+                                                         self._depthSpeed)
+        self._headingMotion = motion.basic.RateChangeHeading(self._heading,
+                                                             self._headingSpeed)
+        self._forwardMotion = motion.basic.TimedMoveDirection(self._heading,
+                                                              self._speed,
+                                                              self._duration)
+
+        # Set the motion and the queued motions
+        self.motionManager.setMotion(self._depthMotion, self._headingMotion,
+                                     self._forwardMotion)
+
+    def exit(self):
+        task.Task.exit(self)
+        self.motionManager.stopCurrentMotion()

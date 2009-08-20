@@ -18,8 +18,8 @@ config:
     safeDepth: 23
     safeOffset: -0.35
     Gate:
-         time: 10
-         speed: 3
+        time: 10
+        speed: 3
     PipeBarbedWire:
         biasDirection: -30
         threshold: 15

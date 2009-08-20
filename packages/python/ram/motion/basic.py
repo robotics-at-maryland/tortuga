@@ -146,7 +146,16 @@ class MotionManager(core.Subsystem):
             return motion
         return (self._inPlaneMotion, self._depthMotion, 
                 self._orientationMotion)
-      
+
+    @property
+    def currentMotionList(self):
+        currentMotion = self.currentMotion
+
+        if currentMotion is None:
+            return None
+
+        return [currentMotion] + self._queuedMotions
+
     def _removeMotion(self, motion):
         if motion.type & Motion.IN_PLANE:
             assert not (self._inPlaneMotion is None)

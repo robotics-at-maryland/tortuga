@@ -948,3 +948,43 @@ class TestOctagon(support.AITestCase):
         self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assert_(self.machine.complete)
 
+class TestTaskMovement(support.AITestCase):
+    def setUp(self):
+        # Config file with the heading put in so it doesn't skip over the
+        # RateChangeHeading
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.TaskMovement'],
+                        'config' : {'TaskMovement' : {'heading' : 45} } } }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.TaskMovement)
+
+    def testStart(self):
+        """
+        Run through the motions and make sure that
+        it doesn't exit too early
+        """
+        self.assertCurrentMotionList([motion.basic.RateChangeDepth,
+                                      motion.basic.RateChangeHeading,
+                                      motion.basic.TimedMoveDirection])
+
+        # Depth motion
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        
+        self.assertCurrentState(course.TaskMovement)
+        self.motionManager.currentMotion._finish()
+        self.qeventHub.publishEvents()
+
+        # Heading motion
+        self.assertCurrentMotion(motion.basic.RateChangeHeading)
+
+        self.assertCurrentState(course.TaskMovement)
+        self.motionManager.currentMotion._finish()
+        self.qeventHub.publishEvents()
+
+        # Forward motion
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        self.assertCurrentState(course.TaskMovement)
+        self.motionManager.currentMotion._finish()
+        self.qeventHub.publishEvents()
+
+        self.assert_(self.machine.complete)

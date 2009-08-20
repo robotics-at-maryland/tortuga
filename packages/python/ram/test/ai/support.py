@@ -249,7 +249,43 @@ class AITestCase(unittest.TestCase):
                            getType(current[2]))
             
         self.assertEquals(motionType, currentType)
-        
+
+    def assertCurrentMotionList(self, motionList):
+        """
+        Compares the type of the current motion queue to the given one.
+        It includes the current motion.
+        """
+        # Get the current motion list
+        currentList = self.motionManager.currentMotionList
+
+        # Check if None
+        if motionList is None:
+            return currentList is None
+
+        # The motionList should be a list if it isn't None
+        if types.ListType != type(motionList):
+            raise Exception('A list must be sent into assertCurrentMotionList')
+
+        # Check the current motion first
+        current = motionList[0]
+        self.assertCurrentMotion(current)
+
+        # Parse out the current motion from the motion list
+        currentList = currentList[1:]
+        motionList = motionList[1:]
+
+        # Make sure there are the same number of motions in both lists
+        if len(currentList) != len(motionList):
+            return False
+
+        # Iterate through the list and check the types
+        for c, m in zip(currentList, motionList):
+            if type(c) != m:
+                return False
+
+        # The motion list is the same if it's reached this point in the code
+        return True
+
     def assertCurrentBranches(self, branches):
         for branch in branches:
             self.assert_(self.machine.branches.has_key(branch))
