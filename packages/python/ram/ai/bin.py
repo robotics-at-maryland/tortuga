@@ -553,7 +553,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['speed'])
+        return set(['speed', 'offset'])
     
     def enter(self):
         # Store the initial direction
@@ -563,9 +563,18 @@ class Start(state.State):
         self.ai.data['binStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
+        offset = self._config.get('offset', 5)
+        desiredDepth = self.ai.data['config'].get('binDepth', 12)
+
+        # Set a minimumDepth
+        desiredDepth -= offset
+        minimumDepth = self._config.get('minimumDepth', 0.5)
+        if desiredDepth < minimumDepth:
+            desiredDepth = minimumDepth
+
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('binStartDepth', 7),
+            desiredDepth = desiredDepth,
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         
@@ -904,9 +913,15 @@ class Dive(HoveringState):
         offset_ = self._config.get('offset', offset)
         offset_ = offset_ + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
+
+        # Set a minimumDepth
+        binDepth -= offset_
+        minimumDepth = self._config.get('minimumDepth', 0.5)
+        if binDepth < minimumDepth:
+            binDepth = minimumDepth
         
         diveMotion = motion.basic.RateChangeDepth(    
-            desiredDepth = binDepth - offset_,
+            desiredDepth = binDepth,
             speed = self._config.get('diveSpeed', 0.3))
         
         self.motionManager.setMotion(diveMotion)
@@ -1283,9 +1298,15 @@ class SurfaceToMove(HoveringState):
         
         offset = offset + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
+
+        # Set a minimumDepth
+        binDepth -= offset
+        minimumDepth = self._config.get('minimumDepth', 0.5)
+        if binDepth < minimumDepth:
+            binDepth = minimumDepth
         
         surfaceMotion = motion.basic.RateChangeDepth(
-            desiredDepth = binDepth - offset,
+            desiredDepth = binDepth,
             speed = self._config.get('surfaceSpeed', 1.0/3.0))
         
         self.motionManager.setMotion(surfaceMotion)

@@ -461,11 +461,6 @@ class TestLight(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
                         ['ram.ai.course.Light', 'ram.ai.course.Pipe'],
-                        'config' : {
-                            'Light' : {
-                                 'heading' : 10
-                                 }
-                            }
                         }
                 }
         support.AITestCase.setUp(self, cfg = cfg)
@@ -477,18 +472,14 @@ class TestLight(support.AITestCase):
         Make sure that when we start we are doing the right thing
         """
         self.assertCurrentState(self._stateType)
-
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
-
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
         
         self.assertCurrentBranches([light.Start])
-        #self.assert_(self.visionSystem.redLightDetector)
 
-        # Make sure it doesn't crash after more FINISHED events
-        #self.injectEvent(motion.basic.Motion.FINISHED)
+        # Finish the depth change and make sure the red light detector is on
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
+
+        self.assert_(self.visionSystem.redLightDetector)
 
         # Make sure we held the current heading
         #self.assertEqual(1, self.controller.headingHolds)
@@ -497,10 +488,6 @@ class TestLight(support.AITestCase):
         """
         Make sure that we move on once we hit the light
         """
-        
-        # Finish the change heading motion
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
 
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
         self.injectEvent(light.COMPLETE, sendToBranches = True)
@@ -520,10 +507,6 @@ class TestLight(support.AITestCase):
         # Restart with a working timer
         self.machine.stop()
         self.machine.start(self._stateType)
-
-        # Finish the change heading motion
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
 
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)
@@ -546,10 +529,6 @@ class TestLight(support.AITestCase):
         # Restart with so we have a set orientation
         self.machine.stop()
         self.machine.start(self._stateType)
-
-        # Finish the change heading motion
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
 
         # Hit the light
         self.injectEvent(light.LIGHT_HIT, sendToBranches = True)
@@ -598,14 +577,10 @@ class TestLightStaged(TestLight):
                 }
             },
             'Ai' : {'taskOrder' : ['ram.ai.course.LightStaged', 
-                                   'ram.ai.course.Pipe'],
-                    'config' : {
-                        'LightStaged' : {
-                            'heading' : 10,
-                            }
-                        }
-                    }
+                                   'ram.ai.course.Pipe']
+            }
         }
+        
         
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.LightStaged)
@@ -638,11 +613,6 @@ class TestBarbedWire(support.AITestCase):
         cfg = { 'Ai' : {'taskOrder' : 
                         ['ram.ai.course.BarbedWire',
                          'ram.ai.course.PipeBarbedWire'],
-                        'config' : {
-                             'BarbedWire' : {
-                                  'heading' : 10
-                                  }
-                             }
                         }
         }
         support.AITestCase.setUp(self, cfg = cfg)
@@ -655,23 +625,19 @@ class TestBarbedWire(support.AITestCase):
         """
         self.assertCurrentState(self._stateType)
 
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
-
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
         self.assertCurrentBranches([barbedwire.Start])
-        #self.assert_(self.visionSystem.barbedWireDetector)
+
+        # Finish the depth change and check that the detector is on
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
+        self.assert_(self.visionSystem.barbedWireDetector)
         
     def testBarbedWireDone(self):
         """
         Make sure that we move on once we hit the light
         """
-        
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
 
         self.injectEvent(barbedwire.COMPLETE, sendToBranches = True)
         self.assertCurrentState(course.PipeBarbedWire)
@@ -687,10 +653,6 @@ class TestBarbedWire(support.AITestCase):
         # Restart with a working timer
         self.machine.stop()
         self.machine.start(self._stateType)
-
-        # Finish the motion and check if it has entered the state
-        self.machine.currentState()._headingChange._finish()
-        self.qeventHub.publishEvents()
         
         # Release timer
         self.releaseTimer(self.machine.currentState().timeoutEvent)
@@ -705,11 +667,6 @@ class TestTarget(support.AITestCase):
         cfg = { 
             'Ai' : {'taskOrder' : 
                     ['ram.ai.course.Target', 'ram.ai.course.PipeTarget'],
-                    'config' : {
-                        'Target' : {
-                            'heading' : 10
-                            }
-                        }
                     }
         }
         support.AITestCase.setUp(self, cfg = cfg)
@@ -723,7 +680,11 @@ class TestTarget(support.AITestCase):
         self.assertCurrentState(self._stateType)
         
         self.assertCurrentBranches([target.Start])
-        #self.assert_(self.visionSystem.targetDetector)
+
+        # Finish the depth change and check that the detector is on
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
+        self.assert_(self.visionSystem.targetDetector)
         
     def testTargetDone(self):
         """

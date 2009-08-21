@@ -320,16 +320,25 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['speed'])
+        return set(['speed', 'offset', 'minimumDepth'])
     
     def enter(self):
         orientation = self.vehicle.getOrientation()
         self.ai.data['pipeStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
+        offset = self._config.get('offset', 0)
+        desiredDepth = self.ai.data['config'].get('pipeDepth', 6)
+
+        # Calculate the real depth and check to that it's lower than the minimum
+        desiredDepth -= offset
+        minimumDepth = self._config.get('minimumDepth', 0.5)
+        if desiredDepth < minimumDepth:
+            desiredDepth = minimumDepth
+
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('pipeDepth', 6),
+            desiredDepth = desiredDepth,
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
         

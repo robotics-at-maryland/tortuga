@@ -10,7 +10,6 @@ config:
     pipeDepth: 4.5
     bwireDepth: 5.5
     targetDepth: 7
-    binStartDepth: 4
     binDepth: 9.75
     targetSymbols: ['Tank', 'Factory']
     sonarDepth: 3

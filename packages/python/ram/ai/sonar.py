@@ -107,11 +107,20 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['diveSpeed'])
+        return set(['diveSpeed', 'offset', 'minimumDepth'])
 
     def enter(self):
+        offset = self._config.get('offset', 0)
+        desiredDepth = self.ai.data['config'].get('sonarDepth', 2)
+
+        # Check that it's not lower than the minimum depth
+        desiredDepth -= offset
+        minimumDepth = self._config.get('minimumDepth', 0.5)
+        if desiredDepth < minimumDepth:
+            desiredDepth = minimumDepth
+
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('sonarDepth', 2),
+            desiredDepth = desiredDepth,
             speed = self._config.get('diveSpeed', 0.4))
         
         self.motionManager.setMotion(diveMotion)

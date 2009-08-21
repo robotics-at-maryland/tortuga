@@ -44,7 +44,7 @@ class AI(core.Subsystem):
         self._data = {}
         self._data['config'] = cfg.get('config', {})
 
-#        self._checkConfig(self._data['config'])
+        self._checkConfig(self._data['config'])
         
         # Build list of next states
         self._nextTaskMap = {}
@@ -84,16 +84,15 @@ class AI(core.Subsystem):
     
     def _checkConfig(self, cfg):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
-                         'targetDepth', 'binStartDepth', 'binDepth',
-                         'targetSymbols', 'sonarDepth', 'safeDepth',
-                         'safeOffset'])
+                       'targetDepth', 'binDepth', 'targetSymbols',
+                       'sonarDepth', 'safeDepth', 'safeOffset'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
                              'absolute', 'taskTimeout'])
-        moveOptions = set(['heading', 'speed', 'absolute',
-                           'forwardDuration', 'forwardSpeed', 'duration',
-                           'travelSpeed', 'taskTimeout'])
+        taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
+        moveOptions = set(['depth', 'heading', 'speed', 'duration',
+                           'turnSpeed', 'depthSpeed'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
                           'forwardSpeed', 'adjustAngle', 'binDirection',
                           'duration', 'travelSpeed', 'taskTimeout'])
@@ -115,7 +114,7 @@ class AI(core.Subsystem):
             elif item == 'Light' or item == 'BarbedWire' \
                     or item == 'Target' or item == 'LightStaged':
                 for innerItem in cfg[item].iterkeys():
-                    if innerItem not in moveOptions:
+                    if innerItem not in taskOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Bin':
@@ -126,6 +125,11 @@ class AI(core.Subsystem):
             elif item == 'Gate':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in gateOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'TaskMovement':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in moveOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:

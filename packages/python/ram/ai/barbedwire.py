@@ -201,7 +201,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['diveSpeed'])
+        return set(['diveSpeed', 'offset'])
     
     def enter(self):
         # Set the initial direction
@@ -209,9 +209,12 @@ class Start(state.State):
         self.ai.data['barbedWireStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
+        offset = self._config.get('offset', 0)
+        desiredDepth = self.ai.data['config'].get('bwireDepth', 12)
+
         # Create the dive motion and start the vehicle
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('bwireDepth', 12),
+            desiredDepth = desiredDepth + offset,
             speed = self._config.get('diveSpeed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
 

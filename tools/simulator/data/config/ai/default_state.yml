@@ -28,6 +28,7 @@ ram.ai.duct.Through:
 # Bin Settings
 ram.ai.bin.Start:
     speed: 1
+    offset: 4.5
 ram.ai.bin.Searching:
     sweepAngle: 0
     speed: 5
