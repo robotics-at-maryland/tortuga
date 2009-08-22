@@ -383,7 +383,7 @@ class TrailMarker(SimDevice, device.IDevice):
             'Graphical' : {
                 'mesh' : 'sphere.50cm.mesh', 
                 'scale' : [0.075, 0.075, 0.075],
-                'material' : 'Simple/Red',
+                'material' : 'Simple/Blue',
             }
         }
         obj.load((self._scene, None, cfg))

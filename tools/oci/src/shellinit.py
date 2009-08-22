@@ -17,6 +17,7 @@ from pprint import pprint
 def diveTo(depth, speed = 0.3):
     motionManager.setMotion(basic.RateChangeDepth(depth, speed))
 
+# dive and diveTo are the same function.
 dive = diveTo
 
 def up(depthChange, speed = 0.3):
@@ -24,6 +25,9 @@ def up(depthChange, speed = 0.3):
 
 def down(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() + depthChange, speed = speed)
+
+def surface(speed = 0.3):
+    diveTo(depth = 0.3, speed = speed)
 
 def yaw(yawChange, speed = 30, absolute = False):
     motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
@@ -48,6 +52,8 @@ def start(state):
     allStop()
     stateMachine.start(state)
 
+# Keeps track of the forward and downward streams.
+# Do not create your own RecorderManager. It's automatically made as 'recorder'.
 class RecorderManager(object):
     def __init__(self):
         self._recorders = {}
@@ -69,6 +75,7 @@ class RecorderManager(object):
                 visionSystem.removeDownwardRecorder(name)
 
 recorder = RecorderManager()
+# Use these functions to interact with the RecorderManager.
 def fstream(port = 50000, size = (320, 240), rate = 5):
     recorder.fstream(port, size, rate)
 
