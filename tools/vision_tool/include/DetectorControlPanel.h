@@ -15,6 +15,7 @@
 
 // Library Includes
 #include <wx/scrolwin.h>
+#include <wx/file.h>
 
 // Project Includes
 #include "vision/include/Forward.h"
@@ -51,6 +52,9 @@ private:
     /** Called when reset to defaults button is pressed */
     void onReset(wxCommandEvent& event);
 
+    /** Called when export all settings button is pressed */
+    void onExport(wxCommandEvent& event);
+
     /** Sets up all the needed scrolling parameters.
      *
      *  This function sets up the event handling necessary to handle
@@ -58,6 +62,34 @@ private:
      *  detector controllers.
      */
     void setupScrolling();
+
+    /** Reads a line from the specified file
+     *
+     *  This function returns an empty string if the file is not opened
+     *  and readable.
+     */
+    static wxString readLine(wxFile& file)
+    {
+	wxString val;
+	if (file.IsOpened())
+	{
+	    void* block = calloc(1, sizeof(char));
+	    if (block == NULL)
+		return val;
+	    char* buffer = (char *) block;
+
+	    // This will check that the last character read was not a newline
+	    // This will cause the newline to be read and stored in the string
+	    while (*buffer != '\n' && file.Read(buffer, sizeof(char)))
+	    {
+		val += *buffer;
+	    }
+	}
+	return val;
+    }
+
+    /** Exports the current detector to the given file */
+    int exportDetectorSettings(wxString filename);
 
     void onSize(wxSizeEvent& sizeEvent);
     

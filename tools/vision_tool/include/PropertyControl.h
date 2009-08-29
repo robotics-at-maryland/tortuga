@@ -42,6 +42,11 @@ public:
 
     /** Returns the property to its default value */
     void setToDefault();
+
+    /** Gets the current value in config file form
+     *  name: value
+     */
+    wxString getPropertyValue();
     
 private:
     /** Called every time the text in the box changes */

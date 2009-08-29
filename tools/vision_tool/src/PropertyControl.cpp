@@ -131,6 +131,29 @@ void PropertyControl::setToDefault()
     
 }
 
+wxString PropertyControl::getPropertyValue()
+{
+    wxString val(m_prop->getName().c_str(), wxConvUTF8);
+    val.Append(wxT(": "));
+    switch (m_prop->getType())
+    {
+        case core::Property::PT_INT:
+        case core::Property::PT_DOUBLE:
+	    val.Append(m_text->GetValue());
+	    break;
+        case core::Property::PT_BOOL:
+	    if (m_checkBox->GetValue())
+		val.Append(wxT("1"));
+	    else
+		val.Append(wxT("0"));
+	    break;
+        default:
+	    assert(false && "Error improper property type");
+	    break;
+    }
+    return val;
+}
+
 void PropertyControl::onTextUpdated(wxCommandEvent& event)
 {
     wxString propValue(m_prop->toString().c_str(), wxConvUTF8);
