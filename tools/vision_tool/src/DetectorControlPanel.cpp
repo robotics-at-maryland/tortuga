@@ -19,6 +19,8 @@
 #include <wx/statline.h>
 #include <wx/event.h>
 #include <wx/button.h>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
 
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
@@ -160,9 +162,20 @@ void DetectorControlPanel::onReset(wxCommandEvent& event)
 
 void DetectorControlPanel::onExport(wxCommandEvent& event)
 {
-    //wxString filepath(wxT("tools/simulator/data/config/vision/default.yml"));
-    //exportDetectorSettings(filepath);
-    printf("Not implemented yet.\n");
+    wxMessageDialog* confirm = new wxMessageDialog(this,
+						   wxT("This feature will only work correctly if the file you save to is a dedicated vision file. Make sure that you save to a file in a data/config/vision/ folder. This will overwrite and erase data from the current detector in the file chosen. The file must be of the correct format otherwise the file I/O may not work correctly."), wxT("WARNING!"));
+    int id = confirm->ShowModal();
+    if (id == wxID_OK) {
+	wxFileDialog* fileChooser = new wxFileDialog(this);
+	id = fileChooser->ShowModal();
+
+	if (id == wxID_OK)
+	{
+	    wxString filepath(fileChooser->GetPath());
+	    exportDetectorSettings(filepath);
+	    //printf("Not implemented yet.\n");
+	}
+    }
 }
 
 void DetectorControlPanel::setupScrolling()
@@ -259,6 +272,11 @@ int DetectorControlPanel::exportDetectorSettings(wxString filename)
 		file.Write(line);
 	    }
 	}
+	file.Close();
+	tempFile.Close();
+
+	// Remove the file that we made
+	remove(tempFilePath.fn_str());
 	return 0;
     } else return 1;
 }
