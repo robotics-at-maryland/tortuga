@@ -142,7 +142,7 @@ class MainFrame(wx.Frame):
             locals[name] = subsystem
             introText += '%s: %s\n' % (name, type(subsystem))
         
-        # Load python file
+        # Load shell init file
         shellBasePath = os.environ['RAM_SVN_DIR']
         shellInitFile = config.get('shellInitFile', 
                                        'tools/oci/src/shellinit.py')
@@ -170,11 +170,11 @@ class MainFrame(wx.Frame):
 
         # Run the python file
         if pyFile is not None:
+            # This runs through every line in the shell init file
             for line in pyFile.readlines():
+                # This runs the commands in the init file as if they were
+                # entered by the user.
                 self._shell.push(line.rstrip(), silent = True)
-                #self._shell.run(line, prompt = False, verbose = False)
-            #self._shell.runfile(shellinit)
-            #self._shell.push("print 'Finished loading file'", silent = True)
 
         self._addSubsystemPanel(paneInfo, self._shell, [])
     

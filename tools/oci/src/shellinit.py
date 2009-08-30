@@ -1,5 +1,36 @@
-import wx
+# This file is for initializing the shell in the OCI with default commands.
+#
+# All of the commands in this file are run as if they were typed into an
+# interpreter by a human. This is for generic code that should be initialized
+# in the shell everytime the OCI is run.
+#
+# When entering new code, remember that it is run as if the code was typed
+# directly into the interpreter. This code will cause an error:
+#
+# def HelloWorld():
+#     print "hello,",
+#
+#     print "world!"
+#
+# Instead, remove any spaces.
+#
+# def HelloWorld():
+#     print "hello,",
+#     print "world!"
+#
+# If you want to add a blankline for clarity, use a comment:
+#
+# def HelloWorld():
+#     print "hello,",
+#     # We're saying hello to the world right now
+#     print "world!"
+#
+# This block is not in """ Text Here """ comments because these are printed out
+# in the OCI. Only use comments with the '#' symbol.
+
+import math as pmath
 import ext.core as core
+import ext.math as math
 import ram.ai.light as light
 import ram.ai.pipe as pipe
 import ram.ai.bin as bin
@@ -26,6 +57,8 @@ def up(depthChange, speed = 0.3):
 def down(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() + depthChange, speed = speed)
 
+# Surface depth to 0.3 because 0.0 causes the vehicle to always try and get
+# above the water
 def surface(speed = 0.3):
     diveTo(depth = 0.3, speed = speed)
 
@@ -53,40 +86,59 @@ def start(state):
     stateMachine.start(state)
 
 # Keeps track of the forward and downward streams.
-# Do not create your own RecorderManager. It's automatically made as 'recorder'.
+# You should never be required to access the RecorderManager.
+# Instead, use the utility functions included after the RecorderManager.
 class RecorderManager(object):
-    def __init__(self):
-        self._recorders = {}
-    def fstream(self, port = 50000, size = (320, 240), rate = 5):
-        path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
-        visionSystem.addForwardRecorder(path, rate)
-        self._recorders[path] = path
-    def dstream(self, port = 50001, size = (320, 240), rate = 5):
-        path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
-        visionSystem.addDownwardRecorder(path, rate)
-        self._recorders[path] = path
-    def removefs(self, port = 50000):
-        for name in self._recorders.iterkeys():
+    recorders = {}
+    # Generic add function
+    @staticmethod
+    def _addstream(func, port, size = (320, 240), rate = 5):
+        # Check if the port is being used
+        for name in RecorderManager.recorders.iterkeys():
             if name.find(str(port)) != -1:
-                visionSystem.removeForwardRecorder(name)
-    def removeds(self, port = 50001):
-        for name in self._recorders.iterkeys():
+                # Do nothing if we find the port in use
+                return
+        path = str(port) + "(" + str(size[0]) + "," + str(size[1]) + ")"
+        func(path, rate)
+        RecorderManager.recorders[path] = path
+    # Generic function to remove a stream
+    @staticmethod
+    def _removestream(func, port):
+        # Check all the current streams to find the port in any names
+        for name in RecorderManager.recorders.iterkeys():
             if name.find(str(port)) != -1:
-                visionSystem.removeDownwardRecorder(name)
+                # When found, remove it
+                func(name)
+                return
+    @staticmethod
+    def fstream(port = 50000, size = (320, 240), rate = 5):
+        RecorderManager._addstream(visionSystem.addForwardRecorder,
+                                   port, size, rate)
+    @staticmethod
+    def dstream(port = 50001, size = (320, 240), rate = 5):
+        RecorderManager._addstream(visionSystem.addDownwardRecorder,
+                                   port, size, rate)
+    @staticmethod
+    def removefs(port = 50000):
+        RecorderManager._removestream(visionSystem.removeForwardRecorder,
+                                      port)
+    @staticmethod
+    def removeds(port = 50001):
+        RecorderManager._removestream(visionSystem.removeDownwardRecorder,
+                                      port)
 
-recorder = RecorderManager()
 # Use these functions to interact with the RecorderManager.
 def fstream(port = 50000, size = (320, 240), rate = 5):
-    recorder.fstream(port, size, rate)
+    RecorderManager.fstream(port, size, rate)
 
 def dstream(port = 50001, size = (320, 240), rate = 5):
-    recorder.dstream(port, size, rate)
+    RecorderManager.dstream(port, size, rate)
 
 def removefs(port = 50000):
-    recorder.removefs(port)
+    RecorderManager.removefs(port)
 
 def removeds(port = 50001):
-    recorder.removeds(port)
+    RecorderManager.removeds(port)
 
 fsremove = removefs
 dsremove = removeds
@@ -128,4 +180,4 @@ def takeFClip(seconds, name = None, extension = ".rmv", rate = 5):
 def takeDClip(seconds, name = None, extension = ".rmv", rate = 5):
     recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
 
-# End of file (this line is required)
+# End of file (REQUIRED! DO NOT DELETE!)
