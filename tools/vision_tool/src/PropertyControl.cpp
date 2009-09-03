@@ -18,6 +18,7 @@
 #include <wx/checkbox.h>
 #include <wx/dcclient.h>
 #include <wx/slider.h>
+#include <wx/button.h>
 
 #include <boost/bind.hpp>
 
@@ -46,7 +47,8 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_sliderScale(1),
     m_label(0),
     m_model(model),
-    m_defaultValue(m_prop->toString().c_str(), wxConvUTF8)
+    m_defaultValue(m_prop->toString().c_str(), wxConvUTF8),
+    m_defaultButton(0)
 {
     // Label for the property
     wxString propName(m_prop->getName().c_str(), wxConvUTF8);
@@ -65,18 +67,18 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
         case core::Property::PT_INT:
         case core::Property::PT_DOUBLE:
             {
-              if (m_prop->hasMinMax())
-                  setupMinMaxIntDoubleControls(sizer, toolTip);
-              else
-                  setupNormalIntDoubleControls(sizer, toolTip);
+		if (m_prop->hasMinMax())
+		    setupMinMaxIntDoubleControls(sizer, toolTip);
+		else
+		    setupNormalIntDoubleControls(sizer, toolTip);
             }
             break;
-
+	    
         case core::Property::PT_BOOL:
-            {
-              setupBoolControls(sizer, toolTip);
-            }
-            break;
+	    {
+		setupBoolControls(sizer, toolTip);
+	    }
+	    break;
         
         default:
             break;
@@ -91,6 +93,13 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
 			wxCommandEventHandler(PropertyControl::onEnter), NULL,
 			this);
     }
+
+    m_defaultButton = new wxButton(this, wxID_ANY, wxT("RESET"));
+    m_defaultButton->Connect(m_defaultButton->GetId(),
+			     wxEVT_COMMAND_BUTTON_CLICKED,
+			     wxCommandEventHandler(
+			         PropertyControl::onDefaultButton), NULL, this);
+    sizer->Add(m_defaultButton);
 
     sizer->SetSizeHints(this);
     SetSizer(sizer);
@@ -111,7 +120,7 @@ void PropertyControl::setToDefault()
     // Reset underlying property
     setPropertyValue(m_defaultValue);
 
-    // Set the underlying control to relfect that
+    // Set the underlying control to reflect that
     switch (m_prop->getType())
     {
         case core::Property::PT_INT:
@@ -223,6 +232,11 @@ void PropertyControl::onPropertiesChanged(core::EventPtr event)
             assert(false && "Error improper property type");
             break;
     }
+}
+
+void PropertyControl::onDefaultButton(wxCommandEvent& event)
+{
+    setToDefault();
 }
 
 void PropertyControl::setPropertyValue(wxString value)

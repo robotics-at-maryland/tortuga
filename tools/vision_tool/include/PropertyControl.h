@@ -64,6 +64,9 @@ private:
     /** The overall property set has changed update our displayed values */
     void onPropertiesChanged(core::EventPtr event);
 
+    /** The set to default button action */
+    void onDefaultButton(wxCommandEvent& event);
+
     /** Sets the property based on the given text */
     void setPropertyValue(wxString value);
 
@@ -102,6 +105,9 @@ private:
         
     /** The original value of the property */
     wxString m_defaultValue;
+
+    /** The set to default button */
+    wxButton* m_defaultButton;
 
     DECLARE_EVENT_TABLE()
 };
