@@ -23,7 +23,7 @@ class Object(object):
         # Python switch statement
         return {
             Object.BUOY : '[sim.vision.IBuoy, sim.vision.Buoy]'
-            }
+            }[type_]
 
 class Editor(wx.Panel):
     def __init__(self, parent, width, height, gridSize, gridOn = True,

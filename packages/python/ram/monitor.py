@@ -21,9 +21,6 @@ class Monitor(core.Subsystem):
     CRITICAL = core.declareEventType("CRITICAL")
 
     def __init__(self, cfg, deps):
-        # TODO: I hate you Joe
-        # In the future, wrap the lookupByName function in
-        # EventPublisher.h
         core.Subsystem.__init__(self, cfg.get('name', 'Monitor'), deps)
 
         self._connections = []
@@ -35,39 +32,83 @@ class Monitor(core.Subsystem):
 
         self._signals = {}
 
+        if cfg.has_key('type'):
+            cfg.pop('type')
+        if cfg.has_key('depends_on'):
+            cfg.pop('depends_on')
+        cfg.pop('name')
+
         # Iterate through the config file subscribing to any events it lists
         for name, data in cfg.iteritems():
-            if name != "type" and name != "name" and name != "depends_on":
-                publisher = self._lookupByName(data['publisher'], deps)
-                self._signals[name] = Signal(self._qeventHub,
-                                             data['eventType'],
-                                             publisher,
-                                             data['property'],
-                                             data['display'],
-                                             data['warning'],
-                                             data['critical'])
+            publisher = self._lookupByName(data['publisher'], deps)
+            self._signals[name] = Signal(self._qeventHub,
+                                         data['eventType'],
+                                         publisher,
+                                         data['property'],
+                                         data['name'],
+                                         data['warning'],
+                                         data['critical'])
 
     def _lookupByName(self, publisher, deps):
-        for d in deps:
-            if publisher.startswith('Vehicle.Device.'):
-                deviceName = publisher[len('Vehicle.Device.'):]
-                vehicle = core.Subsystem.getSubsystemOfType(
-                    ext.vehicle.IVehicle, deps)
-                device = vehicle.getDevice(deviceName)
-                return device
-            else:
-                if d.getPublisherName() == publisher:
-                    print d, type(d)
+        # Check if the publisher is a device
+        # Something different is done if it is
+        if publisher.startswith('Vehicle.Device.'):
+            deviceName = publisher[len('Vehicle.Device.'):]
+            vehicle = core.Subsystem.getSubsystemOfType(
+                ext.vehicle.IVehicle, deps)
+            device = vehicle.getDevice(deviceName)
+            return device
+        else:
+            # Normal operations for any other publisher
+            # Parse the subsystem out of the publisher name
+            systemName = publisher.split('.')[0]
+            for d in deps:
+                # Parse the subsystem name
+                depName = d.getPublisherName().split('.')[-1]
+                
+                # Check if this is the subsystem needed
+                if depName == systemName:
+                    # Return the publisher
                     return d
 
+    # Not used. May be used in the future.
+    def _acquireDependencies(self, cfg, deps):
+        """
+        This is supposed to look into the systems that it monitors and
+        see which subsystems they depend on. Then it would add those
+        subsystems to its own list.
+
+        It does not do that yet. I do not believe there is a possible way
+        to do this yet.
+        """
+        # Create a set so that there are no duplicates
+        systems = set()
+        
+        # Load the dependencies that were passed in
+        if deps is not None:
+            for d in deps:
+                systems.add(d)
+
+        # Iterate through the inner subsystems
+        #for subsystem, config in cfg.iteritems():
+            
+
+        # Reload the dependencies into a list
+        newDeps = []
+        for d in systems:
+            newDeps.append(d)
+
+        # Return the new list
+        return newDeps
+
 class Signal(object):
-    def __init__(self, qeventHub, eventType, publisher, propName, display,
+    def __init__(self, qeventHub, eventType, publisher, propName, name,
                  warning, critical):
         self._qeventHub = qeventHub
         self._eventType = eventType
         self._publisher = publisher
         self._property = propName
-        self._display = display
+        self._name = name
         self._warning = warning
         self._critical = critical
         self._lastValue = 0
@@ -115,7 +156,7 @@ class Signal(object):
 
         newEvent = core.StringEvent()
         newEvent.string = '%s:%s:%s:%s' % (self._eventType, self._publisher,
-                                        self._property, self._display)
+                                        self._property, self._name)
 
         if self._critical > self._warning:
             self._checkMaximum(value, newEvent)

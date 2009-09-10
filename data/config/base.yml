@@ -65,7 +65,7 @@ Vehicle:
             type: SBPowerSource
             id: 1
 
-        Batter3:
+        Battery3:
             depends_on: ['SensorBoard']
             type: SBPowerSource
             id: 2
@@ -362,3 +362,47 @@ Controller:
     depthKp: 10.0 #12.0
     depthKi: 1.0
     depthKd: 1.0 #3.0
+
+Monitor:
+    type: Monitor
+    depends_on: ["QueuedEventHub", "Vehicle"]
+
+    Battery1:
+        name: "Battery 1"
+        publisher: "Vehicle.Device.Batt 1"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery2:
+        name: "Battery 2"
+        publisher: "Vehicle.Device.Batt 2"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery3:
+        name: "Battery 3"
+        publisher: "Vehicle.Device.Batt 3"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery4:
+        name: "Battery 4"
+        publisher: "Vehicle.Device.Batt 4"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    #Battery5:
+    #    name: "Battery 5"
+    #    publisher: "Vehicle.Device.Batt 5"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26

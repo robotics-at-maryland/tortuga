@@ -59,4 +59,3 @@ class ObjectPanel(wx.Panel):
         layout.Add(self._rotation, pos = (1, 3))
 
         self.SetSizerAndFit(layout)
-
