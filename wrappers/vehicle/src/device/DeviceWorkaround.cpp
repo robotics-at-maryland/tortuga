@@ -20,6 +20,8 @@
 #include "vehicle/include/device/IIMU.h"
 #include "vehicle/include/device/ISonar.h"
 #include "vehicle/include/device/IPayloadSet.h"
+#include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/device/IPositionSensor.h"
 
 namespace bp = boost::python;
 
@@ -49,9 +51,17 @@ void registerIDevicePtrs()
     
     bp::register_ptr_to_python< ram::vehicle::device::ISonarPtr >();
     bp::implicitly_convertible< ram::vehicle::device::ISonarPtr,
-                                ram::vehicle::device::IDevicePtr>();
+                                ram::vehicle::device::IDevicePtr >();
 
     bp::register_ptr_to_python< ram::vehicle::device::IPayloadSetPtr >();
     bp::implicitly_convertible< ram::vehicle::device::IPayloadSetPtr,
-                                ram::vehicle::device::IDevicePtr>();
+                                ram::vehicle::device::IDevicePtr >();
+
+    bp::register_ptr_to_python< ram::vehicle::device::IVelocitySensorPtr >();
+    bp::implicitly_convertible< ram::vehicle::device::IVelocitySensorPtr,
+	                        ram::vehicle::device::IDevicePtr >();
+
+    bp::register_ptr_to_python< ram::vehicle::device::IPositionSensorPtr >();
+    bp::implicitly_convertible< ram::vehicle::device::IVelocitySensorPtr,
+	                        ram::vehicle::device::IDevicePtr >();
 }

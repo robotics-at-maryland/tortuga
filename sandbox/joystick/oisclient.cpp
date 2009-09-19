@@ -56,6 +56,9 @@ void handleNonBufferedJoy( JoyStick* js );
 //-- Some hacky globals --//
 bool appRunning = true;	//Global Exit Flag
 
+//-- These two globals control the torpedo and marker dropper functionality --//
+int armCommand = 0;
+
 InputManager *g_InputManager = 0;
 Keyboard *g_kb  = 0;		//Keyboard Device
 Mouse	 *g_m   = 0;		//Mouse Device
@@ -71,41 +74,44 @@ ForceFeedback* g_ff[4] = {0,0,0,0};//Array to hold ff interface for each joy
 #endif
 
 
-#define CMD_NOTHING     0
+#define CMD_NOTHING       0
 
-#define CMD_TURNLEFT    1
-#define CMD_TURNRIGHT   2
+#define CMD_TURNLEFT      1
+#define CMD_TURNRIGHT     2
 
-#define CMD_ASCEND      3
-#define CMD_DESCEND     4
+#define CMD_ASCEND        3
+#define CMD_DESCEND       4
 
-#define CMD_INCSPEED    5
-#define CMD_DECSPEED    6
+#define CMD_INCSPEED      5
+#define CMD_DECSPEED      6
 
-#define CMD_ZEROSPEED   7
-#define CMD_EMERGSTOP   8
+#define CMD_ZEROSPEED     7
+#define CMD_EMERGSTOP     8
 
-#define CMD_NOTHING     0
+#define CMD_NOTHING       0
 
-#define CMD_TURNLEFT    1
-#define CMD_TURNRIGHT   2
+#define CMD_TURNLEFT      1
+#define CMD_TURNRIGHT     2
 
-#define CMD_ASCEND      3
-#define CMD_DESCEND     4
+#define CMD_ASCEND        3
+#define CMD_DESCEND       4
 
-#define CMD_INCSPEED    5
-#define CMD_DECSPEED    6
+#define CMD_INCSPEED      5
+#define CMD_DECSPEED      6
 
-#define CMD_ZEROSPEED   7
-#define CMD_EMERGSTOP   8
+#define CMD_ZEROSPEED     7
+#define CMD_EMERGSTOP     8
 
-#define CMD_SETSPEED    9
+#define CMD_SETSPEED      9
 
-#define CMD_ANGLEYAW 10
-#define CMD_ANGLEPITCH 12
-#define CMD_ANGLEROLL 13
+#define CMD_ANGLEYAW     10
+#define CMD_ANGLEPITCH   12
+#define CMD_ANGLEROLL    13
 
-#define CMD_TSETSPEED      11
+#define CMD_TSETSPEED    11
+
+#define CMD_FIRE_TORPEDO 14
+#define CMD_DROP_MARKER  15
 
 int sockfd=0;
 
@@ -136,14 +142,20 @@ void sendCmd(int fd, unsigned char cmd, signed char param)
  */
 	#define BTN_INCSPEED  10
 	#define BTN_DECSPEED  13
-	#define BTN_TURNLEFT  1
-	#define BTN_TURNRIGHT 3
+//	#define BTN_TURNLEFT  1
+        #define BTN_TURNLEFT -1
+//	#define BTN_TURNRIGHT 3
+        #define BTN_TURNRIGHT -2
 
 	#define BTN_ASCEND  6
 	#define BTN_DESCEND 7
 
-	#define BTN_EMERGSTOP 0
+	#define BTN_EMERGSTOP -3
 	#define BTN_ZEROSPEED 2
+
+        #define BTN_ARM_TORPEDO 1
+        #define BTN_ARM_MARKER 3
+        #define BTN_FIRE 0
 
 
     #define AXIS_TSPEED 0
@@ -339,10 +351,83 @@ void processButtonPress(int fd, int btn)
             break;
         }
 
+        case BTN_ARM_TORPEDO:
+	{
+	    if (armCommand == CMD_FIRE_TORPEDO)
+	    {
+	        // No command is sent
+	        printf("Disarm torpedo launcher\n");
+		armCommand = 0;
+		// Break out of the switch statement
+		break;
+	    }
+	    else if (armCommand == CMD_DROP_MARKER)
+	    {
+		// Disarm the markers and arm the torpedo
+		printf("Disarm marker dropper\n");
+		armCommand = 0;
+	    }
+	    // Arm the torpedos
+	    printf("Arm torpedo launcher\n");
+	    armCommand = CMD_FIRE_TORPEDO;
+	    break;
+	}
+
+        case BTN_ARM_MARKER:
+	{
+	    if (armCommand == CMD_DROP_MARKER)
+	    {
+	        // No command is sent
+	        printf("Disarm marker dropper\n");
+		armCommand = 0;
+		// Break out of the switch statement
+		break;
+	    }
+	    else if (armCommand == CMD_FIRE_TORPEDO)
+	    {
+		// Disarm the markers and arm the torpedo
+		printf("Disarm torpedo launcher\n");
+		armCommand = 0;
+	    }
+	    // Arm the torpedos
+	    printf("Arm marker dropper\n");
+	    armCommand = CMD_DROP_MARKER;
+	    break;
+	}
+
+	case BTN_FIRE:
+        {
+	    if (armCommand)
+	    {
+		printf("Fire armed payload\n");
+		sendCmd(fd, armCommand, 0);
+		armCommand = 0;
+	    }
+	    else
+	    {
+	        printf("No payload armed\n");
+	    }
+	    break;
+        }
     }
 }
 
-
+void processButtonReleased(int fd, int btn)
+{
+    switch (btn)
+    {
+        case BTN_ARM_TORPEDO:
+	    printf("Disarm torpedo launchers\n");
+	    armCommand = 0;
+	    break;
+	case BTN_ARM_MARKER:
+	    printf("Disarm marker dropper\n");
+	    armCommand = 0;
+	    break;
+        default:
+	    break;
+    }
+}
 
 //////////// Common Event handler class ////////
 class EventHandler : public KeyListener, public MouseListener, public JoyStickListener
@@ -381,6 +466,7 @@ public:
 	bool buttonReleased( const JoyStickEvent &arg, int button ) {
  //       std::cout << "* Joy ButtonReleased: " << button<<"\n";
      //   sendEvent(sockfd, TYPE_BTN, button, 0);
+	    processButtonReleased(sockfd, button);
 		return true;
 	}
 

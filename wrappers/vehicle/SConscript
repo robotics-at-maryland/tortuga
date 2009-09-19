@@ -47,7 +47,9 @@ dev_wrapped_headers = ['device/Common.h',
                        'device/ITempSensor.h',
                        'device/IPayloadSet.h',
                        'device/IIMU.h',
-                       'device/ISonar.h']
+                       'device/ISonar.h',
+		       'device/IVelocitySensor.h',
+		       'device/IPositionSensor.h']
 
 # Tests
 root_src = os.path.dirname(env.GetBuildPath('SConscript'))

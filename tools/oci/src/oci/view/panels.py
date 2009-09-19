@@ -1206,11 +1206,18 @@ class ControlDebugPanel(BasePanel):
 class VelocityPosition(BasePanel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub):
-        BasePanel.__init__(self, parent)#, *args, **kwargs)
+    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+        BasePanel.__init__(self, parent, *args, **kwargs)
     
+        self.vehicle = vehicle
+
         # Controls
         self._createControls("Pos & Vel", startEnable = True)
+
+        # Only update the velocity and position at the timer (so we can read it)
+        #self._timer = wx.Timer()
+        #self._timer.Bind(wx.EVT_TIMER, self._update)
+        #self._timer.Start(100)
         
         # Events
         conn = eventHub.subscribeToType(ext.vehicle.IVehicle.VELOCITY_UPDATE,
@@ -1239,6 +1246,16 @@ class VelocityPosition(BasePanel):
         self._xPos.Value = "% 4.2f" % pos.x
         self._yPos.Value = "% 4.2f" % pos.y
 
+    #def _update(self, event):
+    #    vel = self.vehicle.getVelocity()
+    #    pos = self.vehicle.getPosition()
+
+    #    self._xVel.Value = "% 4.2f" % vel.x
+    #    self._yVel.Value = "% 4.2f" % vel.y
+    #    self._xPos.Value = "% 4.2f" % pos.x
+    #    self._yPos.Value = "% 4.2f" % pos.y
+    #    self._timer.Start(100)
+
     @staticmethod
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
@@ -1251,7 +1268,7 @@ class VelocityPosition(BasePanel):
             paneInfo = wx.aui.AuiPaneInfo().Name("Pos & Vel")
             paneInfo = paneInfo.Caption("Pos & Vel").Right()
         
-            panel = VelocityPosition(parent, eventHub)
+            panel = VelocityPosition(parent, eventHub, vehicle)
             return [(paneInfo, panel, [vehicle])]
         
         return []

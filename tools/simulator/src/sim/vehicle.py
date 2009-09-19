@@ -104,6 +104,73 @@ class SimDepthSensor(SimDevice, device.IDepthSensor):
 device.IDeviceMaker.registerDevice('SimDepthSensor', SimDepthSensor)
 
 
+class SimVelocitySensor(SimDevice, device.IVelocitySensor):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IVelocitySensor.__init__(self, eventHub, self._name)
+        
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot
+
+        # This will keep track of the current velocity
+        self.oldPos = math.Vector2(self.robot._main_part._node.position.x,
+                                   self.robot._main_part._node.position.y)
+        self.velocity = math.Vector2(0, 0)
+
+    def update(self, time):
+        # On each update, we'll find the velocity using the old position
+        currentPos = math.Vector2(self.robot._main_part._node.position.x,
+                                  self.robot._main_part._node.position.y)
+        # Subtract by the old position and divide by time
+        self.velocity = (currentPos - self.oldPos) / time
+
+        # Update the position
+        self.oldPos = currentPos
+
+        # Publish an update event
+        event = math.Vector2Event()
+        event.vector2 = self.getVelocity()
+        self.publish(device.IVelocitySensor.UPDATE, event)
+        
+    def getVelocity(self):
+        return self.velocity
+        
+    def getLocation(self):
+        return math.Vector3(0, 0, 0)
+
+device.IDeviceMaker.registerDevice('SimVelocitySensor', SimVelocitySensor)
+
+
+class IdealPositionEstimator(SimDevice, device.IPositionSensor):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IPositionSensor.__init__(self, eventHub, self._name)
+    
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot
+
+        self.initialPos = math.Vector2(self.robot._main_part._node.position.x,
+                                       self.robot._main_part._node.position.y)
+
+    def update(self, time):
+        event = math.Vector2Event()
+        event.vector2 = self.getPosition()
+        self.publish(device.IPositionSensor.UPDATE, event)
+
+    def getPosition(self):
+        # Gets the exact position relative to the initial position
+        currentPos = math.Vector2(self.robot._main_part._node.position.x,
+                                       self.robot._main_part._node.position.y)
+        return currentPos - self.initialPos
+
+    def getLocation(self):
+        return math.Vector3(0, 0, 0)
+
+device.IDeviceMaker.registerDevice('IdealPositionEstimator',
+                                   IdealPositionEstimator)
+
 class SimIMU(SimDevice, device.IIMU):
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']

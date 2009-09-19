@@ -85,6 +85,14 @@ def generate(module_builder, local_ns, global_ns):
     IPayloadSet = expose_device(local_ns, 'IPayloadSet')
     wrappedClasses.append(IPayloadSet)
 
+    # Wrap the IVelocitySensor class
+    IVelocitySensor = expose_device(local_ns, 'IVelocitySensor')
+    wrappedClasses.append(IVelocitySensor)
+
+    # Wrap the IPositionSensor class
+    IPositionSensor = expose_device(local_ns, 'IPositionSensor')
+    wrappedClasses.append(IPositionSensor)
+
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes(wrappedClasses)

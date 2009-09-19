@@ -19,6 +19,7 @@
 #include <wx/dcclient.h>
 #include <wx/slider.h>
 #include <wx/button.h>
+#include <wx/tglbtn.h>
 
 #include <boost/bind.hpp>
 
@@ -48,6 +49,7 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_label(0),
     m_model(model),
     m_defaultValue(m_prop->toString().c_str(), wxConvUTF8),
+    m_lock(0),
     m_defaultButton(0)
 {
     // Label for the property
@@ -94,6 +96,11 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
 			this);
     }
 
+    m_lock = new wxToggleButton(this, wxID_ANY, wxT("LOCK"));
+    m_lock->Connect(m_lock->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+		    wxCommandEventHandler(PropertyControl::onLock), NULL, this);
+    sizer->Add(m_lock);
+
     m_defaultButton = new wxButton(this, wxID_ANY, wxT("RESET"));
     m_defaultButton->Connect(m_defaultButton->GetId(),
 			     wxEVT_COMMAND_BUTTON_CLICKED,
@@ -137,6 +144,7 @@ void PropertyControl::setToDefault()
             break;
     }
 
+    m_lock->SetValue(false);
     
 }
 
@@ -190,23 +198,32 @@ void PropertyControl::onCheck(wxCommandEvent& event)
 
 void PropertyControl::onSliderUpdate(wxScrollEvent& event)
 {
-    switch (m_prop->getType())
+    if (m_lock->GetValue())
     {
-        case core::Property::PT_INT:
-            m_prop->set((int)event.GetPosition());
-            m_slider->SetValue(m_prop->getAsInt());
-            break;
-        case core::Property::PT_DOUBLE:
-            m_prop->set(event.GetPosition() / m_sliderScale);
-            m_slider->SetValue((int)(m_prop->getAsDouble() * m_sliderScale));
-            break;
-        default:
-            assert(false && "Error improper type for slider");
-            break;
+	m_slider->SetValue(m_sliderValue);
     }
+    else
+    {
+	switch (m_prop->getType())
+	{
+            case core::Property::PT_INT:
+		m_prop->set((int)event.GetPosition());
+		m_sliderValue = m_prop->getAsInt();
+		m_slider->SetValue(m_sliderValue);
+		break;
+            case core::Property::PT_DOUBLE:
+		m_prop->set(event.GetPosition() / m_sliderScale);
+		m_sliderValue = (int)(m_prop->getAsDouble() * m_sliderScale);
+		m_slider->SetValue(m_sliderValue);
+		break;
+            default:
+		assert(false && "Error improper type for slider");
+		break;
+	}
 
-    m_text->ChangeValue(wxString(m_prop->toString().c_str(), wxConvUTF8));
-    m_model->detectorPropertiesChanged();
+	m_text->ChangeValue(wxString(m_prop->toString().c_str(), wxConvUTF8));
+	m_model->detectorPropertiesChanged();
+    }
 }
 
 void PropertyControl::onPropertiesChanged(core::EventPtr event)
@@ -215,13 +232,19 @@ void PropertyControl::onPropertiesChanged(core::EventPtr event)
     {
         case core::Property::PT_INT:
             if (m_slider)
-                m_slider->SetValue(m_prop->getAsInt());
+	    {
+		m_sliderValue = m_prop->getAsInt();
+                m_slider->SetValue(m_sliderValue);
+	    }
             m_text->ChangeValue(wxString(m_prop->toString().c_str(), 
 					 wxConvUTF8));
             break;
         case core::Property::PT_DOUBLE:
             if (m_slider)
-                m_slider->SetValue((int)(m_prop->getAsDouble()*m_sliderScale));
+	    {
+                m_sliderValue = (int)(m_prop->getAsDouble()*m_sliderScale);
+		m_slider->SetValue(m_sliderValue);
+	    }
             m_text->ChangeValue(wxString(m_prop->toString().c_str(), 
 					 wxConvUTF8));
             break;
@@ -232,6 +255,10 @@ void PropertyControl::onPropertiesChanged(core::EventPtr event)
             assert(false && "Error improper property type");
             break;
     }
+}
+
+void PropertyControl::onLock(wxCommandEvent& event)
+{
 }
 
 void PropertyControl::onDefaultButton(wxCommandEvent& event)

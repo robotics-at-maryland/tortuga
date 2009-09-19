@@ -25,6 +25,8 @@ class wxCheckBox;
 class wxSlider;
 class wxSizer;
 class wxScrollEvent;
+class wxButton;
+class wxToggleButton;
 
 namespace ram {
 namespace tools {
@@ -64,6 +66,9 @@ private:
     /** The overall property set has changed update our displayed values */
     void onPropertiesChanged(core::EventPtr event);
 
+    /** The actions for the lock button */
+    void onLock(wxCommandEvent& event);
+
     /** The set to default button action */
     void onDefaultButton(wxCommandEvent& event);
 
@@ -91,6 +96,9 @@ private:
     /** Used for boolean properties */
     wxCheckBox* m_checkBox;
 
+    /** The position of the slider */
+    int m_sliderValue;
+
     /** Slider for changing property value */
     wxSlider* m_slider;
 
@@ -105,6 +113,9 @@ private:
         
     /** The original value of the property */
     wxString m_defaultValue;
+
+    /** The lock button */
+    wxToggleButton* m_lock;
 
     /** The set to default button */
     wxButton* m_defaultButton;

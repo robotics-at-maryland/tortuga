@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/python/ram/ai/gate.py
+# File:  packages/python/ram/ai/course.py
 
 """
 A state machine which controls the vehicle through the course. Currently it

@@ -23,10 +23,18 @@ Vehicle:
     Devices:
         # Special device that holds references to the current simulation
         # scene and robot
+#        VelocitySensor:
+#            type: VisionVelocitySensor
+#            depthSensorName: DepthSensor
+#            depends_on: ["DepthSensor"]
+
         VelocitySensor:
-            type: VisionVelocitySensor
-            depthSensorName: DepthSensor
-            depends_on: ["DepthSensor"]
+            type: SimVelocitySensor
+            depends_on: ["SimulationDevice"]
+
+        PositionSensor:
+            type: IdealPositionEstimator
+            depends_on: ["SimulationDevice"]
 
         SimulationDevice:
             type: SimulationDevice
