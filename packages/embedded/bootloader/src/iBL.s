@@ -93,39 +93,48 @@ __reset:
 
 
 
-/*
- * Bus = D1 D0 E5-E0
- * Akn = D2
- * RW  = E8
- */
 
+;Bus = D1 D0 E5-E0
+;Akn = D2
+;RW  = E8
 
 ;TRIS = 1 ->input
 ;TRIS = 0 ->output
+
+;RW=1 -> write
+;RW=0 -> read
+
 
 ;D1(MSB)-D0,E5-E0(LSB)
 
 
 
 
-		/*i dont know how to do the IRQ stuff so im skipping that*/
+;i dont know how to do the IRQ stuff so im skipping that
 
-		;check this
-
-		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
+		BSET TRIS_RW, #8			;we want to set the RW pin to read to see if we need to read or write
 		NOP
-		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
-		goto ReadBus 		;read the BUS so we can swab the nybbles
-		/*else, send NACK->we are going to skip this cuz i dunno how*/
-
-		SWAP W2				;swap the nybbles
+		BTSS RW_PIN, #8				;is RW==1 ie WRITE mode? if so, skip next instruction
+		goto RX_nybbles				;read the BUS so we can swab the nybbles
+							;else, RW==READ send NACK->we are going to skip this cuz i dunno how
+		SWAP W2			;swap the nybbles
 ;what is timeout and how do we set it?
+;we still gotta finalize all the interrupt stuff like what pin we're getting it on etc		
+;if we get an interrupt, run the code below:
+		BSET TRIS_RW, #8
+                NOP
+                BTST RW_PIN, #8				;if RW==0, READ mode
+		BRA Z, TX_nybbles
+
+TX_nybbles:
+		MOV 0x0000, W0          ;we want to set the TRIS E5-E0 pins to write
+	        MOV W0, TRISE           ;actually do it.
+		MOV 0x0000, W0          ;we want to set the TRIS D1-D0 pins to write
+		MOV W0, TRISD           ;actually do it.
+;will this just move the low bits?		MOV W2, LATE 
 
 
-
-
-
-ReadBus:					;read E5:E0->W1		D1:D0->W2
+RX_nybbles:					;read E5:E0->W1		D1:D0->W2
 		MOV 0x003F, W0		;we want to set the TRIS E5-E0 pins to read
 		MOV W0, TRISE		;actually do it.
 		MOV 0x0003, W0		;we want to set the TRIS D1-D0 pins to read
