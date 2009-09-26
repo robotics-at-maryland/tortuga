@@ -312,9 +312,10 @@ bool SensorBoard::isPowerSourceEnabled(int address)
         BATT3_ENABLED,
         BATT4_ENABLED,
         BATT5_ENABLED,
+	BATT6_ENABLED,
     };
 
-    assert((0 <= address) && (address < 5) && "Address out of range");
+    assert((0 <= address) && (address < 6) && "Address out of range");
 
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return (0 != (addressToEnable[address] & m_state.telemetry.battEnabled));
@@ -328,9 +329,10 @@ bool SensorBoard::isPowerSourceInUse(int address)
         BATT3_INUSE,
         BATT4_INUSE,
         BATT5_INUSE,
+	BATT6_INUSE,
     };
 
-    assert((0 <= address) && (address < 5) && "Address out of range");
+    assert((0 <= address) && (address < 6) && "Address out of range");
 
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return (0 != (addressToEnable[address] & m_state.telemetry.battUsed));
@@ -344,6 +346,7 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_ON,
         CMD_BATT4_ON,
         CMD_BATT5_ON,
+	CMD_BATT6_ON,
     };
     
     static int addressToOff[] = {
@@ -352,9 +355,10 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_OFF,
         CMD_BATT4_OFF,
         CMD_BATT5_OFF,
+	CMD_BATT6_OFF,
     };
 
-    assert((0 <= address) && (address < 5) && "Power source id out of range");
+    assert((0 <= address) && (address < 6) && "Power source id out of range");
 
     {
         boost::mutex::scoped_lock lock(m_deviceMutex);
