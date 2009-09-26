@@ -58,17 +58,17 @@ public:
     }
 
     virtual bool isPowerSourceEnabled(int address) {
-        assert(address <= 4 && address >=0 && "Invalid Address");
+        assert(address <= 5 && address >=0 && "Invalid Address");
         return powerSourceEnables[address];
     }
 
     virtual bool isPowerSourceInUse(int address) {
-        assert(address <= 4 && address >=0 && "Invalid Address");
+        assert(address <= 5 && address >=0 && "Invalid Address");
         return powerSourceUsed[address];
     }
 
     virtual void setPowerSouceEnabled(int address, bool state) {
-        assert(address <= 4 && address >=0 && "Invalid Address");
+        assert(address <= 5 && address >=0 && "Invalid Address");
         powerSourceEnables[address] = state;
     }
 

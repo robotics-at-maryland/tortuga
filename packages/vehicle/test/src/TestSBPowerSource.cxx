@@ -99,7 +99,7 @@ TEST_FIXTURE(SBPowerSourceFixture, isEnabled)
         ram::core::ConfigNode::fromString("{ 'id' : 4 }"),
         ram::core::EventHubPtr(), ivehicle);
 
-    CHECK_EQUAL("Shore", powerSource->getName());
+    CHECK_EQUAL("Batt 5", powerSource->getName());
 
     // Check default
     CHECK_EQUAL(false, powerSource->isEnabled());
@@ -161,5 +161,22 @@ TEST_FIXTURE(SBPowerSourceFixture, updateID)
     // Publish event and make sure it didn't change
     sensorBoard->publishPowerSourceUpdate(4, true, false, 0, 0);
     CHECK_EQUAL(false, powerSource->isEnabled());
+    delete powerSource;
+}
+
+TEST_FIXTURE(SBPowerSourceFixture, isEnabled2)
+{
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 5 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK_EQUAL("Shore", powerSource->getName());
+
+    // Check default
+    CHECK_EQUAL(false, powerSource->isEnabled());
+
+    // Publish event and check values
+    sensorBoard->publishPowerSourceUpdate(5, true, false, 0, 0);
+    CHECK_EQUAL(true, powerSource->isEnabled());
     delete powerSource;
 }

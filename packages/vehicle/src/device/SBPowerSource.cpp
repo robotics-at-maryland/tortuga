@@ -29,15 +29,16 @@ namespace device {
 
 static std::string idToName(int id)
 {
-    static std::string id2Name[5] = {
+    static std::string id2Name[6] = {
         "Batt 1",
         "Batt 2",
         "Batt 3",
         "Batt 4",
+        "Batt 5",
         "Shore",
     };
 
-    assert((id >= 0) && (id <= 4) && "ID Out of range");
+    assert((id >= 0) && (id <= 5) && "ID Out of range");
     
     return id2Name[id];
 }
