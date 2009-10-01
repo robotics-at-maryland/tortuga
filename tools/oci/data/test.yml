@@ -40,6 +40,6 @@ Subsystems:
             publisher: "Vehicle.Device.Batt 1"
             eventType: ext.vehicle.device.IVoltageProvider.UPDATE
             property: number
-            display: "Battery 1 Low"
+            name: "Battery 1"
             warning: 27
             critical: 26

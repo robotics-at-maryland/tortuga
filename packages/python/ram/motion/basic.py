@@ -206,8 +206,7 @@ core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
 class Motion(object):
     """
     A class which encapsulates some sort of motion of the vehicle.
-    """
-    
+    """    
     
     IN_PLANE = 1
     DEPTH = 2
