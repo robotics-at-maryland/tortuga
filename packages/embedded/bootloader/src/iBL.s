@@ -1,10 +1,10 @@
 ;******************************************************************************
 ;*                                                                            *
-;*  Project:     ingenia BootLoader                                           *
+;*  Project:     Tortuga bootloader                                           *
 ;*  Module:      iBL.s                                                        *
 ;*  Description: dsPic bootloader with autobaud detection                     *
 ;*               Read/Write through UART: PGM, EEPROM & Config registers      *
-;*  Author:      Roger Juanpere                                               *
+;*  Author:      Roger Juanpere/Neil Sikka                                    *
 ;*                                                                            *
 ;*  Revision: 1.0 (17-08-05): Initial version                                 *
 ;*            1.1 (01-02-06): Added support for >32K PGM devices              *
@@ -93,48 +93,45 @@ __reset:
 
 
 
+/*
+ * Bus = D1 D0 E5-E0
+ * Akn = D2
+ * RW  = E8
+ */
 
-;Bus = D1 D0 E5-E0
-;Akn = D2
-;RW  = E8
 
 ;TRIS = 1 ->input
 ;TRIS = 0 ->output
-
-;RW=1 -> write
-;RW=0 -> read
-
 
 ;D1(MSB)-D0,E5-E0(LSB)
 
 
 
 
-;i dont know how to do the IRQ stuff so im skipping that
+/*i dont know how to do the IRQ stuff so im skipping that*/
 
-		BSET TRIS_RW, #8			;we want to set the RW pin to read to see if we need to read or write
+		;check this
+
+		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
 		NOP
-		BTSS RW_PIN, #8				;is RW==1 ie WRITE mode? if so, skip next instruction
-		goto RX_nybbles				;read the BUS so we can swab the nybbles
-							;else, RW==READ send NACK->we are going to skip this cuz i dunno how
-		SWAP W2			;swap the nybbles
+		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
+		call SendNACK
+		call ReadBus 		;read the BUS so we can swap the nybbles
+		SWAP W2				;swap the nybbles
 ;what is timeout and how do we set it?
-;we still gotta finalize all the interrupt stuff like what pin we're getting it on etc		
-;if we get an interrupt, run the code below:
-		BSET TRIS_RW, #8
-                NOP
-                BTST RW_PIN, #8				;if RW==0, READ mode
-		BRA Z, TX_nybbles
-
-TX_nybbles:
-		MOV 0x0000, W0          ;we want to set the TRIS E5-E0 pins to write
-	        MOV W0, TRISE           ;actually do it.
-		MOV 0x0000, W0          ;we want to set the TRIS D1-D0 pins to write
-		MOV W0, TRISD           ;actually do it.
-;will this just move the low bits?		MOV W2, LATE 
+/*i dont know how to do the IRQ stuff so im skipping that*/
+;if we get interrupt:
+		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
+		NOP
+		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
+		goto sendSwappedNybbles
+		goto finished
+afterSendingSwappedNybbles:
 
 
-RX_nybbles:					;read E5:E0->W1		D1:D0->W2
+
+
+ReadBus:					;read E5:E0->W1		D1:D0->W2
 		MOV 0x003F, W0		;we want to set the TRIS E5-E0 pins to read
 		MOV W0, TRISE		;actually do it.
 		MOV 0x0003, W0		;we want to set the TRIS D1-D0 pins to read
@@ -147,10 +144,21 @@ RX_nybbles:					;read E5:E0->W1		D1:D0->W2
 		return
 ;apparently we can write a whole byte at once by writing to a latch. the problem is that we need to write to parts of D and E
 
-
-
-
-
+sendSwappedNybbles:			;write the contents of W2 into D[1:0],E[5:0]
+							;LATD bits:		10
+							;LATE bits:		  543210
+											^^^^^^^^
+							;register W2:	76543210
+		BCLR TRIS_RW		;clear the RW pin so we can write the Nybble back
+		MOV 0x000, W0		;we want to set the pins to write
+		MOV W0, TRISE		;actually do it for E.
+		MOV W0, TRISD		;actually do it for D.
+		MOV W2, LATE									;will this write the lower bits only?
+		AND 0xC0, W2		;we only want to preserve the 2 low bits of W2
+		ASR W2, 6, W2		;W2=W2>>6 so the high bits of W2 are now bits 0/1
+		MOV W2, LATD		;actually write to LATD
+		goto afterSendingSwappedNybbles
+//TODO: see if we can reuse code from somewhere else in this file to recieve the bootloader image off the pins.
 
 		/*      ; Uart init
         mov #0x8420, W0           ; W0 = 0x8420 -> 1000 0100 0010 0000b
