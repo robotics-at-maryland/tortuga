@@ -1,5 +1,5 @@
 RedLightDetector:       
-   intialMinPixels: 400
+   initialMinPixels: 400
    foundMinPixelScale: 0.85
    lostMinPixelScale: 0.75
    # About 20% of the total pixels

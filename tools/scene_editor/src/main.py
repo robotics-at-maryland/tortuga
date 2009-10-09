@@ -1,8 +1,8 @@
 import wx
 import wx.aui
 
-import editor
-import panels
+import editor.editor as editor
+import editor.panels as panels
 
 class SceneEditor(wx.Frame):
 
