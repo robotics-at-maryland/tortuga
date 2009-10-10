@@ -1,6 +1,6 @@
 #!/usr/bin/env python -i
 
-import sys
+import sys, os
 sys.path.append('build')
 sys.path.append('/opt/local/lib/python2.6/site-packages')
 import traceback, Ice, ram
@@ -24,7 +24,7 @@ atexit.register(ice_cleanup)
 try:
     print 'Loading Ice client runtime...'
     ic = Ice.initialize(sys.argv)
-    base = ic.stringToProxy("SensorBoard:default -p 10000")
+    base = ic.stringToProxy("SensorBoard:default -h %s -p 10000" % sys.argv[1])
     sb = ram.tortuga.SensorBoardPrx.checkedCast(base)
     if not sb:
         raise RuntimeError("Invalid proxy")
@@ -32,5 +32,5 @@ except:
     traceback.print_exc()
     status = 1
     print('Failed to load Ice client runtime.  Quitting now.')
-    sys.exit(status)
+    os._exit(status)
 print "A SensorBoard is now available as the global variable 'sb'."
