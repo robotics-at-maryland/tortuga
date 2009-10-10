@@ -6,6 +6,10 @@ sys.path.append('/opt/local/lib/python2.6/site-packages')
 import traceback, Ice, ram
 import atexit
 
+if len(sys.argv) != 2:
+	print 'Usage: client.py hostname'
+	os._exit(1)
+
 
 status = 0
 ic = None
