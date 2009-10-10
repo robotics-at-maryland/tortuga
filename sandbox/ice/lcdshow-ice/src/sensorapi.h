@@ -10,7 +10,7 @@
 #ifndef RAM_DRIVER_SENSORAPI_H_06_09_2008
 #define RAM_DRIVER_SENSORAPI_H_06_09_2008
 
-#include "../../../embedded/sbr5/buscodes.h"
+#include "buscodes.h"
 
 #define MAX_SYNC_ATTEMPTS 20
 
