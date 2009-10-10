@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         Ice::ObjectAdapterPtr adapter
 		= ic->createObjectAdapterWithEndpoints("lcdshow", "default -p 10000");
         Ice::ObjectPtr object = new ram::tortuga::SensorBoard;
-        adapter->add(object, ic->stringToIdentity("factory"));
+        adapter->add(object, ic->stringToIdentity("SensorBoard"));
         adapter->activate();
         ic->waitForShutdown();
     } catch (const Ice::Exception& e) {
