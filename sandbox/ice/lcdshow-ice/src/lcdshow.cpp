@@ -9,7 +9,7 @@
 #include <SensorBoard.h>
 
 // Project Includes
-#include "include/sensorapi.h"
+#include "sensorapi.h"
 
 #ifndef SENSORAPI_R5
 #error "WRONG VERSION OF INCLUDE"
@@ -19,6 +19,9 @@
  * Sensor Board Utility, Revision $rev:$
  *
  */
+
+namespace ram {
+namespace tortuga {
 
 void thrusterCmd(int fd, int cmd)
 {
@@ -47,15 +50,15 @@ class SensorBoardI : public SensorBoard {
 };
 
 SensorBoardI::SensorBoardI() :
-    m_fd(openSensorBoard("/dev/sensor")
+    m_fd(openSensorBoard("/dev/sensor"))
 {
 }
 
 SensorBoardI::~SensorBoardI() {
-    close(fd);
+    close(m_fd);
 }
 
-void SensorBoardI::printString(const std::string& line1,
+void SensorBoardI::SetText(const std::string& line1,
 			       const std::string& line2,
 			       const Ice::Current&) {
     displayText(m_fd, 0, line1.c_str());
@@ -70,27 +73,30 @@ int main(int argc, char* argv[])
         ic = Ice::initialize(argc, argv);
         Ice::ObjectAdapterPtr adapter
 		= ic->createObjectAdapterWithEndpoints("lcdshow", "default -p 10000");
-        Ice::ObjectPtr object = new ram::tortuga::SensorBoard;
+        Ice::ObjectPtr object = new ram::tortuga::SensorBoardI;
         adapter->add(object, ic->stringToIdentity("SensorBoard"));
         adapter->activate();
         ic->waitForShutdown();
     } catch (const Ice::Exception& e) {
-        cerr << e << endl;
+	std::cerr << e << std::endl;
         status = 1;
     } catch (const char* msg) {
-        cerr << msg << endl;
+	std::cerr << msg << std::endl;
         status = 1;
     }
     if (ic) {
         try {
             ic->destroy();
         } catch (const Ice::Exception& e) {
-            cerr << e << endl;
+	    std::cerr << e << std::endl;
             status = 1;
         }
     }
     return status;
 }
+
+} // namespace tortuga
+} // namespace ram
 
 /**
 int main(int argc, char ** argv)
