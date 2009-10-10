@@ -64,6 +64,9 @@ void SensorBoardI::SetText(const std::string& line1,
     displayText(m_fd, 0, line1.c_str());
     displayText(m_fd, 1, line2.c_str());
 }
+
+} // namespace tortuga
+} // namespace ram
     
 int main(int argc, char* argv[])
 {
@@ -94,9 +97,6 @@ int main(int argc, char* argv[])
     }
     return status;
 }
-
-} // namespace tortuga
-} // namespace ram
 
 /**
 int main(int argc, char ** argv)
