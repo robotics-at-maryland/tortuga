@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <string.h>
 
+// External Includes
+#include <Ice/Ice.h>
+#include <SensorBoard.h>
+
 // Project Includes
 #include "include/sensorapi.h"
 
@@ -28,9 +32,70 @@ void barCmd(int fd, int cmd)
         printf("Error setting bar state\n");
 }
 
+class SensorBoardI : public SensorBoard {
+ public:
+    SensorBoardI();
 
+    virtual ~SensorBoardI();
+
+    virtual void SetText(const std::string& line1,
+			     const std::string& line2,
+			     const Ice::Current&);
+
+ private:
+    int m_fd;
+};
+
+SensorBoardI::SensorBoardI() :
+    m_fd(openSensorBoard("/dev/sensor")
+{
+}
+
+SensorBoardI::~SensorBoardI() {
+    close(fd);
+}
+
+void SensorBoardI::printString(const std::string& line1,
+			       const std::string& line2,
+			       const Ice::Current&) {
+    displayText(m_fd, 0, line1.c_str());
+    displayText(m_fd, 1, line2.c_str());
+}
+    
+int main(int argc, char* argv[])
+{
+    int status = 0;
+    Ice::CommunicatorPtr ic;
+    try {
+        ic = Ice::initialize(argc, argv);
+        Ice::ObjectAdapterPtr adapter
+		= ic->createObjectAdapterWithEndpoints("lcdshow", "default -p 10000");
+        Ice::ObjectPtr object = new ram::tortuga::SensorBoard;
+        adapter->add(object, ic->stringToIdentity("factory"));
+        adapter->activate();
+        ic->waitForShutdown();
+    } catch (const Ice::Exception& e) {
+        cerr << e << endl;
+        status = 1;
+    } catch (const char* msg) {
+        cerr << msg << endl;
+        status = 1;
+    }
+    if (ic) {
+        try {
+            ic->destroy();
+        } catch (const Ice::Exception& e) {
+            cerr << e << endl;
+            status = 1;
+        }
+    }
+    return status;
+}
+
+/**
 int main(int argc, char ** argv)
 {
+
     if(argc < 2 || ((argc == 2) && (strcmp(argv[1], "-h") == 0) ))
     {
         printf("LCD-related Commands:\n");
@@ -842,3 +907,4 @@ int main(int argc, char ** argv)
     return 0;
 }
 
+**/
