@@ -19,5 +19,5 @@ env.Command(['SensorBoard.py'],
 # BENCHMARK PROGRAM
 ##############################
 
-prog = env.Program(['SensorBoard.cpp', 'sensorapi.c', 'lcdshow.cpp'])
+prog = env.Program(['lcdshow.cpp', 'SensorBoard.cpp', 'sensorapi.c'])
 Return('prog')
