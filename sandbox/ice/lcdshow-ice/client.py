@@ -1,11 +1,11 @@
 #!/usr/bin/env python -i
 
-import sys, traceback, Ice
+import sys
+sys.path.append('build')
+sys.path.append('/opt/local/lib/python2.6/site-packages')
+import traceback, Ice, ram
 import atexit
 
-sys.path.append('build')
-
-import SensorBoard
 
 status = 0
 ic = None

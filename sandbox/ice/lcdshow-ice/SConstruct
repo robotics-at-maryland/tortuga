@@ -1,11 +1,15 @@
 import os
+import sys
 
 # Import path from environment
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
 
-env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '.'])
-env.Append(LIBPATH = ['/opt/local/lib'])
-env.Append(LIBS = ['Ice', 'IceUtil'])
+if sys.platform == 'darwin':
+	env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '.'])
+	env.Append(LIBPATH = ['/opt/local/lib'])
+	env.Append(LIBS = ['ZeroCIce', 'IceUtil'])
+else:
+	env.Append(LIBS = ['Ice', 'IceUtil'])
 
 Export('env')
 env.SConscript('src/SConscript', variant_dir='#build')
