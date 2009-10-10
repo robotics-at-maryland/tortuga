@@ -9,8 +9,15 @@ env.Command(['SensorBoard.cpp','SensorBoard.h'],
 	'SensorBoard.ice', 'slice2cpp --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
 
 
+# NATIVE MARSHALING CODE FOR PYTHON
+##############################
+
+#env.Command(['SensorBoard.py'], 
+#	'SensorBoard.ice', 'slice2py --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
+
+
 # BENCHMARK PROGRAM
 ##############################
 
-prog = env.Program(['SensorBoard.cpp', 'lcdshow.cpp'])
+prog = env.Program(['SensorBoard.cpp', 'sensorapi.c', 'lcdshow.cpp'])
 Return('prog')
