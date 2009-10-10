@@ -25,8 +25,8 @@ try:
     print 'Loading Ice client runtime...'
     ic = Ice.initialize(sys.argv)
     base = ic.stringToProxy("SensorBoard:default -p 10000")
-    sb = ram.tortuga.SensorBoard.checkedCast(base)
-    if not factory:
+    sb = ram.tortuga.SensorBoardPrx.checkedCast(base)
+    if not sb:
         raise RuntimeError("Invalid proxy")
 except:
     traceback.print_exc()
