@@ -1,0 +1,16 @@
+import os.path
+
+Import('env')
+
+# NATIVE MARSHALING CODE FOR C++
+##############################
+
+env.Command(['SensorBoard.cpp','SensorBoard.h'], 
+	'SensorBoard.ice', 'slice2cpp --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
+
+
+# BENCHMARK PROGRAM
+##############################
+
+prog = env.Program(['SensorBoard.cpp', 'lcdshow.cpp'])
+Return('prog')
