@@ -44,9 +44,20 @@ import ram.timer as timer
 from datetime import datetime
 from pprint import pprint
 
+vars = dir()
+# this will print an error message for any function fname
+# that requires the component cname that has not been loaded
+def error_function(fname, cname):
+    def error():
+        raise Exception (fname + " is not defined because " + cname + " is not loaded.")
+    return error
+
 # Helper methods
-def diveTo(depth, speed = 0.3):
-    motionManager.setMotion(basic.RateChangeDepth(depth, speed))
+diveTo = error_function("diveTo", "motionManager")
+if('motionManager' in vars):
+    def diveTo_helper(depth, speed = 0.3):
+        motionManager.setMotion(basic.RateChangeDepth(depth, speed))
+    diveTo = diveTo_helper
 
 # dive and diveTo are the same function.
 dive = diveTo
@@ -62,28 +73,40 @@ def down(depthChange, speed = 0.3):
 def surface(speed = 0.3):
     diveTo(depth = 0.3, speed = speed)
 
-def yaw(yawChange, speed = 30, absolute = False):
-    motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
+yaw = error_function("yaw", "motionManager")
+if('motionManager' in vars):
+    def yaw_helper(yawChange, speed = 30, absolute = False):
+        motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
+    yaw = yaw_helper
 
-def yawTo(yawChange, speed = 30):
-    yaw(yawChange, speed, absolute = True)
+yawTo = error_function("yawTo", "motionManager")
+if('motionManager' in vars):
+    def yawTo_helper(yawChange, speed = 30):
+        yaw(yawChange, speed, absolute = True)
+    yawTo = yawTo_helper
 
 yaw2 = yawTo
 
-def allStop():
-    stateMachine.stop()
-    motionManager.stopCurrentMotion()
-    controller.setSpeed(0)
-    controller.setSidewaysSpeed(0)
-    controller.holdCurrentDepth()
-    controller.holdCurrentHeading()
+allStop = error_function("allStop", "motionManager/controller/stateMachine")
+if(('motionManager' in vars) and ('controller' in vars) and ('stateMachine' in vars)):
+    def allStop_helper():
+        stateMachine.stop()
+        motionManager.stopCurrentMotion()
+        controller.setSpeed(0)
+        controller.setSidewaysSpeed(0)
+        controller.holdCurrentDepth()
+        controller.holdCurrentHeading()
+    allStop = allStop_helper
 
 s = allStop
 stop = allStop
 
-def start(state):
-    allStop()
-    stateMachine.start(state)
+start = error_function("start", "stateMachine")
+if('stateMachine' in vars):
+    def start_helper(state):
+        allStop()
+        stateMachine.start(state)
+    start = start_helper
 
 # Keeps track of the forward and downward streams.
 # You should never be required to access the RecorderManager.
@@ -144,16 +167,31 @@ fsremove = removefs
 dsremove = removeds
 
 # Quick detector functions
-lightOn = visionSystem.redLightDetectorOn
-lightOff = visionSystem.redLightDetectorOff
-pipeOn = visionSystem.pipeLineDetectorOn
-pipeOff = visionSystem.pipeLineDetectorOff
-bwireOn = visionSystem.barbedWireDetectorOn
-bwireOff = visionSystem.barbedWireDetectorOff
-binOn = visionSystem.binDetectorOn
-binOff = visionSystem.binDetectorOff
-targetOn = visionSystem.targetDetectorOn
-targetOff = visionSystem.targetDetectorOff
+
+# make error functions for all of them
+lightOn = error_function("lightOn", "visionSystem")
+lightOff = error_function("lightOff", "visionSystem")
+pipeOn = error_function("lightOn", "visionSystem")
+pipeOff = error_function("pipeOff", "visionSystem")
+bwireOn = error_function("bwireOn", "visionSystem")
+bwireOff = error_function("bwireOff", "visionSystem")
+binOn = error_function("binOn", "visionSystem")
+binOff = error_function("binOff", "visionSystem")
+targetOn = error_function("targetOn", "visionSystem")
+targetOff = error_function("targetOff", "visionSystem")
+
+# set them all to the real thing if the vision system is present
+if('visionSystem' in vars):
+    lightOn = visionSystem.redLightDetectorOn
+    lightOff = visionSystem.redLightDetectorOff
+    pipeOn = visionSystem.pipeLineDetectorOn
+    pipeOff = visionSystem.pipeLineDetectorOff
+    bwireOn = visionSystem.barbedWireDetectorOn
+    bwireOff = visionSystem.barbedWireDetectorOff
+    binOn = visionSystem.binDetectorOn
+    binOff = visionSystem.binDetectorOff
+    targetOn = visionSystem.targetDetectorOn
+    targetOff = visionSystem.targetDetectorOff
 
 # This is the helper function for takeXClip. Don't use it.
 def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
@@ -179,5 +217,8 @@ def takeFClip(seconds, name = None, extension = ".rmv", rate = 5):
 
 def takeDClip(seconds, name = None, extension = ".rmv", rate = 5):
     recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
+
+del vars
+del error_function
 
 # End of file (REQUIRED! DO NOT DELETE!)
