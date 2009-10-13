@@ -1,5 +1,10 @@
-%function graphing(alpha)
-%function plotSimulation(alpha)
+% this is a simulation of an object falling under the influence of gravity
+% the simulation includes:
+%    simulation of the actual dynamics in the real world
+%    simulation of extremely noisey measurements made by an imperfect sensor
+%    use of a Kalman filter to attempt to learn the position of the object
+%          using only noisey measurements
+
 
 clear
 
@@ -11,6 +16,8 @@ error = 15;
 % sim.x0 = 150;
 % sim.v0 = 0;
 % sim.a = -9.8;
+
+
 
 sample_rate = .1;
 
@@ -45,12 +52,6 @@ Kalman.x_hat=[Kalman.x_hat_minus];
 Kalman.P_minus=[10 0; 0 1];
 
 
-% for t = 0:.1:5
-%    x(end+1) = x0 + v*t - .5*a*t;
-%    v = a*t;
-%    t2(end+1) = t;
-%    t = t + .2;
-% end
 
 for t = t0+sample_rate:sample_rate:5
     
@@ -58,7 +59,7 @@ for t = t0+sample_rate:sample_rate:5
     time(end+1) = t;
 
     %simulate actual dynamics
-    %[time2,y] = ode45('makex',[0:sample_rate:(time(end)+.1)],x(end,:);
+    %this line just integrates the differential equations for the dynamics
     [time_int,x_int]=ode45('makex',[time(end-1) time(end)],x(:,end));
     x(:,end+1) = x_int(end,:)';
 
@@ -66,10 +67,7 @@ for t = t0+sample_rate:sample_rate:5
     measured(end+1) = x(1,end) + (error*randn);
     
     Kalman.measured = measured;%gets recreated each time
-    step_kalman%function to actually perform the kalman filter
-    
-    %iterate through data
-    %for k=1:length(time)
+    step_kalman%function to actually perform the kalman filter:
         %compute kalman gain
         %K=Kalman.P_minus*Kalman.H'*inv(Kalman.H*Kalman.P_minus*Kalman.H'+Kalman.R);
         %update state estimate
@@ -81,7 +79,6 @@ for t = t0+sample_rate:sample_rate:5
         %project coraviance estimate
         %Kalman.P_minus=Kalman.F*P*Kalman.F'+Kalman.Q;
 
-    %end
 end
 
 plot(time, x(1,:), ':g', 'linewidth', 2);
