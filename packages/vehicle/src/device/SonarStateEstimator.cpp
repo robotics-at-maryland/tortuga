@@ -77,7 +77,8 @@ SonarStateEstimator::~SonarStateEstimator()
     m_sonarConnection->disconnect();
 }
 
-void SonarStateEstimator::orientationUpdate(math::Quaternion orientation)
+void SonarStateEstimator::orientationUpdate(math::Quaternion orientation,
+					    double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentOrientation = orientation;
@@ -86,7 +87,8 @@ void SonarStateEstimator::orientationUpdate(math::Quaternion orientation)
     m_estimatedOrientation = m_currentOrientation;
 }
 
-void SonarStateEstimator::velocityUpdate(math::Vector2 velocity)
+void SonarStateEstimator::velocityUpdate(math::Vector2 velocity,
+					 double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentVelocity = velocity;
@@ -95,13 +97,15 @@ void SonarStateEstimator::velocityUpdate(math::Vector2 velocity)
     velocityFilterUpdate(velocity);
 }
 
-void SonarStateEstimator::positionUpdate(math::Vector2 position)
+void SonarStateEstimator::positionUpdate(math::Vector2 position,
+					 double timeStamp)
 {
     // Do nothing because we don't depend on another position sensors its
     // all estimated internally
 }
     
-void SonarStateEstimator::depthUpdate(double depth)
+void SonarStateEstimator::depthUpdate(double depth,
+				      double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentDepth = depth;

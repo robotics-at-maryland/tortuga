@@ -34,16 +34,20 @@ public:
         IStateEstimator(eventHub),
         Device(config["name"].asString()) {}
 
-    virtual void orientationUpdate(ram::math::Quaternion orientation_)
-        { updateOrientation = orientation_; }
+    virtual void orientationUpdate(ram::math::Quaternion orientation_,
+				   double timeStamp_)
+        { updateOrientation = orientation_; timeStamp = timeStamp_; }
     
-    virtual void velocityUpdate(ram::math::Vector2 velocity_)
-        { updateVelocity = velocity_; }
+    virtual void velocityUpdate(ram::math::Vector2 velocity_,
+				double timeStamp_)
+        { updateVelocity = velocity_; timeStamp = timeStamp_; }
     
-    virtual void positionUpdate(ram::math::Vector2 position_)
-        { updatePosition = position_; }
+    virtual void positionUpdate(ram::math::Vector2 position_,
+				double timeStamp_)
+        { updatePosition = position_; timeStamp = timeStamp_; }
     
-    virtual void depthUpdate(double depth_) { updateDepth = depth_; }
+    virtual void depthUpdate(double depth_, double timeStamp_)
+        { updateDepth = depth_; timeStamp = timeStamp_; }
     
     virtual ram::math::Quaternion getOrientation() { return orientation; }
 
@@ -57,6 +61,7 @@ public:
     ram::math::Vector2 updateVelocity;
     ram::math::Vector2 updatePosition;
     double updateDepth;
+    double timeStamp;
     
     ram::math::Quaternion orientation;
     ram::math::Vector2 velocity;

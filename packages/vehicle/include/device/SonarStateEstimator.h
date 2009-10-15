@@ -40,13 +40,17 @@ public:
     
     virtual ~SonarStateEstimator();
 
-    virtual void orientationUpdate(math::Quaternion orientation);
+    virtual void orientationUpdate(math::Quaternion orientation,
+				   double timeStamp);
 
-    virtual void velocityUpdate(math::Vector2 velocity);
+    virtual void velocityUpdate(math::Vector2 velocity,
+				double timeStamp);
 
-    virtual void positionUpdate(math::Vector2 position);
+    virtual void positionUpdate(math::Vector2 position,
+				double timeStamp);
     
-    virtual void depthUpdate(double depth);
+    virtual void depthUpdate(double depth,
+			     double timeStamp);
     
     virtual math::Quaternion getOrientation();
 

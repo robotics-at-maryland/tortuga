@@ -200,11 +200,18 @@ TEST_FIXTURE(VehicleFixture, getDepth)
 
     // Now check for usage of the state estimator
     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    estimator->timeStamp = 0;
     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     expectedDepth = 6.7;
+
     estimator->depth = expectedDepth;
     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
+
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->depthUpdate(expectedDepth, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
 TEST_FIXTURE(VehicleFixture, getVelocity)
@@ -238,11 +245,18 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
 
     // Now check for usage of the state estimator
     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    estimator->timeStamp = 0;
     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     expectedVelocity = math::Vector2(6.7, 3.4);
+
     estimator->velocity = expectedVelocity;
     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
+    
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->velocityUpdate(expectedVelocity, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
 TEST_FIXTURE(VehicleFixture, getPosition)
@@ -281,6 +295,11 @@ TEST_FIXTURE(VehicleFixture, getPosition)
     expectedPosition = math::Vector2(6.7, 3.4);
     estimator->position = expectedPosition;
     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.00001);
+
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->positionUpdate(expectedPosition, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
 
@@ -324,6 +343,11 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
     imu->publishUpdate(expected);
     CHECK_EQUAL(expectedPublish, result);
     CHECK_EQUAL(expected, estimator->updateOrientation);
+
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->orientationUpdate(expected, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
     
     conn->disconnect();
 }

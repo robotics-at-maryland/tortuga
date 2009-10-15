@@ -30,25 +30,28 @@ LoopStateEstimator::~LoopStateEstimator()
 {
 }
 
-void LoopStateEstimator::orientationUpdate(math::Quaternion orientation)
+void LoopStateEstimator::orientationUpdate(math::Quaternion orientation,
+					   double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_orientation = orientation;
 }
 
-void LoopStateEstimator::velocityUpdate(math::Vector2 velocity)
+void LoopStateEstimator::velocityUpdate(math::Vector2 velocity,
+					double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_velocity = velocity;
 }
 
-void LoopStateEstimator::positionUpdate(math::Vector2 position)
+void LoopStateEstimator::positionUpdate(math::Vector2 position,
+					double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_position = position;
 }
     
-void LoopStateEstimator::depthUpdate(double depth)
+void LoopStateEstimator::depthUpdate(double depth, double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_depth = depth;

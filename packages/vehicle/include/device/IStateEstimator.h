@@ -30,16 +30,20 @@ public:
     virtual ~IStateEstimator();
 
     /** Update the estimator with a new orientation */
-    virtual void orientationUpdate(math::Quaternion orientation) = 0;
+    virtual void orientationUpdate(math::Quaternion orientation,
+				   double timeStamp) = 0;
 
     /** Update the estimator with a new velocity */
-    virtual void velocityUpdate(math::Vector2 velocity) = 0;
+    virtual void velocityUpdate(math::Vector2 velocity,
+				double timeStamp) = 0;
 
     /** Update the estimator with a new position */
-    virtual void positionUpdate(math::Vector2 position) = 0;
+    virtual void positionUpdate(math::Vector2 position,
+				double timeStamp) = 0;
     
     /** Update the estimator with a new depth */
-    virtual void depthUpdate(double depth) = 0;
+    virtual void depthUpdate(double depth,
+			     double timeStamp) = 0;
     
     /** Get the latest estimated orientation */
     virtual math::Quaternion getOrientation() = 0;
