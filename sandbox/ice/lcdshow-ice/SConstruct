@@ -9,7 +9,8 @@ if sys.platform == 'darwin':
 	env.Append(LIBPATH = ['/opt/local/lib'])
 	env.Append(LIBS = ['ZeroCIce', 'IceUtil'])
 else:
-	env.Append(CPPPATH = ['.'])
+	env.Append(CPPPATH = ['.', '/opt/ram/local/include'])
+        env.Append(LIBPATH = ['/opt/ram/local/lib'])
 	env.Append(LIBS = ['Ice', 'IceUtil'])
 
 Export('env')
