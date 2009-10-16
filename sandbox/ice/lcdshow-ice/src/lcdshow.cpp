@@ -64,55 +64,83 @@ class SensorBoardI : public SensorBoard {
 
  private:
     int m_fd;
+    bool m_sync;
 };
 
 SensorBoardI::SensorBoardI() :
-    m_fd(openSensorBoard("/dev/sensor"))
+    m_fd(openSensorBoard("/dev/sensor")), m_sync(true)
 {
+    if(m_fd == -1)
+    {
+        printf("\nCould not find device!\n");
+        printf("Is the right device set?\n");
+        printf("Has the serial number of this FTDI chip been added to udev?\n");
+        printf("Because that needs to be done for every board we make.\n");
+
+	m_sync = false;
+        close(m_fd);
+    } else {
+	if(syncBoard(m_fd) != 0)
+	{
+	    printf("\nCould not sync with board!\n");
+	    m_sync = false;
+	    close(m_fd);
+	}
+    }
 }
 
 SensorBoardI::~SensorBoardI() {
-    close(m_fd);
+    if (m_sync) {
+	close(m_fd);
+    }
 }
 
 void SensorBoardI::SetText(const std::string& line1,
 			       const std::string& line2,
 			       const Ice::Current&) {
-    displayText(m_fd, 0, line1.c_str());
-    displayText(m_fd, 1, line2.c_str());
+    if (m_sync) {
+	displayText(m_fd, 0, line1.c_str());
+	displayText(m_fd, 1, line2.c_str());
+    }
 }
 
 void SensorBoardI::ClearScreen(const Ice::Current&) {
-    displayText(m_fd, 0, "");
-    displayText(m_fd, 1, "");
+    if (m_sync) {
+	displayText(m_fd, 0, "");
+	displayText(m_fd, 1, "");
+    }
 }
 
 void SensorBoardI::Backlight(const ram::tortuga::LcdCommands option,
 			     const Ice::Current&) {
-    switch (option) {
-        case ram::tortuga::lcdOn:
-	    lcdBacklight(m_fd, LCD_BL_ON);
-	    break;
-        case ram::tortuga::lcdOff:
-	    lcdBacklight(m_fd, LCD_BL_OFF);
-	    break;
-        case ram::tortuga::lcdFlash:
-	    lcdBacklight(m_fd, LCD_BL_FLASH);
-	    break;
+    if (m_sync) {
+	switch (option) {
+            case ram::tortuga::lcdOn:
+		lcdBacklight(m_fd, LCD_BL_ON);
+		break;
+            case ram::tortuga::lcdOff:
+		lcdBacklight(m_fd, LCD_BL_OFF);
+		break;
+            case ram::tortuga::lcdFlash:
+		lcdBacklight(m_fd, LCD_BL_FLASH);
+		break;
+	}
     }
 }
 
 void SensorBoardI::ActivateThrusters(const bool activate,
 				     const Ice::Current&) {
-    int i;
-    unsigned int cmdList[]=
-    {
-	CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
-	CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
-    };
+    if (m_sync) {
+	int i;
+	unsigned int cmdList[]=
+	{
+	    CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
+	    CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
+	};
 
-    for(i=0; i<6; i++)
-	thrusterCmd(m_fd, cmdList[i]);
+	for(i=0; i<6; i++)
+	    thrusterCmd(m_fd, cmdList[i]);
+    }
 }
 
 /**
@@ -123,22 +151,26 @@ void SensorBoardI::ActivateThrusters(const bool activate,
 void SensorBoardI::ActivateThrusterN(const bool activate,
 				     const int thruster,
 				     const Ice::Current&) {
-    unsigned int cmdList[]=
-    {
-	CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
-	CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
-    };
+    if (m_sync) {
+	unsigned int cmdList[]=
+	{
+	    CMD_THRUSTER1_OFF, CMD_THRUSTER2_OFF, CMD_THRUSTER3_OFF,
+	    CMD_THRUSTER4_OFF, CMD_THRUSTER5_OFF, CMD_THRUSTER6_OFF
+	};
 
-    thrusterCmd(m_fd, cmdList[thruster-1]);
+	thrusterCmd(m_fd, cmdList[thruster-1]);
+    }
 }
 
 void SensorBoardI::Diagnostics(const bool activate,
 			       const Ice::Current&) {
-    setDiagnostics(m_fd, activate);
+    if (m_sync)
+	setDiagnostics(m_fd, activate);
 }
 
 void SensorBoardI::Stop(const Ice::Current&) {
-    setSpeeds(m_fd, 0, 0, 0, 0, 0, 0);
+    if (m_sync)
+	setSpeeds(m_fd, 0, 0, 0, 0, 0, 0);
 }
 
 } // namespace tortuga

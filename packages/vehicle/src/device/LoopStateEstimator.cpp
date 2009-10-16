@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vision/src/device/LoopStateEstimator.h
+ * File:  packages/vision/src/device/LoopStateEstimator.cpp
  */
 
 // Project Includes
