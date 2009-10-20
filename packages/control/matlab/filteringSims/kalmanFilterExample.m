@@ -19,7 +19,7 @@ error = 15;
 
 
 
-sample_rate = .1;
+sample_rate = .04;
 
 
 %initial conditions (starts the true position
@@ -40,10 +40,13 @@ Kalman.noiseVariance=error*1;
 Kalman.R=sqrt(Kalman.noiseVariance);
 %assume no process noise
 Kalman.Q=zeros(2);
-%discrete time system model
-Kalman.F=[1 .1; 0 1];
-Kalman.G=[.05; .1];
-Kalman.H=[1 0];
+%continuous time model
+A=[0 1; 0 0];
+B=[0; 1];
+C=[1 0];
+D=[0];
+%discrete time system model from sampled continuous time model
+[Kalman.F Kalman.G Kalman.H] = ssdata(c2d(ss(A,B,C,D),sample_rate));
 Kalman.u=-9.8;%input is always 9.8 m/s^2
 %initial condition (at k=1)
 Kalman.x_hat_minus=[x(1,1); x(2,1)];
