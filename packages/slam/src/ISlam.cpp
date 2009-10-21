@@ -7,53 +7,54 @@
  * File:  packages/slam/src/ISlam.cpp
  */
 
-// Library Includes
-#include <boost/foreach.hpp>
-
 // Project Includes
 #include "slam/include/ISlam.h"
 
+RAM_CORE_EVENT_TYPE(ram::slam::ISlam, MAP_UPDATE);
+
 namespace ram {
 namespace slam {
+    /*
+typedef std::map<std::string,math::Vector2> ObjectPair;
+typedef ObjectPair::iterator ObjectPairIter;
 
-    //typedef map<std::string,math::Vector2> ObjectPair;
-    //typedef ObjectPair::iterator ObjectPairIter;
+math::Vector2 ISlam::getObjectPosition(std::string name)
+{
+    // Find the object
+    ObjectPairIter obj = m_objects.find(name);
 
-    //math::Vector2 ISlam::getObjectLocation(std::string name)
-    //{
-    //ObjectPairIter obj = m_objects.find(name);
-    //if (obj != m_objects.end()) {
-    //	return obj->second;
-    //} else {
-    //	return Vector2(0, 0);
-    //}
-    //return Vector2(0, 0);
-    //}
+    // Check if the object was found
+    if (obj != m_objects.end()) {
+    	return obj->second;
+    } else {
+	// Return the zero vector if no object was found
+    	return math::Vector2::ZERO;
+    }
+}
 
-    //math::Vector2 ISlam::getRelativeLocation(std::string name)
-    //{
-    //return Vector2(0, 0);
-    //}
-
-//void ISlam::onLightUpdate(core::EventPtr event)
-//{
-// update light position
-//}
+math::Vector2 ISlam::getRelativePosition(std::string name)
+{
+    // Find the object
+    ObjectPairIter obj = m_objects.find(name);
+    if (obj != m_objects.end()) {
+	// Take the objects location and find it relative to the vehicle's
+	// current position
+	math::Vector2 objLoc = obj->second;
+	//return m_vehicle->getPosition() - objLoc;
+	return objLoc;
+    } else {
+	// Return the zero vector if no object was found
+	return math::Vector2::ZERO;
+    }
+    }*/
 
 ISlam::ISlam(std::string name, core::EventHubPtr eventHub) :
     core::Subsystem(name, eventHub)
 {
-    //core::EventConnectionPtr lightConnection = eventHub->subscribe(
-    //    vision::LIGHT_FOUND, boost::bind(&ISlam::onLightUpdate, this, _1));
-    //m_connections.push_back(lightConnection);
 }
 
 ISlam::~ISlam()
 {
-    //BOOST_FOREACH(core::EventConnectionPtr connection, m_connections)
-    //{
-    //connection->disconnect();
-    //}
 }
 
 } // namespace slam

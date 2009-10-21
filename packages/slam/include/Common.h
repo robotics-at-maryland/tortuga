@@ -19,8 +19,6 @@ namespace slam {
 // Forward Declartions
 class ISlam;
 typedef boost::shared_ptr<ISlam> ISlamPtr;
-
-enum Object { BUOY, BWIRE, BIN, TARGET };
     
 } // namespace slam
 } // namespace ram
