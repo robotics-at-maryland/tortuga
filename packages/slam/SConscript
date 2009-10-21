@@ -1,0 +1,30 @@
+# Copyright (C) 2009 Robotics at Maryland
+# Copyright (C) 2009 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/slam/SConscript
+
+import os
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = envl.Glob('src', '*.cpp')
+
+# Build Products (library will be called 'libram_vehicle.so')
+envl.RAMSharedLibrary('slam',  source = sources)
+
+# Test Slam Program
+#envt = env.Clone()
+
+#if os.name == 'posix':
+#    envt.RAMProgram(target = 'SlamTest', 
+#                    source = 'test/src/SlamTest.cpp',
+#                    int_deps = ['vehicle', 'control', 'slam'],
+#                    ext_deps = ['Boost.ProgramOptions'])
+
+#envt = env.Clone()
+#envt.Tests(int_deps = 'slam')
