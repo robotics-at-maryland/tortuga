@@ -36,7 +36,7 @@ namespace slam {
 class RAM_EXPORT ISlam : public core::Subsystem
 {
 public:
-    virtual ~ISlam();
+    virtual ~ISlam() {};
 
     /** When the SLAM algorithm's map is updated.
      *
@@ -44,34 +44,18 @@ public:
      */
     static const core::Event::EventType MAP_UPDATE;
 
+    /** Position of 'name' object in the SLAM algorithm */
     virtual math::Vector2 getObjectPosition(std::string name) = 0;
 
+    /** Position of 'name' object relative to the vehicle */
     virtual math::Vector2 getRelativePosition(std::string name) = 0;
+
+    /** Whether object 'name' is being tracked */
+    virtual bool hasObject(std::string name) = 0;
 
 protected:
     ISlam(std::string name,
 	  core::EventHubPtr eventHub = core::EventHubPtr());
-
-    /** Is called on every LIGHT_FOUND event */
-    virtual void onLightUpdate(core::EventPtr event) = 0;
-
-    /** Is called on every PIPE_FOUND event */
-    virtual void onPipeUpdate(core::EventPtr event) = 0;
-    
-    /** Is called on every BARBED_WIRE_FOUND event */
-    virtual void onBwireUpdate(core::EventPtr event) = 0;
-
-    /** Is called on every BIN_FOUND event */
-    virtual void onBinUpdate(core::EventPtr event) = 0;
-
-    /** Is called on every TARGET_FOUND event */
-    virtual void onTargetUpdate(core::EventPtr event) = 0;
-
-    //std::map<std::string, math::Vector2> m_objects;
-
-    //vehicle::IVehicle m_vehicle;
-
-    //std::vector<core::EventConnectionPtr> m_connections;
 };
 
 } // namespace slam

@@ -12,7 +12,6 @@
 
 // STD Includes
 #include <string>
-#include <vector>
 
 // Project Includes
 #include "core/include/Event.h"
