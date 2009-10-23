@@ -43,4 +43,27 @@ classdef Measurement < handle
        theta = Null()
        sigtheta = Null()
    end
+   
+   methods
+       function m = clone(obj)
+           m = Measurement();
+           m.name = obj.name;
+           m.angleMethodValid = obj.angleMethodValid;
+           m.planeIntersectionValid = obj.planeIntersectionValid;
+           m.isActive = obj.isActive;
+           m.agrees = obj.agrees;
+           m.x = obj.x;
+           m.sigx = obj.sigx;
+           m.y = obj.y;
+           m.sigy = obj.sigy;
+           m.phi = obj.phi;
+           m.sigphi = obj.sigphi;
+           m.D = obj.D;
+           m.sigD = obj.sigD;
+           m.h = obj.h;
+           m.sigh = obj.sigh;
+           m.theta = obj.theta;
+           m.sigtheta = obj.sigtheta;
+       end
+   end
 end 

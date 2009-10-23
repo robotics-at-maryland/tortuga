@@ -49,7 +49,16 @@ classdef Map < dynamicprops
         end
         
         function o = getObject(obj,name)
-            o = obj.objectMap(name);
+            k = obj.objectMap.keys();
+            [m n] = size(k);
+            for i = 1:n
+                if(strcmp(char(k(i)),name))
+                    o = obj.objectMap(name);
+                    break;
+                else
+                    o = Null();
+                end
+            end
         end
         
         function oM = getAllObjects(obj)

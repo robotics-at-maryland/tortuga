@@ -27,8 +27,6 @@ classdef Object < dynamicprops
        end %func
        
        function addMeasurement(obj,m)
-           time = getTime();
-           m.name = strcat(num2str(rand),' - ',num2str(time.hours),':',num2str(time.minutes),':',num2str(time.seconds));
            obj.measurements(m.name) = m;
        end %func
        
@@ -51,6 +49,13 @@ classdef Object < dynamicprops
        
        function updateLocation(obj)
           obj.location = CalculatePosition(obj.measurements); 
+       end %func
+       
+       function o = clone(obj)
+           o = Object(obj.name);
+           o.measurements = cloneContainerMap(obj.measurements);
+           o.removedMeasurements = cloneContainerMap(obj.removedMeasurements);
+           o.location = obj.location;
        end %func
        
    end %methods

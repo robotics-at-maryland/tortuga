@@ -5,7 +5,7 @@ numstdvx = [];
 numstdvy = [];
 for n = 1:1
     sigphi = 2;
-    sigxy = 1;%log(1+2*sigphi)*(2*sigxy)/(3*log(1+sigxy));
+    sigxy = 1;
     
     x1 = -10;
     y1 = 5;

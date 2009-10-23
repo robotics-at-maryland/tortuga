@@ -22,18 +22,18 @@ function varargout = SurveyGUI(varargin)
 
 % Edit the above text to modify the response to help SurveyGUI
 
-% Last Modified by GUIDE v2.5 20-Oct-2009 18:58:12
+% Last Modified by GUIDE v2.5 23-Oct-2009 14:49:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @SurveyGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @SurveyGUI_OutputFcn, ...
-                   'gui_LayoutFcn',  [], ...
-                   'gui_Callback',   []);
+    'gui_Singleton',  gui_Singleton, ...
+    'gui_OpeningFcn', @SurveyGUI_OpeningFcn, ...
+    'gui_OutputFcn',  @SurveyGUI_OutputFcn, ...
+    'gui_LayoutFcn',  [], ...
+    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
-   gui_State.gui_Callback = str2func(varargin{1});
+    gui_State.gui_Callback = str2func(varargin{1});
 end
 
 if nargout
@@ -60,7 +60,6 @@ handles.map = Map(0,0);
 handles.currentMeasurement = Null();
 handles.revertMeasurement = Null();
 handles.currentObject = Null();
-
 % Update handles structure
 guidata(hObject, handles);
 
@@ -81,6 +80,23 @@ varargout{1} = handles.output;
 
 % --- Executes on button press in createObject.
 function createObject_Callback(hObject, eventdata, handles)
+namebox = handles.objectName_edit;
+name = get(namebox, 'String');
+if(~(isempty(name) || isa(handles.map.getObject(name),'Object')))
+    handles.map.addObject(name);
+    set(namebox, 'String', '');
+    updateObjectDropDown(handles);
+end
+stringList = get(handles.editObjectSelector,'String');
+n = size(stringList);
+for i = 1:n(1)
+    if(strcmp(stringList{i},name))
+        set(handles.editObjectSelector, 'Value', i)
+    end
+end
+handles.currentObject = handles.map.getObject(name);
+updateMeasurementDropDown(handles);
+guidata(hObject, handles);
 % hObject    handle to createObject (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -134,6 +150,10 @@ end
 
 % --- Executes on button press in createMeasurement.
 function createMeasurement_Callback(hObject, eventdata, handles)
+m = Measurement();
+m.name = getTime();
+handles.currentObject.addMeasurement(m);
+updateMeasurementDropDown(handles);
 % hObject    handle to createMeasurement (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -141,6 +161,7 @@ function createMeasurement_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in removeObject.
 function removeObject_Callback(hObject, eventdata, handles)
+
 % hObject    handle to removeObject (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -408,6 +429,13 @@ function mactive_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of mactive
 
 
+% --- Executes on button press in changeOrigin.
+function changeOrigin_Callback(hObject, eventdata, handles)
+% hObject    handle to changeOrigin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
 % --- Executes on selection change in resultObjectSelector.
 function resultObjectSelector_Callback(hObject, eventdata, handles)
 % hObject    handle to resultObjectSelector (see GCBO)
@@ -432,7 +460,13 @@ end
 
 
 % --- Executes on selection change in editMesurementSelector.
-function editMesurementSelector_Callback(hObject, eventdata, handles)
+function editMeasurementSelector_Callback(hObject, eventdata, handles)
+mNameList = get(hObject,'String');
+currName = mNameList{get(hObject,'Value')};
+if(~strcmp(currName,'Select Measurement'))
+    handles.currentMeasurement = handles.currentObject.getMeasurementByName(currName);
+end
+guidata(hObject,handles);
 % hObject    handle to editMesurementSelector (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -442,7 +476,7 @@ function editMesurementSelector_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function editMesurementSelector_CreateFcn(hObject, eventdata, handles)
+function editMeasurementSelector_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to editMesurementSelector (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -451,11 +485,17 @@ function editMesurementSelector_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+    set(hObject,'String','Select Measurement');
 end
 
 
 % --- Executes on selection change in editObjectSelector.
 function editObjectSelector_Callback(hObject, eventdata, handles)
+objNameList = get(hObject,'String');
+currName = objNameList{get(hObject,'Value')};
+handles.currentObject = handles.map.getObject(currName);
+updateMeasurementDropDown(handles);
+guidata(hObject, handles);
 % hObject    handle to editObjectSelector (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -490,9 +530,27 @@ function revert_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+function updateObjectDropDown(handles)
+objectDropDown = handles.editObjectSelector;
+objMap = handles.map.getAllObjects();
+k = objMap.keys();
+n = 1;
+for i = 1:int32(objMap.Count)
+    currObj = objMap(char(k(i)));
+    if(~strcmp(currObj.name, 'Origin'))
+        stringList{n} = currObj.name;
+        n = n+1;
+    end
+end
+set(objectDropDown,'String',stringList);
 
-% --- Executes on button press in changeOrigin.
-function changeOrigin_Callback(hObject, eventdata, handles)
-% hObject    handle to changeOrigin (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function updateMeasurementDropDown(handles)
+mDropDown = handles.editMeasurementSelector;
+mMap = handles.currentObject.getAllMeasurements();
+k = mMap.keys();
+stringList{1} = 'Select Measurement';
+for i = 1:int32(mMap.Count)
+    currMes = mMap(char(k(i)));
+    stringList{i} = currMes.name;
+end
+set(mDropDown,'String',stringList);
