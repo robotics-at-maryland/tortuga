@@ -14,7 +14,7 @@ envl = env.Clone()
 # Sources
 sources = envl.Glob('src', '*.cpp')
 
-# Build Products (library will be called 'libram_vehicle.so')
+# Build Products (library will be called 'libram_slam.so')
 envl.RAMSharedLibrary('slam',  source = sources)
 
 # Test Slam Program

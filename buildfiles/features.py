@@ -56,7 +56,8 @@ def get_features():
                      'math' : ['wrappers/math'],
                      'vehicle' : ['wrappers/vehicle'],
                      'vision' : ['wrappers/vision'],
-                     'core' : ['wrappers/core']})
+                     'core' : ['wrappers/core'],
+                     'slam' : ['wrappers/slam']})
                      
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])

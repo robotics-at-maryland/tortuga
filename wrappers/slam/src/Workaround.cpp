@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+ * Copyright (C) 2009 Robotics at Maryland
+ * Copyright (C) 2009 Jonathan Sternberg <jsternbe@umd.edu>
  * All rights reserved.
  *
- * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  wrappers/control/src/Workaround.cpp
+ * Author: Jonathan Sternberg <jsternbe@umd.edu>
+ * File:  wrappers/slam/src/Workaround.cpp
  */
 
 // Library Includes
@@ -12,7 +12,7 @@
 
 // Project Includes
 #include "core/include/Subsystem.h"
-#include "control/include/IController.h"
+#include "slam/include/ISlam.h"
 
 namespace bp = boost::python;
 
@@ -22,10 +22,10 @@ void register_SubsystemList_class()
 {
 }
 
-void registerIControllerPtrs()
+void registerISlamPtrs()
 {
-    bp::register_ptr_to_python< ram::control::IControllerPtr >();
-    bp::implicitly_convertible< ram::control::IControllerPtr,
+    bp::register_ptr_to_python< ram::slam::ISlamPtr >();
+    bp::implicitly_convertible< ram::slam::ISlamPtr,
                                 ram::core::SubsystemPtr >();
 }
 
