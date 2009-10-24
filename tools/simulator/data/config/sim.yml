@@ -44,3 +44,10 @@ Subsystems:
 
     # Includes all common subsystems    
     INCLUDE: tools/simulator/data/config/base.yml
+
+    Slam:
+        type: PerfectSlam
+        depends_on: ["EventHub", "Vehicle", "Controller"]
+
+        Objects:
+            INCLUDE: tools/simulator/data/config/slam/nbrf.yml

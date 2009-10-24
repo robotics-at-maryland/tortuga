@@ -153,7 +153,7 @@ class Application(wx.App):
             print "ERROR: Single subsystem and multiple updates"
             raise Exception("ERROR: Single subsystem and multiple updates")
         
-        # If we have run over into the next intervale, just wait an entire 
+        # If we have run over into the next interval, just wait an entire 
         # interval
         updateTime = self._updateInterval - (self._getTime() - currentTime)
         if updateTime < 0:
