@@ -47,7 +47,7 @@ Subsystems:
 
     Slam:
         type: PerfectSlam
-        depends_on: ["EventHub", "Vehicle", "Controller"]
+        depends_on: ["EventHub", "Vehicle", "Controller", "Simulation"]
 
         Objects:
             INCLUDE: tools/simulator/data/config/slam/nbrf.yml

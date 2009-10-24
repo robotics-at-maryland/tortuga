@@ -15,6 +15,9 @@ import ext.math as math
 import ext.slam as slam
 import ext.vehicle as vehicle
 
+from sim.subsystems import Simulation
+from sim.vision import IBuoy, IPipe, IBarbedWire, IBin, ITarget, ISafe
+
 class PerfectSlam(slam.ISlam):
     def __init__(self, config, deps):
         slam.ISlam.__init__(self, config.get('name', 'Slam'),
@@ -31,11 +34,28 @@ class PerfectSlam(slam.ISlam):
         # Create the dictionary that stores the values
         self._objects = {}
 
-        objectList = config.get("Objects", {})
-        for obj, loc in objectList.iteritems():
-            # These need to be excluded if an INCLUDE is there
-            if obj != "INCLUDE_LOADED" and obj != "INCLUDE":
-                self._objects[obj] = math.Vector2(loc[0], loc[1])
+        # Grab the simulation object
+        sim = core.Subsystem.getSubsystemOfType(Simulation, deps, 
+                                                    nonNone = True)
+
+        self._getObjectInstances(sim, "buoy", IBuoy)
+        self._getObjectInstances(sim, "pipe", IPipe)
+        self._getObjectInstances(sim, "bwire", IBarbedWire)
+        self._getObjectInstances(sim, "bin", IBin)
+        self._getObjectInstances(sim, "target", ITarget)
+        self._getObjectInstances(sim, "safe", ISafe)
+
+    def _getObjectInstances(self, sim, name, interface):
+        objects = sim.scene.getObjectsByInterface(interface)
+        if objects is None or len(objects) == 0:
+            return
+        if len(objects) == 1:
+            position = objects[0].position
+            self._objects[name] = math.Vector2(position.x, position.y)
+        else:
+            for i, obj in enumerate(objects):
+                self._objects[name + str(i+1)] = math.Vector2(obj.position.x,
+                                                              obj.position.y)
 
     def getObjectPosition(self, name):
         return self._objects[name]
