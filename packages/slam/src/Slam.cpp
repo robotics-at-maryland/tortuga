@@ -43,13 +43,10 @@ Slam::Slam(core::ConfigNode config, core::SubsystemList deps) :
     core::NodeNameList objectList = config["objects"].subNodes();
 
     // Iterate over all of the objects and add them to the map
-    core::NodeNameListIter beg = objectList.begin();
-    core::NodeNameListIter end = objectList.end();
-    
-    for ( ; beg != end; ++beg) {
-	double x = objectConfig[*beg][0].asDouble();
-	double y = objectConfig[*beg][1].asDouble();
-	m_objects[*beg] = math::Vector2(x, y);
+    BOOST_FOREACH(std::string name, objectList) {
+	double x = objectConfig[name][0].asDouble();
+	double y = objectConfig[name][1].asDouble();
+	m_objects[name] = math::Vector2(x, y);
     }
 
     // Subscribe to all of the vision events
