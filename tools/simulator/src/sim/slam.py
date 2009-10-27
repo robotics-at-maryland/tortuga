@@ -46,16 +46,21 @@ class PerfectSlam(slam.ISlam):
         self._getObjectInstances(sim, "safe", ISafe)
 
     def _getObjectInstances(self, sim, name, interface):
+        robot = self._vehicle.getDevice('SimulationDevice').robot
+        robotPos = robot._main_part._node.position
+
         objects = sim.scene.getObjectsByInterface(interface)
         if objects is None or len(objects) == 0:
             return
         if len(objects) == 1:
             position = objects[0].position
-            self._objects[name] = math.Vector2(position.x, position.y)
+            self._objects[name] = math.Vector2(position.x - robotPos.x,
+                                               position.y - robotPos.y)
         else:
             for i, obj in enumerate(objects):
-                self._objects[name + str(i+1)] = math.Vector2(obj.position.x,
-                                                              obj.position.y)
+                self._objects[name + str(i+1)] = \
+                    math.Vector2(obj.position.x - robotPos.x,
+                                 obj.position.y - robotPos.y)
 
     def getObjectPosition(self, name):
         return self._objects[name]
