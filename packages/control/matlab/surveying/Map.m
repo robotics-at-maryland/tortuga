@@ -30,10 +30,10 @@ classdef Map < dynamicprops
             
             % Create an Origin Object
             origin = Object('Origin');
-            origin.location.x = obj.originOffsetX;
-            origin.location.sigx = 0;
-            origin.location.y = obj.originOffsetY;
-            origin.location.sigy = 0;
+            origin.location.xobj = obj.originOffsetX;
+            origin.location.sigxobj = 0;
+            origin.location.yobj = obj.originOffsetY;
+            origin.location.sigyobj = 0;
             
             % Add the Origin Object to the Map
             obj.objectMap('Origin') = origin;
@@ -44,7 +44,7 @@ classdef Map < dynamicprops
         end
         
         function removeObject(obj,name)
-            obj.removedObjectMap(name) = objectMap(name);
+            obj.removedObjectMap(name) = obj.objectMap(name);
             obj.objectMap.remove(name);
         end
         

@@ -66,7 +66,7 @@ e.dyobjdy = 1;
 e.dyobjdL = cos(m.phi);
 e.dyobjdphi = -r.L*sin(m.phi);
 
-r.sigxobj = sqrt( (e.dXobjdx*m.sigx)^2 + (e.dXobjdL*r.sigL)^2 + (e.dXobjdphi*m.sigphi)^2 );
-r.sigyobj = sqrt( (e.dYobjdy*m.sigy)^2 + (e.dYobjdL*r.sigL)^2 + (e.dYobjdphi*m.sigphi)^2 );
+r.sigxobj = sqrt( (e.dxobjdx*m.sigx)^2 + (e.dxobjdL*r.sigL)^2 + (e.dxobjdphi*m.sigphi)^2 );
+r.sigyobj = sqrt( (e.dyobjdy*m.sigy)^2 + (e.dyobjdL*r.sigL)^2 + (e.dyobjdphi*m.sigphi)^2 );
 
 end

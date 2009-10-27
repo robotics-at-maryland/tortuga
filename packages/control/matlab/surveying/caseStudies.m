@@ -51,6 +51,7 @@ sigtheta = [toRad(3)];
 
 obj = Object('obj(-1,6)');
 am = Measurement();
+am.name = 'tmp';
 
 % random('Normal', m, s) produces a pseudorandom value based on a
 % normal (gaussian) distribution with mean m and standard deviation s
@@ -80,14 +81,15 @@ r = AngleMethod(am)
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.xObj)/r.sigxObj
-numstdvY = (yobj-r.yObj)/r.sigyObj
+numstdvX = (xobj-r.xobj)/r.sigxobj
+numstdvY = (yobj-r.yobj)/r.sigyobj
 
 
 % One Pair Plane Intersection
 
 for i = 1:2
     pm = Measurement();
+    pm.name = getTime();
     
     pm.x = random('Normal',x(i),sigx(i));
     pm.sigx = sigx(i);
@@ -107,8 +109,8 @@ r = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2))
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.x)/r.sigx;
-numstdvY = (yobj-r.y)/r.sigy;
+numstdvX = (xobj-r.xobj)/r.sigxobj;
+numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 % Combination of Angle and Plane Results
 obj.addMeasurement(am);
@@ -121,8 +123,8 @@ r = CalculatePosition(obj.getAllMeasurements);
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.x)/r.sigx;
-numstdvY = (yobj-r.y)/r.sigy;
+numstdvX = (xobj-r.xobj)/r.sigxobj;
+numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 %% Object at (-5,19)
 clear

@@ -54,10 +54,10 @@ for i = 1:int32(M.Count)
         % Calc Result
         r = AngleMethod(mi);
         % Add results to the result arrays
-        a.xObjArr(1+end) = r.xObj;
-        a.sigXObjArr(1+end) = r.sigxObj;
-        a.yObjArr(1+end) = r.yObj;
-        a.sigYObjArr(1+end) = r.sigyObj;
+        a.xObjArr(1+end) = r.xobj;
+        a.sigXObjArr(1+end) = r.sigxobj;
+        a.yObjArr(1+end) = r.yobj;
+        a.sigYObjArr(1+end) = r.sigyobj;
     end %if
     for j = i+1:int32(M.Count) % start with measurement after i to avoid duplication
         mj = M(char(k(j))); % jth measurement
@@ -65,10 +65,10 @@ for i = 1:int32(M.Count)
             % Calc Result
             r = PlaneIntersection(mi,mj);
             % Add results to result arrays
-            a.xObjArr(1+end) = r.x;
-            a.sigXObjArr(1+end) = r.sigx;
-            a.yObjArr(1+end) = r.y;
-            a.sigYObjArr(1+end) = r.sigy;
+            a.xObjArr(1+end) = r.xobj;
+            a.sigXObjArr(1+end) = r.sigxobj;
+            a.yObjArr(1+end) = r.yobj;
+            a.sigYObjArr(1+end) = r.sigyobj;
         end %if
     end %for
 end %for
