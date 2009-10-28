@@ -20,11 +20,11 @@ This document is intended to allow a motivated student to understand the basics 
 
 \newpage
 
-This document works through the implementation of a Kalman filter for the simple problem of determining the position of a box falling under the influence of gravity.  While the problem is very simple, the Kalman filter is an extremely powerful tool and can be applied to other far more complicated problems by going through similar steps.  The first section shows how the falling box can be modeled mathematically.  The TODO STUFF GOES HERE
+This document works through the implementation of a Kalman filter for the simple problem of determining the position of a box falling under the influence of gravity.  While the problem is relatively simple, the Kalman filter is an extremely powerful tool and can be applied to other far more complicated problems in a similar manner.  Section \ref{sec:probStatement} discusses the problem at hand and provides motivation for when a Kalman filter might be useful.  In Section \ref{sec:mathModel} the falling box problem is modeled mathematically.  The TODO STUFF GOES HERE
 
 
 \section{Problem Statement}
-
+\label{sec:probStatement}
 
 \begin{figure}[h]
 \includegraphics[scale=0.25]{boxPicture.png}
@@ -33,17 +33,23 @@ This document works through the implementation of a Kalman filter for the simple
 \label{fig:boxPic}
 \end{figure}
 
-Consider a box that initially starts in midair and falls under the influence of gravity.  This document examines the problem of determining the position of the box while it falls.  This might seem like a simple problem.  Perhaps you have seen in a basic physics or calculus course that the position of a box falling with constant acceleration can be derived by simple integration:
+Consider a box that initially starts in midair and falls under the influence of gravity as shown in Figure \ref{fig:boxPic}.  This document examines the problem of determining the position of the box while it falls.  This might seem like a simple problem.  Perhaps you have seen in a basic physics or calculus course that the position of a box falling with constant acceleration can be derived by simple integration:
 
 \begin{align*}
-\ddot{x}(t)&=-\frac{g}{m}\\
-\dot{x}(t)&=-\frac{g}{m}t+\dot{x}(0)\\
-x(t)&=-\frac{g}{2m}t^2+\dot{x}(0)t+x(0)
+\ddot{x}(t) &= -\frac{g}{m}\\
+\dot{x}(t) 	& =\int_0^t\!\ddot{x}(\tau)d\tau 	= -\frac{g}{m}t+\dot{x}(0)\\
+x(t) 		&= \int_0^t\!\dot{x}(\tau)d\tau 	= -\frac{g}{2m}t^2+\dot{x}(0)t+x(0)
 \end{align*}
 
+Now the position of the box as a function of time can be solved if the exact initial position $x(0)$, the exact initial velocity $\dot{x}(0)$, gravitational constant $g$, and mass $m$ are known.  We certainly have a very good idea of the value of the gravitational constant $g$, but our knowledge of mass $m$ may not be perfect.  It is also likely that the initial conditions $x(0)$ and $\dot{x}(0)$ are only known to a certain degree of accuracy.  The dynamical model $\ddot{x}(t)=\frac{-g}{m}$ does not include drag which may be significant (especially if the box's velocity grows large).  The dynamical model also neglects random forces acting on the box, such as winds and thermal drafts.  It is clear that basic techniques from calculus and physics will not be of much use in determining the box's position if we consider complicated dynamical models, uncertainty in parameters, uncertainty in initial conditions, and random forces.  
+
+If using a mathematical model isn't straightforward, perhaps the position of the box as it falls can be directly measured.  Assume that we can place an altimeter in the box that can report a measurement $y(t)$ of the position of the box $x(t)$ over time.  It would be wonderful if the measurement was exactly equal to the what we want to measure: $y(t)=x(t)$.  Unfortunately, in the real world it is often the case that a sensor has random noise $n(t)$ that corrupts the measurement in some way.  Sometimes sensors can be purchased that have noise that is so small it can be considered negligible; but these often come at high cost and may have undesireable weight, an incompatible form factor, or simply may not be available.  For most measurement systems, the practicing engineer is usually stuck with noisey measurements.  In the case of the falling box the altimeter measurements take the form $y(t)=x(t)+n(t)$. 
+
+The Kalman filter is designed to optimally handle problems with any of the above situations.  Unfortunately, the full derivation of the Kalman filter is so complicated that it typically takes an entire graudate level course to thoroughly understand.  This document will attempt to explain how Kalman filters work by applying one to the falling box problem, but \emph{many} details will be omitted for brevity.  
 
 
-
-
+\section{Mathematical Model}
+\label{sec:mathModel}
 
 \end{document}
+
