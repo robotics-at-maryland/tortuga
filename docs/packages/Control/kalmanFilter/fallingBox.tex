@@ -26,6 +26,24 @@ This document works through the implementation of a Kalman filter for the simple
 \section{Problem Statement}
 
 
+\begin{figure}[h]
+\includegraphics[scale=0.25]{boxPicture.png}
+\centering
+\caption{The problem: find the position of the box as it falls.}
+\label{fig:boxPic}
+\end{figure}
+
+Consider a box that initially starts in midair and falls under the influence of gravity.  This document examines the problem of determining the position of the box while it falls.  This might seem like a simple problem.  Perhaps you have seen in a basic physics or calculus course that the position of a box falling with constant acceleration can be derived by simple integration:
+
+\begin{align*}
+\ddot{x}(t)&=-\frac{g}{m}\\
+\dot{x}(t)&=-\frac{g}{m}t+\dot{x}(0)\\
+x(t)&=-\frac{g}{2m}t^2+\dot{x}(0)t+x(0)
+\end{align*}
+
+
+
+
 
 
 \end{document}
