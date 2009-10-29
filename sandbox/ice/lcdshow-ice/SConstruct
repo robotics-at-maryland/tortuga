@@ -2,6 +2,7 @@ import os
 import sys
 
 # Import path from environment
+print os.environ['PATH']
 env = Environment(ENV = {'PATH' : os.environ['PATH']})
 
 if sys.platform == 'darwin':
@@ -11,7 +12,10 @@ if sys.platform == 'darwin':
 else:
 	env.Append(CPPPATH = ['.', '/opt/ram/local/include'])
         env.Append(LIBPATH = ['/opt/ram/local/lib'])
+	#env.Append(BIN_DIR = ['/opt/ram/local/bin'])
 	env.Append(LIBS = ['Ice', 'IceUtil'])
+
+print env
 
 Export('env')
 env.SConscript('src/SConscript', variant_dir='#build')

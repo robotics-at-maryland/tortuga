@@ -12,8 +12,8 @@ env.Command(['SensorBoard.cpp','SensorBoard.h'],
 # NATIVE MARSHALING CODE FOR PYTHON
 ##############################
 
-env.Command(['ram_ice.py'], 
-	'SensorBoard.ice', 'slice2py --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
+#env.Command(['ram_ice.py'], 
+#	'SensorBoard.ice', 'slice2py --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
 
 
 # BENCHMARK PROGRAM

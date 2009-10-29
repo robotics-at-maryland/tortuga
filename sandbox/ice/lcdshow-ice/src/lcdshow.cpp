@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Jonathan Sternberg <jsternbe@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Jonathan Sternberg <jsternbe@umd.edu>
+ * File:  sandbox/ice/src/lcdshow-ice.cpp
+ *
+ * Sensor Board utility changed to use Ice so we can run it over
+ * a network connection.
+ */
+
 // STD Includes
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +19,7 @@
 // External Includes
 #include <Ice/Ice.h>
 #include <SensorBoard.h>
+#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "sensorapi.h"
@@ -14,11 +27,6 @@
 #ifndef SENSORAPI_R5
 #error "WRONG VERSION OF INCLUDE"
 #endif
-
-/*
- * Sensor Board Utility, Revision $rev:$
- *
- */
 
 namespace ram {
 namespace tortuga {
@@ -62,6 +70,10 @@ class SensorBoardI : public SensorBoard {
 
     virtual void Stop(const Ice::Current&);
 
+    bool isInitialized() {
+	return m_sync;
+    }
+
  private:
     int m_fd;
     bool m_sync;
@@ -70,6 +82,8 @@ class SensorBoardI : public SensorBoard {
 SensorBoardI::SensorBoardI() :
     m_fd(openSensorBoard("/dev/sensor")), m_sync(true)
 {
+    // Check if we found the device
+    // If we didn't, close the port and return unsynchronized.
     if(m_fd == -1)
     {
         printf("\nCould not find device!\n");
@@ -78,13 +92,14 @@ SensorBoardI::SensorBoardI() :
         printf("Because that needs to be done for every board we make.\n");
 
 	m_sync = false;
-        close(m_fd);
+        //close(m_fd);
     } else {
+	// Try to sync to the board. Return unsynchronized if we couldn't.
 	if(syncBoard(m_fd) != 0)
 	{
 	    printf("\nCould not sync with board!\n");
 	    m_sync = false;
-	    close(m_fd);
+	    //close(m_fd);
 	}
     }
 }
@@ -184,10 +199,16 @@ int main(int argc, char* argv[])
         ic = Ice::initialize(argc, argv);
         Ice::ObjectAdapterPtr adapter
 		= ic->createObjectAdapterWithEndpoints("lcdshow", "default -p 10000");
-        Ice::ObjectPtr object = new ram::tortuga::SensorBoardI;
-        adapter->add(object, ic->stringToIdentity("SensorBoard"));
-        adapter->activate();
-        ic->waitForShutdown();
+	ram::tortuga::SensorBoardI* board = new ram::tortuga::SensorBoardI();
+
+	// Check if the board initialized correctly
+	if (board->isInitialized()) {
+	    Ice::ObjectPtr object = board;
+	    adapter->add(object, ic->stringToIdentity("SensorBoard"));
+	    adapter->activate();
+	    ic->waitForShutdown();
+	}
+	delete board;
     } catch (const Ice::Exception& e) {
 	std::cerr << e << std::endl;
         status = 1;
