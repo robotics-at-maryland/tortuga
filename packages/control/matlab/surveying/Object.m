@@ -5,10 +5,10 @@ classdef Object < dynamicprops
 %   measurements - containers.Map() storing all measurements
 %   location - structure storing (x,y) +/- (sigx, sigy) information
 %
-%   location.x      - x coordinate of location
-%   location.sigx   - error in location.x
-%   location.y      - y coordinate of location
-%   location.sigy   - error in location.y
+%   location.xobj      - x coordinate of location
+%   location.sigxobj   - error in location.x
+%   location.yobj      - y coordinate of location
+%   location.sigyobj   - error in location.y
 %
 
    methods
@@ -18,10 +18,10 @@ classdef Object < dynamicprops
            obj.addprop('location');
            obj.addprop('name');
            obj.name = name;
-           obj.location.x = Null();
-           obj.location.sigx = Null();
-           obj.location.y = Null();
-           obj.location.sigy = Null();
+           obj.location.xobj = Null();
+           obj.location.sigxobj = Null();
+           obj.location.yobj = Null();
+           obj.location.sigyobj = Null();
            obj.measurements = containers.Map();
            obj.removedMeasurements = containers.Map();
        end %func

@@ -22,26 +22,50 @@ classdef Measurement < handle
        
        angleMethodValid = 0
        planeIntersectionValid = 0
+       arcLengthValid = 0
+       
        isActive = 1
        agrees = 1
        
+       % initial x position
        x = Null()
-       sigx = Null()
+       sigx = .3
        
+       % initial y position
        y = Null()
-       sigy = Null()
+       sigy = .3
        
+       % angle between object and North
        phi = Null()
-       sigphi = Null()
+       sigphi = toRad(3)
        
+       % depth of object
        D = Null()
-       sigD = Null()
+       sigD = .05
        
+       % height of measurement point
        h = Null()
-       sigh = Null()
+       sigh = .05
        
+       % angle of declination to object
        theta = Null()
-       sigtheta = Null()
+       sigtheta = toRad(3)
+       
+       % arc length measured
+       s = Null()
+       sigs = .05
+       
+       % radius of circle
+       r = 45
+       sigr = .01
+       
+       % distance between circle edge and center
+       d = -15
+       sigd = .01
+       
+       % angle between local coordinate system and North
+       alpha = toRad(270)
+       sigalpha = toRad(2)
    end
    
    methods

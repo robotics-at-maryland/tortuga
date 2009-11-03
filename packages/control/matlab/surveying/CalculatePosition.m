@@ -39,6 +39,11 @@ for i = 1:int32(M.Count) % for each key
         v.planeIntersectionValid = 0;
         v.angleMethodValid = 0;
     end %planevalidation
+    if((isa(v,'Measurement') && isreal(v.x) && isreal(v.sigx) && isreal(v.y) && isreal(v.sigy) && isreal(v.s) && isreal(v.sigs) && isreal(v.r) && isreal(v.sigr)))
+        v.arcLengthValid = 1;
+    else
+        v.arcLengthValid = 0;
+    end
 end %for
 
 % create temporary array to hold all results
@@ -71,6 +76,14 @@ for i = 1:int32(M.Count)
             a.sigYObjArr(1+end) = r.sigyobj;
         end %if
     end %for
+    if(mi.arcLengthValid == 1)
+        r = arcLengthMethod(mi);
+        % Add results to the result arrays
+        a.xObjArr(1+end) = r.xobj;
+        a.sigXObjArr(1+end) = r.sigxobj;
+        a.yObjArr(1+end) = r.yobj;
+        a.sigYObjArr(1+end) = r.sigyobj;
+    end
 end %for
 
 %initialize sums

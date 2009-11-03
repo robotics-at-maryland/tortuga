@@ -2,6 +2,8 @@
 clear
 clc
 
+map = Map(44,0);
+
 % True Position
 xobj = -1;
 yobj = 6;
@@ -49,7 +51,8 @@ sigtheta = [toRad(3)];
 
 % Single Angle Method Measurement
 
-obj = Object('obj(-1,6)');
+map.addObject('obj(-1,6)');
+obj = map.objectMap('obj(-1,6)');
 am = Measurement();
 am.name = 'tmp';
 
@@ -73,7 +76,7 @@ am.theta = theta(i);
 am.sigtheta = sigtheta(i);
 
 
-r = AngleMethod(am)
+r = AngleMethod(am);
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -81,8 +84,8 @@ r = AngleMethod(am)
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.xobj)/r.sigxobj
-numstdvY = (yobj-r.yobj)/r.sigyobj
+numstdvX = (xobj-r.xobj)/r.sigxobj;
+numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 
 % One Pair Plane Intersection
@@ -101,7 +104,7 @@ for i = 1:2
     obj.addMeasurement(pm);
 end
 
-r = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2));
+r = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2))
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -114,7 +117,7 @@ numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 % Combination of Angle and Plane Results
 obj.addMeasurement(am);
-
+obj.updateLocation();
 r = CalculatePosition(obj.getAllMeasurements);
 
 % Number of standard deviations away from true value
