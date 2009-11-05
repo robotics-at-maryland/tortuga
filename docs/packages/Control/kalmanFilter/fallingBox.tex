@@ -7,6 +7,8 @@
 
 \maketitle
 
+\interfootnotelinepenalty=10000
+
 \begin{center}
 \Huge 
 DRAFT
@@ -42,7 +44,7 @@ Consider a box that initially starts in midair and falls under the influence of 
 x(t) 		&= \int_0^t\!\dot{x}(\tau)d\tau 	= -\frac{g}{2}t^2+\dot{x}(0)t+x(0)
 \end{align}
 
-Now the position of the box as a function of time can be solved if the exact initial position $x(0)$, the exact initial velocity $\dot{x}(0)$, gravitational constant $g$, and mass $m$ are known.  We certainly have a very good idea of the value of the gravitational constant $g$, but our knowledge of mass $m$ may not be perfect.  It is also likely that the initial conditions $x(0)$ and $\dot{x}(0)$ are only known to a certain degree of accuracy.  The dynamical model $\ddot{x}(t)=\frac{-g}{m}$ does not include drag which may be significant (especially if the box's velocity grows large).  The dynamical model also neglects random forces acting on the box, such as winds and thermal drafts.  It is clear that basic techniques from calculus and physics will not be of much use in determining the box's position if we consider complicated dynamical models, uncertainty in parameters, uncertainty in initial conditions, and random forces.  
+Now the position of the box as a function of time can be solved if the exact initial position $x(0)$, the exact initial velocity $\dot{x}(0)$, and gravitational constant $g$ are known.  We certainly have a very good idea of the value of the gravitational constant $g$, but not to infinite precision.  It is also likely that the initial conditions $x(0)$ and $\dot{x}(0)$ are only known to a certain degree of accuracy.  The dynamical model $\ddot{x}(t)=-g$ does not include drag which may be significant (especially if the box's velocity grows large).  The dynamical model also neglects random forces acting on the box, such as winds and thermal drafts.  It is clear that basic techniques from calculus and physics will not be of much use in determining the box's position if we consider complicated dynamical models, uncertainty in parameters, uncertainty in initial conditions, and random forces.  
 
 If using a mathematical model isn't straightforward, perhaps the position of the box as it falls can be directly measured.  Assume that we can place an altimeter in the box that can report a measurement $y(t)$ of the position of the box $x(t)$ over time.  It would be wonderful if the measurement was exactly equal to the what we want to measure: $y(t)=x(t)$.  Unfortunately, in the real world it is often the case that a sensor has random noise $n(t)$ that corrupts the measurement in some way.  Sometimes sensors can be purchased that have noise that is so small it can be considered negligible; but these often come at high cost and may have undesireable weight, an incompatible form factor, or simply may not be available.  For most measurement systems, the practicing engineer is usually stuck with noisey measurements.  In the case of the falling box the altimeter measurements take the form $y(t)=x(t)+n(t)$. 
 
@@ -61,11 +63,11 @@ The first step in analyzing any control or estimation problem is to construct a 
 \label{fig:boxFreeBodyDiagram}
 \end{figure}
 
-As shown in Figure \ref{fig:boxFreeBodyDiagram}, we can model all the forces acting on the box.  For simplicity, we assume that the box acts like a particle with forces acting on it.\footnote{The problem would be more difficult if we treated the box like a rigid body with forces that aren't lined up with the box's center of gravity}  The following forces act on the box:
+As shown in Figure \ref{fig:boxFreeBodyDiagram}, we can model all the forces acting on the box.  For simplicity, we assume that the box acts like a particle with forces acting on it.\footnote{The problem would be more difficult if we treated the box like a rigid body with forces that aren't lined up with the box's center of gravity.  Then we would need to account for rotation of the box which would change over time.  This more complicated model would require knowledge of how the drag varies depending on the orientation of the box.  }  The following forces act on the box:
 \begin{itemize}
 \item weight $=mg$ which always acts downwards
 \item drag $=c\dot{x}(t)$ with $c>0$ which is drawn so that the drag force is always opposite the direction of motion
-\item disturbances $=d(t)$ which will be discussed in greater detail later 
+\item disturbances $=v(t)$ which will be discussed in greater detail later 
 \end{itemize}
 We can now use Newton's Second Law to write the dynamic equation directly:
 
@@ -76,11 +78,36 @@ m\ddot{x}(t) &= -mg-c\dot{x}(t)+d(t)\nonumber\\
 \ddot{x}(t) &= -g-\frac{c}{m}\dot{x}(t)-\frac{1}{m}d(t)
 \end{align}
 
-Control/Estimation people like to rearrange this equation into state space form.  Notice how Equation \ref{eq:naiveDynamics} is separable is is hence very easy to integrate (twice) to solve for $x(t)$.  Equation \ref{eq:dynamics} is more complicated.  While it can be solved for $x(t)$, this equation and others that are vastly more complicated can easily be solved by putting them in matrix form.  If we let $x_1(t)=x(t)$, $x_2(t)=\dot{x}(t)=\dot{x}_1(t)$, and $\pmb{x}(t)=\begin{bmatrix} x_1(t) \\ x_2(t) \end{bmatrix}$, then the state space form is:
+Control and estimation specialists like to rearrange this equation into state space form.  Notice how Equation \ref{eq:naiveDynamics} is separable and is hence very easy to integrate (twice) to solve for $x(t)$.  Equation \ref{eq:dynamics} is more complicated.  While it can be solved for $x(t)$ directly using techniques from the theory of ordinary differential equations, this equation and others that are vastly more complicated can easily be solved by putting them in matrix form.  Let $x_1(t)=x(t)$, $x_2(t)=\dot{x}(t)=\dot{x}_1(t)$, and $\pmb{x}(t)=\begin{bmatrix} x_1(t) \\ x_2(t) \end{bmatrix}=\begin{bmatrix}\textrm{box position}\\\textrm{box velocity}\end{bmatrix}$.  We call the vector $\pmb{x}(t)$ the state.  Then the state space form is:
+
+\begin{align}
+\label{eq:stateSpaceDynamics}
+\dot{\pmb{x}}(t) &= \frac{d}{dt}\begin{bmatrix}x_1(t)\\x_2(t)\end{bmatrix} \nonumber\\
+&=\begin{bmatrix} 0 & 1\\ 0 & \frac{c}{m}\end{bmatrix} \begin{bmatrix}x_1(t) \\ x_2(t)\end{bmatrix}+\begin{bmatrix}0\\\frac{1}{m}\end{bmatrix}(-mg+v(t)) \nonumber\\
+&= A\pmb{x}(t)+Bu(t) \qquad \textrm{where} \quad u(t) = -mg+v(t)
+\end{align}
+
+Since we can place the equations in this special matrix form called the state space representation, we say the dynamics are linear.  The name ``linear'' comes from the fact that all of the non-random dynamics except for the constant (due to weight) are linear functions of the state $\pmb{x}(t)$.  Also note that the matrices $A$ and $B$ are not functions of time, they are constant.  Dynamics that have $A$ and $B$ matrices that are constant are said to be time invariant.  Hence these dynamics are linear and time invariant, or LTI for short.
+
+If (and only if) dynamics are LTI, then they can be solved for explicitly using Equation \ref{eq:stateSolution}.  Notice how immensely powerful this technique is.  As long as the dynamics are LTI and have finitely many states, the solution $\pmb{x}(t)$ can be immediately obtained with Equation \ref{eq:stateSolution}.  
 
 \begin{equation}
-\dot{\pmb{x}}(t) = \frac{d}{dt}\begin{bmatrix}x_1(t)\\x_2(t)\end{bmatrix}=\begin{bmatrix} 0 & 1\\ 0 & \frac{c}{m}\end{bmatrix} \begin{bmatrix}x_1(t) \\ x_2(t)\end{bmatrix}+\begin{bmatrix}0\\\frac{1}{m}\end{bmatrix}(-mg+d(t)) = A\pmb{x}(t)+B(-mg+d(t))
+\label{eq:stateSolution}
+\pmb{x}(t)=e^{A(t-t_0)}\pmb{x}(t_0)+\int_{t_0}^te^{A(\tau-t_0)}Bu(\tau)d\tau
 \end{equation}
+where $\pmb{x}(t_0)=\begin{bmatrix}x_1(t_0)\\x_2(t_0)\end{bmatrix}=\begin{bmatrix}\textrm{initial position}\\\textrm{initial velocity}\end{bmatrix}$ which is called the initial condition or initial state.
+
+Now armed with Equation \ref{eq:stateSolution}, we can now predict the position of the box $x(t)$ over all time thus accomplishing our original problem.  Unfortunately, the requirements to use Equation \ref{eq:stateSolution} are impossible to meet in practice.  Firstly, we do not know the gravitational constant $g$ to infinite precision, our measurement of box mass $m$ will have some sort of uncertainty to it, and it is often difficult to know the drag coefficient $c$ better than an order of magnitude.  This means that it is not possible to determine the $A$ and $B$ matrices to infinite precision.  In practice, even small error in $A$ and $B$ can yield drastically different results than the true dynamics.  Second, as mentioned earlier, the initial conditions $\pmb{x}(t_0)$ are not known perfectly.  Finally, the random force $v(t)$ is unknown by definition.  While trying to use Equation \ref{eq:stateSolution} on its own is not in practice good enough to predict the position of the box at any point in time, the equation is still technically accurate.  The equation uses our knowledge of how the box dynamics work to predict the box's motion from any initial condition to any later moment in time.
+
+Recall again that in the real world we can attempt to measure the box's position with a sensor, such as an altimeter.  As discussed in Section \ref{sec:problemStatement}, any real altimeter will unfortunately have some amount of noise, so the output of the altimeter $y(t)$ is corrupted: $y(t)=x(t)+n(t)$.  This equation can be written in state space form as well:
+
+\begin{align}
+\label{eq:stateSpaceMeasurement}
+y(t)&= \begin{bmatrix} 1 & 0 \end{bmatrix}\begin{bmatrix} x_1(t) \\ x_2(t)\end{bmatrix}+\begin{bmatrix}0\end{bmatrix} u(t)+n(t)\nonumber\\
+&=C\pmb{x}(t)+Du(t)+n(t)
+\end{align}
+
+Equation \ref{eq:stateSpaceMeasurement} is the state space form of the measurement equation.  We are not assuming we can directly measure $u(t)$, so $D=[0]$.  We include the notation here for completeness' sake.  Note that $C=[1 \quad 0]$ so that our measurement does not directly include box velocity.  This means that we can only measure box position $x(t)$; that we can't measure box velocity $\dot{x}(t)$.  We will later see that it might be desirable to measure box velocity, but the velocity of a falling object is very difficult to directly measure.  It might be tempting to realize that $\dot{x}(t)$ is just the time derivative of $x(t)$,...
 
 \end{document}
 
