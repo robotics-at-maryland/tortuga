@@ -35,7 +35,7 @@ sigD = .05;
 % phi can be solved for in terms of the other parameters
 phi = asin(((xobj-x)./(sqrt((xobj-x).^2+(yobj-y).^2))));
 sigphi = [toRad(4),toRad(3)];
-
+phiA = asin(((xobj-x)./(sqrt((xobj-x).^2+(yobj-y).^2))));
 % As far as I can tell, it is not possible to solve for theta in closed
 % form so it must be iteratively estimated and checked.  In order to do
 % this, set all of the uncertainties to 0 and use the angle method with
@@ -70,13 +70,13 @@ am.h = random('Normal',h(i),sigh(i));
 am.sigh = sigh(i);
 am.D = D;
 am.sigD = sigD;
-am.phi = random('Normal',phi(i),sigphi(i));
+am.phi = random('Normal',phiA(i),sigphi(i));
 am.sigphi = sigphi(i);
 am.theta = theta(i);
 am.sigtheta = sigtheta(i);
 
 
-r = AngleMethod(am);
+rA = AngleMethod(am)
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -84,8 +84,6 @@ r = AngleMethod(am);
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.xobj)/r.sigxobj;
-numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 
 % One Pair Plane Intersection
@@ -104,7 +102,7 @@ for i = 1:2
     obj.addMeasurement(pm);
 end
 
-r = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2))
+rP = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2))
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -112,13 +110,13 @@ r = PlaneIntersection(obj.getMeasurementByIndex(1),obj.getMeasurementByIndex(2))
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.xobj)/r.sigxobj;
-numstdvY = (yobj-r.yobj)/r.sigyobj;
+%numstdvX = (xobj-r.xobj)/r.sigxobj;
+%numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 % Combination of Angle and Plane Results
 obj.addMeasurement(am);
 obj.updateLocation();
-r = CalculatePosition(obj.getAllMeasurements);
+rC = CalculatePosition(obj.getAllMeasurements)
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -126,8 +124,8 @@ r = CalculatePosition(obj.getAllMeasurements);
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.xobj)/r.sigxobj;
-numstdvY = (yobj-r.yobj)/r.sigyobj;
+%numstdvX = (xobj-r.xobj)/r.sigxobj;
+%numstdvY = (yobj-r.yobj)/r.sigyobj;
 
 %% Object at (-5,19)
 clear
@@ -167,23 +165,25 @@ obj = Object('obj(-5,19)');
 for i = 1:4
     
     m = Measurement();
+    m.name = getTime();
     m.x = random('Normal',x(i),sigx(i));
     m.sigx = sigx(i);
     m.y = random('Normal',y(i),sigy(i));
     m.sigy = sigy(i);
-    m.h = random('Normal',h(i),sigh(i));
-    m.sigh = sigh(i);
-    m.D = D;
-    m.sigD = sigD;
+    %m.h = random('Normal',h(i),sigh(i));
+    %m.sigh = sigh(i);
+    %m.D = D;
+    %m.sigD = sigD;
     m.phi = random('Normal',phi(i),sigphi(i));
     m.sigphi = sigphi(i);
-    m.theta = random('Normal',theta(i),sigtheta(i));
-    m.sigtheta = sigtheta(i);
+    %m.theta = random('Normal',theta(i),sigtheta(i));
+    %m.sigtheta = sigtheta(i);
     
     obj.addMeasurement(m)
 end
 
-[r a] = CalculatePosition(obj.getAllMeasurements)
+obj.updateLocation();
+obj.location
 
 % Number of standard deviations away from true value
 % This should be < 1 68% of the time
@@ -191,5 +191,5 @@ end
 %                < 3 99% of the time
 % If the results are considerably different than these, the error
 % calculations will need to be adjusted.
-numstdvX = (xobj-r.x)/r.sigx
-numstdvY = (yobj-r.y)/r.sigy
+%numstdvX = (xobj-r.x)/r.sigx
+%numstdvY = (yobj-r.y)/r.sigy

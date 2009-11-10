@@ -178,7 +178,7 @@ if isa(handles.currentObject, 'Object')
 end
 
 function objectName_edit_KeyPressFcn(hObject, eventdata, handles)
-if strcmp(eventdata.Key,'enter');
+if strcmp(eventdata.Key,'return');
     createObject_Callback(handles.createObject,eventdata,handles);
 end
 
@@ -294,10 +294,11 @@ end
 function x_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.x = value;
     else
+        handles.currentMeasurement.x = Null();
         set(hObject, 'String', '');
     end
 end
@@ -310,10 +311,11 @@ end
 function sigx_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigx = value;
     else
+        handles.currentMeasurement.sigx = Null();
         set(hObject, 'String', '');
     end
 end
@@ -329,10 +331,11 @@ end
 function y_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.y = value;
     else
+        handles.currentMeasurement.y = Null();
         set(hObject, 'String', '');
     end
 end
@@ -345,10 +348,11 @@ end
 function sigy_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigy = value;
     else
+        handles.currentMeasurement.sigy = Null();
         set(hObject, 'String', '');
     end
 end
@@ -364,10 +368,11 @@ end
 function phi_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.phi = toRad(value);
     else
+        handles.currentMeasurement.phi = Null();
         set(hObject, 'String', '');
     end
 end
@@ -380,10 +385,11 @@ end
 function sigphi_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigphi = toRad(value);
     else
+        handles.currentMeasurement.sigphi = Null();
         set(hObject, 'String', '');
     end
 end
@@ -399,10 +405,11 @@ end
 function h_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.h = value;
     else
+        handles.currentMeasurement.h = Null();
         set(hObject, 'String', '');
     end
 end
@@ -415,10 +422,11 @@ end
 function sigh_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigh = value;
     else
+        handles.currentMeasurement.sigh = Null();
         set(hObject, 'String', '');
     end
 end
@@ -434,10 +442,11 @@ end
 function D_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.D = value;
     else
+        handles.currentMeasurement.D = Null();
         set(hObject, 'String', '');
     end
 end
@@ -450,10 +459,11 @@ end
 function sigD_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigD = value;
     else
+        handles.currentMeasurement.sigD = Null();
         set(hObject, 'String', '');
     end
 end
@@ -469,10 +479,11 @@ end
 function theta_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.theta = toRad(value);
     else
+        handles.currentMeasurement.theta = Null();
         set(hObject, 'String', '');
     end
 end
@@ -485,10 +496,11 @@ end
 function sigtheta_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigtheta = toRad(value);
     else
+        handles.currentMeasurement.sigtheta = Null();
         set(hObject, 'String', '');
     end
 end
@@ -504,10 +516,11 @@ end
 function s_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.s = value;
     else
+        handles.currentMeasurement.s = Null();
         set(hObject, 'String', '');
     end
 end
@@ -520,10 +533,11 @@ end
 function sigs_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigs = value;
     else
+        handles.currentMeasurement.sigs = Null();
         set(hObject, 'String', '');
     end
 end
@@ -539,10 +553,11 @@ end
 function r_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.r = value;
     else
+        handles.currentMeasurement.r = Null();
         set(hObject, 'String', '');
     end
 end
@@ -555,10 +570,11 @@ end
 function sigr_edit_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
     str = get(hObject, 'String');
-    value = str2double(str);
-    if ~isempty(value) && isreal(value)
+    value = str2num(str);
+    if ~isempty(str) && isreal(value)
         handles.currentMeasurement.sigr = value;
     else
+        handles.currentMeasurement.sigr = Null();
         set(hObject, 'String', '');
     end
 end
@@ -582,6 +598,7 @@ if isa(handles.currentMeasurement,'Measurement')
         currName = selectorList{get(hObject,'Value')};
     end
     if ~strcmp(currName, 'Select Object');
+        handles.currentMeasurement.associatedObject = currName;
         currentObject = handles.map.getObject(currName);
         if isreal(currentObject.location.xobj)
             handles.currentMeasurement.x = currentObject.location.xobj;
@@ -604,6 +621,7 @@ if isa(handles.currentMeasurement,'Measurement')
             handles.currentMeasurement.sigy = Null();
         end
     else
+        handles.currentMeasurement.associatedObject = Null();
         handles.currentMeasurement.x = Null();
         handles.currentMeasurement.sigx = Null();
         handles.currentMeasurement.y = Null();
@@ -623,6 +641,17 @@ function mesaurementSave_Callback(hObject, eventdata, handles) %#ok<*INUSL,*DEFN
 if isa(handles.currentMeasurement, 'Measurement')
     c = handles.currentMeasurement;
     d = handles.defaultMeasurement;
+    if isa(c.associatedObject, 'char');
+        a = map.getObject(c.associatedObject);
+        if ~(a.location.xobj == c.x...
+                && a.location.yobj == c.y...
+                && a.location.sigxobj == c.sigx...
+                && a.location.sigyobj == c.sigy)
+            c.associatedObject = Null();
+        end
+    else
+        
+    end
     save = handles.currentObject.getMeasurementByName(c.name);
     if isreal(c.x)
         save.x = c.x;
@@ -705,7 +734,7 @@ if isa(handles.currentMeasurement, 'Measurement')
         save.sigr = d.sigr;
     end
     save.isActive = c.isActive;
-    handles.currentObject.updateLocation();
+    handles.map.updateResults(handles.currentObject);
     resultObjectSelector_Callback(handles.resultObjectSelector,eventdata,handles);
     updateResultGraph(handles);
 end

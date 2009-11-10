@@ -69,6 +69,36 @@ classdef Map < dynamicprops
             oM = obj.objectMap;
         end
         
+        function updateResults(map, object)
+            updated = 0;
+            if(isa(object,'Object') && ~strcmp(object.name,'Origin'))
+                object.updateLocation();
+                numObjects = map.objectMap.Count;
+                for i = 1:int32(numObjects)
+                    oKeys = map.objectMap.keys;
+                    curObject = map.objectMap(char(oKeys(i)));
+                    if ~(strcmp(curObject.name,object.name))
+                        numMes = curObject.measurements.Count;
+                        for j = 1:int32(numMes)
+                            mKeys = curObject.measurements.keys;
+                            curMes = curObject.measurements(char(mKeys(j)));
+                            if(strcmp(curMes.associatedObject,object.name))
+                                curMes.x = object.location.xobj;
+                                curMes.sigx = object.location.sigx;
+                                curMes.y = object.location.yobj;
+                                curMes.sigy = object.location.sigyobj;
+                                updated = 1;
+                            end
+                        end
+                        if updated
+                            updateResults(map,curObject);
+                        end
+                        updated = 0;
+                    end
+                end
+            end
+        end
+        
         function a = plot(obj, a)
             %image is 813px x 536px
             set(a,'XLim', [-50,50]);
@@ -79,12 +109,13 @@ classdef Map < dynamicprops
             n = size(k);
             for i = 1:n(2)
                 o = obj.objectMap(char(k(i)));
-                if strcmp(o.name, 'Origin')
-                    plot(obj.originOffsetX,obj.originOffsetY,'or');
-                else
-                    plot(obj.originOffsetX + o.location.xobj,obj.originOffsetY + o.location.yobj,'+r');
+                if (isreal(o.location.xobj) && isreal(o.location.yobj))
+                    if strcmp(o.name, 'Origin')
+                        plot(obj.originOffsetX,obj.originOffsetY,'or');
+                    else
+                        plot(obj.originOffsetX + o.location.xobj,obj.originOffsetY + o.location.yobj,'+r');
+                    end
                 end
-                
             end
             hold off;
         end

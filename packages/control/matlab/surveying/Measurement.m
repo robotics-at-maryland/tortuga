@@ -20,6 +20,8 @@ classdef Measurement < handle
    properties
        name = Null()
        
+       associatedObject = Null()
+       
        angleMethodValid = 0
        planeIntersectionValid = 0
        arcLengthValid = 0
@@ -56,15 +58,15 @@ classdef Measurement < handle
        sigs = .05
        
        % radius of circle
-       r = 45
+       r = 55
        sigr = .01
        
        % distance between circle edge and center
-       d = -15
+       d = -5
        sigd = .01
        
        % angle between local coordinate system and North
-       alpha = toRad(270)
+       alpha = toRad(-90)
        sigalpha = toRad(2)
    end
    
