@@ -32,14 +32,12 @@
 
         config __FGS, CODE_PROT_OFF         ;Set Code Protection Off for the
                                             ;General Segment
+/*
+.equ RW       	_RC15
+.equ TRIS_RW    _TRISC15
 
-;make sure the following register is actually the read/write signal register, also #define them (or equivalent)
-;also, verify which way is read/write
-/*#define IN_RW       _RE8
-#define TRIS_RW     _TRISE8
-
-#define RW_READ     0
-#define RW_WRITE    1
+.equ RW_READ     0
+.equ RW_WRITE    1
 */
 ;******************************************************************************
 ; Program Specific Constants (literals used in code)
@@ -62,8 +60,13 @@
           .equ MAJOR_VERSION, 0x01
           .equ MINOR_VERSION, 0x01
 
-          .equ RW_PIN PORTE,8							; the R/W signal pin
-          .equ TRIS_RW TRISE,8							; the R/W TRIS pin
+          .equ RW_PORT PORTC							; the R/W port
+          .equ RW_TRIS TRISC							; the R/W TRIS register
+          .equ RW_PIN 15
+
+          .equ bootloaderBaseAddress 0xB18			;0d4096-0d256, if program mem(where were storing this) nonvolatile?
+          											;User program space access is restricted to the lower 4M instruction
+          											;word address range (0x000000 to 0x7FFFFE) p25 in datasheet
 
 ;******************************************************************************
 ; Global Declarations:
@@ -74,8 +77,9 @@
 ;******************************************************************************
 ;Uninitialized variables in X-space in data memory
 ;******************************************************************************
-          .section bss, xmemory
-recBuf:   .space 2 * MAX_WORD_ROW
+          		.section bss, xmemory
+recBuf:   		.space 2 * MAX_WORD_ROW
+imageBlockSize: .space 2				;is this the correct place/way to make a varible?
 
 ;******************************************************************************
 ;Code Section in Program Memory
@@ -94,10 +98,16 @@ __reset:
 
 
 /*
- * Bus = D1 D0 E5-E0
- * Akn = D2
+ * ACK = D2			this section is wrong, use the deinitions below
  * RW  = E8
  */
+
+/*
+15 	 * Bus = D1 D0 E5-E0
+16 	 * Req = C13
+17 	 * Akn = C14
+18 	 * RW  = C15
+19 	 */
 
 
 ;TRIS = 1 ->input
@@ -109,29 +119,76 @@ __reset:
 
 
 /*i dont know how to do the IRQ stuff so im skipping that*/
-
-		;check this
-
 		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
 		NOP
-		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
+		BTSS RW_PORT, #RW_PIN		;is RW==1 ie WRITE mode? if so, skip next instruction
 		call SendNACK
 		call ReadBus 		;read the BUS so we can swap the nybbles
 		SWAP W2				;swap the nybbles
-;what is timeout and how do we set it?
+;set timer
 /*i dont know how to do the IRQ stuff so im skipping that*/
 ;if we get interrupt:
 		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
 		NOP
-		BTSS PORTE, #8		;is RW==1 ie WRITE mode? if so, skip next instruction
+		BTSS RW_PORT, #RW_PIN		;is RW==1 ie WRITE mode? if so, skip next instruction
 		goto sendSwappedNybbles
 		goto finished
 afterSendingSwappedNybbles:
+;set timer
+/*i dont know how to do the IRQ stuff so im skipping that*/
+;if we get IRQ:
+		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
+		NOP
+		BTSS RW_PORT, #RW_PIN		;is RW==1 ie WRITE mode? if so, skip next instruction
+;send NACK- this call will not return-it will restart the chip
+		CALL ReadBus		;get the Low byte of the image size
+		MOV W2, imageBlockSize
+;set timer
+		CALL ReadBus		;get the High byte of the image size
+		MOV W2, imageBlockSize+1
+;set timer
+;if we get IRQ
+		BSET TRIS_RW		;we want to set the RW pin to read to see if we need to read or write
+		NOP
+		BTSC RW_PORT, #RW_PIN		;is RW==0 ie READ mode? if so, skip next instruction
+;restart
+		CALL assertImageSize
+		MOV imageBlockSize, WREG
+		ADD #0, WREG
+		BRA Z, reset				;make sure imageBlockSize!=0
+		BRA N, reset
+;		ADD #0, imageBlockSize					;check if imageBlockSize==0
+;		BRA Z, reset															avoid this code cuz its big
+;		BRA N, reset
+;		ADD #0, imageBlockSize+1				;check if imageBlockSize==0
+;		BRA Z, reset
+;		BRA N, reset
+receiveLoop:							;TODO: START HERE THIS IS KIDNA WRONG-WE NEED TO ONLY WRITE 96 BYTES AT A TIME, add checksum support
+		MOV imageBlockSize, WREG		;
+		ADD #0, WREG					;
+		BRA Z, afterReceive				;is our counter == 0?
+		BRA N, afterReceive				;
+
+		CALL ReadBus		;TODO:are we trying to use the ReadBus function or the ReceiveChar function?
+							;probably Readbus because we arnet using the UART
+		CALL writeBlock		;write the actual block to Flash
+		DEC imageBlockSize	;imageBlockSize--
+		GOTO receiveLoop
+afterReceive:
+;which PIN is the slave's request line?
 
 
 
 
-ReadBus:					;read E5:E0->W1		D1:D0->W2
+
+
+
+
+
+
+
+
+ReadBus:					;read BUS->W2
 		MOV 0x003F, W0		;we want to set the TRIS E5-E0 pins to read
 		MOV W0, TRISE		;actually do it.
 		MOV 0x0003, W0		;we want to set the TRIS D1-D0 pins to read
@@ -149,7 +206,7 @@ sendSwappedNybbles:			;write the contents of W2 into D[1:0],E[5:0]
 							;LATE bits:		  543210
 											^^^^^^^^
 							;register W2:	76543210
-		BCLR TRIS_RW		;clear the RW pin so we can write the Nybble back
+		BCLR RW_TRIS		;clear the RW pin so we can write the Nybble back
 		MOV 0x000, W0		;we want to set the pins to write
 		MOV W0, TRISE		;actually do it for E.
 		MOV W0, TRISD		;actually do it for D.
@@ -158,7 +215,18 @@ sendSwappedNybbles:			;write the contents of W2 into D[1:0],E[5:0]
 		ASR W2, 6, W2		;W2=W2>>6 so the high bits of W2 are now bits 0/1
 		MOV W2, LATD		;actually write to LATD
 		goto afterSendingSwappedNybbles
-//TODO: see if we can reuse code from somewhere else in this file to recieve the bootloader image off the pins.
+
+assertImageSize:			;assert (bootloader_BaseAddress-96*imageBlockSize > 0) else restart
+		MUL.UU imageBlockSize, 96, W8	;we might be stepping on some toes and squashing some DSP address
+										;regs, but i dont care at this point cuz its a bootloader...
+										;what if imageBlockSize is 2 bytes long?
+		SUBR W8, bootloaderBaseAddress, W10
+		BRA LT, reset
+
+
+
+
+
 
 		/*      ; Uart init
         mov #0x8420, W0           ; W0 = 0x8420 -> 1000 0100 0010 0000b
@@ -327,17 +395,17 @@ GetReadOrWrite:
 
 
 ;******************************************************************************
-ReceiveChar:
+ReceiveChar:					  ;receive character into W0 from UART before timeout, checksum it.
         mov #0xFFFF, W10          ; W10 = 0xFFFF
 MajorLChar:
         setm W11                  ; W11 = 0xFFFF
 MinorLChar:
-        btsc U1STA, #URXDA        ; Character received ?
+        btsc U1STA, #URXDA        ; Character received off UART?
         bra EndReceiveChar        ; Yes -> Jump to Finish reception
-        dec W11, W11              ; W1--
-        bra NZ, MinorLChar        ; if W1 != 0 jump MinorLChar
-        dec W10, W10              ; W2--
-        bra NZ, MajorLChar        ; if W2 != 0 jump MajorLChar
+        dec W11, W11              ; W11--
+        bra NZ, MinorLChar        ; if W11 != 0 jump MinorLChar
+        dec W10, W10              ; W10-
+        bra NZ, MajorLChar        ; if W10 != 0 jump MajorLChar
         MOV #__SP_init, W15       ; Initialize Stack Pointer
         bra SendNack              ; Timeout aprox. = 0xFFFF * 0xFFFF * 5 clocks -> Jump to Send Nack
 EndReceiveChar:
