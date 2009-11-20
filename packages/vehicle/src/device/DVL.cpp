@@ -24,7 +24,13 @@
 // Project Includes
 #include "vehicle/include/device/DVL.h"
 
+#include "math/include/Helpers.h"
+#include "math/include/Vector2.h"
+#include "math/include/Events.h"
+
 //static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("DVL"));
+
+//#include "drivers/dvl/include/dvlapi.h"
 
 namespace ram {
 namespace vehicle {
@@ -34,17 +40,21 @@ using namespace ram::math;
     
 DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
          IVehiclePtr vehicle) :
-    IVelocitySensor(eventHub, config["name"].asString()),
+    IDVL(eventHub, config["name"].asString()),
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/dvl")),
     m_serialFD(-1),
-    m_dvlNum(config["num"].asInt(0))
+    m_dvlNum(config["num"].asInt(0)),
+    m_depth(0),
+    m_velocity(0, 0),
+    m_rawState(0),
+    m_filteredState(0)
 {
     // Need an api before I can do this
     //m_serialFD = openDVL(m_devfile.c_str());
 
-    //LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
+    //LOGGER.info("% DVL#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
     //           " Gyro-Raw Quat TimeStamp");
 
     for (int i = 0; i < 5; ++i)
@@ -53,18 +63,20 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
 
 DVL::~DVL()
 {
-    // Always make sure to shutdwon the background thread
+    // Always make sure to shutdown the background thread
     Updatable::unbackground(true);
 
     // Only close file if its a non-negative number
     if (m_serialFD >= 0)
         close(m_serialFD);
+
+    delete m_rawState;
+    delete m_filteredState;
 }
 
 
 void DVL::update(double timestep)
 {
-//    std::cout << "IMU update" << std::endl;
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {
@@ -73,13 +85,14 @@ void DVL::update(double timestep)
     // We didn't connect, try to reconnect
     else
     {
-//        m_serialFD = openIMU(m_devfile.c_str());
+//        m_serialFD = openDVL(m_devfile.c_str());
     }
 }
-    
-math::Vector3 DVL::getPosition()
+
+double DVL::getDepth()
 {
-    return m_position;
+    core::ReadWriteMutex::ScopedReadLock lock(m_depthMutex);
+    return m_depth;
 }
 
 math::Vector2 DVL::getVelocity()

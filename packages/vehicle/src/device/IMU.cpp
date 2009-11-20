@@ -107,7 +107,7 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
 
 IMU::~IMU()
 {
-    // Always make sure to shutdwon the background thread
+    // Always make sure to shut down the background thread
     Updatable::unbackground(true);
 
     // Only close file if its a non-negative number

@@ -29,21 +29,29 @@ class RAM_EXPORT IStateEstimator : public IDevice         // For getName
 public:
     virtual ~IStateEstimator();
 
+    /**
+     * Update function declarations. The timeStamp will be a
+     * default of -1. The messages sent by the system will have
+     * a timeStamp. Any changes made by the user should not have
+     * a timeStamp. The implementations should act differently
+     * based on whether they've been given a timeStamp
+     */
+    
     /** Update the estimator with a new orientation */
     virtual void orientationUpdate(math::Quaternion orientation,
-				   double timeStamp) = 0;
+				   double timeStamp = -1) = 0;
 
     /** Update the estimator with a new velocity */
     virtual void velocityUpdate(math::Vector2 velocity,
-				double timeStamp) = 0;
+				double timeStamp = -1) = 0;
 
     /** Update the estimator with a new position */
     virtual void positionUpdate(math::Vector2 position,
-				double timeStamp) = 0;
+				double timeStamp = -1) = 0;
     
     /** Update the estimator with a new depth */
     virtual void depthUpdate(double depth,
-			     double timeStamp) = 0;
+			     double timeStamp = -1) = 0;
     
     /** Get the latest estimated orientation */
     virtual math::Quaternion getOrientation() = 0;

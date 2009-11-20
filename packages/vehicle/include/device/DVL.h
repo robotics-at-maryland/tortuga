@@ -15,14 +15,18 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/device/IDVL.h"
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/AveragingFilter.h"
 
 #include "math/include/Vector2.h"
-#include "math/include/Vector3.h"
+
+// Forward declare structure from dvlapi.h
+struct _RawDVLData;
+typedef _RawDVLData RawDVLData;
 
 namespace ram {
 namespace vehicle {
@@ -30,8 +34,13 @@ namespace device {
 
 class DVL;
 typedef boost::shared_ptr<DVL> DVLPtr;
-    
-class DVL : public IVelocitySensor,
+
+// Consult with Joe for how big he wants this filter
+const static int FILTER_SIZE = 10;
+
+typedef RawDVLData FilteredDVLData;
+
+class DVL : public IDVL,
             public Device, // for getName
             public core::Updatable // for update
             // boost::noncopyable
@@ -44,11 +53,16 @@ public:
         IVehiclePtr vehicle = IVehiclePtr());
 
     virtual ~DVL();
+
+    virtual double getDepth();
     
     virtual math::Vector2 getVelocity();
 
-    virtual math::Vector3 getPosition();
-
+    /** Grabs the raw DVL state */
+    void getRawState(RawDVLData& dvlState);
+    /** Grab the filtered state */
+    void getFilteredState(FilteredDVLData& dvlState);
+    
     virtual std::string getName() { return Device::getName(); }
     
     /** This is called at the desired interval to read data from the IMU */
@@ -90,12 +104,20 @@ private:
 
     /** DVL number for the log file */
     int m_dvlNum;
+
+    /** Protects access to the depth */
+    core::ReadWriteMutex m_depthMutex;
+    double m_depth;
     
     /** Protects access to public state */
     core::ReadWriteMutex m_velocityMutex;
     math::Vector2 m_velocity;
 
-    math::Vector3 m_position;
+    /** The raw data read back from the DVL */
+    RawDVLData* m_rawState;
+
+    /** Filtered and rotated IMU data */
+    FilteredDVLData* m_filteredState;
 };
     
 } // namespace device
