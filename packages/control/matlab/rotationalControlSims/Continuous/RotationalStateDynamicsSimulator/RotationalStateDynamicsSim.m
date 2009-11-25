@@ -39,7 +39,19 @@ clc;
         q0 = [axis0*sin(angle0*(pi/180)/2); cos(angle0*(pi/180)/2)];
         q0 = q0/norm(q0);
         
-        
+        %initial angular rate
+        w0=(pi/180)*[0 0 0]';
+
+        %initial desired position
+        qd0=[0 0 0 1]';
+
+        %initial desired angular rate
+        wd0=(pi/180)*[0 0 0]';
+
+        %initial estimated position
+        qhat0=q0;
+
+x0=[q0; w0; qd0; wd0; qhat0];
         
     
     %Constants:
@@ -71,25 +83,9 @@ clc;
         rb=[0 0 1]';%Or this!!
     
         %Timing
-        t0 = 0
-        te = 100
+        t0 = 0;
+        te = 100;
 
 %% For loop or ODE45
   
-    %Measurements: CANNOT be done by robot
-    
-        %Observation vectors: (taken in the body frame)
-        mag_vec_bf = [1 2 3]';   %NOTE:Arbitrarily picked
-        acc_vec_bf = [1 4 2]';   %NOTE:Arbitrarily picked        
-        
-    %Estimation
-        
-        
-            
-            
-    %Planning:CAN be done by robot (not yet)
-    
-    %Control:CAN be done by robot (not yet)
-    
-    %Simulation of dynamics:CAN be done by robot
-    
+[time,x] = ode45(@rotationalSimDynamics,[t0 te],x0);
