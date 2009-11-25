@@ -34,8 +34,8 @@ clc;
                 0 1 0 
                 0 0 1];
         %Initial Quaternion:
-        axis0 = [1 1 1]';
-        angle0 = 0;
+        axis0 = [1 1 2]';
+        angle0 = 50;
         q0 = [axis0*sin(angle0*(pi/180)/2); cos(angle0*(pi/180)/2)];
         q0 = q0/norm(q0);
         
@@ -66,9 +66,7 @@ x0=[q0; w0; qd0; wd0; qhat0];
     
         %System Inertia
         global H;
-        H= [0 0 0
-            0 0 0
-            0 0 0];%I don't know what this is!!!
+        H= 1500*eye(3);%I don't know what this is!!!
 
         %Drag Constants
         global Cd;

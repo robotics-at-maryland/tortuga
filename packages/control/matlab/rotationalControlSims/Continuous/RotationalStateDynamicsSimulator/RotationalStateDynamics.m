@@ -89,7 +89,7 @@ w_meas=w;
         
         
 
-q_meas = quaternionFromnCb(nCbFromIMU(m_meas,a_meas));
+q_meas = quaternionFromnCb(nCbFromIMU(mag_vec_bf,acc_vec_bf));
 %q_meas=q;
 
 %quaternion estimation that requires only angular rate gyro
