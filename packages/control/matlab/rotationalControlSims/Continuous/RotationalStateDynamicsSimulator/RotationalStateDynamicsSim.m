@@ -88,4 +88,4 @@ x0=[q0; w0; qd0; wd0; qhat0];
 
 %% For loop or ODE45
   
-[time,x] = ode45(@rotationalSimDynamics,[t0 te],x0);
+[time,x] = ode45(@RotationalStateDynamics,[t0 te],x0);

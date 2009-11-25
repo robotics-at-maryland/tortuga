@@ -25,28 +25,32 @@ function dx=rotationalSimDynamics(t,x)
 %-------------------------------------------------------------------------%
 %% Pull in Global Constants
 
-%System Inertia
-global H;
+    %System Inertia
+    global H;
 
-%Drag 
-global Cd;
+    %Drag 
+    global Cd;
 
-%Buoyancy Force
-global fb;
+    %Buoyancy Force
+    global fb;
 
-%vector from center of gravity (CG) to center of buoyancy (CB)
-global rb;
+    %vector from center of gravity (CG) to center of buoyancy (CB)
+    global rb;
 
-%Known inertial constants
-global mag_vec_nf;
-global acc_vec_nf;
+    %Known inertial constants
+    global mag_vec_nf;
+    global acc_vec_nf;
 
 %% unpack ODE data
-
+q=x(1:4);
+w=x(5:7);
+q_d=x(8:11);
+w_d=x(12:14);
+qhat=x(15:18);
 
 %fix numerical quaternion drift
 
-%% measurement
+%% measurement:CANNOT be done by robot
 Rot = R(q);
 acc_vec_bf = Rot * acc_vec_nf; 
 mag_vec_bf = Rot * mag_vec_nf;
@@ -58,11 +62,9 @@ w_meas=w;
         n3 = -acc_vec_bf/norm(acc_vec_bf);
         n2 = cross(n3,mag_vec_bf)/norm(mag_vec_bf);
         n1 = cross(n2,n3);
-            %Accounting for round-off errors
+        %Accounting for round-off errors
             n1 = n1/norm(n1);
         bRn = [n1 n2 n3];
-        
-        q_triad = 
         
         %Quest:
         cos_func = dot(mag_vec_bf,acc_vec_bf)*dot(mag_vec_nf,acc_vec_nf) + norm(cross(mag_vec_bf,acc_vec_bf))*norm(cross(mag_vec_nf,acc_vec_nf));
