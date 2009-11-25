@@ -113,7 +113,7 @@ void RedLightDetector::init(core::ConfigNode config)
                                  200, 255); // V defaults // 200,255
 
     // Make sure the configuration is valid
-    //propSet->verifyConfig(config, true);
+    propSet->verifyConfig(config, true);
     
     // State machine variables 
     found=false;
