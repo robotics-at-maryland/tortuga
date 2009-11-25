@@ -25,6 +25,10 @@ function dx=RotationalSimDynamics(t,x)
 %-------------------------------------------------------------------------%
 %% Pull in Global Constants
 
+    %Global weights
+    global a1; 
+    global a2;
+
     %System Inertia
     global H;
 
