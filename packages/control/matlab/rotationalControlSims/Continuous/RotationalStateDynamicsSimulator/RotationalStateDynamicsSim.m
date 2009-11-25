@@ -30,8 +30,8 @@ clc;
 
     %Initial Position with respect to inertial frame
         %Initial Rotation Matrix:
-        bRn0 = [1 0 0
-                0 1 0
+        bRn0 = [1 0 0 
+                0 1 0 
                 0 0 1];
         %Initial Quaternion:
         axis0 = [1 1 1]';
@@ -47,7 +47,7 @@ clc;
     global mag_vec_nf;
     mag_vec_nf = [cos(60*pi/180) 0 sin(60*pi/180)]'; %Note: the declination angle may be incorrect
     global acc_vec_nf;
-    acc_vec_nf = angle0*(pi/180)/2)= [0 0 -1]';
+    acc_vec_nf = [0 0 -1]';
     global a1;
     a1 = 0.5;           %Weight of megnetic sensor
     global a2;e
