@@ -36,21 +36,20 @@ clc;
         %Initial Quaternion:
         axis0 = [1 1 1]';
         angle0 = 0;
-        q0 = [axis0*sin(angle0*(pi/180)/2) cos(angle0*(pi/180)/2)];
+        q0 = [axis0*sin(angle0*(pi/180)/2); cos(angle0*(pi/180)/2)];
         q0 = q0/norm(q0);
         
         
         
     
     %Constants:
-    global trigger
     global mag_vec_nf;
     mag_vec_nf = [cos(60*pi/180) 0 sin(60*pi/180)]'; %Note: the declination angle may be incorrect
     global acc_vec_nf;
     acc_vec_nf = [0 0 -1]';
     global a1;
-    a1 = 0.5;           %Weight of megnetic sensor
-    global a2;e
+    a1 = 0.5;           %Weight of magnetic sensor
+    global a2;
     a2 = 0.5;           %Weight of acceleration sensor
     
         %System Inertia
