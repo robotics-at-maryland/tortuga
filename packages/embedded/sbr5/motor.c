@@ -700,6 +700,7 @@ int main()
     
     /* Initialize timeout timer */
     // Timer runs continuously
+    // We may want to disable the sleep mode "ON" feature
 	OpenTimer1( T1_ON & 
             T1_IDLE_CON &
             T1_GATE_OFF &
@@ -779,6 +780,7 @@ int main()
             _LATF7= (i & 0x02) >> 1;
             _LATF8= (i & 0x04) >> 2;
 
+            /* Make sure the MUX has settled with a nop block  */
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
@@ -796,13 +798,14 @@ int main()
             Nop();Nop();Nop();Nop();Nop();
             Nop();Nop();Nop();Nop();Nop();
 
-            packetSize= 4;
-            temp= i2cBuf[0]= 0x52;
-            temp+= (i2cBuf[1]= activeSpeed[i]);
-            temp+= (i2cBuf[2]= 0x64);
-            i2cBuf[3]= temp & 0xFF;
+            /* Set up all the i2c interrupts need to send packets*/
+            packetSize= 4; /* 4 bytes to transmit */
+            temp= i2cBuf[0]= 0x52; /* The i2c address */
+            temp+= (i2cBuf[1]= activeSpeed[i]); /* The actual speed */
+            temp+= (i2cBuf[2]= 0x64); /* The fucktarded byte */
+            i2cBuf[3]= (temp & 0xFF); /* The checksum */
 
-            StartI2C();
+            StartI2C(); /* Start the i2c bus and intialize the state machine. */
 
             // Start timer
             TMR1 = 0;
@@ -989,8 +992,8 @@ unsigned int getI2C(void)
 
 void StartI2C(void)
 {
-    I2CCONbits.SEN = 1;        //Generate Start Condition
     i2cState= I2CSTATE_START;
+    I2CCONbits.SEN = 1;        //Generate Start Condition
 }
 
 /* This function generates the restart condition and returns the timeout */

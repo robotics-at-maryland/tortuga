@@ -18,7 +18,7 @@ BIN2HEX = pic30-elf-bin2hex
 LIBS = $(TCPATH)/c30/lib/libp30F4011-elf.a
 
 
-all: main.hex
+all: main.hex secondary.hex test_light_thingy.hex
 
 %.hex : %.elf
 	$(BIN2HEX) $<

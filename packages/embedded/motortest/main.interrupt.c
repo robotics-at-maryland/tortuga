@@ -42,6 +42,7 @@ _FWDT ( WDT_OFF );
 #define I2CSTATE_STOP   0x06
 
 /* This is an error state where something isn't ACK'd or some other bad state*/
+#define I2CSTATE_STOPPING_BORKED 0xFD
 #define I2CSTATE_BORKED 0xFE
 
 /* Here's the buffer and additional variables */
@@ -91,11 +92,14 @@ void _ISR _MI2CInterrupt() {
      * happening.  Then do stuff based on that. */
     switch(i2cState) {
         case I2CSTATE_IDLE:
+        {
             /* If we're in this state we shouldn't be in this function! */
             BorkedI2C();
             break;
+        }
 
         case I2CSTATE_START:
+        {
             if((i2cBuf[0] & 0x01) == I2C_WRITE) {
                 i2cPtr= 1;
                 i2cState= I2CSTATE_TRANS;
@@ -110,8 +114,10 @@ void _ISR _MI2CInterrupt() {
             WriteI2C(i2cBuf[0]); /* No matter what happens we want to send the
                                     address and the R/W bit */
             break;
+        }
 
         case I2CSTATE_TRANS:
+        {
             /* Check to see if the packet was ACK'd or NACK'd */
             if(!wasAckI2C()) {
                 BorkedI2C(); /* We're fucked! Stop the bus! */
@@ -136,8 +142,10 @@ void _ISR _MI2CInterrupt() {
             WriteI2C(i2cBuf[i2cPtr++]);
             i2cState= I2CSTATE_TRANS;
             break;
+        }
 
         case I2CSTATE_RX_ADR:
+        {
             if(!wasAckI2C()) {
                 BorkedI2C(); /* We're fucked! Stop the bus! */
                 break;
@@ -149,8 +157,10 @@ void _ISR _MI2CInterrupt() {
             I2CCONbits.RCEN= 1;
 
             break;
+        }
 
         case I2CSTATE_REC:
+        {
             /* Recieving is a bit more complex then sending we have to
              * get the byte out of the buffer, then generate an ACK */
             LATE= 0x0002;
@@ -160,8 +170,10 @@ void _ISR _MI2CInterrupt() {
             I2CCONbits.ACKEN= 1;
             i2cState= I2CSTATE_ACK;
             break;
+        }
 
         case I2CSTATE_ACK:
+        {
             /* So now we've received a whole packet and ACK'd it.  If we have
              * more packets we'll need to wait to recieve them.  So go check! */
             LATE= 0x0001;
@@ -177,19 +189,34 @@ void _ISR _MI2CInterrupt() {
             I2CCONbits.RCEN= 1; /* Enable reception! */
             i2cState= I2CSTATE_REC;
             break;
+        }
 
         case I2CSTATE_STOP:
+        {
             /* This is the end of the stop state. If we're here, in theory 
              * we got what we needed and we're done.  We're idle again! */
             LATE= 0x0000;
             i2cState= I2CSTATE_IDLE;
             break;
+        }
+
+        case I2CSTATE_STOPPING_BORKED:
+        {
+            /* If we're here that means that */
+            i2cState= I2CSTATE_BORKED;
+            break;
+        }
 
         case I2CSTATE_BORKED:
+        {
             /* If we're BORKED just break. */
             break;
+        }
+
         default:
+        {
             break;
+        }
     }
 }
 
@@ -262,7 +289,6 @@ int main()
             packetSize= buff[2];
             i2cBuf[0]= buff[1];
             StartI2C();
-            i2cState= I2CSTATE_START;
             while(i2cState != I2CSTATE_IDLE)
                 ;
 
@@ -277,7 +303,6 @@ int main()
             packetSize= i - 1;
 
             StartI2C();
-            i2cState= I2CSTATE_START;
         }
     }
 
@@ -409,7 +434,8 @@ unsigned int getI2C(void)
 
 void StartI2C(void)
 {
-    I2CCONbits.SEN = 1;        //Generate Start COndition
+    i2cState= I2CSTATE_START;  // Set the state machine up
+    I2CCONbits.SEN = 1;        // Generate Start Condition
 }
 
 /* This function generates the restart condition and returns the timeout */
@@ -428,6 +454,7 @@ unsigned int RestartI2C(void)
 /* This function generates the stop condition and reports a timeout */
 unsigned int StopI2C(void)
 {
+
     I2CCONbits.PEN = 1;        /* Generate the Stop condition */
     return 0;
 }

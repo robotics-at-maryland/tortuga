@@ -1101,14 +1101,19 @@ int setServoPower(int fd, unsigned char power)
 
 int setServoEnable(int fd, unsigned char servoMask)
 {
-    return simpleWrite(fd, HOST_CMD_SERVO_ENABLE, servoMask, 0xFF);
+    return simpleWrite(fd, HOST_CMD_SERVO_ENABLE, servoMask, 0x100);
 }
 
 int setServoPosition(int fd, unsigned char servoNumber, unsigned short position)
 {
-    unsigned char buf[5]= { HOST_CMD_SET_SERVO_POS, servoNumber, 0, 0, HOST_CMD_SET_SERVO_POS + servoNumber };
-    buf[4]+= buf[2]= (position >> 8) & 0xFF;
-    buf[4]+= buf[3]= position & 0xFF;
+    unsigned int fuckme= 0;
+    unsigned char buf[5]= { HOST_CMD_SET_SERVO_POS, servoNumber, (position >> 8) & 0xFF, position & 0xFF, 0 };
+
+    fuckme+= buf[0];
+    fuckme+= buf[1];
+    fuckme+= buf[2];
+    fuckme+= buf[3];
+    buf[4]= (fuckme & 0xFF);
 
     writeData(fd, buf, 5);
     readData(fd, buf, 1);

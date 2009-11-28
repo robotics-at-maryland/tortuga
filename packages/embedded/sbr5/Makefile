@@ -29,6 +29,9 @@ balancer.o : balancer.c buscodes.h uart.c i2c.c
 motor.o : motor.c buscodes.h typedef.h servo.h servo.c
 	$(CC) -mcpu=30F6010A $(CFLAGS) -Wunused-function -c $< -o $@
 
+motor.dumber.o : motor.dumber.c buscodes.h typedef.h servo.h servo.c
+	$(CC) -mcpu=30F6010A $(CFLAGS) -Wunused-function -c $< -o $@
+
 ic4.o : ic4.c buscodes.h uart.c i2c.c
 	$(CC) -mcpu=30F4013 $(CFLAGS) -Wunused-function -c $< -o $@
 
@@ -39,6 +42,9 @@ balancer.elf : balancer.o uart.c i2c.c
 	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $(TCPATH)/c30/lib/libp30F6014A-elf.a $< -o $@
 
 motor.elf : motor.o
+	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6010A.gld,--heap=0,-lp30F6010A-elf,--report-mem $< $(TCPATH)/c30/lib/libp30F6010A-elf.a -o $@
+
+motor.dumber.elf : motor.dumber.o
 	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6010A.gld,--heap=0,-lp30F6010A-elf,--report-mem $< $(TCPATH)/c30/lib/libp30F6010A-elf.a -o $@
 
 ic4.elf : ic4.o uart.c i2c.c
