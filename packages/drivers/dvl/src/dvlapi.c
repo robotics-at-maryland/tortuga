@@ -34,6 +34,7 @@
 
 static const double DEGS_TO_RADIANS = M_PI / 180;
 
+/*
 unsigned char waitByte(int fd)
 {
     unsigned char rxb[1];
@@ -68,9 +69,11 @@ double convertData(unsigned char msb, unsigned char lsb, double range)
 {
     return convert16(msb, lsb) * ((range/2.0)*1.5) / 32768.0;
 }
+*/
 
-int readIMUData(int fd, RawIMUData* imu)
+int readDVLData(int fd, RawDVLData* dvl)
 {
+    /*
     unsigned char imuData[34];
 
     waitSync(fd);
@@ -108,13 +111,18 @@ int readIMUData(int fd, RawIMUData* imu)
 
     if(!imu->checksumValid)
         printf("WARNING! IMU Checksum Bad!\n");
-
+    
     return imu->checksumValid;
+    */
+
+    /** always fails */
+    return 0;
 }
 
 /* Some code from cutecom, which in turn may have come from minicom */
-int openIMU(const char* devName)
+int openDVL(const char* devName)
 {
+    /*
    int fd = open(devName, O_RDWR, O_ASYNC);
 
     if(fd == -1)
@@ -166,4 +174,8 @@ int openIMU(const char* devName)
       printf("tcsetattr() 2 failed\n");
     
     return fd;
+    */
+
+    /** always fails for now */
+    return -1;
 }
