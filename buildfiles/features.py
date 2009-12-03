@@ -70,7 +70,8 @@ def get_features():
         add_feature('drivers', dirs = ['packages/drivers/sensor-r5',
                                        'packages/drivers/thruster',
                                        'packages/drivers/imu',
-                                       'packages/drivers/carnetix'])
+                                       'packages/drivers/carnetix',
+                                       'packages/drivers/dvl'])
 
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',

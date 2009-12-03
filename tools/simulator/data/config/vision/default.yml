@@ -3,7 +3,7 @@ RedLightDetector:
    foundMinPixelScale: 0.85
    lostMinPixelScale: 0.75
    # About 20% of the total pixels
-   almostHitPixels: 61440.0
+   #almostHitPixels: 61440.0
 
 VelocityDetector:
     usePhaseCorrelation: 0

@@ -15,7 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IDVL.h"
+#include "vehicle/include/device/IVelocitySensor.h"
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -23,6 +23,7 @@
 #include "core/include/AveragingFilter.h"
 
 #include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
 
 // Forward declare structure from dvlapi.h
 struct _RawDVLData;
@@ -36,11 +37,11 @@ class DVL;
 typedef boost::shared_ptr<DVL> DVLPtr;
 
 // Consult with Joe for how big he wants this filter
-const static int FILTER_SIZE = 10;
+const static int DVL_FILTER_SIZE = 10;
 
 typedef RawDVLData FilteredDVLData;
 
-class DVL : public IDVL,
+class DVL : public IVelocitySensor,
             public Device, // for getName
             public core::Updatable // for update
             // boost::noncopyable
@@ -53,10 +54,10 @@ public:
         IVehiclePtr vehicle = IVehiclePtr());
 
     virtual ~DVL();
-
-    virtual double getDepth();
     
     virtual math::Vector2 getVelocity();
+
+    virtual math::Vector3 getLocation();
 
     /** Grabs the raw DVL state */
     void getRawState(RawDVLData& dvlState);
@@ -104,15 +105,15 @@ private:
 
     /** DVL number for the log file */
     int m_dvlNum;
-
-    /** Protects access to the depth */
-    core::ReadWriteMutex m_depthMutex;
-    double m_depth;
     
     /** Protects access to public state */
     core::ReadWriteMutex m_velocityMutex;
     math::Vector2 m_velocity;
 
+    math::Vector3 m_location;
+
+    /** Protects access to raw state */
+    core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
 

@@ -36,7 +36,7 @@ namespace device {
 
 class IMU;
 typedef boost::shared_ptr<IMU> IMUPtr;
-    
+
 const static int FILTER_SIZE = 10;
 
 typedef RawIMUData FilteredIMUData;

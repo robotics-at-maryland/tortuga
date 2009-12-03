@@ -96,7 +96,7 @@ env.Append(LIB_DIR = os.path.join(env['BUILD_DIR'], 'lib'))
 env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 
 # Sets platform specific settings, includes LIBPATH and CPPPATH
-# See: buildfiles/platfrm.py for more information
+# See: buildfiles/platform.py for more information
 platfrm.setup_environment(env)
 
 
@@ -132,10 +132,10 @@ else:
                                 '/EHa',  # Structured Exception Handling
                                 '/GR'])  # C++ RTTI
     
-    # These Warnings are disabled from the command line because the cause 
+    # These Warnings are disabled from the command line because they cause 
     # problems with STD headers and are just too pedantic (!)
-    # 4820 = Had to add pading to structure/class
-    # 4625 = Copy constructor not accesible in base class
+    # 4820 = Had to add padding to structure/class
+    # 4625 = Copy constructor not accessible in base class
     # 4626 = Assignement Operator is not accisble in base class
     # 4710 = inline was requested but not preformed
     # 4512 = assignment operator could not be generated
@@ -143,7 +143,7 @@ else:
     # 4514 = unreferenced inline function has been removed
     # 4100 = unreferenced formal parameter
     # 4255 = no function prototype given: converting '()' to '(void)'
-    # 4686 = possible change in behavious with FOREACH
+    # 4686 = possible change in behaviours with FOREACH
     # 4251 = needs to have dll interface
     # 4275 = needs to have dll interface
     # 4244 = conversion from one type to another
@@ -154,7 +154,7 @@ else:
     # 4264 = same as the above
     # 4191 = odd calling convention issue
     # 4996 = fopen issue
-    # 4273 = insconsistant dll linkage on windows
+    # 4273 = inconsistant dll linkage on windows
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
                                 '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
                                 '/wd4514', '/wd4100', '/wd4255', '/wd4686',

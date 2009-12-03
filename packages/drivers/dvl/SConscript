@@ -1,0 +1,24 @@
+# Copyright (C) 2009 Robotics at Maryland
+# Copyright (C) 2009 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/dvl/SConscript
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Build Library (will be called 'libram_dvl.so')
+envl.Append(CPPPATH = ['include'])
+envl.RAMSharedLibrary('dvl',  source = ['src/dvlapi.c'])
+
+# Testing and Demo Programs
+#envt = env.Clone()
+
+# Needed because of steves include pattern
+#envt.AppendUnique(LIBS = ['m'])
+
+# Build the ctx and consolemon
+#envt.RAMProgram(target = 'imutest', source = 'test/src/imutest.c',
+#                int_deps = 'imu')

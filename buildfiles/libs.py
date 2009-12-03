@@ -239,7 +239,7 @@ def _get_internal_lib(env, name):
     """
     vehicle_int_deps = ['core', 'pattern','math','logging']
     if env.HasFeature('drivers'):
-        vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster'])
+        vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster', 'dvl'])
     # Determine the sonar deps
     sonar_deps = ['Boost']
     if not env['bfin']:
@@ -270,6 +270,8 @@ def _get_internal_lib(env, name):
             
             'carnetix' : InternalLibrary('carnetix', int_deps = [],
                                          ext_deps = ['USB']),
+
+            'dvl' : InternalLibrary('dvl', int_deps = [], ext_deps = []),
 
             'imu' : InternalLibrary('imu', int_deps = [], ext_deps = []),
 

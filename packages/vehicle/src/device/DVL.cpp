@@ -26,11 +26,12 @@
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
 #include "math/include/Events.h"
 
-//static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("DVL"));
+#include "drivers/dvl/include/dvlapi.h"
 
-//#include "drivers/dvl/include/dvlapi.h"
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("DVL"));
 
 namespace ram {
 namespace vehicle {
@@ -40,22 +41,22 @@ using namespace ram::math;
     
 DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
          IVehiclePtr vehicle) :
-    IDVL(eventHub, config["name"].asString()),
+    IVelocitySensor(eventHub, config["name"].asString()),
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/dvl")),
     m_serialFD(-1),
     m_dvlNum(config["num"].asInt(0)),
-    m_depth(0),
     m_velocity(0, 0),
+    m_location(0, 0, 0),
     m_rawState(0),
     m_filteredState(0)
 {
     // Need an api before I can do this
-    //m_serialFD = openDVL(m_devfile.c_str());
+    m_serialFD = openDVL(m_devfile.c_str());
 
-    //LOGGER.info("% DVL#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
-    //           " Gyro-Raw Quat TimeStamp");
+    // TODO: Temporary values until I know what to put in here
+    LOGGER.info("% DVL#(0=main) Velocity TimeStamp");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -80,25 +81,43 @@ void DVL::update(double timestep)
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {
-	// Stuff goes here
+	RawDVLData newState;
+	if (readDVLData(m_serialFD, &newState))
+	{
+	    {
+		// Thread safe copy of good dvl data
+		core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+		*m_rawState = newState;
+	    }
+
+	    // Work is going to be done to get the
+	    // new velocity from the raw state
+	    //math::Vector3
+
+	    // Now publish the new velocity
+	    math::Vector2EventPtr vevent(new math::Vector2Event());
+	    // TODO: Insert whatever the local variable for velocity is
+	    vevent->vector2 = getVelocity();
+	    publish(IVelocitySensor::UPDATE, vevent);
+	}
     }
     // We didn't connect, try to reconnect
     else
-    {
-//        m_serialFD = openDVL(m_devfile.c_str());
+    {	
+	// TODO: Add once you have the real API
+        //m_serialFD = openDVL(m_devfile.c_str());
     }
-}
-
-double DVL::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_depthMutex);
-    return m_depth;
 }
 
 math::Vector2 DVL::getVelocity()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
     return m_velocity;
+}
+
+math::Vector3 DVL::getLocation()
+{
+    return m_location;
 }
    
 } // namespace device

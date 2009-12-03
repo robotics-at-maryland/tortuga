@@ -13,6 +13,8 @@ F2 = imfilter(GRAY, fspecial('sobel')');
 [height, width] = size(GRAY);
 
 % Create a zeroed out image
+% Make sure that the matrix is initialized
+% to use uint8 for all images!
 FILTER = zeros(height, width, 'uint8');
 for i=1:height
     for y=1:width

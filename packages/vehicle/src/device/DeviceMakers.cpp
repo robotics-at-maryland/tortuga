@@ -17,6 +17,7 @@
 
 
 #ifdef RAM_WITH_DRIVERS
+#include "vehicle/include/device/DVL.h"
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/device/PSU.h"
 #include "vehicle/include/device/SensorBoard.h"
@@ -35,6 +36,7 @@
 
 // Register each device with the factor system
 #ifdef RAM_WITH_DRIVERS
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::DVL, DVL);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::IMU, IMU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::PSU, PSU);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SensorBoard,
