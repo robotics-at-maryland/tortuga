@@ -11,6 +11,7 @@
 #define RAM_VEHICLE_DEVICE_SONARSTATEESTIMATOR_06_26_2009
 
 // Project Includes
+#include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/Device.h"
 
@@ -41,16 +42,20 @@ public:
     virtual ~SonarStateEstimator();
 
     virtual void orientationUpdate(math::Quaternion orientation,
-				   double timeStamp);
+                                   deviceType device,
+				   double timeStamp = -1);
 
     virtual void velocityUpdate(math::Vector2 velocity,
-				double timeStamp);
+                                deviceType device,
+				double timeStamp = -1);
 
     virtual void positionUpdate(math::Vector2 position,
-				double timeStamp);
+                                deviceType device,
+				double timeStamp = -1);
     
     virtual void depthUpdate(double depth,
-			     double timeStamp);
+                             deviceType device,
+			     double timeStamp = -1);
     
     virtual math::Quaternion getOrientation();
 

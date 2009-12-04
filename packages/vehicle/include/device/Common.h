@@ -67,6 +67,14 @@ typedef DoubleList VoltageList;
 typedef DoubleList WattageList;
 typedef DoubleList CurrentList;
 typedef std::vector<std::string> StringList;
+
+// Types for devices (used for the state estimator)
+enum deviceType {
+    NO_DEVICE = 0,
+    DVL_DEVICE,
+    IMU_DEVICE,
+    PRESSURE_SENSOR_DEVICE,
+};
     
 } // namespace device
 } // namespace vehicle

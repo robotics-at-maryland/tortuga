@@ -13,6 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/SensorBoard.h"
 #include "vehicle/include/Events.h"
+#include "vehicle/include/Common.h"
 
 #include "math/include/Events.h"
 
@@ -520,8 +521,9 @@ bool SensorBoard::handleReturn(int ret)
 
 void SensorBoard::depthEvent(double depth)
 {
-    math::NumericEventPtr event(new math::NumericEvent());
+    vehicle::DepthEventPtr event(new vehicle::DepthEvent());
     event->number = depth;
+    event->device = PRESSURE_SENSOR_DEVICE;
     publish(IDepthSensor::UPDATE, event);
 }
     

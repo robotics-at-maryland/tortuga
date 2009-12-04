@@ -15,6 +15,7 @@
 //#include "vehicle/include/Common.h"
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/device/SonarStateEstimator.h"
+#include "vehicle/include/device/Common.h"
 #include "vehicle/test/include/MockSonar.h"
 
 #include "math/test/include/MathChecks.h"
@@ -90,7 +91,7 @@ TEST_FIXTURE(Fixture, getOrientation)
     
     // Make sure orientation is just passed right through
     math::Quaternion orientation(1,2,3,4);
-    estimator->orientationUpdate(orientation, -1);
+    estimator->orientationUpdate(orientation, vehicle::device::NO_DEVICE);
     CHECK_CLOSE(orientation, estimator->getOrientation(), 0.0001);
 }
 
@@ -100,7 +101,7 @@ TEST_FIXTURE(Fixture, getDepth)
     
     // Make sure depth is just passed right through
     double depth = 5.7;
-    estimator->depthUpdate(depth, -1);
+    estimator->depthUpdate(depth, vehicle::device::NO_DEVICE);
     CHECK_CLOSE(depth, estimator->getDepth(), 0.0001);
 }
 
@@ -204,7 +205,8 @@ TEST_FIXTURE(Fixture, getPositionBasic)
     // and rotate 45 degrees to the left (ie. pointing N-NW)
     estimator->deltaT = 1.5;
     estimator->orientationUpdate(math::Quaternion(math::Degree(45),
-                                                  math::Vector3::UNIT_Z), -1);
+                                                  math::Vector3::UNIT_Z),
+                                 vehicle::device::NO_DEVICE);
     sendPingerDirection(math::Vector3(1, 1, 0.5), 1); // Right pinger update
 
 /*
@@ -218,7 +220,8 @@ TEST_FIXTURE(Fixture, getPositionBasic)
     // Feed in the update for the left pinger with a DT of 0.75 seconds
     estimator->deltaT = 0.75;
     estimator->orientationUpdate(math::Quaternion(math::Degree(45),
-                                                  math::Vector3::UNIT_Z), -1);
+                                                  math::Vector3::UNIT_Z),
+                                 vehicle::device::NO_DEVICE);
     sendPingerDirection(math::Vector3(-1, 1, 0.5), 0); // Left pinger update
 /*
     CHECK_CLOSE(math::Vector2(0, 10), estimator->getPosition(), 0.0001);

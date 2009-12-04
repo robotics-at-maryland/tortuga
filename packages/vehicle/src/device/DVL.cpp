@@ -92,7 +92,9 @@ void DVL::update(double timestep)
 
 	    // Work is going to be done to get the
 	    // new velocity from the raw state
-	    //math::Vector3
+	    math::Vector2 velocity(0, 0);
+
+            LOGGER.infoStream() << newState.bottomTrack;
 
 	    // Now publish the new velocity
 	    math::Vector2EventPtr vevent(new math::Vector2Event());
@@ -104,8 +106,7 @@ void DVL::update(double timestep)
     // We didn't connect, try to reconnect
     else
     {	
-	// TODO: Add once you have the real API
-        //m_serialFD = openDVL(m_devfile.c_str());
+	m_serialFD = openDVL(m_devfile.c_str());
     }
 }
 

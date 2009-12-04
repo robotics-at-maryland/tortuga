@@ -31,6 +31,7 @@ LoopStateEstimator::~LoopStateEstimator()
 }
 
 void LoopStateEstimator::orientationUpdate(math::Quaternion orientation,
+                                           deviceType device,
 					   double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
@@ -38,6 +39,7 @@ void LoopStateEstimator::orientationUpdate(math::Quaternion orientation,
 }
 
 void LoopStateEstimator::velocityUpdate(math::Vector2 velocity,
+                                        deviceType device,
 					double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
@@ -45,13 +47,16 @@ void LoopStateEstimator::velocityUpdate(math::Vector2 velocity,
 }
 
 void LoopStateEstimator::positionUpdate(math::Vector2 position,
+                                        deviceType device,
 					double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_position = position;
 }
     
-void LoopStateEstimator::depthUpdate(double depth, double timeStamp)
+void LoopStateEstimator::depthUpdate(double depth,
+                                     deviceType device,
+                                     double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_depth = depth;

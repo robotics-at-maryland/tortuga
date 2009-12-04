@@ -13,6 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/Device.h"
+#include "vehicle/include/Events.h"
 
 class MockPositionSensor : public ram::vehicle::device::IPositionSensor,
                            public ram::vehicle::device::Device
@@ -45,7 +46,8 @@ public:
     void publishUpdate(ram::math::Vector2 update)
     {
         position = update;
-        ram::math::Vector2EventPtr nevent(new ram::math::Vector2Event());
+        ram::vehicle::PositionEventPtr nevent(
+            new ram::vehicle::PositionEvent());
         nevent->vector2 = update;
         publish(ram::vehicle::device::IPositionSensor::UPDATE, nevent);
     }

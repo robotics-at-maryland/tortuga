@@ -20,6 +20,7 @@
 // Project Includes
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/Utility.h"
+#include "vehicle/include/Events.h"
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
@@ -136,13 +137,17 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     // Now set the initial values of the estimator
     double timeStamp = core::TimeVal::timeOfDay().get_double();
     if (m_depthSensor)
-        m_stateEstimator->depthUpdate(getRawDepth(), timeStamp);
+        m_stateEstimator->depthUpdate(getRawDepth(),
+                                      device::NO_DEVICE, timeStamp);
     if (m_imu)
-        m_stateEstimator->orientationUpdate(getRawOrientation(), timeStamp);
+        m_stateEstimator->orientationUpdate(getRawOrientation(),
+                                            device::NO_DEVICE, timeStamp);
     if (m_velocitySensor)
-        m_stateEstimator->velocityUpdate(getRawVelocity(), timeStamp);
+        m_stateEstimator->velocityUpdate(getRawVelocity(),
+                                         device::NO_DEVICE, timeStamp);
     if (m_positionSensor)
-        m_stateEstimator->positionUpdate(getRawPosition(), timeStamp);
+        m_stateEstimator->positionUpdate(getRawPosition(),
+                                         device::NO_DEVICE, timeStamp);
     
     // If we specified a name of the mag boom we actually have one
     if (m_magBoomName.size() > 0)
@@ -591,11 +596,12 @@ bool Vehicle::lookupThrusterDevices()
 
 void Vehicle::onDepthUpdate(core::EventPtr event)
 {
-    math::NumericEventPtr nevent =
-        boost::dynamic_pointer_cast<math::NumericEvent>(event);
+    DepthEventPtr nevent =
+        boost::dynamic_pointer_cast<DepthEvent>(event);
     
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->depthUpdate(getRawDepth(), nevent->timeStamp);
+    m_stateEstimator->depthUpdate(getRawDepth(), nevent->device,
+                                  nevent->timeStamp);
     nevent->number = m_stateEstimator->getDepth();
     
     publish(IVehicle::DEPTH_UPDATE, event);
@@ -603,11 +609,12 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
 
 void Vehicle::onOrientationUpdate(core::EventPtr event)
 {
-    math::OrientationEventPtr oevent =
-        boost::dynamic_pointer_cast<math::OrientationEvent>(event);
+    IMUEventPtr oevent =
+        boost::dynamic_pointer_cast<IMUEvent>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->orientationUpdate(getRawOrientation(), oevent->timeStamp);
+    m_stateEstimator->orientationUpdate(getRawOrientation(), oevent->device,
+                                        oevent->timeStamp);
     oevent->orientation = m_stateEstimator->getOrientation();
     
     publish(IVehicle::ORIENTATION_UPDATE, event);
@@ -615,24 +622,26 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
 
 void Vehicle::onPositionUpdate(core::EventPtr event)
 {
-    math::Vector2EventPtr oevent =
-        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+    PositionEventPtr pevent =
+        boost::dynamic_pointer_cast<PositionEvent>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->positionUpdate(getRawPosition(), oevent->timeStamp);
-    oevent->vector2 = m_stateEstimator->getPosition();
+    m_stateEstimator->positionUpdate(getRawPosition(), pevent->device,
+                                     pevent->timeStamp);
+    pevent->vector2 = m_stateEstimator->getPosition();
     
     publish(IVehicle::POSITION_UPDATE, event);
 }
 
 void Vehicle::onVelocityUpdate(core::EventPtr event)
 {
-    math::Vector2EventPtr oevent =
-        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+    VelocityEventPtr vevent =
+        boost::dynamic_pointer_cast<VelocityEvent>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->velocityUpdate(getRawVelocity(), oevent->timeStamp);
-    oevent->vector2 = m_stateEstimator->getVelocity();
+    m_stateEstimator->velocityUpdate(getRawVelocity(), vevent->device,
+                                     vevent->timeStamp);
+    vevent->vector2 = m_stateEstimator->getVelocity();
     
     publish(IVehicle::VELOCITY_UPDATE, event);
 }

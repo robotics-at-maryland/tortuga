@@ -19,6 +19,8 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
+#include "vehicle/include/Common.h"
+#include "vehicle/include/Events.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -218,8 +220,9 @@ void IMU::update(double timestep)
             }
 
             // Send Event
-            math::OrientationEventPtr oevent(new math::OrientationEvent());
+            vehicle::IMUEventPtr oevent(new vehicle::IMUEvent());
             oevent->orientation = updateQuat;
+            oevent->device = IMU_DEVICE;
             publish(IIMU::UPDATE, oevent);
 
             // Log data directly

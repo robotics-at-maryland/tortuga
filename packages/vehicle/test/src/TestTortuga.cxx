@@ -19,7 +19,9 @@
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
+#include "vehicle/include/Events.h"
 #include "vehicle/include/device/IThruster.h"
+#include "vehicle/include/device/Common.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventConnection.h"
@@ -210,7 +212,8 @@ TEST_FIXTURE(VehicleFixture, getDepth)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->depthUpdate(expectedDepth, expectedTimeStamp);
+    estimator->depthUpdate(expectedDepth, vehicle::device::NO_DEVICE,
+                           expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -255,7 +258,8 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
     
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->velocityUpdate(expectedVelocity, expectedTimeStamp);
+    estimator->velocityUpdate(expectedVelocity, vehicle::device::NO_DEVICE,
+                              expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -298,7 +302,8 @@ TEST_FIXTURE(VehicleFixture, getPosition)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->positionUpdate(expectedPosition, expectedTimeStamp);
+    estimator->positionUpdate(expectedPosition, vehicle::device::NO_DEVICE,
+                              expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -314,8 +319,8 @@ TEST_FIXTURE(VehicleFixture, _addDevice)
 
 void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
 {
-    math::OrientationEventPtr oevent =
-    boost::dynamic_pointer_cast<ram::math::OrientationEvent>(event);
+    vehicle::IMUEventPtr oevent =
+        boost::dynamic_pointer_cast<vehicle::IMUEvent>(event);
     *result = oevent->orientation;
 }
 
@@ -346,7 +351,8 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->orientationUpdate(expected, expectedTimeStamp);
+    estimator->orientationUpdate(expected, vehicle::device::NO_DEVICE,
+                                 expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
     
     conn->disconnect();
@@ -354,8 +360,8 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 
 void depthHelper(double* result, ram::core::EventPtr event)
 {
-    math::NumericEventPtr nevent =
-    boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    vehicle::DepthEventPtr nevent =
+        boost::dynamic_pointer_cast<vehicle::DepthEvent>(event);
     *result = nevent->number;
 }
 
@@ -388,10 +394,17 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
     conn->disconnect();
 }
 
-void vector2Helper(math::Vector2* result, ram::core::EventPtr event)
+void velocityHelper(math::Vector2* result, ram::core::EventPtr event)
 {
-    math::Vector2EventPtr nevent =
-    boost::dynamic_pointer_cast<ram::math::Vector2Event>(event);
+    vehicle::VelocityEventPtr nevent =
+        boost::dynamic_pointer_cast<vehicle::VelocityEvent>(event);
+    *result = nevent->vector2;
+}
+
+void positionHelper(math::Vector2* result, ram::core::EventPtr event)
+{
+    vehicle::PositionEventPtr nevent =
+        boost::dynamic_pointer_cast<vehicle::PositionEvent>(event);
     *result = nevent->vector2;
 }
 
@@ -415,7 +428,7 @@ TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(
         vehicle::IVehicle::POSITION_UPDATE,
-        boost::bind(vector2Helper, &result, _1));
+        boost::bind(positionHelper, &result, _1));
 
     veh->update(0);
     positionSensor->publishUpdate(expected);
@@ -445,7 +458,7 @@ TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(
         vehicle::IVehicle::VELOCITY_UPDATE,
-        boost::bind(vector2Helper, &result, _1));
+        boost::bind(velocityHelper, &result, _1));
 
     veh->update(0);
     velocitySensor->publishUpdate(expected);

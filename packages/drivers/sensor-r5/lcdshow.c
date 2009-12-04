@@ -8,7 +8,7 @@
 #include "include/sensorapi.h"
 
 #ifndef SENSORAPI_R5
-#error "WRONG VERSION OF INLUDE"
+#error "WRONG VERSION OF INCLUDE"
 #endif
 
 /*
