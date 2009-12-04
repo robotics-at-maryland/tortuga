@@ -9,7 +9,7 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'lqgi';
+controlType = 'pid';
 
 
 %create a global variable so observer controllers can store variables
@@ -65,9 +65,10 @@ elseif strcmp('PD',upper(controlType))==1
     kd =30;
 elseif strcmp('PID',upper(controlType))==1
     %PID Control
-    kp =40;
-    kd =30;
-    ki =0.5;
+    disp('PID controller initialized')
+    kp =0;
+    kd =0;
+    ki =0;
     x_pid=[0 0]';%x_pid=[sum_error previous_position]'
 elseif strcmp('OC',upper(controlType))==1
     %Observer Controller - ObserverControllerCoefficients.m
