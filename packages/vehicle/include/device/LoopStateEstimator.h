@@ -54,13 +54,15 @@ public:
                              deviceType device,
 			     double timeStamp = -1);
     
-    virtual math::Quaternion getOrientation();
+    virtual math::Quaternion getOrientation(std::string obj = "vehicle");
 
-    virtual math::Vector2 getVelocity();
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle");
 
-    virtual math::Vector2 getPosition();
+    virtual math::Vector2 getPosition(std::string obj = "vehicle");
     
-    virtual double getDepth();
+    virtual double getDepth(std::string obj = "vehicle");
+
+    virtual bool hasObject(std::string obj);
 
     // Device Options
     virtual std::string getName() { return Device::getName(); }

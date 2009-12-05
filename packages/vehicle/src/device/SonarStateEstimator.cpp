@@ -118,25 +118,25 @@ void SonarStateEstimator::depthUpdate(double depth,
     m_estimatedDepth = m_currentDepth;
 }
     
-math::Quaternion SonarStateEstimator::getOrientation()
+math::Quaternion SonarStateEstimator::getOrientation(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_estimatedOrientation;
 }
 
-math::Vector2 SonarStateEstimator::getVelocity()
+math::Vector2 SonarStateEstimator::getVelocity(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_estimatedVelocity;
 }
 
-math::Vector2 SonarStateEstimator::getPosition()
+math::Vector2 SonarStateEstimator::getPosition(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_estimatedPosition;
 }
     
-double SonarStateEstimator::getDepth()
+double SonarStateEstimator::getDepth(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_estimatedDepth;
@@ -286,7 +286,10 @@ void SonarStateEstimator::velocityFilterUpdate(math::Vector2 velocity)
     m_estimatedVelocity = velocity;
 }
 
-    
+bool SonarStateEstimator::hasObject(std::string obj)
+{
+    return obj == "vehicle";
+}
     
 } // namespace device
 } // namespace vehicle

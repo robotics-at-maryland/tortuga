@@ -37,17 +37,17 @@ public:
 
     virtual std::vector<std::string> getDeviceNames();
     
-    virtual double getDepth();
+    virtual double getDepth(std::string obj = "vehicle");
 
-    virtual math::Vector2 getPosition();
+    virtual math::Vector2 getPosition(std::string obj = "vehicle");
     
-    virtual math::Vector2 getVelocity();
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle");
 
     math::Vector3 getLinearAcceleration();
 
     math::Vector3 getAngularRate();
     
-    math::Quaternion getOrientation();
+    math::Quaternion getOrientation(std::string obj = "vehicle");
     
     virtual void safeThrusters();
 

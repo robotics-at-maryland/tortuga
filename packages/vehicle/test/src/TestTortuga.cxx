@@ -206,9 +206,13 @@ TEST_FIXTURE(VehicleFixture, getDepth)
     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     expectedDepth = 6.7;
-
-    estimator->depth = expectedDepth;
+    estimator->depth["vehicle"] = expectedDepth;
     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
+
+    // Check the extra object in the state estimator
+    expectedDepth = 3.2;
+    estimator->depth["buoy"] = expectedDepth;
+    CHECK_CLOSE(expectedDepth, veh->getDepth("buoy"), 0.00001);
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
@@ -252,9 +256,13 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     expectedVelocity = math::Vector2(6.7, 3.4);
-
-    estimator->velocity = expectedVelocity;
+    estimator->velocity["vehicle"] = expectedVelocity;
     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
+
+    // Check the extra object in the state estimator
+    expectedVelocity = math::Vector2(4.3, 5.1);
+    estimator->velocity["buoy"] = expectedVelocity;
+    CHECK_CLOSE(expectedVelocity, veh->getVelocity("buoy"), 0.00001);
     
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
@@ -297,8 +305,13 @@ TEST_FIXTURE(VehicleFixture, getPosition)
     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     expectedPosition = math::Vector2(6.7, 3.4);
-    estimator->position = expectedPosition;
+    estimator->position["vehicle"] = expectedPosition;
     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.00001);
+
+    // Check the extra object in the state estimator
+    expectedPosition = math::Vector2(4.3, 5.1);
+    estimator->position["buoy"] = expectedPosition;
+    CHECK_CLOSE(expectedPosition, veh->getPosition("buoy"), 0.00001);
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
@@ -307,6 +320,20 @@ TEST_FIXTURE(VehicleFixture, getPosition)
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
+TEST_FIXTURE(VehicleFixture, hasObject)
+{
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
+
+    // Check that it has the object vehicle
+    CHECK(estimator->hasObject("vehicle"));
+    
+    // Check that it has the buoy
+    CHECK(estimator->hasObject("buoy"));
+
+    // Check that a wrong value returns false
+    CHECK(!estimator->hasObject("blank"));
+}
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
@@ -337,7 +364,7 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
     math::Quaternion expected(7,8,9,10);
     math::Quaternion expectedPublish(5,8,9,1);
     imu->orientation = expected;
-    estimator->orientation = expectedPublish;
+    estimator->orientation["vehicle"] = expectedPublish;
     
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(
@@ -379,7 +406,7 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
     double expected = 5.7;
     double expectedPublish = 6.8;
     depthSensor->depth = expected;
-    estimator->depth = expectedPublish;
+    estimator->depth["vehicle"] = expectedPublish;
     
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(
@@ -423,7 +450,7 @@ TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
     math::Vector2 expected(5.7, 2);
     math::Vector2 expectedPublish(3.2, 7.9);
     positionSensor->position = expected;
-    estimator->position = expectedPublish;
+    estimator->position["vehicle"] = expectedPublish;
     
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(
@@ -453,7 +480,7 @@ TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
     math::Vector2 expected(5.7, 2);
     math::Vector2 expectedPublish(3.2, 7.9);
     velocitySensor->velocity = expected;
-    estimator->velocity = expectedPublish;
+    estimator->velocity["vehicle"] = expectedPublish;
     
     // Subscribe to the event
     core::EventConnectionPtr conn = veh->subscribe(

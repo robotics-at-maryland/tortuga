@@ -10,6 +10,9 @@
 #ifndef RAM_VEHICLE_DEVICE_ISTATEESTIMATOR_06_24_2009
 #define RAM_VEHICLE_DEVICE_ISTATEESTIMATOR_06_24_2009
 
+// STD Includes
+#include <string>
+
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/Common.h"
@@ -59,18 +62,20 @@ public:
 			     double timeStamp = -1) = 0;
     
     /** Get the latest estimated orientation */
-    virtual math::Quaternion getOrientation() = 0;
+    virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
 
     /** Get the latest estimated velocity */
-    virtual math::Vector2 getVelocity() = 0;
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle") = 0;
 
     /** Get the latest estimated position */
-    virtual math::Vector2 getPosition() = 0;
+    virtual math::Vector2 getPosition(std::string obj = "vehicle") = 0;
     
     /** Get the latest estimated depth */
-    virtual double getDepth() = 0;
+    virtual double getDepth(std::string obj = "vehicle") = 0;
 
-    
+    /** Get whether this state estimator contains this object */
+    virtual bool hasObject(std::string obj) = 0;
+
 protected:
     IStateEstimator(core::EventHubPtr eventHub = core::EventHubPtr(),
                     std::string name = "UNNAMED");

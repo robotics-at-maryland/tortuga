@@ -73,13 +73,13 @@ public:
     virtual std::vector<std::string> getDeviceNames() = 0;
     
     /** Return the current vehicle depth in feet */
-    virtual double getDepth() = 0;
+    virtual double getDepth(std::string obj = "vehicle") = 0;
 
     /** The position of the vehicle, in world frame, in meters */
-    virtual math::Vector2 getPosition() = 0;
+    virtual math::Vector2 getPosition(std::string obj = "vehicle") = 0;
 
     /** The velocity of the vehicle, in world frame, in meters/second */
-    virtual math::Vector2 getVelocity() = 0;
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle") = 0;
     
     /** The linear of acceleration (w/gravity) in the vehicle's local frame */
     virtual math::Vector3 getLinearAcceleration() = 0;
@@ -88,7 +88,7 @@ public:
     virtual math::Vector3 getAngularRate() = 0;
     
     /** The orientation of the vehicle relative to North with zero roll */
-    virtual math::Quaternion getOrientation() = 0;
+    virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
 
     /** Combines the given force and torque into motor forces the applies them
 

@@ -81,34 +81,38 @@ class MockController(control.IController):
 class MockVehicle(vehicle.IVehicle):
     def __init__(self, eventHub = core.EventHub()):
         vehicle.IVehicle.__init__(self, "Vehicle", eventHub)
-        self.depth = 0
-        self.orientation = ext.math.Quaternion.IDENTITY
+        self.validObj = set('vehicle')
+        self._depth = { 'vehicle' : 0 }
+        self._orientation = { 'vehicle' : ext.math.Quaternion.IDENTITY }
         self.markersDropped = 0
         self.torpedosFired = 0
         self.linAccel = ext.math.Vector3.ZERO
         self.angRate = ext.math.Vector3.ZERO
         self.force = ext.math.Vector3.ZERO
         self.torque = ext.math.Vector3.ZERO
-        self.velocity = ext.math.Vector2.ZERO
-        self.position = ext.math.Vector2.ZERO
+        self._velocity = { 'vehicle' : ext.math.Vector2.ZERO }
+        self._position = { 'vehicle' : ext.math.Vector2.ZERO }
 
     def getLinearAcceleration(self):
         return self.linAccel
     
-    def getOrientation(self):
-        return self.orientation
+    def getOrientation(self, obj = "vehicle"):
+        return self._orientation[obj]
     
     def getAngularRate(self):
         return self.angRate
-    
-    def getDepth(self):
-        return self.depth
 
-    def getVelocity(self):
-        return self.velocity
+    def getDepth(self, obj = "vehicle"):
+        return self._depth[obj]
 
-    def getPosition(self):
-        return self.position
+    def getVelocity(self, obj = "vehicle"):
+        return self._velocity[obj]
+
+    def getPosition(self, obj = "vehicle"):
+        return self._position[obj]
+
+    def hasObject(self, obj):
+        return obj in validObj
     
     def applyForcesAndTorques(self, force, torque):
         self.force = force
@@ -124,6 +128,22 @@ class MockVehicle(vehicle.IVehicle):
         event = ext.math.OrientationEvent()
         event.orientation = vehicleOrientation
         self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
+
+    # These are for compatibility with old tests
+    # They allow you to call vehicle.depth and automatically chooses vehicle
+    def depth(self, val):
+        self._depth['vehicle'] = val
+    def orientation(self, val):
+        self._orientation['vehicle'] = val
+    def velocity(self, val):
+        self._velocity['vehicle'] = val
+    def position(self, val):
+        self._position['vehicle'] = val
+    depth = property(lambda self: self._depth['vehicle'], depth)
+    orientation = property(lambda self: self._orientation['vehicle'],
+                           orientation)
+    velocity = property(lambda self: self._velocity['vehicle'], velocity)
+    position = property(lambda self: self._position['vehicle'], position)
     
 # For testing purposes
 class MockTimer(timer.Timer):

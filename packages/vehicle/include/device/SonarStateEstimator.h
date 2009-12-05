@@ -57,17 +57,19 @@ public:
                              deviceType device,
 			     double timeStamp = -1);
     
-    virtual math::Quaternion getOrientation();
+    virtual math::Quaternion getOrientation(std::string obj = "vehicle");
 
-    virtual math::Vector2 getVelocity();
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle");
 
-    virtual math::Vector2 getPosition();
+    virtual math::Vector2 getPosition(std::string obj = "vehicle");
     
     math::Vector2 getLeftPingerEstimatedPosition();
 
     math::Vector2 getRightPingerEstimatedPosition();
 
-    virtual double getDepth();
+    virtual double getDepth(std::string obj = "vehicle");
+
+    virtual bool hasObject(std::string obj);
 
     /** Create a linearized measurement model based on state estimator */
     static void createMeasurementModel(const math::VectorN& xHat, 

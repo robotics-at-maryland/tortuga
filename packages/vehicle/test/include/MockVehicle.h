@@ -59,11 +59,13 @@ public:
         return names;
     }
     
-    virtual double getDepth()  { return depth; }
+    virtual double getDepth(std::string obj = "vehicle")  { return depth; }
 
-    virtual ram::math::Vector2 getPosition() { return position; }
+    virtual ram::math::Vector2 getPosition(std::string obj = "vehicle")
+	{ return position; }
 
-    virtual ram::math::Vector2 getVelocity() { return velocity; }
+    virtual ram::math::Vector2 getVelocity(std::string obj = "vehicle")
+	{ return velocity; }
 
     virtual std::vector<std::string> getTemperatureNames()
     {
@@ -81,7 +83,8 @@ public:
      
     virtual ram::math::Vector3 getAngularRate() { return angularRate; }
     
-    virtual ram::math::Quaternion getOrientation() { return orientation; }
+    virtual ram::math::Quaternion getOrientation(std::string obj = "vehicle")
+	{ return orientation; }
     
     virtual void safeThrusters() { assert(false && "Method not implemented"); }
 

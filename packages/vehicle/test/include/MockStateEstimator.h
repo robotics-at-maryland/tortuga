@@ -10,6 +10,10 @@
 #ifndef RAM_VEHICLE_MOCKSTATEESTIMATOR_06_26_2009
 #define RAM_VEHICLE_MOCKSTATEESTIMATOR_06_26_2009
 
+// STD Includes
+#include <map>
+#include <string>
+
 // Project Includes
 #include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IStateEstimator.h"
@@ -18,6 +22,7 @@
 
 // Must Be Included last
 //#include "vehicle/include/Export.h"
+
 
 class MockStateEstimator : public ram::vehicle::device::IStateEstimator,
                            public ram::vehicle::device::Device
@@ -59,13 +64,19 @@ public:
         { updateDepth = depth_; depthDevice = device_;
             timeStamp = timeStamp_; }
     
-    virtual ram::math::Quaternion getOrientation() { return orientation; }
+    virtual ram::math::Quaternion getOrientation(
+        std::string obj = "vehicle") { return orientation[obj]; }
 
-    virtual ram::math::Vector2 getVelocity() { return velocity; }
+    virtual ram::math::Vector2 getVelocity(std::string obj = "vehicle") {
+	return velocity[obj]; }
 
-    virtual ram::math::Vector2 getPosition() { return position; }
+    virtual ram::math::Vector2 getPosition(std::string obj = "vehicle") {
+	return position[obj]; }
     
-    virtual double getDepth() { return depth; }
+    virtual double getDepth(std::string obj = "vehicle") { return depth[obj]; }
+
+    virtual bool hasObject(std::string obj) {
+	return obj == "vehicle" || obj == "buoy"; }
 
     ram::math::Quaternion updateOrientation;
     ram::math::Vector2 updateVelocity;
@@ -73,10 +84,10 @@ public:
     double updateDepth;
     double timeStamp;
     
-    ram::math::Quaternion orientation;
-    ram::math::Vector2 velocity;
-    ram::math::Vector2 position;
-    double depth;
+    std::map<std::string, ram::math::Quaternion> orientation;
+    std::map<std::string, ram::math::Vector2> velocity;
+    std::map<std::string, ram::math::Vector2> position;
+    std::map<std::string, double> depth;
 
     ram::vehicle::device::deviceType orientationDevice;
     ram::vehicle::device::deviceType positionDevice;

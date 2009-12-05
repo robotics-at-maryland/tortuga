@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <iostream>
+#include <string>
 #ifdef RAM_POSIX
     #include <unistd.h>
 #endif
@@ -212,19 +213,19 @@ std::vector<std::string> Vehicle::getDeviceNames()
     return names;
 }
     
-double Vehicle::getDepth()
+double Vehicle::getDepth(std::string obj)
 {
-    return m_stateEstimator->getDepth();
+    return m_stateEstimator->getDepth(obj);
 }
 
-math::Vector2 Vehicle::getPosition()
+math::Vector2 Vehicle::getPosition(std::string obj)
 {
-    return m_stateEstimator->getPosition();
+    return m_stateEstimator->getPosition(obj);
 }
 
-math::Vector2 Vehicle::getVelocity()
+math::Vector2 Vehicle::getVelocity(std::string obj)
 {
-    return m_stateEstimator->getVelocity();
+    return m_stateEstimator->getVelocity(obj);
 }
     
 math::Vector3 Vehicle::getLinearAcceleration()
@@ -237,9 +238,9 @@ math::Vector3 Vehicle::getAngularRate()
     return m_imu->getAngularRate();
 }
     
-math::Quaternion Vehicle::getOrientation()
+math::Quaternion Vehicle::getOrientation(std::string obj)
 {
-    return m_stateEstimator->getOrientation();
+    return m_stateEstimator->getOrientation(obj);
 }
     
 void Vehicle::safeThrusters()

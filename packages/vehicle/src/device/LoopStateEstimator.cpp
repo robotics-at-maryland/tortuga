@@ -62,30 +62,34 @@ void LoopStateEstimator::depthUpdate(double depth,
     m_depth = depth;
 }
     
-math::Quaternion LoopStateEstimator::getOrientation()
+math::Quaternion LoopStateEstimator::getOrientation(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_orientation;
 }
 
-math::Vector2 LoopStateEstimator::getVelocity()
+math::Vector2 LoopStateEstimator::getVelocity(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_velocity;
 }
 
-math::Vector2 LoopStateEstimator::getPosition()
+math::Vector2 LoopStateEstimator::getPosition(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_position;
 }
     
-double LoopStateEstimator::getDepth()
+double LoopStateEstimator::getDepth(std::string obj)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_depth;
 }
 
+bool LoopStateEstimator::hasObject(std::string obj)
+{
+    return obj == "vehicle";
+}
     
 } // namespace device
 } // namespace vehicle
