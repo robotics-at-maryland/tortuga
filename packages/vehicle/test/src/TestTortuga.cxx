@@ -346,8 +346,8 @@ TEST_FIXTURE(VehicleFixture, _addDevice)
 
 void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
 {
-    vehicle::IMUEventPtr oevent =
-        boost::dynamic_pointer_cast<vehicle::IMUEvent>(event);
+    math::OrientationEventPtr oevent =
+        boost::dynamic_pointer_cast<math::OrientationEvent>(event);
     *result = oevent->orientation;
 }
 
@@ -387,8 +387,8 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 
 void depthHelper(double* result, ram::core::EventPtr event)
 {
-    vehicle::DepthEventPtr nevent =
-        boost::dynamic_pointer_cast<vehicle::DepthEvent>(event);
+    math::NumericEventPtr nevent =
+        boost::dynamic_pointer_cast<math::NumericEvent>(event);
     *result = nevent->number;
 }
 
@@ -423,15 +423,15 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
 
 void velocityHelper(math::Vector2* result, ram::core::EventPtr event)
 {
-    vehicle::VelocityEventPtr nevent =
-        boost::dynamic_pointer_cast<vehicle::VelocityEvent>(event);
+    math::Vector2EventPtr nevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
     *result = nevent->vector2;
 }
 
 void positionHelper(math::Vector2* result, ram::core::EventPtr event)
 {
-    vehicle::PositionEventPtr nevent =
-        boost::dynamic_pointer_cast<vehicle::PositionEvent>(event);
+    math::Vector2EventPtr nevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
     *result = nevent->vector2;
 }
 

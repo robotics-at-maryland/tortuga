@@ -13,8 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IIMU.h"
-
-#include "vehicle/include/Events.h"
+#include "math/include/Events.h"
 
 class MockIMU : public ram::vehicle::device::IIMU,
                 public ram::vehicle::device::Device                
@@ -57,8 +56,8 @@ public:
     void publishUpdate(ram::math::Quaternion update)
     {
         orientation = update;
-        ram::vehicle::IMUEventPtr orientationEvent(
-            new ram::vehicle::IMUEvent());
+        ram::math::OrientationEventPtr orientationEvent(
+            new ram::math::OrientationEvent());
         orientationEvent->orientation = update;
         publish(ram::vehicle::device::IIMU::UPDATE, orientationEvent);
     }

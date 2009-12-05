@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "core/include/ConfigNode.h"
+#include "core/include/EventPublisher.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/Updatable.h"
 
@@ -119,6 +120,8 @@ protected:
     void onVelocityUpdate(core::EventPtr event);
     
 private:
+    device::deviceType identifyDevice(core::EventPublisher* publisher);
+
     core::ConfigNode m_config;
     
     NameDeviceMap m_devices;

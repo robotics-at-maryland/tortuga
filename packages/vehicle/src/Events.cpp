@@ -30,15 +30,6 @@ RAM_VEHICLE_THRUSTER_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::SonarEvent>
 RAM_VEHICLE_SONAR_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::DepthEvent>
-RAM_VEHICLE_DEPTH_EVENT;
-
-static ram::core::SpecificEventConverter<ram::vehicle::VelocityEvent>
-RAM_VEHICLE_VELOCITY_EVENT;
-
-static ram::core::SpecificEventConverter<ram::vehicle::IMUEvent>
-RAM_VEHICLE_IMU_EVENT;
-
 #endif // RAM_WITH_WRAPPERS
 
 namespace ram {
@@ -87,31 +78,6 @@ core::EventPtr SonarEvent::clone()
     event->pingerID = pingerID;
     return event;
 }
-
-core::EventPtr DepthEvent::clone()
-{
-    DepthEventPtr event = DepthEventPtr(new DepthEvent());
-    copyInto(event);
-    event->device = device;
-    return event;
-}
-
-core::EventPtr VelocityEvent::clone()
-{
-    VelocityEventPtr event = VelocityEventPtr(new VelocityEvent());
-    copyInto(event);
-    event->device = device;
-    return event;
-}
-
-core::EventPtr IMUEvent::clone()
-{
-    IMUEventPtr event = IMUEventPtr(new IMUEvent());
-    copyInto(event);
-    event->device = device;
-    return event;
-}
-
     
 } // namespace vehicle
 } // namespace ram

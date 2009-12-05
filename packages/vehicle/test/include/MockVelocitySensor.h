@@ -13,7 +13,6 @@
 // Project Includes
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/Events.h"
 
 class MockVelocitySensor : public ram::vehicle::device::IVelocitySensor,
                            public ram::vehicle::device::Device
@@ -45,8 +44,8 @@ public:
     void publishUpdate(ram::math::Vector2 update)
     {
         velocity = update;
-        ram::vehicle::VelocityEventPtr nevent(
-            new ram::vehicle::VelocityEvent());
+        ram::math::Vector2EventPtr nevent(
+            new ram::math::Vector2Event());
         nevent->vector2 = update;
         publish(ram::vehicle::device::IVelocitySensor::UPDATE, nevent);
     }

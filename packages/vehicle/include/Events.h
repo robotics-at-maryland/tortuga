@@ -81,38 +81,6 @@ struct SonarEvent : public core::Event
 };
 
 typedef boost::shared_ptr<SonarEvent> SonarEventPtr;
-
-
-struct DepthEvent : public math::NumericEvent
-{
-    device::deviceType device;
-    
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<DepthEvent> DepthEventPtr;
-
-struct VelocityEvent : public math::Vector2Event
-{
-    device::deviceType device;
-
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<VelocityEvent> VelocityEventPtr;
-
-
-struct IMUEvent : public math::OrientationEvent
-{
-    device::deviceType device;
-
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<IMUEvent> IMUEventPtr;
-
-typedef VelocityEvent PositionEvent;
-typedef boost::shared_ptr<PositionEvent> PositionEventPtr;
     
 } // namespace vehicle
 } // namespace ram

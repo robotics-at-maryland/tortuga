@@ -73,7 +73,7 @@ typedef enum {
     NO_DEVICE = 0,
     DVL_DEVICE,
     IMU_DEVICE,
-    PRESSURE_SENSOR_DEVICE,
+    SENSORBOARD_DEVICE,
 } deviceType;
     
 } // namespace device

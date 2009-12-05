@@ -521,9 +521,8 @@ bool SensorBoard::handleReturn(int ret)
 
 void SensorBoard::depthEvent(double depth)
 {
-    vehicle::DepthEventPtr event(new vehicle::DepthEvent());
+    math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
-    event->device = PRESSURE_SENSOR_DEVICE;
     publish(IDepthSensor::UPDATE, event);
 }
     

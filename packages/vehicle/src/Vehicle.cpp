@@ -597,24 +597,28 @@ bool Vehicle::lookupThrusterDevices()
 
 void Vehicle::onDepthUpdate(core::EventPtr event)
 {
-    DepthEventPtr nevent =
-        boost::dynamic_pointer_cast<DepthEvent>(event);
+    math::NumericEventPtr devent =
+        boost::dynamic_pointer_cast<math::NumericEvent>(event);
     
+    device::deviceType device = identifyDevice(devent->sender);
+
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->depthUpdate(getRawDepth(), nevent->device,
-                                  nevent->timeStamp);
-    nevent->number = m_stateEstimator->getDepth();
+    m_stateEstimator->depthUpdate(getRawDepth(), device,
+                                  devent->timeStamp);
+    devent->number = m_stateEstimator->getDepth();
     
     publish(IVehicle::DEPTH_UPDATE, event);
 }
 
 void Vehicle::onOrientationUpdate(core::EventPtr event)
 {
-    IMUEventPtr oevent =
-        boost::dynamic_pointer_cast<IMUEvent>(event);
+    math::OrientationEventPtr oevent =
+        boost::dynamic_pointer_cast<math::OrientationEvent>(event);
+
+    device::deviceType device = identifyDevice(oevent->sender);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->orientationUpdate(getRawOrientation(), oevent->device,
+    m_stateEstimator->orientationUpdate(getRawOrientation(), device,
                                         oevent->timeStamp);
     oevent->orientation = m_stateEstimator->getOrientation();
     
@@ -623,11 +627,13 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
 
 void Vehicle::onPositionUpdate(core::EventPtr event)
 {
-    PositionEventPtr pevent =
-        boost::dynamic_pointer_cast<PositionEvent>(event);
+    math::Vector2EventPtr pevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    device::deviceType device = identifyDevice(pevent->sender);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->positionUpdate(getRawPosition(), pevent->device,
+    m_stateEstimator->positionUpdate(getRawPosition(), device,
                                      pevent->timeStamp);
     pevent->vector2 = m_stateEstimator->getPosition();
     
@@ -636,17 +642,34 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
 
 void Vehicle::onVelocityUpdate(core::EventPtr event)
 {
-    VelocityEventPtr vevent =
-        boost::dynamic_pointer_cast<VelocityEvent>(event);
+    math::Vector2EventPtr vevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    device::deviceType device = identifyDevice(vevent->sender);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->velocityUpdate(getRawVelocity(), vevent->device,
+    m_stateEstimator->velocityUpdate(getRawVelocity(), device,
                                      vevent->timeStamp);
     vevent->vector2 = m_stateEstimator->getVelocity();
     
     publish(IVehicle::VELOCITY_UPDATE, event);
 }
 
+device::deviceType Vehicle::identifyDevice(core::EventPublisher* event)
+{
+    // Identify the device based on its event publisher name
+    std::string name = event->getPublisherName();
+
+    if ( name == "Vehicle.Device.DVL" ) {
+	return device::DVL_DEVICE;
+    } else if ( name == "Vehicle.Device.IMU" ) {
+	return device::IMU_DEVICE;
+    } else if ( name == "Vehicle.Device.SensorBoard" ) {
+	return device::SENSORBOARD_DEVICE;
+    } else {
+	return device::NO_DEVICE;
+    }
+}
     
 } // namespace vehicle
 } // namespace ram

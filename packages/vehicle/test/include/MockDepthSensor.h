@@ -13,7 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/Events.h"
+#include "math/include/Events.h"
 
 class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
                         public ram::vehicle::device::Device
@@ -44,7 +44,7 @@ public:
     void publishUpdate(double update)
     {
         depth = update;
-        ram::vehicle::DepthEventPtr nevent(new ram::vehicle::DepthEvent());
+        ram::math::NumericEventPtr nevent(new ram::math::NumericEvent());
         nevent->number = update;
         publish(ram::vehicle::device::IDepthSensor::UPDATE, nevent);
     }
