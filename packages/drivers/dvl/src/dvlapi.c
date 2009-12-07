@@ -32,34 +32,7 @@
 // Project Includes
 #include "dvlapi.h"
 
-static const double DEGS_TO_RADIANS = M_PI / 180;
-
 /*
-unsigned char waitByte(int fd)
-{
-    unsigned char rxb[1];
-    while(read(fd, rxb, 1) != 1)
-        ;
-    return rxb[0];
-}
-
-void waitSync(int fd)
-{
-    int fs=0;
-    int syncLen=0;
-    while(fs != 4) {
-        if(waitByte(fd) == 0xFF) {
-            fs++;
-         } else {
-            fs=0;
-         }
-        syncLen++;
-    }
-
-    if(syncLen > 4)
-        printf("Warning! IMU sync sequence took longer than 4 bytes!!\n");
-}
-
 int convert16(unsigned char msb, unsigned char lsb)
 {
     return (signed int) ((signed short) ((msb<<8)|lsb));
@@ -71,8 +44,45 @@ double convertData(unsigned char msb, unsigned char lsb, double range)
 }
 */
 
+/* This receives a single byte */
+unsigned char waitByte(int fd)
+{
+    unsigned char rxb;
+    while(read(fd, &rxb, 1) != 1)
+        ;
+
+    return rxb;
+}
+
+/* This waits for the two starting bytes of 0x7f7f */
+/* I have this failing after SYNC_FAIL_BYTECOUNT */
+int waitSync(int fd)
+{
+    int fs= 0;
+    int syncLen= 0;
+
+    while(fs < 2 && synclen < SYNC_FAIL_BYTECOUNT) {
+        if(waitByte(fd) == 0x7F) {
+            fs++;
+         } else {
+            fs= 0;
+         }
+        syncLen++;
+    }
+
+    if(syncLen >= SYNC_FAIL_BYTECOUNT) {
+        printf("UABLE TO SYCHRONIZE WITH DVL!\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+/* This reads in the data from the DVL and stores it so
+   that the AI and controls guys have something to work with! */
 int readDVLData(int fd, RawDVLData* dvl)
 {
+
     /*
     unsigned char imuData[34];
 
@@ -122,7 +132,6 @@ int readDVLData(int fd, RawDVLData* dvl)
 /* Some code from cutecom, which in turn may have come from minicom */
 int openDVL(const char* devName)
 {
-    /*
    int fd = open(devName, O_RDWR, O_ASYNC);
 
     if(fd == -1)
@@ -174,8 +183,4 @@ int openDVL(const char* devName)
       printf("tcsetattr() 2 failed\n");
     
     return fd;
-    */
-
-    /** always fails for now */
-    return -1;
 }

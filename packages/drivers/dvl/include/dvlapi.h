@@ -17,6 +17,12 @@
 extern "C" {
 #endif // __cplusplus
 
+/* We should abort trying to sync if it takes more than a
+   couple packets worth of bytes, or more than 1 second. */
+#define SYNC_FAIL_BYTE_COUNT 2000
+#define SYNC_FAIL_MILLISEC 1000
+#define SYNC_FAIL_SECONDS (SYNC_FAIL_MILLISEC/1000)
+
 /* DVL Header information */
 typedef struct _DVLHeaderData
 {
