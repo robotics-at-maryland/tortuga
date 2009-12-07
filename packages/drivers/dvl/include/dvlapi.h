@@ -1,12 +1,12 @@
 /* THIS WILL INCLUDE LOTS OF INFORMATION SUPER FUTURE MAGIC! */
 
 /*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Steve Moskovchenko <stevenm@umd.edu>
+ * Copyright (C) 2009 Robotics at Maryland
+ * Copyright (C) 2009 Kit Sczudlo <kitsczud@umd.edu>
  * All rights reserved.
  *
- * Author: Steve Moskovchenko <stevenm@umd.edu>
- * File:  packages/imu/include/imuapi.h
+ * Author: Kit Sczudlo <kitsczud@umd.edu>
+ * File:  packages/dvl/include/dvlapi.h
  */
 
 #ifndef RAM_DVLAPI_H_12_02_2009
@@ -17,16 +17,172 @@
 extern "C" {
 #endif // __cplusplus
 
-/* I'm currently guessing at what you'll need Kit */
+/* DVL Header information */
+typedef struct _DVLHeaderData
+{
+    /* Together, these two should be 0x7F7F */
+    unsigned char HeaderID,
+                  DataSourceID;
+    
+    unsigned int PacketSize;
+
+    unsigned char num_datatypes;
+
+    unsigned int *offsets;
+} DVLHeaderData;
+
+/* DVL Fixed Leader contains all the info which shouldn't change */
+/* That being said, this info will essentially be useless */
+typedef struct _DVLFixedLeaderData
+{
+    /* This should be 0x0000 */
+    short FixedLeaderID;
+
+    unsigned char CPU_Firmware_Version, CPU_Firmware_Revision;
+
+    short System_Config;
+
+    unsigned char Real_Sim_flag,
+                  Lag_Length,
+                  Num_Beams,
+                  Num_Cells;
+
+    unsigned int pings_per_packet,
+                 depth_cell_length,
+                 blank_after_transmit;
+
+    unsigned char prof_mode,
+                  low_corr_thresh,
+                  num_code_reps;
+    
+    unsigned char prcnt_good_min;
+
+    int err_vel_max;
+
+    unsigned char min_btwn_ping,
+                  sec_btwn_ping,
+                  hundredths_btwn_ping;
+
+    unsigned char coord_transform;
+
+    double head_align,
+           head_bias;
+
+    unsigned char sen_source,
+                  sen_avail;
+
+    unsigned int bin1_dist,
+                 xmit_pulse_length,
+                 ref_lyr_avg;
+
+    unsigned char false_trgt_thresh,
+                  CX_setting;
+
+    unsigned int lagdist,
+                 syst_bwidth;
+
+    unsigned long serial_num;
+} DVLFixedLeaderData;
+
+/* A leader for all the information which should change */
+/* on a per ensemble basis. This contains useful info. */
+typedef struct _DVLVariableLeaderData
+{
+    /* The variable leader ID should be 0x8000 */
+    unsigned short varleaderID,
+                   ensemblenum;
+
+    unsigned char RTC_year,
+                  RTC_month,
+                  RTC_day,
+                  RTC_hour,
+                  RTC_minute,
+                  RTC_second,
+                  RTC_hundredths;
+
+    unsigned char ensemble_num;
+
+    unsigned int bit_result,
+                 sound_speed,
+                 tranducer_depth,
+                 heading,
+                 pitch,
+                 roll,
+                 salinity,
+                 temp;
+
+    unsigned char MPT_minutes,
+                  MPT_seconds,
+                  MPT_hundredths;
+
+    unsigned char HeadingStdDev,
+                  PitchStdDev,
+                  RollStdDev;
+
+    unsigned char dvl_adc[8];
+
+    unsigned long errorstatus;
+
+    unsigned long pressure,
+                  pressure_variance;
+} DVLVariableLeaderData;
+
+/* This is a struct which will hold the absolute in-plane */
+/* velocity relative to the bottom of the tank. */
+typedef struct _DVLBottomTrackData
+{
+    /* This should be 0x0600 */
+    unsigned short BottomTrackID;
+
+    unsigned int bt_pings_per_ensemble,
+                 bt_delay_before_reaquire;
+
+    unsigned char bt_corr_mag_min,
+                  bt_eval_amp_min,
+                  bt_prcnt_good_min,
+                  bt_mode;
+
+    unsigned int bt_err_vel;
+
+    unsigned int bt_ranges[4];
+
+    unsigned char bt_beam_corr[4];
+
+    unsigned char bt_eval_amp[4];
+
+    unsigned char bt_beam_prcnt_good[4];
+
+    unsigned int ref_lyr_min,
+                 ref_lyr_near,
+                 ref_lyr_far;
+
+    unsigned int ref_layer_vel_beam[4];
+
+    unsigned char ref_corr_beam[4];
+
+    unsigned char ref_int_beam[4];
+
+    unsigned char beam_prcnt_good[4];
+
+    unsigned int bt_max_depth;
+
+    unsigned char rssi_amp_beam[4];
+
+    unsigned char GAIN;
+
+    unsigned char bt_range_msb_beam[4];
+} DVLBottomTrackData;
+
+/* This will hold *ALL* of the data from the DVL */
+/* It should NOT be passed every time the sensor is polled */
 typedef struct _RawDVLData
 {
-    /* not sure what these two will be used for, but they were in the IMU */
-    int messageID;
-    int sampleTimer;
+    DVLHeaderData header;
+    DVLFixedLeaderData fixedleader;
+    DVLVariableLeaderData variableleader;
+    DVLBottomTrackData btdata;
 
-    double bottomTrack;
-
-    int checksumValid;
+    unsigned short checksum;
 } RawDVLData;
 
 /** Opens a serial channel to the imu using the given devices
