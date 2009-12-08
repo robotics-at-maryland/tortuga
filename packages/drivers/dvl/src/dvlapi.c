@@ -33,16 +33,18 @@
 #include "dvlapi.h"
 
 /*
-int convert16(unsigned char msb, unsigned char lsb)
-{
-    return (signed int) ((signed short) ((msb<<8)|lsb));
-}
 
 double convertData(unsigned char msb, unsigned char lsb, double range)
 {
     return convert16(msb, lsb) * ((range/2.0)*1.5) / 32768.0;
 }
 */
+
+/* Takes two bytes and pops out a short */
+short convert16(unsigned char msb, unsigned char lsb)
+{
+    return ((signed short) ((msb << 8) | lsb));
+}
 
 /* This receives a single byte */
 unsigned char waitByte(int fd)
@@ -61,7 +63,7 @@ int waitSync(int fd)
     int fs= 0;
     int syncLen= 0;
 
-    while(fs < 2 && synclen < SYNC_FAIL_BYTECOUNT) {
+    while(fs < 2 && syncLen < SYNC_FAIL_BYTECOUNT) {
         if(waitByte(fd) == 0x7F) {
             fs++;
          } else {
@@ -82,6 +84,95 @@ int waitSync(int fd)
    that the AI and controls guys have something to work with! */
 int readDVLData(int fd, RawDVLData* dvl)
 {
+    /* So there's a variable number of bytes we can get:
+       6  bytes for the header + (2 bytes * the 6th byte) +
+       58 bytes for the fixed leader +
+       60 bytes for the variable leader +
+       81 bytes for the bottom track data +
+       4  bytes for garbage and checksum
+       = 211 bytes
+       Based on that, here's a slightly oversized buffer:
+       */
+    unsigned char dvlData[256];
+
+    int len, i, sum, tempsize, offset;
+    CompleteDVLPacket *dbgpkt;
+
+    if(waitSync(fd))
+        return ERR_NOSYNC;
+
+    /* This checks that we have the debugging packet setup! */
+    if(dvl->privDbgInf == NULL) {
+        printf("WARNING! Debug info reallocated!");
+        dbgpkt= dvl->privDbgInf = malloc(sizeof(CompleteDVLPacket));
+
+        /* We'll need to set up some parts of the packet... */
+        dbgpkt->fixedleaderset= 0;
+        dbgpkt->header.offsets= NULL;
+    }
+
+    /* We got these in the waitSync() call */
+    dvlData[0]= dvlData[1]= 0x7F;
+
+    /* Set length based on the 0x7F7F we recieved */
+    len= 2;
+
+    /* Get the header */
+    while(len < 6)
+        len += read(fd, dvlData + len, 6 - len);
+
+    dbgpkt->header.HeaderID= dvlData[0];
+    dbgpkt->header.DataSourceID= dvlData[1];
+    dbgpkt->header.PacketSize= convert16(dvlData[3], dvlData[2]);
+    /* dvlData[4] is an empty byte! */
+    dbgpkt->header.num_datatypes= dvlData[5];
+
+    /* We need to prevent memory leaks! Free up the old offset array! */
+    if(dbgpkt->header.offsets != NULL)
+        free(dbgpkt->header.offsets);
+
+    dbgpkt->header.offsets= malloc(sizeof(int) * dvlData[5]);
+
+    tempsize= 6 + ((int) dvlData[5]) * 2;
+    while(len < tempsize)
+        len += read(fd, dvlData + len, tempsize - len);
+
+    for(i= 0;i < tempsize - 6;i += 2)
+        dbgpkt->header.offsets[i]= convert16(dvlData[7 + i * 2],
+                                             dvlData[6 + i * 2]);
+
+    /* WOO! We've now finished reading in the header */
+    /* We should probably double check that nothing is too weird... */
+    if(dbgpkt->header.PacketSize > 256) {
+        /* If we're here we're fucked.  We have a packet which is */
+        /* too big for our buffer to hold it! */
+        printf("ERROR! Packet too big!\n");
+        return ERR_TOOBIG;
+    }
+
+    /*************************************************/
+    /* Now we muck our way through the fixed leader! */
+    /*************************************************/
+    
+    /* We now have an unknown offset into the buffer we'll need to */
+    /* keep track of said offset. */
+    offset= tempsize;
+
+    /* The fixed leader will add an extra 58 bytes of useless info */
+    tempsize+= 58;
+    while(len < tempsize)
+        len += read(fd, dvlData + len, tempsize - len);
+
+    dbgpkt->fixedleader.FixedLeaderID= convert16(dvlData[offset + 1],
+                                                 dvlData[offset]);
+    dbgpkt->fixedleader.CPU_Firmware_Version= dvlData[offset + 2];
+    dbgpkt->fixedleader.CPU_Firmware_Revision= dvlData[offset + 3];
+    dbgpkt->fixedleader.System_Config= convert16(dvlData[offset + 5],
+                                                 dvlData[offset + 4]);
+    dbgpkt->fixedleader.Real_Sim_flag= dvlData[offset + 6];
+
+
+    return 0;
 
     /*
     unsigned char imuData[34];

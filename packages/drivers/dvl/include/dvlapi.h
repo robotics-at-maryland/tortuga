@@ -1,5 +1,3 @@
-/* THIS WILL INCLUDE LOTS OF INFORMATION SUPER FUTURE MAGIC! */
-
 /*
  * Copyright (C) 2009 Robotics at Maryland
  * Copyright (C) 2009 Kit Sczudlo <kitsczud@umd.edu>
@@ -19,9 +17,13 @@ extern "C" {
 
 /* We should abort trying to sync if it takes more than a
    couple packets worth of bytes, or more than 1 second. */
-#define SYNC_FAIL_BYTE_COUNT 2000
+#define SYNC_FAIL_BYTECOUNT 2000
 #define SYNC_FAIL_MILLISEC 1000
 #define SYNC_FAIL_SECONDS (SYNC_FAIL_MILLISEC/1000)
+
+/* These are error messages */
+#define ERR_NOSYNC 0x0001
+#define ERR_TOOBIG 0x0002
 
 /* DVL Header information */
 typedef struct _DVLHeaderData
@@ -31,6 +33,8 @@ typedef struct _DVLHeaderData
                   DataSourceID;
     
     unsigned int PacketSize;
+
+    /* 1 empty byte here */
 
     unsigned char num_datatypes;
 
@@ -46,7 +50,7 @@ typedef struct _DVLFixedLeaderData
 
     unsigned char CPU_Firmware_Version, CPU_Firmware_Revision;
 
-    short System_Config;
+    unsigned short System_Config;
 
     unsigned char Real_Sim_flag,
                   Lag_Length,
@@ -181,14 +185,31 @@ typedef struct _DVLBottomTrackData
 
 /* This will hold *ALL* of the data from the DVL */
 /* It should NOT be passed every time the sensor is polled */
-typedef struct _RawDVLData
+typedef struct _CompleteDVLPacket
 {
+    int fixedleaderset;
+
     DVLHeaderData header;
     DVLFixedLeaderData fixedleader;
     DVLVariableLeaderData variableleader;
     DVLBottomTrackData btdata;
 
     unsigned short checksum;
+} CompleteDVLPacket;
+
+/* This is the info that will actually get passed to and from
+   the API. */
+typedef struct _RawDVLData
+{
+    /* Useful information in this structure? */
+    /* Non-zero implies valid data. */
+    unsigned int valid;
+
+    /* vvvvv PUT DATA HERE vvvvv */
+
+    /* ^^^^^ PUT DATA HERE ^^^^^ */
+
+    CompleteDVLPacket *privDbgInf;
 } RawDVLData;
 
 /** Opens a serial channel to the imu using the given devices
