@@ -94,7 +94,7 @@ void DVL::update(double timestep)
 	    // new velocity from the raw state
 	    math::Vector2 velocity(0, 0);
 
-            LOGGER.infoStream() << newState.bottomTrack;
+            //LOGGER.infoStream() << newState.bottomTrack;
 
 	    // Now publish the new velocity
 	    math::Vector2EventPtr vevent(new math::Vector2Event());
