@@ -42,16 +42,10 @@ clc;
         %initial angular rate
         w0=(pi/180)*[0 0 0]';
 
-        %initial desired position
-        qd0=[0 0 0 1]';
-
-        %initial desired angular rate
-        wd0=(pi/180)*[0 0 0]';
-
         %initial estimated position
         qhat0=q0;
 
-x0=[q0; w0; qd0; wd0; qhat0];
+        x0=[q0; w0; qhat0];
         
     
     %Constants:
@@ -66,9 +60,9 @@ x0=[q0; w0; qd0; wd0; qhat0];
     
         %System Inertia
         global H;
-        H= [0 0 0
-            0 0 0
-            0 0 0];%I don't know what this is!!!
+        H= [1 0 0
+            0 2 0
+            0 0 2];%I don't know what this is!!!
 
         %Drag Constants
         global Cd;

@@ -40,13 +40,16 @@ function dx=RotationalSimDynamics(t,x)
     %Known inertial constants
     global mag_vec_nf;
     global acc_vec_nf;
+    
+    %Weights 
+    global a1;
+    global a2;
+    
 
 %% unpack ODE data
 q=x(1:4);
 w=x(5:7);
-q_d=x(8:11);
-w_d=x(12:14);
-qhat=x(15:18);
+qhat=x(8:11);
 
 %fix numerical quaternion drift
 
@@ -54,6 +57,9 @@ qhat=x(15:18);
 Rot = R(q);
 acc_vec_bf = Rot * acc_vec_nf; 
 mag_vec_bf = Rot * mag_vec_nf;
+
+m_meas = mag_vec_bf;  % Random noise goes here
+a_meas = acc_vec_bf;  % Random noise goes here 
 
 w_meas=w;
 
@@ -71,15 +77,15 @@ w_meas=w;
         eig_val_max = sqrt(a1^2 + 2*a1*a2*cos_func + a2^2)
         B = a1*mag_vec_bf*mag_vec_nf' + a2*acc_vec_bf*acc_vec_nf';
         %sigma1 = trace(B); (unnecessary)
-        S = B + B';
+        Es = B + B';
         Z = a1*cross(mag_vec_bf,mag_vec_nf) + a2*cross(acc_vec_bf,acc_vec_nf);
-        sigma2 = 0.5*trace(S);
-        delta = det(S);
-        kappa = trace(inv(S)*det(S));       %Note: Assumes S is invertible
+        sigma2 = 0.5*trace(Es);
+        delta = det(Es);
+        kappa = trace(inv(Es)*det(Es));       %Note: Assumes Es is invertible
         alpha = eig_val_max^2 - sigma2^2 + kappa;
         beta = eig_val_max - sigma2;
         gamma = (eig_val_max + sigma2)*alpha - delta;
-        X = (alpha*eye(3) + beta*S + S*S)*Z;
+        X = (alpha*eye(3) + beta*Es + Es*Es)*Z;
         q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma]
             q_quest = q_quest/norm(q_quest) %Ensuring that q_opt is normalized
         
@@ -90,7 +96,6 @@ q_meas = quaternionFromnCb(nCbFromIMU(m_meas,a_meas));
 
 %quaternion estimation that requires only angular rate gyro
 dqhat = (1/2)*Q(qhat)*w_meas;
-%dwhat = 
 
 %% controller
 
@@ -108,7 +113,7 @@ buoyant=fb*[(rb(2)*Rot(3,3)-rb(3)*Rot(2,3));
             (rb(1)*Rot(2,3)-rb(2)*Rot(1,3))];
 
 %propagate actual vehicle dynamics
-dw=inv(H)*(S(H*w)*w+u-drag-buoyant);
+dw=inv(H)*(S(H*w)*w-drag-buoyant);
 %dw=inv(H)*(S(H*w)*w-drag-buoyant);
 
 %propagate actual vehicle kinematics
@@ -117,4 +122,4 @@ dq=(1/2)*Q(q)*w;
 
 
 %put output states into vector for ode45
-dx=[dq; dw; dq_d; dw_d; dqhat];
+dx=[dq; dw; dqhat];
