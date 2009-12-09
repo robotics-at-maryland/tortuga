@@ -120,8 +120,6 @@ protected:
     void onVelocityUpdate(core::EventPtr event);
     
 private:
-    device::deviceType identifyDevice(core::EventPublisher* publisher);
-
     core::ConfigNode m_config;
     
     NameDeviceMap m_devices;

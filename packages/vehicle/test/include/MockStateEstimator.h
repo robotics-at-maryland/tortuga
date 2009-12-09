@@ -41,28 +41,20 @@ public:
         Device(config["name"].asString()) {}
 
     virtual void orientationUpdate(ram::math::Quaternion orientation_,
-                                   ram::vehicle::device::deviceType device_,
 				   double timeStamp_)
-        { updateOrientation = orientation_; orientationDevice = device_;
-            timeStamp = timeStamp_; }
+        { updateOrientation = orientation_; timeStamp = timeStamp_; }
     
     virtual void velocityUpdate(ram::math::Vector2 velocity_,
-                                ram::vehicle::device::deviceType device_,
                                 double timeStamp_)
-        { updateVelocity = velocity_; velocityDevice = device_;
-            timeStamp = timeStamp_; }
+        { updateVelocity = velocity_; timeStamp = timeStamp_; }
     
     virtual void positionUpdate(ram::math::Vector2 position_,
-                                ram::vehicle::device::deviceType device_,
 				double timeStamp_)
-        { updatePosition = position_; positionDevice = device_;
-            timeStamp = timeStamp_; }
+        { updatePosition = position_; timeStamp = timeStamp_; }
     
     virtual void depthUpdate(double depth_,
-                             ram::vehicle::device::deviceType device_,
                              double timeStamp_)
-        { updateDepth = depth_; depthDevice = device_;
-            timeStamp = timeStamp_; }
+        { updateDepth = depth_; timeStamp = timeStamp_; }
     
     virtual ram::math::Quaternion getOrientation(
         std::string obj = "vehicle") { return orientation[obj]; }
@@ -88,11 +80,6 @@ public:
     std::map<std::string, ram::math::Vector2> velocity;
     std::map<std::string, ram::math::Vector2> position;
     std::map<std::string, double> depth;
-
-    ram::vehicle::device::deviceType orientationDevice;
-    ram::vehicle::device::deviceType positionDevice;
-    ram::vehicle::device::deviceType velocityDevice;
-    ram::vehicle::device::deviceType depthDevice;
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();

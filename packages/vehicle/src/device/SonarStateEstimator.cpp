@@ -78,7 +78,6 @@ SonarStateEstimator::~SonarStateEstimator()
 }
 
 void SonarStateEstimator::orientationUpdate(math::Quaternion orientation,
-                                            deviceType device,
 					    double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
@@ -89,7 +88,6 @@ void SonarStateEstimator::orientationUpdate(math::Quaternion orientation,
 }
 
 void SonarStateEstimator::velocityUpdate(math::Vector2 velocity,
-                                         deviceType device,
 					 double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
@@ -100,7 +98,6 @@ void SonarStateEstimator::velocityUpdate(math::Vector2 velocity,
 }
 
 void SonarStateEstimator::positionUpdate(math::Vector2 position,
-                                         deviceType device,
 					 double timeStamp)
 {
     // Do nothing because we don't depend on another position sensors its
@@ -108,7 +105,6 @@ void SonarStateEstimator::positionUpdate(math::Vector2 position,
 }
     
 void SonarStateEstimator::depthUpdate(double depth,
-                                      deviceType device,
 				      double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);

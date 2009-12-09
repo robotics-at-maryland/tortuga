@@ -138,17 +138,13 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     // Now set the initial values of the estimator
     double timeStamp = core::TimeVal::timeOfDay().get_double();
     if (m_depthSensor)
-        m_stateEstimator->depthUpdate(getRawDepth(),
-                                      device::NO_DEVICE, timeStamp);
+        m_stateEstimator->depthUpdate(getRawDepth(), timeStamp);
     if (m_imu)
-        m_stateEstimator->orientationUpdate(getRawOrientation(),
-                                            device::NO_DEVICE, timeStamp);
+        m_stateEstimator->orientationUpdate(getRawOrientation(), timeStamp);
     if (m_velocitySensor)
-        m_stateEstimator->velocityUpdate(getRawVelocity(),
-                                         device::NO_DEVICE, timeStamp);
+        m_stateEstimator->velocityUpdate(getRawVelocity(), timeStamp);
     if (m_positionSensor)
-        m_stateEstimator->positionUpdate(getRawPosition(),
-                                         device::NO_DEVICE, timeStamp);
+        m_stateEstimator->positionUpdate(getRawPosition(), timeStamp);
     
     // If we specified a name of the mag boom we actually have one
     if (m_magBoomName.size() > 0)
@@ -600,11 +596,8 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
     math::NumericEventPtr devent =
         boost::dynamic_pointer_cast<math::NumericEvent>(event);
     
-    device::deviceType device = identifyDevice(devent->sender);
-
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->depthUpdate(getRawDepth(), device,
-                                  devent->timeStamp);
+    m_stateEstimator->depthUpdate(getRawDepth(), devent->timeStamp);
     devent->number = m_stateEstimator->getDepth();
     
     publish(IVehicle::DEPTH_UPDATE, event);
@@ -615,11 +608,8 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
     math::OrientationEventPtr oevent =
         boost::dynamic_pointer_cast<math::OrientationEvent>(event);
 
-    device::deviceType device = identifyDevice(oevent->sender);
-
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->orientationUpdate(getRawOrientation(), device,
-                                        oevent->timeStamp);
+    m_stateEstimator->orientationUpdate(getRawOrientation(), oevent->timeStamp);
     oevent->orientation = m_stateEstimator->getOrientation();
     
     publish(IVehicle::ORIENTATION_UPDATE, event);
@@ -630,11 +620,8 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
     math::Vector2EventPtr pevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
 
-    device::deviceType device = identifyDevice(pevent->sender);
-
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->positionUpdate(getRawPosition(), device,
-                                     pevent->timeStamp);
+    m_stateEstimator->positionUpdate(getRawPosition(), pevent->timeStamp);
     pevent->vector2 = m_stateEstimator->getPosition();
     
     publish(IVehicle::POSITION_UPDATE, event);
@@ -645,30 +632,11 @@ void Vehicle::onVelocityUpdate(core::EventPtr event)
     math::Vector2EventPtr vevent =
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
 
-    device::deviceType device = identifyDevice(vevent->sender);
-
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->velocityUpdate(getRawVelocity(), device,
-                                     vevent->timeStamp);
+    m_stateEstimator->velocityUpdate(getRawVelocity(), vevent->timeStamp);
     vevent->vector2 = m_stateEstimator->getVelocity();
     
     publish(IVehicle::VELOCITY_UPDATE, event);
-}
-
-device::deviceType Vehicle::identifyDevice(core::EventPublisher* event)
-{
-    // Identify the device based on its event publisher name
-    std::string name = event->getPublisherName();
-
-    if ( name == "Vehicle.Device.DVL" ) {
-	return device::DVL_DEVICE;
-    } else if ( name == "Vehicle.Device.IMU" ) {
-	return device::IMU_DEVICE;
-    } else if ( name == "Vehicle.Device.SensorBoard" ) {
-	return device::SENSORBOARD_DEVICE;
-    } else {
-	return device::NO_DEVICE;
-    }
 }
     
 } // namespace vehicle

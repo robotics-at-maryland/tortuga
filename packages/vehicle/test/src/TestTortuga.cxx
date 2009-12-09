@@ -216,8 +216,7 @@ TEST_FIXTURE(VehicleFixture, getDepth)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->depthUpdate(expectedDepth, vehicle::device::NO_DEVICE,
-                           expectedTimeStamp);
+    estimator->depthUpdate(expectedDepth, expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -266,8 +265,7 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
     
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->velocityUpdate(expectedVelocity, vehicle::device::NO_DEVICE,
-                              expectedTimeStamp);
+    estimator->velocityUpdate(expectedVelocity, expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -315,8 +313,7 @@ TEST_FIXTURE(VehicleFixture, getPosition)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->positionUpdate(expectedPosition, vehicle::device::NO_DEVICE,
-                              expectedTimeStamp);
+    estimator->positionUpdate(expectedPosition, expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
@@ -378,8 +375,7 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 
     // Check to make sure the time stamp changes
     double expectedTimeStamp = 1;
-    estimator->orientationUpdate(expected, vehicle::device::NO_DEVICE,
-                                 expectedTimeStamp);
+    estimator->orientationUpdate(expected, expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
     
     conn->disconnect();

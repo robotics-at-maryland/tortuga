@@ -43,23 +43,19 @@ public:
     
     /** Update the estimator with a new orientation */
     virtual void orientationUpdate(math::Quaternion orientation,
-                                   deviceType device,
-				   double timeStamp = -1) = 0;
+				   double timeStamp) = 0;
 
     /** Update the estimator with a new velocity */
     virtual void velocityUpdate(math::Vector2 velocity,
-                                deviceType device,
-				double timeStamp = -1) = 0;
+				double timeStamp) = 0;
 
     /** Update the estimator with a new position */
     virtual void positionUpdate(math::Vector2 position,
-                                deviceType device,
-				double timeStamp = -1) = 0;
+				double timeStamp) = 0;
     
     /** Update the estimator with a new depth */
     virtual void depthUpdate(double depth,
-                             deviceType device,
-			     double timeStamp = -1) = 0;
+			     double timeStamp) = 0;
     
     /** Get the latest estimated orientation */
     virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
