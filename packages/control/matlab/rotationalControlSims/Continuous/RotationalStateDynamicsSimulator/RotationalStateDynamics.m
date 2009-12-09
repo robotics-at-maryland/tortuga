@@ -74,7 +74,6 @@ w_meas=w;
         cos_func = dot(mag_vec_bf,acc_vec_bf)*dot(mag_vec_nf,acc_vec_nf) + norm(cross(mag_vec_bf,acc_vec_bf))*norm(cross(mag_vec_nf,acc_vec_nf));
         eig_val_max = sqrt(a1^2 + 2*a1*a2*cos_func + a2^2)
         B = a1*mag_vec_bf*mag_vec_nf' + a2*acc_vec_bf*acc_vec_nf';
-        %sigma1 = trace(B); (unnecessary)
         S = B + B';
         Z = a1*cross(mag_vec_bf,mag_vec_nf) + a2*cross(acc_vec_bf,acc_vec_nf);
         sigma2 = 0.5*trace(S);
@@ -84,12 +83,12 @@ w_meas=w;
         beta = eig_val_max - sigma2;
         gamma = (eig_val_max + sigma2)*alpha - delta;
         X = (alpha*eye(3) + beta*S + S*S)*Z;
-        q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma]
+        q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma];
             q_quest = q_quest/norm(q_quest) %Ensuring that q_opt is normalized
         
         
 
-q_meas = quaternionFromnCb(nCbFromIMU(mag_vec_bf,acc_vec_bf));
+q_meas = quaternionFromnCb(nCbFromIMU(mag_vec_bf,acc_vec_bf))
 %q_meas=q;
 
 %quaternion estimation that requires only angular rate gyro

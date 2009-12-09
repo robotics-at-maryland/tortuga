@@ -29,10 +29,6 @@ clc;
 %% Initialization
 
     %Initial Position with respect to inertial frame
-        %Initial Rotation Matrix:
-        bRn0 = [1 0 0 
-                0 1 0 
-                0 0 1];
         %Initial Quaternion:
         axis0 = [1 1 2]';
         angle0 = 50;
