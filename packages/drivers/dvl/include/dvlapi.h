@@ -75,8 +75,8 @@ typedef struct _DVLFixedLeaderData
 
     unsigned char coord_transform;
 
-    double head_align,
-           head_bias;
+    unsigned int head_align,
+                 head_bias;
 
     unsigned char sen_source,
                   sen_avail;
@@ -85,8 +85,7 @@ typedef struct _DVLFixedLeaderData
                  xmit_pulse_length,
                  ref_lyr_avg;
 
-    unsigned char false_trgt_thresh,
-                  CX_setting;
+    unsigned char false_trgt_thresh;
 
     unsigned int lagdist,
                  syst_bwidth;
@@ -202,7 +201,7 @@ typedef struct _CompleteDVLPacket
 typedef struct _RawDVLData
 {
     /* Useful information in this structure? */
-    /* Non-zero implies valid data. */
+    /* Non-zero implies invalid data. */
     unsigned int valid;
 
     /* vvvvv PUT DATA HERE vvvvv */

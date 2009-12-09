@@ -95,7 +95,7 @@ int readDVLData(int fd, RawDVLData* dvl)
        */
     unsigned char dvlData[256];
 
-    int len, i, sum, tempsize, offset;
+    int len, i, tempsize, offset;
     CompleteDVLPacket *dbgpkt;
 
     if(waitSync(fd))
@@ -163,13 +163,49 @@ int readDVLData(int fd, RawDVLData* dvl)
     while(len < tempsize)
         len += read(fd, dvlData + len, tempsize - len);
 
-    dbgpkt->fixedleader.FixedLeaderID= convert16(dvlData[offset + 1],
-                                                 dvlData[offset]);
-    dbgpkt->fixedleader.CPU_Firmware_Version= dvlData[offset + 2];
-    dbgpkt->fixedleader.CPU_Firmware_Revision= dvlData[offset + 3];
-    dbgpkt->fixedleader.System_Config= convert16(dvlData[offset + 5],
-                                                 dvlData[offset + 4]);
-    dbgpkt->fixedleader.Real_Sim_flag= dvlData[offset + 6];
+    if(dbgpkt->fixedleaderset == 0) {
+        dbgpkt->fixedleader.FixedLeaderID= convert16(dvlData[offset + 1],
+                                                     dvlData[offset]);
+        dbgpkt->fixedleader.CPU_Firmware_Version= dvlData[offset + 2];
+        dbgpkt->fixedleader.CPU_Firmware_Revision= dvlData[offset + 3];
+        dbgpkt->fixedleader.System_Config= convert16(dvlData[offset + 5],
+                                                     dvlData[offset + 4]);
+        dbgpkt->fixedleader.Real_Sim_flag= dvlData[offset + 6];
+        dbgpkt->fixedleader.Lag_Length= dvlData[offset + 7];
+        dbgpkt->fixedleader.Num_Beams= dvlData[offset + 8];
+        dbgpkt->fixedleader.Num_Cells= dvlData[offset + 9];
+        dbgpkt->fixedleader.pings_per_packet= convert16(dvlData[offset + 11],
+                                                        dvlData[offset + 10]);
+        dbgpkt->fixedleader.depth_cell_length= convert16(dvlData[offset + 13],
+                                                         dvlData[offset + 12]);
+        dbgpkt->fixedleader.blank_after_transmit= convert16(dvlData[offset + 15],
+                                                            dvlData[offset + 14]);
+        dbgpkt->fixedleader.prof_mode= dvlData[offset + 16];
+        dbgpkt->fixedleader.low_corr_thresh= dvlData[offset + 17];
+        dbgpkt->fixedleader.num_code_reps= dvlData[offset + 18];
+        dbgpkt->fixedleader.prcnt_good_min= dvlData[offset + 19];
+        dbgpkt->fixedleader.err_vel_max= convert16(dvlData[offset + 21],
+                                                   dvlData[offset + 20]);
+        dbgpkt->fixedleader.min_btwn_ping= dvlData[offset + 22];
+        dbgpkt->fixedleader.sec_btwn_ping= dvlData[offset + 23];
+        dbgpkt->fixedleader.hundredths_btwn_ping= dvlData[offset + 24];
+        dbgpkt->fixedleader.coord_transform= dvlData[offset + 25];
+        dbgpkt->fixedleader.head_align= convert16(dvlData[offset + 27],
+                                                  dvlData[offset + 26]);
+        dbgpkt->fixedleader.head_bias= convert16(dvlData[offset + 29],
+                                                 dvlData[offset + 28]);
+        dbgpkt->fixedleader.sen_source= dvlData[offset + 30];
+        dbgpkt->fixedleader.sen_avail= dvlData[offset + 31];
+        dbgpkt->fixedleader.bin1_dist= convert16(dvlData[offset + 33],
+                                                 dvlData[offset + 32]);
+        dbgpkt->fixedleader.xmit_pulse_length= convert16(dvlData[offset + 35],
+                                                         dvlData[offset + 34]);
+        dbgpkt->fixedleader.ref_lyr_avg= convert16(dvlData[offset + 37],
+                                                   dvlData[offset + 36]);
+        dbgpkt->fixedleader.false_trgt_thresh= dvlData[offset + 38];
+        /* The next byte is empty! */
+    } else {
+    }
 
 
     return 0;
