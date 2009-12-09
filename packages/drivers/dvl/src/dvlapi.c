@@ -96,7 +96,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     unsigned char dvlData[256];
 
     int len, i, tempsize, offset;
-    CompleteDVLPacket *dbgpkt;
+    CompleteDVLPacket *dbgpkt = NULL;
 
     if(waitSync(fd))
         return ERR_NOSYNC;
