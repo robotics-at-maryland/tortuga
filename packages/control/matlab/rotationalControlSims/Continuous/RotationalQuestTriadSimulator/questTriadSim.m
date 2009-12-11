@@ -27,15 +27,19 @@ close all;
 clc;
 
 %% Initialization
-
-    %Initial Position with respect to inertial frame
-        %Initial Rotation Matrix:
-        bRn0 = [1 0 0 
-                0 1 0 
-                0 0 1];
+    ti=0;
+    tf=0.08;
+        time = ti:0.04:tf;
+        state_storage = 666*ones(7, length(time));
+        accel_meas_storage = 666*ones(3, length(time));
+        mag_meas_storage = 666*ones(3, length(time));
+        qtriad_storage = 666*ones(4, length(time));
+        qQuest_storage = 666*ones(4, length(time));
+       
+%Initial Position with respect to inertial frame
         %Initial Quaternion:
         axis0 = [1 1 1]';
-        angle0 = 0;
+        angle0 = 0.2;
         q0 = [axis0*sin(angle0*(pi/180)/2); cos(angle0*(pi/180)/2)];
         q0 = q0/norm(q0);
         
@@ -47,7 +51,8 @@ clc;
 
         x0=[q0; w0];
         
-    
+    state_storage(:,1)=x0;
+        
     %Constants:
     global mag_vec_nf;
     mag_vec_nf = [cos(60*pi/180) 0 sin(60*pi/180)]'; %Note: the declination angle may be incorrect
@@ -77,21 +82,30 @@ clc;
         rb=[0 0 1]';%Or this!!
     
         %Timing
-        t0 = 0;
-        te = 100;
+        %t0 = 0;
+        %te = 100;
 
 %% For loop or ODE45
-  
-[time,x] = ode45(@questTriadDynamics,[t0 te],x0);
+ 
+for i=2:1:length(time)%:i<length(time)+1
+    %measurement
+    
+    %integrate
+    [timeDontCare xi] = ode45(@questTriadDynamics,[time(i-1) time(i)],state_storage(:,i-1));
+    state_storage(:,i) = xi(end,:)';
+end
+%[time,x] = ode45(@questTriadDynamics,[t0 te],x0);
 
-%% Plot crap
+%% Plot Data
 
 figure(1)
 subplot(4,1,1)
-plot(time, x(:,1))
+plot(time, state_storage(1,:))
 subplot(4,1,2)
-plot(time, x(:,2))
+plot(time, state_storage(2,:))
 subplot(4,1,3)
-plot(time, x(:,3))
+plot(time, state_storage(3,:))
 subplot(4,1,4)
-plot(time,x(:,4))
+plot(time,state_storage(4,:))
+
+% Plotting Results
