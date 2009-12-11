@@ -22,8 +22,10 @@ extern "C" {
 #define SYNC_FAIL_SECONDS (SYNC_FAIL_MILLISEC/1000)
 
 /* These are error messages */
-#define ERR_NOSYNC 0x0001
-#define ERR_TOOBIG 0x0002
+#define ERR_NOSYNC         0x0001
+#define ERR_TOOBIG         0x0002
+#define ERR_BADFIXEDLEADER 0x0003
+#define ERR_CHKSUM         0x0004
 
 /* DVL Header information */
 typedef struct _DVLHeaderData
@@ -87,10 +89,17 @@ typedef struct _DVLFixedLeaderData
 
     unsigned char false_trgt_thresh;
 
-    unsigned int lagdist,
-                 syst_bwidth;
+    /* Empty Byte! */
 
-    unsigned long serial_num;
+    unsigned int lagdist;
+
+    /* Bytes 42 - 49 are all empty */
+
+    unsigned int sys_bwidth;
+
+    /* Bytes 52 and 53 are empty */
+
+    unsigned char serial[4];
 } DVLFixedLeaderData;
 
 /* A leader for all the information which should change */
@@ -109,11 +118,11 @@ typedef struct _DVLVariableLeaderData
                   RTC_second,
                   RTC_hundredths;
 
-    unsigned char ensemble_num;
+    unsigned char ensemble_num_msb;
 
     unsigned int bit_result,
                  sound_speed,
-                 tranducer_depth,
+                 transducer_depth,
                  heading,
                  pitch,
                  roll,
@@ -130,10 +139,14 @@ typedef struct _DVLVariableLeaderData
 
     unsigned char dvl_adc[8];
 
-    unsigned long errorstatus;
+    unsigned int errorstatus;
 
-    unsigned long pressure,
-                  pressure_variance;
+    /* Bytes 46 and 47 are empty */
+
+    unsigned int pressure,
+                 pressure_variance;
+
+    /* Bytes 56 through 59 are empty! */
 } DVLVariableLeaderData;
 
 /* This is a struct which will hold the absolute in-plane */
@@ -153,33 +166,37 @@ typedef struct _DVLBottomTrackData
 
     unsigned int bt_err_vel;
 
-    unsigned int bt_ranges[4];
+    /* Bytes 12 through 15 are empty! */
+
+    unsigned int bt_range[4];
+
+    unsigned int bt_vel[4];
 
     unsigned char bt_beam_corr[4];
 
     unsigned char bt_eval_amp[4];
 
-    unsigned char bt_beam_prcnt_good[4];
+    unsigned char bt_prcnt_good[4];
 
     unsigned int ref_lyr_min,
                  ref_lyr_near,
                  ref_lyr_far;
 
-    unsigned int ref_layer_vel_beam[4];
+    unsigned int ref_layer_vel[4];
 
-    unsigned char ref_corr_beam[4];
+    unsigned char ref_corr[4];
 
-    unsigned char ref_int_beam[4];
+    unsigned char ref_int[4];
 
-    unsigned char beam_prcnt_good[4];
+    unsigned char ref_prcnt_good[4];
 
     unsigned int bt_max_depth;
 
-    unsigned char rssi_amp_beam[4];
+    unsigned char rssi_amp[4];
 
-    unsigned char GAIN;
+    unsigned char gain;
 
-    unsigned char bt_range_msb_beam[4];
+    unsigned char bt_range_msb[4];
 } DVLBottomTrackData;
 
 /* This will hold *ALL* of the data from the DVL */
@@ -205,6 +222,8 @@ typedef struct _RawDVLData
     unsigned int valid;
 
     /* vvvvv PUT DATA HERE vvvvv */
+
+    unsigned int bt_velocity[4];
 
     /* ^^^^^ PUT DATA HERE ^^^^^ */
 

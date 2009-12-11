@@ -1,4 +1,4 @@
-CFLAGS= -Iinclude -Wall
+CFLAGS= -Iinclude -Wall -Werror
 
 all: dvlcomm
 
