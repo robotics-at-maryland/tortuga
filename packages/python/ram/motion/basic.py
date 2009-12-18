@@ -226,7 +226,7 @@ class Motion(object):
         """
         Called by the motion manager to state main state variables
         
-        DO NOT OVERRIED this method directly.  Overrive _start instead.
+        DO NOT OVERRIDE this method directly.  Override _start instead.
         
         @type  controller: ext.control.IController 
         @param controller: The current controller of the vehicle
@@ -290,7 +290,7 @@ class ChangeDepth(Motion):
         
     def _nextDepth(self,currentVehicleDepth):
         """
-        Descreses depth by one 'step' of the remaing depth change
+        Decreases depth by one 'step' of the remaining depth change
         """
         depthDifference = self._desiredHeading - currentVehicleDepth 
         depthChange = depthDifference/self._steps
@@ -298,7 +298,8 @@ class ChangeDepth(Motion):
         
     def _atDepth(self, event):
         """
-        AT_DEPTH event handler, called when the vehicle reaches the command depth
+        AT_DEPTH event handler,
+        called when the vehicle reaches the command depth
         """
         self._steps -= 1
         currentVehicleDepth = event.number
@@ -647,3 +648,145 @@ class TimedMoveDirection(MoveDirection):
             self._timer.stop()
             self._timer = None
         MoveDirection.stop(self)
+
+# In construction, don't use
+class MoveDistance(Motion):
+    """
+    Moves a distance. If absolute is set to true, then it moves an absolute
+    direction regardless of orientation. If absolute is set to false, it moves
+    relative to the current heading.
+    """
+
+    COMPLETE = core.declareEventType('COMPLETE')
+    def __init__(self, desiredHeading, distance, speed,
+                 threshold = 0.1, absolute = True):
+        """
+        @type desiredHeading: double
+        @param desiredHeading: compass heading in degrees (0 = north, + counter clockwise)
+
+        @type distance: double
+        @param distance: distance to travel in meters
+
+        @type speed: int
+        @param speed: the speed (0-5) to travel
+
+        @type threshold: double
+        @param threshold: the radius of where the robot is considered at
+        the location
+        
+        @type absolute: boolean
+        @param absolute: the heading value as an absolute or relative value
+        """
+        print "WARNING! This code should not be used!"
+        Motion.__init__(self, _type = Motion.IN_PLANE)
+        
+        self._speed = speed
+        self._direction = math.Quaternion(math.Degree(desiredHeading),
+                                          math.Vector3.UNIT_Z)
+        self._threshold = threshold
+        self._absolute = absolute
+        
+        self._connections = []
+        
+    def _start(self):
+        # Register to receive ORIENTATION_UPDATE events
+        #conn = self._eventHub.subscribe(vehicle.IVehicle.ORIENTATION_UPDATE,
+        #                                self._vehicle, self._onOrientation)
+        #self._connections.append(conn)
+
+        # Register to receive POSITION_UPDATE events
+        conn = self._eventHub.subscribe(vehicle.IVehicle.POSITION_UPDATE,
+                                        self._vehicle, self._onUpdate)
+        self._connections.append(conn)
+
+        conn = self._eventHub.subscribeToType(MoveDistance.COMPLETE,
+                                              self._onComplete)
+        self._connections.append(conn)
+
+        # Find the current position
+        currentPosition = self._vehicle.getPosition()
+
+        # Set the desired direction if it's not absolute
+        if not self._absolute:
+            heading = self._vehicle.getOrientation().getYaw()
+            orientation = math.Quaternion(math.Degree(heading),
+                                          math.Vector3.UNIT_Z)
+            self._direction = orientation * self._direction
+
+        # TODO: Need help here
+        # Find the desired position
+        # I don't know how to do this!
+        # The direction is a quaternion and the current position is a vector2
+        # how do you do quaternion + vector2 = vector2?
+
+        pathVector = desiredPosition - currentPosition
+
+        direction = self._pathDirection(pathVector)
+
+    """
+    @type pathVector: Vector2
+    @param pathVector: a vector2
+    """
+    def _pathDirection(self, pathVector):
+        """
+        Finds the direction the path is pointing in and returns it as a degree
+        """
+        # TODO: How do you find the direction a vector2 is pointing as a degree?
+        return math.Degree(0)
+    
+    """
+    @type orientation: double
+    @param orientation: the direction we want to move
+    """
+    def _setSpeeds(self, direction):
+        """
+        Steps the speeds to vehicle based on the given direction
+        """
+        # Vehicle heading in degrees
+        vehicleHeading = self._vehicle.getOrientation().getYaw(
+            True).valueDegrees()
+        
+        yawTransform = vehicleHeading - self._direction
+
+        # Find speed in vehicle cordinates
+        baseSpeed = math.Vector3(self._speed, 0, 0)
+        toVehicleFrame = math.Quaternion(math.Degree(yawTransform),
+                                         math.Vector3.UNIT_Z)
+        vehicleSpeed = toVehicleFrame * baseSpeed
+        
+        # Finally set the speeds
+        self._controller.setSpeed(vehicleSpeed.x)
+        self._controller.setSidewaysSpeed(vehicleSpeed.y)
+        
+    def _onUpdate(self, event):
+        """
+        Corrects commanded speed based on vehicle position
+        """
+        currentPosition = event.position
+
+        pathVector = self._desiredPosition - currentPosition
+
+        # Arbitrary values
+        if abs(pathVector.x) < self._threshold and \
+               abs(pathVector.y < self._threshold):
+            self.publish(MoveDistance.COMPLETE, core.Event())
+
+        direction = self._pathDirection(pathVector)
+        self._setSpeeds(direction)
+
+    def _onComplete(self, event):
+        """
+        Finishes the motion
+        """
+        self.stop()
+        self._finish()
+        
+    def stop(self):
+        """
+        Called by the MotionManager when another motion takes over, stops movement
+        """
+        self._controller.setSpeed(0)
+        self._controller.setSidewaysSpeed(0)
+
+        for conn in self._connections:
+            conn.disconnect()

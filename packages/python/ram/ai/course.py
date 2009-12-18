@@ -119,7 +119,7 @@ class Pipe(task.Task):
             # We found enough pipes move on
             self.publish(Pipe.COMPLETE, core.Event())
     
-    def enter(self, defaultTimeout = 60):
+    def enter(self, defaultTimeout = 10):
         self._className = type(self).__name__
         timeout = self.ai.data['config'].get(self._className, {}).get(
                     'taskTimeout', defaultTimeout)
@@ -185,6 +185,68 @@ class PipeGate(task.Task):
             self.stateMachine.stopBranch(pipe.Searching)
 
         self.visionSystem.pipeLineDetectorOff()
+
+class StagedTemplate(task.Task):
+    """
+    A template for any task. It has three steps, each
+    with separate timeouts.
+
+    1. This will timeout after a certain amount of time
+    if the objective is not found.
+    2. This will timeout if taking too long to complete
+    the objective.
+    3. This one activates when the object was found,
+    has been lost, and timed out while searching for it.
+    """
+
+    # Generic timeout
+    TIMEOUT = core.declareEventType('TIMEOUT')
+
+    # Specific timeout types
+    EARLY_TIMEOUT = core.declareEventType('EARLY_TIMEOUT')
+    NORMAL_TIMEOUT = core.declareEventType('NORMAL_TIMEOUT')
+    LOST_TIMEOUT = core.declareEventType('LOST_TIMEOUT')
+
+    # Acts as an enum
+    SEARCHING, TASK, LOST = range(3)
+
+    """
+    @type foundEvent: Event
+    
+    @type lostEvent: Event
+    """
+    @staticmethod
+    def _transitions(myState, foundEvent, lostEvent):
+        # These will lead to different types of failure
+        # when the state machine itself is modified
+        return { StagedTemplate.EARLY_TIMEOUT : task.Failure,
+                 StagedTemplate.NORMAL_TIMEOUT : task.Failure,
+                 StagedTemplate.LOST_TIMEOUT : task.Failure,
+                 foundEvent : myState,
+                 lostEvent : myState }
+
+    def TIMEOUT(self, event):
+        # Figure out what state it was in when it timed out
+        if self._state == StagedTemplate.SEARCHING:
+            self.publish(StagedTemplate.EARLY_TIMEOUT, core.Event())
+        elif self._state == StagedTemplate.LOST:
+            self.publish(StagedTemplate.LOST_TIMEOUT, core.Event())
+        else:
+            # Normal timeout is the default if an improper state was set
+            self.publish(StagedTemplate.NORMAL_TIMEOUT, core.Event())
+
+    def enter(self, searchingTimeout, taskTimeout, lostTimeout):
+        self._state = StagedTemplate.SEARCHING
+        self._timer = self.timerManager.newTimer(
+            StagedTemplate.TIMEOUT, searchingTimeout)
+
+        self._taskTimeout = taskTimeout
+        self._lostTimeout = lostTimeout
+
+    def exit(self):
+        # If the timer still exists, stop it
+        if self._timer is not None:
+            self._timer.stop()
 
 class PipeObjective(task.Task, pipe.PipeTrackingState):
     """
