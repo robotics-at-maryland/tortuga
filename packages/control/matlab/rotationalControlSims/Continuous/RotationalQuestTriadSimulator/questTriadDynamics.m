@@ -37,9 +37,9 @@ function dx=questTriadDynamics(t,x)
     %vector from center of gravity (CG) to center of buoyancy (CB)
     global rb;
 
-    %Known inertial constants
-    global mag_vec_nf;
-    global acc_vec_nf;
+%    %Known inertial constants
+%    global mag_vec_nf;
+%    global acc_vec_nf;
     
     %Weights 
     global a1;
