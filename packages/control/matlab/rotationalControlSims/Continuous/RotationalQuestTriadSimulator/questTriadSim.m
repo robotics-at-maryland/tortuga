@@ -89,9 +89,9 @@ rb=[0 0 1]';%Or this!!
  
 for i=2:1:length(time)%:i<length(time)+1...I don't understand this part too well
     %measurement
-    accel=R(q) *accel_vec_nf+noise  % These should stem from the  rotation matrix, or unit quaternion in some respect
-    mag=f(q)
-    
+%     accel=R(q) *accel_vec_nf+noise  % These should stem from the  rotation matrix, or unit quaternion in some respect
+%     mag=f(q)
+%     
     %estimation
     %triad goes here
     %quest goes here
@@ -114,7 +114,7 @@ plot(time, state_storage(3,:))
 subplot(4,1,4)
 plot(time,state_storage(4,:))
 
-figure(2)
-subplot(4,1,1)
-plot(time,actualQ1,time,triadQ1)
-legend('actual','TRIAD')
+% figure(2)
+% subplot(4,1,1)
+% plot(time,actualQ1,time,triadQ1)
+% legend('actual','TRIAD')
