@@ -63,27 +63,23 @@ a1 = 0.5;           %Weight of magnetic sensor
 %global a2;
 a2 = 0.5;           %Weight of acceleration sensor
     
-%System Inertia
+%System Inertia (Inertia Matrix)
 global H;
 H= [1 0 0;
     0 2 0;
-    0 0 2];%I don't know what this is!!!
+    0 0 2];
 
-%Drag Constants
+% Drag Constants
 global Cd;
-Cd=4*diag([1 1 1]);%I don't know what this is!!!
+Cd=4*diag([1 1 1]);
 
-%Buoyant Force
+% Buoyant Force
 global fb;
 fb=4;
 
-%vector from center of gravity (CG) to center of buoyancy (CB)
+% Vector from center of gravity (CG) to center of buoyancy (CB)
 global rb;
-rb=[0 0 1]';%Or this!!
-
-%Timing
-%t0 = 0;
-%te = 100;
+rb=[0 0 1]';
 
 %% For loop or ODE45
  
