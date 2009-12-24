@@ -46,8 +46,17 @@ def generate(module_builder, local_ns, global_ns):
     wrappedClasses = []
 
     # Wrap IDevice Class
-    IDevice = expose_device(local_ns, 'IDevice', register = False);
+    IDevice = expose_device(local_ns, 'IDevice', register = False)
     wrappedClasses.append(IDevice)
+
+    # Wrap the IStateEstimator class
+    IStateEstimator = expose_device(local_ns, 'IStateEstimator', register = False)
+    wrappedClasses.append(IStateEstimator)
+
+    # Wrap the IStateEstimatorDevice Class
+    IStateEstimatorDevice = expose_device(local_ns, 'IStateEstimatorDevice',
+                                          register = False)
+    wrappedClasses.append(IStateEstimatorDevice)
 
     # Wrap the thruster class
     IThruster = expose_device(local_ns, 'IThruster')
@@ -76,6 +85,10 @@ def generate(module_builder, local_ns, global_ns):
     # Wrap the IIMU class
     IIMU = expose_device(local_ns, 'IIMU')
     wrappedClasses.append(IIMU)
+
+    # Wrap the IDVL class
+    IDVL = expose_device(local_ns, 'IDVL')
+    wrappedClasses.append(IDVL)
 
     # Wrap the ISonar class
     ISonar = expose_device(local_ns, 'ISonar')

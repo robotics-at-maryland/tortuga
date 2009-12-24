@@ -28,13 +28,13 @@ Vehicle:
 #            depthSensorName: DepthSensor
 #            depends_on: ["DepthSensor"]
 
-        VelocitySensor:
-            type: SimVelocitySensor
-            depends_on: ["SimulationDevice"]
+#        VelocitySensor:
+#            type: SimVelocitySensor
+#            depends_on: ["SimulationDevice"]
 
-        PositionSensor:
-            type: IdealPositionEstimator
-            depends_on: ["SimulationDevice"]
+#        PositionSensor:
+#            type: IdealPositionEstimator
+#            depends_on: ["SimulationDevice"]
 
         SimulationDevice:
             type: SimulationDevice
@@ -87,12 +87,16 @@ Vehicle:
             simName: bot_thruster
             relAxis: z
 
-        IMU: # MagBoom
+        StateEstimator:
             depends_on: ['SimulationDevice']
+            type: SimStateEstimator
+
+        IMU: # MagBoom
+            depends_on: ['SimulationDevice', 'StateEstimator']
             type: SimIMU
 
         DepthSensor:
-            depends_on: ["SimulationDevice"]
+            depends_on: ["SimulationDevice", "StateEstimator"]
             type: SimDepthSensor
 
 

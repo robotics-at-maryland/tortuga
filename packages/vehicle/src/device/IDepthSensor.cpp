@@ -17,7 +17,7 @@ namespace vehicle {
 namespace device {
 
 IDepthSensor::IDepthSensor(core::EventHubPtr eventHub, std::string name) :
-    IDevice(eventHub, name)
+    IStateEstimatorDevice(eventHub, name)
 {
 }
 

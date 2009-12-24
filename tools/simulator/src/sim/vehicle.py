@@ -85,18 +85,11 @@ class SimDepthSensor(SimDevice, device.IDepthSensor):
         self._name = config['name']
         SimDevice.__init__(self)
         device.IDepthSensor.__init__(self, eventHub, self._name)
-        
-        simDevice = vehicle.getDevice('SimulationDevice')
-        self.robot = simDevice.robot        
 
     def update(self, time):
         event = math.NumericEvent()
-        event.number = self.getDepth()
-        self.publish(device.IDepthSensor.UPDATE, event)
-        
-    def getDepth(self):
-        # Down is positive for depth
-        return -3.281 * self.robot._main_part._node.position.z
+        event.number = self.getStateEstimator().getDepth()
+        self.publish(device.IStateEstimator.DEPTH_UPDATE, event)
         
     def getLocation(self):
         return math.Vector3(0, 0, 0)
@@ -104,87 +97,83 @@ class SimDepthSensor(SimDevice, device.IDepthSensor):
 device.IDeviceMaker.registerDevice('SimDepthSensor', SimDepthSensor)
 
 
-class SimVelocitySensor(SimDevice, device.IVelocitySensor):
+class SimDVL(SimDevice, device.IDVL):
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']
         SimDevice.__init__(self)
-        device.IVelocitySensor.__init__(self, eventHub, self._name)
+        device.IDVL.__init__(self, eventHub, self._name)
+
+        self._heartbeat = 0
         
-        simDevice = vehicle.getDevice('SimulationDevice')
-        self.robot = simDevice.robot
-
-        # This will keep track of the current velocity
-        self.oldPos = math.Vector2(self.robot._main_part._node.position.x,
-                                   self.robot._main_part._node.position.y)
-        self.velocity = math.Vector2(0, 0)
-
     def update(self, time):
-        # On each update, we'll find the velocity using the old position
-        currentPos = math.Vector2(self.robot._main_part._node.position.x,
-                                  self.robot._main_part._node.position.y)
-        # Subtract by the old position and divide by time
-        self.velocity = (currentPos - self.oldPos) / time
+        # Publish and increment the heartbeat
+        self._heartbeat += 1
+        event = math.NumericEvent()
+        event.number = self._heartbeat
+        self.publish(device.IDVL.UPDATE, event)
 
-        # Update the position
-        self.oldPos = currentPos
-
-        # Publish an update event
-        event = math.Vector2Event()
-        event.vector2 = self.getVelocity()
-        self.publish(device.IVelocitySensor.UPDATE, event)
-        
-    def getVelocity(self):
-        return self.velocity
+        # Fake the VELOCITY_UPDATE event
+        # (normally happens in the state estimator)
+        vevent = math.Vector2Event()
+        vevent.vector2 = self.getStateEstimator().getVelocity()
+        self.publish(device.IStateEstimator.VELOCITY_UPDATE, vevent)
         
     def getLocation(self):
         return math.Vector3(0, 0, 0)
 
-device.IDeviceMaker.registerDevice('SimVelocitySensor', SimVelocitySensor)
-
-
-class IdealPositionEstimator(SimDevice, device.IPositionSensor):
-    def __init__(self, config, eventHub, vehicle):
-        self._name = config['name']
-        SimDevice.__init__(self)
-        device.IPositionSensor.__init__(self, eventHub, self._name)
-    
-        simDevice = vehicle.getDevice('SimulationDevice')
-        self.robot = simDevice.robot
-
-        self.initialPos = math.Vector2(self.robot._main_part._node.position.x,
-                                       self.robot._main_part._node.position.y)
-
-    def update(self, time):
-        event = math.Vector2Event()
-        event.vector2 = self.getPosition()
-        self.publish(device.IPositionSensor.UPDATE, event)
-
-    def getPosition(self):
-        # Gets the exact position relative to the initial position
-        currentPos = math.Vector2(self.robot._main_part._node.position.x,
-                                       self.robot._main_part._node.position.y)
-        return currentPos - self.initialPos
-
-    def getLocation(self):
-        return math.Vector3(0, 0, 0)
-
-device.IDeviceMaker.registerDevice('IdealPositionEstimator',
-                                   IdealPositionEstimator)
+device.IDeviceMaker.registerDevice('SimDVL', SimDVL)
 
 class SimIMU(SimDevice, device.IIMU):
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']
         SimDevice.__init__(self)
         device.IIMU.__init__(self, eventHub, self._name)
-    
-        simDevice = vehicle.getDevice('SimulationDevice')
-        self.robot = simDevice.robot        
 
-    def update(self, time):
-        event = math.OrientationEvent()
-        event.orientation = self.getOrientation()
-        self.publish(device.IIMU.UPDATE, event)
+        self._heartbeat = 0
     
+    def update(self, time):
+        self._heartbeat += 1
+        event = math.NumericEvent()
+        event.number = self._heartbeat
+        self.publish(device.IIMU.UPDATE, event)
+
+        # Fake the orientation update event
+        # (normally happens in the state estimator)
+        oevent = math.OrientationEvent()
+        oevent.orientation = self.getStateEstimator().getOrientation()
+        self.publish(device.IStateEstimator.ORIENTATION_UPDATE, oevent)
+    
+    def _getActualOrientation(self):
+        return convertToQuaternion(math.Quaternion,
+                                  self.robot._main_part._node.orientation)
+
+device.IDeviceMaker.registerDevice('SimIMU', SimIMU)
+
+
+class SimStateEstimator(SimDevice, device.IStateEstimator):
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        SimDevice.__init__(self)
+        device.IStateEstimator.__init__(self, eventHub, self._name)
+
+        simDevice = vehicle.getDevice('SimulationDevice')
+        self.robot = simDevice.robot
+
+        self.oldPos = math.Vector2(self.robot._main_part._node.position.x,
+                                   self.robot._main_part._node.position.y)
+        self.velocity = math.Vector2(0, 0)
+
+
+    def getDepth(self, name = "vehicle"):
+        # Down is positive for depth
+        return -3.281 * self.robot._main_part._node.position.z
+
+    def getVelocity(self, name = "vehicle"):
+        return self.velocity
+
+    def getPosition(self, name = "vehicle"):
+        return math.Vector2(0, 0)
+
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,
                                   self.robot._main_part._node.orientation)
@@ -202,10 +191,10 @@ class SimIMU(SimDevice, device.IIMU):
         return convertToVector3(math.Vector3,
                                 self.robot._main_part.angular_accel) 
         
-    def getOrientation(self):
+    def getOrientation(self, name = "vehicle"):
         return self._getActualOrientation()
 
-device.IDeviceMaker.registerDevice('SimIMU', SimIMU)
+device.IDeviceMaker.registerDevice('SimStateEstimator', SimStateEstimator)
 
 
 class SimSonar(SimDevice, device.ISonar):

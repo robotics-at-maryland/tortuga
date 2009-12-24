@@ -14,7 +14,7 @@
 #include <string>
 
 // Project Includes
-#include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/IStateEstimatorDevice.h"
 
 #include "math/include/Vector3.h"
 
@@ -24,9 +24,15 @@
 namespace ram {
 namespace vehicle {
 namespace device {
-    
+
+typedef struct _DepthPacket {
+    // Extraneous information for depth data
+    double depth;
+    IDepthSensorPtr device;
+} DepthPacket;
+
 /** Represents a sensor that returns the depth in feet */
-class RAM_EXPORT IDepthSensor : public IDevice         // For getName
+class RAM_EXPORT IDepthSensor : public IStateEstimatorDevice // For getName
              // boost::noncopyable
 {
 public:

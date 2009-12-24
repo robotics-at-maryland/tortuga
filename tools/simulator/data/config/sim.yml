@@ -30,7 +30,7 @@ Subsystems:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: tools/simulator/data/config/ai/nbrf_tank.yml
+         INCLUDE: tools/simulator/data/config/ai/default_ai.yml
 
 
     StateMachine:

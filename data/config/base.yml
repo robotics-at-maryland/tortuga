@@ -25,8 +25,7 @@ Vehicle:
     update_interval: 25
     priority: high
 
-    depends_on: ["EventHub", "Logging"
-]
+    depends_on: ["EventHub", "Logging"]
 
     MagBoomName: MagBoom
 
@@ -38,6 +37,7 @@ Vehicle:
             type: VisionVelocitySensor
         SensorBoard:
             type: SensorBoard
+            depends_on: ["StateEstimator"]
             update_interval: 25
             priority: high
             depthCalibSlope: 35.5
@@ -158,6 +158,7 @@ Vehicle:
             
         MagBoom:
             type: IMU
+            depends_on: ['StateEstimator']
             num: 1
             devfile: /dev/magboom
             update_interval: 5
@@ -202,6 +203,7 @@ Vehicle:
 
         IMU:
             type: IMU
+            depends_on: ['StateEstimator']
             num: 0
             update_interval: 5
             priority: high

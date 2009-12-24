@@ -15,7 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/device/IDVL.h"
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -41,7 +41,7 @@ const static int DVL_FILTER_SIZE = 10;
 
 typedef RawDVLData FilteredDVLData;
 
-class DVL : public IVelocitySensor,
+class DVL : public IDVL,
             public Device, // for getName
             public core::Updatable // for update
             // boost::noncopyable
@@ -54,15 +54,11 @@ public:
         IVehiclePtr vehicle = IVehiclePtr());
 
     virtual ~DVL();
-    
-    virtual math::Vector2 getVelocity();
 
     virtual math::Vector3 getLocation();
 
     /** Grabs the raw DVL state */
     void getRawState(RawDVLData& dvlState);
-    /** Grab the filtered state */
-    void getFilteredState(FilteredDVLData& dvlState);
     
     virtual std::string getName() { return Device::getName(); }
     

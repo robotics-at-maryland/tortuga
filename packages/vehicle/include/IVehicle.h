@@ -45,7 +45,7 @@ public:
     /* @{ */
     
     /** When the vehicles orientation changes (ram::math:;OrientationEvent)*/
-    static const core::Event::EventType ORIENTATION_UPDATE;
+    /*static const core::Event::EventType ORIENTATION_UPDATE;*/
     
     /** When the vehicles linear accel. changes (ram::math::Vector3Event) */
     //static const core::Event::EventType LINEAR_ACCEL_UPDATE;
@@ -54,13 +54,13 @@ public:
     //static const core::Event::EventType ANGULAR_RATE_UPDATE;
     
     /** When the vehicles depth changes (ram::math::NumericEvent) */
-    static const core::Event::EventType DEPTH_UPDATE;
+    /*static const core::Event::EventType DEPTH_UPDATE;*/
 
     /** When the vehicles position changes (ram::math::Vector2Event) */
-    static const core::Event::EventType POSITION_UPDATE;
+    /*static const core::Event::EventType POSITION_UPDATE;*/
 
     /** When the vehicles velocity changes (ram::math::Vector2Event) */
-    static const core::Event::EventType VELOCITY_UPDATE;
+    /*static const core::Event::EventType VELOCITY_UPDATE;*/
 
     /* @{ */
     

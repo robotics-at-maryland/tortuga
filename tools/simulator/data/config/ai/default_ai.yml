@@ -19,6 +19,8 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe']
 
+failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
+
 config:
     gateDepth: 4
     lightDepth: 5
@@ -62,5 +64,5 @@ config:
     #    legTime: 5
     #    sweepAngle: 30
     #    sweepSpeed: 3
-    BarbedWire:
-         orientation: -20
+    #BarbedWire:
+    #     orientation: -20

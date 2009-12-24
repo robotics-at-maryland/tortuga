@@ -10,6 +10,13 @@
 // Project Includes
 #include "vehicle/include/device/IStateEstimator.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, ORIENTATION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, LINEAR_ACCEL_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, ANGULAR_RATE_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, DEPTH_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, POSITION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IStateEstimator, VELOCITY_UPDATE);
+
 namespace ram {
 namespace vehicle {
 namespace device {

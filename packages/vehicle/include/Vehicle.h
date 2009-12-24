@@ -92,6 +92,9 @@ public:
     virtual void update(double timestep);
     
 protected:
+    /** Corrects a given depth based on the position */
+    double depthCorrection(double depth, math::Vector3 loc);
+
     /** Get the depth directly from the depth sensor */
     double getRawDepth();
 
@@ -148,6 +151,9 @@ private:
     vehicle::device::IIMUPtr m_magBoom;
 
     core::EventConnectionPtr m_orientationConnection;
+
+    std::string m_dvlName;
+    vehicle::device::IDVLPtr m_dvl;
     
     std::string m_depthSensorName;
     vehicle::device::IDepthSensorPtr m_depthSensor;

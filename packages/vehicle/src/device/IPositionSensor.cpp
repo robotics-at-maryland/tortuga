@@ -18,7 +18,7 @@ namespace device {
 
 IPositionSensor::IPositionSensor(core::EventHubPtr eventHub,
                                  std::string name) :
-    IDevice(eventHub, name)
+    IStateEstimatorDevice(eventHub, name)
 {
 }
 

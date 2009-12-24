@@ -220,8 +220,8 @@ class DepthPanel(wx.Panel):
         #self.SetSizeHints(0,0,100,-1)
         
         if vehicle is not None:
-            conn = eventHub.subscribe(ext.vehicle.IVehicle.DEPTH_UPDATE, 
-                                     vehicle, self._depthUpdate)
+            conn = eventHub.subscribeToType(
+                ext.vehicle.device.IStateEstimator.DEPTH_UPDATE, self._depthUpdate)
             self._connections.append(conn)
         
         if controller is not None:
@@ -785,8 +785,9 @@ class RotationPanel(wx.Panel):
         
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
-        conn = eventHub.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
-                                  vehicle, self._onOrientationUpdate)
+        conn = eventHub.subscribeToType(
+            ext.vehicle.device.IStateEstimator.ORIENTATION_UPDATE,
+            self._onOrientationUpdate)
         
         conn = eventHub.subscribe(ext.control.IController.DESIRED_ORIENTATION_UPDATE, 
                                   controller, self._onDesiredOrientationUpdate)
@@ -916,8 +917,9 @@ class SonarPanel(wx.Panel):
                                         self._update)
         self._connections.append(conn)
         
-        conn = eventHub.subscribe(ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
-                                  vehicle, self._onOrientationUpdate)
+        conn = eventHub.subscribeToType(
+            ext.vehicle.device.IStateEstimator.ORIENTATION_UPDATE, 
+            self._onOrientationUpdate)
         self._connections.append(conn)
         
     def _update(self,event):
@@ -1220,12 +1222,14 @@ class VelocityPosition(BasePanel):
         #self._timer.Start(100)
         
         # Events
-        conn = eventHub.subscribeToType(ext.vehicle.IVehicle.VELOCITY_UPDATE,
-                                        self._onVelocityUpdate)
+        conn = eventHub.subscribeToType(
+            ext.vehicle.device.IStateEstimator.VELOCITY_UPDATE,
+            self._onVelocityUpdate)
         self._connections.append(conn)
         
-        conn = eventHub.subscribeToType(ext.vehicle.IVehicle.POSITION_UPDATE,
-                                        self._onPositionUpdate)
+        conn = eventHub.subscribeToType(
+            ext.vehicle.device.IStateEstimator.POSITION_UPDATE,
+            self._onPositionUpdate)
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)

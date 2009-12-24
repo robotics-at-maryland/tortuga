@@ -14,15 +14,49 @@
 #include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/Device.h"
 
+#include "core/include/AveragingFilter.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
+// Filter size
+#define FILTER_SIZE 10
+
+// Forward declaration from imuapi.h
+struct _RawIMUData;
+typedef _RawIMUData RawIMUData;
+
+// Forward declaration from dvlapi.h
+struct _RawDVLData;
+typedef _RawDVLData RawDVLData;
+
 namespace ram {
 namespace vehicle {
 namespace device {
+
+typedef RawIMUData FilteredIMUData;
+
+/** imu data */
+typedef struct {
+    core::AveragingFilter<double, FILTER_SIZE> filteredAccelX; 
+    core::AveragingFilter<double, FILTER_SIZE> filteredAccelY;
+    core::AveragingFilter<double, FILTER_SIZE> filteredAccelZ; 
+
+    core::AveragingFilter<double, FILTER_SIZE> filteredGyroX; 
+    core::AveragingFilter<double, FILTER_SIZE> filteredGyroY;
+    core::AveragingFilter<double, FILTER_SIZE> filteredGyroZ;
+
+    core::AveragingFilter<double, FILTER_SIZE> filteredMagX; 
+    core::AveragingFilter<double, FILTER_SIZE> filteredMagY;
+    core::AveragingFilter<double, FILTER_SIZE> filteredMagZ;
+} IMUData;
+
+/** dvl averaging filter */
+typedef struct {
+} DVLData;
 
 /** Simple loop back estimator, ie. it doesn't esimator anything */
 class RAM_EXPORT LoopStateEstimator :
@@ -37,19 +71,19 @@ public:
     
     virtual ~LoopStateEstimator();
 
-    virtual void orientationUpdate(math::Quaternion orientation,
-				   double timeStamp);
+    virtual void imuUpdate(IMUPacket* rawData);
 
-    virtual void velocityUpdate(math::Vector2 velocity,
-				double timeStamp);
-
-    virtual void positionUpdate(math::Vector2 position,
-				double timeStamp);
+    virtual void dvlUpdate(DVLPacket* rawData);
     
-    virtual void depthUpdate(double depth,
-			     double timeStamp);
+    virtual void depthUpdate(DepthPacket* rawData);
     
     virtual math::Quaternion getOrientation(std::string obj = "vehicle");
+
+    virtual math::Vector3 getLinearAcceleration();
+
+    virtual math::Vector3 getMagnetometer();
+
+    virtual math::Vector3 getAngularRate();
 
     virtual math::Vector2 getVelocity(std::string obj = "vehicle");
 
@@ -88,14 +122,49 @@ public:
         //return Updatable::backgrounded();
     };
 
+    void getFilteredIMUState(FilteredIMUData& filteredState);
     
 protected:
-    core::ReadWriteMutex m_mutex;
+    void rotateAndFilterData(const RawIMUData* newState,
+			     IMUPacket* packet);
 
+    static void quaternionFromIMU(double mag[3], double accel[3],
+                                  double* quaternion);
+
+    static void quaternionFromRate(double* quaternionOld,
+				   double angRate[3],
+				   double deltaT,
+				   double* quaternionNew);
+
+    math::Quaternion computeQuaternion(math::Vector3 mag, 
+				       math::Vector3 accel,
+				       math::Vector3 angRate,
+				       double deltaT,
+				       math::Quaternion quaternionOld,
+				       const IMUPacket* packet);
+
+    /** IMU data for the state estimator */
+    IMUData m_imuData;
+
+    /** DVL data for the state estimator */
+    DVLData m_dvlData;
+
+    /** end user data the state estimator generates */
+    core::ReadWriteMutex m_orientationMutex;
     math::Quaternion m_orientation;
+
+    core::ReadWriteMutex m_velocityMutex;
     math::Vector2 m_velocity;
+
+    core::ReadWriteMutex m_positionMutex;
     math::Vector2 m_position;
+
+    core::ReadWriteMutex m_depthMutex;
     double m_depth;
+
+    /** protects access to raw state */
+    core::ReadWriteMutex m_imuStateMutex;
+    FilteredIMUData* m_filteredState;
 };
     
 } // namespace device

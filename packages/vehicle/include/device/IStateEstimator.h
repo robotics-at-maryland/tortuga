@@ -14,51 +14,79 @@
 #include <string>
 
 // Project Includes
-#include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/Common.h"
+#include "vehicle/include/device/IDevice.h"
+#include "vehicle/include/device/IIMU.h"
+#include "vehicle/include/device/IDVL.h"
+#include "vehicle/include/device/IDepthSensor.h"
 #include "math/include/Quaternion.h"
+#include "math/include/Vector3.h"
 #include "math/include/Vector2.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
+// Forward declare structure from dvlapi.h
+struct _RawDVLData;
+typedef _RawDVLData RawDVLData;
+
 namespace ram {
 namespace vehicle {
 namespace device {
+
+// Forward declarations
+struct _IMUPacket;
+typedef _IMUPacket IMUPacket;
+
+struct _DVLPacket;
+typedef _DVLPacket DVLPacket;
+
+struct _DepthPacket;
+typedef _DepthPacket DepthPacket;
 
 /** Abstract interface for a StateEstimator that fuses sensor data */
 class RAM_EXPORT IStateEstimator : public IDevice         // For getName
              // boost::noncopyable
 {
 public:
-    virtual ~IStateEstimator();
-
-    /**
-     * Update function declarations. The timeStamp will be a
-     * default of -1. The messages sent by the system will have
-     * a timeStamp. Any changes made by the user should not have
-     * a timeStamp. The implementations should act differently
-     * based on whether they've been given a timeStamp
-     */
+    /** When the vehicles orientation changes (ram::math::OrientationEvent)*/
+    static const core::Event::EventType ORIENTATION_UPDATE;
     
-    /** Update the estimator with a new orientation */
-    virtual void orientationUpdate(math::Quaternion orientation,
-				   double timeStamp) = 0;
+    /** When the vehicles linear accel. changes (ram::math::Vector3Event) */
+    static const core::Event::EventType LINEAR_ACCEL_UPDATE;
+    
+    /** When the vehicles angular rate changes (ram::math::Vector3Event) */
+    static const core::Event::EventType ANGULAR_RATE_UPDATE;
+    
+    /** When the vehicles depth changes (ram::math::NumericEvent) */
+    static const core::Event::EventType DEPTH_UPDATE;
 
-    /** Update the estimator with a new velocity */
-    virtual void velocityUpdate(math::Vector2 velocity,
-				double timeStamp) = 0;
+    /** When the vehicles position changes (ram::math::Vector2Event) */
+    static const core::Event::EventType POSITION_UPDATE;
 
-    /** Update the estimator with a new position */
-    virtual void positionUpdate(math::Vector2 position,
-				double timeStamp) = 0;
+    /** When the vehicles velocity changes (ram::math::Vector2Event) */
+    static const core::Event::EventType VELOCITY_UPDATE;
+    
+    virtual ~IStateEstimator();
+    
+    /** Update the estimator with new imu data */
+    virtual void imuUpdate(IMUPacket* rawData) = 0;
+
+    /** Update the estimator with new dvl data */
+    virtual void dvlUpdate(DVLPacket* rawData) = 0;
     
     /** Update the estimator with a new depth */
-    virtual void depthUpdate(double depth,
-			     double timeStamp) = 0;
+    virtual void depthUpdate(DepthPacket* rawData) = 0;
     
     /** Get the latest estimated orientation */
     virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
+
+    /** Get data relevant to the IMU */
+    virtual math::Vector3 getLinearAcceleration() = 0;
+
+    virtual math::Vector3 getMagnetometer() = 0;
+
+    virtual math::Vector3 getAngularRate() = 0;
 
     /** Get the latest estimated velocity */
     virtual math::Vector2 getVelocity(std::string obj = "vehicle") = 0;

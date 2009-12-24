@@ -10,10 +10,21 @@
 #ifndef RAM_VEHICLE_MOCKDEPTHSENSOR_06_13_2008
 #define RAM_VEHICLE_MOCKDEPTHSENSOR_06_13_2008
 
+// STD Includes
+#include <cassert>
+
 // Project Includes
 #include "vehicle/include/device/IDepthSensor.h"
+#include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/Device.h"
 #include "math/include/Events.h"
+
+struct MockDepthPacket : public ram::vehicle::device::DepthPacket
+{
+    double updateDepth;
+
+    MockDepthPacket(double depth) : updateDepth(depth) {}
+};
 
 class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
                         public ram::vehicle::device::Device
@@ -43,10 +54,14 @@ public:
 
     void publishUpdate(double update)
     {
-        depth = update;
-        ram::math::NumericEventPtr nevent(new ram::math::NumericEvent());
-        nevent->number = update;
-        publish(ram::vehicle::device::IDepthSensor::UPDATE, nevent);
+	MockDepthPacket packet(update);
+	assert(m_stateEstimator && "No state estimator assigned");
+	m_stateEstimator->depthUpdate(&packet);
+
+	// Publish the event
+	ram::math::NumericEventPtr nevent(new ram::math::NumericEvent());
+	nevent->number = depth;
+	publish(ram::vehicle::device::IDepthSensor::UPDATE, nevent);
     }
     
     virtual std::string getName() {

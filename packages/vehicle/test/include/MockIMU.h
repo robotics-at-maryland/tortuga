@@ -10,10 +10,21 @@
 #ifndef RAM_VEHICLE_MOCKIMU_10_29_2007
 #define RAM_VEHICLE_MOCKIMU_10_29_2007
 
+// STD Includes
+#include <cassert>
+
 // Project Includes
 #include "vehicle/include/device/Device.h"
+#include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/IIMU.h"
 #include "math/include/Events.h"
+
+struct MockIMUPacket : public ram::vehicle::device::IMUPacket
+{
+    ram::math::Quaternion updateQuat;
+
+    MockIMUPacket(ram::math::Quaternion quaternion) : updateQuat(quaternion) {}
+};
 
 class MockIMU : public ram::vehicle::device::IIMU,
                 public ram::vehicle::device::Device                
@@ -23,11 +34,7 @@ public:
             ram::core::EventHubPtr eventHub,
             ram::vehicle::IVehiclePtr vehicle) :
         ram::vehicle::device::IIMU(eventHub, config["name"].asString()),
-        Device(config["name"].asString()),
-        orientation(config["orientation"][0].asDouble(0),
-                    config["orientation"][1].asDouble(0),
-                    config["orientation"][2].asDouble(0),
-                    config["orientation"][3].asDouble(1))
+        Device(config["name"].asString())
     {
     }
     
@@ -35,33 +42,20 @@ public:
         IIMU(ram::core::EventHubPtr()), 
         Device(name)
 	{}
-	
-    virtual ram::math::Vector3 getLinearAcceleration() 
-    	{ return linearAcceleration; }
-
-    virtual ram::math::Vector3 getMagnetometer()
-    	{ return magnetometer; }
-    
-    virtual ram::math::Vector3 getAngularRate()
-    	{ return angularRate; }
-    
-    virtual ram::math::Quaternion getOrientation()
-     	{ return orientation; }
-    
-    ram::math::Vector3 linearAcceleration;
-    ram::math::Vector3 magnetometer;
-    ram::math::Vector3 angularRate;
-    ram::math::Quaternion orientation;
 
     void publishUpdate(ram::math::Quaternion update)
     {
-        orientation = update;
-        ram::math::OrientationEventPtr orientationEvent(
-            new ram::math::OrientationEvent());
-        orientationEvent->orientation = update;
-        publish(ram::vehicle::device::IIMU::UPDATE, orientationEvent);
+	MockIMUPacket packet(update);
+	assert(m_stateEstimator && "No state estimator assigned");
+	m_stateEstimator->imuUpdate(&packet);
+
+	// Publish the event
+	ram::math::OrientationEventPtr oevent(
+	    new ram::math::OrientationEvent());
+	oevent->orientation = update;
+	publish(ram::vehicle::device::IIMU::UPDATE, oevent);
     }
-    
+
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
     }

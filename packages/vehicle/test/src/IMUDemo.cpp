@@ -16,6 +16,7 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
+#include "vehicle/include/device/LoopStateEstimator.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/AveragingFilter.h"
@@ -47,7 +48,12 @@ static const int MS_SLEEP_TIME = 20;
 int main()
 {
     // Create IMU Device
-    IMU imu(ConfigNode::fromString(BIASED_CFG));
+    IMU imu(ConfigNode::fromString(EMPTY_CFG));
+
+    // Create state estimator
+    IStateEstimatorPtr stateEstimator(
+        new LoopStateEstimator(ConfigNode::fromString(BIASED_CFG)));
+    imu.setStateEstimator(stateEstimator);
 
 
     AveragingFilter<double, POINT_COUNT> quat1;
@@ -56,7 +62,7 @@ int main()
     AveragingFilter<double, POINT_COUNT> quat4;
 
 
-    FilteredIMUData filtData;
+    //FilteredIMUData filtData;
     RawIMUData rawData;
     // Start IMU running in the background
     imu.background(5);
@@ -64,8 +70,8 @@ int main()
     for (int i = 0; i < POINT_COUNT; ++i)
     {
         imu.getRawState(rawData);
-        imu.getFilteredState(filtData);
-	Quaternion orientation(imu.getOrientation());
+        //imu.getFilteredState(filtData);
+	Quaternion orientation(stateEstimator->getOrientation());
 
 	quat1.addValue(orientation.x);
 	quat2.addValue(orientation.y);
