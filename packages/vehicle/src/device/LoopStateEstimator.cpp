@@ -136,10 +136,8 @@ void LoopStateEstimator::imuUpdate(IMUPacket* packet)
     core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
     m_orientation = updateQuat;
 
-    // Construct the event
-    math::OrientationEventPtr oevent(new math::OrientationEvent());
-    oevent->orientation = m_orientation;
-    publish(IStateEstimator::ORIENTATION_UPDATE, oevent);
+    // Publish the new orientation
+    publishOrientation();
 
     // Log data directly
     IMU_LOGGER.infoStream() << packet->imuNum << " "
@@ -177,10 +175,8 @@ void LoopStateEstimator::depthUpdate(DepthPacket* rawData)
     core::ReadWriteMutex::ScopedWriteLock lock(m_depthMutex);
     m_depth = rawData->depth;
 
-    // Construct the event
-    math::NumericEventPtr nevent(new math::NumericEvent());
-    nevent->number = m_depth;
-    publish(IStateEstimator::DEPTH_UPDATE, nevent);
+    // Publish the event
+    publishDepth();
 }
     
 math::Quaternion LoopStateEstimator::getOrientation(std::string obj)

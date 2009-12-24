@@ -127,7 +127,22 @@ class MockVehicle(vehicle.IVehicle):
     def publishOrientationUpdate(self, vehicleOrientation):
         event = ext.math.OrientationEvent()
         event.orientation = vehicleOrientation
-        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
+        self.publish(vehicle.device.IStateEstimator.ORIENTATION_UPDATE, event)
+
+    def publishVelocityUpdate(self, vehicleVelocity):
+        event = ext.math.Vector2Event()
+        event.vector2 = vehicleVelocity
+        self.publish(vehicle.device.IStateEstimator.VELOCITY_UPDATE, event)
+
+    def publishPositionUpdate(self, vehiclePosition):
+        event = ext.math.Vector2Event()
+        event.vector2 = vehiclePosition
+        self.publish(vehicle.device.IStateEstimator.POSITION_UPDATE, event)
+
+    def publishDepthUpdate(self, vehicleDepth):
+        event = ext.math.NumericEvent()
+        event.number = vehicleDepth
+        self.publish(vehicle.device.IStateEstimator.DEPTH_UPDATE, event)
 
     # These are for compatibility with old tests
     # They allow you to call vehicle.depth and automatically chooses vehicle

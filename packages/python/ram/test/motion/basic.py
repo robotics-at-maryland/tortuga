@@ -593,6 +593,174 @@ class TestTimedMoveDirection(TestMoveDirection):
         self.assertEqual(0, self.controller.speed)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed)
         self.assert_(self.finished)
+
+"""
+class TestMoveDistance(support.MotionTest):
+    def makeClass(self, *args, **kwargs):
+        return motion.basic.MoveDistance(*args, **kwargs)
+    
+    def testType(self):
+        m = self.makeClass(desiredHeading = 35, speed = 8, distance = 5)
+        expType = motion.basic.Motion.IN_PLANE
+        self.assertEquals(expType, m.type)
+    
+    def testStraight(self):
+        self.vehicle.orientation = math.Quaternion.IDENTITY;
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5, distance = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertEqual(0, self.controller.sidewaysSpeed)
+        
+    def testRight(self):
+        # Vehicle pointed striagh ahead
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        
+        m = self.makeClass(desiredHeading = 90, speed = 5, distance = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 4)
+        self.assertAlmostEqual(-5, self.controller.sidewaysSpeed, 4)
+        
+    def testOffset(self):
+        # Vehicle pointed 30 degrees left
+        self.vehicle.orientation = math.Quaternion(math.Degree(30),
+                                                   math.Vector3.UNIT_Z)
+        
+        # Move in a direction 45 degrees left
+        m = self.makeClass(desiredHeading = 75, speed = 5, distance = 5)
+        self.motionManager.setMotion(m)
+        
+        expectedSpeed = pmath.sqrt(2)/2.0 * 5
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 4)
+        self.assertAlmostEqual(-expectedSpeed, self.controller.sidewaysSpeed,4)
+
+    def testPositionUpdate(self):
+        Make sure we update when we get an orientation event
+
+        self.vehicle.position = math.Vector2(0, 0)
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        
+        m = self.makeClass(desiredHeading = -90, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
+
+        # Change vehicle position
+        position = math.Vector2(-2.5, 2.5)
+        self.vehicle.publishPositionUpdate(position)
+        self.qeventHub.publishEvents()
+        
+        # Make sure the speeds result from the updated orientation not the
+        # starting one
+        expectedSpeed = pmath.sqrt(2)/2.0 * 6
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
+        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
+        
+        self.motionManager.stopCurrentMotion()
+
+    def testFinish(self):
+        Make sure that reaching the destination finishes the motion
+
+        # Create a function to be called to ensure the motion was finished
+        def _handler(self):
+            self._finished = True
+
+        self._finished = False
+
+        # Subscribe to the Motion.FINISHED event
+        self.qeventHub.subscribeToType(
+            motion.basic.Motion.FINISHED, _handler)
+
+        self.vehicle.position = math.Vector2(0, 0)
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+
+        m = self.makeClass(desiredHeading = 0, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        # Make sure the motion hasn't already finished
+        self.assert_(not self._finished)
+
+        self.assertAlmostEqual(6, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        # Change the position and publish an update
+        position = math.Vector2(0, 5)
+        self.vehicle.publishPositionUpdate(position)
+        self.qeventHub.publishEvents()
+
+        # Check that the vehicle is not moving and the motion is finished
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        self.assertCurrentMotion(type(None))
+        self.assert_(self._finished)
+
+    def testOrientationUpdate(self):
+        Make sure we update when we get an orientation event
+        
+        self.vehicle.orientation = math.Quaternion.IDENTITY
+        
+        m = self.makeClass(desiredHeading = -90, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
+
+        # Change vehicle orientation
+        orientation = math.Quaternion(math.Degree(-45), math.Vector3.UNIT_Z)
+        self.vehicle.publishOrientationUpdate(orientation)
+        self.qeventHub.publishEvents()
+        
+        # Make sure the speeds result from the updated orientation not the
+        # starting one
+        expectedSpeed = pmath.sqrt(2)/2.0 * 6
+        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
+        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
+        
+        self.motionManager.stopCurrentMotion()
+
+    
+    def testRelativeDirection(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(60),
+                                          math.Vector3.UNIT_Z);
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5,
+                           distance = 5, absolute = False)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        m = self.makeClass(desiredHeading = -180, speed = 5,
+                           distance = 5, absolute = False)
+        self.motionManager.setMotion(m)
+
+        self.assertEqual(-5, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+        
+    def testDirectionAfterTurn(self):
+        self.vehicle.orientation = math.Quaternion(math.Degree(60),
+                                                   math.Vector3.UNIT_Z)
+        
+        m = self.makeClass(desiredHeading = 0, speed = 5,
+                           distance = 5, absolute = False)
+        self.motionManager.setMotion(m)
+        
+        self.assertEqual(5, self.controller.speed)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        # Now turn the vehicle 90 degrees and make sure it's still heading
+        # the same direction
+        self.vehicle.orientation = math.Quaternion(math.Degree(150),
+                                                   math.Vector3.UNIT_Z)
+        self.vehicle.publishOrientationUpdate(self.vehicle.orientation)
+        self.qeventHub.publishEvents()
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertEqual(5, self.controller.sidewaysSpeed)
+"""
             
 if __name__ == '__main__':
     unittest.main()

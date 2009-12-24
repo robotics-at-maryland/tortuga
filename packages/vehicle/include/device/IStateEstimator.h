@@ -103,6 +103,14 @@ public:
 protected:
     IStateEstimator(core::EventHubPtr eventHub = core::EventHubPtr(),
                     std::string name = "UNNAMED");
+
+    void publishOrientation();
+
+    void publishDepth();
+
+    void publishVelocity();
+
+    void publishPosition();
 };
     
 } // namespace device
