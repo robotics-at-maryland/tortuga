@@ -52,6 +52,8 @@ public:
 	// Unsafe cast
 	MockIMUPacket* mockPacket = (MockIMUPacket*) packet_;
 	orientation["vehicle"] = mockPacket->updateQuat;
+
+	publishOrientation();
     }
     
     virtual void dvlUpdate(ram::vehicle::device::DVLPacket* packet_)
@@ -59,6 +61,8 @@ public:
 	// Unsafe cast
 	MockDVLPacket* mockPacket = (MockDVLPacket*) packet_;
 	velocity["vehicle"] = mockPacket->updateVel;
+
+	publishVelocity();
     }
         
     virtual void depthUpdate(ram::vehicle::device::DepthPacket* packet_)
@@ -66,6 +70,8 @@ public:
 	// Unsafe cast
 	MockDepthPacket* mockPacket = (MockDepthPacket*) packet_;
 	depth["vehicle"] = mockPacket->updateDepth;
+
+	publishDepth();
     }
     
     virtual ram::math::Quaternion getOrientation(

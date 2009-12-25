@@ -36,11 +36,6 @@ namespace device {
 class DVL;
 typedef boost::shared_ptr<DVL> DVLPtr;
 
-// Consult with Joe for how big he wants this filter
-const static int DVL_FILTER_SIZE = 10;
-
-typedef RawDVLData FilteredDVLData;
-
 class DVL : public IDVL,
             public Device, // for getName
             public core::Updatable // for update
@@ -101,20 +96,16 @@ private:
 
     /** DVL number for the log file */
     int m_dvlNum;
-    
-    /** Protects access to public state */
-    core::ReadWriteMutex m_velocityMutex;
-    math::Vector2 m_velocity;
 
+    /** Heartbeat */
+    int m_heartbeat;
+    
     math::Vector3 m_location;
 
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
-
-    /** Filtered and rotated IMU data */
-    FilteredDVLData* m_filteredState;
 };
     
 } // namespace device
