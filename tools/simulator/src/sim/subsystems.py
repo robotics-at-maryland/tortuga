@@ -97,7 +97,6 @@ class Simulation(core.Subsystem):
             # File does not exist, ignore
             pass
 
-            
         # Load settings and create screen
         simGUICfg = guiData.get('SIM', {})
         width = simGUICfg.get("windowWidth", 800)
@@ -107,9 +106,9 @@ class Simulation(core.Subsystem):
         params = ogre.NameValuePairList()
         params['top'] = str(top)
         params['left'] = str(left)
-        
-        self._window = self._root.createRenderWindow("Simulator", width, height, 
-                                                     False, params)
+
+        self._window = self._root.createRenderWindow("Simulator", width,
+                                                     height, False, params)
         self._debug = config.get('debug', False)
         self._backgrounded = False
         

@@ -73,7 +73,7 @@ class Simulation(Singleton, Module):
         Module.pause(self)
         
         # Close all scenes
-        print 'Destoying Scenes'
+        print 'Destroying Scenes'
         for scene in self._scenes.itervalues():
             scene.destroy()
         
@@ -85,6 +85,8 @@ class Simulation(Singleton, Module):
         print 'Shutting down Complete'
         del self._ogre_root
         print 'Reference deleted'
+        del self._ogre_logger
+        print 'Logger deleted'
         
     def update(self, time_since_last_update):
         """
@@ -169,9 +171,17 @@ class Simulation(Singleton, Module):
     # ----------------------------------------------------------------------- #
     
     def _graphics_init(self, config):
+        # Create the logger to suppress output
+        debugOutput = config.get('debugOutput', False)
+        self._ogre_logger = Ogre.LogManager()
+        self._ogre_logger.createLog(config.get('logName', 'Ogre.log'),
+                                    defaultLog = True,
+                                    debuggerOutput = debugOutput,
+                                    suppressFileOutput = False)
+
         # Create Ogre.Root singleton with no default plugins
         self._ogre_root = Ogre.Root("");
-        
+
         # Start up Ogre piecewise, passing a default empty config if needed
         self._load_ogre_plugins(config.get('Plugins', {}))
         self._create_render_system(config.get('RenderSystem',{}))

@@ -304,6 +304,7 @@ Simulation:
         #Main: erc_course.sml
 
     Graphics:
+        #debugOutput: True
         Plugins:
             # TODO: Remove the extra paths
             search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
