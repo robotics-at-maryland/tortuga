@@ -116,6 +116,36 @@ TEST(Dependencies)
     CHECK(expected == subServant->dependents);
 }
 
+TEST(BadDependencies)
+{
+    std::cout << "Testing Bad Dependencies" << std::endl;
+    bf::path path(getConfigRoot() / "bad_subsystems.yml");
+    ram::core::Application app(path.string());
+    
+    MockSubsystem* manager =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("Manager").get());
+
+    CHECK(manager);
+    CHECK_EQUAL(10, manager->config["test"].asInt());
+    CHECK_EQUAL(0u, manager->dependents.size());
+
+    MockSubsystem* servant1 =
+        dynamic_cast<MockSubsystem*>(app.getSubsystem("Servant1").get());
+    ram::core::SubsystemList expected =
+        ba::list_of(app.getSubsystem("Manager"));
+    
+    CHECK(servant1);
+    CHECK_EQUAL(5, servant1->config["test"].asInt());
+    CHECK(expected == servant1->dependents);
+
+    // Check to make sure the sub servant is not there
+    std::vector<std::string> subsystemList = app.getSubsystemNames();
+    BOOST_FOREACH(std::string name, subsystemList)
+    {
+	CHECK(name != "SubServant");
+    }
+}
+
 void stopLoop(ram::core::Application* app, ram::core::EventPtr)
 {
     app->stopMainLoop();

@@ -41,6 +41,9 @@ public:
 
     /** Destroys all subsystems in the opposite order of there construction */
     ~Application();
+
+    /** Checks if the subsystem exists */
+    bool hasSubsystem(std::string name);
     
     /** Returns the subsystem with the given name */
     SubsystemPtr getSubsystem(std::string name);
@@ -71,6 +74,9 @@ private:
     /** Does all the work to determine in what order we should start up
      subsystems using a topological sort and BGL */
     void determineStartupOrder(NodeNameList& subnodes, ConfigNode sysConfig);
+
+    /** Removes a subsystem from the dependency order (for broken subsystems) */
+    void remove_from_order(std::string name);
 
     /** Whether or not the main loop is running*/
     bool m_running;

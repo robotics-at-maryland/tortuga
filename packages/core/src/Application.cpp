@@ -13,8 +13,10 @@
 #endif
  
 // STD Includes
+#include <cassert>
 #include <utility>
 #include <map>
+#include <sstream>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -52,8 +54,14 @@ Application::Application(std::string configPath) :
 {
     boost::filesystem::path path(configPath);
     ConfigNode rootCfg = core::ConfigNode::fromFile(path.string());
-
     
+    // Set creation mode
+    std::string mode = rootCfg["SubsystemCreationMode"].asString("warning");
+    if (mode != "error" && mode != "warning") {
+	std::cout << "Invalid mode. Default is 'warning'" << std::endl;
+	mode = "warning";
+    }
+
     if (rootCfg.exists("Subsystems"))
     {
         ConfigNode sysConfig(rootCfg["Subsystems"]);
@@ -61,10 +69,23 @@ Application::Application(std::string configPath) :
         // Properly fills m_order, and m_subsystemDeps
         DependencyGraph depGraph(sysConfig);
         m_order = depGraph.getOrder();
+
+	std::vector<std::string> badSubsystemNames;
         
         // Create all the subsystems
         BOOST_FOREACH(std::string subsystemName, m_order)
         {
+	    // Skip "creationMode"
+	    if (subsystemName == "creationMode") {
+		continue;
+	    }
+
+	    // If the subsystem has no configuration section, ignore it
+	    if (!sysConfig.exists(subsystemName)) {
+		badSubsystemNames.push_back(subsystemName);
+		continue;
+	    }
+
             // Set 'name' properly in the config
             ConfigNode config(sysConfig[subsystemName]);
             config.set("name", subsystemName);
@@ -72,8 +93,24 @@ Application::Application(std::string configPath) :
             // Build list of dependencies
             SubsystemList deps;
             NameList depNames = depGraph.getDependencies(subsystemName);
+	    bool abort = false;
             BOOST_FOREACH(std::string depName, depNames)
+	    {
+		if (!hasSubsystem(depName)) {
+		    // The dependencies have not been satisfied
+		    abort = true;
+		    break;
+		}
                 deps.push_back(getSubsystem(depName));
+	    }
+
+	    if (abort) {
+		// The dependencies were not satisfied
+		// do not make this subsystem
+		// Remove from the order
+		badSubsystemNames.push_back(subsystemName);
+		continue;
+	    }
 
             // Create out new subsystem and store it
             PYTHON_ERROR_TRY {
@@ -82,6 +119,21 @@ Application::Application(std::string configPath) :
                 m_subsystems[subsystemName] = subsystem;
             } PYTHON_ERROR_CATCH("Subsystem construction");
         }
+
+	// Remove bad subsystems from the order
+	BOOST_FOREACH(std::string name, badSubsystemNames)
+	{
+	    // Three modes types
+	    if (mode == "error") {
+		// End the program with an error state
+		std::cout << "ERROR: Missing dependency " << name << std::endl;
+		assert(false);
+	    } else if (mode == "warning") {
+		std::cout << "WARNING: Missing dependency "
+			  << name << std::endl;
+	    }
+	    remove_from_order(name);
+	}
 
         // Not sure if this is the right place for this or not
         // maybe another function, maybe a scheduler?
@@ -125,6 +177,26 @@ Application::~Application()
             m_subsystems.erase(name);
         }
     } PYTHON_ERROR_CATCH("Subsystem cleanup");
+}
+
+void Application::remove_from_order(std::string name)
+{
+    std::vector<std::string>::iterator iter =
+	m_order.begin();
+    for ( ; iter != m_order.end(); iter++) {
+	if ((*iter) == name) {
+	    // Remove this subsystem
+	    m_order.erase(iter);
+	    // Don't need to continue to look
+	    break;
+	}
+    }
+}
+
+bool Application::hasSubsystem(std::string name)
+{
+    NameSubsystemMapIter iter = m_subsystems.find(name);
+    return iter != m_subsystems.end();
 }
 
 SubsystemPtr Application::getSubsystem(std::string name)
