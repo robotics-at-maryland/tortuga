@@ -54,6 +54,8 @@ class Simulation(Singleton, Module):
         self._ogre_root = None
         self._scenes = {}
         self._config = config
+
+        self._debug = config.get('debugOutput', False)
         
         self._graphics_init(config.get('Graphics', {}))
         self.input_system = InputSystem(config.get('Input', {}))
@@ -62,31 +64,34 @@ class Simulation(Singleton, Module):
         Module.__init__(self, config)
     
 #    def __del__(self):
-#        # Ensure proper of C++ desctuctors
+#        # Ensure proper of C++ destructors
 #        # TODO: Ensure I have to do this, I might be able to ignore this
 #        del self._scenes
 #        del self._ogre_root
    
     #@log('* * * Beginning shutdown', '* * * Shutdown complete') 
+
     def shutdown(self):
-        print 'Beginning shutdown'
+        self._debug_print('Beginning shutdown')
         Module.pause(self)
         
         # Close all scenes
-        print 'Destroying Scenes'
+        self._debug_print('Destroying Scenes')
         for scene in self._scenes.itervalues():
             scene.destroy()
         
         # Release references then shutdown
-        print 'Releasing scene references'
+        self._debug_print('Releasing scene references')
         del self._scenes
-        print 'Shutting down Ogre'
-        self._ogre_root.shutdown()
-        print 'Shutting down Complete'
-        del self._ogre_root
-        print 'Reference deleted'
-        del self._ogre_logger
-        print 'Logger deleted'
+
+        # System seems to crash if this stuff happens
+        #self._debug_print('Shutting down Ogre')
+        #self._ogre_root.shutdown()
+        #self._debug_print('Shutting down Complete')
+        #del self._ogre_root
+        #self._debug_print('Reference deleted')
+        #del self._ogre_logger
+        #self._debug_print('Logger deleted')
         
     def update(self, time_since_last_update):
         """
@@ -114,7 +119,7 @@ class Simulation(Singleton, Module):
     def get_scene(self, name):
         """
         @type name: string
-        @param name: The name of the scene to retrive
+        @param name: The name of the scene to retrieve
         
         @rtype: None or sim.Scene
         @return: None if scene doesn't exist
@@ -157,9 +162,9 @@ class Simulation(Singleton, Module):
         found = False
         for dir in search_path:
             scene_path = os.path.abspath(os.path.join(dir, scene_file))
-         
+            
             if os.path.exists(scene_path):
-                self._scenes[name] = scene.Scene(name, scene_path)
+                self._scenes[name] = scene.Scene(name, scene_path, self._debug)
                 found = True
         
         if not found:
@@ -172,11 +177,10 @@ class Simulation(Singleton, Module):
     
     def _graphics_init(self, config):
         # Create the logger to suppress output
-        debugOutput = config.get('debugOutput', False)
         self._ogre_logger = Ogre.LogManager()
         self._ogre_logger.createLog(config.get('logName', 'Ogre.log'),
                                     defaultLog = True,
-                                    debuggerOutput = debugOutput,
+                                    debuggerOutput = self._debug,
                                     suppressFileOutput = False)
 
         # Create Ogre.Root singleton with no default plugins
@@ -308,3 +312,6 @@ class Simulation(Singleton, Module):
         
         event.send('OGRE_RENDERER_CREATED')
 
+    def _debug_print(self, statement):
+        if self._debug:
+            print statement

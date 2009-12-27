@@ -280,6 +280,7 @@ Simulation:
     type: Simulation
     scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
     vehicleView: True
+    #debugOutput: True
     #debug: 0
 
     Scenes:
@@ -304,7 +305,6 @@ Simulation:
         #Main: erc_course.sml
 
     Graphics:
-        #debugOutput: True
         Plugins:
             # TODO: Remove the extra paths
             search_path: ['%(PYTHON_OGRE_HOME)s/plugins',

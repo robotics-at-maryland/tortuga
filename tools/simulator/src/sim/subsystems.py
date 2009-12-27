@@ -43,7 +43,7 @@ class WindowListener(ogre.WindowEventListener):
 
     # Window Event Listener Methods
     def windowClosed(self, window):
-        print 'WINDOW SHUTDOWN'
+        self._debug_print('WINDOW SHUTDOWN')
         self._closeHandler(window)
         
     def windowMoved(self, window):
@@ -85,6 +85,8 @@ class Simulation(core.Subsystem):
         
         self._simulation = simulation.Simulation(config)
         self._root = ogre.Root.getSingleton()
+
+        self._debugOutput = config.get('debugOutput', False)
         
         # Load data file
         self._guiFileName = self._getGUIFileName(config)
@@ -109,6 +111,7 @@ class Simulation(core.Subsystem):
 
         self._window = self._root.createRenderWindow("Simulator", width,
                                                      height, False, params)
+        
         self._debug = config.get('debug', False)
         self._backgrounded = False
         
@@ -158,6 +161,10 @@ class Simulation(core.Subsystem):
         time.sleep(1)
         if self._debug:
             ogrenewt.Debugger.getSingleton().init(self.scene.scene_mgr)
+
+    def _debug_print(self, statement):
+        if self._debugOutput:
+            print statement
         
     def rateLimit(self, rate):
         """
@@ -247,7 +254,7 @@ class Simulation(core.Subsystem):
             stream = file(self._guiFileName, 'r')
             guiData = yaml.load(stream)    
             stream.close()
-            print 'SIM READ FILE'
+            self._debug_print('SIM READ FILE')
         except (IOError, yaml.YAMLError):
             # File does not exist, ignore
             pass
@@ -272,7 +279,7 @@ class Simulation(core.Subsystem):
         guiData["SIM"] = simGUICfg
         yaml.dump(guiData,layoutStream)
         layoutStream.close()
-        print 'FILE DONE'
+        self._debug_print('FILE DONE')
 
     @staticmethod
     def _createCamera(robot, name, position, direction):

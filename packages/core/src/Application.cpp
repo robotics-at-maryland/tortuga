@@ -166,7 +166,7 @@ Application::Application(std::string configPath) :
 Application::~Application()
 {
     PYTHON_ERROR_TRY {
-        // Go through subsystems in the reverse order of contrustuction and
+        // Go through subsystems in the reverse order of construction and
         // shut them down
         for (int i = (((int)m_order.size()) - 1); i >= 0; --i)
         {
@@ -175,7 +175,7 @@ Application::~Application()
             subsystem->unbackground(true);
             
             m_subsystems.erase(name);
-        }
+	}
     } PYTHON_ERROR_CATCH("Subsystem cleanup");
 }
 
