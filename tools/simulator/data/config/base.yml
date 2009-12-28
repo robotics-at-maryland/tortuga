@@ -95,6 +95,10 @@ Vehicle:
             depends_on: ['SimulationDevice', 'StateEstimator']
             type: SimIMU
 
+        DVL:
+            depends_on: ['SimulationDevice', 'StateEstimator']
+            type: SimDVL
+
         DepthSensor:
             depends_on: ["SimulationDevice", "StateEstimator"]
             type: SimDepthSensor

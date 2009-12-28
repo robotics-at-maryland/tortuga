@@ -30,6 +30,7 @@ import sim.subsystems as subsystems
 import sim.sonar as sonar
 import ram.sim.scene as scene
 import ram.sim.graphics as graphics
+import ram.timer
 
 def convertToVector3(vType, vector):
     return vType(vector.x, vector.y, vector.z)
@@ -81,15 +82,25 @@ device.IDeviceMaker.registerDevice('SimulationDevice', SimulationDevice)
 
 
 class SimDepthSensor(SimDevice, device.IDepthSensor):
+    """
+    This sends out a heartbeat so the state estimator will update in
+    a similar manner to the real depth sensor.
+
+    The real depth sensor does NOT publish a heartbeat.
+    """
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']
         SimDevice.__init__(self)
         device.IDepthSensor.__init__(self, eventHub, self._name)
 
+        self._heartbeat = 0
+
     def update(self, time):
+        # Publish a heartbeat
+        self._heartbeat += 1
         event = math.NumericEvent()
-        event.number = self.getStateEstimator().getDepth()
-        self.publish(device.IStateEstimator.DEPTH_UPDATE, event)
+        event.number = self._heartbeat
+        self.publish(device.IDepthSensor.UPDATE, event)
         
     def getLocation(self):
         return math.Vector3(0, 0, 0)
@@ -98,6 +109,12 @@ device.IDeviceMaker.registerDevice('SimDepthSensor', SimDepthSensor)
 
 
 class SimDVL(SimDevice, device.IDVL):
+    """
+    Simulates the DVL's existence by sending heartbeats to the system.
+
+    The real DVL sends raw data to the state estimator. Because there
+    is no raw data, this just exists to create the necessary heartbeats.
+    """
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']
         SimDevice.__init__(self)
@@ -111,12 +128,6 @@ class SimDVL(SimDevice, device.IDVL):
         event = math.NumericEvent()
         event.number = self._heartbeat
         self.publish(device.IDVL.UPDATE, event)
-
-        # Fake the VELOCITY_UPDATE event
-        # (normally happens in the state estimator)
-        vevent = math.Vector2Event()
-        vevent.vector2 = self.getStateEstimator().getVelocity()
-        self.publish(device.IStateEstimator.VELOCITY_UPDATE, vevent)
         
     def getLocation(self):
         return math.Vector3(0, 0, 0)
@@ -137,16 +148,6 @@ class SimIMU(SimDevice, device.IIMU):
         event.number = self._heartbeat
         self.publish(device.IIMU.UPDATE, event)
 
-        # Fake the orientation update event
-        # (normally happens in the state estimator)
-        oevent = math.OrientationEvent()
-        oevent.orientation = self.getStateEstimator().getOrientation()
-        self.publish(device.IStateEstimator.ORIENTATION_UPDATE, oevent)
-    
-    def _getActualOrientation(self):
-        return convertToQuaternion(math.Quaternion,
-                                  self.robot._main_part._node.orientation)
-
 device.IDeviceMaker.registerDevice('SimIMU', SimIMU)
 
 
@@ -159,24 +160,77 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
         simDevice = vehicle.getDevice('SimulationDevice')
         self.robot = simDevice.robot
 
-        self.oldPos = math.Vector2(self.robot._main_part._node.position.x,
-                                   self.robot._main_part._node.position.y)
+        # Position data
+        self.pos_prev = self._getAbsolutePosition()
+        self.prev_timestamp = ram.timer.time()
+        self.pos_current = self.pos_prev
+        self.current_timestamp = self.prev_timestamp
+
+        # Velocity data
         self.velocity = math.Vector2(0, 0)
 
+        # Subscribe to heartbeats
+        self._connections = []
+
+        # DVL heartbeat
+        conn = eventHub.subscribeToType(device.IDVL.UPDATE, self._onDVL)
+        self._connections.append(conn)
+
+        # IMU heartbeat
+        conn = eventHub.subscribeToType(device.IIMU.UPDATE, self._onIMU)
+        self._connections.append(conn)
+
+        # DepthSensor heartbeat
+        conn = eventHub.subscribeToType(device.IDepthSensor.UPDATE,
+                                        self._onDepth)
+        self._connections.append(conn)
+
+    def __del__(self):
+        # Disconnect all connections on destruction
+        for conn in self._connections:
+            conn.disconnect()
+
+    def _onDepth(self, event):
+        # Send a depth update event
+        self.publishDepth()
 
     def getDepth(self, name = "vehicle"):
         # Down is positive for depth
         return -3.281 * self.robot._main_part._node.position.z
 
+    def _onDVL(self, event):
+        """
+        DVL updates both the position and velocity.
+        """
+        # New times
+        self.prev_timestamp = self.current_timestamp
+        self.current_timestamp = ram.timer.time()
+
+        # New positions
+        self.pos_prev = self.pos_current
+        self.pos_current = self._getAbsolutePosition()
+
+        # New velocity
+        self.velocity = (self.pos_current - self.pos_prev) /\
+            (self.current_timestamp - self.prev_timestamp)
+
+        # Publish new velocity and position
+        self.publishPosition()
+        self.publishVelocity()
+
     def getVelocity(self, name = "vehicle"):
         return self.velocity
 
     def getPosition(self, name = "vehicle"):
-        return math.Vector2(0, 0)
+        return self.pos_current
 
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,
                                   self.robot._main_part._node.orientation)
+
+    def _getAbsolutePosition(self):
+        return math.Vector2(self.robot._main_part._node.position.x,
+                            self.robot._main_part._node.position.y)
 
     def getLinearAcceleration(self):
         baseAccel = convertToVector3(math.Vector3,
@@ -191,6 +245,10 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
         return convertToVector3(math.Vector3,
                                 self.robot._main_part.angular_accel) 
         
+    def _onIMU(self, event):
+        # Publish orientation update
+        self.publishOrientation()
+
     def getOrientation(self, name = "vehicle"):
         return self._getActualOrientation()
 
