@@ -59,7 +59,7 @@ public:
         return (m_id < other.getId()); }
 
     bool operator>(const TrackedBlob& other) const {
-        return (m_id < other.getId()); }
+        return (m_id > other.getId()); }
     
     void _setId(int id) { m_id = id; }
     
