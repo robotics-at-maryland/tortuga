@@ -368,5 +368,6 @@ Simulation:
             X : ROLL_STARBOARD
             N : STRAFE_LEFT
             M : STRAFE_RIGHT
+            S : STOP
                             # Misc.
             CTRL+B : SCREENSHOT

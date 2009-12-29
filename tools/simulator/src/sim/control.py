@@ -21,7 +21,7 @@ import ram.event as event
 event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
                        'DIVE', 'SURFACE', 'PITCH_UP', 'PITCH_DOWN', 
                        'ROLL_PORT', 'ROLL_STARBOARD', 'STRAFE_RIGHT',
-                       'STRAFE_LEFT'])
+                       'STRAFE_LEFT', 'STOP'])
 
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
@@ -43,7 +43,8 @@ class KeyboardController(core.Subsystem):
                            '_roll_port' : ['ROLL_PORT'],
                            '_roll_starboard' : ['ROLL_STARBOARD'],
                            '_strafe_right' : ['STRAFE_RIGHT'],
-                           '_strafe_left' : ['STRAFE_LEFT']}
+                           '_strafe_left' : ['STRAFE_LEFT'],
+                           '_stop' : ['STOP']}
         self.key_observer = input.ButtonStateObserver(self, watched_buttons)
         
     def backgrounded(self):
@@ -108,5 +109,9 @@ class KeyboardController(core.Subsystem):
         elif self._surface:
             currentDepth -= 2 * time_since_last_frame
             self._controller.setDepth(currentDepth)
+
+        if self._stop:
+            self._controller.setSpeed(0)
+            self._controller.setSidewaysSpeed(0)
             
 core.SubsystemMaker.registerSubsystem('KeyboardController', KeyboardController)
