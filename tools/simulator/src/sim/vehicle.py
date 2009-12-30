@@ -229,8 +229,8 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
                                   self.robot._main_part._node.orientation)
 
     def _getAbsolutePosition(self):
-        return math.Vector2(self.robot._main_part._node.position.x,
-                            self.robot._main_part._node.position.y)
+        return math.Vector2(-self.robot._main_part._node.position.y,
+                            self.robot._main_part._node.position.x)
 
     def getLinearAcceleration(self):
         baseAccel = convertToVector3(math.Vector3,

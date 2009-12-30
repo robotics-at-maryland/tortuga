@@ -31,7 +31,7 @@ try:
     from ext._math import *
 
     def quatStr(self):
-        return 'Quaterion(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
+        return 'Quaternion(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
     Quaternion.__str__ = quatStr
     Quaternion.__repr__ = quatStr
     del quatStr

@@ -594,7 +594,6 @@ class TestTimedMoveDirection(TestMoveDirection):
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed)
         self.assert_(self.finished)
 
-"""
 class TestMoveDistance(support.MotionTest):
     def makeClass(self, *args, **kwargs):
         return motion.basic.MoveDistance(*args, **kwargs)
@@ -610,11 +609,11 @@ class TestMoveDistance(support.MotionTest):
         m = self.makeClass(desiredHeading = 0, speed = 5, distance = 5)
         self.motionManager.setMotion(m)
         
-        self.assertEqual(5, self.controller.speed)
-        self.assertEqual(0, self.controller.sidewaysSpeed)
+        self.assertAlmostEqual(5, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
         
     def testRight(self):
-        # Vehicle pointed striagh ahead
+        # Vehicle pointed straight ahead
         self.vehicle.orientation = math.Quaternion.IDENTITY
         
         m = self.makeClass(desiredHeading = 90, speed = 5, distance = 5)
@@ -627,6 +626,7 @@ class TestMoveDistance(support.MotionTest):
         # Vehicle pointed 30 degrees left
         self.vehicle.orientation = math.Quaternion(math.Degree(30),
                                                    math.Vector3.UNIT_Z)
+        self.vehicle.position = math.Vector2(0, 0)
         
         # Move in a direction 45 degrees left
         m = self.makeClass(desiredHeading = 75, speed = 5, distance = 5)
@@ -637,7 +637,7 @@ class TestMoveDistance(support.MotionTest):
         self.assertAlmostEqual(-expectedSpeed, self.controller.sidewaysSpeed,4)
 
     def testPositionUpdate(self):
-        Make sure we update when we get an orientation event
+        """ Make sure the motion only finishes on an update at the target """
 
         self.vehicle.position = math.Vector2(0, 0)
         self.vehicle.orientation = math.Quaternion.IDENTITY
@@ -649,29 +649,199 @@ class TestMoveDistance(support.MotionTest):
         self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
 
         # Change vehicle position
-        position = math.Vector2(-2.5, 2.5)
+        position = math.Vector2(2.5, 2.5)
         self.vehicle.publishPositionUpdate(position)
         self.qeventHub.publishEvents()
         
-        # Make sure the speeds result from the updated orientation not the
+        # Make sure the speeds result from the updated position not the
         # starting one
         expectedSpeed = pmath.sqrt(2)/2.0 * 6
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
+        self.assertAlmostEqual(-expectedSpeed, self.controller.speed, 6)
         self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
         
         self.motionManager.stopCurrentMotion()
 
-    def testFinish(self):
-        Make sure that reaching the destination finishes the motion
+    def testUnitVector(self):
+        # Create an instance of MoveDistance so we can test the function
+        # Parameters don't matter
+        m = self.makeClass(desiredHeading = 0, speed = 6, distance = 5)
 
-        # Create a function to be called to ensure the motion was finished
-        def _handler(self):
-            self._finished = True
+        # constants
+        sq3_2 = pmath.sqrt(3)/2.0
+        sq2_2 = pmath.sqrt(2)/2.0
+        # Test all major degrees, degrees based on right hand rule
+
+        # 0 degrees = north
+        vector = m._unitvector(0)
+        expected = math.Vector2(0.0, 1.0)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 30 degrees = NNW
+        vector = m._unitvector(30)
+        expected = math.Vector2(-0.5, sq3_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 45 degrees = NW
+        vector = m._unitvector(45)
+        expected = math.Vector2(-sq2_2, sq2_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 60 degrees = WNW
+        vector = m._unitvector(60)
+        expected = math.Vector2(-sq3_2, 0.5)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 90 degrees = west
+        vector = m._unitvector(90)
+        expected = math.Vector2(-1.0, 0.0)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 120 degrees = WSW
+        vector = m._unitvector(120)
+        expected = math.Vector2(-sq3_2, -0.5)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 135 degrees = SW
+        vector = m._unitvector(135)
+        expected = math.Vector2(-sq2_2, -sq2_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 150 degrees = SSW
+        vector = m._unitvector(150)
+        expected = math.Vector2(-0.5, -sq3_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # 180 degrees = south
+        vector = m._unitvector(180)
+        expected = math.Vector2(0.0, -1.0)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -150 degrees = SSE
+        vector = m._unitvector(-150)
+        expected = math.Vector2(0.5, -sq3_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -135 degrees = SE
+        vector = m._unitvector(-135)
+        expected = math.Vector2(sq2_2, -sq2_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -120 degrees = ESE
+        vector = m._unitvector(-120)
+        expected = math.Vector2(sq3_2, -0.5)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -90 degrees = east
+        vector = m._unitvector(-90)
+        expected = math.Vector2(1.0, 0.0)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -60 degrees = ENE
+        vector = m._unitvector(-60)
+        expected = math.Vector2(sq3_2, 0.5)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -45 degrees = NE
+        vector = m._unitvector(-45)
+        expected = math.Vector2(sq2_2, sq2_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+        # -30 degrees = NNE
+        vector = m._unitvector(-30)
+        expected = math.Vector2(0.5, sq3_2)
+        self.assertAlmostEqual(vector.x, expected.x, 5)
+        self.assertAlmostEqual(vector.y, expected.y, 5)
+
+    def testDirection(self):
+        """
+        Check that the vehicle chooses the correct desired position
+        """
+
+        self.vehicle.position = math.Vector2(0, 0)
+        self.vehicle.orientation = math.Quaternion(math.Degree(-45),
+                                                   math.Vector3.UNIT_Z)
+
+        # Moving forward
+        m = self.makeClass(desiredHeading = -45, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        root = pmath.sqrt(2)/2.0
+        expectedPosition = math.Vector2(root * 5.0, root * 5.0)
+        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
+        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
+        
+        self.assertAlmostEqual(6, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        m = self.makeClass(desiredHeading = -45, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        root = pmath.sqrt(2)/2.0
+        expectedPosition = math.Vector2(root * 5.0, root * 5.0)
+        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
+        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
+        
+        self.assertAlmostEqual(6, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        # Moving backward
+        m = self.makeClass(desiredHeading = 135, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        expectedPosition = math.Vector2(root * -5.0, root * -5.0)
+        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
+        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
+        
+        self.assertAlmostEqual(-6, self.controller.speed, 5)
+        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
+
+        # Moving left
+        m = self.makeClass(desiredHeading = 45, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        expectedPosition = math.Vector2(root * -5.0, root * 5.0)
+        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
+        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(-6, self.controller.sidewaysSpeed, 5)
+
+        # Moving right
+        m = self.makeClass(desiredHeading = -135, speed = 6, distance = 5)
+        self.motionManager.setMotion(m)
+
+        expectedPosition = math.Vector2(root * 5.0, root * -5.0)
+        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
+        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
+        
+        self.assertAlmostEqual(0, self.controller.speed, 5)
+        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
+
+    def testFinish(self):
+        """ Make sure that reaching the destination finishes the motion """
 
         self._finished = False
+        # Create a function to be called to ensure the motion was finished
+        def _handler(event):
+            self._finished = True
 
         # Subscribe to the Motion.FINISHED event
-        self.qeventHub.subscribeToType(
+        self.eventHub.subscribeToType(
             motion.basic.Motion.FINISHED, _handler)
 
         self.vehicle.position = math.Vector2(0, 0)
@@ -694,37 +864,11 @@ class TestMoveDistance(support.MotionTest):
         # Check that the vehicle is not moving and the motion is finished
         self.assertAlmostEqual(0, self.controller.speed, 5)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-        self.assertCurrentMotion(type(None))
         self.assert_(self._finished)
 
-    def testOrientationUpdate(self):
-        Make sure we update when we get an orientation event
-        
-        self.vehicle.orientation = math.Quaternion.IDENTITY
-        
-        m = self.makeClass(desiredHeading = -90, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
-
-        # Change vehicle orientation
-        orientation = math.Quaternion(math.Degree(-45), math.Vector3.UNIT_Z)
-        self.vehicle.publishOrientationUpdate(orientation)
-        self.qeventHub.publishEvents()
-        
-        # Make sure the speeds result from the updated orientation not the
-        # starting one
-        expectedSpeed = pmath.sqrt(2)/2.0 * 6
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
-        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
-        
-        self.motionManager.stopCurrentMotion()
-
-    
     def testRelativeDirection(self):
         self.vehicle.orientation = math.Quaternion(math.Degree(60),
-                                          math.Vector3.UNIT_Z);
+                                          math.Vector3.UNIT_Z)
         
         m = self.makeClass(desiredHeading = 0, speed = 5,
                            distance = 5, absolute = False)
@@ -756,11 +900,11 @@ class TestMoveDistance(support.MotionTest):
         self.vehicle.orientation = math.Quaternion(math.Degree(150),
                                                    math.Vector3.UNIT_Z)
         self.vehicle.publishOrientationUpdate(self.vehicle.orientation)
+        self.vehicle.publishPositionUpdate(self.vehicle.position)
         self.qeventHub.publishEvents()
         
         self.assertAlmostEqual(0, self.controller.speed, 5)
         self.assertEqual(5, self.controller.sidewaysSpeed)
-"""
             
 if __name__ == '__main__':
     unittest.main()

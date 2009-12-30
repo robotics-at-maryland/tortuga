@@ -239,7 +239,7 @@ class Motion(object):
         """
         self._controller = controller
         self._vehicle = vehicle
-        self._eventHub =  eventHub
+        self._eventHub = eventHub
         self._eventPublisher = eventPublisher
         
         # Set up the publish method to be seemless and easy
@@ -679,7 +679,6 @@ class MoveDistance(Motion):
         @type absolute: boolean
         @param absolute: the heading value as an absolute or relative value
         """
-        print "WARNING! This code should not be used!"
         Motion.__init__(self, _type = Motion.IN_PLANE)
         
         self._speed = speed
@@ -687,9 +686,10 @@ class MoveDistance(Motion):
                                           math.Vector3.UNIT_Z)
         self._threshold = threshold
         self._absolute = absolute
+        self._distance = distance
         
         self._connections = []
-        
+
     def _start(self):
         # Register to receive ORIENTATION_UPDATE events
         #conn = self._eventHub.subscribe(vehicle.IVehicle.ORIENTATION_UPDATE,
@@ -697,9 +697,8 @@ class MoveDistance(Motion):
         #self._connections.append(conn)
 
         # Register to receive POSITION_UPDATE events
-        conn = self._eventHub.subscribe(
-            vehicle.device.IStateEstimator.POSITION_UPDATE,
-            self._vehicle, self._onUpdate)
+        conn = self._eventHub.subscribeToType(
+            vehicle.device.IStateEstimator.POSITION_UPDATE, self._onUpdate)
         self._connections.append(conn)
 
         conn = self._eventHub.subscribeToType(MoveDistance.COMPLETE,
@@ -708,6 +707,7 @@ class MoveDistance(Motion):
 
         # Find the current position
         currentPosition = self._vehicle.getPosition()
+        #current = math.Quaternion(currentPosition.x, currentPosition.y, 0, 0)
 
         # Set the desired direction if it's not absolute
         if not self._absolute:
@@ -716,66 +716,85 @@ class MoveDistance(Motion):
                                           math.Vector3.UNIT_Z)
             self._direction = orientation * self._direction
 
-        # TODO: Need help here
-        # Find the desired position
-        # I don't know how to do this!
-        # The direction is a quaternion and the current position is a vector2
-        # how do you do quaternion + vector2 = vector2?
+        # 
+        unit = self._unitvector(self._direction.getYaw(True).valueDegrees())
+        mult = unit * self._distance
+        self._desiredPosition = currentPosition + mult
 
-        pathVector = desiredPosition - currentPosition
+        pathVector = self._desiredPosition - currentPosition
 
-        direction = self._pathDirection(pathVector)
+        self._setSpeeds(pathVector)
+
+    def _unitvector(self, degrees):
+        # Converts from our degree system to the one needed for trig
+        conv = pmath.radians(degrees + 90)
+
+        return math.Vector2(pmath.cos(conv), pmath.sin(conv))
 
     """
     @type pathVector: Vector2
-    @param pathVector: a vector2
+
+    @return the angle this vector points
     """
     def _pathDirection(self, pathVector):
         """
         Finds the direction the path is pointing in and returns it as a degree
         """
-        # TODO: How do you find the direction a vector2 is pointing as a degree?
-        return math.Degree(0)
+        # Create a unit vector pointed north
+        north = math.Vector2(0.0, 1.0)
+
+        # Normalise the pathVector and find the dot product
+        norm = pathVector.normalisedCopy()
+        dot = norm.dotProduct(north)
+
+        # Convert into an angle
+        angle = pmath.degrees(pmath.acos(dot))
+
+        # This angle will be an absolute value
+        # make it negative if the xval is positive
+        if norm.x > 0:
+            angle *= -1
+        return angle
     
     """
-    @type orientation: double
-    @param orientation: the direction we want to move
+    @type vector: Vector2
+    @param vector: the path vector
     """
-    def _setSpeeds(self, direction):
+    def _setSpeeds(self, vector):
         """
-        Steps the speeds to vehicle based on the given direction
+        Steps the speeds to vehicle based on the given path vector
         """
+        # Find the direction of the current vector
+        direction = self._pathDirection(vector)
+
         # Vehicle heading in degrees
         vehicleHeading = self._vehicle.getOrientation().getYaw(
             True).valueDegrees()
         
-        yawTransform = vehicleHeading - self._direction
+        yawTransform = direction - vehicleHeading
 
-        # Find speed in vehicle cordinates
-        baseSpeed = math.Vector3(self._speed, 0, 0)
-        toVehicleFrame = math.Quaternion(math.Degree(yawTransform),
-                                         math.Vector3.UNIT_Z)
-        vehicleSpeed = toVehicleFrame * baseSpeed
+        # Find a speed based on this direction
+        unitVector = self._unitvector(yawTransform)
+        vehicleSpeed = unitVector * self._speed
         
         # Finally set the speeds
-        self._controller.setSpeed(vehicleSpeed.x)
-        self._controller.setSidewaysSpeed(vehicleSpeed.y)
+        self._controller.setSpeed(vehicleSpeed.y)
+        self._controller.setSidewaysSpeed(vehicleSpeed.x)
         
     def _onUpdate(self, event):
         """
         Corrects commanded speed based on vehicle position
         """
-        currentPosition = event.position
+        currentPosition = event.vector2
 
         pathVector = self._desiredPosition - currentPosition
 
-        # Arbitrary values
-        if abs(pathVector.x) < self._threshold and \
-               abs(pathVector.y < self._threshold):
+        # Checks if our location is close to the target
+        if abs(pathVector.x) <= self._threshold and \
+               abs(pathVector.y) <= self._threshold:
             self.publish(MoveDistance.COMPLETE, core.Event())
 
-        direction = self._pathDirection(pathVector)
-        self._setSpeeds(direction)
+        self._setSpeeds(pathVector)
 
     def _onComplete(self, event):
         """
