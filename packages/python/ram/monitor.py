@@ -23,8 +23,6 @@ class Monitor(core.Subsystem):
     def __init__(self, cfg, deps):
         core.Subsystem.__init__(self, cfg.get('name', 'Monitor'), deps)
 
-        self._connections = []
-
         # Get essential subsystems
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
                                                             deps,
@@ -32,6 +30,7 @@ class Monitor(core.Subsystem):
 
         self._signals = {}
 
+        # Clear config file of extra values
         if cfg.has_key('type'):
             cfg.pop('type')
         if cfg.has_key('depends_on'):
@@ -40,73 +39,26 @@ class Monitor(core.Subsystem):
 
         # Iterate through the config file subscribing to any events it lists
         for name, data in cfg.iteritems():
-            publisher = self._lookupByName(data['publisher'], deps)
             self._signals[name] = Signal(self._qeventHub,
                                          data['eventType'],
-                                         publisher,
                                          data['property'],
                                          data['name'],
                                          data['warning'],
                                          data['critical'])
 
-    def _lookupByName(self, publisher, deps):
-        # Check if the publisher is a device
-        # Something different is done if it is
-        if publisher.startswith('Vehicle.Device.'):
-            deviceName = publisher[len('Vehicle.Device.'):]
-            vehicle = core.Subsystem.getSubsystemOfType(
-                ext.vehicle.IVehicle, deps)
-            device = vehicle.getDevice(deviceName)
-            return device
-        else:
-            # Normal operations for any other publisher
-            # Parse the subsystem out of the publisher name
-            systemName = publisher.split('.')[0]
-            for d in deps:
-                # Parse the subsystem name
-                depName = d.getPublisherName().split('.')[-1]
-                
-                # Check if this is the subsystem needed
-                if depName == systemName:
-                    # Return the publisher
-                    return d
+    def __del__(self):
+        # Delete all signals
+        for signal in self._signals.itervalues():
+            del signal
 
-    # Not used. May be used in the future.
-    def _acquireDependencies(self, cfg, deps):
-        """
-        This is supposed to look into the systems that it monitors and
-        see which subsystems they depend on. Then it would add those
-        subsystems to its own list.
-
-        It does not do that yet. I do not believe there is a possible way
-        to do this yet.
-        """
-        # Create a set so that there are no duplicates
-        systems = set()
-        
-        # Load the dependencies that were passed in
-        if deps is not None:
-            for d in deps:
-                systems.add(d)
-
-        # Iterate through the inner subsystems
-        #for subsystem, config in cfg.iteritems():
-            
-
-        # Reload the dependencies into a list
-        newDeps = []
-        for d in systems:
-            newDeps.append(d)
-
-        # Return the new list
-        return newDeps
+    #def backgrounded(self):
+    #    return True
 
 class Signal(object):
-    def __init__(self, qeventHub, eventType, publisher, propName, name,
+    def __init__(self, qeventHub, eventType, propName, name,
                  warning, critical):
         self._qeventHub = qeventHub
         self._eventType = eventType
-        self._publisher = publisher
         self._property = propName
         self._name = name
         self._warning = warning
@@ -115,11 +67,12 @@ class Signal(object):
 
         eventType = resolve(self._eventType)
 
-        # publisher = core.lookupByName(self._publisher)
+        self._conn = self._qeventHub.subscribeToType(eventType, self._handler)
 
-        self._qeventHub.subscribe(eventType, publisher, self._handler)
+    def __del__(self):
+        self._conn.disconnect()
 
-    def _checkMaximum(self, event):
+    def _checkMaximum(self, value, event):
         if value > self._lastValue:
             if value > self._critical and self._lastValue <= self._critical:
                 # Publish a critical event
@@ -155,8 +108,9 @@ class Signal(object):
         value = getattr(event, self._property)
 
         newEvent = core.StringEvent()
-        newEvent.string = '%s:%s:%s:%s' % (self._eventType, self._publisher,
-                                        self._property, self._name)
+        newEvent.string = '%s:%s:%s' % (self._eventType,
+                                        self._property,
+                                        self._name)
 
         if self._critical > self._warning:
             self._checkMaximum(value, newEvent)

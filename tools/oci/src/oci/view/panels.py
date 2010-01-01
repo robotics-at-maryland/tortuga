@@ -37,6 +37,7 @@ import ram.timer as timer
 import ram.motion as motion
 import ram.motion.common
 import ram.motion.pipe
+import ram.monitor as monitor
 
 class BasePanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
@@ -333,7 +334,7 @@ class AIPanel(wx.Panel):
         
         self._connections = []
 
-        layout =  wx.GridBagSizer(10, 10)
+        layout = wx.GridBagSizer(10, 10)
               
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+00.0')
         textSize = wx.Size(textWidth, wx.DefaultSize.height) 
@@ -362,7 +363,7 @@ class AIPanel(wx.Panel):
         # Create Last controls
         lastLabel = wx.StaticText(self, label = 'Previous States')
         layout.Add(lastLabel, (4, 0), span = (1, 2), flag = wx.ALIGN_CENTER)
-        self._stateList = wx.ListBox(self, wx.ID_ANY, name = 'State List',
+        self._stateList = wx.ListBox(self, name = 'State List',
                                      style = wx.TE_RIGHT | wx.LB_SINGLE)
         layout.Add(self._stateList, (5, 0), span = (1, 2), flag = wx.ALIGN_CENTER | wx.EXPAND)
         
@@ -1447,6 +1448,58 @@ class RecorderPanel(wx.Panel):
 
             return [(paneInfo, RecorderPanel(parent, vision),
                      [vision])]
+
+        return []
+
+class MonitorPanel(wx.Panel):
+    implements(IPanelProvider)
+
+    def __init__(self, parent, eventHub, *args, **kwargs):
+        wx.Panel.__init__(self, parent, *args, **kwargs)
+
+        # LED
+        #size = (self._getTextSize()[0], ram.gui.led.LED.HEIGHT)
+        #self._bouyLED = ram.gui.led.LED(self, state = 3, size = size)
+        #self._bouyLED.MinSize = size
+
+        # Subscribe to monitor subsystem signals
+        self._connections = []
+        conn = eventHub.subscribeToType(monitor.Monitor.NOMINAL,
+                                        self._onNominalSignal)
+        self._connections.append(conn)
+
+        conn = eventHub.subscribeToType(monitor.Monitor.WARNING,
+                                        self._onWarningSignal)
+        self._connections.append(conn)
+
+        conn = eventHub.subscribeToType(monitor.Monitor.CRITICAL,
+                                        self._onCriticalSignal)
+        self._connections.append(conn)
+
+    def _onClose(self, event):
+        for conn in self._connections:
+            conn.disconnect()
+
+    def _onNominalSignal(self, event):
+        pass
+
+    def _onWarningSignal(self, event):
+        pass
+
+    def _onCriticalSignal(self, event):
+        pass
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+
+        if eventHub is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name("Log")
+            paneInfo = paneInfo.Caption("Log").Left()
+
+            return [(paneInfo, MonitorPanel(parent, eventHub),
+                     [eventHub])]
 
         return []
 
