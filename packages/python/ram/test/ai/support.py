@@ -127,13 +127,12 @@ class AITestCase(unittest.TestCase):
             
         if cfg is None:
             cfg = {}
-        
-        
+                
         self.eventHub = core.EventHub()
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
         self.controller = MockController(self.eventHub)
-        self.vehicle = MockVehicle()
+        self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
         self.visionSystem = MockVisionSystem()
         
         aCfg = cfg.get('Ai', {})
