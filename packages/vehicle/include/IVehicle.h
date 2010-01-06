@@ -90,6 +90,9 @@ public:
     /** The orientation of the vehicle relative to North with zero roll */
     virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
 
+    /** Checks if an object is in the state estimator */
+    virtual bool hasObject(std::string obj) = 0;
+
     /** Combines the given force and torque into motor forces the applies them
 
         @note   All force in <b>NEWTONS</b> and applied in Vehicle's local

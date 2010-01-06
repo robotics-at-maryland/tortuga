@@ -49,6 +49,8 @@ public:
     math::Vector3 getAngularRate();
     
     math::Quaternion getOrientation(std::string obj = "vehicle");
+
+    bool hasObject(std::string obj);
     
     virtual void safeThrusters();
 

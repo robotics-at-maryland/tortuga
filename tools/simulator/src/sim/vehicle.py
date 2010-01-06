@@ -185,6 +185,11 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
                                         self._onDepth)
         self._connections.append(conn)
 
+        # Load simulator objects from config
+        self._obj = {}
+        for name, pos in config.get('Objects', {}).iteritems():
+            self._obj[name] = pos
+
     def __del__(self):
         # Disconnect all connections on destruction
         for conn in self._connections:
@@ -196,7 +201,11 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
 
     def getDepth(self, name = "vehicle"):
         # Down is positive for depth
-        return -3.281 * self.robot._main_part._node.position.z
+        if name == "vehicle":
+            return -3.281 * self.robot._main_part._node.position.z
+        else:
+            # Third value is the depth
+            return self._obj[name][2]
 
     def _onDVL(self, event):
         """
@@ -219,10 +228,21 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
         self.publishVelocity()
 
     def getVelocity(self, name = "vehicle"):
-        return self.velocity
+        if name == "vehicle":
+            return self.velocity
+        else:
+            # Fake a crash if the object doesn't exist
+            assert(self._obj.has_key(name))
+
+            # Velocity of an object will always be zero
+            return math.Vector2(0, 0)
 
     def getPosition(self, name = "vehicle"):
-        return self.pos_current
+        if name == "vehicle":
+            return self.pos_current
+        else:
+            pos = self._obj[name]
+            return math.Vector2(pos[0], pos[1])
 
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,
@@ -250,7 +270,14 @@ class SimStateEstimator(SimDevice, device.IStateEstimator):
         self.publishOrientation()
 
     def getOrientation(self, name = "vehicle"):
-        return self._getActualOrientation()
+        if name == "vehicle":
+            return self._getActualOrientation()
+        else:
+            # Orientation is the 4th number
+            return self._obj[name][3]
+
+    def hasObject(self, name):
+        return self._obj.has_key(name)
 
 device.IDeviceMaker.registerDevice('SimStateEstimator', SimStateEstimator)
 

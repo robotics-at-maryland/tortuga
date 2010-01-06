@@ -251,6 +251,11 @@ math::Quaternion Vehicle::getOrientation(std::string obj)
 {
     return m_stateEstimator->getOrientation(obj);
 }
+
+bool Vehicle::hasObject(std::string obj)
+{
+    return m_stateEstimator->hasObject(obj);
+}
     
 void Vehicle::safeThrusters()
 {
