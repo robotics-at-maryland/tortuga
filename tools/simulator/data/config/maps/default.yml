@@ -1,0 +1,4 @@
+# Loads the map data from a specific file
+
+#INCLUDE: tools/simulator/data/config/maps/nbrf_tank.yml
+INCLUDE: tools/simulator/data/config/maps/objectives/buoy.yml

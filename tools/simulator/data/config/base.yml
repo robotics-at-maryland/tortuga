@@ -91,6 +91,8 @@ Vehicle:
             depends_on: ['SimulationDevice']
             type: SimStateEstimator
 
+            INCLUDE: tools/simulator/data/config/maps/default.yml
+
         IMU: # MagBoom
             depends_on: ['SimulationDevice', 'StateEstimator']
             type: SimIMU
@@ -296,7 +298,7 @@ Simulation:
         #Main: objectives/multi_pipe.sml
         #Main: objectives/barbedwire.sml
         #Main: objectives/target.sml
-        #Main: objectives/buoy.sml
+        Main: objectives/buoy.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
         #Main: transdec.sml
@@ -305,8 +307,9 @@ Simulation:
         #Main: safePing.sml
         #Main: shortCourse.sml
         #Main: nbrf_tank.sml
-        Main: nbrf_tank_demo.sml
+        #Main: nbrf_tank_demo.sml
         #Main: erc_course.sml
+        #Main: bigbox.sml
 
     Graphics:
         Plugins:
@@ -371,3 +374,14 @@ Simulation:
             S : STOP
                             # Misc.
             CTRL+B : SCREENSHOT
+
+Monitor:
+    type: Monitor
+    depends_on: ["QueuedEventHub"]
+
+    DepthWarning:
+        eventType: ext.vehicle.device.IStateEstimator.DEPTH_UPDATE
+        property: number
+        name: "depth"
+        warning: 5
+        critical: 10

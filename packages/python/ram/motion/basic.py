@@ -651,7 +651,6 @@ class TimedMoveDirection(MoveDirection):
             self._timer = None
         MoveDirection.stop(self)
 
-# In construction, don't use
 class MoveDistance(Motion):
     """
     Moves a distance. If absolute is set to true, then it moves an absolute

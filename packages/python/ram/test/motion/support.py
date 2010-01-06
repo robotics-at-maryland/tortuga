@@ -79,19 +79,31 @@ class MockController(control.IController):
         
         
 class MockVehicle(vehicle.IVehicle):
-    def __init__(self, eventHub = core.EventHub()):
+    def __init__(self, eventHub = core.EventHub(), cfg = None):
         vehicle.IVehicle.__init__(self, "Vehicle", eventHub)
+        if cfg is None:
+            cfg = {}
+
         self.validObj = set('vehicle')
         self._depth = { 'vehicle' : 0 }
         self._orientation = { 'vehicle' : ext.math.Quaternion.IDENTITY }
+        self._velocity = { 'vehicle' : ext.math.Vector2.ZERO }
+        self._position = { 'vehicle' : ext.math.Vector2.ZERO }
+
+        # Move through the configuration file and add objects
+        for name, pos in cfg.get('StateEstimator', {}).iteritems():
+            self.validObj.add(name)
+            self._depth[name] = pos[2]
+            self._orientation[name] = pos[3]
+            self._velocity[name] = ext.math.Vector2(0, 0)
+            self._position[name] = ext.math.Vector2(pos[0], pos[1])
+        
         self.markersDropped = 0
         self.torpedosFired = 0
         self.linAccel = ext.math.Vector3.ZERO
         self.angRate = ext.math.Vector3.ZERO
         self.force = ext.math.Vector3.ZERO
         self.torque = ext.math.Vector3.ZERO
-        self._velocity = { 'vehicle' : ext.math.Vector2.ZERO }
-        self._position = { 'vehicle' : ext.math.Vector2.ZERO }
 
     def getLinearAcceleration(self):
         return self.linAccel
@@ -112,7 +124,7 @@ class MockVehicle(vehicle.IVehicle):
         return self._position[obj]
 
     def hasObject(self, obj):
-        return obj in validObj
+        return obj in self.validObj
     
     def applyForcesAndTorques(self, force, torque):
         self.force = force
