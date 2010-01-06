@@ -118,7 +118,6 @@ TEST(Dependencies)
 
 TEST(BadDependencies)
 {
-    std::cout << "Testing Bad Dependencies" << std::endl;
     bf::path path(getConfigRoot() / "bad_subsystems.yml");
     ram::core::Application app(path.string());
     

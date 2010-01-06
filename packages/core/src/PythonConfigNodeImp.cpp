@@ -374,16 +374,23 @@ void PythonConfigNodeImp::includeIfNeeded(boost::python::object pyObj)
         
             std::stringstream ss;
             ss << "import yaml, os, os.path\n"
+	       << "def add_include(node):\n"
                 // All paths are resolved from the root of the SVN dir
-               << "basePath = os.environ['RAM_SVN_DIR']\n"
-               << "filePath = node['INCLUDE'].replace('/', os.sep)\n"
-               << "fullPath = os.path.join(basePath, filePath)\n"
-               << "cfg = yaml.load(file(os.path.normpath(fullPath)))\n"
+               << "    basePath = os.environ['RAM_SVN_DIR']\n"
+	       << "    include_path = node['INCLUDE']\n"
+               << "    filePath = node['INCLUDE'].replace('/', os.sep)\n"
+               << "    fullPath = os.path.join(basePath, filePath)\n"
+               << "    cfg = yaml.load(file(os.path.normpath(fullPath)))\n"
                 // Place all loaded item into the key
-               << "for key, val in cfg.iteritems():\n"
-               << "    node[key] = val\n"
-                // Mark it already loaded
-               << "node['INCLUDE_LOADED'] = True";
+               << "    for key, val in cfg.iteritems():\n"
+               << "        node[key] = val\n"
+		// If the include_path has not been changed, mark as finished
+	       << "    if include_path == node['INCLUDE']:\n"
+	       << "        node['INCLUDE_LOADED'] = True\n"
+	       << "    else:\n"
+		// Otherwise add the new include
+	       << "        add_include(node)\n"
+	       << "add_include(node)\n"; 
         
             py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
                                                       Py_file_input,
