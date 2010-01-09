@@ -129,6 +129,9 @@ public:
     /** Gets the set of properties for the current detector */
     core::PropertySetPtr getDetectorPropertySet();
 
+    /** Gets the current image */
+    vision::Image* getLatestImage();
+
     /* @} */
     
 private:

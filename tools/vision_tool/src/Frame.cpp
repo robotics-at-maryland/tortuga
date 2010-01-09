@@ -7,6 +7,10 @@
  * File:  tools/vision_tool/src/App.cpp
  */
 
+// STD Includes
+#include <iostream>
+#include <stdio.h>
+
 // Library Includes
 #include <wx/frame.h>
 #include <wx/menu.h>
@@ -18,6 +22,9 @@
 #include <wx/textctrl.h>
 #include <wx/utils.h>
 #include <wx/filename.h>
+
+// For cvSaveImage
+#include "highgui.h"
 
 // Project Includes
 #include "Frame.h"
@@ -35,6 +42,7 @@ BEGIN_EVENT_TABLE(Frame, wxFrame)
     EVT_MENU(ID_About, Frame::onAbout)
     EVT_MENU(ID_OpenFile, Frame::onOpenFile)
     EVT_MENU(ID_OpenCamera, Frame::onOpenCamera)
+    EVT_MENU(ID_SaveImage, Frame::onSaveImage)
 END_EVENT_TABLE()
 
 
@@ -48,10 +56,11 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_OpenFile, _T("Open Video &File"));
     menuFile->Append(ID_OpenCamera, _T("Open CV &Camera"));
+    menuFile->Append(ID_SaveImage, _T("&Save Image..."));
     menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
     menuFile->Append(ID_Quit, _T("E&xit"));
-    
+
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append( menuFile, _T("&File") );
     
@@ -153,7 +162,25 @@ void Frame::onOpenFile(wxCommandEvent& event)
 void Frame::onOpenCamera(wxCommandEvent& event)
 {
     m_model->openCamera();
-}    
+}
+
+void Frame::onSaveImage(wxCommandEvent& event)
+{
+    vision::Image* image = m_model->getLatestImage();
+    if (image != NULL) {
+	wxFileDialog *saveWindow =
+	    new wxFileDialog(this, _T("Save file..."), _T(""), _T(""),
+			     _T("*.*"), wxSAVE | wxOVERWRITE_PROMPT);
+	int result = saveWindow->ShowModal();
+	if (result == wxID_OK) {
+	    wxString pathname(saveWindow->GetFilename());
+	    cvSaveImage(pathname.fn_str(), image->asIplImage());
+	}
+    } else {
+	// TODO: Create message box detailing error
+	std::cout << "Cannot save while an image is running." << std::endl;
+    }
+}
 
 void Frame::onShowHideDetector(wxCommandEvent& event)
 {

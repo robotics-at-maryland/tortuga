@@ -260,6 +260,15 @@ core::PropertySetPtr Model::getDetectorPropertySet()
     return propSet;
 }
 
+vision::Image* Model::getLatestImage()
+{
+    if (m_timer->IsRunning())
+	// Not thread safe if this is running
+	return NULL;
+    else
+	return m_latestImage;
+}
+
 void Model::onTimer(wxTimerEvent &event)
 {
     if (m_camera)

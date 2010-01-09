@@ -27,7 +27,7 @@ namespace visionvwr {
     
 enum
 {
-    ID_Quit = 1, ID_About, ID_OpenFile, ID_OpenCamera
+    ID_Quit = 1, ID_About, ID_OpenFile, ID_OpenCamera, ID_SaveImage
 };
 
 class Frame: public wxFrame
@@ -42,6 +42,7 @@ private:
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
+    void onSaveImage(wxCommandEvent& event);
     void onShowHideDetector(wxCommandEvent& event);
 
     /** If possible it will hide the frame instead of showing closing */
