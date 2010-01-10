@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "core/include/EventHub.h"
+#include "vehicle/include/Common.h"
 #include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IDevice.h"
 
@@ -32,6 +33,9 @@ public:
 
     /** sets the devices state estimator */
     void setStateEstimator(IStateEstimatorPtr stateEstimator);
+
+    /** sets the state estimator based on the vehicle */
+    void setVehicle(IVehiclePtr vehicle);
 
     IStateEstimatorPtr getStateEstimator();
 

@@ -36,6 +36,8 @@ public:
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
 
+    virtual bool hasDevice(std::string name);
+
     virtual std::vector<std::string> getDeviceNames();
     
     virtual double getDepth(std::string obj = "vehicle");

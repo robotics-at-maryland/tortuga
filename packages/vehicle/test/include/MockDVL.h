@@ -33,6 +33,7 @@ public:
 				  config["name"].asString()),
         Device(config["name"].asString())
     {
+	setVehicle(vehicle);
     }
 
     MockDVL(std::string name) :

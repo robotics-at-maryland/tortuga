@@ -49,6 +49,9 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_serialFD = openIMU(m_devfile.c_str());
     m_rawState = new RawIMUData();
 
+    // Set the state estimator
+    setVehicle(vehicle);
+
     // Preload configuration data into the packet
     m_packet.IMUToVehicleFrame[0][0] =
         config["imuToVehicleRotMatrix"][0][0].asDouble(0);

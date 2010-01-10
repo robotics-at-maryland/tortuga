@@ -22,6 +22,11 @@ device::IDevicePtr IVehicle::getDevice(std::string name)
 {
     return device::IDevicePtr();
 }
+
+bool IVehicle::hasDevice(std::string name)
+{
+    return false;
+}
     
     
 IVehicle::~IVehicle()

@@ -90,6 +90,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_deviceFile(config["deviceFile"].asString("/dev/sensor")),
     m_deviceFD(-1)
 {
+    setVehicle(vehicle);
 
     // Initialize values
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 

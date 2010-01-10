@@ -27,6 +27,7 @@ public:
         velocity(config["velocity"][0].asDouble(0),
                  config["velocity"][1].asDouble(0))
     {
+	setVehicle(vehicle);
     }
 
     MockVelocitySensor(std::string name) :

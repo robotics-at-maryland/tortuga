@@ -36,6 +36,7 @@ public:
         ram::vehicle::device::IIMU(eventHub, config["name"].asString()),
         Device(config["name"].asString())
     {
+	setVehicle(vehicle);
     }
     
     MockIMU(std::string name) : 

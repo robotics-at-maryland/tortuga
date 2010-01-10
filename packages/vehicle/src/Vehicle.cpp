@@ -189,6 +189,12 @@ device::IDevicePtr Vehicle::getDevice(std::string name)
     return (*iter).second;
 }
 
+bool Vehicle::hasDevice(std::string name)
+{
+    NameDeviceMapIter iter = m_devices.find(name);
+    return iter != m_devices.end();
+}
+
 std::vector<std::string> Vehicle::getDeviceNames()
 {
     std::vector<std::string> names;
@@ -344,9 +350,6 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     {
         m_imu = device::IDevice::castTo<device::IIMU>(device);
 
-	// Set the state estimator
-	m_imu->setStateEstimator(m_stateEstimator);
-
         /*m_orientationConnection = m_imu->subscribe(
             device::IIMU::UPDATE,
             boost::bind(&Vehicle::onOrientationUpdate, this, _1));*/
@@ -355,17 +358,11 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     if ((!m_dvl) && (name == m_dvlName))
     {
 	m_dvl = device::IDevice::castTo<device::IDVL>(device);
-
-	// Set the state estimator
-	m_dvl->setStateEstimator(m_stateEstimator);
     }
     
     if ((!m_magBoom) && (name == m_magBoomName))
     {
         m_magBoom = device::IDevice::castTo<device::IIMU>(device);
-
-	// Set the state estimator
-	m_magBoom->setStateEstimator(m_stateEstimator);
 
         // Disconnect from normal IMU event if we have one
         if (m_orientationConnection)
@@ -380,9 +377,6 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     {
         m_depthSensor = device::IDevice::castTo<device::IDepthSensor>(device);
 
-	// Set the state estimator
-	m_depthSensor->setStateEstimator(m_stateEstimator);
-
         /*m_depthConnection = m_depthSensor->subscribe(
             device::IDepthSensor::UPDATE,
             boost::bind(&Vehicle::onDepthUpdate, this, _1));*/
@@ -393,9 +387,6 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_positionSensor =
             device::IDevice::castTo<device::IPositionSensor>(device);
 
-	// Set the state estimator
-	m_positionSensor->setStateEstimator(m_stateEstimator);
-
         /*m_positionConnection = m_positionSensor->subscribe(
             device::IPositionSensor::UPDATE,
             boost::bind(&Vehicle::onPositionUpdate, this, _1));*/
@@ -405,9 +396,6 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     {
         m_velocitySensor =
             device::IDevice::castTo<device::IVelocitySensor>(device);
-
-	// Set the state estimator
-	m_velocitySensor->setStateEstimator(m_stateEstimator);
 
         /*m_velocityConnection = m_velocitySensor->subscribe(
             device::IVelocitySensor::UPDATE,

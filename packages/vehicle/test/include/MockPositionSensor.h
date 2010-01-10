@@ -27,6 +27,7 @@ public:
         position(config["position"][0].asDouble(0),
                  config["position"][1].asDouble(0))
     {
+	setVehicle(vehicle);
     }
 
     

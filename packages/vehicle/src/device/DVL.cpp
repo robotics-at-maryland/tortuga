@@ -56,6 +56,8 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_serialFD = openDVL(m_devfile.c_str());
     m_rawState = new RawDVLData();
 
+    setVehicle(vehicle);
+
     // TODO: Temporary values until I know what to put in here
     LOGGER.info("% DVL#(0=main) Velocity TimeStamp");
 

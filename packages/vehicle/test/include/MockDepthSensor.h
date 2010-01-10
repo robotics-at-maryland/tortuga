@@ -38,6 +38,7 @@ public:
         depth(config["depth"].asDouble(0)),
         location(ram::math::Vector3::ZERO)
     {
+	setVehicle(vehicle);
     }
     
     MockDepthSensor(std::string name) :

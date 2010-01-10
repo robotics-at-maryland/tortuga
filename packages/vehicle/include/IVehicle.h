@@ -69,6 +69,9 @@ public:
     /** Gets the device associated with the given name */
     virtual device::IDevicePtr getDevice(std::string name);
 
+    /** A safe way of telling if a device exists */
+    virtual bool hasDevice(std::string name);
+
     /** The name of all current devices of the vehicle */
     virtual std::vector<std::string> getDeviceNames() = 0;
     

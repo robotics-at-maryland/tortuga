@@ -183,6 +183,7 @@ TEST_FIXTURE(VehicleFixture, IMU)
     // Get the estimator
     boost::shared_ptr<MockStateEstimator> estimator =
 	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    imu->setStateEstimator(estimator);
 
     estimator->linearAcceleration = accel;
     estimator->angularRate = angularRate;
@@ -206,6 +207,9 @@ TEST_FIXTURE(VehicleFixture, getDepth)
     // Add the mock devices to our vehicle
     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    depthSensor->setStateEstimator(estimator);
+    imu->setStateEstimator(estimator);
 
     // Check the depth
     double depth = 2.6;
@@ -249,6 +253,8 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
     // Add the mock devices to our vehicle
     veh->_addDevice(vehicle::device::IDevicePtr(dvl));
 //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    dvl->setStateEstimator(estimator);
 
     // Check the velocity
     math::Vector2 expectedVelocity = math::Vector2(2,5);
@@ -364,6 +370,8 @@ TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
 
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    imu->setStateEstimator(estimator);
     
     math::Quaternion result = math::Quaternion::IDENTITY;
     math::Quaternion expected(7,8,9,10);
@@ -403,6 +411,9 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
 
     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    depthSensor->setStateEstimator(estimator);
+    imu->setStateEstimator(estimator);
     
     double result = 0;
     double expected = 5.7;
@@ -480,6 +491,8 @@ TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
 	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
     
     veh->_addDevice(vehicle::device::IDevicePtr(dvlSensor));
+
+    dvlSensor->setStateEstimator(estimator);
     
     math::Vector2 result(0, 0);
     math::Vector2 expected(5.7, 2);
