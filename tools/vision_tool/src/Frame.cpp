@@ -9,7 +9,6 @@
 
 // STD Includes
 #include <iostream>
-#include <stdio.h>
 
 // Library Includes
 #include <wx/frame.h>
@@ -173,8 +172,9 @@ void Frame::onSaveImage(wxCommandEvent& event)
 			     _T("*.*"), wxSAVE | wxOVERWRITE_PROMPT);
 	int result = saveWindow->ShowModal();
 	if (result == wxID_OK) {
-	    wxString pathname(saveWindow->GetFilename());
-	    cvSaveImage(pathname.fn_str(), image->asIplImage());
+	    wxString pathname(saveWindow->GetPath());
+	    cvSaveImage(pathname.mb_str(wxConvUTF8),
+                        image->asIplImage());
 	}
     } else {
 	// TODO: Create message box detailing error
