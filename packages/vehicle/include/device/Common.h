@@ -21,12 +21,9 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
-// Forward Declarations
+// Forward Declartions
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
-
-class IStateEstimatorDevice;
-typedef boost::shared_ptr<IStateEstimatorDevice> IStateEstimatorDevicePtr;
 
 class IStateEstimator;
 typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
@@ -45,9 +42,6 @@ typedef boost::shared_ptr<ISonar> ISonarPtr;
 
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
-
-class IDVL;
-typedef boost::shared_ptr<IDVL> IDVLPtr;
     
 class IPSU;
 typedef boost::shared_ptr<IPSU> IPSUPtr;

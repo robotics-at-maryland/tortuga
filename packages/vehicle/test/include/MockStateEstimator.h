@@ -17,14 +17,8 @@
 // Project Includes
 #include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IStateEstimator.h"
-#include "vehicle/include/device/IDVL.h"
-#include "vehicle/include/device/IIMU.h"
-#include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/Device.h"
 #include "core/include/ConfigNode.h"
-
-#include "vehicle/test/include/MockIMU.h"
-#include "vehicle/test/include/MockDVL.h"
 
 // Must Be Included last
 //#include "vehicle/include/Export.h"
@@ -46,45 +40,24 @@ public:
         IStateEstimator(eventHub),
         Device(config["name"].asString()) {}
 
-    // Only valid for MockIMUPackets
-    virtual void imuUpdate(ram::vehicle::device::IMUPacket* packet_)
-    {
-	// Unsafe cast
-	MockIMUPacket* mockPacket = (MockIMUPacket*) packet_;
-	orientation["vehicle"] = mockPacket->updateQuat;
-
-	publishOrientation();
-    }
+    virtual void orientationUpdate(ram::math::Quaternion orientation_,
+				   double timeStamp_)
+        { updateOrientation = orientation_; timeStamp = timeStamp_; }
     
-    virtual void dvlUpdate(ram::vehicle::device::DVLPacket* packet_)
-    {
-	// Unsafe cast
-	MockDVLPacket* mockPacket = (MockDVLPacket*) packet_;
-	velocity["vehicle"] = mockPacket->updateVel;
-
-	publishVelocity();
-    }
-        
-    virtual void depthUpdate(ram::vehicle::device::DepthPacket* packet_)
-    {
-	// Unsafe cast
-	MockDepthPacket* mockPacket = (MockDepthPacket*) packet_;
-	depth["vehicle"] = mockPacket->updateDepth;
-
-	publishDepth();
-    }
+    virtual void velocityUpdate(ram::math::Vector2 velocity_,
+                                double timeStamp_)
+        { updateVelocity = velocity_; timeStamp = timeStamp_; }
+    
+    virtual void positionUpdate(ram::math::Vector2 position_,
+				double timeStamp_)
+        { updatePosition = position_; timeStamp = timeStamp_; }
+    
+    virtual void depthUpdate(double depth_,
+                             double timeStamp_)
+        { updateDepth = depth_; timeStamp = timeStamp_; }
     
     virtual ram::math::Quaternion getOrientation(
         std::string obj = "vehicle") { return orientation[obj]; }
-
-    virtual ram::math::Vector3 getLinearAcceleration() 
-    	{ return linearAcceleration; }
-
-    virtual ram::math::Vector3 getMagnetometer()
-    	{ return magnetometer; }
-    
-    virtual ram::math::Vector3 getAngularRate()
-    	{ return angularRate; }
 
     virtual ram::math::Vector2 getVelocity(std::string obj = "vehicle") {
 	return velocity[obj]; }
@@ -97,9 +70,11 @@ public:
     virtual bool hasObject(std::string obj) {
 	return obj == "vehicle" || obj == "buoy"; }
 
-    ram::math::Vector3 linearAcceleration;
-    ram::math::Vector3 magnetometer;
-    ram::math::Vector3 angularRate;
+    ram::math::Quaternion updateOrientation;
+    ram::math::Vector2 updateVelocity;
+    ram::math::Vector2 updatePosition;
+    double updateDepth;
+    double timeStamp;
     
     std::map<std::string, ram::math::Quaternion> orientation;
     std::map<std::string, ram::math::Vector2> velocity;

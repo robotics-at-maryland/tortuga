@@ -10,7 +10,6 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
-#include "vehicle/include/device/LoopStateEstimator.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Vector3.h"
 #include "drivers/imu/include/imuapi.h" // for FilteredIMUData
@@ -52,26 +51,23 @@ int main (){
       return 2;
   }
   
-  // Create IMU Device and state estimator
-  // This doesn't seem like it will work...
-  LoopStateEstimator estimator(ConfigNode::fromString(
-      "{'name' : 'StateEstimator',"
-      " 'magXBias' : 0.0,"
-      " 'magYBias' : 0.0,"
-      " 'magZBias' : 0.0}"));
-  IMU imu(ConfigNode::fromString("{'name' : 'IMU'}"));
+  // Create IMU Device
+  IMU imu(ConfigNode::fromString("{'name' : 'IMU',"
+                                 "'magXBias' : 0.0,"
+                                 "'magYBias' : 0.0,"
+                                 "'magZBias' : 0.0}"));
 
   // Start IMU running in the background
   imu.background(5);
 
-  std::cout << "array = [0 0 0];" << std::endl;
+  std::cout << "array = [0 0 0;" << std::endl;
   
   FilteredIMUData imuData;
   for (int i = 0; i < 48000; i++)
 //  while(true)
   {
-      // Read state estimator
-      estimator.getFilteredIMUState(imuData);
+      // Read IMU
+      imu.getFilteredState(imuData);
 
       // max
       if (imuData.magX > maxX)

@@ -14,7 +14,7 @@
 #include <string>
 
 // Project Includes
-#include "vehicle/include/device/IStateEstimatorDevice.h"
+#include "vehicle/include/device/IDevice.h"
 
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -27,7 +27,7 @@ namespace vehicle {
 namespace device {
     
 /** Represents a sensor that returns the position in meters */
-class RAM_EXPORT IPositionSensor : public IStateEstimatorDevice // For getName
+class RAM_EXPORT IPositionSensor : public IDevice // For getName
              // boost::noncopyable
 {
 public:

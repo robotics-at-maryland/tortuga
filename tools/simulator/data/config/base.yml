@@ -87,22 +87,22 @@ Vehicle:
             simName: bot_thruster
             relAxis: z
 
-        StateEstimator:
-            depends_on: ['SimulationDevice']
-            type: SimStateEstimator
-
-            INCLUDE: tools/simulator/data/config/maps/default.yml
+#        StateEstimator:
+#            depends_on: ['SimulationDevice']
+#            type: SimStateEstimator
+#
+#            INCLUDE: tools/simulator/data/config/maps/default.yml
 
         IMU: # MagBoom
-            depends_on: ['SimulationDevice', 'StateEstimator']
+            depends_on: ['SimulationDevice']
             type: SimIMU
 
-        DVL:
-            depends_on: ['SimulationDevice', 'StateEstimator']
-            type: SimDVL
+#        DVL:
+#            depends_on: ['SimulationDevice']
+#            type: SimDVL
 
         DepthSensor:
-            depends_on: ["SimulationDevice", "StateEstimator"]
+            depends_on: ["SimulationDevice"]
             type: SimDepthSensor
 
 
@@ -375,13 +375,3 @@ Simulation:
                             # Misc.
             CTRL+B : SCREENSHOT
 
-Monitor:
-    type: Monitor
-    depends_on: ["QueuedEventHub"]
-
-    DepthWarning:
-        eventType: ext.vehicle.device.IStateEstimator.DEPTH_UPDATE
-        property: number
-        name: "depth"
-        warning: 5
-        critical: 10

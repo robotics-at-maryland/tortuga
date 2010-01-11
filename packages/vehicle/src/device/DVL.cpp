@@ -23,7 +23,6 @@
 
 // Project Includes
 #include "vehicle/include/device/DVL.h"
-#include "vehicle/include/device/IStateEstimator.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"
@@ -42,21 +41,19 @@ using namespace ram::math;
     
 DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
          IVehiclePtr vehicle) :
-    IDVL(eventHub, config["name"].asString()),
+    IVelocitySensor(eventHub, config["name"].asString()),
     Device(config["name"].asString()),
     Updatable(),
     m_devfile(config["devfile"].asString("/dev/dvl")),
     m_serialFD(-1),
     m_dvlNum(config["num"].asInt(0)),
-    m_heartbeat(0),
+    m_velocity(0, 0),
     m_location(0, 0, 0),
-    m_rawState(0)
+    m_rawState(0),
+    m_filteredState(0)
 {
-    // Open the DVL and create the raw state
+    // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
-    m_rawState = new RawDVLData();
-
-    setVehicle(vehicle);
 
     // TODO: Temporary values until I know what to put in here
     LOGGER.info("% DVL#(0=main) Velocity TimeStamp");
@@ -75,6 +72,7 @@ DVL::~DVL()
         close(m_serialFD);
 
     delete m_rawState;
+    delete m_filteredState;
 }
 
 
@@ -90,20 +88,19 @@ void DVL::update(double timestep)
 		// Thread safe copy of good dvl data
 		core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
 		*m_rawState = newState;
-
-		DVLPacket packet;
-		packet.rawData = &newState;
-		packet.dvlNum = m_dvlNum;
-		packet.timestep = timestep;
-		packet.device = IDVLPtr(this);
-
-		m_stateEstimator->dvlUpdate(&packet);
 	    }
 
-	    // Increment the heartbeat and send an event
-	    math::NumericEventPtr nevent(new math::NumericEvent());
-	    nevent->number = ++m_heartbeat;
-	    publish(IDVL::UPDATE, nevent);
+	    // Work is going to be done to get the
+	    // new velocity from the raw state
+	    math::Vector2 velocity(0, 0);
+
+            //LOGGER.infoStream() << newState.bottomTrack;
+
+	    // Now publish the new velocity
+	    math::Vector2EventPtr vevent(new math::Vector2Event());
+	    // TODO: Insert whatever the local variable for velocity is
+	    vevent->vector2 = getVelocity();
+	    publish(IVelocitySensor::UPDATE, vevent);
 	}
     }
     // We didn't connect, try to reconnect
@@ -113,10 +110,10 @@ void DVL::update(double timestep)
     }
 }
 
-void DVL::getRawState(RawDVLData& dvlState)
+math::Vector2 DVL::getVelocity()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    dvlState = *m_rawState;
+    core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
+    return m_velocity;
 }
 
 math::Vector3 DVL::getLocation()

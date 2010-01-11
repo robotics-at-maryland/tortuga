@@ -17,7 +17,7 @@ namespace vehicle {
 namespace device {
 
 IIMU::IIMU(core::EventHubPtr eventHub, std::string name) :
-    IStateEstimatorDevice(eventHub, name)
+    IDevice(eventHub, name)
 {
 }
 

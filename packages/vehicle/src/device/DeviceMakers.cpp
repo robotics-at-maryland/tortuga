@@ -15,7 +15,6 @@
 
 #include "vehicle/include/device/IDeviceMaker.h"
 
-#include "vehicle/include/device/LoopStateEstimator.h"
 
 #ifdef RAM_WITH_DRIVERS
 #include "vehicle/include/device/DVL.h"
@@ -34,9 +33,6 @@
 #include "vehicle/include/device/VisionVelocitySensor.h"
 #endif // RAM_WITH_VISION
 
-
-RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::LoopStateEstimator,
-				   LoopStateEstimator);
 
 // Register each device with the factor system
 #ifdef RAM_WITH_DRIVERS

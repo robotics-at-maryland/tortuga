@@ -18,7 +18,7 @@ namespace device {
 
 IVelocitySensor::IVelocitySensor(core::EventHubPtr eventHub,
                                  std::string name) :
-    IStateEstimatorDevice(eventHub, name)
+    IDevice(eventHub, name)
 {
 }
 

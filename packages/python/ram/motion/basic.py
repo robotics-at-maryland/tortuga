@@ -563,7 +563,7 @@ class MoveDirection(Motion):
     def _start(self):
         # Register to receive ORIENTATION_UPDATE events
         conn = self._eventHub.subscribe(
-            vehicle.device.IStateEstimator.ORIENTATION_UPDATE,
+            vehicle.IVehicle.ORIENTATION_UPDATE,
             self._vehicle, self._onOrientation)
         self._connections.append(conn)
         
@@ -697,7 +697,7 @@ class MoveDistance(Motion):
 
         # Register to receive POSITION_UPDATE events
         conn = self._eventHub.subscribeToType(
-            vehicle.device.IStateEstimator.POSITION_UPDATE, self._onUpdate)
+            vehicle.IVehicle.POSITION_UPDATE, self._onUpdate)
         self._connections.append(conn)
 
         conn = self._eventHub.subscribeToType(MoveDistance.COMPLETE,

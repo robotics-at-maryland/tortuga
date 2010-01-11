@@ -21,7 +21,6 @@
 #include "vehicle/include/Vehicle.h"
 #include "vehicle/include/Events.h"
 #include "vehicle/include/device/IThruster.h"
-#include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/Common.h"
 
 #include "core/include/ConfigNode.h"
@@ -41,19 +40,9 @@
 
 using namespace ram;
 
-static const std::string CONFIG =
-    "{"
-    "'name' : 'TestVehicle',"
-    "'Devices' : {"
-    "    'StateEstimator' : {'type' : 'MockStateEstimator'}"
-    " },"
-    "}";
-/*
-static const std::string CONFIG =
-    "{"
-    "'name' : 'TestVehicle'"
-    "}";
-*/
+
+static const std::string CONFIG("{'name' : 'TestVehicle'}");
+
 struct VehicleFixture
 {
     VehicleFixture() :
@@ -69,7 +58,6 @@ struct VehicleFixture
 
     core::EventHubPtr eventHub;
     vehicle::Vehicle* veh;
-    //boost::shared_ptr<MockStateEstimator> estimator;
 };
 
 void eventHelper(std::string* eventType, ram::core::EventPtr event)
@@ -83,11 +71,7 @@ TEST(DeviceCreation)
             "{"
             "'name' : 'TestVehicle',"
             "'Devices' : {"
-            "    'StateEstimator' : {'type' : 'MockStateEstimator'},"
-            "    'IMU' : {"
-            "        'type' : 'MockIMU',"
-            "        'depends_on' : ['StateEstimator']"
-            "     },"
+            "    'IMU' : {'type' : 'MockIMU'},"
             "    'PSU' : {'type' : 'MockDevice'}"
             " },"
             "}";
@@ -106,8 +90,7 @@ TEST(DeviceCreation)
     CHECK_EQUAL(veh, dev->vehicle.get());
     
     // Check to make sure the list of names matches
-    std::set<std::string> expNames =
-	boost::assign::list_of("StateEstimator")("IMU")("PSU");
+    std::set<std::string> expNames = boost::assign::list_of("IMU")("PSU");
     std::set<std::string> givenNames;
     std::vector<std::string> names = veh->getDeviceNames();
 
@@ -116,8 +99,7 @@ TEST(DeviceCreation)
         givenNames.insert(name);
     }
 
-    // This is 3 because the state estimator is a device
-    CHECK_EQUAL(3u, givenNames.size());
+    CHECK_EQUAL(2u, givenNames.size());
     CHECK(expNames == givenNames);
 
     // Make sure events get through
@@ -134,7 +116,6 @@ TEST(DeviceCreation)
     delete veh;
 }
 
-/* not valid test anymore
 TEST(ValueInitialization)
 {
     // Create a vehicle with the some mock sensors that have initial state
@@ -169,7 +150,6 @@ TEST(ValueInitialization)
     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.0001);
     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.0001);
 }
-*/
 
 TEST_FIXTURE(VehicleFixture, IMU)
 {
@@ -179,14 +159,9 @@ TEST_FIXTURE(VehicleFixture, IMU)
     math::Vector3 accel(1,2,3);
     math::Vector3 angularRate(4,5,6);
     math::Quaternion orientation(7,8,9,10);
-
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
-    imu->setStateEstimator(estimator);
-
-    estimator->linearAcceleration = accel;
-    estimator->angularRate = angularRate;
+    
+    imu->linearAcceleration = accel;
+    imu->angularRate = angularRate;
     imu->publishUpdate(orientation);
     CHECK_EQUAL(accel, veh->getLinearAcceleration());
     CHECK_EQUAL(angularRate, veh->getAngularRate());
@@ -198,18 +173,11 @@ TEST_FIXTURE(VehicleFixture, getDepth)
     // Create mock depth sensor and IMU
     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
     MockIMU* imu = new MockIMU("IMU");
-
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
-    estimator->orientation["vehicle"] = math::Quaternion::IDENTITY;
+    imu->orientation = math::Quaternion::IDENTITY;
 
     // Add the mock devices to our vehicle
     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-    depthSensor->setStateEstimator(estimator);
-    imu->setStateEstimator(estimator);
 
     // Check the depth
     double depth = 2.6;
@@ -232,33 +200,41 @@ TEST_FIXTURE(VehicleFixture, getDepth)
     double expectedDepth = depth + 0.252;
     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
 
+    // Now check for usage of the state estimator
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    estimator->timeStamp = 0;
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
+
+    expectedDepth = 6.7;
+    estimator->depth["vehicle"] = expectedDepth;
+    CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
+
     // Check the extra object in the state estimator
     expectedDepth = 3.2;
     estimator->depth["buoy"] = expectedDepth;
     CHECK_CLOSE(expectedDepth, veh->getDepth("buoy"), 0.00001);
+
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->depthUpdate(expectedDepth, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
 TEST_FIXTURE(VehicleFixture, getVelocity)
 {
     // Create mock velocity sensor and IMU
-    MockDVL* dvl = new MockDVL("DVL");
+    MockVelocitySensor* velocitySensor =
+        new MockVelocitySensor("VelocitySensor");
 //    MockIMU* imu = new MockIMU("IMU");
 //    imu->orientation = math::Quaternion::IDENTITY;
 
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
-    estimator->orientation["vehicle"] = math::Quaternion::IDENTITY;
-
     // Add the mock devices to our vehicle
-    veh->_addDevice(vehicle::device::IDevicePtr(dvl));
+    veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
 //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-    dvl->setStateEstimator(estimator);
 
     // Check the velocity
     math::Vector2 expectedVelocity = math::Vector2(2,5);
-    dvl->publishUpdate(expectedVelocity);
+    velocitySensor->publishUpdate(expectedVelocity);
     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.0001);
 
     // Now check velocity correction for orientation
@@ -273,13 +249,26 @@ TEST_FIXTURE(VehicleFixture, getVelocity)
     //math::Vector2 expectedVelocity = velocity + 0.252;
     //CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
 
+    // Now check for usage of the state estimator
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    estimator->timeStamp = 0;
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
+
+    expectedVelocity = math::Vector2(6.7, 3.4);
+    estimator->velocity["vehicle"] = expectedVelocity;
+    CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
+
     // Check the extra object in the state estimator
     expectedVelocity = math::Vector2(4.3, 5.1);
     estimator->velocity["buoy"] = expectedVelocity;
     CHECK_CLOSE(expectedVelocity, veh->getVelocity("buoy"), 0.00001);
+    
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->velocityUpdate(expectedVelocity, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
 
-/* not tested anymore
 TEST_FIXTURE(VehicleFixture, getPosition)
 {
     // Create mock position sensor and IMU
@@ -327,13 +316,11 @@ TEST_FIXTURE(VehicleFixture, getPosition)
     estimator->positionUpdate(expectedPosition, expectedTimeStamp);
     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
 }
-*/
 
 TEST_FIXTURE(VehicleFixture, hasObject)
 {
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
     // Check that it has the object vehicle
     CHECK(estimator->hasObject("vehicle"));
@@ -363,33 +350,34 @@ void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
 
 TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
 {
-    MockIMU* imu = new MockIMU("IMU");
-
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    MockIMU* imu = new MockIMU("IMU");  
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
 
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
 
-    imu->setStateEstimator(estimator);
     
     math::Quaternion result = math::Quaternion::IDENTITY;
     math::Quaternion expected(7,8,9,10);
-    //math::Quaternion expectedPublish(5,8,9,1);
-    //imu->orientation = expected;
-    //estimator->orientation["vehicle"] = expectedPublish;
+    math::Quaternion expectedPublish(5,8,9,1);
+    imu->orientation = expected;
+    estimator->orientation["vehicle"] = expectedPublish;
     
     // Subscribe to the event
-    core::EventConnectionPtr conn = estimator->subscribe(
-        vehicle::device::IStateEstimator::ORIENTATION_UPDATE,
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::ORIENTATION_UPDATE,
         boost::bind(orientationHelper, &result, _1));
 
     veh->update(0);
     imu->publishUpdate(expected);
-    //CHECK_EQUAL(expectedPublish, result);
-    CHECK_EQUAL(expected, result);
-    CHECK_EQUAL(expected, estimator->orientation["vehicle"]);
+    CHECK_EQUAL(expectedPublish, result);
+    CHECK_EQUAL(expected, estimator->updateOrientation);
 
+    // Check to make sure the time stamp changes
+    double expectedTimeStamp = 1;
+    estimator->orientationUpdate(expected, expectedTimeStamp);
+    CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
+    
     conn->disconnect();
 }
 
@@ -404,33 +392,27 @@ TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
 {
     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
     MockIMU* imu = new MockIMU("IMU");
-
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
 
     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-    depthSensor->setStateEstimator(estimator);
-    imu->setStateEstimator(estimator);
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
     
     double result = 0;
     double expected = 5.7;
-    //double expectedPublish = 6.8;
-    //depthSensor->depth = expected;
-    //estimator->depth["vehicle"] = expectedPublish;
+    double expectedPublish = 6.8;
+    depthSensor->depth = expected;
+    estimator->depth["vehicle"] = expectedPublish;
     
     // Subscribe to the event
-    core::EventConnectionPtr conn = estimator->subscribe(
-        vehicle::device::IStateEstimator::DEPTH_UPDATE,
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::DEPTH_UPDATE,
         boost::bind(depthHelper, &result, _1));
 
     veh->update(0);
     depthSensor->publishUpdate(expected);
-    //CHECK_EQUAL(expectedPublish, result);
-    CHECK_EQUAL(expected, result);
-    CHECK_EQUAL(expected, estimator->depth["vehicle"]);
+    CHECK_EQUAL(expectedPublish, result);
+    CHECK_EQUAL(expected, estimator->updateDepth);
     
     conn->disconnect();
 }
@@ -441,7 +423,7 @@ void velocityHelper(math::Vector2* result, ram::core::EventPtr event)
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
     *result = nevent->vector2;
 }
-/*
+
 void positionHelper(math::Vector2* result, ram::core::EventPtr event)
 {
     math::Vector2EventPtr nevent =
@@ -454,65 +436,61 @@ TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
     MockPositionSensor* positionSensor =
         new MockPositionSensor("PositionSensor");
 //    MockIMU* imu = new MockIMU("IMU");
-    
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
     
     veh->_addDevice(vehicle::device::IDevicePtr(positionSensor));
 //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
     
     math::Vector2 result(0, 0);
     math::Vector2 expected(5.7, 2);
-    //math::Vector2 expectedPublish(3.2, 7.9);
-    //positionSensor->position = expected;
-    //estimator->position["vehicle"] = expectedPublish;
+    math::Vector2 expectedPublish(3.2, 7.9);
+    positionSensor->position = expected;
+    estimator->position["vehicle"] = expectedPublish;
     
     // Subscribe to the event
-    core::EventConnectionPtr conn = estimator->subscribe(
-        vehicle::device::IStateEstimator::POSITION_UPDATE,
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::POSITION_UPDATE,
         boost::bind(positionHelper, &result, _1));
 
     veh->update(0);
     positionSensor->publishUpdate(expected);
-    //CHECK_EQUAL(expectedPublish, result);
-    CHECK_EQUAL(expected, result);
-    CHECK_EQUAL(expected, estimator->position["vehicle"]);
+    CHECK_EQUAL(expectedPublish, result);
+    CHECK_EQUAL(expected, estimator->updatePosition);
     
     conn->disconnect();
 }
-*/
+
 TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
 {
-    MockDVL* dvlSensor = new MockDVL("DVL");
-
-    // Get the estimator
-    boost::shared_ptr<MockStateEstimator> estimator =
-	vehicle::device::IDevice::castTo<MockStateEstimator>(veh->getDevice("StateEstimator"));
+    MockVelocitySensor* velocitySensor =
+        new MockVelocitySensor("VelocitySensor");
+//    MockIMU* imu = new MockIMU("IMU");
+    MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
     
-    veh->_addDevice(vehicle::device::IDevicePtr(dvlSensor));
-
-    dvlSensor->setStateEstimator(estimator);
+    veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
+//    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+    veh->_addDevice(vehicle::device::IDevicePtr(estimator));
     
     math::Vector2 result(0, 0);
     math::Vector2 expected(5.7, 2);
-    //math::Vector2 expectedPublish(3.2, 7.9);
-    //velocitySensor->velocity = expected;
-    //estimator->velocity["vehicle"] = expectedPublish;
+    math::Vector2 expectedPublish(3.2, 7.9);
+    velocitySensor->velocity = expected;
+    estimator->velocity["vehicle"] = expectedPublish;
     
     // Subscribe to the event
-    core::EventConnectionPtr conn = estimator->subscribe(
-	vehicle::device::IStateEstimator::VELOCITY_UPDATE,
+    core::EventConnectionPtr conn = veh->subscribe(
+        vehicle::IVehicle::VELOCITY_UPDATE,
         boost::bind(velocityHelper, &result, _1));
 
     veh->update(0);
-    dvlSensor->publishUpdate(expected);
-    //CHECK_EQUAL(expectedPublish, result);
-    CHECK_EQUAL(expected, result);
-    CHECK_EQUAL(expected, estimator->velocity["vehicle"]);
+    velocitySensor->publishUpdate(expected);
+    CHECK_EQUAL(expectedPublish, result);
+    CHECK_EQUAL(expected, estimator->updateVelocity);
     
     conn->disconnect();
 }
+
 
 struct ThrusterVehicleFixture
 {

@@ -122,7 +122,7 @@ class ZigZag(Motion):
     def _start(self):
         # Register to recieve ORIENTATION_UPDATE events
         conn = self._eventHub.subscribe(
-            vehicle.device.IStateEstimator.ORIENTATION_UPDATE,
+            vehicle.IVehicle.ORIENTATION_UPDATE,
             self._vehicle, self._onOrientation)
         self._connections.append(conn)
         

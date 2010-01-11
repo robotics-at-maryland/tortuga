@@ -36,8 +36,6 @@ public:
     /** Gets the device associated with the given name  <b>NOT THREAD SAFE</b>*/
     virtual device::IDevicePtr getDevice(std::string name);
 
-    virtual bool hasDevice(std::string name);
-
     virtual std::vector<std::string> getDeviceNames();
     
     virtual double getDepth(std::string obj = "vehicle");
@@ -51,8 +49,6 @@ public:
     math::Vector3 getAngularRate();
     
     math::Quaternion getOrientation(std::string obj = "vehicle");
-
-    bool hasObject(std::string obj);
     
     virtual void safeThrusters();
 
@@ -96,9 +92,6 @@ public:
     virtual void update(double timestep);
     
 protected:
-    /** Corrects a given depth based on the position */
-    double depthCorrection(double depth, math::Vector3 loc);
-
     /** Get the depth directly from the depth sensor */
     double getRawDepth();
 
@@ -155,9 +148,6 @@ private:
     vehicle::device::IIMUPtr m_magBoom;
 
     core::EventConnectionPtr m_orientationConnection;
-
-    std::string m_dvlName;
-    vehicle::device::IDVLPtr m_dvl;
     
     std::string m_depthSensorName;
     vehicle::device::IDepthSensorPtr m_depthSensor;

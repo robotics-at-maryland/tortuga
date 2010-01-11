@@ -45,7 +45,7 @@ public:
     /* @{ */
     
     /** When the vehicles orientation changes (ram::math:;OrientationEvent)*/
-    /*static const core::Event::EventType ORIENTATION_UPDATE;*/
+    static const core::Event::EventType ORIENTATION_UPDATE;
     
     /** When the vehicles linear accel. changes (ram::math::Vector3Event) */
     //static const core::Event::EventType LINEAR_ACCEL_UPDATE;
@@ -54,13 +54,13 @@ public:
     //static const core::Event::EventType ANGULAR_RATE_UPDATE;
     
     /** When the vehicles depth changes (ram::math::NumericEvent) */
-    /*static const core::Event::EventType DEPTH_UPDATE;*/
+    static const core::Event::EventType DEPTH_UPDATE;
 
     /** When the vehicles position changes (ram::math::Vector2Event) */
-    /*static const core::Event::EventType POSITION_UPDATE;*/
+    static const core::Event::EventType POSITION_UPDATE;
 
     /** When the vehicles velocity changes (ram::math::Vector2Event) */
-    /*static const core::Event::EventType VELOCITY_UPDATE;*/
+    static const core::Event::EventType VELOCITY_UPDATE;
 
     /* @{ */
     
@@ -68,9 +68,6 @@ public:
 
     /** Gets the device associated with the given name */
     virtual device::IDevicePtr getDevice(std::string name);
-
-    /** A safe way of telling if a device exists */
-    virtual bool hasDevice(std::string name);
 
     /** The name of all current devices of the vehicle */
     virtual std::vector<std::string> getDeviceNames() = 0;
@@ -92,9 +89,6 @@ public:
     
     /** The orientation of the vehicle relative to North with zero roll */
     virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
-
-    /** Checks if an object is in the state estimator */
-    virtual bool hasObject(std::string obj) = 0;
 
     /** Combines the given force and torque into motor forces the applies them
 

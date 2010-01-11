@@ -80,7 +80,7 @@ class Vehicle(vehicle.IVehicle):
         self.depth = 10 * math.sin(self._currentTime) + 10
         event = core.Event()
         event.number = self.depth
-        self.publish(vehicle.device.IStateEstimator.DEPTH_UPDATE, event)
+        self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
         
         # Orientation
         x = 1.0 * math.sin(self._currentTime) + 1.0
@@ -95,7 +95,7 @@ class Vehicle(vehicle.IVehicle):
         self._orientation.normalise()
         event = core.Event()
         event.orientation = self._orientation
-        self.publish(vehicle.device.IStateEstimator.ORIENTATION_UPDATE, event)
+        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
         
         # Position Update
         x = 1.0 * math.sin(self._currentTime) + 1.0
@@ -103,7 +103,7 @@ class Vehicle(vehicle.IVehicle):
         
         event = ext.math.Vector2Event()
         event.vector2 = ext.math.Vector2(x, y)
-        self.publish(vehicle.device.IStateEstimator.POSITION_UPDATE, event)
+        self.publish(vehicle.IVehicle.POSITION_UPDATE, event)
         
         # Velocity Update
         x = 1.0 * math.sin(self._currentTime + 10) + 1.0
@@ -111,7 +111,7 @@ class Vehicle(vehicle.IVehicle):
         
         event = ext.math.Vector2Event()
         event.vector2 = ext.math.Vector2(x, y)
-        self.publish(vehicle.device.IStateEstimator.VELOCITY_UPDATE, event)
+        self.publish(vehicle.IVehicle.VELOCITY_UPDATE, event)
         
         
         # Update Devices

@@ -26,7 +26,6 @@
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
 #include "vehicle/include/device/IIMU.h"
-#include "vehicle/include/device/IDVL.h"
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/IPayloadSet.h"
 #include "vehicle/include/device/IPositionSensor.h"
@@ -88,8 +87,6 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_hasMagBoom(false),
     m_magBoomName(config["MagBoomName"].asString("")),
     m_magBoom(device::IIMUPtr()),
-    m_dvlName(config["DVLName"].asString("DVL")),
-    m_dvl(device::IDVLPtr()),
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
     m_depthSensor(device::IDepthSensorPtr()),
     m_velocitySensorName(config["VelocitySensorName"].asString("VelocitySensor")),
@@ -105,15 +102,6 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     if (config.exists("Devices"))
     {
         core::ConfigNode deviceConfig(config["Devices"]);
-
-	// Create the state estimator if it doesn't exist in the config file
-	if (!deviceConfig.exists(m_stateEstimatorName)) {
-	    m_stateEstimator = device::IStateEstimatorPtr(
-            new device::LoopStateEstimator(
-                config,
-                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
-                IVehiclePtr(this, null_deleter())));
-	}
 
         // Properly fills m_order, and m_subsystemDeps
         core::DependencyGraph depGraph(deviceConfig);
@@ -136,6 +124,27 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             _addDevice(device::IDeviceMaker::newObject(params));
         }
     }
+
+    // Now lets create our default state estimator if we don't have one
+    if (!m_stateEstimator)
+    {
+        m_stateEstimator = device::IStateEstimatorPtr(
+            new device::LoopStateEstimator(
+                config,
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+
+    // Now set the initial values of the estimator
+    double timeStamp = core::TimeVal::timeOfDay().get_double();
+    if (m_depthSensor)
+        m_stateEstimator->depthUpdate(getRawDepth(), timeStamp);
+    if (m_imu)
+        m_stateEstimator->orientationUpdate(getRawOrientation(), timeStamp);
+    if (m_velocitySensor)
+        m_stateEstimator->velocityUpdate(getRawVelocity(), timeStamp);
+    if (m_positionSensor)
+        m_stateEstimator->positionUpdate(getRawPosition(), timeStamp);
     
     // If we specified a name of the mag boom we actually have one
     if (m_magBoomName.size() > 0)
@@ -189,12 +198,6 @@ device::IDevicePtr Vehicle::getDevice(std::string name)
     return (*iter).second;
 }
 
-bool Vehicle::hasDevice(std::string name)
-{
-    NameDeviceMapIter iter = m_devices.find(name);
-    return iter != m_devices.end();
-}
-
 std::vector<std::string> Vehicle::getDeviceNames()
 {
     std::vector<std::string> names;
@@ -205,32 +208,10 @@ std::vector<std::string> Vehicle::getDeviceNames()
 
     return names;
 }
-
-double Vehicle::depthCorrection(double depth, math::Vector3 loc)
-{
-    math::Vector3 currentSensorLocation = 
-      getOrientation() * loc;
-    math::Vector3 sensorMovement = 
-      currentSensorLocation - loc;
-    double correction = sensorMovement.z;
-
-    // Return the corrected depth (its addition and not subtraction because
-    // depth is positive down)
-    return depth + correction;
-}
-
+    
 double Vehicle::getDepth(std::string obj)
 {
-    double rawDepth = m_stateEstimator->getDepth(obj);
-
-    double depth;
-    // Only do correction if we are looking at the vehicle
-    if (obj == "vehicle") {
-	depth = depthCorrection(rawDepth, m_depthSensor->getLocation());
-    } else {
-	depth = rawDepth;
-    }
-    return depth;
+    return m_stateEstimator->getDepth(obj);
 }
 
 math::Vector2 Vehicle::getPosition(std::string obj)
@@ -245,22 +226,17 @@ math::Vector2 Vehicle::getVelocity(std::string obj)
     
 math::Vector3 Vehicle::getLinearAcceleration()
 {
-    return m_stateEstimator->getLinearAcceleration();
+    return m_imu->getLinearAcceleration();
 }
     
 math::Vector3 Vehicle::getAngularRate()
 {
-    return m_stateEstimator->getAngularRate();
+    return m_imu->getAngularRate();
 }
     
 math::Quaternion Vehicle::getOrientation(std::string obj)
 {
     return m_stateEstimator->getOrientation(obj);
-}
-
-bool Vehicle::hasObject(std::string obj)
-{
-    return m_stateEstimator->hasObject(obj);
 }
     
 void Vehicle::safeThrusters()
@@ -337,10 +313,10 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     std::string name(device->getName());
     m_devices[name] = device;
 
-    //device::LoopStateEstimator* loopEstimator =
-    //    boost::dynamic_pointer_cast<device::LoopStateEstimator>(
-    //        m_stateEstimator).get();
-    if ((!m_stateEstimator) && (name == m_stateEstimatorName))
+    device::LoopStateEstimator* loopEstimator =
+        boost::dynamic_pointer_cast<device::LoopStateEstimator>(
+            m_stateEstimator).get();
+    if (loopEstimator && (name == m_stateEstimatorName))
     {
         m_stateEstimator =
             device::IDevice::castTo<device::IStateEstimator>(device);
@@ -350,14 +326,9 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     {
         m_imu = device::IDevice::castTo<device::IIMU>(device);
 
-        /*m_orientationConnection = m_imu->subscribe(
+        m_orientationConnection = m_imu->subscribe(
             device::IIMU::UPDATE,
-            boost::bind(&Vehicle::onOrientationUpdate, this, _1));*/
-    }
-
-    if ((!m_dvl) && (name == m_dvlName))
-    {
-	m_dvl = device::IDevice::castTo<device::IDVL>(device);
+            boost::bind(&Vehicle::onOrientationUpdate, this, _1));
     }
     
     if ((!m_magBoom) && (name == m_magBoomName))
@@ -368,38 +339,35 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         if (m_orientationConnection)
             m_orientationConnection->disconnect();
         
-        /*m_orientationConnection = m_magBoom->subscribe(
+        m_orientationConnection = m_magBoom->subscribe(
             device::IIMU::UPDATE,
-            boost::bind(&Vehicle::onOrientationUpdate, this, _1));*/
+            boost::bind(&Vehicle::onOrientationUpdate, this, _1));
     }
     
     if ((!m_depthSensor) && (name == m_depthSensorName))
     {
         m_depthSensor = device::IDevice::castTo<device::IDepthSensor>(device);
-
-        /*m_depthConnection = m_depthSensor->subscribe(
+        m_depthConnection = m_depthSensor->subscribe(
             device::IDepthSensor::UPDATE,
-            boost::bind(&Vehicle::onDepthUpdate, this, _1));*/
+            boost::bind(&Vehicle::onDepthUpdate, this, _1));
     }
     
     if ((!m_positionSensor) && (name == m_positionSensorName))
     {
         m_positionSensor =
             device::IDevice::castTo<device::IPositionSensor>(device);
-
-        /*m_positionConnection = m_positionSensor->subscribe(
+        m_positionConnection = m_positionSensor->subscribe(
             device::IPositionSensor::UPDATE,
-            boost::bind(&Vehicle::onPositionUpdate, this, _1));*/
+            boost::bind(&Vehicle::onPositionUpdate, this, _1));
     }
 
     if ((!m_velocitySensor) && (name == m_velocitySensorName))
     {
         m_velocitySensor =
             device::IDevice::castTo<device::IVelocitySensor>(device);
-
-        /*m_velocityConnection = m_velocitySensor->subscribe(
+        m_velocityConnection = m_velocitySensor->subscribe(
             device::IVelocitySensor::UPDATE,
-            boost::bind(&Vehicle::onVelocityUpdate, this, _1));*/
+            boost::bind(&Vehicle::onVelocityUpdate, this, _1));
     }
 
     if ((!m_markerDropper) && (name == m_markerDropperName))
@@ -425,7 +393,6 @@ void Vehicle::update(double timestep)
     }
 }
 
-/*
 double Vehicle::getRawDepth()
 {
     // Get the reference to our depth sensor
@@ -449,26 +416,25 @@ double Vehicle::getRawDepth()
 
 math::Vector2 Vehicle::getRawPosition()
 {
-    return m_stateEstimator->getPosition();
+    return m_positionSensor->getPosition();
 }
 
 math::Vector2 Vehicle::getRawVelocity()
 {
     return m_velocitySensor->getVelocity();
 }
-*/
 
 math::Quaternion Vehicle::getRawOrientation()
 {
     if (m_hasMagBoom)
     {
         return Utility::quaternionFromMagAccel(
-            m_stateEstimator->getMagnetometer(),
-            m_stateEstimator->getLinearAcceleration());
+            m_magBoom->getMagnetometer(),
+            m_imu->getLinearAcceleration());
     }
     else
     {
-        return m_stateEstimator->getOrientation();
+        return m_imu->getOrientation();
     }
 }
 
@@ -625,7 +591,6 @@ bool Vehicle::lookupThrusterDevices()
     return good;
 }
 
-/*
 void Vehicle::onDepthUpdate(core::EventPtr event)
 {
     math::NumericEventPtr devent =
@@ -673,7 +638,6 @@ void Vehicle::onVelocityUpdate(core::EventPtr event)
     
     publish(IVehicle::VELOCITY_UPDATE, event);
 }
-*/
     
 } // namespace vehicle
 } // namespace ram

@@ -6,7 +6,6 @@
 
 // Project Includes
 #include "vehicle/include/device/IMU.h"
-#include "vehicle/include/device/LoopStateEstimator.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Helpers.h"
 #include "drivers/imu/include/imuapi.h"
@@ -38,12 +37,11 @@ int main (){
   std::cout << "Magnetic Inclination Finder" << std::endl;
   std::cout << "\n!!! Don't move the robot !!!\n" << std::endl;
   
-  // Create IMU and state estimator Device
+  // Create IMU Device
   IMU imu(ConfigNode::fromString("{}"));
-  LoopStateEstimator estimator(ConfigNode::fromString("{}"));
 
   // Start IMU running in the background
-  imu.background(5);
+  imu.background(5); 
   
   FilteredIMUData imuData;
 
@@ -56,7 +54,7 @@ int main (){
   //collect the data
   for(int index=0; index < numPoints-1; index++){
     //read IMU
-    estimator.getFilteredIMUState(imuData);
+    imu.getFilteredState(imuData);
     //save to arrays
     mag[0][index] = imuData.magX;
     mag[1][index] = imuData.magY;

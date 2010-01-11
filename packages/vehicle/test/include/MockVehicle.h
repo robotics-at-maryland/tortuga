@@ -85,9 +85,6 @@ public:
     
     virtual ram::math::Quaternion getOrientation(std::string obj = "vehicle")
 	{ return orientation; }
-
-    virtual bool hasObject(std::string obj)
-        { return obj == "vehicle"; }
     
     virtual void safeThrusters() { assert(false && "Method not implemented"); }
 

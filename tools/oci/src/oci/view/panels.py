@@ -222,7 +222,7 @@ class DepthPanel(wx.Panel):
         
         if vehicle is not None:
             conn = eventHub.subscribeToType(
-                ext.vehicle.device.IStateEstimator.DEPTH_UPDATE, self._depthUpdate)
+                ext.vehicle.IVehicle.DEPTH_UPDATE, self._depthUpdate)
             self._connections.append(conn)
         
         if controller is not None:
@@ -787,7 +787,7 @@ class RotationPanel(wx.Panel):
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
         conn = eventHub.subscribeToType(
-            ext.vehicle.device.IStateEstimator.ORIENTATION_UPDATE,
+            ext.vehicle.IVehicle.ORIENTATION_UPDATE,
             self._onOrientationUpdate)
         
         conn = eventHub.subscribe(ext.control.IController.DESIRED_ORIENTATION_UPDATE, 
@@ -919,7 +919,7 @@ class SonarPanel(wx.Panel):
         self._connections.append(conn)
         
         conn = eventHub.subscribeToType(
-            ext.vehicle.device.IStateEstimator.ORIENTATION_UPDATE, 
+            ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
             self._onOrientationUpdate)
         self._connections.append(conn)
         
@@ -1224,12 +1224,12 @@ class VelocityPosition(BasePanel):
         
         # Events
         conn = eventHub.subscribeToType(
-            ext.vehicle.device.IStateEstimator.VELOCITY_UPDATE,
+            ext.vehicle.IVehicle.VELOCITY_UPDATE,
             self._onVelocityUpdate)
         self._connections.append(conn)
         
         conn = eventHub.subscribeToType(
-            ext.vehicle.device.IStateEstimator.POSITION_UPDATE,
+            ext.vehicle.IVehicle.POSITION_UPDATE,
             self._onPositionUpdate)
         self._connections.append(conn)
         

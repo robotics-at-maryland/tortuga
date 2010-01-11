@@ -15,7 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
-#include "vehicle/include/device/IDVL.h"
+#include "vehicle/include/device/IVelocitySensor.h"
 
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -36,7 +36,12 @@ namespace device {
 class DVL;
 typedef boost::shared_ptr<DVL> DVLPtr;
 
-class DVL : public IDVL,
+// Consult with Joe for how big he wants this filter
+const static int DVL_FILTER_SIZE = 10;
+
+typedef RawDVLData FilteredDVLData;
+
+class DVL : public IVelocitySensor,
             public Device, // for getName
             public core::Updatable // for update
             // boost::noncopyable
@@ -49,11 +54,15 @@ public:
         IVehiclePtr vehicle = IVehiclePtr());
 
     virtual ~DVL();
+    
+    virtual math::Vector2 getVelocity();
 
     virtual math::Vector3 getLocation();
 
     /** Grabs the raw DVL state */
     void getRawState(RawDVLData& dvlState);
+    /** Grab the filtered state */
+    void getFilteredState(FilteredDVLData& dvlState);
     
     virtual std::string getName() { return Device::getName(); }
     
@@ -96,16 +105,20 @@ private:
 
     /** DVL number for the log file */
     int m_dvlNum;
-
-    /** Heartbeat */
-    int m_heartbeat;
     
+    /** Protects access to public state */
+    core::ReadWriteMutex m_velocityMutex;
+    math::Vector2 m_velocity;
+
     math::Vector3 m_location;
 
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
+
+    /** Filtered and rotated IMU data */
+    FilteredDVLData* m_filteredState;
 };
     
 } // namespace device

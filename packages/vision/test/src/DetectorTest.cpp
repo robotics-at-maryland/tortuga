@@ -28,6 +28,7 @@
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/ImageCamera.h"
 #include "vision/include/FileRecorder.h"
+#include "vision/include/FFMPEGRecorder.h"
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/FFMPEGNetworkRecorder.h"
 #include "vision/include/FFMPEGNetworkCamera.h"
@@ -396,7 +397,7 @@ vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
 
     std::cout <<"Assuming output is a file, Recording to '" << output << "'"
               << std::endl;
-    return new vision::FileRecorder(camera, vision::Recorder::NEXT_FRAME, output);
+    return new vision::FFMPEGRecorder(camera, vision::Recorder::NEXT_FRAME, output);
 }
 
 void brokenPipeHandler(int signum)
