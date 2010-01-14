@@ -10,6 +10,7 @@
 // STD Includes
 #include <cmath>
 #include <iostream>
+#include <csignal>
 
 // UNIX Includes
 #include <unistd.h>
@@ -33,19 +34,36 @@ using namespace ram::vehicle::device;
                                       "'magYBias' : 0,"
                                       "'magZBias' : 0,"
                                       "'localMagneticPitch' : 60}";*/
-static const std::string BIASED_CFG = "{ 'name' : 'IMU',"
-                                      " 'magXBias' : -0.3053,"
-                                      "'magYBias' : 0.2663,"
-                                      "'magZBias' : 0.1884,"
-                                      "'localMagneticPitch' : 60}";
+static const std::string BIASED_CFG =
+    "{ 'name' : 'IMU',"
+    " 'magXBias' : -0.3053,"
+    "'magYBias' : 0.2663,"
+    "'magZBias' : 0.1884,"
+    "'gyroXBias' : 0,"
+    "'gyroYBias' : 0,"
+    "'gyroZBias' : 0,"
+    "'localMagneticPitch' : 60}";
 
 static const std::string EMPTY_CFG = "{}";
 
 static const int POINT_COUNT = 2000;
 static const int MS_SLEEP_TIME = 20;
+static bool RUNNING = true;
+
+void sigIntHandler(int signal)
+{
+    RUNNING = false;
+}
 
 int main()
 {
+
+    // Setup signal handler
+    if (SIG_ERR == signal(SIGINT, sigIntHandler)) {
+	std::cout << "Error setting up signal handler. Aborted." << std::endl;
+	exit(1);
+    }
+
     // Create IMU Device
     IMU imu(ConfigNode::fromString(BIASED_CFG));
 
@@ -94,6 +112,9 @@ int main()
 
 	
 	usleep(MS_SLEEP_TIME * 1000);
+	if (!RUNNING) {
+	    break;
+	}
     }
 
 

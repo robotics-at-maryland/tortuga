@@ -52,6 +52,9 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_rawState(0),
     m_filteredState(0)
 {
+    m_rawState = new RawDVLData();
+    m_filteredState = new FilteredDVLData();
+
     // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
 
@@ -124,6 +127,18 @@ math::Vector2 DVL::getVelocity()
 math::Vector3 DVL::getLocation()
 {
     return m_location;
+}
+
+void DVL::getRawState(RawDVLData& dvlState)
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    dvlState = *m_rawState;
+}
+
+void DVL::getFilteredState(RawDVLData& dvlState)
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    dvlState = *m_filteredState;
 }
    
 } // namespace device

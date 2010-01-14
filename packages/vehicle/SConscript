@@ -75,6 +75,10 @@ if env.HasFeature('drivers'):
                     source = 'test/src/IMUDemo.cpp',
                     int_deps = int_deps)
 
+    envt.RAMProgram(target = 'DVLDemo',
+                    source = 'test/src/DVLDemo.cpp',
+                    int_deps = int_deps)
+
 # Unit Tests
 exclude_list = []
 if not env.HasFeature('drivers'):
