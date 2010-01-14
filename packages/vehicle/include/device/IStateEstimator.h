@@ -26,6 +26,26 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+/**
+ * Returned by the update function for which values get changed in
+ * the estimator.
+ *
+ * Returned by updateX functions. Perform whatever operations need to
+ * be done in the update function and then return which state values were
+ * changed. To combine values, use '|'.
+ *
+ * Ex. To return that the velocity and position have both been changed:
+ *     return State::POS | State::VEL;
+ *
+ * Return 0 if no states have been changed.
+ */
+struct StateFlag {
+    static const int POS = 1;
+    static const int VEL = 1 << 1;
+    static const int DEPTH = 1 << 2;
+    static const int ORIENTATION = 1 << 3;
+};
+
 /** Abstract interface for a StateEstimator that fuses sensor data */
 class RAM_EXPORT IStateEstimator : public IDevice         // For getName
              // boost::noncopyable
@@ -42,20 +62,20 @@ public:
      */
     
     /** Update the estimator with a new orientation */
-    virtual void orientationUpdate(math::Quaternion orientation,
-				   double timeStamp) = 0;
+    virtual int orientationUpdate(math::Quaternion orientation,
+				  double timeStamp) = 0;
 
     /** Update the estimator with a new velocity */
-    virtual void velocityUpdate(math::Vector2 velocity,
-				double timeStamp) = 0;
+    virtual int velocityUpdate(math::Vector2 velocity,
+			       double timeStamp) = 0;
 
     /** Update the estimator with a new position */
-    virtual void positionUpdate(math::Vector2 position,
-				double timeStamp) = 0;
+    virtual int positionUpdate(math::Vector2 position,
+			       double timeStamp) = 0;
     
     /** Update the estimator with a new depth */
-    virtual void depthUpdate(double depth,
-			     double timeStamp) = 0;
+    virtual int depthUpdate(double depth,
+			    double timeStamp) = 0;
     
     /** Get the latest estimated orientation */
     virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;

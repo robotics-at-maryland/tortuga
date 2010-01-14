@@ -142,7 +142,7 @@ class SimVelocitySensor(SimDevice, device.IVelocitySensor):
 device.IDeviceMaker.registerDevice('SimVelocitySensor', SimVelocitySensor)
 
 
-class IdealPositionEstimator(SimDevice, device.IPositionSensor):
+class IdealPositionSensor(SimDevice, device.IPositionSensor):
     def __init__(self, config, eventHub, vehicle):
         self._name = config['name']
         SimDevice.__init__(self)
@@ -168,8 +168,8 @@ class IdealPositionEstimator(SimDevice, device.IPositionSensor):
     def getLocation(self):
         return math.Vector3(0, 0, 0)
 
-device.IDeviceMaker.registerDevice('IdealPositionEstimator',
-                                   IdealPositionEstimator)
+device.IDeviceMaker.registerDevice('IdealPositionSensor',
+                                   IdealPositionSensor)
 
 class SimIMU(SimDevice, device.IIMU):
     def __init__(self, config, eventHub, vehicle):

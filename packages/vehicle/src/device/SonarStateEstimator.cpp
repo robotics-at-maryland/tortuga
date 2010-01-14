@@ -77,41 +77,48 @@ SonarStateEstimator::~SonarStateEstimator()
     m_sonarConnection->disconnect();
 }
 
-void SonarStateEstimator::orientationUpdate(math::Quaternion orientation,
-					    double timeStamp)
+int SonarStateEstimator::orientationUpdate(math::Quaternion orientation,
+					   double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentOrientation = orientation;
 
-    // We don't estimated orientation so lets pipe it straight through
+    // We don't estimate orientation so lets pipe it straight through
     m_estimatedOrientation = m_currentOrientation;
+
+    return StateFlag::ORIENTATION;
 }
 
-void SonarStateEstimator::velocityUpdate(math::Vector2 velocity,
-					 double timeStamp)
+int SonarStateEstimator::velocityUpdate(math::Vector2 velocity,
+					double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentVelocity = velocity;
 
     // Update the filter based on the new velocity
     velocityFilterUpdate(velocity);
+
+    return StateFlag::VEL;
 }
 
-void SonarStateEstimator::positionUpdate(math::Vector2 position,
-					 double timeStamp)
+int SonarStateEstimator::positionUpdate(math::Vector2 position,
+					double timeStamp)
 {
     // Do nothing because we don't depend on another position sensors its
     // all estimated internally
+    return 0;
 }
     
-void SonarStateEstimator::depthUpdate(double depth,
-				      double timeStamp)
+int SonarStateEstimator::depthUpdate(double depth,
+				     double timeStamp)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     m_currentDepth = depth;
 
     // We don't estimated depth, so pipe it right through
     m_estimatedDepth = m_currentDepth;
+
+    return StateFlag::DEPTH;
 }
     
 math::Quaternion SonarStateEstimator::getOrientation(std::string obj)

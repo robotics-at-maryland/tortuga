@@ -597,10 +597,10 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
         boost::dynamic_pointer_cast<math::NumericEvent>(event);
     
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->depthUpdate(getRawDepth(), devent->timeStamp);
-    devent->number = m_stateEstimator->getDepth();
+    int flags = m_stateEstimator->depthUpdate(getRawDepth(),
+					      devent->timeStamp);
     
-    publish(IVehicle::DEPTH_UPDATE, event);
+    handleReturn(flags);
 }
 
 void Vehicle::onOrientationUpdate(core::EventPtr event)
@@ -609,10 +609,9 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
         boost::dynamic_pointer_cast<math::OrientationEvent>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->orientationUpdate(getRawOrientation(), oevent->timeStamp);
-    oevent->orientation = m_stateEstimator->getOrientation();
-    
-    publish(IVehicle::ORIENTATION_UPDATE, event);
+    int flags = m_stateEstimator->orientationUpdate(getRawOrientation(),
+						    oevent->timeStamp);
+    handleReturn(flags);
 }
 
 void Vehicle::onPositionUpdate(core::EventPtr event)
@@ -621,10 +620,10 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->positionUpdate(getRawPosition(), pevent->timeStamp);
-    pevent->vector2 = m_stateEstimator->getPosition();
+    int flags = m_stateEstimator->positionUpdate(getRawPosition(),
+						 pevent->timeStamp);
     
-    publish(IVehicle::POSITION_UPDATE, event);
+    handleReturn(flags);
 }
 
 void Vehicle::onVelocityUpdate(core::EventPtr event)
@@ -633,10 +632,10 @@ void Vehicle::onVelocityUpdate(core::EventPtr event)
         boost::dynamic_pointer_cast<math::Vector2Event>(event);
 
     // Feed the latest value to the estimator, then broadcast the results
-    m_stateEstimator->velocityUpdate(getRawVelocity(), vevent->timeStamp);
-    vevent->vector2 = m_stateEstimator->getVelocity();
-    
-    publish(IVehicle::VELOCITY_UPDATE, event);
+    int flags = m_stateEstimator->velocityUpdate(getRawVelocity(),
+						 vevent->timeStamp);
+
+    handleReturn(flags);
 }
     
 } // namespace vehicle

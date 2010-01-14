@@ -104,6 +104,8 @@ public:
                                        const math::Vector3& torque) = 0;
 
 
+    void handleReturn(int flags);
+
     // These should not be here, but since the property interface is not done
     // yet, they will have to stay
     /** Truns <b>ON</b> the thruster safety */

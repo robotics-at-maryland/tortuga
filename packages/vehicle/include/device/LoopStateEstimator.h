@@ -37,16 +37,16 @@ public:
     
     virtual ~LoopStateEstimator();
 
-    virtual void orientationUpdate(math::Quaternion orientation,
+    virtual int orientationUpdate(math::Quaternion orientation,
 				   double timeStamp);
 
-    virtual void velocityUpdate(math::Vector2 velocity,
+    virtual int velocityUpdate(math::Vector2 velocity,
 				double timeStamp);
 
-    virtual void positionUpdate(math::Vector2 position,
+    virtual int positionUpdate(math::Vector2 position,
 				double timeStamp);
     
-    virtual void depthUpdate(double depth,
+    virtual int depthUpdate(double depth,
 			     double timeStamp);
     
     virtual math::Quaternion getOrientation(std::string obj = "vehicle");

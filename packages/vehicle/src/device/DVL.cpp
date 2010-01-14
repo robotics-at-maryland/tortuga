@@ -56,7 +56,8 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_serialFD = openDVL(m_devfile.c_str());
 
     // TODO: Temporary values until I know what to put in here
-    LOGGER.info("% DVL#(0=main) Velocity TimeStamp");
+    LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
+		" BottomTrack2 BottomTrack3 Velocity TimeStamp");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -94,19 +95,23 @@ void DVL::update(double timestep)
 	    // new velocity from the raw state
 	    math::Vector2 velocity(0, 0);
 
-            //LOGGER.infoStream() << newState.bottomTrack;
+            LOGGER.infoStream() << newState.valid << " "
+				<< newState.bt_velocity[0] << " "
+				<< newState.bt_velocity[1] << " "
+				<< newState.bt_velocity[2] << " "
+				<< newState.bt_velocity[3];
 
 	    // Now publish the new velocity
 	    math::Vector2EventPtr vevent(new math::Vector2Event());
 	    // TODO: Insert whatever the local variable for velocity is
-	    vevent->vector2 = getVelocity();
+	    vevent->vector2 = velocity;
 	    publish(IVelocitySensor::UPDATE, vevent);
 	}
     }
     // We didn't connect, try to reconnect
     else
     {	
-	m_serialFD = openDVL(m_devfile.c_str());
+	//m_serialFD = openDVL(m_devfile.c_str());
     }
 }
 

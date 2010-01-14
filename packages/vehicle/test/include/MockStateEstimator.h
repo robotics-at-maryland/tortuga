@@ -40,21 +40,25 @@ public:
         IStateEstimator(eventHub),
         Device(config["name"].asString()) {}
 
-    virtual void orientationUpdate(ram::math::Quaternion orientation_,
-				   double timeStamp_)
-        { updateOrientation = orientation_; timeStamp = timeStamp_; }
+    virtual int orientationUpdate(ram::math::Quaternion orientation_,
+				  double timeStamp_)
+        { updateOrientation = orientation_; timeStamp = timeStamp_;
+	    return ram::vehicle::device::StateFlag::ORIENTATION; }
     
-    virtual void velocityUpdate(ram::math::Vector2 velocity_,
-                                double timeStamp_)
-        { updateVelocity = velocity_; timeStamp = timeStamp_; }
+    virtual int velocityUpdate(ram::math::Vector2 velocity_,
+			       double timeStamp_)
+        { updateVelocity = velocity_; timeStamp = timeStamp_;
+	    return ram::vehicle::device::StateFlag::VEL; }
     
-    virtual void positionUpdate(ram::math::Vector2 position_,
-				double timeStamp_)
-        { updatePosition = position_; timeStamp = timeStamp_; }
+    virtual int positionUpdate(ram::math::Vector2 position_,
+			       double timeStamp_)
+        { updatePosition = position_; timeStamp = timeStamp_;
+	    return ram::vehicle::device::StateFlag::POS; }
     
-    virtual void depthUpdate(double depth_,
-                             double timeStamp_)
-        { updateDepth = depth_; timeStamp = timeStamp_; }
+    virtual int depthUpdate(double depth_,
+			    double timeStamp_)
+        { updateDepth = depth_; timeStamp = timeStamp_;
+	    return ram::vehicle::device::StateFlag::DEPTH; }
     
     virtual ram::math::Quaternion getOrientation(
         std::string obj = "vehicle") { return orientation[obj]; }

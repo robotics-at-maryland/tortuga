@@ -97,9 +97,13 @@ Vehicle:
             depends_on: ['SimulationDevice']
             type: SimIMU
 
-#        DVL:
-#            depends_on: ['SimulationDevice']
-#            type: SimDVL
+        VelocitySensor:
+            depends_on: ['SimulationDevice']
+            type: SimVelocitySensor
+
+        PositionSensor:
+            depends_on: ['SimulationDevice']
+            type: IdealPositionSensor
 
         DepthSensor:
             depends_on: ["SimulationDevice"]
