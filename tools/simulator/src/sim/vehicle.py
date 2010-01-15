@@ -161,8 +161,8 @@ class IdealPositionSensor(SimDevice, device.IPositionSensor):
 
     def getPosition(self):
         # Gets the exact position relative to the initial position
-        currentPos = math.Vector2(self.robot._main_part._node.position.x,
-                                       self.robot._main_part._node.position.y)
+        currentPos = math.Vector2(-self.robot._main_part._node.position.y,
+                                   self.robot._main_part._node.position.x)
         return currentPos - self.initialPos
 
     def getLocation(self):

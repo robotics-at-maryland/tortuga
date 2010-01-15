@@ -8,6 +8,7 @@
  */
 
 // Library Includes
+#include <boost/shared_ptr.hpp>
 #include <boost/python.hpp>
 
 // Project Includes
@@ -26,7 +27,7 @@
 namespace bp = boost::python;
 
 void registerIDevicePtrs()
-{
+{   
     bp::register_ptr_to_python< ram::vehicle::device::IDevicePtr >();
 
     bp::register_ptr_to_python< ram::vehicle::device::IThrusterPtr >();
@@ -62,6 +63,7 @@ void registerIDevicePtrs()
 	                        ram::vehicle::device::IDevicePtr >();
 
     bp::register_ptr_to_python< ram::vehicle::device::IPositionSensorPtr >();
-    bp::implicitly_convertible< ram::vehicle::device::IVelocitySensorPtr,
+    bp::implicitly_convertible< ram::vehicle::device::IPositionSensorPtr,
 	                        ram::vehicle::device::IDevicePtr >();
+
 }

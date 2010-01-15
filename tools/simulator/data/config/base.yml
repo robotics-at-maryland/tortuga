@@ -87,11 +87,11 @@ Vehicle:
             simName: bot_thruster
             relAxis: z
 
-#        StateEstimator:
-#            depends_on: ['SimulationDevice']
-#            type: SimStateEstimator
-#
-#            INCLUDE: tools/simulator/data/config/maps/default.yml
+        StateEstimator:
+            depends_on: ['SimulationDevice']
+            type: LoopStateEstimator
+
+            INCLUDE: tools/simulator/data/config/maps/default.yml
 
         IMU: # MagBoom
             depends_on: ['SimulationDevice']

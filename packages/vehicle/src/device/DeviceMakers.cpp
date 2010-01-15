@@ -29,6 +29,8 @@
 #include "vehicle/include/device/SBTorpedoLauncher.h"
 #endif // RAM_WITH_DRIVERS
 
+#include "vehicle/include/device/LoopStateEstimator.h"
+
 #ifdef RAM_WITH_VISION
 #include "vehicle/include/device/VisionVelocitySensor.h"
 #endif // RAM_WITH_VISION
@@ -54,6 +56,9 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBTorpedoLauncher,
                                    SBTorpedoLauncher);
 #endif // RAM_WITH_DRIVERS
+
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::LoopStateEstimator,
+				   LoopStateEstimator);
 
 #ifdef RAM_WITH_VISION
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::VisionVelocitySensor,
