@@ -94,8 +94,9 @@ class MockVehicle(vehicle.IVehicle):
         for name, pos in cfg.get('StateEstimator', {}).iteritems():
             self.validObj.add(name)
             self._depth[name] = pos[2]
-            self._orientation[name] = math.Quaternion(math.Degree(pos[3]),
-                                                      math.Vector3.UNIT_Z)
+            self._orientation[name] = ext.math.Quaternion(
+                ext.math.Degree(pos[3]),
+                ext.math.Vector3.UNIT_Z)
             self._velocity[name] = ext.math.Vector2(0, 0)
             self._position[name] = ext.math.Vector2(pos[0], pos[1])
         
