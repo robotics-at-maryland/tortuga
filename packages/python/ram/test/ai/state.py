@@ -368,7 +368,7 @@ class TestStateMachine(unittest.TestCase):
         cfg = { 
             'param' : 5,
             'States' : {
-                'state.StateTestConfig' : {
+                'ram.test.ai.state.StateTestConfig' : {
                     'val' : 10,
                     'other' : 'job'
                 }
@@ -399,25 +399,42 @@ class TestStateMachine(unittest.TestCase):
         self.machine.writeStateGraph(mockFile,state, ordered = True)
         output = mockFile.getvalue()
         expected = "digraph aistate {\n" + \
-            "state_BranchedEnd [label=BranchedEnd,shape=doubleoctagon]\n" + \
-            "state_BranchedMiddle [label=BranchedMiddle,shape=ellipse]\n" + \
-            "state_BranchedState [label=BranchedState,shape=ellipse]\n" + \
-            "state_End [label=End,shape=doubleoctagon]\n" + \
-            "state_LoopBack [label=LoopBack,shape=ellipse]\n" + \
-            "state_QueueTestState [label=QueueTestState,shape=ellipse]\n" + \
-            "state_Simple [label=Simple,shape=ellipse]\n" + \
-            "state_Start [label=Start,shape=ellipse]\n" + \
-            "state_BranchedMiddle -> state_BranchedEnd [label=InBranchEndEvent,style=solid]\n" + \
-            "state_BranchedState -> state_BranchedMiddle [label=InBranchEvent,style=solid]\n" + \
-            "state_LoopBack -> state_LoopBack [label=Update,style=solid]\n" + \
-            "state_QueueTestState -> state_Simple [label=ANOTHER_EVT,style=solid]\n" + \
-            "state_Simple -> state_Start [label=ANOTHER_EVT,style=solid]\n" + \
-            "state_Start -> state_BranchedState [label=Branch,style=dotted]\n" + \
-            "state_Start -> state_End [label=Start,style=solid]\n" + \
-            "state_Start -> state_LoopBack [label=LoopBack,style=solid]\n" + \
-            "state_Start -> state_QueueTestState [label=ANOTHER_EVT,style=solid]\n" + \
-            "state_Start -> state_Simple [label=Change,style=solid]\n" + \
-            "state_Start -> state_Simple [label=THING_UPDATED,style=solid]\n" + \
+            "ram_test_ai_state_BranchedEnd " + \
+            "[label=BranchedEnd,shape=doubleoctagon]\n" + \
+            "ram_test_ai_state_BranchedMiddle " + \
+            "[label=BranchedMiddle,shape=ellipse]\n" + \
+            "ram_test_ai_state_BranchedState " + \
+            "[label=BranchedState,shape=ellipse]\n" + \
+            "ram_test_ai_state_End [label=End,shape=doubleoctagon]\n" + \
+            "ram_test_ai_state_LoopBack [label=LoopBack,shape=ellipse]\n" + \
+            "ram_test_ai_state_QueueTestState " + \
+            "[label=QueueTestState,shape=ellipse]\n" + \
+            "ram_test_ai_state_Simple [label=Simple,shape=ellipse]\n" + \
+            "ram_test_ai_state_Start [label=Start,shape=ellipse]\n" + \
+            "ram_test_ai_state_BranchedMiddle -> " + \
+            "ram_test_ai_state_BranchedEnd " + \
+            "[label=InBranchEndEvent,style=solid]\n" + \
+            "ram_test_ai_state_BranchedState -> " + \
+            "ram_test_ai_state_BranchedMiddle " + \
+            "[label=InBranchEvent,style=solid]\n" + \
+            "ram_test_ai_state_LoopBack -> " + \
+            "ram_test_ai_state_LoopBack [label=Update,style=solid]\n" + \
+            "ram_test_ai_state_QueueTestState -> " + \
+            "ram_test_ai_state_Simple [label=ANOTHER_EVT,style=solid]\n" + \
+            "ram_test_ai_state_Simple -> ram_test_ai_state_Start " + \
+            "[label=ANOTHER_EVT,style=solid]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_BranchedState " + \
+            "[label=Branch,style=dotted]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_End " + \
+            "[label=Start,style=solid]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_LoopBack " + \
+            "[label=LoopBack,style=solid]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_QueueTestState " + \
+            "[label=ANOTHER_EVT,style=solid]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_Simple " + \
+            "[label=Change,style=solid]\n" + \
+            "ram_test_ai_state_Start -> ram_test_ai_state_Simple " + \
+            "[label=THING_UPDATED,style=solid]\n" + \
             "}"
 
         self.assertEquals(expected,output)

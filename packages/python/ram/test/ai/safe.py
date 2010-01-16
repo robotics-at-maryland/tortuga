@@ -126,7 +126,7 @@ class TestOffsetting(aisupport.AITestCase):
         
     def testOffsetting(self):
         mockTimer = \
-            support.MockTimer.LOG[motion.safe.OffsettingHover.NEXT_OFFSET]
+            aisupport.MockTimer.LOG[motion.safe.OffsettingHover.NEXT_OFFSET]
         self.assert_(mockTimer.repeat)
         self.assertEqual(mockTimer.sleepTime, 0.1)
 

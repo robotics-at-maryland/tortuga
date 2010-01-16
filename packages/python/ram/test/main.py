@@ -31,8 +31,10 @@ def importFromPath(path):
     try:
         return imp.load_module(name, f, pathname, decs)
     except ImportError,e:
-        print 'Could import %s: '% path.replace(testDir, ''),
+        print "Couldn't import %s: "% path.replace(testDir, ''),
         print '\t',e
+    finally:
+        f.close()
     
     return None
 
@@ -41,9 +43,10 @@ def main(argv = None):
         argv = sys.argv
         
     testLoader = unittest.TestLoader()
-    suite = unittest.TestSuite()   
     testDir = os.path.dirname(ram.test.__file__)
-    
+    suite = unittest.TestSuite()
+    baseName = 'ram.test'
+
     # Recursively walk the path 
     for root, dirs, files in os.walk(testDir):
         # Only take *.py files in add the directory
@@ -54,23 +57,28 @@ def main(argv = None):
         pathes = [p for p in pathes if 0 == p.count('__init__')]
 
         for path in pathes:
-            mod = importFromPath(path)
+            name = path.replace(testDir,'')
+            print 'Gathering From: ',path.replace(testDir,'')
 
-            if mod is not None:
-                print 'Gathering From: ',path.replace(testDir,'')
-                suite.addTest(testLoader.loadTestsFromModule(mod))
+            # Turn path into dotted name
+            try:
+                dottedName = baseName + name.replace('/', '.')[:-3]
+                test = testLoader.loadTestsFromName(dottedName)
+                suite.addTest(test)
+            except AttributeError:
+                print "Could not find module: %s" % (dottedName)
         
         # don't visit SVN directories    
         if '.svn' in dirs:
-            dirs.remove('.svn')  
-        
+            dirs.remove('.svn')
+
     # Run the tests
     print '\nRunning Tests:'
     result = unittest.TextTestRunner().run(suite)
 
     if not result.wasSuccessful():
-        return 1 # Failure
-    
+       return 1 # Failure
+
     return 0
         
 if __name__ == '__main__':
