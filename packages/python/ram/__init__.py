@@ -15,4 +15,3 @@ import ram.monitor as _monitor
 
 # Ensure we are using the proper version of python
 import ram_version_check
-

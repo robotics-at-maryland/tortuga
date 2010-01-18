@@ -5,9 +5,16 @@
 # Author: Jonathan Sternberg <jsternbe@umd.edu>
 # File: packages/python/ram/monitor.py
 
+# STD Imports
+import os
+import time
+from datetime import datetime
+
 # Project imports
 import ext.core as core
+import ext.math as math
 import ext.vehicle
+import ram.timer as timer
 from ram.logloader import resolve
 
 class Monitor(core.Subsystem):
@@ -24,9 +31,9 @@ class Monitor(core.Subsystem):
         core.Subsystem.__init__(self, cfg.get('name', 'Monitor'), deps)
 
         # Get essential subsystems
-        self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
-                                                            deps,
-                                                            nonNone = True)
+        self._qeventHub = \
+            core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
+                                              deps, nonNone = True)
 
         self._signals = {}
 
@@ -51,8 +58,8 @@ class Monitor(core.Subsystem):
         for signal in self._signals.itervalues():
             del signal
 
-    #def backgrounded(self):
-    #    return True
+    def backgrounded(self):
+        return True
 
 class Signal(object):
     def __init__(self, qeventHub, eventType, propName, name,
@@ -120,3 +127,155 @@ class Signal(object):
         self._lastValue = value
 
 core.registerSubsystem('Monitor', Monitor)
+
+class CPUData(object):
+    def __init__(self, f, size):
+        self._size = size
+        self._file = f
+        self._data = []
+
+        if self._file is not None:
+            self.appendData = self._appendData
+            self.flushData = self._flushData
+        else:
+            self.appendData = self._pass
+            self.flushData = self._pass
+
+    def __del__(self):
+        self.flushData(True)
+
+    def _pass(self, *args, **kwargs):
+        pass
+
+    def _appendData(self, user, sys, idle):
+        self._data.append((user, sys, idle))
+
+    def _averageStats(self):
+        userAvg, sysAvg, idleAvg = 0, 0, 0
+        size = len(self._data)
+        if size == 0:
+            return userAvg, sysAvg, idleAvg
+
+        for (u, s, i) in self._data:
+            userAvg, sysAvg, idleAvg = userAvg + u,sysAvg + s,idleAvg + i
+        return (userAvg / size, sysAvg / size, idleAvg / size)
+
+    # Flushes data to disk if the amount of data is greater than the size
+    def _flushData(self, force = False):
+        if len(self._data) != 0 and (len(self._data) >= self._size or force):
+            self._file.write('User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f\n' \
+                                 % self._averageStats())
+            self._data = []
+
+class CPUMonitor(core.Subsystem):
+
+    USR_UPDATE = core.declareEventType('USR_UPDATE')
+    SYS_UPDATE = core.declareEventType('SYS_UPDATE')
+    IDLE_UPDATE = core.declareEventType('IDLE_UPDATE')
+
+    def __init__(self, cfg = None, deps = None):
+        if deps is None:
+            deps = []
+        if cfg is None:
+            cfg = {}
+
+        core.Subsystem.__init__(self, cfg.get('name', 'CPUMonitor'), deps)
+
+        self._qeventHub = \
+            core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
+                                              deps, nonNone = True)
+
+        self._config = cfg
+
+        self._bufSize = cfg.get('bufferSize', 1)
+        self._log = cfg.get('log_results', True)
+
+        if self._log:
+            # Generate log name
+            timeStamp = datetime.fromtimestamp(timer.time())
+            directory = timeStamp.strftime("%Y%m%d%H%M%S")
+            
+            # Create the directory, the directory name should never conflict
+            # If it does, this should crash
+            os.mkdir(directory)
+            self._file = open(directory + '/cpu.log', 'w')
+        else:
+            self._file = None
+
+        # Setup logfile
+        self._data = CPUData(self._file, self._bufSize)
+
+        # Initial values
+        f = open('/proc/stat')
+        self._start_values = f.readline().split()[1:]
+        self._start_time = time.time()
+        f.close()
+
+    def unbackground(self, join = False):
+        core.Subsystem.unbackground(self, join)
+
+        # Flush the buffer and close the file
+        del self._data
+        if self._file is not None:
+            self._file.close()
+
+    def _createEvent(self, perc):
+        event = math.NumericEvent()
+        event.number = perc
+        return event
+
+    def update(self, timeStep):
+        # Open /proc/stat to get CPU information
+        f = open('/proc/stat')
+
+        self._end_values = f.readline().split()[1:]
+        self._end_time = time.time()
+        f.close()
+
+        # Determine the difference in ticks between two valeus
+        start_sum = 0
+        for i in self._start_values:
+            start_sum += int(i)
+            
+        end_sum = 0
+        for i in self._end_values:
+            end_sum += int(i)
+    
+        total_diff = float(end_sum - start_sum)
+
+        # Find the fractional difference of each section
+        
+        # Order of elements: user nice system idle
+        # user: normal processes executing in user mode
+        # nice: niced processes executing in user mode
+        # system: processes executing in kernel mode
+        # idle: twiddling thumbs 
+        
+        user_diff = (int(self._end_values[0]) - \
+                         int(self._start_values[0])) * 100
+        system_diff = (int(self._end_values[2]) - \
+                           int(self._start_values[2])) * 100
+        idle_diff = (int(self._end_values[3]) - \
+                        int(self._start_values[3])) * 100
+
+        # Generate usage percentages
+        userPer, sysPer, idlePer = user_diff / total_diff, \
+            system_diff / total_diff, idle_diff / total_diff
+
+        # Publish updates
+        self._qeventHub.publish(CPUMonitor.USR_UPDATE,
+                                self._createEvent(userPer))
+        self._qeventHub.publish(CPUMonitor.SYS_UPDATE,
+                                self._createEvent(sysPer))
+        self._qeventHub.publish(CPUMonitor.IDLE_UPDATE,
+                                self._createEvent(idlePer))
+
+        # Record data
+        self._data.appendData(userPer, sysPer, idlePer)
+        self._data.flushData()
+
+        # Save end times as the new start time
+        self._start_values = self._end_values
+        self._start_time = self._end_time
+
+core.registerSubsystem('CPUMonitor', CPUMonitor)
