@@ -46,14 +46,37 @@ class Monitor(core.Subsystem):
 
         # Iterate through the config file subscribing to any events it lists
         for name, data in cfg.iteritems():
+            publisher = self._lookupByName(data.get('publisher', None), deps)
             self._signals[name] = Signal(self._qeventHub,
+                                         publisher,
                                          data['eventType'],
                                          data['property'],
                                          data['name'],
                                          data['warning'],
                                          data['critical'])
 
-    def __del__(self):
+    def _lookupByName(self, publisher, deps):
+        # Subscribe to the queued event hub if no publisher is specified
+        if publisher is None:
+            return self._qeventHub
+
+        # If the publisher is a device, different operations are performed
+        if publisher.startswith('Vehicle.Device.'):
+            deviceName = publisher[len('Vehicle.Device.'):]
+            vehicle = core.Subsystem.getSubsystemOfType(
+                ext.vehicle.IVehicle, deps)
+            device = vehicle.getDevice(deviceName)
+            return device
+        else:
+            # Normal operations for any other publisher
+            systemName = publisher.split('.')[0]
+            for d in deps:
+                depName = d.getPublisherName().split('.')[-1]
+
+                if depName == systemName:
+                    return d
+
+    def unbackground(self, join = False):
         # Delete all signals
         for signal in self._signals.itervalues():
             del signal
@@ -62,9 +85,10 @@ class Monitor(core.Subsystem):
         return True
 
 class Signal(object):
-    def __init__(self, qeventHub, eventType, propName, name,
+    def __init__(self, qeventHub, publisher, eventType, propName, name,
                  warning, critical):
         self._qeventHub = qeventHub
+        self._publisher = publisher
         self._eventType = eventType
         self._property = propName
         self._name = name
@@ -74,7 +98,8 @@ class Signal(object):
 
         eventType = resolve(self._eventType)
 
-        self._conn = self._qeventHub.subscribeToType(eventType, self._handler)
+        self._conn = self._qeventHub.subscribe(eventType, self._publisher,
+                                               self._handler)
 
     def __del__(self):
         self._conn.disconnect()
