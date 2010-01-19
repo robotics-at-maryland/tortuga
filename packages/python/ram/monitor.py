@@ -9,6 +9,7 @@
 import os
 import time
 from datetime import datetime
+from types import *
 
 # Project imports
 import ext.core as core
@@ -28,6 +29,11 @@ class Monitor(core.Subsystem):
     CRITICAL = core.declareEventType("CRITICAL")
 
     def __init__(self, cfg, deps):
+        if cfg is None:
+            cfg = {}
+        if deps is None:
+            deps = []
+
         core.Subsystem.__init__(self, cfg.get('name', 'Monitor'), deps)
 
         # Get essential subsystems
@@ -37,15 +43,10 @@ class Monitor(core.Subsystem):
 
         self._signals = {}
 
-        # Clear config file of extra values
-        if cfg.has_key('type'):
-            cfg.pop('type')
-        if cfg.has_key('depends_on'):
-            cfg.pop('depends_on')
-        cfg.pop('name')
+        sysCfg = cfg.get('Systems', {})
 
         # Iterate through the config file subscribing to any events it lists
-        for name, data in cfg.iteritems():
+        for name, data in sysCfg.iteritems():
             publisher = self._lookupByName(data.get('publisher', None), deps)
             self._signals[name] = Signal(self._qeventHub,
                                          publisher,
@@ -106,33 +107,33 @@ class Signal(object):
 
     def _checkMaximum(self, value, event):
         if value > self._lastValue:
-            if value > self._critical and self._lastValue <= self._critical:
+            if value >= self._critical and self._lastValue < self._critical:
                 # Publish a critical event
                 self._qeventHub.publish(Monitor.CRITICAL, event)
-            elif value > self._warning and self._lastValue <= self._warning:
+            elif value >= self._warning and self._lastValue < self._warning:
                 # Publish a warning event
                 self._qeventHub.publish(Monitor.WARNING, event)
         else:
-            if value <= self._warning and self._lastValue > self._warning:
+            if value < self._warning and self._lastValue >= self._warning:
                 # Publish a nominal event
                 self._qeventHub.publish(Monitor.NOMINAL, event)
-            elif value <= self._critical and self._lastValue > self._critical:
+            elif value < self._critical and self._lastValue >= self._critical:
                 # Publish a warning event
                 self._qeventHub.publish(Monitor.WARNING, event)
 
     def _checkMinimum(self, value, event):
-        if value < self._lastValue:
-            if value < self._critical and self._lastValue >= self._critical:
+        if value <= self._lastValue:
+            if value <= self._critical and self._lastValue > self._critical:
                 # Publish a critical event
                 self._qeventHub.publish(Monitor.CRITICAL, event)
-            elif value < self._warning and self._lastValue >= self._warning:
+            elif value <= self._warning and self._lastValue > self._warning:
                 # Publish a warning event
                 self._qeventHub.publish(Monitor.WARNING, event)
         else:
-            if value >= self._warning and self._lastValue < self._warning:
+            if value > self._warning and self._lastValue <= self._warning:
                 # Publish a nominal event
                 self._qeventHub.publish(Monitor.NOMINAL, event)
-            elif value >= self._critical and self._lastValue < self._critical:
+            elif value > self._critical and self._lastValue <= self._critical:
                 # Publish a warning event
                 self._qeventHub.publish(Monitor.WARNING, event)
 

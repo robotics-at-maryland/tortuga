@@ -20,7 +20,7 @@ def main():
     parser = OptionParser()
     parser.add_option('-f', dest='filename', default=None,
                       help='write report to FILE', metavar='FILE')
-    parser.add_option('-v', dest='verbose', default=True,
+    parser.add_option('-v', dest='verbose', default=False,
                       help='verbose mode')
     parser.add_option('-s', '--size', dest='size', default=1,
                       help='size of the averaging filter SIZE', metavar='SIZE')
@@ -44,6 +44,10 @@ def main():
     printfunc("Starting main program")
     
     top.AnalyzeComputer(file = file, size = size)
+
+    if file is not None:
+        printfunc("Closing file")
+        file.close()
 
 if __name__ == '__main__':
     main()
