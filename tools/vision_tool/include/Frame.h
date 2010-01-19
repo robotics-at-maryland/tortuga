@@ -27,7 +27,8 @@ namespace visionvwr {
     
 enum
 {
-    ID_Quit = 1, ID_About, ID_OpenFile, ID_OpenCamera, ID_SaveImage
+    ID_Quit = 1, ID_About, ID_OpenFile, ID_OpenCamera, ID_SaveImage,
+    ID_SaveAsImage, ID_SetDir
 };
 
 class Frame: public wxFrame
@@ -42,6 +43,10 @@ private:
     void onAbout(wxCommandEvent& event);
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
+    void onSetDirectory(wxCommandEvent& event);
+    bool saveImage(wxString name);
+    void onSaveAsImage(wxCommandEvent& event);
+    wxString numToString(int num);
     void onSaveImage(wxCommandEvent& event);
     void onShowHideDetector(wxCommandEvent& event);
 
@@ -55,6 +60,8 @@ private:
     Model* m_model;
     wxFrame* m_detectorFrame;
     wxTextCtrl* m_configText;
+
+    wxString m_saveDir;
 
     DECLARE_EVENT_TABLE()
 };

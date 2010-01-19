@@ -15,6 +15,7 @@
 #include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/msgdlg.h>
+#include <wx/dirdlg.h>
 #include <wx/filedlg.h>
 #include <wx/timer.h>
 #include <wx/button.h>
@@ -41,7 +42,9 @@ BEGIN_EVENT_TABLE(Frame, wxFrame)
     EVT_MENU(ID_About, Frame::onAbout)
     EVT_MENU(ID_OpenFile, Frame::onOpenFile)
     EVT_MENU(ID_OpenCamera, Frame::onOpenCamera)
+    EVT_MENU(ID_SetDir, Frame::onSetDirectory)
     EVT_MENU(ID_SaveImage, Frame::onSaveImage)
+    EVT_MENU(ID_SaveAsImage, Frame::onSaveAsImage)
 END_EVENT_TABLE()
 
 
@@ -55,13 +58,20 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_OpenFile, _T("Open Video &File"));
     menuFile->Append(ID_OpenCamera, _T("Open CV &Camera"));
-    menuFile->Append(ID_SaveImage, _T("&Save Image..."));
     menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
     menuFile->Append(ID_Quit, _T("E&xit"));
 
+    // Image Menu
+    wxMenu *menuImage = new wxMenu;
+    menuImage->Append(ID_SetDir, _T("Set &Directory..."));
+    menuImage->AppendSeparator();
+    menuImage->Append(ID_SaveImage, _T("&Save\tCtrl+S"));
+    menuImage->Append(ID_SaveAsImage, _T("Save &Image..."));
+
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append( menuFile, _T("&File") );
+    menuBar->Append( menuImage, _T("&Image") );
     
     SetMenuBar( menuBar );
 
@@ -163,23 +173,76 @@ void Frame::onOpenCamera(wxCommandEvent& event)
     m_model->openCamera();
 }
 
-void Frame::onSaveImage(wxCommandEvent& event)
+void Frame::onSetDirectory(wxCommandEvent& event)
+{
+    wxDirDialog chooser(this);
+    int id = chooser.ShowModal();
+    if (id == wxID_OK) {
+	m_saveDir = chooser.GetPath();
+    }
+}
+
+bool Frame::saveImage(wxString pathname)
 {
     vision::Image* image = m_model->getLatestImage();
-    if (image != NULL) {
-	wxFileDialog *saveWindow =
-	    new wxFileDialog(this, _T("Save file..."), _T(""), _T(""),
-			     _T("*.*"), wxSAVE | wxOVERWRITE_PROMPT);
-	int result = saveWindow->ShowModal();
-	if (result == wxID_OK) {
-	    wxString pathname(saveWindow->GetPath());
-	    cvSaveImage(pathname.mb_str(wxConvUTF8),
-                        image->asIplImage());
-	}
-    } else {
-	// TODO: Create message box detailing error
-	std::cout << "Cannot save while an image is running." << std::endl;
+    
+    // Check that there is an image to save
+    if (image == NULL) {
+	// Create a message saying there was an error saving
+	wxMessageDialog messageWindow(this,
+				      _T("Error: Could not save the image.\n"
+					 "(The video cannot be playing while "
+					 "saving an image)"),
+				      _T("ERROR!"), wxOK);
+	messageWindow.ShowModal();
+	return false;
     }
+
+    // No error, save the image
+    cvSaveImage(pathname.mb_str(wxConvUTF8),
+		image->asIplImage());
+    return true;
+}
+
+void Frame::onSaveAsImage(wxCommandEvent& event)
+{
+    wxFileDialog saveWindow(this, _T("Save file..."), _T(""), _T(""),
+			    _T("*.*"), wxSAVE | wxOVERWRITE_PROMPT);
+    int result = saveWindow.ShowModal();
+    if (result == wxID_OK) {
+	saveImage(saveWindow.GetPath());
+    }
+}
+
+wxString Frame::numToString(int num)
+{
+    wxString s = wxString::Format(_T("%d"), num);
+    short zeros = 4 - s.length();
+
+    wxString ret;
+    ret.Append(_T('0'), zeros);
+    ret.Append(s);
+    ret.Append(_T(".png"));
+
+    return ret;
+}
+
+void Frame::onSaveImage(wxCommandEvent& event)
+{
+    // Keep a counter (the first save will be slow(
+    static int imageNum = 1;
+
+    // Save to the default path
+    // Find a file that doesn't exist
+    wxFileName filename(m_saveDir, numToString(imageNum));
+    while (filename.FileExists()) {
+	imageNum++;
+	filename = wxFileName(m_saveDir, numToString(imageNum));
+    }
+
+    wxString fullpath(filename.GetFullPath());
+    std::cout << "Quick save to " << fullpath.mb_str(wxConvUTF8) << std::endl;
+    saveImage(fullpath);
 }
 
 void Frame::onShowHideDetector(wxCommandEvent& event)
