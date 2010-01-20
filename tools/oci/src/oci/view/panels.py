@@ -1503,6 +1503,51 @@ class MonitorPanel(wx.Panel):
 
         return []
 
+class CpuPanel(BasePanel):
+    implements(IPanelProvider)
+
+    def __init__(self, parent, eventHub, *args, **kwargs):
+        BasePanel.__init__(self, parent, *args, **kwargs)
+
+        textSize = self._getTextSize()
+        textStyle = wx.TE_RIGHT | wx.TE_READONLY
+
+        self._text = wx.TextCtrl(self, size = textSize, style = textStyle)
+
+        self._filter = filter.MovingAverageFilter(10)
+
+        # Subscribe to cpu idle event
+        self._conn = eventHub.subscribeToType(monitor.CpuMonitor.IDLE_UPDATE,
+                                              self._onUpdate)
+
+    def _onUpdate(self, event):
+        # Given as a percentage 0-100
+        idle_time = event.number
+
+        # Run an average filter on the incoming data
+        self._filter.append(100 - idle_time)
+
+        # Cpu usage is 100 - idle_time
+        self._text.SetValue(str(self._filter.getAverage()))
+
+    def _onClose(self, event):
+        self._conn.disconnect()
+        BasePanel._onClose(self, event)
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
+                                                     subsystems, nonNone = True)
+
+        if eventHub is not None:
+            paneInfo = wx.aui.AuiPaneInfo().Name('Cpu')
+            paneInfo = paneInfo.Caption('Cpu').Left()
+
+            return [(paneInfo, CpuPanel(parent, eventHub), [eventHub])]
+
+        return []
+        
+
 #class SeekObjectivePanel(BasePanel):
 #    implements(IPanelProvider)
 

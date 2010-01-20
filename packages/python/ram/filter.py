@@ -27,7 +27,7 @@ class MovingAverageFilter(RingBuffer):
         
         # Fill buffer with default values
         if default is not None:
-            for i in range(0, size):
+            for i in xrange(0, size):
                 self.append(default)
             
     def getAverage(self):
