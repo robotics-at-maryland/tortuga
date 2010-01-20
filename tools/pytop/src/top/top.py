@@ -25,45 +25,49 @@ import signal
 # The next several lines of the stat file contain CPU specific data, so you can
 # check each CPU if desired
 
-def AnalyzeComputer(file, size):
-    class Data(object):
-        def __init__(self, file, size):
-            self._size = size
-            self._file = file
-            self._data = []
+def AnalyzeComputer(file, size, type_locs):
+    def numToCpuType(num):
+        return { 0 : 'User', 1 : 'Nice', 2 : 'Sys', 3 : 'Idle',
+                 4 : 'IOWait', 5 : 'IRQ', 6 : 'SIRQ' }.get(num, 'Invalid')
 
-            # Only setup the public functions if there is a file to write to
-            if file is not None:
-                self.appendData = self._appendData
-                self.flushData = self._flushData
-            else:
-                self.appendData = self._pass
-                self.flushData = self._pass
+    # class Data(object):
+    #     def __init__(self, file, size):
+    #         self._size = size
+    #         self._file = file
+    #         self._data = []
 
-        def _pass(self, *args, **kwargs):
-            pass
+    #         # Only setup the public functions if there is a file to write to
+    #         if file is not None:
+    #             self.appendData = self._appendData
+    #             self.flushData = self._flushData
+    #         else:
+    #             self.appendData = self._pass
+    #             self.flushData = self._pass
 
-        def _appendData(self, user, sys, idle):
-            self._data.append((user, sys, idle))
+    #     def _pass(self, *args, **kwargs):
+    #         pass
 
-        def _averageStats(self):
-            userAvg, sysAvg, idleAvg = 0, 0, 0
-            size = len(self._data)
-            if size == 0:
-                return userAvg, sysAvg, idleAvg
+    #     def _appendData(self, user, sys, idle):
+    #         self._data.append((user, sys, idle))
 
-            for (u, s, i) in self._data:
-                userAvg, sysAvg, idleAvg = userAvg + u,sysAvg + s,idleAvg + i
-            return (userAvg / size, sysAvg / size, idleAvg / size)
+    #     def _averageStats(self):
+    #         userAvg, sysAvg, idleAvg = 0, 0, 0
+    #         size = len(self._data)
+    #         if size == 0:
+    #             return userAvg, sysAvg, idleAvg
 
-        # Flushes data to disk if the amount of data is greater than the size
-        def _flushData(self, force = False):
-            if len(self._data) >= self._size or force:
-                self._file.write('User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f\n' % self._averageStats())
-                self._data = []
+    #         for (u, s, i) in self._data:
+    #             userAvg, sysAvg, idleAvg = userAvg + u,sysAvg + s,idleAvg + i
+    #         return (userAvg / size, sysAvg / size, idleAvg / size)
+
+    #     # Flushes data to disk if the amount of data is greater than the size
+    #     def _flushData(self, force = False):
+    #         if len(self._data) >= self._size or force:
+    #             self._file.write('User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f\n' % self._averageStats())
+    #             self._data = []
                 
-    print 'sTop, a Simple python written in Top (Crtl+C to exit)'
-    data = Data(file, size)
+    print 'PyTop, a Simple python written in Top (Crtl+C to exit)'
+    #data = Data(file, size)
 
     while True:
         f = open('/proc/stat')
@@ -102,24 +106,20 @@ def AnalyzeComputer(file, size):
         # nice: niced processes executing in user mode
         # system: processes executing in kernel mode
         # idle: twiddling thumbs 
+
+        output = ''
+        for num in type_locs:
+            diff = (int(end_values[num]) - int(start_values[num])) * 100
+            perc = diff / total_diff
+            output += '%s: %%%5.2f ' % (numToCpuType(num), perc)
         
-        user_diff = (int(end_values[0]) - int(start_values[0])) * 100
-        system_diff = (int(end_values[2]) - int(start_values[2])) * 100
-        idle_diff = (int(end_values[3]) - int(start_values[3])) * 100
-
-        # Generate our output string
-        userPer, sysPer, idlePer = user_diff / total_diff, \
-            system_diff / total_diff, idle_diff / total_diff
-        output = 'User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f' % \
-            (userPer, sysPer, idlePer)
-
         # Record data
-        data.appendData(userPer, sysPer, idlePer)
-        data.flushData()
+        #data.appendData(userPer, sysPer, idlePer)
+        #data.flushData()
 
         # Move the start of the line, overwrite the old output, and
         # flush stdout so its displayed
         print '\r', output,
         sys.stdout.flush()
 
-    data.flushData(True)
+    #data.flushData(True)
