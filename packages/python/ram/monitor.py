@@ -154,7 +154,7 @@ class Signal(object):
 
 core.registerSubsystem('Monitor', Monitor)
 
-class CPUData(object):
+class CpuData(object):
     def __init__(self, f, size):
         self._size = size
         self._file = f
@@ -173,31 +173,41 @@ class CPUData(object):
     def _pass(self, *args, **kwargs):
         pass
 
-    def _appendData(self, user, sys, idle):
-        self._data.append((user, sys, idle))
+    def _appendData(self, arr):
+        self._data.append((arr[0], arr[1], arr[2], arr[3],
+                           arr[4], arr[5], arr[6]))
 
     def _averageStats(self):
-        userAvg, sysAvg, idleAvg = 0, 0, 0
+        userAvg, niceAvg, sysAvg, idleAvg, iowtAvg, irqAvg, sirqAvg = \
+            0, 0, 0, 0, 0, 0, 0
         size = len(self._data)
         if size == 0:
-            return userAvg, sysAvg, idleAvg
+            return userAvg, niceAvg, sysAvg, idleAvg, iowtAvg, irqAvg, sirqAvg
 
-        for (u, s, i) in self._data:
-            userAvg, sysAvg, idleAvg = userAvg + u,sysAvg + s,idleAvg + i
-        return (userAvg / size, sysAvg / size, idleAvg / size)
+        for (u, n, s, i, wt, irq, sirq) in self._data:
+            userAvg, niceAvg, sysAvg, idleAvg, iowtAvg, irqAvg, sirqAvg = \
+                userAvg + u, niceAvg + n, sysAvg + s, idleAvg + i, \
+                iowtAvg + wt, irqAvg + irq, sirqAvg + sirq
+        return (userAvg / size, niceAvg / size, sysAvg / size, idleAvg / size,
+                iowtAvg / size, irqAvg / size, sirqAvg / size)
 
     # Flushes data to disk if the amount of data is greater than the size
     def _flushData(self, force = False):
         if len(self._data) != 0 and (len(self._data) >= self._size or force):
-            self._file.write('User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f\n' \
-                                 % self._averageStats())
+            self._file.write('User: %%%5.2f Nice: %%%5.2f Syst: %%%5.2f '
+                             'Idle: %%%5.2f IOWt: %%%5.2f IRQ: %%%5.2f '
+                             'SIRQ: %%%5.2f\n' % self._averageStats())
             self._data = []
 
-class CPUMonitor(core.Subsystem):
+class CpuMonitor(core.Subsystem):
 
-    USR_UPDATE = core.declareEventType('USR_UPDATE')
-    SYS_UPDATE = core.declareEventType('SYS_UPDATE')
+    USER_UPDATE = core.declareEventType('USER_UPDATE')
+    NICE_UPDATE = core.declareEventType('NICE_UPDATE')
+    SYS_UPDATE  = core.declareEventType('SYS_UPDATE' )
     IDLE_UPDATE = core.declareEventType('IDLE_UPDATE')
+    IOWT_UPDATE = core.declareEventType('IOWT_UPDATE')
+    IRQ_UPDATE  = core.declareEventType('IRQ_UPDATE' )
+    SIRQ_UPDATE = core.declareEventType('SIRQ_UPDATE')
 
     def __init__(self, cfg = None, deps = None):
         if deps is None:
@@ -205,7 +215,7 @@ class CPUMonitor(core.Subsystem):
         if cfg is None:
             cfg = {}
 
-        core.Subsystem.__init__(self, cfg.get('name', 'CPUMonitor'), deps)
+        core.Subsystem.__init__(self, cfg.get('name', 'CpuMonitor'), deps)
 
         self._qeventHub = \
             core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
@@ -229,13 +239,22 @@ class CPUMonitor(core.Subsystem):
             self._file = None
 
         # Setup logfile
-        self._data = CPUData(self._file, self._bufSize)
+        self._data = CpuData(self._file, self._bufSize)
 
         # Initial values
         f = open('/proc/stat')
         self._start_values = f.readline().split()[1:]
         self._start_time = time.time()
         f.close()
+
+        # Pack the update types into an array
+        self._updateTypes = [ CpuMonitor.USER_UPDATE,
+                              CpuMonitor.NICE_UPDATE,
+                              CpuMonitor.SYS_UPDATE,
+                              CpuMonitor.IDLE_UPDATE,
+                              CpuMonitor.IOWT_UPDATE,
+                              CpuMonitor.IRQ_UPDATE,
+                              CpuMonitor.SIRQ_UPDATE ]
 
     def unbackground(self, join = False):
         core.Subsystem.unbackground(self, join)
@@ -277,31 +296,21 @@ class CPUMonitor(core.Subsystem):
         # system: processes executing in kernel mode
         # idle: twiddling thumbs 
         
-        user_diff = (int(self._end_values[0]) - \
-                         int(self._start_values[0])) * 100
-        system_diff = (int(self._end_values[2]) - \
-                           int(self._start_values[2])) * 100
-        idle_diff = (int(self._end_values[3]) - \
-                        int(self._start_values[3])) * 100
-
-        # Generate usage percentages
-        userPer, sysPer, idlePer = user_diff / total_diff, \
-            system_diff / total_diff, idle_diff / total_diff
-
-        # Publish updates
-        self._qeventHub.publish(CPUMonitor.USR_UPDATE,
-                                self._createEvent(userPer))
-        self._qeventHub.publish(CPUMonitor.SYS_UPDATE,
-                                self._createEvent(sysPer))
-        self._qeventHub.publish(CPUMonitor.IDLE_UPDATE,
-                                self._createEvent(idlePer))
+        perc = range(7)
+        # Generate percentages and publish them
+        for x in xrange(7):
+            diff = (int(self._end_values[x]) - \
+                        int(self._start_values[x])) * 100
+            perc[x] = diff / total_diff
+            self._qeventHub.publish(self._updateTypes[x],
+                                    self._createEvent(perc[x]))
 
         # Record data
-        self._data.appendData(userPer, sysPer, idlePer)
+        self._data.appendData(perc)
         self._data.flushData()
 
         # Save end times as the new start time
         self._start_values = self._end_values
         self._start_time = self._end_time
 
-core.registerSubsystem('CPUMonitor', CPUMonitor)
+core.registerSubsystem('CpuMonitor', CpuMonitor)
