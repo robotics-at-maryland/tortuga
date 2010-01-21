@@ -1,17 +1,18 @@
-# Copyright (C) 2008 Maryland Robotics Club
-# Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
 # All rights reserved.
 #
-# Author: Joseph Lisee <jlisee@umd.edu>
-# sTop - A simple TOP program implement in python using /proc/stat
-#
-# Modified by: Jonathan Sternberg <jsternbe@umd.edu>
-# Averages this data and saves it to the disk
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# pyTop - A simple TOP program implement in python using /proc/stat
 
-
+# STD Imports
 import sys
 import time
 import signal
+
+# Project Imports
+import ext.core as core
+import ram.monitor
 
 # Here we load the first line of the proc file, which is in the following
 # format:
@@ -25,101 +26,94 @@ import signal
 # The next several lines of the stat file contain CPU specific data, so you can
 # check each CPU if desired
 
-def AnalyzeComputer(file, size, type_locs):
+def AnalyzeComputer(log_name, suppress, size, type_locs):
+    data = [0]*7
+    type_index = type_locs
+
     def numToCpuType(num):
         return { 0 : 'User', 1 : 'Nice', 2 : 'Sys', 3 : 'Idle',
                  4 : 'IOWait', 5 : 'IRQ', 6 : 'SIRQ' }.get(num, 'Invalid')
 
-    # class Data(object):
-    #     def __init__(self, file, size):
-    #         self._size = size
-    #         self._file = file
-    #         self._data = []
+    def _onUser(event):
+        data[0] = event.number
 
-    #         # Only setup the public functions if there is a file to write to
-    #         if file is not None:
-    #             self.appendData = self._appendData
-    #             self.flushData = self._flushData
-    #         else:
-    #             self.appendData = self._pass
-    #             self.flushData = self._pass
+    def _onNice(event):
+        data[1] = event.number
 
-    #     def _pass(self, *args, **kwargs):
-    #         pass
+    def _onSys(event):
+        data[2] = event.number
 
-    #     def _appendData(self, user, sys, idle):
-    #         self._data.append((user, sys, idle))
+    def _onIdle(event):
+        data[3] = event.number
 
-    #     def _averageStats(self):
-    #         userAvg, sysAvg, idleAvg = 0, 0, 0
-    #         size = len(self._data)
-    #         if size == 0:
-    #             return userAvg, sysAvg, idleAvg
+    def _onIowt(event):
+        data[4] = event.number
 
-    #         for (u, s, i) in self._data:
-    #             userAvg, sysAvg, idleAvg = userAvg + u,sysAvg + s,idleAvg + i
-    #         return (userAvg / size, sysAvg / size, idleAvg / size)
+    def _onIrq(event):
+        data[5] = event.number
 
-    #     # Flushes data to disk if the amount of data is greater than the size
-    #     def _flushData(self, force = False):
-    #         if len(self._data) >= self._size or force:
-    #             self._file.write('User: %%%5.2f Syst: %%%5.2f Idle: %%%5.2f\n' % self._averageStats())
-    #             self._data = []
-                
-    print 'PyTop, a Simple python written in Top (Crtl+C to exit)'
-    #data = Data(file, size)
+    def _onSirq(event):
+        data[6] = event.number
 
-    while True:
-        f = open('/proc/stat')
-        start_values = f.readline().split()[1:]
-        start_time = time.time()
-        f.close()
-
-        # Finishing things off
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            # The user pressed Ctrl+C, lets stop running
-            break
-
-        # Read our final set of stats
-        f = open('/proc/stat')
-        end_values = f.readline().split()[1:]
-        end_time = time.time()
-        f.close()
-
-        # Determine the difference in ticks between two valeus
-        start_sum = 0
-        for i in start_values:
-            start_sum += int(i)
-            
-        end_sum = 0
-        for i in end_values:
-            end_sum += int(i)
-    
-        total_diff = float(end_sum - start_sum)
-
-        # Find the fractional difference of each section
-        
-        # Order of elements: user nice system idle
-        # user: normal processes executing in user mode
-        # nice: niced processes executing in user mode
-        # system: processes executing in kernel mode
-        # idle: twiddling thumbs 
-
+    def rewrite():
         output = ''
-        for num in type_locs:
-            diff = (int(end_values[num]) - int(start_values[num])) * 100
-            perc = diff / total_diff
-            output += '%s: %%%5.2f ' % (numToCpuType(num), perc)
-        
-        # Record data
-        #data.appendData(userPer, sysPer, idlePer)
-        #data.flushData()
-
-        # Move the start of the line, overwrite the old output, and
-        # flush stdout so its displayed
+        for l in type_index:
+            output += numToCpuType(l) + ': %%%5.2f ' % data[l]
         print '\r', output,
         sys.stdout.flush()
 
-    #data.flushData(True)
+    print 'PyTop, a CPU analysis program (Crtl+C to exit)'
+
+    # Create subsystems
+    eventHub = core.EventHub()
+    qeventHub = core.QueuedEventHub(eventHub)
+
+    cfg = {
+        'CpuMonitor' : {
+            'type' : 'CpuMonitor',
+            'depends_on' : '[ "QueuedEventHub" ]',
+            'log_results' : suppress,
+            'bufferSize' : size
+            }
+        }
+    if log_name is not None:
+        cfg['CpuMonitor']['log_name'] = log_name
+    monitor = ram.monitor.CpuMonitor(cfg = cfg.get('CpuMonitor'),
+                                     deps = [ qeventHub ])
+
+    # Register events we are listening to
+    connections = []
+    eventTypes = [ ram.monitor.CpuMonitor.USER_UPDATE,
+                   ram.monitor.CpuMonitor.NICE_UPDATE,
+                   ram.monitor.CpuMonitor.SYS_UPDATE,
+                   ram.monitor.CpuMonitor.IDLE_UPDATE,
+                   ram.monitor.CpuMonitor.IOWT_UPDATE,
+                   ram.monitor.CpuMonitor.IRQ_UPDATE,
+                   ram.monitor.CpuMonitor.SIRQ_UPDATE ]
+    eventFuncs = [ _onUser, _onNice, _onSys, _onIdle,
+                   _onIowt, _onIrq, _onSirq ]
+
+    for index in type_index:
+        conn = qeventHub.subscribeToType(eventTypes[index], eventFuncs[index])
+        connections.append(conn)
+
+    start = time.time()
+    while True:
+        try:
+            # Allow cpu time to pass
+            time.sleep(1.0 / size)
+            end = time.time()
+
+            # Update monitor and publish the events
+            monitor.update(end - start)
+            qeventHub.publishEvents()
+            rewrite()
+            start = end
+        except KeyboardInterrupt:
+            break
+
+    # Unbackground monitor and close connections
+    monitor.unbackground()
+
+    for conn in connections:
+        conn.disconnect()

@@ -43,16 +43,19 @@ def parse_name(name):
 def main():
     # Parse options
     parser = OptionParser()
-    parser.add_option('-f', dest='filename', default=None, type='string',
-                      help='write report to FILE', metavar='FILE')
+    parser.add_option('-q', dest='quiet', action='store_false',
+                      default=True, help='suppress log file')
+    parser.add_option('-f', '--file', dest='filename', default=None,
+                       help='write to file FILE', metavar='FILE')
     parser.add_option('-v', dest='verbose', action='store_true',
                       help='verbose mode')
     parser.add_option('-s', '--size', dest='size', default=1, type='int',
                       help='size of the averaging filter SIZE '
                       '[default: %default]', metavar='SIZE')
     parser.add_option('-t', '--types', dest='types', default='user,sys,idle',
-                      help='options: user, nice, sys, idle, iowait, irq, sirq '
-                      '[default: %default]', type='string', metavar='TYPES')
+                      help='options: user, nice, sys, '
+                      'idle, iowait, irq, sirq, all [default: %default]',
+                      type='string', metavar='TYPES')
 
     (options, args) = parser.parse_args()
 
@@ -64,6 +67,10 @@ def main():
     type_locs = set()
     types = options.types.split(',')
     for t in types:
+        if t == 'all':
+            type_locs = set(range(7))
+            break
+
         num = parse_name(t)
         if num < 0:
             print "ERROR: Not a valid cpu type %s" % t
@@ -71,23 +78,24 @@ def main():
         else:
             type_locs.add(num)
 
-    file = None
-    size = options.size
     if options.filename is not None:
-        printfunc("Opening file %s in write mode" % options.filename)
-        file = open(options.filename, 'w')
-        printfunc("Recording data buffer is size %d" % size)
-        printfunc("Averaged data will be flushed to the disk")
+        printfunc("File will be logged to %s" % options.filename)
     else:
-        printfunc("No file specified. Data will not be saved to disc.")
+        printfunc("File will be logged in default location")
+
+    size = options.size
+    # options.quiet will be false when log output should be suppressed
+    if not options.quiet:
+        printfunc("Log file output will be suppressed")
+
+    printfunc("Recording data buffer is size %d" % size)
 
     printfunc("Starting main program")
     
-    top.AnalyzeComputer(file = file, size = size, type_locs = type_locs)
-
-    if file is not None:
-        printfunc("Closing file")
-        file.close()
+    top.AnalyzeComputer(log_name = options.filename,
+                        suppress = options.quiet,
+                        size = size,
+                        type_locs = type_locs)
 
 if __name__ == '__main__':
     main()

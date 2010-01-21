@@ -224,17 +224,22 @@ class CpuMonitor(core.Subsystem):
         self._config = cfg
 
         self._bufSize = cfg.get('bufferSize', 1)
+        logName = cfg.get('log_name', None)
         self._log = cfg.get('log_results', True)
 
         if self._log:
-            # Generate log name
-            timeStamp = datetime.fromtimestamp(timer.time())
-            directory = timeStamp.strftime("%Y%m%d%H%M%S")
-            
-            # Create the directory, the directory name should never conflict
-            # If it does, this should crash
-            os.mkdir(directory)
-            self._file = open(directory + '/cpu.log', 'w')
+            if logName is None:
+                # Generate log name
+                timeStamp = datetime.fromtimestamp(timer.time())
+                directory = timeStamp.strftime("%Y%m%d%H%M%S")
+                
+                # Create the directory, the directory name
+                # should never conflict. If it does, this should crash
+                os.mkdir(directory)
+                self._file = open(directory + '/cpu.log', 'w')
+            else:
+                # A specified file must have the directory exist
+                self._file = open(logName, 'w')
         else:
             self._file = None
 
