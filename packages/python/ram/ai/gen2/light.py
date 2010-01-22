@@ -27,7 +27,10 @@ Both methods default to the map if things go wrong.
 
 """
 
-# Project imports
+# STD Imports
+import math as pmath
+
+# Project Imports
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
@@ -84,6 +87,9 @@ class Dive(state.State):
 class DeterminePath(state.State):
     """
     Determines which method of searching to use
+
+    This has the capability to choose to follow the map, but
+    it is not currently programmed to use that transition.
     """
     MAP = core.declareEventType('MAP')
     FORWARD = core.declareEventType('FORWARD')
@@ -95,8 +101,26 @@ class DeterminePath(state.State):
                  DeterminePath.FORWARD : SearchForward,
                  DeterminePath.ZIGZAG : SearchZigZag }
 
+    @staticmethod
+    def getattr():
+        return set(['threshold'])
+
     def enter(self):
-        self.publish(DeterminePath.ZIGZAG, core.Event())
+        self._angleThreshold = self._config.get('threshold', 25)
+
+        # Find the angle
+        vehiclePos = self.vehicle.getPosition()
+        buoyPos = self.vehicle.getPosition('buoy')
+        posVect = buoyPos - vehiclePos
+        posVect.normalise()
+
+        unit = math.Vector2(0, 1)
+        angle = math.Radian(pmath.acos(posVect.dotProduct(unit)))
+
+        if abs(angle.valueDegrees()) < self._angleThreshold:
+            self.publish(DeterminePath.FORWARD, core.Event())
+        else:
+            self.publish(DeterminePath.ZIGZAG, core.Event())
 
 class Searching(state.State):
     """
@@ -133,8 +157,8 @@ class SearchForward(Searching):
         length -= offset
 
         # Move that distance forwards
-        motion = motion.basic.MoveDistance(0, length, 3, absolute = False)
-        self.motionManager.setMotion(motion)
+        moveMotion = motion.basic.MoveDistance(0, length, 3, absolute = False)
+        self.motionManager.setMotion(moveMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()

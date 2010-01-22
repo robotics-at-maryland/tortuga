@@ -69,3 +69,81 @@ class TestStart(support.AITestCase):
 
         # Interstate data has been declared
         self.assert_(self.ai.data.has_key('light'))
+
+class TestDive(support.AITestCase):
+    def setUp(self):
+        cfg = initializeConfig('buoy', [0, 0, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(light.Dive)
+
+    def testStart(self):
+        """Make sure we are diving with no detector on"""
+        self.assertFalse(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertEqual(4, self.vehicle.getDepth('buoy'))
+
+    def testFinish(self):
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
+        self.assertCurrentState(light.DeterminePath)
+
+class TestDeterminePath(support.AITestCase):
+    def setUp(self):
+        # Delay when setUp is called
+        pass
+
+    def testMap(self):
+        # The path should never lead to following the map directly for now
+        cfg = initializeConfig('buoy', [2, 2, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+    def testForward(self):
+        """ Map agrees with pointed direction """
+        cfg = initializeConfig('buoy', [0, 5, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+        
+        # Initialize the vehicle to be pointed north
+        self.vehicle.depth = 4
+        self.vehicle.position = math.Vector2(0, 0)
+        self.vehicle.orientation = \
+            math.Quaternion(math.Degree(0), math.Vector3.UNIT_Z)
+
+        # Start the machine
+        self.machine.start(light.DeterminePath)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(light.SearchForward)
+        self.assertCurrentMotion(motion.basic.MoveDistance)
+
+    def testZigZag(self):
+        """ Map disagrees with pointed direction """
+        cfg = initializeConfig('buoy', [5, 0, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+        # Initialize the vehicle to be pointed north
+        self.vehicle.depth = 4
+        self.vehicle.position = math.Vector2(0, 0)
+        self.vehicle.orientation = \
+            math.Quaternion(math.Degree(0), math.Vector3.UNIT_Z)
+
+        # Start the machine
+        self.machine.start(light.DeterminePath)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(light.SearchZigZag)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+    def testConfig(self):
+        stateConfig = {
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.gen2.light.DeterminePath' : {
+                        'threshold' : 45
+                        }
+                    }
+                }
+            }
+        cfg = initializeConfig('buoy', [0, 5, 4, 0])
+        cfg.update(stateConfig)
+
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(light.DeterminePath)
