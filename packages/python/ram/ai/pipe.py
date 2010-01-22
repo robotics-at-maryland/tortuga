@@ -437,27 +437,40 @@ class Centering(PipeFollowingState):
         return PipeFollowingState.transitions(Centering,
             { Centering.SETTLED : AlongPipe })
 
-    def _checkChange(self, values):
-        return abs(values[0]) < self._planeThreshold and \
+    def _withinRange(self, values):
+        pos = abs(values[0]) < self._planeThreshold and \
             abs(values[1]) < self._planeThreshold and \
             abs(values[2]) < self._angleThreshold
+        vel = abs(values[0] - self._startX) < self._planeChange and \
+            abs(values[1] - self._startY) < self._planeChange and \
+            abs(values[2] - self._startAngle) < self._angleChange
+        return pos and vel
 
-#    def FOUND_PIPE(self, event):
-#        status = PipeFollowingState.FOUND_PIPE(self, event)
+    #def FOUND_PIPE(self, event):
+    #    status = PipeFollowingState.FOUND_PIPE(self, event)
+
+        # Wait for 'delay' pipe found events to happen first
+        #self._numEvents += 1
 
         # Check to make sure it's not an outdated event
-#        if status:
+        #if status and self._delay < self._numEvents:
             # Check the change over time. If it's low enough,
             # declare it settled
-            #if self._checkChange((event.x, event.y,
-            #                      event.angle.valueDegrees())):
-            #    if self.timer is not None:
-            #        self.timer.stop()
-            #    self.publish(Centering.SETTLED, core.Event())
+        #    if self._withinRange((event.x, event.y,
+        #                          event.angle.valueDegrees())):
+        #        self.publish(Centering.SETTLED, core.Event())
+
+        #self._startX, self._startY, self._startAngle = \
+        #    event.x, event.y, event.angle.valueDegrees()
 
     def enter(self):
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._angleThreshold = self._config.get('angleThreshold', 0.03)
+        #self._planeChange = self._config.get('planeChange', 0.03)
+        #self._angleChange = self._config.get('angleChange', 0.03)
+        #self._delay = self._config.get('delay', 20)
+
+        #self._numEvents = 0
 
         self.timer = self.timerManager.newTimer(Centering.SETTLED, 5)
         self.timer.start()
