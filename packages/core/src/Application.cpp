@@ -15,8 +15,10 @@
 // STD Includes
 #include <cassert>
 #include <utility>
+#include <set>
 #include <map>
 #include <sstream>
+#include <exception>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -25,6 +27,7 @@
 // Project Includes
 #include "core/include/Application.h"
 #include "core/include/ConfigNode.h"
+#include "core/include/Exception.h"
 #include "core/include/SubsystemMaker.h"
 #include "core/include/DependencyGraph.h"
 #include "core/include/Feature.h"
@@ -71,6 +74,7 @@ Application::Application(std::string configPath) :
         m_order = depGraph.getOrder();
 
 	std::vector<std::string> badSubsystemNames;
+	std::set<std::string> invalidSystems;
         
         // Create all the subsystems
         BOOST_FOREACH(std::string subsystemName, m_order)
@@ -96,7 +100,8 @@ Application::Application(std::string configPath) :
 	    bool abort = false;
             BOOST_FOREACH(std::string depName, depNames)
 	    {
-		if (!hasSubsystem(depName)) {
+		if (!hasSubsystem(depName) ||
+		    invalidSystems.count(depName) == 1) {
 		    // The dependencies have not been satisfied
 		    abort = true;
 		    break;
@@ -114,26 +119,41 @@ Application::Application(std::string configPath) :
 
             // Create out new subsystem and store it
             PYTHON_ERROR_TRY {
-                SubsystemPtr subsystem(SubsystemMaker::newObject(
-                                           std::make_pair(config, deps) ));
-                m_subsystems[subsystemName] = subsystem;
+		try {
+		    SubsystemPtr subsystem(SubsystemMaker::newObject(
+					   std::make_pair(config, deps) ));
+		    m_subsystems[subsystemName] = subsystem;
+		} catch (core::MakerNotFoundException& ex) {
+		    std::cout << ex.what() << ": " <<
+			subsystemName << std::endl;
+		    invalidSystems.insert(subsystemName);
+		}
             } PYTHON_ERROR_CATCH("Subsystem construction");
         }
 
+	// Add invalid systems to the bad subsystems
+	BOOST_FOREACH(std::string name, invalidSystems)
+	{
+	    badSubsystemNames.push_back(name);
+	}
+
 	// Remove bad subsystems from the order
+	bool earlyTermination = false;
 	BOOST_FOREACH(std::string name, badSubsystemNames)
 	{
 	    // Three modes types
 	    if (mode == "error") {
-		// End the program with an error state
+		// End the program with an error state after
+		// listing bad subsystems
 		std::cout << "ERROR: Missing dependency " << name << std::endl;
-		assert(false);
+		earlyTermination = true;
 	    } else if (mode == "warning") {
 		std::cout << "WARNING: Missing dependency "
 			  << name << std::endl;
 	    }
 	    remove_from_order(name);
 	}
+	assert(!earlyTermination && "Dependencies are missing");
 
         // Not sure if this is the right place for this or not
         // maybe another function, maybe a scheduler?
