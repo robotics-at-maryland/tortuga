@@ -88,7 +88,6 @@ Vehicle:
             relAxis: z
 
         StateEstimator:
-            depends_on: ['SimulationDevice']
             type: LoopStateEstimator
 
             INCLUDE: tools/simulator/data/config/maps/default.yml

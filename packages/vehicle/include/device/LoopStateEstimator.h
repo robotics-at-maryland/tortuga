@@ -10,6 +10,9 @@
 #ifndef RAM_VEHICLE_DEVICE_LOOPSTATEESTIMATOR_06_26_2009
 #define RAM_VEHICLE_DEVICE_LOOPSTATEESTIMATOR_06_26_2009
 
+// STD Includes
+#include <map>
+
 // Project Includes
 #include "vehicle/include/device/IStateEstimator.h"
 #include "vehicle/include/device/Device.h"
@@ -96,6 +99,12 @@ protected:
     math::Vector2 m_velocity;
     math::Vector2 m_position;
     double m_depth;
+
+    core::ReadWriteMutex m_objMutex;
+    std::map<std::string, math::Quaternion> m_objOrientation;
+    std::map<std::string, math::Vector2> m_objPosition;
+    std::map<std::string, math::Vector2> m_objVelocity;
+    std::map<std::string, double> m_objDepth;
 };
     
 } // namespace device

@@ -318,10 +318,10 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     std::string name(device->getName());
     m_devices[name] = device;
 
-    device::LoopStateEstimator* loopEstimator =
-        boost::dynamic_pointer_cast<device::LoopStateEstimator>(
-            m_stateEstimator).get();
-    if (loopEstimator && (name == m_stateEstimatorName))
+    //device::LoopStateEstimator* loopEstimator =
+    //    boost::dynamic_pointer_cast<device::LoopStateEstimator>(
+    //        m_stateEstimator).get();
+    if (/*loopEstimator && (*/name == m_stateEstimatorName/*)*/)
     {
         m_stateEstimator =
             device::IDevice::castTo<device::IStateEstimator>(device);
