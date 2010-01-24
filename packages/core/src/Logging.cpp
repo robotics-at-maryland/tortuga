@@ -62,7 +62,7 @@ Logging::Logging(core::ConfigNode config, core::SubsystemList deps) :
 
 Logging::~Logging()
 {
-    // Clean up al appenders
+    // Clean up all appenders
     std::pair<log4cpp::Appender*, std::vector<std::string> > pair;
     BOOST_FOREACH(pair, m_appenders)
     {
@@ -193,7 +193,7 @@ void Logging::createCategory(
         ConfigNode appenderList(config["appenders"]);
         int appenderCount = appenderList.size();
 
-        // Go through each appender name and attemp to add it to config
+        // Go through each appender name and attempt to add it to config
         for (int i = 0; i < appenderCount; ++i)
         {
             std::string appenderName(appenderList[i].asString());

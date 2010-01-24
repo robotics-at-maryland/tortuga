@@ -17,7 +17,7 @@ QueuedEventHub:
 
 Vehicle:
     type: Vehicle
-    depends_on: ["Simulation", "EventHub"]
+    depends_on: ["Simulation", "EventHub", "Logging"]
 
     DepthSensorName: DepthSensor
     Devices:
@@ -125,9 +125,29 @@ TimerManager:
 #    update_interval: -1
 #    yawGain: 50
 
-#EventLogger:
-#    depends_on: ["EventHub"]
-#    type: EventLogger
+Logging:
+    type: Logging
+    #update_interval: -1
+    Appenders:
+        VehicleLog:
+            type: File
+            fileName: vehicle.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
+        Console:
+            type: Console
+            Layout:
+                type: Pattern
+                pattern: "%c %m %r%n"
+    Categories:
+        Vehicle:
+            appenders: ['VehicleLog']
+
+EventLogger:
+    depends_on: ["EventHub"]
+    type: EventLogger
 
 Controller:
     orientationThreshold: 0.1

@@ -17,6 +17,7 @@
 // Library Includes
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
@@ -44,6 +45,8 @@
 
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vehicle"));
 
 using namespace ram::vehicle::device;
 
@@ -111,9 +114,11 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         {
             core::ConfigNode node(deviceConfig[deviceName]);
             node.set("name", deviceName);
-            // TODO: Make me a log
-            //std::cout << "Creating device " << node["name"].asString()
-            //    << " of type: " << node["type"].asString() << std::endl;
+
+            LOGGER.infoStream() << "Creating device "
+				<< node["name"].asString()
+				<< " of type: "
+				<< node["type"].asString();
             
             // TODO: Figure out how to get my python object if needed
             device::IDeviceMakerParamType params(
@@ -121,13 +126,20 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter()));
             
-            _addDevice(device::IDeviceMaker::newObject(params));
+            if (_addDevice(device::IDeviceMaker::newObject(params))) {
+		LOGGER.warnStream() << "Failure to create device "
+				    << node["name"].asString()
+				    << " of type: "
+				    << node["type"].asString();
+	    }
         }
     }
 
     // Now lets create our default state estimator if we don't have one
     if (!m_stateEstimator)
     {
+	LOGGER.info("No state estimator found. "
+		    "Creating default LoopStateEstimator.");
         m_stateEstimator = device::IStateEstimatorPtr(
             new device::LoopStateEstimator(
                 config,
@@ -136,6 +148,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     }
 
     // Now set the initial values of the estimator
+    LOGGER.info("Setting initial state estimator values.");
     double timeStamp = core::TimeVal::timeOfDay().get_double();
     if (m_depthSensor)
         m_stateEstimator->depthUpdate(getRawDepth(), timeStamp);
@@ -147,8 +160,10 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         m_stateEstimator->positionUpdate(getRawPosition(), timeStamp);
     
     // If we specified a name of the mag boom we actually have one
-    if (m_magBoomName.size() > 0)
+    if (m_magBoomName.size() > 0) {
+	LOGGER.info("MagBoom initialized.");
         m_hasMagBoom = true;
+    }
 
     // Make sure thrusters are unsafed
     //unsafeThrusters();
@@ -313,7 +328,7 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     m_bottomThruster->setForce(bottom);
 }
     
-void Vehicle::_addDevice(device::IDevicePtr device)
+int Vehicle::_addDevice(device::IDevicePtr device)
 {
     std::string name(device->getName());
     m_devices[name] = device;
@@ -325,6 +340,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
     {
         m_stateEstimator =
             device::IDevice::castTo<device::IStateEstimator>(device);
+	return 0;
     }
     
     if ((!m_imu) && (name == m_imuName))
@@ -334,6 +350,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_orientationConnection = m_imu->subscribe(
             device::IIMU::UPDATE,
             boost::bind(&Vehicle::onOrientationUpdate, this, _1));
+	return 0;
     }
     
     if ((!m_magBoom) && (name == m_magBoomName))
@@ -347,6 +364,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_orientationConnection = m_magBoom->subscribe(
             device::IIMU::UPDATE,
             boost::bind(&Vehicle::onOrientationUpdate, this, _1));
+	return 0;
     }
     
     if ((!m_depthSensor) && (name == m_depthSensorName))
@@ -355,6 +373,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_depthConnection = m_depthSensor->subscribe(
             device::IDepthSensor::UPDATE,
             boost::bind(&Vehicle::onDepthUpdate, this, _1));
+	return 0;
     }
     
     if ((!m_positionSensor) && (name == m_positionSensorName))
@@ -364,6 +383,7 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_positionConnection = m_positionSensor->subscribe(
             device::IPositionSensor::UPDATE,
             boost::bind(&Vehicle::onPositionUpdate, this, _1));
+	return 0;
     }
 
     if ((!m_velocitySensor) && (name == m_velocitySensorName))
@@ -373,19 +393,25 @@ void Vehicle::_addDevice(device::IDevicePtr device)
         m_velocityConnection = m_velocitySensor->subscribe(
             device::IVelocitySensor::UPDATE,
             boost::bind(&Vehicle::onVelocityUpdate, this, _1));
+	return 0;
     }
 
     if ((!m_markerDropper) && (name == m_markerDropperName))
     {
         m_markerDropper =
             device::IDevice::castTo<device::IPayloadSet>(device);
+	return 0;
     }
 
     if ((!m_torpedoLauncher) && (name == m_torpedoLauncherName))
     {
         m_torpedoLauncher =
             device::IDevice::castTo<device::IPayloadSet>(device);
+	return 0;
     }
+
+    // Failure to set a device
+    return 1;
 }
 
 void Vehicle::update(double timestep)

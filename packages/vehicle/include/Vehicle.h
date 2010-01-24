@@ -64,7 +64,8 @@ public:
                                        const math::Vector3& torque);
 
     /** This is <b>NOT</b> thread safe */
-    virtual void _addDevice(device::IDevicePtr device);
+    /** return 0 indicates success, everything else indicates failure */
+    virtual int _addDevice(device::IDevicePtr device);
 
     /** Sets the priority to all background devices threads */
     virtual void setPriority(core::IUpdatable::Priority priority);

@@ -325,6 +325,13 @@ Logging:
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
+
+        VehicleLog:
+            type: File
+            fileName: vehicle.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
                     
         Console:
             type: Console
@@ -340,6 +347,8 @@ Logging:
             appenders: ['ControlLog'] #'Console']
         IMU:
             appenders: ['IMULog'] #'Console']
+        Vehicle:
+            appenders: ['VehicleLog']
 
 Controller:
     depends_on: ["Vehicle", "EventHub"]
