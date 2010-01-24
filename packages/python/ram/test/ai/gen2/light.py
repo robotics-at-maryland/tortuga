@@ -147,3 +147,131 @@ class TestDeterminePath(support.AITestCase):
 
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(light.DeterminePath)
+
+class TestSearchForward(support.AITestCase):
+    def setUp(self):
+        cfg = initializeConfig('buoy', [-5, 0, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+        # Point the vehicle west
+        self.vehicle.orientation = math.Quaternion(math.Degree(90),
+                                                   math.Vector3.UNIT_Z)
+        self.machine.start(light.SearchForward)
+
+    def testStart(self):
+        # Make sure the red light detector is on
+        self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.basic.MoveDistance)
+
+    def testFound(self):
+        # Assert current state before found event
+        self.assertCurrentState(light.SearchForward)
+
+        # Publish found event
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0, 0)
+        self.qeventHub.publishEvents()
+
+        # Make sure light has entered the Align state
+        self.assertCurrentState(light.Align)
+        self.assertCurrentMotion(motion.seek.SeekPointToRange)
+
+    def testFinish(self):
+        """ MoveDistance has finished """
+        self.assertCurrentState(light.SearchForward)
+
+        # Finish motion
+        self.motionManager.publish(motion.basic.MotionManager.FINISHED,
+                                   core.Event())
+        self.qeventHub.publishEvents()
+
+        # Search has changed to Zig Zag search
+        self.assertCurrentState(light.SearchZigZag)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+class TestSearchZigZag(support.AITestCase):
+    def setUp(self):
+        cfg = initializeConfig('buoy', [-2.5, 2.5, 4, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+        # Point the vehicle west
+        self.vehicle.orientation = math.Quaternion(math.Degree(90),
+                                                   math.Vector3.UNIT_Z)
+        self.machine.start(light.SearchZigZag)
+
+    def testStart(self):
+        # Check the red light detector is on
+        self.assert_(self.visionSystem.redLightDetector)
+        self.assertCurrentMotion(motion.search.ForwardZigZag)
+
+    def testFound(self):
+        self.assertCurrentState(light.SearchZigZag)
+
+        # Inject light found event
+        self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent,
+                         0, 0)
+        self.qeventHub.publishEvents()
+
+        # Check the state and motion
+        self.assertCurrentState(light.Align)
+        self.assertCurrentMotion(motion.seek.SeekPointToRange)
+
+    def testTimeout(self):
+        self.assertCurrentState(light.SearchZigZag)
+
+        # Release timer
+        self.releaseTimer(light.SearchZigZag.TIMEOUT)
+
+        self.assertCurrentState(light.SearchMap)
+
+class TestComplete(support.AITestCase):
+    def testStart(self):
+        cfg = initializeConfig('buoy', [0, 0, 0, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+        # Needed for Complete
+        self.ai.data['light'] = {}
+
+        self._complete = False
+        def _handler(event):
+            self._complete = True
+
+        conn = self.qeventHub.subscribeToType(light.COMPLETE, _handler)
+
+        # Check that this is false
+        self.assert_(not self._complete)
+
+        self.machine.start(light.Complete)
+
+        # Should complete the state
+        self.qeventHub.publishEvents()
+        self.assert_(self._complete)
+
+        # Make sure light interstate data deleted
+        self.assert_(not self.ai.data.has_key('light'))
+
+class TestFailure(support.AITestCase):
+    def testStart(self):
+        cfg = initializeConfig('buoy', [0, 0, 0, 0])
+        support.AITestCase.setUp(self, cfg = cfg)
+
+        # Needed for Failure
+        self.ai.data['light'] = {}
+
+        self._failure = False
+        def _handler(event):
+            self._failure = True
+
+        conn = self.qeventHub.subscribeToType(light.FAILURE, _handler)
+
+        # Check that this is false
+        self.assert_(not self._failure)
+
+        self.machine.start(light.Failure)
+
+        # Should complete the state
+        self.qeventHub.publishEvents()
+        self.assert_(self._failure)
+
+        # Make sure light interstate data deleted
+        self.assert_(not self.ai.data.has_key('light'))

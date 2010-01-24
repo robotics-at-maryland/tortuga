@@ -114,7 +114,11 @@ class DeterminePath(state.State):
         posVect = buoyPos - vehiclePos
         posVect.normalise()
 
-        unit = math.Vector2(0, 1)
+        # Unit vector is based on vehicle's current orientation
+        current = self.vehicle.getOrientation().getYaw().valueRadians() + \
+            (pmath.pi / 2)
+        unit = math.Vector2(pmath.cos(current), pmath.sin(current))
+        unit.normalise()
         angle = math.Radian(pmath.acos(posVect.dotProduct(unit)))
 
         if abs(angle.valueDegrees()) < self._angleThreshold:
@@ -176,16 +180,42 @@ class SearchZigZag(Searching):
 
         return trans
 
+    @staticmethod
+    def getattr():
+        attr = Searching.getattr()
+        attr.update(set(['legTime', 'sweepAngle', 'speed', 'timeout']))
+
+        return attr
+
     def enter(self):
         # Make sure the red light detector is on
-        pass
+        self.visionSystem.redLightDetectorOn()
+
+        # Start the zig zag motion
+        legTime = self._config.get('legTime', 5)
+        sweepAngle = self._config.get('sweepAngle', 15)
+        speed = self._config.get('speed', 3)
+
+        zigZag = motion.search.ForwardZigZag(legTime, sweepAngle, speed)
+        self.motionManager.setMotion(zigZag)
+
+        # Start the timer
+        self._timer = self.timerManager.newTimer(SearchZigZag.TIMEOUT,
+                                                 self._config.get('timeout',
+                                                                  15))
+        self._timer.start()
+
+    def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
 
 class SearchMap(Searching):
     """
     Searches for the light based on the maps position
     """
     def enter(self):
-        pass
+        # Make sure the red light detector is on
+        self.visionSystem.redLightDetectorOn()
 
 class Align(legacy.Align):
     """
