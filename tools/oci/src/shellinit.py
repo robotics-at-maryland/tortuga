@@ -32,6 +32,7 @@ import math as pmath
 import ext.core as core
 import ext.math as math
 import ram.ai.light as light
+import ram.ai.gen2.light as light2
 import ram.ai.pipe as pipe
 import ram.ai.bin as bin
 import ram.ai.barbedwire as bwire
