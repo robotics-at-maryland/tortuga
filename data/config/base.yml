@@ -318,16 +318,17 @@ Logging:
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-        DepthLog:
-            type: File
-            fileName: depth.log
-            Layout:
-                type: Pattern
-                pattern: "%m %r%n"
                     
         IMULog:
             type: File
             fileName: imu.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
+        DVLLog:
+            type: File
+            fileName: dvl.log
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
@@ -351,10 +352,10 @@ Logging:
             appenders: ['PowerLog'] #,'Console']
         Controller:
             appenders: ['ControlLog'] #'Console']
-        Depth:
-            appenders: ['DepthLog']
         IMU:
             appenders: ['IMULog'] #'Console']
+        DVL:
+            appenders: ['DVLLog']
         Vehicle:
             appenders: ['VehicleLog']
 

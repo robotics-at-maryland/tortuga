@@ -33,8 +33,6 @@ static log4cpp::Category& s_powerLog
 (log4cpp::Category::getInstance("Power"));
 static log4cpp::Category& s_tempLog
 (log4cpp::Category::getInstance("Temp"));
-static log4cpp::Category& s_depthLog
-(log4cpp::Category::getInstance("Depth"));
 
 static void setupLogging() {
     s_thrusterLog.info("%% MC1 MC2 MC3 MC4 MC5 MC6"
@@ -44,7 +42,6 @@ static void setupLogging() {
                     "i5V_Bus i12V_Bus v5V_Bus v12V_Bus TimeStamp");
     s_tempLog.info("%% \"Sensor Board\" Unused Unused Unused Unused "
                    "\"Distro Board\" \"Balancer Board\"");
-    s_depthLog.info("%% Raw Calculated");
 }
 
 namespace ram {
@@ -159,9 +156,6 @@ void SensorBoard::update(double timestep)
         int ret = readDepth();
         depth = (((double)ret) - m_depthCalibIntercept) / m_depthCalibSlope; 
         state.depth = depth;
-
-        // Log the raw and calculated depth values
-        s_depthLog.infoStream() << ret << " " << state.depth;
     } // end deviceMutex lock
 
     // Publish depth event
