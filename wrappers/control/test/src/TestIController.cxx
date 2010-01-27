@@ -41,6 +41,8 @@ public:
 
     virtual double getSidewaysSpeed() { return sidewaysSpeed; }
 
+    virtual void holdCurrentPosition() {}
+
     virtual double getDepth() { return depth; }
     
     virtual double getEstimatedDepth() { return 0; }

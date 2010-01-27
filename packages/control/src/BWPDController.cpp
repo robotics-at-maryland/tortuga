@@ -378,6 +378,11 @@ void BWPDController::holdCurrentHeading()
     publish(IController::DESIRED_ORIENTATION_UPDATE, event);
 }
 
+void BWPDController::holdCurrentPosition()
+{
+    // TODO: Place code here
+}
+
 void BWPDController::setBuoyantTorqueCorrection(double x, double y, double z)
 {
     math::Vector3 temp(x, y, z);

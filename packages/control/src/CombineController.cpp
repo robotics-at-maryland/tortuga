@@ -106,6 +106,11 @@ double CombineController::getSidewaysSpeed()
 {
     return m_transController->getSidewaysSpeed();
 }
+
+void CombineController::holdCurrentPosition()
+{
+    m_transController->holdCurrentPosition();
+}
     
 // Depth controller methods
 void CombineController::setDepth(double depth)

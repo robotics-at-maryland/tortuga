@@ -56,6 +56,7 @@ public:
     virtual void setSidewaysSpeed(double speed);
     virtual double getSpeed();
     virtual double getSidewaysSpeed();
+    virtual void holdCurrentPosition();
     /* @{ */
     
     /**

@@ -71,6 +71,11 @@ double TranslationalControllerBase::getSidewaysSpeed()
     return m_desiredSidewaysSpeed;
 }
 
+void TranslationalControllerBase::holdCurrentPosition()
+{
+    // TODO: Add code
+}
+
 TranslationalControllerBase::ControlMode::ModeType
     TranslationalControllerBase::getMode()
 {

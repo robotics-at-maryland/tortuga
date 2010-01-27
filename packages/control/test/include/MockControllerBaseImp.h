@@ -70,6 +70,7 @@ public:
     virtual void setSidewaysSpeed(double sidewaysSpeed_) {}
     virtual double getSpeed() { return 0; }
     virtual double getSidewaysSpeed() { return 0; }
+    virtual void holdCurrentPosition() {}
     
     virtual void setDepth(double) { return; }
     virtual double getDepth() { return desiredDepth; }

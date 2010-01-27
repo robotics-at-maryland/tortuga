@@ -56,6 +56,10 @@ public:
      *      A value between -5 (left) and 5 (right)
      */
     virtual double getSidewaysSpeed() = 0;
+
+    /** Loads current position into desired and stays in that position */
+    virtual void holdCurrentPosition() = 0;
+
 };
 
 /** Provides an interface for a implementation of a Translational Controller */

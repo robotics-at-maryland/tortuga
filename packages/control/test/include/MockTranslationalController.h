@@ -41,6 +41,8 @@ public:
 
     virtual double getSidewaysSpeed() { return sidewaysSpeed; }
 
+    virtual void holdCurrentPosition() { }
+
     virtual ram::math::Vector3 translationalUpdate(double timestep_,
         ram::math::Vector3 linearAcceleration_,
         ram::math::Quaternion orientation_,

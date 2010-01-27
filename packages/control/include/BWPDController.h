@@ -110,6 +110,8 @@ public:
     /** loads current orientation into desired (fixes offset in roll and pitch)*/
     virtual void holdCurrentHeading();
 
+    virtual void holdCurrentPosition();
+
     virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
     }

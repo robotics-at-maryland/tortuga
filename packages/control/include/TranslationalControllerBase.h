@@ -53,6 +53,8 @@ public:
 
     virtual double getSidewaysSpeed();
 
+    virtual void holdCurrentPosition();
+
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
