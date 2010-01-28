@@ -795,7 +795,7 @@ class RecoverFromSafe(task.Task):
     """
     pass
 
-class TaskMovement(task.Task):
+class TimedTravel(task.Task):
     """
     A pre-determined move that changes depth, changes heading, then moves
     forward for a pre-determined amount of time. It dynamically loads its

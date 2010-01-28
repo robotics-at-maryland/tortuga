@@ -906,14 +906,14 @@ class TestOctagon(support.AITestCase):
         self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assert_(self.machine.complete)
 
-class TestTaskMovement(support.AITestCase):
+class TestTimedTravel(support.AITestCase):
     def setUp(self):
         # Config file with the heading put in so it doesn't skip over the
         # RateChangeHeading
-        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.TaskMovement'],
-                        'config' : {'TaskMovement' : {'heading' : 45} } } }
+        cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.TimedTravel'],
+                        'config' : {'TimedTravel' : {'heading' : 45} } } }
         support.AITestCase.setUp(self, cfg = cfg)
-        self.machine.start(course.TaskMovement)
+        self.machine.start(course.TimedTravel)
 
     def testStart(self):
         """
@@ -927,21 +927,21 @@ class TestTaskMovement(support.AITestCase):
         # Depth motion
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         
-        self.assertCurrentState(course.TaskMovement)
+        self.assertCurrentState(course.TimedTravel)
         self.motionManager.currentMotion._finish()
         self.qeventHub.publishEvents()
 
         # Heading motion
         self.assertCurrentMotion(motion.basic.RateChangeHeading)
 
-        self.assertCurrentState(course.TaskMovement)
+        self.assertCurrentState(course.TimedTravel)
         self.motionManager.currentMotion._finish()
         self.qeventHub.publishEvents()
 
         # Forward motion
         self.assertCurrentMotion(motion.basic.TimedMoveDirection)
 
-        self.assertCurrentState(course.TaskMovement)
+        self.assertCurrentState(course.TimedTravel)
         self.motionManager.currentMotion._finish()
         self.qeventHub.publishEvents()
 
