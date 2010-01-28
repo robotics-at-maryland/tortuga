@@ -275,6 +275,10 @@ class SeekPoint(Motion):
             self._controller.setSidewaysSpeed(0)
         self._conn.disconnect()
 
+    @staticmethod
+    def isComplete():
+        return False
+
 class SeekPointToRange(SeekPoint):
     """
     Seeks a point, but stops at a certain range
@@ -321,7 +325,6 @@ class SeekPointToRange(SeekPoint):
             scale = 1
             
         return scale
-        
         
 class ObserverControllerSeekPoint(Motion):
     def __init__(self, target, maxSpeed = 0.0):
@@ -397,3 +400,7 @@ class ObserverControllerSeekPoint(Motion):
         self._running = False
         self._controller.setSpeed(0)
         self._conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return False

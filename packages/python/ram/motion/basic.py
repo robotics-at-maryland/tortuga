@@ -15,6 +15,7 @@ import ext.vehicle as vehicle
 import ext.math as math
 
 import ram.timer as timer
+from ram.logloader import resolve
 
 
 class MotionManager(core.Subsystem):
@@ -200,6 +201,18 @@ class MotionManager(core.Subsystem):
         
     def update(self, timeSinceLastUpdate):
         pass
+
+    @staticmethod
+    def generateMotion(dottedName, complete = False, **kwargs):
+        class_ = resolve(dottedName)
+        if not issubclass(class_, Motion):
+            raise Exception('%s is not of type %s' % (class_, Motion))
+        if complete and not class_.isComplete():
+            raise Exception('%s is an incomplete motion. A complete'
+                            'motion is required' % class_)
+
+        # Generate an instance of the motion using kwargs
+        return class_(**kwargs)
     
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
         
@@ -264,6 +277,16 @@ class Motion(object):
         
     def stop(self):
         pass
+
+    @staticmethod
+    def isComplete(self):
+        """
+        Abstract base classes were added to python in 2.6.
+
+        To get the same functionality, this will raise an exception so
+        any base classes will need to overwrite it.
+        """
+        raise Exception("Not implemented")
     
 class ChangeDepth(Motion):
     def __init__(self, desiredDepth, steps):
@@ -277,7 +300,7 @@ class ChangeDepth(Motion):
         Motion.__init__(self, _type = Motion.DEPTH)
         
         self._steps = steps
-        self._desiredHeading = desiredDepth
+        self._desiredDepth = desiredDepth
         self._conn = None
         
     def _start(self):
@@ -292,7 +315,7 @@ class ChangeDepth(Motion):
         """
         Decreases depth by one 'step' of the remaining depth change
         """
-        depthDifference = self._desiredHeading - currentVehicleDepth 
+        depthDifference = self._desiredDepth - currentVehicleDepth 
         depthChange = depthDifference/self._steps
         self._controller.setDepth(currentVehicleDepth + depthChange)
         
@@ -317,6 +340,10 @@ class ChangeDepth(Motion):
 
     def stop(self):
         self._conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return True
 
 class RateChangeDepth(Motion):
     NEXT_DEPTH = core.declareEventType('NEXT_DEPTH')
@@ -393,6 +420,10 @@ class RateChangeDepth(Motion):
             self._timer.stop()
         if self._conn is not None:
             self._conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return True
         
 class ChangeHeading(Motion):
     def __init__(self, desiredHeading, steps):
@@ -446,6 +477,10 @@ class ChangeHeading(Motion):
         """
         Motion._finish(self)
         self._conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return True
         
 class RateChangeHeading(Motion):
     NEXT_HEADING = core.declareEventType('NEXT_HEADING')
@@ -535,6 +570,10 @@ class RateChangeHeading(Motion):
             self._conn.disconnect()
         if self._timer is not None:
             self._timer.stop()
+
+    @staticmethod
+    def isComplete():
+        return True
         
 class MoveDirection(Motion):
     """
@@ -617,6 +656,10 @@ class MoveDirection(Motion):
 
         for conn in self._connections:
             conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return False
             
 class TimedMoveDirection(MoveDirection):
     COMPLETE = core.declareEventType('COMPLETE')
@@ -650,6 +693,10 @@ class TimedMoveDirection(MoveDirection):
             self._timer.stop()
             self._timer = None
         MoveDirection.stop(self)
+
+    @staticmethod
+    def isComplete():
+        return True
 
 class MoveDistance(Motion):
     """
@@ -811,3 +858,7 @@ class MoveDistance(Motion):
 
         for conn in self._connections:
             conn.disconnect()
+
+    @staticmethod
+    def isComplete():
+        return True

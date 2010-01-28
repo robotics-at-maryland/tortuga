@@ -99,6 +99,10 @@ class ForwardZigZag(Motion):
 
         if self._timer is not None:
             self._timer.stop()
+
+    @staticmethod
+    def isComplete():
+        return False
             
 class ZigZag(Motion):
     LEG_COMPLETE = core.declareEventType('LEG_COMPLETE')
@@ -210,3 +214,6 @@ class ZigZag(Motion):
         if self._timer is not None:
             self._timer.stop()
             
+    @staticmethod
+    def isComplete():
+        return False

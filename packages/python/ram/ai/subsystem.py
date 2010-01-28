@@ -127,7 +127,7 @@ class AI(core.Subsystem):
                     if innerItem not in gateOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
-            elif item == 'TaskMovement':
+            elif item == 'TimedTravel':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in moveOptions:
                         raise Exception("'%s' is not a valid config "

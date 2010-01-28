@@ -190,6 +190,24 @@ class TestChangeDepth(support.MotionTest):
             
         self.assert_(self.motionFinished)
 
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.ChangeDepth',
+            desiredDepth = 5,
+            steps = 10)
+
+        self.assertEqual(m._desiredDepth, 5)
+        self.assertEqual(m._steps, 10)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.ChangeDepth', complete = True,
+            desiredDepth = 5,
+            steps = 10)
+
+        self.assertEqual(m._desiredDepth, 5)
+        self.assertEqual(m._steps, 10)
+
 class TestRateChangeDepth(support.MotionTest):
     def setUp(self):
         support.MotionTest.setUp(self)
@@ -265,6 +283,24 @@ class TestRateChangeDepth(support.MotionTest):
 
         self.assertAlmostEqual(4, self.controller.depth, 3)
         self.assertEqual(True, self.motionFinished)
+
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.RateChangeDepth',
+            desiredDepth = 5,
+            speed = 0.3)
+
+        self.assertEqual(m._desiredDepth, 5)
+        self.assertEqual(m._speed, 0.3)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.RateChangeDepth', complete = True,
+            desiredDepth = 5,
+            speed = 0.3)
+
+        self.assertEqual(m._desiredDepth, 5)
+        self.assertEqual(m._speed, 0.3)
         
 class TestChangeHeading(support.MotionTest):
     def setUp(self):
@@ -293,8 +329,7 @@ class TestChangeHeading(support.MotionTest):
                                     math.Vector3.UNIT_Z))
             self.qeventHub.publishEvents()
             
-        self.assert_(self.motionFinished)
-            
+        self.assert_(self.motionFinished)            
             
     def testRight(self):
         m = motion.basic.ChangeHeading(-30, 5) 
@@ -316,6 +351,24 @@ class TestChangeHeading(support.MotionTest):
             self.qeventHub.publishEvents()
             
         self.assert_(self.motionFinished)
+
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.ChangeHeading',
+            desiredHeading = 5,
+            steps = 10)
+
+        self.assertEqual(m._desiredHeading, 5)
+        self.assertEqual(m._steps, 10)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.ChangeHeading', complete = True,
+            desiredHeading = 5,
+            steps = 10)
+
+        self.assertEqual(m._desiredHeading, 5)
+        self.assertEqual(m._steps, 10)
             
 class TestRateChangeHeading(support.MotionTest):
     def setUp(self):
@@ -454,7 +507,25 @@ class TestRateChangeHeading(support.MotionTest):
 
         self.assertAlmostEqual(60, self._getControllerHeading(), 1)
         self.assertEqual(True, self.motionFinished)
-          
+
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.RateChangeHeading',
+            desiredHeading = 5,
+            speed = 10)
+
+        self.assertEqual(m._desiredHeading, 5)
+        self.assertEqual(m._speed, 10)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.RateChangeHeading', complete = True,
+            desiredHeading = 5,
+            speed = 10)
+
+        self.assertEqual(m._desiredHeading, 5)
+        self.assertEqual(m._speed, 10)
+
 class TestMoveDirection(support.MotionTest):
     def makeClass(self, *args, **kwargs):
         return motion.basic.MoveDirection(*args, **kwargs)
@@ -556,6 +627,26 @@ class TestMoveDirection(support.MotionTest):
         self.assertAlmostEqual(0, self.controller.speed, 5)
         self.assertEqual(5, self.controller.sidewaysSpeed)
 
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.MoveDirection',
+            desiredHeading = 5,
+            speed = 3)
+
+        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
+                                                       math.Vector3.UNIT_Z))
+        self.assertEqual(m._speed, 3)
+
+        try:
+            m = motion.basic.MotionManager.generateMotion(
+                'ram.motion.basic.MoveDirection', complete = True,
+                desiredHeading = 5,
+                speed = 3)
+            self.assert_(False)
+        except Exception:
+            pass
+
 class TestTimedMoveDirection(TestMoveDirection):
     def makeClass(self, *args, **kwargs):
         if not kwargs.has_key('duration'):
@@ -593,6 +684,30 @@ class TestTimedMoveDirection(TestMoveDirection):
         self.assertEqual(0, self.controller.speed)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed)
         self.assert_(self.finished)
+
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.TimedMoveDirection',
+            desiredHeading = 5,
+            speed = 3,
+            duration = 10)
+
+        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
+                                                       math.Vector3.UNIT_Z))
+        self.assertEqual(m._speed, 3)
+        self.assertEqual(m._duration, 10)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.TimedMoveDirection', complete = True,
+            desiredHeading = 5,
+            speed = 3,
+            duration = 10)
+
+        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
+                                                       math.Vector3.UNIT_Z))
+        self.assertEqual(m._speed, 3)
+        self.assertEqual(m._duration, 10)
 
 class TestMoveDistance(support.MotionTest):
     def makeClass(self, *args, **kwargs):
@@ -905,6 +1020,31 @@ class TestMoveDistance(support.MotionTest):
         
         self.assertAlmostEqual(0, self.controller.speed, 5)
         self.assertEqual(5, self.controller.sidewaysSpeed)
+
+    def testGenerator(self):
+        # Test the generator for this motion works
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.MoveDistance',
+            desiredHeading = 5,
+            distance = 10,
+            speed = 3)
+
+        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
+                                                       math.Vector3.UNIT_Z))
+        self.assertEqual(m._distance, 10)
+        self.assertEqual(m._speed, 3)
+
+        m = motion.basic.MotionManager.generateMotion(
+            'ram.motion.basic.MoveDistance', complete = True,
+            desiredHeading = 5,
+            distance = 10,
+            speed = 3)
+
+        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
+                                                       math.Vector3.UNIT_Z))
+        
+        self.assertEqual(m._distance, 10)
+        self.assertEqual(m._speed, 3)
             
 if __name__ == '__main__':
     unittest.main()

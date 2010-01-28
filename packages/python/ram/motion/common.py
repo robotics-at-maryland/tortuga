@@ -274,3 +274,6 @@ class Hover(Motion):
             self._conn.disconnect()
             self._conn = None
         
+    @staticmethod
+    def isComplete():
+        return False
