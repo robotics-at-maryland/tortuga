@@ -53,7 +53,7 @@ class Application(wx.App):
         self._lastTime = 0.0
         self._updateInterval = 0.0
         self._heartBeat = 0
-        self._singleSubsystem = False
+        self._numSubsystems = -1
 
         # Create config file
         config = {}
@@ -74,7 +74,7 @@ class Application(wx.App):
 
         # Create the Main Frame
         guiCfg = config.get('GUI', {})
-        self._singleSubsystem = guiCfg.get('singleSubsystem', False)
+        self._numSubsystems = guiCfg.get('numSubsystems', -1)
         self._frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
         self._frame.Show(True)
@@ -147,11 +147,15 @@ class Application(wx.App):
                 subsystem.update(timeSinceLastIteration)
         self._lastTime = currentTime
 
-        if self._singleSubsystem and (updated != 1):
+        # Check if the number of updated subsystems matches the expected
+        if self._numSubsystems > -1 and (updated != self._numSubsystems):
             # Shit hit the fan, close the application
             self._frame.Close(True)
-            print "ERROR: Single subsystem and multiple updates"
-            raise Exception("ERROR: Single subsystem and multiple updates")
+            errorMsg = "ERROR: Wrong number of subsystems updating." \
+                       " Expected %d, found %d." % \
+                       (self._numSubsystems, updated)
+            #print errorMsg 
+            raise Exception(errorMsg)
         
         # If we have run over into the next interval, just wait an entire 
         # interval
