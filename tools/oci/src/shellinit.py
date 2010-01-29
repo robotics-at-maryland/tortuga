@@ -38,6 +38,7 @@ import ram.ai.bin as bin
 import ram.ai.barbedwire as bwire
 import ram.ai.target as target
 import ram.ai.course as course
+import ram.ai.gen2.course as course2
 import ram.motion as motion
 import ram.motion.basic as basic
 import ram.motion.search as search

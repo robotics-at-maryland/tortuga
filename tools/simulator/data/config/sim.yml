@@ -5,7 +5,7 @@ GUI:
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up
-Subsystems:    
+Subsystems:
     VisionSystem:
         type: SimVision
         #type: IdealSimVision
@@ -27,11 +27,10 @@ Subsystems:
         INCLUDE: tools/simulator/data/config/vision/default.yml
 
     Ai:
-         type: AI
+        type: AI
 
-         # Includes the "taskOrder" for the AI
-         INCLUDE: tools/simulator/data/config/ai/default_gen2.yml
-
+        # Includes the "taskOrder" for the AI
+        INCLUDE: tools/simulator/data/config/ai/default_gen2.yml
 
     StateMachine:
         type: StateMachine
