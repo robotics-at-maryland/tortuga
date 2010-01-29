@@ -93,7 +93,8 @@ symlink_python = Task(
     targets = '${buildoutdir}/scripts/link_done',
     workdir = '${buildoutdir}',
     commands = ['ln -sf ' + pythonExecutable + 
-		' ${buildoutdir}/scripts/python', 
+		' ${buildoutdir}/scripts/python',
+		'ln -sf /usr/bin/pydoc2.5 ${buildoutdir}/scripts/pydoc',
 		'touch ${buildoutdir}/scripts/link_done'],
     dependencies = (setup_directories,)
     )

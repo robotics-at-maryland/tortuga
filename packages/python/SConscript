@@ -1,0 +1,67 @@
+# Copyright (C) 2010 Robotics at Maryland
+# Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/python/SConscript
+
+import os
+
+# Find the documentation folder
+packages = os.path.join('packages', 'python')
+docs = os.path.join(os.environ['RAM_SVN_DIR'], 'docs', packages)
+root = os.path.join(os.environ['RAM_SVN_DIR'], packages)
+index = len(root.split('/'))
+
+# Create the proper directories to store documentation
+try:
+    os.makedirs(docs)
+except OSError:
+    pass
+
+# Change to the docs directory
+oldDir = os.getcwd()
+os.chdir(docs)
+
+try:
+    os.remove('build_doc.log')
+except OSError:
+    pass
+
+for path, dirs, files in os.walk(os.path.join(root, 'ram')):
+    # Add only .py files
+    pyFiles = [f for f in files if f.endswith('.py')
+               and not f.startswith('.')]
+
+    # Find parent modules
+    root_path = path.split('/')[index:]
+    parent = os.path.join(*root_path)
+
+    modules = [m for m in pyFiles if 0 == m.count('__init__')]
+
+    # Generate the module documentation
+    for m in modules:
+        sourceTime = os.lstat(os.path.join(path, m)).st_mtime
+
+        dottedName = os.path.join(parent, m[:-3]).replace('/', '.')
+
+        # Check if the documentation needs to be generated
+        docTime = 0
+        if os.path.exists(os.path.join(docs, dottedName + '.html')):
+            docTime = os.lstat(os.path.join(
+                    docs, dottedName + '.html')).st_mtime
+
+        if docTime < sourceTime:
+            # TODO: Do this using pydoc module
+            # Generate html documentation in the docs folder
+            print "Generating documentation for module:", dottedName
+            os.system('pydoc -w ' + dottedName + ' >> build_doc.log')
+
+    # Remove test and .svn dirs
+    if 'test' in dirs:
+        dirs.remove('test')
+    if '.svn' in dirs:
+        dirs.remove('.svn')
+
+# Return to the old working directory
+os.chdir(oldDir)

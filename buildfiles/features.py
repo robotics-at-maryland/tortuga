@@ -47,6 +47,10 @@ def get_features():
     
     add_feature('control', dirs = ['packages/control'],
                 deps = ['math', 'core', 'vehicle'])
+
+    # Generates python docs
+    add_feature('python', dirs = ['packages/python'],
+                deps = ['core', 'control', 'math', 'vehicle', 'vision'])
     
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],
