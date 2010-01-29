@@ -101,6 +101,7 @@ class Pipe(task.Task):
             currentState = Pipe
         return { pipe.Centering.SETTLED : currentState,
                  Pipe.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
                 'GO' : state.Branch(pipe.Start) }
 
     @staticmethod
@@ -262,6 +263,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         trans.update({ motion.basic.MotionManager.FINISHED : myState,
                        pipe.PipeTrackingState.FOUND_PIPE : myState,
                        PipeObjective.TIMEOUT : myState,
+                       task.TIMEOUT : task.Next,
                        pipe.Centering.SETTLED : task.Next })
 
         return trans
@@ -289,7 +291,6 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
 
     def enter(self, motion, *motionList):
         pipe.PipeTrackingState.enter(self)
-        task.Task.enter(self)
 
         self.visionSystem.pipeLineDetectorOn()
 
@@ -302,9 +303,12 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self.ai.data['config'].get(self._className, {}).get(
                     'threshold', None)
 
-        timeout = self.ai.data['config'].get(self._className, {}).get(
+        taskTimeout = self.ai.data['config'].get(self._className, {}).get(
             'taskTimeout', 30)
+        task.Task.enter(self, taskTimeout)
 
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+            'timeout', 10)
         self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
         self.timer.start()
 

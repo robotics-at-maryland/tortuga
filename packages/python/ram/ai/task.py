@@ -112,7 +112,7 @@ class Task(state.State):
                                                           defaultTimeout)
             # Start our actual timeout timer
             self._timer = self.timerManager.newTimer(self._timeoutEvent, 
-                                                    self._timeoutDuration)
+                                                     self._timeoutDuration)
             self._timer.start()
             
     def exit(self):
