@@ -62,7 +62,9 @@ x0=[q0; w0; qd0; wd0; qhat0];
     
         %System Inertia
         global H;
-        H= 1500*eye(3);%I don't know what this is!!!
+        H= [1 0 0
+            0 2 0
+            0 0 2]%I don't know what this is!!!
 
         %Drag Constants
         global Cd;
