@@ -368,8 +368,13 @@ class PipeObjectiveTest(object):
         self.motion = motion
         self.motionList = motionList
 
+        # This value should be deleted by the task
+        self.ai.data['pipeStartOrientation'] = 35
+
     def testStart(self):
         self.assertCurrentState(self.myState)
+
+        self.assert_(not self.ai.data.has_key('pipeStartOrientation'))
 
         # Make sure we've started the first motion
         self.assertCurrentMotion(self.motion)
@@ -447,14 +452,14 @@ class PipeObjectiveTest(object):
 
 class TestPipeBarbedWire(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        PipeObjectiveTest.setUp(self, course.PipeBarbedWire, course.Target,
-                                motion.basic.RateChangeDepth,
-                                motion.basic.RateChangeHeading,
-                                motion.search.ForwardZigZag)
         cfg = { 'Ai' : {'taskOrder' :
                         [ 'ram.ai.course.PipeBarbedWire',
                           'ram.ai.course.Target' ]} }
         support.AITestCase.setUp(self, cfg = cfg)
+        PipeObjectiveTest.setUp(self, course.PipeBarbedWire, course.Target,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
         self.machine.start(course.PipeBarbedWire)
 
 class TestLight(support.AITestCase):
@@ -543,26 +548,26 @@ class TestLight(support.AITestCase):
 
 class TestPipeTarget(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        PipeObjectiveTest.setUp(self, course.PipeTarget, course.Bin,
-                                motion.basic.RateChangeDepth,
-                                motion.basic.RateChangeHeading,
-                                motion.search.ForwardZigZag)
         cfg = { 'Ai' : {'taskOrder' :
                         [ 'ram.ai.course.PipeTarget',
                           'ram.ai.course.Bin' ]} }
         support.AITestCase.setUp(self, cfg = cfg)
+        PipeObjectiveTest.setUp(self, course.PipeTarget, course.Bin,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
         self.machine.start(course.PipeTarget)
 
 class TestPipeBin(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        PipeObjectiveTest.setUp(self, course.PipeBin, course.Pinger,
-                                motion.basic.RateChangeDepth,
-                                motion.basic.RateChangeHeading,
-                                motion.search.ForwardZigZag)
         cfg = { 'Ai' : {'taskOrder' :
                         [ 'ram.ai.course.PipeBin',
                           'ram.ai.course.Pinger' ]} }
         support.AITestCase.setUp(self, cfg = cfg)
+        PipeObjectiveTest.setUp(self, course.PipeBin, course.Pinger,
+                                motion.basic.RateChangeDepth,
+                                motion.basic.RateChangeHeading,
+                                motion.search.ForwardZigZag)
         self.machine.start(course.PipeBin)
        
 class TestLightStaged(TestLight):

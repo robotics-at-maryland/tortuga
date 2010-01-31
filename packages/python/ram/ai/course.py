@@ -290,6 +290,10 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self._branched = True
 
     def enter(self, motion, *motionList):
+        # Cleanup pipeStartOrientation if it exists in the ai data
+        if self.ai.data.has_key('pipeStartOrientation'):
+            del self.ai.data['pipeStartOrientation']
+
         pipe.PipeTrackingState.enter(self)
 
         self.visionSystem.pipeLineDetectorOn()
