@@ -25,8 +25,7 @@ class wxCheckBox;
 class wxSlider;
 class wxSizer;
 class wxScrollEvent;
-class wxButton;
-class wxToggleButton;
+class wxBitmapButton;
 
 namespace ram {
 namespace tools {
@@ -99,6 +98,9 @@ private:
     /** The position of the slider */
     int m_sliderValue;
 
+    /** If the slider is locked */
+    bool m_locked;
+
     /** Slider for changing property value */
     wxSlider* m_slider;
 
@@ -115,10 +117,15 @@ private:
     wxString m_defaultValue;
 
     /** The lock button */
-    wxToggleButton* m_lock;
+    wxBitmapButton* m_lock;
 
     /** The set to default button */
-    wxButton* m_defaultButton;
+    wxBitmapButton* m_defaultButton;
+
+    /** Bitmap storage for easy loading */
+    wxBitmap* m_lockImage;
+    wxBitmap* m_unlockImage;
+    wxBitmap* m_cancelImage;
 
     DECLARE_EVENT_TABLE()
 };

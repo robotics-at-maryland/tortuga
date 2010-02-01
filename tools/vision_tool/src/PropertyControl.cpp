@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <cmath>
+#include <cstdlib>
 
 // Library Includes
 #include <wx/textctrl.h>
@@ -18,7 +19,8 @@
 #include <wx/checkbox.h>
 #include <wx/dcclient.h>
 #include <wx/slider.h>
-#include <wx/button.h>
+#include <wx/bitmap.h>
+#include <wx/bmpbuttn.h>
 #include <wx/tglbtn.h>
 
 #include <boost/bind.hpp>
@@ -44,13 +46,17 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
     m_prop(property),
     m_text(0),
     m_checkBox(0),
+    m_locked(false),
     m_slider(0),
     m_sliderScale(1),
     m_label(0),
     m_model(model),
     m_defaultValue(m_prop->toString().c_str(), wxConvUTF8),
     m_lock(0),
-    m_defaultButton(0)
+    m_defaultButton(0),
+    m_lockImage(0),
+    m_unlockImage(0),
+    m_cancelImage(0)
 {
     // Label for the property
     wxString propName(m_prop->getName().c_str(), wxConvUTF8);
@@ -96,17 +102,27 @@ PropertyControl::PropertyControl(core::PropertyPtr property, Model* model,
 			this);
     }
 
-    m_lock = new wxToggleButton(this, wxID_ANY, wxT("LOCK"));
-    m_lock->Connect(m_lock->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+    // Load the bitmap images
+    wxString baseDir(getenv("RAM_SVN_DIR"), wxConvUTF8);
+    baseDir.Append(wxT("/tools/vision_tool/images/"));
+    
+    m_lockImage = new wxBitmap(baseDir + wxT("lock.png"));
+    m_unlockImage = new wxBitmap(baseDir + wxT("open.png"));
+    m_cancelImage = new wxBitmap(baseDir + wxT("cancel.png"));
+
+    m_lock = new wxBitmapButton(this, wxID_ANY, *m_unlockImage);
+    m_lock->Connect(m_lock->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
 		    wxCommandEventHandler(PropertyControl::onLock), NULL, this);
     sizer->Add(m_lock);
 
-    m_defaultButton = new wxButton(this, wxID_ANY, wxT("RESET"));
+    m_defaultButton = new wxBitmapButton(this, wxID_ANY, *m_cancelImage);
     m_defaultButton->Connect(m_defaultButton->GetId(),
 			     wxEVT_COMMAND_BUTTON_CLICKED,
 			     wxCommandEventHandler(
 			         PropertyControl::onDefaultButton), NULL, this);
     sizer->Add(m_defaultButton);
+
+    
 
     sizer->SetSizeHints(this);
     SetSizer(sizer);
@@ -120,6 +136,17 @@ PropertyControl::~PropertyControl()
 {
     // Unsubscribe from the connection
     m_propChangeConnection->disconnect();
+
+    // Cleanup
+    delete m_lockImage;
+    delete m_unlockImage;
+    delete m_cancelImage;
+
+    delete m_lock;
+    delete m_defaultButton;
+
+    delete m_label;
+    delete m_checkBox;
 }
 
 void PropertyControl::setToDefault()
@@ -144,8 +171,8 @@ void PropertyControl::setToDefault()
             break;
     }
 
-    m_lock->SetValue(false);
-    
+    m_locked = false;
+    m_lock->SetBitmapLabel(*m_unlockImage);
 }
 
 wxString PropertyControl::getPropertyValue()
@@ -198,7 +225,7 @@ void PropertyControl::onCheck(wxCommandEvent& event)
 
 void PropertyControl::onSliderUpdate(wxScrollEvent& event)
 {
-    if (m_lock->GetValue())
+    if (m_locked)
     {
 	m_slider->SetValue(m_sliderValue);
     }
@@ -259,6 +286,12 @@ void PropertyControl::onPropertiesChanged(core::EventPtr event)
 
 void PropertyControl::onLock(wxCommandEvent& event)
 {
+    m_locked = !m_locked;
+    if (m_locked) {
+	m_lock->SetBitmapLabel(*m_lockImage);
+    } else {
+	m_lock->SetBitmapLabel(*m_unlockImage);
+    }
 }
 
 void PropertyControl::onDefaultButton(wxCommandEvent& event)
