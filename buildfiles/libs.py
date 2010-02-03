@@ -305,10 +305,6 @@ def _get_internal_lib(env, name):
 
             'logging' : InternalLibrary('logging', int_deps = ['core'],
                                         ext_deps = ['Boost.Serialization']),
-
-            'slam' : InternalLibrary('slam', int_deps = ['core', 'control',
-                                                         'vehicle', 'math'],
-                                     ext_deps = ['Boost']),
             }
 
     if INTERNAL_LIBS.has_key(name):
