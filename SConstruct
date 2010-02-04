@@ -241,7 +241,7 @@ def docs_func(target = None, source = None, env = None):
         # Restore args
         sys.argv = origArgv
 
-# Creat are "phony" distclean target
+# Create our "phony" distclean target
 make_docs = env.Alias('docs', 'SConstruct', env.Action(docs_func))
 env.AlwaysBuild(make_docs)
 

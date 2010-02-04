@@ -281,10 +281,12 @@ class Motion(object):
     @staticmethod
     def isComplete(self):
         """
-        Abstract base classes were added to python in 2.6.
+        Returns true if the motion eventually terminates and calls _finish()
 
-        To get the same functionality, this will raise an exception so
-        any base classes will need to overwrite it.
+        All subclasses need to implement this feature, if they don't
+        an exception will be thrown.  Abstract base classes, added to 
+        python in 2.6, provide this same functionality but we only
+        support python 2.5.
         """
         raise Exception("Not implemented")
     
