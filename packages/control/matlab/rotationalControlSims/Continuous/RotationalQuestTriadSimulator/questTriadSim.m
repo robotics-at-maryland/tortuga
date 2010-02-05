@@ -28,7 +28,7 @@ clc;
 
 %% Initialization
 ti=0;
-tf=8;
+tf=10;
 time = ti:0.04:tf;
 state_storage = 666*ones(7, length(time));
 acc_meas_storage = 666*ones(3, length(time));
@@ -40,14 +40,14 @@ qQuest_storage = 666*ones(4, length(time));
 %Initial Position (Quaternion)  
 %describes orientation of N w.r.t. B 
 % v_{b frame} = R(q) * v_{n frame}
-axis0 = [0 0 1]'; % starting in a level position
+axis0 = [0 3 1]'; % starting in a level position
 axis0=axis0/norm(axis0);
-angle0 = (pi/180)*0; 
+angle0 = (pi/180)*90; 
 q0 = [axis0*sin(angle0/2); cos(angle0/2)];
 q0 = q0/norm(q0);
 
 %Initial angular rate (of B w.r.t. N written in B frame)
-w0=(pi/180)*[0 0 40]';
+w0=(pi/180)*[0 40 40]';
 
 %initial estimated position
 x0=[q0; w0];
@@ -108,7 +108,7 @@ for i=2:1:length(time)
     n1 = n1/norm(n1);
     bRn = [n1 n2 n3];
     %save triad
-    qtriad_storage(1:4, i-1) = quaternionFromnCb(bRn');
+    qtriad_storage(1:4, i) = quaternionFromnCb(bRn');
            
     %quest(only allowed to access acc, mag, and vel)
     cos_func = dot(mag,acc)*dot(mag_vec_nf,acc_vec_nf) + norm(cross(mag,acc))*norm(cross(mag_vec_nf,acc_vec_nf));
@@ -127,7 +127,7 @@ for i=2:1:length(time)
     q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma];
     q_quest = q_quest/norm(q_quest);
     %save quest
-    qQuest_storage(1:4, i-1) = q_quest;
+    qQuest_storage(1:4, i) = q_quest;
 
     %integrate
     [timeDontCare xi] = ode45(@questTriadDynamics,[time(i-1) time(i)],state_storage(:,i-1));
@@ -135,34 +135,47 @@ for i=2:1:length(time)
 end
 %[time,x] = ode45(@questTriadDynamics,[t0 te],x0);
 
-%% Plot Data
+%% Plot Data (indices 2:end because index 1 has no estimation )
 
 figure(1)
+
 subplot(4,1,1)
-plot(time, state_storage(1,:), 'b')
-plot(time, qtriad_storage(1,:), 'g')
-plot(time, qQuest_storage(1,:), 'r')
+hold on
+plot(time(2:end), state_storage(1,2:end), 'b')
+plot(time(2:end), qtriad_storage(1,2:end), 'g')
+plot(time(2:end), qQuest_storage(1,2:end), 'r')
 title('Position')
 ylabel('q_1')
 legend('Actual','Triad','Quest')
+hold off
+
 subplot(4,1,2)
-plot(time, state_storage(2,:), 'b')
-plot(time, qtriad_storage(2,:), 'g')
-plot(time, qQuest_storage(2,:), 'r')
+hold on
+plot(time(2:end), state_storage(2,2:end), 'b')
+plot(time(2:end), qtriad_storage(2,2:end), 'g')
+plot(time(2:end), qQuest_storage(2,2:end), 'r')
 ylabel('q_2')
 legend('Actual','Triad','Quest')
+hold off
+
 subplot(4,1,3)
-plot(time, state_storage(3,:), 'b')
-plot(time, qtriad_storage(3,:), 'g')
-plot(time, qQuest_storage(3,:), 'r')
+hold on
+plot(time(2:end), state_storage(3,2:end), 'b')
+plot(time(2:end), qtriad_storage(3,2:end), 'g')
+plot(time(2:end), qQuest_storage(3,2:end), 'r')
 ylabel('q_3')
 legend('Actual','Triad','Quest')
+hold off
+
 subplot(4,1,4)
-plot(time, state_storage(4,:), 'b')
-plot(time, qtriad_storage(4,:), 'g')
-plot(time, qQuest_storage(4,:), 'r')
+hold on
+plot(time(2:end), state_storage(4,2:end), 'b')
+plot(time(2:end), qtriad_storage(4,2:end), 'g')
+plot(time(2:end), qQuest_storage(4,2:end), 'r')
 ylabel('q_4')
 legend('Actual','Triad','Quest')
+hold off
+
 xlabel('time (s)')
 
 
