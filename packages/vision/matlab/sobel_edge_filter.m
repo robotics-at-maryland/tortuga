@@ -7,19 +7,25 @@ function [ FILTER ] = sobel_edge_filter(IMG)
 
 GRAY = rgb2gray(IMG);
 
-F1 = imfilter(GRAY, fspecial('sobel'));
-F2 = imfilter(GRAY, fspecial('sobel')');
+% Image must be a double before using the sobel filter, or we lose
+% half of the edges
 
-[height, width] = size(GRAY);
+D = double(GRAY);
 
-% Create a zeroed out image
-% Make sure that the matrix is initialized
-% to use uint8 for all images!
-FILTER = zeros(height, width, 'uint8');
-for i=1:height
-    for y=1:width
-        FILTER(i,y) = max(F1(i,y),F2(i,y));
-    end
-end
+F1 = imfilter(D, fspecial('sobel'));
+F2 = imfilter(D, fspecial('sobel')');
+
+% Absolute value so negative values are emphasized
+modF1 = abs(F1);
+modF2 = abs(F2);
+
+% Scale image so the max is 256
+max_value = max(max(max(F1)), max(max(F2)));
+multiple = max_value / 256;
+scaledF1 = modF1 ./ multiple;
+scaledF2 = modF2 ./ multiple;
+
+FILTER = max(uint8(scaledF1), uint8(scaledF2));
+
 
 end
