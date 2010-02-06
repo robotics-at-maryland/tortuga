@@ -21,6 +21,13 @@
 namespace ram {
 namespace vision {
 
+/** A detector is an encapsulation of an algorithm to find an objective
+ *
+ *  It takes in an image, and sends out Events when it finds the desired
+ *  objective.  Optionally you can get an output image for debugging the
+ *  algorithm.  Also each Detector has a core::PropertySet to allow easy
+ *  tweaking of its numerous parameters.
+ */  
 class RAM_EXPORT Detector : public core::EventPublisher
 {
 public:

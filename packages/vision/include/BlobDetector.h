@@ -26,10 +26,21 @@
 
 namespace ram {
 namespace vision {
-        
+
+/** Finds all connected white regions in a black and white RGB image
+ *
+ *  As it finds all connected components it records their max and min X,Y
+ *  bounds, and total white pixel counts. This is returned as a list of Blob
+ *  objects ordered from largest to smallest.
+ */  
 class RAM_EXPORT BlobDetector  : public Detector
 {
 public:
+
+    /** A single set of connected white pixels in the image
+     *
+     *  Stores min/max X and Y bounds of the blob, its center, and pixel count.
+     */
     class Blob
     {
     public:
@@ -55,13 +66,17 @@ public:
 
         int getWidth() const { return getMaxX() - getMinX() + 1; }
 
+        /** Percentage of the area within the bounding box that is the blob */
 	double getFillPercentage() { 
 	  return ((double)getSize()) / ((double)(getHeight() * getWidth())); } 
 
+        /** Draws the bounds, and optionally the center of the blob */
         void draw(Image*, bool centroid = true, 
 		  unsigned char R = 0,
 		  unsigned char G = 0,
 		  unsigned char B = 255);
+
+        /** Draws the Aspect ratio and pixel count in text on the image */
 	void drawStats(Image* image);
 
         /** Draws text in the upper right hand corner of the blob */

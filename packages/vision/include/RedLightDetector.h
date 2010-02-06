@@ -25,7 +25,16 @@
 
 namespace ram {
 namespace vision {
-    
+
+
+/** Detects the Red "Buoy" in the given image
+ *
+ *  This first runs a color filter to produce an image where only the red parts
+ *  are white, and everything is black.  Following that it runs a configurable
+ *  number of erosion, then dilation passes.  After that it runs a blob
+ *  detector, and filters for the biggest blog that is square enough to be
+ *  considered "round", and reports that as the buoy with an event.
+ */  
 class RAM_EXPORT RedLightDetector : public Detector
 {
   public:

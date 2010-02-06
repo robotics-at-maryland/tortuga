@@ -20,7 +20,15 @@
 
 namespace ram {
 namespace vision {
-        
+
+/** A BlobDetector::Blob with an ID so it can be tracked between frames
+ *
+ *  In addition to all the normal Blob information it has the blob center in
+ *  image coordinates, and a unique ID. It also has helper methods that
+ *  can compare two lists of TrackedBlobs and update there ID's so that any
+ *  blob which has not moved or significantly will have the same ID.
+ *  TrackedBlobs are created from Blobs created by the standard BlobDetector.
+ */  
 class RAM_EXPORT TrackedBlob : public BlobDetector::Blob
 {
 public:
@@ -70,12 +78,42 @@ public:
      *
      *  The oldList will have all blobs that are matched to new blobs removed.
      *  All blobs in the newList with matches will have there IDs updated to
-     *  reflect that.
+     *  reflect that. Blobs must be within the distanceThreshold to be
+     *  considered the same blob.
      *
+     *  @param oldList
+     *      Starts with all the Blobs from last frame, ends up with all the
+     *      blobs not in this frame.
+     *  @param newList
+     *      All the newly found blobs in this frame.
+     *  @param distanceThreshold
+     *      Blob centers must be within this distance in image coordinates to
+     *      be considered the same blob.
      */
     template <class T>
     static void updateIds(T* oldList, T* newList, double distanceThreshold);
 
+    /** Matches blobs in the newList with the oldList but with history
+     *
+     *  This performs similar to the normal updateIds, but it doesn't move
+     *  Blobs to the oldList until they have been gone for lostFrameCount
+     *  number of frames.
+     *
+     *  @param oldList
+     *      Passed in with all the Blobs from last frame, ends up with all the
+     *      blobs that have not been seen for lostFrameCount frames.
+     *  @param newList
+     *      All the newly found blobs in this frame.
+     *  @param lostBlobMap
+     *      Maps Blob to how many frames it has *left* before being put in the
+     *      oldList.
+     *  @param distanceThreshold
+     *      Blob centers must be within this distance in image coordinates to
+     *      be considered the same blob.
+     *  @param lostFrameCount
+     *      How many updates a blob has to not be seen in order for it to moved
+     *      the oldList. 0 = same behavior as standard updateIds.
+     */
     template <class T, class K>
     static void updateIds(T* oldList, T* newList, K* lostBlobMap,
                           double distanceThreshold,
@@ -186,7 +224,7 @@ void TrackedBlob::updateIds(T* oldList, T* newList, K* lostBlobMap,
         typename T::iterator oldListEnd = oldList->end();
         for (;oldListIter != oldListEnd; oldListIter++)
         {
-            // The +1 is because its goign to be decremented in the next loop
+            // The +1 is because its going to be decremented in the next loop
             lostBlobMap->insert(
                 typename K::value_type(*oldListIter, lostFrameCount));
         }
