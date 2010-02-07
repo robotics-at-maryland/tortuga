@@ -7,6 +7,10 @@ function [ FILTER ] = sobel_edge_filter(IMG)
 
 GRAY = rgb2gray(IMG);
 
+% Perform a gaussian filter on the image first
+
+GRAY = imfilter(GRAY, fspecial('gaussian', 5));
+
 % Image must be a double before using the sobel filter, or we lose
 % half of the edges
 
