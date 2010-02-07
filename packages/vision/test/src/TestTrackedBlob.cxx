@@ -109,4 +109,21 @@ TEST(updateIdsWithMap)
     CHECK_EQUAL(0, lostBlobs[newOldBlob]);
 }
 
+TEST(operators)
+{
+    /**
+     * Tests the operator<, operator>, operator== functions
+    **/
+    vision::BlobDetector::Blob dummyBlob;
+
+    // Create two fake blobs with id 1 and 2
+    vision::TrackedBlob blob1(dummyBlob, 0, 0, 1);
+    vision::TrackedBlob blob2(dummyBlob, 0, 0, 2);
+    vision::TrackedBlob blob3(dummyBlob, 0, 0, 2);
+
+    CHECK(blob1 < blob2);
+    CHECK(blob2 > blob1);
+    CHECK(blob2 == blob3);
+}
+
 } // SUITE(TrackedBlob)

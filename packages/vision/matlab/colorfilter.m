@@ -1,22 +1,31 @@
-% IMG = image object (make one using imread(filename))
-% R = [lower, upper]
-% G = [lower, upper]
-% B = [lower, upper]
+function A = colorfilter(IMG, ...
+    channel1Low, channel1High, ...
+    channel2Low, channel2High, ...
+    channel3Low, channel3High)
+%COLORFILTER Filters an image for the specified color ranges.
+%   If given a HxWx3 image, this will filter that image for the
+%   given color channels. This will work on any image in a color
+%   space that has 3 channels. This will return a binary image
+%   where 1's represent pixels that passed the filter, and 0's
+%   represent those that didn't.
+%
+%   Ex. RGB, HSV, etc. NOT grayscale
 
-function A = colorfilter(IMG, R, G, B)
-% Load the variables
-lowerRed = R(1);
-upperRed = R(2);
-lowerGreen = G(1);
-upperGreen = G(2);
-lowerBlue = B(1);
-upperBlue = B(2);
-% Load the size of the image, depth is not used
+% Check dimensions
+size_ = size(IMG);
+size_of_size = size(size_);
+if size_of_size(2) ~= 3 || size_(3) ~= 3
+    error(['IMG does not have valid dimensions. ',...
+        'The image must be HxWx3.']);
+end
 
-redFilter = (IMG(:,:,1) <= upperRed) & (IMG(:,:,1) >= lowerRed);
-greenFilter = (IMG(:,:,2) <= upperGreen) & (IMG(:,:,2) >= lowerGreen);
-blueFilter = (IMG(:,:,3) <= upperBlue) & (IMG(:,:,3) >= lowerBlue);
+channel1Filter = (IMG(:,:,1) <= channel1High) & ...
+    (IMG(:,:,1) >= channel1Low);
+channel2Filter = (IMG(:,:,2) <= channel2High) & ...
+    (IMG(:,:,2) >= channel2Low);
+channel3Filter = (IMG(:,:,3) <= channel3High) & ...
+    (IMG(:,:,3) >= channel3Low);
 
-A = redFilter & greenFilter & blueFilter;
+A = channel1Filter & channel2Filter & channel3Filter;
 
 end
