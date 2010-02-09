@@ -1140,7 +1140,7 @@ int resetMotorBoard(int fd)
     return SB_HWFAIL;
 }
 
-int DLVOn(int fd, unsigned char power)
+int DVLOn(int fd, unsigned char power)
 {
     unsigned char buf[2];
     if(power) {

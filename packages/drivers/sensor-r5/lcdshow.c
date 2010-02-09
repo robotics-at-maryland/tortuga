@@ -88,6 +88,10 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
         printf("\tlcdshow -mtrreset (power cycles the motor board)\n");
+
+        printf("\nDVL commands:\n");
+        printf("\tlcdshow -dvlon (enable dvl)\n");
+        printf("\tlcdshow -dvloff (disable dvl)\n");
         
 	    return -1;
     }
@@ -831,6 +835,16 @@ int main(int argc, char ** argv)
 
         if(argc == 4)
             displayText(fd, 1, argv[3]);
+    }
+
+    else if(strcmp(argv[1], "-dvlon") == 0)
+    {
+        DVLOn(fd, 1);
+    }
+
+    else if(strcmp(argv[1], "-dvloff") == 0)
+    {
+        DVLOn(fd, 0);
     }
     
     else {

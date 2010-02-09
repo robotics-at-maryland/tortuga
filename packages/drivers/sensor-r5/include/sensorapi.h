@@ -448,6 +448,8 @@ char* sbErrorToText(int ret);
 /** Translates the index from the boardInfo array into the sensor name */
 char* tempSensorIDToText(int id);
 
+int DVLOn(int fd, unsigned char power);
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 } // extern "C"
