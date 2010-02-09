@@ -136,7 +136,10 @@
 #define BUS_CMD_SET_SERVO_POS   0x59
 
 #define BUS_CMD_MTR_RST         0x5A
-/* Next free is 0x5B */
+
+#define BUS_CMD_DVL_ON          0x5B
+#define BUS_CMD_DVL_OFF         0x5C
+/* Next free is 0x5D */
 
 
 /* I wanted a more Unique response to a ping.
@@ -238,6 +241,9 @@
 #define HOST_CMD_SERVO_POWER_OFF    0x30
 
 #define HOST_CMD_MTR_RST            0x31
+
+#define HOST_CMD_DVL_ON              0x32
+#define HOST_CMD_DVL_OFF             0x33
 
 
 /* So we have host commands, Bus commands,

@@ -6,6 +6,11 @@
 #include "uart.c"
 #include "i2c.c"
 
+/******************************************************************/
+/* The marker droppers will not work unless you remove this line! */
+/******************************************************************/
+#define DVL_INSIDE
+
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
 //_FOSC( FRC_LO_RANGE);
@@ -65,6 +70,10 @@ _FWDT ( WDT_OFF );
 #define LAT_MOTR6   _LATC2
 #define TRIS_MOTR6  _TRISC2
 
+/* DVL power Specification */
+#define DVL_ON      1
+#define LAT_DVL     _LATC1
+#define TRIS_DVL    _TRISC1 
 
 /* Kill switch level specification */
 #define KILLSW_ON 0
@@ -166,7 +175,6 @@ _FWDT ( WDT_OFF );
 
 /* On R4, this is 18V ISEN */
 #define ADC_IAUX        0x0D
-
 
 unsigned int iMotor[8];
 unsigned int refVoltage;
@@ -332,6 +340,18 @@ void processData(byte data)
                 case BUS_CMD_MARKER2:
                 {
                     dropMarker(1);
+                    break;
+                }
+
+                case BUS_CMD_DVL_ON:
+                {
+                    LAT_DVL= DVL_ON;
+                    break;
+                }
+
+                case BUS_CMD_DVL_OFF:
+                {
+                    LAT_DVL= !DVL_ON;
                     break;
                 }
 
@@ -654,6 +674,10 @@ int markerCountsLeft = 0;
  */
 void dropMarker(byte id)
 {
+#ifdef DVL_INSIDE
+    return;
+#endif
+
     /* Set appropriate output to 1 */
     if(id == 0)
         LAT_MRKR1 = MRKR_ON;
@@ -1032,11 +1056,19 @@ void main()
 
     barMode = 0;
 
+#ifndef DVL_INSIDE
     LAT_MRKR1 = ~MRKR_ON;
     LAT_MRKR2 = ~MRKR_ON;
 
     TRIS_MRKR1 = TRIS_OUT;
     TRIS_MRKR2 = TRIS_OUT;
+#else
+    LAT_DVL = ~DVL_ON;
+    TRIS_DVL = TRIS_OUT;
+
+    LAT_MRKR2 = ~MRKR_ON;
+    TRIS_MRKR2 = TRIS_OUT;
+#endif
 
     LAT_MOTR1 = ~MOTR_ON;
     LAT_MOTR2 = ~MOTR_ON;

@@ -115,6 +115,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_BARS       IRQ_DISTRO
 #define SLAVE_ID_IMOTOR     IRQ_DISTRO
 #define SLAVE_ID_VLOW       IRQ_DISTRO
+#define SLAVE_ID_DVL        IRQ_DISTRO
 #define SLAVE_ID_MOTOR      IRQ_MOTOR
 #define SLAVE_ID_SERVOS     IRQ_MOTOR
 
@@ -2181,6 +2182,48 @@ int main(void)
                 }
 
                 sendByte(cs + HOST_REPLY_BATTCURRENT);
+                break;
+            }
+
+            case HOST_CMD_DVL_ON:
+            {
+                t1= waitchar(1);
+
+                if(t1 != HOST_CMD_DVL_ON)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DVL_ON, SLAVE_ID_DVL) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+            case HOST_CMD_DVL_OFF:
+            {
+                t1= waitchar(1);
+
+                if(t1 != HOST_CMD_DVL_OFF)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DVL_OFF, SLAVE_ID_DVL) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
                 break;
             }
 
