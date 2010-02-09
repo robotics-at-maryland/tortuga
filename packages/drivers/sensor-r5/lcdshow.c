@@ -839,12 +839,16 @@ int main(int argc, char ** argv)
 
     else if(strcmp(argv[1], "-dvlon") == 0)
     {
-        DVLOn(fd, 1);
+        int ret;
+        if((ret = DVLOn(fd, 1)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
     }
 
     else if(strcmp(argv[1], "-dvloff") == 0)
     {
-        DVLOn(fd, 0);
+        int ret;
+        if((ret = DVLOn(fd, 0)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
     }
     
     else {
