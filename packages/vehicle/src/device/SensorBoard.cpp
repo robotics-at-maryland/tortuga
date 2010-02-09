@@ -375,6 +375,15 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
     }
 }
 
+void SensorBoard::setDVLPowerEnabled(bool state)
+{
+    // 1 is on, 0 is off
+    if (state)
+        setDVLPower(1);
+    else
+        setDVLPower(0);
+}
+
 double SensorBoard::getMainBusVoltage()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
@@ -481,6 +490,11 @@ void SensorBoard::setServoEnable(unsigned char mask)
 void SensorBoard::setServoPower(unsigned char power)
 {
     handleReturn(::setServoPower(m_deviceFD, power));    
+}
+
+void SensorBoard::setDVLPower(unsigned char power)
+{
+    handleReturn(::DVLOn(m_deviceFD, power));
 }
     
 void SensorBoard::syncBoard()

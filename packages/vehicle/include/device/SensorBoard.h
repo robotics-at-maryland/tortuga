@@ -185,6 +185,13 @@ public:
      */
     virtual void setPowerSouceEnabled(int address, bool state);
 
+    /** Enables or disables the DVl power source
+     *
+     * @param state
+     *      True to enable the power source, false to disable
+     */
+    virtual void setDVLPowerEnabled(bool state);
+
     /** This returns the voltage of the main bus
      *
      *   This does so by calculting the average voltage of all currently
@@ -213,6 +220,8 @@ protected:
     virtual void setServoEnable(unsigned char mask);
 
     virtual void setServoPower(unsigned char power);
+
+    virtual void setDVLPower(unsigned char power);
     
     virtual void syncBoard();
     
