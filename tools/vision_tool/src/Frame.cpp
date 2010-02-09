@@ -52,7 +52,8 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
     m_mediaControlPanel(0),
     m_movie(0),
-    m_model(new Model)
+    m_model(new Model),
+    m_idNum(1)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
@@ -179,15 +180,19 @@ void Frame::onSetDirectory(wxCommandEvent& event)
     int id = chooser.ShowModal();
     if (id == wxID_OK) {
 	m_saveDir = chooser.GetPath();
+        m_idNum = 1;
     }
 }
 
-bool Frame::saveImage(wxString pathname)
+bool Frame::saveImage(wxString pathname, bool suppressError)
 {
     vision::Image* image = m_model->getLatestImage();
     
     // Check that there is an image to save
     if (image == NULL) {
+        // Don't create the message dialog if we suppress the window
+        if (suppressError)
+            return false;
 	// Create a message saying there was an error saving
 	wxMessageDialog messageWindow(this,
 				      _T("Error: Could not save the image.\n"
@@ -229,20 +234,21 @@ wxString Frame::numToString(int num)
 
 void Frame::onSaveImage(wxCommandEvent& event)
 {
-    // Keep a counter (the first save will be slow(
-    static int imageNum = 1;
-
     // Save to the default path
     // Find a file that doesn't exist
-    wxFileName filename(m_saveDir, numToString(imageNum));
+    wxFileName filename(m_saveDir, numToString(m_idNum));
     while (filename.FileExists()) {
-	imageNum++;
-	filename = wxFileName(m_saveDir, numToString(imageNum));
+	m_idNum++;
+	filename = wxFileName(m_saveDir, numToString(m_idNum));
     }
 
     wxString fullpath(filename.GetFullPath());
     std::cout << "Quick save to " << fullpath.mb_str(wxConvUTF8) << std::endl;
-    saveImage(fullpath);
+    // Save image and suppress any error to be handled by this function
+    bool ret = saveImage(fullpath, true);
+    if (!ret) {
+        std::cerr << "Quick save failed. Try stopping the video.\n";
+    }
 }
 
 void Frame::onShowHideDetector(wxCommandEvent& event)

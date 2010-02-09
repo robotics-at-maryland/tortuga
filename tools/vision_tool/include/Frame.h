@@ -44,7 +44,7 @@ private:
     void onOpenFile(wxCommandEvent& event);
     void onOpenCamera(wxCommandEvent& event);
     void onSetDirectory(wxCommandEvent& event);
-    bool saveImage(wxString name);
+    bool saveImage(wxString name, bool suppressError = false);
     void onSaveAsImage(wxCommandEvent& event);
     wxString numToString(int num);
     void onSaveImage(wxCommandEvent& event);
@@ -62,6 +62,7 @@ private:
     wxTextCtrl* m_configText;
 
     wxString m_saveDir;
+    int m_idNum;
 
     DECLARE_EVENT_TABLE()
 };
