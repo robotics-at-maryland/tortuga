@@ -1139,3 +1139,26 @@ int resetMotorBoard(int fd)
         return SB_OK;
     return SB_HWFAIL;
 }
+
+int DLVOn(int fd, unsigned char power)
+{
+    unsigned char buf[2];
+    if(power) {
+        buf[0]= buf[1]= HOST_CMD_DVL_ON;
+    } else {
+        buf[0]= buf[1]= HOST_CMD_DVL_OFF;
+    }
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
