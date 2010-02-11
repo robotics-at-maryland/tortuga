@@ -138,23 +138,28 @@ yobj = 19;
 
 % Measurements and Errors
 x = [-5 -18 10 -27];
-sigx = [.5 .8 .7 1];
+sigx = [.4 .7 .5 .8];
+%sigx = [0 0 0 0];
 
 y = [-1 8 2 18];
-sigy = [.5 .6 .5 .7];
+sigy = [.2 .7 .3 .8];
+%sigy = [0 0 0 0];
 
 h = [1.3 1.3 1.3 1.3];
 sigh = [.05 .05 .05 .05];
+%sigh = [0 0 0 0];
 
 D = 4;
 sigD = .05;
+%sigD = 0;
 
 phi = asin(((xobj-x)./(sqrt((xobj-x).^2+(yobj-y).^2))));
-sigphi = [toRad(4),toRad(3),toRad(3),toRad(3)];
+sigphi = [toRad(3),toRad(3),toRad(3),toRad(3)];
+%sigphi = [0 0 0 0];
 
 theta = [toRad(85.20513),toRad(84.0842),toRad(85.90535),toRad(85.7545)];
 sigtheta = [toRad(3),toRad(3),toRad(3),toRad(3)];
-
+%sigtheta = [0 0 0 0];
 
 
 % Generate Measurements
@@ -170,14 +175,14 @@ for i = 1:4
     m.sigx = sigx(i);
     m.y = random('Normal',y(i),sigy(i));
     m.sigy = sigy(i);
-    %m.h = random('Normal',h(i),sigh(i));
-    %m.sigh = sigh(i);
-    %m.D = D;
-    %m.sigD = sigD;
+    m.h = random('Normal',h(i),sigh(i));
+    m.sigh = sigh(i);
+    m.D = D;
+    m.sigD = sigD;
     m.phi = random('Normal',phi(i),sigphi(i));
     m.sigphi = sigphi(i);
-    %m.theta = random('Normal',theta(i),sigtheta(i));
-    %m.sigtheta = sigtheta(i);
+    m.theta = random('Normal',theta(i),sigtheta(i));
+    m.sigtheta = sigtheta(i);
     
     obj.addMeasurement(m)
 end

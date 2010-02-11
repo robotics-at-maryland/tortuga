@@ -65,28 +65,26 @@ classdef Map < dynamicprops
             end
         end
         
-        function oM = getAllObjects(obj)
-            oM = obj.objectMap;
+        function objMap = getAllObjects(obj)
+            objMap = obj.objectMap;
         end
         
         function updateResults(map, object)
             updated = 0;
             if(isa(object,'Object') && ~strcmp(object.name,'Origin'))
                 object.updateLocation();
-                numObjects = map.objectMap.Count;
-                for i = 1:int32(numObjects)
-                    oKeys = map.objectMap.keys;
-                    curObject = map.objectMap(char(oKeys(i)));
-                    if ~(strcmp(curObject.name,object.name))
-                        numMes = curObject.measurements.Count;
-                        for j = 1:int32(numMes)
-                            mKeys = curObject.measurements.keys;
-                            curMes = curObject.measurements(char(mKeys(j)));
-                            if(strcmp(curMes.associatedObject,object.name))
-                                curMes.x = object.location.xobj;
-                                curMes.sigx = object.location.sigx;
-                                curMes.y = object.location.yobj;
-                                curMes.sigy = object.location.sigyobj;
+                for i = 1:int32(map.objectMap.Count)
+                    objectKeys = map.objectMap.keys;
+                    currentObject = map.objectMap(char(objectKeys(i)));
+                    if ~(strcmp(currentObject.name,object.name))
+                        for j = 1:int32(currentObject.measurements.Count)
+                            measurementKeys = currentObject.measurements.keys;
+                            currentMeasurement = currentObject.measurements(char(measurementKeys(j)));
+                            if(strcmp(currentMeasurement.associatedObject,object.name))
+                                currentMeasurement.x = object.location.xobj;
+                                currentMeasurement.sigx = object.location.sigx;
+                                currentMeasurement.y = object.location.yobj;
+                                currentMeasurement.sigy = object.location.sigyobj;
                                 updated = 1;
                             end
                         end

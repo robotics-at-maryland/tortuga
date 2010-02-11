@@ -17,22 +17,8 @@ function [r,e] = AngleMethod(m)
 %   known to a certain precision, the error in the horizontal distance 
 %   depends on how well each of these parameters is known.
 %
-%   m - measurement structure
-%       m.h          - height above water surface
-%       m.sigh       - error in height
-%       m.D          - depth of object
-%       m.sigD       - error in depth
-%       m.theta     - angle between vertical and measurement vector
-%       m.sigtheta  - error in m.theta
-%
-%       m.x          - x coordinate of measurement position
-%       m.sigx       - error in m.x
-%       m.y          - y coordinate of measurement position
-%       m.sigy       - error in m.y
-%       m.phi        - horizontal angle between measurement vector and
-%                      magnetic North
-%       m.sigphi     - error in m.phi
-%
+%   m - measurement object
+%       See Measurement.m
 %
 %   r - result structure
 %       r.xobj    - estimated x coordinate of Object
@@ -40,9 +26,10 @@ function [r,e] = AngleMethod(m)
 %       r.yobj    - estimated y coordinate of Object
 %       r.sigyobj - error in r.y
 %
-%
 %   e - error structure (optional) - shows components of error
-
+%
+%
+%   Note: All Angles MUST be in Radians
 
 n1 = 1;
 n2 = 1.333;
@@ -51,7 +38,7 @@ r.L = m.h*tan(m.theta) + m.D*tan(asin((n1/n2)*sin(m.theta)));
 
 e.dLdD = tan(m.theta);
 e.dLdh = tan(asin((n1/n2)*sin(m.theta)));
-e.dLdtheta1 = m.h*(sec(m.theta))^2 + ((n1/n2)*cos(m.theta))/((1-(((n1/n2)^2)*((sin(m.theta))^2)))^(3/2));
+e.dLdtheta1 = m.h*(sec(m.theta))^2 + m.D*((n1/n2)*cos(m.theta))/((1-(((n1/n2)^2)*((sin(m.theta))^2)))^(3/2));
 
 r.sigL = sqrt( (e.dLdh*m.sigh)^2 + (e.dLdD*m.sigD)^2 + (e.dLdtheta1*m.sigtheta)^2 );
 

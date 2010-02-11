@@ -87,29 +87,29 @@ function File_Callback(hObject, eventdata, handles)
 function Save_Callback(hObject, eventdata, handles)
 %allow the user to specify where to save the settings file
 [filename,pathname] = uiputfile('default','Save the survey data');
- 
+
 if pathname == 0 %if the user pressed cancelled, then we exit this callback
     return
 end
 %construct the path name of the save location
-saveDataName = fullfile(pathname,filename); 
- 
+saveDataName = fullfile(pathname,filename);
+
 %saves the gui data
 hgsave(saveDataName);
 
 function Load_Callback(hObject, eventdata, handles)
 %allow the user to choose which settings to load
 [filename, pathname] = uigetfile('*.fig', 'Choose the survey data to load');
- 
+
 %construct the path name of the file to be loaded
 loadDataName = fullfile(pathname,filename);
- 
+
 %this is the gui that will be closed once we load the new settings
-theCurrentGUI = gcf;  
- 
+theCurrentGUI = gcf;
+
 %load the settings, which creates a new gui
-hgload(loadDataName); 
- 
+hgload(loadDataName);
+
 %closes the old gui
 close(theCurrentGUI);
 
@@ -247,7 +247,7 @@ if isa(handles.currentObject, 'Object')
             break;
         end
     end
-
+    
 end
 guidata(hObject, handles);
 
@@ -277,11 +277,11 @@ end
 
 function removeMeasurement_Callback(hObject, eventdata, handles)
 if isa(handles.currentMeasurement, 'Measurement')
-   handles.currentObject.removeMeasurement(handles.currentMeasurement.name);
-   updateMeasurementDropDown(handles);
-   set(handles.editMeasurementSelector,'Value',1);
-   set(handles.loadObjectLocation,'Value',1);
-   editMeasurementSelector_Callback(handles.editMeasurementSelector,eventdata,handles);
+    handles.currentObject.removeMeasurement(handles.currentMeasurement.name);
+    updateMeasurementDropDown(handles);
+    set(handles.editMeasurementSelector,'Value',1);
+    set(handles.loadObjectLocation,'Value',1);
+    editMeasurementSelector_Callback(handles.editMeasurementSelector,eventdata,handles);
 end
 
 
@@ -597,28 +597,30 @@ if isa(handles.currentMeasurement,'Measurement')
     else
         currName = selectorList{get(hObject,'Value')};
     end
-    if ~strcmp(currName, 'Select Object');
+    if ~strcmp(currName, 'Load Object Result');
         handles.currentMeasurement.associatedObject = currName;
         currentObject = handles.map.getObject(currName);
-        if isreal(currentObject.location.xobj)
-            handles.currentMeasurement.x = currentObject.location.xobj;
-        else
-            handles.currentMeasurement.x = Null();
-        end
-        if isreal(currentObject.location.sigxobj)
-            handles.currentMeasurement.sigx = currentObject.location.sigxobj;
-        else
-            handles.currentMeasurement.sigx = Null();
-        end
-        if isreal(currentObject.location.yobj)
-            handles.currentMeasurement.y = currentObject.location.yobj;
-        else
-            handles.currentMeasurement.y = Null();
-        end
-        if isreal(currentObject.location.sigyobj)
-            handles.currentMeasurement.sigy = currentObject.location.sigyobj;
-        else
-            handles.currentMeasurement.sigy = Null();
+        if isa(currentObject,'Object')
+            if isreal(currentObject.location.xobj)
+                handles.currentMeasurement.x = currentObject.location.xobj;
+            else
+                handles.currentMeasurement.x = Null();
+            end
+            if isreal(currentObject.location.sigxobj)
+                handles.currentMeasurement.sigx = currentObject.location.sigxobj;
+            else
+                handles.currentMeasurement.sigx = Null();
+            end
+            if isreal(currentObject.location.yobj)
+                handles.currentMeasurement.y = currentObject.location.yobj;
+            else
+                handles.currentMeasurement.y = Null();
+            end
+            if isreal(currentObject.location.sigyobj)
+                handles.currentMeasurement.sigy = currentObject.location.sigyobj;
+            else
+                handles.currentMeasurement.sigy = Null();
+            end
         end
     else
         handles.currentMeasurement.associatedObject = Null();
@@ -626,6 +628,8 @@ if isa(handles.currentMeasurement,'Measurement')
         handles.currentMeasurement.sigx = Null();
         handles.currentMeasurement.y = Null();
         handles.currentMeasurement.sigy = Null();
+        updateLoadObjectLocationDropDown(handles);
+        set(handles.loadObjectLocation,'Value',1);
     end
     updateMeasurementTextBoxes(handles);
     guidata(hObject,handles);
@@ -641,13 +645,18 @@ function mesaurementSave_Callback(hObject, eventdata, handles) %#ok<*INUSL,*DEFN
 if isa(handles.currentMeasurement, 'Measurement')
     c = handles.currentMeasurement;
     d = handles.defaultMeasurement;
-    if isa(c.associatedObject, 'char');
-        a = map.getObject(c.associatedObject);
-        if ~(a.location.xobj == c.x...
-                && a.location.yobj == c.y...
-                && a.location.sigxobj == c.sigx...
-                && a.location.sigyobj == c.sigy)
-            c.associatedObject = Null();
+    if (isa(c.associatedObject, 'char')...
+        && ~strcmp(c.associatedObject,handles.currentObject.name))
+        a = handles.map.getObject(c.associatedObject);
+        if isa(a,'Object')
+            if ~(a.location.xobj == c.x...
+                    && a.location.yobj == c.y...
+                    && a.location.sigxobj == c.sigx...
+                    && a.location.sigyobj == c.sigy)
+                c.associatedObject = Null();
+                set(handles.loadObjectLocation,'String','Load Object Location');
+                set(handles.loadObjectLocation,'Value',Null());
+            end
         end
     else
         
@@ -813,8 +822,8 @@ str = get(hObject, 'String');
 value = str2double(str);
 o = handles.map.objectMap('Origin');
 if isreal(value)
-   handles.map.originOffsetY = value;
-   o.location.yobj = value;
+    handles.map.originOffsetY = value;
+    o.location.yobj = value;
 else
     set(hObject, 'String', '');
 end
@@ -831,8 +840,8 @@ str = get(hObject, 'String');
 value = str2double(str);
 o = handles.map.objectMap('Origin');
 if isreal(value)
-   handles.map.originOffsetX = value;
-   o.location.xobj = value;
+    handles.map.originOffsetX = value;
+    o.location.xobj = value;
 else
     set(hObject, 'String', '');
 end
@@ -865,6 +874,21 @@ for i = 1:int32(objMap.Count)
 end
 set(objectDropDown,'String',stringList);
 updateResultDropDown(handles);
+
+function updateLoadObjectLocationDropDown(handles)
+loadObjectDropDown = handles.loadObjectLocation;
+objMap = handles.map.getAllObjects;
+k = objMap.keys();
+n = 2;
+stringList{1} = 'Load Object Location';
+for i = 1:int32(objMap.Count)
+    cObj = objMap(char(k(i)));
+    if(~strcmp(cObj.name,'Origin'))
+        stringList{n} = cObj.name;
+        n = n+1;
+    end
+end
+set(loadObjectDropDown,'String',stringList);
 
 function updateMeasurementDropDown(handles)
 % get the reference to the editMeasurement drop down
@@ -1014,10 +1038,12 @@ k = objMap.keys();
 stringList{1} = 'Select Object';
 for i = 1:int32(objMap.Count)
     cObj = objMap(char(k(i)));
-    stringList{i} = cObj.name;
+    if(~strcmp(cObj.name,'Origin'))
+        stringList{i} = cObj.name;
+    end
 end
 set(selector, 'String', stringList);
-set(loadObjectDropDown,'String',stringList);
+updateLoadObjectLocationDropDown(handles);
 
 function updateResultGraph(handles)
 handles.map.plot(handles.resultGraph);

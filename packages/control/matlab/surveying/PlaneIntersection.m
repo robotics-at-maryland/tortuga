@@ -13,18 +13,8 @@ function [r,e] = PlaneIntersection(m1, m2)
 %   Notes: All Angles must be in Radians
 %   
 %   PARAMETER
-%   m1.x       - X coordinate for measurement position 1
-%   m1.sigx    - Error in x1
-%   m1.y       - Y coordinate for measurement position 1
-%   m1.sigy    - Error in y1
-%   m2.x       - X coordinate for measurement position 2
-%   m2.sigx    - Error in x2
-%   m2.y       - Y coordinate for measurement position 2
-%   m2.sigy    - Error in y2
-%   m1.phi     - Angle between the first measurement vector and mag north
-%   m1.sigphi  - Error in phi1
-%   m2.phi     - Angle between the second measurement vector and mag north
-%   m2.sigphi  - Error in phi2
+%   m1, m2 - Measurement Objects
+%       See Measurement.m
 %
 %   Output
 %

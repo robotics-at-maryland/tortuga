@@ -1,21 +1,5 @@
 classdef Measurement < handle
 %MEASUREMENT Data structure for measured quantities
-%
-%   all properties are initialized to Null() object
-%
-%   x        - x cooreinate of measurement location
-%   sigx     - error in x
-%   y        - y coordinate of measurement location
-%   sigy     - error in y
-%   phi      - angle between measurement vector and magnetic North
-%   sigphi   - error in phi
-%   D        - depth of object
-%   sigD     - error in D
-%   h        - height measurement is taken from
-%   sidh     - error in h
-%   theta    - angle between vertical and measurement vector
-%   sigtheta - error in theta
-%
 
    properties
        name = Null()
@@ -68,10 +52,20 @@ classdef Measurement < handle
        % angle between local coordinate system and North
        alpha = toRad(-90)
        sigalpha = toRad(2)
+       
+       % Bridge coordinates in Global frame
+       bridgeNorthEndx = 0;
+       bridgeNorthEndy = -5; 
+       
+       bridgeSouthEndx = 0;
+       bridgeSouthEndy = -55;
+       
+       
+       
    end
    
    methods
-       function m = clone(obj)
+       function m = clone(obj) % returns a copy of the measurement
            m = Measurement();
            m.name = obj.name;
            m.angleMethodValid = obj.angleMethodValid;
@@ -90,6 +84,18 @@ classdef Measurement < handle
            m.sigh = obj.sigh;
            m.theta = obj.theta;
            m.sigtheta = obj.sigtheta;
+           m.s = obj.s;
+           m.sigs = obj.sigs;
+           m.r = obj.r;
+           m.sigr = obj.sigr;
+           m.d = obj.d;
+           m.sigd = obj.sigd;
+           m.alpha = obj.alpha;
+           m.sigalpha = obj.sigalpha;
+           m.bridgeNorthEndx = obj.bridgeNorthEndx;
+           m.bridgeNorthEndy = obj.bridgeNorthEndy;
+           m.bridgeSouthEndx = obj.bridgeSouthEndx;
+           m.bridgeSouthEndy = obj.bridgeSouthEndy;
        end
    end
 end 

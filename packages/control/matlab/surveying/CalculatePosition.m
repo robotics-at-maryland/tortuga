@@ -4,14 +4,10 @@ function [ result a ] = CalculatePosition( M )
 %   M - containers.Map() object
 %       maps char arrays to a Measurement objects
 %
-%
 %   result.x    - x coordinate of result
 %   result.sigx - error in x
 %   result.y    - y coordinte of result
 %   result.sigy - error in y
-%
-%
-%
 %
 %   Figure out how to find all combinations of measurements valid for
 %   plane intersection method.  Possibly add booleans to Measurement object
@@ -43,7 +39,7 @@ for i = 1:int32(M.Count) % for each key
         v.arcLengthValid = 1;
     else
         v.arcLengthValid = 0;
-    end
+    end %arcvalidation
 end %for
 
 % create temporary array to hold all results
@@ -56,7 +52,6 @@ a.sigYObjArr = [];
 for i = 1:int32(M.Count)
     mi = M(char(k(i))); % ith measurement
     if(mi.angleMethodValid == 1)
-        % Calc Result
         r = AngleMethod(mi);
         % Add results to the result arrays
         a.xObjArr(1+end) = r.xobj;
@@ -67,7 +62,6 @@ for i = 1:int32(M.Count)
     for j = i+1:int32(M.Count) % start with measurement after i to avoid duplication
         mj = M(char(k(j))); % jth measurement
         if(mi.planeIntersectionValid == 1 && mj.planeIntersectionValid == 1)
-            % Calc Result
             r = PlaneIntersection(mi,mj);
             % Add results to result arrays
             a.xObjArr(1+end) = r.xobj;
@@ -83,7 +77,7 @@ for i = 1:int32(M.Count)
         a.sigXObjArr(1+end) = r.sigxobj;
         a.yObjArr(1+end) = r.yobj;
         a.sigYObjArr(1+end) = r.sigyobj;
-    end
+    end %if
 end %for
 
 %initialize sums
