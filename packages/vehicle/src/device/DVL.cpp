@@ -58,6 +58,12 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
 
+    if (m_serialFD >= 0)
+        LOGGER.info("DVL has been successfully instantiated"
+                    " with serial FD of %d", m_serialFD);
+    else
+        LOGGER.info("Could not connect with DVL");
+
     // TODO: Temporary values until I know what to put in here
     LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
 		" BottomTrack2 BottomTrack3 Velocity TimeStamp");
