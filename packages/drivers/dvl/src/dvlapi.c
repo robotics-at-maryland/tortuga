@@ -65,7 +65,7 @@ int waitSync(int fd)
     }
 
     if(syncLen >= SYNC_FAIL_BYTECOUNT) {
-        printf("UABLE TO SYCHRONIZE WITH DVL!\n");
+        printf("UNABLE TO SYCHRONIZE WITH DVL!\n");
         return -1;
     }
 
@@ -88,7 +88,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     unsigned char dvlData[256];
 
     int len, i, tempsize, offset;
-    short checksum;
+    unsigned short checksum;
     CompleteDVLPacket *dbgpkt = NULL;
 
     if(waitSync(fd))
@@ -96,12 +96,14 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     /* This checks that we have the debugging packet setup! */
     if(dvl->privDbgInf == NULL) {
-        printf("WARNING! Debug info reallocated!");
+        printf("WARNING! Debug info reallocated!\n");
         dbgpkt= dvl->privDbgInf = malloc(sizeof(CompleteDVLPacket));
 
         /* We'll need to set up some parts of the packet... */
         dbgpkt->fixedleaderset= 0;
         dbgpkt->header.offsets= NULL;
+    } else {
+        dbgpkt= dvl->privDbgInf;
     }
 
     /* We got these in the waitSync() call */
@@ -458,6 +460,8 @@ int readDVLData(int fd, RawDVLData* dvl)
         checksum+= dvlData[i];
 
     if(checksum != dbgpkt->checksum) {
+        printf("WARNING! Bad checksum.\n");
+        printf("Expected 0x%04x but got 0x%04x\n", checksum, dbgpkt->checksum);
         dvl->valid= ERR_CHKSUM;
         return ERR_CHKSUM;
     }

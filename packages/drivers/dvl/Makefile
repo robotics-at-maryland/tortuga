@@ -1,16 +1,16 @@
-CFLAGS= -Iinclude -Wall -Werror
+CFLAGS= -Iinclude -Wall -Werror -g
 
-all: dvlcomm
+all: dvltest
 
 clean:
-	rm -rf *.o *~ dvl_api dvlcomm
+	rm -rf *.o *~ dvl_api dvltest
 
 dvlapi.o: src/dvlapi.c include/dvlapi.h
 	gcc -c src/dvlapi.c -o dvlapi.o $(CFLAGS)
 
-dvlcomm.o: dvlcomm.c include/dvlapi.h
-	gcc -c dvlcomm.c -o dvlcomm.o $(CFLAGS)
+dvltest.o: dvltest.c include/dvlapi.h
+	gcc -c dvltest.c -o dvltest.o $(CFLAGS)
 
-dvlcomm: dvlcomm.o dvlapi.o include/dvlapi.h
-	gcc dvl_api.o dvlcomm.o -o dvlcomm $(CFLAGS)
+dvltest: dvltest.o dvlapi.o include/dvlapi.h
+	gcc dvlapi.o dvltest.o -o dvltest $(CFLAGS)
 
