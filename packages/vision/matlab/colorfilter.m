@@ -19,12 +19,30 @@ if size_of_size(2) ~= 3 || size_(3) ~= 3
         'The image must be HxWx3.']);
 end
 
-channel1Filter = (IMG(:,:,1) <= channel1High) & ...
-    (IMG(:,:,1) >= channel1Low);
-channel2Filter = (IMG(:,:,2) <= channel2High) & ...
-    (IMG(:,:,2) >= channel2Low);
-channel3Filter = (IMG(:,:,3) <= channel3High) & ...
-    (IMG(:,:,3) >= channel3Low);
+% First statement is for no loop around
+% Second is for loop around if the low channel is greater than the high
+% channel
+if channel1High >= channel1Low
+    channel1Filter = (IMG(:,:,1) <= channel1High) & ...
+        (IMG(:,:,1) >= channel1Low);
+else
+    channel1Filter = (IMG(:,:,1) <= channel1High) | ...
+        (IMG(:,:,1) >= channel1Low);
+end
+if channel2High >= channel2Low
+    channel2Filter = (IMG(:,:,2) <= channel2High) & ...
+        (IMG(:,:,2) >= channel2Low);
+else
+    channel2Filter = (IMG(:,:,2) <= channel2High) | ...
+        (IMG(:,:,2) >= channel2Low);
+end
+if channel3High >= channel3Low
+    channel3Filter = (IMG(:,:,3) <= channel3High) & ...
+        (IMG(:,:,3) >= channel3Low);
+else
+    channel3Filter = (IMG(:,:,3) <= channel3High) | ...
+        (IMG(:,:,3) >= channel3Low);
+end
 
 A = channel1Filter & channel2Filter & channel3Filter;
 
