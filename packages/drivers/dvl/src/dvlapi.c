@@ -95,6 +95,8 @@ int readDVLData(int fd, RawDVLData* dvl)
     if(waitSync(fd))
         return ERR_NOSYNC;
 
+    dvl->valid= 0;
+
     /* This checks that we have the debugging packet setup! */
     if(dvl->privDbgInf == NULL) {
         printf("WARNING! Debug info reallocated!\n");
@@ -322,6 +324,8 @@ int readDVLData(int fd, RawDVLData* dvl)
     if(dbgpkt->btdata.BottomTrackID != 0x0600) {
         printf("WARNING! BottomtrackID not valid!\n");
         printf("Expected %04x but got %04x\n", 0x0600, dbgpkt->btdata.BottomTrackID);
+        dvl->valid= ERR_BADBTID;
+        return ERR_BADBTID;
     }
 
     dbgpkt->btdata.bt_pings_per_ensemble=
@@ -423,6 +427,16 @@ int readDVLData(int fd, RawDVLData* dvl)
         dvl->valid= ERR_CHKSUM;
         return ERR_CHKSUM;
     }
+
+    dvl->ensemblenum= (dbgpkt->variableleader.ensemblenum | (dbgpkt->variableleader.ensemble_num_msb << 16));
+
+    dvl->year= dbgpkt->variableleader.RTC_year;
+    dvl->month= dbgpkt->variableleader.RTC_month;
+    dvl->day= dbgpkt->variableleader.RTC_day;
+    dvl->hour= dbgpkt->variableleader.RTC_hour;
+    dvl->min= dbgpkt->variableleader.RTC_minute;
+    dvl->sec= dbgpkt->variableleader.RTC_second;
+    dvl->hundredth= dbgpkt->variableleader.RTC_hundredths;
 
     for(i= 0;i < 4;i++)
         dvl->bt_velocity[i]= dbgpkt->btdata.bt_vel[i];

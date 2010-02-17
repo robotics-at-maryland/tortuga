@@ -26,7 +26,8 @@ extern "C" {
 #define ERR_TOOBIG            0x0002
 #define ERR_BADFIXEDLEADER    0x0003
 #define ERR_BADVARIABLELEADER 0x0004
-#define ERR_CHKSUM            0x0005
+#define ERR_BADBTID           0x0005
+#define ERR_CHKSUM            0x0006
 
 /* DVL Header information */
 typedef struct _DVLHeaderData
@@ -225,6 +226,11 @@ typedef struct _RawDVLData
     /* vvvvv PUT DATA HERE vvvvv */
 
     unsigned int bt_velocity[4];
+
+    unsigned int ensemblenum;
+    
+    unsigned int year, month, day,
+                 hour, min, sec, hundredth;
 
     /* ^^^^^ PUT DATA HERE ^^^^^ */
 
