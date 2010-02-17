@@ -109,8 +109,8 @@ typedef struct _DVLFixedLeaderData
 typedef struct _DVLVariableLeaderData
 {
     /* The variable leader ID should be 0x8000 */
-    unsigned short varleaderID,
-                   ensemblenum;
+    unsigned short varleaderID;
+    unsigned int ensemblenum;
 
     unsigned char RTC_year,
                   RTC_month,
@@ -120,7 +120,7 @@ typedef struct _DVLVariableLeaderData
                   RTC_second,
                   RTC_hundredths;
 
-    unsigned char ensemble_num_msb;
+    unsigned int ensemble_num_msb;
 
     unsigned int bit_result,
                  sound_speed,

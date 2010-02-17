@@ -45,8 +45,8 @@ int main(int argc, char ** argv)
     }
 
     /* Open the file handle that we recieved */
-    //fd= openDVL(argv[1]);
-    fd= open(argv[1], O_RDONLY);
+    fd= openDVL(argv[1]);
+    //fd= open(argv[1], O_RDONLY);
 
     /* Invalid file handle? Bail! */
     if(fd == -1) {
