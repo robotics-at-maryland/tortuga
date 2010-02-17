@@ -66,7 +66,8 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
 
     // TODO: Temporary values until I know what to put in here
     LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
-		" BottomTrack2 BottomTrack3 Velocity TimeStamp");
+		" BottomTrack2 BottomTrack3 Velocity ensembleNum"
+                " year month day hour min sec hundredth TimeStamp");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -108,7 +109,16 @@ void DVL::update(double timestep)
 				<< newState.bt_velocity[0] << " "
 				<< newState.bt_velocity[1] << " "
 				<< newState.bt_velocity[2] << " "
-				<< newState.bt_velocity[3];
+				<< newState.bt_velocity[3] << " "
+                                << velocity << " "
+                                << newState.ensemblenum << " "
+                                << newState.year << " "
+                                << newState.month << " "
+                                << newState.day << " "
+                                << newState.hour << " "
+                                << newState.min << " "
+                                << newState.sec << " "
+                                << newState.hundredth;
 
 	    // Now publish the new velocity
 	    math::Vector2EventPtr vevent(new math::Vector2Event());
