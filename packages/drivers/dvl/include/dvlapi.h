@@ -22,10 +22,11 @@ extern "C" {
 #define SYNC_FAIL_SECONDS (SYNC_FAIL_MILLISEC/1000)
 
 /* These are error messages */
-#define ERR_NOSYNC         0x0001
-#define ERR_TOOBIG         0x0002
-#define ERR_BADFIXEDLEADER 0x0003
-#define ERR_CHKSUM         0x0004
+#define ERR_NOSYNC            0x0001
+#define ERR_TOOBIG            0x0002
+#define ERR_BADFIXEDLEADER    0x0003
+#define ERR_BADVARIABLELEADER 0x0004
+#define ERR_CHKSUM            0x0005
 
 /* DVL Header information */
 typedef struct _DVLHeaderData

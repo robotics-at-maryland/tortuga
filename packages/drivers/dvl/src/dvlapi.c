@@ -42,7 +42,8 @@ short convert16(unsigned char msb, unsigned char lsb)
 unsigned char waitByte(int fd)
 {
     unsigned char rxb;
-    while(read(fd, &rxb, 1) != 1)
+    int temp;
+    while((temp= read(fd, &rxb, 1)) != 1 && temp != EOF)
         ;
 
     return rxb;
@@ -85,10 +86,10 @@ int readDVLData(int fd, RawDVLData* dvl)
        = 211 bytes
        Based on that, here's a slightly oversized buffer:
        */
-    unsigned char dvlData[256];
+    unsigned char dvlData[512];
 
     int len, i, tempsize, offset;
-    unsigned short checksum;
+    unsigned char checksum;
     CompleteDVLPacket *dbgpkt = NULL;
 
     if(waitSync(fd))
@@ -114,7 +115,7 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     /* Get the header */
     while(len < 6)
-        len += read(fd, dvlData + len, 6 - len);
+        len+= read(fd, dvlData + len, 6 - len);
 
     dbgpkt->header.HeaderID= dvlData[0];
     dbgpkt->header.DataSourceID= dvlData[1];
@@ -128,17 +129,17 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     dbgpkt->header.offsets= malloc(sizeof(int) * dvlData[5]);
 
-    tempsize= 6 + ((int) dvlData[5]) * 2;
+    tempsize= 6 + ((int) dbgpkt->header.num_datatypes) * 2;
     while(len < tempsize)
         len += read(fd, dvlData + len, tempsize - len);
 
-    for(i= 0;i < tempsize - 6;i += 2)
+    for(i= 0;i < dbgpkt->header.num_datatypes;i++)
         dbgpkt->header.offsets[i]= convert16(dvlData[7 + i * 2],
                                              dvlData[6 + i * 2]);
 
     /* WOO! We've now finished reading in the header */
     /* We should probably double check that nothing is too weird... */
-    if(dbgpkt->header.PacketSize > 256) {
+    if(dbgpkt->header.PacketSize > 512) {
         /* If we're here we're fucked.  We have a packet which is */
         /* too big for our buffer to hold it! */
         printf("ERROR! Packet too big!\n");
@@ -233,6 +234,12 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     dbgpkt->variableleader.varleaderID= convert16(dvlData[offset + 1],
                                                   dvlData[offset]);
+
+    if(dbgpkt->variableleader.varleaderID != 0x0080) {
+        printf("WARNING! Bad variable leader!\n");
+        return ERR_BADVARIABLELEADER;
+    }
+
     dbgpkt->variableleader.ensemblenum= convert16(dvlData[offset + 3],
                                                   dvlData[offset + 2]);
     dbgpkt->variableleader.RTC_year= dvlData[offset + 4];
@@ -306,13 +313,188 @@ int readDVLData(int fd, RawDVLData* dvl)
     /* keep track of said offset. */
     offset= tempsize;
 
-    /* We now need to trundle through lots of data, some of which we
+    tempsize+= 81;
+    while(len < tempsize)
+        len += read(fd, dvlData + len, tempsize - len);
+
+    dbgpkt->btdata.BottomTrackID= convert16(dvlData[offset + 1],
+                                            dvlData[offset]);
+    if(dbgpkt->btdata.BottomTrackID != 0x0600) {
+        printf("WARNING! BottomtrackID not valid!\n");
+        printf("Expected %04x but got %04x\n", 0x0600, dbgpkt->btdata.BottomTrackID);
+    }
+
+    dbgpkt->btdata.bt_pings_per_ensemble=
+        convert16(dvlData[offset + 3], dvlData[offset + 2]);
+    dbgpkt->btdata.bt_delay_before_reaquire=
+        convert16(dvlData[offset + 5], dvlData[offset + 4]);
+    dbgpkt->btdata.bt_corr_mag_min= dvlData[offset + 6];
+    dbgpkt->btdata.bt_eval_amp_min= dvlData[offset + 7];
+    dbgpkt->btdata.bt_prcnt_good_min= dvlData[offset + 8];
+    dbgpkt->btdata.bt_mode= dvlData[offset + 9];
+    dbgpkt->btdata.bt_err_vel= convert16(dvlData[offset + 11],
+                                         dvlData[offset + 10]);
+    // Bytes 12 through 15 are empty!
+    dbgpkt->btdata.bt_range[0]= convert16(dvlData[offset + 17],
+                                          dvlData[offset + 16]);
+    dbgpkt->btdata.bt_range[1]= convert16(dvlData[offset + 19],
+                                          dvlData[offset + 18]);
+    dbgpkt->btdata.bt_range[2]= convert16(dvlData[offset + 21],
+                                          dvlData[offset + 20]);
+    dbgpkt->btdata.bt_range[3]= convert16(dvlData[offset + 23],
+                                          dvlData[offset + 22]);
+    dbgpkt->btdata.bt_vel[0]= convert16(dvlData[offset + 25],
+                                        dvlData[offset + 24]);
+    dbgpkt->btdata.bt_vel[1]= convert16(dvlData[offset + 27],
+                                        dvlData[offset + 26]);
+    dbgpkt->btdata.bt_vel[2]= convert16(dvlData[offset + 29],
+                                        dvlData[offset + 28]);
+    dbgpkt->btdata.bt_vel[3]= convert16(dvlData[offset + 31],
+                                        dvlData[offset + 30]);
+    dbgpkt->btdata.bt_beam_corr[0]= dvlData[offset + 32];
+    dbgpkt->btdata.bt_beam_corr[1]= dvlData[offset + 33];
+    dbgpkt->btdata.bt_beam_corr[2]= dvlData[offset + 34];
+    dbgpkt->btdata.bt_beam_corr[3]= dvlData[offset + 35];
+    dbgpkt->btdata.bt_eval_amp[0]= dvlData[offset + 36];
+    dbgpkt->btdata.bt_eval_amp[1]= dvlData[offset + 37];
+    dbgpkt->btdata.bt_eval_amp[2]= dvlData[offset + 38];
+    dbgpkt->btdata.bt_eval_amp[3]= dvlData[offset + 39];
+    dbgpkt->btdata.bt_prcnt_good[0]= dvlData[offset + 40];
+    dbgpkt->btdata.bt_prcnt_good[1]= dvlData[offset + 41];
+    dbgpkt->btdata.bt_prcnt_good[2]= dvlData[offset + 42];
+    dbgpkt->btdata.bt_prcnt_good[3]= dvlData[offset + 43];
+    dbgpkt->btdata.ref_lyr_min= convert16(dvlData[offset + 45],
+                                          dvlData[offset + 44]);
+    dbgpkt->btdata.ref_lyr_near= convert16(dvlData[offset + 47],
+                                           dvlData[offset + 46]);
+    dbgpkt->btdata.ref_lyr_far= convert16(dvlData[offset + 49],
+                                          dvlData[offset + 48]);
+    dbgpkt->btdata.ref_layer_vel[0]=
+        convert16(dvlData[offset + 51], dvlData[offset + 50]);
+    dbgpkt->btdata.ref_layer_vel[1]=
+        convert16(dvlData[offset + 53], dvlData[offset + 52]);
+    dbgpkt->btdata.ref_layer_vel[2]=
+        convert16(dvlData[offset + 55], dvlData[offset + 54]);
+    dbgpkt->btdata.ref_layer_vel[3]=
+        convert16(dvlData[offset + 57], dvlData[offset + 56]);
+    dbgpkt->btdata.ref_corr[0]= dvlData[offset + 58];
+    dbgpkt->btdata.ref_corr[1]= dvlData[offset + 59];
+    dbgpkt->btdata.ref_corr[2]= dvlData[offset + 60];
+    dbgpkt->btdata.ref_corr[3]= dvlData[offset + 61];
+    dbgpkt->btdata.ref_int[0]= dvlData[offset + 62];
+    dbgpkt->btdata.ref_int[1]= dvlData[offset + 63];
+    dbgpkt->btdata.ref_int[2]= dvlData[offset + 64];
+    dbgpkt->btdata.ref_int[3]= dvlData[offset + 65];
+    dbgpkt->btdata.ref_prcnt_good[0]= dvlData[offset + 66];
+    dbgpkt->btdata.ref_prcnt_good[1]= dvlData[offset + 67];
+    dbgpkt->btdata.ref_prcnt_good[2]= dvlData[offset + 68];
+    dbgpkt->btdata.ref_prcnt_good[3]= dvlData[offset + 69];
+    dbgpkt->btdata.bt_max_depth= convert16(dvlData[offset + 71],
+                                           dvlData[offset + 70]);
+    dbgpkt->btdata.rssi_amp[0]= dvlData[offset + 72];
+    dbgpkt->btdata.rssi_amp[1]= dvlData[offset + 73];
+    dbgpkt->btdata.rssi_amp[2]= dvlData[offset + 74];
+    dbgpkt->btdata.rssi_amp[3]= dvlData[offset + 75];
+    dbgpkt->btdata.gain= dvlData[offset + 76];
+    dbgpkt->btdata.bt_range_msb[0]= dvlData[offset + 77];
+    dbgpkt->btdata.bt_range_msb[1]= dvlData[offset + 78];
+    dbgpkt->btdata.bt_range_msb[2]= dvlData[offset + 79];
+    dbgpkt->btdata.bt_range_msb[3]= dvlData[offset + 80];
+
+    offset= tempsize;
+
+    /* Now we need to grab the TDRI and the checksum!*/
+    tempsize+= 1;
+
+    while(len < tempsize)
+        len += read(fd, dvlData + len, tempsize - len);
+
+    dbgpkt->checksum= dvlData[offset];
+
+    checksum= 0;
+
+    /* Calculate the checksum */
+    for(i= 0;i < tempsize - 1;i++)
+        checksum+= dvlData[i];
+
+    if(checksum != dbgpkt->checksum) {
+        printf("WARNING! Bad checksum.\n");
+        printf("Expected 0x%02x but got 0x%02x\n", checksum, dbgpkt->checksum);
+        dvl->valid= ERR_CHKSUM;
+        return ERR_CHKSUM;
+    }
+
+    for(i= 0;i < 4;i++)
+        dvl->bt_velocity[i]= dbgpkt->btdata.bt_vel[i];
+
+    return 0;
+}
+
+/* Some code from cutecom, which in turn may have come from minicom */
+int openDVL(const char* devName)
+{
+   int fd = open(devName, O_RDWR, O_ASYNC);
+
+    if(fd == -1)
+        return -1;
+
+    struct termios newtio;
+    if (tcgetattr(fd, &newtio)!=0)
+        printf("\nFirst stuff failed\n");
+
+    unsigned int _baud= B115200;
+    cfsetospeed(&newtio, _baud);
+    cfsetispeed(&newtio, _baud);
+
+
+    newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS8;
+    newtio.c_cflag |= CLOCAL | CREAD;
+    newtio.c_cflag &= ~(PARENB | PARODD);
+
+    newtio.c_cflag &= ~CRTSCTS;
+    newtio.c_cflag &= ~CSTOPB;
+
+    newtio.c_iflag=IGNBRK;
+    newtio.c_iflag &= ~(IXON|IXOFF|IXANY);
+
+    newtio.c_lflag=0;
+
+    newtio.c_oflag=0;
+
+
+    newtio.c_cc[VTIME]=1;
+    newtio.c_cc[VMIN]=60;
+
+//   tcflush(m_fd, TCIFLUSH);
+    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
+        printf("tsetaddr1 failed!\n");
+
+    int mcs=0;
+
+    ioctl(fd, TIOCMGET, &mcs);
+    mcs |= TIOCM_RTS;
+    ioctl(fd, TIOCMSET, &mcs);
+
+    if (tcgetattr(fd, &newtio)!=0)
+        printf("tcgetattr() 4 failed\n");
+
+    newtio.c_cflag &= ~CRTSCTS;
+
+    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
+      printf("tcsetattr() 2 failed\n");
+    
+    return fd;
+}
+
+
+
+/* We now need to trundle through lots of data, some of which we
        may not know how to parse. */
-    while(len < dbgpkt->header.PacketSize - 4)
+/*    while(len < dbgpkt->header.PacketSize - 4)
     {
-        /* The next chunk of data is two bytes which *should* identify the
-           next big chunk as being a Bottom Track packet.  Otherwise we're
-           FUCKED. */
+        // The next chunk of data is two bytes which *should* identify the
+        // next big chunk as being a Bottom Track packet.  Otherwise we're
+        // FUCKED.
         tempsize+= 2;
         while(len < tempsize)
             len += read(fd, dvlData + len, tempsize - len);
@@ -321,9 +503,9 @@ int readDVLData(int fd, RawDVLData* dvl)
         {
             case(0x0600):
             {
-                /* This is a bottom track packet! */
+                // This is a bottom track packet!
 
-                /* Read in all 79 bytes! (the id bytes were already read in!) */
+                // Read in all 79 bytes! (the id bytes were already read in!)
                 tempsize+= 79;
                 while(len < tempsize)
                     len += read(fd, dvlData + len, tempsize - len);
@@ -340,7 +522,7 @@ int readDVLData(int fd, RawDVLData* dvl)
                 dbgpkt->btdata.bt_mode= dvlData[offset + 9];
                 dbgpkt->btdata.bt_err_vel= convert16(dvlData[offset + 11],
                                                      dvlData[offset + 10]);
-                /* Bytes 12 through 15 are empty! */
+                // Bytes 12 through 15 are empty!
                 dbgpkt->btdata.bt_range[0]= convert16(dvlData[offset + 17],
                                                       dvlData[offset + 16]);
                 dbgpkt->btdata.bt_range[1]= convert16(dvlData[offset + 19],
@@ -412,18 +594,18 @@ int readDVLData(int fd, RawDVLData* dvl)
 
             default:
             {
-                /* If we're here we don't understand the data being sent!
-                   we'll discard it using the offset information and move
-                   along! */
+                // If we're here we don't understand the data being sent!
+                // we'll discard it using the offset information and move
+                // along!
 
                 printf("WARNING! Unknown Datatype!\n");
 
-                /* Find the offset */
+                // Find the offset
                 for(i= 0;i < dbgpkt->header.num_datatypes &&
                          dbgpkt->header.offsets[i] < tempsize;i++)
                     ;
 
-                /* Make it the new size */
+                // Make it the new size
                 if(i == dbgpkt->header.num_datatypes) {
                     tempsize+= (dbgpkt->header.PacketSize - 4) -
                                (dbgpkt->header.offsets[i - 1]);
@@ -432,7 +614,7 @@ int readDVLData(int fd, RawDVLData* dvl)
                                dbgpkt->header.offsets[i - 1];
                 }
 
-                /* Read it into the buffer in order to eat it! */
+                // Read it into the buffer in order to eat it!
                 while(len < tempsize)
                     len += read(fd, dvlData + len, tempsize - len);
 
@@ -441,89 +623,6 @@ int readDVLData(int fd, RawDVLData* dvl)
 
         }
 
-        /* Keep track of the new offset! */
+        // Keep track of the new offset!
         offset= tempsize;
-    }
-
-    /* Now we need to grab the TDRI and the checksum!*/
-    tempsize+= 4;
-
-    while(len < tempsize)
-        len += read(fd, dvlData + len, tempsize - len);
-
-    dbgpkt->checksum= convert16(dvlData[offset + 3], dvlData[offset + 2]);
-
-    checksum= 0;
-
-    /* Calculate the checksum */
-    for(i= 0;i < tempsize - 2;i++)
-        checksum+= dvlData[i];
-
-    if(checksum != dbgpkt->checksum) {
-        printf("WARNING! Bad checksum.\n");
-        printf("Expected 0x%04x but got 0x%04x\n", checksum, dbgpkt->checksum);
-        dvl->valid= ERR_CHKSUM;
-        return ERR_CHKSUM;
-    }
-
-    for(i= 0;i < 4;i++)
-        dvl->bt_velocity[i]= dbgpkt->btdata.bt_vel[i];
-
-    return 0;
-}
-
-/* Some code from cutecom, which in turn may have come from minicom */
-int openDVL(const char* devName)
-{
-   int fd = open(devName, O_RDWR, O_ASYNC);
-
-    if(fd == -1)
-        return -1;
-
-    struct termios newtio;
-    if (tcgetattr(fd, &newtio)!=0)
-        printf("\nFirst stuff failed\n");
-
-    unsigned int _baud= B115200;
-    cfsetospeed(&newtio, _baud);
-    cfsetispeed(&newtio, _baud);
-
-
-    newtio.c_cflag = (newtio.c_cflag & ~CSIZE) | CS8;
-    newtio.c_cflag |= CLOCAL | CREAD;
-    newtio.c_cflag &= ~(PARENB | PARODD);
-
-    newtio.c_cflag &= ~CRTSCTS;
-    newtio.c_cflag &= ~CSTOPB;
-
-    newtio.c_iflag=IGNBRK;
-    newtio.c_iflag &= ~(IXON|IXOFF|IXANY);
-
-    newtio.c_lflag=0;
-
-    newtio.c_oflag=0;
-
-
-    newtio.c_cc[VTIME]=1;
-    newtio.c_cc[VMIN]=60;
-
-//   tcflush(m_fd, TCIFLUSH);
-    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
-        printf("tsetaddr1 failed!\n");
-
-    int mcs=0;
-
-    ioctl(fd, TIOCMGET, &mcs);
-    mcs |= TIOCM_RTS;
-    ioctl(fd, TIOCMSET, &mcs);
-
-    if (tcgetattr(fd, &newtio)!=0)
-        printf("tcgetattr() 4 failed\n");
-
-    newtio.c_cflag &= ~CRTSCTS;
-
-    if (tcsetattr(fd, TCSANOW, &newtio)!=0)
-      printf("tcsetattr() 2 failed\n");
-    
-    return fd;
-}
+    } */

@@ -107,6 +107,10 @@ void translateError(int errornum) {
             printf("Bad fixed leader data!\n");
             break;
 
+        case(ERR_BADVARIABLELEADER):
+            printf("Bad Variable Leader ID!\n");
+            break;
+
         case(ERR_CHKSUM):
             printf("Bad checksum\n");
             break;
