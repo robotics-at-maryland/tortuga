@@ -46,20 +46,17 @@ Tn_controller=0;
 
 
 %% simulation
-
-%for 2:length(time)
-
+state_storage(:,1) = x0;
+for t = 2:length(time)
 %simulate DVL here
+[tmp, est] = ode45(@positionHoldSimDynamics,[time(t-1),time(t)],state_storage(:,t-1));
+state_storage(:,t) = est(end,:);
+end
 
-%[time,x]=ode45(@positionHoldSimDynamics,[t(i-1) t(i)],x(i-1))
-
-%end
-
-[time_ode,x]=ode45(@positionHoldSimDynamics,time,x0);
+%[time_ode,x]=ode45(@positionHoldSimDynamics,time,x0);
 
 figure(1)
 subplot(2,1,1)
-plot(time,x(:,1))
+plot(time,state_storage(1,:))
 subplot(2,1,2)
-plot(time,x(:,2))
-
+plot(time,state_storage(2,:))
