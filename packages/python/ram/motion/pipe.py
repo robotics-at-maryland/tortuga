@@ -20,7 +20,7 @@ class Pipe(common.Target):
     Represents the pipe we are trying to follow
     """
     
-    def __init__(self, x, y, relativeAngle, timeStamp = ram.timer.time(),
+    def __init__(self, x, y, relativeAngle, timeStamp = None,
                  kp = 1.0, kd = 1.0):
         common.Target.__init__(self, x, y, timeStamp, kp, kd)
         self.prevRelativeAngle = None

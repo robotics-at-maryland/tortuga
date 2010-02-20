@@ -82,12 +82,15 @@ class Target(ext.core.EventPublisher):
     """
     UPDATE = ext.core.declareEventType('UPDATE')
     
-    def __init__(self, x, y, timeStamp = ram.timer.time(), kp = 1.0,
+    def __init__(self, x, y, timeStamp = None, kp = 1.0,
                  kd = 1.0):
         ext.core.EventPublisher.__init__(self)
         self.x = None
         self.y = None
-        self.timeStamp = None
+        if timeStamp is not None:
+            self.timeStamp = timeStamp
+        else:
+            self.timeStamp = ram.timer.time()
         self._kp = kp
         self._kd = kd
         Target.setState(self, x, y, timeStamp, publish = False)

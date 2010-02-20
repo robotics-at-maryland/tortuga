@@ -24,7 +24,7 @@ class PointTarget(common.Target):
     VERTICAL_FOV = 78.0 # TODO: Make me configurable
     
     def __init__(self, azimuth, elevation, range, x, y,
-                 timeStamp = timer.time(), vehicle = None, kp = 1.0, kd = 1.0):
+                 timeStamp = None, vehicle = None, kp = 1.0, kd = 1.0):
         common.Target.__init__(self, x, y, timeStamp, kp, kd)
         self._vehicle = vehicle
         self.prevAzimuth = None

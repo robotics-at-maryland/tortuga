@@ -11,7 +11,7 @@ import ram.timer
 
 class Duct(seek.PointTarget):
     def __init__(self, azimuth, elevation, range, x, y, alignment, 
-                 timeStamp = ram.timer.time(), vehicle = None):
+                 timeStamp = None, vehicle = None):
         seek.PointTarget.__init__(self, azimuth, elevation, range, x, y, 
                                   timeStamp, vehicle)
         self.prevAlignment = None
