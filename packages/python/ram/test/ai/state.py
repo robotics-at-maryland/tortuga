@@ -117,6 +117,14 @@ class LoopBack(TrackedState):
     def Update(self, event):
         self.transCount += 1
 
+class Veto(TrackedState):
+    @staticmethod
+    def transitions():
+        return { MockEventSource.ANOTHER_EVT : Start }
+
+    def ANOTHER_EVT(self, event):
+        return False
+
 class End(TrackedState):
     pass
 
@@ -538,6 +546,13 @@ class TestStateMachine(unittest.TestCase):
         ai = aisys.AI()
         machine = state.Machine(deps = [ai])
         self.assertEquals(machine, ai.mainStateMachine)
+
+    def testVetoState(self):
+        self.machine.start(Veto)
+        self.assertEqual(Veto, type(self.machine.currentState()))
+
+        self.machine.injectEvent(self._makeEvent(MockEventSource.ANOTHER_EVT))
+        self.assertEqual(Veto, type(self.machine.currentState()))
         
 # Testing of State Class
 class StateTestConfig(state.State):

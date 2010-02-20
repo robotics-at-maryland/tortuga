@@ -337,22 +337,23 @@ class Machine(core.Subsystem):
             leaveState = False
             if (not branching) and (not loopback):
                 leaveState = True
-            
+                
+            # Call the function for the transitions
+            transFunc = self._getTransitionFunc(event.type, self._currentState)
+            transRet = None
+            if transFunc is not None:
+                transRet = transFunc(event)
+
             # We are leaving the current state
             currentState = self._currentState
-            if leaveState:
+            if leaveState and (transRet is not False):
                 self._exitState()
             
-            # Call the function for the transitions
-            transFunc = self._getTransitionFunc(event.type, currentState)
-            if transFunc is not None:
-                transFunc(event)
-
             # Notify that we are entering the next state
-            if (not loopback) and (not branching):
+            if (not loopback) and (not branching) and (transRet is not False):
                 # Create an instance of the next state's class
                 self._enterState(nextState)
-            elif branching:
+            elif branching and (transRet is not False):
                 self._branchToState(nextState, branchingEvent = event)
                 
         # Record previous event
