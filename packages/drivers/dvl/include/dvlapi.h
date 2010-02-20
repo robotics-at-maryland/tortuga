@@ -172,7 +172,7 @@ typedef struct _DVLBottomTrackData
 
     unsigned int bt_range[4];
 
-    unsigned int bt_vel[4];
+    signed int bt_vel[4];
 
     unsigned char bt_beam_corr[4];
 
@@ -184,7 +184,7 @@ typedef struct _DVLBottomTrackData
                  ref_lyr_near,
                  ref_lyr_far;
 
-    unsigned int ref_layer_vel[4];
+    signed int ref_layer_vel[4];
 
     unsigned char ref_corr[4];
 
@@ -225,7 +225,7 @@ typedef struct _RawDVLData
 
     /* vvvvv PUT DATA HERE vvvvv */
 
-    unsigned int bt_velocity[4];
+    signed int bt_velocity[4];
 
     unsigned int ensemblenum;
     

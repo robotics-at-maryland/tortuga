@@ -352,7 +352,7 @@ void printBTData(CompleteDVLPacket* pkt) {
         printf("Beam %u range: %u cm\n", i, pkt->btdata.bt_range[i]);
 
     for(i= 0;i < 4;i++)
-        printf("Beam %u velocity: %u mm/s\n", i, pkt->btdata.bt_vel[i]);
+        printf("Beam %u velocity: %d mm/s\n", i, pkt->btdata.bt_vel[i]);
 
     for(i= 0;i < 4; i++)
         printf("Colleation magnitude for beam %u: %u\n", i,
@@ -370,7 +370,7 @@ void printBTData(CompleteDVLPacket* pkt) {
             pkt->btdata.ref_lyr_near, pkt->btdata.ref_lyr_far);
 
     for(i= 0;i < 4;i++)
-        printf("Reference layer velocity for beam %u: %u mm/s\n", i,
+        printf("Reference layer velocity for beam %u: %d mm/s\n", i,
                 pkt->btdata.ref_layer_vel[i]);
 
     for(i= 0;i < 4;i++)
