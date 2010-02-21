@@ -452,10 +452,10 @@ int readDVLData(int fd, RawDVLData* dvl)
 int openDVL(const char* devName)
 {
 #ifdef DEBUG_DVL_OPEN_FILE
-   fd= openDVL(argv[1]);
+   int fd= openDVL(devName);
 
    return fd;
-#elif
+#else
    int fd = open(devName, O_RDWR, O_ASYNC);
 
     if(fd == -1)
