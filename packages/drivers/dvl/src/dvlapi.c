@@ -7,6 +7,10 @@
  * File:  packages/dvl/src/dvlapi.c
  */
 
+// If you want to have the DVL API open a file instead of a tty,
+// define this:
+// #define DEBUG_DVL_OPEN_FILE
+
 // STD Includes
 #include <stdio.h>
 #include <stdlib.h>
@@ -447,6 +451,11 @@ int readDVLData(int fd, RawDVLData* dvl)
 /* Some code from cutecom, which in turn may have come from minicom */
 int openDVL(const char* devName)
 {
+#ifdef DEBUG_DVL_OPEN_FILE
+   fd= openDVL(argv[1]);
+
+   return fd;
+#elif
    int fd = open(devName, O_RDWR, O_ASYNC);
 
     if(fd == -1)
@@ -498,6 +507,7 @@ int openDVL(const char* devName)
       printf("tcsetattr() 2 failed\n");
     
     return fd;
+#endif
 }
 
 
