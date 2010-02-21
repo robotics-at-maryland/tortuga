@@ -29,7 +29,8 @@ sources.extend(env.Glob('src/device', '*.cpp'))
 
 # If we aren't building the drivers or the vision code, remove the sources
 # that depend on them
-excludedDevices = ['IMU',
+excludedDevices = ['DVL',
+                   'IMU',
                    'PSU',
                    'SensorBoard',
                    'SBPowerSource',
@@ -57,7 +58,7 @@ else:
     int_deps.append('vision')
         
 
-# Build Procducts (library will be called 'libram_vehicle.so')
+# Build Products (library will be called 'libram_vehicle.so')
 envl.RAMSharedLibrary('vehicle',  source = sources)
 
 

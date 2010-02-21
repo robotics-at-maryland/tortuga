@@ -67,7 +67,7 @@ def remove_item(env, key, items):
     # Grab current set of values
     values = env.get(key,[])
 
-    # Remove the items if they are presnet
+    # Remove the items if they are present
     for item in items:
         if values.count(item):
             values.remove(item)
