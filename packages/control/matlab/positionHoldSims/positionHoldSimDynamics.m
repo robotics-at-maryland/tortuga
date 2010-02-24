@@ -21,13 +21,15 @@ global drag_rot;%rotational drag about yaw axis
 
 %pull in forces and torques from controller
 global Fn_controller;
+global Fn_disturbances;
 global Tn_controller;
+global Tn_disturbances;
 
 
 %% diff eqs
-r1_dotdot=1/m*(Fn_controller(1)-drag_1*r_dot(1));
-r2_dotdot=1/m*(Fn_controller(2)-drag_2*r_dot(2));
+r1_dotdot=1/m*(Fn_controller(1) - drag_1*r_dot(1) + Fn_disturbances(1));
+r2_dotdot=1/m*(Fn_controller(2) - drag_2*r_dot(2) + Fn_disturbances(2));
 
-theta_dotdot=1/h*(Tn_controller-drag_rot*theta_dot);
+theta_dotdot=1/h*(Tn_controller - drag_rot*theta_dot + Tn_disturbances);
 
 dx=[r_dot(1) r_dot(2) r1_dotdot r2_dotdot theta_dot theta_dotdot]';
