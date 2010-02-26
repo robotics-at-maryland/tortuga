@@ -20,45 +20,23 @@ Scene:
     
     Cameras:
         Main:
-            position: [-18, 0, 0]
-            offset: [-4, 3, 2]
+            #Off to the side
+            #position: [0, -1, -3]
+            #offset: [-5, 0, 2.8]
+            position: [0, 0, 0]
+            offset: [0, 0, 5]
     
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-18, 0, -1.5]
+            position: [-3, 0, -3]
     
     Objects:
-        course:
-            type: [sim.vision.ICourse, sim.vision.Course]
-
-            startType: [sim.vision.IPipe, sim.vision.Pipe]
-            start: pipe
-            startPos: [-15, 1]
-            startDepth: -2.753
-            startHeading: -35
-
-            pipe:
-                buoy:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    depth: -1.425
-                buoy2:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    direction: -15
-                    depth: -1.425
-                    Graphical:
-                        material: Simple/Blue
-                buoy3:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    direction: 15
-                    depth: -1.425
-                    Graphical:
-                        material: Simple/Green
-
-
+        Target:
+            type: [ram.sim.object.IObject, sim.vision.TargetArray]
+            position: [0, 0, -3]
+            orientation: [0, 0, 1, 90]
+          
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
             

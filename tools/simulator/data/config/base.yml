@@ -321,8 +321,9 @@ Simulation:
         #Main: objectives/multi_pipe.sml
         #Main: objectives/barbedwire.sml
         #Main: objectives/target.sml
+        Main: objectives/target2.sml
         #Main: objectives/buoy.sml
-        Main: objectives/buoy2.sml
+        #Main: objectives/buoy2.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
         #Main: transdec.sml

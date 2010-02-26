@@ -76,12 +76,12 @@ class Buoy(Visual):
 
     def load(self, data_object):
         scene, parent, node = data_object
-        if not node.has_key('Graphical'):
-            # Default mesh and scale info
-            gfxNode = {'mesh' : 'sphere.50cm.mesh', 
-                       'scale' : [0.15, 0.15, 0.15],
-                       'material' : 'Simple/Red' }
-            node['Graphical'] = gfxNode
+        # Default mesh and scale info
+        gfxNode = {'mesh' : 'sphere.50cm.mesh', 
+                   'scale' : [0.15, 0.15, 0.15],
+                   'material' : 'Simple/Red' }
+        gfxNode.update(node.get('Graphical', {}))
+
         Visual.load(self, (scene, parent, node))
         
     def save(self, data_object):
@@ -249,6 +249,8 @@ class Target(ram.sim.object.Object):
         ram.sim.object.Object.__init__(self)
         self._position = ogre.Vector3.ZERO
         self._orientation = ogre.Quaternion.IDENTITY
+        self._visible = False
+        self.id = 0
     
     def _toAxisAngleArray(self, orientation):
         angle = ogre.Degree(0)
@@ -274,16 +276,20 @@ class Target(ram.sim.object.Object):
         self._orientation = orientation
         basePos = ram.sim.OgreVector3(basepos)
         baseName = node['name']
-        
+
         sideOffset = orientation * ogre.Vector3(0, Target.SEPERATION/2, 0)
         upDownOffset = orientation * ogre.Vector3(0, 0, Target.SEPERATION/2)
         drawOrientation = orientation * ogre.Quaternion(
             ogre.Degree(90), ogre.Vector3.UNIT_Z)
+
+        # Set the color of the target
+        self._color = node.get('color', 'green')
         
         # Shared graphics node
         gfxNode = {'mesh': 'cylinder.mesh', 
-                   'material' : 'Simple/Green',
+                   'material' : 'Simple/' + self._color.capitalize(),
                    'scale': [0.508, 0.0508/2, 0.0508/2] }
+        gfxNode.update(node.get('Graphical', {}))
         
         # Create Top Pipe
         position = basePos + (upDownOffset * 1)
@@ -324,6 +330,99 @@ class Target(ram.sim.object.Object):
                'Graphical' : gfxNode}
         pipe = Visual()
         pipe.load((scene, parent, cfg))
+
+    @property
+    def color(self):
+        return self._color
+
+class TargetArray(Visual):
+    """
+    Represents a 2x2 target array
+    """
+    core.implements(ram.sim.object.IObject, ITarget)
+
+    DISTANCE = 0.375
+
+    @two_step_init
+    def __init__(self):
+        Visual.__init__(self)
+        self._topLeftTarget = None
+        self._topRightTarget = None
+        self._bottomLeftTarget = None
+        self._bottomRightTarget = None
+
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+
+        colors = node.get('colors', ['red', 'orange', 'blue', 'green'])
+        while len(colors) < 4:
+            # Green is the default
+            colors.append('green')
+
+        baseName = node.get('name', 'target')
+        basePos, orientation = parse_position_orientation(node)
+        basePos = ram.sim.OgreVector3(basePos)
+        rad45 = math.pi/4
+        baseOffset = ext.math.Vector2(math.cos(rad45), math.sin(rad45))
+        baseOffset = baseOffset * TargetArray.DISTANCE
+        
+        radians = orientation.getRoll().valueRadians() + math.pi/2
+        xyplane = ext.math.Vector2(math.cos(radians), math.sin(radians))
+        xyplane = xyplane * baseOffset.x
+
+        # Create top left target
+        self._topLeftTarget = Target()
+        position = basePos + ram.sim.OgreVector3((xyplane.x,
+                                                  xyplane.y,
+                                                  baseOffset.y))
+        cfg = {'name' : baseName + 'TopLeftTarget', 'position' : position,
+               'orientation' : self._toAxisAngleArray(orientation),
+               'color' : colors[0]}
+        self._topLeftTarget.load((scene, parent, cfg))
+        scene._objects.append(self._topLeftTarget)
+        
+        # Create top right target
+        self._topRightTarget = Target()
+        position = basePos + ram.sim.OgreVector3((-xyplane.x,
+                                                  -xyplane.y,
+                                                  baseOffset.y))
+        cfg = {'name' : baseName + 'TopRightTarget', 'position' : position,
+               'orientation' : self._toAxisAngleArray(orientation),
+               'color' : colors[1]}
+        self._topRightTarget.load((scene, parent, cfg))
+        scene._objects.append(self._topRightTarget)
+
+        # Create bottom left target
+        self._bottomLeftTarget = Target()
+        position = basePos + ram.sim.OgreVector3((xyplane.x,
+                                                  xyplane.y,
+                                                  -baseOffset.y))
+        cfg = {'name' : baseName + 'BottomLeftTarget', 'position' : position,
+               'orientation' : self._toAxisAngleArray(orientation),
+               'color' : colors[2]}
+        self._bottomLeftTarget.load((scene, parent, cfg))
+        scene._objects.append(self._bottomLeftTarget)
+
+        # Create bottom right target
+        self._bottomRightTarget = Target()
+        position = basePos + ram.sim.OgreVector3((-xyplane.x,
+                                                  -xyplane.y,
+                                                  -baseOffset.y))
+        cfg = {'name' : baseName + 'BottomRightTarget', 'position' : position,
+               'orientation' : self._toAxisAngleArray(orientation),
+               'color' : colors[3]}
+        self._bottomRightTarget.load((scene, parent, cfg))
+        scene._objects.append(self._bottomRightTarget)
+
+    def save(self, data_object):
+        raise "Not yet implemented"
 
 class Bin(Visual):
     """
@@ -693,6 +792,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Red light detector variables
         self._runRedLight = False
         self._foundLight = False
+        self._lightID = 1
         
         # Orange pipe detector variables
         self._runOrangePipe = False
@@ -717,6 +817,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         # Target Detector variables
         self._runTarget = False
         self._foundTarget = False
+        self._targetID = 1
 
         # BarbedWire Detector Variables
         self._runBarbedWire = False
