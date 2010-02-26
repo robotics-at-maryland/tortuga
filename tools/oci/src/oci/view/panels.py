@@ -106,7 +106,7 @@ class ThrusterPanel(wx.Panel):
             bar = MultiBar(self)
             bar.minValue = item.getMinForce()
             bar.maxValue = item.getMaxForce()
-                       
+                    
             # Add it to our layout
             layout.Add(label, (0,pos),flag = wx.ALIGN_CENTER_HORIZONTAL)
             layout.Add(bar, (1,pos), flag = wx.EXPAND)
@@ -409,7 +409,7 @@ class AIPanel(wx.Panel):
         
     def _onEntered(self,event):
         if self._firstRun:
-            self._startTime = timer.time()
+            self._startTime = event.timeStamp
             self._firstRun = False
         fullClassName = str(event.string)
         
