@@ -35,7 +35,7 @@ Scene:
         Target:
             type: [ram.sim.object.IObject, sim.vision.TargetArray]
             position: [0, 0, -3]
-            orientation: [0, 0, 1, 90]
+            orientation: [0, 0, 1, 45]
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

@@ -184,7 +184,7 @@ class Simulation(Singleton, Module):
                                     suppressFileOutput = False)
 
         # Create Ogre.Root singleton with no default plugins
-        self._ogre_root = Ogre.Root("");
+        self._ogre_root = Ogre.Root("")
 
         # Start up Ogre piecewise, passing a default empty config if needed
         self._load_ogre_plugins(config.get('Plugins', {}))
