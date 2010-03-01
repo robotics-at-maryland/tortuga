@@ -358,6 +358,40 @@ std::string PythonConfigNodeImp::toString()
     }
 }
 
+void PythonConfigNodeImp::writeToFile(std::string fileName, bool silent)
+{
+    try {
+        // Create python module and namespace
+        py::object main_module((py::handle<>(py::borrowed(
+            PyImport_AddModule("__main__")))));
+
+        py::object main_namespace = main_module.attr("__dict__");
+        // Insert node and filename into the namespace
+        main_namespace["node"] = m_pyobj;
+        main_namespace["filename"] = fileName;
+
+        // Python dump file code
+        std::stringstream ss;
+        ss << "import yaml\n"
+           << "def write_to_file(node, filename):\n"
+           << "    fd = open(filename, 'w')\n"
+           << "    yaml.dump(node, fd)\n"
+           << "    fd.close()\n"
+           << "write_to_file(node, filename)\n";
+
+        py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
+                                                  Py_file_input,
+                                                  main_namespace.ptr(),
+                                                  main_namespace.ptr())));
+    } catch (py::error_already_set err) {
+        printf("Error during write out\n");
+        PyErr_Print();
+
+        if (!silent)
+            throw err;
+    }
+}
+
 void PythonConfigNodeImp::includeIfNeeded(boost::python::object pyObj)
 {
     try {

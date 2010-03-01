@@ -65,6 +65,8 @@ public:
 
     /** Returns the config file in a python evalable format */
     virtual std::string toString() = 0;
+
+    virtual void writeToFile(std::string, bool silent) = 0;
 };
 
 } // namespace core

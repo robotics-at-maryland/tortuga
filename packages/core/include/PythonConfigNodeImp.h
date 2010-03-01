@@ -90,6 +90,15 @@ public:
     static ConfigNodeImpPtr fromYamlFile(std::string filename);
 
     virtual std::string toString();
+
+    /**
+     * Dumps the config file to disk.
+     *
+     * @param fileName File to dump data to
+     * @param silent A silent write will never crash even if the python
+     *               code fails for some reason. Default is false.
+     */
+    virtual void writeToFile(std::string fileName, bool silent);
 private:
     /** Helper function used to make sure we have run the needed include
         statements */

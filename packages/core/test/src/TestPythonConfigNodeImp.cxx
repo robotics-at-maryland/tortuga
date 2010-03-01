@@ -181,6 +181,30 @@ TEST_FIXTURE(TestPythonConfigNode, fromFile)
 }
 #endif
 
+TEST_FIXTURE(TestPythonConfigNode, writeToFile)
+{
+    // How the hell do I do this?
+    std::string base = "{'This is a test yaml file' : 'do not use'}";
+    ConfigNode node(ConfigNode::fromString(base));
+
+    // Test yaml file location
+    std::string filepath = std::string(getenv("RAM_SVN_DIR"))
+        + "/build/packages/core/test.yml";
+    boost::filesystem::path path(filepath);
+
+    if (boost::filesystem::exists(path))
+        remove(filepath.c_str());
+
+    CHECK(!boost::filesystem::exists(path));
+
+    node.writeToFile(filepath);
+
+    CHECK(boost::filesystem::exists(path));
+
+    // Cleanup
+    remove(filepath.c_str());
+}
+
 } // namespace core
 } // namespace ram
     

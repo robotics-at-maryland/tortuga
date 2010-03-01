@@ -92,6 +92,8 @@ public:
     */
     static ConfigNode fromFile(std::string fileName);
 
+    void writeToFile(std::string fileName, bool silent = false);
+
 private:    
     ConfigNodeImpPtr m_impl;
 };

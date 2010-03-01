@@ -28,6 +28,7 @@
 #include "core/include/Application.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Exception.h"
+#include "core/include/Logging.h"
 #include "core/include/SubsystemMaker.h"
 #include "core/include/DependencyGraph.h"
 #include "core/include/Feature.h"
@@ -61,8 +62,8 @@ Application::Application(std::string configPath) :
     // Set creation mode
     std::string mode = rootCfg["SubsystemCreationMode"].asString("warning");
     if (mode != "error" && mode != "warning") {
-	std::cout << "Invalid mode. Default is 'warning'" << std::endl;
-	mode = "warning";
+        std::cout << "Invalid mode. Default is 'warning'" << std::endl;
+        mode = "warning";
     }
 
     if (rootCfg.exists("Subsystems"))
@@ -73,52 +74,52 @@ Application::Application(std::string configPath) :
         DependencyGraph depGraph(sysConfig);
         m_order = depGraph.getOrder();
 
-	std::vector<std::string> badSubsystemNames;
-	std::set<std::string> invalidSystems;
+        std::vector<std::string> badSubsystemNames;
+        std::set<std::string> invalidSystems;
         
         // Create all the subsystems
         BOOST_FOREACH(std::string subsystemName, m_order)
         {
-	    // Skip "creationMode"
-	    if (subsystemName == "creationMode") {
-		continue;
+            // Skip "creationMode"
+            if (subsystemName == "creationMode") {
+                continue;
 	    }
 
 	    // If the subsystem has no configuration section, ignore it
 	    if (!sysConfig.exists(subsystemName)) {
-		badSubsystemNames.push_back(subsystemName);
-		continue;
+            badSubsystemNames.push_back(subsystemName);
+            continue;
 	    }
 
-            // Set 'name' properly in the config
-            ConfigNode config(sysConfig[subsystemName]);
-            config.set("name", subsystemName);
-
-            // Build list of dependencies
-            SubsystemList deps;
-            NameList depNames = depGraph.getDependencies(subsystemName);
-	    bool abort = false;
-            BOOST_FOREACH(std::string depName, depNames)
+        // Set 'name' properly in the config
+        ConfigNode config(sysConfig[subsystemName]);
+        config.set("name", subsystemName);
+        
+        // Build list of dependencies
+        SubsystemList deps;
+        NameList depNames = depGraph.getDependencies(subsystemName);
+        bool abort = false;
+        BOOST_FOREACH(std::string depName, depNames)
 	    {
-		if (!hasSubsystem(depName) ||
-		    invalidSystems.count(depName) == 1) {
-		    // The dependencies have not been satisfied
-		    abort = true;
-		    break;
-		}
-                deps.push_back(getSubsystem(depName));
+            if (!hasSubsystem(depName) ||
+                invalidSystems.count(depName) == 1) {
+                // The dependencies have not been satisfied
+                abort = true;
+                break;
+            }
+            deps.push_back(getSubsystem(depName));
 	    }
 
 	    if (abort) {
-		// The dependencies were not satisfied
-		// do not make this subsystem
-		// Remove from the order
-		badSubsystemNames.push_back(subsystemName);
-		continue;
+            // The dependencies were not satisfied
+            // do not make this subsystem
+            // Remove from the order
+            badSubsystemNames.push_back(subsystemName);
+            continue;
 	    }
 
-            // Create out new subsystem and store it
-            PYTHON_ERROR_TRY {
+        // Create out new subsystem and store it
+        PYTHON_ERROR_TRY {
 		try {
 		    SubsystemPtr subsystem(SubsystemMaker::newObject(
 					   std::make_pair(config, deps) ));
@@ -130,30 +131,31 @@ Application::Application(std::string configPath) :
 		}
             } PYTHON_ERROR_CATCH("Subsystem construction");
         }
-
-	// Add invalid systems to the bad subsystems
-	BOOST_FOREACH(std::string name, invalidSystems)
-	{
-	    badSubsystemNames.push_back(name);
-	}
-
-	// Remove bad subsystems from the order
-	bool earlyTermination = false;
-	BOOST_FOREACH(std::string name, badSubsystemNames)
-	{
-	    // Three modes types
-	    if (mode == "error") {
-		// End the program with an error state after
-		// listing bad subsystems
-		std::cout << "ERROR: Missing dependency " << name << std::endl;
-		earlyTermination = true;
-	    } else if (mode == "warning") {
-		std::cout << "WARNING: Missing dependency "
-			  << name << std::endl;
-	    }
-	    remove_from_order(name);
-	}
-	assert(!earlyTermination && "Dependencies are missing");
+        
+        // Add invalid systems to the bad subsystems
+        BOOST_FOREACH(std::string name, invalidSystems)
+        {
+            badSubsystemNames.push_back(name);
+        }
+        
+        // Remove bad subsystems from the order
+        bool earlyTermination = false;
+        BOOST_FOREACH(std::string name, badSubsystemNames)
+        {
+            // Three modes types
+            if (mode == "error") {
+                // End the program with an error state after
+                // listing bad subsystems
+                std::cout << "ERROR: Missing dependency " << name
+                          << std::endl;
+                earlyTermination = true;
+            } else if (mode == "warning") {
+                std::cout << "WARNING: Missing dependency "
+                          << name << std::endl;
+            }
+            remove_from_order(name);
+        }
+        assert(!earlyTermination && "Dependencies are missing");
 
         // Not sure if this is the right place for this or not
         // maybe another function, maybe a scheduler?
@@ -181,6 +183,10 @@ Application::Application(std::string configPath) :
             } PYTHON_ERROR_CATCH("Subsystem setup");
         } // foreach name in order
     } // if subsystem section of config exists
+    
+    // Write out the yaml config file in its current state
+    rootCfg.writeToFile((Logging::getLogDir() /
+                         "config.yml").native_file_string());
 }
 
 Application::~Application()

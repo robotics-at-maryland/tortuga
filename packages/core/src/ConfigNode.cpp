@@ -144,5 +144,10 @@ ConfigNode& ConfigNode::operator=(const ConfigNode& that)
     return *this;    // Return ref for multiple assignment
 }
 
+    void ConfigNode::writeToFile(std::string fileName, bool silent)
+{
+    m_impl->writeToFile(fileName, silent);
+}
+
 } // namespace core
 } // namespace ram
