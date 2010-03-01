@@ -56,8 +56,8 @@ namespace pattern {
         {
         public:
             MyClass();
-            static MyManager& getSingleton();
-            static MyManager* getSingletonPtr();
+            static MyClass& getSingleton();
+            static MyClass* getSingletonPtr();
             // ... your method declarations here
         };
             
