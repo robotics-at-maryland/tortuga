@@ -137,6 +137,31 @@ class TestMotionManager(support.MotionTest):
         self.qeventHub.publishEvents()
         
         self.assertEqual(None, self.motionManager.currentMotion)
+
+    def testMotionConfig(self):
+        cfg = {
+            1 : {
+                'type' : 'ram.motion.basic.RateChangeDepth',
+                'desiredDepth' : 5,
+                'speed' : 0.3
+                },
+            2 : {
+                'type' : 'ram.motion.basic.MoveDirection',
+                'desiredHeading' : 25,
+                'speed' : 2
+                }
+            }
+
+        # Generate the motion list
+        motionList = motion.basic.MotionManager.generateMotionList(cfg)
+
+        self.assertEqual(motion.basic.RateChangeDepth, type(motionList[0]))
+        self.assertEqual(5, motionList[0]._desiredDepth)
+        self.assertAlmostEqual(0.3, motionList[0]._speed)
+
+        self.assertEqual(motion.basic.MoveDirection, type(motionList[1]))
+        self.assertEqual(25, motionList[1]._direction.getYaw().valueDegrees())
+        self.assertEqual(2, motionList[1]._speed)
   
 class TestChangeDepth(support.MotionTest):
     def setUp(self):
