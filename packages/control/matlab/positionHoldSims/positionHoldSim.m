@@ -13,13 +13,17 @@ clc
 %orientation (rad) is angle from inertial frame to body frame
 %state = [r1 r2 r1Dot r2Dot theta thetaDot]
 global x0;
-x0=[0 0 0 0 0 0]';
+x0=[0 0 2 5 0 0]';
 
 % List of Controllers
 % 1. PID_velocity
-%
+% 2. PID_positional
 
 CONTROLLER = 'PID_positional';
+
+% Controller gains
+k_PID_velocity = [0 0 0 0 0 0 0 0 0]';
+k_PID_positional = [60 60 60 60 60 60 0 0 0]';
 
 %timing
 global t_step;
@@ -40,8 +44,8 @@ dvl_variance_1 = .03;
 dvl_variance_2 = .03;
 
 % Random Currents
-dist_Fn_variance = 1;
-dist_Tn_variance = 1;
+dist_Fn_variance = 10;
+dist_Tn_variance = 5;
 
 %system constants
 global m;%mass (kg)
@@ -80,26 +84,23 @@ for t = 2:length(time)
     % do control
     switch(CONTROLLER)
         case 'PID_velocity'
-            k = [0 0 0 0 0 0 0 0 0]';
+            k = k_PID_velocity;
             setpoint = [0 0 0]';
             [Fb_controller , Tb_controller] = positionHold_PID_velocity(state_estimate, k, setpoint);
         case 'PID_positional'
-            k = [60 60 60 60 60 60 10 10 10]';
-            setpoint = [5 0 0]';
+            k = k_PID_positional;
+            setpoint = [0 0 0]';
             [Fb_controller, Tb_controller] = positionHold_PID_positional(state_estimate, k, setpoint);
     end
     
     % transform vehicle forces to inertial frame
     Fn_controller = bRn(state_storage(5,t-1))'*Fb_controller;
     Tn_controller = Tb_controller;
-    
-    exp_Fn_dist = 0.7*Fn_disturbances;
-    exp_Tn_dist = 0.7*Tn_disturbances;
-    % generate random disturbances
-    if(mod(uint32(current_time/t_step),10) == 0)
-        
-        Fn_disturbances = [random('norm',exp_Fn_dist(1),dist_Fn_variance) random('norm',exp_Fn_dist(2),dist_Fn_variance)]';
-        Tn_disturbances = random('norm',exp_Tn_dist,dist_Tn_variance);
+   
+    % generate new random velocity disturbance every .5 seconds
+    if(mod(uint32(current_time*10),5) == 0)
+        Fn_disturbances = [random('norm',0,dist_Fn_variance) random('norm',0,dist_Fn_variance)]';
+        Tn_disturbances = random('norm',0,dist_Tn_variance);
     end
     
     % store disturbance forces history
@@ -171,12 +172,15 @@ plot(time,control_storage(3,:))
 xlabel('time');
 ylabel('Tb');
 
+% Controller specific plots
 switch(CONTROLLER)
     case 'PID_positional'
         global position_storage;
         global orientation_storage;
         
-        l = length(POSITION_STORAGE(1,:));
+        l = length(position_storage(1,:));
+        
+        % Plot what the controller thinks is happening
         figure(6)
         subplot(3,1,1)
         plot(time(1:l),position_storage(1,:))
@@ -190,5 +194,21 @@ switch(CONTROLLER)
         plot(time(1:l),orientation_storage(:))
         xlabel('time');
         ylabel('theta estimate');
+        
+        % Plot the difference between what the controller thinks is
+        % happening and what is really happening
+        figure(7)
+        subplot(3,1,1)
+        plot(time(1:l),abs(state_storage(1,1:l)-position_storage(1,:)));
+        xlabel('time');
+        ylabel('x_1 abs error');
+        subplot(3,1,2)
+        plot(time(1:l),abs(state_storage(2,1:l)-position_storage(2,:)));
+        xlabel('time');
+        ylabel('x_2 absolute error');
+        subplot(3,1,3)
+        plot(time(1:l),abs(state_storage(5,1:l)-orientation_storage(1:l)));
+        xlabel('time');
+        ylabel('orientation absolute error');
 end
 

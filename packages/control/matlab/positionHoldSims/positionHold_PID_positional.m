@@ -57,8 +57,8 @@ input_storage(1:2,n) = state_n;
 if n > 1
     % Numerically integrate velocities in inertial frame to get position
     % estimate in inertial frame
-    currentPosition_n = currentPosition_n + (state_n(1:2) + input_stoarge(1:2,n)/2)*t_step;
-    %currentPosition_n = currentPosition_n + state_n(1:2)*t_step;
+    %currentPosition_n = currentPosition_n + (state_n(1:2) + input_stoarge(1:2,n)/2)*t_step;
+    currentPosition_n = currentPosition_n + state_n(1:2)*t_step;
     % Numerically integrate rotational speed to get orientation estimate
     currentOrientation = currentOrientation + state_b(3)*t_step;
 end
