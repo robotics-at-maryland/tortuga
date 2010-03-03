@@ -215,11 +215,12 @@ class MotionManager(core.Subsystem):
         return class_(**kwargs)
 
     @staticmethod
-    def generateMotionList(config):
+    def generateMotionList(mList):
         # Number of total motions
-        max = len(config)
+        max = len(mList) - 1
         motionList = []
-        for num, info in config.iteritems():
+
+        for num, info in enumerate(mList):
             type_ = info.pop('type')
             if num == max:
                 m = MotionManager.generateMotion(
@@ -229,7 +230,7 @@ class MotionManager(core.Subsystem):
                     type_, complete = True, **info)
             motionList.append(m)
         return motionList
-    
+            
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
         
 class Motion(object):
@@ -297,10 +298,12 @@ class Motion(object):
     @staticmethod
     def isComplete(self):
         """
-        Abstract base classes were added to python in 2.6.
-
-        To get the same functionality, this will raise an exception so
-        any base classes will need to overwrite it.
+        Returns true if the motion eventually terminates and calls _finish()
+      
+        All subclasses need to implement this feature, if they don't
+        an exception will be thrown.  Abstract base classes, added to 
+        python in 2.6, provide this same functionality but we only
+        support python 2.5.
         """
         raise Exception("Not implemented")
     

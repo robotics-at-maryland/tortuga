@@ -139,21 +139,21 @@ class TestMotionManager(support.MotionTest):
         self.assertEqual(None, self.motionManager.currentMotion)
 
     def testMotionConfig(self):
-        cfg = {
-            1 : {
+        mList = [
+            {
                 'type' : 'ram.motion.basic.RateChangeDepth',
                 'desiredDepth' : 5,
                 'speed' : 0.3
                 },
-            2 : {
+            {
                 'type' : 'ram.motion.basic.MoveDirection',
                 'desiredHeading' : 25,
                 'speed' : 2
                 }
-            }
+            ]
 
         # Generate the motion list
-        motionList = motion.basic.MotionManager.generateMotionList(cfg)
+        motionList = motion.basic.MotionManager.generateMotionList(mList)
 
         self.assertEqual(motion.basic.RateChangeDepth, type(motionList[0]))
         self.assertEqual(5, motionList[0]._desiredDepth)
