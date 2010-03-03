@@ -40,14 +40,14 @@ qQuest_storage = 666*ones(4, length(time));
 %Initial Position (Quaternion)  
 %describes orientation of N w.r.t. B 
 % v_{b frame} = R(q) * v_{n frame}
-axis0 = [0 3 1]'; % starting in a level position
+axis0 = [0 0 1]'; % starting in a level position
 axis0=axis0/norm(axis0);
-angle0 = (pi/180)*90; 
+angle0 = (pi/180)*45; 
 q0 = [axis0*sin(angle0/2); cos(angle0/2)];
 q0 = q0/norm(q0);
 
 %Initial angular rate (of B w.r.t. N written in B frame)
-w0=(pi/180)*[0 40 40]';
+w0=(pi/180)*[0 0 30]';
 
 %initial estimated position
 x0=[q0; w0];
@@ -82,18 +82,23 @@ fb=4;
 global rb;
 rb=[0 0 1]';
 
+% Error magnitudes
+acc_mean = [-0.0057 0.0220 -1.0263]';       acc_var = [3.7278e-04 2.2597e-04 3.4584e-04]';
+mag_mean = [-0.390 0.0035 -0.2338]';        mag_var = [1.1013e-04 1.1122e-04 1.1210e-04]';
+vel_mean = [-0.0034 7.3483e-04 -0.0086]';   vel_var = [0.0033 0.0029 0.0036]';
+
 %% For loop or ODE45
  
 for i=2:1:length(time)
     %measurement
 %   simulate measurements
 %   acc=R(q)*acc_vec_nf + noise
-    acc=R(state_storage(1:4,i-1))*acc_vec_nf;
+    acc=R(state_storage(1:4,i-1))*acc_vec_nf + random('norm', acc_mean, acc_var);
 %   mag=R(q)*mag_vec_nf + noise
-    mag=R(state_storage(1:4,i-1))*mag_vec_nf;
+    mag=R(state_storage(1:4,i-1))*mag_vec_nf + random('norm', mag_mean, mag_var);
 %   vel=angular_velocity+noise
-    vel=state_storage(5:7,i-1);
-    
+    vel=state_storage(5:7,i-1) + random('norm',vel_mean, vel_var);
+       
     %save measurements
     acc_meas_storage(:,i-1)=acc;
     mag_meas_storage(:,i-1)=mag;
@@ -144,7 +149,7 @@ hold on
 plot(time(2:end), state_storage(1,2:end), 'b')
 plot(time(2:end), qtriad_storage(1,2:end), 'g')
 plot(time(2:end), qQuest_storage(1,2:end), 'r')
-title('Position')
+title('Rotation Quaternion')
 ylabel('q_1')
 legend('Actual','Triad','Quest')
 hold off
@@ -178,52 +183,60 @@ hold off
 
 xlabel('time (s)')
 
+%% Plotting error in angle theta
+%q_err = qXq^-1
+%q = [eps n]
+%2arcsin(norm(eps))=mag(theta)
 
-%figure(2)
-%subplot(3,1,1)
-%plot(time,state_storage(5,:))
-% title('Velocity')
-% ylabel('w_1 (rad/s)')
-% subplot(3,1,2)
-% plot(time,state_storage(6,:))
-% ylabel('w_2 (rad/s)')
-% subplot(3,1,3)
-% plot(time,state_storage(7,:))
-% ylabel('w_3 (rad/s)')
-% xlabel('time (s)')
+for j = 1:length(state_storage)
+    triad_err(:,j) = q_mult(q_inv(state_storage(:,j)),qtriad_storage(:,j));
+    triad_err_theta(j) = 2*asin(norm(triad_err(1:3,j)));
+    quest_err(:,j) = q_mult(q_inv(state_storage(:,j)),qQuest_storage(:,j));
+    quest_err_theta(j) = 2*asin(norm(quest_err(1:3,j)));
+end
 
-% figure(3)
-% subplot(3,1,1)
-% plot(time(1:end-1),acc_meas_storage(1,1:end-1))
-% title('Accelerometer `g`')
-% ylabel('a_1')
-% subplot(3,1,2)
-% plot(time(1:end-1),acc_meas_storage(2,1:end-1))
-% ylabel('a_2')
-% subplot(3,1,3)
-% plot(time(1:end-1),acc_meas_storage(3,1:end-1))
-% ylabel('a_3')
+figure(2)
+title('Error angle between real and estimated quaternions')
 
-%figure(4)
-%subplot(3,1,1)
-%plot(time(1:end-1),mag_meas_storage(1,1:end-1))
-%title('Magnetometer')
-%ylabel('m_1')
-%subplot(3,1,2)
-%plot(time(1:end-1),mag_meas_storage(2,1:end-1))
-%ylabel('m_2')
-%subplot(3,1,3)
-%plot(time(1:end-1),mag_meas_storage(3,1:end-1))
-%ylabel('m_3')
-%
+hold on
+plot(time(2:end), triad_err_theta(2:end), 'b');
+plot(time(2:end), quest_err_theta(2:end), 'r');
+legend('Triad error', 'Quest error')
+ylabel('Error Angle (degrees)')
+xlabel('time (s)')
 
+figure(3)
+title('Error quaternion between real and estimated quaternions')
+xlabel('time (s)')
 
-%acc_meas_storage = 666*ones(3, length(time));
-%mag_meas_storage = 666*ones(3, length(time));
+subplot(4,1,1)
+hold on
+plot(time(2:end), triad_err(1,2:end), 'b');
+plot(time(2:end), quest_err(1,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('q_1')
 
+subplot(4,1,2)
+hold on
+plot(time(2:end), triad_err(2,2:end), 'b');
+plot(time(2:end), quest_err(2,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('q_2')
 
-% figure(2)
-% subplot(4,1,1)
-% plot(time,actualQ1,time,triadQ1)
-% legend('actual','TRIAD')
+subplot(4,1,3)
+hold on
+plot(time(2:end), triad_err(3,2:end), 'b');
+plot(time(2:end), quest_err(3,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('q_3')
 
+subplot(4,1,4)
+hold on
+plot(time(2:end), triad_err(4,2:end), 'b');
+plot(time(2:end), quest_err(4,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('q_4')
