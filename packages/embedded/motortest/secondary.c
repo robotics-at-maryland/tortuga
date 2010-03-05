@@ -101,7 +101,7 @@ int main()
         i= I2CRCV; /* Get the byte out of the recieve buffer so we have space. */
 
         if(I2CSTATbits.R_W == 1) {
-            for(i= packet_size - 1;i > 0;i--) {
+            for(i= packet_size - 1;i >= 0;i--) {
                 I2CTRN= buff[i];
 
                 I2CCONbits.SCLREL= 1;

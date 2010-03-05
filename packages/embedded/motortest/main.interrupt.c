@@ -1,5 +1,4 @@
 #include <p30fxxxx.h>
-#include <string.h>
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -166,9 +165,18 @@ void _ISR _MI2CInterrupt() {
             LATE= 0x0002;
             i2cBuf[i2cPtr++]= I2CRCV;
             I2CSTATbits.I2COV= 0;
-            I2CCONbits.ACKDT= (i2cPtr >= packetSize ? I2C_ACK : I2C_NACK);
-            I2CCONbits.ACKEN= 1;
+            writeUart('G');
+            writeUart('0' + i2cPtr);
+            writeUart('\n');
+            if(i2cPtr < packetSize) {
+                I2CCONbits.ACKDT= I2C_ACK;
+            } else {
+                I2CCONbits.ACKDT= I2C_NACK;
+            }
+
             i2cState= I2CSTATE_ACK;
+            I2CCONbits.ACKEN= 1;
+
             break;
         }
 
@@ -179,15 +187,15 @@ void _ISR _MI2CInterrupt() {
             LATE= 0x0001;
 
             if(i2cPtr >= packetSize) {
-                StopI2C(); /* Stop the bus! We got everything! */
                 i2cState= I2CSTATE_STOP;
+                StopI2C(); /* Stop the bus! We got everything! */
                 break;
             }
 
             /* If the above wasn't true then we have more packets.  Go back and
              * wait. */
-            I2CCONbits.RCEN= 1; /* Enable reception! */
             i2cState= I2CSTATE_REC;
+            I2CCONbits.RCEN= 1; /* Enable reception! */
             break;
         }
 
@@ -221,7 +229,7 @@ void _ISR _MI2CInterrupt() {
 }
 
 /* The main function sets everything up then loops */
-int main()
+void main(void)
 {
     byte i, j, complete_packet, chksum;
     byte i2c_rw;
@@ -253,6 +261,9 @@ int main()
     /* Now that we're done with all the setup, we're just going to do
      * a simple loop which takes input on the UART and stores it on PORTE */
     LATE= 0x0002;
+    writeUart('O');
+    writeUart('K');
+    writeUart('\n');
     while(1) {
         complete_packet= 0;
 

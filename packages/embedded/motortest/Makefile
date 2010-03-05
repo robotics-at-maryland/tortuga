@@ -24,10 +24,10 @@ all: main.hex secondary.hex test_light_thingy.hex
 	$(BIN2HEX) $<
 
 %.elf : %.o
-	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
+	$(CC) $(LDFLAGS) $< $(LIBS) -o $@
 
 %.o : %.c
-	$(CC) -mcpu=30F4011 $(CFLAGS) -Wunused-function -c $< -o $@
+	$(CC) -mcpu=30F4011 $(CFLAGS) $< -Wunused-function -c -o $@
 
 clean:
 	rm -f *.o *.elf *.hex *~
