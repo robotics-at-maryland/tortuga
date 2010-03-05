@@ -42,6 +42,10 @@ class IBarbedWire(IObject):
     """ An object which you can see in the simulation"""
     pass
 
+class IHedge(IObject):
+    """ An object which you can see in the simulation"""
+    pass
+
 class IBin(IObject):
     """ An object which you can see in the simulation"""
     pass
@@ -236,6 +240,96 @@ class BarbedWire(ram.sim.object.Object):
                'Graphical' : ropeGfxNode}
         self._front = Visual()
         self._front.load((scene, parent, cfg))
+
+
+class Hedge(ram.sim.object.Object):
+    core.implements(ram.sim.object.IObject, IHedge)
+
+    HEIGHT = 0.9144 # 3 ft
+    #SEPERATION = 1.2192 # 4 ft
+    WIDTH = 1.8288 # 6 ft
+    #ROPE_LENGTH = 5 # 16.4 ft
+    PIPE_WIDTH = 0.0508 / 2
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._hedge = None
+    
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+    
+    @property
+    def position(self):
+        return self._position
+    
+    @property
+    def orientation(self):
+        return self._orientation
+    
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basepos, orientation = parse_position_orientation(node)
+        self._position = ram.sim.OgreVector3(basepos)
+        self._orientation = orientation
+        basePos = ram.sim.OgreVector3(basepos)
+        baseName = node['name']
+
+        sideOffset = orientation * ogre.Vector3(0, Hedge.WIDTH/2, 0)
+        upDownOffset = orientation * ogre.Vector3(0, 0, Hedge.HEIGHT/2)
+        drawOrientation = orientation * ogre.Quaternion(
+            ogre.Degree(90), ogre.Vector3.UNIT_Z)
+        vDrawOrientation = ogre.Quaternion(1, 1, 1, 0)
+        
+        # Shared graphics node
+        gfxNode = {'mesh': 'cylinder.mesh',
+                   'material' : 'Simple/Green',
+                   'scale': [Hedge.WIDTH,
+                             Hedge.PIPE_WIDTH,
+                             Hedge.PIPE_WIDTH] }
+
+        
+        # Create Base Pipe
+        position = basePos + (upDownOffset * -1)
+        cfg = {'name' : baseName + 'HedgeBase', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(drawOrientation) ,
+               'Graphical' : gfxNode}
+        self._hedge = Visual()
+        self._hedge.load((scene, parent, cfg))
+
+        # Smaller pipe size for these pipes
+        gfxNode.update({
+            'scale' : [
+                Hedge.HEIGHT,
+                Hedge.PIPE_WIDTH,
+                Hedge.PIPE_WIDTH
+                ]
+            })
+        
+        # Create Left Pipe
+        position = basePos + (sideOffset * 1)
+        cfg = {'name' : baseName + 'HedgeLeftPipe', 
+               'position' : position, 
+               'orientation' : [0, 1, 0, 90],
+               'Graphical' : gfxNode}
+        self._hedge = Visual()
+        self._hedge.load((scene, parent, cfg))
+
+        # Create Right Pipe
+        position = basePos + (sideOffset * -1)
+        cfg = {'name' : baseName + 'HedgeRightPipe', 
+               'position' : position, 
+               'orientation' : [0, 1, 0, 90],
+               'Graphical' : gfxNode}
+        self._hedge = Visual()
+        self._hedge.load((scene, parent, cfg))
 
 
 class Target(ram.sim.object.Object):
