@@ -13,6 +13,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Symbol.h"
+#include "vision/include/Color.h"
 
 #include "core/include/Event.h"
 
@@ -91,10 +92,20 @@ typedef boost::shared_ptr<ImageEvent> ImageEventPtr;
 class RAM_EXPORT RedLightEvent : public core::Event
 {
 public:
-    RedLightEvent(double x, double y)
-        {this->x=x; this->y=y;}
+    RedLightEvent(double x_, double y_,
+                  Color::ColorType color_=Color::UNKNOWN) :
+        azimuth(0),
+        elevation(0),
+        range(0),
+        x(x_),
+        y(y_),
+        pixCount(0),
+        color(color_)
+    {
+    }
+    
     RedLightEvent() : azimuth(0), elevation(0), range(0), x(0), y(0),
-        pixCount(0) {}
+        pixCount(0), color(Color::UNKNOWN) {}
 
     math::Degree azimuth;
     math::Degree elevation;
@@ -102,6 +113,7 @@ public:
     double x;
     double y;
     int pixCount;
+    Color::ColorType color;
 
     virtual core::EventPtr clone();
 };
@@ -199,11 +211,12 @@ class RAM_EXPORT TargetEvent : public core::Event
 {
   public:
     TargetEvent(double centerX, double centerY, double squareNess_,
-                double range_) :
+                double range_, Color::ColorType color_ = Color::UNKNOWN) :
         x(centerX),
         y(centerY),
         squareNess(squareNess_),
-        range(range_)
+        range(range_),
+        color(color_)
     {
     }
 
@@ -211,7 +224,8 @@ class RAM_EXPORT TargetEvent : public core::Event
         x(0),
         y(0),
         squareNess(0),
-        range(0)
+        range(0),
+        color(Color::UNKNOWN)
     {
     }
 
@@ -220,6 +234,7 @@ class RAM_EXPORT TargetEvent : public core::Event
     double y;
     double squareNess;
     double range;
+    Color::ColorType color;
 
     virtual core::EventPtr clone();
 };

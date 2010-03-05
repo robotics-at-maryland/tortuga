@@ -85,6 +85,9 @@ class Buoy(Visual):
                    'scale' : [0.15, 0.15, 0.15],
                    'material' : 'Simple/Red' }
         gfxNode.update(node.get('Graphical', {}))
+        node['Graphical'] = gfxNode
+
+        self._color = gfxNode['material'].split('/')[-1].upper()
 
         Visual.load(self, (scene, parent, node))
         
@@ -377,11 +380,14 @@ class Target(ram.sim.object.Object):
             ogre.Degree(90), ogre.Vector3.UNIT_Z)
 
         # Set the color of the target
-        self._color = node.get('color', 'green')
+        self._color = node.get('color', 'GREEN')
+
+        # For the material color
+        color = self._color.lower().capitalize()
         
         # Shared graphics node
         gfxNode = {'mesh': 'cylinder.mesh', 
-                   'material' : 'Simple/' + self._color.capitalize(),
+                   'material' : 'Simple/' + color,
                    'scale': [0.508, 0.0508/2, 0.0508/2] }
         gfxNode.update(node.get('Graphical', {}))
         
@@ -922,7 +928,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundHedge = False
                 
         # Find all the Buoys, Pipes and Bins
-        self._bouys = sim.scene.getObjectsByInterface(IBuoy)
+        self._buoys = sim.scene.getObjectsByInterface(IBuoy)
         self._pipes = sim.scene.getObjectsByInterface(IPipe)
         self._bins = sim.scene.getObjectsByInterface(IBin)
         self._ducts = sim.scene.getObjectsByInterface(IDuct)
@@ -1172,15 +1178,15 @@ class IdealSimVision(ext.vision.VisionSystem):
         Check for the red light
         """
         # Drop out if we have no buoys
-        if self._bouys is None:
+        if self._buoys is None:
             return
-        if len(self._bouys) == 0:
+        if len(self._buoys) == 0:
             return
         
         # Determine orientation to the buoy
-        bouy, relativePos = self._findClosest(self._bouys)
+        buoy, relativePos = self._findClosest(self._buoys)
         lightVisible, x, y, azimuth, elevation, angle = \
-            self._forwardCheck(relativePos, bouy)
+            self._forwardCheck(relativePos, buoy)
 
         if lightVisible and (relativePos.length() < 3):
             # Pack data into the event
@@ -1189,6 +1195,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.y = y
             event.azimuth = azimuth
             event.elevation = elevation
+            event.color = getattr(ext.vision.Color, buoy._color)
             
             # Convert to feet
             event.range = relativePos.length() * 3.2808399
@@ -1227,6 +1234,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.x = x
             event.y = y
             event.squareNess =  math.fabs(math.cos(angle.valueRadians()))
+            event.color = getattr(ext.vision.Color, target._color)
             
             # Convert to feet
             event.range = relativePos.length() * 3.2808399

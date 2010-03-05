@@ -43,6 +43,12 @@ def generate(module_builder, local_ns, global_ns):
     Symbol.member_function('getSymbolNames').exclude()
     Symbol.member_function('symbolToText').exclude()
     classes.append(Symbol)
+
+    Color = local_ns.class_('Color')
+    Color.include()
+    Color.member_function('getColorNames').exclude()
+    Color.member_function('colorToText').exclude()
+    classes.append(Color)
     
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),

@@ -110,6 +110,7 @@ core::EventPtr RedLightEvent::clone()
     event->x = x;
     event->y = y;
     event->pixCount = pixCount;
+    event->color = color;
     return event;
 }
 
@@ -166,6 +167,7 @@ core::EventPtr TargetEvent::clone()
     event->y = y;
     event->squareNess = squareNess;
     event->range = range;
+    event->color = color;
     return event;
 }
 
