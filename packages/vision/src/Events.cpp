@@ -50,6 +50,10 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BARBED_WIRE_DETECTOR_OFF);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, HEDGE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, HEDGE_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, HEDGE_DETECTOR_ON);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, HEDGE_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, VELOCITY_UPDATE);
 
 // This section is only needed when we are compiling the wrappers
@@ -79,6 +83,9 @@ RAM_VISION_TARGETEVENT;
 
 static ram::core::SpecificEventConverter<ram::vision::BarbedWireEvent>
 RAM_VISION_BARBED_WIREEVENT;
+
+static ram::core::SpecificEventConverter<ram::vision::HedgeEvent>
+RAM_VISION_HEDGEEVENT;
 
 #endif // RAM_WITH_WRAPPERS
 
@@ -175,7 +182,17 @@ core::EventPtr BarbedWireEvent::clone()
     return event;
 }
 
-    
+core::EventPtr HedgeEvent::clone()
+{
+    HedgeEventPtr event = HedgeEventPtr(new HedgeEvent());
+    copyInto(event);
+    event->x = x;
+    event->y = y;
+    event->width = width;
+    return event;
+}
+
+
     
 } // namespace vision
 } // namespace ram

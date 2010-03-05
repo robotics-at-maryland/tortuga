@@ -65,6 +65,10 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType BARBED_WIRE_LOST;
     static const core::Event::EventType BARBED_WIRE_DETECTOR_ON;
     static const core::Event::EventType BARBED_WIRE_DETECTOR_OFF;
+    static const core::Event::EventType HEDGE_FOUND;
+    static const core::Event::EventType HEDGE_LOST;
+    static const core::Event::EventType HEDGE_DETECTOR_ON;
+    static const core::Event::EventType HEDGE_DETECTOR_OFF;
     static const core::Event::EventType VELOCITY_UPDATE;
 };
 
@@ -259,7 +263,34 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
     
 typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 
-    
+
+class RAM_EXPORT HedgeEvent : public core::Event
+{
+  public:
+    HedgeEvent(double x_, double y_, double width_) :
+        x(x_),
+        y(y_),
+        width(width_)
+    {
+    }
+
+    HedgeEvent() :
+        x(0),
+        y(0),
+        width(0)
+    {
+    }
+
+    double x;
+    double y;
+    double width;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<HedgeEvent> HedgeEventPtr;
+
+
 } // namespace vision
 } // namespace ram
 

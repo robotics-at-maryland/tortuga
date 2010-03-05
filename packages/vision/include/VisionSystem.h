@@ -54,6 +54,8 @@ public:
     void targetDetectorOff();
     void barbedWireDetectorOn();
     void barbedWireDetectorOff();
+    void hedgeDetectorOn();
+    void hedgeDetectorOff();
     void velocityDetectorOn();
     void velocityDetectorOff();
 
@@ -209,6 +211,7 @@ private:
     DetectorPtr m_gateDetector;
     DetectorPtr m_targetDetector;
     DetectorPtr m_barbedWireDetector;
+    DetectorPtr m_hedgeDetector;
     DetectorPtr m_velocityDetector;
 
     /** Flag which when true enables use of back/unback and update */

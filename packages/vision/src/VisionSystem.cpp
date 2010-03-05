@@ -66,6 +66,7 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_gateDetector(DetectorPtr()),
     m_targetDetector(DetectorPtr()),
     m_barbedWireDetector(DetectorPtr()),
+    m_hedgeDetector(DetectorPtr()),
     m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
@@ -85,6 +86,8 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_downwardSafeDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_targetDetector(DetectorPtr()),
+    m_barbedWireDetector(DetectorPtr()),
+    m_hedgeDetector(DetectorPtr()),
     m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
@@ -146,6 +149,10 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_barbedWireDetector = DetectorPtr(
         new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
                                eventHub));
+    // TODO: Add when HedgeDetector is made
+    //m_hedgeDetector = DetectorPtr(
+    //    new HedgeDetector(getConfig(config, "HedgeDetector"),
+    //                      eventHub));
     m_velocityDetector = DetectorPtr(
         new VelocityDetector(getConfig(config, "VelocityDetector"),
 			     eventHub));
@@ -339,6 +346,20 @@ void VisionSystem::barbedWireDetectorOff()
     m_forward->removeDetector(m_barbedWireDetector);
     publish(EventType::BARBED_WIRE_DETECTOR_OFF,
 	    core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::hedgeDetectorOn()
+{
+    //addForwardDetector(m_hedgeDetector);
+    publish(EventType::HEDGE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::hedgeDetectorOff()
+{
+    //m_forward->removeDetector(m_hedgeDetector);
+    publish(EventType::HEDGE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::velocityDetectorOn()

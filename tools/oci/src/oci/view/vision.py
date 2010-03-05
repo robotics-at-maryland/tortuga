@@ -43,8 +43,12 @@ class MasterVisionPanel(BasePanel):
             targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
             self._sizer.Add(targetPanel)
 
-            barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
-            self._sizer.Add(barbedWirePanel)
+            #barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
+            #self._sizer.Add(barbedWirePanel)
+
+            hedgePanel = HedgePanel(self, self._childChangedSize, eventHub,
+                                    vision)
+            self._sizer.Add(hedgePanel)
             
         self.SetSizerAndFit(self._sizer)
         
@@ -712,6 +716,70 @@ class BarbedWirePanel(BaseVisionPanel):
         self._bottomX.Value = ""
         self._bottomY.Value = ""
         self._bottomWidth.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+        self._detector = False
+        self._toggleSize(False)
+
+
+class HedgePanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._width = None
+        self._detector = False
+        self._vision = vision
+
+        # Controls
+        self._createControls("Hedge")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.HEDGE_FOUND, 
+                             self._onHedgeFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.HEDGE_LOST, 
+                             self._onHedgeLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              HEDGE_DETECTOR_ON,
+                              self._hedgeDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              HEDGE_DETECTOR_OFF,
+                              self._hedgeDetectorOff)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X: ')
+        self._createDataControl(controlName = '_y', label = 'Y: ')
+        self._createDataControl(controlName = '_width', label = 'W: ')
+                
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.hedgeDetectorOff()
+        else:
+            self._vision.hedgeDetectorOn()
+
+    def _onHedgeFound(self, event):
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y
+            self._width.Value = "% 4.2f" % event.width
+        
+            self.enableControls()
+    
+    def _onHedgeLost(self, event):
+        self.disableControls()
+
+    def _hedgeDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+        self._detector = True
+        self._toggleSize(True)
+
+    def _hedgeDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._width.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False

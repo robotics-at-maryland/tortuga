@@ -296,7 +296,7 @@ class Hedge(ram.sim.object.Object):
 
         
         # Create Base Pipe
-        position = basePos + (upDownOffset * -1)
+        position = basePos
         cfg = {'name' : baseName + 'HedgeBase', 
                'position' : position, 
                'orientation' : self._toAxisAngleArray(drawOrientation) ,
@@ -314,7 +314,7 @@ class Hedge(ram.sim.object.Object):
             })
         
         # Create Left Pipe
-        position = basePos + (sideOffset * 1)
+        position = basePos + (sideOffset * 1) + (upDownOffset * 1)
         cfg = {'name' : baseName + 'HedgeLeftPipe', 
                'position' : position, 
                'orientation' : [0, 1, 0, 90],
@@ -323,7 +323,7 @@ class Hedge(ram.sim.object.Object):
         self._hedge.load((scene, parent, cfg))
 
         # Create Right Pipe
-        position = basePos + (sideOffset * -1)
+        position = basePos + (sideOffset * -1) + (upDownOffset * 1)
         cfg = {'name' : baseName + 'HedgeRightPipe', 
                'position' : position, 
                'orientation' : [0, 1, 0, 90],
@@ -916,6 +916,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         # BarbedWire Detector Variables
         self._runBarbedWire = False
         self._foundBarbedWire = False
+
+        # Hedge Detector Variables
+        self._runHedge = False
+        self._foundHedge = False
                 
         # Find all the Buoys, Pipes and Bins
         self._bouys = sim.scene.getObjectsByInterface(IBuoy)
@@ -925,6 +929,7 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._safes = sim.scene.getObjectsByInterface(ISafe)
         self._targets = sim.scene.getObjectsByInterface(ITarget)
         self._barbedWires = sim.scene.getObjectsByInterface(IBarbedWire)
+        self._hedges = sim.scene.getObjectsByInterface(IHedge)
 
     def redLightDetectorOn(self):
         self._runRedLight = True
@@ -996,6 +1001,16 @@ class IdealSimVision(ext.vision.VisionSystem):
         self.publish(ext.vision.EventType.BARBED_WIRE_DETECTOR_OFF,
                      ext.core.Event())
 
+    def hedgeDetectorOn(self):
+        self._runHedge = True
+        self.publish(ext.vision.EventType.HEDGE_DETECTOR_ON,
+                     ext.core.Event())
+
+    def hedgeDetectorOff(self):
+        self._runHedge = False
+        self.publish(ext.vision.EventType.HEDGE_DETECTOR_OFF,
+                     ext.core.Event())
+
     def backgrounded(self):
         return False
 
@@ -1017,6 +1032,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkTarget()
         if self._runBarbedWire:
             self._checkBarbedWire()
+        if self._runHedge:
+            self._checkHedge()
     
     def _findClosest(self, objects):
         """
@@ -1373,8 +1390,40 @@ class IdealSimVision(ext.vision.VisionSystem):
         else:
             self._pipeCentered = False
 
-        self._foundPipe = found  
+        self._foundPipe = found
       
+    def _checkHedge(self):
+        if self._hedges is None:
+            return
+        if len(self._hedges) == 0:
+            return
+
+        found = False
+
+        # Determine orientation to the hedge
+        hedge, relativePos = self._findClosest(self._hedges)
+        hedgeVisible, x, y, azimuth, elevation, angle = \
+                      self._forwardCheck(relativePos, hedge)
+
+        # Determine width
+        objWidth = math.fabs(math.cos(angle.valueRadians())) * 2
+        availWidth = math.fabs(math.tan(math.radians(self._horizontalFOV)) \
+                               * relativePos.length())
+        
+        if hedgeVisible and (relativePos.length() < 3):
+            event = ext.core.Event()
+            event.x = x
+            event.y = y
+            event.width = availWidth
+            found = True
+
+            self.publish(ext.vision.EventType.HEDGE_FOUND, event)
+        else:
+            if self._foundBarbedWire:
+                self.publish(ext.vision.EventType.HEDGE_LOST,
+                             ext.core.Event())
+
+        self._foundBarbedWire = found
         
     def _checkBin(self):
         # Drop out if we have no Bins
