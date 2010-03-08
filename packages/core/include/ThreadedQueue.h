@@ -25,7 +25,43 @@ namespace core {
 namespace details {
     boost::xtime add_xtime(const boost::xtime& a, const boost::xtime& b);
 }
-    
+
+/** A templated queue similar to the std::queue, but thread safe 
+
+    @remarks
+    The templated object must be copy constructable, and have a functioning
+    assignment operator.
+
+    @par
+    The following outlines a basic example of using the message queue.
+
+    @code
+    // Our queue which holds message objects
+    ThreadedQueue<Message> msgQueue;
+
+    // An infinite process loop which process all messages, and uses a 
+    // popTimedWait to only wake up every half second so it does not busy loop.
+    while (1)
+    {
+        // Our copy constructable and assignable message object into which 
+        // things from the queue will be copied
+        Message msg;
+
+        // Clear all current messages
+        while(msgQueue.popNoWait(msg))
+        {
+            // Do something with msg
+        }
+
+        // Wait for half a second, log event if needed, then reloop
+        boost::xtime wait ={0, 500000000}; // 500 milliseconds
+        if(msgQueue.popTimedWait(msg, event))
+        {
+            // Do something with msg
+        }
+    }
+    @endcode
+ */    
 template <typename T>
 class ThreadedQueue : boost::noncopyable
 {
@@ -38,6 +74,7 @@ public:
     }
 
     /** Copies data into given parameter if there is data
+
         @param data
             If there is data, the value poped off the queue will be copied into
             the given variable.  Otherwise it will be unchanged.
@@ -60,7 +97,7 @@ public:
         return true;
     }
     
-    /** Waits until new data is queue and returns that item when its pushed in */
+    /** Waits until new data is queue and returns that item when its added */
     T popWait()
     {
         boost::mutex::scoped_lock lock(m_monitorMutex);
@@ -77,7 +114,15 @@ public:
 
     /** Waits until new data is in the queue or the timer runs out
 
-    The data paramater and return time are handled the same as popNoWait
+        @param timeout
+            The amount of time to wait for an item to be added to the queue.
+            boost::xtime is a simple structure: {seconds, nanoseconds}
+        
+        @param data
+            If there is data, the value poped off the queue will be copied into
+            the given variable.  Otherwise it will be unchanged.
+        
+        @return true if there is data, false is there isn't
     */
     bool popTimedWait(const boost::xtime &timeout, T& data)
     {
