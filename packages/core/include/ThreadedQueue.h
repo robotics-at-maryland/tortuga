@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Joseph Lisee
  * All rights reserved.
  *
  * Original Author: Paul Bridger <paulbridger.net>
