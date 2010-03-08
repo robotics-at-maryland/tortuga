@@ -3,9 +3,15 @@
  * Copyright (C) 2007 Joseph Lisee
  * All rights reserved.
  *
- * Original Author: Paul Bridger <paulbridger.net>
+ * Original Author: Paul Bridger <www.paulbridger.com>
  * Brought in by: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/core/include/ThreadedQueue.h
+ */
+
+/*
+  Paul Bridger's original code (http://www.paulbridger.com/monitor_object) 
+  contained only the push and popWait methods, all other code and
+  documentation was added by me (Joseph Lisee). 
  */
 
 #ifndef RAM_CORE_THREADEDQUEUE_H_06_18_2007
