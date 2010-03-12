@@ -195,8 +195,11 @@ if('visionSystem' in vars):
     targetOn = visionSystem.targetDetectorOn
     targetOff = visionSystem.targetDetectorOff
 
+def recordClipError(*args, **kwargs):
+    raise Exception ("Record clip cannot be used with IdealSimVision")
+
 # This is the helper function for takeXClip. Don't use it.
-def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
+def recordClipImpl(addRecorder, removeRecorder, seconds, name, extension, rate):
     # All comments are needed. Do not add blank lines!
     TIMEOUT = core.declareEventType('TIMEOUT')
     conn = None
@@ -213,6 +216,14 @@ def recordClip(addRecorder, removeRecorder, seconds, name, extension, rate):
     # Create the timer
     clipTimer = timerManager.newTimer(TIMEOUT, seconds)
     clipTimer.start()
+
+recordClip = error_function("recordClip", "visionSystem")
+
+if "visionSystem" in vars:
+    if 'IdealSimVision' in str(visionSystem):
+        recordClip = recordClipError
+    else:
+        recordClip = recordClipImpl
 
 def takeFClip(seconds, name = None, extension = ".rmv", rate = 5):
     recordClip(visionSystem.addForwardRecorder, visionSystem.removeForwardRecorder, seconds, name, extension, rate)
