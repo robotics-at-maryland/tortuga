@@ -28,6 +28,7 @@
 #include "vision/include/AdaptiveThresher.h"
 #include "vision/include/TargetDetector.h"
 #include "vision/include/BarbedWireDetector.h"
+#include "vision/include/HedgeDetector.h"
 #include "vision/include/VelocityDetector.h"
 
 namespace ram {
@@ -77,6 +78,9 @@ registerTargetDetector("TargetDetector");
 
 static DetectorMakerTemplate<BarbedWireDetector>
 registerBarbedWireDetector("BarbedWireDetector");
+
+static DetectorMakerTemplate<HedgeDetector>
+registerHedgeDetector("HedgeDetector");
 
 static DetectorMakerTemplate<VelocityDetector>
 registerVelocityDetector("VelocityDetector");
