@@ -28,7 +28,7 @@ persistent input_storage;
 n = uint32(current_time/t_step); 
 
 % calculate proportional error
-p_error = x - setpoint;
+p_error = setpoint - x;
 
 if(n <= 2)
     % initial integral and derivative error estimates
@@ -36,16 +36,16 @@ if(n <= 2)
     d_error = [0 0 0]';
 else
     % estimate integral and derivative error
-    d_error = (p_error - input_storage(1:3,n-1))/t_step;
+    d_error = -(p_error - input_storage(1:3,n-1))/t_step;
     i_error = input_storage(7:9,n-1) + (p_error*t_step);
 end
 
 input_storage(1:9,n) = [p_error; d_error; i_error];
 
 % Calculate Forces and Tourque to apply
-Fb_1 = -dot(input_storage(1:3:7,n),k(1:3:7));
-Fb_2 = -dot(input_storage(2:3:8,n),k(2:3:8));
-Tb   = -dot(input_storage(3:3:9,n),k(3:3:9));
+Fb_1 = dot(input_storage(1:3:7,n),k(1:3:7));
+Fb_2 = dot(input_storage(2:3:8,n),k(2:3:8));
+Tb   = dot(input_storage(3:3:9,n),k(3:3:9));
 Fb = [Fb_1, Fb_2]';
 
 end

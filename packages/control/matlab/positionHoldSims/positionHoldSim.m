@@ -1,4 +1,4 @@
-%position hold sim v1
+HomeHomeworkposition hold sim v1
 %
 %Joseph Galante  2010-2-2
 
@@ -13,7 +13,7 @@ clc
 %orientation (rad) is angle from inertial frame to body frame
 %state = [r1 r2 r1Dot r2Dot theta thetaDot]
 global x0;
-x0=[0 0 2 5 0 0]';
+x0=[0 0 0 0 0 0]';
 
 % List of Controllers
 % 1. PID_velocity
@@ -22,8 +22,8 @@ x0=[0 0 2 5 0 0]';
 CONTROLLER = 'PID_positional';
 
 % Controller gains
-k_PID_velocity = [0 0 0 0 0 0 0 0 0]';
-k_PID_positional = [60 60 60 60 60 60 0 0 0]';
+k_PID_velocity = [50 0 0 10 0 0 0 0 0]';
+k_PID_positional = [0 0 0 50 0 0 0 0 0 5 0 0 0 0 0 5 0 0]';
 
 %timing
 global t_step;
@@ -39,13 +39,13 @@ dvl_storage = 666*ones(2,length(time));
 control_storage = 666*ones(3,length(time));
 disturbances_storage = 666*ones(3,length(time));
 
-% DVL Noise
-dvl_variance_1 = .03;
-dvl_variance_2 = .03;
+% DVL Noise ~22 mm/s = .0022 m/s
+dvl_variance_1 = 0*0.0022;
+dvl_variance_2 = 0*0.0022;
 
 % Random Currents
-dist_Fn_variance = 10;
-dist_Tn_variance = 5;
+dist_Fn_variance = 0;
+dist_Tn_variance = 0;
 
 %system constants
 global m;%mass (kg)
@@ -85,11 +85,11 @@ for t = 2:length(time)
     switch(CONTROLLER)
         case 'PID_velocity'
             k = k_PID_velocity;
-            setpoint = [0 0 0]';
+            setpoint = [1 0 0]';
             [Fb_controller , Tb_controller] = positionHold_PID_velocity(state_estimate, k, setpoint);
         case 'PID_positional'
             k = k_PID_positional;
-            setpoint = [0 0 0]';
+            setpoint = [0 0 0 2 0 0]';
             [Fb_controller, Tb_controller] = positionHold_PID_positional(state_estimate, k, setpoint);
     end
     
