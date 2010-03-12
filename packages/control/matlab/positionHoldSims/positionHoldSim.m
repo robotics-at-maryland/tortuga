@@ -1,5 +1,4 @@
-HomeHomeworkposition hold sim v1
-%
+%position hold sim v1
 %Joseph Galante  2010-2-2
 
 clear all
