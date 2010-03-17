@@ -835,6 +835,48 @@ void BWPDController::publishAtOrientation()
     event->orientation = math::Quaternion(m_measuredState->quaternion);
     publish(IController::AT_ORIENTATION, event);        
 }
+
+
+/** Sets desired velocity and velocity based control for new controllers */
+    void BWPDController::setDesiredVelocity(math::Vector2 velocity)
+    {
+
+    }
+    
+    /** Sets desired position and position based control for new controllers */
+    void BWPDController::setDesiredPosition(math::Vector2 position)
+    {
+     
+    }
+ 
+    /** Sets a desired position and velocity for controling of both simultaneously */
+    void BWPDController::setDesiredPositionAndVelocity(math::Vector2 position,
+							    math::Vector2 velocity)
+    {
+     
+    }
+
+    /** Gets desired velocity */
+    math::Vector2 BWPDController::getDesiredVelocity()
+    {
+      return math::Vector2::ZERO;
+    }
+
+    /** Gets desired position */
+    math::Vector2 BWPDController::getDesiredPosition()
+    {
+      return math::Vector2::ZERO;
+    }
+
+    bool BWPDController::atPosition()
+    {
+      return 0;
+    }
+
+    bool BWPDController::atVelocity()
+    {
+      return 0;
+    }
         
 } // namespace control
 } // namespace ram

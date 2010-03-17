@@ -40,11 +40,15 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     IController(config["name"].asString()),
     m_atDepth(false),
     m_atOrientation(false),
+    m_atVelocity(false),
+    m_atPosition(false),
     m_depthThreshold(0),
     m_orientationThreshold(0),
+    m_velocityThreshold(0),
+    m_positionThreshold(0),
     m_vehicle(vehicle)
 {   
-    init(config); 
+  init(config); 
 }
 
 ControllerBase::ControllerBase(core::ConfigNode config,
@@ -53,14 +57,15 @@ ControllerBase::ControllerBase(core::ConfigNode config,
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_atDepth(false),
     m_atOrientation(false),
+    m_atVelocity(false),
+    m_atPosition(false),
     m_depthThreshold(0),
     m_orientationThreshold(0),
+    m_velocityThreshold(0),
+    m_positionThreshold(0),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps))
 {
-    init(config);
-
-//    if (config["holdCurrentHeading"].asInt(0))
-//        holdCurrentHeading();
+  init(config); 
 }
 
 ControllerBase::~ControllerBase()
@@ -150,8 +155,8 @@ void ControllerBase::update(double timestep)
     double depth = m_vehicle->getDepth();
     
     // Run the base values
-    math::Vector3 translationalForce;
-    math::Vector3 rotationalTorque;
+    math::Vector3 translationalForce(0,0,0);
+    math::Vector3 rotationalTorque(0,0,0);
 
     // Call the base class update function
     doUpdate(timestep, linearAcceleration, orientation, angularRate, depth,
@@ -207,29 +212,68 @@ void ControllerBase::newDesiredOrientationSet(
         publishAtOrientation(newOrientation);
 }
 
+void ControllerBase::newDesiredVelocitySet(const math::Vector2& newVelocity)
+{
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = newVelocity;
+    publish(IController::DESIRED_VELOCITY_UPDATE, event);
+    
+    if(atVelocity())
+        publishAtVelocity(newVelocity);
+}
+
+void ControllerBase::newDesiredPositionSet(const math::Vector2& newPosition)
+{
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = newPosition;
+    publish(IController::DESIRED_VELOCITY_UPDATE, event);
+    
+    
+    if(atPosition())
+        publishAtPosition(newPosition);
+}
+
 void ControllerBase::init(core::ConfigNode config)
 {
-    // Load threshold for being at depth
-    m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
-    m_orientationThreshold =
-        config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
+  // Load threshold for being at depth
+  m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+  m_orientationThreshold =
+    config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
 }
 
 void ControllerBase::publishAtDepth(const double& depth)
 {
-    m_atDepth = true;
-    math::NumericEventPtr event(new math::NumericEvent());
-    event->number = depth;
-    publish(IController::AT_DEPTH, event);
+  m_atDepth = true;
+  math::NumericEventPtr event(new math::NumericEvent());
+  event->number = depth;
+  publish(IController::AT_DEPTH, event);
 }
 
 void ControllerBase::publishAtOrientation(const math::Quaternion& orientation)
 {
-    m_atOrientation = true;
-    math::OrientationEventPtr event(new math::OrientationEvent());
-    event->orientation = orientation;
-    publish(IController::AT_ORIENTATION, event);        
+  m_atOrientation = true;
+  math::OrientationEventPtr event(new math::OrientationEvent());
+  event->orientation = orientation;
+  publish(IController::AT_ORIENTATION, event);        
 }
+
+
+void ControllerBase::publishAtVelocity(const math::Vector2& velocity)
+{
+  m_atVelocity = true;
+  math::Vector2EventPtr event(new math::Vector2Event());
+  event->vector2 = velocity;
+  publish(IController::AT_VELOCITY, event);
+}
+
+void ControllerBase::publishAtPosition(const math::Vector2& position)
+{
+  m_atPosition = true;
+  math::Vector2EventPtr event(new math::Vector2Event());
+  event->vector2 = position;
+  publish(IController::AT_POSITION, event);
+}
+
         
 } // namespace control
 } // namespace ram

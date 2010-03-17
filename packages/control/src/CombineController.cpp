@@ -7,6 +7,14 @@
  * File:  packages/control/src/CombineController.cpp
  */
 
+// STD Includes
+#include <cmath>
+#include <cstdio>
+#include <iostream>
+
+#ifdef RAM_WINDOWS
+#define M_PI 3.14159265358979323846
+#endif
 
 // Library Includes
 #include <log4cpp/Category.hh>
@@ -24,13 +32,13 @@
 #include "core/include/EventHub.h"
 //#include "core/include/TimeVal.h"
 
-//#include "math/include/Helpers.h"
-//#include "math/include/Vector3.h"
-//#include "math/include/Events.h"
+#include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
+#include "math/include/Events.h"
 //#include "imu/include/imuapi.h"
 
 // Register controller in subsystem maker system
-RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineController);
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, RANDOMController);
 
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
@@ -43,7 +51,7 @@ namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, config)
+  ControllerBase(vehicle, config)  
 {   
     init(config); 
 }
@@ -111,6 +119,46 @@ void CombineController::holdCurrentPosition()
 {
     m_transController->holdCurrentPosition();
 }
+
+    void CombineController::setDesiredVelocity(math::Vector2 velocity)
+    {
+      m_transController->setDesiredVelocity(velocity);
+    }
+    
+
+    void CombineController::setDesiredPosition(math::Vector2 position)
+    {
+      m_transController->setDesiredPosition(position);
+    }
+ 
+ 
+    void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
+							    math::Vector2 velocity)
+    {
+      m_transController->setDesiredPositionAndVelocity(position,velocity);
+    }
+
+
+    math::Vector2 CombineController::getDesiredVelocity()
+    {
+      return m_transController->getDesiredVelocity();
+    }
+
+
+    math::Vector2 CombineController::getDesiredPosition()
+    {
+      return m_transController->getDesiredPosition();
+    }
+
+    bool CombineController::atPosition()
+    {
+      return m_transController->atPosition();
+    }
+
+    bool CombineController::atVelocity()
+    {
+      return m_transController->atVelocity();
+    }
     
 // Depth controller methods
 void CombineController::setDepth(double depth)
@@ -218,6 +266,23 @@ IRotationalControllerPtr CombineController::getRotationalController()
 {
     return m_rotController;
 }
+
+  void CombineController::setBuoyantTorqueCorrection(double x, double y, double z)
+  {
+
+  }
+
+  void CombineController::setHeading(double degrees)
+  {
+
+  }
+
+  double CombineController::getHeading()
+  {
+    return 0;
+  }
+
+
 
     
 } // namespace control

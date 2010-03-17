@@ -17,10 +17,54 @@ TranslationalControllerBase::TranslationalControllerBase(
     core::ConfigNode config) :
     m_desiredSpeed(0),
     m_desiredSidewaysSpeed(0),
+    m_desiredVelocity(math::Vector2::ZERO),
+    m_desiredPosition(math::Vector2::ZERO),
+    m_currentVelocity(math::Vector2::ZERO),
+    m_currentPosition(math::Vector2::ZERO),
+    m_positionThreshold(0),
+    m_velocityThreshold(0),
     m_controlMode(ControlMode::OPEN_LOOP)
 {
     init(config);
 }
+
+
+  void TranslationalControllerBase::setDesiredVelocity(math::Vector2 velocity)
+  {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredVelocity = velocity;
+    m_controlMode = ControlMode::VELOCITY;
+  }
+
+  void TranslationalControllerBase::setDesiredPosition(math::Vector2 position)
+  {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredPosition = position;
+    m_controlMode = ControlMode::POSITION;
+  }
+
+  void TranslationalControllerBase::
+  setDesiredPositionAndVelocity( math::Vector2 position,
+				 math::Vector2 velocity)
+  {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredPosition = position;
+    m_desiredVelocity = velocity;
+    m_controlMode = ControlMode::POSITIONANDVELOCITY;
+  }
+
+  math::Vector2 TranslationalControllerBase::getDesiredVelocity()
+  {
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredVelocity;
+  }
+
+  math::Vector2 TranslationalControllerBase::getDesiredPosition()
+  {
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredPosition;
+  }
+
 
 void TranslationalControllerBase::setVelocity(math::Vector2 velocity)
 {
@@ -73,7 +117,7 @@ double TranslationalControllerBase::getSidewaysSpeed()
 
 void TranslationalControllerBase::holdCurrentPosition()
 {
-    // TODO: Add code
+  setDesiredPosition(m_currentPosition);
 }
 
 TranslationalControllerBase::ControlMode::ModeType
@@ -82,6 +126,32 @@ TranslationalControllerBase::ControlMode::ModeType
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_controlMode;
 }
+
+  bool TranslationalControllerBase::atPosition()
+  {
+    math::Vector2 currentPosition, desiredPosition;
+    {
+      core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+      currentPosition = m_currentPosition;
+      desiredPosition = m_desiredPosition;
+    }
+    math::Vector2 diff = currentPosition - desiredPosition;
+    double error[2] = {fabs(diff[1]), fabs(diff[2])};
+    return error[0] <= m_positionThreshold && error[1] <= m_positionThreshold;
+  }
+
+  bool TranslationalControllerBase::atVelocity()
+  {
+    math::Vector2 currentVelocity, desiredVelocity;
+    {
+      core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+      currentVelocity = m_currentVelocity;
+      desiredVelocity = m_desiredVelocity;
+    }
+    math::Vector2 diff = currentVelocity - desiredVelocity;
+    double error[2] = {fabs(diff[1]), fabs(diff[2])};
+    return error[0] <= m_velocityThreshold && error[1] <= m_velocityThreshold;
+  }
     
 math::Vector3 TranslationalControllerBase::translationalUpdate(
     double timestep,
@@ -92,7 +162,7 @@ math::Vector3 TranslationalControllerBase::translationalUpdate(
 {
     return math::Vector3::ZERO;
 }
-    
+
 void TranslationalControllerBase::init(core::ConfigNode config)
 {
 }

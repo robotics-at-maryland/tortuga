@@ -139,6 +139,15 @@ public:
         return Updatable::backgrounded();
     };
 
+    virtual void setDesiredVelocity(math::Vector2 velocity);
+    virtual void setDesiredPosition(math::Vector2 position);
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
+					       math::Vector2 velocity);
+    virtual math::Vector2 getDesiredVelocity();
+    virtual math::Vector2 getDesiredPosition();
+    virtual bool atPosition();
+    virtual bool atVelocity();
+
     /** Called at a fixed rate.  Grabs latest vehicle state, runs the controller, the commands the
         thrusters */
     virtual void update(double timestep);

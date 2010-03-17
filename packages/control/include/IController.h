@@ -60,6 +60,12 @@ public:
     /** When the desired orientation changes (ram::math::OrientationEvent) */
     static const core::Event::EventType DESIRED_ORIENTATION_UPDATE;
 
+    /** When the desired velocity changes */
+    static const core::Event::EventType DESIRED_VELOCITY_UPDATE;
+
+    /** When the desired position changes */
+    static const core::Event::EventType DESIRED_POSITION_UPDATE;
+
     /** When the vehicle reaches the depth set by the controller
      *
      *  Type is ram::math::NumbericEvent;
@@ -72,6 +78,21 @@ public:
      */
     static const core::Event::EventType AT_ORIENTATION;
 
+    /** When the vehicle reaches the velocity set by the controller
+     *
+     *  Type is ram::math::Vector2Event
+     */
+
+    static const core::Event::EventType AT_VELOCITY;
+
+    /** When the vehicle reaches the positionx set by the controller
+     *
+     *  Type is ram::math::Vector2Event
+     */
+
+    static const core::Event::EventType AT_POSITION;
+
+
     /** Sent to adjust the display parameter name and count
      *
      *  Type is ram::control::ParamSetupEvent
@@ -83,6 +104,8 @@ public:
      *  Type is ram::control::ParamUpdateEvent
      */
     static const core::Event::EventType PARAM_UPDATE;
+
+
 
     /* @{ */
     

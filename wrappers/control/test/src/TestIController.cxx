@@ -43,6 +43,15 @@ public:
 
     virtual void holdCurrentPosition() {}
 
+  virtual void setDesiredVelocity(ram::math::Vector2 velocity){}
+  virtual void setDesiredPosition(ram::math::Vector2 position){}
+  virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position, 
+					     ram::math::Vector2 velocity){}
+  virtual ram::math::Vector2 getDesiredVelocity(){return ram::math::Vector2::ZERO;}
+  virtual ram::math::Vector2 getDesiredPosition(){return ram::math::Vector2::ZERO;}
+  virtual bool atPosition(){return 0;}
+  virtual bool atVelocity(){return 0;}
+
     virtual double getDepth() { return depth; }
     
     virtual double getEstimatedDepth() { return 0; }

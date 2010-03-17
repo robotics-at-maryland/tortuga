@@ -33,7 +33,8 @@ public:
         enum ModeType {
             OPEN_LOOP,
             VELOCITY,
-            POSITION
+            POSITION,
+	    POSITIONANDVELOCITY
         };
     };
     
@@ -54,6 +55,12 @@ public:
     virtual double getSidewaysSpeed();
 
     virtual void holdCurrentPosition();
+   
+    virtual void setDesiredVelocity(math::Vector2 velocity);
+    virtual void setDesiredPosition(math::Vector2 position);
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity);
+    virtual math::Vector2 getDesiredVelocity();
+    virtual math::Vector2 getDesiredPosition();
 
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
@@ -61,23 +68,33 @@ public:
                                               math::Vector2 position,
                                               math::Vector2 velocity);
 
+    virtual bool atPosition();
+    virtual bool atVelocity();
+
     virtual ControlMode::ModeType getMode();
     
-private:
-    /** Does all initialzation based on the configuration settings */
-    void init(core::ConfigNode config);
+
+ protected:
 
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
-
-    math::Vector2 m_desiredVelocity;
     
     double m_desiredSpeed;
-
     double m_desiredSidewaysSpeed;
+    math::Vector2 m_desiredVelocity;
+    math::Vector2 m_desiredPosition;
+
+    math::Vector2 m_currentVelocity;
+    math::Vector2 m_currentPosition;
+
+    double m_positionThreshold;
+    double m_velocityThreshold;
 
     /** What type of translation control we are doing */
     ControlMode::ModeType m_controlMode;
+private:
+    /** Does all initialzation based on the configuration settings */
+    void init(core::ConfigNode config);
 };
     
 } // namespace control

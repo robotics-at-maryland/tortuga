@@ -54,10 +54,7 @@ public:
      */
     virtual math::Vector3 depthUpdate(double timestep, double depth,
                                       math::Quaternion orienation);
-private:
-    /** Does all initialzation based on the configuration settings */
-    void init(core::ConfigNode config);
-    
+protected:
     /** When we are within this limit atDepth returns */
     double m_depthThreshold;
 
@@ -69,6 +66,15 @@ private:
 
     /** The depth from the last update command */
     double m_currentDepth;
+
+    math::Quaternion m_currentOrientation;
+
+    bool m_atDepth;
+
+    bool m_atOrientation;
+ private:
+    /** Does all initialzation based on the configuration settings */
+    void init(core::ConfigNode config);
 };
     
 } // namespace control

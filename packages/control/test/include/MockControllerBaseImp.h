@@ -71,6 +71,14 @@ public:
     virtual double getSpeed() { return 0; }
     virtual double getSidewaysSpeed() { return 0; }
     virtual void holdCurrentPosition() {}
+    virtual void setDesiredVelocity(ram::math::Vector2 velocity){}
+    virtual void setDesiredPosition(ram::math::Vector2 position){}
+    virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position, 
+					       ram::math::Vector2 velocity){}
+    virtual ram::math::Vector2 getDesiredVelocity(){return ram::math::Vector2::ZERO;}
+    virtual ram::math::Vector2 getDesiredPosition(){return ram::math::Vector2::ZERO;}
+    virtual bool atPosition(){return 0;}
+    virtual bool atVelocity(){return 0;}
     
     virtual void setDepth(double) { return; }
     virtual double getDepth() { return desiredDepth; }

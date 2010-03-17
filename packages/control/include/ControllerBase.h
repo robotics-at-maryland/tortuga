@@ -146,24 +146,44 @@ protected:
      */
     void newDesiredOrientationSet(const math::Quaternion& newOrientation);
    
+    /** Called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_VELOCITY_UPDATE event and will
+     * publish the AT_VELOCITY event if needed.  This should be called
+     * inside the IController::setDesiredVelocity and the
+     * IController::setDesiredPositionAndVelocity function
+     */
+    void newDesiredVelocitySet(const math::Vector2& newVelocity);
+
+    /** Called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_POSITION_UPDATE event and will
+     * publish the AT_POSITION event if needed.  This should be called
+     * inside the IController::setDesiredVelocity and the
+     * IController::setDesiredPositionAndVelocity function
+     */
+    void newDesiredPositionSet(const math::Vector2& newPosition);
+
+
 private:
     void init(core::ConfigNode config);
 
     void publishAtDepth(const double& depth);
-
     void publishAtOrientation(const math::Quaternion& orientation);
+    void publishAtVelocity(const math::Vector2& velocity);
+    void publishAtPosition(const math::Vector2& position);
     
-    /** Used to maintain state, so we don't issue continuous at depth updates */
+    /** Used to maintain state so we don't issue continuous AT_*** at depth updates */
     bool m_atDepth;
-
-    /** True when we are at the desired orientation */
     bool m_atOrientation;
+    bool m_atVelocity;
+    bool m_atPosition;
     
-    /** When we are within this limit we send off the at depth event */
+    /** When we are within this limit we send off the AT_*** event */
     double m_depthThreshold;
-
-    /** When we are within this limit we send of the at orientation event */
     double m_orientationThreshold;
+    double m_velocityThreshold;
+    double m_positionThreshold;
     
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;    

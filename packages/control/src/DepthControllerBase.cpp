@@ -13,6 +13,9 @@
 // Project includes
 #include "control/include/DepthControllerBase.h"
 #include "control/include/ControllerBase.h"
+#include "math/include/Helpers.h"
+#include "math/include/Events.h"
+#include "core/include/EventHub.h"
 
 namespace ram {
 namespace control {
@@ -26,43 +29,61 @@ DepthControllerBase::DepthControllerBase(core::ConfigNode config) :
 
 void DepthControllerBase::setDepth(double depth)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredDepth = depth;
+      {
+	core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+	if(depth < 0)
+	  depth = 0;
+	m_desiredDepth = depth;
+      }
+
 }
 
 double DepthControllerBase::getDepth()
 {
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredDepth;
+  core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+  return m_desiredDepth;
 }
     
 bool DepthControllerBase::atDepth()
 {
-    // Don't lock here for now, causes a dead lock somewhere
-    double difference = fabs(m_currentDepth - m_desiredDepth);
+  double currentDepth, desiredDepth;
+  {
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    currentDepth = m_currentDepth;
+    desiredDepth = m_desiredDepth;
+  }
+    double difference = fabs(currentDepth - desiredDepth);
     return difference <= m_depthThreshold;
 }
 
 void DepthControllerBase::holdCurrentDepth()
 {
+  double depth;
+  {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    m_desiredDepth = m_currentDepth;
+    depth = m_currentDepth;
+  }
+  setDepth(depth);
 }
     
 math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
-                                               math::Quaternion orienation)
+                                               math::Quaternion orientation)
 { 
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_currentDepth = depth;
+    m_currentOrientation = orientation;
 
     return math::Vector3::ZERO;
 }
 
 void DepthControllerBase::init(core::ConfigNode config)
 {
-    m_depthThreshold =
-        config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+  m_depthThreshold =
+    config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
 }
     
+
+
+
 } // namespace control
 } // namespace ram

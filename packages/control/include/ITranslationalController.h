@@ -60,6 +60,26 @@ public:
     /** Loads current position into desired and stays in that position */
     virtual void holdCurrentPosition() = 0;
 
+    /** Sets desired velocity and velocity based control for new controllers */
+    virtual void setDesiredVelocity(math::Vector2 velocity) = 0;
+    
+    /** Sets desired position and position based control for new controllers */
+    virtual void setDesiredPosition(math::Vector2 position) = 0;
+ 
+    /** Sets a desired position and velocity for controling of both simultaneously */
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position,
+					       math::Vector2 velocity) = 0;
+
+    /** Gets desired velocity */
+    virtual math::Vector2 getDesiredVelocity() = 0;
+
+    /** Gets desired position */
+    virtual math::Vector2 getDesiredPosition() = 0;
+
+    virtual bool atPosition() = 0;
+    
+    virtual bool atVelocity() = 0;
+
 };
 
 /** Provides an interface for a implementation of a Translational Controller */
