@@ -1,4 +1,4 @@
-function lines = edgedetector( I, debug )
+function lines = edgedetector( I, cfg, debug )
 %EDGEDETECTOR Filter to find edges
 %
 %   Uses a standard hough transformation to find lines within an
@@ -7,23 +7,28 @@ function lines = edgedetector( I, debug )
 %
 %   Returns up to 5 lines showing the edges in the intensity image.
 
-if nargin > 2
-    error('edgedetector takes a maximum of 2 arguments');
+% Identify defaults
+if nargin > 3
+    error('edgedetector takes a maximum of 3 arguments');
 end
 
-if nargin == 1
+if nargin < 3
     debug = 0;
 end
 
+if nargin < 2
+    cfg.minIntensity = .15;
+end
+
 % Canny edge detector
-BW = edge(I, 'canny', .15);
+BW = edge(I, 'canny', cfg.minIntensity);
 if debug
     figure('Name', 'Canny Edge Detection'), imshow(BW);
 end
 
 % Standard hough transform
 [H,T,R] = hough(BW, 'ThetaResolution', 1, 'RhoResolution', 1);
-P = houghpeaks(H, 5, 'threshold', ceil(0.3*max(H(:))));
+P = houghpeaks(H, cfg.maxLines, 'threshold', ceil(0.3*max(H(:))));
 if debug
     figure('Name', 'Hough Transform'), imshow(H,[],'XData',T,'YData',R,...
                                              'InitialMagnification','fit');
