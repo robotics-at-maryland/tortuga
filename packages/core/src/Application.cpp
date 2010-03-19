@@ -38,11 +38,11 @@
 #include <boost/python.hpp>
 
 #define PYTHON_ERROR_TRY try
-#define PYTHON_ERROR_CATCH(message) \
-     catch(boost::python::error_already_set err) { \
+#define PYTHON_ERROR_CATCH(message)                     \
+    catch(boost::python::error_already_set err) {       \
         std::cerr << "ERROR: " << message << std::endl; \
-        PyErr_Print(); \
-        throw err; \
+        PyErr_Print();                                  \
+        throw err;                                      \
     }
 
 #else
@@ -83,52 +83,52 @@ Application::Application(std::string configPath) :
             // Skip "creationMode"
             if (subsystemName == "creationMode") {
                 continue;
-	    }
-
-	    // If the subsystem has no configuration section, ignore it
-	    if (!sysConfig.exists(subsystemName)) {
-            badSubsystemNames.push_back(subsystemName);
-            continue;
-	    }
-
-        // Set 'name' properly in the config
-        ConfigNode config(sysConfig[subsystemName]);
-        config.set("name", subsystemName);
-        
-        // Build list of dependencies
-        SubsystemList deps;
-        NameList depNames = depGraph.getDependencies(subsystemName);
-        bool abort = false;
-        BOOST_FOREACH(std::string depName, depNames)
-	    {
-            if (!hasSubsystem(depName) ||
-                invalidSystems.count(depName) == 1) {
-                // The dependencies have not been satisfied
-                abort = true;
-                break;
             }
-            deps.push_back(getSubsystem(depName));
-	    }
 
-	    if (abort) {
-            // The dependencies were not satisfied
-            // do not make this subsystem
-            // Remove from the order
-            badSubsystemNames.push_back(subsystemName);
-            continue;
-	    }
+            // If the subsystem has no configuration section, ignore it
+            if (!sysConfig.exists(subsystemName)) {
+                badSubsystemNames.push_back(subsystemName);
+                continue;
+            }
 
-        // Create out new subsystem and store it
-        PYTHON_ERROR_TRY {
-		try {
-		    SubsystemPtr subsystem(SubsystemMaker::newObject(
-					   std::make_pair(config, deps) ));
-		    m_subsystems[subsystemName] = subsystem;
-		} catch (core::MakerNotFoundException& ex) {
-		    std::cout << ex.what() << ": " <<
-			subsystemName << std::endl;
-		    invalidSystems.insert(subsystemName);
-		}
+            // Set 'name' properly in the config
+            ConfigNode config(sysConfig[subsystemName]);
+            config.set("name", subsystemName);
+        
+            // Build list of dependencies
+            SubsystemList deps;
+            NameList depNames = depGraph.getDependencies(subsystemName);
+            bool abort = false;
+            BOOST_FOREACH(std::string depName, depNames)
+            {
+                if (!hasSubsystem(depName) ||
+                    invalidSystems.count(depName) == 1) {
+                    // The dependencies have not been satisfied
+                    abort = true;
+                    break;
+                }
+                deps.push_back(getSubsystem(depName));
+            }
+
+            if (abort) {
+                // The dependencies were not satisfied
+                // do not make this subsystem
+                // Remove from the order
+                badSubsystemNames.push_back(subsystemName);
+                continue;
+            }
+
+            // Create out new subsystem and store it
+            PYTHON_ERROR_TRY {
+                try {
+                    SubsystemPtr subsystem(SubsystemMaker::newObject(
+                                               std::make_pair(config, deps) ));
+                    m_subsystems[subsystemName] = subsystem;
+                } catch (core::MakerNotFoundException& ex) {
+                    std::cout << ex.what() << ": " <<
+                        subsystemName << std::endl;
+                    invalidSystems.insert(subsystemName);
+                }
             } PYTHON_ERROR_CATCH("Subsystem construction");
         }
         
@@ -201,21 +201,21 @@ Application::~Application()
             subsystem->unbackground(true);
             
             m_subsystems.erase(name);
-	}
+        }
     } PYTHON_ERROR_CATCH("Subsystem cleanup");
 }
 
 void Application::remove_from_order(std::string name)
 {
     std::vector<std::string>::iterator iter =
-	m_order.begin();
+        m_order.begin();
     for ( ; iter != m_order.end(); iter++) {
-	if ((*iter) == name) {
-	    // Remove this subsystem
-	    m_order.erase(iter);
-	    // Don't need to continue to look
-	    break;
-	}
+        if ((*iter) == name) {
+            // Remove this subsystem
+            m_order.erase(iter);
+            // Don't need to continue to look
+            break;
+        }
     }
 }
 
