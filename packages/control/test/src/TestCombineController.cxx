@@ -14,6 +14,8 @@
 #include <log4cpp/Category.hh>
 
 // Project Includes
+#include "core/include/Subsystem.h"
+#include "core/include/SubsystemMaker.h"
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
 
@@ -255,6 +257,32 @@ TEST_FIXTURE(CombineControllerFixture, update)
     CHECK_EQUAL(expectedTorque, vehicle->torque);
 }
 
+
+TEST(SubsystemMaker)
+{
+    vehicle::IVehiclePtr veh(new MockVehicle());
+    core::SubsystemList deps;
+    deps.push_back(veh);
+    core::ConfigNode cfg(core::ConfigNode::fromString(
+                             "{"
+                             "'name' : 'Controller',"
+                             "'type' : 'CombineController',"
+                             "'TranslationalController' : {"
+                             "    'type' : 'MockTranslationalController'"
+                             "},"
+                             "'DepthController' : {"
+                             "    'type' : 'MockDepthController'"
+                             "},"
+                             "'RotationalController' : {"
+                             "    'type' : 'MockRotationalController'"
+                             "}}"));
+    try {
+        core::SubsystemPtr subsystem(core::SubsystemMaker::newObject(
+                                         std::make_pair(cfg, deps)));
+    } catch (core::MakerNotFoundException& ex) {
+        CHECK(false && "CombineController Maker not found");
+    }
+}
 
 
 } // SUITE(CombineController)

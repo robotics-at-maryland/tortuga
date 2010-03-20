@@ -29,7 +29,7 @@ sources.extend(env.Glob('src/device', '*.cpp'))
 
 # If we aren't building the drivers or the vision code, remove the sources
 # that depend on them
-excludedDevices = ['DVL',
+excludedDevices = [#'DVL',
                    'IMU',
                    'PSU',
                    'SensorBoard',

@@ -15,6 +15,9 @@
 #include <log4cpp/Category.hh>
 
 // Project Includes
+#include "core/include/Subsystem.h"
+#include "core/include/SubsystemMaker.h"
+
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
 
@@ -350,3 +353,22 @@ TEST(BWPDControllerLogging)
 TEST(holdOrientation){
   
 }*/
+
+TEST(SubsystemMaker)
+{
+    vehicle::IVehiclePtr veh(new MockVehicle());
+    core::SubsystemList deps;
+    deps.push_back(veh);
+    core::ConfigNode cfg(core::ConfigNode::fromString(
+                             "{ 'name' : 'Controller',"
+                             "'type' : 'BWPDController',"
+                             "'angularPGain' : 10,"
+                             "'angularDGain' : 1,"
+                             "'desiredQuaternion' : [0, 0, 0, 1] }"));
+    try {
+        core::SubsystemPtr subsystem(core::SubsystemMaker::newObject(
+                                         std::make_pair(cfg, deps)));
+    } catch (core::MakerNotFoundException& ex) {
+        CHECK(false && "BWPDController Maker not found");
+    }
+}
