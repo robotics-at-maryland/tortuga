@@ -18,6 +18,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <typeinfo>
 
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
