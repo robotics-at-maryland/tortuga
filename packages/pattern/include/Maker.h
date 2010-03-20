@@ -20,6 +20,12 @@
 #include <sstream>
 #include <typeinfo>
 
+// Compiler Includes
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif // __GNUC__  
+
+// Library Includes
 #include <boost/foreach.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -46,7 +52,7 @@ struct DefaultMakerLookup
         typename MapType::iterator iter = registry->find(key);
         if (iter == registry->end()) {
             std::stringstream msg;
-            msg << "Could not find maker: " << key << " for type \""
+            msg << "Could not find maker: \"" << key << "\" for type \""
                 << MakerPTS<typename MapType::mapped_type>::typeName() << "\"";
             throw core::MakerNotFoundException(msg.str());
         }
@@ -74,25 +80,46 @@ struct DefaultMakerLookup
         }
     };
 
+    
+    template<class C>
+    static std::string typeidName()
+    {
+        std::string mangledName(typeid(C).name());
+        std::string result = mangledName;
+
+#ifdef __GNUC__        
+        int status;
+        char* realname =
+            abi::__cxa_demangle(mangledName.c_str(), 0, 0, &status);
+    
+        if (0 == status)
+            result = std::string(realname);
+        
+        free(realname);
+#endif // __GNUC__        
+
+        return result;
+    }
+    
     /** Standard object to type */
     template <class T>
     struct ObjectPTS
     {
-        static std::string typeName() { return typeid(T).name(); }
+        static std::string typeName() { return typeidName<T>(); }
     };
 
     /** Partial specialization for the the pointers */
     template <class T>
     struct ObjectPTS<T*>
     {
-        static std::string typeName() { return typeid(T).name(); }
+        static std::string typeName() { return typeidName<T>(); }
     };
     
     /** Partial specialization to get inside boost smart pointer */
     template <class T>
     struct ObjectPTS<boost::shared_ptr<T> >
     {
-        static std::string typeName() { return typeid(T).name(); }
+        static std::string typeName() { return typeidName<T>(); }
     };
 };
 
