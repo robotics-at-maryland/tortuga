@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "core/include/Exception.h"
@@ -44,19 +45,19 @@ struct DefaultMakerLookup
         typename MapType::iterator iter = registry->find(key);
         if (iter == registry->end()) {
             std::stringstream msg;
-            msg << "Could not find maker: " << key << " of type \""
-                << PTS<typename MapType::mapped_type>::createdType() << "\"";
+            msg << "Could not find maker: " << key << " for type \""
+                << MakerPTS<typename MapType::mapped_type>::typeName() << "\"";
             throw core::MakerNotFoundException(msg.str());
         }
         assert(iter != registry->end() && "Could not find maker");
         return iter->second;
     }
 
-    /** Dummy tempalte type see below */
+    /** Dummy see below */
     template <class T>
-    struct PTS
+    struct MakerPTS
     {
-        static std::string createdType() { return "ERROR WITH OBJECT TYPE"; }
+        static std::string typeName() { return "ERROR WITH OBJECTTYPE"; } 
     };
 
     /** Partial specialized template to get the un-pointer type. This is
@@ -64,12 +65,33 @@ struct DefaultMakerLookup
      *  need the actual Maker type itself to access its typedef "ObjectType"
      */
     template <class T>
-    struct PTS<T*>
+    struct MakerPTS<T*>
     {
-        static std::string createdType()
+        static std::string typeName()
         {
-            return typeid(typename T::ObjectType).name();
+            return ObjectPTS<typename T::ObjectType>::typeName();
         }
+    };
+
+    /** Standard object to type */
+    template <class T>
+    struct ObjectPTS
+    {
+        static std::string typeName() { return typeid(T).name(); }
+    };
+
+    /** Partial specialization for the the pointers */
+    template <class T>
+    struct ObjectPTS<T*>
+    {
+        static std::string typeName() { return typeid(T).name(); }
+    };
+    
+    /** Partial specialization to get inside boost smart pointer */
+    template <class T>
+    struct ObjectPTS<boost::shared_ptr<T> >
+    {
+        static std::string typeName() { return typeid(T).name(); }
     };
 };
 
