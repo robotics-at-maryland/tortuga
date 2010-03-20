@@ -44,13 +44,33 @@ struct DefaultMakerLookup
         typename MapType::iterator iter = registry->find(key);
         if (iter == registry->end()) {
             std::stringstream msg;
-            msg << "Could not find maker: " << key;
+            msg << "Could not find maker: " << key << " of type \""
+                << PTS<typename MapType::mapped_type>::createdType() << "\"";
             throw core::MakerNotFoundException(msg.str());
         }
         assert(iter != registry->end() && "Could not find maker");
         return iter->second;
     }
 
+    /** Dummy tempalte type see below */
+    template <class T>
+    struct PTS
+    {
+        static std::string createdType() { return "ERROR WITH OBJECT TYPE"; }
+    };
+
+    /** Partial specialized template to get the un-pointer type. This is
+     *  because the "mapped_type" above is really the "Maker*" type and we
+     *  need the actual Maker type itself to access its typedef "ObjectType"
+     */
+    template <class T>
+    struct PTS<T*>
+    {
+        static std::string createdType()
+        {
+            return typeid(typename T::ObjectType).name();
+        }
+    };
 };
 
 /** Default ObjectMaker policy. Uses virtual makeObject method on maker objects.
