@@ -197,7 +197,7 @@ def run_test_imp(env, target, source):
 ALL_TESTS = []
 
 def run_tests(env, output, inputs, message = None, deps = None):    
-    msg = 'Runnting Tests'
+    msg = 'Running Tests'
     if not message is None:
         msg = message
     if not deps is None:

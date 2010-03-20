@@ -125,8 +125,8 @@ Application::Application(std::string configPath) :
                                                std::make_pair(config, deps) ));
                     m_subsystems[subsystemName] = subsystem;
                 } catch (core::MakerNotFoundException& ex) {
-                    std::cout << ex.what() << ": " <<
-                        subsystemName << std::endl;
+                    std::cout << ex.what() << " - "
+                              << subsystemName << std::endl;
                     invalidSystems.insert(subsystemName);
                 }
             } PYTHON_ERROR_CATCH("Subsystem construction");

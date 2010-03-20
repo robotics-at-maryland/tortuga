@@ -11,6 +11,8 @@
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <boost/utility.hpp>
+#include <boost/shared_ptr.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes
@@ -279,6 +281,9 @@ TEST(SubsystemMaker)
     try {
         core::SubsystemPtr subsystem(core::SubsystemMaker::newObject(
                                          std::make_pair(cfg, deps)));
+        boost::shared_ptr<control::CombineController> controller =
+            boost::dynamic_pointer_cast<control::CombineController>(subsystem);
+        CHECK(controller != NULL);
     } catch (core::MakerNotFoundException& ex) {
         CHECK(false && "CombineController Maker not found");
     }

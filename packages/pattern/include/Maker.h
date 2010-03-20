@@ -17,6 +17,9 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <sstream>
+
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "core/include/Exception.h"
@@ -40,10 +43,11 @@ struct DefaultMakerLookup
     {
         typename MapType::iterator iter = registry->find(key);
         if (iter == registry->end()) {
-            //std::cout << "Could not find maker: " << key << std::endl;
-	    throw core::MakerNotFoundException();
-	}
-        //assert(iter != registry->end() && "Could not find maker");
+            std::stringstream msg;
+            msg << "Could not find maker: " << key;
+            throw core::MakerNotFoundException(msg.str());
+        }
+        assert(iter != registry->end() && "Could not find maker");
         return iter->second;
     }
 
