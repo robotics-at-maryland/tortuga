@@ -15,14 +15,28 @@ global x0;
 x0=[0 0 0 0 0 0]';
 
 % List of Controllers
-% 1. PID_velocity
-% 2. PID_positional
+% 1. PID_velocity - velocity based pid controller "drives velocity error to zero"
+% 2. PID_positional - position based pid controller "drives position error
+% to zero and keeps track of position estimate"
 
 CONTROLLER = 'PID_positional';
 
+%   k = [ kp  kd  ki ] <-- x_1
+%       [ kp  kd  ki ] <-- x_2
+%       [ kp  kd  ki ] <-- theta
+%
+%
+%   state_desired = [ x_1       ]
+%                   [ x_1_dot   ]
+%                   [ x_2       ]
+%                   [ x_2_dot   ]
+%                   [ theta     ]
+%                   [ theta_dot ]
+
 % Controller gains
-k_PID_velocity = [50 0 0 10 0 0 0 0 0]';
-k_PID_positional = [0 0 0 50 0 0 0 0 0 5 0 0 0 0 0 5 0 0]';
+k_PID_velocity = [0 0 0; 0 0 0; 0 0 0];
+k_PID_positional = [100 40 5; 100 40 5; 100 40 5];
+
 
 %timing
 global t_step;
@@ -39,12 +53,12 @@ control_storage = 666*ones(3,length(time));
 disturbances_storage = 666*ones(3,length(time));
 
 % DVL Noise ~22 mm/s = .0022 m/s
-dvl_variance_1 = 0*0.0022;
-dvl_variance_2 = 0*0.0022;
+dvl_variance_1 = 0.0022;
+dvl_variance_2 = 0.0022;
 
 % Random Currents
-dist_Fn_variance = 0;
-dist_Tn_variance = 0;
+dist_Fn_variance = 1;
+dist_Tn_variance = 1;
 
 %system constants
 global m;%mass (kg)
@@ -84,12 +98,12 @@ for t = 2:length(time)
     switch(CONTROLLER)
         case 'PID_velocity'
             k = k_PID_velocity;
-            setpoint = [1 0 0]';
-            [Fb_controller , Tb_controller] = positionHold_PID_velocity(state_estimate, k, setpoint);
+            state_desired = state_desired_velocity;
+            [Fb_controller , Tb_controller] = positionHold_PID_velocity(state_estimate, k, state_desired);
         case 'PID_positional'
             k = k_PID_positional;
-            setpoint = [0 0 0 2 0 0]';
-            [Fb_controller, Tb_controller] = positionHold_PID_positional(state_estimate, k, setpoint);
+            state_desired = [log(current_time), 0, 0, 1/current_time, 0, 0]';
+            [Fb_controller, Tb_controller] = positionHold_PID_positional(state_estimate, k, state_desired);
     end
     
     % transform vehicle forces to inertial frame
@@ -113,14 +127,14 @@ for t = 2:length(time)
     state_storage(:,t) = est(end,:);
 end
 
+% clear persistent variables in the controllers
 clear positionHold_PID_velocity
-
-%[time_ode,x]=ode45(@positionHoldSimDynamics,time,x0);
+clear positionHold_PID_positional
 
 figure(1)
+title('true position in inertial frame');
 subplot(2,1,1)
 plot(time,state_storage(1,:))
-xlabel('time');
 ylabel('x_1');
 subplot(2,1,2)
 plot(time,state_storage(2,:))
@@ -128,29 +142,29 @@ xlabel('time');
 ylabel('x_2');
 
 figure(2)
+title('true velocity');
 subplot(2,1,1)
 plot(time,state_storage(3,:))
-xlabel('time');
-ylabel('xdot_1');
+ylabel('x_1dot');
 subplot(2,1,2)
 plot(time,state_storage(4,:))
 xlabel('time');
-ylabel('xdot_2');
+ylabel('x_2dot');
 
 figure(3)
+title('true orientation and angular velocity');
 subplot(2,1,1)
 plot(time,state_storage(5,:))
-xlabel('time');
 ylabel('\theta');
 subplot(2,1,2)
 plot(time,state_storage(6,:))
 xlabel('time');
-ylabel('\thetadot');
+ylabel('\theta dot');
 
 figure(4)
+title('dvl velocity data');
 subplot(2,1,1)
 plot(time(1:end-1),dvl_storage(1,1:end-1))
-xlabel('time');
 ylabel('dvl_1');
 subplot(2,1,2)
 plot(time(1:end-1),dvl_storage(2,1:end-1))
@@ -158,18 +172,17 @@ xlabel('time');
 ylabel('dvl_2');
 
 figure(5)
+title('controller forcings');
 subplot(3,1,1)
 plot(time,control_storage(1,:))
-xlabel('time');
-ylabel('Fb_1');
+ylabel('^bF_1');
 subplot(3,1,2)
 plot(time,control_storage(2,:))
-xlabel('time');
-ylabel('Fb_2');
+ylabel('^bF_2');
 subplot(3,1,3)
 plot(time,control_storage(3,:))
 xlabel('time');
-ylabel('Tb');
+ylabel('\theta');
 
 % Controller specific plots
 switch(CONTROLLER)
@@ -181,33 +194,31 @@ switch(CONTROLLER)
         
         % Plot what the controller thinks is happening
         figure(6)
+        title('controller estimates');
         subplot(3,1,1)
         plot(time(1:l),position_storage(1,:))
-        xlabel('time');
-        ylabel('x_1 estimate');
+        ylabel('x_1');
         subplot(3,1,2)
         plot(time(1:l),position_storage(2,:))
-        xlabel('time');
-        ylabel('x_2 estimate');
+        ylabel('x_2');
         subplot(3,1,3)
         plot(time(1:l),orientation_storage(:))
         xlabel('time');
-        ylabel('theta estimate');
+        ylabel('\theta');
         
         % Plot the difference between what the controller thinks is
         % happening and what is really happening
         figure(7)
+        title('absolute error of controller estimates');
         subplot(3,1,1)
         plot(time(1:l),abs(state_storage(1,1:l)-position_storage(1,:)));
-        xlabel('time');
-        ylabel('x_1 abs error');
+        ylabel('x_1');
         subplot(3,1,2)
         plot(time(1:l),abs(state_storage(2,1:l)-position_storage(2,:)));
-        xlabel('time');
-        ylabel('x_2 absolute error');
+        ylabel('x_2');
         subplot(3,1,3)
         plot(time(1:l),abs(state_storage(5,1:l)-orientation_storage(1:l)));
         xlabel('time');
-        ylabel('orientation absolute error');
+        ylabel('\theta');
 end
 

@@ -1,38 +1,23 @@
-function [ Fb T ] = positionHold_PID_positional( state_b, k, setpoint_n)
+function [ Fb T ] = positionHold_PID_positional( state_b, k, state_desired)
 % positionHold_PID_positional
 %
 % Jonathan Wonders 2010-2-28
 %
-%   state_b = [ r_dot_1 ]
-%             [ r_dot_2 ]
-%             [ t_dot   ]
+%   state_b = [ x_1_dot   ]
+%             [ x_2_dot   ]
+%             [ theta_dot ]
 %
-%   k = [ kp_1     ]
-%       [ kp_2     ]
-%       [ kp_t     ]
-%       [ kp_1_dot ]
-%       [ kp_2_dot ]
-%       [ kp_t_dot ]
-%       [ kd_1     ]
-%       [ kd_2     ]
-%       [ kd_t     ]
-%       [ kd_1_dot ]
-%       [ kd_2_dot ]
-%       [ kd_t_dot ]
-%       [ ki_1     ]
-%       [ ki_2     ]
-%       [ ki_t     ]
-%       [ ki_1_dot ]
-%       [ ki_2_dot ]
-%       [ ki_t_dot ]
+%   k = [ kp  kd  ki ] <-- x_1
+%       [ kp  kd  ki ] <-- x_2
+%       [ kp  kd  ki ] <-- theta
 %
 %
-%   setpoint_n = [ r_1       ]
-%                [ r_2       ]
-%                [ theta     ]
-%                [ r_dot_1   ]
-%                [ r_dot_2   ]
-%                [ theta_dot ]
+%   state_desired = [ x_1       ]
+%                   [ x_1_dot   ]
+%                   [ x_2       ]
+%                   [ x_2_dot   ]
+%                   [ theta     ]
+%                   [ theta_dot ]
 %
 
 % Store controllers position and orientation estimates for plotting
@@ -47,6 +32,7 @@ global x0;
 % Store history of inputs to allow for different types of numerical
 % integration
 persistent input_storage;
+persistent state_storage;
 
 % Store proportional, derivitive, and integral error terms
 persistent error_storage;
@@ -70,25 +56,27 @@ input_storage(1:2,n) = state_n;
 if n > 1
     % Numerically integrate velocities in inertial frame to get position
     % estimate in inertial frame
-    %currentPosition_n = currentPosition_n + (state_n(1:2) + input_stoarge(1:2,n)/2)*t_step;
-    currentPosition_n = currentPosition_n + state_n(1:2)*t_step;
+    currentPosition_n = currentPosition_n + t_step*(state_n(1:2) + input_storage(1:2,n-1))/2;
+    %currentPosition_n = currentPosition_n + state_n(1:2)*t_step;
     % Numerically integrate rotational speed to get orientation estimate
     currentOrientation = currentOrientation + state_b(3)*t_step;
 end
 
-% proportional error
-p_error = [setpoint_n(1:2) - currentPosition_n;setpoint_n(3) -  currentOrientation;...
-           setpoint_n(4:5) - state_n(1:2); setpoint_n(6) - state_b(3)];
-
 position_storage(1:2,n) = currentPosition_n;
 orientation_storage(n) = currentOrientation;
 
-% calculate derivative and integral terms
+current_state = [currentPosition_n;currentOrientation;state_n;state_b(3)];
+state_storage(:,n) = current_state;
+
+% proportional error term
+p_error = state_desired - current_state;
+
+% derivative and integral error terms
 if(n == 1)
     d_error = [0 0 0 0 0 0]';
     i_error = p_error;
 else
-   d_error = [(p_error(1:3) - error_storage(1:3,n-1))/t_step; -(p_error(4:6) - error_storage(4:6,n-1))/t_step];
+   d_error = (p_error - error_storage(1:6,n-1))/t_step;
    i_error = error_storage(13:18,n-1)+(p_error*t_step);
 end
 
@@ -96,9 +84,9 @@ end
 error_storage(1:18,n) = [p_error; d_error; i_error]; 
 
 % Calculate Forces and Tourque to apply
-Fn_1 = dot(error_storage(1:3:16,n),k(1:3:16));
-Fn_2 = dot(error_storage(2:3:17,n),k(2:3:17));
-T    = dot(error_storage(3:3:18,n),k(3:3:18));
+Fn_1 = k(1,1)*sum(p_error(1:2)) + k(1,2)*sum(d_error(1:2)) + k(1,3)*sum(i_error(1:2));
+Fn_2 = k(2,1)*sum(p_error(3:4)) + k(2,2)*sum(d_error(3:4)) + k(2,3)*sum(i_error(3:4));
+T    = k(3,1)*sum(p_error(5:6)) + k(3,2)*sum(d_error(5:6)) + k(3,3)*sum(i_error(5:6));
 
 % convert forces to body frame
 Fn = [Fn_1, Fn_2]';
