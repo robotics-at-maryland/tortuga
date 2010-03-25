@@ -11,8 +11,8 @@
 #define RAM_CONTROL_COMBINECONTROLLER_08_07_2008
 
 // Project Includes
-#include "control/include/ControllerBase.h"
 #include "control/include/Common.h"
+#include "control/include/ControllerBase.h"
 
 #include "vehicle/include/Common.h"
 

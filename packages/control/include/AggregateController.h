@@ -76,11 +76,6 @@ public:
     virtual bool atOrientation();
     virtual void holdCurrentHeading();
 
-    /*
-    void setBuoyantTorqueCorrection(double x, double y, double z);
-    void setHeading(double degrees);
-    double getHeading();
-    */
 
     ITranslationalControllerPtr getTranslationalController();
     

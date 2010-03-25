@@ -47,7 +47,7 @@ namespace ram {
 
 	 m_currentPosition = position; // assuming inertial frame
 	 m_currentVelocity = velocity; // assuming inertial frame
-
+	 
 	 math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
 	 math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
 

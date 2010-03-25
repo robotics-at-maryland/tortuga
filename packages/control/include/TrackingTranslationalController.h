@@ -14,36 +14,36 @@
 #include "control/include/TranslationalControllerBase.h"
 
 namespace ram {
-  namespace control {
+namespace control {
 
-    /** A translational controller that is able to track a position, velocity, or both*/
-    class TrackingTranslationalController : public TranslationalControllerBase
-    {
-    public:
-      TrackingTranslationalController(ram::core::ConfigNode config);
-      virtual ~TrackingTranslationalController() {}
+/** A translational controller that is able to track a position, velocity, or both*/
+class TrackingTranslationalController : public TranslationalControllerBase
+{
+public:
+    TrackingTranslationalController(ram::core::ConfigNode config);
+    virtual ~TrackingTranslationalController() {}
+    
+    virtual math::Vector3 translationalUpdate(double timestep,
+                                              math::Vector3 linearAcceleration,
+                                              math::Quaternion orientation,
+                                              math::Vector2 position,
+                                              math::Vector2 velocity);
 
-      virtual math::Vector3 translationalUpdate(double timestep,
-						math::Vector3 linearAcceleration,
-						math::Quaternion orientation,
-						math::Vector2 position,
-						math::Vector2 velocity);
-      
+private:
+    void setControllerMode(ControlMode::ModeType mode);
 
-    private:
-      void setControllerMode(ControlMode::ModeType mode);
+    math::Vector2 m_prevPositionError;
+    math::Vector2 m_prevVelocityError;
 
-      math::Vector2 m_prevPositionError;
-      math::Vector2 m_prevVelocityError;
+    math::Vector2 m_iPositionError;
+    math::Vector2 m_iVelocityError;
 
-      math::Vector2 m_iPositionError;
-      math::Vector2 m_iVelocityError;
+    double x1kp, x1ki, x1kd;
+    double x2kp, x2ki, x2kd;
 
-      double x1kp, x1ki, x1kd;
-      double x2kp, x2ki, x2kd;
+};
 
-    };
-  } // namespace control 
+} // namespace control 
 } //namespace ram
 
 #endif // RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H_03_14_2010
