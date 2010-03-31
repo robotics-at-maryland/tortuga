@@ -217,6 +217,20 @@ void drawCircle(vision::Image* image, int x, int y, int radius,
     cvCircle(image->asIplImage(), center, radius, color, -1);
 }
 
+void drawLine(vision::Image* image, int x1, int y1, int x2, int y2,
+              int lineWidth, CvScalar color)
+{
+    CvPoint pt1;
+    pt1.x = x1;
+    pt1.y = y1;
+
+    CvPoint pt2;
+    pt2.x = x2;
+    pt2.y = y2;
+
+    cvLine(image->asIplImage(), pt1, pt2, color, lineWidth);
+}
+
 int getPid()
 {
 #ifdef RAM_POSIX

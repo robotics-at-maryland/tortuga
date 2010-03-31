@@ -81,18 +81,18 @@ envt.RAMProgram(target = 'DetectorTest',
 
 # Network Trainer
 envt.RAMProgram(target = 'NetworkTrainer',
-		source = 'test/src/NetworkTrainer.cpp',
-		int_deps = ['vision'])
+                source = 'test/src/NetworkTrainer.cpp',
+                int_deps = ['vision'])
 
 # FFTW based programs 
 envt.RAMProgram(target = 'PhaseCorrelation',
-		source = 'test/src/phase_correlation.cpp',
-		int_deps = ['vision'], ext_deps = ['fftw'])
+                source = 'test/src/phase_correlation.cpp',
+                int_deps = ['vision'], ext_deps = ['fftw'])
 
 
 # Unit Tests
 envt = env.Clone()
-envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'])
+envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'], exclude = ['test/src/TestHedgeDetector.cxx', 'test/src/TestLineDetector.cxx'])
 
 
 # --------------------------------------------------------------------------- #

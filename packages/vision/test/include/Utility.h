@@ -48,6 +48,9 @@ void drawTarget(vision::Image* image, int x, int y, int height = 100,
 void drawCircle(vision::Image* image, int x, int y, int radius,
 		CvScalar color);
 
+void drawLine(vision::Image* image, int x1, int y1, int x2, int y2,
+              int lineWidth, CvScalar color);
+
 /** Get the process ID of the current process */    
 int getPid();
     

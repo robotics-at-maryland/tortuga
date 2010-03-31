@@ -29,8 +29,8 @@ core::PropertySetPtr Detector::getPropertySet()
 }
 
 void Detector::imageToAICoordinates(const Image* image, 
-				    const int& imageX, const int& imageY,
-				    double& outX, double& outY)
+                                    const int& imageX, const int& imageY,
+                                    double& outX, double& outY)
 {
     // Shift origin to the center
     outX = -1 * ((image->getWidth() / 2.0) - (double)imageX);
