@@ -7,16 +7,22 @@
  * File:  packages/vision/test/src/TestBlobDetector.cxx
  */
 
+// STD Includes
+#include <signal.h>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+// Make data a public member
 #include "vision/include/BlobDetector.h"
 #include "vision/include/OpenCVImage.h"
 
 #include "vision/test/include/Utility.h"
 
 using namespace ram;
+
+bool segfault_switch = false;
 
 struct BlobDetectorFixture
 {
@@ -30,7 +36,22 @@ struct BlobDetectorFixture
     vision::BlobDetector detector;
 };
 
+void segfaultCatcher(int sig)
+{
+    segfault_switch = true;
+}
+
 SUITE(BlobDetector) {
+
+TEST(noFunctionCalls)
+{
+    signal(SIGSEGV, segfaultCatcher);
+    CHECK(!segfault_switch);
+    {
+        vision::BlobDetector detector;
+    }
+    CHECK(!segfault_switch && "Segfault occurred in BlobDetector destruction");
+}
 
 TEST_FIXTURE(BlobDetectorFixture, noBlobs)
 {

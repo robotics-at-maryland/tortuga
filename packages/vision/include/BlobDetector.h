@@ -35,7 +35,7 @@ namespace vision {
  */  
 class RAM_EXPORT BlobDetector  : public Detector
 {
-public:
+  public:
 
     /** A single set of connected white pixels in the image
      *
@@ -47,10 +47,8 @@ public:
         Blob(int size, int centerX, int centerY, int maxX, int minX, int maxY,
              int minY) :
             m_size(size), m_centerX(centerX), m_centerY(centerY),
-            m_maxX(maxX), m_minX(minX), m_maxY(maxY), m_minY(minY)
-            {}
-        Blob():m_size(0),m_centerX(0),m_centerY(0),m_maxX(0),m_minX(0),m_maxY(0),m_minY(0)
-            {}
+            m_maxX(maxX), m_minX(minX), m_maxY(maxY), m_minY(minY) {}
+        Blob():m_size(0),m_centerX(0),m_centerY(0),m_maxX(0),m_minX(0),m_maxY(0),m_minY(0) {}
         int getSize() const { return m_size; }
 
         int getCenterX() const { return m_centerX; }
@@ -67,17 +65,17 @@ public:
         int getWidth() const { return getMaxX() - getMinX() + 1; }
 
         /** Percentage of the area within the bounding box that is the blob */
-	double getFillPercentage() { 
-	  return ((double)getSize()) / ((double)(getHeight() * getWidth())); } 
+        double getFillPercentage() { 
+            return ((double)getSize()) / ((double)(getHeight() * getWidth())); } 
 
         /** Draws the bounds, and optionally the center of the blob */
         void draw(Image*, bool centroid = true, 
-		  unsigned char R = 0,
-		  unsigned char G = 0,
-		  unsigned char B = 255);
+                  unsigned char R = 0,
+                  unsigned char G = 0,
+                  unsigned char B = 255);
 
         /** Draws the Aspect ratio and pixel count in text on the image */
-	void drawStats(Image* image);
+        void drawStats(Image* image);
 
         /** Draws text in the upper right hand corner of the blob */
         void drawTextUL(Image* image, std::string text, int xOffset = 0,
@@ -131,16 +129,16 @@ public:
 
         bool boundsIntersect(Blob otherBlob, int addToBounds = 0)
         {
-	    if (((m_minX - addToBounds) > otherBlob.m_maxX) || 
-		((m_maxX + addToBounds) < otherBlob.m_minX))
-	    {
+            if (((m_minX - addToBounds) > otherBlob.m_maxX) || 
+                ((m_maxX + addToBounds) < otherBlob.m_minX))
+            {
                 return false;
-	    }
+            }
             if (((m_minY - addToBounds) > otherBlob.m_maxY) || 
-		((m_maxY + addToBounds) < otherBlob.m_minY))
-	    {
+                ((m_maxY + addToBounds) < otherBlob.m_minY))
+            {
                 return false;
-	    }
+            }
             return true;
         }
 
@@ -156,11 +154,11 @@ public:
     
     class BlobComparer
     {
-        public:
-            static bool compare(Blob b1, Blob b2)
-            {
-                return b1.getSize() > b2.getSize();
-            }
+    public:
+        static bool compare(Blob b1, Blob b2)
+        {
+            return b1.getSize() > b2.getSize();
+        }
     };
     
     BlobDetector(core::ConfigNode config,
