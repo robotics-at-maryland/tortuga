@@ -14,6 +14,10 @@
 #include <cmath>
 #include <vector>
 
+// Library Includes
+#include "cv.h"
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
@@ -46,12 +50,12 @@ public:
     class Line
     {
     public:
-        Line(math::Vector2 pt1, math::Vector2 pt2, double theta, double rho) :
+        Line(CvPoint pt1, CvPoint pt2, double theta, double rho) :
             m_pt1(pt1),
             m_pt2(pt2),
             m_theta(theta),
-            m_rho(rho) {}
-        Line() : m_pt1(0, 0), m_pt2(0, 0), m_theta(0), m_rho(0) {}
+            m_rho(rho) { init(); }
+        Line() : m_theta(0), m_rho(0) { init(); }
 
         double length() const { return m_line.length(); }
         double squaredLength() const { return m_line.squaredLength(); }
@@ -69,14 +73,20 @@ public:
 
         int getWidth() const { return abs(m_pt1.x - m_pt2.x) + 1; }
 
-        math::Vector2 point1() const { return m_pt1; }
-        math::Vector2 point2() const { return m_pt2; }
+        CvPoint point1() const { return m_pt1; }
+        CvPoint point2() const { return m_pt2; }
         double theta() const { return m_theta; }
         double rho() const { return m_rho; }
 
     private:
-        math::Vector2 m_pt1;
-        math::Vector2 m_pt2;
+        void init()
+        {
+            m_line = math::Vector2(m_pt2.x, m_pt2.y) -
+                     math::Vector2(m_pt1.x, m_pt1.y);
+        }
+
+        CvPoint m_pt1;
+        CvPoint m_pt2;
         math::Vector2 m_line;
         double m_theta;
         double m_rho;
@@ -128,8 +138,13 @@ public:
     /** Minimum pixel count for blobs to count */
     int m_minLineSize;
 
+    /** Properties */
+    double m_highThreshold;
+    double m_lowThreshold;
+    int m_maxLines;
+
     /** "Image" used during internal processing */
-    unsigned int* data;
+    IplImage* data;
     
     /** Number of pixels represented in the data array */
     size_t m_dataSize;
