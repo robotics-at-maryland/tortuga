@@ -37,13 +37,13 @@
 #include "dvlapi.h"
 
 /* Takes two bytes and pops out a short */
-short convert16(unsigned char msb, unsigned char lsb)
+short dvl_convert16(unsigned char msb, unsigned char lsb)
 {
     return ((signed short) ((msb << 8) | lsb));
 }
 
 /* This receives a single byte */
-unsigned char waitByte(int fd)
+unsigned char dvl_waitByte(int fd)
 {
     unsigned char rxb;
     int temp;
@@ -55,13 +55,13 @@ unsigned char waitByte(int fd)
 
 /* This waits for the two starting bytes of 0x7f7f */
 /* I have this failing after SYNC_FAIL_BYTECOUNT */
-int waitSync(int fd)
+int dvl_waitSync(int fd)
 {
     int fs= 0;
     int syncLen= 0;
 
     while(fs < 2 && syncLen < SYNC_FAIL_BYTECOUNT) {
-        if(waitByte(fd) == 0x7F) {
+        if(dvl_waitByte(fd) == 0x7F) {
             fs++;
          } else {
             fs= 0;
@@ -96,7 +96,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     unsigned char checksum;
     CompleteDVLPacket *dbgpkt = NULL;
 
-    if(waitSync(fd))
+    if(dvl_waitSync(fd))
         return ERR_NOSYNC;
 
     dvl->valid= 0;
@@ -113,7 +113,7 @@ int readDVLData(int fd, RawDVLData* dvl)
         dbgpkt= dvl->privDbgInf;
     }
 
-    /* We got these in the waitSync() call */
+    /* We got these in the dvl_waitSync() call */
     dvlData[0]= dvlData[1]= 0x7F;
 
     /* Set length based on the 0x7F7F we recieved */
@@ -125,7 +125,7 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     dbgpkt->header.HeaderID= dvlData[0];
     dbgpkt->header.DataSourceID= dvlData[1];
-    dbgpkt->header.PacketSize= convert16(dvlData[3], dvlData[2]);
+    dbgpkt->header.PacketSize= dvl_convert16(dvlData[3], dvlData[2]);
     /* dvlData[4] is an empty byte! */
     dbgpkt->header.num_datatypes= dvlData[5];
 
@@ -140,7 +140,7 @@ int readDVLData(int fd, RawDVLData* dvl)
         len += read(fd, dvlData + len, tempsize - len);
 
     for(i= 0;i < dbgpkt->header.num_datatypes;i++)
-        dbgpkt->header.offsets[i]= convert16(dvlData[7 + i * 2],
+        dbgpkt->header.offsets[i]= dvl_convert16(dvlData[7 + i * 2],
                                              dvlData[6 + i * 2]);
 
     /* WOO! We've now finished reading in the header */
@@ -166,7 +166,7 @@ int readDVLData(int fd, RawDVLData* dvl)
         len += read(fd, dvlData + len, tempsize - len);
 
     if(dbgpkt->fixedleaderset == 0) {
-        dbgpkt->fixedleader.FixedLeaderID= convert16(dvlData[offset + 1],
+        dbgpkt->fixedleader.FixedLeaderID= dvl_convert16(dvlData[offset + 1],
                                                      dvlData[offset]);
 
         if(dbgpkt->fixedleader.FixedLeaderID != 0x0000)
@@ -174,46 +174,46 @@ int readDVLData(int fd, RawDVLData* dvl)
 
         dbgpkt->fixedleader.CPU_Firmware_Version= dvlData[offset + 2];
         dbgpkt->fixedleader.CPU_Firmware_Revision= dvlData[offset + 3];
-        dbgpkt->fixedleader.System_Config= convert16(dvlData[offset + 5],
+        dbgpkt->fixedleader.System_Config= dvl_convert16(dvlData[offset + 5],
                                                      dvlData[offset + 4]);
         dbgpkt->fixedleader.Real_Sim_flag= dvlData[offset + 6];
         dbgpkt->fixedleader.Lag_Length= dvlData[offset + 7];
         dbgpkt->fixedleader.Num_Beams= dvlData[offset + 8];
         dbgpkt->fixedleader.Num_Cells= dvlData[offset + 9];
-        dbgpkt->fixedleader.pings_per_packet= convert16(dvlData[offset + 11],
+        dbgpkt->fixedleader.pings_per_packet= dvl_convert16(dvlData[offset + 11],
                                                         dvlData[offset + 10]);
-        dbgpkt->fixedleader.depth_cell_length= convert16(dvlData[offset + 13],
+        dbgpkt->fixedleader.depth_cell_length= dvl_convert16(dvlData[offset + 13],
                                                          dvlData[offset + 12]);
-        dbgpkt->fixedleader.blank_after_transmit= convert16(dvlData[offset + 15],
+        dbgpkt->fixedleader.blank_after_transmit= dvl_convert16(dvlData[offset + 15],
                                                             dvlData[offset + 14]);
         dbgpkt->fixedleader.prof_mode= dvlData[offset + 16];
         dbgpkt->fixedleader.low_corr_thresh= dvlData[offset + 17];
         dbgpkt->fixedleader.num_code_reps= dvlData[offset + 18];
         dbgpkt->fixedleader.prcnt_good_min= dvlData[offset + 19];
-        dbgpkt->fixedleader.err_vel_max= convert16(dvlData[offset + 21],
+        dbgpkt->fixedleader.err_vel_max= dvl_convert16(dvlData[offset + 21],
                                                    dvlData[offset + 20]);
         dbgpkt->fixedleader.min_btwn_ping= dvlData[offset + 22];
         dbgpkt->fixedleader.sec_btwn_ping= dvlData[offset + 23];
         dbgpkt->fixedleader.hundredths_btwn_ping= dvlData[offset + 24];
         dbgpkt->fixedleader.coord_transform= dvlData[offset + 25];
-        dbgpkt->fixedleader.head_align= convert16(dvlData[offset + 27],
+        dbgpkt->fixedleader.head_align= dvl_convert16(dvlData[offset + 27],
                                                   dvlData[offset + 26]);
-        dbgpkt->fixedleader.head_bias= convert16(dvlData[offset + 29],
+        dbgpkt->fixedleader.head_bias= dvl_convert16(dvlData[offset + 29],
                                                  dvlData[offset + 28]);
         dbgpkt->fixedleader.sen_source= dvlData[offset + 30];
         dbgpkt->fixedleader.sen_avail= dvlData[offset + 31];
-        dbgpkt->fixedleader.bin1_dist= convert16(dvlData[offset + 33],
+        dbgpkt->fixedleader.bin1_dist= dvl_convert16(dvlData[offset + 33],
                                                  dvlData[offset + 32]);
-        dbgpkt->fixedleader.xmit_pulse_length= convert16(dvlData[offset + 35],
+        dbgpkt->fixedleader.xmit_pulse_length= dvl_convert16(dvlData[offset + 35],
                                                          dvlData[offset + 34]);
-        dbgpkt->fixedleader.ref_lyr_avg= convert16(dvlData[offset + 37],
+        dbgpkt->fixedleader.ref_lyr_avg= dvl_convert16(dvlData[offset + 37],
                                                    dvlData[offset + 36]);
         dbgpkt->fixedleader.false_trgt_thresh= dvlData[offset + 38];
         /* Byte 39 is empty! */
-        dbgpkt->fixedleader.lagdist= convert16(dvlData[offset + 41],
+        dbgpkt->fixedleader.lagdist= dvl_convert16(dvlData[offset + 41],
                                                dvlData[offset + 40]);
         /* Bytes 42 - 49 are all empty */
-        dbgpkt->fixedleader.sys_bwidth= convert16(dvlData[offset + 51],
+        dbgpkt->fixedleader.sys_bwidth= dvl_convert16(dvlData[offset + 51],
                                                   dvlData[offset + 50]);
         /* Bytes 52 and 53 are empty */
         dbgpkt->fixedleader.serial[0]= dvlData[offset + 54];
@@ -238,7 +238,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     while(len < tempsize)
         len += read(fd, dvlData + len, tempsize - len);
 
-    dbgpkt->variableleader.varleaderID= convert16(dvlData[offset + 1],
+    dbgpkt->variableleader.varleaderID= dvl_convert16(dvlData[offset + 1],
                                                   dvlData[offset]);
 
     if(dbgpkt->variableleader.varleaderID != 0x0080) {
@@ -246,7 +246,7 @@ int readDVLData(int fd, RawDVLData* dvl)
         return ERR_BADVARIABLELEADER;
     }
 
-    dbgpkt->variableleader.ensemblenum= convert16(dvlData[offset + 3],
+    dbgpkt->variableleader.ensemblenum= dvl_convert16(dvlData[offset + 3],
                                                   dvlData[offset + 2]);
     dbgpkt->variableleader.RTC_year= dvlData[offset + 4];
     dbgpkt->variableleader.RTC_month= dvlData[offset + 5];
@@ -257,21 +257,21 @@ int readDVLData(int fd, RawDVLData* dvl)
     dbgpkt->variableleader.RTC_hundredths= dvlData[offset + 10];
 
     dbgpkt->variableleader.ensemble_num_msb= dvlData[offset + 11];
-    dbgpkt->variableleader.bit_result= convert16(dvlData[offset + 13],
+    dbgpkt->variableleader.bit_result= dvl_convert16(dvlData[offset + 13],
                                                  dvlData[offset + 12]);
-    dbgpkt->variableleader.sound_speed= convert16(dvlData[offset + 15],
+    dbgpkt->variableleader.sound_speed= dvl_convert16(dvlData[offset + 15],
                                                   dvlData[offset + 14]);
-    dbgpkt->variableleader.transducer_depth= convert16(dvlData[offset + 17],
+    dbgpkt->variableleader.transducer_depth= dvl_convert16(dvlData[offset + 17],
                                                        dvlData[offset + 16]);
-    dbgpkt->variableleader.heading= convert16(dvlData[offset + 19],
+    dbgpkt->variableleader.heading= dvl_convert16(dvlData[offset + 19],
                                               dvlData[offset + 18]);
-    dbgpkt->variableleader.pitch= convert16(dvlData[offset + 21],
+    dbgpkt->variableleader.pitch= dvl_convert16(dvlData[offset + 21],
                                             dvlData[offset + 20]);
-    dbgpkt->variableleader.roll= convert16(dvlData[offset + 23],
+    dbgpkt->variableleader.roll= dvl_convert16(dvlData[offset + 23],
                                            dvlData[offset + 22]);
-    dbgpkt->variableleader.salinity= convert16(dvlData[offset + 25],
+    dbgpkt->variableleader.salinity= dvl_convert16(dvlData[offset + 25],
                                                dvlData[offset + 24]);
-    dbgpkt->variableleader.temp= convert16(dvlData[offset + 27],
+    dbgpkt->variableleader.temp= dvl_convert16(dvlData[offset + 27],
                                            dvlData[offset + 26]);
     dbgpkt->variableleader.MPT_minutes= dvlData[offset + 28];
     dbgpkt->variableleader.MPT_seconds= dvlData[offset + 29];
@@ -323,7 +323,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     while(len < tempsize)
         len += read(fd, dvlData + len, tempsize - len);
 
-    dbgpkt->btdata.BottomTrackID= convert16(dvlData[offset + 1],
+    dbgpkt->btdata.BottomTrackID= dvl_convert16(dvlData[offset + 1],
                                             dvlData[offset]);
     if(dbgpkt->btdata.BottomTrackID != 0x0600) {
         printf("WARNING! BottomtrackID not valid!\n");
@@ -333,31 +333,31 @@ int readDVLData(int fd, RawDVLData* dvl)
     }
 
     dbgpkt->btdata.bt_pings_per_ensemble=
-        convert16(dvlData[offset + 3], dvlData[offset + 2]);
+        dvl_convert16(dvlData[offset + 3], dvlData[offset + 2]);
     dbgpkt->btdata.bt_delay_before_reaquire=
-        convert16(dvlData[offset + 5], dvlData[offset + 4]);
+        dvl_convert16(dvlData[offset + 5], dvlData[offset + 4]);
     dbgpkt->btdata.bt_corr_mag_min= dvlData[offset + 6];
     dbgpkt->btdata.bt_eval_amp_min= dvlData[offset + 7];
     dbgpkt->btdata.bt_prcnt_good_min= dvlData[offset + 8];
     dbgpkt->btdata.bt_mode= dvlData[offset + 9];
-    dbgpkt->btdata.bt_err_vel= convert16(dvlData[offset + 11],
+    dbgpkt->btdata.bt_err_vel= dvl_convert16(dvlData[offset + 11],
                                          dvlData[offset + 10]);
     // Bytes 12 through 15 are empty!
-    dbgpkt->btdata.bt_range[0]= convert16(dvlData[offset + 17],
+    dbgpkt->btdata.bt_range[0]= dvl_convert16(dvlData[offset + 17],
                                           dvlData[offset + 16]);
-    dbgpkt->btdata.bt_range[1]= convert16(dvlData[offset + 19],
+    dbgpkt->btdata.bt_range[1]= dvl_convert16(dvlData[offset + 19],
                                           dvlData[offset + 18]);
-    dbgpkt->btdata.bt_range[2]= convert16(dvlData[offset + 21],
+    dbgpkt->btdata.bt_range[2]= dvl_convert16(dvlData[offset + 21],
                                           dvlData[offset + 20]);
-    dbgpkt->btdata.bt_range[3]= convert16(dvlData[offset + 23],
+    dbgpkt->btdata.bt_range[3]= dvl_convert16(dvlData[offset + 23],
                                           dvlData[offset + 22]);
-    dbgpkt->btdata.bt_vel[0]= convert16(dvlData[offset + 25],
+    dbgpkt->btdata.bt_vel[0]= dvl_convert16(dvlData[offset + 25],
                                         dvlData[offset + 24]);
-    dbgpkt->btdata.bt_vel[1]= convert16(dvlData[offset + 27],
+    dbgpkt->btdata.bt_vel[1]= dvl_convert16(dvlData[offset + 27],
                                         dvlData[offset + 26]);
-    dbgpkt->btdata.bt_vel[2]= convert16(dvlData[offset + 29],
+    dbgpkt->btdata.bt_vel[2]= dvl_convert16(dvlData[offset + 29],
                                         dvlData[offset + 28]);
-    dbgpkt->btdata.bt_vel[3]= convert16(dvlData[offset + 31],
+    dbgpkt->btdata.bt_vel[3]= dvl_convert16(dvlData[offset + 31],
                                         dvlData[offset + 30]);
     dbgpkt->btdata.bt_beam_corr[0]= dvlData[offset + 32];
     dbgpkt->btdata.bt_beam_corr[1]= dvlData[offset + 33];
@@ -371,20 +371,20 @@ int readDVLData(int fd, RawDVLData* dvl)
     dbgpkt->btdata.bt_prcnt_good[1]= dvlData[offset + 41];
     dbgpkt->btdata.bt_prcnt_good[2]= dvlData[offset + 42];
     dbgpkt->btdata.bt_prcnt_good[3]= dvlData[offset + 43];
-    dbgpkt->btdata.ref_lyr_min= convert16(dvlData[offset + 45],
+    dbgpkt->btdata.ref_lyr_min= dvl_convert16(dvlData[offset + 45],
                                           dvlData[offset + 44]);
-    dbgpkt->btdata.ref_lyr_near= convert16(dvlData[offset + 47],
+    dbgpkt->btdata.ref_lyr_near= dvl_convert16(dvlData[offset + 47],
                                            dvlData[offset + 46]);
-    dbgpkt->btdata.ref_lyr_far= convert16(dvlData[offset + 49],
+    dbgpkt->btdata.ref_lyr_far= dvl_convert16(dvlData[offset + 49],
                                           dvlData[offset + 48]);
     dbgpkt->btdata.ref_layer_vel[0]=
-        convert16(dvlData[offset + 51], dvlData[offset + 50]);
+        dvl_convert16(dvlData[offset + 51], dvlData[offset + 50]);
     dbgpkt->btdata.ref_layer_vel[1]=
-        convert16(dvlData[offset + 53], dvlData[offset + 52]);
+        dvl_convert16(dvlData[offset + 53], dvlData[offset + 52]);
     dbgpkt->btdata.ref_layer_vel[2]=
-        convert16(dvlData[offset + 55], dvlData[offset + 54]);
+        dvl_convert16(dvlData[offset + 55], dvlData[offset + 54]);
     dbgpkt->btdata.ref_layer_vel[3]=
-        convert16(dvlData[offset + 57], dvlData[offset + 56]);
+        dvl_convert16(dvlData[offset + 57], dvlData[offset + 56]);
     dbgpkt->btdata.ref_corr[0]= dvlData[offset + 58];
     dbgpkt->btdata.ref_corr[1]= dvlData[offset + 59];
     dbgpkt->btdata.ref_corr[2]= dvlData[offset + 60];
@@ -397,7 +397,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     dbgpkt->btdata.ref_prcnt_good[1]= dvlData[offset + 67];
     dbgpkt->btdata.ref_prcnt_good[2]= dvlData[offset + 68];
     dbgpkt->btdata.ref_prcnt_good[3]= dvlData[offset + 69];
-    dbgpkt->btdata.bt_max_depth= convert16(dvlData[offset + 71],
+    dbgpkt->btdata.bt_max_depth= dvl_convert16(dvlData[offset + 71],
                                            dvlData[offset + 70]);
     dbgpkt->btdata.rssi_amp[0]= dvlData[offset + 72];
     dbgpkt->btdata.rssi_amp[1]= dvlData[offset + 73];
@@ -523,7 +523,7 @@ int openDVL(const char* devName)
         while(len < tempsize)
             len += read(fd, dvlData + len, tempsize - len);
 
-        switch(convert16(dvlData[offset + 1], dvlData[offset]))
+        switch(dvl_convert16(dvlData[offset + 1], dvlData[offset]))
         {
             case(0x0600):
             {
@@ -534,34 +534,34 @@ int openDVL(const char* devName)
                 while(len < tempsize)
                     len += read(fd, dvlData + len, tempsize - len);
 
-                dbgpkt->btdata.BottomTrackID= convert16(dvlData[offset + 1],
+                dbgpkt->btdata.BottomTrackID= dvl_convert16(dvlData[offset + 1],
                                                         dvlData[offset]);
                 dbgpkt->btdata.bt_pings_per_ensemble=
-                    convert16(dvlData[offset + 3], dvlData[offset + 2]);
+                    dvl_convert16(dvlData[offset + 3], dvlData[offset + 2]);
                 dbgpkt->btdata.bt_delay_before_reaquire=
-                    convert16(dvlData[offset + 5], dvlData[offset + 4]);
+                    dvl_convert16(dvlData[offset + 5], dvlData[offset + 4]);
                 dbgpkt->btdata.bt_corr_mag_min= dvlData[offset + 6];
                 dbgpkt->btdata.bt_eval_amp_min= dvlData[offset + 7];
                 dbgpkt->btdata.bt_prcnt_good_min= dvlData[offset + 8];
                 dbgpkt->btdata.bt_mode= dvlData[offset + 9];
-                dbgpkt->btdata.bt_err_vel= convert16(dvlData[offset + 11],
+                dbgpkt->btdata.bt_err_vel= dvl_convert16(dvlData[offset + 11],
                                                      dvlData[offset + 10]);
                 // Bytes 12 through 15 are empty!
-                dbgpkt->btdata.bt_range[0]= convert16(dvlData[offset + 17],
+                dbgpkt->btdata.bt_range[0]= dvl_convert16(dvlData[offset + 17],
                                                       dvlData[offset + 16]);
-                dbgpkt->btdata.bt_range[1]= convert16(dvlData[offset + 19],
+                dbgpkt->btdata.bt_range[1]= dvl_convert16(dvlData[offset + 19],
                                                       dvlData[offset + 18]);
-                dbgpkt->btdata.bt_range[2]= convert16(dvlData[offset + 21],
+                dbgpkt->btdata.bt_range[2]= dvl_convert16(dvlData[offset + 21],
                                                       dvlData[offset + 20]);
-                dbgpkt->btdata.bt_range[3]= convert16(dvlData[offset + 23],
+                dbgpkt->btdata.bt_range[3]= dvl_convert16(dvlData[offset + 23],
                                                       dvlData[offset + 22]);
-                dbgpkt->btdata.bt_vel[0]= convert16(dvlData[offset + 25],
+                dbgpkt->btdata.bt_vel[0]= dvl_convert16(dvlData[offset + 25],
                                                     dvlData[offset + 24]);
-                dbgpkt->btdata.bt_vel[1]= convert16(dvlData[offset + 27],
+                dbgpkt->btdata.bt_vel[1]= dvl_convert16(dvlData[offset + 27],
                                                     dvlData[offset + 26]);
-                dbgpkt->btdata.bt_vel[2]= convert16(dvlData[offset + 29],
+                dbgpkt->btdata.bt_vel[2]= dvl_convert16(dvlData[offset + 29],
                                                     dvlData[offset + 28]);
-                dbgpkt->btdata.bt_vel[3]= convert16(dvlData[offset + 31],
+                dbgpkt->btdata.bt_vel[3]= dvl_convert16(dvlData[offset + 31],
                                                     dvlData[offset + 30]);
                 dbgpkt->btdata.bt_beam_corr[0]= dvlData[offset + 32];
                 dbgpkt->btdata.bt_beam_corr[1]= dvlData[offset + 33];
@@ -575,20 +575,20 @@ int openDVL(const char* devName)
                 dbgpkt->btdata.bt_prcnt_good[1]= dvlData[offset + 41];
                 dbgpkt->btdata.bt_prcnt_good[2]= dvlData[offset + 42];
                 dbgpkt->btdata.bt_prcnt_good[3]= dvlData[offset + 43];
-                dbgpkt->btdata.ref_lyr_min= convert16(dvlData[offset + 45],
+                dbgpkt->btdata.ref_lyr_min= dvl_convert16(dvlData[offset + 45],
                                                       dvlData[offset + 44]);
-                dbgpkt->btdata.ref_lyr_near= convert16(dvlData[offset + 47],
+                dbgpkt->btdata.ref_lyr_near= dvl_convert16(dvlData[offset + 47],
                                                        dvlData[offset + 46]);
-                dbgpkt->btdata.ref_lyr_far= convert16(dvlData[offset + 49],
+                dbgpkt->btdata.ref_lyr_far= dvl_convert16(dvlData[offset + 49],
                                                       dvlData[offset + 48]);
                 dbgpkt->btdata.ref_layer_vel[0]=
-                    convert16(dvlData[offset + 51], dvlData[offset + 50]);
+                    dvl_convert16(dvlData[offset + 51], dvlData[offset + 50]);
                 dbgpkt->btdata.ref_layer_vel[1]=
-                    convert16(dvlData[offset + 53], dvlData[offset + 52]);
+                    dvl_convert16(dvlData[offset + 53], dvlData[offset + 52]);
                 dbgpkt->btdata.ref_layer_vel[2]=
-                    convert16(dvlData[offset + 55], dvlData[offset + 54]);
+                    dvl_convert16(dvlData[offset + 55], dvlData[offset + 54]);
                 dbgpkt->btdata.ref_layer_vel[3]=
-                    convert16(dvlData[offset + 57], dvlData[offset + 56]);
+                    dvl_convert16(dvlData[offset + 57], dvlData[offset + 56]);
                 dbgpkt->btdata.ref_corr[0]= dvlData[offset + 58];
                 dbgpkt->btdata.ref_corr[1]= dvlData[offset + 59];
                 dbgpkt->btdata.ref_corr[2]= dvlData[offset + 60];
@@ -601,7 +601,7 @@ int openDVL(const char* devName)
                 dbgpkt->btdata.ref_prcnt_good[1]= dvlData[offset + 67];
                 dbgpkt->btdata.ref_prcnt_good[2]= dvlData[offset + 68];
                 dbgpkt->btdata.ref_prcnt_good[3]= dvlData[offset + 69];
-                dbgpkt->btdata.bt_max_depth= convert16(dvlData[offset + 71],
+                dbgpkt->btdata.bt_max_depth= dvl_convert16(dvlData[offset + 71],
                                                        dvlData[offset + 70]);
                 dbgpkt->btdata.rssi_amp[0]= dvlData[offset + 72];
                 dbgpkt->btdata.rssi_amp[1]= dvlData[offset + 73];

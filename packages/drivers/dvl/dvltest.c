@@ -18,7 +18,7 @@ void printBTData(CompleteDVLPacket* pkt);
 
 void translateError(int errornum);
 
-int main(int argc, char ** argv)
+int main(int argc, char **argv)
 {
     int fd, i, tmp, retcode= 0;
     RawDVLData dvl;
