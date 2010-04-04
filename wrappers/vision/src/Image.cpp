@@ -52,6 +52,20 @@ public:
         return 0;
     };
 
+    /** Depth of the image */
+    virtual size_t getDepth() const
+    {
+        assert(false && "Not Implemented");
+        return 0;
+    }
+
+    /** Number of channels in the image */
+    virtual size_t getNumChannels() const
+    {
+        assert(false && "Not Implemented");
+        return 0;
+    }
+
     virtual Image::PixelFormat getPixelFormat() const
     {
         assert(false && "Not Implemented");
