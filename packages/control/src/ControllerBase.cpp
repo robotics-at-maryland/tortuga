@@ -18,6 +18,7 @@
 // Project Includes
 #include "control/include/ControllerBase.h"
 #include "control/include/ControlFunctions.h"
+#include "control/include/DesiredState.h"
 
 #include "vehicle/include/IVehicle.h"
 
@@ -48,7 +49,7 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     m_positionThreshold(0),
     m_vehicle(vehicle)
 {   
-  init(config); 
+    init(config); 
 }
 
 ControllerBase::ControllerBase(core::ConfigNode config,
@@ -65,7 +66,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_positionThreshold(0),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps))
 {
-  init(config); 
+    init(config); 
 }
 
 ControllerBase::~ControllerBase()
@@ -235,6 +236,7 @@ void ControllerBase::newDesiredPositionSet(const math::Vector2& newPosition)
 
 void ControllerBase::init(core::ConfigNode config)
 {
+
   // Load threshold for being at depth
   m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
   m_orientationThreshold =
@@ -273,7 +275,6 @@ void ControllerBase::publishAtPosition(const math::Vector2& position)
   event->vector2 = position;
   publish(IController::AT_POSITION, event);
 }
-
-        
-} // namespace control
+      
+} // namespace controltest
 } // namespace ram

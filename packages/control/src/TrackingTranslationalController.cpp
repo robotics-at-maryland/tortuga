@@ -7,9 +7,12 @@
  * File:  packages/control/src/TrackingTranslationalController.cpp
  */
 
+#include <math.h>
+
 #include "control/include/TrackingTranslationalController.h"
 #include "control/include/ControllerMaker.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix2.h"
 
 namespace ram {
   namespace control {
@@ -41,25 +44,37 @@ namespace ram {
 			math::Vector2 position,
 			math::Vector2 velocity)
        {
-	 /* TODO */
-	 /* Convert input based on current orientation */
-	 /* TODO */
+	 double yaw = orientation.getYaw().valueRadians(); 
 
-	 m_currentPosition = position; // assuming inertial frame
-	 m_currentVelocity = velocity; // assuming inertial frame
+	 // Only call cos and sin once
+	 double yaw_cos = cos(yaw), yaw_sin = sin(yaw);
 	 
+	 //Compute rotation matrix from inertial frame to body frame
+	 math::Matrix2 bRn(yaw_cos,yaw_sin,-yaw_sin,yaw_cos);
+	 //Compute rotation matrix from body frame to inertial frame
+	 math::Matrix2 nRb(yaw_cos,-yaw_sin,yaw_sin,yaw_cos);
+
+	 //Update current position and velocity
+	 m_currentPosition = position;     //assume position in inertial frame
+	 m_currentVelocity = nRb*velocity; //rotate velocity to inertial frame
+	 
+	 //Initialize error vectors
 	 math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
 	 math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
 
+	 //Calculate proportional errors
 	 positionPError = m_desiredPosition - m_currentPosition;
 	 velocityPError = m_desiredVelocity - m_currentVelocity;
 
+	 //Calculate derivative errors
 	 positionDError = (positionPError - m_prevPositionError)/timestep;
 	 velocityDError = (velocityPError - m_prevVelocityError)/timestep;
 
+	 //Calculate integral errors
 	 positionIError = m_iPositionError + positionPError * timestep;
 	 velocityIError = m_iVelocityError + velocityPError * timestep;
 	 
+	 //Calculate control signals in inertial frame
 	 double positionSig_x1, positionSig_x2;
 	 double velocitySig_x1, velocitySig_x2;
 
@@ -83,43 +98,44 @@ namespace ram {
 	   x2kd * positionDError[1] +
 	   x2ki * positionIError[1];
 
-	 double positionSignal[3] = {positionSig_x1, positionSig_x2, 0};
-	 double velocitySignal[3] = {velocitySig_x1, velocitySig_x2, 0};
-	 double combinedSignal[3] = {positionSig_x1 + velocitySig_x1,
-				     positionSig_x2 + velocitySig_x2, 0};
-	
-	 double signal[3] = {0,0,0};
+	 //Put signals into an array so we can make a Vector2 
+	 double signal_n[2] = {0,0};
 
+	 //Decide what signal to use based on control mode
 	 switch(m_controlMode){
 	 case ControlMode::POSITION:
-	   signal[0] = positionSignal[0];
-	   signal[1] = positionSignal[1];
-	   signal[2] = positionSignal[2];
+	   signal_n[0] = positionSig_x1;
+	   signal_n[1] = positionSig_x2;
 	   break;
 	 case ControlMode::VELOCITY:
-	   signal[0] = velocitySignal[0];
-	   signal[1] = velocitySignal[1];
-	   signal[2] = velocitySignal[2];
+	   signal_n[0] = velocitySig_x1;
+	   signal_n[1] = velocitySig_x2;
 	   break;
 	 case ControlMode::POSITIONANDVELOCITY:
-	   signal[0] = combinedSignal[0];
-	   signal[1] = combinedSignal[1];
-	   signal[2] = combinedSignal[2];
+	   signal_n[0] = positionSig_x1 + velocitySig_x1;
+	   signal_n[1] = positionSig_x2 + velocitySig_x2;
 	   break;
 	 case ControlMode::OPEN_LOOP:
 	   break;
 	 }
 
-	 math::Vector3 translationalSignal(signal);
+	 math::Vector2 translationalSignal_n(signal_n);
 
-	 /* TODO */
-	 /* At this point, convert translationalSignal back to the body frame */
-	 /* TODO */
+	 //Calculate desired yaw based on direction of translationalSignal_n
+	 //double desired_yaw = atan(signal_n[1]/signal_n[0]);
 
+	 //Rotate translationalSignal_n from the inertial frame to the body frame
+	 math::Vector2 translationalSignal_b(bRn*translationalSignal_n);
+	 
+	 //Store previous error to be used in the next call
 	 m_prevPositionError = positionPError;
 	 m_prevVelocityError = velocityPError;
 
-	 return translationalSignal;
+
+	 //Need to return a Vector3
+	 
+	 return math::Vector3(translationalSignal_b[0],
+			      translationalSignal_b[1], 0);
        }
 
   } // namespace control

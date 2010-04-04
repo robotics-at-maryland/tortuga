@@ -34,7 +34,7 @@ public:
             OPEN_LOOP,
             VELOCITY,
             POSITION,
-	    POSITIONANDVELOCITY
+            POSITIONANDVELOCITY
         };
     };
     

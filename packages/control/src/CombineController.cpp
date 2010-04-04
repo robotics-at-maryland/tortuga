@@ -25,6 +25,7 @@
 #include "control/include/IDepthController.h"
 #include "control/include/IRotationalController.h"
 #include "control/include/ControllerMaker.h"
+#include "control/include/DesiredState.h"
 
 #include "vehicle/include/IVehicle.h"
 
@@ -38,7 +39,7 @@
 //#include "imu/include/imuapi.h"
 
 // Register controller in subsystem maker system
-RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, RANDOMController);
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineController);
 
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
@@ -51,30 +52,23 @@ namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
-  ControllerBase(vehicle, config)  
-{   
-    init(config); 
-}
+    ControllerBase(vehicle, config)  
+{ init(config); }
 
     
 CombineController::CombineController(core::ConfigNode config,
                                      core::SubsystemList deps) :
     ControllerBase(config, deps)
-{
-    init(config);
-}
+{ init(config); }
 
 CombineController::~CombineController()
-{
-    unbackground(true);
-}
+{ unbackground(true); }
 
 void CombineController::init(core::ConfigNode config)
 {
     // Create In plane controller
     core::ConfigNode node(config["TranslationalController"]);
-    m_transController =
-        TranslationalControllerImpMaker::newObject(node);
+    m_transController = TranslationalControllerImpMaker::newObject(node);
     
     // Create depth controller
     node = config["DepthController"];
@@ -86,146 +80,92 @@ void CombineController::init(core::ConfigNode config)
 }
 
 void CombineController::setVelocity(math::Vector2 velocity)
-{
-    m_transController->setVelocity(velocity);
-}
+{ m_transController->setVelocity(velocity); }
 
 math::Vector2 CombineController::getVelocity()
-{
-    return m_transController->getVelocity();
-}
+{ return m_transController->getVelocity(); }
     
 void CombineController::setSpeed(double speed)
-{
-    m_transController->setSpeed(speed);
-}
+{ m_transController->setSpeed(speed); }
 
 void CombineController::setSidewaysSpeed(double speed)
-{
-    m_transController->setSidewaysSpeed(speed);
-}
+{ m_transController->setSidewaysSpeed(speed); }
 
 double CombineController::getSpeed()
-{
-    return m_transController->getSpeed();
-}
+{ return m_transController->getSpeed(); }
 
 double CombineController::getSidewaysSpeed()
-{
-    return m_transController->getSidewaysSpeed();
-}
+{ return m_transController->getSidewaysSpeed(); }
 
 void CombineController::holdCurrentPosition()
-{
-    m_transController->holdCurrentPosition();
-}
+{ m_transController->holdCurrentPosition(); }
 
-    void CombineController::setDesiredVelocity(math::Vector2 velocity)
-    {
-      m_transController->setDesiredVelocity(velocity);
-    }
+void CombineController::setDesiredVelocity(math::Vector2 velocity)
+{ m_transController->setDesiredVelocity(velocity); }
     
 
-    void CombineController::setDesiredPosition(math::Vector2 position)
-    {
-      m_transController->setDesiredPosition(position);
-    }
+void CombineController::setDesiredPosition(math::Vector2 position)
+{ m_transController->setDesiredPosition(position); }
  
  
-    void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
-							    math::Vector2 velocity)
-    {
-      m_transController->setDesiredPositionAndVelocity(position,velocity);
-    }
+void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
+                                                      math::Vector2 velocity)
+{ m_transController->setDesiredPositionAndVelocity(position,velocity); }
 
 
-    math::Vector2 CombineController::getDesiredVelocity()
-    {
-      return m_transController->getDesiredVelocity();
-    }
+math::Vector2 CombineController::getDesiredVelocity()
+{ return m_transController->getDesiredVelocity(); }
 
 
-    math::Vector2 CombineController::getDesiredPosition()
-    {
-      return m_transController->getDesiredPosition();
-    }
+math::Vector2 CombineController::getDesiredPosition()
+{ return m_transController->getDesiredPosition(); }
 
-    bool CombineController::atPosition()
-    {
-      return m_transController->atPosition();
-    }
+bool CombineController::atPosition()
+{ return m_transController->atPosition(); }
 
-    bool CombineController::atVelocity()
-    {
-      return m_transController->atVelocity();
-    }
+bool CombineController::atVelocity()
+{ return m_transController->atVelocity(); }
     
 // Depth controller methods
 void CombineController::setDepth(double depth)
-{
-    m_depthController->setDepth(depth);
-}
+{ m_depthController->setDepth(depth); }
     
 double CombineController::getDepth()
-{
-    return m_depthController->getDepth();
-}
+{ return m_depthController->getDepth(); }
 
 double CombineController::getEstimatedDepth()
-{
-    return m_depthController->getEstimatedDepth();
-}
+{ return m_depthController->getEstimatedDepth(); }
 
 double CombineController::getEstimatedDepthDot()
-{
-    return m_depthController->getEstimatedDepthDot();
-}
+{ return m_depthController->getEstimatedDepthDot(); }
 
 bool CombineController::atDepth()
-{
-    return m_depthController->atDepth();
-}
+{ return m_depthController->atDepth(); }
 
 void CombineController::holdCurrentDepth()
-{
-    m_depthController->holdCurrentDepth();
-}
+{ m_depthController->holdCurrentDepth(); }
     
 // Rotational controller methods
 void CombineController::rollVehicle(double degrees)
-{
-    m_rotController->rollVehicle(degrees);
-}
+{ m_rotController->rollVehicle(degrees); }
 
 void CombineController::pitchVehicle(double degrees)
-{
-    m_rotController->pitchVehicle(degrees);
-}
+{ m_rotController->pitchVehicle(degrees); }
 
 void CombineController::yawVehicle(double degrees)
-{
-    m_rotController->yawVehicle(degrees);
-}
+{ m_rotController->yawVehicle(degrees); }
 
 math::Quaternion CombineController::getDesiredOrientation()
-{
-    return m_rotController->getDesiredOrientation();
-}
+{ return m_rotController->getDesiredOrientation(); }
 
 void CombineController::setDesiredOrientation(math::Quaternion newOrientation)
-{
-    m_rotController->setDesiredOrientation(newOrientation);
-}
+{ m_rotController->setDesiredOrientation(newOrientation); }
     
 bool CombineController::atOrientation()
-{
-    return m_rotController->atOrientation();
-}
+{ return m_rotController->atOrientation(); }
 
 void CombineController::holdCurrentHeading()
-{
-    m_rotController->holdCurrentHeading();
-}
+{ m_rotController->holdCurrentHeading(); }
 
 void CombineController::doUpdate(const double& timestep,
                                  const math::Vector3& linearAcceleration,
@@ -242,8 +182,10 @@ void CombineController::doUpdate(const double& timestep,
         m_transController->translationalUpdate(timestep, linearAcceleration,
                                                orientation, position,
                                                velocity));
+
     math::Vector3 depthControlForce(
         m_depthController->depthUpdate(timestep, depth, orientation));
+
     math::Vector3 rotControlTorque(
         m_rotController->rotationalUpdate(timestep, orientation, angularRate));
     
@@ -253,34 +195,20 @@ void CombineController::doUpdate(const double& timestep,
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
-{
-    return m_transController;
-}
+{ return m_transController; }
    
 IDepthControllerPtr CombineController::getDepthController()
-{
-    return m_depthController;
-}
+{ return m_depthController; }
     
 IRotationalControllerPtr CombineController::getRotationalController()
-{
-    return m_rotController;
-}
+{ return m_rotController; }
 
-  void CombineController::setBuoyantTorqueCorrection(double x, double y, double z)
-  {
+void CombineController::setBuoyantTorqueCorrection(double x, double y, double z){}
 
-  }
+void CombineController::setHeading(double degrees){}
 
-  void CombineController::setHeading(double degrees)
-  {
-
-  }
-
-  double CombineController::getHeading()
-  {
-    return 0;
-  }
+double CombineController::getHeading()
+{ return 0; }
 
 
 

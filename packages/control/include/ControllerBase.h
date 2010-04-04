@@ -13,6 +13,7 @@
 // Project Includes
 #include "control/include/Common.h"
 #include "control/include/IController.h"
+#include "control/include/DesiredState.h"
 
 #include "vehicle/include/Common.h"
 
