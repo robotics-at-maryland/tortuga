@@ -7,10 +7,14 @@
  * File:  packages/vision/test/src/TestOpenCVImage.cxx
  */
 
+// STD Includes
+#include <iostream>
+
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
+#include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
 #include "vision/test/include/UnitTestChecks.h"
@@ -116,6 +120,17 @@ TEST(Gray_Image)
     CHECK_EQUAL(8, image->depth);
     CHECK_EQUAL(1, image->nChannels);
     CHECK_EQUAL(ram::vision::Image::PF_GRAY_8, gray.getPixelFormat());
+}
+
+TEST(ConversionFailure)
+{
+    ram::vision::OpenCVImage image(640, 480);
+    try {
+        image.setPixelFormat(ram::vision::Image::PF_RGB_8);
+        CHECK(false && "Invalid conversion did not throw an exception");
+    } catch (ram::vision::ImageConversionException& ex) {
+        std::cout << ex.what() << std::endl;
+    }
 }
 
 TEST_FIXTURE(RGBImageFixture, RGB_to_BGR)

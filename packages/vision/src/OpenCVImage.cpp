@@ -17,6 +17,7 @@
 #include "highgui.h"
 
 // Project incldues
+#include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
 namespace ram {
@@ -263,12 +264,9 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
     };
 
     int code = lookupTable[m_fmt][format];
-    std::stringstream sstream;
-    sstream << "Invalid conversion from code " << m_fmt
-            << " to " << format;
-    assert(code != -1 && sstream.str().c_str());
-
-    if (code != -2) {
+    if (code == -1) {
+        throw ImageConversionException(m_fmt, format);
+    } else if (code != -2) {
         // If the number of channels or depth change, we need a new image
         int depth, channels;
         getFormatParameters(m_fmt, depth, channels);
