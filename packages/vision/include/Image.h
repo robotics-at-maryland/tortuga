@@ -40,10 +40,11 @@ public:
     /** Describes the pixels format of our images */
     enum PixelFormat
     {
-        PF_START, /** Sentinal Value */
+        PF_START = 0, /** Sentinal Value */
         PF_RGB_8, /** Red Green Blue, 8 bits per channel */
         PF_BGR_8, /** Blue Green Red, 8 bits*/
         PF_YUV444_8, /** YUV, 8 bits for each channel */
+        PF_GRAY_8, /** Grayscale, 8 bits one channel */
         PF_END,   /** Sentinal Value */
     };
 
@@ -190,7 +191,7 @@ public:
     /** All images should be castable to IplImage for OpenCV compatibility */
     virtual operator IplImage*() = 0;
 
-    /** Provieded for OpenCV Compatibiltiy */
+    /** Provided for OpenCV Compatibiltiy */
     virtual IplImage* asIplImage() const = 0;
 
 };

@@ -22,21 +22,30 @@
 namespace ram {
 namespace vision {
 
+/**
+ * A wrapper around the IplImage type declared in OpenCV.
+ *
+ * Supports RGB, BGR, YUV444, and Grayscale image formats.
+ * If no pixel format is given, the class makes no assumptions and will
+ * disable any features that require knowledge of the pixel format.
+ * The default value will create the image with 8 bits per channel, 3 channels.
+ */
 class RAM_EXPORT OpenCVImage : public Image
 {
 public:
     /** Allocate an image of the desired width and height */
-    OpenCVImage(int width, int height);
+    OpenCVImage(int width, int height, Image::PixelFormat fmt = PF_START);
     
     /** Create an OpenCVImage from the given IplImage */
-    OpenCVImage(IplImage*, bool ownership = true);
+    OpenCVImage(IplImage*, bool ownership = true,
+                Image::PixelFormat fmt = PF_START);
 
     /** Create an image from the given image buffer */
     OpenCVImage(unsigned char* data, int width, int height,
-                bool ownership = true);
+                bool ownership = true, Image::PixelFormat fmt = PF_START);
     
     /** Creat an OpenCV from the given file */
-    OpenCVImage(std::string fileName);
+    OpenCVImage(std::string fileName, Image::PixelFormat fmt = PF_START);
     
     /** Release the underlying OpenCV image if it has ownership */
     ~OpenCVImage();
@@ -74,9 +83,14 @@ public:
     
     
 private:
+    /** Gets the parameters needed for cvCreateImage from the lookup table */
+    void getFormatParameters(const Image::PixelFormat& fmt,
+                             int& depth, int& channels);
+
     bool m_own;
-    bool m_ownHeader;
+    unsigned char* m_data;
     IplImage* m_img;
+    Image::PixelFormat m_fmt;
 };
 
 } // namespace vision
