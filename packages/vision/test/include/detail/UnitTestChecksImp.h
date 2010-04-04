@@ -63,13 +63,16 @@ void CheckClose(TestResults& results,
         return;
     }
 
-    int length = expected.getHeight() * expected.getWidth() * 3;
+    int length = expected.getHeight() * expected.getWidth() *
+        expected.getNumChannels();
 
     // Blur Images to allow for easier comparisions
     ram::vision::OpenCVImage blurredExpected(expected.getWidth(),
-                                             expected.getHeight());
-    ram::vision::OpenCVImage blurredActual(expected.getWidth(),
-                                           expected.getHeight());
+                                             expected.getHeight(),
+                                             expected.getPixelFormat());
+    ram::vision::OpenCVImage blurredActual(actual.getWidth(),
+                                           actual.getHeight(),
+                                           actual.getPixelFormat());
     // Zero Memory to start (keeps valgrind happy)
     memset(blurredExpected.getData(), 0, length);
     memset(blurredActual.getData(), 0, length);

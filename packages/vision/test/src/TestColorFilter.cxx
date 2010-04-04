@@ -136,6 +136,36 @@ TEST_FIXTURE(ColorFilterFixture, testGetSet)
     CHECK_EQUAL(60, filter.getChannel3High());
 }
 
+TEST_FIXTURE(ColorFilterFixture, testSingleChannel)
+{
+    // Generated expected input
+    vision::OpenCVImage input(640, 480, vision::Image::PF_RGB_8);
+    // Gray background
+    vision::makeColor(&input, 50, 50, 50); 
+    // Circle to find
+    vision::drawCircle(&input, 320, 240, 50, CV_RGB(180, 45, 230)); 
+    // Extra circle
+    vision::drawCircle(&input, 80, 80, 50, CV_RGB(250, 100, 50)); 
+
+    // Draw the expected result
+    vision::OpenCVImage expected(640, 480, vision::Image::PF_RGB_8);
+    vision::makeColor(&expected, 0, 0, 0); // Black
+    vision::drawCircle(&expected, 320, 240, 50, CV_RGB(255, 255, 255));
+    expected.setPixelFormat(vision::Image::PF_GRAY_8);
+
+    // Filter to threshold the image width
+    vision::ColorFilter filter(100, 250, // B 
+			       40, 60, // G
+			       150, 200 // R
+			       );
+
+    // Filter image and check the result
+    vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
+    filter.filterImage(&input, &output);
+
+    // Check results
+    CHECK_CLOSE(&expected, &output, 0);
+}
 
 
 } // SUITE(ColorFilter)

@@ -61,6 +61,12 @@ public:
     /** Height of image in pixels */
     virtual size_t getHeight() const;
 
+    /** Depth of the image */
+    virtual size_t getDepth() const;
+
+    /** Number of channels in the image */
+    virtual size_t getNumChannels() const;
+
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() const;
 

@@ -169,6 +169,12 @@ public:
     /** Height of image in pixels */
     virtual size_t getHeight() const = 0;
 
+    /** Depth of the image */
+    virtual size_t getDepth() const = 0;
+
+    /** Number of channels in the image */
+    virtual size_t getNumChannels() const = 0;
+
     /** Pixel format of the image */
     virtual Image::PixelFormat getPixelFormat() const = 0;
 

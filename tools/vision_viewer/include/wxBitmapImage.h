@@ -33,6 +33,10 @@ public:
 
     virtual size_t getHeight() const;
 
+    virtual size_t getDepth() const;
+
+    virtual size_t getNumChannels() const;
+
     virtual vision::Image::PixelFormat getPixelFormat() const;
 
     const wxBitmap* getBitmap();

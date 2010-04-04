@@ -315,6 +315,16 @@ size_t GLMovie::getHeight() const
     return this->movieHeight;
 }
 
+size_t GLMovie::getDepth() const
+{
+    return 8;
+}
+
+size_t GLMovie::getNumChannels() const
+{
+    return 3;
+}
+
 vision::Image::PixelFormat GLMovie::getPixelFormat() const
 {
     return vision::Image::PF_RGB_8;

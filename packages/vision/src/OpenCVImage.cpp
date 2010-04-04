@@ -178,6 +178,16 @@ size_t OpenCVImage::getHeight() const
     return cvGetSize(m_img).height;
 }
 
+size_t OpenCVImage::getDepth() const
+{
+    return m_img->depth;
+}
+
+size_t OpenCVImage::getNumChannels() const
+{
+    return m_img->nChannels;
+}
+
 Image::PixelFormat OpenCVImage::getPixelFormat() const
 {
     ///TODO:Make sure this format is actually the format that the image is in.

@@ -11,8 +11,9 @@
 #include <cstring>
 #include <sstream>
 
-// Boost Includes
+// Library Includes
 #include "boost/bind.hpp"
+#include "cxtypes.h"
 
 // Project Includes
 #include "vision/include/ColorFilter.h"
@@ -78,12 +79,16 @@ void ColorFilter::setupRanges()
 void ColorFilter::filterImage(Image* input, Image* output)
 {
     int numPixels = input->getWidth() * input->getHeight();
+    int nChannels;
     unsigned char* inputData = input->getData();
     unsigned char* outputData = 0;
-    if (output)
+    if (output) {
         outputData = output->getData();
-    else
+        nChannels = output->asIplImage()->nChannels;
+    } else {
         outputData = input->getData();
+        nChannels = input->asIplImage()->nChannels;
+    }
 
     for (int i = 0; i < numPixels; ++i)
     {
@@ -92,12 +97,11 @@ void ColorFilter::filterImage(Image* input, Image* output)
 	  m_channel2Range[*(inputData + 1)] &
 	  m_channel3Range[*(inputData + 2)];
 
-	*outputData = result;
-	*(outputData + 1) = result;
-	*(outputData + 2) = result;
-
+        for (int k = 0; k < nChannels; k++, outputData++) {
+            *outputData = result;
+        }
+        
 	inputData += 3;
-        outputData += 3;
     }
 }
 
