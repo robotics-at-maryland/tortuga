@@ -10,6 +10,9 @@ import sys
 import os
 from optparse import OptionParser
 
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Library Imports
 import yaml
 

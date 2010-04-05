@@ -14,6 +14,10 @@ import sys
 import platform
 import subprocess
 
+# Check if the environment has been setup
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Build system imports
 import buildfiles.helpers as helpers
 import buildfiles.platfrm as platfrm

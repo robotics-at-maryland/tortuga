@@ -15,6 +15,9 @@ import sys
 import imp
 import unittest
 
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Project Imports
 import ram.test
 
