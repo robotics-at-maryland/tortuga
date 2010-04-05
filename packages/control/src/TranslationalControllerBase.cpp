@@ -21,8 +21,8 @@ TranslationalControllerBase::TranslationalControllerBase(
     m_desiredPosition(math::Vector2::ZERO),
     m_currentVelocity(math::Vector2::ZERO),
     m_currentPosition(math::Vector2::ZERO),
-    m_positionThreshold(0),
-    m_velocityThreshold(0),
+    m_positionThreshold(0.1),
+    m_velocityThreshold(0.1),
     m_controlMode(ControlMode::OPEN_LOOP)
 {
     init(config);
@@ -165,7 +165,8 @@ math::Vector3 TranslationalControllerBase::translationalUpdate(
 
 void TranslationalControllerBase::init(core::ConfigNode config)
 {
-
+    m_positionThreshold = config["positionThreshold"].asDouble(0.1);
+    m_velocityThreshold = config["velocityThreshold"].asDouble(0.1);
 }
     
 } // namespace control

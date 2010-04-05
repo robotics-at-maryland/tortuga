@@ -4,11 +4,13 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/PIDDepthController.cpp
+ * File:  packages/control/src/NonlinearPDRotationalController.cpp
  */
 
-#include "control/include/PDRotationalController.h"
+
+#include "control/include/NonlinearPDRotationalController.h"
 #include "control/include/ControllerMaker.h"
+#include "math/include/Matrix3.h"
 
 #include "math/include/Helpers.h"
 
@@ -16,19 +18,20 @@
 namespace ram {
 namespace control {
 
-static RotationalControllerImpMakerTemplate<PDRotationalController>
-registerPDRotationalController("PDRotationalController");
+static RotationalControllerImpMakerTemplate<NonlinearPDRotationalController>
+registerNonlinearPDRotationalController("NonlinearPDRotationalController");
 
-PDRotationalController::PDRotationalController(core::ConfigNode config) :
+NonlinearPDRotationalController::NonlinearPDRotationalController(
+    core::ConfigNode config) :
     RotationalControllerBase(config),
     m_desiredOrientation(math::Quaternion::ZERO),
     dtMin(0),dtMax(100000),
-    m_kp(0), m_kd(0)
+    angularPGain(0), angularDGain(0)
 {
-    m_kp = config["kp"].asDouble();
-    m_kd = config["kd"].asDouble();
-    dtMin = config["dtMin"].asDouble();
-    dtMax = config["dtMax"].asDouble();
+    angularPGain = config["kp"].asDouble(0);
+    angularDGain = config["kd"].asDouble(0);
+    dtMin = config["dtMin"].asDouble(0);
+    dtMax = config["dtMax"].asDouble(100);
     inertiaEstimate[0][0] = config["inertia"][0][0].asDouble(0.201);
     inertiaEstimate[0][1] = config["inertia"][0][1].asDouble(0);
     inertiaEstimate[0][2] = config["inertia"][0][2].asDouble(0);
@@ -40,9 +43,11 @@ PDRotationalController::PDRotationalController(core::ConfigNode config) :
     inertiaEstimate[2][2] = config["inertia"][2][2].asDouble(1.288);
 }
 
-math::Vector3 PDRotationalController::rotationalUpdate(double timestep,
-                                                       math::Quaternion orientation,
-                                                       math::Vector3 angularRate)
+
+math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
+    double timestep,
+    math::Quaternion orientation,
+    math::Vector3 angularRate)
 {
 
     //don't need this timing information in this function, but will keep it here in case it is needed in the future
@@ -66,10 +71,12 @@ math::Vector3 PDRotationalController::rotationalUpdate(double timestep,
     math::Vector3 epsilon_tilde(q_tilde.x, q_tilde.y, q_tilde.z);
     double eta_tilde = q_tilde.w;
 
+
     //compute angular rate error
     math::Vector3 w_error(angularRate[0],
                           angularRate[1],
                           angularRate[2]);
+
 
     //compute matrix needed for gyroscopic term
     math::Matrix3 w_tilde;
@@ -77,15 +84,16 @@ math::Vector3 PDRotationalController::rotationalUpdate(double timestep,
 
     //compute control signal
     math::Vector3 u;
-    double kp = m_kp;
-    double kd = m_kd;
+    double kp = angularPGain;
+    double kd = angularDGain;
     u = - kp*J*math::sign(eta_tilde)*epsilon_tilde - kd*J*w_error + w_tilde*J*w_error;
 
     //put back into non-OGRE format
     math::Vector3 rotationalTorques(u[0],u[1],u[2]);
 
-    return rotationalTorques;
+    //return rotationalTorques;
 
+    return math::Vector3::ZERO;
 }
 
 } // namespace control

@@ -7,8 +7,8 @@
  * File:  packages/control/include/TrackingTranslationalController.h
  */
  
-#ifndef RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H_03_14_2010
-#define RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H_03_14_2010
+#ifndef RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H
+#define RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H
 
 // Project Includes
 #include "control/include/TranslationalControllerBase.h"
@@ -21,8 +21,7 @@ class TrackingTranslationalController : public TranslationalControllerBase
 {
 public:
     TrackingTranslationalController(ram::core::ConfigNode config);
-    virtual ~TrackingTranslationalController() {}
-    
+        
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
@@ -44,6 +43,6 @@ private:
 };
 
 } // namespace control 
-} //namespace ram
+} // namespace ram
 
-#endif // RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H_03_14_2010
+#endif // RAM_CONTROL_TRACKINGTRANSLATIONALCONTROLLER_H

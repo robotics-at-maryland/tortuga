@@ -13,6 +13,7 @@
 // Project Includes
 #include "control/include/ITranslationalController.h"
 
+#include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
@@ -92,6 +93,9 @@ public:
 
     /** What type of translation control we are doing */
     ControlMode::ModeType m_controlMode;
+    
+    controltest::DesiredStatePtr desiredState;
+
 private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);

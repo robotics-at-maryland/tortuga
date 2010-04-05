@@ -4,42 +4,38 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/PIDDepthController.cpp
+ * File:  packages/control/include/NonlinearPDRotationalController.h
  */
 
-
-#ifndef RAM_CONTROL_PDROTATIONALCONTROLLER_H
-#define RAM_CONTROL_PDROTATIONALCONTROLLER_H
+#ifndef RAM_CONTROL_NONLINEARPDROTATIONALCONTROLLER_H
+#define RAM_CONTROL_NONLINEARPDROTATIONALCONTROLLER_H
 
 #include "control/include/RotationalControllerBase.h"
-
-#include "math/include/Vector3.h"
-#include "math/include/Matrix3.h"
 
 namespace ram {
 namespace control {    
 
-class PDRotationalController : public RotationalControllerBase
+class NonlinearPDRotationalController : public RotationalControllerBase
 {
 public:
-    PDRotationalController(ram::core::ConfigNode config);
-    ~PDRotationalController() {}
+    NonlinearPDRotationalController(ram::core::ConfigNode config);
+    virtual ~NonlinearPDRotationalController() {}
 
     virtual math::Vector3 rotationalUpdate(double timestep,
                                            math::Quaternion orientation,
                                            math::Vector3 angularRate);
 
 private:
+
     math::Quaternion m_desiredOrientation;
     double dtMin, dtMax;
-    double m_kp, m_kd;
+    double angularPGain;
+    double angularDGain;
     double inertiaEstimate[3][3];
-
-    math::Vector3 w_error(double ar0, double ar1, double ar2);
 
 };
 
 } // namespace control
 } // namespace ram
 
-#endif // RAM_CONTROL_PDROTATIONALCONTROLLER_H
+#endif // RAM_CONTROL_NONLINEARPDROTATIONALCONTROLLER_H

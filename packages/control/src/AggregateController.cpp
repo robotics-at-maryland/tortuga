@@ -39,7 +39,7 @@
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::AggregateController, AggregateController);
 
 // Create category for logging
-//static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
 //static log4cpp::Category& ADPT_LOGGER(log4cpp::Category::getInstance("AdaptCtrl"));
 
 using namespace std;
@@ -51,13 +51,16 @@ AggregateController::AggregateController(vehicle::IVehiclePtr vehicle,
                                          core::ConfigNode config) :
     ControllerBase(vehicle, config)
 {   
+    std::cout << "Constructing Aggregate Controller ";
     init(config); 
+    std::cout << " - Successful" << std::endl;
 }
 
 AggregateController::AggregateController(core::ConfigNode config,
                                          core::SubsystemList deps) :
     ControllerBase(config, deps)
 {
+std::cout << "Constructing Aggregate Controller" << std::endl;
     init(config);
 }
 
@@ -68,17 +71,29 @@ AggregateController::~AggregateController()
 
 void AggregateController::init(core::ConfigNode config)
 {
-    // Create In plane controller
+
+   // Create In plane controller
+    std::cout << "Creating ";
     core::ConfigNode node(config["TranslationalController"]);
+    std::cout << node["type"].asString();
     m_transController = TranslationalControllerImpMaker::newObject(node);
-    
+    std::cout << " - Successful" << std::endl;
+
     // Create depth controller
+    std::cout << "Creating ";
     node = config["DepthController"];
+    std::cout << node["type"].asString();
     m_depthController = DepthControllerImpMaker::newObject(node);
+    std::cout << " - Successful" << std::endl;
     
+
     // Create rotational controller
+    std::cout << "Creating ";
     node = config["RotationalController"];
+    std::cout << node["type"].asString();
     m_rotController = RotationalControllerImpMaker::newObject(node);
+    std::cout << " - Successful" << std::endl;
+
 }
 
 

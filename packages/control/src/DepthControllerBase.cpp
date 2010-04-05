@@ -81,9 +81,6 @@ void DepthControllerBase::init(core::ConfigNode config)
   m_depthThreshold =
     config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
 }
-    
-
-
 
 } // namespace control
 } // namespace ram

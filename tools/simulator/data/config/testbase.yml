@@ -1,0 +1,287 @@
+# This is our config file
+# It tells the program what kind of vehicle to create
+
+
+SimSonar:
+    type: SimSonar
+    depends_on: ["Simulation", "Vehicle", "EventHub"]
+    pingInterval: 2.0
+   
+EventHub:
+    type: EventHub
+
+# Queues events from background threads so they can be executed in python
+QueuedEventHub:
+    depends_on: ["EventHub"]
+    type: QueuedEventHub
+
+Vehicle:
+    type: Vehicle
+    depends_on: ["Simulation", "EventHub", "Logging"]
+
+    DepthSensorName: DepthSensor
+    Devices:
+        # Special device that holds references to the current simulation
+        # scene and robot
+#        VelocitySensor:
+#            type: VisionVelocitySensor
+#            depthSensorName: DepthSensor
+#            depends_on: ["DepthSensor"]
+
+#        VelocitySensor:
+#            type: SimVelocitySensor
+#            depends_on: ["SimulationDevice"]
+
+#        PositionSensor:
+#            type: IdealPositionEstimator
+#            depends_on: ["SimulationDevice"]
+
+        SimulationDevice:
+            type: SimulationDevice
+
+        # Special simulation device that leaves the red balls behind the 
+        # robot
+        TrailMarker:
+            type: TrailMarker   
+            depends_on: ["SimulationDevice"]
+
+        MarkerDropper:
+            type: SimMarkerDropper
+            depends_on: ["SimulationDevice"]
+        TorpedoLauncher:
+            type: SimTorpedoLauncher
+            depends_on: ['SimulationDevice']
+        Sonar:
+            depends_on: ['SimulationDevice']
+            type: SimSonar
+
+        # This entry creates a thruster
+        StarboardThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: right_thruster
+            relAxis: y
+        PortThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: left_thruster
+            relAxis: y
+        ForeThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: front_thruster
+            relAxis: x
+        AftThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: aft_thruster
+            relAxis: x
+        TopThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: top_thruster
+            relAxis: z
+        BottomThruster:
+            depends_on: ['SimulationDevice']
+            type: SimThruster
+            simName: bot_thruster
+            relAxis: z
+
+        StateEstimator:
+            type: LoopStateEstimator
+
+            INCLUDE: tools/simulator/data/config/maps/default.yml
+
+        IMU: # MagBoom
+            depends_on: ['SimulationDevice']
+            type: SimIMU
+
+        VelocitySensor:
+            depends_on: ['SimulationDevice']
+            type: SimVelocitySensor
+
+        PositionSensor:
+            depends_on: ['SimulationDevice']
+            type: IdealPositionSensor
+
+        DepthSensor:
+            depends_on: ["SimulationDevice"]
+            type: SimDepthSensor
+
+
+# Exectures Motions
+MotionManager:
+    type: MotionManager
+    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+
+# Handles Timers
+TimerManager:
+    type: TimerManager
+    depends_on: ["EventHub"]
+
+#RemoteController:
+#    type: RemoteController
+#    depends_on: ["Controller"]
+#    update_interval: -1
+#    yawGain: 50
+
+Logging:
+    type: Logging
+    #update_interval: -1
+    Appenders:
+        VehicleLog:
+            type: File
+            fileName: vehicle.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
+        Console:
+            type: Console
+            Layout:
+                type: Pattern
+                pattern: "%c %m %r%n"
+    Categories:
+        Vehicle:
+            appenders: ['VehicleLog']
+
+EventLogger:
+    depends_on: ["EventHub"]
+    type: EventLogger
+
+Controller:
+    depends_on: ["Vehicle", "EventHub"]
+    type: AggregateController
+
+    TranslationalController:
+        type: TrackingTranslationalController
+        velocityThreshold: 0.1
+        positionThreshold: 0.1
+        x1kp: 10
+        x1ki: 0
+        x1kd: 0
+        x2kp: 10
+        x2ki: 0
+        x2kd: 0
+
+    DepthController:
+        type: PIDDepthController
+        depthThreshold: 0.05
+        kp: 10
+        ki: 1
+        kd: 3
+        dtMin: 0.01
+        dtMax: 2
+
+    RotationalController:
+        type: NonlinearPDRotationalController
+        orientationThreshold: 0.01
+        kp: 10
+        kd: 6
+        dtMin: 0.01
+        dtMax: 2
+
+#RemoteController:
+#    type: RemoteController
+#    depends_on: ["Controller"]
+#    update_interval: -1
+
+KeyboardController:
+    depends_on: ["Controller"]
+    type: KeyboardController
+
+Simulation:
+    type: Simulation
+    scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
+    vehicleView: True
+    #debugOutput: True
+    #debug: 0
+
+    Scenes:
+        # Each scene must be on the given scene_path, this for example is 
+        # in 'data/scenes/nxtest.xml'
+        #Main: objectives/pipe.sml
+        #Main: objectives/bin.sml
+        #Main: objectives/duct.sml
+        #Main: objectives/multi_pipe.sml
+        #Main: objectives/barbedwire.sml
+        #Main: objectives/target.sml
+        Main: objectives/target2.sml
+        #Main: objectives/buoy.sml
+        #Main: objectives/buoy2.sml
+        #Main: objectives/pinger.sml
+        #Main: objectives/safe.sml
+        #Main: transdec.sml
+        #Main: nxtest.sml
+        #Main: gen_course.sml
+        #Main: safePing.sml
+        #Main: shortCourse.sml
+        #Main: nbrf_tank.sml
+        #Main: nbrf_tank_demo.sml
+        #Main: erc_course.sml
+        #Main: bigbox.sml
+
+    Graphics:
+        Plugins:
+            # TODO: Remove the extra paths
+            search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
+            'C:\Libraries\PythonOgre\plugins',
+            'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
+            '/home/lsinger/ram_deps/python-ogre-snapshot/plugins',
+            '/opt/ram/local/lib/OGRE']
+
+            plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
+            'Plugin_OctreeSceneManager']
+   
+        RenderSystem:
+            type: OpenGL
+
+            OpenGL:
+                - [FSAA, '0']
+                - [RTT Preferred Mode, 'FBO']
+                - [VSync, 'No']
+
+    Input:
+        KeyMap:
+            # Camera Controls
+            #W : CAM_FORWARD
+            #A : CAM_LEFT 
+            #S : CAM_BACK 
+            #D : CAM_RIGHT
+            #Q : CAM_UP 
+            #E : CAM_DOWN
+            #R : CAM_ZOOM_IN
+            #F : CAM_ZOOM_OUT
+            #V : CAM_TOGGLE_FOLLOW
+
+            NUMPAD8 : CAM_FORWARD
+            NUMPAD4 : CAM_LEFT 
+            NUMPAD5 : CAM_BACK 
+            NUMPAD6 : CAM_RIGHT
+            NUMPAD7 : CAM_UP 
+            NUMPAD9 : CAM_DOWN
+            ADD : CAM_ZOOM_IN
+            SUBTRACT : CAM_ZOOM_OUT
+            NUMPAD2 : CAM_PITCH_UP
+            NUMPAD0 : CAM_PITCH_DOWN
+            NUMPAD1 : CAM_YAW_LEFT
+            NUMPAD3 : CAM_YAW_RIGHT
+
+            # Vehicle Controls
+            I : THRUST_FORE
+            K : THRUST_BACK
+            G : THRUST_KILL
+            J : TURN_LEFT
+            L : TURN_RIGHT
+            U : SURFACE
+            O : DIVE
+            Y : PITCH_UP
+            H : PITCH_DOWN
+            Z : ROLL_PORT
+            X : ROLL_STARBOARD
+            N : STRAFE_LEFT
+            M : STRAFE_RIGHT
+            S : STOP
+                            # Misc.
+            CTRL+B : SCREENSHOT
+

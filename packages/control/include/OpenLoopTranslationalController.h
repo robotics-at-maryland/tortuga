@@ -23,13 +23,14 @@ public:
     OpenLoopTranslationalController(ram::core::ConfigNode config);
 
     /** Disable setVelocity because it does nothing for us */
+/*
     virtual void setVelocity(math::Vector2) {}
     virtual void setDesiredVelocity(math::Vector2) {}
     virtual void setDesiredPosition(math::Vector2) {}
     virtual void setDesiredPositionAndVelocity(math::Vector2, math::Vector2) {}
     virtual math::Vector2 getDesiredPosition() {return math::Vector2::ZERO;}
     virtual math::Vector2 getDesiredVelocity() {return math::Vector2::ZERO;}
-    
+*/
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,

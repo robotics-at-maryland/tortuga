@@ -15,7 +15,7 @@ namespace ram {
 namespace control {
 
 RotationalControllerBase::RotationalControllerBase(core::ConfigNode config) :
-        m_orientationThreshold(0)
+        m_orientationThreshold(0.001)
 {
     init(config);
 }
