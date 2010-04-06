@@ -43,6 +43,31 @@ class RAM_EXPORT LineDetector  : public Detector
 {
 public:
 
+    /**
+     * Determines what type of hough transform is done on the image.
+     * 
+     * A standard hough transform will find the edges as infinite lines.
+     * This version can only return the rho and theta values of the lines
+     * it finds. If you only need these values, use the standard hough
+     * transform.
+     *
+     * The probabilistic hough transform will only find the cartesian
+     * coordinate pairs for the line segments found in the image. It will
+     * not produce a rho/theta value.
+     *
+     * Both will use the probabilistic hough transform. Then it will calculate
+     * the theta/rho values from the x,y pairs it gets for a line. This
+     * option is the default.
+     *
+     * Attempting to access an invalid parameter will result in undefined
+     * behavior. Don't do it.
+     */
+    enum HoughType {
+        STANDARD = 0,
+        PROBABILISTIC,
+        BOTH
+    };
+
     /** A single set of connected white pixels in the image
      *
      *  Stores min/max X and Y bounds of the blob, its center, and pixel count.
@@ -50,7 +75,7 @@ public:
     class Line
     {
     public:
-        Line(CvPoint pt1, CvPoint pt2, double theta, double rho) :
+        Line(CvPoint pt1, CvPoint pt2, math::Radian theta, double rho) :
             m_pt1(pt1),
             m_pt2(pt2),
             m_theta(theta),
@@ -75,7 +100,7 @@ public:
 
         CvPoint point1() const { return m_pt1; }
         CvPoint point2() const { return m_pt2; }
-        double theta() const { return m_theta; }
+        math::Radian theta() const { return m_theta; }
         double rho() const { return m_rho; }
 
     private:
@@ -88,7 +113,7 @@ public:
         CvPoint m_pt1;
         CvPoint m_pt2;
         math::Vector2 m_line;
-        double m_theta;
+        math::Radian m_theta;
         double m_rho;
     };
     
@@ -102,8 +127,9 @@ public:
     };
     
     LineDetector(core::ConfigNode config,
-                 core::EventHubPtr eventHub = core::EventHubPtr());
-    LineDetector(int minimumLineSize = 0);
+                 core::EventHubPtr eventHub = core::EventHubPtr(),
+                 HoughType type = BOTH);
+    LineDetector(int minimumLineSize = 0, HoughType type = BOTH);
     ~LineDetector();
     
     void processImage(Image* input, Image* output= 0);
@@ -131,20 +157,23 @@ public:
     int houghTransform();
 
     /** Ensures that data array is large enough to hold desired pixel count */
-    void ensureDataSize(int pixels);
+    void ensureDataSize(size_t width, size_t height);
     
     LineList m_lines;
 
-    /** Minimum pixel count for blobs to count */
-    int m_minLineSize;
+    /** Minimum line length and gap between lines */
+    double m_minLineSize;
+    double m_maxGapLength;
 
     /** Properties */
+    HoughType m_houghType;
     double m_highThreshold;
     double m_lowThreshold;
+    int m_houghThreshold;
     int m_maxLines;
 
     /** "Image" used during internal processing */
-    IplImage* data;
+    OpenCVImage* data;
     
     /** Number of pixels represented in the data array */
     size_t m_dataSize;
