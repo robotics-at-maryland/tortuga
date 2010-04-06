@@ -14,6 +14,7 @@
 #include "control/include/ControllerMaker.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
+#include "control/include/Helpers.h"
 
 namespace ram {
 namespace control {
@@ -32,7 +33,6 @@ TrackingTranslationalController::TrackingTranslationalController(core::ConfigNod
     x1kp(0), x1ki(0), x1kd(0),
     x2kp(0), x2ki(0), x2kd(0)
 {
-    std::cout << " In TrackingTranslationalController Constructor" << std::endl;
     x1kp = config["x1kp"].asDouble(0);
     x1ki = config["x1ki"].asDouble(0);
     x1kd = config["x1kd"].asDouble(0);
@@ -51,16 +51,16 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     double yaw = orientation.getYaw().valueRadians(); 
 
     // Only call cos and sin once
-    double yaw_cos = cos(yaw), yaw_sin = sin(yaw);
+    //double yaw_cos = cos(yaw), yaw_sin = sin(yaw);
 	 
     //Compute rotation matrix from inertial frame to body frame
-    math::Matrix2 bRn(yaw_cos,yaw_sin,-yaw_sin,yaw_cos);
+    //math::Matrix2 bRn(yaw_cos,-yaw_sin,yaw_sin,yaw_cos);
     //Compute rotation matrix from body frame to inertial frame
-    math::Matrix2 nRb(yaw_cos,-yaw_sin,yaw_sin,yaw_cos);
+    //math::Matrix2 nRb(yaw_cos,yaw_sin,-yaw_sin,yaw_cos);
 
     //Update current position and velocity
     m_currentPosition = position;     //assume position in inertial frame
-    m_currentVelocity = nRb*velocity; //rotate velocity to inertial frame
+    m_currentVelocity = nRb(yaw)*velocity; //rotate velocity to inertial frame
 	 
     //Initialize error vectors
     math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
@@ -129,7 +129,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     //double desired_yaw = atan(signal_n[1]/signal_n[0]);
 
     //Rotate translationalSignal_n from the inertial frame to the body frame
-    math::Vector2 translationalSignal_b(bRn*translationalSignal_n);
+    math::Vector2 translationalSignal_b(bRn(yaw)*translationalSignal_n);
 	 
     //Store previous error to be used in the next call
     m_prevPositionError = positionPError;

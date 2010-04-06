@@ -28,7 +28,7 @@ namespace control {
  */
 class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
 {
-public:
+  public:
     RotationalControllerBase(core::ConfigNode config);
     
     virtual ~RotationalControllerBase() {}
@@ -55,10 +55,7 @@ public:
     virtual math::Vector3 rotationalUpdate(double timestep,
                                            math::Quaternion orientation,
                                            math::Vector3 angularRate);
-    
-private:
-    /** Does all initialzation based on the configuration settings */
-    void init(core::ConfigNode config);
+  protected:
     
     /** When we are within this limit atOrientation returns true */
     double m_orientationThreshold;
@@ -71,8 +68,13 @@ private:
 
     /** The orientation from the last update command */
     math::Quaternion m_currentOrientation;
+
+  private:
+/** Does all initialzation based on the configuration settings */
+    void init(core::ConfigNode config);
+
 };
-    
+ 
 } // namespace control
 } // namespace ram
 

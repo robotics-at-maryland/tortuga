@@ -147,25 +147,40 @@ void CombineController::holdCurrentDepth()
     
 // Rotational controller methods
 void CombineController::rollVehicle(double degrees)
-{ m_rotController->rollVehicle(degrees); }
+{
+    m_rotController->rollVehicle(degrees);
+    newDesiredOrientationSet(m_rotController->getDesiredOrientation());
+ }
 
 void CombineController::pitchVehicle(double degrees)
-{ m_rotController->pitchVehicle(degrees); }
+{ 
+    m_rotController->pitchVehicle(degrees); 
+    newDesiredOrientationSet(m_rotController->getDesiredOrientation());
+}
 
 void CombineController::yawVehicle(double degrees)
-{ m_rotController->yawVehicle(degrees); }
+{ 
+    m_rotController->yawVehicle(degrees);
+    newDesiredOrientationSet(m_rotController->getDesiredOrientation());
+}
 
 math::Quaternion CombineController::getDesiredOrientation()
 { return m_rotController->getDesiredOrientation(); }
 
 void CombineController::setDesiredOrientation(math::Quaternion newOrientation)
-{ m_rotController->setDesiredOrientation(newOrientation); }
+{ 
+    m_rotController->setDesiredOrientation(newOrientation);
+    newDesiredOrientationSet(m_rotController->getDesiredOrientation());
+}
     
 bool CombineController::atOrientation()
 { return m_rotController->atOrientation(); }
 
 void CombineController::holdCurrentHeading()
-{ m_rotController->holdCurrentHeading(); }
+{ 
+    m_rotController->holdCurrentHeading();
+    newDesiredOrientationSet(m_rotController->getDesiredOrientation());
+}
 
 void CombineController::doUpdate(const double& timestep,
                                  const math::Vector3& linearAcceleration,

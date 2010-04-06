@@ -8,6 +8,7 @@
  */
 
 // Project includes
+#include <iostream>
 #include "control/include/RotationalControllerBase.h"
 #include "control/include/ControllerBase.h"
 
@@ -15,7 +16,8 @@ namespace ram {
 namespace control {
 
 RotationalControllerBase::RotationalControllerBase(core::ConfigNode config) :
-        m_orientationThreshold(0.001)
+    m_orientationThreshold(0.001),
+    m_desiredOrientation(math::Quaternion::ZERO)
 {
     init(config);
 }
@@ -92,6 +94,11 @@ void RotationalControllerBase::init(core::ConfigNode config)
 {
     m_orientationThreshold =
         config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
+
+    m_desiredOrientation[0] = config["desiredOrienataion"][0].asDouble(0);
+    m_desiredOrientation[1] = config["desiredOrienataion"][1].asDouble(0);
+    m_desiredOrientation[2] = config["desiredOrienataion"][2].asDouble(0);
+    m_desiredOrientation[3] = config["desiredOrienataion"][3].asDouble(1);
 }
         
 } // namespace control

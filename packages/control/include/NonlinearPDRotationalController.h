@@ -27,7 +27,6 @@ public:
 
 private:
 
-    math::Quaternion m_desiredOrientation;
     double dtMin, dtMax;
     double angularPGain;
     double angularDGain;

@@ -7,7 +7,7 @@
  * File:  packages/control/src/NonlinearPDRotationalController.cpp
  */
 
-
+#include <iostream>
 #include "control/include/NonlinearPDRotationalController.h"
 #include "control/include/ControllerMaker.h"
 #include "math/include/Matrix3.h"
@@ -24,14 +24,14 @@ registerNonlinearPDRotationalController("NonlinearPDRotationalController");
 NonlinearPDRotationalController::NonlinearPDRotationalController(
     core::ConfigNode config) :
     RotationalControllerBase(config),
-    m_desiredOrientation(math::Quaternion::ZERO),
-    dtMin(0),dtMax(100000),
+    dtMin(0.001),dtMax(0.05),
     angularPGain(0), angularDGain(0)
 {
     angularPGain = config["kp"].asDouble(0);
     angularDGain = config["kd"].asDouble(0);
-    dtMin = config["dtMin"].asDouble(0);
-    dtMax = config["dtMax"].asDouble(100);
+    dtMin = config["dtMin"].asDouble(0.001);
+    dtMax = config["dtMax"].asDouble(0.05);
+
     inertiaEstimate[0][0] = config["inertia"][0][0].asDouble(0.201);
     inertiaEstimate[0][1] = config["inertia"][0][1].asDouble(0);
     inertiaEstimate[0][2] = config["inertia"][0][2].asDouble(0);
@@ -57,7 +57,6 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     if(timestep > dtMax)
         timestep = dtMax;
 
-
     //put inertia estimate in OGRE
     math::Matrix3 J(inertiaEstimate);
 
@@ -71,12 +70,10 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     math::Vector3 epsilon_tilde(q_tilde.x, q_tilde.y, q_tilde.z);
     double eta_tilde = q_tilde.w;
 
-
     //compute angular rate error
     math::Vector3 w_error(angularRate[0],
                           angularRate[1],
                           angularRate[2]);
-
 
     //compute matrix needed for gyroscopic term
     math::Matrix3 w_tilde;
@@ -86,14 +83,16 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     math::Vector3 u;
     double kp = angularPGain;
     double kd = angularDGain;
-    u = - kp*J*math::sign(eta_tilde)*epsilon_tilde - kd*J*w_error + w_tilde*J*w_error;
+    u = - kp*J*(math::sign(eta_tilde))*epsilon_tilde - kd*J*w_error + w_tilde*J*w_error;
 
     //put back into non-OGRE format
-    math::Vector3 rotationalTorques(u[0],u[1],u[2]);
-
-    //return rotationalTorques;
-
-    return math::Vector3::ZERO;
+    math::Vector3 rotationalTorques(0,0,0);
+    *((double*)(rotationalTorques.ptr()))=u[0];
+    *((double*)(rotationalTorques.ptr())+1)=u[1];
+    *((double*)(rotationalTorques.ptr())+2)=u[2];
+    
+    return rotationalTorques;
+    
 }
 
 } // namespace control
