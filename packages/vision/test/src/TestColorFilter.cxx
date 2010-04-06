@@ -48,9 +48,9 @@ TEST_FIXTURE(ColorFilterFixture, CenterLightInPlace)
 
     // Filter to threshold the image with
     vision::ColorFilter filter(100, 250, // B 
-			       40, 60, // G
-			       150, 200 // R
-			       );
+                               40, 60, // G
+                               150, 200 // R
+        );
 
     // Filter image and check the result
     filter.filterImage(&input);
@@ -80,9 +80,9 @@ TEST_FIXTURE(ColorFilterFixture, CenterLightCopy)
 
     // Filter to threshold the image with
     vision::ColorFilter filter(100, 250, // B 
-			       40, 60, // G
-			       150, 200 // R
-			       );
+                               40, 60, // G
+                               150, 200 // R
+        );
 
     // Filter image and check the result
     vision::OpenCVImage output(640, 480);
@@ -155,9 +155,9 @@ TEST_FIXTURE(ColorFilterFixture, testSingleChannel)
 
     // Filter to threshold the image width
     vision::ColorFilter filter(100, 250, // B 
-			       40, 60, // G
-			       150, 200 // R
-			       );
+                               40, 60, // G
+                               150, 200 // R
+        );
 
     // Filter image and check the result
     vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
