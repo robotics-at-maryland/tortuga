@@ -25,6 +25,7 @@
 
 #include "vision/include/VisionSystem.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
 #include "vision/include/FFMPEGCamera.h"
@@ -51,9 +52,12 @@ END_EVENT_TABLE()
 Model::Model() :
     m_camera(0),
     m_timer(new wxTimer(this)),
-    m_latestImage(new vision::OpenCVImage(640, 480)),
-    m_detectorInput(new vision::OpenCVImage(640, 480)),
-    m_detectorOutput(new vision::OpenCVImage(640, 480)),
+    m_latestImage(new vision::OpenCVImage(
+                      640, 480, vision::Image::PF_BGR_8)),
+    m_detectorInput(new vision::OpenCVImage(
+                        640, 480, vision::Image::PF_BGR_8)),
+    m_detectorOutput(new vision::OpenCVImage(
+                         640, 480, vision::Image::PF_BGR_8)),
     m_imageToSend(m_latestImage),
     m_detector(vision::DetectorPtr()),
     m_detectorType(""),
