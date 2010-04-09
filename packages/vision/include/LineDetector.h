@@ -43,31 +43,6 @@ class RAM_EXPORT LineDetector  : public Detector
 {
 public:
 
-    /**
-     * Determines what type of hough transform is done on the image.
-     * 
-     * A standard hough transform will find the edges as infinite lines.
-     * This version can only return the rho and theta values of the lines
-     * it finds. If you only need these values, use the standard hough
-     * transform.
-     *
-     * The probabilistic hough transform will only find the cartesian
-     * coordinate pairs for the line segments found in the image. It will
-     * not produce a rho/theta value.
-     *
-     * Both will use the probabilistic hough transform. Then it will calculate
-     * the theta/rho values from the x,y pairs it gets for a line. This
-     * option is the default.
-     *
-     * Attempting to access an invalid parameter will result in undefined
-     * behavior. Don't do it.
-     */
-    enum HoughType {
-        STANDARD = 0,
-        PROBABILISTIC,
-        BOTH
-    };
-
     /** A single set of connected white pixels in the image
      *
      *  Stores min/max X and Y bounds of the blob, its center, and pixel count.
@@ -122,14 +97,18 @@ public:
         public:
             static bool compare(Line b1, Line b2)
             {
-                return b1.squaredLength() > b2.squaredLength();
+                math::Radian theta = b2.theta() - b1.theta();
+                if (theta == math::Radian(0)) {
+                    return b2.rho() - b1.rho();
+                } else {
+                    return theta < math::Radian(0);
+                }
             }
     };
     
     LineDetector(core::ConfigNode config,
-                 core::EventHubPtr eventHub = core::EventHubPtr(),
-                 HoughType type = BOTH);
-    LineDetector(int minimumLineSize = 0, HoughType type = BOTH);
+                 core::EventHubPtr eventHub = core::EventHubPtr());
+    LineDetector(int minimumLineSize = 0);
     ~LineDetector();
     
     void processImage(Image* input, Image* output= 0);
@@ -166,11 +145,13 @@ public:
     double m_maxGapLength;
 
     /** Properties */
-    HoughType m_houghType;
     double m_highThreshold;
     double m_lowThreshold;
     int m_houghThreshold;
     int m_maxLines;
+    double m_rhoGap;
+    math::Radian m_thetaGap;
+    int m_squareGap;
 
     /** "Image" used during internal processing */
     OpenCVImage* data;

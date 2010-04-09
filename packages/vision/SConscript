@@ -92,7 +92,7 @@ envt.RAMProgram(target = 'PhaseCorrelation',
 
 # Unit Tests
 envt = env.Clone()
-envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'], exclude = ['test/src/TestHedgeDetector.cxx', 'test/src/TestLineDetector.cxx'])
+envt.Tests(int_deps = 'vision', ext_deps = ['Boost.Filesystem'], exclude = ['test/src/TestHedgeDetector.cxx'])
 
 
 # --------------------------------------------------------------------------- #
