@@ -125,7 +125,9 @@ void OpenCVImage::copyFrom (const Image* src)
 
     // Resize this image to match the source needed (also copy)
     if ((getWidth() != src->getWidth()) ||
-        (getHeight() != src->getHeight()) )
+        (getHeight() != src->getHeight()) ||
+        (getNumChannels() != src->getNumChannels()) ||
+        (getDepth() != src->getDepth()))
     {
         assert(m_own && "Cannot perform resize unless I own the image");
         cvReleaseImage(&m_img);

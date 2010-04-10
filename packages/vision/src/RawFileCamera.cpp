@@ -88,7 +88,7 @@ void RawFileCamera::update(double timestep)
 
     // Copy image to public side of the interface
     Image* newImage = new OpenCVImage(m_dataBuffer, width(),
-                                      height(), false);
+                                      height(), false, Image::PF_BGR_8);
 
     // Notfiy everyone that the image is uploaded
     capturedImage(newImage);

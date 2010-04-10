@@ -73,6 +73,36 @@ TEST(copyFrom)
                 0);
 }
 
+TEST(test_copyFromDifferentPixelFormat)
+{
+    ram::vision::OpenCVImage normal(100, 100, ram::vision::Image::PF_RGB_8);
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, normal.getPixelFormat());
+
+    ram::vision::OpenCVImage newimg(50, 75, ram::vision::Image::PF_GRAY_8);
+    CHECK_EQUAL(50u, newimg.getWidth());
+    CHECK_EQUAL(75u, newimg.getHeight());
+    CHECK_EQUAL(ram::vision::Image::PF_GRAY_8, newimg.getPixelFormat());
+
+    // Perform the copy, this should change the properties of newimg
+    newimg.copyFrom(&normal);
+    CHECK_EQUAL(100u, newimg.getWidth());
+    CHECK_EQUAL(100u, newimg.getHeight());
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, newimg.getPixelFormat());
+}
+
+TEST(test_copyFrom_channelOnly)
+{
+    ram::vision::OpenCVImage normal(100, 100, ram::vision::Image::PF_RGB_8);
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, normal.getPixelFormat());
+
+    ram::vision::OpenCVImage newimg(100, 100, ram::vision::Image::PF_GRAY_8);
+    CHECK_EQUAL(ram::vision::Image::PF_GRAY_8, newimg.getPixelFormat());
+
+    // If this isn't done correctly, OpenCV will crash
+    newimg.copyFrom(&normal);
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, newimg.getPixelFormat());
+}
+
 TEST(Default_Image)
 {
     ram::vision::OpenCVImage def(640, 480);
@@ -233,23 +263,6 @@ TEST_FIXTURE(GrayImageFixture, Gray_to_BGR)
     CHECK_EQUAL(128, afterData[1]); // Green
     CHECK_EQUAL(128, afterData[2]); // Red
     CHECK_EQUAL(ram::vision::Image::PF_BGR_8, img.getPixelFormat());
-}
-
-TEST(testCopyFromDifferentPixelFormat)
-{
-    ram::vision::OpenCVImage normal(100, 100, ram::vision::Image::PF_RGB_8);
-    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, normal.getPixelFormat());
-
-    ram::vision::OpenCVImage newimg(50, 75, ram::vision::Image::PF_GRAY_8);
-    CHECK_EQUAL(50u, newimg.getWidth());
-    CHECK_EQUAL(75u, newimg.getHeight());
-    CHECK_EQUAL(ram::vision::Image::PF_GRAY_8, newimg.getPixelFormat());
-
-    // Perform the copy, this should change the properties of newimg
-    newimg.copyFrom(&normal);
-    CHECK_EQUAL(100u, newimg.getWidth());
-    CHECK_EQUAL(100u, newimg.getHeight());
-    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, newimg.getPixelFormat());
 }
 
 } // SUITE(OpenCVImage)
