@@ -235,4 +235,21 @@ TEST_FIXTURE(GrayImageFixture, Gray_to_BGR)
     CHECK_EQUAL(ram::vision::Image::PF_BGR_8, img.getPixelFormat());
 }
 
+TEST(testCopyFromDifferentPixelFormat)
+{
+    ram::vision::OpenCVImage normal(100, 100, ram::vision::Image::PF_RGB_8);
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, normal.getPixelFormat());
+
+    ram::vision::OpenCVImage newimg(50, 75, ram::vision::Image::PF_GRAY_8);
+    CHECK_EQUAL(50u, newimg.getWidth());
+    CHECK_EQUAL(75u, newimg.getHeight());
+    CHECK_EQUAL(ram::vision::Image::PF_GRAY_8, newimg.getPixelFormat());
+
+    // Perform the copy, this should change the properties of newimg
+    newimg.copyFrom(&normal);
+    CHECK_EQUAL(100u, newimg.getWidth());
+    CHECK_EQUAL(100u, newimg.getHeight());
+    CHECK_EQUAL(ram::vision::Image::PF_RGB_8, newimg.getPixelFormat());
+}
+
 } // SUITE(OpenCVImage)

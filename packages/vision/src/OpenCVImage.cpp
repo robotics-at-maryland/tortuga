@@ -114,9 +114,10 @@ void OpenCVImage::copyFrom (const Image* src)
     if (this == src)
         return;
     
+    PixelFormat src_fmt = src->getPixelFormat();
     // Create temporaty OpenCV image to smooth the copy process
     int depth, channels;
-    getFormatParameters(m_fmt, depth, channels);
+    getFormatParameters(src_fmt, depth, channels);
     IplImage* tmp_img = cvCreateImageHeader(cvSize(src->getWidth(),
                                                    src->getHeight()),
                                             depth, channels);
@@ -135,6 +136,9 @@ void OpenCVImage::copyFrom (const Image* src)
     cvCopy(tmp_img, m_img);
 
     cvReleaseImageHeader(&tmp_img);
+
+    // Set the pixel format
+    m_fmt = src_fmt;
     
     // Copy Other members
     //m_own = src->getOwnership();
