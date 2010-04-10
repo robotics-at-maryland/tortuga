@@ -1,5 +1,14 @@
+/*
+ * Copyright (C) 2010 Robotics at Maryland
+ * Copyright (C) 2010 Jonathan Sternberg
+ * All rights reserved.
+ *
+ * Author: Jonathan Sternberg <jsternbe@umd.edu>
+ * File:  packages/vision/src/HedgeDetector.cpp
+ */
 
 // STD Includes
+#include <algorithm>
 #include <vector>
 
 // Library Includes
@@ -23,6 +32,7 @@ HedgeDetector::HedgeDetector(core::ConfigNode config,
                              core::EventHubPtr eventHub) :
     Detector(eventHub),
     cam(0),
+    m_lineDetector(config, eventHub),
     m_filter(0)
 {
     init(config);
@@ -36,10 +46,6 @@ HedgeDetector::HedgeDetector(Camera* camera)
 void HedgeDetector::init(core::ConfigNode config)
 {
     core::PropertySetPtr propSet(getPropertySet());
-    propSet->addProperty(config, false, "initialMinPixels",
-                         "Green pixel count required for blob to be a hedge",
-                         400, &m_initialMinGreenPixels);
-    minGreenPixels = m_initialMinGreenPixels;
 
     propSet->addProperty(config, false, "topRemovePercentage",
         "% of the screen from the top to be blacked out",
@@ -57,8 +63,9 @@ void HedgeDetector::init(core::ConfigNode config)
         "% of the screen from the right to be blacked out",
         0.0, &m_rightRemovePercentage);
 
-    propSet->addProperty(config, false, "useLUVFilter",
-                         "Use LUV based color filter", false, &m_useLUVFilter);
+    propSet->addProperty(config, false, "debugLevel",
+        "Image shown: 0=analyzed, 1=filtered, 2=preprocessed, 3=raw",
+        0, &m_debug, 0, 3);
 
     m_filter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_filter->addPropertiesToSet(propSet, &config,
@@ -68,6 +75,8 @@ void HedgeDetector::init(core::ConfigNode config)
                                  0, 255,    // L defaults // 180, 255
                                  0, 200,    // U defaults // 76, 245
                                  200, 255); // V defaults // 200,255
+
+    propSet->addPropertiesFromSet(m_lineDetector.getPropertySet());
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
@@ -81,20 +90,19 @@ void HedgeDetector::init(core::ConfigNode config)
     hedgeCenter.y=0;
 
     // Working images
-    frame = new ram::vision::OpenCVImage(640, 480);
-    image=cvCreateImage(cvSize(640,480), 8, 3);
-    raw=cvCreateImage(cvGetSize(image), 8, 3);
-    flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-    saveFrame=cvCreateImage(cvSize(640,480), 8, 3);
+    raw = new vision::OpenCVImage(640, 480);
+    preprocess = new vision::OpenCVImage(640, 480);
+    filtered = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
+    analyzed = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
 }
 
 HedgeDetector::~HedgeDetector()
 {
     delete frame;
-    cvReleaseImage(&flashFrame);
-    cvReleaseImage(&image);
-    cvReleaseImage(&raw);
-    cvReleaseImage(&saveFrame);
+    delete raw;
+    delete preprocess;
+    delete filtered;
+    delete analyzed;
 }
 
 double HedgeDetector::getX()
@@ -117,20 +125,14 @@ void HedgeDetector::setBottomRemovePercentage(double percent)
     m_bottomRemovePercentage = percent;
 }
 
-void HedgeDetector::setUseLUVFilter(bool value)
-{
-    m_useLUVFilter = value;
-}
-
 void HedgeDetector::show(char* window)
 {
     cvShowImage(window,((IplImage*)(raw)));
 }
 
-IplImage* HedgeDetector::getAnalyzedImage()
+Image* HedgeDetector::getAnalyzedImage()
 {
-    rotate90DegClockwise(raw, saveFrame);
-    return (IplImage*)(saveFrame);
+    return analyzed;
 }
 
 void HedgeDetector::update()
@@ -142,61 +144,65 @@ void HedgeDetector::update()
 void HedgeDetector::processImage(Image* input, Image* output)
 {
     // Resize images if needed
-    if ((image->width != (int)input->getWidth()) &&
-        (image->height != (int)input->getHeight()))
+    if ((raw->getWidth() != input->getWidth()) &&
+        (raw->getHeight() != input->getHeight()))
     {
-        cvReleaseImage(&image);
-        image = cvCreateImage(cvSize(input->getWidth(),
-                                     input->getHeight()), 8, 3);
-        cvReleaseImage(&raw);
-        raw=cvCreateImage(cvGetSize(image),8,3);
-        cvReleaseImage(&flashFrame);
-        flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
+        int width = (int)input->getWidth();
+        int height = (int)input->getHeight();
+
+        filtered->setSize(width, height);
+        analyzed->setSize(width, height);
     }
 
-    cvCopyImage(input->asIplImage(), image);
-    cvCopyImage(image, flashFrame);
+    raw->copyFrom(input);
+    preprocess->copyFrom(raw);
+
+    // TODO: Add a pixel format for LUV and use setPixelFormat
+    // Convert to LUV color space
+    cvCvtColor(preprocess->asIplImage(), preprocess->asIplImage(), CV_BGR2Luv);
     
     // Remove top chunk if desired
     if (m_topRemovePercentage != 0)
     {
-        int linesToRemove = (int)(m_topRemovePercentage * image->height);
-        size_t bytesToBlack = linesToRemove * image->width * 3;
-        memset(image->imageData, 0, bytesToBlack);
-        memset(flashFrame->imageData, 0, bytesToBlack);
+        int linesToRemove = (int)(m_topRemovePercentage * raw->getHeight());
+        size_t bytesToBlack = linesToRemove * raw->getWidth()
+            * raw->getNumChannels();
+        memset(preprocess->asIplImage()->imageData, 0, bytesToBlack);
     }
     
 
     if (m_bottomRemovePercentage != 0)
     {
-//        printf("Removing \n");
-        int linesToRemove = (int)(m_bottomRemovePercentage * image->height);
-        size_t bytesToBlack = linesToRemove * image->width * 3;
-        memset(&(image->imageData[image->width * image->height * 3 - bytesToBlack]), 0, bytesToBlack);
-        memset(&(flashFrame->imageData[flashFrame->width * flashFrame->height * 3 - bytesToBlack]), 0, bytesToBlack);
+        int linesToRemove = (int)(m_topRemovePercentage * raw->getHeight());
+        size_t bytesToBlack = linesToRemove * raw->getWidth()
+            * raw->getNumChannels();
+        memset(&(preprocess->asIplImage()->imageData[
+                     preprocess->getWidth() * preprocess->getHeight() *
+                     preprocess->getNumChannels() - bytesToBlack]),
+               0, bytesToBlack);
     }
 
     if (m_rightRemovePercentage != 0)
     {
-        size_t lineSize = image->width * 3;
+        size_t lineSize = raw->getWidth() * raw->getNumChannels();
         size_t bytesToBlack = (int)(m_rightRemovePercentage * lineSize);;
-        for (int i = 0; i < image->height; ++i)
+        for (size_t i = 0; i < raw->getHeight(); ++i)
         {
             size_t offset = i * lineSize - bytesToBlack;
-            memset(image->imageData + offset, 0, bytesToBlack);
-            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+            memset(preprocess->asIplImage()->imageData + offset,
+                   0, bytesToBlack);
         }
     }
 
     if (m_leftRemovePercentage != 0)
     {
-        size_t lineSize = image->width * 3;
+        size_t lineSize = raw->getWidth() * raw->getNumChannels();
         size_t bytesToBlack = (int)(m_leftRemovePercentage * lineSize);;
-        for (int i = 0; i < image->height; ++i)
+        for (size_t i = 0; i < raw->getHeight(); ++i)
         {
             size_t offset = i * lineSize;
-            memset(image->imageData + offset, 0, bytesToBlack);
-            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+            memset(preprocess->asIplImage()->imageData + offset,
+                   0, bytesToBlack);
         }
     }
         
@@ -208,32 +214,31 @@ void HedgeDetector::processImage(Image* input, Image* output)
     boundLL.x = 0;
     boundLL.y = 0;
 
-    if (m_useLUVFilter)
-        filterForGreenLUV(flashFrame);
-    else
-        filterForGreen(image, flashFrame);
+    m_filter->filterImage(preprocess, filtered);
 
-    m_blobDetector.setMinimumBlobSize(minGreenPixels);
-    OpenCVImage temp(flashFrame, false);
-    m_blobDetector.processImage(&temp);
+    m_lineDetector.processImage(filtered, analyzed);
 
-    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
-    int greenPixelCount = 0;
+    LineDetector::LineList lines = m_lineDetector.getLines();
 
-    if (blobs.size() > 0)
+    if (lines.size() > 0)
     {
-        BlobDetector::Blob greenBlob(0, 0, 0, 0, 0, 0, 0);
+        LineDetector::Line greenLine;
 
         // Attempt to find a valid blob
-        if (processBlobs(blobs, greenBlob))
+        if (processLines(lines, greenLine))
         {
-            hedgeCenter.x = greenBlob.getCenterX();
-            hedgeCenter.y = greenBlob.getCenterY();
-            boundUR.x = greenBlob.getMaxX();
-            boundUR.y = greenBlob.getMaxY();
-            boundLL.x = greenBlob.getMinX();
-            boundLL.y = greenBlob.getMinY();
-            greenPixelCount = greenBlob.getSize();
+            boundUR.x = greenLine.getMaxX();
+            boundUR.y = greenLine.getMaxY();
+            boundLL.x = greenLine.getMinX();
+            boundLL.y = greenLine.getMinY();
+
+            // Base the center off the bounding box
+            hedgeCenter.x = (boundUR.x + boundLL.x) / 2;
+            hedgeCenter.y = (boundUR.y + boundLL.y) / 2;
+
+            // Width
+            int pixelWidth = boundUR.x - boundLL.x;
+            m_hedgeWidth = pixelWidth / 640.0;
 
             found=true;
             Detector::imageToAICoordinates(input, hedgeCenter.x, hedgeCenter.y,
@@ -251,49 +256,55 @@ void HedgeDetector::processImage(Image* input, Image* output)
 
     if (output)
     {
-        cvCopyImage(flashFrame, raw);
+        switch (m_debug) {
+        case 0:
+            // Full information
+            output->copyFrom(analyzed);
+            output->setPixelFormat(vision::Image::PF_BGR_8);
+            break;
+        case 1:
+            // Filtered image and preprocessed
+            output->copyFrom(filtered);
+            output->setPixelFormat(vision::Image::PF_BGR_8);
+            break;
+        case 2:
+            // Preprocessed image only
+            output->copyFrom(preprocess);
+            break;
+        case 3:
+            // Raw image
+            output->copyFrom(raw);
+            break;
+        }
         
         if (found)
         {
+            // For convenience
+            IplImage* img = output->asIplImage();
             // Debugging info
             CvPoint tl,tr,bl,br;
             tl.x = bl.x = std::max(hedgeCenter.x-4,0);
-            tr.x = br.x = std::min(hedgeCenter.x+4,raw->width-1);
-            tl.y = tr.y = std::min(hedgeCenter.y+4,raw->height-1);
+            tr.x = br.x = std::min(hedgeCenter.x+4,img->width-1);
+            tl.y = tr.y = std::min(hedgeCenter.y+4,img->height-1);
             br.y = bl.y = std::max(hedgeCenter.y-4,0);
                         
-            cvLine(raw, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
-            cvLine(raw, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
-            cvLine(raw, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
-            cvLine(raw, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(img, tl, tr, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(img, tl, bl, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(img, tr, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
+            cvLine(img, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
             
-            cvRectangle(raw, boundUR, boundLL, CV_RGB(0,255,0), 2, CV_AA, 0);
+            cvRectangle(img, boundUR, boundLL, CV_RGB(0,255,0), 2, CV_AA, 0);
 
             // clamp values
-            //lightCenter.x = std::min(lightCenter.x, raw->width-1);
+            //lightCenter.x = std::min(lightCenter.x, img->width-1);
             //lightCenter.x = std::max(lightCenter.x, 0);
-            //lightCenter.y = std::min(lightCenter.y, raw->height-1);
+            //lightCenter.y = std::min(lightCenter.y, img->height-1);
             //lightCenter.y = std::max(lightCenter.y, 0);
             //int radius = std::max((int)sqrt((double)redPixelCount/M_PI), 1);
          
-            //cvCircle(raw, hedgeCenter, radius, CV_RGB(0,255,0), 2, CV_AA, 0);
+            //cvCircle(img, hedgeCenter, radius, CV_RGB(0,255,0), 2, CV_AA, 0);
         }
-
-        OpenCVImage temp(raw, false);
-        output->copyFrom(&temp);
     }
-}
-
-void HedgeDetector::filterForGreen(IplImage* image, IplImage* flashFrame)
-{
-}
-
-void HedgeDetector::filterForGreenLUV(IplImage* image)
-{
-    cvCvtColor(image, image, CV_BGR2Luv);
-    Image* tmpImage = new OpenCVImage(image, false);
-    m_filter->filterImage(tmpImage);
-    delete tmpImage;
 }
 
 void HedgeDetector::publishFoundEvent()
@@ -310,17 +321,13 @@ void HedgeDetector::publishFoundEvent()
     }
 }
 
-bool HedgeDetector::processBlobs(const BlobDetector::BlobList& blobs,
-                                 BlobDetector::Blob& outBlob)
+bool HedgeDetector::processLines(const LineDetector::LineList& lines,
+                                 LineDetector::Line& outLine)
 {
     // TODO: Get aspect ratio working
     // Copy from RedLightDetector
 
-    if (blobs.size() > 0)
-    {
-        outBlob = blobs[0];
-        return true;
-    }
+    // TODO: Do stuff...
 
     return false;
 }

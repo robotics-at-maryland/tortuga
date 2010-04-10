@@ -109,17 +109,9 @@ TEST_FIXTURE(LineDetectorFixture, testDiagonalLine)
 
     CHECK_EQUAL(2u, detector.getLines().size());
 
-    int i = 1;
     BOOST_FOREACH(vision::LineDetector::Line line, detector.getLines())
     {
         CHECK_CLOSE(expectedTheta, line.theta().valueRadians(), 0.005);
-        std::cout << "Line " << i++ << "\n"
-                  << "Rho: " << line.rho() << "\n"
-                  << "Theta: " << line.theta() << "\n"
-                  << "Point 1: (" << line.point1().x << ", "
-                  << line.point1().y << ")\n"
-                  << "Point 2: (" << line.point2().x << ", "
-                  << line.point2().y << ")" << std::endl;
     }
 }
 
