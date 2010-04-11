@@ -197,6 +197,11 @@ void PropertySet::addPropertiesFromSet(PropertySet* propSet)
         addProperty(propSet->getProperty(propName));
 }
 
+void PropertySet::addPropertiesFromSet(PropertySetPtr propSet)
+{
+    addPropertiesFromSet(propSet.get());
+}
+
 bool PropertySet::verifyConfig(core::ConfigNode config, bool assertOnError)
 {
     BOOST_FOREACH(std::string nodeName, config.subNodes())

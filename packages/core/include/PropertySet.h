@@ -94,7 +94,7 @@ public:
                      T defaultValue,
                      typename FunctionProperty<T>::GetterFunc getter,
                      typename FunctionProperty<T>::SetterFunc setter,
-		     T min, T max);
+                     T min, T max);
    
     /** Gets the property object for a given property name. 
      *    @remarks
@@ -114,6 +114,8 @@ public:
     /** Adds all the properties in the given set to this set */
     void addPropertiesFromSet(PropertySet* propSet);
 
+    void addPropertiesFromSet(PropertySetPtr propSet);
+
     /** Verify the config not only contains keys for the current properties
      *
      *  @param assertOnError
@@ -121,7 +123,7 @@ public:
      *      if the config is invalid.
      *
      *  @return
-     *      True if the keys are valie
+     *      True if the keys are valid
      */
     bool verifyConfig(core::ConfigNode config, bool assertOnError = false);
     
