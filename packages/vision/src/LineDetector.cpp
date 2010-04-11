@@ -68,7 +68,7 @@ void LineDetector::init(core::ConfigNode config)
                          "Minimum size of a line",
                          0.0, &m_minLineSize);
 
-    propSet->addProperty(config, false, "minGapLength",
+    propSet->addProperty(config, false, "maxGapLength",
                          "Maximum gap between two lines to be "
                          "considered the same", 0.0, &m_maxGapLength);
 
@@ -76,29 +76,37 @@ void LineDetector::init(core::ConfigNode config)
     m_thetaGap = math::Radian(0.005);
     m_squareGap = 3;
 
+    data = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
+
     propSet->verifyConfig(config, true);
 }
 
 void LineDetector::processImage(Image* input, Image* output)
 {
+    // Clear the line list
+    m_lines.clear();
+
     // Grayscale images only
     assert(input->getPixelFormat() == Image::PF_GRAY_8 &&
            "LineDetector: processImage(): input must be a grayscale image");
-    ensureDataSize(input->getWidth(), input->getHeight());
+    data->setSize((int)input->getWidth(), (int)input->getHeight());
    
     cvCanny(input->asIplImage(), data->asIplImage(),
             m_lowThreshold, m_highThreshold);
     houghTransform();
-    
-    std::sort(m_lines.begin(), m_lines.end(),
-              LineDetector::LineComparer::compare);
+
+    // Sort based on theta, then rho
+    size_t lineNum = m_lines.size();
+    if (lineNum > 0) {
+        std::sort(m_lines.begin(), m_lines.end(),
+                  LineDetector::LineComparer::compare);
+    }
+
     // Merge lines that are the same (opencv is stupid)
-    // This cast shouldn't be a problem unless the size is over 2 billion
-    int lineNum = (int) m_lines.size();
-    for (int i=0; i<lineNum-1; i++) {
+    for (size_t i=1; i<lineNum; i++) {
         // Check the next line to see if it's roughly the same line
-        Line expected = m_lines[i];
-        Line actual = m_lines[i+1];
+        Line expected = m_lines[i-1];
+        Line actual = m_lines[i];
         bool sameRho = UnitTest::AreClose(expected.rho(), actual.rho(),
                                           m_rhoGap);
         bool sameTheta = UnitTest::AreClose(expected.theta(), actual.theta(),
@@ -125,7 +133,7 @@ void LineDetector::processImage(Image* input, Image* output)
             
             // Remove the two original and average them
             m_lines.erase(m_lines.begin() + i);
-            m_lines.erase(m_lines.begin() + i);
+            m_lines.erase(m_lines.begin() + i - 1);
 
             // Find the averages
             pt1.x = (expected.point1().x + actual.point1().x) / 2;
@@ -136,7 +144,7 @@ void LineDetector::processImage(Image* input, Image* output)
             rho = (expected.rho() + actual.rho()) / 2;
             theta = (expected.theta() + actual.theta()) / 2;
             
-            m_lines.insert(m_lines.begin() + i,
+            m_lines.insert(m_lines.begin() + i - 1,
                            LineDetector::Line(pt1, pt2, theta, rho));
             // One less line
             lineNum -= 1;
@@ -264,18 +272,6 @@ int LineDetector::houghTransform()
     }
 
     return m_lines.size();
-}
-
-void LineDetector::ensureDataSize(size_t width, size_t height)
-{
-    // Don't resize if the image is the correct size
-    if (data && data->getWidth() == width && data->getHeight() == height) {
-        return;
-    }
-
-    // Delete old image and create new one
-    delete data;
-    data = new OpenCVImage(width, height, Image::PF_GRAY_8);
 }
 
 void LineDetector::setMinimumLineSize(int pixels)

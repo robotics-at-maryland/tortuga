@@ -115,4 +115,27 @@ TEST_FIXTURE(LineDetectorFixture, testDiagonalLine)
     }
 }
 
+TEST_FIXTURE(LineDetectorFixture, testLineListClear)
+{
+    vision::makeColor(&input, 0, 0, 0);
+
+    // Add a horizontal line to the center of the screen
+    vision::drawLine(&input, 80, 0, 560, 480, 3, CV_RGB(0, 255, 0));
+    
+    // Color filter the image for white line, black background
+    vision::ColorFilter filter(0, 0, 255, 255, 0, 0);
+    vision::OpenCVImage single(640, 480, vision::Image::PF_GRAY_8);
+    filter.filterImage(&input, &single);
+    
+    // Process it
+    vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
+    detector.processImage(&single, &output);
+
+    CHECK_EQUAL(2u, detector.getLines().size());
+
+    // Now process again
+    detector.processImage(&single, &output);
+    CHECK_EQUAL(2u, detector.getLines().size());
+}
+
 } // SUITE(LineDetector)

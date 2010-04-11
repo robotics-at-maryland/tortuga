@@ -135,9 +135,6 @@ public:
     /** Takes a binary image and finds the lines. Returns number found */
     int houghTransform();
 
-    /** Ensures that data array is large enough to hold desired pixel count */
-    void ensureDataSize(size_t width, size_t height);
-    
     LineList m_lines;
 
     /** Minimum line length and gap between lines */
@@ -154,7 +151,7 @@ public:
     int m_squareGap;
 
     /** "Image" used during internal processing */
-    OpenCVImage* data;
+    Image* data;
     
     /** Number of pixels represented in the data array */
     size_t m_dataSize;

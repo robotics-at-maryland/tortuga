@@ -63,34 +63,34 @@ void TargetDetector::init(core::ConfigNode config)
 
     // Hack properties to deal noise from the surface of the water
     propSet->addProperty(config, false, "topRemovePercentage",
-        "% of the screen from the top to be blacked out",
-        0.0, &m_topRemovePercentage, 0.0, 1.0);
+                         "% of the screen from the top to be blacked out",
+                         0.0, &m_topRemovePercentage, 0.0, 1.0);
 
     propSet->addProperty(config, false, "bottomRemovePercentage",
-        "% of the screen from the bottom to be blacked out",
-        0.0, &m_bottomRemovePercentage, 0.0, 1.0);
+                         "% of the screen from the bottom to be blacked out",
+                         0.0, &m_bottomRemovePercentage, 0.0, 1.0);
 
     // Standard tuning properties
     propSet->addProperty(config, false, "maxAspectRatio",
-        "How \"skinny\" a blob can be",
-        4.0, &m_maxAspectRatio, 1.0, 10.0);
+                         "How \"skinny\" a blob can be",
+                         4.0, &m_maxAspectRatio, 1.0, 10.0);
 
     propSet->addProperty(config, false, "minAspectRatio",
-        "How \"fat\" a blob can be",
-        0.8, &m_minAspectRatio, 0.0, 1.0);
+                         "How \"fat\" a blob can be",
+                         0.8, &m_minAspectRatio, 0.0, 1.0);
 
     
     propSet->addProperty(config, false, "minGreenPixels",
-        "The minimum pixel count of the green target blob",
-        500, &m_minGreenPixels, 0, 50000);
+                         "The minimum pixel count of the green target blob",
+                         500, &m_minGreenPixels, 0, 50000);
 
     propSet->addProperty(config, false, "erodeIterations",
-        "How many times to erode the filtered image",
-	0, &m_erodeIterations, 0, 10);
+                         "How many times to erode the filtered image",
+                         0, &m_erodeIterations, 0, 10);
 
     propSet->addProperty(config, false, "dilateIterations",
-        "How many times to dilate the filtered image",
-         0, &m_dilateIterations, 0, 10);
+                         "How many times to dilate the filtered image",
+                         0, &m_dilateIterations, 0, 10);
 
     // Color filter properties
     m_filter->addPropertiesToSet(propSet, &config,
@@ -166,14 +166,14 @@ void TargetDetector::processImage(Image* input, Image* output)
     if (candidateBlobs.size() > 0)
     {
         m_found = true;
-	targetBlob = candidateBlobs[0];
+        targetBlob = candidateBlobs[0];
     }
     else
     {
         // Just lost the light so issue a lost event
         if (m_found)
             publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
-	m_found = false;
+        m_found = false;
     }
 
 
@@ -181,10 +181,10 @@ void TargetDetector::processImage(Image* input, Image* output)
     {
         // Determine the corindates of the target
         Detector::imageToAICoordinates(m_image, 
-				       targetBlob.getCenterX(),
-				       targetBlob.getCenterY(),
-				       m_targetCenterX,
-				       m_targetCenterY);
+                                       targetBlob.getCenterX(),
+                                       targetBlob.getCenterY(),
+                                       m_targetCenterX,
+                                       m_targetCenterY);
 
         // Determine range
         m_range = 1.0 - (((double)targetBlob.getHeight()) /
@@ -208,42 +208,42 @@ void TargetDetector::processImage(Image* input, Image* output)
         // Make the output exactly match the input
         output->copyFrom(input);
 
-	// Color all found pixels pink
-	unsigned char* inData = m_image->getData();
-	unsigned char* outData = output->getData();
-	size_t numPixels = input->getHeight() * input->getWidth();
+        // Color all found pixels pink
+        unsigned char* inData = m_image->getData();
+        unsigned char* outData = output->getData();
+        size_t numPixels = input->getHeight() * input->getWidth();
 	
-	for (size_t i = 0; i < numPixels; ++i)
+        for (size_t i = 0; i < numPixels; ++i)
         {
             if ((*inData))
-	    {
-	        *outData = 147; // B
-		*(outData + 1) = 20; // G
-		*(outData + 2) = 255; // R
-	    }
+            {
+                *outData = 147; // B
+                *(outData + 1) = 20; // G
+                *(outData + 2) = 255; // R
+            }
 	    
-	    inData += 3;
-	    outData += 3;
-	}
+            inData += 3;
+            outData += 3;
+        }
 
-	// Draw all blobs
-	BOOST_FOREACH(BlobDetector::Blob blob, candidateBlobs)
-	{
-	    blob.draw(output, false);
-	    blob.drawStats(output);
-	}
+        // Draw all blobs
+        BOOST_FOREACH(BlobDetector::Blob blob, candidateBlobs)
+        {
+            blob.draw(output, false);
+            blob.drawStats(output);
+        }
 
-	/*BOOST_FOREACH(BlobDetector::Blob blob, nullBlobs)
-	{
-	    blob.draw(output, false, 255, 0, 0);
-	    blob.drawStats(output);
-            }*/
+        /*BOOST_FOREACH(BlobDetector::Blob blob, nullBlobs)
+          {
+          blob.draw(output, false, 255, 0, 0);
+          blob.drawStats(output);
+          }*/
 
-	// Draw our target blob if we found it
-	if (m_found)
-	{
+        // Draw our target blob if we found it
+        if (m_found)
+        {
        	    targetBlob.draw(output, true);
-	    targetBlob.drawStats(output);
+            targetBlob.drawStats(output);
             
             std::stringstream ss;
             ss.precision(2);
@@ -254,7 +254,7 @@ void TargetDetector::processImage(Image* input, Image* output)
             ss2.precision(2);
             ss2 << "R:" << m_range;
             targetBlob.drawTextUL(output, ss2.str(), 0, 15);
-	}
+        }
     }
 
     /// TODO: consider detection stragies for side on blob
@@ -262,28 +262,28 @@ void TargetDetector::processImage(Image* input, Image* output)
 
     // Invert the images and find all the non-green blobs
     /*unsigned char* data = m_image->getData();
-    size_t numPixels = m_image->getHeight() * m_image->getWidth();
+      size_t numPixels = m_image->getHeight() * m_image->getWidth();
     
-    for (size_t i = 0; i < numPixels; ++i)
-    {
-        if (*data)
-	{
-	    *data = 0; // B
-	    *(data + 1) = 0; // G
-	    *(data + 2) = 0; // R
-	}	
-	else
-	{
-	    *data = 255; // B
-	    *(data + 1) = 255; // G
-	    *(data + 2) = 255; // R
-	}
-	data += 3;
-    }
+      for (size_t i = 0; i < numPixels; ++i)
+      {
+      if (*data)
+      {
+      *data = 0; // B
+      *(data + 1) = 0; // G
+      *(data + 2) = 0; // R
+      }	
+      else
+      {
+      *data = 255; // B
+      *(data + 1) = 255; // G
+      *(data + 2) = 255; // R
+      }
+      data += 3;
+      }
 
-    m_blobDetector.setMinimumBlobSize(300);
-    m_blobDetector.processImage(m_image);
-    std::vector<BlobDetector::Blob> nullBlobs = m_blobDetector.getBlobs();*/
+      m_blobDetector.setMinimumBlobSize(300);
+      m_blobDetector.processImage(m_image);
+      std::vector<BlobDetector::Blob> nullBlobs = m_blobDetector.getBlobs();*/
 }
 
 void TargetDetector::publishFoundEvent()
@@ -291,10 +291,10 @@ void TargetDetector::publishFoundEvent()
     if (m_found)
     {
         TargetEventPtr event(new TargetEvent(
-	    m_targetCenterX,
-	    m_targetCenterY,
-	    m_squareNess,
-	    m_range));
+                                 m_targetCenterX,
+                                 m_targetCenterY,
+                                 m_squareNess,
+                                 m_range));
         
         publish(EventType::TARGET_FOUND, event);
     }
@@ -313,9 +313,9 @@ void TargetDetector::filterForGreen(Image* input)
     if (m_bottomRemovePercentage != 0)
     {
         int linesToRemove = 
-	    (int)(m_bottomRemovePercentage * m_image->getHeight());
+            (int)(m_bottomRemovePercentage * m_image->getHeight());
         size_t bytesToBlack = linesToRemove * m_image->getWidth() * 3;
-	int startIdx = 
+        int startIdx = 
             m_image->getWidth() * m_image->getHeight() * 3 - bytesToBlack;
         memset(&(m_image->getData()[startIdx]), 0, bytesToBlack);
     }
@@ -325,13 +325,13 @@ void TargetDetector::filterForGreen(Image* input)
 
     if (m_erodeIterations)
     {
-      cvErode(m_image->asIplImage(), m_image->asIplImage(), 0, 
-	      m_erodeIterations);
+        cvErode(m_image->asIplImage(), m_image->asIplImage(), 0, 
+                m_erodeIterations);
     }
     if (m_dilateIterations)
     {
-      cvDilate(m_image->asIplImage(), m_image->asIplImage(), 0, 
-	       m_dilateIterations);
+        cvDilate(m_image->asIplImage(), m_image->asIplImage(), 0, 
+                 m_dilateIterations);
     }
 
 }

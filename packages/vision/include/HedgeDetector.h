@@ -54,7 +54,7 @@ class RAM_EXPORT HedgeDetector : public Detector
     void setBottomRemovePercentage(double percent);
 
     void show(char* window);
-    Image*  getAnalyzedImage();
+    Image* getAnalyzedImage();
 
   private:
     void init(core::ConfigNode config);
