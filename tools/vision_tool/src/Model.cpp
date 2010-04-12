@@ -194,7 +194,7 @@ void Model::changeToDetector(std::string detectorType)
     {
         std::cerr << "Detector '" << detectorType
                   << "' is not a valid detector" << std::endl;
-	assert(false && "Not a valid detector");
+        assert(false && "Not a valid detector");
     }
 
     if (m_configPath.size() > 0)
@@ -207,24 +207,24 @@ void Model::changeToDetector(std::string detectorType)
 
         if (!m_detector)
         {
-	    cfg = vision::VisionSystem::findVisionSystemConfig(cfg, nodeUsed);
-	    if (nodeUsed.size() > 0)
-	    {
-	        m_detector = createDetectorFromConfig(detectorType, cfg, 
-						      nodeUsed);
-	    }
-	}
+            cfg = vision::VisionSystem::findVisionSystemConfig(cfg, nodeUsed);
+            if (nodeUsed.size() > 0)
+            {
+                m_detector = createDetectorFromConfig(detectorType, cfg, 
+                                                      nodeUsed);
+            }
+        }
     }
 
     if (!m_detector)
     {
         // Setup the configuration file
         m_detectorType = detectorType;
-	core::ConfigNode config(core::ConfigNode::fromString("{}"));
-	config.set("type", m_detectorType);
+        core::ConfigNode config(core::ConfigNode::fromString("{}"));
+        config.set("type", m_detectorType);
 
-	// Make the detector
-	m_detector = vision::DetectorMaker::newObject(
+        // Make the detector
+        m_detector = vision::DetectorMaker::newObject(
             std::make_pair(config, core::EventHubPtr()));
     }
 
@@ -267,10 +267,10 @@ core::PropertySetPtr Model::getDetectorPropertySet()
 vision::Image* Model::getLatestImage()
 {
     if (m_timer->IsRunning())
-	// Not thread safe if this is running
-	return NULL;
+        // Not thread safe if this is running
+        return NULL;
     else
-	return m_latestImage;
+        return m_latestImage;
 }
 
 void Model::onTimer(wxTimerEvent &event)
@@ -302,7 +302,7 @@ void Model::sendNewImage(bool grabFromSource)
     if (grabFromSource)
     {
         m_camera->update(0);
-	m_camera->getImage(m_latestImage);
+        m_camera->getImage(m_latestImage);
     }
 
     // If we have detector process the image so we can show the debug result
@@ -328,8 +328,8 @@ void Model::sendDetectorChanged()
 }
 
 vision::DetectorPtr Model::createDetectorFromConfig(std::string detectorType,
-						    core::ConfigNode cfg,
-						    std::string& nodeUsed)
+                                                    core::ConfigNode cfg,
+                                                    std::string& nodeUsed)
 {
     core::NodeNameList nodeNames(cfg.subNodes());
     // Go through each section and check its type
@@ -337,7 +337,7 @@ vision::DetectorPtr Model::createDetectorFromConfig(std::string detectorType,
     {
         core::ConfigNode cfgSection(cfg[nodeName]);
         if ((detectorType == cfgSection["type"].asString("NONE"))
-             || (nodeName == detectorType))
+            || (nodeName == detectorType))
         {
             nodeUsed = nodeName;
             cfgSection.set("type", detectorType);

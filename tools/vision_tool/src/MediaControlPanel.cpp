@@ -183,23 +183,25 @@ void MediaControlPanel::updateTimeDisplay()
                     totalMinutes, totalSeconds);
         
         // Print based on how much information we have
+        // Note: Formatting seconds is 05.2f instead of 04.2f because format
+        // treats the '.' as a character, so 00.00 is 5 characters
         switch (m_format)
         {
             case FORMAT_HOURS:
                 label = wxString::Format(
-                    wxT("%02d:%02d:%4.2f / %02d:%02d:%4.2f"),
+                    wxT("%02d:%02d:%05.2f / %02d:%02d:%05.2f"),
                     hours, minutes, seconds, totalHours,
                     totalMinutes, totalSeconds);
                 break;
                 
             case FORMAT_MINUTES:
-                label = wxString::Format(wxT("%02d:%4.2f / %02d:%4.2f"),
+                label = wxString::Format(wxT("%02d:%05.2f / %02d:%05.2f"),
                                          minutes, seconds, totalMinutes,
                                          totalSeconds);
                 break;
                 
             case FORMAT_SECONDS:
-                label = wxString::Format(wxT("%4.2f / %4.2f"), seconds,
+                label = wxString::Format(wxT("%05.2f / %05.2f"), seconds,
                                          totalSeconds);
                 break;
 
