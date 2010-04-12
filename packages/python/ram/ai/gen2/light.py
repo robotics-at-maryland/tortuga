@@ -212,10 +212,38 @@ class SearchZigZag(Searching):
 class SearchMap(Searching):
     """
     Searches for the light based on the maps position
+
+    I have never run this code and it needs to be tested.
     """
     def enter(self):
         # Make sure the red light detector is on
         self.visionSystem.redLightDetectorOn()
+
+        # Get the estimated distance to the object
+        vehiclePos = self.vehicle.getPosition()
+        lightPos = self.vehicle.getPosition('buoy')
+
+        length = (lightPos - vehiclePos).length()
+
+        turnSpeed = self._config.get('turnSpeed', 10)
+        speed = self._config.get('speed', 3)
+        offset = self._config.get('offset', 1)
+
+        length -= offset
+
+        # Turn toward the object
+        north = math.Vector2(0.0, 1.0)
+        norm = lightPos.normalisedCopy()
+        angle = pmath.degrees(pmath.atan(north.dotProduct(norm))) + 90
+        angleMotion = motion.basic.RateChangeHeading(angle,
+                                                     turnSpeed)
+
+        # Move that distance forwards
+        moveMotion = motion.basic.MoveDistance(angle, length, 3)
+        self.motionManager.setMotion(angleMotion, moveMotion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
 class Align(legacy.Align):
     """
