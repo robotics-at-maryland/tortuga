@@ -80,9 +80,9 @@ size_t ConfigNode::size()
 
 bool ConfigNode::exists(std::string name)
 {
-	NodeNameList nodes = subNodes();
-	NodeNameListIter result = nodes.find(name);
-	return (nodes.end() != result);
+    NodeNameList nodes = subNodes();
+    NodeNameListIter result = nodes.find(name);
+    return (nodes.end() != result);
 }
 
 void ConfigNode::set(std::string key, std::string str)
@@ -111,7 +111,11 @@ std::string ConfigNode::toString()
 ConfigNode ConfigNode::fromFile(std::string configPath)
 {
     boost::filesystem::path path(configPath);
-    return ConfigNode(PythonConfigNodeImp::fromYamlFile(path.string()));
+    if (path.extension() == ".yml" || path.extension() == ".sml") {
+        return ConfigNode(PythonConfigNodeImp::fromYamlFile(path.string()));
+    } else {
+        assert(false && "Invalid configuration type!");
+    }
 }
     
 ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
@@ -144,7 +148,7 @@ ConfigNode& ConfigNode::operator=(const ConfigNode& that)
     return *this;    // Return ref for multiple assignment
 }
 
-    void ConfigNode::writeToFile(std::string fileName, bool silent)
+void ConfigNode::writeToFile(std::string fileName, bool silent)
 {
     m_impl->writeToFile(fileName, silent);
 }
