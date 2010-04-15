@@ -782,7 +782,8 @@ class HedgePanel(BaseVisionPanel):
     def _hedgeDetectorOff(self, event):
         self._x.Value = ""
         self._y.Value = ""
-        self._width.Value = ""
+        self._squareNess.Value = ""
+        self._range.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
