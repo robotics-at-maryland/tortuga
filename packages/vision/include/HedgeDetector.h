@@ -68,7 +68,6 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     double m_hedgeCenterX;
     double m_hedgeCenterY;
-    double m_hedgeWidth;
     int minGreenPixels;
     OpenCVImage* raw;
     OpenCVImage* preprocess;

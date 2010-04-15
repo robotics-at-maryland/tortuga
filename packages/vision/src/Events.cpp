@@ -190,7 +190,8 @@ core::EventPtr HedgeEvent::clone()
     copyInto(event);
     event->x = x;
     event->y = y;
-    event->width = width;
+    event->squareNess = squareNess;
+    event->range = range;
     return event;
 }
 

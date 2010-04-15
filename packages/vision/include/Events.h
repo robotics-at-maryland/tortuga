@@ -282,23 +282,27 @@ typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 class RAM_EXPORT HedgeEvent : public core::Event
 {
   public:
-    HedgeEvent(double x_, double y_, double width_) :
+    HedgeEvent(double x_, double y_, double width_, double range_) :
         x(x_),
         y(y_),
-        width(width_)
+        squareNess(width_),
+        range(range_)
     {
     }
 
     HedgeEvent() :
         x(0),
         y(0),
-        width(0)
+        squareNess(0),
+        range(0)
     {
     }
 
     double x;
     double y;
-    double width;
+    // Calculated on width / height
+    double squareNess;
+    double range;
 
     virtual core::EventPtr clone();
 };

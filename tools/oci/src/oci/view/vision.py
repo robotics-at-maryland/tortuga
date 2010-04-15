@@ -727,7 +727,8 @@ class HedgePanel(BaseVisionPanel):
         BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
-        self._width = None
+        self._squareNess = None
+        self._range = None
         self._detector = False
         self._vision = vision
 
@@ -752,7 +753,8 @@ class HedgePanel(BaseVisionPanel):
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X: ')
         self._createDataControl(controlName = '_y', label = 'Y: ')
-        self._createDataControl(controlName = '_width', label = 'W: ')
+        self._createDataControl(controlName = '_squareNess', label = 'SQ-Ns: ')
+        self._createDataControl(controlName = '_range', label = 'R: ')
                 
     def _onButton(self, event):
         if self._detector:
@@ -764,7 +766,8 @@ class HedgePanel(BaseVisionPanel):
         if self._detector:
             self._x.Value = "% 4.2f" % event.x
             self._y.Value = "% 4.2f" % event.y
-            self._width.Value = "% 4.2f" % event.width
+            self._squareNess.Value = "% 4.2f" % event.squareNess
+            self._range.Value = "% 4.2f" % event.range
         
             self.enableControls()
     

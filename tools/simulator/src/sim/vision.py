@@ -1413,16 +1413,17 @@ class IdealSimVision(ext.vision.VisionSystem):
         hedgeVisible, x, y, azimuth, elevation, angle = \
                       self._forwardCheck(relativePos, hedge)
 
-        # Determine width
-        objWidth = math.fabs(math.cos(angle.valueRadians())) * 2
-        availWidth = math.fabs(math.tan(math.radians(self._horizontalFOV)) \
-                               * relativePos.length())
-        
         if hedgeVisible and (relativePos.length() < 3):
             event = ext.core.Event()
             event.x = x
             event.y = y
-            event.width = availWidth
+
+            # Exponent chosen so pi/6 would be 1.0
+            # TODO: Find a mathematical "best" value for this
+            event.squareNess = 2*math.fabs(math.cos(angle.valueRadians()))**4.82
+
+            # Convert to feet
+            event.range = relativePos.length() * 3.2808399
             found = True
 
             self.publish(ext.vision.EventType.HEDGE_FOUND, event)

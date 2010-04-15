@@ -85,7 +85,6 @@ void HedgeDetector::init(core::ConfigNode config)
     found=false;
     m_hedgeCenterX=0;
     m_hedgeCenterY=0;
-    m_hedgeWidth=0;
     hedgeCenter.x=0;
     hedgeCenter.y=0;
 
@@ -236,10 +235,6 @@ void HedgeDetector::processImage(Image* input, Image* output)
             hedgeCenter.x = (boundUR.x + boundLL.x) / 2;
             hedgeCenter.y = (boundUR.y + boundLL.y) / 2;
 
-            // Width
-            int pixelWidth = boundUR.x - boundLL.x;
-            m_hedgeWidth = pixelWidth / 640.0;
-
             found=true;
             Detector::imageToAICoordinates(input, hedgeCenter.x, hedgeCenter.y,
                                            m_hedgeCenterX, m_hedgeCenterY);
@@ -311,11 +306,12 @@ void HedgeDetector::publishFoundEvent()
 {
     if (found)
     {
-        HedgeEventPtr event(new HedgeEvent(0, 0, 0));
+        HedgeEventPtr event(new HedgeEvent());
 
         event->x = m_hedgeCenterX;
         event->y = m_hedgeCenterY;
-        event->width = m_hedgeWidth;
+        event->squareNess = 0;
+        event->range = 0;
 
         publish(EventType::HEDGE_FOUND, event);
     }
