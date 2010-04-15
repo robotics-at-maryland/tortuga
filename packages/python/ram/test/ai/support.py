@@ -48,6 +48,7 @@ class MockVisionSystem(core.Subsystem):
         self.downwardSafeDetector = False
         self.targetDetector = False
         self.barbedWireDetector = False
+        self.hedgeDetector = False
          
     def redLightDetectorOn(self):
         self.redLightDetector = True
@@ -90,6 +91,12 @@ class MockVisionSystem(core.Subsystem):
         
     def barbedWireDetectorOff(self):
         self.barbedWireDetector = False
+
+    def hedgeDetectorOn(self):
+        self.hedgeDetector = True
+
+    def hedgeDetectorOff(self):
+        self.hedgeDetector = False
 
         
 class AITestCase(unittest.TestCase):

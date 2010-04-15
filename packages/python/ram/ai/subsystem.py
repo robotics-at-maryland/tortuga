@@ -85,7 +85,7 @@ class AI(core.Subsystem):
     def _checkConfig(self, cfg):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                        'targetDepth', 'binDepth', 'targetSymbols',
-                       'sonarDepth', 'safeDepth', 'safeOffset'])
+                       'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
@@ -112,7 +112,8 @@ class AI(core.Subsystem):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Light' or item == 'BarbedWire' \
-                    or item == 'Target' or item == 'LightStaged':
+                    or item == 'Target' or item == 'LightStaged' \
+                    or item == 'Hedge':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in taskOptions:
                         raise Exception("'%s' is not a valid config "

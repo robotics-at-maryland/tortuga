@@ -89,6 +89,7 @@ class MockVehicle(vehicle.IVehicle):
         self._orientation = { 'vehicle' : ext.math.Quaternion.IDENTITY }
         self._velocity = { 'vehicle' : ext.math.Vector2.ZERO }
         self._position = { 'vehicle' : ext.math.Vector2.ZERO }
+        self._devices = []
 
         # Move through the configuration file and add objects
         for name, pos in cfg.get('StateEstimator', {}).iteritems():
@@ -99,6 +100,11 @@ class MockVehicle(vehicle.IVehicle):
                 ext.math.Vector3.UNIT_Z)
             self._velocity[name] = ext.math.Vector2(0, 0)
             self._position[name] = ext.math.Vector2(pos[0], pos[1])
+
+        # Take the name of the device and store it 
+        # don't care about the contents
+        for device in cfg.get('Devices', {}).iterkeys():
+            self._devices.append(device)
         
         self.markersDropped = 0
         self.torpedosFired = 0
@@ -137,6 +143,9 @@ class MockVehicle(vehicle.IVehicle):
 
     def fireTorpedo(self):
         self.torpedosFired += 1
+
+    def getDeviceNames(self):
+        return self._devices
     
     def publishOrientationUpdate(self, vehicleOrientation):
         event = ext.math.OrientationEvent()
