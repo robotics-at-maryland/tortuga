@@ -14,6 +14,8 @@
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
+#include "control/include/DesiredState.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -26,23 +28,8 @@ class RAM_EXPORT IDepthController
 public:
     virtual ~IDepthController() {}
 
-    /** Sets the desired depth of the sub in meters */
-    virtual void setDepth(double depth) = 0;
-
-    /** Current desired depth of the sub in meters */
-    virtual double getDepth() = 0;
-    
-    /** Grab current estimated depth*/
-    virtual double getEstimatedDepth() = 0;
-    
-    /** Grab current estimated depth velocity (depthDot)*/
-    virtual double getEstimatedDepthDot() = 0;
-    
     /** Returns true if the vehicle is at the desired depth */
-    virtual bool atDepth() = 0;
-
-    /** Makes the current actual depth the desired depth */
-    virtual void holdCurrentDepth() = 0;
+    //virtual bool atDepth() = 0;
 };
 
 /** Provides an interface for a implementation of a Depth Controller */
@@ -53,7 +40,8 @@ class RAM_EXPORT IDepthControllerImp : public IDepthController
 
     /** Gets the needed vehicle force based on current vehicle state */
     virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orientation) = 0;
+                                      math::Quaternion orientation,
+                                      controltest::DesiredStatePtr desiredState) = 0;
 };
     
 } // namespace control

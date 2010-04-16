@@ -13,6 +13,7 @@
 // Project Includes
 #include "control/include/IRotationalController.h"
 
+#include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
@@ -33,19 +34,19 @@ class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
     
     virtual ~RotationalControllerBase() {}
     
-    virtual void yawVehicle(double degrees);
+    // virtual void yawVehicle(double degrees);
 
-    virtual void pitchVehicle(double degrees);
+    // virtual void pitchVehicle(double degrees);
 
-    virtual void rollVehicle(double degrees);
+    // virtual void rollVehicle(double degrees);
 
-    virtual math::Quaternion getDesiredOrientation();
+    // virtual math::Quaternion getDesiredOrientation();
     
-    virtual void setDesiredOrientation(math::Quaternion);
+    // virtual void setDesiredOrientation(math::Quaternion);
     
-    virtual bool atOrientation();
+    // virtual bool atOrientation();
 
-    virtual void holdCurrentHeading();
+    // virtual void holdCurrentHeading();
 
     /** Does housing keeping work, should be called first in every override
      *
@@ -54,7 +55,8 @@ class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
      */
     virtual math::Vector3 rotationalUpdate(double timestep,
                                            math::Quaternion orientation,
-                                           math::Vector3 angularRate);
+                                           math::Vector3 angularRate,
+                                           controltest::DesiredStatePtr desiredState);
   protected:
     
     /** When we are within this limit atOrientation returns true */

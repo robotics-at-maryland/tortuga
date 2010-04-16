@@ -20,13 +20,6 @@
 namespace ram{
 namespace controltest{
 
-DesiredStatePtr DesiredState::m_instance = DesiredStatePtr();
-
-DesiredStatePtr DesiredState::getInstance() 
-{ 
-    return m_instance; 
-}
-
 math::Vector2 DesiredState::getDesiredVelocity()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
@@ -88,11 +81,25 @@ void DesiredState::setDesiredAngularRate(math::Vector3 angularRate)
     m_desiredAngularRate = angularRate;
 }
 
-void DesiredState::setDesiredYaw(double degrees){}
-void DesiredState::setDesiredPitch(double degrees){}
-void DesiredState::setDesiredRoll(double degrees){}
+void DesiredState::init(core::ConfigNode config)
+{
+    setDesiredVelocity(math::Vector2(config["desiredVelocity"][0].asDouble(0),
+                                     config["desiredVelocity"][1].asDouble(0)));
+    setDesiredPosition(math::Vector2(config["desiredPosition"][0].asDouble(0),
+                                     config["desiredPosition"][1].asDouble(0)));
+    setDesiredDepth(config["desiredDepth"].asDouble(0));
+    setDesiredOrientation(
+        math::Quaternion(config["desiredOrientation"][0].asDouble(0),
+                         config["desiredOrientation"][1].asDouble(0),
+                         config["desiredOrientation"][2].asDouble(0),
+                         config["desiredOrientation"][3].asDouble(1)));
+    setDesiredAngularRate(
+        math::Vector3(config["desiredAngularRate"][0].asDouble(0),
+                      config["desiredAngularRate"][1].asDouble(0),
+                      config["desiredAngularRate"][2].asDouble(0)));
+}
 
-DesiredState::DesiredState() :
+DesiredState::DesiredState(core::ConfigNode config) :
     m_desiredVelocity(math::Vector2::ZERO),
     m_desiredPosition(math::Vector2::ZERO),
     m_desiredDepth(0),

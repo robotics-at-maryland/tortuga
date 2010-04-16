@@ -23,7 +23,8 @@ public:
 
     virtual math::Vector3 rotationalUpdate(double timestep,
                                            math::Quaternion orientation,
-                                           math::Vector3 angularRate);
+                                           math::Vector3 angularRate,
+                                           controltest::DesiredStatePtr desiredState);
 
 private:
 

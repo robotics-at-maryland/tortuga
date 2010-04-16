@@ -8,6 +8,8 @@
  */
 
 #include "math/include/Matrix2.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Helpers.h"
 
 namespace ram {
 namespace control {
@@ -15,6 +17,11 @@ namespace control {
 math::Matrix2 bRn(double radians);
 
 math::Matrix2 nRb(double radians);
+
+math::Quaternion yawVehicleHelper(const math::Quaternion& currentOrientation, double degrees);
+math::Quaternion rollVehicleHelper(const math::Quaternion& currentOrientation, double degrees);
+math::Quaternion pitchVehicleHelper(const math::Quaternion& currentOrientation, double degrees);
+math::Quaternion holdCurrentHeadingHelper(const math::Quaternion& currentOrientation);
 
 } // namespace control
 } // namespace ram

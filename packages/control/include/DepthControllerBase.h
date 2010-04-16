@@ -13,6 +13,7 @@
 // Project Includes
 #include "control/include/IDepthController.h"
 
+#include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
@@ -33,19 +34,19 @@ public:
     
     virtual ~DepthControllerBase() {}
 
-    virtual void setDepth(double depth);
+    // virtual void setDepth(double depth);
 
-    virtual double getDepth();
+    // virtual double getDepth();
 
-    /** This is basically ignored, most likely will be removed */
-    virtual double getEstimatedDepth() { return 0.0; }
+    // /** This is basically ignored, most likely will be removed */
+    // virtual double getEstimatedDepth() { return 0.0; }
     
-    /** This is basically ignored, most likely will be removed*/
-    virtual double getEstimatedDepthDot() { return 0.0; }
+    // /** This is basically ignored, most likely will be removed*/
+    // virtual double getEstimatedDepthDot() { return 0.0; }
     
-    virtual bool atDepth();
+    // virtual bool atDepth();
 
-    virtual void holdCurrentDepth();
+    // virtual void holdCurrentDepth();
 
     /** Does housing keeping work, should be called first in every override
      *
@@ -53,7 +54,8 @@ public:
      *  method first with the same arguments you are given.
      */
     virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orienation);
+                                      math::Quaternion orienation,
+                                      controltest::DesiredStatePtr desiredState);
 protected:
     /** When we are within this limit atDepth returns */
     double m_depthThreshold;
@@ -72,6 +74,7 @@ protected:
     bool m_atDepth;
 
     bool m_atOrientation;
+
  private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);

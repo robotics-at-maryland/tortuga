@@ -27,47 +27,48 @@ DepthControllerBase::DepthControllerBase(core::ConfigNode config) :
     init(config);
 }
 
-void DepthControllerBase::setDepth(double depth)
-{
-      {
-	core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-	if(depth < 0)
-	  depth = 0;
-	m_desiredDepth = depth;
-      }
+// void DepthControllerBase::setDepth(double depth)
+// {
+//     {
+//         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+//         if(depth < 0)
+//             depth = 0;
+//         m_desiredDepth = depth;
+//     }
 
-}
+// }
 
-double DepthControllerBase::getDepth()
-{
-  core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-  return m_desiredDepth;
-}
+// double DepthControllerBase::getDepth()
+// {
+//     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+//     return m_desiredDepth;
+// }
     
-bool DepthControllerBase::atDepth()
-{
-  double currentDepth, desiredDepth;
-  {
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    currentDepth = m_currentDepth;
-    desiredDepth = m_desiredDepth;
-  }
-    double difference = fabs(currentDepth - desiredDepth);
-    return difference <= m_depthThreshold;
-}
+// bool DepthControllerBase::atDepth()
+// {
+//     double currentDepth, desiredDepth;
+//     {
+//         core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+//         currentDepth = m_currentDepth;
+//         desiredDepth = m_desiredDepth;
+//     }
+//     double difference = fabs(currentDepth - desiredDepth);
+//     return difference <= m_depthThreshold;
+// }
 
-void DepthControllerBase::holdCurrentDepth()
-{
-  double depth;
-  {
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    depth = m_currentDepth;
-  }
-  setDepth(depth);
-}
+// void DepthControllerBase::holdCurrentDepth()
+// {
+//     double depth;
+//     {
+//         core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+//         depth = m_currentDepth;
+//     }
+//     setDepth(depth);
+// }
     
 math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
-                                               math::Quaternion orientation)
+                                               math::Quaternion orientation,
+                                               controltest::DesiredStatePtr desiredState)
 { 
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_currentDepth = depth;
@@ -78,8 +79,8 @@ math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
 
 void DepthControllerBase::init(core::ConfigNode config)
 {
-  m_depthThreshold =
-    config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+    m_depthThreshold =
+        config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
 }
 
 } // namespace control

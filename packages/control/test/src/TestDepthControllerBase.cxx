@@ -30,35 +30,35 @@ struct DepthControllerBaseFixture
 };
 
 
-SUITE(DepthControllerBase)
-{
+// SUITE(DepthControllerBase)
+// {
 
-TEST_FIXTURE(DepthControllerBaseFixture, setGetDepth)
-{
-    TEST_UTILITY_FUNC(setGetDepth)(&controller);
-}
+// TEST_FIXTURE(DepthControllerBaseFixture, setGetDepth)
+// {
+//     TEST_UTILITY_FUNC(setGetDepth)(&controller);
+// }
 
-void dummy()
-{
-}
+// void dummy()
+// {
+// }
 
-TEST_FIXTURE(DepthControllerBaseFixture, atDepth)
-{
-    TEST_UTILITY_FUNC(atDepth)
-        (&controller,
-         boost::bind(&control::IDepthControllerImp::depthUpdate,
-                     &controller, 0.0, _1, math::Quaternion::IDENTITY),
-         boost::bind(&dummy));
-}
+// TEST_FIXTURE(DepthControllerBaseFixture, atDepth)
+// {
+//     TEST_UTILITY_FUNC(atDepth)
+//         (&controller,
+//          boost::bind(&control::IDepthControllerImp::depthUpdate,
+//                      &controller, 0.0, _1, math::Quaternion::IDENTITY),
+//          boost::bind(&dummy));
+// }
 
-TEST_FIXTURE(DepthControllerBaseFixture, holdCurrentDepth)
-{
-    TEST_UTILITY_FUNC(holdCurrentDepth)
-        (&controller,
-         boost::bind(&control::IDepthControllerImp::depthUpdate,
-                     &controller, 0.0, _1, math::Quaternion::IDENTITY),
-         boost::bind(&dummy));
-}
+// TEST_FIXTURE(DepthControllerBaseFixture, holdCurrentDepth)
+// {
+//     TEST_UTILITY_FUNC(holdCurrentDepth)
+//         (&controller,
+//          boost::bind(&control::IDepthControllerImp::depthUpdate,
+//                      &controller, 0.0, _1, math::Quaternion::IDENTITY),
+//          boost::bind(&dummy));
+// }
 
-} // SUITE(DepthControllerBase)
+// } // SUITE(DepthControllerBase)
 

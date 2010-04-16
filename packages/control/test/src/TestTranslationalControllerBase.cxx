@@ -29,40 +29,40 @@ struct TranslationalControllerBaseFixture
 };
 
 
-SUITE(TranslationalControllerBase)
-{
+// SUITE(TranslationalControllerBase)
+// {
     
-TEST_FIXTURE(TranslationalControllerBaseFixture, setGetVelocity)
-{
-    TEST_UTILITY_FUNC(setGetVelocity)(&controller);
-}
+// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetVelocity)
+// {
+//     TEST_UTILITY_FUNC(setGetVelocity)(&controller);
+// }
     
-TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSpeed)
-{
-    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
-}
+// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSpeed)
+// {
+//     TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+// }
 
-TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSidewaysSpeed)
-{
-    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
-}
+// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSidewaysSpeed)
+// {
+//     TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+// }
 
-TEST_FIXTURE(TranslationalControllerBaseFixture, controlMode)
-{
-    // Test default
-    CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::OPEN_LOOP,
-                controller.getMode());
+// TEST_FIXTURE(TranslationalControllerBaseFixture, controlMode)
+// {
+//     // Test default
+//     CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::OPEN_LOOP,
+//                 controller.getMode());
 
-    // Make sure it goes to VELOCITY when you set velocity
-    controller.setVelocity(math::Vector2(5,5));
-    CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::VELOCITY,
-                controller.getMode());
+//     // Make sure it goes to VELOCITY when you set velocity
+//     controller.setVelocity(math::Vector2(5,5));
+//     CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::VELOCITY,
+//                 controller.getMode());
 
-    // Make sure it goes back to OPEN_LOOP when you set speed
-    controller.setSpeed(5);
-    CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::OPEN_LOOP,
-                controller.getMode());
+//     // Make sure it goes back to OPEN_LOOP when you set speed
+//     controller.setSpeed(5);
+//     CHECK_EQUAL(control::TranslationalControllerBase::ControlMode::OPEN_LOOP,
+//                 controller.getMode());
 
-}
-} // SUITE(TranslationalControllerBase)
+// }
+// } // SUITE(TranslationalControllerBase)
 

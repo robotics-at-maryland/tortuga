@@ -37,7 +37,8 @@ PIDDepthController::PIDDepthController(ram::core::ConfigNode config) :
 }
 
 math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
-                                              math::Quaternion orientation)
+                                              math::Quaternion orientation,
+                                              controltest::DesiredStatePtr desiredState)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);

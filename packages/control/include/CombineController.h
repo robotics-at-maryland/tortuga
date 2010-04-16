@@ -34,6 +34,7 @@ namespace control {
  *  depth just the in plane controller.  Which allows for much easier over
  *  all experimentation with controllers.
  */
+
 class RAM_EXPORT CombineController : public ControllerBase
 {
 public:
@@ -46,56 +47,56 @@ public:
 
     virtual ~CombineController();
     
-    /**
-     * \defgroup In plane controller methods
-     */
-    /* @{ */
-    virtual void setVelocity(math::Vector2 velocity);
-    virtual math::Vector2 getVelocity();
-    virtual void setSpeed(double speed);
-    virtual void setSidewaysSpeed(double speed);
-    virtual double getSpeed();
-    virtual double getSidewaysSpeed();
-    virtual void holdCurrentPosition();
-    virtual void setDesiredVelocity(math::Vector2 velocity);
-    virtual void setDesiredPosition(math::Vector2 position);
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
-					       math::Vector2 velocity);
-    virtual math::Vector2 getDesiredVelocity();
-    virtual math::Vector2 getDesiredPosition();
-    virtual bool atPosition();
-    virtual bool atVelocity();
-    /* @{ */
+    // /**
+    //  * \defgroup In plane controller methods
+    //  */
+    // /* @{ */
+    // virtual void setVelocity(math::Vector2 velocity);
+    // virtual math::Vector2 getVelocity();
+    // virtual void setSpeed(double speed);
+    // virtual void setSidewaysSpeed(double speed);
+    // virtual double getSpeed();
+    // virtual double getSidewaysSpeed();
+    // virtual void holdCurrentPosition();
+    // virtual void setDesiredVelocity(math::Vector2 velocity);
+    // virtual void setDesiredPosition(math::Vector2 position);
+    // virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
+	// 				       math::Vector2 velocity);
+    // virtual math::Vector2 getDesiredVelocity();
+    // virtual math::Vector2 getDesiredPosition();
+    // virtual bool atPosition();
+    // virtual bool atVelocity();
+    // /* @{ */
     
-    /**
-     * \defgroup Depth controller methods
-     */
-    /* @{ */
-    virtual void setDepth(double depth);
-    virtual double getDepth();
-    virtual double getEstimatedDepth();
-    virtual double getEstimatedDepthDot();
-    virtual bool atDepth();
-    virtual void holdCurrentDepth();
-    /* @{ */
+    // /**
+    //  * \defgroup Depth controller methods
+    //  */
+    // /* @{ */
+    // virtual void setDepth(double depth);
+    // virtual double getDepth();
+    // virtual double getEstimatedDepth();
+    // virtual double getEstimatedDepthDot();
+    // virtual bool atDepth();
+    // virtual void holdCurrentDepth();
+    // /* @{ */
     
-    /**
-     * \defgroup Rotational controller methods
-     */
-    /* @{ */
-    virtual void yawVehicle(double degrees);
-    virtual void pitchVehicle(double degrees);
-    virtual void rollVehicle(double degrees);
-    virtual math::Quaternion getDesiredOrientation();
-    virtual void setDesiredOrientation(math::Quaternion);
-    virtual bool atOrientation();
-    virtual void holdCurrentHeading();
-    /* @{ */
+    // /**
+    //  * \defgroup Rotational controller methods
+    //  */
+    // /* @{ */
+    // virtual void yawVehicle(double degrees);
+    // virtual void pitchVehicle(double degrees);
+    // virtual void rollVehicle(double degrees);
+    // virtual math::Quaternion getDesiredOrientation();
+    // virtual void setDesiredOrientation(math::Quaternion);
+    // virtual bool atOrientation();
+    // virtual void holdCurrentHeading();
+    // /* @{ */
 
 
-    virtual void setBuoyantTorqueCorrection(double x, double y, double z);
-    virtual void setHeading(double degrees);
-    virtual double getHeading();
+    // virtual void setBuoyantTorqueCorrection(double x, double y, double z);
+    // virtual void setHeading(double degrees);
+    // virtual double getHeading();
 
     ITranslationalControllerPtr getTranslationalController();
     

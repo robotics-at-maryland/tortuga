@@ -14,6 +14,7 @@
 #include "control/include/Common.h"
 #include "control/include/IController.h"
 #include "control/include/DesiredState.h"
+#include "control/include/Helpers.h"
 
 #include "vehicle/include/Common.h"
 
@@ -23,7 +24,7 @@
 
 // Must Be Included last
 #include "control/include/Export.h"
-
+#include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 
 namespace ram {
@@ -34,8 +35,11 @@ static const double DEPTH_TOLERANCE = 0.5;
 
 /** About a 2.5 degree tolerance */
 static const double ORIENTATION_THRESHOLD = 0.03;
+
+static const double VELOCITY_THRESHOLD = 0.05;
+static const double POSITION_THRESHOLD = 0.5;
     
-/** Base for controllers, assists in properly implementing the */
+/** Base for controllers, assists in properly implementing the IController*/
 class RAM_EXPORT ControllerBase : public IController,
                                   public core::Updatable
 {
@@ -53,23 +57,103 @@ public:
      */
     virtual void update(double timestep);
 
-    /** Helper function for implementing IController::rollVehicle */
-    static math::Quaternion yawVehicleHelper(
-        const math::Quaternion& currentOrientation, double degrees);
 
-    /** Helper function for implementing IController::pitchVehicle */
-    static math::Quaternion pitchVehicleHelper(
-        const math::Quaternion& currentOrientation, double degrees);
-    
-    /** Helper function for implementing IController::rollVehicle */
-    static math::Quaternion rollVehicleHelper(
-        const math::Quaternion& currentOrientation, double degrees);
-    
-    /** Helper function for implementing IController::holdCurrentHeading */
-    static math::Quaternion holdCurrentHeadingHelper(
-        const math::Quaternion& currentOrientation);
+    virtual void setVelocity(math::Vector2 velocity);  
 
+    /** Get the current desired velocity */
+    virtual math::Vector2 getVelocity();
     
+    /** Set the current speed, clamped between -5 and 5
+     *
+     *  Setting this turns off the velocity based control, and gives direct
+     *  speed based control.
+     */
+    virtual void setSpeed(double speed);
+
+    /** Set how fast the vehicle is going side to side (positive = right) */
+    virtual void setSidewaysSpeed(double speed);
+
+    /** Gets the current speed, a value between -5 and 5 */
+    virtual double getSpeed();
+
+    /** Gets the current sideways speed
+     *
+     *  @return
+     *      A value between -5 (left) and 5 (right)
+     */
+    virtual double getSidewaysSpeed();
+
+    /** Loads current position into desired and stays in that position */
+    virtual void holdCurrentPosition();
+
+    /** Sets desired velocity and velocity based control for new controllers */
+    virtual void setDesiredVelocity(math::Vector2 velocity, Frame frame);
+    
+    /** Sets desired position and position based control for new controllers */
+    virtual void setDesiredPosition(math::Vector2 position, Frame frame);
+ 
+    /** Sets a desired position and velocity for controling of both simultaneously */
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position,
+					       math::Vector2 velocity);
+
+    /** Gets desired velocity */
+    virtual math::Vector2 getDesiredVelocity(Frame frame);
+
+    /** Gets desired position */
+    virtual math::Vector2 getDesiredPosition(Frame frame);
+
+    virtual bool atPosition();
+    
+    virtual bool atVelocity();
+
+    /** Yaws the desired vehicle state by the desired number of degrees */
+    virtual void yawVehicle(double degrees);
+
+    /** Pitches the desired vehicle state by the desired number of degrees */
+    virtual void pitchVehicle(double degrees);
+
+    /** Rolls the desired vehicle state by the desired number of degrees */
+    virtual void rollVehicle(double degrees);
+
+    /** Gets the current desired orientation */
+    virtual math::Quaternion getDesiredOrientation();
+    
+    /** Sets the current desired orientation */
+    virtual void setDesiredOrientation(math::Quaternion);
+    
+    /** Returns true if the vehicle is at the desired orientation */
+    virtual bool atOrientation();
+
+    /** Sets the desired depth of the sub in meters */
+    virtual void setDepth(double depth);
+
+    /** Current desired depth of the sub in meters */
+    virtual double getDepth();
+    
+    /** Grab current estimated depth*/
+    virtual double getEstimatedDepth();
+    
+    /** Grab current estimated depth velocity (depthDot)*/
+    virtual double getEstimatedDepthDot();
+    
+    /** Returns true if the vehicle is at the desired depth */
+    virtual bool atDepth();
+
+    /** Makes the current actual depth the desired depth */
+    virtual void holdCurrentDepth();
+
+    /** Loads current orientation into desired (fixes offset in roll and pitch)
+     *
+     *  The desired state quaternion will be "level" in horizontal plane, this
+     *  will reverse slight offsets in roll and pitch.
+     *
+     *  @warning
+     *      The vehicle should be upright when using this function, otherwise
+     *      the interpretation of yaw and upright will be nonsensical.
+     */
+    virtual void holdCurrentOrientation();
+    virtual void holdCurrentHeading();
+
     virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
     }
@@ -88,14 +172,15 @@ public:
     
     virtual void background(int interval) {
         Updatable::background(interval);
-    };
+    }
     
     virtual void unbackground(bool join = false) {
         Updatable::unbackground(join);
-    };
+    }
+
     virtual bool backgrounded() {
         return Updatable::backgrounded();
-    };
+    }
 
 protected:
     /** Implemeted by subclasses, does actual controller work
@@ -165,6 +250,7 @@ protected:
      */
     void newDesiredPositionSet(const math::Vector2& newPosition);
 
+    controltest::DesiredStatePtr desiredState;
 
 private:
     void init(core::ConfigNode config);
@@ -188,6 +274,7 @@ private:
     
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;    
+    
 };
     
 } // namespace control

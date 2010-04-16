@@ -23,7 +23,8 @@ public:
     virtual ~PIDDepthController() {}
 
     virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orientation);
+                                      math::Quaternion orientation,
+                                      controltest::DesiredStatePtr desiredState);
 
 private:
 

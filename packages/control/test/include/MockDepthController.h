@@ -32,20 +32,10 @@ public:
     
     virtual ~MockDepthController() {}
 
-    virtual void setDepth(double depth) { depthSet = depth; }
-
-    virtual double getDepth() { return depth; }
-    
-    virtual double getEstimatedDepth() { return estimatedDepth; }
-    
-    virtual double getEstimatedDepthDot() { return estimatedDepthDot; }
-    
-    virtual bool atDepth() { return atDepthValue; }
-
-    virtual void holdCurrentDepth() { holdCurrentDepthCount++; }
-
-    virtual ram::math::Vector3 depthUpdate(double timestep_, double depth,
-                                           ram::math::Quaternion orientation_)
+    virtual ram::math::Vector3 depthUpdate(
+        double timestep_, double depth,
+        ram::math::Quaternion orientation_,
+        ram::controltest::DesiredStatePtr desiredState)
         { timestep = timestep_;
         updateDepth = depth;
         orientation = orientation_;

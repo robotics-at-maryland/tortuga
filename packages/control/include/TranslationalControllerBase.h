@@ -27,7 +27,7 @@ namespace control {
 class RAM_EXPORT TranslationalControllerBase :
         public ITranslationalControllerImp
 {
-public:
+  public:
     /** The exact type of translation control we are undergoing */
     struct ControlMode
     {
@@ -43,39 +43,40 @@ public:
     
     virtual ~TranslationalControllerBase() {}
 
-    virtual void setVelocity(math::Vector2 velocity);
+    // virtual void setVelocity(math::Vector2 velocity);
 
-    virtual math::Vector2 getVelocity();
+    // virtual math::Vector2 getVelocity();
 
-    virtual void setSpeed(double speed);
+    // virtual void setSpeed(double speed);
 
-    virtual void setSidewaysSpeed(double speed);
+    // virtual void setSidewaysSpeed(double speed);
 
-    virtual double getSpeed();
+    // virtual double getSpeed();
 
-    virtual double getSidewaysSpeed();
+    // virtual double getSidewaysSpeed();
 
-    virtual void holdCurrentPosition();
+    // virtual void holdCurrentPosition();
    
-    virtual void setDesiredVelocity(math::Vector2 velocity);
-    virtual void setDesiredPosition(math::Vector2 position);
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity);
-    virtual math::Vector2 getDesiredVelocity();
-    virtual math::Vector2 getDesiredPosition();
+    // virtual void setDesiredVelocity(math::Vector2 velocity);
+    // virtual void setDesiredPosition(math::Vector2 position);
+    // virtual void setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity);
+    // virtual math::Vector2 getDesiredVelocity();
+    // virtual math::Vector2 getDesiredPosition();
 
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
                                               math::Vector2 position,
-                                              math::Vector2 velocity);
+                                              math::Vector2 velocity,
+                                              controltest::DesiredStatePtr desiredState);
 
-    virtual bool atPosition();
-    virtual bool atVelocity();
+    // virtual bool atPosition();
+    // virtual bool atVelocity();
 
-    virtual ControlMode::ModeType getMode();
+    // virtual ControlMode::ModeType getMode();
     
 
- protected:
+  protected:
 
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
@@ -94,9 +95,7 @@ public:
     /** What type of translation control we are doing */
     ControlMode::ModeType m_controlMode;
     
-    controltest::DesiredStatePtr desiredState;
-
-private:
+  private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);
 };

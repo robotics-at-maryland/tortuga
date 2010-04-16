@@ -22,6 +22,7 @@
 
 #include "math/include/Quaternion.h"
 
+#include "control/include/Common.h"
 #include "control/include/IDepthController.h"
 #include "control/include/ITranslationalController.h"
 #include "control/include/IRotationalController.h"
@@ -75,20 +76,20 @@ public:
     virtual void holdCurrentPosition() = 0;
 
     /** Sets desired velocity and velocity based control for new controllers */
-    virtual void setDesiredVelocity(math::Vector2 velocity) = 0;
+    virtual void setDesiredVelocity(math::Vector2 velocity, Frame frame) = 0;
     
     /** Sets desired position and position based control for new controllers */
-    virtual void setDesiredPosition(math::Vector2 position) = 0;
+    virtual void setDesiredPosition(math::Vector2 position, Frame frame) = 0;
  
     /** Sets a desired position and velocity for controling of both simultaneously */
     virtual void setDesiredPositionAndVelocity(math::Vector2 position,
 					       math::Vector2 velocity) = 0;
 
     /** Gets desired velocity */
-    virtual math::Vector2 getDesiredVelocity() = 0;
+    virtual math::Vector2 getDesiredVelocity(Frame frame) = 0;
 
     /** Gets desired position */
-    virtual math::Vector2 getDesiredPosition() = 0;
+    virtual math::Vector2 getDesiredPosition(Frame frame) = 0;
 
     virtual bool atPosition() = 0;
     

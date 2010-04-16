@@ -44,7 +44,11 @@ typedef boost::shared_ptr<IRotationalController> IRotationalControllerPtr;
 class IRotationalControllerImp;
 typedef boost::shared_ptr<IRotationalControllerImp> IRotationalControllerImpPtr;
 
-    
+typedef enum {
+    BODY,
+    INERTIAL
+} Frame;
+
 } // namespace control
 } // namespace ram
 

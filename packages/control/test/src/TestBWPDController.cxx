@@ -83,25 +83,25 @@ TEST_FIXTURE(Fixture, YawRateControl)
   
   }*/
 
-TEST_FIXTURE(Fixture, yawVehicle)
-{
-    TEST_UTILITY_FUNC(yawVehicle)(&controller);
-}
+// TEST_FIXTURE(Fixture, yawVehicle)
+// {
+//     TEST_UTILITY_FUNC(yawVehicle)(&controller);
+// }
 
-TEST_FIXTURE(Fixture, pitchVehicle)
-{
-    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
-}
+// TEST_FIXTURE(Fixture, pitchVehicle)
+// {
+//     TEST_UTILITY_FUNC(pitchVehicle)(&controller);
+// }
 
-TEST_FIXTURE(Fixture, rollVehicle)
-{
-    TEST_UTILITY_FUNC(rollVehicle)(&controller);
-}
+// TEST_FIXTURE(Fixture, rollVehicle)
+// {
+//     TEST_UTILITY_FUNC(rollVehicle)(&controller);
+// }
 
-TEST_FIXTURE(Fixture, setDesiredOrientation)
-{
-    TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
-}
+// TEST_FIXTURE(Fixture, setDesiredOrientation)
+// {
+//     TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
+// }
 
 TEST_FIXTURE(Fixture, DepthControl)
 {
@@ -127,26 +127,26 @@ TEST_FIXTURE(Fixture, DepthControl)
     CHECK_CLOSE(exp_tranForce, vehicle->force, 0.0001);
 }
 
-TEST_FIXTURE(Fixture, setGetDepth)
-{
-    TEST_UTILITY_FUNC(setGetDepth)(&controller);
-}
+// TEST_FIXTURE(Fixture, setGetDepth)
+// {
+//     TEST_UTILITY_FUNC(setGetDepth)(&controller);
+// }
 
-TEST_FIXTURE(Fixture, atDepth)
-{
-    TEST_UTILITY_FUNC(atDepth)
-        (&controller,
-         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, atDepth)
+// {
+//     TEST_UTILITY_FUNC(atDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
-TEST_FIXTURE(Fixture, holdCurrentDepth)
-{
-    TEST_UTILITY_FUNC(holdCurrentDepth)
-        (&controller,
-         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, holdCurrentDepth)
+// {
+//     TEST_UTILITY_FUNC(holdCurrentDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 void depthHelper(double* result, ram::core::EventPtr event)
 {
@@ -244,13 +244,13 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
     CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
 }
 
-TEST_FIXTURE(Fixture, atOrientation)
-{
-    TEST_UTILITY_FUNC(atOrientation)
-        (&controller,
-         boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, atOrientation)
+// {
+//     TEST_UTILITY_FUNC(atOrientation)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 {
@@ -303,24 +303,24 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     CHECK_EQUAL(orientation, actualOrientation);
 }
 
-TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
-{
-    // Runs the test, passing it a function object which lets the test method
-    // set the actual orientation of the vehicle
-    TEST_UTILITY_FUNC(holdCurrentHeading)
-        (&controller,
-         boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
-}
+// TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
+// {
+//     // Runs the test, passing it a function object which lets the test method
+//     // set the actual orientation of the vehicle
+//     TEST_UTILITY_FUNC(holdCurrentHeading)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
+// }
 
-TEST_FIXTURE(Fixture, setGetSpeed)
-{
-    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
-}
+// TEST_FIXTURE(Fixture, setGetSpeed)
+// {
+//     TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+// }
 
-TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
-{
-    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
-}
+// TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
+// {
+//     TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+// }
 
 
 /*

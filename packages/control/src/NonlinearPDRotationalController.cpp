@@ -47,7 +47,8 @@ NonlinearPDRotationalController::NonlinearPDRotationalController(
 math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     double timestep,
     math::Quaternion orientation,
-    math::Vector3 angularRate)
+    math::Vector3 angularRate,
+    controltest::DesiredStatePtr desiredState)
 {
 
     //don't need this timing information in this function, but will keep it here in case it is needed in the future

@@ -46,17 +46,10 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     math::Vector3 linearAcceleration,
     math::Quaternion orientation,
     math::Vector2 position,
-    math::Vector2 velocity)
+    math::Vector2 velocity,
+    controltest::DesiredStatePtr desiredState)
 {
     double yaw = orientation.getYaw().valueRadians(); 
-
-    // Only call cos and sin once
-    //double yaw_cos = cos(yaw), yaw_sin = sin(yaw);
-	 
-    //Compute rotation matrix from inertial frame to body frame
-    //math::Matrix2 bRn(yaw_cos,-yaw_sin,yaw_sin,yaw_cos);
-    //Compute rotation matrix from body frame to inertial frame
-    //math::Matrix2 nRb(yaw_cos,yaw_sin,-yaw_sin,yaw_cos);
 
     //Update current position and velocity
     m_currentPosition = position;     //assume position in inertial frame
@@ -81,6 +74,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     //Calculate control signals in inertial frame
     double positionSig_x1, positionSig_x2;
     double velocitySig_x1, velocitySig_x2;
+    double combinedSig_x1, combinedSig_x2;
 
     positionSig_x1 = 
         x1kp * positionPError[0] +
@@ -94,12 +88,22 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
 
     velocitySig_x1 = 
         x1kp * velocityPError[0] +
-        x1kd * positionDError[0] +
-        x1ki * positionIError[0];
+        x1kd * velocityDError[0] +
+        x1ki * velocityIError[0];
 
     velocitySig_x2 = 
         x2kp * velocityPError[1] +
-        x2kd * positionDError[1] +
+        x2kd * velocityDError[1] +
+        x2ki * velocityIError[1];
+
+    combinedSig_x1 = 
+        x1kp * positionPError[0] +
+        x1kd * velocityPError[0] +
+        x1ki * positionIError[0];
+
+    combinedSig_x2 = 
+        x2kp * positionPError[1] +
+        x2kd * velocityPError[1] +
         x2ki * positionIError[1];
 
     //Put signals into an array so we can make a Vector2 
@@ -116,8 +120,8 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
         signal_n[1] = velocitySig_x2;
         break;
     case ControlMode::POSITIONANDVELOCITY:
-        signal_n[0] = positionSig_x1 + velocitySig_x1;
-        signal_n[1] = positionSig_x2 + velocitySig_x2;
+        signal_n[0] = combinedSig_x1;
+        signal_n[1] = combinedSig_x2;
         break;
     case ControlMode::OPEN_LOOP:
         break;

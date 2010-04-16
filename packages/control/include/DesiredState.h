@@ -14,6 +14,7 @@
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
+#include "core/include/ConfigNode.h"
 
 #include "core/include/ReadWriteMutex.h"
 
@@ -25,19 +26,14 @@
 namespace ram{
 namespace controltest {
 
-enum Frame {
-    INERTIAL,
-    BODY
-};
-
 class DesiredState;
 typedef boost::shared_ptr<DesiredState> DesiredStatePtr;
 
 class DesiredState {
 public:
+    DesiredState(core::ConfigNode config);
+    DesiredState(DesiredState const&){};
     virtual ~DesiredState();
-
-    static DesiredStatePtr getInstance();
 
     // returned in inertial frame
     math::Vector2 getDesiredVelocity();
@@ -56,18 +52,12 @@ public:
 
     void setDesiredOrientation(math::Quaternion orientation);
     void setDesiredAngularRate(math::Vector3 angularRate);
-    void setDesiredYaw(double degrees);
-    void setDesiredPitch(double degrees);
-    void setDesiredRoll(double degrees);
 
 private:
-    DesiredState();
-    DesiredState(DesiredState const&){};
+    void init(core::ConfigNode config);
 
-    static DesiredStatePtr m_instance;
-    
-    math::Vector2 m_desiredVelocity; // Store in inertial frame
-    math::Vector2 m_desiredPosition; // Store in inertial frame
+    math::Vector2 m_desiredVelocity; // Stored in inertial frame
+    math::Vector2 m_desiredPosition; // Stored in inertial frame
       
     double m_desiredDepth;
       

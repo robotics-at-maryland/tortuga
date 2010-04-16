@@ -30,47 +30,47 @@ struct RotationalControllerBaseFixture
 };
 
 
-SUITE(RotationalControllerBase)
-{
+// SUITE(RotationalControllerBase)
+// {
 
-TEST_FIXTURE(RotationalControllerBaseFixture, yawVehicle)
-{
-    TEST_UTILITY_FUNC(yawVehicle)(&controller);
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, yawVehicle)
+// {
+//     TEST_UTILITY_FUNC(yawVehicle)(&controller);
+// }
 
-TEST_FIXTURE(RotationalControllerBaseFixture, pitchVehicle)
-{
-    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, pitchVehicle)
+// {
+//     TEST_UTILITY_FUNC(pitchVehicle)(&controller);
+// }
 
-TEST_FIXTURE(RotationalControllerBaseFixture, rollVehicle)
-{
-    TEST_UTILITY_FUNC(rollVehicle)(&controller);
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, rollVehicle)
+// {
+//     TEST_UTILITY_FUNC(rollVehicle)(&controller);
+// }
 
-TEST_FIXTURE(RotationalControllerBaseFixture, setDesiredOrientation)
-{
-    TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, setDesiredOrientation)
+// {
+//     TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
+// }
 
-TEST_FIXTURE(RotationalControllerBaseFixture, holdCurrentHeading)
-{
-    TEST_UTILITY_FUNC(holdCurrentHeading)
-        (&controller,
-         boost::bind(&control::IRotationalControllerImp::rotationalUpdate,
-                     &controller, 0.0, _1, math::Vector3::ZERO));
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, holdCurrentHeading)
+// {
+//     TEST_UTILITY_FUNC(holdCurrentHeading)
+//         (&controller,
+//          boost::bind(&control::IRotationalControllerImp::rotationalUpdate,
+//                      &controller, 0.0, _1, math::Vector3::ZERO));
+// }
 
-TEST_FIXTURE(RotationalControllerBaseFixture, atOrientation)
-{
-    TEST_UTILITY_FUNC(atOrientation)
-        (&controller,
-         boost::bind(&control::IRotationalControllerImp::rotationalUpdate,
-                     &controller, 0.0, _1, math::Vector3::ZERO),
-         boost::bind(&control::IRotationalControllerImp::yawVehicle,
-                     &controller, 0.0));
-}
+// TEST_FIXTURE(RotationalControllerBaseFixture, atOrientation)
+// {
+//     TEST_UTILITY_FUNC(atOrientation)
+//         (&controller,
+//          boost::bind(&control::IRotationalControllerImp::rotationalUpdate,
+//                      &controller, 0.0, _1, math::Vector3::ZERO),
+//          boost::bind(&control::IRotationalControllerImp::yawVehicle,
+//                      &controller, 0.0));
+// }
 
 
-} // SUITE(RotationalControllerBase)
+// } // SUITE(RotationalControllerBase)
 

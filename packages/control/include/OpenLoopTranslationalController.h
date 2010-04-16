@@ -35,7 +35,8 @@ public:
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
                                               math::Vector2 position,
-                                              math::Vector2 velocity);
+                                              math::Vector2 velocity,
+                                              controltest::DesiredStatePtr desiredState);
 private:
     /** Gain for the normal speed */
     double m_speedPGain;

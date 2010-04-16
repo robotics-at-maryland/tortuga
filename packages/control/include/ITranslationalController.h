@@ -15,6 +15,8 @@
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
+#include "control/include/DesiredState.h"
+
 // Must Be Included last
 #include "control/include/Export.h"
 
@@ -27,58 +29,58 @@ class RAM_EXPORT ITranslationalController
 public:
     virtual ~ITranslationalController() {}
 
-    /** Set the desired velocity in meters/second (vehicle frame)
-     *
-     *  Note this overrides speed based control, set a desired velocity will
-     *  implicity set an internal speed, to be fed to the vehicle.
-     */
-    virtual void setVelocity(math::Vector2 velocity) = 0;  
+    // /** Set the desired velocity in meters/second (vehicle frame)
+    //  *
+    //  *  Note this overrides speed based control, set a desired velocity will
+    //  *  implicity set an internal speed, to be fed to the vehicle.
+    //  */
+    // virtual void setVelocity(math::Vector2 velocity) = 0;  
 
-    /** Get the current desired velocity */
-    virtual math::Vector2 getVelocity() = 0;
+    // /** Get the current desired velocity */
+    // virtual math::Vector2 getVelocity() = 0;
     
-    /** Set the current speed, clamped between -5 and 5
-     *
-     *  Setting this turns off the velocity based control, and gives direct
-     *  speed based control.
-     */
-    virtual void setSpeed(double speed) = 0;
+    // /** Set the current speed, clamped between -5 and 5
+    //  *
+    //  *  Setting this turns off the velocity based control, and gives direct
+    //  *  speed based control.
+    //  */
+    // virtual void setSpeed(double speed) = 0;
 
-    /** Set how fast the vehicle is going side to side (positive = right) */
-    virtual void setSidewaysSpeed(double speed) = 0;
+    // /** Set how fast the vehicle is going side to side (positive = right) */
+    // virtual void setSidewaysSpeed(double speed) = 0;
 
-    /** Gets the current speed, a value between -5 and 5 */
-    virtual double getSpeed() = 0;
+    // /** Gets the current speed, a value between -5 and 5 */
+    // virtual double getSpeed() = 0;
 
-    /** Gets the current sideways speed
-     *
-     *  @return
-     *      A value between -5 (left) and 5 (right)
-     */
-    virtual double getSidewaysSpeed() = 0;
+    // /** Gets the current sideways speed
+    //  *
+    //  *  @return
+    //  *      A value between -5 (left) and 5 (right)
+    //  */
+    // virtual double getSidewaysSpeed() = 0;
 
-    /** Loads current position into desired and stays in that position */
-    virtual void holdCurrentPosition() = 0;
+    // /** Loads current position into desired and stays in that position */
+    // virtual void holdCurrentPosition() = 0;
 
-    /** Sets desired velocity and velocity based control for new controllers */
-    virtual void setDesiredVelocity(math::Vector2 velocity) = 0;
+    // /** Sets desired velocity and velocity based control for new controllers */
+    // virtual void setDesiredVelocity(math::Vector2 velocity) = 0;
     
-    /** Sets desired position and position based control for new controllers */
-    virtual void setDesiredPosition(math::Vector2 position) = 0;
+    // /** Sets desired position and position based control for new controllers */
+    // virtual void setDesiredPosition(math::Vector2 position) = 0;
  
-    /** Sets a desired position and velocity for controling of both simultaneously */
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position,
-					       math::Vector2 velocity) = 0;
+    // /** Sets a desired position and velocity for controling of both simultaneously */
+    // virtual void setDesiredPositionAndVelocity(math::Vector2 position,
+	// 				       math::Vector2 velocity) = 0;
 
-    /** Gets desired velocity */
-    virtual math::Vector2 getDesiredVelocity() = 0;
+    // /** Gets desired velocity */
+    // virtual math::Vector2 getDesiredVelocity() = 0;
 
-    /** Gets desired position */
-    virtual math::Vector2 getDesiredPosition() = 0;
+    // /** Gets desired position */
+    // virtual math::Vector2 getDesiredPosition() = 0;
 
-    virtual bool atPosition() = 0;
+    // virtual bool atPosition() = 0;
     
-    virtual bool atVelocity() = 0;
+    // virtual bool atVelocity() = 0;
 
 };
 
@@ -93,7 +95,8 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
                                               math::Vector2 position,
-                                              math::Vector2 velocity) = 0;
+                                              math::Vector2 velocity,
+                                              controltest::DesiredStatePtr desiredState) = 0;
 };
     
 } // namespace control

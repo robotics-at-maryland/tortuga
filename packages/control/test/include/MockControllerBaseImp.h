@@ -22,14 +22,15 @@ public:
         ram::control::ControllerBase(vehicle, config),
         atDepthValue(false),
         atOrientationValue(false),
-        desiredDepth(0),
-        desiredOrientation(ram::math::Quaternion::IDENTITY),
+        desiredState(ram::controltest::DesiredStatePtr(
+                            new ram::controltest::DesiredState(
+                                config["DesiredState"]))),
         translationalForceOut(0,0,0),
         rotationalTorqueOut(0,0,0)
         {}
     
     virtual ~MockControllerBaseImp() {}
-
+            
     virtual void doUpdate(const double& timestep_,
                           const ram::math::Vector3& linearAcceleration_,
                           const ram::math::Quaternion& orientation_,
@@ -61,7 +62,17 @@ public:
     {
         newDesiredOrientationSet(newOrientation);
     }
-   
+
+    virtual void _newDesiredVelocitySet(const ram::math::Vector2& newVelocity)
+    {
+        newDesiredVelocitySet(newVelocity);
+    }
+
+    virtual void _newDesiredPositionSet(const ram::math::Vector2& newPosition)
+    {
+        newDesiredPositionSet(newPosition);
+    }
+                        
 
     virtual void setVelocity(ram::math::Vector2 /*velocity_*/) {}
     virtual ram::math::Vector2 getVelocity()
@@ -70,18 +81,22 @@ public:
     virtual void setSidewaysSpeed(double sidewaysSpeed_) {}
     virtual double getSpeed() { return 0; }
     virtual double getSidewaysSpeed() { return 0; }
-    virtual void holdCurrentPosition() {}
-    virtual void setDesiredVelocity(ram::math::Vector2 velocity){}
-    virtual void setDesiredPosition(ram::math::Vector2 position){}
-    virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position, 
-					       ram::math::Vector2 velocity){}
-    virtual ram::math::Vector2 getDesiredVelocity(){return ram::math::Vector2::ZERO;}
-    virtual ram::math::Vector2 getDesiredPosition(){return ram::math::Vector2::ZERO;}
+    virtual void setDesiredVelocity(ram::math::Vector2 velocity,
+                                    ram::control::Frame frame){}
+    virtual void setDesiredPosition(ram::math::Vector2 position,
+                                    ram::control::Frame frame){}
+    virtual ram::math::Vector2 getDesiredVelocity(ram::control::Frame frame)
+    {return ram::math::Vector2::ZERO;}
+    virtual ram::math::Vector2 getDesiredPosition(ram::control::Frame frame)
+    {return ram::math::Vector2::ZERO;}
+    virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position,
+                                               ram::math::Vector2 velocity){}
+
     virtual bool atPosition(){return 0;}
     virtual bool atVelocity(){return 0;}
     
     virtual void setDepth(double) { return; }
-    virtual double getDepth() { return desiredDepth; }
+    virtual double getDepth() { return 0; }
     virtual double getEstimatedDepth() { return 0; }
     virtual double getEstimatedDepthDot() { return 0; }
     virtual bool atDepth() { return atDepthValue; }
@@ -91,18 +106,17 @@ public:
     virtual void pitchVehicle(double /*degrees*/) {}
     virtual void rollVehicle(double /*degrees*/) {}
     virtual ram::math::Quaternion getDesiredOrientation() {
-        return desiredOrientation; }
+        return ram::math::Quaternion::IDENTITY; }
     virtual void setDesiredOrientation(ram::math::Quaternion) {}
     virtual bool atOrientation() { return atOrientationValue; }
     virtual void holdCurrentHeading() {}
-
+                        
 
     bool atDepthValue;
     bool atOrientationValue;
 
-    double desiredDepth;
-    ram::math::Quaternion desiredOrientation;
-
+    ram::controltest::DesiredStatePtr desiredState;
+    
     double timestep;
     ram::math::Vector3 linearAcceleration;
     ram::math::Quaternion orientation;
