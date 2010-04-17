@@ -34,7 +34,7 @@ struct ControlBaseFixture
     MockControllerBaseImp mockController;
 };
 
-// SUITE(ControllerBase) {
+SUITE(ControllerBase) {
 
 // TEST_FIXTURE(ControlBaseFixture, update)
 // {
@@ -98,4 +98,4 @@ struct ControlBaseFixture
 //     CHECK_EQUAL(2.8, actualDepth);
 // }
 
-// } // SUITE(ControllerBase)
+} // SUITE(ControllerBase)

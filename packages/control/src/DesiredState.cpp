@@ -70,6 +70,7 @@ void DesiredState::setDesiredDepth(double depth)
 
 void DesiredState::setDesiredOrientation(math::Quaternion orientation)
 {
+    orientation.normalise();
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_desiredOrientation = orientation;
 }
@@ -103,7 +104,7 @@ DesiredState::DesiredState(core::ConfigNode config) :
     m_desiredVelocity(math::Vector2::ZERO),
     m_desiredPosition(math::Vector2::ZERO),
     m_desiredDepth(0),
-    m_desiredOrientation(math::Quaternion::ZERO),
+    m_desiredOrientation(math::Quaternion::IDENTITY),
     m_desiredAngularRate(math::Vector3::ZERO) {}
 
 DesiredState::~DesiredState() {}

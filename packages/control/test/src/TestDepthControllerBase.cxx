@@ -29,18 +29,10 @@ struct DepthControllerBaseFixture
     MockDepthControllerBase controller;
 };
 
+/* Some tests moved. */
 
-// SUITE(DepthControllerBase)
-// {
-
-// TEST_FIXTURE(DepthControllerBaseFixture, setGetDepth)
-// {
-//     TEST_UTILITY_FUNC(setGetDepth)(&controller);
-// }
-
-// void dummy()
-// {
-// }
+SUITE(DepthControllerBase)
+{
 
 // TEST_FIXTURE(DepthControllerBaseFixture, atDepth)
 // {
@@ -60,5 +52,5 @@ struct DepthControllerBaseFixture
 //          boost::bind(&dummy));
 // }
 
-// } // SUITE(DepthControllerBase)
+} // SUITE(DepthControllerBase)
 

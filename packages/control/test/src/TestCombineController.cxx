@@ -19,7 +19,9 @@
 
 #include "vehicle/test/include/MockVehicle.h"
 
+#include "control/include/Common.h"
 #include "control/include/CombineController.h"
+#include "control/test/include/IControllerImpTests.h"
 #include "control/test/include/MockDepthController.h"
 #include "control/test/include/MockTranslationalController.h"
 #include "control/test/include/MockRotationalController.h"
@@ -31,7 +33,8 @@
 
 /* TODO
    Add test cases for the new translational functions.  Assure that the old test cases
-   are still valid.
+   are still valid. Decide what to do about atDepth, atPosition, etc... and 
+   getEstimatedDepth and getEstimatedDepthDot.
  */
 
 
@@ -72,69 +75,57 @@ struct CombineControllerFixture
     control::CombineController controller;
 };
 
-// SUITE(CombineController) {
+SUITE(CombineController) {
 
-// // Tests creation of combine controller seperate from fixture
-// TEST(Create)
-// {
-//     CombineControllerFixture fixture;
-//     // Ensure that objects of the right type were created
-//     CHECK(fixture.transController);
-//     CHECK(fixture.depthController);
-//     CHECK(fixture.rotController);
-// }
+// Tests creation of combine controller seperate from fixture
+TEST(Create)
+{
+    CombineControllerFixture fixture;
+    // Ensure that objects of the right type were created
+    CHECK(fixture.transController);
+    CHECK(fixture.depthController);
+    CHECK(fixture.rotController);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, Create)
-// {
-//     // Ensure that objects of the right type were created
-//     CHECK(transController);
-//     CHECK(depthController);
-//     CHECK(rotController);
-// }
+TEST_FIXTURE(CombineControllerFixture, Create)
+{
+    // Ensure that objects of the right type were created
+    CHECK(transController);
+    CHECK(depthController);
+    CHECK(rotController);
+}
 
-// // Translational methods
-// TEST_FIXTURE(CombineControllerFixture, setSpeed)
-// {
-//     double speed = 5.8;
-//     controller.setSpeed(speed);
-//     CHECK_EQUAL(speed, transController->speedSet);
-// }
+// Translational methods
+TEST_FIXTURE(CombineControllerFixture, setGetSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, setSidewaysSpeed)
-// {
-//     double sidewaysSpeed = 2.8;
-//     controller.setSidewaysSpeed(sidewaysSpeed);
-//     CHECK_EQUAL(sidewaysSpeed, transController->sidewaysSpeedSet);
-// }
+TEST_FIXTURE(CombineControllerFixture, setGetSidewaysSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, getSpeed)
-// {
-//     double speed = 5.8;
-//     transController->speed = speed;
-//     CHECK_EQUAL(speed, controller.getSpeed());
-// }
+TEST_FIXTURE(CombineControllerFixture, setGetVelocity)
+{
+    TEST_UTILITY_FUNC(setGetVelocity)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, getSidewaysSpeed)
-// {
-//     double sidewaysSpeed = 2.8;
-//     transController->sidewaysSpeed = sidewaysSpeed;
-//     CHECK_EQUAL(sidewaysSpeed, controller.getSidewaysSpeed());
-// }
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredVelocity)
+{
+    TEST_UTILITY_FUNC(setGetDesiredVelocity)(&controller);
+}
 
-// // Depth methods
-// TEST_FIXTURE(CombineControllerFixture, setDepth)
-// {
-//     double depth = 1.67;
-//     controller.setDepth(depth);
-//     CHECK_EQUAL(depth, depthController->depthSet);
-// }
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredPosition)
+{
+    TEST_UTILITY_FUNC(setGetDesiredPosition)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, getDepth)
-// {
-//     double depth = 5.8;
-//     depthController->depth = depth;
-//     CHECK_EQUAL(depth, controller.getDepth());
-// }
+// Depth methods
+TEST_FIXTURE(CombineControllerFixture, setGetDepth)
+{
+    TEST_UTILITY_FUNC(setGetDepth)(&controller);
+}
 
 // TEST_FIXTURE(CombineControllerFixture, getEstimatedDepth)
 // {
@@ -164,41 +155,26 @@ struct CombineControllerFixture
 //     CHECK_EQUAL(1, depthController->holdCurrentDepthCount);
 // }
 
-// // Translational methods
-// TEST_FIXTURE(CombineControllerFixture, yawVehicle)
-// {
-//     double degrees = 78.2;
-//     controller.yawVehicle(degrees);
-//     CHECK_EQUAL(degrees, rotController->yaw);
-// }
+// Rotational methods
+TEST_FIXTURE(CombineControllerFixture, yawVehicle)
+{
+    TEST_UTILITY_FUNC(yawVehicle)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, pitchVehicle)
-// {
-//     double degrees = 45.2;
-//     controller.pitchVehicle(degrees);
-//     CHECK_EQUAL(degrees, rotController->pitch);
-// }
+TEST_FIXTURE(CombineControllerFixture, pitchVehicle)
+{
+    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, rollVehicle)
-// {
-//     double degrees = 16.8;
-//     controller.rollVehicle(degrees);
-//     CHECK_EQUAL(degrees, rotController->roll);
-// }
+TEST_FIXTURE(CombineControllerFixture, rollVehicle)
+{
+    TEST_UTILITY_FUNC(rollVehicle)(&controller);
+}
 
-// TEST_FIXTURE(CombineControllerFixture, setDesiredOrientation)
-// {
-//     math::Quaternion orientation(0.2, 1.2, 2.5, 1);
-//     controller.setDesiredOrientation(orientation);
-//     CHECK_EQUAL(orientation, rotController->desiredOrientationSet);
-// }
-
-// TEST_FIXTURE(CombineControllerFixture, getDesiredOrientation)
-// {
-//     math::Quaternion orientation(8.2, 1.2, 0.5, 1);
-//     rotController->desiredOrientation = orientation;
-//     CHECK_EQUAL(orientation, controller.getDesiredOrientation());
-// }
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredOrientation)
+{
+    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&controller);
+}
 
 // TEST_FIXTURE(CombineControllerFixture, atOrientation)
 // {
@@ -214,54 +190,52 @@ struct CombineControllerFixture
 //     CHECK_EQUAL(1, rotController->holdCurrentHeadingCount);
 // }
 
-// // Update
-// TEST_FIXTURE(CombineControllerFixture, update)
-// {
-//     // Forces and torques to be returned
-//     rotController->torque = math::Vector3(3, 7, 1);
-//     transController->force = math::Vector3(11, 2, 5);
-//     depthController->force = math::Vector3(1, 2, 3);
+// Update
+TEST_FIXTURE(CombineControllerFixture, update)
+{
+    // Forces and torques to be returned
+    rotController->torque = math::Vector3(3, 7, 1);
+    transController->force = math::Vector3(11, 2, 5);
+    depthController->force = math::Vector3(1, 2, 3);
 
-//     // Conditions for the controllers to act on
-//     double timestep = 0.892;
-//     math::Vector3 linearAcceleration(1,2,3);
-//     math::Quaternion orientation(2.3, 4.12, 1.23, 1);
-//     math::Vector3 angularRate(0.123, 6.56, 3.123);
-//     double depth = 2.123;
+    // Conditions for the controllers to act on
+    double timestep = 0.892;
+    math::Vector3 linearAcceleration(1,2,3);
+    math::Quaternion orientation(2.3, 4.12, 1.23, 1);
+    math::Vector3 angularRate(0.123, 6.56, 3.123);
+    double depth = 2.123;
 
-//     // Set values in mock vehicle to be read
-//     vehicle->linearAcceleration = linearAcceleration;
-//     vehicle->orientation = orientation;
-//     vehicle->angularRate = angularRate;
-//     vehicle->depth = depth;
+    // Set values in mock vehicle to be read
+    vehicle->linearAcceleration = linearAcceleration;
+    vehicle->orientation = orientation;
+    vehicle->angularRate = angularRate;
+    vehicle->depth = depth;
 
-//     // Run the update
-//     controller.update(timestep);
+    // Run the update
+    controller.update(timestep);
 
-//     // Check depth controller
-//     CHECK_EQUAL(timestep, depthController->timestep);
-//     CHECK_EQUAL(depth, depthController->updateDepth);
-//     CHECK_EQUAL(orientation, depthController->orientation);
+    // Check depth controller
+    CHECK_EQUAL(timestep, depthController->timestep);
+    CHECK_EQUAL(depth, depthController->updateDepth);
+    CHECK_EQUAL(orientation, depthController->orientation);
     
-//     // Check translational controller
-//     CHECK_EQUAL(timestep, transController->timestep);
-//     CHECK_EQUAL(linearAcceleration, transController->linearAcceleration);
-//     CHECK_EQUAL(orientation, transController->orientation);
+    // Check translational controller
+    CHECK_EQUAL(timestep, transController->timestep);
+    CHECK_EQUAL(linearAcceleration, transController->linearAcceleration);
+    CHECK_EQUAL(orientation, transController->orientation);
 
-//     // Check rotational controller
-//     CHECK_EQUAL(timestep, rotController->timestep);
-//     CHECK_EQUAL(angularRate, rotController->angularRate);
-//     CHECK_EQUAL(orientation, rotController->orientation);
+    // Check rotational controller
+    CHECK_EQUAL(timestep, rotController->timestep);
+    CHECK_EQUAL(angularRate, rotController->angularRate);
+    CHECK_EQUAL(orientation, rotController->orientation);
 
-//     // Check force returned
-//     math::Vector3 expectedForce =
-//         transController->force + depthController->force;
-//     math::Vector3 expectedTorque = rotController->torque;
+    // Check force returned
+    math::Vector3 expectedForce =
+        transController->force + depthController->force;
+    math::Vector3 expectedTorque = rotController->torque;
 
-//     CHECK_EQUAL(expectedForce, vehicle->force);
-//     CHECK_EQUAL(expectedTorque, vehicle->torque);
-// }
+    CHECK_EQUAL(expectedForce, vehicle->force);
+    CHECK_EQUAL(expectedTorque, vehicle->torque);
+}
 
-
-
-// } // SUITE(CombineController)
+} // SUITE(CombineController)

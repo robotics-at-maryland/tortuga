@@ -28,24 +28,10 @@ struct TranslationalControllerBaseFixture
     MockTranslationalControllerBase controller;
 };
 
+/* Tests moved */
 
-// SUITE(TranslationalControllerBase)
-// {
-    
-// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetVelocity)
-// {
-//     TEST_UTILITY_FUNC(setGetVelocity)(&controller);
-// }
-    
-// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSpeed)
-// {
-//     TEST_UTILITY_FUNC(setGetSpeed)(&controller);
-// }
-
-// TEST_FIXTURE(TranslationalControllerBaseFixture, setGetSidewaysSpeed)
-// {
-//     TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
-// }
+SUITE(TranslationalControllerBase)
+{
 
 // TEST_FIXTURE(TranslationalControllerBaseFixture, controlMode)
 // {
@@ -64,5 +50,6 @@ struct TranslationalControllerBaseFixture
 //                 controller.getMode());
 
 // }
-// } // SUITE(TranslationalControllerBase)
+
+} // SUITE(TranslationalControllerBase)
 

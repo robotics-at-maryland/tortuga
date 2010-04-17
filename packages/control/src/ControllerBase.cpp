@@ -121,12 +121,22 @@ void ControllerBase::setVelocity(math::Vector2 velocity)
 
 void ControllerBase::setSpeed(double speed)
 {
-    desiredState->setDesiredVelocity(math::Vector2(speed,0));
+    if(speed > 5)
+        speed = 5;
+    else if(speed < -5)
+        speed = -5;
+
+    setDesiredVelocity(math::Vector2(speed,0), BODY);
 }
 
 void ControllerBase::setSidewaysSpeed(double speed)
 {
-    desiredState->setDesiredVelocity(math::Vector2(0,speed));
+    if(speed > 5)
+        speed = 5;
+    else if(speed < -5)
+        speed = -5;
+
+    setDesiredVelocity(math::Vector2(0,speed), BODY);
 }
 
 void ControllerBase::setDesiredVelocity(math::Vector2 velocity, Frame frame)
@@ -150,15 +160,13 @@ void ControllerBase::setDesiredPositionAndVelocity(math::Vector2 position, math:
 }
 double ControllerBase::getSpeed()
 {
-    math::Vector2 velocity(desiredState->getDesiredVelocity());
-    velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+    math::Vector2 velocity = getDesiredVelocity(BODY);
     return velocity[0];
 }
 
 double ControllerBase::getSidewaysSpeed()
 {
-    math::Vector2 velocity(desiredState->getDesiredVelocity());
-    velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+    math::Vector2 velocity = getDesiredVelocity(BODY);
     return velocity[1];
 }
 
@@ -179,7 +187,7 @@ math::Vector2 ControllerBase::getDesiredVelocity(Frame frame)
 
 math::Vector2 ControllerBase::getDesiredPosition(Frame frame)
 {
-    math::Vector2 position(desiredState->getDesiredVelocity());
+    math::Vector2 position(desiredState->getDesiredPosition());
     if(frame == BODY)
         position = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     return position;
@@ -337,8 +345,8 @@ void ControllerBase::init(core::ConfigNode config)
     m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
     m_orientationThreshold =
         config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
-    m_positionThreshold = config["positionThreshold"].asDouble();
-    m_velocityThreshold = config["velocityThreshold"].asDouble();
+    m_positionThreshold = config["positionThreshold"].asDouble(POSITION_THRESHOLD);
+    m_velocityThreshold = config["velocityThreshold"].asDouble(VELOCITY_THRESHOLD);
     desiredState = controltest::DesiredStatePtr(new controltest::DesiredState(config["DesiredState"]));
 }
                       

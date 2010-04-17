@@ -21,6 +21,7 @@
 #include "vehicle/test/include/MockVehicle.h"
 
 #include "control/include/BWPDController.h"
+#include "control/test/include/IControllerImpTests.h"
 #include "control/test/include/RotationalControllerTests.h"
 #include "control/test/include/DepthControllerTests.h"
 #include "control/test/include/TranslationalControllerTests.h"
@@ -83,25 +84,25 @@ TEST_FIXTURE(Fixture, YawRateControl)
   
   }*/
 
-// TEST_FIXTURE(Fixture, yawVehicle)
-// {
-//     TEST_UTILITY_FUNC(yawVehicle)(&controller);
-// }
+TEST_FIXTURE(Fixture, yawVehicle)
+{
+    TEST_UTILITY_FUNC(yawVehicle)(&controller);
+}
 
-// TEST_FIXTURE(Fixture, pitchVehicle)
-// {
-//     TEST_UTILITY_FUNC(pitchVehicle)(&controller);
-// }
+TEST_FIXTURE(Fixture, pitchVehicle)
+{
+    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
+}
 
-// TEST_FIXTURE(Fixture, rollVehicle)
-// {
-//     TEST_UTILITY_FUNC(rollVehicle)(&controller);
-// }
+TEST_FIXTURE(Fixture, rollVehicle)
+{
+    TEST_UTILITY_FUNC(rollVehicle)(&controller);
+}
 
-// TEST_FIXTURE(Fixture, setDesiredOrientation)
-// {
-//     TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
-// }
+TEST_FIXTURE(Fixture, setGetDesiredOrientation)
+{
+    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&controller);
+}
 
 TEST_FIXTURE(Fixture, DepthControl)
 {
@@ -127,10 +128,10 @@ TEST_FIXTURE(Fixture, DepthControl)
     CHECK_CLOSE(exp_tranForce, vehicle->force, 0.0001);
 }
 
-// TEST_FIXTURE(Fixture, setGetDepth)
-// {
-//     TEST_UTILITY_FUNC(setGetDepth)(&controller);
-// }
+TEST_FIXTURE(Fixture, setGetDepth)
+{
+    TEST_UTILITY_FUNC(setGetDepth)(&controller);
+}
 
 // TEST_FIXTURE(Fixture, atDepth)
 // {
@@ -312,15 +313,15 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 //          boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
 // }
 
-// TEST_FIXTURE(Fixture, setGetSpeed)
-// {
-//     TEST_UTILITY_FUNC(setGetSpeed)(&controller);
-// }
+TEST_FIXTURE(Fixture, setGetSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+}
 
-// TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
-// {
-//     TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
-// }
+TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+}
 
 
 /*

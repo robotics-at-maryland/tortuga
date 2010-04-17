@@ -29,29 +29,10 @@ struct RotationalControllerBaseFixture
     MockRotationalControllerBase controller;
 };
 
+/* Most tests moved. */
 
-// SUITE(RotationalControllerBase)
-// {
-
-// TEST_FIXTURE(RotationalControllerBaseFixture, yawVehicle)
-// {
-//     TEST_UTILITY_FUNC(yawVehicle)(&controller);
-// }
-
-// TEST_FIXTURE(RotationalControllerBaseFixture, pitchVehicle)
-// {
-//     TEST_UTILITY_FUNC(pitchVehicle)(&controller);
-// }
-
-// TEST_FIXTURE(RotationalControllerBaseFixture, rollVehicle)
-// {
-//     TEST_UTILITY_FUNC(rollVehicle)(&controller);
-// }
-
-// TEST_FIXTURE(RotationalControllerBaseFixture, setDesiredOrientation)
-// {
-//     TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
-// }
+SUITE(RotationalControllerBase)
+{
 
 // TEST_FIXTURE(RotationalControllerBaseFixture, holdCurrentHeading)
 // {
@@ -72,5 +53,5 @@ struct RotationalControllerBaseFixture
 // }
 
 
-// } // SUITE(RotationalControllerBase)
+} // SUITE(RotationalControllerBase)
 
