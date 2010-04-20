@@ -28,6 +28,7 @@
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
 #include "vision/include/VelocityDetector.h"
+#include "vision/include/HedgeDetector.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
@@ -149,13 +150,12 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_barbedWireDetector = DetectorPtr(
         new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
                                eventHub));
-    // TODO: Add when HedgeDetector is made
-    //m_hedgeDetector = DetectorPtr(
-    //    new HedgeDetector(getConfig(config, "HedgeDetector"),
-    //                      eventHub));
+    m_hedgeDetector = DetectorPtr(
+        new HedgeDetector(getConfig(config, "HedgeDetector"),
+                          eventHub));
     m_velocityDetector = DetectorPtr(
         new VelocityDetector(getConfig(config, "VelocityDetector"),
-			     eventHub));
+                             eventHub));
     
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -240,124 +240,124 @@ void VisionSystem::binDetectorOn()
 {
     addDownwardDetector(m_binDetector);
     publish(EventType::BIN_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::binDetectorOff()
 {
     m_downward->removeDetector(m_binDetector);
     publish(EventType::BIN_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::pipeLineDetectorOn()
 {
     addDownwardDetector(m_pipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::pipeLineDetectorOff()
 {
     m_downward->removeDetector(m_pipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::ductDetectorOn()
 {
     addForwardDetector(m_ductDetector);
     publish(EventType::DUCT_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::ductDetectorOff()
 {
     m_forward->removeDetector(m_ductDetector);
     publish(EventType::DUCT_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::downwardSafeDetectorOn()
 {
     addDownwardDetector(m_downwardSafeDetector);
     publish(EventType::SAFE_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
     
 void VisionSystem::downwardSafeDetectorOff()
 {
     m_downward->removeDetector(m_downwardSafeDetector);
     publish(EventType::SAFE_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
     
 void VisionSystem::gateDetectorOn()
 {
     addForwardDetector(m_gateDetector);
     publish(EventType::GATE_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::gateDetectorOff()
 {
     m_forward->removeDetector(m_gateDetector);
     publish(EventType::GATE_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::redLightDetectorOn()
 {
     addForwardDetector(m_redLightDetector);
     publish(EventType::RED_LIGHT_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::redLightDetectorOff()
 {
     m_forward->removeDetector(m_redLightDetector);
     publish(EventType::RED_LIGHT_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::targetDetectorOn()
 {
     addForwardDetector(m_targetDetector);
     publish(EventType::TARGET_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::targetDetectorOff()
 {
     m_forward->removeDetector(m_targetDetector);
     publish(EventType::TARGET_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::barbedWireDetectorOn()
 {
     addForwardDetector(m_barbedWireDetector);
     publish(EventType::BARBED_WIRE_DETECTOR_ON,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::barbedWireDetectorOff()
 {
     m_forward->removeDetector(m_barbedWireDetector);
     publish(EventType::BARBED_WIRE_DETECTOR_OFF,
-	    core::EventPtr(new core::Event()));
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::hedgeDetectorOn()
 {
-    //addForwardDetector(m_hedgeDetector);
+    addForwardDetector(m_hedgeDetector);
     publish(EventType::HEDGE_DETECTOR_ON,
             core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::hedgeDetectorOff()
 {
-    //m_forward->removeDetector(m_hedgeDetector);
+    m_forward->removeDetector(m_hedgeDetector);
     publish(EventType::HEDGE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }

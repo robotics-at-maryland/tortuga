@@ -1412,8 +1412,9 @@ class IdealSimVision(ext.vision.VisionSystem):
         hedge, relativePos = self._findClosest(self._hedges)
         hedgeVisible, x, y, azimuth, elevation, angle = \
                       self._forwardCheck(relativePos, hedge)
+        range = relativePos.length() * 3.2808399
 
-        if hedgeVisible and (relativePos.length() < 3):
+        if hedgeVisible and (relativePos.length() < 3) and not range < 3.18:
             event = ext.core.Event()
             event.x = x
             event.y = y
@@ -1423,9 +1424,9 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.squareNess = 2*math.fabs(math.cos(angle.valueRadians()))**4.82
 
             # Convert to feet
-            event.range = relativePos.length() * 3.2808399
-            found = True
+            event.range = range
 
+            found = True
             self.publish(ext.vision.EventType.HEDGE_FOUND, event)
         else:
             if self._foundBarbedWire:

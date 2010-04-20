@@ -109,6 +109,7 @@ void HedgeDetector::init(core::ConfigNode config)
     hedgeCenter.y=0;
 
     // Working images
+    frame = new vision::OpenCVImage(640, 48);
     raw = new vision::OpenCVImage(640, 480);
     preprocess = new vision::OpenCVImage(640, 480);
     if (m_useLineDetection)
@@ -253,6 +254,23 @@ void HedgeDetector::processImage(Image* input, Image* output)
 
     if (foundBlob)
     {
+        /**
+         * Constant for the camera to convert from 1 - width pixels
+         * to a range in feet
+         *
+         * The second constant is the range of the hedge when seen at its
+         * maximum size. Aka, how far away the hedge is when it's width spans
+         * the entire screen.
+         *
+         * Both numbers are currently chosen to match the output of the
+         * IdealSimVision until I can get real numbers to match it to feet.
+         *
+         * The hedge was width 0.65 when the range was 8.21. It was 3.18 when
+         * the base was approximately 1. So these values can be found by
+         *     8.21 = 0.65 * RMULT + 3.18
+         */
+        static const double RMULT = 7.73846;
+        static const double RBASE = 3.18;
         boundUR.x = greenBlob.getMaxX();
         boundUR.y = greenBlob.getMaxY();
         boundLL.x = greenBlob.getMinX();
@@ -266,7 +284,8 @@ void HedgeDetector::processImage(Image* input, Image* output)
         Detector::imageToAICoordinates(input, hedgeCenter.x, hedgeCenter.y,
                                        m_hedgeCenterX, m_hedgeCenterY);
         m_squareNess = greenBlob.getTrueAspectRatio();
-        m_range = 0;
+        m_range = (1.0 - (((double)greenBlob.getWidth()) /
+                          ((double)raw->getWidth()))) * RMULT + RBASE;
         
         publishFoundEvent();
     } else {
@@ -417,8 +436,6 @@ bool HedgeDetector::processLines(const LineDetector::LineList& lines,
             }
         }
     }
-
-    std::cout << "lowPriority: " << lowPriorityBlobs.size() << std::endl;
 
     if (highPriorityBlobs.size() > 0) {
         // Place the first high priority blob
