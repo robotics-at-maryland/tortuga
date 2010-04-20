@@ -296,10 +296,9 @@ class Hedge(ram.sim.object.Object):
                    'scale': [Hedge.WIDTH,
                              Hedge.PIPE_WIDTH,
                              Hedge.PIPE_WIDTH] }
-
         
         # Create Base Pipe
-        position = basePos
+        position = basePos + (upDownOffset * -1)
         cfg = {'name' : baseName + 'HedgeBase', 
                'position' : position, 
                'orientation' : self._toAxisAngleArray(drawOrientation) ,
@@ -317,7 +316,7 @@ class Hedge(ram.sim.object.Object):
             })
         
         # Create Left Pipe
-        position = basePos + (sideOffset * 1) + (upDownOffset * 1)
+        position = basePos + (sideOffset * 1)
         cfg = {'name' : baseName + 'HedgeLeftPipe', 
                'position' : position, 
                'orientation' : [0, 1, 0, 90],
@@ -326,7 +325,7 @@ class Hedge(ram.sim.object.Object):
         self._hedge.load((scene, parent, cfg))
 
         # Create Right Pipe
-        position = basePos + (sideOffset * -1) + (upDownOffset * 1)
+        position = basePos + (sideOffset * -1)
         cfg = {'name' : baseName + 'HedgeRightPipe', 
                'position' : position, 
                'orientation' : [0, 1, 0, 90],
