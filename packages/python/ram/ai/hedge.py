@@ -41,6 +41,10 @@ class FilteredState(object):
     """
     Provides filter on the inputs from the vision system
     """
+    @staticmethod
+    def getattr():
+        return set(['filterSize'])
+
     def enter(self):
         # Read in filter size
         filterSize = self._config.get('filterSize', 1)
@@ -96,7 +100,7 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
                     'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxSpeed',
-                    'translateGain', 'filterSize'])
+                    'translateGain']).union(FilteredState.getattr())
 
     def HEDGE_FOUND(self, event):
         """Update the state of the hedge, this moves the vehicle"""
@@ -347,99 +351,10 @@ class SeekingToRange(RangeXYHold):
         return RangeXYHold.transitions(SeekingToRange, {
             RangeXYHold.IN_RANGE : SeekingToAligned },
                                        lostState = FindAttemptRange)
-        
-class FireTorpedos(RangeXYHold):
-    """
-    Fires the two torpedos at the hedge, with 1 second in between each, but
-    only if the hedge is within the desired bounds.
-    """
-
-    NUMBER_TORPEDOS = 2
-    ARM_TORPEDOS = core.declareEventType('ARM_TORPEDOS_')
-    MOVE_ON = core.declareEventType('MOVE_ON')
-    MISALIGNED = core.declareEventType('MISALIGNED')
-
-    @staticmethod
-    def transitions():
-        return RangeXYHold.transitions(FireTorpedos, {
-            RangeXYHold.IN_RANGE : FireTorpedos,
-            FireTorpedos.ARM_TORPEDOS: FireTorpedos,
-            FireTorpedos.MOVE_ON : End,
-            FireTorpedos.MISALIGNED : SeekingToAligned },
-            lostState = FindAttemptFireTorpedos)
-
-    @staticmethod
-    def getattr():
-        return set(['fireDelay', 'minSquareNess', 'startFireDelay']).union(
-            RangeXYHold.getattr())
-
-    def IN_RANGE(self, event):
-        """
-        Fires the torpedos only when armed, disarms the torpedos afterward so
-        that next will be fired only after the delay period.
-        """
-        if self._armed and self.ai.data.get('torpedosFired', 0) \
-                < FireTorpedos.NUMBER_TORPEDOS:
-            squareNess = self._filterdAlign + 1
-            if squareNess > self._minSquareNess:
-                self.vehicle.fireTorpedo()
-            else:
-                self.publish(FireTorpedos.MISALIGNED, core.Event())
-                return
-
-            # Disarm torpedos, must be armed again, after a wait for the current
-            # torpedo to get through
-            self._armed = False
-
-            # Increment number of torpedos fired
-            fireCount = self.ai.data.get('torpedosFired', 0)
-            self.ai.data['torpedosFired'] = fireCount + 1
-
-            # Reset the countdown if we still have more to fire
-            self._resetFireTimer()
-
-    def ARM_TORPEDOS_(self, event):
-        """
-        Arms the torpedos for firing when we are in range.
-        """
-        self._armed = True
 
     def enter(self):
+        self._config.setdefault('desiredRange', 5)
         RangeXYHold.enter(self)
-
-        self._timer = None
-        self._delay = self._config.get('fireDelay', 2)
-        self._armed = False
-        self._minSquareNess = self._config.get('minSquareNess', 0.85)
-
-        self._resetFireTimer(delay = self._config.get('startFireDelay', 0))
-
-    def exit(self):
-        if self._timer is not None:
-            self._timer.stop()
-
-    @property
-    def armed(self):
-        return self._armed
-    
-    def _resetFireTimer(self, delay = None):
-        """
-        Initiates a timer which arms the firing of a torpedo after the desired
-        delay
-        """
-        if delay is None:
-            delay = self._delay
-
-        if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
-            if delay > 0:
-                self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
-                                                         delay)
-                self._timer.start()
-            else:
-                self._armed = True
-        else:
-            # All torpedos fired, lets get out of this state
-            self.publish(FireTorpedos.MOVE_ON, core.Event())
         
 class HedgeAlignState(FilteredState, StoreHedgeEvent):
     def HEDGE_FOUND(self, event):
@@ -452,6 +367,13 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
                               self._filterdX, self._filterdY, 
                               self._filterdAlign * self._alignSign,
                               event.timeStamp)
+
+    @staticmethod
+    def getattr():
+        attr = set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
+                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain'])
+        return attr.union(FilteredState.getattr())
         
     def enter(self):
         FilteredState.enter(self)
@@ -470,15 +392,15 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
         
-        desiredRange = self._config.get('desiredRange', 0.5)
-        maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
+        desiredRange = self._config.get('desiredRange', 5)
+        maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
         alignGain = self._config.get('alignGain', 1.0)
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
         yawGain = self._config.get('yawGain', 1.0)
 
-        motion = ram.motion.duct.DuctSeekAlign(hedge = self._hedge,
+        motion = ram.motion.duct.DuctSeekAlign(target = self._hedge,
             desiredRange = desiredRange,
             maxRangeDiff = maxRangeDiff,
             maxAlignDiff = maxAlignDiff, 
@@ -510,14 +432,12 @@ class SeekingToAligned(HedgeAlignState, state.State):
         return { vision.EventType.HEDGE_FOUND : SeekingToAligned,
                  vision.EventType.HEDGE_LOST : FindAttemptAligned,
                  SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
-                 SeekingToAligned.ALIGNED : FireTorpedos }
+                 SeekingToAligned.ALIGNED : Aligning }
 
     @staticmethod
     def getattr():
-        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
-                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
-                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'minSquareNess', 'checkDelay', 'filterSize'])
+        return set(['minSquareNess', 'checkDelay']).union(
+            HedgeAlignState.getattr())
 
     def HEDGE_FOUND(self, event):
         # Update motion
@@ -556,7 +476,6 @@ class SeekingToAligned(HedgeAlignState, state.State):
         HedgeAlignState.exit(self)
         self._timer.stop()
     
-# The next two states are extra states, not sure if they are needed    
 class Aligning(HedgeAlignState, state.State):
     SETTLED = core.declareEventType('ALIGNED')
        
@@ -568,10 +487,7 @@ class Aligning(HedgeAlignState, state.State):
 
     @staticmethod
     def getattr():
-        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
-                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
-                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'settleTime', 'filterSize'])
+        return set(['settleTime']).union(HedgeAlignState.getattr())
 
     def enter(self):
         HedgeAlignState.enter(self)
@@ -602,7 +518,6 @@ class Through(state.State):
         heading = self.vehicle.getOrientation().getYaw(True).valueDegrees()
         
         # Assumes that the DVL is named 'DVL'
-        m = None
         if 'DVL' in self.vehicle.getDeviceNames():
             # Set the DVL motion
             m = motion.basic.MoveDistance(desiredHeading = heading,

@@ -27,6 +27,7 @@ config:
     pipeDepth: 3
     bwireDepth: 8.3
     targetDepth: 5.5
+    hedgeDepth: 8
     binDepth: 13
     targetSymbols: ['Aircraft', 'Ship']
     sonarDepth: 8
