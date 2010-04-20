@@ -64,10 +64,15 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     /** Processes the list of all found blobs and finds the largest valid one */
     bool processLines(const LineDetector::LineList& lines,
-                      LineDetector::Line& outLine);
+                      BlobDetector::Blob& outBlob);
+
+    bool processBlobs(const BlobDetector::BlobList& blobs,
+                      BlobDetector::Blob& outBlob);
 
     double m_hedgeCenterX;
     double m_hedgeCenterY;
+    double m_squareNess;
+    double m_range;
     int minGreenPixels;
     OpenCVImage* raw;
     OpenCVImage* preprocess;
@@ -80,6 +85,10 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     /** Finds the hedge */
     LineDetector m_lineDetector;
+    BlobDetector m_blobDetector;
+
+    /** Identifies which base detector to use */
+    bool m_useLineDetection;
 
     /** Percentage of the image to remove from the top */
     double m_topRemovePercentage;
@@ -92,6 +101,10 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     /** Percentage of the image to remove from the right */
     double m_rightRemovePercentage;
+
+    /** Aspect ratio of the blob */
+    double m_maxAspectRatio;
+    double m_minAspectRatio;
 
     /** Filters for green using LUV */
     ColorFilter* m_filter;

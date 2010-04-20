@@ -299,25 +299,25 @@ void RedLightDetector::processImage(Image* input, Image* output)
             minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
         
             found=true; //completely ignoring the state machine for the time being.
-//	        	        cout<<"FOUND RED LIGHT "<<endl;
-	    // Transform to the AI's coordinates then publish the event
-	    Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
-					   m_redLightCenterX, m_redLightCenterY);
-	    publishFoundEvent(lightPixelRadius);
-	    
-	    // Tell the watcher we are really freaking close to the light
-	    int pixelSize = (int)(input->getHeight() * input->getWidth());
-	    pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
-					   m_bottomRemovePercentage));
-	    
-	    int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
-	    if (redPixelCount > pixelThreshold)
-	    {
-		publish(EventType::LIGHT_ALMOST_HIT,
-			core::EventPtr(new core::Event()));
-	    }
+//                 cout<<"FOUND RED LIGHT "<<endl;
+            // Transform to the AI's coordinates then publish the event
+            Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
+                                           m_redLightCenterX, m_redLightCenterY);
+            publishFoundEvent(lightPixelRadius);
+
+            // Tell the watcher we are really freaking close to the light
+            int pixelSize = (int)(input->getHeight() * input->getWidth());
+            pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
+                                           m_bottomRemovePercentage));
+
+            int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
+            if (redPixelCount > pixelThreshold)
+            {
+                publish(EventType::LIGHT_ALMOST_HIT,
+                        core::EventPtr(new core::Event()));
+            }
         }
-    }	
+    }
     else
     {
         // Just lost the light so issue a lost event
@@ -335,15 +335,15 @@ void RedLightDetector::processImage(Image* input, Image* output)
 
     
 /*    if (found)
-    {
-        std::cout << 1 <<" "<< m_redLightCenterX << " "
-                  << m_redLightCenterY << " " << redPixelCount
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "0 0 0 0" << std::endl;
-        }*/
+      {
+      std::cout << 1 <<" "<< m_redLightCenterX << " "
+      << m_redLightCenterY << " " << redPixelCount
+      << std::endl;
+      }
+      else
+      {
+      std::cout << "0 0 0 0" << std::endl;
+      }*/
 
     if (output)
     {

@@ -46,6 +46,8 @@ public:
     /** A single set of connected white pixels in the image
      *
      *  Stores min/max X and Y bounds of the blob, its center, and pixel count.
+     *
+     *  Theta values range from [-pi/2, pi/2)
      */
     class Line
     {
@@ -103,6 +105,16 @@ public:
                 } else {
                     return theta < math::Radian(0);
                 }
+            }
+    };
+
+    class RhoComparer
+    {
+        public:
+            static bool compare(Line b1, Line b2)
+            {
+                double rho = b2.rho() - b1.rho();
+                return rho < 0;
             }
     };
     

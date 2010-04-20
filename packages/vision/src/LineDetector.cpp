@@ -58,7 +58,7 @@ void LineDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "houghThreshold",
                          "Threshold for the hough transform",
-                         100, &m_houghThreshold, 0, 255);
+                         100, &m_houghThreshold, 1, 255);
 
     propSet->addProperty(config, false, "maxLines",
                          "Maximum number of lines to find",

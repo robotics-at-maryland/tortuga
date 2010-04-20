@@ -10,6 +10,7 @@
 // STD Includes
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 // Library Includes
 #include "highgui.h"
@@ -19,6 +20,7 @@
 #include "vision/include/main.h"
 #include "vision/include/Camera.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/BlobDetector.h"
 #include "vision/include/HedgeDetector.h"
 #include "vision/include/Events.h"
 #include "vision/include/ColorFilter.h"
@@ -33,6 +35,7 @@ HedgeDetector::HedgeDetector(core::ConfigNode config,
     Detector(eventHub),
     cam(0),
     m_lineDetector(config, eventHub),
+    m_blobDetector(config, eventHub),
     m_filter(0)
 {
     init(config);
@@ -46,6 +49,10 @@ HedgeDetector::HedgeDetector(Camera* camera)
 void HedgeDetector::init(core::ConfigNode config)
 {
     core::PropertySetPtr propSet(getPropertySet());
+
+    propSet->addProperty(config, false, "minGreenPixels",
+                         "Minimum number of green pixels (Blob Only)",
+                         400, &minGreenPixels);
 
     propSet->addProperty(config, false, "topRemovePercentage",
         "% of the screen from the top to be blacked out",
@@ -63,6 +70,18 @@ void HedgeDetector::init(core::ConfigNode config)
         "% of the screen from the right to be blacked out",
         0.0, &m_rightRemovePercentage);
 
+    propSet->addProperty(config, false, "minAspectRatio",
+                         "Min aspect ratio of the blob",
+                         0.5, &m_minAspectRatio);
+
+    propSet->addProperty(config, false, "maxAspectRatio",
+                         "Max aspect ratio of the blob",
+                         2.0, &m_maxAspectRatio);
+
+    propSet->addProperty(config, false, "useLineDetection",
+                         "Use Line Detector base",
+                         false, &m_useLineDetection);
+
     propSet->addProperty(config, false, "debugLevel",
         "Image shown: 0=analyzed, 1=filtered, 2=preprocessed, 3=raw",
         0, &m_debug, 0, 3);
@@ -77,6 +96,7 @@ void HedgeDetector::init(core::ConfigNode config)
                                  200, 255); // V defaults // 200,255
 
     propSet->addPropertiesFromSet(m_lineDetector.getPropertySet());
+    propSet->addPropertiesFromSet(m_blobDetector.getPropertySet());
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
@@ -91,7 +111,10 @@ void HedgeDetector::init(core::ConfigNode config)
     // Working images
     raw = new vision::OpenCVImage(640, 480);
     preprocess = new vision::OpenCVImage(640, 480);
-    filtered = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
+    if (m_useLineDetection)
+        filtered = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
+    else
+        filtered = new vision::OpenCVImage(640, 480, vision::Image::PF_BGR_8);
     analyzed = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
 }
 
@@ -215,32 +238,37 @@ void HedgeDetector::processImage(Image* input, Image* output)
 
     m_filter->filterImage(preprocess, filtered);
 
-    m_lineDetector.processImage(filtered, analyzed);
+    BlobDetector::Blob greenBlob;
+    bool foundBlob;
+    if (m_useLineDetection) {
+        m_lineDetector.processImage(filtered, analyzed);
+        LineDetector::LineList lines = m_lineDetector.getLines();
+        foundBlob = processLines(lines, greenBlob);
+    } else {
+        m_blobDetector.setMinimumBlobSize(minGreenPixels);
+        m_blobDetector.processImage(filtered, analyzed);
+        BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+        foundBlob = processBlobs(blobs, greenBlob);
+    }
 
-    LineDetector::LineList lines = m_lineDetector.getLines();
-
-    if (lines.size() > 0)
+    if (foundBlob)
     {
-        LineDetector::Line greenLine;
-
-        // Attempt to find a valid blob
-        if (processLines(lines, greenLine))
-        {
-            boundUR.x = greenLine.getMaxX();
-            boundUR.y = greenLine.getMaxY();
-            boundLL.x = greenLine.getMinX();
-            boundLL.y = greenLine.getMinY();
-
-            // Base the center off the bounding box
-            hedgeCenter.x = (boundUR.x + boundLL.x) / 2;
-            hedgeCenter.y = (boundUR.y + boundLL.y) / 2;
-
-            found=true;
-            Detector::imageToAICoordinates(input, hedgeCenter.x, hedgeCenter.y,
-                                           m_hedgeCenterX, m_hedgeCenterY);
-
-            publishFoundEvent();
-        }
+        boundUR.x = greenBlob.getMaxX();
+        boundUR.y = greenBlob.getMaxY();
+        boundLL.x = greenBlob.getMinX();
+        boundLL.y = greenBlob.getMinY();
+        
+        // Base the center off the bounding box
+        hedgeCenter.x = (boundUR.x + boundLL.x) / 2;
+        hedgeCenter.y = (boundUR.y + boundLL.y) / 2;
+        
+        found=true;
+        Detector::imageToAICoordinates(input, hedgeCenter.x, hedgeCenter.y,
+                                       m_hedgeCenterX, m_hedgeCenterY);
+        m_squareNess = greenBlob.getTrueAspectRatio();
+        m_range = 0;
+        
+        publishFoundEvent();
     } else {
         if (found)
             publish(EventType::HEDGE_LOST, core::EventPtr(new core::Event()));
@@ -289,15 +317,6 @@ void HedgeDetector::processImage(Image* input, Image* output)
             cvLine(img, bl, br, CV_RGB(0,0,255), 3, CV_AA, 0 );
             
             cvRectangle(img, boundUR, boundLL, CV_RGB(0,255,0), 2, CV_AA, 0);
-
-            // clamp values
-            //lightCenter.x = std::min(lightCenter.x, img->width-1);
-            //lightCenter.x = std::max(lightCenter.x, 0);
-            //lightCenter.y = std::min(lightCenter.y, img->height-1);
-            //lightCenter.y = std::max(lightCenter.y, 0);
-            //int radius = std::max((int)sqrt((double)redPixelCount/M_PI), 1);
-         
-            //cvCircle(img, hedgeCenter, radius, CV_RGB(0,255,0), 2, CV_AA, 0);
         }
     }
 }
@@ -310,21 +329,125 @@ void HedgeDetector::publishFoundEvent()
 
         event->x = m_hedgeCenterX;
         event->y = m_hedgeCenterY;
-        event->squareNess = 0;
-        event->range = 0;
+        event->squareNess = m_squareNess;
+        event->range = m_range;
 
         publish(EventType::HEDGE_FOUND, event);
     }
 }
 
 bool HedgeDetector::processLines(const LineDetector::LineList& lines,
-                                 LineDetector::Line& outLine)
+                                 BlobDetector::Blob& outBlob)
 {
-    // TODO: Get aspect ratio working
-    // Copy from RedLightDetector
+    LineDetector::LineList hLines;
+    LineDetector::LineList vLines;
 
-    // TODO: Do stuff...
+    BlobDetector::BlobList highPriorityBlobs;
+    BlobDetector::BlobList lowPriorityBlobs;
 
+    // TODO: Move this to a configuration value
+    double m_maxTilt = 15;
+    int tolerance = 5; // 5 pixel tolerance
+    math::Degree tilt(m_maxTilt);
+
+    // Categorize every line as horizontal or vertical
+    BOOST_FOREACH(LineDetector::Line line, lines)
+    {
+        math::Radian theta = line.theta();
+
+        // Vertical line
+        if (math::Radian(0) - tilt <= theta &&
+            math::Radian(0) + tilt >= theta) {
+            vLines.push_back(line);
+        } else if (math::Radian(math::Math::PI/2) - tilt <= theta ||
+                   math::Radian(-math::Math::PI/2) + tilt >= theta) {
+            hLines.push_back(line);
+        }
+    }
+
+    // Exit if there are no horizontal or vertical lines
+    if (hLines.size() == 0 || vLines.size() == 0)
+        return false;
+
+    // Sort based on rho value
+    std::sort(hLines.begin(), hLines.end(),
+              LineDetector::RhoComparer::compare);
+    std::sort(vLines.begin(), vLines.end(),
+              LineDetector::RhoComparer::compare);
+
+    for (size_t i=0; i<hLines.size(); i++) {
+        // Treat this as the base line
+        // Choose an arbitrary vertical line
+        LineDetector::Line base = hLines[i];
+        for (size_t j=0; j<vLines.size()-1; j++) {
+            LineDetector::Line pipe1 = vLines[j];
+
+            // Find a potential other pipe
+            for (size_t k=j; k<vLines.size(); k++) {
+                // If deemed invalid, we use a continue statement
+                LineDetector::Line pipe2 = vLines[j];
+                // Lines should be at roughly the same height
+                int differenceY = abs(pipe2.getCenterY() - pipe1.getCenterY());
+                if (differenceY > tolerance)
+                    continue;
+
+                // Center of the base should be roughly in
+                // the center of these two pipes
+                int centerX = (pipe2.getCenterX() + pipe1.getCenterX())/2;
+                if (centerX < base.getCenterX() - tolerance ||
+                    centerX > base.getCenterX() + tolerance)
+                    continue;
+
+                int centerY = (pipe2.getCenterY() + pipe1.getCenterY())/2;
+                if (centerY >= base.getCenterY())
+                    continue;
+
+                // Passed, create a blob out of the three lines
+                int minY = std::min(pipe1.getMinY(), pipe2.getMinY());
+                int maxY = std::max(pipe1.getMaxY(), pipe2.getMaxY());
+                maxY = std::max(maxY, base.getMaxY());
+                int minX = std::min(pipe1.getMinX(), pipe2.getMinX());
+                minX = std::min(minX, base.getMinX());
+                int maxX = std::max(pipe1.getMaxX(), pipe2.getMaxX());
+                maxX = std::max(maxX, base.getMaxX());
+
+                BlobDetector::Blob blob(0, centerX, centerY, maxX,
+                                        minX, maxY, minY);
+                lowPriorityBlobs.push_back(blob);
+            }
+        }
+    }
+
+    std::cout << "lowPriority: " << lowPriorityBlobs.size() << std::endl;
+
+    if (highPriorityBlobs.size() > 0) {
+        // Place the first high priority blob
+        outBlob = highPriorityBlobs[0];
+        return true;
+    } else if (lowPriorityBlobs.size() > 0) {
+        outBlob = lowPriorityBlobs[0];
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool HedgeDetector::processBlobs(const BlobDetector::BlobList& blobs,
+                                 BlobDetector::Blob& outBlob)
+{
+    // Assumed sorted biggest to smallest by BlobDetector.
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        // Determine if we have actual found the light
+        if (blob.getTrueAspectRatio() < m_maxAspectRatio &&
+            blob.getTrueAspectRatio() > m_minAspectRatio)
+        {
+            // Found our blob record and leave
+            outBlob = blob;
+            return true;
+        }
+    }
+    
     return false;
 }
 
