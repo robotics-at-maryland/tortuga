@@ -466,8 +466,8 @@ class SeekingToAligned(HedgeAlignState, state.State):
         self._currentSquareNess = None
         
         # Start timer
-        self._minSquareNess = self._config.get('minSquareNess', 0.9)
-        self._delay = self._config.get('checkDelay', 4)
+        self._minSquareNess = self._config.get('minSquareNess', 1.9)
+        self._delay = self._config.get('checkDelay', 3)
         self._timer = self.timerManager.newTimer(
             SeekingToAligned.CHECK_DIRECTION, self._delay)
         self._timer.start()

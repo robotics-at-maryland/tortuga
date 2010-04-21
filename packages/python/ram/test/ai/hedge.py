@@ -109,56 +109,57 @@ class TestFindAttempt(support.AITestCase):
         self.assertCurrentState(hedge.Recover)
         self.assert_(self.visionSystem.hedgeDetector)
 
-# class TestRecover(support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         self.ai.data['lastHedgeEvent'] = vision.HedgeEvent()
+class TestRecover(support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        self.ai.data['lastHedgeEvent'] = vision.HedgeEvent()
 
-#     def testLightFound(self):
-#         self.machine.start(hedge.Recover)
-#         self.assertCurrentState(hedge.Recover)
-#         self.injectEvent(vision.EventType.HEDGE_FOUND,
-#                          vision.HedgeEvent, 0.5, 0, 0, 0)
-#         self.qeventHub.publishEvents()
-#         self.assertCurrentState(hedge.SeekingToCentered)
-#         self.assertEqual(0.5, self.ai.data['lastHedgeEvent'].x)
-#         self.assertEqual(0, self.ai.data['lastHedgeEvent'].y)
+    def testLightFound(self):
+        self.machine.start(hedge.Recover)
+        self.assertCurrentState(hedge.Recover)
+        self.injectEvent(vision.EventType.HEDGE_FOUND,
+                         vision.HedgeEvent, 0.5, 0, 0, 0)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(hedge.SeekingToCentered)
+        self.assertEqual(0.5, self.ai.data['lastHedgeEvent'].x)
+        self.assertEqual(0, self.ai.data['lastHedgeEvent'].y)
+
+    # Test for future
+    # def testBackwardsMovement(self):        
+    #     # Set the range to a close enough value
+    #     self.ai.data['lastHedgeEvent'].range = 0.4
         
-#     def testBackwardsMovement(self):        
-#         # Set the range to a close enough value
-#         self.ai.data['lastHedgeEvent'].range = 0.4
-        
-#         # Restart the machine
-#         self.machine.start(hedge.Recover)
-#         self.assertCurrentMotion(motion.basic.MoveDirection)
-#         self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
-#         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+    #     # Restart the machine
+    #     self.machine.start(hedge.Recover)
+    #     self.assertCurrentMotion(motion.basic.MoveDirection)
+    #     self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+    #     self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
-#         # Restart the machine, test light below
-#         self.machine.stop()
-#         self.ai.data['lastHedgeEvent'].x = 0
-#         self.ai.data['lastHedgeEvent'].y = 1
-#         self.machine.start(hedge.Recover)
-#         self.assertCurrentMotion(motion.basic.MoveDirection)
-#         self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
-#         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+    #     # Restart the machine, test light below
+    #     self.machine.stop()
+    #     self.ai.data['lastHedgeEvent'].x = 0
+    #     self.ai.data['lastHedgeEvent'].y = 1
+    #     self.machine.start(hedge.Recover)
+    #     self.assertCurrentMotion(motion.basic.MoveDirection)
+    #     self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+    #     self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
-#         # Now inject an event to cause it to change depth
-#         self.injectEvent(vision.EventType.HEDGE_FOUND)
-#         self.assertCurrentState(hedge.SeekingToCentered)
+    #     # Now inject an event to cause it to change depth
+    #     self.injectEvent(vision.EventType.HEDGE_FOUND)
+    #     self.assertCurrentState(hedge.SeekingToCentered)
 
-#     def testNoEvent(self):
-#         # Get rid of the event that was created
-#         del self.ai.data['lastHedgeEvent']
+    def testNoEvent(self):
+        # Get rid of the event that was created
+        del self.ai.data['lastHedgeEvent']
 
-#         self.machine.start(hedge.Recover)
-#         self.assertCurrentMotion(type(None))
-#         self.assertAlmostEqual(0, self.controller.getSpeed(), 5)
-#         self.assertAlmostEqual(0, self.controller.getSidewaysSpeed(), 5)
+        self.machine.start(hedge.Recover)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(0, self.controller.getSpeed(), 5)
+        self.assertAlmostEqual(0, self.controller.getSidewaysSpeed(), 5)
 
-#         # Check that injecting an event doesn't do anything bad
-#         self.injectEvent(vision.EventType.HEDGE_FOUND)
-#         self.assertCurrentState(hedge.SeekingToCentered)
+        # Check that injecting an event doesn't do anything bad
+        self.injectEvent(vision.EventType.HEDGE_FOUND)
+        self.assertCurrentState(hedge.SeekingToCentered)
         
 class TestSearching(support.AITestCase):
     def setUp(self):
@@ -344,119 +345,119 @@ class TestSeekingToRange(TestRangeXYHold):
         # Make sure we ended up in the right place
         self.assertCurrentState(hedge.SeekingToAligned)
 
-# class AlignmentTest(object):
-#     # This is not a real setUp function, but it must be called anyways
-#     def setUp(self, myState, lostState, recoverState = None):
-#         self._myState = myState
-#         self._lostState = lostState
-#         if recoverState is None:
-#             self._recoverState = myState
-#         else:
-#             self._recoverState = recoverState
+class AlignmentTest(object):
+    # This is not a real setUp function, but it must be called anyways
+    def setUp(self, myState, lostState, recoverState = None):
+        self._myState = myState
+        self._lostState = lostState
+        if recoverState is None:
+            self._recoverState = myState
+        else:
+            self._recoverState = recoverState
 
-#     def testStart(self):
-#         self.assertCurrentMotion(motion.duct.DuctSeekAlign)
+    def testStart(self):
+        self.assertCurrentMotion(motion.duct.DuctSeekAlign)
     
-#     def testHedgeFound(self):
-#         """Make sure new found events move the vehicle"""
-#         # Hedge to the right, below, and hedge misalligned right
-#         self.injectEvent(vision.EventType.HEDGE_FOUND, 
-#                          vision.HedgeEvent, 0, 0, 0, 0,
-#                          x = 0.5, y = -0.5, range = 3.5, squareNess = 1)
+    def testHedgeFound(self):
+        """Make sure new found events move the vehicle"""
+        # Hedge to the right, below, and hedge misaligned right
+        self.injectEvent(vision.EventType.HEDGE_FOUND, 
+                         vision.HedgeEvent, 0, 0, 0, 0,
+                         x = 0.5, y = -0.5, range = 7, squareNess = 1)
         
-#         # Bigger numbers = deeper
-#         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
-#         self.assertGreaterThan(self.controller.speed, 0)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-#         self.assertLessThan(self.controller.yawChange, 0)
+        # Bigger numbers = deeper
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertLessThan(self.controller.yawChange, 0)
     
-#     def testHedgeLost(self):
-#         """Make sure losing the light goes back to search"""
-#         self.injectEvent(vision.EventType.HEDGE_LOST)
-#         self.assertCurrentState(self._lostState)
+    def testHedgeLost(self):
+        """Make sure losing the light goes back to search"""
+        self.injectEvent(vision.EventType.HEDGE_LOST)
+        self.assertCurrentState(self._lostState)
 
-#         # Check that finding the hedge moves back
-#         self.injectEvent(vision.EventType.HEDGE_FOUND)
-#         self.assertCurrentState(self._recoverState)
+        # Check that finding the hedge moves back
+        self.injectEvent(vision.EventType.HEDGE_FOUND)
+        self.assertCurrentState(self._recoverState)
 
-# class TestSeekingToAligned(AlignmentTest, support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         AlignmentTest.setUp(self, hedge.SeekingToAligned,
-#                             hedge.FindAttemptAligned)
-#         self.machine.start(hedge.SeekingToAligned)
+class TestSeekingToAligned(AlignmentTest, support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        AlignmentTest.setUp(self, hedge.SeekingToAligned,
+                            hedge.FindAttemptAligned)
+        self.machine.start(hedge.SeekingToAligned)
 
-#     def testAligned(self):
-#         # Subscribe to in range event
-#         self._aligned = False
-#         def aligned(event):
-#             self._aligned = True
-#         self.qeventHub.subscribeToType(hedge.SeekingToAligned.ALIGNED, 
-#                                        aligned)
+    def testAligned(self):
+        # Subscribe to in range event
+        self._aligned = False
+        def aligned(event):
+            self._aligned = True
+        self.qeventHub.subscribeToType(hedge.SeekingToAligned.ALIGNED, 
+                                       aligned)
         
-#         # Inject and event which has the hedge ahead, and at the needed range
-#         self.injectEvent(vision.EventType.HEDGE_FOUND, 
-#                          vision.HedgeEvent, 0, 0, 0, 0,
-#                          x = 0.05, y = -0.1, range = 0.31, squareNess = 2)
+        # Inject and event which has the hedge ahead, and at the needed range
+        self.injectEvent(vision.EventType.HEDGE_FOUND, 
+                         vision.HedgeEvent, 0, 0, 0, 0,
+                         x = 0.05, y = -0.1, range = 0.31, squareNess = 2)
         
-#         # Make sure we get the ALIGNED event
-#         self.qeventHub.publishEvents()
-#         self.assert_(self._aligned)
-#         self.assertCurrentState(hedge.Aligning)
+        # Make sure we get the ALIGNED event
+        self.qeventHub.publishEvents()
+        self.assert_(self._aligned)
+        self.assertCurrentState(hedge.Aligning)
         
-#     def _sendSquareNessEvent(self, squareNess):
-#         self.injectEvent(vision.EventType.HEDGE_FOUND, 
-#                          vision.HedgeEvent, 0, 0, 0, 0,
-#                          x = 0, y = 0, range = 3, squareNess = squareNess)
+    def _sendSquareNessEvent(self, squareNess):
+        self.injectEvent(vision.EventType.HEDGE_FOUND, 
+                         vision.HedgeEvent, 0, 0, 0, 0,
+                         x = 0, y = 0, range = 3, squareNess = squareNess)
         
-#     def testCheckSquareNessBad(self):
-#         # Inject and event which has the hedge ahead, and at the needed range
-#         self._sendSquareNessEvent(1.5)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    def testCheckSquareNessBad(self):
+        # Inject and event which has the hedge ahead, and at the needed range
+        self._sendSquareNessEvent(1.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
-#         # Squareness getting worse
-#         self._sendSquareNessEvent(1)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        # Squareness getting worse
+        self._sendSquareNessEvent(1)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
-#         # Check on squareness 
-#         self.releaseTimer(hedge.SeekingToAligned.CHECK_DIRECTION)
+        # Check on squareness 
+        self.releaseTimer(hedge.SeekingToAligned.CHECK_DIRECTION)
         
-#         # Inject another update and make sure the sign has flipped
-#         self._sendSquareNessEvent(1)
-#         self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        # Inject another update and make sure the sign has flipped
+        self._sendSquareNessEvent(1)
+        self.assertLessThan(self.controller.sidewaysSpeed, 0)
         
-#     def testCheckSquareNessGood(self):
-#         # Inject and event which has the hedge ahead, and at the needed range
-#         self._sendSquareNessEvent(1)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+    def testCheckSquareNessGood(self):
+        # Inject and event which has the hedge ahead, and at the needed range
+        self._sendSquareNessEvent(1)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
-#         # Squareness getting more rectangleish
-#         self._sendSquareNessEvent(1.5)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        # Squareness getting more rectangleish
+        self._sendSquareNessEvent(1.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
-#         # Check on squareness 
-#         self.releaseTimer(hedge.SeekingToAligned.CHECK_DIRECTION)
+        # Check on squareness 
+        self.releaseTimer(hedge.SeekingToAligned.CHECK_DIRECTION)
         
-#         # Inject another update and make sure the sign hasn't flipped
-#         self._sendSquareNessEvent(1.5)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        # Inject another update and make sure the sign hasn't flipped
+        self._sendSquareNessEvent(1.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         
-# class TestAligning(AlignmentTest, support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         AlignmentTest.setUp(self, hedge.Aligning,
-#                             hedge.FindAttempt,
-#                             hedge.SeekingToCentered)
-#         self.machine.start(hedge.Aligning)
+class TestAligning(AlignmentTest, support.AITestCase):
+    def setUp(self):
+        support.AITestCase.setUp(self)
+        AlignmentTest.setUp(self, hedge.Aligning,
+                            hedge.FindAttempt,
+                            hedge.SeekingToCentered)
+        self.machine.start(hedge.Aligning)
         
-#     def testStart(self):
-#         AlignmentTest.testStart(self)
-#         self.releaseTimer(hedge.Aligning.SETTLED)
-#         self.assertCurrentState(hedge.Through)
+    def testStart(self):
+        AlignmentTest.testStart(self)
+        self.releaseTimer(hedge.Aligning.SETTLED)
+        self.assertCurrentState(hedge.Through)
         
-#     def testSettle(self):
-#         self.injectEvent(hedge.Aligning.SETTLED)
-#         self.assertCurrentState(hedge.Through)
+    def testSettle(self):
+        self.injectEvent(hedge.Aligning.SETTLED)
+        self.assertCurrentState(hedge.Through)
 
 class Through(support.AITestCase):
     def setUp(self):

@@ -29,13 +29,13 @@ Scene:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
             #position: [-4, 0, -3]
-            position: [-3, 0, -3]
+            position: [-3, 0, -2]
     
     Objects:
         Hedge:
               type: [ram.sim.object.IObject, sim.vision.Hedge]
               position: [0, 0, -3] #[0, 0, -2.5]
-              orientation: [0, 0, 1, 0] #[0, 0, 1, -25]
+              orientation: [0, 0, 1, -25]
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]
