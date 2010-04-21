@@ -34,20 +34,20 @@
 
 static const double DEGS_TO_RADIANS = M_PI / 180;
 
-unsigned char waitByte(int fd)
+unsigned char imu_waitByte(int fd)
 {
     unsigned char rxb[1];
     while(read(fd, rxb, 1) != 1);
     return rxb[0];
 }
 
-void waitSync(int fd)
+void imu_waitSync(int fd)
 {
     int fs=0;
     int syncLen=0;
     while(fs != 4)
     {
-        if(waitByte(fd) == 0xFF)
+        if(imu_waitByte(fd) == 0xFF)
             fs++;
         else
             fs=0;
@@ -58,21 +58,21 @@ void waitSync(int fd)
         printf("Warning! IMU sync sequence took longer than 4 bytes!!\n");
 }
 
-int convert16(unsigned char msb, unsigned char lsb)
+int imu_convert16(unsigned char msb, unsigned char lsb)
 {
     return (signed short) ((msb<<8)|lsb);
 }
 
-double convertData(unsigned char msb, unsigned char lsb, double range)
+double imu_convertData(unsigned char msb, unsigned char lsb, double range)
 {
-    return convert16(msb, lsb) * ((range/2.0)*1.5) / 32768.0;
+    return imu_convert16(msb, lsb) * ((range/2.0)*1.5) / 32768.0;
 }
 
 int readIMUData(int fd, RawIMUData* imu)
 {
     unsigned char imuData[34];
 
-    waitSync(fd);
+    imu_waitSync(fd);
 
     int len = 0;
     int i=0, sum=0;
@@ -82,21 +82,21 @@ int readIMUData(int fd, RawIMUData* imu)
     imu->messageID = imuData[0];
     imu->sampleTimer = (imuData[3]<<8) | imuData[4];
 
-    imu->gyroX = convertData(imuData[9], imuData[10], 600) * DEGS_TO_RADIANS;
-    imu->gyroY = convertData(imuData[11], imuData[12], 600) * DEGS_TO_RADIANS;
-    imu->gyroZ = convertData(imuData[13], imuData[14], 600) * DEGS_TO_RADIANS;
+    imu->gyroX = imu_convertData(imuData[9],imuData[10],600) * DEGS_TO_RADIANS;
+    imu->gyroY = imu_convertData(imuData[11],imuData[12],600) * DEGS_TO_RADIANS;
+    imu->gyroZ = imu_convertData(imuData[13],imuData[14],600) * DEGS_TO_RADIANS;
 
-    imu->accelX = convertData(imuData[15], imuData[16], 4);
-    imu->accelY = convertData(imuData[17], imuData[18], 4);
-    imu->accelZ = convertData(imuData[19], imuData[20], 4);
+    imu->accelX = imu_convertData(imuData[15], imuData[16], 4);
+    imu->accelY = imu_convertData(imuData[17], imuData[18], 4);
+    imu->accelZ = imu_convertData(imuData[19], imuData[20], 4);
 
-    imu->magX = convertData(imuData[21], imuData[22], 1.9);
-    imu->magY = convertData(imuData[23], imuData[24], 1.9);
-    imu->magZ = convertData(imuData[25], imuData[26], 1.9);
+    imu->magX = imu_convertData(imuData[21], imuData[22], 1.9);
+    imu->magY = imu_convertData(imuData[23], imuData[24], 1.9);
+    imu->magZ = imu_convertData(imuData[25], imuData[26], 1.9);
 
-    imu->tempX = (((convert16(imuData[27], imuData[28])*5.0)/32768.0)/0.0084)+25.0;
-    imu->tempY = (((convert16(imuData[29], imuData[30])*5.0)/32768.0)/0.0084)+25.0;
-    imu->tempZ = (((convert16(imuData[31], imuData[32])*5.0)/32768.0)/0.0084)+25.0;
+    imu->tempX = (((imu_convert16(imuData[27], imuData[28])*5.0)/32768.0)/0.0084)+25.0;
+    imu->tempY = (((imu_convert16(imuData[29], imuData[30])*5.0)/32768.0)/0.0084)+25.0;
+    imu->tempZ = (((imu_convert16(imuData[31], imuData[32])*5.0)/32768.0)/0.0084)+25.0;
 
     for(i=0; i<33; i++)
         sum+=imuData[i];
