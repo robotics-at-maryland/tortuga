@@ -212,7 +212,7 @@ bool PropertySet::verifyConfig(core::ConfigNode config, bool assertOnError)
             { 
                 std::cerr << "Is not a valid config property \"" << nodeName
                           << "\"" << std::endl;
-                assert(false && "Invalide property name");
+                assert(false && "Invalid property name");
                 exit(1);
             }
             return false;

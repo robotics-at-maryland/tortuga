@@ -97,3 +97,6 @@ BarbedWireDetector:
 VelocityDetector:
     usePhaseCorrelation: 0
     useLKFlow: 1
+HedgeDetector:
+    filtVMin: 130
+

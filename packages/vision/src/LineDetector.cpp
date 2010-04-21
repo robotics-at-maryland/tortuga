@@ -78,7 +78,7 @@ void LineDetector::init(core::ConfigNode config)
 
     data = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
 
-    propSet->verifyConfig(config, true);
+    //propSet->verifyConfig(config, true);
 }
 
 void LineDetector::processImage(Image* input, Image* output)
