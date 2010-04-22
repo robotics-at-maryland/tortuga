@@ -1,7 +1,8 @@
 taskOrder: ['ram.ai.course.Pipe1',   'ram.ai.course.Light',
             'ram.ai.course.Pipe2',   'ram.ai.course.Target',
             'ram.ai.course.PipeBin', 'ram.ai.course.Bin',
-            'ram.ai.course.Pipe3']
+            'ram.ai.course.Pipe3'#, 'ram.ai.course.Hedge'
+            ]
 
 config:
     lightDepth: 9.5 #6
@@ -9,6 +10,7 @@ config:
     bwireDepth: 11.3
     targetDepth: 9.5
     binDepth: 12
+    hedgeDepth: 10
     targetSymbols: ['Aircraft', 'Tank']
     sonarDepth: 15
     safeDepth: 10
@@ -20,25 +22,17 @@ config:
         threshold: 35
     Pipe2:
         taskTimeout: 30
-        biasDirection: -40
+        biasDirection: -50
         threshold: 35
-    Pipe3:
-        taskTimeout: 30
+    PipeBin:
         biasDirection: 10
         threshold: 35
-    PipeBarbedWire:
-        #biasDirection: -100
-        #threshold: 0
-        rotation: 0
-        duration: 0
-        legTime: 5
-        sweepAngle: 30
-        sweepSpeed: 3
-    PipeBin:
-        #biasDirection: -110
-        #threshold: 0
-        rotation: -40
-        duration: 0
+        taskTimeout: 40
+        rotation: 90
         legTime: 3
-        sweepAngle: 45
+        sweepAngle: 15
         sweepSpeed: 3
+    Pipe3:
+        taskTimeout: 30
+        biasDirection: 145
+        threshold: 35
