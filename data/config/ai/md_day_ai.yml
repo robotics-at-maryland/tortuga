@@ -8,9 +8,9 @@ config:
     lightDepth: 9.5 #6
     pipeDepth: 7
     bwireDepth: 11.3
-    targetDepth: 9.5
+    targetDepth: 9
     binDepth: 12
-    hedgeDepth: 10
+    hedgeDepth: 12.5
     targetSymbols: ['Aircraft', 'Tank']
     sonarDepth: 15
     safeDepth: 10
@@ -21,7 +21,7 @@ config:
         biasDirection: -109
         threshold: 35
     Pipe2:
-        taskTimeout: 30
+        taskTimeout: 40
         biasDirection: -50
         threshold: 35
     PipeBin:

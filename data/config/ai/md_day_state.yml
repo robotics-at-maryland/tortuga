@@ -59,6 +59,16 @@ ram.ai.duct.Aligning:
     filterSize: 10
     desiredRange: 0.5
 
+ram.ai.hedge.SeekingToCentered:
+    depthGain: 0
+    maxSpeed: 3
+ram.ai.hedge.SeekingToRange:
+    depthGain: 0
+    maxSpeed: 1.5
+ram.ai.hedge.SeekingToAligned:
+    depthGain: 0
+    minSquareNess: 1.9
+
 # Target Task
 ram.ai.target.SeekingToCentered:
     depthGain: 0
@@ -74,6 +84,7 @@ ram.ai.target.SeekingToAligned:
     alignGain: 2
     filterSize: 1
     desiredRange: 0.45
+    alignSign: -1
 ram.ai.target.FireTorpedos:
     depthGain: 0 #0.125
     frontThreshold: 0.15
