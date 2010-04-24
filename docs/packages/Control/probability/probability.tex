@@ -52,18 +52,18 @@ When introducing the probability density function it is convenient to first talk
 If you want to make a frequency plot of the data, it is inconvenient and uninformative to make a plot of just the frequency of each individual age, especially if you you have the ages measured to a precision of days or hours.  it doesn't make sense to record the frequency of each individual age because you're dealing with continuous data.  The frequency of each age will always be one. [Footnote 1]  Instead, you would define a few equally spaced ranges called bins, and plot the number of data points that fall in each bin.  This is called a histogram.  A histogram for the data listed above might look like this:  <chart>
 
 
-The probability that an age randomly selected from your data falls in a particular bin is just the frequency associated with that bin divided by the size of your sample.  Thus you can define a piecewise defined proabilityFrom your histogram you can get a piecewise defined frequency function:  <eqn>  Likewise you can get a piecewise defined probability function (by normalizing?) by dividing the frequency function by your sample size. As you would expect, if you take the sum of the probabilities over all the bins, you will get: %<eqn>
+From your histogram you can get a piecewise defined frequency function:  <eqn>  Likewise you can get a piecewise defined probability function (by normalizing?) by dividing the frequency function by your sample size. As you would expect, if you take the sum of the probabilities over all the bins, you will get: %<eqn>
 
 
 ...How do you define bin ranges? Want a histogram that gives a "good picture" of the data.  What is a "good picture"?...
 
 
-...In general the more data points you have, the more narrowly you can definie your bins and still get a "good picture" from your histogram.  You can imagine taking an infinite number of data points; then you can have bins that are infinitely narrow.  The limit as the number of data points approaches infinity and the bin width approaches zero is a continous function, the probability density function for the data you are measuring: <eqn>
+...In general the more data points you have, the more narrowly you can define your bins and still get a "good picture" from your histogram.  You can imagine taking an infinite number of data points; then you can have bins that are infinitely narrow.  The limit as the number of data points approaches infinity and the bin width approaches zero is a continous function, the probability density function for the data you are measuring: <eqn>
 
-A sum over all the "bins" is an integral from negative infinity topositive infinity, and must still be equal to 1: %<eqn>
+A "sum" over all the bins is an integral from negative infinity to positive infinity, and must still be equal to 1: %<eqn>
 
 
-\footnote{Footnote 1: Technically you will only have the ages measured to a finite precision, to the nearest year for example.  You might argue that two people aged 34 would therefore be counted as the same age within the precision of your data, even though in reality they arenn't <i>exactly</i> the same age.  But this frequency plot wouldn't be much of an improvement and is really just a more limited version of the discretization that is performed to create a histogram,}
+\footnote{Footnote 1: Technically you will only have the ages measured to a finite precision, to the nearest year for example.  You might argue that two people aged 34 would therefore be counted as the same age within the precision of your data, even though in reality they arenn't <i>exactly</i> the same age.  But this frequency plot wouldn't be much of an improvement and is really just a more limited version of the discretization that is performed to create a histogram.}
 
 
 \section{Normal Distribution}
