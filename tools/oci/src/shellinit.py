@@ -48,26 +48,38 @@ from datetime import datetime
 from pprint import pprint
 
 vars = dir()
-# this will print an error message for any function fname
-# that requires the component cname that has not been loaded
-def error_function(fname, cname):
-    def error():
-        raise Exception (fname + " is not defined because " + cname + " is not loaded.")
+
+def error_function(fname, fmsg):
+    def error(*args):
+        raise Exception("%s is not defined because %s "
+                                    "is not loaded" % (fname, fmsg));
     return error
 
+# Function decorator
+# If the requirements are not met, replaces the function with an error message
+class requires(object):
+    def __init__(self, *args):
+        self._systemList = args
+    def __call__(self, f):
+        for sys in self._systemList:
+            if sys not in vars:
+                print "Disabling quick function %s" % f.__name__
+                return error_function(f.__name__, sys)
+        return f
+
 # Helper methods
-diveTo = error_function("diveTo", "motionManager")
-if('motionManager' in vars):
-    def diveTo_helper(depth, speed = 0.3):
-        motionManager.setMotion(basic.RateChangeDepth(depth, speed))
-    diveTo = diveTo_helper
+@requires('motionManager')
+def diveTo(depth, speed = 0.3):
+    motionManager.setMotion(basic.RateChangeDepth(depth, speed))
 
 # dive and diveTo are the same function.
 dive = diveTo
 
+@requires('vehicle', 'motionManager')
 def up(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() - depthChange, speed = speed)
 
+@requires('vehicle', 'motionManager')
 def down(depthChange, speed = 0.3):
     diveTo(vehicle.getDepth() + depthChange, speed = speed)
 
@@ -76,40 +88,32 @@ def down(depthChange, speed = 0.3):
 def surface(speed = 0.3):
     diveTo(depth = 0.3, speed = speed)
 
-yaw = error_function("yaw", "motionManager")
-if('motionManager' in vars):
-    def yaw_helper(yawChange, speed = 30, absolute = False):
-        motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
-    yaw = yaw_helper
+@requires('motionManager')
+def yaw(yawChange, speed = 30, absolute = False):
+    motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
 
-yawTo = error_function("yawTo", "motionManager")
-if('motionManager' in vars):
-    def yawTo_helper(yawChange, speed = 30):
-        yaw(yawChange, speed, absolute = True)
-    yawTo = yawTo_helper
+@requires('motionManager')
+def yawTo(yawChange, speed = 30):
+    yaw(yawChange, speed, absolute = True)
 
 yaw2 = yawTo
 
-allStop = error_function("allStop", "motionManager/controller/stateMachine")
-if(('motionManager' in vars) and ('controller' in vars) and ('stateMachine' in vars)):
-    def allStop_helper():
-        stateMachine.stop()
-        motionManager.stopCurrentMotion()
-        controller.setSpeed(0)
-        controller.setSidewaysSpeed(0)
-        controller.holdCurrentDepth()
-        controller.holdCurrentHeading()
-    allStop = allStop_helper
+@requires('motionManager', 'controller', 'stateMachine')
+def allStop():
+    stateMachine.stop()
+    motionManager.stopCurrentMotion()
+    controller.setSpeed(0)
+    controller.setSidewaysSpeed(0)
+    controller.holdCurrentDepth()
+    controller.holdCurrentHeading()
 
 s = allStop
 stop = allStop
 
-start = error_function("start", "stateMachine")
-if('stateMachine' in vars):
-    def start_helper(state):
-        allStop()
-        stateMachine.start(state)
-    start = start_helper
+@requires('stateMachine')
+def start(state):
+    allStop()
+    stateMachine.start(state)
 
 # Keeps track of the forward and downward streams.
 # You should never be required to access the RecorderManager.
