@@ -7,6 +7,8 @@
  * File:  packages/vision/include/CvCamera.h
  */
 
+// STD Includes
+#include <cstdlib>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
@@ -20,6 +22,16 @@
 #include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
+/** Error handler to send an abort signal if OpenCV throws an error */
+int cvErrorHandler(int status, char const* func_name,
+                   char const* err_msg, char const* file_name,
+                   int line, void*)
+{
+    std::cerr << "ERROR: in " << func_name << "(" << file_name
+              << ":" << line << ") Message: " << err_msg << std::endl;
+    abort();
+}
+
 namespace ram {
 namespace vision {
 
@@ -31,6 +43,15 @@ OpenCVImage::OpenCVImage(int width, int height, Image::PixelFormat fmt) :
 {
     assert(width >= 1 && "Image can't have a negative or 0 width");
     assert(height >= 1 && "Image can't have a negative or 0 height");
+
+#ifdef RAM_POSIX
+    // Assign the error handler if it hasn't been done
+    static bool errHandlerInitialized = false;
+    if (!errHandlerInitialized) {
+        cvRedirectError(::cvErrorHandler);
+        errHandlerInitialized = true;
+    }
+#endif
     
     int depth, channels;
     getFormatParameters(fmt, depth, channels);
