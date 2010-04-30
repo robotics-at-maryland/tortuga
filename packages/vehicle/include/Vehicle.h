@@ -21,6 +21,7 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
 
 namespace ram {
 namespace vehicle {
@@ -51,7 +52,9 @@ public:
     math::Quaternion getOrientation(std::string obj = "vehicle");
 
     bool hasObject(std::string obj);
-    
+
+    bool hasMagBoom();
+
     virtual void safeThrusters();
 
     virtual void unsafeThrusters(); 
@@ -94,19 +97,20 @@ public:
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
     
-protected:
+
     /** Get the depth directly from the depth sensor */
-    double getRawDepth();
+    virtual double getRawDepth();
 
     /** Get the position directly from the position sensor */
-    math::Vector2 getRawPosition();
+    virtual math::Vector2 getRawPosition();
 
     /** Get the velocity directly from the velocity sensor */
-    math::Vector2 getRawVelocity();
+    virtual math::Vector2 getRawVelocity();
 
     /** Get the orientation directly from the orientation sensor */
-    math::Quaternion getRawOrientation();
-    
+    virtual math::Quaternion getRawOrientation();
+
+protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
 
@@ -169,6 +173,9 @@ private:
 
     std::string m_torpedoLauncherName;
     vehicle::device::IPayloadSetPtr m_torpedoLauncher;
+
+
+    estimator::IStateEstimatorPtr stateEstimator;
 };
     
 } // namespace vehicle

@@ -46,12 +46,14 @@ math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
         m_currentOrientation = orientation;
     }
 
+    double desiredDepth = desiredState->getDesiredDepth();
+
     if(timestep < dt_min)
         timestep = dt_min;
     if(timestep > dt_max)
         timestep = dt_max;
 
-    double error = m_currentDepth - m_desiredDepth;
+    double error = m_currentDepth - desiredDepth;
     double errorDot = (m_currentDepth - m_prevDepth)/timestep;
     double errorInt = m_depthSumError+error*timestep;
 

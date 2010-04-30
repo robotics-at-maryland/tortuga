@@ -15,6 +15,8 @@
 #include "math/include/Events.h"
 #include "math/include/Vector3.h"
 
+#include "drivers/imu/include/imuapi.h"
+#include "drivers/dvl/include/dvlapi.h"
 #include "vehicle/include/device/Common.h"
 
 namespace ram {
@@ -81,6 +83,34 @@ struct SonarEvent : public core::Event
 };
 
 typedef boost::shared_ptr<SonarEvent> SonarEventPtr;
+
+
+struct RawIMUDataEvent : public core::Event
+{
+    std::string name;
+    RawIMUData rawIMUData;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<RawIMUDataEvent> RawIMUDataEventPtr;
+
+struct RawDVLDataEvent : public core::Event
+{
+    RawDVLData rawDVLData;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<RawDVLDataEvent> RawDVLDataEventPtr;
+
+struct RawDepthSensorDataEvent : public core::Event
+{
+    /*TODO*/
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<RawDepthSensorDataEvent> RawDepthSensorDataEventPtr;
     
 } // namespace vehicle
 } // namespace ram

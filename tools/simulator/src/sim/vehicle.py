@@ -184,7 +184,10 @@ class SimIMU(SimDevice, device.IIMU):
     def update(self, time):
         event = math.OrientationEvent()
         event.orientation = self.getOrientation()
+        raw_event = vehicle.RawIMUDataEvent()
+        raw_event.name = "simIMU"
         self.publish(device.IIMU.UPDATE, event)
+        self.publish(device.IIMU.RAW_UPDATE, raw_event)
     
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,

@@ -10,7 +10,10 @@
 #ifndef RAM_CONTROL_TEST_MOCKCONTROLLERBASEIMP_02_28_2009
 #define RAM_CONTROL_TEST_MOCKCONTROLLERBASEIMP_02_28_2009
 
+#include <assert.h>
+
 // Project Includes
+#include "core/include/EventHub.h"
 #include "control/include/ControllerBase.h"
 #include "core/include/ConfigNode.h"
 
@@ -24,10 +27,12 @@ public:
         atOrientationValue(false),
         desiredState(ram::controltest::DesiredStatePtr(
                             new ram::controltest::DesiredState(
-                                config["DesiredState"]))),
+                                config["DesiredState"], ram::core::EventHubPtr()))),
         translationalForceOut(0,0,0),
         rotationalTorqueOut(0,0,0)
-        {}
+    {
+        assert(desiredState);
+    }
     
     virtual ~MockControllerBaseImp() {}
             
@@ -52,26 +57,26 @@ public:
         rotationalTorqueOut_ = rotationalTorqueOut;
     }
 
-    virtual void _newDepthSet(const double& newDepth)
-    {
-        newDepthSet(newDepth);
-    }
+    // virtual void _newDepthSet(const double& newDepth)
+    // {
+    //     newDepthSet(newDepth);
+    // }
 
-    virtual void _newDesiredOrientationSet(
-        const ram::math::Quaternion& newOrientation)
-    {
-        newDesiredOrientationSet(newOrientation);
-    }
+    // virtual void _newDesiredOrientationSet(
+    //     const ram::math::Quaternion& newOrientation)
+    // {
+    //     newDesiredOrientationSet(newOrientation);
+    // }
 
-    virtual void _newDesiredVelocitySet(const ram::math::Vector2& newVelocity)
-    {
-        newDesiredVelocitySet(newVelocity);
-    }
+    // virtual void _newDesiredVelocitySet(const ram::math::Vector2& newVelocity)
+    // {
+    //     newDesiredVelocitySet(newVelocity);
+    // }
 
-    virtual void _newDesiredPositionSet(const ram::math::Vector2& newPosition)
-    {
-        newDesiredPositionSet(newPosition);
-    }
+    // virtual void _newDesiredPositionSet(const ram::math::Vector2& newPosition)
+    // {
+    //     newDesiredPositionSet(newPosition);
+    // }
                         
 
     virtual void setVelocity(ram::math::Vector2 /*velocity_*/) {}
@@ -82,12 +87,12 @@ public:
     virtual double getSpeed() { return 0; }
     virtual double getSidewaysSpeed() { return 0; }
     virtual void setDesiredVelocity(ram::math::Vector2 velocity,
-                                    ram::control::Frame frame){}
+                                    int frame){}
     virtual void setDesiredPosition(ram::math::Vector2 position,
-                                    ram::control::Frame frame){}
-    virtual ram::math::Vector2 getDesiredVelocity(ram::control::Frame frame)
+                                    int frame){}
+    virtual ram::math::Vector2 getDesiredVelocity(int frame)
     {return ram::math::Vector2::ZERO;}
-    virtual ram::math::Vector2 getDesiredPosition(ram::control::Frame frame)
+    virtual ram::math::Vector2 getDesiredPosition(int frame)
     {return ram::math::Vector2::ZERO;}
     virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position,
                                                ram::math::Vector2 velocity){}

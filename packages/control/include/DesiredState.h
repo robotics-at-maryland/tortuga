@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/TrackingTranslationalController.h
+ * File:  packages/control/include/DesiredState.h
  */
 
 #ifndef RAM_CONTROL_DESIREDSTATE_H
@@ -17,22 +17,24 @@
 #include "core/include/ConfigNode.h"
 
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventPublisher.h"
 
 #include "vehicle/include/IVehicle.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
 
-namespace ram{
+namespace ram {
 namespace controltest {
 
 class DesiredState;
 typedef boost::shared_ptr<DesiredState> DesiredStatePtr;
 
-class DesiredState {
+class DesiredState : public core::EventPublisher
+{
 public:
-    DesiredState(core::ConfigNode config);
-    DesiredState(DesiredState const&){};
+    DesiredState(core::ConfigNode config, 
+                 core::EventHubPtr eventHub = core::EventHubPtr());
     virtual ~DesiredState();
 
     // returned in inertial frame
@@ -55,6 +57,42 @@ public:
 
 private:
     void init(core::ConfigNode config);
+
+    /** Called whenever a new depth is set, handles events as needed
+     *
+     *  This will always publish the DESIRED_DEPTH_UPDATE event and also
+     *  publish the AT_DEPTH event if needed. This should be called inside the
+     *  IController::setDepth method.
+     */
+    void newDepthSet(const double& newDepth);
+
+    /** Called whenever the desired orientation changes, handles events
+     *
+     *  This will always publish the DESIRED_ORIENTATION_UPDATE event and also
+     *  publish the AT_ORIENTATION event if needed. This should be called
+     *  inside the IController::setDesiredOrientation,
+     *  IController::rollVehicle, IController::pitchVehicle, and
+     *  IController::yawVehicle methods.
+     */
+    void newDesiredOrientationSet(const math::Quaternion& newOrientation);
+   
+    /** Called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_VELOCITY_UPDATE event and will
+     * publish the AT_VELOCITY event if needed.  This should be called
+     * inside the IController::setDesiredVelocity and the
+     * IController::setDesiredPositionAndVelocity function
+     */
+    void newDesiredVelocitySet(const math::Vector2& newVelocity);
+
+    /** Called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_POSITION_UPDATE event and will
+     * publish the AT_POSITION event if needed.  This should be called
+     * inside the IController::setDesiredVelocity and the
+     * IController::setDesiredPositionAndVelocity function
+     */
+    void newDesiredPositionSet(const math::Vector2& newPosition);
 
     math::Vector2 m_desiredVelocity; // Stored in inertial frame
     math::Vector2 m_desiredPosition; // Stored in inertial frame

@@ -63,9 +63,6 @@ protected:
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
-    /** The current desired depth */
-    double m_desiredDepth;
-
     /** The depth from the last update command */
     double m_currentDepth;
 

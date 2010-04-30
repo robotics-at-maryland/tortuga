@@ -27,6 +27,13 @@ def generate(module_builder, local_ns, global_ns):
     IController.include_files.append(os.environ['RAM_SVN_DIR'] +
                                      '/packages/control/include/IController.h')
 
+    # Include desired state class
+    DesiredState = global_ns.class_('DesiredState')
+    DesiredState.include()
+    DesiredState.include_files.append(os.environ['RAM_SVN_DIR'] +
+                                     '/packages/control/include/DesiredState.h')
+
+
     # Wrap Events
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),

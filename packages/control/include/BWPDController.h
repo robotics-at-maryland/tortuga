@@ -139,12 +139,12 @@ public:
         return Updatable::backgrounded();
     };
 
-    virtual void setDesiredVelocity(math::Vector2 velocity, Frame frame);
-    virtual void setDesiredPosition(math::Vector2 position, Frame frame);
+    virtual void setDesiredVelocity(math::Vector2 velocity, int frame);
+    virtual void setDesiredPosition(math::Vector2 position, int frame);
     virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
                                                math::Vector2 velocity);
-    virtual math::Vector2 getDesiredVelocity(Frame frame);
-    virtual math::Vector2 getDesiredPosition(Frame frame);
+    virtual math::Vector2 getDesiredVelocity(int frame);
+    virtual math::Vector2 getDesiredPosition(int frame);
     virtual bool atPosition();
     virtual bool atVelocity();
 

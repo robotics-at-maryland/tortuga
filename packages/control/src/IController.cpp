@@ -29,5 +29,8 @@ IController::IController(std::string name, core::EventHubPtr eventHub) :
 {
 }
 
+const int IController::BODY_FRAME=0;
+const int IController::INERTIAL_FRAME=1;
+
 } // namespace control
 } // namespace ram

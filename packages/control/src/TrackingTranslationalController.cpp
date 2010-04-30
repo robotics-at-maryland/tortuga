@@ -54,14 +54,17 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     //Update current position and velocity
     m_currentPosition = position;     //assume position in inertial frame
     m_currentVelocity = nRb(yaw)*velocity; //rotate velocity to inertial frame
+
+    math::Vector2 desiredPosition = desiredState->getDesiredPosition();
+    math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
 	 
     //Initialize error vectors
     math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
     math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
 
     //Calculate proportional errors
-    positionPError = m_desiredPosition - m_currentPosition;
-    velocityPError = m_desiredVelocity - m_currentVelocity;
+    positionPError = desiredPosition - m_currentPosition;
+    velocityPError = desiredVelocity - m_currentVelocity;
 
     //Calculate derivative errors
     positionDError = (positionPError - m_prevPositionError)/timestep;

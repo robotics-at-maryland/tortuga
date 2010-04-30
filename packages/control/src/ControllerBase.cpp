@@ -15,7 +15,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-
 // Project Includes
 #include "control/include/ControllerBase.h"
 #include "control/include/ControlFunctions.h"
@@ -30,8 +29,6 @@
 #include "math/include/Helpers.h"
 #include "math/include/Events.h"
 #include "math/include/Quaternion.h"
-//#include "imu/include/imuapi.h"
-
 
 using namespace std;
 
@@ -41,7 +38,9 @@ namespace control {
 ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
-    desiredState(controltest::DesiredStatePtr()),
+    desiredState(controltest::DesiredStatePtr(
+                     new controltest::DesiredState(config["DesiredState"]))),
+    m_vehicle(vehicle),
     m_atDepth(false),
     m_atOrientation(false),
     m_atVelocity(false),
@@ -49,8 +48,7 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     m_depthThreshold(0),
     m_orientationThreshold(0),
     m_velocityThreshold(0),
-    m_positionThreshold(0),
-    m_vehicle(vehicle)
+    m_positionThreshold(0)
 {   
     init(config); 
 }
@@ -59,7 +57,11 @@ ControllerBase::ControllerBase(core::ConfigNode config,
                                core::SubsystemList deps) :
     IController(config["name"].asString(),
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
-    desiredState(controltest::DesiredStatePtr()),
+    desiredState(controltest::DesiredStatePtr(
+                     new controltest::DesiredState(
+                         config["DesiredState"],
+                         core::Subsystem::getSubsystemOfType<core::EventHub>(deps)))),
+    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),     
     m_atDepth(false),
     m_atOrientation(false),
     m_atVelocity(false),
@@ -67,8 +69,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_depthThreshold(0),
     m_orientationThreshold(0),
     m_velocityThreshold(0),
-    m_positionThreshold(0),
-    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps))  
+    m_positionThreshold(0)
 {
     init(config); 
 }
@@ -103,20 +104,39 @@ void ControllerBase::update(double timestep)
     if (m_atDepth && !atDepth())
         m_atDepth = false;
     // We weren't at depth, now we are
-    else if (!m_atDepth && atDepth())
+    else if (!m_atDepth && atDepth()){
         publishAtDepth(getDepth());
+    }
 
     // We used to be at orientation now we aren't
     if (m_atOrientation && !atOrientation())
         m_atOrientation = false;
-    // We weren't at depth, now we are
-    else if (!m_atOrientation && atOrientation())
+    // We weren't at orientation, now we are
+    else if (!m_atOrientation && atOrientation()){
         publishAtOrientation(getDesiredOrientation());
+    }
+
+    // We used to be at velocity now we aren't
+    if (m_atVelocity && !atVelocity())
+        m_atVelocity = false;
+    // We weren't at velocity, now we are
+    else if (!m_atVelocity && atVelocity()){
+        publishAtVelocity(getDesiredVelocity(IController::INERTIAL_FRAME));
+    }
+
+    // We used to be at position now we aren't
+    if (m_atPosition && !atPosition())
+        m_atPosition = false;
+    // We weren't at position, now we are
+    else if (!m_atPosition && atPosition()){
+        publishAtPosition(getDesiredPosition(IController::INERTIAL_FRAME));
+    }
+
 }
 
 void ControllerBase::setVelocity(math::Vector2 velocity)
 {
-    desiredState->setDesiredVelocity(velocity);
+    setDesiredVelocity(velocity,IController::BODY_FRAME);
 }
 
 void ControllerBase::setSpeed(double speed)
@@ -126,7 +146,7 @@ void ControllerBase::setSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    setDesiredVelocity(math::Vector2(speed,0), BODY);
+    setDesiredVelocity(math::Vector2(speed,0), IController::BODY_FRAME);
 }
 
 void ControllerBase::setSidewaysSpeed(double speed)
@@ -136,19 +156,19 @@ void ControllerBase::setSidewaysSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    setDesiredVelocity(math::Vector2(0,speed), BODY);
+    setDesiredVelocity(math::Vector2(0,speed), IController::BODY_FRAME);
 }
 
-void ControllerBase::setDesiredVelocity(math::Vector2 velocity, Frame frame)
+void ControllerBase::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
-    if(frame == BODY)
+    if(frame == IController::BODY_FRAME)
         velocity = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     desiredState->setDesiredVelocity(velocity);
 }
 
-void ControllerBase::setDesiredPosition(math::Vector2 position, Frame frame)
+void ControllerBase::setDesiredPosition(math::Vector2 position, int frame)
 {
-    if(frame == BODY)
+    if(frame == IController::BODY_FRAME)
         position = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     desiredState->setDesiredPosition(position);
 }
@@ -160,13 +180,13 @@ void ControllerBase::setDesiredPositionAndVelocity(math::Vector2 position, math:
 }
 double ControllerBase::getSpeed()
 {
-    math::Vector2 velocity = getDesiredVelocity(BODY);
+    math::Vector2 velocity = getDesiredVelocity(IController::BODY_FRAME);
     return velocity[0];
 }
 
 double ControllerBase::getSidewaysSpeed()
 {
-    math::Vector2 velocity = getDesiredVelocity(BODY);
+    math::Vector2 velocity = getDesiredVelocity(IController::BODY_FRAME);
     return velocity[1];
 }
 
@@ -177,37 +197,43 @@ math::Vector2 ControllerBase::getVelocity()
     return velocity;
 }
 
-math::Vector2 ControllerBase::getDesiredVelocity(Frame frame)
+math::Vector2 ControllerBase::getDesiredVelocity(int frame)
 {
     math::Vector2 velocity(desiredState->getDesiredVelocity());
-    if(frame == BODY)
+    if(frame == IController::BODY_FRAME)
         velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     return velocity;
 }
 
-math::Vector2 ControllerBase::getDesiredPosition(Frame frame)
+math::Vector2 ControllerBase::getDesiredPosition(int frame)
 {
     math::Vector2 position(desiredState->getDesiredPosition());
-    if(frame == BODY)
+    if(frame == IController::BODY_FRAME)
         position = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     return position;
 }
 
 void ControllerBase::holdCurrentPosition()
 {
-    /*Not Yet Implemented */
+    setDesiredPosition(m_vehicle->getPosition(),INERTIAL_FRAME);
 }
 
 bool ControllerBase::atPosition()
 {
-    /* NOT IMPLEMENTED */
-    return false;
+    math::Vector2 currentPosition = m_vehicle->getPosition();
+    math::Vector2 desiredPosition = desiredState->getDesiredPosition();
+    double difference0 = fabs(currentPosition[0] - desiredPosition[0]);
+    double difference1 = fabs(currentPosition[1] - desiredPosition[1]);
+    return difference0 <= m_positionThreshold && difference1 <= m_positionThreshold;
 }
 
 bool ControllerBase::atVelocity()
 {
-    /* NOT IMPLEMENTED */
-    return false;
+    math::Vector2 currentVelocity = m_vehicle->getVelocity();
+    math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
+    double difference0 = fabs(currentVelocity[0] - desiredVelocity[0]);
+    double difference1 = fabs(currentVelocity[1] - desiredVelocity[1]);
+    return difference0 <= m_velocityThreshold && difference1 <= m_velocityThreshold;
 }
 
 void ControllerBase::yawVehicle(double degrees)
@@ -253,7 +279,7 @@ bool ControllerBase::atOrientation()
 }
 
 void ControllerBase::holdCurrentOrientation()
-{
+{    
     desiredState->setDesiredOrientation(m_vehicle->getOrientation());
 }
 
@@ -269,7 +295,7 @@ double ControllerBase::getDepth()
 
 double ControllerBase::getEstimatedDepth()
 {
-    assert(0 && "Not Yet Implemented");
+    return m_vehicle->getDepth();
 }
 
 double ControllerBase::getEstimatedDepthDot()
@@ -295,50 +321,6 @@ void ControllerBase::holdCurrentHeading()
     holdCurrentOrientation();
 }
 
-void ControllerBase::newDepthSet(const double& newDepth)
-{
-    // Publish event indicating new update
-    math::NumericEventPtr event(new math::NumericEvent());
-    event->number = newDepth;
-    publish(IController::DESIRED_DEPTH_UPDATE, event);
-
-    // Make sure to publish if we set a depth that is within our range
-    if (atDepth())
-        publishAtDepth(newDepth);
-}
-
-void ControllerBase::newDesiredOrientationSet(
-    const math::Quaternion& newOrientation)
-{
-    math::OrientationEventPtr event(new math::OrientationEvent());
-    event->orientation = newOrientation;
-    publish(IController::DESIRED_ORIENTATION_UPDATE, event);
-    
-    if(atOrientation())
-        publishAtOrientation(newOrientation);
-}
-
-void ControllerBase::newDesiredVelocitySet(const math::Vector2& newVelocity)
-{
-    math::Vector2EventPtr event(new math::Vector2Event());
-    event->vector2 = newVelocity;
-    publish(IController::DESIRED_VELOCITY_UPDATE, event);
-    
-    if(atVelocity())
-        publishAtVelocity(newVelocity);
-}
-
-void ControllerBase::newDesiredPositionSet(const math::Vector2& newPosition)
-{
-    math::Vector2EventPtr event(new math::Vector2Event());
-    event->vector2 = newPosition;
-    publish(IController::DESIRED_VELOCITY_UPDATE, event);
-    
-    
-    if(atPosition())
-        publishAtPosition(newPosition);
-}
-
 void ControllerBase::init(core::ConfigNode config)
 {
     // Load threshold for being at depth
@@ -347,10 +329,8 @@ void ControllerBase::init(core::ConfigNode config)
         config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
     m_positionThreshold = config["positionThreshold"].asDouble(POSITION_THRESHOLD);
     m_velocityThreshold = config["velocityThreshold"].asDouble(VELOCITY_THRESHOLD);
-    desiredState = controltest::DesiredStatePtr(new controltest::DesiredState(config["DesiredState"]));
 }
                       
-
 void ControllerBase::publishAtDepth(const double& depth)
 {
     m_atDepth = true;

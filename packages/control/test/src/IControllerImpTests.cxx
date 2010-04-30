@@ -127,8 +127,8 @@ TEST_UTILITY_IMP(setGetDesiredVelocity, (ram::control::IController* controller))
 {
 /* Set Inertial, Get Inertial */
     math::Vector2 velocity_n_n(2.4,-4.3);
-    controller->setDesiredVelocity(velocity_n_n, control::INERTIAL);
-    CHECK_EQUAL(velocity_n_n, controller->getDesiredVelocity(control::INERTIAL));
+    controller->setDesiredVelocity(velocity_n_n, control::IController::INERTIAL_FRAME);
+    CHECK_EQUAL(velocity_n_n, controller->getDesiredVelocity(control::IController::INERTIAL_FRAME));
 
 /* The Following rely on the current orientation, so the vehicle's current orientation
    must be set to a known value and correct results calculated with this value */
@@ -144,8 +144,8 @@ TEST_UTILITY_IMP(setGetDesiredPosition, (ram::control::IController* controller))
 {
 /* Set Inertial, Get Inertial */
     math::Vector2 position_n_n(2.4,-4.3);
-    controller->setDesiredPosition(position_n_n, control::INERTIAL);
-    CHECK_EQUAL(position_n_n, controller->getDesiredPosition(control::INERTIAL));
+    controller->setDesiredPosition(position_n_n, control::IController::INERTIAL_FRAME);
+    CHECK_EQUAL(position_n_n, controller->getDesiredPosition(control::IController::INERTIAL_FRAME));
 
 /* The Following rely on the current orientation, so the vehicle's current orientation
    must be set to a known value and correct results calculated with this value */

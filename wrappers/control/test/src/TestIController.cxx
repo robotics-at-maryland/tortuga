@@ -44,15 +44,15 @@ public:
     virtual void holdCurrentPosition() {}
 
     virtual void setDesiredVelocity(ram::math::Vector2 velocity,
-                                    ram::control::Frame frame){}
+                                    int frame){}
     virtual void setDesiredPosition(ram::math::Vector2 position,
-                                    ram::control::Frame frame){}
+                                    int frame){}
     virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position,
                                                ram::math::Vector2 velocity){}
 
-    virtual ram::math::Vector2 getDesiredVelocity(ram::control::Frame frame)
+    virtual ram::math::Vector2 getDesiredVelocity(int frame)
     {return ram::math::Vector2::ZERO;}
-    virtual ram::math::Vector2 getDesiredPosition(ram::control::Frame frame)
+    virtual ram::math::Vector2 getDesiredPosition(int frame)
     {return ram::math::Vector2::ZERO;}
 
     virtual bool atPosition(){return 0;}

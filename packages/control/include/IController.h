@@ -41,10 +41,7 @@ typedef boost::shared_ptr<IController> IControllerPtr;
  *  This is a facade over a set of controllers which handle difference parts
  *  of the vehicles motion.
  */
-class RAM_EXPORT IController : public core::Subsystem,
-                               public ITranslationalController,
-                               public IRotationalController,
-                               public IDepthController
+class RAM_EXPORT IController : public core::Subsystem
 {
 public:
     virtual void setVelocity(math::Vector2 velocity) = 0;  
@@ -76,20 +73,20 @@ public:
     virtual void holdCurrentPosition() = 0;
 
     /** Sets desired velocity and velocity based control for new controllers */
-    virtual void setDesiredVelocity(math::Vector2 velocity, Frame frame) = 0;
+    virtual void setDesiredVelocity(math::Vector2 velocity, int frame) = 0;
     
     /** Sets desired position and position based control for new controllers */
-    virtual void setDesiredPosition(math::Vector2 position, Frame frame) = 0;
+    virtual void setDesiredPosition(math::Vector2 position, int frame) = 0;
  
     /** Sets a desired position and velocity for controling of both simultaneously */
     virtual void setDesiredPositionAndVelocity(math::Vector2 position,
 					       math::Vector2 velocity) = 0;
 
     /** Gets desired velocity */
-    virtual math::Vector2 getDesiredVelocity(Frame frame) = 0;
+    virtual math::Vector2 getDesiredVelocity(int frame) = 0;
 
     /** Gets desired position */
-    virtual math::Vector2 getDesiredPosition(Frame frame) = 0;
+    virtual math::Vector2 getDesiredPosition(int frame) = 0;
 
     virtual bool atPosition() = 0;
     
@@ -202,6 +199,9 @@ public:
      */
     static const core::Event::EventType PARAM_UPDATE;
 
+    
+    const static int BODY_FRAME;
+    const static int INERTIAL_FRAME;
 
 
     /* @{ */

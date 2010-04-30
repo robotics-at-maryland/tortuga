@@ -87,20 +87,20 @@ public:
     virtual void holdCurrentPosition();
 
     /** Sets desired velocity and velocity based control for new controllers */
-    virtual void setDesiredVelocity(math::Vector2 velocity, Frame frame);
+    virtual void setDesiredVelocity(math::Vector2 velocity, int frame);
     
     /** Sets desired position and position based control for new controllers */
-    virtual void setDesiredPosition(math::Vector2 position, Frame frame);
+    virtual void setDesiredPosition(math::Vector2 position, int frame);
  
     /** Sets a desired position and velocity for controling of both simultaneously */
     virtual void setDesiredPositionAndVelocity(math::Vector2 position,
 					       math::Vector2 velocity);
 
     /** Gets desired velocity */
-    virtual math::Vector2 getDesiredVelocity(Frame frame);
+    virtual math::Vector2 getDesiredVelocity(int frame);
 
     /** Gets desired position */
-    virtual math::Vector2 getDesiredPosition(Frame frame);
+    virtual math::Vector2 getDesiredPosition(int frame);
 
     virtual bool atPosition();
     
@@ -214,43 +214,10 @@ protected:
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut) = 0;
 
-    /** Called whenever a new depth is set, handles events as needed
-     *
-     *  This will always publish the DESIRED_DEPTH_UPDATE event and also
-     *  publish the AT_DEPTH event if needed. This should be called inside the
-     *  IController::setDepth method.
-     */
-    void newDepthSet(const double& newDepth);
-
-    /** Called whenever the desired orientation changes, handles events
-     *
-     *  This will always publish the DESIRED_ORIENTATION_UPDATE event and also
-     *  publish the AT_ORIENTATION event if needed. This should be called
-     *  inside the IController::setDesiredOrientation,
-     *  IController::rollVehicle, IController::pitchVehicle, and
-     *  IController::yawVehicle methods.
-     */
-    void newDesiredOrientationSet(const math::Quaternion& newOrientation);
-   
-    /** Called whenever the desired velocity changes, handles events
-     *
-     * This publishes the DESIRED_VELOCITY_UPDATE event and will
-     * publish the AT_VELOCITY event if needed.  This should be called
-     * inside the IController::setDesiredVelocity and the
-     * IController::setDesiredPositionAndVelocity function
-     */
-    void newDesiredVelocitySet(const math::Vector2& newVelocity);
-
-    /** Called whenever the desired velocity changes, handles events
-     *
-     * This publishes the DESIRED_POSITION_UPDATE event and will
-     * publish the AT_POSITION event if needed.  This should be called
-     * inside the IController::setDesiredVelocity and the
-     * IController::setDesiredPositionAndVelocity function
-     */
-    void newDesiredPositionSet(const math::Vector2& newPosition);
-
     controltest::DesiredStatePtr desiredState;
+
+    /** Out Vehicle */
+    vehicle::IVehiclePtr m_vehicle;    
 
 private:
     void init(core::ConfigNode config);
@@ -272,8 +239,7 @@ private:
     double m_velocityThreshold;
     double m_positionThreshold;
     
-    /** Out Vehicle */
-    vehicle::IVehiclePtr m_vehicle;    
+
     
 };
     

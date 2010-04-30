@@ -11,6 +11,7 @@
 #include "vehicle/include/device/IIMU.h"
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, RAW_UPDATE);
 
 namespace ram {
 namespace vehicle {

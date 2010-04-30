@@ -30,7 +30,6 @@ public:
                                               controltest::DesiredStatePtr desiredState);
 
 private:
-    void setControllerMode(ControlMode::ModeType mode);
 
     math::Vector2 m_prevPositionError;
     math::Vector2 m_prevVelocityError;

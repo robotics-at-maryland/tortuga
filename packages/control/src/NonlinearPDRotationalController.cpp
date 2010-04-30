@@ -58,13 +58,15 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     if(timestep > dtMax)
         timestep = dtMax;
 
+    math::Quaternion desiredOrientation = desiredState->getDesiredOrientation();
+
     //put inertia estimate in OGRE
     math::Matrix3 J(inertiaEstimate);
 
     //compute error quaternion
     math::Quaternion q_tilde;
     math::Quaternion q_meas(orientation);
-    math::Quaternion q_des(m_desiredOrientation);
+    math::Quaternion q_des(desiredOrientation);
     //i think this should be q_tilde = q_meas.errorQuaternion(q_des) 
     q_tilde = q_meas.errorQuaternion(q_des);  
     //break up quaternion into vector and scalar parts for later convenience

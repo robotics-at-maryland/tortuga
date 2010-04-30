@@ -11,6 +11,7 @@
 #include "vehicle/include/device/IDepthSensor.h"
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, RAW_UPDATE);
 
 namespace ram {
 namespace vehicle {

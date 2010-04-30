@@ -28,40 +28,11 @@ class RAM_EXPORT TranslationalControllerBase :
         public ITranslationalControllerImp
 {
   public:
-    /** The exact type of translation control we are undergoing */
-    struct ControlMode
-    {
-        enum ModeType {
-            OPEN_LOOP,
-            VELOCITY,
-            POSITION,
-            POSITIONANDVELOCITY
-        };
-    };
+
     
     TranslationalControllerBase(core::ConfigNode config);
     
     virtual ~TranslationalControllerBase() {}
-
-    // virtual void setVelocity(math::Vector2 velocity);
-
-    // virtual math::Vector2 getVelocity();
-
-    // virtual void setSpeed(double speed);
-
-    // virtual void setSidewaysSpeed(double speed);
-
-    // virtual double getSpeed();
-
-    // virtual double getSidewaysSpeed();
-
-    // virtual void holdCurrentPosition();
-   
-    // virtual void setDesiredVelocity(math::Vector2 velocity);
-    // virtual void setDesiredPosition(math::Vector2 position);
-    // virtual void setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity);
-    // virtual math::Vector2 getDesiredVelocity();
-    // virtual math::Vector2 getDesiredPosition();
 
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
@@ -70,21 +41,13 @@ class RAM_EXPORT TranslationalControllerBase :
                                               math::Vector2 velocity,
                                               controltest::DesiredStatePtr desiredState);
 
-    // virtual bool atPosition();
-    // virtual bool atVelocity();
 
-    // virtual ControlMode::ModeType getMode();
+    virtual void setControlMode(ControlMode::ModeType mode);
     
-
   protected:
 
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
-    
-    double m_desiredSpeed;
-    double m_desiredSidewaysSpeed;
-    math::Vector2 m_desiredVelocity;
-    math::Vector2 m_desiredPosition;
 
     math::Vector2 m_currentVelocity;
     math::Vector2 m_currentPosition;

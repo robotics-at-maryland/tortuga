@@ -226,8 +226,8 @@ class DepthPanel(wx.Panel):
             self._connections.append(conn)
         
         if controller is not None:
-            conn = eventHub.subscribe(ext.control.IController.DESIRED_DEPTH_UPDATE,
-                                      controller, self._desiredDepthUpdate)
+            conn = eventHub.subscribeToType(ext.control.IController.DESIRED_DEPTH_UPDATE,
+                                            self._desiredDepthUpdate)
         
             self._connections.append(conn)    
         
@@ -790,8 +790,9 @@ class RotationPanel(wx.Panel):
             ext.vehicle.IVehicle.ORIENTATION_UPDATE,
             self._onOrientationUpdate)
         
-        conn = eventHub.subscribe(ext.control.IController.DESIRED_ORIENTATION_UPDATE, 
-                                  controller, self._onDesiredOrientationUpdate)
+        conn = eventHub.subscribeToType(
+            ext.control.IController.DESIRED_ORIENTATION_UPDATE, 
+            self._onDesiredOrientationUpdate)
         self._connections.append(conn)
         
     def _onClose(self, closeEvent):

@@ -51,17 +51,17 @@ public:
     //  * \defgroup In plane controller methods
     //  */
     // /* @{ */
-    // virtual void setVelocity(math::Vector2 velocity);
+    virtual void setVelocity(math::Vector2 velocity);
     // virtual math::Vector2 getVelocity();
-    // virtual void setSpeed(double speed);
-    // virtual void setSidewaysSpeed(double speed);
+    virtual void setSpeed(double speed);
+    virtual void setSidewaysSpeed(double speed);
     // virtual double getSpeed();
     // virtual double getSidewaysSpeed();
     // virtual void holdCurrentPosition();
-    // virtual void setDesiredVelocity(math::Vector2 velocity);
-    // virtual void setDesiredPosition(math::Vector2 position);
-    // virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
-	// 				       math::Vector2 velocity);
+    virtual void setDesiredVelocity(math::Vector2 velocity, const int frame);
+    virtual void setDesiredPosition(math::Vector2 position, const int frame);
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
+                                               math::Vector2 velocity);
     // virtual math::Vector2 getDesiredVelocity();
     // virtual math::Vector2 getDesiredPosition();
     // virtual bool atPosition();

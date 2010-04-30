@@ -65,9 +65,6 @@ class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
     /** Syncs asscess to the desired state */
     core::ReadWriteMutex m_stateMutex;
 
-    /** The current desired orientation */
-    math::Quaternion m_desiredOrientation;
-
     /** The orientation from the last update command */
     math::Quaternion m_currentOrientation;
 

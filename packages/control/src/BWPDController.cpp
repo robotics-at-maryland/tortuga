@@ -838,13 +838,13 @@ void BWPDController::publishAtOrientation()
 
 
 /** Sets desired velocity and velocity based control for new controllers */
-void BWPDController::setDesiredVelocity(math::Vector2 velocity, Frame frame)
+void BWPDController::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
 
 }
     
 /** Sets desired position and position based control for new controllers */
-void BWPDController::setDesiredPosition(math::Vector2 position, Frame frame)
+void BWPDController::setDesiredPosition(math::Vector2 position, int frame)
 {
      
 }
@@ -857,13 +857,13 @@ void BWPDController::setDesiredPositionAndVelocity(math::Vector2 position,
 }
 
 /** Gets desired velocity */
-math::Vector2 BWPDController::getDesiredVelocity(Frame frame)
+math::Vector2 BWPDController::getDesiredVelocity(int frame)
 {
     return math::Vector2::ZERO;
 }
 
 /** Gets desired position */
-math::Vector2 BWPDController::getDesiredPosition(Frame frame)
+math::Vector2 BWPDController::getDesiredPosition(int frame)
 {
     return math::Vector2::ZERO;
 }

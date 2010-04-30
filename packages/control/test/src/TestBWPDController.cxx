@@ -47,7 +47,7 @@ struct Fixture
 
 
 //use these to test the normal PD rotational controller
-/*
+
 TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
@@ -82,7 +82,7 @@ TEST_FIXTURE(Fixture, YawRateControl)
   vehicle->orientation = math::Quaternion(0,0,0,1);
   vehicle->angularRate = math::Vector3(0,0,5);
   
-  }*/
+  }
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {
@@ -345,9 +345,10 @@ TEST(BWPDControllerLogging)
     fixture.controller.update(1);
     CHECK_EQUAL(3u, appender->logEvents.size());
     CHECK(std::string("") !=  appender->logEvents[2].message);
-    }*/
+}
+*/
 
-/*
+
 TEST(holdOrientation){
   
-}*/
+}
