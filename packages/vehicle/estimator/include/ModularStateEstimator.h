@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/BasicStateEstimator.h
+ * File:  packages/vehicle/estimator/include/ModularStateEstimator.h
  */
 
 // Library Includes
@@ -15,29 +15,31 @@
 #include "core/include/EventPublisher.h"
 #include "vehicle/estimator/include/StateEstimatorBase.h"
 
-#ifndef RAM_VEHICLE_ESTIMATOR_BASICSTATEESTIMATOR_H
-#define RAM_VEHICLE_ESTIMATOR_BASICSTATEESTIMATOR_H
+#ifndef RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#define RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
 
 namespace ram {
 namespace estimator {
 
-class BasicStateEstimator : public StateEstimatorBase
+class ModularStateEstimator : public StateEstimatorBase
 {
 public:
 
-    BasicStateEstimator(core::ConfigNode config,
+    ModularStateEstimator(core::ConfigNode config,
                         core::EventHubPtr eventHub = core::EventHubPtr(),
                         vehicle::IVehiclePtr vehicle = vehicle::IVehiclePtr());
 
-    virtual ~BasicStateEstimator();
+    virtual ~ModularStateEstimator();
 
 protected:
 
-    virtual void rawUpdate_DVL(core::EventPtr event/*DVLRawUpdateEvent*/);
-    virtual void rawUpdate_IMU(core::EventPtr event/*IMURawUpdateEvent*/);
-    virtual void rawUpdate_DepthSensor(core::EventPtr event/*DepthSensorRawUpdateEvent*/);
-    virtual void update_Vision(core::EventPtr event/*VisionUpdateEvent*/);
-    virtual void update_Sonar(core::EventPtr event/*SonarUpdateEvent*/);
+    /* These functions are bound to certain event types and are called when
+       an event of the correct type is published to the event hub */
+    virtual void rawUpdate_DVL(core::EventPtr event);
+    virtual void rawUpdate_IMU(core::EventPtr event);
+    virtual void rawUpdate_DepthSensor(core::EventPtr event);
+    virtual void update_Vision(core::EventPtr event);
+    virtual void update_Sonar(core::EventPtr event);
 
     core::EventConnectionPtr updateConnection_IMU;
     core::EventConnectionPtr updateConnection_DVL;
@@ -54,4 +56,4 @@ private:
 } // namespace estimator
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_BASICSTATEESTIMATOR_H
+#endif // RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H

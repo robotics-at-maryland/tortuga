@@ -21,7 +21,7 @@ StateEstimatorBase::StateEstimatorBase(
     core::ConfigNode config,
     core::EventHubPtr eventHub,
     vehicle::IVehiclePtr vehicle) :
-    IStateEstimator(config,eventHub,vehicle),
+    IStateEstimator(),
     estimatedState(EstimatedStatePtr(new EstimatedState()))
 {
 

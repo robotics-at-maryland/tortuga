@@ -32,7 +32,7 @@
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "vehicle/include/device/LoopStateEstimator.h"
-#include "vehicle/estimator/include/BasicStateEstimator.h"
+#include "vehicle/estimator/include/ModularStateEstimator.h"
 #include "vehicle/estimator/include/IStateEstimator.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
@@ -154,7 +154,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     if(!stateEstimator)
     {
         stateEstimator = estimator::IStateEstimatorPtr(
-            new estimator::BasicStateEstimator(
+            new estimator::ModularStateEstimator(
                 config,
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
