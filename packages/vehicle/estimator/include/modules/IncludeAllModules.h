@@ -13,3 +13,5 @@
 */
 
 #include "vehicle/estimator/include/modules/BasicDVLEstimationModule.h"
+#include "vehicle/estimator/include/modules/BasicIMUEstimationModule.h"
+#include "vehicle/estimator/include/modules/BasicDepthEstimationModule.h"
