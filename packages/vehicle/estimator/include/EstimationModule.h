@@ -13,10 +13,14 @@
  * estimation modules and pass them the appropriate type of event.
 */
 
+#ifndef RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H
+#define RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H
+
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "vehicle/estimator/include/EstimatedState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 
@@ -25,7 +29,7 @@ namespace estimator {
 
 class EstimationModule;
 
-typedef boost_shared_ptr<EstimationModule> EstimationModulePtr;
+typedef boost::shared_ptr<EstimationModule> EstimationModulePtr;
 
 class EstimationModule 
 {
@@ -37,11 +41,11 @@ public:
     virtual ~EstimationModule(){}
 
     /* update - the function that should be called to perform the estimation */
-    virtual void update(core::EventPtr event) = 0;
+    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState) = 0;
 
-
-private:
-} 
+}; 
 
 } // namespace estimatior
 } // namespace ram
+
+#endif // RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H

@@ -12,8 +12,11 @@
 // Project Includes
 #include "core/include/Forward.h"
 #include "core/include/EventHub.h"
+#include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
+#include "vehicle/estimator/include/EstimationModule.h"
 #include "vehicle/estimator/include/StateEstimatorBase.h"
+#include "vehicle/estimator/include/modules/IncludeAllModules.h"
 
 #ifndef RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
 #define RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
@@ -41,6 +44,7 @@ protected:
     virtual void update_Vision(core::EventPtr event);
     virtual void update_Sonar(core::EventPtr event);
 
+    /* These keep track of the event subscriptions */
     core::EventConnectionPtr updateConnection_IMU;
     core::EventConnectionPtr updateConnection_DVL;
     core::EventConnectionPtr updateConnection_DepthSensor;
@@ -49,6 +53,16 @@ protected:
     
 
 private:
+    /* These contain estimation routines that are config swappable */
+    EstimationModulePtr dvlEstimationModule;
+    EstimationModulePtr imuEstimationModule;
+    EstimationModulePtr depthEstimationModule;
+
+    /* These contain the most recent events passed to each update function */
+    core::EventPtr rawDVLDataEvent;
+    core::EventPtr rawIMUDataEvent;
+    core::EventPtr rawBoomIMUDataEvent;
+    core::EventPtr rawDepthDataEvent;
 
     vehicle::IVehiclePtr m_vehicle;
 };

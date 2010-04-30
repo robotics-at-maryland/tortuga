@@ -24,6 +24,7 @@ for feature in eventFeatures:
 sources = env.Glob('src', '*.cpp')
 sources.extend(env.Glob('src/device', '*.cpp'))
 sources.extend(env.Glob('estimator/src','*.cpp'))
+sources.extend(env.Glob('estimator/src/modules','*.cpp'))
 
 # Doesn't Work
 # sources.remove('src/IVehicle.cpp')

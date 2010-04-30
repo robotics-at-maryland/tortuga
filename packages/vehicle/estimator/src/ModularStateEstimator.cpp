@@ -28,6 +28,18 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
                                          core::EventHubPtr eventHub,
                                          vehicle::IVehiclePtr vehicle) :
     StateEstimatorBase(config,eventHub),
+    updateConnection_IMU(core::EventConnectionPtr()),
+    updateConnection_DVL(core::EventConnectionPtr()),
+    updateConnection_DepthSensor(core::EventConnectionPtr()),
+    updateConnection_Sonar(core::EventConnectionPtr()),
+    updateConnection_Vision(core::EventConnectionPtr()),
+    dvlEstimationModule(EstimationModulePtr()),
+    imuEstimationModule(EstimationModulePtr()),
+    depthEstimationModule(EstimationModulePtr()),
+    rawDVLDataEvent(core::EventPtr()),
+    rawIMUDataEvent(core::EventPtr()),
+    rawBoomIMUDataEvent(core::EventPtr()),
+    rawDepthDataEvent(core::EventPtr()),
     m_vehicle(vehicle::IVehiclePtr(vehicle))
 {
     // Connect the event listeners to their respective events
@@ -43,10 +55,13 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
         updateConnection_DVL = eventHub->subscribeToType(
             vehicle::device::IVelocitySensor::RAW_UPDATE,
             boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
-
-        //std::cout << "Event Listeners Registered." << std::endl;
     }
+
+    // Construct the estimation modules
+    dvlEstimationModule = EstimationModulePtr(new BasicDVLEstimationModule(config));
 }
+
+
 
 ModularStateEstimator::~ModularStateEstimator()
 {
@@ -70,7 +85,16 @@ void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
 {
     vehicle::RawDVLDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawDVLDataEvent>(event);
-    //std::cout << "rawUpdate_DVL_Basic" << std::endl;
+
+    /* Return if the cast failed and let people know about it. */
+    if(!ievent){
+        std::cout << "ModularStateEstimator: rawUpdate_DVL: Invalid Event Type" 
+                  << std::endl;
+        return;
+    }
+        
+    /* Update the estimated state by using an estimation module */
+    dvlEstimationModule->update(ievent, estimatedState);
 }
 
 void ModularStateEstimator::rawUpdate_IMU(core::EventPtr event)
@@ -78,10 +102,21 @@ void ModularStateEstimator::rawUpdate_IMU(core::EventPtr event)
     vehicle::RawIMUDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawIMUDataEvent>(event);
 
-    math::Quaternion rawOrientation = m_vehicle->getRawOrientation();
-    estimatedState->setEstimatedOrientation(rawOrientation);
+    /* Return if the cast failed and let people know about it. */
+    if(!ievent){
+        std::cout << "ModularStateEstimator: rawUpdate_IMU: Invalid Event Type" 
+                  << std::endl;
+        return;
+    }
 
-    //std::cout << "rawUpdate_IMU_Basic: " << ievent->name << std::endl;
+    /* Keep the most recent event from each IMU */
+    if(ievent->name == "MagBoom")
+        rawBoomIMUDataEvent = ievent;
+    else
+        rawIMUDataEvent = ievent;
+    
+    /* Update the estimated state by using an estimation module */
+    imuEstimationModule->update(ievent, estimatedState);
 }
 
 void ModularStateEstimator::rawUpdate_DepthSensor(core::EventPtr event)
@@ -89,17 +124,25 @@ void ModularStateEstimator::rawUpdate_DepthSensor(core::EventPtr event)
     vehicle::RawDepthSensorDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawDepthSensorDataEvent>(event);
 
-    //std::cout << "rawUpdate_DepthSensor_Basic" << std::endl;
+    /* Return if the cast failed and let people know about it. */
+    if(!ievent){
+        std::cout << "ModularStateEstimator: rawUpdate_DepthSensor: Invalid Event Type" 
+                  << std::endl;
+        return;
+    }   
+
+    /* Update the estimated state by using an estimation module */
+    depthEstimationModule->update(ievent, estimatedState);
 }
 
 void ModularStateEstimator::update_Vision(core::EventPtr event)
 {
-    //std::cout << "rawUpdate_Vision_Basic" << std::endl;
+    std::cout << "ModularStateEstimator: rawUpdate_Vision: Placeholder" << std::endl;
 }
 
 void ModularStateEstimator::update_Sonar(core::EventPtr event)
 {
-    //std::cout << "rawUpdate_Sonar_Basic" << std::endl;
+    std::cout << "ModularStateEstimator: rawUpdate_Sonar: Placeholder" << std::endl;
 }
 
 } // namespace estimator
