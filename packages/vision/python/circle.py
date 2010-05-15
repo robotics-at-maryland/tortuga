@@ -1,5 +1,16 @@
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/vision/python/circle.py
+#
+# Requirements:
+#   - Must have opencv python bindings
+#      - Package list:
+#         - python-opencv
+#         - python-yaml
 
-import commands
 import math
 import os
 import sys
@@ -18,6 +29,9 @@ def clone_image(img):
     cvCopy(img, dest)
     return dest
 
+def nothing(event, x, y, flags, param):
+    pass
+
 class Display(object):
     def __init__(self, name, img):
         self._name = name
@@ -25,9 +39,12 @@ class Display(object):
         self._x, self._y, self._r = (0, 0, 0)
         # Possible states: none, move, select, mousedown
         self._state = 'none'
+        self._update = False
 
     def execute(self):
         self._stall = True
+        cvNamedWindow('Image')
+
         def callback(event, x, y, flags, param):
             global config
             if event == CV_EVENT_LBUTTONDOWN:
@@ -77,32 +94,35 @@ class Display(object):
                                            'y' : self._y,
                                            'r' : self._r }
                     self._stall = False
+                    self._state = 'none'
             
         cvSetMouseCallback('Image', callback)
         cvShowImage('Image', self._img)
         while self._stall:
             pass
+        cvDestroyWindow('Image')
 
 def main():
     if len(sys.argv) < 2:
-        raise Exception('Usage: python circle.py FOLDER')
+        print 'Usage: python circle.py FOLDER'
+        sys.exit(1)
 
     cvStartWindowThread()
-    directory = os.path.join(sys.argv[1], 'ppm')
+    directory = os.path.expanduser(sys.argv[1])
     filename = raw_input('Save results to what file? ')
 
     files = [os.path.join(directory, x) for x in os.listdir(directory)]
-    cvNamedWindow('Image')
+    #cvNamedWindow('Image', 1)
     for i, f in enumerate(files):
         img = cvLoadImage(f)
         display = Display(os.path.basename(f), img)
         display.execute()
+        cvReleaseImage(img)
         print '%d / %d' % (i+1, len(files))
-    cvDestroyWindow('Image')
+    #cvDestroyWindow('Image')
 
-    fd = open(os.path.join(sys.argv[1], '..', filename), 'w')
-    yaml.dump(config, fd)
-    fd.close()
+    with open(os.path.expanduser(filename), 'w') as fd:
+        yaml.dump(config, fd)
 
 if __name__ == '__main__':
     main()

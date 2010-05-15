@@ -1,3 +1,25 @@
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/vision/python/buoy.py
+#
+# Requirements:
+#   - Must have opencv python bindings
+#      - Package list:
+#         - python-opencv
+#         - python-yaml
+#   - Must have a ~/stock_images/buoy folder
+#   - Within this folder, it must have the folders
+#      - ppm
+#      - output
+#      - canny
+#      - processed
+#      - grayscale
+#   - Inside the ppm folder must be the images to be tested
+#     in ppm format
+#   - Must be in a Unix type system (for commands module)
 
 # Use true division everywhere
 from __future__ import division

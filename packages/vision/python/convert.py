@@ -1,3 +1,14 @@
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
+# All rights reserved.
+#
+# Author: Jonathan Sternberg <jsternbe@umd.edu>
+# File:  packages/vision/python/convert.py
+#
+# Requirements:
+#   - Must have a stock folder within the specified folder
+#   - Within this folder, it must have another folder with name FORMAT
+#   - Must be in a Unix type system (for commands module)
 
 import commands
 import os
@@ -5,7 +16,8 @@ import sys
 
 def main():
     if len(sys.argv) < 3:
-        raise Exception("Usage: python convert.py FOLDER FORMAT")
+        print "Usage: python convert.py FOLDER FORMAT"
+        sys.exit(1)
 
     dirname = sys.argv[1]
     format = sys.argv[2]
