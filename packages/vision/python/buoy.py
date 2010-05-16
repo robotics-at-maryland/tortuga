@@ -107,9 +107,9 @@ def analyze(filename, cfg, output_cfg):
 
     for p in seq:
         cvCircle(debug, (cvRound(p[0]), cvRound(p[1])),
-                 3, cvScalar(0,255,0), -1)
+                 3, cvScalar(0,0,0), -1)
         cvCircle(debug, (cvRound(p[0]), cvRound(p[1])),
-                 cvRound(p[2]), cvScalar(0,0,255), 3)
+                 cvRound(p[2]), cvScalar(0,0,0), 3)
 
     # Dilate the image and analyze the circles percentage of circleness
     cvDilate(canny, canny, None, cfg['dilate'])
@@ -183,10 +183,21 @@ def analyze(filename, cfg, output_cfg):
 
     # Redraw the chosen circle as the found color (unknown is gray)
     if found:
+        color = result[3]
+        if 'red' == color:
+            scalar = cvScalar(0,0,255)
+        elif 'yellow' == color:
+            scalar = cvScalar(255,255,0)
+        elif 'green' == color:
+            scalar = cvScalar(0,255,0)
+        else:
+            # Assumed to be unknown
+            scalar = cvScalar(128,128,128)
+
         cvCircle(debug, (result[0], result[1]),
-                 3, cvScalar(255,0,0), -1)
+                 3, scalar, -1)
         cvCircle(debug, (result[0], result[1]),
-                 result[2], cvScalar(255,0,0), 3)
+                 result[2], scalar, 3)
 
     processed = os.path.join(os.path.dirname(filename), '..', 'processed',
                              os.path.basename(filename))
