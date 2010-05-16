@@ -7,6 +7,12 @@ dilate: 10
 min_percent: .9
 min_radius: 5
 real_min_radius: 25
+red_min: 185
+red_max: 215
+green_min: 0
+green_max: 0
+yellow_min: 0
+yellow_max: 0
 
 0001.ppm: {r: 32.557641192199412, x: 305, y: 308, color: 'red'}
 0002.ppm: {r: 31.906112267087632, x: 355, y: 325, color: 'red'}

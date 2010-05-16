@@ -73,6 +73,11 @@ def histogram_circle_row(img, center, radius, row, debug_img = None):
 
 def analyze(filename, cfg, output_cfg):
     found, result = False, [0, 0, 0, 'unknown']
+
+    # Load the original image
+    original = cvLoadImage(filename)
+
+    # Use color segmentation algorithm using cmd line executable
     output = output_cfg.setdefault(os.path.basename(filename), {})
     outputpath = os.path.join(os.path.dirname(filename), '..', 'output',
                           os.path.basename(filename))
@@ -156,18 +161,27 @@ def analyze(filename, cfg, output_cfg):
         # Run histogram on each row
         x, y, radius = result[0], result[1], result[2]
         for row in xrange(-radius, radius+1):
-            ret = histogram_circle_row(img, (x, y), radius, row)
+            ret = histogram_circle_row(original, (x, y), radius, row)
             total += ret[0]
             hist = map(lambda a: a[0] + a[1], zip(hist, ret[1]))
 
         # Average histogram data
         hist = map(lambda a: cvRound(a / total), hist)
 
+        if cfg['red_min'] < hist[0] and cfg['red_max'] > hist[0]:
+            result[3] = 'red'
+        elif cfg['green_min'] < hist[0] and cfg['green_max'] > hist[0]:
+            result[3] = 'green'
+        elif cfg['yellow_min'] < hist[0] and cfg['yellow_max'] > hist[0]:
+            result[3] = 'yellow'
+        else:
+            pass # No color found in range, keep as unknown
+
     # Output the histogram (none if one wasn't generated)
     output['hist'] = hist
     output['found'] = found
 
-    # Redraw the chosen circle as a different color
+    # Redraw the chosen circle as the found color (unknown is gray)
     if found:
         cvCircle(debug, (result[0], result[1]),
                  3, cvScalar(255,0,0), -1)
@@ -187,8 +201,8 @@ def main():
     if len(sys.argv) < 2:
         raise Exception('Usage: python process.py CONFIG')
 
-    spos, sneg, accuracy, rad_acc, fpos, fneg, ptotal, ntotal = \
-        0, 0, 0, 0, 0, 0, 0, 0
+    spos, sneg, accuracy, rad_acc, fpos, fneg, ptotal, ntotal, correct_color = \
+        0, 0, 0, 0, 0, 0, 0, 0, 0
 
     source = os.path.expanduser(os.path.join('~', 'stock_images', 'buoy', 'ppm'))
     config = yaml.load(file(sys.argv[1]))
@@ -219,6 +233,11 @@ def main():
             # Success
             spos += 1
             ptotal += 1
+
+            # Check if the correct color was returned
+            if real['color'] == result[3]:
+                correct_color += 1
+
         elif config.has_key(basename) and not found:
             # Didn't find the point even though we should have, false negative
             fneg += 1
@@ -236,6 +255,8 @@ def main():
     print 'False Negative:',fneg,'/',ptotal,'- %.2f %%' % (fneg/ptotal*100)
     print 'Success Negative:',sneg,'/',ntotal,'- %.2f %%' % (sneg/ntotal*100)
     print 'False Positive:', fpos, '/', ntotal,'- %.2f %%' % (fpos/ntotal*100)
+    print 'Correct Color:', correct_color, '/', ptotal,\
+        '- %.2f %%'%(correct_color/ptotal*100)
     print 'Accuracy: %e' % (accuracy / spos)
     print 'Radius Accuracy: %e' % (rad_acc / spos)
 
