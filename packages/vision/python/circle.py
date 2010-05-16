@@ -20,8 +20,6 @@ import yaml
 from opencv.cv import *
 from opencv.highgui import *
 
-config = {}
-
 def clone_image(img):
     dest = cvCreateImage(cvGetSize(img),
                          img.depth,
@@ -41,7 +39,7 @@ class Display(object):
         self._state = 'none'
         self._update = False
 
-    def execute(self):
+    def execute(self, config):
         self._stall = True
         cvNamedWindow('Image')
 
@@ -89,6 +87,9 @@ class Display(object):
             elif event == CV_EVENT_RBUTTONDOWN:
                 if self._state == 'none':
                     self._stall = False
+                    if config.has_key(self._name):
+                        del config[self._name]
+
                 elif self._state == 'select':
                     config[self._name] = { 'x' : self._x,
                                            'y' : self._y,
@@ -111,15 +112,25 @@ def main():
     directory = os.path.expanduser(sys.argv[1])
     filename = raw_input('Save results to what file? ')
 
+    config = {}
+    try:
+        config = yaml.load(file(filename))
+        print 'WARNING: Updating file', os.path.abspath(filename)
+    except IOError:
+        print 'Creating new file', os.path.abspath(filename)
+
     files = [os.path.join(directory, x) for x in os.listdir(directory)]
     #cvNamedWindow('Image', 1)
-    for i, f in enumerate(files):
-        img = cvLoadImage(f)
-        display = Display(os.path.basename(f), img)
-        display.execute()
-        cvReleaseImage(img)
-        print '%d / %d' % (i+1, len(files))
+    try:
+        for i, f in enumerate(files):
+            img = cvLoadImage(f)
+            display = Display(os.path.basename(f), img)
+            display.execute(config)
+            cvReleaseImage(img)
+            print '\r%d / %d' % (i+1, len(files)),
     #cvDestroyWindow('Image')
+    except:
+        pass
 
     with open(os.path.expanduser(filename), 'w') as fd:
         yaml.dump(config, fd)
