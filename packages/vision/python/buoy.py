@@ -49,13 +49,38 @@ class Blob(object):
     def __str__(self):
         return '%d %d %d %.2f' % (self._x, self._y, self._r, self._percentage)
 
-def analyze(filename, cfg, output):
-    found, result = False, [0, 0, 0]
+def histogram_circle_row(img, center, radius, row, debug_img = None):
+    x0, y0 = center
+    hist = [0, 0, 0]
+    total = 0
+    
+    # Proof that this works (with explanation) in arclength.py
+    theta = math.asin( row / radius )
+    width = cvRound(radius * math.cos(theta))
+    
+    for x in xrange(-width, width):
+        try:
+            colors = img[y0 + row, x0 + x]
+            # Black out the pixel we read if debug is on
+            if debug_img is not None:
+                debug_img[y0 + row, x0 + x] = [0, 0, 0]
+            hist = map(lambda a: a[0] + a[1], zip(hist, colors))
+            total += 1
+        except IndexError:
+            pass
+
+    return total, hist
+
+def analyze(filename, cfg, output_cfg):
+    found, result = False, [0, 0, 0, 'unknown']
+    output = output_cfg.setdefault(os.path.basename(filename), {})
     outputpath = os.path.join(os.path.dirname(filename), '..', 'output',
                           os.path.basename(filename))
     commands.getstatusoutput(cfg['command'] + ' ' + filename + ' ' + outputpath)
 
     img = cvLoadImage(outputpath)
+    debug = cvCreateImage(cvGetSize(img), 8, 3)
+    cvCopy(img, debug)
     gray = cvCreateImage(cvGetSize(img), 8, 1)
     cvCvtColor(img, gray, CV_BGR2GRAY)
 
@@ -76,9 +101,9 @@ def analyze(filename, cfg, output):
                             cfg.get('max_radius',0))
 
     for p in seq:
-        cvCircle(img, (cvRound(p[0]), cvRound(p[1])),
+        cvCircle(debug, (cvRound(p[0]), cvRound(p[1])),
                  3, cvScalar(0,255,0), -1)
-        cvCircle(img, (cvRound(p[0]), cvRound(p[1])),
+        cvCircle(debug, (cvRound(p[0]), cvRound(p[1])),
                  cvRound(p[2]), cvScalar(0,0,255), 3)
 
     # Dilate the image and analyze the circles percentage of circleness
@@ -110,10 +135,12 @@ def analyze(filename, cfg, output):
     # Sort the list into best matches first
     blobList.sort(reverse = True)
 
-    # Save these results if not empty
-    if len(blobList) > 0:
-        outputList = [str(x) for x in blobList]
-        output[os.path.basename(filename)] = outputList
+    # Save these results
+    for i, k in enumerate(blobList):
+        output[i] = str(k)
+
+    # Declare histogram data
+    hist, total = [0, 0, 0], 0
 
     # Choose the best match
     if len(blobList) > 0 and blobList[0]._percentage > cfg['min_percent']:
@@ -122,18 +149,36 @@ def analyze(filename, cfg, output):
         result[0], result[1], result[2] = \
             cvRound(blob._x), cvRound(blob._y), cvRound(blob._r)
 
+        # Try and identify the color
+        hsv = cvCreateImage(cvGetSize(img), 8, 3)
+        cvCvtColor(img, hsv, CV_BGR2HSV)
+
+        # Run histogram on each row
+        x, y, radius = result[0], result[1], result[2]
+        for row in xrange(-radius, radius+1):
+            ret = histogram_circle_row(img, (x, y), radius, row)
+            total += ret[0]
+            hist = map(lambda a: a[0] + a[1], zip(hist, ret[1]))
+
+        # Average histogram data
+        hist = map(lambda a: cvRound(a / total), hist)
+
+    # Output the histogram (none if one wasn't generated)
+    output['hist'] = hist
+    output['found'] = found
+
     # Redraw the chosen circle as a different color
     if found:
-        cvCircle(img, (result[0], result[1]),
+        cvCircle(debug, (result[0], result[1]),
                  3, cvScalar(255,0,0), -1)
-        cvCircle(img, (result[0], result[1]),
-                 cvRound(result[2]), cvScalar(255,0,0), 3)
+        cvCircle(debug, (result[0], result[1]),
+                 result[2], cvScalar(255,0,0), 3)
 
     processed = os.path.join(os.path.dirname(filename), '..', 'processed',
                              os.path.basename(filename))
     grayscale = os.path.join(os.path.dirname(filename), '..', 'grayscale',
                              os.path.basename(filename))
-    cvSaveImage(processed, img)
+    cvSaveImage(processed, debug)
     cvSaveImage(grayscale, gray)
 
     return (found, result)
