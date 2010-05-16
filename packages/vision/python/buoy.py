@@ -51,8 +51,10 @@ class Blob(object):
 
 def histogram_circle_row(img, center, radius, row, debug_img = None):
     x0, y0 = center
-    hist = [0, 0, 0]
-    total = 0
+    hist = {}
+    hist[0] = [0]*256
+    hist[1] = [0]*256
+    hist[2] = [0]*256
     
     # Proof that this works (with explanation) in arclength.py
     theta = math.asin( row / radius )
@@ -62,14 +64,15 @@ def histogram_circle_row(img, center, radius, row, debug_img = None):
         try:
             colors = img[y0 + row, x0 + x]
             # Black out the pixel we read if debug is on
+            hist[0][int(colors[0])] += 1
+            hist[1][int(colors[1])] += 1
+            hist[2][int(colors[2])] += 1
             if debug_img is not None:
                 debug_img[y0 + row, x0 + x] = [0, 0, 0]
-            hist = map(lambda a: a[0] + a[1], zip(hist, colors))
-            total += 1
         except IndexError:
             pass
 
-    return total, hist
+    return 2 * width + 1, hist
 
 def analyze(filename, cfg, output_cfg):
     found, result = False, [0, 0, 0, 'unknown']
@@ -145,7 +148,10 @@ def analyze(filename, cfg, output_cfg):
         output[i] = str(k)
 
     # Declare histogram data
-    hist, total = [0, 0, 0], 0
+    hist, pixel_count = {}, 0
+    hist[0] = [0]*256
+    hist[1] = [0]*256
+    hist[2] = [0]*256
 
     # Choose the best match
     if len(blobList) > 0 and blobList[0]._percentage > cfg['min_percent']:
@@ -161,24 +167,34 @@ def analyze(filename, cfg, output_cfg):
         # Run histogram on each row
         x, y, radius = result[0], result[1], result[2]
         for row in xrange(-radius, radius+1):
-            ret = histogram_circle_row(original, (x, y), radius, row)
-            total += ret[0]
-            hist = map(lambda a: a[0] + a[1], zip(hist, ret[1]))
+            pixels, newhist = histogram_circle_row(original, (x, y), radius, row)
+            hist[0] = map(lambda a: a[0] + a[1], zip(hist[0], newhist[0]))
+            hist[1] = map(lambda a: a[0] + a[1], zip(hist[1], newhist[1]))
+            hist[2] = map(lambda a: a[0] + a[1], zip(hist[2], newhist[2]))
+            pixel_count += pixels
 
-        # Average histogram data
-        hist = map(lambda a: cvRound(a / total), hist)
+        def largest_point(a, b):
+            if a[1] > b[1]:
+                return a
+            else:
+                return b
+        # Look at the first channel and find the peak point
+        hue = reduce(largest_point, enumerate(hist[0]))[0]
+        output['hue'] = hue
 
-        if cfg['red_min'] < hist[0] and cfg['red_max'] > hist[0]:
+        if cfg['red_min'] < hue and cfg['red_max'] > hue:
             result[3] = 'red'
-        elif cfg['green_min'] < hist[0] and cfg['green_max'] > hist[0]:
+        elif cfg['green_min'] < hue and cfg['green_max'] > hue:
             result[3] = 'green'
-        elif cfg['yellow_min'] < hist[0] and cfg['yellow_max'] > hist[0]:
+        elif cfg['yellow_min'] < hue and cfg['yellow_max'] > hue:
             result[3] = 'yellow'
         else:
             pass # No color found in range, keep as unknown
 
     # Output the histogram (none if one wasn't generated)
-    output['hist'] = hist
+    # Only print if configuration asks for one
+    if cfg.get('generate_hist', False):
+        output['hist'] = hist
     output['found'] = found
 
     # Redraw the chosen circle as the found color (unknown is gray)
@@ -187,7 +203,7 @@ def analyze(filename, cfg, output_cfg):
         if 'red' == color:
             scalar = cvScalar(0,0,255)
         elif 'yellow' == color:
-            scalar = cvScalar(255,255,0)
+            scalar = cvScalar(0,255,255)
         elif 'green' == color:
             scalar = cvScalar(0,255,0)
         else:
@@ -272,7 +288,7 @@ def main():
     print 'Radius Accuracy: %e' % (rad_acc / spos)
 
     with open(config.get('output', 'results.yml'), 'w') as fd:
-        yaml.dump(output, fd)
+        yaml.dump(output, fd, indent=4, default_flow_style=False)
 
 if __name__ == '__main__':
     main()

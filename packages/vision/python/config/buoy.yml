@@ -7,8 +7,8 @@ dilate: 10
 min_percent: .9
 min_radius: 5
 real_min_radius: 25
-red_min: 160
-red_max: 215
+red_min: 220
+red_max: 240
 green_min: 0
 green_max: 0
 yellow_min: 0
