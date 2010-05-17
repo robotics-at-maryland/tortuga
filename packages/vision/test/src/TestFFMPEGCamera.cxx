@@ -72,7 +72,8 @@ TEST_FIXTURE(Fixture, Update)
     std::vector<vision::Image*> images;
     for (int i = 0; i < IMAGE_COUNT; ++i)
     {
-        vision::Image* image = new vision::OpenCVImage(640,480);
+        vision::Image* image = new vision::OpenCVImage(640,480,
+                                                       vision::Image::PF_BGR_8);
         vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
@@ -86,7 +87,8 @@ TEST_FIXTURE(Fixture, Update)
     }
 
     // Check Results
-    vision::Image* actual = new vision::OpenCVImage(640, 480);
+    vision::Image* actual = new vision::OpenCVImage(640, 480,
+                                                    vision::Image::PF_BGR_8);
     vision::FFMPEGCamera movieCamera(filename.c_str());
 
     // Lets check some other stuff
