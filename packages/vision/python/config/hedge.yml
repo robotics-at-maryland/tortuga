@@ -1,0 +1,22 @@
+command: './segment/segment 0.25 100 10'
+
+0001.ppm: {height: 120, width: 225, x: 170, y: 349}
+0001.ppm: {height: 124, width: 214, x: 169, y: 351}
+0002.ppm: {height: 111, width: 220, x: 174, y: 349}
+0002.ppm: {height: 124, width: 219, x: 172, y: 351}
+0003.ppm: {height: 127, width: 221, x: 204, y: 337}
+0003.ppm: {height: 131, width: 214, x: 204, y: 338}
+0004.ppm: {height: 124, width: 220, x: 265, y: 354}
+0004.ppm: {height: 127, width: 219, x: 265, y: 354}
+0005.ppm: {height: 113, width: 220, x: 263, y: 302}
+0005.ppm: {height: 128, width: 218, x: 263, y: 302}
+0006.ppm: {height: 147, width: 272, x: 320, y: 334}
+0006.ppm: {height: 148, width: 270, x: 319, y: 336}
+0007.ppm: {height: 147, width: 261, x: 282, y: 271}
+0007.ppm: {height: 149, width: 259, x: 280, y: 271}
+0008.ppm: {height: 141, width: 262, x: 341, y: 276}
+0008.ppm: {height: 147, width: 250, x: 340, y: 279}
+0009.ppm: {height: 148, width: 251, x: 295, y: 298}
+0010.ppm: {height: 124, width: 237, x: 213, y: 296}
+0010.ppm: {height: 139, width: 242, x: 211, y: 291}
+0011.ppm: {height: 139, width: 240, x: 192, y: 277}
