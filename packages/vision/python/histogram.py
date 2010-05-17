@@ -13,11 +13,13 @@ def main():
         sys.exit(0)
 
     results = yaml.load(file(sys.argv[1]))
-    hist = [0]*256
 
     for k in results.itervalues():
         if k['found']:
-            hist[k['hist'][0]] += 1
+            if not k.has_key('hist'):
+                raise Exception('No histogram data. Make sure to generate it'
+                                ' with generate_hist: True')
+            hist = k['hist'][0]
 
     # Display histogram
     max_value = max(hist)
