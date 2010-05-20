@@ -7,6 +7,9 @@
  * File:  packages/vision/test/src/Utility.cxx
  */
 
+// STD Includes
+#include <assert.h>
+
 // Library Include
 #include "cv.h"
 #include "cxcore.h"
@@ -39,6 +42,7 @@ namespace vision {
 void makeColor(vision::Image* image, unsigned char R, unsigned char G,
                unsigned char B)
 {
+    assert(image->getNumChannels() == 3 && "Incorrect number of channels");
     int size = image->getWidth() * image->getHeight() * 3;
     unsigned char* data = image->getData();
     for (int i = 0; i < size; i += 3)
@@ -47,6 +51,17 @@ void makeColor(vision::Image* image, unsigned char R, unsigned char G,
         data[i] = B;
         data[i + 1]  = G;
         data[i + 2]  = R;
+    }
+}
+
+void makeGray(vision::Image* image, unsigned char G)
+{
+    assert(image->getNumChannels() == 1 && "Incorrect number of channels");
+    int size = image->getWidth() * image->getHeight();
+    unsigned char* data = image->getData();
+    for (int i = 0; i < size; i += 1)
+    {
+        data[i] = G;
     }
 }
 

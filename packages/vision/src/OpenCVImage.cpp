@@ -116,13 +116,14 @@ OpenCVImage::OpenCVImage(std::string fileName, Image::PixelFormat fmt) :
 void OpenCVImage::getFormatParameters(const Image::PixelFormat& fmt,
                                     int& depth, int &channels)
 {
-    static const std::pair<int, int> lookupTable[6] = {
-        std::make_pair(8, 3),
-        std::make_pair(8, 3),
-        std::make_pair(8, 3),
-        std::make_pair(8, 3),
-        std::make_pair(8, 1),
-        std::make_pair(8, 3)
+    static const std::pair<int, int> lookupTable[7] = {
+        std::make_pair(8, 3), // PF_START
+        std::make_pair(8, 3), // PF_RGB_8
+        std::make_pair(8, 3), // PF_BGR_8
+        std::make_pair(8, 3), // PF_YUV444_8
+        std::make_pair(8, 1), // PF_GRAY_8
+        std::make_pair(8, 3), // PF_HSV_8
+        std::make_pair(8, 3)  // PF_END
     };
 
     depth = lookupTable[fmt].first;
@@ -275,19 +276,21 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
      * Table is constructed so the row is the current colorspace,
      * column is the colorspace to convert to.
      */
-    static const int lookupTable[6][6] = {
+    static const int lookupTable[7][7] = {
         /* Sentinal value */
-        {-1,          -1,          -1, -1,          -1, -1},
+        {-1,          -1,          -1, -1,          -1,         -1, -1},
         /* RGB */
-        {-1,          -2,  CV_RGB2BGR, -1, CV_RGB2GRAY, -1},
+        {-1,          -2,  CV_RGB2BGR, -1, CV_RGB2GRAY, CV_RGB2HSV, -1},
         /* BGR */
-        {-1,  CV_BGR2RGB,          -2, -1, CV_BGR2GRAY, -1},
+        {-1,  CV_BGR2RGB,          -2, -1, CV_BGR2GRAY, CV_BGR2HSV, -1},
         /* YUV */
-        {-1,          -1,          -1, -2,          -1, -1},
+        {-1,          -1,          -1, -2,          -1,         -1, -1},
         /* Grayscale */
-        {-1, CV_GRAY2RGB, CV_GRAY2BGR, -1,          -2, -1},
+        {-1, CV_GRAY2RGB, CV_GRAY2BGR, -1,          -2,         -1, -1},
+        /* HSV */
+        {-1,  CV_HSV2RGB,  CV_HSV2BGR, -1,          -1,         -2, -1},
         /* Sentinal value */
-        {-1,          -1,          -1, -1,          -1, -1}
+        {-1,          -1,          -1, -1,          -1,         -1, -1}
     };
 
     int code = lookupTable[m_fmt][format];
