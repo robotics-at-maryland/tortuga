@@ -61,7 +61,7 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     menuFile->Append(ID_OpenCamera, _T("Open CV &Camera"));
     menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
-    menuFile->Append(ID_Quit, _T("E&xit"));
+    menuFile->Append(ID_Quit, _T("E&xit\tCtrl+Q"));
 
     // Image Menu
     wxMenu *menuImage = new wxMenu;
