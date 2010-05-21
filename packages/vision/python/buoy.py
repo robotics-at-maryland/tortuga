@@ -17,6 +17,7 @@
 #      - canny
 #      - processed
 #      - grayscale
+#      - hue
 #   - Inside the ppm folder must be the images to be tested
 #     in ppm format
 #   - Must be in a Unix type system (for commands module)
@@ -64,11 +65,13 @@ def histogram_circle_row(img, center, radius, row, debug_img = None):
         try:
             colors = img[y0 + row, x0 + x]
             # Black out the pixel we read if debug is on
-            hist[0][int(colors[0])] += 1
-            hist[1][int(colors[1])] += 1
-            hist[2][int(colors[2])] += 1
+            increment = math.sqrt(row**2 + x**2) / radius
+            hist[0][int(colors[0])] += 1 - increment
+            hist[1][int(colors[1])] += 1 - increment
+            hist[2][int(colors[2])] += 1 - increment
             if debug_img is not None:
-                debug_img[y0 + row, x0 + x] = [0, 0, 0]
+                hue = int(colors[0])
+                debug_img[y0 + row, x0 + x] = [hue]
         except IndexError:
             pass
 
@@ -153,6 +156,9 @@ def analyze(filename, cfg, output_cfg):
     hist[1] = [0]*256
     hist[2] = [0]*256
 
+    hue_image = cvCreateImage(cvGetSize(img), 8, 1)
+    cvSetZero(hue_image)
+
     # Choose the best match
     if len(blobList) > 0 and blobList[0]._percentage > cfg['min_percent']:
         found = True
@@ -167,7 +173,7 @@ def analyze(filename, cfg, output_cfg):
         # Run histogram on each row
         x, y, radius = result[0], result[1], result[2]
         for row in xrange(-radius, radius+1):
-            pixels, newhist = histogram_circle_row(original, (x, y), radius, row)
+            pixels, newhist = histogram_circle_row(original, (x, y), radius, row, hue_image)
             hist[0] = map(lambda a: a[0] + a[1], zip(hist[0], newhist[0]))
             hist[1] = map(lambda a: a[0] + a[1], zip(hist[1], newhist[1]))
             hist[2] = map(lambda a: a[0] + a[1], zip(hist[2], newhist[2]))
@@ -191,11 +197,20 @@ def analyze(filename, cfg, output_cfg):
         else:
             pass # No color found in range, keep as unknown
 
-    # Output the histogram (none if one wasn't generated)
-    # Only print if configuration asks for one
-    if cfg.get('generate_hist', False):
-        output['hist'] = hist
+        # Output the histogram (none if one wasn't generated)
+        # Only print if configuration asks for one
+        if cfg.get('generate_hist', False):
+            for i, k in hist.iteritems():
+                histmap = {}
+                for i2, k2 in enumerate(k):
+                    histmap[i2] = k2
+                hist[i] = histmap
+            output['hist'] = hist
     output['found'] = found
+
+    huepath = os.path.join(os.path.dirname(filename), '..', 'hue',
+                             os.path.basename(filename))
+    cvSaveImage(huepath, hue_image)
 
     # Redraw the chosen circle as the found color (unknown is gray)
     if found:
@@ -288,7 +303,9 @@ def main():
     print 'Radius Accuracy: %e' % (rad_acc / spos)
 
     with open(config.get('output', 'results.yml'), 'w') as fd:
+        print 'Dumping results file. Please wait.'
         yaml.dump(output, fd, indent=4, default_flow_style=False)
+        print 'Finished.'
 
 if __name__ == '__main__':
     main()

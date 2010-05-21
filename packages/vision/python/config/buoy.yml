@@ -1,4 +1,4 @@
-command: './segment/segment 1.75 1500 500'
+command: '~/stock_images/segment/segment 1.75 1500 500'
 dp: 2
 min_dist: 5
 param1: 1
