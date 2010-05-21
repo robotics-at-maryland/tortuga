@@ -29,7 +29,7 @@ Image* Image::loadFromFile(std::string fileName)
     IplImage* image = cvLoadImage(fileName.c_str());
     if (image)
 	{
-        return new OpenCVImage(image, true);
+        return new OpenCVImage(image, true, Image::PF_BGR_8);
 	}
 	else
 	{
@@ -78,6 +78,7 @@ Image* Image::extractSubImage(Image* source, unsigned char* buffer,
                               int lowerRightX, int lowerRightY)
 {
     unsigned char* sourceBuffer = source->getData();
+    PixelFormat fmt = source->getPixelFormat();
     unsigned char* srcPtr = sourceBuffer;
     unsigned char* destPtr = buffer;
     int width = lowerRightX - upperLeftX; //+ 1;
@@ -100,7 +101,7 @@ Image* Image::extractSubImage(Image* source, unsigned char* buffer,
         }
     }
 
-    return loadFromBuffer(buffer, width, height, false);
+    return loadFromBuffer(buffer, width, height, false, fmt);
 }
 
 
@@ -280,9 +281,9 @@ void Image::showImage(Image* image, std::string name)
 }
     
 Image* Image::loadFromBuffer(unsigned char* buffer, int width, int height,
-                             bool ownership)
+                             bool ownership, PixelFormat fmt)
 {
-    return new OpenCVImage(buffer, width, height, ownership);
+    return new OpenCVImage(buffer, width, height, ownership, fmt);
 }
 
 bool Image::sameSize(Image* imageA, Image* imageB)

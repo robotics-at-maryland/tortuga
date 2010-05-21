@@ -15,6 +15,7 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/ImageFilter.h"
 #include "core/include/Forward.h"
 
 // Must be incldued last
@@ -23,7 +24,7 @@
 namespace ram {
 namespace vision {
 
-class RAM_EXPORT ColorFilter
+class RAM_EXPORT ColorFilter : public ImageFilter
 {
 public:
     ColorFilter(unsigned char channel1Low, unsigned char channel1High,

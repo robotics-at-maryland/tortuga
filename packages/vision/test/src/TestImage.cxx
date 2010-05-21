@@ -41,7 +41,8 @@ TEST(transform)
         (getImagesDir() / "testrotate" / "90right.png").string());
     vision::Image* expectedNeg25Scale = vision::Image::loadFromFile(
         (getImagesDir() / "testrotate" / "25left_20scale.png").string());
-    vision::Image* result = new vision::OpenCVImage(640, 480);
+    vision::Image* result = new vision::OpenCVImage(640, 480,
+                                                    vision::Image::PF_BGR_8);
 
     // Rotate Image right 30 degrees
     vision::Image::transform(reference, result, math::Degree(30),
@@ -70,8 +71,8 @@ TEST(extractSubImage)
     int width = 60;
     int height = 150;
     
-    vision::OpenCVImage src(512, 512);
-    vision::OpenCVImage expected(width, height);
+    vision::OpenCVImage src(512, 512, vision::Image::PF_BGR_8);
+    vision::OpenCVImage expected(width, height, vision::Image::PF_BGR_8);
 
     // Prepare the source
     vision::makeColor(&src, 255, 255, 255);
@@ -119,8 +120,10 @@ TEST(blitImage)
         (getImagesDir() / "testblit" / "start.png").string());
     vision::Image* toBlit = vision::Image::loadFromFile(
         (getImagesDir() / "testblit" / "toblit.png").string());
-    vision::Image* blankBlit = new vision::OpenCVImage(640, 480);
-    vision::Image* result = new vision::OpenCVImage(640, 480);
+    vision::Image* blankBlit = new vision::OpenCVImage(640, 480,
+                                                       vision::Image::PF_BGR_8);
+    vision::Image* result = new vision::OpenCVImage(640, 480,
+                                                    vision::Image::PF_BGR_8);
 
     // Completely blank image should result in no change
     makeColor(blankBlit, 255, 255, 255);
@@ -152,7 +155,7 @@ TEST(blitImage)
 
 TEST(getAveragePixelValues)
 {
-    vision::OpenCVImage src(512, 512);
+    vision::OpenCVImage src(512, 512, vision::Image::PF_BGR_8);
     vision::makeColor(&src, 0, 0, 0);
     vision::drawSquare(&src, 200, 200, 100, 100, 0.0, CV_RGB(255,120,50));
 

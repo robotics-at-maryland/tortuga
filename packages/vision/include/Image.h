@@ -153,7 +153,8 @@ public:
     
     /** Creates and image given the data buffer (PF_BGR_8 is assumed) */
     static Image* loadFromBuffer(unsigned char* buffer, int width,
-                                 int height, bool ownership);
+                                 int height, bool ownership,
+                                 PixelFormat fmt = PF_START);
     
     /** Returns true if both images are the same size */
     static bool sameSize(Image* imageA, Image* imageB);
