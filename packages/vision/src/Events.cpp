@@ -16,6 +16,11 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, LIGHT_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, LIGHT_ALMOST_HIT);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, RED_LIGHT_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, RED_LIGHT_DETECTOR_OFF);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DROPPED);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DETECTOR_ON);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_CENTERED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_LOST);
@@ -66,6 +71,9 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, VELOCITY_UPDATE);
 static ram::core::SpecificEventConverter<ram::vision::RedLightEvent>
 RAM_VISION_REDLIGHTEVENT;
 
+static ram::core::SpecificEventConverter<ram::vision::BuoyEvent>
+RAM_VISION_BUOYEVENT;
+
 static ram::core::SpecificEventConverter<ram::vision::PipeEvent>
 RAM_VISION_PIPEEVENT;
 
@@ -110,6 +118,17 @@ core::EventPtr RedLightEvent::clone()
     event->x = x;
     event->y = y;
     event->pixCount = pixCount;
+    event->color = color;
+    return event;
+}
+
+core::EventPtr BuoyEvent::clone()
+{
+    BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
+    copyInto(event);
+    event->x = x;
+    event->y = y;
+    event->radius = radius;
     event->color = color;
     return event;
 }

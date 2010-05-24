@@ -32,6 +32,11 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType LIGHT_ALMOST_HIT;
     static const core::Event::EventType RED_LIGHT_DETECTOR_ON;
     static const core::Event::EventType RED_LIGHT_DETECTOR_OFF;
+    static const core::Event::EventType BUOY_FOUND;
+    static const core::Event::EventType BUOY_DROPPED;
+    static const core::Event::EventType BUOY_LOST;
+    static const core::Event::EventType BUOY_DETECTOR_ON;
+    static const core::Event::EventType BUOY_DETECTOR_OFF;
     static const core::Event::EventType PIPE_FOUND;
     static const core::Event::EventType PIPE_CENTERED;
     static const core::Event::EventType PIPE_LOST;
@@ -120,7 +125,24 @@ public:
 
 typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
 
-    
+
+class RAM_EXPORT BuoyEvent : public core::Event
+{
+    BuoyEvent() {};
+    BuoyEvent(double x_, double y_, double r_, Color::ColorType color_) :
+        x(x_), y(y_), radius(r_), color(color_) {};
+
+    double x;
+    double y;
+    double radius;
+    Color::ColorType color;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<BuoyEvent> BuoyEventPtr;
+
+
 class RAM_EXPORT PipeEvent : public core::Event
 {
 public:

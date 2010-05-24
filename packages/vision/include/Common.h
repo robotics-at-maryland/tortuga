@@ -26,6 +26,7 @@ class OpenCVCamera;
 class Calibration;
 class Recorder;
 class ColorFilter;
+class SegmentationFilter;
     
 class Detector;
 typedef boost::shared_ptr<Detector> DetectorPtr;
