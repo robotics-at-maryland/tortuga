@@ -20,6 +20,7 @@
 #include "vision/include/FFMPEGNetworkRecorder.h"
 
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/BuoyDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
@@ -62,6 +63,7 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
+    m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
@@ -81,6 +83,7 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
+    m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
     m_ductDetector(DetectorPtr()),
@@ -134,6 +137,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Detectors
     m_redLightDetector = DetectorPtr(
         new RedLightDetector(getConfig(config, "RedLightDetector"), eventHub));
+    m_buoyDetector = DetectorPtr(
+        new BuoyDetector(getConfig(config, "BuoyDetector"), eventHub));
     m_binDetector = DetectorPtr(
         new BinDetector(getConfig(config, "BinDetector"), eventHub));
     m_pipelineDetector = DetectorPtr(
@@ -317,6 +322,20 @@ void VisionSystem::redLightDetectorOff()
 {
     m_forward->removeDetector(m_redLightDetector);
     publish(EventType::RED_LIGHT_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::buoyDetectorOn()
+{
+    addForwardDetector(m_buoyDetector);
+    publish(EventType::BUOY_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::buoyDetectorOff()
+{
+    m_forward->removeDetector(m_buoyDetector);
+    publish(EventType::BUOY_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
 

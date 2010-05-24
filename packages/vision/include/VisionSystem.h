@@ -40,6 +40,8 @@ public:
     
     void redLightDetectorOn();
     void redLightDetectorOff();
+    void buoyDetectorOn();
+    void buoyDetectorOff();
     void binDetectorOn();
     void binDetectorOff();
     void pipeLineDetectorOn();
@@ -204,6 +206,7 @@ private:
     VisionRunner* m_downward;
 
     DetectorPtr m_redLightDetector;
+    DetectorPtr m_buoyDetector;
     DetectorPtr m_binDetector;
     DetectorPtr m_pipelineDetector;
     DetectorPtr m_ductDetector;

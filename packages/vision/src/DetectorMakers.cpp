@@ -14,6 +14,7 @@
 #include "vision/include/DetectorMaker.h"
 
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/BuoyDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/GateDetector.h"
@@ -36,6 +37,9 @@ namespace vision {
 
 static DetectorMakerTemplate<RedLightDetector>
 registerRedLightDetector("RedLightDetector");
+
+static DetectorMakerTemplate<BuoyDetector>
+registerBuoyDetector("BuoyDetector");
 
 static DetectorMakerTemplate<BinDetector>
 registerBinDetector("BinDetector");
