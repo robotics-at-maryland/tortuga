@@ -1,5 +1,4 @@
 #include <p30fxxxx.h>
-#include <string.h>
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -17,43 +16,45 @@ _FWDT ( WDT_OFF );
 #define TRIS_IN  1
 #define byte unsigned char
 #define BYTE byte
+#define BUF_SIZE 100
 
-/* So the R/W bit is low for a write, and high for a read */
-/* In other words, if the master sends data, use I2C_WRITE, */
-/* if the master is receiving data use I2C_READ */
-#define I2C_TIMEOUT 100000
-#define I2C_READ 0x0001
-#define I2C_WRITE 0x0000
-#define NACK 1
-#define ACK 0
+#define ADC_PIN 0x0001
 
 /**********************************************/
 /* These are the prototypes for the functions */
 /**********************************************/
-void initI2C(byte);
+void initSPI(byte);
 void initUART(byte);
 void initOSC(void);
 void initADC(void);
+
 void uartRXwait(void);
 byte uartRX(void);
+void writeUart(byte);
+void writeStr(char *);
+int writeSPI(unsigned int);
+int readSPI(void);
 
-byte AckI2C(void);
-unsigned int getI2C(void);
-byte StartI2C(void);
-unsigned int RestartI2C(void);
-unsigned int StopI2C(void);
-unsigned int WriteI2C(byte);
-unsigned int IdleI2C(void);
-unsigned int WaitAck(void);
-byte wasAck(void);
+void ADC_checkTest(void);
+void ADC_checkOneShot(void);
+
+byte getNumChar(byte num) {
+    num= num & 0x0F;
+    if(num < 10)
+        return '0' + num;
+    return 'A' - 10 + num;
+}
+
+void pWord(unsigned int toPrint) {
+    writeUart(getNumChar(toPrint >> 12));
+    writeUart(getNumChar(toPrint >> 8));
+    writeUart(getNumChar(toPrint >> 4));
+    writeUart(getNumChar(toPrint));
+}
 
 /* The main function sets everything up then loops */
-int main()
-{
-    byte i, j, complete_packet, chksum;
-    byte buff[128];
-
-    buff[0]= 0x00;
+int main(void) {
+    unsigned int temp;
 
     /* Set up the Oscillator */
     initOSC();
@@ -61,10 +62,9 @@ int main()
     /* Set up the ADCs*/
     initADC();
 
-    /* The value of the equation given by the formula on the reference sheet is
-     * 21.75 for a 10MHz clock (so a 2.5MHz FCY) running on a 100kHz i2c port.
-     * Thus we set the Baud Rate Generator to 0x16 (22 in decimal) */
-    initI2C(0x16);
+    // Initialize the SPI bus with the a clock frequency of
+    // about 5MHz (give it a secondary prescaler of 2:1)
+    initSPI(0x001B);
 
     /* Initialize the UART module */
     /* We set the baud to 9600 */
@@ -73,109 +73,307 @@ int main()
     /* Set up port E as being a bank of outputs */
     TRISE= 0x0000;
 
-    /* Now that we're done with all the setup, we're just going to do
-     * a simple loop which takes input on the UART and stores it on PORTE */
+    // Set up port B as being a bank of outputs and
+    // output high on all of them. This should prevent any
+    // of the SPI members from thinking we love them.
+    TRISB= 0x0000;
+    LATB= 0xFFFF;
+
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+
     LATE= 0x0002;
-    while(1) {
-        complete_packet= 0;
+    writeStr("OK\n");
 
-        while(!complete_packet) {
-            uartRXwait();
-            buff[0]= i= uartRX();
-            U1TXREG= '0' + i;
-            j= 0;
-            while(j++ < i) {
-                uartRXwait();
-                buff[j]= uartRX();
-            }
+    // Pause for a moment!
+    writeStr("Wait.");
+    temp= 0;
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    writeStr("\nDone!\n");
 
-            chksum= j= 0;
-            while(j < i) {
-                chksum+= buff[j];
-                j++;
-            }
+    // Put the ADC into default mode.
+    LATB^= ADC_PIN;
+    _SPI1IF= 0;
+    //writeSPI(0xFFFF); // Put 'er in default mode
+    writeSPI(0xA000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
 
-            if(chksum == buff[i]) {
-                U1TXREG= 'K';
-                complete_packet= 0x01;
-            } else {
-                U1TXREG= 'N';
-            }
-        }
-        
-        LATE= 0x0000;                      /* Turn off the LED */
-        j= 1;
-        IdleI2C();                         /* Wait for the i2c bus to be idle */
-        StartI2C();                        /* Generate a start condition */
-        WriteI2C(buff[1]);                 /* Send a packet to the address,
-                                              informing it of a write */
-        IdleI2C();                         /* Wait for the end of transmission */
-        if(!wasAck()) {                    /* If we've gotten a NACK we're done */
-            LATE= 0x0004;                  /* Turn on the Red LED! */
-            continue;
-        }
+    writeStr("Probably Trash: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
 
-        while(j++ < i - 1) {
-            WriteI2C(buff[j]);                 /* Pass the byte to the i2c bus */
-            IdleI2C();                         /* Wait for the transmission to end */
-            if(!wasAck()) {                    /* We got a Nack??! OH NOES! */
-                LATE= 0x0004;                  /* Turn on the blue LED*/
-                continue;
-            }
-        }
+    LATB^= ADC_PIN;
 
-        StopI2C();                         /* Stop the bus, we're done. */
-        LATE= 0x0002;                      /* If we made it here, light up the
-                                              green LED so everyone knows how
-                                              cool we are. */
-    }
+    temp= 0;
+    while(++temp)
+        ;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    //writeSPI(0xFFFF); // Put 'er in default mode
+    writeSPI(0xA850);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("More Trash: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    temp= 0;
+    while(++temp)
+        ;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xA850);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("More Trash: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    writeStr("Wait.");
+    temp= 0;
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    while(++temp)
+        ;
+    writeUart('.');
+    writeStr("\nDone!\n");
+
+    // Now the ADC should be all set up
+
+/*    while(1) {
+    while(++temp)
+        ;
+    while(++temp)
+        ;
+    while(++temp)
+        ;
+    while(++temp)
+        ;
+    while(++temp)
+        ;
+    ADC_checkOneShot();
+    }*/
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("More Trash (?): 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P0: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P0: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P1: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P1: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P2: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xE000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("P2: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    while(1)
+        ;
 
     return 0;
 }
 
-/* This sets up the i2c peripheral */
-void initI2C(byte baud_rate) {
-    // First set the i2c pins as inputs
-    // The family reference manual says the module doesn't care, but I do.
-    TRISFbits.TRISF2 = TRIS_IN;
-    TRISFbits.TRISF3 = TRIS_IN;
+/* This function initializes the SPI bus with a given clock freq. */
+void initSPI(byte thing) {
+    // Disable the module
+    SPI1STATbits.SPIEN= 0;
 
-    /* Turn i2c off */
-    I2CCONbits.I2CEN= 0;
+    // Clear any flags which may be set
+    _SPI1IF= 0;
+    SPI1STATbits.SPIROV= 0;
 
-    // Set the baud rate. 
-    I2CBRG= 0x0000 | baud_rate;
+    // Master, not framed, active clock is high, idle clock low, 16 bit packets
+    // Not Framed
+    SPI1CONbits.FRMEN= 0;
 
-    /* Now we will initialise the I2C peripheral for Master Mode, No Slew Rate
-     * Control, and leave the peripheral switched off. */
-    I2CCON= 0x1200;
-    I2CRCV= 0x0000;
-    I2CTRN= 0x0000;
+    // We're the master, so ignore input on the frame sync pin
+    SPI1CONbits.SPIFSD= 0;
 
-    /* Now we can enable the peripheral */
-    I2CCON= 0x9200;
+    // SPI output pin is controlled by SPI module
+    SPI1CONbits.DISSDO= 0;
+
+    // 16 bit wide transmissions
+    SPI1CONbits.MODE16= 1;
+
+    // We sample at the middle of the clock cycle
+    SPI1CONbits.SMP= 0;
+
+    // We change our output data when we transition from an active clock to an idle clock
+    SPI1CONbits.CKE= 0;
+
+    // We're not in framed mode so we won't used !SS1
+    SPI1CONbits.SSEN= 0;
+
+    // Idle clock is low, active clock is high
+    SPI1CONbits.CKP= 0;
+
+    // We're the SPI bus master
+    SPI1CONbits.MSTEN= 1;
+
+    SPI1CON |= thing;
+
+    // Turn the module on
+    SPI1STATbits.SPIEN= 1;
+
+    return;
 }
 
 /* This function initializes the UART with the given baud */
 void initUART(byte baud_rate) {
-    /* Disable the UART before we mess with it */
+    // Disable the UART before we mess with it
     U1MODEbits.UARTEN= 0;
 
-    /* Set the baud rate */
+    // Set the baud rate
     U1BRG= 0x0000 | baud_rate;
 
-    /* Set up the UART settings: 8 bits, 1 stop bit, no parity, alternate IO */
+    // Set up the UART settings: 8 bits, 1 stop bit, no parity, alternate IO
     U1MODE= 0x0C00;
 
-    /* Everything that we need is set up, so go ahead and activate the UART */
+    // Everything that we need is set up, so go ahead and activate the UART
     U1MODEbits.UARTEN= 1;
 
-    /* Enable Transmission. This MUST BE DONE **AFTER** enabling the UART */
+    // Enable Transmission. This MUST BE DONE **AFTER** enabling the UART
     U1STAbits.UTXEN= 1;
 }
 
-/* This function initializes the Oscillator */
-/* Currently written under the assumption we're using a dsPIC30F4011 */
+/* This function initializes the Oscillator
+   Currently written under the assumption we're using a dsPIC30F4011 */
 void initOSC() {
     /* Looking into it, the default settings are fine, so we're not going to
      * mess with the oscillator.  But I'll leave the function as a
@@ -184,17 +382,17 @@ void initOSC() {
 
 /* This initializes the ADCs */
 void initADC() {
-    /* In case it isn't already off, kill the ADC module */
+    // In case it isn't already off, kill the ADC module
     ADCON1bits.ADON= 0;
-    
-    /* Disable the ADCs for now. This sets all ADC pins as
-     * digital pins. */
+
+    // Disable the ADCs for now. This sets all ADC pins as
+    // digital pins.
     ADPCFG = 0xFFFF;
 }
 
 /* This function sits and wait for there to be a byte in the recieve buffer */
 void uartRXwait() {
-    /* Loop waiting for there to be a byte */
+    // Loop waiting for there to be a byte
     while(!U1STAbits.URXDA)
         ;
 }
@@ -204,122 +402,287 @@ byte uartRX() {
     return U1RXREG;
 }
 
+/* This function *safely* writes a packet to the Uart1 output */
+void writeUart(byte packet) {
+    // Wait for space to be available
+    while(U1STAbits.UTXBF)
+        ;
 
-/**********************************\
-|**********************************|
- * This section begins the I2C
- * functions for basic input and
- * output as the master.
-|**********************************|
-\**********************************/
+    // Send the packet!
+    U1TXREG= packet;
+}
 
-/* This function atempts to ACK  */
-byte AckI2C(void)
-{
-    I2CCONbits.ACKDT = 0;          /* Set for Ack */
-    I2CCONbits.ACKEN = 1;          /* Enable the Ack */
+void writeStr(char *str) {
+    int i= 0;
+    while(str[i] != '\0') {
+        writeUart(str[i]);
+        i++;
+    }
+}
 
-    /* Now we have a little timeout loop while we wait for the 
-     * Ack to be accepted */
-    long timeout = 0;
-    while(I2CCONbits.ACKEN)
-        if(timeout++ == I2C_TIMEOUT)
-            return 255;
+
+/* Does a safe write to the SPI tx buffer */
+int writeSPI(unsigned int writeme) {
+    // Make sure the TX buffer is empty
+    if(SPI1STATbits.SPITBF)
+        return 0xFF;
+
+    SPI1BUF= writeme;
+
     return 0;
 }
 
-/* This function grabs a single byte of the i2c bus */
-unsigned int getI2C(void)
-{
-    I2CCONbits.RCEN = 1;           //Enable Master receive
-    Nop();
+/* Just reads SPI1BUF */
+int readSPI(void) {
+    return SPI1BUF;
+}
 
-    long timeout = 0;
-    while(!I2CSTATbits.RBF)
+void ADC_checkOneShot(void) {
+    unsigned int temp;
+    //initiate a read of channel 2 so that we have a reading
+    LATB^= ADC_PIN;
+    _SPI1IF= 0;
+    writeSPI(0x2000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    readSPI(); // Read the RXB to prevent overflow
+
+    LATB ^= ADC_PIN;
+
+    // Pause for conversion
+    temp= 0;
+    while(++temp)
+        ;
+
+    //////////////////////////////////////////////
+    ////////////// THE LOOP //////////////////////
+    //////////////////////////////////////////////
+    // while(1) {
     {
-        if(timeout++ == I2C_TIMEOUT)
-            return 255;
+        // Read channel 2's info, ask for channel 0
+        LATB^= ADC_PIN;
+        _SPI1IF= 0;
+        writeSPI(0x0000);
+        // Wait for the cycle to finish
+        while(!_SPI1IF)
+            ;
+
+        temp= readSPI();
+        writeStr("P2: 0x");
+        writeUart(getNumChar(temp >> 12));
+        writeUart(getNumChar(temp >> 8));
+        writeUart(getNumChar(temp >> 4));
+        writeUart('\n');
+
+        LATB ^= ADC_PIN;
+
+        // Pause for conversion
+        temp= 0;
+        while(++temp)
+            ;
+        while(++temp)
+            ;
+
+        // Read channel 0's info, ask for channel 1
+        LATB^= ADC_PIN;
+        _SPI1IF= 0;
+        writeSPI(0x1000);
+        // Wait for the cycle to finish
+        while(!_SPI1IF)
+            ;
+
+        temp= readSPI();
+        writeStr("P0: 0x");
+        writeUart(getNumChar(temp >> 12));
+        writeUart(getNumChar(temp >> 8));
+        writeUart(getNumChar(temp >> 4));
+        writeStr(", ");
+
+        LATB ^= ADC_PIN;
+
+        // Pause for conversion
+        temp= 0;
+        while(++temp)
+            ;
+        while(++temp)
+            ;
+
+        // Read channel 1's info, ask for channel 2
+        LATB^= ADC_PIN;
+        _SPI1IF= 0;
+        writeSPI(0x2000);
+        // Wait for the cycle to finish
+        while(!_SPI1IF)
+            ;
+
+        temp= readSPI();
+        writeStr("P1: 0x");
+        writeUart(getNumChar(temp >> 12));
+        writeUart(getNumChar(temp >> 8));
+        writeUart(getNumChar(temp >> 4));
+        writeStr(", ");
+
+        LATB ^= ADC_PIN;
+
+        // Pause for conversion
+        temp= 0;
+        while(++temp)
+            ;
+        while(++temp)
+            ;
+
+/*
+        // Read channel 2's info, ask for channel 3
+        LATB^= ADC_PIN;
+        _SPI1IF= 0;
+        writeSPI(0x2000);
+        // Wait for the cycle to finish
+        while(!_SPI1IF)
+            ;
+
+        temp= readSPI();
+        writeStr("Port 2: 0x");
+        writeUart(getNumChar(temp >> 14));
+        writeUart(getNumChar(temp >> 10));
+        writeUart(getNumChar(temp >> 6));
+        writeUart(getNumChar(temp >> 2));
+        writeStr(", ");
+
+        LATB ^= ADC_PIN;
+
+        Nop(); Nop(); Nop(); Nop(); Nop();
+        Nop(); Nop(); Nop(); Nop(); Nop();*/
     }
-    return(I2CRCV);                //Return data in buffer
 }
 
+void ADC_checkTest(void) {
+    unsigned int temp;
 
-byte StartI2C(void)
-{
-    long timeout=0;
+    LATB^= ADC_PIN;
 
-    I2CCONbits.SEN = 1;        //Generate Start COndition
-    while(I2CCONbits.SEN)
-        if(timeout++ == I2C_TIMEOUT)
-            return 255;
+    _SPI1IF= 0;
+    writeSPI(0xB000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
 
-    return 0;
-}
+    writeStr("More Trash (?): 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
 
-/* This function generates the restart condition and returns the timeout */
-unsigned int RestartI2C(void)
-{
-    long timeout= 0;
-    I2CCONbits.RSEN= 1; /* Generate the restart */
+    LATB^= ADC_PIN;
 
-    while(I2CCONbits.RSEN)
-        if(timeout++ == I2C_TIMEOUT)
-            return 255;
+    temp= 0;
+    while(++temp)
+        ;
 
-    return 0;
-}
+    LATB^= ADC_PIN;
 
-/* This function generates the stop condition and reports a timeout */
-unsigned int StopI2C(void)
-{
-    long timeout=0;
+    _SPI1IF= 0;
+    writeSPI(0xB000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
 
-    I2CCONbits.PEN = 1;        /* Generate the Stop condition */
-    while(I2CCONbits.PEN) {
-        if(timeout++ == I2C_TIMEOUT) {
-            return 255;
-        }
-    }
+    writeStr("Half: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
 
-    return 0;
-}
+    LATB^= ADC_PIN;
 
-/* This function transmits the byte passed to it over the i2c bus */
-unsigned int WriteI2C(byte b)
-{
-    long timeout=0;
+    temp= 0;
+    while(++temp)
+        ;
 
-    /* So make sure there's space in the transmit buffer before we stick
-     * anything in there */
-    while(I2CSTATbits.TBF) {
-        if(timeout++ == I2C_TIMEOUT) {
-            return 255;
-        }
-    }
+    LATB^= ADC_PIN;
 
-    /* Jam the byte in the transmit buffer! */
-    I2CTRN = b;
+    _SPI1IF= 0;
+    writeSPI(0xC000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
 
-    return 0;
-}
+    writeStr("Half: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
 
-/* This function waits for any and all activity on the i2c bus to stop
- * whether it's transmitting or recieving, this will wait. */
-unsigned int IdleI2C(void)
-{
-    long timeout= 0;
+    LATB^= ADC_PIN;
 
-    /* Wait until I2C Bus is Inactive */
-    while(I2CCONbits.SEN || I2CCONbits.PEN || I2CCONbits.RCEN || I2CCONbits.ACKEN || I2CSTATbits.TRSTAT) {
-        if(timeout++ == I2C_TIMEOUT) {
-            return 255;
-        }
-    }
-    return 0;
-}
+    temp= 0;
+    while(++temp)
+        ;
 
-/* This byte returns whether the previous byte was ACK'd */
-/* returns 0 if the previous sent byte was NACK'd, non-0 otherwise */
-byte wasAck(void) {
-    return (I2CSTATbits.ACKSTAT == ACK);
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xC000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("Neg: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    temp= 0;
+    while(++temp)
+        ;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xD000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("Neg: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    temp= 0;
+    while(++temp)
+        ;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xD000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("Pos: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    temp= 0;
+    while(++temp)
+        ;
+
+    LATB^= ADC_PIN;
+
+    _SPI1IF= 0;
+    writeSPI(0xD000);
+    // Wait for the cycle to finish
+    while(!_SPI1IF)
+        ;
+
+    writeStr("Pos: 0x");
+    pWord(readSPI()); // Read the RXB to prevent overflow
+    writeUart('\n');
+
+    LATB^= ADC_PIN;
+
+    temp= 0;
+    while(++temp)
+        ;
 }

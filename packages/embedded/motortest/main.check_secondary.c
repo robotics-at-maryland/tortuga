@@ -30,11 +30,8 @@ void uartRXwait(void);
 byte uartRX(void);
 void writeUart(byte);
 void writeStr(char *);
-int writeSPI(unsigned int);
+int writeSPI(unsigned char);
 int readSPI(void);
-
-void ADC_checkTest(void);
-void ADC_checkOneShot(void);
 
 byte getNumChar(byte num) {
     num= num & 0x0F;
@@ -52,7 +49,7 @@ void pWord(unsigned int toPrint) {
 
 /* The main function sets everything up then loops */
 int main(void) {
-    unsigned int temp;
+    unsigned char temp, temp2;
 
     /* Set up the Oscillator */
     initOSC();
@@ -62,7 +59,7 @@ int main(void) {
 
     // Initialize the SPI bus with the a clock frequency of
     // about 5MHz (give it a secondary prescaler of 2:1)
-    initSPI(0x001B);
+    initSPI(0x001F);
 
     /* Initialize the UART module */
     /* We set the baud to 9600 */
@@ -84,14 +81,41 @@ int main(void) {
     LATE= 0x0002;
     writeStr("OK\n");
 
-    temp= 0xCAFE;
+    // Pause for a moment!
+    temp= 0;
+    while(++temp)
+        ;
+
     while(1) {
-        writeSPI(temp);
+        temp= 0;
+        temp2= 1;
+        while(temp != temp2) {
+            uartRXwait();
+            temp= uartRX();
+
+            uartRXwait();
+            temp2= uartRX();
+
+            if(temp == temp2) {
+                writeStr("0x");
+                writeUart(getNumChar(temp >> 4));
+                writeUart(getNumChar(temp));
+                writeStr(" OK\n");
+            } else {
+                writeStr("N\n");
+            }
+        }
+
+        LATB^= 0x0002;
         _SPI1IF= 0;
-        while(_SPI1IF == 0)
+        writeSPI(temp);
+        // Wait for the cycle to finish
+        while(!_SPI1IF)
             ;
-        temp= readSPI();
-        pWord(temp);
+
+        pWord(readSPI() & 0xFF); // Read the RXB to prevent overflow
+
+        LATB^= 0x0002;
     }
 
     return 0;
@@ -106,18 +130,18 @@ void initSPI(byte thing) {
     _SPI1IF= 0;
     SPI1STATbits.SPIROV= 0;
 
-    // Slave, framed, active clock is high, idle clock low, 16 bit packets
-    // Framed
-    SPI1CONbits.FRMEN= 1;
+    // Master, not framed, active clock is high, idle clock low, 8 bit packets
+    // Not Framed
+    SPI1CONbits.FRMEN= 0;
 
-    // Use the frame sync pin
-    SPI1CONbits.SPIFSD= 1;
+    // We're the master, so ignore input on the frame sync pin
+    SPI1CONbits.SPIFSD= 0;
 
     // SPI output pin is controlled by SPI module
     SPI1CONbits.DISSDO= 0;
 
-    // 16 bit wide transmissions
-    SPI1CONbits.MODE16= 1;
+    // 8 bit wide transmissions
+    SPI1CONbits.MODE16= 0;
 
     // We sample at the middle of the clock cycle
     SPI1CONbits.SMP= 0;
@@ -125,16 +149,16 @@ void initSPI(byte thing) {
     // We change our output data when we transition from an active clock to an idle clock
     SPI1CONbits.CKE= 0;
 
-    // We're in framed mode so we use !SS1
-    SPI1CONbits.SSEN= 1;
+    // We're not in framed mode so we won't used !SS1
+    SPI1CONbits.SSEN= 0;
 
     // Idle clock is low, active clock is high
     SPI1CONbits.CKP= 0;
 
     // We're the SPI bus master
-    SPI1CONbits.MSTEN= 0;
+    SPI1CONbits.MSTEN= 1;
 
-    //SPI1CON |= thing;
+    SPI1CON |= thing;
 
     // Turn the module on
     SPI1STATbits.SPIEN= 1;
@@ -210,7 +234,7 @@ void writeStr(char *str) {
 
 
 /* Does a safe write to the SPI tx buffer */
-int writeSPI(unsigned int writeme) {
+int writeSPI(unsigned char writeme) {
     // Make sure the TX buffer is empty
     if(SPI1STATbits.SPITBF)
         return 0xFF;

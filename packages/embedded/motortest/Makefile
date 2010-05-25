@@ -1,5 +1,4 @@
-
-TCPATH=/home/kickmyassman/robotics-toolchain/
+TCPATH=/home/kickmyassman/SSL/trunk/ASTEP/embedded/pic30_toolchain/
 
 PATH = $(TCPATH)/usr/bin:/bin:/usr/kde/3.5/bin
 
