@@ -78,6 +78,9 @@ class Buoy(Visual):
     def __init__(self):
         Visual.__init__(self)
 
+        # Used only for checkBuoy
+        self.id = 0
+
     def load(self, data_object):
         scene, parent, node = data_object
         # Default mesh and scale info
@@ -88,6 +91,9 @@ class Buoy(Visual):
         node['Graphical'] = gfxNode
 
         self._color = gfxNode['material'].split('/')[-1].upper()
+
+        # Only used by checkBuoy
+        self._visible = False
 
         Visual.load(self, (scene, parent, node))
         
@@ -892,6 +898,11 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._runRedLight = False
         self._foundLight = False
         self._lightID = 1
+
+        # Buoy detector variables
+        self._runBuoy = False
+        self._foundBuoy = False
+        self._buoyID = 1
         
         # Orange pipe detector variables
         self._runOrangePipe = False
@@ -944,6 +955,16 @@ class IdealSimVision(ext.vision.VisionSystem):
     def redLightDetectorOff(self):
         self._runRedLight = False
         self.publish(ext.vision.EventType.RED_LIGHT_DETECTOR_OFF,
+                     ext.core.Event())
+
+    def buoyDetectorOn(self):
+        self._runBuoy = True
+        self.publish(ext.vision.EventType.BUOY_DETECTOR_ON,
+                     ext.core.Event())
+
+    def buoyDetectorOff(self):
+        self._runBuoy = False
+        self.publish(ext.vision.EventType.BUOY_DETECTOR_OFF,
                      ext.core.Event())
 
     def pipeLineDetectorOn(self):
@@ -1025,6 +1046,8 @@ class IdealSimVision(ext.vision.VisionSystem):
         """
         if self._runRedLight:
             self._checkRedLight()
+        if self._runBuoy:
+            self._checkBuoy()
         if self._runOrangePipe:
             self._checkOrangePipe()
         if self._runBin:
@@ -1210,6 +1233,61 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.LIGHT_LOST, ext.core.Event())
 
         self._foundLight = lightVisible
+
+    def _checkBuoy(self):
+        """
+        Check for the buoys
+        """
+        # Drop out if we have no buoys
+        if self._buoys is None:
+            return
+        if len(self._buoys) == 0:
+            return
+        
+        # Determine orientation to the buoy
+        buoyList = [x for x in self._buoys]
+        found = False
+
+        while len(buoyList) > 0:
+            # Find the closest buoy and remove it
+            buoy, relativePos = self._findClosest(buoyList)
+            buoyList.remove(buoy)
+            buoyVisible, x, y, azimuth, elevation, angle = \
+                self._forwardCheck(relativePos, buoy)
+            
+            if buoyVisible and (relativePos.length() < 3):
+                found = True
+
+                # Pack data into the event
+                event = ext.core.Event()
+                event.x = x
+                event.y = y
+                event.radius =  3.0 / relativePos.length()
+                event.color = getattr(ext.vision.Color, buoy._color)
+
+                id = self._buoyID
+                self._buoyID += 1
+                if buoy._visible:
+                    id = buoy.id
+                event.id = id
+                
+                self.publish(ext.vision.EventType.BUOY_FOUND, event)
+                
+                if relativePos.length() < 0.5:
+                    self.publish(ext.vision.EventType.BUOY_ALMOST_HIT,
+                                 ext.core.Event())
+                buoy._visible = True
+                    
+            else:
+                if buoy._visible:
+                    event = ext.core.Event()
+                    event.id = buoy.id
+                    self.publish(ext.vision.EventType.BUOY_DROPPED, event)
+
+        if self._foundBuoy and not found:
+            self.publish(ext.vision.EventType.BUOY_LOST, ext.core.Event())
+
+        self._foundBuoy = found
         
     def _checkTarget(self):
         """

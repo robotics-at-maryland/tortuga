@@ -35,6 +35,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType BUOY_FOUND;
     static const core::Event::EventType BUOY_DROPPED;
     static const core::Event::EventType BUOY_LOST;
+    static const core::Event::EventType BUOY_ALMOST_HIT;
     static const core::Event::EventType BUOY_DETECTOR_ON;
     static const core::Event::EventType BUOY_DETECTOR_OFF;
     static const core::Event::EventType PIPE_FOUND;
