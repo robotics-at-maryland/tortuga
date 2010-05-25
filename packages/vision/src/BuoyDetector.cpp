@@ -10,6 +10,7 @@
 // STD Includes
 #include <math.h>
 #include <algorithm>
+#include <iostream>
 
 // Library Includes
 #include "cv.h"
@@ -120,6 +121,7 @@ void BuoyDetector::init(core::ConfigNode config)
                          0, &m_yellow_max, 0, 255);
 
     m_filter = new SegmentationFilter(0.5, 500, 50);
+    m_filter->addPropertiesToSet(propSet, &config);
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
@@ -312,24 +314,32 @@ void BuoyDetector::processCircles(BuoyDetector::CircleList& blobs)
     hsv->copyFrom(frame);
     hsv->setPixelFormat(Image::PF_HSV_8);
     unsigned char* hueData = hsv->getData();
-    BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
+
+    // Do NOT use BOOST_FOREACH
+    // BOOST_FOREACH makes a copy of the value, so when we change it,
+    // the real object doesn't know that it should be changed.
+    BuoyDetector::CircleListIter circle = m_circles.begin();
+    BuoyDetector::CircleListIter end = m_circles.end();
+    for ( ; circle != end; circle++)
     {
         double hue_hist[256] = { 0 };
-        int radius = cvRound(circle.getRadius());
+        int radius = cvRound(circle->getRadius());
         int pixels = 0;
         
+        assert(radius > 0 && "Radius must be positive");
         for (int row=-radius; row < radius+1; row++) {
             // Figure out the pixel span for this row
-            assert(radius > 0 && "Radius must be positive");
             double theta = asin(row / radius);
             int width = cvRound(radius * cos(theta));
             
-            for (int col=-width; row < width; row++) {
+            for (int col=-width; col < width; col++) {
                 double increment = 0;
+                int x = row + cvRound(circle->getX());
+                int y = col + cvRound(circle->getY());
                 
-                if (row >= 0 && row < (int) hsv->getWidth() &&
-                    col >= 0 && col < (int) hsv->getHeight()) {
-                    int hue = hueData[(row + col * width)*3];
+                if (x >= 0 && x < (int) hsv->getWidth() &&
+                    y >= 0 && y < (int) hsv->getHeight()) {
+                    int hue = hueData[(x + y * hsv->getWidth())*3];
                     hue_hist[hue] += 1 - increment;
                     pixels += 1;
                 }
@@ -339,26 +349,26 @@ void BuoyDetector::processCircles(BuoyDetector::CircleList& blobs)
         // Find the peak in the histogram
         int peak = 0;
         for (int i=0; i < 256; i++) {
-            if (hue_hist[i] < hue_hist[peak])
+            if (hue_hist[i] > hue_hist[peak])
                 peak = i;
         }
         
         // Check if it's red
         if (!redFound && inrange(m_red_min, m_red_max, peak)) {
             // Red color
-            circle.setColor(Color::RED);
+            circle->setColor(Color::RED);
             redFound = true;
         } else if (!greenFound && inrange(m_green_min, m_green_max, peak)) {
             // Green color
-            circle.setColor(Color::GREEN);
+            circle->setColor(Color::GREEN);
             greenFound = true;
         } else if (!yellowFound && inrange(m_yellow_min, m_yellow_max, peak)) {
             // Yellow color
-            circle.setColor(Color::YELLOW);
+            circle->setColor(Color::YELLOW);
             yellowFound = true;
         } else {
             // Unknown color
-            circle.setColor(Color::UNKNOWN);
+            circle->setColor(Color::UNKNOWN);
         }
     }
 }

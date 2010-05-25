@@ -7,9 +7,12 @@
  * File:  packages/vision/src/SegmentationFilter.cpp
  */
 
-#include <iostream>
+// STD Includes
+#include <string>
+#include <sstream>
 
 // Library Includes
+#include <boost/bind.hpp>
 #include "cv.h"
 #include "segment-image.h" // Graph Based Segmentation
 
@@ -67,6 +70,31 @@ void SegmentationFilter::filterImage(Image* input, Image* output)
 
     // Clean up
     delete seg;
+}
+
+void SegmentationFilter::addPropertiesToSet(
+    core::PropertySetPtr propSet, core::ConfigNode* config)
+{
+    propSet->addProperty(*config, false,
+                         "segmentSigma",
+                         "The sigma value in Graph-Based Segmentation",
+                         0.5,
+                         boost::bind(&SegmentationFilter::getSigma, this),
+                         boost::bind(&SegmentationFilter::setSigma, this, _1));
+
+    propSet->addProperty(*config, false,
+                         "segmentK",
+                         "The k value in Graph-Based Segmentation",
+                         500.0,
+                         boost::bind(&SegmentationFilter::getK, this),
+                         boost::bind(&SegmentationFilter::setK, this, _1));
+    
+    propSet->addProperty(*config, false,
+                         "segmentMin",
+                         "The min value in Graph-Based Segmentation",
+                         50,
+                         boost::bind(&SegmentationFilter::getMin, this),
+                         boost::bind(&SegmentationFilter::setMin, this, _1));
 }
 
 } // namespace vision
