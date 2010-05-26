@@ -31,7 +31,10 @@ class MasterVisionPanel(BasePanel):
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         
         if vision is not None:
-            buoyPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
+            redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
+            self._sizer.Add(redLightPanel)
+
+            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision)
             self._sizer.Add(buoyPanel)
             
             pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
@@ -182,7 +185,7 @@ class BaseVisionPanel(BasePanel):
     #    if vision is not None:
     #        buoyPaneInfo = wx.aui.AuiPaneInfo().Name("Red Light")
     #        buoyPaneInfo = buoyPaneInfo.Caption("Red Light").Left()
-    #        buoyPanel = RedLightPanel(parent, eventHub, vision)
+    #        redLightPanel = RedLightPanel(parent, eventHub, vision)
     #        
     #        pipePaneInfo = wx.aui.AuiPaneInfo().Name("Orange Pipe")
     #        pipePaneInfo = pipePaneInfo.Caption("Orange Pipe").Left()
@@ -209,7 +212,7 @@ class BaseVisionPanel(BasePanel):
     #            barbedWirePaneInfo.Caption("BarbedWire").Left()
     #        barbedWirePanel = BarbedWirePanel(parent, eventHub, vision)
 
-    #        return [(buoyPaneInfo, buoyPanel, [vision]), 
+    #        return [(buoyPaneInfo, redLightPanel, [vision]), 
     #                (pipePaneInfo, pipePanel, [vision]), 
     #                (binPaneInfo, binPanel, [vision]),
     #                (ductPaneInfo, ductPanel, [vision]),
@@ -231,7 +234,7 @@ class RedLightPanel(BaseVisionPanel):
         self._vision = vision
 
         # Controls
-        self._createControls("Bouy")
+        self._createControls("RedLight")
         
         # Events
         self._subscribeToType(eventHub, ext.vision.EventType.LIGHT_FOUND, 
@@ -289,6 +292,87 @@ class RedLightPanel(BaseVisionPanel):
         self._azimuth.Value = ""
         self._elevation.Value = ""
         self._range.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+        self._detector = False
+        self._toggleSize(False)
+
+class BuoyPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._r = None
+        self._id = None
+        self._color = None
+        self._detector = False
+        self._vision = vision
+
+        # Controls
+        self._createControls("Buoy")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.BUOY_FOUND, 
+                              self._onBouyFound)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.BUOY_LOST,
+                              self._onBouyLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BUOY_DETECTOR_ON,
+                              self._buoyDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              BUOY_DETECTOR_OFF,
+                              self._buoyDetectorOff)
+                
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_r', label = 'Radius: ')
+        self._createDataControl(controlName = '_id', label = 'ID: ')
+        self._createDataControl(controlName = '_color', label = 'Color: ')
+        
+    def _onButton(self, event):
+        """
+        Overwrite the default onButton so this one just turns the detector on
+        """
+        if self._detector:
+            self._vision.buoyDetectorOff()
+        else:
+            self._vision.buoyDetectorOn()
+
+    def _onBouyFound(self, event):
+        if self._detector:
+            self._x.Value = "% 4.2f" % event.x
+            self._y.Value = "% 4.2f" % event.y
+            self._r.Value = "% 4.2f" % event.radius
+            self._id.Value = "%d" % event.id
+            if event.color == ext.vision.Color.RED:
+                self._color.Value = "RED"
+            elif event.color == ext.vision.Color.GREEN:
+                self._color.Value = "GREEN"
+            elif event.color == ext.vision.Color.YELLOW:
+                self._color.Value = "YELLOW"
+            else:
+                self._color.Value = "UNKNOWN"
+        
+            self.enableControls()
+    
+    def _onBouyLost(self, event):
+        self.disableControls()
+
+    def _buoyDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+        self._detector = True
+        self._toggleSize(True)
+
+    def _buoyDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._r.Value = ""
+        self._id.Value = ""
+        self._color.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False

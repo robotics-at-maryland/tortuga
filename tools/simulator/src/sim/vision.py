@@ -1262,7 +1262,7 @@ class IdealSimVision(ext.vision.VisionSystem):
                 event = ext.core.Event()
                 event.x = x
                 event.y = y
-                event.radius =  3.0 / relativePos.length()
+                event.radius =  (3.0 - relativePos.length()) / 3.0
                 event.color = getattr(ext.vision.Color, buoy._color)
 
                 id = self._buoyID

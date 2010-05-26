@@ -19,6 +19,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, RED_LIGHT_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DROPPED);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_ALMOST_HIT);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BUOY_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPE_FOUND);
