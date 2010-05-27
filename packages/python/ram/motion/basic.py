@@ -97,8 +97,11 @@ class MotionManager(core.Subsystem):
 
     def setMotion(self, motion, *motions):
         self._queuedMotions = []
-        self._setMotion(motion)
+        # Queue the motions before setting the first motion
+        # Reason: If the first motion finishes in its _start function,
+        # it will not queue the remaining motions correctly
         self._queueMotions(*motions)
+        self._setMotion(motion)
 
     def _queueMotions(self, *motions):
         for m in motions:
