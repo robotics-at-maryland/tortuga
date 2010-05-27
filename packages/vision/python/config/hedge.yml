@@ -1,4 +1,4 @@
-command: './segment/segment 0.25 100 10'
+command: '~/stock_images/segment/segment 0.25 100 10'
 
 0001.ppm: {height: 120, width: 225, x: 170, y: 349}
 0001.ppm: {height: 124, width: 214, x: 169, y: 351}

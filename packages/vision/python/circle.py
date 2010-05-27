@@ -41,17 +41,16 @@ class Display(object):
 
     def execute(self, config):
         self._stall = True
-        cvNamedWindow('Image')
+        cvNamedWindow(self._name)
 
         def callback(event, x, y, flags, param):
-            global config
             if event == CV_EVENT_LBUTTONDOWN:
                 if self._state == 'none':
                     self._x = x
                     self._y = y
                     dest = clone_image(self._img)
                     cvCircle(dest, (x, y), 2, cvScalar(0,0,255), 3)
-                    cvShowImage('Image', dest)
+                    cvShowImage(self._name, dest)
                     self._state = 'mousedown'
                 elif self._state == 'select':
                     if math.fabs(math.sqrt((self._x - x)**2 + \
@@ -59,7 +58,7 @@ class Display(object):
                         self._state = 'move'
                     else:
                         self._state = 'none'
-                        cvShowImage('Image', self._img)
+                        cvShowImage(self._name, self._img)
                         
             elif event == CV_EVENT_LBUTTONUP:
                 if self._state == 'mousedown':
@@ -76,19 +75,17 @@ class Display(object):
                     cvCircle(dest, (self._x, self._y), 2, cvScalar(0,0,255), 3)
                     cvCircle(dest, (self._x, self._y), cvRound(radius),
                              cvScalar(0,255,0), 5)
-                    cvShowImage('Image', dest)
+                    cvShowImage(self._name, dest)
                 elif self._state == 'move':
                     self._x, self._y = (x, y)
                     dest = clone_image(self._img)
                     cvCircle(dest, (self._x, self._y), 2, cvScalar(0,0,255), 3)
                     cvCircle(dest, (self._x, self._y), cvRound(self._r),
                              cvScalar(0,255,0), 5)
-                    cvShowImage('Image', dest)
+                    cvShowImage(self._name, dest)
             elif event == CV_EVENT_RBUTTONDOWN:
                 if self._state == 'none':
                     self._stall = False
-                    if config.has_key(self._name):
-                        del config[self._name]
 
                 elif self._state == 'select':
                     config[self._name] = { 'x' : self._x,
@@ -97,11 +94,11 @@ class Display(object):
                     self._stall = False
                     self._state = 'none'
             
-        cvSetMouseCallback('Image', callback)
-        cvShowImage('Image', self._img)
+        cvSetMouseCallback(self._name, callback)
+        cvShowImage(self._name, self._img)
         while self._stall:
             pass
-        cvDestroyWindow('Image')
+        cvDestroyWindow(self._name)
 
 def main():
     if len(sys.argv) < 2:
@@ -115,12 +112,12 @@ def main():
     config = {}
     try:
         config = yaml.load(file(filename))
-        print 'WARNING: Updating file', os.path.abspath(filename)
+        print 'WARNING: File exists. Skipping any entires already listed' \
+            ' in file:', os.path.abspath(filename)
     except IOError:
         print 'Creating new file', os.path.abspath(filename)
 
-    files = [os.path.join(directory, x) for x in os.listdir(directory)]
-    #cvNamedWindow('Image', 1)
+    files = [os.path.join(directory, x) for x in sorted(os.listdir(directory))]
     try:
         for i, f in enumerate(files):
             img = cvLoadImage(f)
@@ -129,7 +126,6 @@ def main():
             cvReleaseImage(img)
             print '\r%d / %d' % (i+1, len(files)),
             sys.stdout.flush()
-    #cvDestroyWindow('Image')
     except:
         pass
 

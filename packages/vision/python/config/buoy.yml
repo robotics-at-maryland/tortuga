@@ -1,18 +1,18 @@
 command: '~/stock_images/segment/segment 1.75 1500 500'
+dilate: 10
 dp: 2
+green_max: 0
+green_min: 0
 min_dist: 5
+min_percent: 0.9
+min_radius: 5
 param1: 1
 param2: 17
-dilate: 10
-min_percent: .9
-min_radius: 5
 real_min_radius: 25
-red_min: 220
 red_max: 240
-green_min: 0
-green_max: 0
-yellow_min: 0
+red_min: 220
 yellow_max: 0
+yellow_min: 0
 
 0001.ppm: {r: 32.557641192199412, x: 305, y: 308, color: 'red'}
 0002.ppm: {r: 31.906112267087632, x: 355, y: 325, color: 'red'}
@@ -66,3 +66,12 @@ yellow_max: 0
 0079.ppm: {r: 15.620499351813308, x: 178, y: 256, color: 'red'}
 0080.ppm: {r: 14.866068747318506, x: 263, y: 226, color: 'red'}
 0082.ppm: {r: 29.546573405388315, x: 527, y: 224, color: 'red'}
+0087.ppm: {r: 14.212670403551895, x: 292, y: 204, color: 'red'}
+0088.ppm: {r: 18.384776310850235, x: 294, y: 193, color: 'red'}
+0089.ppm: {r: 21.95449840010015, x: 292, y: 178, color: 'red'}
+0090.ppm: {r: 31.575306807693888, x: 284, y: 216, color: 'red'}
+0091.ppm: {r: 37.696153649941529, x: 267, y: 299, color: 'red'}
+0092.ppm: {r: 50.695167422546305, x: 228, y: 238, color: 'red'}
+0093.ppm: {r: 62.769419305900861, x: 414, y: 124, color: 'red'}
+0094.ppm: {r: 110.13627921806692, x: 430, y: 131, color: 'red'}
+0095.ppm: {r: 152.97058540778355, x: 447, y: 201, color: 'red'}
