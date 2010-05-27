@@ -85,7 +85,8 @@ class AI(core.Subsystem):
     def _checkConfig(self, cfg):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                        'targetDepth', 'binDepth', 'targetSymbols',
-                       'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth'])
+                       'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth',
+                       'buoyDepth', 'targetBuoys'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',

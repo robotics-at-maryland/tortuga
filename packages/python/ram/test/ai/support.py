@@ -42,6 +42,7 @@ class MockVisionSystem(core.Subsystem):
     def __init__(self):
         core.Subsystem.__init__(self, 'VisionSystem')
         self.redLightDetector = False
+        self.buoyDetector = False
         self.pipeLineDetector = False
         self.binDetector = False
         self.ductDetector = False
@@ -55,6 +56,12 @@ class MockVisionSystem(core.Subsystem):
         
     def redLightDetectorOff(self):
         self.redLightDetector = False
+
+    def buoyDetectorOn(self):
+        self.buoyDetector = True
+
+    def buoyDetectorOff(self):
+        self.buoyDetector = False
         
     def pipeLineDetectorOn(self):
         self.pipeLineDetector = True
