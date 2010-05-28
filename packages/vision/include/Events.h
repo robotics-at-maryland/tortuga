@@ -129,13 +129,25 @@ typedef boost::shared_ptr<RedLightEvent> RedLightEventPtr;
 
 class RAM_EXPORT BuoyEvent : public core::Event
 {
-    BuoyEvent() {};
-    BuoyEvent(double x_, double y_, double r_, Color::ColorType color_) :
-        x(x_), y(y_), radius(r_), color(color_) {};
+public:
+    BuoyEvent() : x(0), y(0), color(Color::UNKNOWN) {};
+    BuoyEvent(double x_, double y_, Color::ColorType color_) :
+        azimuth(0),
+        elevation(0),
+        range(0),
+        x(x_),
+        y(y_),
+        id(0),
+        color(color_)
+    {
+    }
 
+    math::Degree azimuth;
+    math::Degree elevation;
+    double range;
     double x;
     double y;
-    double radius;
+    int id;
     Color::ColorType color;
 
     virtual core::EventPtr clone();

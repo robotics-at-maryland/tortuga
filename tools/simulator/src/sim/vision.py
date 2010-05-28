@@ -1262,13 +1262,20 @@ class IdealSimVision(ext.vision.VisionSystem):
                 event = ext.core.Event()
                 event.x = x
                 event.y = y
-                event.radius =  (3.0 - relativePos.length()) / 3.0
+                event.azimuth = azimuth
+                event.elevation = elevation
                 event.color = getattr(ext.vision.Color, buoy._color)
 
+                # Convert to feet
+                event.range = relativePos.length() * 3.2808399
+
+                # Assign an id
                 id = self._buoyID
                 self._buoyID += 1
                 if buoy._visible:
                     id = buoy.id
+                else:
+                    buoy.id = id
                 event.id = id
                 
                 self.publish(ext.vision.EventType.BUOY_FOUND, event)
@@ -1283,6 +1290,7 @@ class IdealSimVision(ext.vision.VisionSystem):
                     event = ext.core.Event()
                     event.id = buoy.id
                     self.publish(ext.vision.EventType.BUOY_DROPPED, event)
+                    buoy._visible = False
 
         if self._foundBuoy and not found:
             self.publish(ext.vision.EventType.BUOY_LOST, ext.core.Event())

@@ -15,6 +15,7 @@ import ext.math as math
 
 import ram.filter as filter
 import ram.ai.state as state
+import ram.ai.tracking as tracking
 import ram.motion as motion
 import ram.motion.search
 import ram.motion.seek
@@ -22,6 +23,11 @@ import ram.timer
 
 BUOY_HIT = core.declareEventType('BUOY_HIT')
 COMPLETE = core.declareEventType('COMPLETE')
+
+def ensureBuoyTracking(qeventHub, ai):        
+    tracking.ensureItemTracking(qeventHub, ai, 'buoyData',
+                                vision.EventType.BUOY_FOUND,
+                                vision.EventType.BUOY_DROPPED)
 
 class StoreBuoyEvent(object):
     """

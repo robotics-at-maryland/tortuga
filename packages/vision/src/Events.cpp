@@ -127,9 +127,12 @@ core::EventPtr BuoyEvent::clone()
 {
     BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
     copyInto(event);
+    event->azimuth = azimuth;
+    event->elevation = elevation;
     event->x = x;
     event->y = y;
-    event->radius = radius;
+    event->range = range;
+    event->id = id;
     event->color = color;
     return event;
 }

@@ -181,6 +181,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
         float* p = (float *) cvGetSeqElem(seq, i);
         int acc = 0, total = 0;
 
+
         for (int j=0; j < 360; j++) {
             double theta = j * CV_PI / 180;
             int ptx = cvRound(p[2] * cos(theta) + p[0]);
@@ -215,14 +216,64 @@ void BuoyDetector::processImage(Image* input, Image* output)
     // Match candidate buoys and match colors to them
     processCircles(circleList);
 
+    // Get the set of the Ids of the newest pipes
+    std::set<int> newIds;
+    BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
+        newIds.insert(circle.getId());
+
     // Find which ids were lost
+    std::vector<int> lostIds(m_lastIds.size()); 
+    std::vector<int>::iterator lostIdsEnd =
+        std::set_difference(m_lastIds.begin(), m_lastIds.end(),
+                            newIds.begin(), newIds.end(), lostIds.begin());
+    lostIds.resize(lostIdsEnd - lostIds.begin());
 
     // Publish dropped event for all lost ids
+    BOOST_FOREACH(int id, lostIds)
+    {
+        BuoyEventPtr event(new BuoyEvent(0, 0, Color::UNKNOWN));
+        event->id = id;
+        publish(EventType::BUOY_DROPPED, event);
+    }
 
-    // Publish found events for all buoys, set found flag to true
+    m_lastIds = newIds;
 
-    // Publish lost event if found flag is true and there are no buoys
+    if (m_circles.size() > 0)
+    {
+        // Publish found events for all buoys, set found flag to true
+        BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
+        {
+            double eventX, eventY;
+            Detector::imageToAICoordinates(input, cvRound(circle.getX()),
+                                           cvRound(circle.getY()), 
+                                           eventX, eventY);
 
+            BuoyEventPtr event(new BuoyEvent(eventX, eventY,
+                                             circle.getColor()));
+            event->azimuth = math::Degree(
+                (78.0 / 2) * event->x * -1.0 *
+                (double) input->getHeight()/input->getWidth());
+            event->elevation = math::Degree((105.0 / 2) * event->y * 1);
+            event->id = circle.getId();
+
+            // Compute range (assume a sphere)
+            double buoyRadius = 0.25; // feet
+            event->range = (buoyRadius * input->getHeight()) /
+                (circle.getRadius() * tan(78.0/2 * (M_PI/180)));
+
+            publish(EventType::BUOY_FOUND, event);
+        }
+        found = true;
+    }
+    else
+    {
+        // Publish lost event if found flag is true and there are no buoys
+        if (found) {
+            core::EventPtr event(new core::Event());
+            publish(EventType::BUOY_LOST, event);
+        }
+    }
+        
     // Debug image
     if (output) {
         // Copy from the filtered image

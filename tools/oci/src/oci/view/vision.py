@@ -17,6 +17,7 @@ import ram.gui.led
 import ram.gui.view as view
 import ram.ai.subsystem
 import ram.ai.bin
+import ram.ai.buoy
 from oci.view.panels import BasePanel
 
 class MasterVisionPanel(BasePanel):
@@ -34,7 +35,7 @@ class MasterVisionPanel(BasePanel):
             redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
             self._sizer.Add(redLightPanel)
 
-            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision)
+            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, ai)
             self._sizer.Add(buoyPanel)
             
             pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
@@ -298,15 +299,19 @@ class RedLightPanel(BaseVisionPanel):
         self._toggleSize(False)
 
 class BuoyPanel(BaseVisionPanel):
-    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+    def __init__(self, parent, buttonHandler, eventHub, vision, ai, *args, **kwargs):
         BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._r = None
+        self._ai = ai
         self._id = None
         self._color = None
         self._detector = False
         self._vision = vision
+
+        if self._ai is not None:
+            ram.ai.buoy.ensureBuoyTracking(eventHub, self._ai)
 
         # Controls
         self._createControls("Buoy")
@@ -329,7 +334,10 @@ class BuoyPanel(BaseVisionPanel):
     def _createDataControls(self):
         self._createDataControl(controlName = '_x', label = 'X Pos: ')
         self._createDataControl(controlName = '_y', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_r', label = 'Radius: ')
+        self._createDataControl(controlName = '_azimuth', label = 'Azimuth: ')
+        self._createDataControl(controlName = '_elevation', 
+                                label = 'Elevation: ')
+        self._createDataControl(controlName = '_range', label = 'Range: ')
         self._createDataControl(controlName = '_id', label = 'ID: ')
         self._createDataControl(controlName = '_color', label = 'Color: ')
         
@@ -344,15 +352,32 @@ class BuoyPanel(BaseVisionPanel):
 
     def _onBouyFound(self, event):
         if self._detector:
-            self._x.Value = "% 4.2f" % event.x
-            self._y.Value = "% 4.2f" % event.y
-            self._r.Value = "% 4.2f" % event.radius
-            self._id.Value = "%d" % event.id
-            if event.color == ext.vision.Color.RED:
+            obj = event
+
+            if self._ai is not None:
+                # Use the current bin before anything else if it exists
+                if self._ai.data['buoyData'].has_key('currentID'):
+                    id = self._ai.data['buoyData']['currentID']
+                    obj = self._ai.data['buoyData']['itemData'].get(id, None)
+                else:
+                    # Sorted closest to farthest
+                    currentBuoyIDs = self._ai.data['buoyData'].get(
+                        'currentIds', set())
+                    currentBuoys = [b for b in currentBuoyIDs]
+                    sortedBuoys = sorted(currentBuoys, self._distCompare)
+                    obj = self._ai.data['buoyData']['itemData'][sortedBuoys[0]]
+
+            self._x.Value = "% 4.2f" % obj.x
+            self._y.Value = "% 4.2f" % obj.y    
+            self._azimuth.Value = "% 4.2f" % obj.azimuth.valueDegrees()
+            self._elevation.Value = "% 4.2f" % obj.elevation.valueDegrees()
+            self._range.Value = "% 4.2f" % obj.range
+            self._id.Value = "%d" % obj.id
+            if obj.color == ext.vision.Color.RED:
                 self._color.Value = "RED"
-            elif event.color == ext.vision.Color.GREEN:
+            elif obj.color == ext.vision.Color.GREEN:
                 self._color.Value = "GREEN"
-            elif event.color == ext.vision.Color.YELLOW:
+            elif obj.color == ext.vision.Color.YELLOW:
                 self._color.Value = "YELLOW"
             else:
                 self._color.Value = "UNKNOWN"
@@ -370,13 +395,29 @@ class BuoyPanel(BaseVisionPanel):
     def _buoyDetectorOff(self, event):
         self._x.Value = ""
         self._y.Value = ""
-        self._r.Value = ""
+        self._azimuth.Value = ""
+        self._elevation.Value = ""
+        self._range.Value = ""
         self._id.Value = ""
         self._color.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
         self._toggleSize(False)
+
+    def _distCompare(self, aID, bID):
+        buoyData = self._ai.data['buoyData']['itemData']
+        buoyA = buoyData[aID]
+        buoyB = buoyData[bID]
+        
+        aDist = ext.math.Vector2(buoyA.x, buoyA.y).length()
+        bDist = ext.math.Vector2(buoyB.x, buoyB.y).length()
+        
+        if aDist < bDist:
+            return -1
+        elif aDist > bDist:
+            return 1
+        return 0
         
 class OrangePipePanel(BaseVisionPanel):
     def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
