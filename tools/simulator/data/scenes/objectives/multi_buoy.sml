@@ -29,34 +29,24 @@ Scene:
             position: [-18, 0, -1.5]
     
     Objects:
-        course:
-            type: [sim.vision.ICourse, sim.vision.Course]
 
-            startType: [sim.vision.IPipe, sim.vision.Pipe]
-            start: pipe
-            startPos: [-15, 1]
-            startDepth: -2.753
-            startHeading: -35
+        buoy:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-15, 1, -2.1]
+            Graphical:
+                material: Simple/Red
 
-            pipe:
-                buoy:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    depth: -1.425
-                buoy2:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    direction: -15
-                    depth: -1.425
-                    Graphical:
-                        material: Simple/Blue
-                buoy3:
-                    type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 8
-                    direction: 15
-                    depth: -1.425
-                    Graphical:
-                        material: Simple/Green
+        buoy2:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-14.25, 0.5, -2]
+            Graphical:
+                material: Simple/Yellow
+
+        buoy3:
+            type: [sim.vision.IBuoy, sim.vision.Buoy]
+            position: [-15.75, 1.5, -1.9]
+            Graphical:
+                material: Simple/Green
 
 
         water:

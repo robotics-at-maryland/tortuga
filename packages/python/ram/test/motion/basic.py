@@ -116,6 +116,21 @@ class TestMotionManager(support.MotionTest):
         self.assertEqual(None, self.motionManager.currentMotion)
         self.assert_(self._finished)
 
+    def testEarlyEndQueuedMotions(self):
+        """
+        This tests that queued motions work correctly when the
+        first and second motion end early
+        """
+        self.vehicle.orientation = math.Quaternion(math.Degree(0),
+                                                   math.Vector3.UNIT_Z)
+        m1 = motion.basic.RateChangeHeading(0, 10)
+        m2 = motion.basic.RateChangeHeading(0, 5)
+        m3 = motion.basic.RateChangeDepth(5, (1.0/3.0))
+
+        self.motionManager.setMotion(m1, m2, m3)
+        self.assertEqual(motion.basic.RateChangeDepth,
+                         type(self.motionManager.currentMotion))
+
     def testStopCurrentMotion(self):
         m = support.MockMotion()
         self.motionManager.setMotion(m)
