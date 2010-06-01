@@ -62,6 +62,65 @@ def analyze(filename, cfg, output_cfg):
     debug = cvCreateImage(cvGetSize(img), 8, 3)
     cvCopy(img, debug)
 
+    hsv = cvCreateImage(cvGetSize(img), 8, 3)
+    cvCvtColor(img, hsv, CV_BGR2HSV)
+
+    hist = {}
+    for x in xrange(hsv.width):
+        for y in xrange(hsv.height):
+            pt = str(img[y, x])
+            hist.setdefault(pt, {})
+            hist[pt]['total'] = hist[pt].get('total', 0) + 1
+            hist[pt]['hue'] = hist[pt].get('hue', 0) + hsv[y, x][0]
+
+    for pt, k in hist.iteritems():
+        hist[pt]['avg'] = hist[pt]['hue'] / hist[pt]['total']
+
+    output['hist'] = hist
+    binary = cvCreateImage(cvGetSize(img), 8, 1)
+    for x in xrange(hsv.width):
+        for y in xrange(hsv.height):
+            color = hist[str(img[y, x])]['avg']
+            if cfg['min_hue'] <= color and color <= cfg['max_hue']:
+                binary[y, x] = 255
+            else:
+                binary[y, x] = 0
+    binarypath = os.path.join(os.path.dirname(filename), '..', 'binary',
+                              os.path.basename(filename))
+    cvSaveImage(binarypath, binary)
+
+    #canny = cvCreateImage(cvGetSize(img), 8, 1)
+    #cannypath = os.path.join(os.path.dirname(filename), '..', 'canny',
+    #                         os.path.basename(filename))
+    #cvCvtColor(img, canny, CV_BGR2GRAY)
+    #cvCanny(canny, canny, 1, 1)
+    #cvDilate(canny, canny, None, 3)
+    #cvCanny(canny, canny, 1, 1)
+    #cvSaveImage(cannypath, canny)
+
+    # Find the lines and draw them out
+    #storage = cvCreateMemStorage(0)
+    #lines = cvHoughLines2(canny, storage, CV_HOUGH_PROBABILISTIC,
+    #                      0.5, CV_PI/360, cfg['houghThreshold'],
+    #                      cfg['minLineLength'], cfg['maxGap'])
+
+    # Debug image for lines
+    #lineImage = cvCreateImage(cvGetSize(img), 8, 3)
+    #lineImagePath = os.path.join(os.path.dirname(filename), '..', 'lines',
+    #                             os.path.basename(filename))
+    #cvCvtColor(canny, lineImage, CV_GRAY2BGR)
+    #for p in lines:
+    #    UL1 = (p[0].x-4, p[0].y-4)
+    #    LR1 = (p[0].x+4, p[0].y+4)
+
+    #    UL2 = (p[1].x-4, p[1].y-4)
+    #    LR2 = (p[1].x+4, p[1].y+4)
+
+    #    cvRectangle(lineImage, UL1, LR1, cvScalar(0, 0, 255))
+    #    cvRectangle(lineImage, UL2, LR2, cvScalar(0, 0, 255))
+    #    cvLine(lineImage, p[0], p[1], cvScalar(0, 255, 0), 2)
+    #cvSaveImage(lineImagePath, lineImage)
+
     blobList = []
 
     # Find the blobs
@@ -101,7 +160,8 @@ def analyze(filename, cfg, output_cfg):
 
 def main():
     if len(sys.argv) < 2:
-        raise Exception('Usage: python process.py CONFIG')
+        print 'Usage: python %s CONFIG' % sys.argv[0]
+        sys.exit(1)
 
     spos, sneg, accuracy, size_acc, fpos, fneg, ptotal, ntotal, correct_color =\
         0, 0, 0, 0, 0, 0, 0, 0, 0
