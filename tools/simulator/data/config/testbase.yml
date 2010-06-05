@@ -157,12 +157,12 @@ Controller:
         type: TrackingTranslationalController
         velocityThreshold: 0.1
         positionThreshold: 0.1
-        x1kp: 20
+        x1kp: 10
         x1ki: 1
-        x1kd: 2
-        x2kp: 20
+        x1kd: 3
+        x2kp: 10
         x2ki: 1
-        x2kd: 2
+        x2kd: 3
 
     DepthController:
         type: PIDDepthController
@@ -170,7 +170,7 @@ Controller:
         kp: 10
         ki: 1
         kd: 3
-        dtMin: 0.001
+        dtMin: 0.005
         dtMax: 0.05
 
     RotationalController:
@@ -178,7 +178,7 @@ Controller:
         orientationThreshold: 0.01
         kp: 10
         kd: 6
-        dtMin: 0.001
+        dtMin: 0.005
         dtMax: 0.05
         desiredOrientation: [0, 0, 0, 1]
 

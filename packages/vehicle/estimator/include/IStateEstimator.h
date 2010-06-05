@@ -20,20 +20,16 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "vehicle/include/Common.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
-#include "control/include/DesiredState.h"
 #include "vehicle/estimator/include/Obstacle.h"
-#include "vehicle/include/IVehicle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
 namespace ram {
 namespace estimator {
-
-class IStateEstimator;
-typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
 
 class IStateEstimator
 {
@@ -55,6 +51,11 @@ public:
     virtual void addObstacle(std::string name, ObstaclePtr obstacle) = 0;
     virtual math::Vector2 getObstaclePosition(std::string name) = 0;
     virtual double getObstacleDepth(std::string name) = 0;
+
+    static const core::Event::EventType ESTIMATED_DEPTH_UPDATE;
+    static const core::Event::EventType ESTIMATED_ORIENTATION_UPDATE;
+    static const core::Event::EventType ESTIMATED_VELOCITY_UPDATE;
+    static const core::Event::EventType ESTIMATED_POSITION_UPDATE;
 
 protected:
     IStateEstimator(){};

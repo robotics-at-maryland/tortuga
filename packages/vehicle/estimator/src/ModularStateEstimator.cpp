@@ -25,14 +25,9 @@ namespace ram {
 namespace estimator {
 
 ModularStateEstimator::ModularStateEstimator(core::ConfigNode config, 
-                                         core::EventHubPtr eventHub,
-                                         vehicle::IVehiclePtr vehicle) :
+                                             core::EventHubPtr eventHub,
+                                             vehicle::IVehiclePtr vehicle) :
     StateEstimatorBase(config,eventHub),
-    updateConnection_IMU(core::EventConnectionPtr()),
-    updateConnection_DVL(core::EventConnectionPtr()),
-    updateConnection_DepthSensor(core::EventConnectionPtr()),
-    updateConnection_Sonar(core::EventConnectionPtr()),
-    updateConnection_Vision(core::EventConnectionPtr()),
     dvlEstimationModule(EstimationModulePtr()),
     imuEstimationModule(EstimationModulePtr()),
     depthEstimationModule(EstimationModulePtr()),
@@ -59,12 +54,15 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
 
     // Construct the estimation modules
     dvlEstimationModule = EstimationModulePtr(new BasicDVLEstimationModule(config));
+    imuEstimationModule = EstimationModulePtr(new BasicIMUEstimationModule(config));
+    depthEstimationModule = EstimationModulePtr(new BasicDepthEstimationModule(config));
 }
 
 
 
 ModularStateEstimator::~ModularStateEstimator()
 {
+    /* unbind the update functions */
     if(updateConnection_IMU)
         updateConnection_IMU->disconnect();
 

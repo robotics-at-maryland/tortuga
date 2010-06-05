@@ -57,7 +57,21 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
 
     math::Vector2 desiredPosition = desiredState->getDesiredPosition();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
-	 
+
+    //Based on control mode, modify desired state
+    switch(m_controlMode){
+    case ControlMode::POSITION:
+        desiredVelocity = (desiredPosition - m_currentPosition)/timestep; 
+        desiredState->setDesiredVelocity(desiredVelocity);
+        break;
+    case ControlMode::VELOCITY:
+        desiredPosition += desiredVelocity*timestep;
+        desiredState->setDesiredPosition(desiredPosition);
+        break;
+    case ControlMode::POSITIONANDVELOCITY:
+    case ControlMode::OPEN_LOOP:;
+    }
+
     //Initialize error vectors
     math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
     math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
@@ -74,63 +88,20 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     positionIError = m_iPositionError + positionPError * timestep;
     velocityIError = m_iVelocityError + velocityPError * timestep;
 	 
-    //Calculate control signals in inertial frame
-    double positionSig_x1, positionSig_x2;
-    double velocitySig_x1, velocitySig_x2;
-    double combinedSig_x1, combinedSig_x2;
+    //Calculate the signal
+    double signal_x1, signal_x2;
 
-    positionSig_x1 = 
-        x1kp * positionPError[0] +
-        x1kd * positionDError[0] +
-        x1ki * positionIError[0];
-
-    positionSig_x2 = 
-        x2kp * positionPError[1] +
-        x2kd * positionDError[1] +
-        x2ki * positionIError[1];
-
-    velocitySig_x1 = 
-        x1kp * velocityPError[0] +
-        x1kd * velocityDError[0] +
-        x1ki * velocityIError[0];
-
-    velocitySig_x2 = 
-        x2kp * velocityPError[1] +
-        x2kd * velocityDError[1] +
-        x2ki * velocityIError[1];
-
-    combinedSig_x1 = 
+    signal_x1 = 
         x1kp * positionPError[0] +
         x1kd * velocityPError[0] +
         x1ki * positionIError[0];
 
-    combinedSig_x2 = 
+    signal_x2 = 
         x2kp * positionPError[1] +
         x2kd * velocityPError[1] +
         x2ki * positionIError[1];
 
-    //Put signals into an array so we can make a Vector2 
-    double signal_n[2] = {0,0};
-
-    //Decide what signal to use based on control mode
-    switch(m_controlMode){
-    case ControlMode::POSITION:
-        signal_n[0] = positionSig_x1;
-        signal_n[1] = positionSig_x2;
-        break;
-    case ControlMode::VELOCITY:
-        signal_n[0] = velocitySig_x1;
-        signal_n[1] = velocitySig_x2;
-        break;
-    case ControlMode::POSITIONANDVELOCITY:
-        signal_n[0] = combinedSig_x1;
-        signal_n[1] = combinedSig_x2;
-        break;
-    case ControlMode::OPEN_LOOP:
-        break;
-    }
-
-    math::Vector2 translationalSignal_n(signal_n);
+    math::Vector2 translationalSignal_n(signal_x1,signal_x2);
 
     //Calculate desired yaw based on direction of translationalSignal_n
     //double desired_yaw = atan(signal_n[1]/signal_n[0]);
@@ -142,9 +113,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     m_prevPositionError = positionPError;
     m_prevVelocityError = velocityPError;
 
-
     //Need to return a Vector3
-	 
     return math::Vector3(translationalSignal_b[0],
                          translationalSignal_b[1], 0);
 }

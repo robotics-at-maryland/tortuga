@@ -110,6 +110,9 @@ public:
     /** Get the orientation directly from the orientation sensor */
     virtual math::Quaternion getRawOrientation();
 
+    /** Get the state estimator */
+    virtual estimator::IStateEstimatorPtr getStateEstimator();
+
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();

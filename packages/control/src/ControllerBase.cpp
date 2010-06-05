@@ -10,6 +10,7 @@
 // STD Includes
 #include <cmath>
 #include <cassert>
+#include <boost/bind.hpp>
 
 #ifdef RAM_WINDOWS
 #define M_PI 3.14159265358979323846
@@ -40,7 +41,16 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     IController(config["name"].asString()),
     desiredState(controltest::DesiredStatePtr(
                      new controltest::DesiredState(config["DesiredState"]))),
+    stateEstimator(estimator::IStateEstimatorPtr()),
     m_vehicle(vehicle),
+    conn_desired_atDepth(core::EventConnectionPtr()),
+    conn_estimated_atDepth(core::EventConnectionPtr()),
+    conn_desired_atPosition(core::EventConnectionPtr()),
+    conn_estimated_atPosition(core::EventConnectionPtr()),
+    conn_desired_atVelocity(core::EventConnectionPtr()),
+    conn_estimated_atVelocity(core::EventConnectionPtr()),
+    conn_desired_atOrientation(core::EventConnectionPtr()),
+    conn_estimated_atOrientation(core::EventConnectionPtr()),
     m_atDepth(false),
     m_atOrientation(false),
     m_atVelocity(false),
@@ -61,7 +71,16 @@ ControllerBase::ControllerBase(core::ConfigNode config,
                      new controltest::DesiredState(
                          config["DesiredState"],
                          core::Subsystem::getSubsystemOfType<core::EventHub>(deps)))),
-    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),     
+    stateEstimator(estimator::IStateEstimatorPtr()),
+    m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),  
+    conn_desired_atDepth(core::EventConnectionPtr()),
+    conn_estimated_atDepth(core::EventConnectionPtr()),
+    conn_desired_atPosition(core::EventConnectionPtr()),
+    conn_estimated_atPosition(core::EventConnectionPtr()),
+    conn_desired_atVelocity(core::EventConnectionPtr()),
+    conn_estimated_atVelocity(core::EventConnectionPtr()),
+    conn_desired_atOrientation(core::EventConnectionPtr()),
+    conn_estimated_atOrientation(core::EventConnectionPtr()),
     m_atDepth(false),
     m_atOrientation(false),
     m_atVelocity(false),
@@ -71,11 +90,81 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_velocityThreshold(0),
     m_positionThreshold(0)
 {
+
+
+    core::EventHubPtr eventHub = 
+        core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
+
+    if(eventHub != core::EventHubPtr()) {
+    /* Bind atDepth, atPosition, atVelocity, and atOrientation to desired state 
+       and estimated state update events */
+
+        conn_desired_atDepth = eventHub->subscribeToType(
+            IController::DESIRED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_estimated_atDepth = eventHub->subscribeToType(
+            estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_desired_atPosition = eventHub->subscribeToType(
+            IController::DESIRED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_estimated_atPosition = eventHub->subscribeToType(
+            estimator::IStateEstimator::ESTIMATED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_desired_atVelocity = eventHub->subscribeToType(
+            IController::DESIRED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_estimated_atVelocity = eventHub->subscribeToType(
+            estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_desired_atOrientation = eventHub->subscribeToType(
+            IController::DESIRED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
+
+        conn_estimated_atOrientation = eventHub->subscribeToType(
+            estimator::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
+    }
+    if(m_vehicle != vehicle::IVehiclePtr()){
+        stateEstimator = m_vehicle->getStateEstimator();
+    }
+
     init(config); 
 }
 
 ControllerBase::~ControllerBase()
 {
+    // unbind the event 
+    if(conn_desired_atDepth)
+        conn_desired_atDepth->disconnect();
+
+    if(conn_estimated_atDepth)
+        conn_estimated_atDepth->disconnect();
+
+    if(conn_desired_atPosition)
+        conn_desired_atPosition->disconnect();
+
+    if(conn_estimated_atPosition)
+        conn_estimated_atPosition->disconnect();
+
+    if(conn_desired_atVelocity)
+        conn_desired_atVelocity->disconnect();
+
+    if(conn_estimated_atVelocity)
+        conn_estimated_atVelocity->disconnect();
+
+    if(conn_desired_atOrientation)
+        conn_desired_atOrientation->disconnect();
+
+    if(conn_estimated_atOrientation)
+        conn_estimated_atOrientation->disconnect();
+
     unbackground(true);
 }
 
@@ -363,6 +452,59 @@ void ControllerBase::publishAtPosition(const math::Vector2& position)
     event->vector2 = position;
     publish(IController::AT_POSITION, event);
 }
-      
+
+void ControllerBase::atDepthUpdate(core::EventPtr event)
+{
+    if(atDepth())
+        if(!m_atDepth){
+            m_atDepth = true;
+            publishAtDepth(desiredState->getDesiredDepth());
+        } else {
+            // dont publish if we were already at depth
+        }
+    else
+        m_atDepth = false;
+}
+
+void ControllerBase::atPositionUpdate(core::EventPtr event)
+{
+    if(atPosition())
+        if(!m_atPosition){
+            m_atPosition = true;
+            publishAtPosition(desiredState->getDesiredPosition());
+        } else {
+            // dont publish if we were already at position
+        }
+    else
+        m_atPosition = false;
+}
+
+void ControllerBase::atVelocityUpdate(core::EventPtr event)
+{
+    if(atVelocity())
+        if(!m_atVelocity){
+            m_atVelocity = true;
+            publishAtVelocity(desiredState->getDesiredVelocity());
+        } else {
+            //dont publish if we were already at position
+        }
+    else
+        m_atVelocity = false;
+}
+
+void ControllerBase::atOrientationUpdate(core::EventPtr event)
+{
+    if(atOrientation())
+        if(!m_atOrientation){
+            m_atOrientation = true;
+            publishAtOrientation(desiredState->getDesiredOrientation());
+        } else {
+            // don't publish if we were already at orientation
+        }
+    else
+        m_atOrientation = false;
+   
+}
+
 } // namespace control
 } // namespace ram

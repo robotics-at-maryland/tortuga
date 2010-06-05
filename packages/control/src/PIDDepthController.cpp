@@ -29,11 +29,11 @@ PIDDepthController::PIDDepthController(ram::core::ConfigNode config) :
     dt_min(0),
     dt_max(100000)
 {
-    m_kp = config["kp"].asDouble();
-    m_kd = config["kd"].asDouble();
-    m_ki = config["ki"].asDouble();
-    dt_min = config["dtMin"].asDouble();
-    dt_max = config["dtMax"].asDouble();
+    m_kp = config["kp"].asDouble(0);
+    m_kd = config["kd"].asDouble(0);
+    m_ki = config["ki"].asDouble(0);
+    dt_min = config["dtMin"].asDouble(0.02);
+    dt_max = config["dtMax"].asDouble(0.5);
 }
 
 math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,

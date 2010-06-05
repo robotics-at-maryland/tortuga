@@ -17,10 +17,12 @@
 #include "control/include/Helpers.h"
 
 #include "vehicle/include/Common.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventConnection.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -102,9 +104,7 @@ public:
     /** Gets desired position */
     virtual math::Vector2 getDesiredPosition(int frame);
 
-    virtual bool atPosition();
-    
-    virtual bool atVelocity();
+
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees);
@@ -120,9 +120,6 @@ public:
     
     /** Sets the current desired orientation */
     virtual void setDesiredOrientation(math::Quaternion);
-    
-    /** Returns true if the vehicle is at the desired orientation */
-    virtual bool atOrientation();
 
     /** Sets the desired depth of the sub in meters */
     virtual void setDepth(double depth);
@@ -136,11 +133,27 @@ public:
     /** Grab current estimated depth velocity (depthDot)*/
     virtual double getEstimatedDepthDot();
     
-    /** Returns true if the vehicle is at the desired depth */
-    virtual bool atDepth();
-
     /** Makes the current actual depth the desired depth */
     virtual void holdCurrentDepth();
+
+
+
+
+
+    /** Returns true if the vehicle is at the desired depth */
+    virtual bool atDepth();
+    
+    /** Returns true if the vehicle is at the desired position */
+    virtual bool atPosition();
+    
+    /** Returns true if the vehicle is at the desired velocity */
+    virtual bool atVelocity();
+   
+    /** Returns true if the vehicle is at the desired orientation */
+    virtual bool atOrientation();
+ 
+
+
 
     /** Loads current orientation into desired (fixes offset in roll and pitch)
      *
@@ -214,13 +227,42 @@ protected:
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut) = 0;
 
+
+
+
     controltest::DesiredStatePtr desiredState;
+    estimator::IStateEstimatorPtr stateEstimator;
 
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;    
 
 private:
     void init(core::ConfigNode config);
+
+    /* Updates m_atDepth on a change to the desired or estimated depth */
+    void atDepthUpdate(core::EventPtr event);
+
+    /* Updates m_atDepth on a change to the desired or estimated position */
+    void atPositionUpdate(core::EventPtr event);
+
+    /* Updates m_atDepth on a change to the desired or estimated velocity */
+    void atVelocityUpdate(core::EventPtr event);
+
+    /* Updates m_atDepth on a change to the desired or estimated orientation */
+    void atOrientationUpdate(core::EventPtr event);
+
+    core::EventConnectionPtr conn_desired_atDepth;
+    core::EventConnectionPtr conn_estimated_atDepth;
+
+    core::EventConnectionPtr conn_desired_atPosition;
+    core::EventConnectionPtr conn_estimated_atPosition;
+
+    core::EventConnectionPtr conn_desired_atVelocity;
+    core::EventConnectionPtr conn_estimated_atVelocity;
+
+    core::EventConnectionPtr conn_desired_atOrientation;
+    core::EventConnectionPtr conn_estimated_atOrientation;
+    
 
     void publishAtDepth(const double& depth);
     void publishAtOrientation(const math::Quaternion& orientation);

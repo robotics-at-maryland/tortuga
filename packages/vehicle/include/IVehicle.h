@@ -23,7 +23,7 @@
 #include "core/include/Event.h"
 #include "math/include/Vector3.h"
 #include "math/include/Vector2.h"
-
+#include "vehicle/estimator/include/IStateEstimator.h"
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -101,6 +101,9 @@ public:
 
     /** Get the orientation directly from the orientation sensor */
     virtual math::Quaternion getRawOrientation() = 0;
+
+    /** Get the state estimator */
+    virtual estimator::IStateEstimatorPtr getStateEstimator() = 0;
 
     /** Checks if the internal map has the object */
     virtual bool hasObject(std::string obj) = 0;

@@ -57,6 +57,9 @@ public:
     void setEstimatedDepth(double depth);
     void setEstimatedDepthDot(double depthDot);
 
+    /* The estimated state will contain all information about obstacles in a
+       mapping from obstacle name to a pointer to that obstacle.  These functions
+       allow access to that information */
     void addObstacle(std::string name, ObstaclePtr obstacle);
     math::Vector2 getObstaclePosition(std::string name);
     double getObstacleDepth(std::string name);

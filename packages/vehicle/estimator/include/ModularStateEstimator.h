@@ -44,14 +44,6 @@ protected:
     virtual void update_Vision(core::EventPtr event);
     virtual void update_Sonar(core::EventPtr event);
 
-    /* These keep track of the event subscriptions */
-    core::EventConnectionPtr updateConnection_IMU;
-    core::EventConnectionPtr updateConnection_DVL;
-    core::EventConnectionPtr updateConnection_DepthSensor;
-    core::EventConnectionPtr updateConnection_Sonar;
-    core::EventConnectionPtr updateConnection_Vision;
-    
-
 private:
     /* These contain estimation routines that are config swappable */
     EstimationModulePtr dvlEstimationModule;

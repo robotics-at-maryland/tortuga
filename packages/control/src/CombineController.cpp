@@ -31,12 +31,10 @@
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
-//#include "core/include/TimeVal.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
 #include "math/include/Events.h"
-//#include "imu/include/imuapi.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineController);
@@ -53,16 +51,21 @@ namespace control {
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
     ControllerBase(vehicle, config)  
-{ init(config); }
+{ 
+    init(config);
+}
 
-    
 CombineController::CombineController(core::ConfigNode config,
                                      core::SubsystemList deps) :
     ControllerBase(config, deps)
-{ init(config); }
+{
+    init(config);
+}
 
 CombineController::~CombineController()
-{ unbackground(true); }
+{
+    unbackground(true);
+}
 
 void CombineController::init(core::ConfigNode config)
 {
@@ -105,8 +108,6 @@ void CombineController::doUpdate(const double& timestep,
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
 }
-
-
 
 void CombineController::setVelocity(math::Vector2 velocity)
 {
@@ -156,7 +157,8 @@ void CombineController::setDesiredPosition(math::Vector2 position, int frame)
     m_transController->setControlMode(ControlMode::POSITION);
 }
 
-void CombineController::setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity)
+void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
+                                                      math::Vector2 velocity)
 {
     desiredState->setDesiredVelocity(velocity);
     desiredState->setDesiredPosition(position);
@@ -165,13 +167,19 @@ void CombineController::setDesiredPositionAndVelocity(math::Vector2 position, ma
 
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
-{ return m_transController; }
-   
+{ 
+    return m_transController;
+}
+
 IDepthControllerPtr CombineController::getDepthController()
-{ return m_depthController; }
-    
+{
+    return m_depthController; 
+}
+
 IRotationalControllerPtr CombineController::getRotationalController()
-{ return m_rotController; }
-    
+{
+    return m_rotController; 
+}
+
 } // namespace control
 } // namespace ram

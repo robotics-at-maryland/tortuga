@@ -23,7 +23,7 @@
 #include "vehicle/estimator/include/IStateEstimator.h"
 #include "vehicle/estimator/include/EstimatedState.h"
 #include "vehicle/estimator/include/Obstacle.h"
-#include "control/include/DesiredState.h"
+#include "vehicle/include/Common.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
@@ -55,11 +55,19 @@ protected:
                        core::EventHubPtr eventHub = core::EventHubPtr(),
                        vehicle::IVehiclePtr = vehicle::IVehiclePtr());
 
-    virtual void rawUpdate_DVL(core::EventPtr event/*DVLRawUpdateEvent*/);
-    virtual void rawUpdate_IMU(core::EventPtr event/*IMURawUpdateEvent*/);
-    virtual void rawUpdate_DepthSensor(core::EventPtr event/*DepthSensorRawUpdateEvent*/);
-    virtual void update_Vision(core::EventPtr event/*VisionUpdateEvent*/);
-    virtual void update_Sonar(core::EventPtr event/*SonarUpdateEvent*/);
+    /* These functions should be bound to events of the correct type */
+    virtual void rawUpdate_DVL(core::EventPtr event) = 0;
+    virtual void rawUpdate_IMU(core::EventPtr event) = 0;
+    virtual void rawUpdate_DepthSensor(core::EventPtr event) = 0;
+    virtual void update_Vision(core::EventPtr event) = 0;
+    virtual void update_Sonar(core::EventPtr event) = 0;
+
+    /* These keep track of the event subscriptions */
+    core::EventConnectionPtr updateConnection_IMU;
+    core::EventConnectionPtr updateConnection_DVL;
+    core::EventConnectionPtr updateConnection_DepthSensor;
+    core::EventConnectionPtr updateConnection_Sonar;
+    core::EventConnectionPtr updateConnection_Vision;
 
     EstimatedStatePtr estimatedState;
 };

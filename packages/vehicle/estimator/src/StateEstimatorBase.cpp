@@ -22,6 +22,11 @@ StateEstimatorBase::StateEstimatorBase(
     core::EventHubPtr eventHub,
     vehicle::IVehiclePtr vehicle) :
     IStateEstimator(),
+    updateConnection_IMU(core::EventConnectionPtr()),
+    updateConnection_DVL(core::EventConnectionPtr()),
+    updateConnection_DepthSensor(core::EventConnectionPtr()),
+    updateConnection_Sonar(core::EventConnectionPtr()),
+    updateConnection_Vision(core::EventConnectionPtr()),
     estimatedState(EstimatedStatePtr(new EstimatedState()))
 {
 
@@ -76,32 +81,6 @@ math::Vector2 StateEstimatorBase::getObstaclePosition(std::string name)
 double StateEstimatorBase::getObstacleDepth(std::string name)
 {
     return estimatedState->getObstacleDepth(name);
-}
-
-
-void StateEstimatorBase::rawUpdate_DVL(core::EventPtr event)
-{
-    std::cout << "rawUpdate_DVL" << std::endl;
-}
-
-void StateEstimatorBase::rawUpdate_IMU(core::EventPtr event)
-{
-    std::cout << "rawUpdate_IMU" << std::endl;
-}
-
-void StateEstimatorBase::rawUpdate_DepthSensor(core::EventPtr event)
-{
-    std::cout << "rawUpdate_DepthSensor" << std::endl;
-}
-
-void StateEstimatorBase::update_Vision(core::EventPtr event)
-{
-    std::cout << "rawUpdate_Vision" << std::endl;
-}
-
-void StateEstimatorBase::update_Sonar(core::EventPtr event)
-{
-    std::cout << "rawUpdate_Sonar" << std::endl;
 }
 
 } // namespace estimator
