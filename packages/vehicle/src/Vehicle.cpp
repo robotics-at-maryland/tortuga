@@ -32,6 +32,8 @@
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "vehicle/include/device/LoopStateEstimator.h"
+#include "vehicle/estimator/include/ModularStateEstimator.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 
@@ -99,7 +101,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
     m_markerDropper(device::IPayloadSetPtr()),
     m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
-    m_torpedoLauncher(device::IPayloadSetPtr())
+    m_torpedoLauncher(device::IPayloadSetPtr()),
+    stateEstimator(estimator::IStateEstimatorPtr())
 {
     // Create devices
     if (config.exists("Devices"))
@@ -142,6 +145,16 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                     "Creating default LoopStateEstimator.");
         m_stateEstimator = device::IStateEstimatorPtr(
             new device::LoopStateEstimator(
+                config,
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+
+    // make the new test state estimator
+    if(!stateEstimator)
+    {
+        stateEstimator = estimator::IStateEstimatorPtr(
+            new estimator::ModularStateEstimator(
                 config,
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
@@ -254,9 +267,19 @@ math::Quaternion Vehicle::getOrientation(std::string obj)
     return m_stateEstimator->getOrientation(obj);
 }
 
+estimator::IStateEstimatorPtr Vehicle::getStateEstimator()
+{
+    return stateEstimator;
+}
+
 bool Vehicle::hasObject(std::string obj)
 {
     return m_stateEstimator->hasObject(obj);
+}
+
+bool Vehicle::hasMagBoom()
+{
+    return m_hasMagBoom;
 }
     
 void Vehicle::safeThrusters()
@@ -629,7 +652,7 @@ void Vehicle::onDepthUpdate(core::EventPtr event)
     
     // Feed the latest value to the estimator, then broadcast the results
     int flags = m_stateEstimator->depthUpdate(getRawDepth(),
-					      devent->timeStamp);
+                                              devent->timeStamp);
     
     handleReturn(flags);
 }
@@ -641,7 +664,8 @@ void Vehicle::onOrientationUpdate(core::EventPtr event)
 
     // Feed the latest value to the estimator, then broadcast the results
     int flags = m_stateEstimator->orientationUpdate(getRawOrientation(),
-						    oevent->timeStamp);
+                                                    oevent->timeStamp);
+
     handleReturn(flags);
 }
 
@@ -652,7 +676,7 @@ void Vehicle::onPositionUpdate(core::EventPtr event)
 
     // Feed the latest value to the estimator, then broadcast the results
     int flags = m_stateEstimator->positionUpdate(getRawPosition(),
-						 pevent->timeStamp);
+                                                 pevent->timeStamp);
     
     handleReturn(flags);
 }
@@ -664,7 +688,7 @@ void Vehicle::onVelocityUpdate(core::EventPtr event)
 
     // Feed the latest value to the estimator, then broadcast the results
     int flags = m_stateEstimator->velocityUpdate(getRawVelocity(),
-						 vevent->timeStamp);
+                                                 vevent->timeStamp);
 
     handleReturn(flags);
 }

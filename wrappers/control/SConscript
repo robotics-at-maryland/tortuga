@@ -31,7 +31,7 @@ header_dir = os.path.join(base_dir, 'include')
 envl.Append(CPPPATH = base_dir)
 
 # Headers we are currently wrapping
-wrapped_headers = ['IController.h']
+wrapped_headers = ['IController.h','DesiredState.h']
 
 if env.HasFeature('core'):
     wrapped_headers.append('Events.h')
@@ -52,7 +52,7 @@ def extras(env, output, message = None, deps = None):
     return tester
                        
 # Wrapper
-envl.Pypp('_control', wrapped_headers, module = 'gen_control.py',
+envl.Pypp(['_control','_controltest'], wrapped_headers, module = 'gen_control.py',
           tester = extras,
           dep_wrappers = ['_core', 'core.py', '_math', 'math.py', '_vehicle',
                           'vehicle/__init__.py'],

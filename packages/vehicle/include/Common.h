@@ -21,11 +21,22 @@
 #include "vehicle/include/device/Common.h"
 
 namespace ram {
+namespace estimator {
+
+class IStateEstimator;
+typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
+
+}
+}
+
+namespace ram {
 namespace vehicle {
 
 // Forward Declartions
 class IVehicle;
 typedef boost::shared_ptr<IVehicle> IVehiclePtr;
+
+
     
 // Typedefs
 typedef std::map<std::string, device::IDevicePtr> NameDeviceMap;

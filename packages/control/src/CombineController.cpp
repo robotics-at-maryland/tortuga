@@ -7,6 +7,14 @@
  * File:  packages/control/src/CombineController.cpp
  */
 
+// STD Includes
+#include <cmath>
+#include <cstdio>
+#include <iostream>
+
+#ifdef RAM_WINDOWS
+#define M_PI 3.14159265358979323846
+#endif
 
 // Library Includes
 #include <log4cpp/Category.hh>
@@ -17,17 +25,16 @@
 #include "control/include/IDepthController.h"
 #include "control/include/IRotationalController.h"
 #include "control/include/ControllerMaker.h"
+#include "control/include/DesiredState.h"
 
 #include "vehicle/include/IVehicle.h"
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
-//#include "core/include/TimeVal.h"
 
-//#include "math/include/Helpers.h"
-//#include "math/include/Vector3.h"
-//#include "math/include/Events.h"
-//#include "imu/include/imuapi.h"
+#include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
+#include "math/include/Events.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineController);
@@ -43,12 +50,11 @@ namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, config)
-{   
-    init(config); 
+    ControllerBase(vehicle, config)  
+{ 
+    init(config);
 }
 
-    
 CombineController::CombineController(core::ConfigNode config,
                                      core::SubsystemList deps) :
     ControllerBase(config, deps)
@@ -65,8 +71,7 @@ void CombineController::init(core::ConfigNode config)
 {
     // Create In plane controller
     core::ConfigNode node(config["TranslationalController"]);
-    m_transController =
-        TranslationalControllerImpMaker::newObject(node);
+    m_transController = TranslationalControllerImpMaker::newObject(node);
     
     // Create depth controller
     node = config["DepthController"];
@@ -75,108 +80,6 @@ void CombineController::init(core::ConfigNode config)
     // Create rotational controller
     node = config["RotationalController"];
     m_rotController = RotationalControllerImpMaker::newObject(node);
-}
-
-void CombineController::setVelocity(math::Vector2 velocity)
-{
-    m_transController->setVelocity(velocity);
-}
-
-math::Vector2 CombineController::getVelocity()
-{
-    return m_transController->getVelocity();
-}
-    
-void CombineController::setSpeed(double speed)
-{
-    m_transController->setSpeed(speed);
-}
-
-void CombineController::setSidewaysSpeed(double speed)
-{
-    m_transController->setSidewaysSpeed(speed);
-}
-
-double CombineController::getSpeed()
-{
-    return m_transController->getSpeed();
-}
-
-double CombineController::getSidewaysSpeed()
-{
-    return m_transController->getSidewaysSpeed();
-}
-
-void CombineController::holdCurrentPosition()
-{
-    m_transController->holdCurrentPosition();
-}
-    
-// Depth controller methods
-void CombineController::setDepth(double depth)
-{
-    m_depthController->setDepth(depth);
-}
-    
-double CombineController::getDepth()
-{
-    return m_depthController->getDepth();
-}
-
-double CombineController::getEstimatedDepth()
-{
-    return m_depthController->getEstimatedDepth();
-}
-
-double CombineController::getEstimatedDepthDot()
-{
-    return m_depthController->getEstimatedDepthDot();
-}
-
-bool CombineController::atDepth()
-{
-    return m_depthController->atDepth();
-}
-
-void CombineController::holdCurrentDepth()
-{
-    m_depthController->holdCurrentDepth();
-}
-    
-// Rotational controller methods
-void CombineController::rollVehicle(double degrees)
-{
-    m_rotController->rollVehicle(degrees);
-}
-
-void CombineController::pitchVehicle(double degrees)
-{
-    m_rotController->pitchVehicle(degrees);
-}
-
-void CombineController::yawVehicle(double degrees)
-{
-    m_rotController->yawVehicle(degrees);
-}
-
-math::Quaternion CombineController::getDesiredOrientation()
-{
-    return m_rotController->getDesiredOrientation();
-}
-
-void CombineController::setDesiredOrientation(math::Quaternion newOrientation)
-{
-    m_rotController->setDesiredOrientation(newOrientation);
-}
-    
-bool CombineController::atOrientation()
-{
-    return m_rotController->atOrientation();
-}
-
-void CombineController::holdCurrentHeading()
-{
-    m_rotController->holdCurrentHeading();
 }
 
 void CombineController::doUpdate(const double& timestep,
@@ -193,32 +96,90 @@ void CombineController::doUpdate(const double& timestep,
     math::Vector3 inPlaneControlForce(
         m_transController->translationalUpdate(timestep, linearAcceleration,
                                                orientation, position,
-                                               velocity));
+                                               velocity, desiredState));
+
     math::Vector3 depthControlForce(
-        m_depthController->depthUpdate(timestep, depth, orientation));
+        m_depthController->depthUpdate(timestep, depth, orientation, desiredState));
+
     math::Vector3 rotControlTorque(
-        m_rotController->rotationalUpdate(timestep, orientation, angularRate));
+        m_rotController->rotationalUpdate(timestep, orientation, angularRate, desiredState));
     
     // Combine into desired rotational control and torque
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
 }
 
-ITranslationalControllerPtr CombineController::getTranslationalController()
+void CombineController::setVelocity(math::Vector2 velocity)
 {
-    return m_transController;
-}
-   
-IDepthControllerPtr CombineController::getDepthController()
-{
-    return m_depthController;
-}
-    
-IRotationalControllerPtr CombineController::getRotationalController()
-{
-    return m_rotController;
+    setDesiredVelocity(velocity,IController::BODY_FRAME);
+    m_transController->setControlMode(ControlMode::VELOCITY);
 }
 
-    
+void CombineController::setSpeed(double speed)
+{
+    if(speed > 5)
+        speed = 5;
+    else if(speed < -5)
+        speed = -5;
+
+    double sidewaysSpeed = desiredState->getDesiredVelocity()[1];
+
+    setDesiredVelocity(math::Vector2(speed,sidewaysSpeed), IController::BODY_FRAME);
+    m_transController->setControlMode(ControlMode::VELOCITY);
+}
+
+void CombineController::setSidewaysSpeed(double speed)
+{
+    if(speed > 5)
+        speed = 5;
+    else if(speed < -5)
+        speed = -5;
+
+    double forewardSpeed = desiredState->getDesiredVelocity()[0];
+
+    setDesiredVelocity(math::Vector2(forewardSpeed,speed), IController::BODY_FRAME);
+    m_transController->setControlMode(ControlMode::VELOCITY);
+}
+
+void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
+{
+    if(frame == IController::BODY_FRAME)
+        velocity = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+    desiredState->setDesiredVelocity(velocity);
+    m_transController->setControlMode(ControlMode::VELOCITY);
+}
+
+void CombineController::setDesiredPosition(math::Vector2 position, int frame)
+{
+    if(frame == IController::BODY_FRAME)
+        position = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+    desiredState->setDesiredPosition(position);
+    m_transController->setControlMode(ControlMode::POSITION);
+}
+
+void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
+                                                      math::Vector2 velocity)
+{
+    desiredState->setDesiredVelocity(velocity);
+    desiredState->setDesiredPosition(position);
+    m_transController->setControlMode(ControlMode::POSITIONANDVELOCITY);
+}
+
+
+ITranslationalControllerPtr CombineController::getTranslationalController()
+{ 
+    return m_transController;
+}
+
+IDepthControllerPtr CombineController::getDepthController()
+{
+    return m_depthController; 
+}
+
+IRotationalControllerPtr CombineController::getRotationalController()
+{
+    return m_rotController; 
+}
+
 } // namespace control
 } // namespace ram

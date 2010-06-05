@@ -36,16 +36,18 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     math::Vector3 linearAcceleration,
     math::Quaternion orientation,
     math::Vector2 position,
-    math::Vector2 velocity)
+    math::Vector2 velocity,
+    controltest::DesiredStatePtr desiredState)
 {
     // The quaternion with just the pitch
     math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
                                math::Vector3::UNIT_Y);
 
+    math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
     // Compute the base force
     math::Vector3 foreAftComponent(
-        m_speedPGain * getSpeed(),
-        m_sidewaysSpeedPGain * getSidewaysSpeed(),
+        m_speedPGain * desiredVelocity[0],
+        m_sidewaysSpeedPGain * desiredVelocity[1],
         0);
 
     // Rotate it to account for odd pitches

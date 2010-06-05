@@ -13,6 +13,7 @@
 // Project Includes
 #include "math/test/include/MathChecks.h"
 
+#include "control/include/DesiredState.h"
 #include "control/include/OpenLoopTranslationalController.h"
 
 using namespace ram;
@@ -32,9 +33,14 @@ SUITE(OpenLoopTranslationalController)
 
 TEST_FIXTURE(OpenLoopTranslationalControllerFixture, update)
 {
+
+    controltest::DesiredStatePtr desiredState = controltest::DesiredStatePtr(
+        new controltest::DesiredState(core::ConfigNode::fromString("{}")));
+
     // Forward while pitched down 
-    math::Quaternion orien(math::Degree(45), math::Vector3::UNIT_Y);    
-    controller.setSpeed(1);
+    math::Quaternion orien(math::Degree(45), math::Vector3::UNIT_Y);
+    
+    desiredState->setDesiredVelocity(math::Vector2(1,0));
 
     // The expected
     math::Vector3 result = math::Vector3::ZERO;
@@ -43,7 +49,8 @@ TEST_FIXTURE(OpenLoopTranslationalControllerFixture, update)
     // Run the controller
     result = controller.translationalUpdate(0, math::Vector3::ZERO, orien,
                                             math::Vector2::ZERO,
-                                            math::Vector2::ZERO);
+                                            math::Vector2::ZERO,
+                                            desiredState);
 
     CHECK_CLOSE(expected, result, 0.0001);
 
@@ -60,7 +67,8 @@ TEST_FIXTURE(OpenLoopTranslationalControllerFixture, update)
     // Run the controller
     result = controller.translationalUpdate(0, math::Vector3::ZERO, orien,
                                             math::Vector2::ZERO,
-                                            math::Vector2::ZERO);
+                                            math::Vector2::ZERO,
+                                            desiredState);
 
     CHECK_CLOSE(expected, result, 0.0001);
 }

@@ -115,13 +115,13 @@ class SimVelocitySensor(SimDevice, device.IVelocitySensor):
 
         # This will keep track of the current velocity
         self.oldPos = math.Vector2(self.robot._main_part._node.position.x,
-                                   self.robot._main_part._node.position.y)
+                                   -self.robot._main_part._node.position.y)
         self.velocity = math.Vector2(0, 0)
 
     def update(self, time):
         # On each update, we'll find the velocity using the old position
         currentPos = math.Vector2(self.robot._main_part._node.position.x,
-                                  self.robot._main_part._node.position.y)
+                                  -self.robot._main_part._node.position.y)
         # Subtract by the old position and divide by time
         self.velocity = (currentPos - self.oldPos) / time
 
@@ -152,7 +152,7 @@ class IdealPositionSensor(SimDevice, device.IPositionSensor):
         self.robot = simDevice.robot
 
         self.initialPos = math.Vector2(self.robot._main_part._node.position.x,
-                                       self.robot._main_part._node.position.y)
+                                       -self.robot._main_part._node.position.y)
 
     def update(self, time):
         event = math.Vector2Event()
@@ -161,10 +161,11 @@ class IdealPositionSensor(SimDevice, device.IPositionSensor):
 
     def getPosition(self):
         # Gets the exact position relative to the initial position
-        currentPos = math.Vector2(-self.robot._main_part._node.position.y,
-                                   self.robot._main_part._node.position.x)
-        return currentPos - self.initialPos
-
+        #currentPos = math.Vector2(-self.robot._main_part._node.position.y,
+        #                           self.robot._main_part._node.position.x)
+        #return currentPos - self.initialPos
+        return math.Vector2(self.robot._main_part._node.position.x,
+                            -self.robot._main_part._node.position.y)
     def getLocation(self):
         return math.Vector3(0, 0, 0)
 
@@ -183,7 +184,10 @@ class SimIMU(SimDevice, device.IIMU):
     def update(self, time):
         event = math.OrientationEvent()
         event.orientation = self.getOrientation()
+        raw_event = vehicle.RawIMUDataEvent()
+        raw_event.name = "simIMU"
         self.publish(device.IIMU.UPDATE, event)
+        self.publish(device.IIMU.RAW_UPDATE, raw_event)
     
     def _getActualOrientation(self):
         return convertToQuaternion(math.Quaternion,

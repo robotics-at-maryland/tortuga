@@ -30,6 +30,17 @@ RAM_VEHICLE_THRUSTER_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::SonarEvent>
 RAM_VEHICLE_SONAR_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::RawIMUDataEvent>
+RAM_VEHICLE_RAWIMUDATA_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::RawDVLDataEvent>
+RAM_VEHICLE_RAWDVLDATA_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
+RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
+
+
+
 #endif // RAM_WITH_WRAPPERS
 
 namespace ram {
@@ -76,6 +87,28 @@ core::EventPtr SonarEvent::clone()
     event->pingTimeUSec = pingTimeUSec;
     event->pingCount = pingCount;
     event->pingerID = pingerID;
+    return event;
+}
+
+core::EventPtr RawIMUDataEvent::clone()
+{
+    RawIMUDataEventPtr event = RawIMUDataEventPtr(new RawIMUDataEvent());
+    event->name = name;
+    event->rawIMUData = rawIMUData;
+    return event;
+}
+
+core::EventPtr RawDVLDataEvent::clone()
+{
+    RawDVLDataEventPtr event = RawDVLDataEventPtr(new RawDVLDataEvent());
+    event->rawDVLData = rawDVLData;
+    return event;
+}
+
+core::EventPtr RawDepthSensorDataEvent::clone()
+{
+    RawDepthSensorDataEventPtr event = RawDepthSensorDataEventPtr(
+        new RawDepthSensorDataEvent());
     return event;
 }
     

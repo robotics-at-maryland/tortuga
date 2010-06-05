@@ -22,14 +22,12 @@ class OpenLoopTranslationalController : public TranslationalControllerBase
 public:
     OpenLoopTranslationalController(ram::core::ConfigNode config);
 
-    /** Disable setVelocity because it does nothing for us */
-    virtual void setVelocity(math::Vector2) {}
-    
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
                                               math::Vector2 position,
-                                              math::Vector2 velocity);
+                                              math::Vector2 velocity,
+                                              controltest::DesiredStatePtr desiredState);
 private:
     /** Gain for the normal speed */
     double m_speedPGain;

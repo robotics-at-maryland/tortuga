@@ -24,6 +24,7 @@
 #include "vehicle/test/include/MockVehicle.h"
 
 #include "control/include/BWPDController.h"
+#include "control/test/include/IControllerImpTests.h"
 #include "control/test/include/RotationalControllerTests.h"
 #include "control/test/include/DepthControllerTests.h"
 #include "control/test/include/TranslationalControllerTests.h"
@@ -49,7 +50,7 @@ struct Fixture
 
 
 //use these to test the normal PD rotational controller
-/*
+
 TEST_FIXTURE(Fixture, YawControl)
 {
     // First is north along horizontal (desired)
@@ -84,7 +85,7 @@ TEST_FIXTURE(Fixture, YawRateControl)
   vehicle->orientation = math::Quaternion(0,0,0,1);
   vehicle->angularRate = math::Vector3(0,0,5);
   
-  }*/
+  }
 
 TEST_FIXTURE(Fixture, yawVehicle)
 {
@@ -101,9 +102,9 @@ TEST_FIXTURE(Fixture, rollVehicle)
     TEST_UTILITY_FUNC(rollVehicle)(&controller);
 }
 
-TEST_FIXTURE(Fixture, setDesiredOrientation)
+TEST_FIXTURE(Fixture, setGetDesiredOrientation)
 {
-    TEST_UTILITY_FUNC(setDesiredOrientation)(&controller);
+    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&controller);
 }
 
 TEST_FIXTURE(Fixture, DepthControl)
@@ -135,21 +136,21 @@ TEST_FIXTURE(Fixture, setGetDepth)
     TEST_UTILITY_FUNC(setGetDepth)(&controller);
 }
 
-TEST_FIXTURE(Fixture, atDepth)
-{
-    TEST_UTILITY_FUNC(atDepth)
-        (&controller,
-         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, atDepth)
+// {
+//     TEST_UTILITY_FUNC(atDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
-TEST_FIXTURE(Fixture, holdCurrentDepth)
-{
-    TEST_UTILITY_FUNC(holdCurrentDepth)
-        (&controller,
-         boost::bind(&MockVehicle::_setDepth, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, holdCurrentDepth)
+// {
+//     TEST_UTILITY_FUNC(holdCurrentDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 void depthHelper(double* result, ram::core::EventPtr event)
 {
@@ -247,13 +248,13 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
     CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
 }
 
-TEST_FIXTURE(Fixture, atOrientation)
-{
-    TEST_UTILITY_FUNC(atOrientation)
-        (&controller,
-         boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
-         boost::bind(&control::BWPDController::update, &controller, 1.0));
-}
+// TEST_FIXTURE(Fixture, atOrientation)
+// {
+//     TEST_UTILITY_FUNC(atOrientation)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 {
@@ -306,14 +307,14 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     CHECK_EQUAL(orientation, actualOrientation);
 }
 
-TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
-{
-    // Runs the test, passing it a function object which lets the test method
-    // set the actual orientation of the vehicle
-    TEST_UTILITY_FUNC(holdCurrentHeading)
-        (&controller,
-         boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
-}
+// TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
+// {
+//     // Runs the test, passing it a function object which lets the test method
+//     // set the actual orientation of the vehicle
+//     TEST_UTILITY_FUNC(holdCurrentHeading)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
+// }
 
 TEST_FIXTURE(Fixture, setGetSpeed)
 {
@@ -347,12 +348,8 @@ TEST(BWPDControllerLogging)
     fixture.controller.update(1);
     CHECK_EQUAL(3u, appender->logEvents.size());
     CHECK(std::string("") !=  appender->logEvents[2].message);
-    }*/
-
-/*
-TEST(holdOrientation){
-  
-}*/
+}
+*/
 
 TEST(SubsystemMaker)
 {

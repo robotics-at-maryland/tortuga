@@ -17,22 +17,6 @@
 #include "control/include/IDepthController.h"
 #include "core/test/include/Macros.h"
 
-TEST_UTILITY_FWD(setGetDepth, (ram::control::IDepthController* controller));
-
-/** Tests whether the IDepthController::atDepth function is working
- *
- *  Note: this assumes the threshold is 0.5.
- */
-TEST_UTILITY_FWD(atDepth,
-                 (ram::control::IDepthController* controller,
-                  boost::function<void(double)> setDepth,
-                  boost::function<void (void)> update));
-
-/** Tests whether hte IDepthController::holdCurrentDepth function is working*/
-TEST_UTILITY_FWD(holdCurrentDepth,
-                 (ram::control::IDepthController* controller,
-                  boost::function<void(double)> setDepth,
-                  boost::function<void (void)> update));
-
+/* Not sure what to test here, maybe DepthUpdate? */
 
 #endif // RAM_CONTROL_TEST_DEPTHCONTROLLERTESTS_03_14_2009

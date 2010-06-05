@@ -20,6 +20,7 @@
 // Project Includes
 #include "vehicle/include/device/IMU.h"
 #include "vehicle/include/Common.h"
+#include "vehicle/include/Events.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -135,6 +136,15 @@ void IMU::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
+
+            RawIMUDataEventPtr rawIMUDataEvent = RawIMUDataEventPtr(
+                new RawIMUDataEvent());
+            rawIMUDataEvent->rawIMUData = newState;
+            rawIMUDataEvent->name = getName();
+            std::cout << "sending raw imu update" << std::endl;
+            publish(IIMU::RAW_UPDATE,rawIMUDataEvent);
+            
+            
             
 //            printf("MB: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
 //                   newState.magZ);

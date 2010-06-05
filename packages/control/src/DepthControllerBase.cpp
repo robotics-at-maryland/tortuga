@@ -13,47 +13,26 @@
 // Project includes
 #include "control/include/DepthControllerBase.h"
 #include "control/include/ControllerBase.h"
+#include "math/include/Helpers.h"
+#include "math/include/Events.h"
+#include "core/include/EventHub.h"
 
 namespace ram {
 namespace control {
 
 DepthControllerBase::DepthControllerBase(core::ConfigNode config) :
-    m_desiredDepth(0),
     m_currentDepth(0)
 {
     init(config);
 }
-
-void DepthControllerBase::setDepth(double depth)
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredDepth = depth;
-}
-
-double DepthControllerBase::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredDepth;
-}
-    
-bool DepthControllerBase::atDepth()
-{
-    // Don't lock here for now, causes a dead lock somewhere
-    double difference = fabs(m_currentDepth - m_desiredDepth);
-    return difference <= m_depthThreshold;
-}
-
-void DepthControllerBase::holdCurrentDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    m_desiredDepth = m_currentDepth;
-}
     
 math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
-                                               math::Quaternion orienation)
+                                               math::Quaternion orientation,
+                                               controltest::DesiredStatePtr desiredState)
 { 
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_currentDepth = depth;
+    m_currentOrientation = orientation;
 
     return math::Vector3::ZERO;
 }
@@ -63,6 +42,6 @@ void DepthControllerBase::init(core::ConfigNode config)
     m_depthThreshold =
         config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
 }
-    
+
 } // namespace control
 } // namespace ram

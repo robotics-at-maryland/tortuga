@@ -13,6 +13,7 @@
 // Project Includes
 #include "control/include/ITranslationalController.h"
 
+#include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
@@ -26,58 +27,40 @@ namespace control {
 class RAM_EXPORT TranslationalControllerBase :
         public ITranslationalControllerImp
 {
-public:
-    /** The exact type of translation control we are undergoing */
-    struct ControlMode
-    {
-        enum ModeType {
-            OPEN_LOOP,
-            VELOCITY,
-            POSITION
-        };
-    };
+  public:
+
     
     TranslationalControllerBase(core::ConfigNode config);
     
     virtual ~TranslationalControllerBase() {}
 
-    virtual void setVelocity(math::Vector2 velocity);
-
-    virtual math::Vector2 getVelocity();
-
-    virtual void setSpeed(double speed);
-
-    virtual void setSidewaysSpeed(double speed);
-
-    virtual double getSpeed();
-
-    virtual double getSidewaysSpeed();
-
-    virtual void holdCurrentPosition();
-
     virtual math::Vector3 translationalUpdate(double timestep,
                                               math::Vector3 linearAcceleration,
                                               math::Quaternion orientation,
                                               math::Vector2 position,
-                                              math::Vector2 velocity);
+                                              math::Vector2 velocity,
+                                              controltest::DesiredStatePtr desiredState);
 
-    virtual ControlMode::ModeType getMode();
+
+    virtual void setControlMode(ControlMode::ModeType mode);
     
-private:
-    /** Does all initialzation based on the configuration settings */
-    void init(core::ConfigNode config);
+  protected:
 
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
-    math::Vector2 m_desiredVelocity;
-    
-    double m_desiredSpeed;
+    math::Vector2 m_currentVelocity;
+    math::Vector2 m_currentPosition;
 
-    double m_desiredSidewaysSpeed;
+    double m_positionThreshold;
+    double m_velocityThreshold;
 
     /** What type of translation control we are doing */
     ControlMode::ModeType m_controlMode;
+    
+  private:
+    /** Does all initialzation based on the configuration settings */
+    void init(core::ConfigNode config);
 };
     
 } // namespace control

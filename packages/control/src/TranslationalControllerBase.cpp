@@ -15,72 +15,13 @@ namespace control {
     
 TranslationalControllerBase::TranslationalControllerBase(
     core::ConfigNode config) :
-    m_desiredSpeed(0),
-    m_desiredSidewaysSpeed(0),
+    m_currentVelocity(math::Vector2::ZERO),
+    m_currentPosition(math::Vector2::ZERO),
+    m_positionThreshold(0.1),
+    m_velocityThreshold(0.1),
     m_controlMode(ControlMode::OPEN_LOOP)
 {
     init(config);
-}
-
-void TranslationalControllerBase::setVelocity(math::Vector2 velocity)
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredVelocity = velocity;
-    m_controlMode = ControlMode::VELOCITY;
-}
-
-math::Vector2 TranslationalControllerBase::getVelocity()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredVelocity;
-}
-    
-void TranslationalControllerBase::setSpeed(double speed)
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredSpeed = speed;
-
-    if (m_controlMode != ControlMode::OPEN_LOOP)
-    {
-        m_desiredSidewaysSpeed = 0;
-        m_controlMode = ControlMode::OPEN_LOOP;
-    }
-}
-
-void TranslationalControllerBase::setSidewaysSpeed(double speed)
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredSidewaysSpeed = speed;
-    
-    if (m_controlMode != ControlMode::OPEN_LOOP)
-    {
-        m_desiredSpeed = 0;
-        m_controlMode = ControlMode::OPEN_LOOP;
-    }
-}
-
-double TranslationalControllerBase::getSpeed()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredSpeed;
-}
-
-double TranslationalControllerBase::getSidewaysSpeed()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredSidewaysSpeed;
-}
-
-void TranslationalControllerBase::holdCurrentPosition()
-{
-    // TODO: Add code
-}
-
-TranslationalControllerBase::ControlMode::ModeType
-    TranslationalControllerBase::getMode()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_controlMode;
 }
     
 math::Vector3 TranslationalControllerBase::translationalUpdate(
@@ -88,13 +29,22 @@ math::Vector3 TranslationalControllerBase::translationalUpdate(
     math::Vector3 linearAcceleration,
     math::Quaternion orientation,
     math::Vector2 position,
-    math::Vector2 velocity)
+    math::Vector2 velocity,
+    controltest::DesiredStatePtr desiredState)
 {
     return math::Vector3::ZERO;
 }
-    
+
+void TranslationalControllerBase::setControlMode(ControlMode::ModeType mode)
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_controlMode = mode;
+}
+
 void TranslationalControllerBase::init(core::ConfigNode config)
 {
+    m_positionThreshold = config["positionThreshold"].asDouble(0.1);
+    m_velocityThreshold = config["velocityThreshold"].asDouble(0.1);
 }
     
 } // namespace control

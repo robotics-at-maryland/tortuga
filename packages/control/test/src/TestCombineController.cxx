@@ -23,7 +23,9 @@
 
 #include "vehicle/test/include/MockVehicle.h"
 
+#include "control/include/Common.h"
 #include "control/include/CombineController.h"
+#include "control/test/include/IControllerImpTests.h"
 #include "control/test/include/MockDepthController.h"
 #include "control/test/include/MockTranslationalController.h"
 #include "control/test/include/MockRotationalController.h"
@@ -31,6 +33,14 @@
 //#include "control/test/include/ControllerTests.h"
 
 //#include "core/test/include/BufferedAppender.h"
+
+
+/* TODO
+   Add test cases for the new translational functions.  Assure that the old test cases
+   are still valid. Decide what to do about atDepth, atPosition, etc... and 
+   getEstimatedDepth and getEstimatedDepthDot.
+ */
+
 
 using namespace ram;
 
@@ -90,126 +100,99 @@ TEST_FIXTURE(CombineControllerFixture, Create)
 }
 
 // Translational methods
-TEST_FIXTURE(CombineControllerFixture, setSpeed)
+TEST_FIXTURE(CombineControllerFixture, setGetSpeed)
 {
-    double speed = 5.8;
-    controller.setSpeed(speed);
-    CHECK_EQUAL(speed, transController->speedSet);
+    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, setSidewaysSpeed)
+TEST_FIXTURE(CombineControllerFixture, setGetSidewaysSpeed)
 {
-    double sidewaysSpeed = 2.8;
-    controller.setSidewaysSpeed(sidewaysSpeed);
-    CHECK_EQUAL(sidewaysSpeed, transController->sidewaysSpeedSet);
+    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, getSpeed)
+TEST_FIXTURE(CombineControllerFixture, setGetVelocity)
 {
-    double speed = 5.8;
-    transController->speed = speed;
-    CHECK_EQUAL(speed, controller.getSpeed());
+    TEST_UTILITY_FUNC(setGetVelocity)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, getSidewaysSpeed)
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredVelocity)
 {
-    double sidewaysSpeed = 2.8;
-    transController->sidewaysSpeed = sidewaysSpeed;
-    CHECK_EQUAL(sidewaysSpeed, controller.getSidewaysSpeed());
+    TEST_UTILITY_FUNC(setGetDesiredVelocity)(&controller);
+}
+
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredPosition)
+{
+    TEST_UTILITY_FUNC(setGetDesiredPosition)(&controller);
 }
 
 // Depth methods
-TEST_FIXTURE(CombineControllerFixture, setDepth)
+TEST_FIXTURE(CombineControllerFixture, setGetDepth)
 {
-    double depth = 1.67;
-    controller.setDepth(depth);
-    CHECK_EQUAL(depth, depthController->depthSet);
+    TEST_UTILITY_FUNC(setGetDepth)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, getDepth)
-{
-    double depth = 5.8;
-    depthController->depth = depth;
-    CHECK_EQUAL(depth, controller.getDepth());
-}
+// TEST_FIXTURE(CombineControllerFixture, getEstimatedDepth)
+// {
+//     double estimatedDepth = 11.8;
+//     depthController->estimatedDepth = estimatedDepth;
+//     CHECK_EQUAL(estimatedDepth, controller.getEstimatedDepth());
+// }
 
-TEST_FIXTURE(CombineControllerFixture, getEstimatedDepth)
-{
-    double estimatedDepth = 11.8;
-    depthController->estimatedDepth = estimatedDepth;
-    CHECK_EQUAL(estimatedDepth, controller.getEstimatedDepth());
-}
+// TEST_FIXTURE(CombineControllerFixture, getEstimatedDepthDot)
+// {
+//     double estimatedDepthDot = 0.568;
+//     depthController->estimatedDepthDot = estimatedDepthDot;
+//     CHECK_EQUAL(estimatedDepthDot, controller.getEstimatedDepthDot());
+// }
 
-TEST_FIXTURE(CombineControllerFixture, getEstimatedDepthDot)
-{
-    double estimatedDepthDot = 0.568;
-    depthController->estimatedDepthDot = estimatedDepthDot;
-    CHECK_EQUAL(estimatedDepthDot, controller.getEstimatedDepthDot());
-}
+// TEST_FIXTURE(CombineControllerFixture, atDepth)
+// {
+//     double atDepth = true;
+//     depthController->atDepthValue = atDepth;
+//     CHECK_EQUAL(atDepth, controller.atDepth());
+// }
 
-TEST_FIXTURE(CombineControllerFixture, atDepth)
-{
-    double atDepth = true;
-    depthController->atDepthValue = atDepth;
-    CHECK_EQUAL(atDepth, controller.atDepth());
-}
+// TEST_FIXTURE(CombineControllerFixture, holdCurrentDepth)
+// {
+//     CHECK_EQUAL(0, depthController->holdCurrentDepthCount);
+//     controller.holdCurrentDepth();
+//     CHECK_EQUAL(1, depthController->holdCurrentDepthCount);
+// }
 
-TEST_FIXTURE(CombineControllerFixture, holdCurrentDepth)
-{
-    CHECK_EQUAL(0, depthController->holdCurrentDepthCount);
-    controller.holdCurrentDepth();
-    CHECK_EQUAL(1, depthController->holdCurrentDepthCount);
-}
-
-// Translational methods
+// Rotational methods
 TEST_FIXTURE(CombineControllerFixture, yawVehicle)
 {
-    double degrees = 78.2;
-    controller.yawVehicle(degrees);
-    CHECK_EQUAL(degrees, rotController->yaw);
+    TEST_UTILITY_FUNC(yawVehicle)(&controller);
 }
 
 TEST_FIXTURE(CombineControllerFixture, pitchVehicle)
 {
-    double degrees = 45.2;
-    controller.pitchVehicle(degrees);
-    CHECK_EQUAL(degrees, rotController->pitch);
+    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
 }
 
 TEST_FIXTURE(CombineControllerFixture, rollVehicle)
 {
-    double degrees = 16.8;
-    controller.rollVehicle(degrees);
-    CHECK_EQUAL(degrees, rotController->roll);
+    TEST_UTILITY_FUNC(rollVehicle)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, setDesiredOrientation)
+TEST_FIXTURE(CombineControllerFixture, setGetDesiredOrientation)
 {
-    math::Quaternion orientation(0.2, 1.2, 2.5, 1);
-    controller.setDesiredOrientation(orientation);
-    CHECK_EQUAL(orientation, rotController->desiredOrientationSet);
+    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, getDesiredOrientation)
-{
-    math::Quaternion orientation(8.2, 1.2, 0.5, 1);
-    rotController->desiredOrientation = orientation;
-    CHECK_EQUAL(orientation, controller.getDesiredOrientation());
-}
+// TEST_FIXTURE(CombineControllerFixture, atOrientation)
+// {
+//     double atOrientation = true;
+//     rotController->atOrientationValue = atOrientation;
+//     CHECK_EQUAL(atOrientation, controller.atOrientation());
+// }
 
-TEST_FIXTURE(CombineControllerFixture, atOrientation)
-{
-    double atOrientation = true;
-    rotController->atOrientationValue = atOrientation;
-    CHECK_EQUAL(atOrientation, controller.atOrientation());
-}
-
-TEST_FIXTURE(CombineControllerFixture, holdCurrentHeading)
-{
-    CHECK_EQUAL(0, rotController->holdCurrentHeadingCount);
-    controller.holdCurrentHeading();
-    CHECK_EQUAL(1, rotController->holdCurrentHeadingCount);
-}
+// TEST_FIXTURE(CombineControllerFixture, holdCurrentHeading)
+// {
+//     CHECK_EQUAL(0, rotController->holdCurrentHeadingCount);
+//     controller.holdCurrentHeading();
+//     CHECK_EQUAL(1, rotController->holdCurrentHeadingCount);
+// }
 
 // Update
 TEST_FIXTURE(CombineControllerFixture, update)
@@ -259,7 +242,6 @@ TEST_FIXTURE(CombineControllerFixture, update)
     CHECK_EQUAL(expectedTorque, vehicle->torque);
 }
 
-
 TEST(SubsystemMaker)
 {
     vehicle::IVehiclePtr veh(new MockVehicle());
@@ -288,6 +270,5 @@ TEST(SubsystemMaker)
         CHECK(false && "CombineController Maker not found");
     }
 }
-
 
 } // SUITE(CombineController)

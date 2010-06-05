@@ -44,7 +44,8 @@ typedef boost::shared_ptr<IRotationalController> IRotationalControllerPtr;
 class IRotationalControllerImp;
 typedef boost::shared_ptr<IRotationalControllerImp> IRotationalControllerImpPtr;
 
-    
+
+
 } // namespace control
 } // namespace ram
 

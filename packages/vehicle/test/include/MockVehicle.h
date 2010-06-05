@@ -17,8 +17,11 @@
 #include <boost/foreach.hpp>
 
 // Project Includes
-#include "vehicle/include/IVehicle.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/IVehicle.h"
+#include "math/include/Vector2.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 //#include "vehicle/include/Export.h"
@@ -86,6 +89,18 @@ public:
     virtual ram::math::Quaternion getOrientation(std::string obj = "vehicle")
 	{ return orientation; }
 
+    virtual double getRawDepth() { return 0; }
+
+    virtual ram::math::Vector2 getRawPosition() { return ram::math::Vector2::ZERO; }
+
+    virtual ram::math::Vector2 getRawVelocity() { return ram::math::Vector2::ZERO; }
+
+    virtual ram::math::Quaternion getRawOrientation() { 
+        return ram::math::Quaternion::IDENTITY; }
+
+    virtual ram::estimator::IStateEstimatorPtr getStateEstimator() {
+        return ram::estimator::IStateEstimatorPtr();
+    }
     virtual bool hasObject(std::string obj)
         { return obj == "vehicle"; }
     

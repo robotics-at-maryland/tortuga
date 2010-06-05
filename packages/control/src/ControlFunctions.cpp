@@ -418,11 +418,11 @@ returns
             written in the vehicle's coord frame.  torques are in Newton*meters
 */
 void BongWiePDRotationalControllerOld(MeasuredState* measuredState,
-                                   DesiredState* desiredState,
-                                   ControllerState* controllerState,
-				   EstimatedState* estimatedState,
-                                   double dt,
-                                   double* rotationalTorques)
+                                      DesiredState* desiredState,
+                                      ControllerState* controllerState,
+                                      EstimatedState* estimatedState,
+                                      double dt,
+                                      double* rotationalTorques)
 {
     if(dt < controllerState->dtMin)
     {
@@ -504,11 +504,11 @@ returns
             written in the vehicle's coord frame.  torques are in Newton*meters
 */
 void rotationalPDController(MeasuredState* measuredState,
-                                   DesiredState* desiredState,
-                                   ControllerState* controllerState,
-			           EstimatedState* estimatedState,
-                                   double dt,
-                                   double* rotationalTorques)
+                            DesiredState* desiredState,
+                            ControllerState* controllerState,
+                            EstimatedState* estimatedState,
+                            double dt,
+                            double* rotationalTorques)
 {
 
   //don't need this timing information in this function, but will keep it here in case it is needed in the future
