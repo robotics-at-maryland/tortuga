@@ -32,6 +32,7 @@ class RAM_EXPORT IDepthSensor : public IDevice         // For getName
 public:
     static const core::Event::EventType UPDATE;
     static const core::Event::EventType RAW_UPDATE;
+    static const core::Event::EventType INIT;
     
     virtual ~IDepthSensor();
 

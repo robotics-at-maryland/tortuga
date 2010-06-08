@@ -30,6 +30,9 @@ public:
     BasicDepthEstimationModule(core::ConfigNode config);
     ~BasicDepthEstimationModule(){};
 
+    /* called when a depth sensor publishes calibration values */
+    virtual void init(core::EventPtr event);
+
     /* The Depth Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
     virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);

@@ -40,7 +40,10 @@ public:
     EstimationModule(){};
     virtual ~EstimationModule(){}
 
-    /* update - the function that should be called to perform the estimation */
+    /* init - called when a sensor publishes calibration values */
+    virtual void init(core::EventPtr event) = 0;
+
+    /* update - the function that will be called to perform the estimation */
     virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState) = 0;
 
 }; 

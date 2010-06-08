@@ -59,14 +59,14 @@ class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
                                            controltest::DesiredStatePtr desiredState);
   protected:
     
-    /** When we are within this limit atOrientation returns true */
-    double m_orientationThreshold;
+    // /** When we are within this limit atOrientation returns true */
+    // double m_orientationThreshold;
 
     /** Syncs asscess to the desired state */
     core::ReadWriteMutex m_stateMutex;
 
-    /** The orientation from the last update command */
-    math::Quaternion m_currentOrientation;
+    // /** The orientation from the last update command */
+    // math::Quaternion m_currentOrientation;
 
   private:
 /** Does all initialzation based on the configuration settings */

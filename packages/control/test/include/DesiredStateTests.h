@@ -7,7 +7,7 @@
  */
 
 
-/* Make test utilities for all functions in control/includeDesiredState.h */
+/* Make test utilities for all functions in control/include/DesiredState.h */
 
 #ifndef RAM_CONTROL_TEST_DESIREDSTATETESTS_H
 #define RAM_CONTROL_TEST_DESIREDSTATETESTS_H

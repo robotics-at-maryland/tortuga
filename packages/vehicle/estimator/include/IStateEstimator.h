@@ -56,6 +56,9 @@ public:
     static const core::Event::EventType ESTIMATED_ORIENTATION_UPDATE;
     static const core::Event::EventType ESTIMATED_VELOCITY_UPDATE;
     static const core::Event::EventType ESTIMATED_POSITION_UPDATE;
+    static const core::Event::EventType ESTIMATED_LINEARACCELERATION_UPDATE;
+    static const core::Event::EventType ESTIMATED_DEPTHDOT_UPDATE;
+    static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
 
 protected:
     IStateEstimator(){};

@@ -85,6 +85,9 @@ private:
     
     /** Controller which holds the vehicle at the desired attitude */
     IRotationalControllerImpPtr m_rotController;
+
+    /** Delay the start of the controller */
+    double m_initializationPause;
 };
     
 } // namespace control

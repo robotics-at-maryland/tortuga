@@ -52,8 +52,8 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     double yaw = orientation.getYaw().valueRadians(); 
 
     //Update current position and velocity
-    m_currentPosition = position;     //assume position in inertial frame
-    m_currentVelocity = nRb(yaw)*velocity; //rotate velocity to inertial frame
+    math::Vector2 currentPosition = position;     //assume position in inertial frame
+    math::Vector2 currentVelocity = nRb(yaw)*velocity; //rotate velocity to inertial frame
 
     math::Vector2 desiredPosition = desiredState->getDesiredPosition();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
@@ -61,7 +61,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     //Based on control mode, modify desired state
     switch(m_controlMode){
     case ControlMode::POSITION:
-        desiredVelocity = (desiredPosition - m_currentPosition)/timestep; 
+        desiredVelocity = (desiredPosition - currentPosition)/timestep; 
         desiredState->setDesiredVelocity(desiredVelocity);
         break;
     case ControlMode::VELOCITY:
@@ -77,8 +77,8 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
 
     //Calculate proportional errors
-    positionPError = desiredPosition - m_currentPosition;
-    velocityPError = desiredVelocity - m_currentVelocity;
+    positionPError = desiredPosition - currentPosition;
+    velocityPError = desiredVelocity - currentVelocity;
 
     //Calculate derivative errors
     positionDError = (positionPError - m_prevPositionError)/timestep;

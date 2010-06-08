@@ -50,12 +50,27 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
         updateConnection_DVL = eventHub->subscribeToType(
             vehicle::device::IVelocitySensor::RAW_UPDATE,
             boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
+
+        initConnection_IMU = eventHub->subscribeToType(
+            vehicle::device::IIMU::INIT,
+            boost::bind(&ModularStateEstimator::init_IMU,this,_1));
+
+        initConnection_DVL = eventHub->subscribeToType(
+            vehicle::device::IVelocitySensor::INIT,
+            boost::bind(&ModularStateEstimator::init_DVL,this,_1));
+
+        initConnection_DepthSensor = eventHub->subscribeToType(
+            vehicle::device::IDepthSensor::INIT,
+            boost::bind(&ModularStateEstimator::init_DepthSensor,this,_1));
     }
 
     // Construct the estimation modules
-    dvlEstimationModule = EstimationModulePtr(new BasicDVLEstimationModule(config));
-    imuEstimationModule = EstimationModulePtr(new BasicIMUEstimationModule(config));
-    depthEstimationModule = EstimationModulePtr(new BasicDepthEstimationModule(config));
+    dvlEstimationModule = EstimationModulePtr(
+        new BasicDVLEstimationModule(config["DVLEstimationModule"]));
+    imuEstimationModule = EstimationModulePtr(
+        new BasicIMUEstimationModule(config["IMUEstimationModule"]));
+    depthEstimationModule = EstimationModulePtr(
+        new BasicDepthEstimationModule(config["DepthEstimationModule"]));
 }
 
 
@@ -77,6 +92,31 @@ ModularStateEstimator::~ModularStateEstimator()
     
     if(updateConnection_Vision)
         updateConnection_Vision->disconnect();
+
+    /* unbind the init functions */
+    if(initConnection_IMU)
+        initConnection_IMU->disconnect();
+
+    if(initConnection_DVL)
+        initConnection_DVL->disconnect();
+   
+    if(initConnection_DepthSensor)
+        initConnection_DepthSensor->disconnect();
+}
+
+void ModularStateEstimator::init_DVL(core::EventPtr event)
+{
+    dvlEstimationModule->init(event);
+}
+
+void ModularStateEstimator::init_IMU(core::EventPtr event)
+{
+    imuEstimationModule->init(event);
+}
+
+void ModularStateEstimator::init_DepthSensor(core::EventPtr event)
+{
+    depthEstimationModule->init(event);
 }
 
 void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
@@ -86,7 +126,7 @@ void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
 
     /* Return if the cast failed and let people know about it. */
     if(!ievent){
-        std::cout << "ModularStateEstimator: rawUpdate_DVL: Invalid Event Type" 
+        std::cerr << "ModularStateEstimator: rawUpdate_DVL: Invalid Event" 
                   << std::endl;
         return;
     }
@@ -102,16 +142,16 @@ void ModularStateEstimator::rawUpdate_IMU(core::EventPtr event)
 
     /* Return if the cast failed and let people know about it. */
     if(!ievent){
-        std::cout << "ModularStateEstimator: rawUpdate_IMU: Invalid Event Type" 
+        std::cerr << "ModularStateEstimator: rawUpdate_IMU: Invalid Event" 
                   << std::endl;
         return;
     }
 
-    /* Keep the most recent event from each IMU */
-    if(ievent->name == "MagBoom")
-        rawBoomIMUDataEvent = ievent;
-    else
-        rawIMUDataEvent = ievent;
+    // /* Keep the most recent event from each IMU */
+    // if(ievent->name == "MagBoom")
+    //     rawBoomIMUDataEvent = ievent;
+    // else
+    //     rawIMUDataEvent = ievent;
     
     /* Update the estimated state by using an estimation module */
     imuEstimationModule->update(ievent, estimatedState);
@@ -124,7 +164,7 @@ void ModularStateEstimator::rawUpdate_DepthSensor(core::EventPtr event)
 
     /* Return if the cast failed and let people know about it. */
     if(!ievent){
-        std::cout << "ModularStateEstimator: rawUpdate_DepthSensor: Invalid Event Type" 
+        std::cerr << "ModularStateEstimator: rawUpdate_DepthSensor: Invalid Event"
                   << std::endl;
         return;
     }   

@@ -44,6 +44,7 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
                                math::Vector3::UNIT_Y);
 
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
+
     // Compute the base force
     math::Vector3 foreAftComponent(
         m_speedPGain * desiredVelocity[0],

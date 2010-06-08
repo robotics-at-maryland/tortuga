@@ -12,6 +12,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, RAW_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, INIT);
 
 namespace ram {
 namespace vehicle {

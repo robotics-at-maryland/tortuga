@@ -23,6 +23,11 @@ BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config)
     /* initialization from config values should be done here */
 }
 
+void BasicDVLEstimationModule::init(core::EventPtr event)
+{
+
+}
+
 void BasicDVLEstimationModule::update(core::EventPtr event, 
                                       EstimatedStatePtr estimatedState)
 {

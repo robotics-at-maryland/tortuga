@@ -62,12 +62,21 @@ protected:
     virtual void update_Vision(core::EventPtr event) = 0;
     virtual void update_Sonar(core::EventPtr event) = 0;
 
+    /* These should be bound to sensor init events to get calibration values */
+    virtual void init_DVL(core::EventPtr event) = 0;
+    virtual void init_IMU(core::EventPtr event) = 0;
+    virtual void init_DepthSensor(core::EventPtr event) = 0;
+
     /* These keep track of the event subscriptions */
     core::EventConnectionPtr updateConnection_IMU;
     core::EventConnectionPtr updateConnection_DVL;
     core::EventConnectionPtr updateConnection_DepthSensor;
     core::EventConnectionPtr updateConnection_Sonar;
     core::EventConnectionPtr updateConnection_Vision;
+
+    core::EventConnectionPtr initConnection_IMU;
+    core::EventConnectionPtr initConnection_DVL;
+    core::EventConnectionPtr initConnection_DepthSensor;
 
     EstimatedStatePtr estimatedState;
 };

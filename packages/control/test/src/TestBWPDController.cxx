@@ -307,8 +307,8 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     CHECK_EQUAL(orientation, actualOrientation);
 }
 
-// TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
-// {
+//  TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
+//  {
 //     // Runs the test, passing it a function object which lets the test method
 //     // set the actual orientation of the vehicle
 //     TEST_UTILITY_FUNC(holdCurrentHeading)

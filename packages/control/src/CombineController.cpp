@@ -50,14 +50,22 @@ namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, config)  
+    ControllerBase(vehicle, config),
+    m_transController(ITranslationalControllerImpPtr()),
+    m_depthController(IDepthControllerImpPtr()),
+    m_rotController(IRotationalControllerImpPtr()),
+    m_initializationPause(0)
 { 
     init(config);
 }
 
 CombineController::CombineController(core::ConfigNode config,
                                      core::SubsystemList deps) :
-    ControllerBase(config, deps)
+    ControllerBase(config, deps),
+    m_transController(ITranslationalControllerImpPtr()),
+    m_depthController(IDepthControllerImpPtr()),
+    m_rotController(IRotationalControllerImpPtr()),
+    m_initializationPause(0)
 {
     init(config);
 }
@@ -80,6 +88,8 @@ void CombineController::init(core::ConfigNode config)
     // Create rotational controller
     node = config["RotationalController"];
     m_rotController = RotationalControllerImpMaker::newObject(node);
+
+    m_initializationPause = config["InitializationPause"].asDouble(0);
 }
 
 void CombineController::doUpdate(const double& timestep,
@@ -92,6 +102,13 @@ void CombineController::doUpdate(const double& timestep,
                                  math::Vector3& translationalForceOut,
                                  math::Vector3& rotationalTorqueOut)
 {
+
+    if (m_initializationPause > 0)
+    {
+        m_initializationPause -= timestep;
+    	return;
+    }
+
     // Update controllers
     math::Vector3 inPlaneControlForce(
         m_transController->translationalUpdate(timestep, linearAcceleration,
@@ -122,10 +139,10 @@ void CombineController::setSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    double sidewaysSpeed = desiredState->getDesiredVelocity()[1];
+    double sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
 
-    setDesiredVelocity(math::Vector2(speed,sidewaysSpeed), IController::BODY_FRAME);
-    m_transController->setControlMode(ControlMode::VELOCITY);
+    setDesiredVelocity(math::Vector2(speed,sidewaysSpeed), IController::INERTIAL_FRAME);
+    m_transController->setControlMode(ControlMode::OPEN_LOOP);
 }
 
 void CombineController::setSidewaysSpeed(double speed)
@@ -135,10 +152,10 @@ void CombineController::setSidewaysSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    double forewardSpeed = desiredState->getDesiredVelocity()[0];
+    double forewardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
 
-    setDesiredVelocity(math::Vector2(forewardSpeed,speed), IController::BODY_FRAME);
-    m_transController->setControlMode(ControlMode::VELOCITY);
+    setDesiredVelocity(math::Vector2(forewardSpeed,speed), IController::INERTIAL_FRAME);
+    m_transController->setControlMode(ControlMode::OPEN_LOOP);
 }
 
 void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)

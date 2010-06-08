@@ -535,9 +535,17 @@ bool SensorBoard::handleReturn(int ret)
 
 void SensorBoard::depthEvent(double depth)
 {
+    /* should be removed when state estimator transition is complete */
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
     publish(IDepthSensor::UPDATE, event);
+
+    /* publish the new depth sensor reading */
+    vehicle::RawDepthSensorDataEventPtr rawEvent(
+        new vehicle::RawDepthSensorDataEvent());
+    rawEvent->rawDepth = depth;
+    rawEvent->sensorLocation = getLocation();
+    publish(IDepthSensor::RAW_UPDATE, rawEvent);
 }
     
 void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)

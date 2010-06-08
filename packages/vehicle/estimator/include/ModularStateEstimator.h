@@ -18,8 +18,8 @@
 #include "vehicle/estimator/include/StateEstimatorBase.h"
 #include "vehicle/estimator/include/modules/IncludeAllModules.h"
 
-#ifndef RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
-#define RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#ifndef RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#define RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
 
 namespace ram {
 namespace estimator {
@@ -44,6 +44,10 @@ protected:
     virtual void update_Vision(core::EventPtr event);
     virtual void update_Sonar(core::EventPtr event);
 
+    virtual void init_IMU(core::EventPtr event);
+    virtual void init_DVL(core::EventPtr event);
+    virtual void init_DepthSensor(core::EventPtr event);
+
 private:
     /* These contain estimation routines that are config swappable */
     EstimationModulePtr dvlEstimationModule;
@@ -51,15 +55,18 @@ private:
     EstimationModulePtr depthEstimationModule;
 
     /* These contain the most recent events passed to each update function */
+    /* I dont think these are necessary any more. This storage should occur in
+       the estimation modules */
     core::EventPtr rawDVLDataEvent;
     core::EventPtr rawIMUDataEvent;
     core::EventPtr rawBoomIMUDataEvent;
     core::EventPtr rawDepthDataEvent;
 
+    /* this may be removed in the future*/
     vehicle::IVehiclePtr m_vehicle;
 };
 
 } // namespace estimator
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#endif // RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H

@@ -34,20 +34,6 @@ public:
     
     virtual ~DepthControllerBase() {}
 
-    // virtual void setDepth(double depth);
-
-    // virtual double getDepth();
-
-    // /** This is basically ignored, most likely will be removed */
-    // virtual double getEstimatedDepth() { return 0.0; }
-    
-    // /** This is basically ignored, most likely will be removed*/
-    // virtual double getEstimatedDepthDot() { return 0.0; }
-    
-    // virtual bool atDepth();
-
-    // virtual void holdCurrentDepth();
-
     /** Does housing keeping work, should be called first in every override
      *
      *  When this method is overridden to implement your controller, call this
@@ -57,20 +43,20 @@ public:
                                       math::Quaternion orienation,
                                       controltest::DesiredStatePtr desiredState);
 protected:
-    /** When we are within this limit atDepth returns */
-    double m_depthThreshold;
+    // /** When we are within this limit atDepth returns */
+    // double m_depthThreshold;
 
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
     /** The depth from the last update command */
-    double m_currentDepth;
+    // double m_currentDepth;
 
-    math::Quaternion m_currentOrientation;
+    // math::Quaternion m_currentOrientation;
 
-    bool m_atDepth;
+    // bool m_atDepth;
 
-    bool m_atOrientation;
+    // bool m_atOrientation;
 
  private:
     /** Does all initialzation based on the configuration settings */

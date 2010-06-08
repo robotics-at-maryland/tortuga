@@ -153,29 +153,41 @@ Controller:
     depends_on: ["Vehicle", "EventHub"]
     type: CombineController
 
+    # wait for this amout of time before doing control
+    initializationPause: 2
+
+    # hold our initial depth and heading
+    holdCurrentHeading: 1
+    holdCurrentDepth: 1
+
+    velocityThreshold: 0.1
+    positionThreshold: 0.1
+    depthThreshold: 0.05
+    orientationThreshold: 0.01
+
     TranslationalController:
-        type: TrackingTranslationalController
-        velocityThreshold: 0.1
-        positionThreshold: 0.1
-        x1kp: 10
-        x1ki: 1
-        x1kd: 3
-        x2kp: 10
-        x2ki: 1
-        x2kd: 3
+        #type: TrackingTranslationalController
+        #x1kp: 10
+        #x1ki: 1
+        #x1kd: 3
+        #x2kp: 10
+        #x2ki: 1
+        #x2kd: 3
+
+        type: OpenLoopTranslationalController
+        speedPGain: 8
+        sidewaysSpeedPGain: 8
 
     DepthController:
         type: PIDDepthController
-        depthThreshold: 0.05
-        kp: 10
-        ki: 1
-        kd: 3
+        kp: 30
+        ki: 0.5
+        kd: 10
         dtMin: 0.005
         dtMax: 0.05
 
     RotationalController:
         type: NonlinearPDRotationalController
-        orientationThreshold: 0.01
         kp: 10
         kd: 6
         dtMin: 0.005
@@ -206,10 +218,11 @@ Simulation:
         #Main: objectives/duct.sml
         #Main: objectives/multi_pipe.sml
         #Main: objectives/barbedwire.sml
+        #Main: objectives/hedge.sml
         #Main: objectives/target.sml
-        Main: objectives/target2.sml
+        #Main: objectives/target2.sml
         #Main: objectives/buoy.sml
-        #Main: objectives/buoy2.sml
+        Main: objectives/multi_buoy.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
         #Main: transdec.sml

@@ -399,10 +399,10 @@ void BWPDController::update(double timestep)
     else
     {
         if (m_holdStartOrientation)
-	{
-	    holdCurrentHeading();
-	    m_holdStartOrientation = false;
-	}
+        {
+            holdCurrentHeading();
+            m_holdStartOrientation = false;
+        }
     }
 
     // Grab latest state (preform small hack to copy it over for the controller)

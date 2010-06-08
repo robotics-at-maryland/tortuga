@@ -93,6 +93,10 @@ class SimDepthSensor(SimDevice, device.IDepthSensor):
         event = math.NumericEvent()
         event.number = self.getDepth()
         self.publish(device.IDepthSensor.UPDATE, event)
+        rawEvent = vehicle.RawDepthSensorDataEvent()
+        rawEvent.rawDepth = self.getDepth()
+        rawEvent.sensorLocation = self.getLocation()
+        self.publish(device.IDepthSensor.RAW_UPDATE, rawEvent)
         
     def getDepth(self):
         # Down is positive for depth

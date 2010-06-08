@@ -54,11 +54,13 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     m_atDepth(false),
     m_atOrientation(false),
     m_atVelocity(false),
-    m_atPosition(false),
-    m_depthThreshold(0),
-    m_orientationThreshold(0),
-    m_velocityThreshold(0),
-    m_positionThreshold(0)
+    m_atPosition(false), 
+    m_depthThreshold(0.05),
+    m_orientationThreshold(0.05),
+    m_velocityThreshold(0.05),
+    m_positionThreshold(0.05),
+    m_initHoldDepth(1),
+    m_initHoldHeading(1)
 {   
     init(config); 
 }
@@ -85,10 +87,12 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_atOrientation(false),
     m_atVelocity(false),
     m_atPosition(false),
-    m_depthThreshold(0),
-    m_orientationThreshold(0),
-    m_velocityThreshold(0),
-    m_positionThreshold(0)
+    m_depthThreshold(0.05),
+    m_orientationThreshold(0.05),
+    m_velocityThreshold(0.05),
+    m_positionThreshold(0.05),
+    m_initHoldDepth(1),
+    m_initHoldHeading(1)
 {
 
 
@@ -171,6 +175,7 @@ ControllerBase::~ControllerBase()
 void ControllerBase::update(double timestep)
 {
     // Get vehicle state
+    // once the new state estimator is complete, change m_vehicle to stateEstimator
     math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
     math::Quaternion orientation(m_vehicle->getOrientation());
     math::Vector3 angularRate(m_vehicle->getAngularRate());
@@ -188,39 +193,6 @@ void ControllerBase::update(double timestep)
 
     // Actually set motor values
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
-    
-    // We use to be at depth now we aren't
-    if (m_atDepth && !atDepth())
-        m_atDepth = false;
-    // We weren't at depth, now we are
-    else if (!m_atDepth && atDepth()){
-        publishAtDepth(getDepth());
-    }
-
-    // We used to be at orientation now we aren't
-    if (m_atOrientation && !atOrientation())
-        m_atOrientation = false;
-    // We weren't at orientation, now we are
-    else if (!m_atOrientation && atOrientation()){
-        publishAtOrientation(getDesiredOrientation());
-    }
-
-    // We used to be at velocity now we aren't
-    if (m_atVelocity && !atVelocity())
-        m_atVelocity = false;
-    // We weren't at velocity, now we are
-    else if (!m_atVelocity && atVelocity()){
-        publishAtVelocity(getDesiredVelocity(IController::INERTIAL_FRAME));
-    }
-
-    // We used to be at position now we aren't
-    if (m_atPosition && !atPosition())
-        m_atPosition = false;
-    // We weren't at position, now we are
-    else if (!m_atPosition && atPosition()){
-        publishAtPosition(getDesiredPosition(IController::INERTIAL_FRAME));
-    }
-
 }
 
 void ControllerBase::setVelocity(math::Vector2 velocity)
@@ -230,6 +202,7 @@ void ControllerBase::setVelocity(math::Vector2 velocity)
 
 void ControllerBase::setSpeed(double speed)
 {
+    // clip speed at 5
     if(speed > 5)
         speed = 5;
     else if(speed < -5)
@@ -240,6 +213,7 @@ void ControllerBase::setSpeed(double speed)
 
 void ControllerBase::setSidewaysSpeed(double speed)
 {
+    // clip speed at 5
     if(speed > 5)
         speed = 5;
     else if(speed < -5)
@@ -418,6 +392,14 @@ void ControllerBase::init(core::ConfigNode config)
         config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
     m_positionThreshold = config["positionThreshold"].asDouble(POSITION_THRESHOLD);
     m_velocityThreshold = config["velocityThreshold"].asDouble(VELOCITY_THRESHOLD);
+
+    m_initHoldDepth = config["holdCurrentDepth"].asInt(1);
+    m_initHoldHeading = config["holdCurrentHeading"].asInt(1);
+
+    if(m_initHoldDepth)
+        holdCurrentDepth();
+    if(m_initHoldHeading)
+        holdCurrentHeading();
 }
                       
 void ControllerBase::publishAtDepth(const double& depth)

@@ -12,6 +12,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IVelocitySensor, UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IVelocitySensor, RAW_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IVelocitySensor, INIT);
 
 namespace ram {
 namespace vehicle {

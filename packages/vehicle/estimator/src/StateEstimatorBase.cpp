@@ -27,7 +27,12 @@ StateEstimatorBase::StateEstimatorBase(
     updateConnection_DepthSensor(core::EventConnectionPtr()),
     updateConnection_Sonar(core::EventConnectionPtr()),
     updateConnection_Vision(core::EventConnectionPtr()),
-    estimatedState(EstimatedStatePtr(new EstimatedState()))
+    initConnection_IMU(core::EventConnectionPtr()),
+    initConnection_DVL(core::EventConnectionPtr()),
+    initConnection_DepthSensor(core::EventConnectionPtr()),
+    estimatedState(EstimatedStatePtr(new EstimatedState(
+                                         config["EstiamtedState"],
+                                         eventHub)))
 {
 
 

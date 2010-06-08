@@ -103,6 +103,7 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
                 " Gyro-Raw Quat TimeStamp");
 
+    // what is the purpose of this?
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
 }
@@ -141,7 +142,6 @@ void IMU::update(double timestep)
                 new RawIMUDataEvent());
             rawIMUDataEvent->rawIMUData = newState;
             rawIMUDataEvent->name = getName();
-            std::cout << "sending raw imu update" << std::endl;
             publish(IIMU::RAW_UPDATE,rawIMUDataEvent);
             
             

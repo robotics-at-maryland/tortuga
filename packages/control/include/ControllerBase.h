@@ -275,13 +275,15 @@ private:
     bool m_atVelocity;
     bool m_atPosition;
     
-    /** When we are within this limit we send off the AT_*** event */
+    /** When we are within these limits we send off the AT_*** event */
     double m_depthThreshold;
     double m_orientationThreshold;
     double m_velocityThreshold;
     double m_positionThreshold;
     
-
+    /** determine if we initially hold our depth and heading */
+    int m_initHoldDepth;
+    int m_initHoldHeading;
     
 };
     

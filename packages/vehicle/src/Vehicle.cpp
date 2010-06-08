@@ -155,7 +155,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     {
         stateEstimator = estimator::IStateEstimatorPtr(
             new estimator::ModularStateEstimator(
-                config,
+                config["NewStateEstimator"],
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
     }

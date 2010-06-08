@@ -14,6 +14,7 @@
 #include "core/include/Event.h"
 #include "math/include/Events.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix3.h"
 
 #include "drivers/imu/include/imuapi.h"
 #include "drivers/dvl/include/dvlapi.h"
@@ -89,6 +90,7 @@ struct RawIMUDataEvent : public core::Event
 {
     std::string name;
     RawIMUData rawIMUData;
+    math::Vector3 sensorLocation;
 
     virtual core::EventPtr clone();
 };
@@ -98,6 +100,7 @@ typedef boost::shared_ptr<RawIMUDataEvent> RawIMUDataEventPtr;
 struct RawDVLDataEvent : public core::Event
 {
     RawDVLData rawDVLData;
+    math::Vector3 sensorLocation;
 
     virtual core::EventPtr clone();
 };
@@ -106,11 +109,58 @@ typedef boost::shared_ptr<RawDVLDataEvent> RawDVLDataEventPtr;
 
 struct RawDepthSensorDataEvent : public core::Event
 {
-    /*TODO*/
+    double rawDepth;
+    math::Vector3 sensorLocation;
+
     virtual core::EventPtr clone();
 };
 
 typedef boost::shared_ptr<RawDepthSensorDataEvent> RawDepthSensorDataEventPtr;
+
+
+/* The following events exist so that when a sensor is created, it can publish
+   its calibration values that might be needed by other parts of the code.  These
+   values arent passed in the update events for efficiency purposes since they will
+   not change during runtime */
+
+struct IMUInitEvent : public core::Event
+{
+    std::string name;
+    
+    // rotation matrix from imu frame to vehicle frame
+    math::Matrix3 IMUtoVehicleFrame;
+
+    // [magXBias, magYBias, magZBias]
+    math::Vector3 magBias;
+
+    // [gyroXBias, gyroYBias, gyroZBias]
+    math::Vector3 gyroBias;
+
+    double magCorruptThreshold;
+    double magNominalLength;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<IMUInitEvent> IMUInitEventPtr;
+
+struct DVLInitEvent : public core::Event
+{
+    // not sure what all needs to go here
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<DVLInitEvent> DVLInitEventPtr;
+
+struct DepthSensorInitEvent : public core::Event
+{
+    // not sure if anything needs to go here
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<DepthSensorInitEvent> DepthSensorInitEventPtr;
     
 } // namespace vehicle
 } // namespace ram

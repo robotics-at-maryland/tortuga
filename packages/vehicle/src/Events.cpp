@@ -95,6 +95,7 @@ core::EventPtr RawIMUDataEvent::clone()
     RawIMUDataEventPtr event = RawIMUDataEventPtr(new RawIMUDataEvent());
     event->name = name;
     event->rawIMUData = rawIMUData;
+    event->sensorLocation = sensorLocation;
     return event;
 }
 
@@ -102,6 +103,7 @@ core::EventPtr RawDVLDataEvent::clone()
 {
     RawDVLDataEventPtr event = RawDVLDataEventPtr(new RawDVLDataEvent());
     event->rawDVLData = rawDVLData;
+    event->sensorLocation = sensorLocation;
     return event;
 }
 
@@ -109,8 +111,38 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 {
     RawDepthSensorDataEventPtr event = RawDepthSensorDataEventPtr(
         new RawDepthSensorDataEvent());
+    event->rawDepth = rawDepth;
+    event->sensorLocation = sensorLocation;
     return event;
 }
-    
+
+core::EventPtr IMUInitEvent::clone()
+{
+    IMUInitEventPtr event = IMUInitEventPtr(new IMUInitEvent());
+
+    event->name = name;
+    event->IMUtoVehicleFrame = math::Matrix3(IMUtoVehicleFrame);
+    event->magBias = math::Vector3(magBias);
+    event->gyroBias = math::Vector3(gyroBias);
+    event->magCorruptThreshold = magCorruptThreshold;
+    event->magNominalLength = magNominalLength;
+
+    return event;
+}
+
+core::EventPtr DVLInitEvent::clone()
+{
+    DVLInitEventPtr event = DVLInitEventPtr(new DVLInitEvent());
+    return event;
+}
+
+core::EventPtr DepthSensorInitEvent::clone()
+{
+    DepthSensorInitEventPtr event = DepthSensorInitEventPtr(
+        new DepthSensorInitEvent());
+    return event;
+}
+
+
 } // namespace vehicle
 } // namespace ram

@@ -40,12 +40,6 @@ math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
                                               math::Quaternion orientation,
                                               controltest::DesiredStatePtr desiredState)
 {
-    {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        m_currentDepth = depth;
-        m_currentOrientation = orientation;
-    }
-
     double desiredDepth = desiredState->getDesiredDepth();
 
     if(timestep < dt_min)
@@ -53,18 +47,17 @@ math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
     if(timestep > dt_max)
         timestep = dt_max;
 
-    double error = m_currentDepth - desiredDepth;
-    double errorDot = (m_currentDepth - m_prevDepth)/timestep;
+    double error = depth - desiredDepth;
+    double errorDot = (depth - m_prevDepth)/timestep;
     double errorInt = m_depthSumError+error*timestep;
 
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_depthSumError = errorInt;
-        m_prevDepth = m_currentDepth;
+        m_prevDepth = depth;
     }
 
     double depthControlSignal = - (m_kp*error + m_kd*errorDot + m_ki*errorInt);
-
 
     math::Vector3 controlSignal(0,0,-depthControlSignal);
 

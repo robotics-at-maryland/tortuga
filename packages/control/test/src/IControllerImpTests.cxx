@@ -105,6 +105,10 @@ TEST_UTILITY_IMP(setGetSpeed, (ram::control::IController* controller))
     controller->setSpeed(speed);
     CHECK_EQUAL(5, controller->getSpeed());
 
+    controller->yawVehicle(30);
+    controller->setSpeed(-2);
+    CHECK_EQUAL(-2, controller->getSpeed());
+
 //     double speed = 1.5;
 //     controller->setSpeed(speed);
 //     CHECK_EQUAL(speed, controller->getSpeed());
@@ -116,6 +120,10 @@ TEST_UTILITY_IMP(setGetSidewaysSpeed, (ram::control::IController* controller))
     double sidewaysSpeed = 2.8;
     controller->setSidewaysSpeed(sidewaysSpeed);
     CHECK_EQUAL(sidewaysSpeed, controller->getSidewaysSpeed());
+
+    controller->yawVehicle(-40);
+    controller->setSidewaysSpeed(-6);
+    CHECK_EQUAL(-5, controller->getSidewaysSpeed());
 
 //     double sidewaysSpeed = 1.5;
 //     controller->setSidewaysSpeed(sidewaysSpeed);

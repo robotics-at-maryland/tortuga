@@ -49,11 +49,11 @@ class RAM_EXPORT TranslationalControllerBase :
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
-    math::Vector2 m_currentVelocity;
-    math::Vector2 m_currentPosition;
+    // math::Vector2 m_currentVelocity;
+    // math::Vector2 m_currentPosition;
 
-    double m_positionThreshold;
-    double m_velocityThreshold;
+    // double m_positionThreshold;
+    // double m_velocityThreshold;
 
     /** What type of translation control we are doing */
     ControlMode::ModeType m_controlMode;

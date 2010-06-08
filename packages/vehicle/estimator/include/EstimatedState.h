@@ -22,7 +22,9 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "vehicle/estimator/include/IStateEstimator.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventPublisher.h"
 #include "vehicle/estimator/include/Obstacle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -34,11 +36,12 @@ namespace estimator {
 class EstimatedState;
 typedef boost::shared_ptr<EstimatedState> EstimatedStatePtr;
 
-class EstimatedState
+class EstimatedState : public core::EventPublisher
 {
 public:
 
-    EstimatedState();
+    EstimatedState(core::ConfigNode config,
+                   core::EventHubPtr eventHub = core::EventHubPtr());
     virtual ~EstimatedState(){};
 
     math::Vector2 getEstimatedPosition();
@@ -66,6 +69,14 @@ public:
 
 
 private:
+
+    void publishPositionUpdate(const math::Vector2& position);
+    void publishVelocityUpdate(const math::Vector2& velocity);
+    void publishLinearAccelerationUpdate(const math::Vector3& linearAcceleration);
+    void publishAngularRateUpdate(const math::Vector3& angularRate);
+    void publishOrientationUpdate(const math::Quaternion& orientation);
+    void publishDepthUpdate(const double& depth);
+    void publishDepthDotUpdate(const double& depthDot);
 
     core::ReadWriteMutex m_stateMutex;
 

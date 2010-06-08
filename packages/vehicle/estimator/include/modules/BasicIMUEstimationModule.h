@@ -30,6 +30,10 @@ public:
     BasicIMUEstimationModule(core::ConfigNode config);
     ~BasicIMUEstimationModule(){};
 
+
+    /* This is called when an IMU publishes its calibration values */
+    virtual void init(core::EventPtr event);
+
     /* The IMU Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
     virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);

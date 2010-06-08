@@ -108,6 +108,15 @@ Vehicle:
             depends_on: ["SimulationDevice"]
             type: SimDepthSensor
 
+    NewStateEstimator:
+        DVLEstimationModule:
+            type: BasicDVLEstimationModule
+        IMUEstimationModule:
+            type: BasicIMUEstimationModule
+
+
+        DepthEstimationModule:
+            type: BasicDepthEstimationModule
 
 # Exectures Motions
 MotionManager:
@@ -170,21 +179,22 @@ Controller:
 
     #Select type of Depth Controller
     # set depthControlType = (1 for P control) 
-    #                   (2 for observer control for a 2d depth state) 
-    #                       (3 for observer control for a 4d depth state)
-    #                       (4 for observer control with scaling for a 4d depth state)
-    #                       (5 for PID control)
+    #                        (2 for observer control for a 2d depth state) 
+    #                        (3 for observer control for a 4d depth state)
+    #                        (4 for observer control with scaling for a 4d depth state)
+    #                        (5 for PID control)
     depthControlType: 5
     dtMin: .001
     dtMax: .05
+
     #parameters for depth P controller
     depthPGain: 20
+
     #parameters for depth observer controller 
     depthKx: 34.06
     depthKy: 40.70
     depthLx: 43.53
     depthLy: 461.17
-
 
     #parameters for depth PID controller
     # PID 1
@@ -223,7 +233,6 @@ Controller:
     depthBy: 0.05
     depthCx: 1
     depthCy: 0
-
 
     depthOCGainK: [1, 2]
     depthOCGainL: [3, 4]

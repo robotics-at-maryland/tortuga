@@ -12,11 +12,14 @@
 
 // Package Includes
 #include "vehicle/estimator/include/EstimatedState.h"
+#include "math/include/Events.h"
+#include "core/include/ReadWriteMutex.h"
 
 namespace ram {
 namespace estimator {
 
-EstimatedState::EstimatedState() :
+EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventHub) :
+    core::EventPublisher(eventHub, "EstimatedState"),
     estimatedPosition(math::Vector2::ZERO),
     estimatedVelocity(math::Vector2::ZERO),
     estimatedLinearAcceleration(math::Vector3::ZERO),
@@ -72,45 +75,73 @@ double EstimatedState::getEstimatedDepthDot()
 
 void EstimatedState::setEstimatedPosition(math::Vector2 position)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedPosition = position;
+    }    
+    publishPositionUpdate(position);
 }
 
 void EstimatedState::setEstimatedVelocity(math::Vector2 velocity)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedVelocity = velocity;
+    }
+    publishVelocityUpdate(velocity);
 }
 
 void EstimatedState::setEstimatedLinearAcceleration(
     math::Vector3 linearAcceleration)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedLinearAcceleration = linearAcceleration;
+    }    
+    publishLinearAccelerationUpdate(linearAcceleration);
 }
 
 void EstimatedState::setEstimatedAngularRate(
     math::Vector3 angularRate)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedAngularRate = angularRate;
+    }
+    publishAngularRateUpdate(angularRate);
 }
 
 void EstimatedState::setEstimatedOrientation(
     math::Quaternion orientation)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedOrientation = orientation;
+    }
+    publishOrientationUpdate(orientation);
 }
 
 void EstimatedState::setEstimatedDepth(double depth)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedDepth = depth;
+    }
+    publishDepthUpdate(depth);
 }
 
 void EstimatedState::setEstimatedDepthDot(double depthDot)
 {
-
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estimatedDepthDot = depthDot;
+    }
+    publishDepthDotUpdate(depthDot);
 }
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
 {
-
+    std::cout << "EstimatedState::addObstacle - NOT YET IMPLEMENTED" << std::endl;
 }
 
 math::Vector2 EstimatedState::getObstaclePosition(std::string name)
@@ -121,6 +152,50 @@ math::Vector2 EstimatedState::getObstaclePosition(std::string name)
 double EstimatedState::getObstacleDepth(std::string name)
 {
     return 0;
+}
+
+
+void EstimatedState::publishPositionUpdate(const math::Vector2& position)
+{
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = position;
+    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+}
+void EstimatedState::publishVelocityUpdate(const math::Vector2& velocity)
+{
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = velocity;
+    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+}
+void EstimatedState::publishLinearAccelerationUpdate(const math::Vector3& linearAcceleration)
+{
+    math::Vector3EventPtr event(new math::Vector3Event());
+    event->vector3 = linearAcceleration;
+    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+}
+void EstimatedState::publishAngularRateUpdate(const math::Vector3& angularRate)
+{
+    math::Vector3EventPtr event(new math::Vector3Event());
+    event->vector3 = angularRate;
+    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+}
+void EstimatedState::publishOrientationUpdate(const math::Quaternion& orientation)
+{
+    math::OrientationEventPtr event(new math::OrientationEvent());
+    event->orientation = orientation;
+    publish(estimator::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE, event);
+}
+void EstimatedState::publishDepthUpdate(const double& depth)
+{
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = depth;
+    publish(estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
+}
+void EstimatedState::publishDepthDotUpdate(const double& depthDot)
+{
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = depthDot;
+    publish(estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
 }
 
 } // namespace estimator

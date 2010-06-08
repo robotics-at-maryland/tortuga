@@ -20,8 +20,9 @@
 namespace ram {
 namespace control {
 
-DepthControllerBase::DepthControllerBase(core::ConfigNode config) :
-    m_currentDepth(0)
+DepthControllerBase::DepthControllerBase(core::ConfigNode config)
+ // :
+ //    m_currentDepth(0)
 {
     init(config);
 }
@@ -30,17 +31,17 @@ math::Vector3 DepthControllerBase::depthUpdate(double timestep, double depth,
                                                math::Quaternion orientation,
                                                controltest::DesiredStatePtr desiredState)
 { 
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_currentDepth = depth;
-    m_currentOrientation = orientation;
+    // core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    // m_currentDepth = depth;
+    // m_currentOrientation = orientation;
 
     return math::Vector3::ZERO;
 }
 
 void DepthControllerBase::init(core::ConfigNode config)
 {
-    m_depthThreshold =
-        config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+    // m_depthThreshold =
+    //     config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
 }
 
 } // namespace control

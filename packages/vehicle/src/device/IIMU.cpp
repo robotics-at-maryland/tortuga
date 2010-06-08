@@ -12,6 +12,7 @@
 
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, UPDATE);
 RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, RAW_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IIMU, INIT);
 
 namespace ram {
 namespace vehicle {
