@@ -79,6 +79,12 @@ envt.RAMProgram(target = 'DetectorTest',
                 int_deps = detectorIntDeps,
                 ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
 
+# Undistort Test
+envt.RAMProgram(target = 'UndistortTest',
+                source = 'test/src/UndistortTest.cpp',
+                int_deps = ['vision'],
+                ext_deps = ['Boost.ProgramOptions', 'Boost.Regex'])
+
 # Network Trainer
 envt.RAMProgram(target = 'NetworkTrainer',
                 source = 'test/src/NetworkTrainer.cpp',
@@ -88,6 +94,12 @@ envt.RAMProgram(target = 'NetworkTrainer',
 envt.RAMProgram(target = 'PhaseCorrelation',
                 source = 'test/src/phase_correlation.cpp',
                 int_deps = ['vision'], ext_deps = ['fftw'])
+
+# BuoyTest
+envt.RAMProgram(target = 'BuoyTest', 
+                source = 'test/src/BuoyTest.cpp',
+                int_deps = ['core', 'vision'],
+                ext_deps = ['Boost.Filesystem'])
 
 
 # Unit Tests
