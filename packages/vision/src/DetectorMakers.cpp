@@ -30,6 +30,7 @@
 #include "vision/include/TargetDetector.h"
 #include "vision/include/BarbedWireDetector.h"
 #include "vision/include/HedgeDetector.h"
+#include "vision/include/WindowDetector.h"
 #include "vision/include/VelocityDetector.h"
 
 namespace ram {
@@ -85,6 +86,9 @@ registerBarbedWireDetector("BarbedWireDetector");
 
 static DetectorMakerTemplate<HedgeDetector>
 registerHedgeDetector("HedgeDetector");
+
+static DetectorMakerTemplate<WindowDetector>
+registerWindowDetector("WindowDetector");
 
 static DetectorMakerTemplate<VelocityDetector>
 registerVelocityDetector("VelocityDetector");

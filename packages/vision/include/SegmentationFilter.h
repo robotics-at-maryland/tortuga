@@ -49,6 +49,8 @@ public:
     int getMin() { return m_min; }
     void setMin(int min) { m_min = min; }
 
+    int getNumColors() { return m_num_ccs; }
+
 private:
     float m_sigma;
     float m_k;
