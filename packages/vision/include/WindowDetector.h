@@ -33,26 +33,6 @@ namespace vision {
 
 class RAM_EXPORT WindowDetector : public Detector
 {
-  private:
-    struct Area {
-        size_t minX;
-        size_t maxX;
-        size_t minY;
-        size_t maxY;
-        size_t pixels;
-        
-        Area() :
-            minX(0),
-            maxX(0),
-            minY(0),
-            maxY(0),
-            pixels(0)
-        {
-        }
-    };
-
-    typedef std::map<CvScalar, Area, bool(*)(CvScalar,CvScalar)> ScalarMap;
-
   public:
     WindowDetector(core::ConfigNode config,
                    core::EventHubPtr eventHub = core::EventHubPtr());
@@ -68,26 +48,9 @@ class RAM_EXPORT WindowDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
-    // Filters the blobs for possible matches
-    void filterBlobs(ScalarMap& blobMap, BlobDetector::BlobList& blobs);
-
-    // Find closest blob
-    void closestBlob(BlobDetector::BlobList& blobs,
-                     const BlobDetector::Blob& oldBlob,
-                     BlobDetector::Blob **outBlob);
-
-    // Help functions for extrapolatePositions
-    void extrapolate3(BlobDetector::BlobList& blobs,
-                      BlobDetector::Blob *topLeft,
-                      BlobDetector::Blob *topRight,
-                      BlobDetector::Blob *bottomLeft,
-                      BlobDetector::Blob *bottomRight);
-
-    void extrapolatePositions(BlobDetector::BlobList& blobs,
-                              BlobDetector::Blob *topLeft,
-                              BlobDetector::Blob *topRight,
-                              BlobDetector::Blob *bottomLeft,
-                              BlobDetector::Blob *bottomRight);
+    // Normal processing to find one blob/color
+    bool processColor(Image* input, Image* output,
+                      ColorFilter& filter, BlobDetector::Blob& outBlob);
     
     // Process current state, and publishes TARGET_FOUND event
     void publishFoundEvent(const BlobDetector::Blob& blob,
@@ -97,15 +60,20 @@ class RAM_EXPORT WindowDetector : public Detector
 
     Camera *cam;
     
-    /** Stores the segmentation filter */
-    SegmentationFilter *m_filter;
+    /** Stores the various color filter */
+    ColorFilter *m_redFilter;
+    ColorFilter *m_greenFilter;
+    ColorFilter *m_yellowFilter;
+    ColorFilter *m_blueFilter;
 
     /** Blob detector */
     BlobDetector m_blobDetector;
 
     Image *frame;
-    Image *filtered;
-    Image *binary;
+    Image *redFrame;
+    Image *greenFrame;
+    Image *yellowFrame;
+    Image *blueFrame;
 
     // Configuration variables
     double m_maxAspectRatio;
@@ -115,21 +83,7 @@ class RAM_EXPORT WindowDetector : public Detector
     int m_minHeight;
 
     double m_minPixelPercentage;
-
     double m_maxDistance;
-
-    // Previous window positions
-    bool m_topLeftFound;
-    BlobDetector::Blob m_topLeftWindow;
-    
-    bool m_bottomLeftFound;
-    BlobDetector::Blob m_bottomLeftWindow;
-
-    bool m_topRightFound;
-    BlobDetector::Blob m_topRightWindow;
-
-    bool m_bottomRightFound;
-    BlobDetector::Blob m_bottomRightWindow;
 
     int m_debug;
 };
