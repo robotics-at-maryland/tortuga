@@ -48,11 +48,11 @@ class RAM_EXPORT WindowDetector : public Detector
   private:
     void init(core::ConfigNode config);
 
-    // Normal processing to find one blob/color
+    /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output,
                       ColorFilter& filter, BlobDetector::Blob& outBlob);
     
-    // Process current state, and publishes TARGET_FOUND event
+    /* Process current state, and publishes TARGET_FOUND event */
     void publishFoundEvent(const BlobDetector::Blob& blob,
                            Color::ColorType color);
 
@@ -60,7 +60,7 @@ class RAM_EXPORT WindowDetector : public Detector
 
     Camera *cam;
     
-    /** Stores the various color filter */
+    /** Stores the various color filters */
     ColorFilter *m_redFilter;
     ColorFilter *m_greenFilter;
     ColorFilter *m_yellowFilter;
@@ -75,7 +75,12 @@ class RAM_EXPORT WindowDetector : public Detector
     Image *yellowFrame;
     Image *blueFrame;
 
-    // Configuration variables
+    bool m_redFound;
+    bool m_greenFound;
+    bool m_yellowFound;
+    bool m_blueFound;
+
+    /* Configuration variables */
     double m_maxAspectRatio;
     double m_minAspectRatio;
 

@@ -185,27 +185,43 @@ void WindowDetector::processImage(Image* input, Image* output)
         publishFoundEvent(redBlob, Color::RED);
     } else {
         // Publish lost event if this was found previously
+        if (m_redFound) {
+            publishLostEvent(Color::RED);
+        }
     }
+    m_redFound = redFound;
 
     if ((greenFound = processColor(frame, greenFrame,
                                    *m_greenFilter, greenBlob))) {
         publishFoundEvent(greenBlob, Color::GREEN);
     } else {
         // Publish lost event if this was found previously
+        if (m_greenFound) {
+            publishLostEvent(Color::GREEN);
+        }
     }
+    m_greenFound = greenFound;
 
     if ((yellowFound = processColor(frame, yellowFrame,
                                     *m_yellowFilter, yellowBlob))) {
         publishFoundEvent(yellowBlob, Color::YELLOW);
     } else {
         // Publish lost event if this was found previously
+        if (m_yellowFound) {
+            publishLostEvent(Color::YELLOW);
+        }
     }
+    m_yellowFound = yellowFound;
 
     if ((blueFound = processColor(frame, blueFrame, *m_blueFilter, blueBlob))) {
         publishFoundEvent(blueBlob, Color::BLUE);
     } else {
         // Publish lost event if this was found previously
+        if (m_blueFound) {
+            publishLostEvent(Color::BLUE);
+        }
     }
+    m_blueFound = blueFound;
 
     if (output)
     {
