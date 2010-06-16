@@ -48,6 +48,7 @@ class MockVisionSystem(core.Subsystem):
         self.ductDetector = False
         self.downwardSafeDetector = False
         self.targetDetector = False
+        self.windowDetector = False
         self.barbedWireDetector = False
         self.hedgeDetector = False
          
@@ -92,6 +93,12 @@ class MockVisionSystem(core.Subsystem):
         
     def targetDetectorOff(self):
         self.targetDetector = False
+
+    def windowDetectorOn(self):
+        self.windowDetector = True
+
+    def windowDetectorOff(self):
+        self.windowDetector = False
 
     def barbedWireDetectorOn(self):
         self.barbedWireDetector = True

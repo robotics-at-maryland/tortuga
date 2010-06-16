@@ -86,7 +86,8 @@ class AI(core.Subsystem):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                        'targetDepth', 'binDepth', 'targetSymbols',
                        'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth',
-                       'buoyDepth', 'targetBuoys'])
+                       'buoyDepth', 'targetBuoys', 'windowDepth',
+                       'targetWindows', 'windowOffset'])
         pipeOptions = set(['biasDirection', 'threshold'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
@@ -114,7 +115,7 @@ class AI(core.Subsystem):
                                         "option for %s." % (innerItem, item))
             elif item == 'Light' or item == 'BarbedWire' \
                     or item == 'Target' or item == 'LightStaged' \
-                    or item == 'Hedge':
+                    or item == 'Hedge' or item == 'Buoy' or item == 'Window':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in taskOptions:
                         raise Exception("'%s' is not a valid config "
