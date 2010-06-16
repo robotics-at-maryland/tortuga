@@ -25,6 +25,7 @@
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
 #include "vision/include/TargetDetector.h"
+#include "vision/include/WindowDetector.h"
 #include "vision/include/BarbedWireDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
@@ -68,6 +69,7 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_targetDetector(DetectorPtr()),
+    m_windowDetector(DetectorPtr()),
     m_barbedWireDetector(DetectorPtr()),
     m_hedgeDetector(DetectorPtr()),
     m_velocityDetector(DetectorPtr())
@@ -90,6 +92,7 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_downwardSafeDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_targetDetector(DetectorPtr()),
+    m_windowDetector(DetectorPtr()),
     m_barbedWireDetector(DetectorPtr()),
     m_hedgeDetector(DetectorPtr()),
     m_velocityDetector(DetectorPtr())
@@ -152,6 +155,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new GateDetector(getConfig(config, "GateDetector"), eventHub));
     m_targetDetector = DetectorPtr(
         new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
+    m_windowDetector = DetectorPtr(
+        new WindowDetector(getConfig(config, "WindowDetector"), eventHub));
     m_barbedWireDetector = DetectorPtr(
         new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
                                eventHub));
@@ -350,6 +355,20 @@ void VisionSystem::targetDetectorOff()
 {
     m_forward->removeDetector(m_targetDetector);
     publish(EventType::TARGET_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::windowDetectorOn()
+{
+    addForwardDetector(m_windowDetector);
+    publish(EventType::WINDOW_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::windowDetectorOff()
+{
+    m_forward->removeDetector(m_windowDetector);
+    publish(EventType::WINDOW_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
 

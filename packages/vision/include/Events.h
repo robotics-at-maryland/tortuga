@@ -68,6 +68,10 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType TARGET_LOST;
     static const core::Event::EventType TARGET_DETECTOR_ON;
     static const core::Event::EventType TARGET_DETECTOR_OFF;
+    static const core::Event::EventType WINDOW_FOUND;
+    static const core::Event::EventType WINDOW_LOST;
+    static const core::Event::EventType WINDOW_DETECTOR_ON;
+    static const core::Event::EventType WINDOW_DETECTOR_OFF;
     static const core::Event::EventType BARBED_WIRE_FOUND;
     static const core::Event::EventType BARBED_WIRE_LOST;
     static const core::Event::EventType BARBED_WIRE_DETECTOR_ON;
@@ -275,6 +279,9 @@ class RAM_EXPORT TargetEvent : public core::Event
 };
     
 typedef boost::shared_ptr<TargetEvent> TargetEventPtr;
+
+typedef TargetEvent WindowEvent;
+typedef TargetEventPtr WindowEventPtr;
 
 class RAM_EXPORT BarbedWireEvent : public core::Event
 {

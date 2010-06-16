@@ -87,7 +87,7 @@ TargetDetector:
     filtUMin: 0
     filtVMax: 179
     filtVMin: 130
- 
+
 BarbedWireDetector:
     bottomRemovePercentage: 0.1
     filtVMax: 247
@@ -100,3 +100,35 @@ VelocityDetector:
 HedgeDetector:
     filtVMin: 130
 
+WindowDetector:
+    debug: 2
+    filtYellowHMax: 143
+    filtYellowHMin: 46
+    filtYellowSMax: 92
+    filtYellowSMin: 0
+    filtYellowVMax: 227
+    filtYellowVMin: 147
+    filtGreenHMax: 130
+    filtGreenHMin: 72
+    filtGreenSMax: 255
+    filtGreenSMin: 118
+    filtGreenVMax: 163
+    filtGreenVMin: 0
+    filtRedHMax: 196
+    filtRedHMin: 0
+    filtRedSMax: 124
+    filtRedSMin: 0
+    filtRedVMax: 158
+    filtRedVMin: 0
+    filtBlueHMax: 113
+    filtBlueHMin: 102
+    filtBlueSMax: 255
+    filtBlueSMin: 183
+    filtBlueVMax: 255
+    filtBlueVMin: 0
+    maxAspectRatio: 3
+    maxDistance: 15
+    minAspectRatio: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.11
+    minWidth: 50

@@ -90,6 +90,9 @@ class RAM_EXPORT WindowDetector : public Detector
     double m_minPixelPercentage;
     double m_maxDistance;
 
+    int m_erodeIterations;
+    int m_dilateIterations;
+
     int m_debug;
 };
 	

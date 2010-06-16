@@ -31,10 +31,24 @@ using namespace ram;
 void drawRedCircle(vision::Image* image, int x, int y, int radius = 50);
 
 static const std::string CONFIG = "{"
-  "'testing' : 1,"
-  "'VelocityDetector' : {"
-  "    'usePhaseCorrelation' : 1"
-  "}"
+    "'testing' : 1,"
+    "'WindowDetector' : {"
+    "    'filtRedHMin' : 0,"
+    "    'filtRedHMax' : 0,"
+    "    'filtRedVMin' : 10,"
+    "    'filtGreenHMin' : 60,"
+    "    'filtGreenHMax' : 60,"
+    "    'filtGreenVMin' : 10,"
+    "    'filtYellowHMin' : 30,"
+    "    'filtYellowHMax' : 30,"
+    "    'filtYellowVMin' : 10,"
+    "    'filtBlueHMin' : 120,"
+    "    'filtBlueHMax' : 120,"
+    "    'filtBlueVMin' : 10"
+    "},"
+    "'VelocityDetector' : {"
+    "    'usePhaseCorrelation' : 1"
+    "}"
 "}";
 
 struct VisionSystemFixture
@@ -52,13 +66,16 @@ struct VisionSystemFixture
         targetFound(false),
         targetEvent(vision::TargetEventPtr()),
 
+        windowFound(false),
+        windowEvent(vision::WindowEventPtr()),
+
         barbedWireFound(false),
         barbedWireEvent(vision::BarbedWireEventPtr()),
         
-        forwardImage(640, 480),
+        forwardImage(640, 480, vision::Image::PF_BGR_8),
         forwardCamera(new MockCamera(&forwardImage)),
 
-        downwardImage(640, 480),
+        downwardImage(640, 480, vision::Image::PF_BGR_8),
         downwardCamera(new MockCamera(&downwardImage)),
         
         eventHub(new core::EventHub()),
@@ -75,6 +92,8 @@ struct VisionSystemFixture
             boost::bind(&VisionSystemFixture::binFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
             boost::bind(&VisionSystemFixture::targetFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::WINDOW_FOUND,
+            boost::bind(&VisionSystemFixture::windowFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BARBED_WIRE_FOUND,
             boost::bind(&VisionSystemFixture::barbedWireFoundHandler,this,_1));
         eventHub->subscribeToType(vision::EventType::VELOCITY_UPDATE,
@@ -117,6 +136,12 @@ struct VisionSystemFixture
         binEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
 
+    void windowFoundHandler(core::EventPtr event_)
+    {
+        windowFound = true;
+        windowEvent = boost::dynamic_pointer_cast<vision::WindowEvent>(event_);
+    }
+
     void targetFoundHandler(core::EventPtr event_)
     {
         targetFound = true;
@@ -148,6 +173,9 @@ struct VisionSystemFixture
 
     bool targetFound;
     vision::TargetEventPtr targetEvent;
+
+    bool windowFound;
+    vision::WindowEventPtr windowEvent;
 
     bool barbedWireFound;
     vision::BarbedWireEventPtr barbedWireEvent;
@@ -272,6 +300,34 @@ TEST_FIXTURE(VisionSystemFixture, TargetDetector)
     CHECK_CLOSE(expectedY, targetEvent->y, 0.005);
     CHECK_CLOSE(expectedRange, targetEvent->range, 0.005);
     CHECK_CLOSE(expectedSquareness, targetEvent->squareNess, 0.005);
+}
+
+TEST_FIXTURE(VisionSystemFixture, WindowDetector)
+{
+    // Make a blue/green background with a yellow target in the center
+    makeColor(&forwardImage, 0, 255, 255);
+    drawSquare(&forwardImage, 640/2, 480/2, 100, 100, 0, cvScalar(0, 255, 255));
+    drawSquare(&forwardImage, 640/2, 480/2, 70, 70, 0, cvScalar(255, 255, 0));
+
+    // Process it
+    vision.windowDetectorOn();
+    runDetectorForward();
+    vision.windowDetectorOff();
+    forwardCamera->unbackground(true);
+
+    int expectedX = 0.0;
+    int expectedY = 0.0;
+    double expectedSquareNess = 1.0;
+    double expectedRange = 1.0 - (100.0/480.0);
+    vision::Color::ColorType expectedColor = vision::Color::YELLOW;
+
+    CHECK(windowFound);
+    CHECK(windowEvent);
+    CHECK_EQUAL(expectedX, windowEvent->x);
+    CHECK_EQUAL(expectedY, windowEvent->y);
+    CHECK_CLOSE(expectedSquareNess, windowEvent->squareNess, 0.005);
+    CHECK_CLOSE(expectedRange, windowEvent->range, 0.005);
+    CHECK_EQUAL(expectedColor, windowEvent->color);
 }
 
 TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)

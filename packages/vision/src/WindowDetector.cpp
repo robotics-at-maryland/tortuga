@@ -104,6 +104,14 @@ void WindowDetector::init(core::ConfigNode config)
                          "Maximum distance between two blobs from different frames",
                          15.0, &m_maxDistance);
 
+    propSet->addProperty(config, false, "erodeIterations",
+                         "Number of times to erode the binary image",
+                         0, &m_erodeIterations);
+
+    propSet->addProperty(config, false, "dilateIterations",
+                         "Number of times to dilate the binary image",
+                         0, &m_dilateIterations);
+
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedH", "Red Hue",
@@ -154,10 +162,18 @@ bool WindowDetector::processColor(Image* input, Image* output,
     output->setPixelFormat(Image::PF_HSV_8);
     filter.filterImage(output);
 
-    OpenCVImage debug(output->getWidth(), output->getHeight(),
-                              Image::PF_BGR_8);
-    m_blobDetector.processImage(output, &debug);
-    //Image::showImage(&debug);
+    // Erode the image (only if necessary)
+    IplImage* img = output->asIplImage();
+    if (m_erodeIterations > 0) {
+        cvErode(img, img, NULL, m_erodeIterations);
+    }
+
+    // Dilate the image (only if necessary)
+    if (m_dilateIterations > 0) {
+        cvDilate(img, img, NULL, m_dilateIterations);
+    }
+
+    m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
@@ -327,7 +343,7 @@ IplImage* WindowDetector::getAnalyzedImage()
 void WindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
                                        Color::ColorType color)
 {
-    TargetEventPtr event(new TargetEvent());
+    WindowEventPtr event(new WindowEvent());
     event->color = color;
 
     Detector::imageToAICoordinates(frame,
@@ -347,15 +363,15 @@ void WindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
     else
         event->squareNess = 1.0/aspectRatio;
 
-    publish(EventType::TARGET_FOUND, event);
+    publish(EventType::WINDOW_FOUND, event);
 }
 
 void WindowDetector::publishLostEvent(Color::ColorType color)
 {
-    TargetEventPtr event(new TargetEvent());
+    WindowEventPtr event(new WindowEvent());
     event->color = color;
     
-    publish(EventType::TARGET_LOST, event);
+    publish(EventType::WINDOW_LOST, event);
 }
 
 } // namespace vision

@@ -54,6 +54,8 @@ public:
     void gateDetectorOff();
     void targetDetectorOn();
     void targetDetectorOff();
+    void windowDetectorOn();
+    void windowDetectorOff();
     void barbedWireDetectorOn();
     void barbedWireDetectorOff();
     void hedgeDetectorOn();
@@ -213,6 +215,7 @@ private:
     DetectorPtr m_downwardSafeDetector;
     DetectorPtr m_gateDetector;
     DetectorPtr m_targetDetector;
+    DetectorPtr m_windowDetector;
     DetectorPtr m_barbedWireDetector;
     DetectorPtr m_hedgeDetector;
     DetectorPtr m_velocityDetector;

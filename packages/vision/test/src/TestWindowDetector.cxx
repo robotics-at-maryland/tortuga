@@ -63,24 +63,24 @@ struct WindowDetectorFixture
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString(CONFIG), eventHub)
     {
-        eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
+        eventHub->subscribeToType(vision::EventType::WINDOW_FOUND,
             boost::bind(&WindowDetectorFixture::foundHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::TARGET_LOST,
+        eventHub->subscribeToType(vision::EventType::WINDOW_LOST,
             boost::bind(&WindowDetectorFixture::lostHandler, this, _1));
     }
 
     void foundHandler(core::EventPtr event)
     {
-        vision::TargetEventPtr tevent =
-            boost::dynamic_pointer_cast<vision::TargetEvent>(event);
+        vision::WindowEventPtr tevent =
+            boost::dynamic_pointer_cast<vision::WindowEvent>(event);
         assert(tevent != 0 && "Found handler received non-target event");
         foundEvents.push_back(tevent);
     }
 
     void lostHandler(core::EventPtr event)
     {
-        vision::TargetEventPtr tevent =
-            boost::dynamic_pointer_cast<vision::TargetEvent>(event);
+        vision::WindowEventPtr tevent =
+            boost::dynamic_pointer_cast<vision::WindowEvent>(event);
         assert(tevent != 0 && "Lost handler received non-target event");
         lostEvents.push_back(tevent);
     }
@@ -91,8 +91,8 @@ struct WindowDetectorFixture
         lostEvents.clear();
     }
 
-    std::vector<vision::TargetEventPtr> foundEvents;
-    std::vector<vision::TargetEventPtr> lostEvents;
+    std::vector<vision::WindowEventPtr> foundEvents;
+    std::vector<vision::WindowEventPtr> lostEvents;
     vision::OpenCVImage input;
     core::EventHubPtr eventHub;
     vision::WindowDetector detector;
