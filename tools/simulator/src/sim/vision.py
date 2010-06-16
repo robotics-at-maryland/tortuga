@@ -1733,7 +1733,8 @@ class RenderCameraListener(ogre.RenderTargetListener):
     def _sendImage(self, bufferAddress):
         # Create our temporary image
         self._image = ext.vision.Image.loadFromBuffer(bufferAddress,
-                                                      640, 480, False)
+                                                      640, 480, False,
+                                                      ext.vision.Image.PF_BGR_8)
         # Send image to camera
         self._camera.capturedImage(self._image)
         

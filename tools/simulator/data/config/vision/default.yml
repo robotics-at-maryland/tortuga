@@ -1,4 +1,4 @@
-RedLightDetector:       
+RedLightDetector:
    initialMinPixels: 400
    foundMinPixelScale: 0.85
    lostMinPixelScale: 0.75
@@ -8,7 +8,7 @@ RedLightDetector:
 VelocityDetector:
     usePhaseCorrelation: 0
     useLKFlow: 1
-   
+
 DuctDetector:
     centerAlignedThreshold: 50
     alignedThreshold: 2
@@ -29,3 +29,38 @@ DuctDetector:
 OrangePipeDetector:
     filtUMax: 230
     filtUMin: 155
+
+WindowDetector:
+    debug: 2
+    dilateIterations: 0
+    erodeIterations: 0
+    filtBlueHMax: 120
+    filtBlueHMin: 120
+    filtBlueSMax: 255
+    filtBlueSMin: 0
+    filtBlueVMax: 255
+    filtBlueVMin: 10
+    filtGreenHMax: 89
+    filtGreenHMin: 49
+    filtGreenSMax: 255
+    filtGreenSMin: 48
+    filtGreenVMax: 255
+    filtGreenVMin: 0
+    filtRedHMax: 0
+    filtRedHMin: 0
+    filtRedSMax: 255
+    filtRedSMin: 106
+    filtRedVMax: 255
+    filtRedVMin: 230
+    filtYellowHMax: 30
+    filtYellowHMin: 16
+    filtYellowSMax: 255
+    filtYellowSMin: 145
+    filtYellowVMax: 255
+    filtYellowVMin: 10
+    maxAspectRatio: 1.5
+    maxDistance: 15
+    minAspectRatio: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minWidth: 50

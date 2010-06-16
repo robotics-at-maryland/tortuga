@@ -37,6 +37,7 @@ import ram.ai.pipe as pipe
 import ram.ai.bin as bin
 import ram.ai.barbedwire as bwire
 import ram.ai.target as target
+import ram.ai.window as window
 import ram.ai.hedge as hedge
 import ram.ai.course as course
 import ram.ai.gen2.course as course2

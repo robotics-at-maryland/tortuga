@@ -32,8 +32,8 @@ class MasterVisionPanel(BasePanel):
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         
         if vision is not None:
-            redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
-            self._sizer.Add(redLightPanel)
+            #redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
+            #self._sizer.Add(redLightPanel)
 
             buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, ai)
             self._sizer.Add(buoyPanel)
@@ -46,6 +46,9 @@ class MasterVisionPanel(BasePanel):
             
             targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
             self._sizer.Add(targetPanel)
+
+            windowPanel = WindowPanel(self, self._childChangedSize, eventHub, vision, ai = ai)
+            self._sizer.Add(windowPanel)
 
             #barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
             #self._sizer.Add(barbedWirePanel)
@@ -764,6 +767,102 @@ class TargetPanel(BaseVisionPanel):
         self._y.Value = ""
         self._squareNess.Value = ""
         self._range.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+        self._detector = False
+        self._toggleSize(False)
+
+class WindowPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, ai, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._size = None
+        self._alignment = None
+        self._aligned = None
+        self._detector = False
+        self._vision = vision
+
+        self._ai = ai
+
+        # Create a dictionary for events received
+        self._events = {}
+
+        # Controls
+        self._createControls("Window")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.WINDOW_FOUND, 
+                             self._onWindowFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.WINDOW_LOST, 
+                             self._onWindowLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              WINDOW_DETECTOR_ON, self._windowDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              WINDOW_DETECTOR_OFF, self._windowDetectorOff)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X Pos: ')
+        self._createDataControl(controlName = '_y', label = 'Y Pos: ')
+        self._createDataControl(controlName = '_range', label = 'Range: ')
+        self._createDataControl(controlName = '_squareNess', label = 'SQ-Ns: ')
+        self._createDataControl(controlName = '_color', label = 'Color: ')
+        
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.windowDetectorOff()
+        else:
+            self._vision.windowDetectorOn()
+
+    def _findClosest(self):
+        assert len(self._events) > 0, 'Window list empty'
+
+        closestColor = None
+        for color, event in self._events.iteritems():
+            if closestColor is None:
+                closestColor = color
+            else:
+                current = self._events[closestColor]
+                if ext.math.Vector2(event.x, event.y).squaredLength() < \
+                        ext.math.Vector2(current.x, current.y).squaredLength():
+                    closestColor = color
+
+        return closestColor
+
+    def _onWindowFound(self, event):
+        if self._detector:
+            self._events[event.color] = event
+            obj = self._events[self._findClosest()]
+
+            if obj is not None:
+                self._x.Value = "% 4.2f" % obj.x
+                self._y.Value = "% 4.2f" % obj.y
+                self._squareNess.Value = "% 4.2f" % obj.squareNess
+                self._range.Value = "% 4.2f" % obj.range
+                self._color.Value = "%s" % obj.color
+        
+            self.enableControls()
+    
+    def _onWindowLost(self, event):
+        if self._events.has_key(event.color):
+            del self._events[event.color]
+        if len(self._events) == 0:
+            self.disableControls()
+
+    def _windowDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+        self._detector = True
+        self._toggleSize(True)
+
+    def _windowDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self._squareNess.Value = ""
+        self._range.Value = ""
+        self._color.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
