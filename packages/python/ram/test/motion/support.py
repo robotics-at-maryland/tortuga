@@ -33,6 +33,7 @@ class MockController(control.IController):
         self.desiredOrientation = ext.math.Quaternion.IDENTITY
         self.headingHolds = 0
         self.depthHolds = 0
+        self.positionHolds = 0
         
     def setDepth(self, depth):
         self.depth = depth
@@ -57,6 +58,9 @@ class MockController(control.IController):
 
     def holdCurrentHeading(self):
         self.headingHolds += 1
+
+    def holdCurrentPosition(self):
+        self.positionHolds += 1
         
     def yawVehicle(self, yawChange):
         self.yawChange = yawChange

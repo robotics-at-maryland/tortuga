@@ -260,6 +260,7 @@ class Recover(state.FindAttempt, WindowTrackingState):
 
     def enter(self, timeout = 3):
         state.FindAttempt.enter(self)
+        WindowTrackingState.enter(self)
         self.visionSystem.windowDetectorOn()
 
         event = self.ai.data.get('lastTargetEvent', None)
@@ -352,28 +353,28 @@ class Searching(WindowTrackingState):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class CorrectHeight(RangeXYHold):
+class CorrectHeight(WindowTrackingState):
     """
     Corrects the vehicle height to move upward or downward
     by a predetermined amount to match the currently seeked target
     """
     @staticmethod
     def transitions():
-        trans = { motion.basic.MotionManager.FINISHED : SeekingToCentered }
-        return RangeXYHold.transitions(CorrectHeight, trans = trans)
+        return { motion.basic.MotionManager.FINISHED : SeekingToCentered,
+                 vision.EventType.WINDOW_LOST : Searching }
 
     @staticmethod
     def getattr():
         return set(['offset', 'speed'])
 
     def enter(self):
-        RangeXYHold.enter(self)
-        depth = self.vehicle.getDepth()
+        WindowTrackingState.enter(self)
+        depth = self.ai.data['config'].get('windowDepth', 12)
         offset = self._config.get('offset', 0.3)
 
         y = self.ai.data['windowData'][self._desiredColor].y
         # If y position is above, use a negative offset
-        if y < 0.0:
+        if y > 0.0:
             offset = -offset;
 
         m = motion.basic.RateChangeDepth(depth + offset,
@@ -439,6 +440,7 @@ class FireTorpedos(RangeXYHold):
     NUMBER_TORPEDOS = 2
     ARM_TORPEDOS = core.declareEventType('ARM_TORPEDOS_')
     MOVE_ON = core.declareEventType('MOVE_ON')
+    REPOSITION = core.declareEventType('REPOSITION')
     MISALIGNED = core.declareEventType('MISALIGNED')
 
     @staticmethod
@@ -447,6 +449,7 @@ class FireTorpedos(RangeXYHold):
             RangeXYHold.IN_RANGE : FireTorpedos,
             FireTorpedos.ARM_TORPEDOS: FireTorpedos,
             FireTorpedos.MOVE_ON : End,
+            FireTorpedos.REPOSITION : Reposition,
             FireTorpedos.MISALIGNED : SeekingToAligned },
             lostState = FindAttemptFireTorpedos)
 
@@ -477,8 +480,8 @@ class FireTorpedos(RangeXYHold):
             fireCount = self.ai.data.get('torpedosFired', 0)
             self.ai.data['torpedosFired'] = fireCount + 1
 
-            # Reset the countdown if we still have more to fire
-            self._resetFireTimer()
+            # Check which state we move to next
+            self._check()
 
     def ARM_TORPEDOS_(self, event):
         """
@@ -494,7 +497,13 @@ class FireTorpedos(RangeXYHold):
         self._armed = False
         self._minSquareNess = self._config.get('minSquareNess', 0.85)
 
-        self._resetFireTimer(delay = self._config.get('startFireDelay', 0))
+        delay = self._config.get('startDelay', 0)
+        if delay > 0:
+            self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
+                                                     delay)
+            self._timer.start()
+        else:
+            self._armed = True
 
     def exit(self):
         if self._timer is not None:
@@ -504,34 +513,30 @@ class FireTorpedos(RangeXYHold):
     def armed(self):
         return self._armed
     
-    def _resetFireTimer(self, delay = None):
+    def _check(self):
         """
         Initiates a timer which arms the firing of a torpedo after the desired
         delay
         """
-        if delay is None:
-            delay = self._delay
-
         if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
-            if delay > 0:
-                self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
-                                                         delay)
-                self._timer.start()
-            else:
-                self._armed = True
+            # Restart with the next window
+            self.publish(FireTorpedos.REPOSITION, core.Event())
         else:
             # All torpedos fired, lets get out of this state
             self.publish(FireTorpedos.MOVE_ON, core.Event())
         
 class TargetAlignState(FilteredState, WindowTrackingState):
     def WINDOW_FOUND(self, event):
-        WindowTrackingState.WINDOW_FOUND(self, event)
+        ret = WindowTrackingState.WINDOW_FOUND(self, event)
+        if ret is False:
+            return ret
+
         self._updateFilters(event)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
-        self._target.setState(azimuth, elevation, self._filterdRange, 
-                              self._filterdX, self._filterdY, 
+        self._target.setState(azimuth, elevation, self._filterdRange,
+                              self._filterdX, self._filterdY,
                               self._filterdAlign * self._alignSign,
                               event.timeStamp)
         
@@ -563,7 +568,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
             maxRangeDiff = maxRangeDiff,
-            maxAlignDiff = maxAlignDiff, 
+            maxAlignDiff = maxAlignDiff,
             maxSpeed = maxSpeed,
             maxSidewaysSpeed = maxSidewaysSpeed,
             alignGain = alignGain,
@@ -576,11 +581,11 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         self.motionManager.setMotion(motion)
         
     def exit(self):
-        self.motionManager.stopCurrentMotion()   
+        self.motionManager.stopCurrentMotion()
         
-class SeekingToAligned(TargetAlignState, state.State):
+class SeekingToAligned(TargetAlignState, WindowTrackingState):
     """
-    Holds the target at range and in the center of the field of view while 
+    Holds the target at range and in the center of the field of view while
     rotating around it.  If its rotating the wrong direction is will reverse
     that direction and keep going until its close enough to aligned.
     """
@@ -602,6 +607,11 @@ class SeekingToAligned(TargetAlignState, state.State):
                     'minSquareNess', 'checkDelay', 'filterSize'])
 
     def WINDOW_FOUND(self, event):
+        # Filter out undesired colors
+        ret = WindowTrackingState.WINDOW_FOUND(self, event)
+        if ret is False:
+            return ret
+
         # Update motion
         TargetAlignState.WINDOW_FOUND(self, event)
 
@@ -622,6 +632,7 @@ class SeekingToAligned(TargetAlignState, state.State):
             
     def enter(self):
         TargetAlignState.enter(self)
+        WindowTrackingState.enter(self)
 
         self._firstEvent = True
         self._startSquareNess = None
@@ -637,60 +648,43 @@ class SeekingToAligned(TargetAlignState, state.State):
     def exit(self):
         TargetAlignState.exit(self)
         self._timer.stop()
-    
-# The next two states are extra states, not sure if they are needed    
-class Aligning(TargetAlignState, state.State):
-    SETTLED = core.declareEventType('ALIGNED')
-       
+
+class Reposition(state.State):
+    """
+    Moves the vehicle backwards to reposition it for looking for the
+    targets.
+    """
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : Aligning,
-                 vision.EventType.WINDOW_LOST : FindAttempt,
-                 Aligning.SETTLED : Through }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():
-        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
-                    'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
-                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'settleTime', 'filterSize'])
+        return set(['speed', 'duration', 'diveSpeed'])
 
     def enter(self):
-        TargetAlignState.enter(self)
-        
-        self.timer = self.timerManager.newTimer(
-            Aligning.SETTLED, self._config.get('settleTime', 15))
-        self.timer.start()
-        
-    def exit(self):
-        TargetAlignState.exit(self)
-        self.timer.stop()
-        
-class Through(state.State):
-    FORWARD_DONE = core.declareEventType('FORWARD_DONE')
-    
-    @staticmethod
-    def transitions():
-        return {Through.FORWARD_DONE : End}
-
-    @staticmethod
-    def getattr():
-        return set(['forwardTime'])
-
-    def enter(self):
+        # Don't pay attention to the detector while moving backwards
         self.visionSystem.windowDetectorOff()
 
-        # Timer goes off in 3 seconds then sends off FORWARD_DONE
-        self.timer = self.timerManager.newTimer(
-            Through.FORWARD_DONE, self._config.get('forwardTime', 15))
-        self.timer.start()
-        self.controller.setSidewaysSpeed(0)
-        self.controller.setSpeed(3)
-    
+        speed = self._config.get('speed', 3)
+        duration = self._config.get('duration', 5)
+        backwardsMotion = motion.basic.TimedMoveDirection(desiredHeading = 0,
+                                                         speed = speed,
+                                                         duration = 5,
+                                                         absolute = False)
+
+        depth = self.ai.data['config'].get('windowDepth', 12)
+        diveSpeed = self._config.get('diveSpeed', (1.0/3.0))
+        diveMotion = motion.basic.RateChangeDepth(desiredDepth = depth,
+                                                  speed = diveSpeed)
+
+        self.motionManager.setMotion(backwardsMotion, diveMotion)
+
     def exit(self):
-        self.timer.stop()
-        self.controller.setSpeed(0)
-        
+        self.motionManager.stopCurrentMotion()
+        self.controller.holdCurrentDepth()
+        self.controller.holdCurrentPosition()
+
 class End(state.State):
     def enter(self):
         self.publish(COMPLETE, core.Event())

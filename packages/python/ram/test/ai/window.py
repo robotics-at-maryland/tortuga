@@ -243,21 +243,24 @@ class TestSearching(WindowTest):
         self.assertCurrentMotion(motion.search.ForwardZigZag)
 
 class TestCorrectHeight(WindowTest):
+    DEPTH = 5
+
     def setUp(self):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['yellow', 'green']
+                    'targetWindows' : ['yellow', 'green'],
+                    'windowDepth' : TestCorrectHeight.DEPTH
                     }
                 }
             }
         WindowTest.setUp(self, cfg = cfg)
-        self.vehicle.depth = 5
+        self.vehicle.depth = TestCorrectHeight.DEPTH
 
     def testDownwardMotion(self):
         # Create a fake event with the y position positive
         event = vision.WindowEvent()
-        event.x, event.y, event.color = (0, 0.75, vision.Color.YELLOW)
+        event.x, event.y, event.color = (0, -0.75, vision.Color.YELLOW)
         self.ai.data['windowData'][vision.Color.YELLOW] = event
 
         # Start the machine
@@ -272,7 +275,7 @@ class TestCorrectHeight(WindowTest):
     def testUpwardMotion(self):
         # Create a fake event with the y position positive
         event = vision.WindowEvent()
-        event.x, event.y, event.color = (0, -0.75, vision.Color.YELLOW)
+        event.x, event.y, event.color = (0, 0.75, vision.Color.YELLOW)
         self.ai.data['windowData'][vision.Color.YELLOW] = event
 
         # Start the machine
@@ -489,213 +492,291 @@ class TestSeekingToCentered(TestRangeXYHold):
         # Make sure the event was ignored
         self.assertCurrentState(window.SeekingToCentered)
 
-# class TestSeekingToRange(TestRangeXYHold):
-#     def setUp(self):
-#         TestRangeXYHold.setUp(self, window.SeekingToRange,
-#                               window.FindAttemptRange,
-#                               window.SeekingToRange)
+class TestSeekingToRange(TestRangeXYHold):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['green', 'blue']
+                    }
+                }
+            }
+
+        TestRangeXYHold.setUp(self, window.SeekingToRange,
+                              window.FindAttemptRange,
+                              window.SeekingToRange,
+                              color = vision.Color.GREEN, cfg = cfg)
            
-#     def testInRange(self):
-#         TestRangeXYHold.testInRange(self)
+    def testInRange(self):
+        TestRangeXYHold.testInRange(self, color = vision.Color.GREEN)
 
-#         # Make sure we ended up in the right place
-#         self.assertCurrentState(window.SeekingToAligned)
+        # Make sure we ended up in the right place
+        self.assertCurrentState(window.SeekingToAligned)
 
-# class TestFireTorpedos(TestRangeXYHold):
-#     def setUp(self):
-#         TestRangeXYHold.setUp(self, window.FireTorpedos,
-#                               window.FindAttemptFireTorpedos,
-#                               window.FireTorpedos)
+    def testIncorrectWindow(self):
+        TestRangeXYHold.testIncorrectWindow(self, color = vision.Color.YELLOW)
 
-#     def testArmTorpedos(self):
-#         self.assertTrue(self.machine.currentState().armed)
-#         #self.releaseTimer(window.FireTorpedos.ARM_TORPEDOS)
-#         self.assert_(self.machine.currentState().armed)
+        # Make sure we did not change state
+        self.assertCurrentState(window.SeekingToRange)
+
+class TestFireTorpedos(TestRangeXYHold):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['blue', 'red']
+                    }
+                }
+            }
+
+        TestRangeXYHold.setUp(self, window.FireTorpedos,
+                              window.FindAttemptFireTorpedos,
+                              window.FireTorpedos,
+                              cfg = cfg, color = vision.Color.BLUE)
+
+    def testInRange(self):
+        TestRangeXYHold.testInRange(self, color = vision.Color.BLUE)
+
+    def testIncorrectWindow(self):
+        TestRangeXYHold.testIncorrectWindow(self, color = vision.Color.GREEN)
+
+    def testArmTorpedos(self):
+        self.assertTrue(self.machine.currentState().armed)
+        #self.releaseTimer(window.FireTorpedos.ARM_TORPEDOS)
+        self.assert_(self.machine.currentState().armed)
            
-#     def testInRangeUnarmed(self):
-#         """Make sure the nothing is fired and we haven't transitioned"""
-#         self.machine.currentState()._armed = False
-#         TestRangeXYHold.testInRange(self)
+    def testInRangeUnarmed(self):
+        """Make sure the nothing is fired and we haven't transitioned"""
+        self.machine.currentState()._armed = False
+        TestRangeXYHold.testInRange(self, color = vision.Color.BLUE)
 
-#         self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
-#         self.assertCurrentState(window.FireTorpedos)
+        self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
+        self.assertCurrentState(window.FireTorpedos)
 
-#     def testInRangeArmed(self):
-#         # Torpedo starts armed
-#         self.assert_(self.machine.currentState().armed)
+    def testInRangeArmed(self):
+        # Torpedo starts armed
+        self.assert_(self.machine.currentState().armed)
 
-#         # Fire first torpedo
-#         TestRangeXYHold.testInRange(self, squareNess = 1)
-#         self.assertEqual(1, self.ai.data['torpedosFired'])
-#         self.assertEqual(1, self.vehicle.torpedosFired)
-#         self.assertCurrentState(window.FireTorpedos)
-#         self.assertFalse(self.machine.currentState().armed)
+        # Fire first torpedo
+        TestRangeXYHold.testInRange(self, squareNess = 1,
+                                    color = vision.Color.BLUE)
+        self.assertEqual(1, self.ai.data['torpedosFired'])
+        self.assertEqual(1, self.vehicle.torpedosFired)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(window.Reposition)
 
-#         # Re-arm
-#         self.releaseTimer(window.FireTorpedos.ARM_TORPEDOS)
-#         self.assert_(self.machine.currentState().armed)
-        
-#         # Fire second torpedo
-#         TestRangeXYHold.testInRange(self)
-#         self.qeventHub.publishEvents()
-#         self.assertEqual(2, self.ai.data['torpedosFired'])
-#         self.assertEqual(2, self.vehicle.torpedosFired)
-#         self.assert_(self.machine.complete)
-        
-#     def testNotAligned(self):
-#         # Torpedo starts armed
-#         self.assert_(self.machine.currentState().armed)
+    def testSecondTorpedo(self):
+        # Set the torpedos fired to 1 and restart
+        self.machine.stop()
 
-#         # Fire first torpedo
-#         TestRangeXYHold.testInRange(self, squareNess = 0)
-#         self.qeventHub.publishEvents()
-#         self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
-#         self.assertCurrentState(window.SeekingToAligned)
+        # Setup
+        self.vehicle.torpedosFired = 1
+        self.ai.data['torpedosFired'] = 1
+        self._finished = False
+        def handler(event):
+            self._finished = True
+        self.qeventHub.subscribeToType(window.COMPLETE, handler)
 
-# class AlignmentTest(object):
-#     # This is not a real setUp function, but it must be called anyways
-#     def setUp(self, myState, lostState, recoverState = None):
-#         self._myState = myState
-#         self._lostState = lostState
-#         if recoverState is None:
-#             self._recoverState = myState
-#         else:
-#             self._recoverState = recoverState
+        # Restart the state machine
+        self.machine.start(window.FireTorpedos)
 
-#     def testStart(self):
-#         self.assertCurrentMotion(motion.duct.DuctSeekAlign)
+        # Torpedo starts armed
+        self.assert_(self.machine.currentState().armed)
+
+        # Fire second torpedo
+        TestRangeXYHold.testInRange(self, color = vision.Color.RED)
+        self.assertEqual(2, self.ai.data['torpedosFired'])
+        self.assertEqual(2, self.vehicle.torpedosFired)
+        self.qeventHub.publishEvents()
+        self.assert_(self._finished)
+
+    def testNotAligned(self):
+        # Torpedo starts armed
+        self.assert_(self.machine.currentState().armed)
+
+        # Fire first torpedo
+        TestRangeXYHold.testInRange(self, squareNess = 0,
+                                    color = vision.Color.BLUE)
+        self.qeventHub.publishEvents()
+        self.assertEqual(0, self.ai.data.get('torpedosFired', 0))
+        self.assertCurrentState(window.SeekingToAligned)
+
+class AlignmentTest(object):
+    # This is not a real setUp function, but it must be called anyways
+    def setUp(self, myState, color, lostState, recoverState = None):
+        self._myState = myState
+        self._lostState = lostState
+        if recoverState is None:
+            self._recoverState = myState
+        else:
+            self._recoverState = recoverState
+        self._color = color
+
+    def testStart(self):
+        self.assertCurrentMotion(motion.duct.DuctSeekAlign)
     
-#     def testWindowFound(self):
-#         """Make sure new found events move the vehicle"""
-#         # Window to the right, below, and window misalligned right
-#         self.injectEvent(vision.EventType.WINDOW_FOUND, 
-#                          vision.WindowEvent, 0, 0, 0, 0,
-#                          x = 0.5, y = -0.5, range = 3.5, squareNess = 0.5)
+    def testWindowFound(self):
+        """Make sure new found events move the vehicle"""
+        # Window to the right, below, and window misalligned right
+        self.injectEvent(vision.EventType.WINDOW_FOUND, 
+                         vision.WindowEvent, 0, 0, 0, 0,
+                         x = 0.5, y = -0.5, range = 3.5,
+                         squareNess = 0.5, color = self._color)
         
-#         # Bigger numbers = deeper
-#         self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
-#         self.assertGreaterThan(self.controller.speed, 0)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-#         self.assertLessThan(self.controller.yawChange, 0)
+        # Bigger numbers = deeper
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.speed, 0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        self.assertLessThan(self.controller.yawChange, 0)
+
+    def testIncorrectWindow(self, color = vision.Color.UNKNOWN):
+        # Test that the filters don't change when an incorrect window is seen
+        self.assertEqual(0.0, self.machine.currentState()._filterdX)
+        self.assertEqual(0.0, self.machine.currentState()._filterdY)
+        self.assertEqual(0.0, self.machine.currentState()._filterdRange)
+        self.assertEqual(0.0, self.machine.currentState()._filterdAlign)
+
+        self.injectEvent(vision.EventType.WINDOW_FOUND,
+                         vision.WindowEvent, 0, 0, 0, 0,
+                         x = 0.5, y = -0.5, range = 3.5,
+                         squareNess = 0.5, color = color)
+
+        # Nothing should have changed
+        self.assertEqual(0.0, self.machine.currentState()._filterdX)
+        self.assertEqual(0.0, self.machine.currentState()._filterdY)
+        self.assertEqual(0.0, self.machine.currentState()._filterdRange)
+        self.assertEqual(0.0, self.machine.currentState()._filterdAlign)
+
+        # Make sure that correct events are getting through
+        self.injectEvent(vision.EventType.WINDOW_FOUND,
+                         vision.WindowEvent, 0, 0, 0, 0,
+                         x = 0.5, y = -0.5, range = 3.5,
+                         squareNess = 0.5, color = self._color)
+
+        self.assertEqual(0.5, self.machine.currentState()._filterdX)
+        self.assertEqual(-0.5, self.machine.currentState()._filterdY)
+        self.assertEqual(3.5, self.machine.currentState()._filterdRange)
+        self.assertEqual(-0.5, self.machine.currentState()._filterdAlign)
     
-#     def testWindowLost(self):
-#         """Make sure losing the light goes back to search"""
-#         self.injectEvent(vision.EventType.WINDOW_LOST)
-#         self.assertCurrentState(self._lostState)
+    def testWindowLost(self):
+        """Make sure losing the light goes back to search"""
+        self.injectEvent(vision.EventType.WINDOW_LOST, color = self._color)
+        self.assertCurrentState(self._lostState)
 
-#         # Check that finding the window moves back
-#         self.injectEvent(vision.EventType.WINDOW_FOUND)
-#         self.assertCurrentState(self._recoverState)
+        # Check that finding the window moves back
+        self.injectEvent(vision.EventType.WINDOW_FOUND, color = self._color)
+        self.assertCurrentState(self._recoverState)
 
-# class TestSeekingToAligned(AlignmentTest, support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         AlignmentTest.setUp(self, window.SeekingToAligned,
-#                             window.FindAttemptAligned)
-#         self.machine.start(window.SeekingToAligned)
+class TestSeekingToAligned(AlignmentTest, support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['red', 'green']
+                    }
+                }
+            }
 
-#     def testAligned(self):
-#         # Subscribe to in range event
-#         self._aligned = False
-#         def aligned(event):
-#             self._aligned = True
-#         self.qeventHub.subscribeToType(window.SeekingToAligned.ALIGNED, 
-#                                        aligned)
-        
-#         # Inject and event which has the window ahead, and at the needed range
-#         self.injectEvent(vision.EventType.WINDOW_FOUND, 
-#                          vision.WindowEvent, 0, 0, 0, 0,
-#                          x = 0.05, y = -0.1, range = 0.31, squareNess = 1)
-        
-#         # Make sure we get the ALIGNED event
-#         self.qeventHub.publishEvents()
-#         self.assert_(self._aligned)
-#         self.assertCurrentState(window.FireTorpedos)
-        
-#     def _sendSquareNessEvent(self, squareNess):
-#         self.injectEvent(vision.EventType.WINDOW_FOUND, 
-#                          vision.WindowEvent, 0, 0, 0, 0,
-#                          x = 0, y = 0, range = 3, squareNess = squareNess)
-        
-#     def testCheckSquareNessBad(self):
-#         # Inject and event which has the window ahead, and at the needed range
-#         self._sendSquareNessEvent(0.75)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
-#         # Squareness getting worse
-#         self._sendSquareNessEvent(0.5)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
-#         # Check on squareness 
-#         self.releaseTimer(window.SeekingToAligned.CHECK_DIRECTION)
-        
-#         # Inject another update and make sure the sign has flipped
-#         self._sendSquareNessEvent(0.5)
-#         self.assertLessThan(self.controller.sidewaysSpeed, 0)
-        
-#     def testCheckSquareNessGood(self):
-#         # Inject and event which has the window ahead, and at the needed range
-#         self._sendSquareNessEvent(0.5)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
-#         # Squareness getting worse
-#         self._sendSquareNessEvent(0.75)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
-#         # Check on squareness 
-#         self.releaseTimer(window.SeekingToAligned.CHECK_DIRECTION)
-        
-#         # Inject another update and make sure the sign hasn't flipped
-#         self._sendSquareNessEvent(0.75)
-#         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
-# class TestAligning(AlignmentTest, support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         AlignmentTest.setUp(self, window.Aligning,
-#                             window.FindAttempt,
-#                             window.SeekingToCentered)
-#         self.machine.start(window.Aligning)
-        
-#     def testStart(self):
-#         AlignmentTest.testStart(self)
-#         self.releaseTimer(window.Aligning.SETTLED)
-#         self.assertCurrentState(window.Through)
-        
-#     def testSettle(self):
-#         self.injectEvent(window.Aligning.SETTLED)
-#         self.assertCurrentState(window.Through)
+        support.AITestCase.setUp(self, cfg = cfg)
+        AlignmentTest.setUp(self, window.SeekingToAligned,
+                            vision.Color.RED,
+                            window.FindAttemptAligned)
+        self.machine.start(window.SeekingToAligned)
 
-# class Through(support.AITestCase):       
-#     def testStart(self):
-#         # Turn this on, so we make sure it goes off
-#         self.visionSystem.windowDetector = True
+    def testAligned(self):
+        # Subscribe to in range event
+        self._aligned = False
+        def aligned(event):
+            self._aligned = True
+        self.qeventHub.subscribeToType(window.SeekingToAligned.ALIGNED, 
+                                       aligned)
         
-#         # Make sure we start driving forward
-#         self.machine.start(window.Through)
-#         self.assert_(self.controller.speed > 0)
-#         self.assertEqual(False, self.visionSystem.windowDetector)
+        # Inject and event which has the window ahead, and at the needed range
+        self.injectEvent(vision.EventType.WINDOW_FOUND, 
+                         vision.WindowEvent, 0, 0, 0, 0,
+                         x = 0.05, y = -0.1, range = 0.31,
+                         squareNess = 1, color = self._color)
+        
+        # Make sure we get the ALIGNED event
+        self.qeventHub.publishEvents()
+        self.assert_(self._aligned)
+        self.assertCurrentState(window.FireTorpedos)
+        
+    def _sendSquareNessEvent(self, squareNess):
+        self.injectEvent(vision.EventType.WINDOW_FOUND, 
+                         vision.WindowEvent, 0, 0, 0, 0,
+                         x = 0, y = 0, range = 3,
+                         squareNess = squareNess,
+                         color = self._color)
+        
+    def testCheckSquareNessBad(self):
+        # Inject and event which has the window ahead, and at the needed range
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Squareness getting worse
+        self._sendSquareNessEvent(0.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Check on squareness 
+        self.releaseTimer(window.SeekingToAligned.CHECK_DIRECTION)
+        
+        # Inject another update and make sure the sign has flipped
+        self._sendSquareNessEvent(0.5)
+        self.assertLessThan(self.controller.sidewaysSpeed, 0)
+        
+    def testCheckSquareNessGood(self):
+        # Inject and event which has the window ahead, and at the needed range
+        self._sendSquareNessEvent(0.5)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Squareness getting worse
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+        # Check on squareness 
+        self.releaseTimer(window.SeekingToAligned.CHECK_DIRECTION)
+        
+        # Inject another update and make sure the sign hasn't flipped
+        self._sendSquareNessEvent(0.75)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+        
+class TestReposition(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'windowDepth' : 12,
+                    'targetWindows' : ['yellow', 'red']
+                    }
+                }
+            }
 
-#         # Subscribe to end events
-#         self._throughDuct = False
-#         def throughDuct(event):
-#             self._throughDuct = True
-#         self.qeventHub.subscribeToType(window.Through.FORWARD_DONE, 
-#                                        throughDuct)
-        
-#         self._complete = False
-#         def complete(event):
-#             self._complete = True
-#         self.qeventHub.subscribeToType(window.COMPLETE, complete)
-        
-#         # Now make sure we stop
-#         self.releaseTimer(window.Through.FORWARD_DONE)
-#         self.assertEqual(0, self.controller.speed)
-        
-#         # Make sure we get the final event
-#         self.qeventHub.publishEvents()
-#         self.assert_(self._throughDuct)
-#         self.assert_(self._complete)
-        
-#         # Make sure hit the end state
-#         self.assert_(self.machine.complete)
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.vehicle.depth = 11.7
+        self.machine.start(window.Reposition)
+
+    def testMotion(self):
+        """
+        Tests if the vehicle moves backwards, followed by changing depth
+        """
+        self.assertCurrentState(window.Reposition)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+
+        # Release the timer to move to the downward motion
+        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
+
+        self.assertCurrentState(window.Reposition)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertEqual(12, self.motionManager.currentMotion.desiredDepth)
+
+    def testFinish(self):
+        """
+        Tests the transition for all motions finishing.
+        """
+        self.assertCurrentState(window.Reposition)
+
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(window.Searching)
