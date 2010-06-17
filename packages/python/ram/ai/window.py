@@ -666,9 +666,14 @@ class Reposition(state.State):
         # Don't pay attention to the detector while moving backwards
         self.visionSystem.windowDetectorOff()
 
+        # Reset variables for searching
+        self.ai.data['windowStartOrientation'] = \
+            self.vehicle.getOrientation().getYaw().valueDegrees()
+        self.ai.data['firstSearching'] = True
+
         speed = self._config.get('speed', 3)
         duration = self._config.get('duration', 5)
-        backwardsMotion = motion.basic.TimedMoveDirection(desiredHeading = 0,
+        backwardsMotion = motion.basic.TimedMoveDirection(desiredHeading = 180,
                                                          speed = speed,
                                                          duration = 5,
                                                          absolute = False)

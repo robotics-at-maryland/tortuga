@@ -753,7 +753,12 @@ class TestReposition(support.AITestCase):
             }
 
         support.AITestCase.setUp(self, cfg = cfg)
+
+        # Initial values
         self.vehicle.depth = 11.7
+        self.ai.data['windowStartOrientation'] = 15
+        self.ai.data['firstSearching'] = False
+        
         self.machine.start(window.Reposition)
 
     def testMotion(self):
@@ -762,6 +767,8 @@ class TestReposition(support.AITestCase):
         """
         self.assertCurrentState(window.Reposition)
         self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertAIDataValue('windowStartOrientation', 0)
+        self.assertAIDataValue('firstSearching', True)
 
         # Release the timer to move to the downward motion
         self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
