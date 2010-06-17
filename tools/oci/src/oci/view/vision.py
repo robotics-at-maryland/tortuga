@@ -23,7 +23,7 @@ from oci.view.panels import BasePanel
 class MasterVisionPanel(BasePanel):
     core.implements(view.IPanelProvider)
     
-    def __init__(self, parent, eventHub, vision, ai, *args, **kwargs):
+    def __init__(self, parent, eventHub, vision, ai, machine, *args, **kwargs):
         BasePanel.__init__(self, parent, *args, **kwargs)
         
         # Make sure we shut down all events on close
@@ -47,7 +47,7 @@ class MasterVisionPanel(BasePanel):
             targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
             self._sizer.Add(targetPanel)
 
-            windowPanel = WindowPanel(self, self._childChangedSize, eventHub, vision, ai = ai)
+            windowPanel = WindowPanel(self, self._childChangedSize, eventHub, vision, machine = machine)
             self._sizer.Add(windowPanel)
 
             #barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
@@ -73,11 +73,14 @@ class MasterVisionPanel(BasePanel):
         ai = ext.core.Subsystem.getSubsystemOfType(
                     ram.ai.subsystem.AI, subsystems)
 
+        machine = ext.core.Subsystem.getSubsystemOfType(
+            ram.ai.state.Machine, subsystems)
+
         if vision is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Vision")
             paneInfo = paneInfo.Caption("Vision").Right()
         
-            panel = MasterVisionPanel(parent, eventHub, vision, ai)
+            panel = MasterVisionPanel(parent, eventHub, vision, ai, machine)
             return [(paneInfo, panel, [vision])]
         
         return []
@@ -773,7 +776,7 @@ class TargetPanel(BaseVisionPanel):
         self._toggleSize(False)
 
 class WindowPanel(BaseVisionPanel):
-    def __init__(self, parent, buttonHandler, eventHub, vision, ai, *args, **kwargs):
+    def __init__(self, parent, buttonHandler, eventHub, vision, machine, *args, **kwargs):
         BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
@@ -783,7 +786,7 @@ class WindowPanel(BaseVisionPanel):
         self._detector = False
         self._vision = vision
 
-        self._ai = ai
+        self._machine = machine
 
         # Create a dictionary for events received
         self._events = {}
@@ -835,7 +838,17 @@ class WindowPanel(BaseVisionPanel):
     def _onWindowFound(self, event):
         if self._detector:
             self._events[event.color] = event
-            obj = self._events[self._findClosest()]
+
+            color = None
+            if self._machine is not None and \
+                    hasattr(self._machine.currentState(), '_desiredColor'):
+                color = self._machine.currentState()._desiredColor
+            else:
+                color = self._findClosest()
+
+            obj = None
+            if self._events.has_key(color):
+                obj = self._events[color]
 
             if obj is not None:
                 self._x.Value = "% 4.2f" % obj.x

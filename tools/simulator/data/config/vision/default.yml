@@ -31,7 +31,7 @@ OrangePipeDetector:
     filtUMin: 155
 
 WindowDetector:
-    debug: 2
+    debug: 0
     dilateIterations: 0
     erodeIterations: 0
     filtBlueHMax: 120
@@ -58,8 +58,7 @@ WindowDetector:
     filtYellowSMin: 145
     filtYellowVMax: 255
     filtYellowVMin: 10
-    maxAspectRatio: 1.5
-    maxDistance: 15
+    maxAspectRatio: 2.5
     minAspectRatio: 0.25
     minHeight: 50
     minPixelPercentage: 0.1

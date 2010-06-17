@@ -27,6 +27,8 @@ config:
     pipeDepth: 3
     bwireDepth: 8.3
     targetDepth: 5.5
+    windowDepth: 10.1
+    targetWindows: ['blue', 'red']
     hedgeDepth: 9.8
     binDepth: 13
     targetSymbols: ['Aircraft', 'Ship']

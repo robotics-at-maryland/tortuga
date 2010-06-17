@@ -221,6 +221,22 @@ ram.ai.hedge.SeekingToRange:
 ram.ai.hedge.SeekingToAligned:
     depthGain: 0
 
+# Window AI
+ram.ai.window.Start:
+    diveSpeed: 1
+ram.ai.window.SeekingToCentered:
+    depthGain: 0
+ram.ai.window.SeekingToRange:
+    depthGain: 0
+ram.ai.window.SeekingToAligned:
+    depthGain: 0
+    alignGain: 10
+    minSquareNess: 0.95
+ram.ai.window.FireTorpedos:
+    depthGain: 0
+ram.ai.window.CorrectHeight:
+    offset: 0.5
+
 # Pipe AI
 ram.ai.pipe.BetweenPipes:
     forwardTime: 30
