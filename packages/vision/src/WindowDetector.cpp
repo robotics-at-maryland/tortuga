@@ -100,10 +100,6 @@ void WindowDetector::init(core::ConfigNode config)
                          "Minimum percentage of pixels / area",
                          0.1, &m_minPixelPercentage, 0.0, 1.0);
 
-    propSet->addProperty(config, false, "maxDistance",
-                         "Maximum distance between two blobs from different frames",
-                         15.0, &m_maxDistance);
-
     propSet->addProperty(config, false, "erodeIterations",
                          "Number of times to erode the binary image",
                          0, &m_erodeIterations);
@@ -179,7 +175,13 @@ bool WindowDetector::processColor(Image* input, Image* output,
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Sanity check blob
-        if (blob.getAspectRatio() < m_maxAspectRatio)
+        double pixelPercentage = blob.getSize() /
+            (double) (blob.getHeight() * blob.getWidth());
+        if (blob.getAspectRatio() <= m_maxAspectRatio &&
+            blob.getAspectRatio() >= m_minAspectRatio &&
+            m_minHeight <= blob.getHeight() &&
+            m_minWidth <= blob.getWidth() &&
+            m_minPixelPercentage <= pixelPercentage)
         {
             outBlob = blob;
             return true;
