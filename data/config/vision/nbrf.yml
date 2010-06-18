@@ -126,8 +126,7 @@ WindowDetector:
     filtBlueSMin: 183
     filtBlueVMax: 255
     filtBlueVMin: 0
-    maxAspectRatio: 3
-    maxDistance: 15
+    maxAspectRatio: 3 
     minAspectRatio: 0.25
     minHeight: 50
     minPixelPercentage: 0.11
