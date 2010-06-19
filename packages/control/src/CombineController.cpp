@@ -139,8 +139,12 @@ void CombineController::setSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    double sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
+    double sidewaysSpeed = getDesiredVelocity(IController::BODY_FRAME)[1];
 
+    /*  Store velocity as if the robots frame is the inertial frame.  
+        In other words, the robot should always travel at this velocity 
+        relative to itself.  Doing this, the robot's actual velocity in
+        the true inertial frame will change as its orientation changes. */
     setDesiredVelocity(math::Vector2(speed,sidewaysSpeed), IController::INERTIAL_FRAME);
     m_transController->setControlMode(ControlMode::OPEN_LOOP);
 }
@@ -152,9 +156,13 @@ void CombineController::setSidewaysSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    double forewardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
+    double forwardSpeed = getDesiredVelocity(IController::BODY_FRAME)[0];
 
-    setDesiredVelocity(math::Vector2(forewardSpeed,speed), IController::INERTIAL_FRAME);
+    /*  Store velocity as if the robots frame is the inertial frame.  
+        In other words, the robot should always travel at this velocity 
+        relative to itself.  Doing this, the robot's actual velocity in
+        the true inertial frame will change as its orientation changes. */
+    setDesiredVelocity(math::Vector2(forwardSpeed,speed), IController::INERTIAL_FRAME);
     m_transController->setControlMode(ControlMode::OPEN_LOOP);
 }
 
