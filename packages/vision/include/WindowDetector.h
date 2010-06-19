@@ -7,8 +7,8 @@
  * File:  packages/vision/include/WindowDetector.h
  */
 
-#ifndef RAM_BUOY_DETECTOR_H_06_01_2010
-#define RAM_BUOY_DETECTOR_H_06_01_2010
+#ifndef RAM_WINDOW_DETECTOR_H_06_01_2010
+#define RAM_WINDOW_DETECTOR_H_06_01_2010
 
 // STD Includes
 #include <map>

@@ -22,7 +22,6 @@
 #include "vision/include/Color.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
-#include "vision/include/TrackedBlob.h"
 
 #include "core/include/ConfigNode.h"
 
@@ -35,42 +34,6 @@ namespace vision {
 class RAM_EXPORT BuoyDetector : public Detector
 {
   public:
-    class Circle : public TrackedBlob
-    {
-    public:
-        Circle(double x, double y, double r, double percentage, int id,
-               Color::ColorType color = Color::UNKNOWN) :
-            TrackedBlob(),
-            m_x(x), m_y(y), m_r(r), m_percentage(percentage), m_color(color)
-        {
-            _setId(id);
-        }
-
-        double getX() const { return m_x; }
-        double getY() const { return m_y; }
-        double getRadius() const { return m_r; }
-        double getPercentage() const { return m_percentage; }
-
-        Color::ColorType getColor() const { return m_color; }
-        void setColor(Color::ColorType color) { m_color = color; }
-
-    private:
-        double m_x;
-        double m_y;
-        double m_r;
-        double m_percentage;
-        Color::ColorType m_color;
-    };
-
-    class CircleComparer
-    {
-    public:
-        static bool compare(Circle c1, Circle c2)
-        {
-            return c1.getPercentage() > c2.getPercentage();
-        }
-    };
-
     BuoyDetector(core::ConfigNode config,
                      core::EventHubPtr eventHub = core::EventHubPtr());
     BuoyDetector(Camera* camera);
@@ -82,62 +45,56 @@ class RAM_EXPORT BuoyDetector : public Detector
     void show(char* window);
     IplImage* getAnalyzedImage();
 
-    typedef std::vector<Circle> CircleList;
-    typedef CircleList::iterator CircleListIter;
-    
   private:
     void init(core::ConfigNode config);
 
     bool inrange(int min, int max, int value);
+
+    /* Normal processing to find one blob/color */
+    bool processColor(Image* input, Image* output, ColorFilter& filter,
+                      BlobDetector::Blob& outBlob);
     
     // Process current state, and publishes LIGHT_FOUND event
-    void publishFoundEvent(int x, int y, Color::ColorType color);
-
-    /** Processes the list of all found blobs and finds the larget valid one */
-    void processCircles(BuoyDetector::CircleList& blobs);
+    void publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color);
+    void publishLostEvent(Color::ColorType color);
 
     Camera *cam;
 
     /** State variables */
-    bool found;
-    std::set<int> m_lastIds;
+    bool m_redFound;
+    bool m_greenFound;
+    bool m_yellowFound;
+
+    /** Color Filters */
+    ColorFilter *m_redFilter;
+    ColorFilter *m_greenFilter;
+    ColorFilter *m_yellowFilter;
+
+    /** Blob Detector */
+    BlobDetector m_blobDetector;
     
-    /** Stores the segmentation filter */
-    SegmentationFilter *m_filter;
-
-    CircleList m_circles;
-
     /** Threshold for almost hitting the red light */
     double m_almostHitRadius;
 
+    /** Working Images */
     Image *frame;
-    Image *filtered;
-    Image *gray;
-    Image *edges;
-    Image *hsv;
+    Image *redFrame;
+    Image *greenFrame;
+    Image *yellowFrame;
 
-    // Hough circles configuration
-    int m_param1;
-    int m_param2;
-    double m_dp;
-    int m_min_dist;
-    int m_hough_min_radius;
-    int m_hough_max_radius;
+    /* Configuration variables */
+    double m_maxAspectRatio;
+    double m_minAspectRatio;
 
-    int m_dilateIterations;
-    double m_min_radius;
-    double m_min_percentage;
+    int m_minWidth;
+    int m_minHeight;
 
-    // Color configuration values
-    int m_red_min;
-    int m_red_max;
-    int m_green_min;
-    int m_green_max;
-    int m_yellow_min;
-    int m_yellow_max;
+    double m_minPixelPercentage;
+    double m_maxDistance;
 
-    int m_buoyID;
-    double m_sameBuoyThreshold;
+    int m_debug;
+
+
 };
 	
 } // namespace vision

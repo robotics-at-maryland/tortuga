@@ -20,7 +20,37 @@
 
 #include "core/include/EventHub.h"
 
-using namespace ram;
+static const std::string CONFIG =       
+    "{"
+    "'debug' : 2,"
+    "'maxAspectRatio' : 3,"
+    "'minAspectRatio' : .5,"
+    "'minWidth' : 50,"
+    "'minHeight' : 50,"
+    "'minPixelPercentage' : .1,"
+    "'maxDistance' : 15,"
+    "'almostHitRadius' : 200,"
+    "'filtRedHMin' : 240,"
+    "'filtRedHMax' : 20,"
+    "'filtRedSMin' : 10,"
+    "'filtRedSMax' : 255,"
+    "'filtRedVMin' : 10,"
+    "'filtRedVMax' : 255,"
+    "'filtGreenHMin' : 40,"
+    "'filtGreenHMax' : 70,"
+    "'filtGreenSMin' : 10,"
+    "'filtGreenSMax' : 255,"
+    "'filtGreenVMin' : 10,"
+    "'filtGreenVMax' : 255,"
+    "'filtYellowHMin' : 20,"
+    "'filtYellowHMax' : 40,"
+    "'filtYellowSMin' : 10,"
+    "'filtYellowSMax' : 255,"
+    "'filtYellowVMin' : 10,"
+    "'filtYellowVMax' : 255,"
+    "}";
+
+    using namespace ram;
 
 struct BuoyDetectorFixture
 {
@@ -31,19 +61,7 @@ struct BuoyDetectorFixture
         event(vision::BuoyEventPtr()),
         input(640, 480, vision::Image::PF_BGR_8),
         eventHub(new core::EventHub()),
-        detector(core::ConfigNode::fromString(
-                     "{"
-                     "'segmentSigma' : .1,"
-                     "'segmentK' : 50,"
-                     "'segmentMin' : 5,"
-                     "'houghParam2' : 15,"
-                     "'redMin' : 0,"
-                     "'redMax' : 0,"
-                     "'yellowMin' : 30,"
-                     "'yellowMax' : 30,"
-                     "'greenMin' : 60,"
-                     "'greenMax' : 60,"
-                     "}"), eventHub)
+        detector(core::ConfigNode::fromString(CONFIG), eventHub)
     {
         eventHub->subscribeToType(vision::EventType::BUOY_FOUND,
             boost::bind(&BuoyDetectorFixture::foundHandler, this, _1));
@@ -104,6 +122,7 @@ struct BuoyDetectorFixture
     vision::BuoyDetector detector;
 };
 
+
 SUITE(BuoyDetector) {
 
 // Red Hue: 0
@@ -113,10 +132,11 @@ SUITE(BuoyDetector) {
 TEST_FIXTURE(BuoyDetectorFixture, CenterRedBuoy)
 {
     vision::makeColor(&input, 0, 0, 0);
-
+    
+    vision::OpenCVImage output(640, 480, vision::Image::PF_BGR_8);
     vision::drawCircle(&input, 320, 240, 50, cvScalar(0, 0, 255));
-    processImage(&input);
-
+    processImage(&input,true);
+    
     CHECK(found);
     CHECK_CLOSE(0.0, event->x, 0.02);
     CHECK_CLOSE(0.0, event->y, 0.02);

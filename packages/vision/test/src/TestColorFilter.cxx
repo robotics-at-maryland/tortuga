@@ -117,8 +117,8 @@ TEST_FIXTURE(ColorFilterFixture, testGetSet)
     filter.setChannel2Low(130);
     filter.setChannel3Low(140);
 
-    CHECK_EQUAL(100, filter.getChannel1Low());
-    CHECK_EQUAL(120, filter.getChannel2Low());
+    CHECK_EQUAL(110, filter.getChannel1Low());
+    CHECK_EQUAL(130, filter.getChannel2Low());
     CHECK_EQUAL(140, filter.getChannel3Low());
     CHECK_EQUAL(100, filter.getChannel1High());
     CHECK_EQUAL(120, filter.getChannel2High());
@@ -128,9 +128,9 @@ TEST_FIXTURE(ColorFilterFixture, testGetSet)
     filter.setChannel2High(40);
     filter.setChannel3High(60);
 
-    CHECK_EQUAL(20, filter.getChannel1Low());
-    CHECK_EQUAL(40, filter.getChannel2Low());
-    CHECK_EQUAL(60, filter.getChannel3Low());
+    CHECK_EQUAL(110, filter.getChannel1Low());
+    CHECK_EQUAL(130, filter.getChannel2Low());
+    CHECK_EQUAL(140, filter.getChannel3Low());
     CHECK_EQUAL(20, filter.getChannel1High());
     CHECK_EQUAL(40, filter.getChannel2High());
     CHECK_EQUAL(60, filter.getChannel3High());

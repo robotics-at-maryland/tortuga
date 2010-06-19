@@ -30,6 +30,7 @@
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/SegmentationFilter.h"
+#include "vision/include/ColorFilter.h"
 
 namespace ram {
 namespace vision {
@@ -38,14 +39,25 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
     Detector(eventHub),
     cam(0),
-    m_filter(0)
+    m_redFound(false),
+    m_greenFound(false),
+    m_yellowFound(false),
+    m_redFilter(0),
+    m_greenFilter(0),
+    m_yellowFilter(0),
+    m_blobDetector(config, eventHub)
 {
     init(config);
 }
 
 BuoyDetector::BuoyDetector(Camera* camera) :
     cam(camera),
-    m_filter(0)
+    m_redFound(false),
+    m_greenFound(false),
+    m_yellowFound(false),
+    m_redFilter(0),
+    m_greenFilter(0),
+    m_yellowFilter(0)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -57,99 +69,77 @@ void BuoyDetector::init(core::ConfigNode config)
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
 
-    propSet->addProperty(config, false, "houghParam1",
-                         "The threshold to use for edges",
-                         1, &m_param1, 1, 255);
+    propSet->addProperty(config, false, "debug",
+                         "Debug level", 2, &m_debug, 0, 2);
 
-    propSet->addProperty(config, false, "houghParam2",
-                         "The threshold for a circle",
-                         20, &m_param2, 1, 255);
+    propSet->addProperty(config, false, "maxAspectRatio",
+                         "Maximum aspect ratio (width/height)",
+                         1.1, &m_maxAspectRatio);
 
-    propSet->addProperty(config, false, "dp",
-                         "Angle depth used for hough circle transformation",
-                         1.0, &m_dp, 0.1, 10.0);
+    propSet->addProperty(config, false, "minAspectRatio",
+                         "Minimum aspect ratio (width/height)",
+                         0.25, &m_minAspectRatio);
 
-    propSet->addProperty(config, false, "min_dist",
-                         "Minimum distance between two circle centers",
-                         15, &m_min_dist, 0, 640*480);
+    propSet->addProperty(config, false, "minWidth",
+                         "Minimum width for a blob",
+                         50, &m_minWidth);
 
-    propSet->addProperty(config, false, "hough_min_radius",
-                         "Minimum radius for hough circle transform",
-                         0, &m_hough_min_radius);
+    propSet->addProperty(config, false, "minHeight",
+                         "Minimum height for a blob",
+                         50, &m_minHeight);
 
-    propSet->addProperty(config, false, "hough_max_radius",
-                         "Maximum radius for hough circle transform",
-                         0, &m_hough_max_radius);
+    propSet->addProperty(config, false, "minPixelPercentage",
+                         "Minimum percentage of pixels / area",
+                         0.1, &m_minPixelPercentage, 0.0, 1.0);
 
-    propSet->addProperty(config, false, "dilateIterations",
-                         "Number of times to dilate the image in preprocessing",
-                         10, &m_dilateIterations);
-
-    propSet->addProperty(config, false, "minRadius",
-                         "Minimum radius of a buoy (this is different "
-                         "from the hough transform minimum!)",
-                         0.0, &m_min_radius);
-
-    propSet->addProperty(config, false, "minPercentage",
-                         "Minimum percentage of circle completeness "
-                         "to be considered a buoy",
-                         .9, &m_min_percentage, 0.0, 1.0);
+    propSet->addProperty(config, false, "maxDistance",
+                         "Maximum distance between two blobs from different frames",
+                         15.0, &m_maxDistance);
 
     propSet->addProperty(config, false, "almostHitRadius",
                          "Radius when the buoy is considered almost hit",
                          200.0, &m_almostHitRadius);
 
-    propSet->addProperty(config, false, "redMin",
-                         "Minimum value considered red",
-                         0, &m_red_min, 0, 255);
-    propSet->addProperty(config, false, "redMax",
-                         "Maximum value considered red",
-                         0, &m_red_max, 0, 255);
+    m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_redFilter->addPropertiesToSet(propSet, &config,
+                                    "RedH", "Red Hue",
+                                    "RedS", "Red Saturation",
+                                    "RedV", "Red Value",
+                                    0, 255, 0, 255, 0, 255);
+    m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_greenFilter->addPropertiesToSet(propSet, &config,
+                                      "GreenH", "Green Hue",
+                                      "GreenS", "Green Saturation",
+                                      "GreenV", "Green Value",
+                                      0, 255, 0, 255, 0, 255);
+    m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_yellowFilter->addPropertiesToSet(propSet, &config,
+                                       "YellowH", "Yellow Hue",
+                                       "YellowS", "Yellow Saturation",
+                                       "YellowV", "Yellow Value",
+                                       0, 255, 0, 255, 0, 255);
 
-    propSet->addProperty(config, false, "greenMin",
-                         "Minimum value considered green",
-                         0, &m_green_min, 0, 255);
-    propSet->addProperty(config, false, "greenMax",
-                         "Maximum value considered green",
-                         0, &m_green_max, 0, 255);
-
-    propSet->addProperty(config, false, "yellowMin",
-                         "Minimum value considered yellow",
-                         0, &m_yellow_min, 0, 255);
-    propSet->addProperty(config, false, "yellowMax",
-                         "Maximum value considred yellow",
-                         0, &m_yellow_max, 0, 255);
-
-    m_filter = new SegmentationFilter(0.5, 500, 50);
-    m_filter->addPropertiesToSet(propSet, &config);
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
     
-    // State machine variables 
-    found = false;
-
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    filtered = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    gray = new OpenCVImage(640, 480, Image::PF_GRAY_8);
-    edges = new OpenCVImage(640, 480, Image::PF_GRAY_8);
 
-    // Slightly deceptive, this gets converted to BGR automatically
-    // because copyFrom copies the pixel format, then gets immediately
-    // converted back to HSV. The default PixelFormat for this means nothing.
-    hsv = new OpenCVImage(640, 480, Image::PF_HSV_8);
+    redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 }
 
 BuoyDetector::~BuoyDetector()
 {
-    delete m_filter;
+    delete m_redFilter;
+    delete m_greenFilter;
+    delete m_yellowFilter;
 
     delete frame;
-    delete filtered;
-    delete gray;
-    delete edges;
-    delete hsv;
+    delete redFrame;
+    delete greenFrame;
 }
 
 void BuoyDetector::update()
@@ -158,167 +148,149 @@ void BuoyDetector::update()
     processImage(frame);
 }
 
+bool BuoyDetector::processColor(Image* input, Image* output,
+                                  ColorFilter& filter,
+                                  BlobDetector::Blob& outBlob)
+{
+    output->copyFrom(input);
+    output->setPixelFormat(Image::PF_HSV_8);
+    filter.filterImage(output);
+
+    OpenCVImage debug(output->getWidth(), output->getHeight(),
+                              Image::PF_BGR_8);
+    m_blobDetector.processImage(output, &debug);
+    //Image::showImage(&debug);
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        // Sanity check blob
+        if (blob.getAspectRatio() < m_maxAspectRatio)
+        {
+            outBlob = blob;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void BuoyDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
-    filtered->copyFrom(frame);
-    m_filter->filterImage(filtered);
 
-    cvCvtColor(filtered->asIplImage(), gray->asIplImage(), CV_BGR2GRAY);
-    cvCanny(gray->asIplImage(), edges->asIplImage(),
-            m_param1, std::max(m_param1 / 2, 1));
+    BlobDetector::Blob redBlob, greenBlob, yellowBlob;
+    bool redFound = false, greenFound = false,
+        yellowFound = false;
 
-    CvMemStorage *storage = cvCreateMemStorage(0);
-    CvSeq *seq = cvHoughCircles(gray->asIplImage(), storage, CV_HOUGH_GRADIENT,
-                                m_dp, m_min_dist, m_param1, m_param2,
-                                m_hough_min_radius, m_hough_max_radius);
+    if ((redFound = processColor(frame, redFrame, *m_redFilter, redBlob))) {
+        publishFoundEvent(redBlob, Color::RED);
+    } else {
+        // Publish lost event if this was found previously
+        if (m_redFound) {
+            publishLostEvent(Color::RED);
+        }
+    }
+    m_redFound = redFound;
 
-    cvDilate(edges->asIplImage(),edges->asIplImage(),NULL,m_dilateIterations);
+    if ((greenFound = processColor(frame, greenFrame,
+                                   *m_greenFilter, greenBlob))) {
+        publishFoundEvent(greenBlob, Color::GREEN);
+    } else {
+        // Publish lost event if this was found previously
+        if (m_greenFound) {
+            publishLostEvent(Color::GREEN);
+        }
+    }
+    m_greenFound = greenFound;
 
-    BuoyDetector::CircleList circleList;
-    unsigned char* edgeData = edges->getData();
-    for (int i=0; i < seq->total; i++) {
-        float* p = (float *) cvGetSeqElem(seq, i);
-        int acc = 0, total = 0;
+    if ((yellowFound = processColor(frame, yellowFrame,
+                                    *m_yellowFilter, yellowBlob))) {
+        publishFoundEvent(yellowBlob,  Color::YELLOW);
+    } else {
+        // Publish lost event if this was found previously
+        if (m_yellowFound) {
+            publishLostEvent(Color::YELLOW);
+        }
+    }
+    m_yellowFound = yellowFound;
 
+    if(output)
+    {
+        if (m_debug == 0) {
+            output->copyFrom(frame);
+        } else {
+            output->copyFrom(frame);
 
-        for (int j=0; j < 360; j++) {
-            double theta = j * CV_PI / 180;
-            int ptx = cvRound(p[2] * cos(theta) + p[0]);
-            int pty = cvRound(p[2] * sin(theta) + p[1]);
+            // Color in the targets (as we find them)
+            unsigned char* data = output->getData();
+            unsigned char* redPtr = redFrame->getData();
+            unsigned char* greenPtr = greenFrame->getData();
+            unsigned char* yellowPtr = yellowFrame->getData();
 
-            // Only look at valid points
-            if (ptx >= 0 && ptx < (int) edges->getWidth() &&
-                pty >= 0 && pty < (int) edges->getHeight()) {
-                if (edgeData[ptx + pty * edges->getWidth()]) {
-                    acc += 1;
+            unsigned char* end = output->getData() +
+                (output->getWidth() * output->getHeight() * 3);
+            
+            for (; data != end; data += 3) {
+                if (*redPtr) {
+                    data[0] = 0;
+                    data[1] = 0;
+                    data[2] = 255;
+                } else if (*greenPtr) {
+                    data[0] = 0;
+                    data[1] = 255;
+                    data[2] = 0;
+                } else if (*yellowPtr) {
+                    data[0] = 0;
+                    data[1] = 255;
+                    data[2] = 255;
                 }
-                total += 1;
+                // Advance all of the pointers
+                redPtr += 3;
+                greenPtr += 3;
+                yellowPtr += 3;
             }
-        }
+            if (m_debug == 2) {
+                if (redFound) {
+                    CvPoint center;
+                    center.x = redBlob.getCenterX();
+                    center.y = redBlob.getCenterY();
 
-        if (total > 0 && p[2] > m_min_radius) {
-            circleList.push_back(
-                Circle(p[0], p[1], p[2], acc / (float) total, m_buoyID++));
-        }
-    }
+                    redBlob.drawStats(output);
+                    redBlob.draw(output);
+                    // Red
+                    cvCircle(output->asIplImage(), center, 3,
+                             cvScalar(0, 0, 255), -1);
+                }
 
-    std::sort(circleList.begin(), circleList.end(),
-              BuoyDetector::CircleComparer::compare);
+                if (greenFound) {
+                    CvPoint center;
+                    center.x = greenBlob.getCenterX();
+                    center.y = greenBlob.getCenterY();
 
-    // Remove the buoys under the minimum percentage of completeness
-    while (circleList.size() > 0 &&
-           circleList.back().getPercentage() < m_min_percentage)
-    {
-        circleList.pop_back();
-    }
+                    greenBlob.drawStats(output);
+                    greenBlob.draw(output);
+                    // Green
+                    cvCircle(output->asIplImage(), center, 3,
+                             cvScalar(0, 255, 0), -1);
+                }
 
-    // Match candidate buoys and match colors to them
-    processCircles(circleList);
+                if (yellowFound) {
+                    CvPoint center;
+                    center.x = yellowBlob.getCenterX();
+                    center.y = yellowBlob.getCenterY();
 
-    // Get the set of the Ids of the newest pipes
-    std::set<int> newIds;
-    BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
-        newIds.insert(circle.getId());
-
-    // Find which ids were lost
-    std::vector<int> lostIds(m_lastIds.size()); 
-    std::vector<int>::iterator lostIdsEnd =
-        std::set_difference(m_lastIds.begin(), m_lastIds.end(),
-                            newIds.begin(), newIds.end(), lostIds.begin());
-    lostIds.resize(lostIdsEnd - lostIds.begin());
-
-    // Publish dropped event for all lost ids
-    BOOST_FOREACH(int id, lostIds)
-    {
-        BuoyEventPtr event(new BuoyEvent(0, 0, Color::UNKNOWN));
-        event->id = id;
-        publish(EventType::BUOY_DROPPED, event);
-    }
-
-    m_lastIds = newIds;
-
-    if (m_circles.size() > 0)
-    {
-        // Publish found events for all buoys, set found flag to true
-        BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
-        {
-            double eventX, eventY;
-            Detector::imageToAICoordinates(input, cvRound(circle.getX()),
-                                           cvRound(circle.getY()), 
-                                           eventX, eventY);
-
-            BuoyEventPtr event(new BuoyEvent(eventX, eventY,
-                                             circle.getColor()));
-            event->azimuth = math::Degree(
-                (78.0 / 2) * event->x * -1.0 *
-                (double) input->getHeight()/input->getWidth());
-            event->elevation = math::Degree((105.0 / 2) * event->y * 1);
-            event->id = circle.getId();
-
-            // Compute range (assume a sphere)
-            double buoyRadius = 0.25; // feet
-            event->range = (buoyRadius * input->getHeight()) /
-                (circle.getRadius() * tan(78.0/2 * (M_PI/180)));
-
-            publish(EventType::BUOY_FOUND, event);
-        }
-        found = true;
-    }
-    else
-    {
-        // Publish lost event if found flag is true and there are no buoys
-        if (found) {
-            core::EventPtr event(new core::Event());
-            publish(EventType::BUOY_LOST, event);
-        }
-    }
-        
-    // Debug image
-    if (output) {
-        // Copy from the filtered image
-        output->copyFrom(filtered);
-        IplImage* debug = output->asIplImage();
-
-        // Loop through the circles and draw a bounding box around them all
-        // Color the box based on the color of the buoy, unknown is gray
-        BOOST_FOREACH(BuoyDetector::Circle circle, m_circles)
-        {
-            CvPoint center;
-            center.x = cvRound(circle.getX());
-            center.y = cvRound(circle.getY());
-
-            CvPoint UL, LR;
-            UL.x = center.x - cvRound(circle.getRadius());
-            UL.y = center.y - cvRound(circle.getRadius());
-            LR.x = center.x + cvRound(circle.getRadius());
-            LR.y = center.y + cvRound(circle.getRadius());
-
-            CvScalar scalar;
-            switch (circle.getColor()) {
-            case Color::RED:
-                scalar = cvScalar(0, 0, 255);
-                break;
-            case Color::GREEN:
-                scalar = cvScalar(0, 255, 0);
-                break;
-            case Color::YELLOW:
-                scalar = cvScalar(0, 255, 255);
-                break;
-            default:
-                scalar = cvScalar(128, 128, 128);
-                break;
+                    yellowBlob.drawStats(output);
+                    yellowBlob.draw(output);
+                    // Yellow (Red + Green)
+                    cvCircle(output->asIplImage(), center, 3,
+                             cvScalar(0, 255, 255), -1);
+                }
             }
-
-            // Small inner circle
-            cvCircle(debug, center, 3, scalar, -1);
-            // Large outer circle
-            cvCircle(debug, center, cvRound(circle.getRadius()), scalar, 3);
-            // Bounding box
-            cvRectangle(debug, UL, LR, scalar, 3);
         }
     }
 }
+
 
 bool BuoyDetector::inrange(int min, int max, int value)
 {
@@ -347,81 +319,38 @@ void BuoyDetector::show(char* window)
     delete debug;
 }
 
-void BuoyDetector::publishFoundEvent(int x, int y, Color::ColorType color)
+void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color)
 {
-    RedLightEvent event(x, y, color);
-    event.azimuth = 0;
-    event.elevation = 0;
-    event.range = 0;
+    BuoyEventPtr event(new BuoyEvent());
+
+    double centerX, centerY;
+    Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
+                                   centerX, centerY);
+
+    event->x = centerX;
+    event->y = centerY;
+    event->color = color;
+
+    event->azimuth = math::Degree(
+        (78.0 / 2) * centerX * -1.0 *
+        (double)frame->getHeight()/frame->getWidth());
+    event->elevation = math::Degree((105.0 / 2) * centerY * 1);
+
+    // Compute range (assume a sphere)
+    double lightPixelRadius = sqrt((double)blob.getSize()/M_PI);
+    double lightRadius = 0.25; // feet
+    event->range = (lightRadius * frame->getHeight()) /
+        (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
+        
+    publish(EventType::BUOY_FOUND, event);
 }
 
-void BuoyDetector::processCircles(BuoyDetector::CircleList& blobs)
+void BuoyDetector::publishLostEvent(Color::ColorType color)
 {
-    bool redFound = false, greenFound = false, yellowFound = false;
-
-    TrackedBlob::updateIds(&m_circles, &blobs, m_sameBuoyThreshold);
-    m_circles = blobs;
-
-    hsv->copyFrom(frame);
-    hsv->setPixelFormat(Image::PF_HSV_8);
-    unsigned char* hueData = hsv->getData();
-
-    // Do NOT use BOOST_FOREACH
-    // BOOST_FOREACH makes a copy of the value, so when we change it,
-    // the real object doesn't know that it should be changed.
-    BuoyDetector::CircleListIter circle = m_circles.begin();
-    BuoyDetector::CircleListIter end = m_circles.end();
-    for ( ; circle != end; circle++)
-    {
-        double hue_hist[256] = { 0 };
-        int radius = cvRound(circle->getRadius());
-        int pixels = 0;
-        
-        assert(radius > 0 && "Radius must be positive");
-        for (int row=-radius; row < radius+1; row++) {
-            // Figure out the pixel span for this row
-            double theta = asin(row / radius);
-            int width = cvRound(radius * cos(theta));
-            
-            for (int col=-width; col < width; col++) {
-                double increment = 0;
-                int x = row + cvRound(circle->getX());
-                int y = col + cvRound(circle->getY());
-                
-                if (x >= 0 && x < (int) hsv->getWidth() &&
-                    y >= 0 && y < (int) hsv->getHeight()) {
-                    int hue = hueData[(x + y * hsv->getWidth())*3];
-                    hue_hist[hue] += 1 - increment;
-                    pixels += 1;
-                }
-            }
-        }
-        
-        // Find the peak in the histogram
-        int peak = 0;
-        for (int i=0; i < 256; i++) {
-            if (hue_hist[i] > hue_hist[peak])
-                peak = i;
-        }
-        
-        // Check if it's red
-        if (!redFound && inrange(m_red_min, m_red_max, peak)) {
-            // Red color
-            circle->setColor(Color::RED);
-            redFound = true;
-        } else if (!greenFound && inrange(m_green_min, m_green_max, peak)) {
-            // Green color
-            circle->setColor(Color::GREEN);
-            greenFound = true;
-        } else if (!yellowFound && inrange(m_yellow_min, m_yellow_max, peak)) {
-            // Yellow color
-            circle->setColor(Color::YELLOW);
-            yellowFound = true;
-        } else {
-            // Unknown color
-            circle->setColor(Color::UNKNOWN);
-        }
-    }
+    BuoyEventPtr event(new BuoyEvent());
+    event->color = color;
+    
+    publish(EventType::BUOY_LOST, event);
 }
 
 } // namespace vision

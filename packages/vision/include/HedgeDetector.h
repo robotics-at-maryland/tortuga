@@ -40,76 +40,45 @@ class RAM_EXPORT HedgeDetector : public Detector
     void update();
     void processImage(Image* input, Image* output = 0);
 
-    bool found;
-
-    /** Center of the hedge in the local horizontal, -4/3 to 4/3 */
-    double getX();
-
-    /** Center of the red light in the local vertical, -1 to 1 */
-    double getY();
-
-    /** The percent of the top of the image blacked out */
-    void setTopRemovePercentage(double percent);
-    /** The percent of the bottom of the image blacked out */
-    void setBottomRemovePercentage(double percent);
+    bool m_found;
 
     void show(char* window);
-    Image* getAnalyzedImage();
+
+    IplImage* getAnalyzedImage();
 
   private:
     void init(core::ConfigNode config);
 
+    /* Normal processing to find one blob/color */
+    bool processColor(Image* input, Image* output,
+                      ColorFilter& filter, BlobDetector::Blob& outBlob);
+
     // Process current state, and publish the HEDGE_FOUND event
-    void publishFoundEvent();
+    void publishFoundEvent(const BlobDetector::Blob& blob);
 
-    /** Processes the list of all found blobs and finds the largest valid one */
-    bool processLines(const LineDetector::LineList& lines,
-                      BlobDetector::Blob& outBlob);
+    void publishLostEvent();
 
-    bool processBlobs(const BlobDetector::BlobList& blobs,
-                      BlobDetector::Blob& outBlob);
-
-    double m_hedgeCenterX;
-    double m_hedgeCenterY;
-    double m_squareNess;
-    double m_range;
-    int minGreenPixels;
-    OpenCVImage* raw;
-    OpenCVImage* preprocess;
-    OpenCVImage* filtered;
-    OpenCVImage* analyzed;
-    CvPoint hedgeCenter;
-
-    Image* frame;
     Camera* cam;
 
-    /** Finds the hedge */
-    LineDetector m_lineDetector;
+    /** Stores the various color filters */
+    ColorFilter *m_colorFilter;
+
+    /** Blob detector */
     BlobDetector m_blobDetector;
 
-    /** Identifies which base detector to use */
-    bool m_useLineDetection;
+    Image *frame;
+    Image *greenFrame;
 
-    /** Percentage of the image to remove from the top */
-    double m_topRemovePercentage;
-
-    /** Percentage of the image to remove from the bottom */
-    double m_bottomRemovePercentage;
-
-    /** Percentage of the image to remove from the left */
-    double m_leftRemovePercentage;
-
-    /** Percentage of the image to remove from the right */
-    double m_rightRemovePercentage;
-
-    /** Aspect ratio of the blob */
+    /* Configuration variables */
     double m_maxAspectRatio;
     double m_minAspectRatio;
 
-    /** Filters for green using LUV */
-    ColorFilter* m_filter;
+    int m_minWidth;
+    int m_minHeight;
 
-    /** Debug level */
+    double m_minPixelPercentage;
+    double m_maxDistance;
+
     int m_debug;
 };
 

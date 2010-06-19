@@ -51,29 +51,46 @@ void ColorFilter::setupRanges()
     memset(m_channel2Range, 0, sizeof(m_channel2Range));
     memset(m_channel3Range, 0, sizeof(m_channel3Range));
 
-    // Clame the range values
-    if (m_channel1Low > m_channel1High)
-        m_channel1Low = m_channel1High;
-    if (m_channel1High < m_channel1Low)
-        m_channel1High = m_channel1Low;
 
-    if (m_channel2Low > m_channel2High)
-        m_channel2Low = m_channel2High;
-    if (m_channel2High < m_channel2Low)
-        m_channel2High = m_channel2Low;
+    // pass from low to high
+    if (m_channel1Low <= m_channel1High){
+        memset(m_channel1Range + m_channel1Low, 255, 
+               m_channel1High - m_channel1Low + 1);
+    } else {
+        // pass from 0 to high and low to 255
+        if (m_channel1High < m_channel1Low){
+            memset(m_channel1Range, 255, m_channel1High + 1);
+            memset(m_channel1Range + m_channel1Low, 255,
+                   255 - m_channel1Low);
+        }
+    }
 
-    if (m_channel3Low > m_channel3High)
-        m_channel3Low = m_channel3High;
-    if (m_channel3High < m_channel3Low)
-        m_channel3High = m_channel3Low;
+    // pass from low to high
+    if (m_channel2Low <= m_channel2High){
+        memset(m_channel2Range + m_channel2Low, 255, 
+               m_channel2High - m_channel2Low + 1);
+    } else {
+        // pass from 0 to high and low to 255
+        if (m_channel2High < m_channel2Low){
+            memset(m_channel2Range, 255, m_channel2High + 1);
+            memset(m_channel2Range + m_channel2Low, 255,
+                   255 - m_channel2Low);
+        }
+    }
 
-    // Set the areas we are using for filter to 255
-    memset(m_channel1Range + m_channel1Low, 255, 
-           m_channel1High - m_channel1Low + 1);
-    memset(m_channel2Range + m_channel2Low, 255, 
-           m_channel2High - m_channel2Low + 1);
-    memset(m_channel3Range + m_channel3Low, 255, 
-           m_channel3High - m_channel3Low + 1);
+    // pass from low to high
+    if (m_channel3Low <= m_channel3High){
+        memset(m_channel3Range + m_channel3Low, 255, 
+               m_channel3High - m_channel3Low + 1);
+    } else {
+        // pass from 0 to high and low to 255
+        if (m_channel3High < m_channel3Low){
+            memset(m_channel3Range, 255, m_channel3High + 1);
+            memset(m_channel3Range + m_channel3Low, 255,
+                   255 - m_channel3Low);
+        }
+    }
+
 }
 
 void ColorFilter::filterImage(Image* input, Image* output)
