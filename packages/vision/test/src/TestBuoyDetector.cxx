@@ -135,7 +135,7 @@ TEST_FIXTURE(BuoyDetectorFixture, CenterRedBuoy)
     
     vision::OpenCVImage output(640, 480, vision::Image::PF_BGR_8);
     vision::drawCircle(&input, 320, 240, 50, cvScalar(0, 0, 255));
-    processImage(&input,true);
+    processImage(&input);
     
     CHECK(found);
     CHECK_CLOSE(0.0, event->x, 0.02);
