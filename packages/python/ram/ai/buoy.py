@@ -24,18 +24,49 @@ import ram.timer
 BUOY_HIT = core.declareEventType('BUOY_HIT')
 COMPLETE = core.declareEventType('COMPLETE')
 
-def ensureBuoyTracking(qeventHub, ai):        
-    tracking.ensureItemTracking(qeventHub, ai, 'buoyData',
-                                vision.EventType.BUOY_FOUND,
-                                vision.EventType.BUOY_DROPPED)
 
-class StoreBuoyEvent(object):
+class BuoyTrackingState(state.State):
     """
-    Common subclass for states that have a BUOY_FOUND transition, it stores 
-    the event in ai.data.
+    Set up for any state that tracks a buoy. Filters out incorrect
+    buoy colors.
     """
+
+    FINISHED = core.declareEventType('FINISHED')
+
+    @staticmethod
+    def transitions(foundState = None, lostState = None):
+        return { vision.EventType.BUOY_FOUND : foundState,
+                 vision.EventType.BUOY_LOST : lostState,
+                 BuoyTrackingState.FINISHED : End }
+
     def BUOY_FOUND(self, event):
-        self.ai.data['lastBuoyEvent'] = event
+        # Store data and veto the event if the wrong color
+        self.ai.data['buoyData'][event.color] = event
+        if event.color != self._desiredColor:
+            return False
+
+    def BUOY_LOST(self, event):
+        # Remove the stored data and veto the event if the wrong color
+        del self.ai.data['buoyData'][event.color]
+        if event.color != self._desiredColor:
+            return False
+
+    def enter(self):
+        self.visionSystem.buoyDetectorOn()
+
+        self.ai.data.setdefault('buoyData', {})
+        colorList = self.ai.data['config'].get('targetBuoys', [])
+        buoysHit = self.ai.data.get('buoysHit', 0)
+
+        # Error check that we have not overstepped the target buoys
+        if buoysHit >= len(colorList):
+            # Finish the state
+            self._desiredColor = vision.Color.UNKNOWN
+            self.publish(BuoyTrackingState.FINISHED, core.Event())
+        else:
+            # Get the desired color (case doesn't matter)
+            self._desiredColor = getattr(vision.Color,
+                                         colorList[buoysHit].upper())
 
 class Start(state.State):
     """
@@ -43,41 +74,27 @@ class Start(state.State):
     buoys have been hit. It then sets the next target. If there are
     no remaining buoys, it skips to End.
     """
-    CONTINUE = core.declareEventType('CONTINUE')
-
     @staticmethod
     def transitions():
-        return { motion.basic.MotionManager.FINISHED : Searching,
-                 Start.CONTINUE : Continue }
+        return { motion.basic.MotionManager.FINISHED : Searching }
 
     @staticmethod
     def getattr():
         return set(['speed'])
     
     def enter(self):
-        # Choose the target buoy
-        targets = self.ai.data['config'].get('targetBuoys', [])
-        buoyNum = self.ai.data.setdefault('buoysHit', 0)
-
-        # Check if there are anymore buoys to hit
-        if len(targets) <= buoyNum:
-            # No more buoys, publish an event and end early
-            self.publish(Start.CONTINUE, core.Event())
-            return
-
         # Store the initial orientation
         orientation = self.vehicle.getOrientation()
         self.ai.data['buoyStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
         # Go to 5 feet in 5 increments
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('buoyDepth', {}).get(
-                targets[buoyNum], 5),
-            speed = self._config.get('speed', 1.0/3.0))
         headingMotion = motion.basic.RateChangeHeading(
             desiredHeading = self.ai.data['buoyStartOrientation'],
             speed = 10)
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self.ai.data['config'].get('buoyDepth', 5),
+            speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(headingMotion, diveMotion)
 
         self.ai.data['firstSearching'] = True
@@ -86,16 +103,18 @@ class Start(state.State):
         #self.motionManager.stopCurrentMotion()
         pass
 
-class Searching(state.State, StoreBuoyEvent):
+class Searching(BuoyTrackingState):
     @staticmethod
     def transitions():
-        return { vision.EventType.BUOY_FOUND : Align }
+        return BuoyTrackingState.transitions(Align, Searching)
 
     @staticmethod
     def getattr():
         return set(['legTime', 'sweepAngle', 'speed'])
 
     def enter(self):
+        BuoyTrackingState.enter(self)
+
         # Turn on the vision system
         self.visionSystem.buoyDetectorOn()
         
@@ -135,7 +154,7 @@ class Searching(state.State, StoreBuoyEvent):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.FindAttempt, StoreBuoyEvent):
+class FindAttempt(state.FindAttempt):
     @staticmethod
     def transitions(myState = None):
         if myState is None:
@@ -151,15 +170,15 @@ class FindAttemptSeek(FindAttempt):
     def transitions():
         return FindAttempt.transitions(Seek)
 
-class Recover(state.FindAttempt, StoreBuoyEvent):
+class Recover(state.FindAttempt, BuoyTrackingState):
     REFOUND_BUOY = core.declareEventType('REFOUND_BUOY')
     
     @staticmethod
     def transitions():
         trans = state.FindAttempt.transitions(Recover.REFOUND_BUOY,
-                                             Align, Searching)
-        trans.update({ motion.basic.MotionManager.FINISHED : Recover,
-                       vision.EventType.BUOY_FOUND : Recover })
+                                              Align, Searching)
+        trans.update(BuoyTrackingState.transitions(Recover, Searching))
+        trans.update({ motion.basic.MotionManager.FINISHED : Recover })
         
         return trans
 
@@ -174,7 +193,9 @@ class Recover(state.FindAttempt, StoreBuoyEvent):
         self._finished = True
         
     def BUOY_FOUND(self, event):
-        StoreBuoyEvent.BUOY_FOUND(self, event)
+        ret = BuoyTrackingState.BUOY_FOUND(self, event)
+        if ret is False:
+            return ret
 
         if self._recoverMethod == "Close Range":
             # Turn off the timer and backwards motion
@@ -218,8 +239,9 @@ class Recover(state.FindAttempt, StoreBuoyEvent):
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 4)
-        
-        event = self.ai.data.get('lastBuoyEvent', None)
+        BuoyTrackingState.enter(self)
+
+        event = self.ai.data['buoyData'][self._desiredColor]
         
         self._recoverMethod = "Default"
         
@@ -293,16 +315,17 @@ class Recover(state.FindAttempt, StoreBuoyEvent):
 	self.controller.setSpeed(0)
 	self.controller.setSidewaysSpeed(0)
 
-class Align(state.State, StoreBuoyEvent):
+class Align(BuoyTrackingState):
 
     SEEK_BUOY = core.declareEventType('SEEK_BUOY')
 
     @staticmethod
     def transitions():
-        return { vision.EventType.BUOY_LOST : FindAttempt,
-                 vision.EventType.BUOY_FOUND : Align,
-                 motion.seek.SeekPoint.POINT_ALIGNED : Align,
-                 Align.SEEK_BUOY : Seek }
+        trans = BuoyTrackingState.transitions(Align, FindAttempt)
+        trans.update({ motion.seek.SeekPoint.POINT_ALIGNED : Align,
+                       Align.SEEK_BUOY : Seek })
+
+        return trans
 
     @staticmethod
     def getattr():
@@ -331,7 +354,10 @@ class Align(state.State, StoreBuoyEvent):
 
     def BUOY_FOUND(self, event):
         """Update the state of the buoy, this moves the vehicle"""
-        StoreBuoyEvent.BUOY_FOUND(self, event)
+        ret = BuoyTrackingState.BUOY_FOUND(self, event)
+        if ret is False:
+            return ret
+
         self._buoy.setState(event.azimuth, event.elevation, event.range,
                              event.x, event.y, event.timeStamp)
 
@@ -341,6 +367,8 @@ class Align(state.State, StoreBuoyEvent):
             self.publish(Align.SEEK_BUOY, core.Event())
 
     def enter(self):
+        BuoyTrackingState.enter(self)
+
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
         self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
@@ -377,12 +405,13 @@ class Align(state.State, StoreBuoyEvent):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Seek(state.State, StoreBuoyEvent):
+class Seek(BuoyTrackingState):
     @staticmethod
     def transitions():
-        return { vision.EventType.BUOY_LOST : FindAttemptSeek,
-                 vision.EventType.BUOY_FOUND : Seek,
-                 vision.EventType.BUOY_ALMOST_HIT : Hit }
+        trans = BuoyTrackingState.transitions(Seek, FindAttemptSeek)
+        trans.update({ vision.EventType.BUOY_ALMOST_HIT : Hit })
+
+        return trans
 
     @staticmethod
     def getattr():
@@ -390,11 +419,16 @@ class Seek(state.State, StoreBuoyEvent):
 
     def BUOY_FOUND(self, event):
         """Update the state of the buoy, this moves the vehicle"""
-        StoreBuoyEvent.BUOY_FOUND(self, event)
+        ret = BuoyTrackingState.BUOY_FOUND(self, event)
+        if ret is False:
+            return ret
+
         self._buoy.setState(event.azimuth, event.elevation, event.range,
                              event.x, event.y, event.timeStamp)
 
     def enter(self):
+        BuoyTrackingState.enter(self)
+
         self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
                                                   vehicle = self.vehicle)
@@ -413,11 +447,13 @@ class Seek(state.State, StoreBuoyEvent):
         self.motionManager.stopCurrentMotion()
 
 class Hit(state.State):
-    FORWARD_DONE = core.declareEventType('FORWARD_DONE')
+    REPOSITION = core.declareEventType('REPOSITION')
+    CONTINUE = core.declareEventType('CONTINUE')
     
     @staticmethod
     def transitions():
-        return { Hit.FORWARD_DONE : Continue }
+        return { Hit.REPOSITION : Reposition,
+                 Hit.CONTINUE : Continue }
 
     @staticmethod
     def getattr():
@@ -426,10 +462,20 @@ class Hit(state.State):
     def enter(self):
         self.visionSystem.buoyDetectorOff()
 
+        # Increment the number of buoys hit
+        buoysHit = self.ai.data.get('buoysHit', 0) + 1
+        self.ai.data['buoysHit'] = buoysHit
+
+        # Check how many buoys there are
+        colorList = self.ai.data['config'].get('targetBuoys', [])
+
         # Timer goes off in 3 seconds then sends off FORWARD_DONE
         duration = self._config.get('duration', 3)
         speed = self._config.get('speed', 3)
-        self.timer = self.timerManager.newTimer(Hit.FORWARD_DONE, duration)
+        if buoysHit < len(colorList):
+            self.timer = self.timerManager.newTimer(Hit.REPOSITION, duration)
+        else:
+            self.timer = self.timerManager.newTimer(Hit.CONTINUE, duration)
         self.timer.start()
         self.controller.setSpeed(speed)
     
@@ -437,6 +483,39 @@ class Hit(state.State):
         self.timer.stop()
         self.controller.setSpeed(0)
         self.publish(BUOY_HIT, core.Event())
+
+class Reposition(state.State):
+    @staticmethod
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Searching }
+
+    @staticmethod
+    def getattr():
+        return set(['speed', 'duration', 'diveSpeed', 'headingSpeed'])
+
+    def enter(self):
+        self._speed = self._config.get('speed', 3)
+        self._duration = self._config.get('duration', 5)
+
+        backwardsMotion = motion.basic.TimedMoveDirection(180, self._speed,
+                                                          self._duration,
+                                                          absolute = False)
+
+        self._desiredHeading = self.ai.data['buoyStartOrientation']
+        self._headingSpeed = self._config.get('headingSpeed', 20)
+        headingMotion = motion.basic.RateChangeHeading(self._desiredHeading,
+                                                       self._headingSpeed)
+
+        self._depth = self.ai.data['config'].get('buoyDepth', 5)
+        self._diveSpeed = self._config.get('diveSpeed', 1.0/3.0)
+        diveMotion = motion.basic.RateChangeDepth(self._depth, self._diveSpeed)
+
+        self.motionManager.setMotion(backwardsMotion, headingMotion, diveMotion)
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        self.controller.holdCurrentDepth()
+        self.controller.holdCurrentPosition()
         
 class Continue(state.State):
     @staticmethod
@@ -480,10 +559,10 @@ class Continue(state.State):
         # Queue the motions
         if original is None:
             self.motionManager.setMotion(self._backward, self._upward,
-                                                self._forward)
+                                         self._forward)
         else:
             self.motionManager.setMotion(self._rotate, self._backward,
-                                                self._upward, self._forward)
+                                         self._upward, self._forward)
 
 class End(state.State):
     def enter(self):

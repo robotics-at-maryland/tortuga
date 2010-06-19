@@ -35,7 +35,7 @@ class MasterVisionPanel(BasePanel):
             #redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
             #self._sizer.Add(redLightPanel)
 
-            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, ai)
+            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, machine)
             self._sizer.Add(buoyPanel)
             
             pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
@@ -305,22 +305,22 @@ class RedLightPanel(BaseVisionPanel):
         self._toggleSize(False)
 
 class BuoyPanel(BaseVisionPanel):
-    def __init__(self, parent, buttonHandler, eventHub, vision, ai, *args, **kwargs):
+    def __init__(self, parent, buttonHandler, eventHub, vision, machine, *args, **kwargs):
         BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
         self._x = None
         self._y = None
         self._r = None
-        self._ai = ai
         self._id = None
         self._color = None
         self._detector = False
         self._vision = vision
-
-        if self._ai is not None:
-            ram.ai.buoy.ensureBuoyTracking(eventHub, self._ai)
+        self._machine = machine
 
         # Controls
         self._createControls("Buoy")
+
+        # Store events received
+        self._events = {}
         
         # Events
         self._subscribeToType(eventHub, ext.vision.EventType.BUOY_FOUND, 
@@ -356,38 +356,45 @@ class BuoyPanel(BaseVisionPanel):
         else:
             self._vision.buoyDetectorOn()
 
+    def _findClosest(self):
+        assert len(self._events) > 0, 'Buoy list empty'
+
+        closestColor = None
+        for color, event in self._events.iteritems():
+            if closestColor is None:
+                closestColor = color
+            else:
+                current = self._events[closestColor]
+                if ext.math.Vector2(event.x, event.y).squaredLength() < \
+                        ext.math.Vector2(current.x, current.y).squaredLength():
+                    closestColor = color
+
+        return closestColor
+
     def _onBouyFound(self, event):
         if self._detector:
-            obj = event
+            self._events[event.color] = event
 
-            if self._ai is not None:
-                # Use the current bin before anything else if it exists
-                if self._ai.data['buoyData'].has_key('currentID'):
-                    id = self._ai.data['buoyData']['currentID']
-                    obj = self._ai.data['buoyData']['itemData'].get(id, None)
-                else:
-                    # Sorted closest to farthest
-                    currentBuoyIDs = self._ai.data['buoyData'].get(
-                        'currentIds', set())
-                    currentBuoys = [b for b in currentBuoyIDs]
-                    sortedBuoys = sorted(currentBuoys, self._distCompare)
-                    obj = self._ai.data['buoyData']['itemData'][sortedBuoys[0]]
-
-            self._x.Value = "% 4.2f" % obj.x
-            self._y.Value = "% 4.2f" % obj.y    
-            self._azimuth.Value = "% 4.2f" % obj.azimuth.valueDegrees()
-            self._elevation.Value = "% 4.2f" % obj.elevation.valueDegrees()
-            self._range.Value = "% 4.2f" % obj.range
-            self._id.Value = "%d" % obj.id
-            if obj.color == ext.vision.Color.RED:
-                self._color.Value = "RED"
-            elif obj.color == ext.vision.Color.GREEN:
-                self._color.Value = "GREEN"
-            elif obj.color == ext.vision.Color.YELLOW:
-                self._color.Value = "YELLOW"
+            color = None
+            if self._machine is not None and \
+                    hasattr(self._machine.currentState(), '_desiredColor'):
+                color = self._machine.currentState()._desiredColor
             else:
-                self._color.Value = "UNKNOWN"
-        
+                color = self._findClosest()
+
+            obj = None
+            if self._events.has_key(color):
+                obj = self._events[color]
+
+            if obj is not None:
+                self._x.Value = "% 4.2f" % obj.x
+                self._y.Value = "% 4.2f" % obj.y    
+                self._azimuth.Value = "% 4.2f" % obj.azimuth.valueDegrees()
+                self._elevation.Value = "% 4.2f" % obj.elevation.valueDegrees()
+                self._range.Value = "% 4.2f" % obj.range
+                self._id.Value = "%d" % obj.id
+                self._color.Value = "%s" % obj.color
+
             self.enableControls()
     
     def _onBouyLost(self, event):
