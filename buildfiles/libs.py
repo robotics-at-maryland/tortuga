@@ -94,6 +94,10 @@ def setup_posix_libs():
         'wxWidgets' : ConfigLibrary('wxWidgets', '2.8', ['wx/wx.h'], 
                                     'wx-config', lib_flag='--libs std,gl'),
         'OpenCV' : PkgConfigLibrary('opencv', '1.0', ['cv.h']),
+        'Root' : ConfigLibrary('root', '5.26', ['root/TH1D.h'],
+                               'root-config', lib_flag='--libs'),
+        'Root.Graphics' : ConfigLibrary('root', '5.26', ['root/TH1D.h'],
+                                        'root-config', lib_flag='--glibs'),
         'Segment' : PkgConfigLibrary('segment', '1.0', []),
 
         'fftw' : PkgConfigLibrary('fftw3', '3.2.1', ['fftw3.h']),
