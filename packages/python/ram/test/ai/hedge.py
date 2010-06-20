@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/python/ram/test/ai/light.py
+# File:  packages/python/ram/test/ai/hedge.py
 
 # Python Imports
 import unittest
@@ -114,7 +114,7 @@ class TestRecover(support.AITestCase):
         support.AITestCase.setUp(self)
         self.ai.data['lastHedgeEvent'] = vision.HedgeEvent()
 
-    def testLightFound(self):
+    def testHedgeFound(self):
         self.machine.start(hedge.Recover)
         self.assertCurrentState(hedge.Recover)
         self.injectEvent(vision.EventType.HEDGE_FOUND,
@@ -372,7 +372,7 @@ class AlignmentTest(object):
         self.assertLessThan(self.controller.yawChange, 0)
     
     def testHedgeLost(self):
-        """Make sure losing the light goes back to search"""
+        """Make sure losing the hedge goes back to search"""
         self.injectEvent(vision.EventType.HEDGE_LOST)
         self.assertCurrentState(self._lostState)
 

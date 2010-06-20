@@ -21,8 +21,11 @@ import ram.ai.task as task
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
+import ram.ai.buoy as buoy
 import ram.ai.barbedwire as barbedwire
+import ram.ai.hedge as hedge
 import ram.ai.target as target
+import ram.ai.window as window
 import ram.ai.bin as bin
 import ram.ai.sonar as sonar
 import ram.ai.safe as safe
@@ -612,6 +615,58 @@ class TestLightStaged(TestLight):
         # Release the time and make sure we move on
         self.releaseTimer(course.LightStaged.DO_TIMEOUT)
         self.assertCurrentState(course.Pipe)
+
+class TestBuoy(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {'taskOrder' : ['ram.ai.course.Buoy',
+                                   'ram.ai.course.Pipe']
+                    }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Buoy)
+        self._stateType = course.Buoy
+
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(self._stateType)
+
+        self.assertCurrentBranches([buoy.Start])
+
+        # Finish the depth change and check that the detector is on
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
+        self.assert_(self.visionSystem.buoyDetector)
+
+    def testBuoyDone(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+
+        self.injectEvent(buoy.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Pipe)
+        
+        # Make sure the light seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(buoy.Start))
+        self.assertFalse(self.visionSystem.buoyDetector)
+
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(self._stateType)
+        
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(buoy.Start))
+        self.assertFalse(self.visionSystem.buoyDetector)
         
 class TestBarbedWire(support.AITestCase):
     def setUp(self):
@@ -666,6 +721,58 @@ class TestBarbedWire(support.AITestCase):
         self.assertCurrentState(course.PipeBarbedWire)
         self.assertFalse(self.machine.branches.has_key(barbedwire.Start))
         self.assertFalse(self.visionSystem.barbedWireDetector)
+
+class TestHedge(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {'taskOrder' : ['ram.ai.course.Hedge',
+                                   'ram.ai.course.Pipe']
+                    }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Hedge)
+        self._stateType = course.Hedge
+
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(self._stateType)
+
+        self.assertCurrentBranches([hedge.Start])
+
+        # Finish the depth change and check that the detector is on
+        self.injectEvent(motion.basic.MotionManager.FINISHED,
+                         sendToBranches = True)
+        self.assert_(self.visionSystem.hedgeDetector)
+
+    def testHedgeDone(self):
+        """
+        Make sure that we move on once we hit the light
+        """
+
+        self.injectEvent(hedge.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Pipe)
+        
+        # Make sure the light seeking branch is gone
+        self.assertFalse(self.machine.branches.has_key(hedge.Start))
+        self.assertFalse(self.visionSystem.hedgeDetector)
+
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(self._stateType)
+        
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(hedge.Start))
+        self.assertFalse(self.visionSystem.hedgeDetector)
         
 class TestTarget(support.AITestCase):
     def setUp(self):
@@ -712,6 +819,52 @@ class TestTarget(support.AITestCase):
         self.assertCurrentState(course.PipeTarget)
         self.assertFalse(self.machine.branches.has_key(target.Start))
         self.assertFalse(self.visionSystem.targetDetector)
+
+class TestWindow(support.AITestCase):
+    def setUp(self):
+        cfg = { 
+            'Ai' : {'taskOrder' : 
+                    ['ram.ai.course.Window', 'ram.ai.course.Pipe'],
+                    }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Window)
+        self._stateType = course.Window
+        
+    def testStart(self):
+        """
+        Make sure that when we start we are doing the right thing
+        """
+        self.assertCurrentState(self._stateType)
+        
+        self.assertCurrentBranches([window.Start])
+
+        #self.assert_(self.visionSystem.windowDetector)
+        
+    def testWindowDone(self):
+        """
+        Make sure that we go to the next task once we finish the window
+        """
+
+        # Make sure we are still in the same state
+        self.injectEvent(window.COMPLETE, sendToBranches = True)
+        self.assertCurrentState(course.Pipe)
+        
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(self._stateType)
+
+        # Release timer
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        # Test that the timeout worked properly
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(window.Start))
+        self.assertFalse(self.visionSystem.windowDetector)
         
 class TestBin(support.AITestCase):
     def setUp(self):

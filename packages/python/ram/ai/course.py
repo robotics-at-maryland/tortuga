@@ -25,8 +25,11 @@ import ram.ai.state as state
 import ram.ai.gate as gate
 import ram.ai.pipe as pipe
 import ram.ai.light as light
+import ram.ai.buoy as buoy
 import ram.ai.barbedwire as barbedwire
+import ram.ai.hedge as hedge
 import ram.ai.target as target
+import ram.ai.window as window
 import ram.ai.bin as bin
 import ram.ai.randombin as randombin
 import ram.ai.safe as safe
@@ -569,6 +572,30 @@ class LightStaged(Light):
         
         # Set time to none
         self.doTimer = None
+
+class Buoy(task.Task):
+    """
+    Task for completion of the Buoy objective within a certain time limit.
+    """
+    @staticmethod
+    def _transitions():
+        return { buoy.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(buoy.Start) }
+
+    def enter(self, defaultTimeout = 90):
+        timeout = self.ai.data['config'].get('Buoy', {}).get(
+            'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        self.stateMachine.start(state.Branch(buoy.Start))
+
+    def exit(self):
+        task.Task.exit(self)
+
+        self.stateMachine.stopBranch(buoy.Start)
+        self.visionSystem.buoyDetectorOff()
+        self.motionManager.stopCurrentMotion()
     
 class BarbedWire(task.Task):
     """
@@ -592,6 +619,30 @@ class BarbedWire(task.Task):
 
         self.stateMachine.stopBranch(barbedwire.Start)
         self.visionSystem.barbedWireDetectorOff()
+        self.motionManager.stopCurrentMotion()
+
+class Hedge(task.Task):
+    """
+    Task for completion of the Hedge objective within a certain time limit
+    """
+    @staticmethod
+    def _transitions():
+        return { hedge.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(hedge.Start) }
+
+    def enter(self, defaultTimeout = 120):
+        timeout = self.ai.data['config'].get('Hedge', {}).get(
+            'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        self.stateMachine.start(state.Branch(hedge.Start))
+
+    def exit(self):
+        task.Task.exit(self)
+
+        self.stateMachine.stopBranch(hedge.Start)
+        self.visionSystem.hedgeDetectorOff()
         self.motionManager.stopCurrentMotion()
     
 class Target(task.Task):
@@ -620,6 +671,34 @@ class Target(task.Task):
 
         self.stateMachine.stopBranch(target.Start)
         self.visionSystem.targetDetectorOff()
+        self.motionManager.stopCurrentMotion()
+
+class Window(task.Task):
+    """
+    Task for completion of the BarbedWire objective within a certain timelimit.
+    """
+    
+    MOVE_ON = core.declareEventType('MOVE_ON')
+    
+    @staticmethod
+    def _transitions():
+        return { task.TIMEOUT : task.Next,
+                 window.COMPLETE : task.Next,
+                 'GO' : state.Branch(window.Start) }
+    
+    def enter(self, defaultTimeout = 120):
+        # Initialize task part of class
+        timeout = self.ai.data['config'].get('Window', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        self.stateMachine.start(state.Branch(window.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+
+        self.stateMachine.stopBranch(window.Start)
+        self.visionSystem.windowDetectorOff()
         self.motionManager.stopCurrentMotion()
     
 class Bin(task.Task):

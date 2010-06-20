@@ -126,6 +126,14 @@ ram.ai.barbedwire.Under:
 ram.ai.barbedwire.Through:
     forwardTime: 7
 
+# Hedge AI
+ram.ai.hedge.SeekingToCentered:
+    depthGain: 0
+ram.ai.hedge.SeekingToRange:
+    depthGain: 0
+ram.ai.hedge.SeekingToAligned:
+    depthGain: 0
+
 # Bin Sub task
 ram.ai.bin.Seeking:
     speedGain: 3
