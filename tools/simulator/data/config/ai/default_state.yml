@@ -95,6 +95,15 @@ ram.ai.light.Seek:
 ram.ai.light.Continue:
     backwardDuration: 0
 
+ram.ai.buoy.Searching:
+    legTime: 5
+ram.ai.buoy.Align:
+    desiredRange: 7
+    depthGain: 4
+    maxDepthDt: 0.3
+ram.ai.buoy.Reposition:
+    duration: 12
+
 # Target AI
 ram.ai.target.Start:
     diveSpeed: 1

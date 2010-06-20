@@ -32,19 +32,19 @@ Scene:
 
         buoy:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15, 1, -2.1]
+            position: [-15, 0.0, -2.4]
             Graphical:
                 material: Simple/Red
 
         buoy2:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-14.25, 0.5, -2]
+            position: [-14.5, -1.2, -2]
             Graphical:
                 material: Simple/Yellow
 
         buoy3:
             type: [sim.vision.IBuoy, sim.vision.Buoy]
-            position: [-15.75, 1.5, -1.9]
+            position: [-15.5, 1.2, -1.7]
             Graphical:
                 material: Simple/Green
 

@@ -359,7 +359,7 @@ class Align(BuoyTrackingState):
             return ret
 
         self._buoy.setState(event.azimuth, event.elevation, event.range,
-                             event.x, event.y, event.timeStamp)
+                            event.x, event.y, event.timeStamp)
 
         change = self._buoy.changeOverTime()
         if self._compareChange((event.x, event.y),
@@ -495,7 +495,7 @@ class Reposition(state.State):
 
     def enter(self):
         self._speed = self._config.get('speed', 3)
-        self._duration = self._config.get('duration', 5)
+        self._duration = self._config.get('duration', 7)
 
         backwardsMotion = motion.basic.TimedMoveDirection(180, self._speed,
                                                           self._duration,

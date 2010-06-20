@@ -29,6 +29,8 @@ config:
     targetDepth: 5.5
     windowDepth: 10.1
     targetWindows: ['blue', 'red']
+    buoyDepth: 6.5
+    targetBuoys: ['yellow', 'green']
     hedgeDepth: 9.8
     binDepth: 13
     targetSymbols: ['Aircraft', 'Ship']

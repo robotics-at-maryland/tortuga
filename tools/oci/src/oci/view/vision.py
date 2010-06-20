@@ -344,7 +344,6 @@ class BuoyPanel(BaseVisionPanel):
         self._createDataControl(controlName = '_elevation', 
                                 label = 'Elevation: ')
         self._createDataControl(controlName = '_range', label = 'Range: ')
-        self._createDataControl(controlName = '_id', label = 'ID: ')
         self._createDataControl(controlName = '_color', label = 'Color: ')
         
     def _onButton(self, event):
@@ -392,7 +391,6 @@ class BuoyPanel(BaseVisionPanel):
                 self._azimuth.Value = "% 4.2f" % obj.azimuth.valueDegrees()
                 self._elevation.Value = "% 4.2f" % obj.elevation.valueDegrees()
                 self._range.Value = "% 4.2f" % obj.range
-                self._id.Value = "%d" % obj.id
                 self._color.Value = "%s" % obj.color
 
             self.enableControls()
@@ -411,26 +409,11 @@ class BuoyPanel(BaseVisionPanel):
         self._azimuth.Value = ""
         self._elevation.Value = ""
         self._range.Value = ""
-        self._id.Value = ""
         self._color.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False
         self._toggleSize(False)
-
-    def _distCompare(self, aID, bID):
-        buoyData = self._ai.data['buoyData']['itemData']
-        buoyA = buoyData[aID]
-        buoyB = buoyData[bID]
-        
-        aDist = ext.math.Vector2(buoyA.x, buoyA.y).length()
-        bDist = ext.math.Vector2(buoyB.x, buoyB.y).length()
-        
-        if aDist < bDist:
-            return -1
-        elif aDist > bDist:
-            return 1
-        return 0
         
 class OrangePipePanel(BaseVisionPanel):
     def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
