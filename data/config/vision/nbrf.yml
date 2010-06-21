@@ -102,32 +102,34 @@ HedgeDetector:
 
 WindowDetector:
     debug: 2
-    filtYellowHMax: 143
-    filtYellowHMin: 46
+    dilateIterations: 0
+    erodeIterations: 0
+    filtBlueHMax: 115
+    filtBlueHMin: 100
+    filtBlueSMax: 255
+    filtBlueSMin: 196
+    filtBlueVMax: 255
+    filtBlueVMin: 151
+    filtGreenHMax: 95
+    filtGreenHMin: 75
+    filtGreenSMax: 255
+    filtGreenSMin: 60
+    filtGreenVMax: 220
+    filtGreenVMin: 60
+    filtRedHMax: 32
+    filtRedHMin: 110
+    filtRedSMax: 255
+    filtRedSMin: 0
+    filtRedVMax: 230
+    filtRedVMin: 60
+    filtYellowHMax: 86
+    filtYellowHMin: 20
     filtYellowSMax: 92
     filtYellowSMin: 0
-    filtYellowVMax: 227
-    filtYellowVMin: 147
-    filtGreenHMax: 130
-    filtGreenHMin: 72
-    filtGreenSMax: 255
-    filtGreenSMin: 118
-    filtGreenVMax: 163
-    filtGreenVMin: 0
-    filtRedHMax: 196
-    filtRedHMin: 0
-    filtRedSMax: 124
-    filtRedSMin: 0
-    filtRedVMax: 158
-    filtRedVMin: 0
-    filtBlueHMax: 113
-    filtBlueHMin: 102
-    filtBlueSMax: 255
-    filtBlueSMin: 183
-    filtBlueVMax: 255
-    filtBlueVMin: 0
-    maxAspectRatio: 3 
-    minAspectRatio: 0.25
+    filtYellowVMax: 230
+    filtYellowVMin: 90
+    maxAspectRatio: 2
+    minAspectRatio: 0.6
     minHeight: 50
     minPixelPercentage: 0.11
     minWidth: 50
