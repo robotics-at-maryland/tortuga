@@ -46,6 +46,7 @@ public:
         PF_YUV444_8, /** YUV, 8 bits for each channel */
         PF_GRAY_8, /** Grayscale, 8 bits one channel */
         PF_HSV_8, /** HSV, 8 bits per channel */
+        PF_LUV_8, /** CIELUV, 8 bits per channel */
         PF_END,   /** Sentinal Value */
     };
 

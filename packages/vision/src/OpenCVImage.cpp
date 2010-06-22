@@ -276,21 +276,23 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
      * Table is constructed so the row is the current colorspace,
      * column is the colorspace to convert to.
      */
-    static const int lookupTable[7][7] = {
+    static const int lookupTable[8][8] = {
         /* Sentinal value */
-        {-1,          -1,          -1, -1,          -1,         -1, -1},
+        {-1,         -1,         -1,-1,         -1,        -1,        -1,-1},
         /* RGB */
-        {-1,          -2,  CV_RGB2BGR, -1, CV_RGB2GRAY, CV_RGB2HSV, -1},
+        {-1,         -2, CV_RGB2BGR,-1,CV_RGB2GRAY,CV_RGB2HSV,CV_RGB2Luv,-1},
         /* BGR */
-        {-1,  CV_BGR2RGB,          -2, -1, CV_BGR2GRAY, CV_BGR2HSV, -1},
+        {-1, CV_BGR2RGB,         -2,-1,CV_BGR2GRAY,CV_BGR2HSV,CV_BGR2Luv,-1},
         /* YUV */
-        {-1,          -1,          -1, -2,          -1,         -1, -1},
+        {-1,         -1,         -1,-2,         -1,        -1,        -1,-1},
         /* Grayscale */
-        {-1, CV_GRAY2RGB, CV_GRAY2BGR, -1,          -2,         -1, -1},
+        {-1,CV_GRAY2RGB,CV_GRAY2BGR,-1,         -2,        -1,        -1,-1},
         /* HSV */
-        {-1,  CV_HSV2RGB,  CV_HSV2BGR, -1,          -1,         -2, -1},
+        {-1, CV_HSV2RGB, CV_HSV2BGR,-1,         -1,        -2,        -1,-1},
+        /* CIELUV */
+        {-1, CV_Luv2RGB, CV_Luv2BGR,-1,         -1,        -1,        -2,-1},
         /* Sentinal value */
-        {-1,          -1,          -1, -1,          -1,         -1, -1}
+        {-1,         -1,         -1,-1,         -1,        -1,        -1,-1}
     };
 
     int code = lookupTable[m_fmt][format];
