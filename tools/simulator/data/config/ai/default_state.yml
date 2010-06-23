@@ -245,6 +245,9 @@ ram.ai.window.FireTorpedos:
     depthGain: 0
 ram.ai.window.CorrectHeight:
     offset: 0.5
+ram.ai.window.Approach:
+    depthGain: 0
+    desiredRange: 0.6
 
 # Pipe AI
 ram.ai.pipe.BetweenPipes:

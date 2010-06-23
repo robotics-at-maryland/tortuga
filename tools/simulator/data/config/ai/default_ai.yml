@@ -27,7 +27,7 @@ config:
     pipeDepth: 3
     bwireDepth: 8.3
     targetDepth: 5.5
-    windowDepth: 10.1
+    windowDepth: 10.5
     targetWindows: ['blue', 'red']
     buoyDepth: 6.5
     targetBuoys: ['yellow', 'green']

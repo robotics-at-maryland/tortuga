@@ -212,7 +212,7 @@ class TestSearching(WindowTest):
         # Now change states
         self.injectEvent(vision.EventType.WINDOW_FOUND, 
                          vision.WindowEvent, 0, 0, 0, 0, vision.Color.YELLOW)
-        self.assertCurrentState(window.CorrectHeight)
+        self.assertCurrentState(window.Approach)
         
         # Leave and make sure its still on
         self.assert_(self.visionSystem.windowDetector)
@@ -405,6 +405,53 @@ class TestRangeXYHold(support.AITestCase):
         # Make sure we get the IN_RANGE event
         self.qeventHub.publishEvents()
         self.assert_(self._inRange)
+
+class TestApproach(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['yellow', 'blue']
+                    }
+                }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(window.Approach)
+
+    def testWindowFound(self):
+        self.assertEqual(vision.Color.YELLOW,
+                         self.machine.currentState()._desiredColor)
+
+        self.injectEvent(vision.EventType.WINDOW_FOUND, vision.WindowEvent,
+                         x = -0.25, y = 0.5, range = 5,
+                         color = vision.Color.RED)
+        self.assertGreaterThan(self.controller.speed, 0.0)
+        self.assertLessThan(self.controller.sidewaysSpeed, 0.0)
+
+        # Find another window with a large positive x
+        self.injectEvent(vision.EventType.WINDOW_FOUND, vision.WindowEvent,
+                         x = 0.75, y = 0.5, range = 5,
+                         color = vision.Color.GREEN)
+        self.assertGreaterThan(self.controller.speed, 0.0)
+        self.assertGreaterThan(self.controller.sidewaysSpeed, 0.0)
+
+    def testInRange(self):
+        # Wrong window type doesn't transfer states
+        self.assertCurrentState(window.Approach)
+        self.injectEvent(vision.EventType.WINDOW_FOUND, vision.WindowEvent,
+                         x = 0.0, y = 0.0, range = 0.5,
+                         color = vision.Color.RED)
+        self.qeventHub.publishEvents()
+        # If this assertion is false, the program will crash (no failure)
+        self.assertCurrentState(window.Approach)
+
+        # Find the window and check for the publish
+        self.injectEvent(vision.EventType.WINDOW_FOUND, vision.WindowEvent,
+                         x = 0.0, y = 0.0, range = 0.5,
+                         color = vision.Color.YELLOW)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(window.CorrectHeight)
 
 class TestSeekingToCentered(TestRangeXYHold):
     def setUp(self):

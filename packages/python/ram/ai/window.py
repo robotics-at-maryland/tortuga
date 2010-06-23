@@ -26,8 +26,14 @@ class WindowTrackingState(state.State):
     Common subclass for states that have a WINDOW_FOUND transition, it stores 
     the event in ai.data.
     """
+    @staticmethod
+    def transitions(foundState, lostState):
+        return { vision.EventType.WINDOW_FOUND : foundState,
+                 vision.EventType.WINDOW_LOST : lostState }
 
     def enter(self):
+        self.ai.data.setdefault('windowData', {})
+
         # Load the current target color
         colorList = self.ai.data['config'].get('targetWindows',['red', 'green'])
         torpedosFired = self.ai.data.get('torpedosFired', 0)
@@ -39,7 +45,7 @@ class WindowTrackingState(state.State):
         self._desiredColor = getattr(vision.Color, colorString.upper())
 
     def WINDOW_FOUND(self, event):
-        windowData = self.ai.data.setdefault('windowData', {})
+        windowData = self.ai.data['windowData']
         windowData[event.color] = event
 
         # Veto the event if the color doesn't match the desired color
@@ -70,12 +76,12 @@ class FilteredState(object):
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
         
-    def _updateFilters(self, event):
+    def _updateFilters(self, x, y, range, squareNess):
         # Add to filters
-        self._xFilter.append(event.x)
-        self._yFilter.append(event.y)
-        self._rangeFilter.append(event.range)
-        self._alignFilter.append(event.squareNess - 1)
+        self._xFilter.append(x)
+        self._yFilter.append(y)
+        self._rangeFilter.append(range)
+        self._alignFilter.append(squareNess - 1)
         
         # Get new result
         self._filterdX = self._xFilter.getAverage()
@@ -100,8 +106,7 @@ class RangeXYHold(FilteredState, WindowTrackingState):
             lostState = FindAttempt
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.WINDOW_FOUND : myState,
-                      vision.EventType.WINDOW_LOST : lostState })
+        trans.update(WindowTrackingState.transitions(myState, lostState))
         return trans
 
     @staticmethod
@@ -109,20 +114,50 @@ class RangeXYHold(FilteredState, WindowTrackingState):
         return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
                     'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxSpeed',
-                    'translateGain', 'filterSize'])
+                    'translateGain', 'filterSize', 'timeStampDelay'])
 
     def WINDOW_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
         # Check if this event should be vetoed, if it should, pass it on
         ret = WindowTrackingState.WINDOW_FOUND(self, event)
-        if ret is False:
+        if ret is False and not self._average:
             return ret
 
-        self._updateFilters(event)
+        # Average the found windows if specified
+        if self._average:
+            # Filter out old events
+            windowData = self.ai.data['windowData']
+            def recent_event(a):
+                return (event.timeStamp - \
+                            a.timeStamp) < self._timeStampDelay
+            eventList = __builtins__['filter'](recent_event,
+                                               windowData.values())
+
+            eventList = map(lambda a: event if a.color == event.color else a,
+                            eventList)
+
+            # Add all variables
+            x, y, range, squareNess = 0, 0, 0, 0
+            for e in eventList:
+                x += e.x
+                y += e.y
+                range += e.range
+                squareNess += e.squareNess
+
+            # Average the variables
+            x /= len(eventList)
+            y /= len(eventList)
+            range /= len(eventList)
+            squareNess /= len(eventList)
+        else:
+            x, y, range, squareNess = \
+                event.x, event.y, event.range, event.squareNess
+
+        self._updateFilters(x, y, range, squareNess)
         
         y = self._filterdY
         if 0 == self._depthGain:
-            y = 0
+             y = 0
         
         # We ignore azimuth and elevation because we aren't using them
         self._target.setState(0, 0, self._filterdRange, self._filterdX, self._filterdY, event.timeStamp)
@@ -134,13 +169,17 @@ class RangeXYHold(FilteredState, WindowTrackingState):
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
+
+        return ret
         
-    def enter(self, defaultDepthGain = 1.5):
+    def enter(self, defaultDepthGain = 1.5, average = False):
         FilteredState.enter(self)
         WindowTrackingState.enter(self)
         
         # Ensure vision system is on
         self.visionSystem.windowDetectorOn()
+        self._average = average
+        self._timeStampDelay = self._config.get('timeStampDelay', 1000)
         
         # Create tracking object
         self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
@@ -272,7 +311,7 @@ class Recover(state.FindAttempt, WindowTrackingState):
         self._closeRangeThreshold = self._config.get('closeRangeThreshold', 0.5)
         
         if event is None:
-            # If there was no event, do this
+            # If there was no event, do nothing
             self._recoverMethod = "None"
             self.motionManager.stopCurrentMotion()
         elif event.range < self._closeRangeThreshold:
@@ -280,8 +319,8 @@ class Recover(state.FindAttempt, WindowTrackingState):
             # Find the backwards direction and create the motion
             self._recoverMethod = "Close Range"
             self._recoverMotion = \
-	        motion.basic.MoveDirection(-180, self._reverseSpeed,
-		                           absolute = False)
+                motion.basic.MoveDirection(-180, self._reverseSpeed,
+                                            absolute = False)
             
             # Set the backwards motion
             self.motionManager.setMotion(self._recoverMotion)
@@ -295,7 +334,7 @@ class Searching(WindowTrackingState):
     """
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : CorrectHeight }
+        return { vision.EventType.WINDOW_FOUND : Approach }
 
     @staticmethod
     def getattr():
@@ -352,6 +391,28 @@ class Searching(WindowTrackingState):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+class Approach(RangeXYHold):
+    """
+    Approaches the windows until it's close enough to go
+    after a specific window.
+    """
+    @staticmethod
+    def transitions():
+        return RangeXYHold.transitions(Approach,
+                                       { RangeXYHold.IN_RANGE : CorrectHeight },
+                                       Searching)
+
+    def IN_RANGE(self, event):
+        """
+        Makes sure that the desired window has been found before continuing
+        """
+        windowData = self.ai.data['windowData']
+        if self._desiredColor not in windowData:
+            return False
+
+    def enter(self):
+        RangeXYHold.enter(self, average = True)
 
 class CorrectHeight(WindowTrackingState):
     """
@@ -531,7 +592,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         if ret is False:
             return ret
 
-        self._updateFilters(event)
+        self._updateFilters(event.x, event.y, event.range, event.squareNess)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
@@ -684,11 +745,6 @@ class Reposition(state.State):
                                                   speed = diveSpeed)
 
         self.motionManager.setMotion(backwardsMotion, diveMotion)
-
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
-        self.controller.holdCurrentDepth()
-        self.controller.holdCurrentPosition()
 
 class End(state.State):
     def enter(self):
