@@ -93,6 +93,8 @@ private:
     void getFormatParameters(const Image::PixelFormat& fmt,
                              int& depth, int& channels);
 
+    void LuvToLCh();
+
     bool m_own;
     unsigned char* m_data;
     IplImage* m_img;

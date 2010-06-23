@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 // Library Includes
 /// TODO: Limit this to just the needed headers if possible
@@ -340,6 +341,33 @@ IplImage* OpenCVImage::asIplImage() const
 {
     return m_img;
 }
+
+void OpenCVImage::LuvToLCh()
+{
+    // make sure this is a CIELUV 8 bit image
+    assert(m_fmt == PF_LUV_8);
+    unsigned char *data = (unsigned char*) getData();
+
+    for(unsigned int pix = 0; pix < getWidth()*getHeight(); pix++){
+
+        // u and v range from 0 to 255
+        unsigned char u = data[1 + 3*pix];
+        unsigned char v = data[2 + 3*pix];
+        
+        // calculate c and h normalizing the range 0 to 1 
+        double c_star = sqrt(u*u + v*v) / 360.624458405;//sqrt(255*255 + 255*255);
+        double h_star = atan(v/u) / (CV_PI/2);
+        
+        // change range to 0 to 255 and truncate to 8 bits
+        unsigned char c = (double) 255*c_star;
+        unsigned char h = (double) 255*h_star;
+        
+        data[1 + 3*pix] = c;
+        data[2 + 3*pix] = h;
+    }
+}
+
+
 
 } // namespace vision
 } // namespace ram
