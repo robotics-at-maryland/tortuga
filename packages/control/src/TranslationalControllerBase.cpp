@@ -41,10 +41,14 @@ void TranslationalControllerBase::setControlMode(ControlMode::ModeType mode)
     m_controlMode = mode;
 }
 
+ControlMode::ModeType TranslationalControllerBase::getControlMode()
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    return m_controlMode;
+}
+
 void TranslationalControllerBase::init(core::ConfigNode config)
 {
-    // m_positionThreshold = config["positionThreshold"].asDouble(0.1);
-    // m_velocityThreshold = config["velocityThreshold"].asDouble(0.1);
 }
     
 } // namespace control

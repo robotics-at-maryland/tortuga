@@ -96,9 +96,25 @@ void WindowDetector::init(core::ConfigNode config)
                          "Minimum height for a blob",
                          50, &m_minHeight);
 
+    propSet->addProperty(config, false, "minInnerWidth",
+                        "Minimum width for the inside of the target",
+                        20, &m_minInnerWidth);
+
+    propSet->addProperty(config, false, "minInnerHeight",
+                        "Minimum height for the inside of the target",
+                        20, &m_minInnerHeight);
+
     propSet->addProperty(config, false, "minPixelPercentage",
                          "Minimum percentage of pixels / area",
                          0.1, &m_minPixelPercentage, 0.0, 1.0);
+
+    propSet->addProperty(config, false, "maxPixelPercentage",
+                         "Maximum percentage of pixels / area",
+                         1.0, &m_maxPixelPercentage, 0.0, 1.0);
+
+    propSet->addProperty(config, false, "innerMinPixelPercentage",
+                         "Minimum percentage for inner background",
+                         0.1, &m_innerMinPixelPercentage, 0.0, 1.0);
 
     propSet->addProperty(config, false, "erodeIterations",
                          "Number of times to erode the binary image",
@@ -132,16 +148,24 @@ void WindowDetector::init(core::ConfigNode config)
                                      "BlueS", "Blue Saturation",
                                      "BlueV", "Blue Value",
                                      0, 255, 0, 255, 0, 255);
+    m_bgFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_bgFilter->addPropertiesToSet(propSet, &config,
+                                   "BgH", "Background Hue",
+                                   "BgS", "Background Saturation",
+                                   "BgV", "Background Value",
+                                   0, 255, 0, 255, 0, 255);
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
     
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     blueFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
 }
 
 void WindowDetector::update()
@@ -152,7 +176,8 @@ void WindowDetector::update()
 
 bool WindowDetector::processColor(Image* input, Image* output,
                                   ColorFilter& filter,
-                                  BlobDetector::Blob& outBlob)
+                                  BlobDetector::Blob& outerBlob,
+                                  BlobDetector::Blob& innerBlob)
 {
     output->copyFrom(input);
     output->setPixelFormat(Image::PF_HSV_8);
@@ -172,18 +197,22 @@ bool WindowDetector::processColor(Image* input, Image* output,
     m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
+
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Sanity check blob
         double pixelPercentage = blob.getSize() /
             (double) (blob.getHeight() * blob.getWidth());
-        if (blob.getAspectRatio() <= m_maxAspectRatio &&
-            blob.getAspectRatio() >= m_minAspectRatio &&
+        double aspect = blob.getTrueAspectRatio();
+        if (aspect <= m_maxAspectRatio &&
+            aspect >= m_minAspectRatio &&
             m_minHeight <= blob.getHeight() &&
             m_minWidth <= blob.getWidth() &&
-            m_minPixelPercentage <= pixelPercentage)
+            m_minPixelPercentage <= pixelPercentage &&
+            m_maxPixelPercentage >= pixelPercentage &&
+            processBackground(input, *m_bgFilter, blob, innerBlob))
         {
-            outBlob = blob;
+            outerBlob = blob;
             return true;
         }
     }
@@ -191,15 +220,49 @@ bool WindowDetector::processColor(Image* input, Image* output,
     return false;
 }
 
+bool WindowDetector::processBackground(Image *input, ColorFilter& filter, 
+                                       BlobDetector::Blob& outerBlob,
+                                       BlobDetector::Blob& innerBlob)
+{
+    OpenCVImage frame(640, 480, Image::PF_BGR_8);
+    frame.copyFrom(input);
+    frame.setPixelFormat(Image::PF_HSV_8);
+
+    unsigned char *buffer = new unsigned char[outerBlob.getWidth()*outerBlob.getHeight()*3];
+    Image *innerFrame = Image::extractSubImage(&frame, buffer,
+                                               outerBlob.getMinX(), outerBlob.getMinY(),
+                                               outerBlob.getMaxX(), outerBlob.getMaxY());
+
+    filter.filterImage(innerFrame);
+    
+    m_blobDetector.processImage(innerFrame);
+
+    BlobDetector::BlobList bgBlobs = m_blobDetector.getBlobs();
+    
+    BOOST_FOREACH(BlobDetector::Blob blob, bgBlobs) {
+        double pxPercentage = blob.getFillPercentage();
+        if(pxPercentage >= m_innerMinPixelPercentage &&
+           blob.getHeight() >= m_minInnerHeight &&
+           blob.getWidth()  >= m_minInnerWidth) {
+            innerBlob = blob;
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void WindowDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
     BlobDetector::Blob redBlob, greenBlob, yellowBlob, blueBlob;
+    BlobDetector::Blob innerRedBlob, innerGreenBlob, innerYellowBlob, innerBlueBlob;
     bool redFound = false, greenFound = false,
         yellowFound = false, blueFound = false;
 
-    if ((redFound = processColor(frame, redFrame, *m_redFilter, redBlob))) {
+    if ((redFound = processColor(frame, redFrame, *m_redFilter,
+                                 redBlob, innerRedBlob))) {
         publishFoundEvent(redBlob, Color::RED);
     } else {
         // Publish lost event if this was found previously
@@ -209,8 +272,8 @@ void WindowDetector::processImage(Image* input, Image* output)
     }
     m_redFound = redFound;
 
-    if ((greenFound = processColor(frame, greenFrame,
-                                   *m_greenFilter, greenBlob))) {
+    if ((greenFound = processColor(frame, greenFrame, *m_greenFilter,
+                                   greenBlob, innerGreenBlob))) {
         publishFoundEvent(greenBlob, Color::GREEN);
     } else {
         // Publish lost event if this was found previously
@@ -220,8 +283,8 @@ void WindowDetector::processImage(Image* input, Image* output)
     }
     m_greenFound = greenFound;
 
-    if ((yellowFound = processColor(frame, yellowFrame,
-                                    *m_yellowFilter, yellowBlob))) {
+    if ((yellowFound = processColor(frame, yellowFrame, *m_yellowFilter,
+                                    yellowBlob, innerYellowBlob))) {
         publishFoundEvent(yellowBlob, Color::YELLOW);
     } else {
         // Publish lost event if this was found previously
@@ -231,7 +294,8 @@ void WindowDetector::processImage(Image* input, Image* output)
     }
     m_yellowFound = yellowFound;
 
-    if ((blueFound = processColor(frame, blueFrame, *m_blueFilter, blueBlob))) {
+    if ((blueFound = processColor(frame, blueFrame, *m_blueFilter,
+                                  blueBlob, innerBlueBlob))) {
         publishFoundEvent(blueBlob, Color::BLUE);
     } else {
         // Publish lost event if this was found previously
@@ -290,9 +354,23 @@ void WindowDetector::processImage(Image* input, Image* output)
                     center.y = redBlob.getCenterY();
 
                     redBlob.drawStats(output);
-                    // Red
+
+                    CvPoint p1;
+                    p1.x = redBlob.getMinX() + innerRedBlob.getMinX();
+                    p1.y = redBlob.getMinY() + innerRedBlob.getMinY();
+
+                    CvPoint p2;
+                    p2.x = redBlob.getMinX() + innerRedBlob.getMaxX();
+                    p2.y = redBlob.getMinY() + innerRedBlob.getMaxY();
+
+                    cvRectangle(output->asIplImage(),p1,p2,cvScalar(100,100,100),3);
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(redBlob.getMinX(),redBlob.getMinY()),
+                                cvPoint(redBlob.getMaxX(),redBlob.getMaxY()),
+                                cvScalar(255,255,255),2);
                     cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 0, 255), -1);
+                             cvScalar(0, 0, 150), -1);
+
                 }
 
                 if (greenFound) {
@@ -301,9 +379,22 @@ void WindowDetector::processImage(Image* input, Image* output)
                     center.y = greenBlob.getCenterY();
 
                     greenBlob.drawStats(output);
-                    // Green
+
+                    CvPoint p1;
+                    p1.x = greenBlob.getMinX() + innerGreenBlob.getMinX();
+                    p1.y = greenBlob.getMinY() + innerGreenBlob.getMinY();
+
+                    CvPoint p2;
+                    p2.x = greenBlob.getMinX() + innerGreenBlob.getMaxX();
+                    p2.y = greenBlob.getMinY() + innerGreenBlob.getMaxY();
+
+                    cvRectangle(output->asIplImage(),p1,p2,cvScalar(100,100,100),3);
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(greenBlob.getMinX(),greenBlob.getMinY()),
+                                cvPoint(greenBlob.getMaxX(),greenBlob.getMaxY()),
+                                cvScalar(255,255,255),2);
                     cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 255, 0), -1);
+                             cvScalar(0, 150, 0), -1);
                 }
 
                 if (yellowFound) {
@@ -312,9 +403,23 @@ void WindowDetector::processImage(Image* input, Image* output)
                     center.y = yellowBlob.getCenterY();
 
                     yellowBlob.drawStats(output);
-                    // Yellow (Red + Green)
+
+                    CvPoint p1;
+                    p1.x = yellowBlob.getMinX() + innerYellowBlob.getMinX();
+                    p1.y = yellowBlob.getMinY() + innerYellowBlob.getMinY();
+
+                    CvPoint p2;
+                    p2.x = yellowBlob.getMinX() + innerYellowBlob.getMaxX();
+                    p2.y = yellowBlob.getMinY() + innerYellowBlob.getMaxY();
+
+                    cvRectangle(output->asIplImage(),p1,p2,cvScalar(100,100,100),3);
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(yellowBlob.getMinX(),yellowBlob.getMinY()),
+                                cvPoint(yellowBlob.getMaxX(),yellowBlob.getMaxY()),
+                                cvScalar(255,255,255),2);
+                    // Yellow = Red + Green
                     cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 255, 255), -1);
+                             cvScalar(0, 150, 150), -1);
                 }
 
                 if (blueFound) {
@@ -323,9 +428,22 @@ void WindowDetector::processImage(Image* input, Image* output)
                     center.y = blueBlob.getCenterY();
 
                     blueBlob.drawStats(output);
-                    // Blue
+
+                    CvPoint p1;
+                    p1.x = blueBlob.getMinX() + innerBlueBlob.getMinX();
+                    p1.y = blueBlob.getMinY() + innerBlueBlob.getMinY();
+
+                    CvPoint p2;
+                    p2.x = blueBlob.getMinX() + innerBlueBlob.getMaxX();
+                    p2.y = blueBlob.getMinY() + innerBlueBlob.getMaxY();
+
+                    cvRectangle(output->asIplImage(),p1,p2,cvScalar(100,100,100),3);
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(blueBlob.getMinX(),blueBlob.getMinY()),
+                                cvPoint(blueBlob.getMaxX(),blueBlob.getMaxY()),
+                                cvScalar(255,255,255),2);
                     cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(255, 0, 0), -1);
+                             cvScalar(150, 0, 0), -1);
                 }
             }
         }

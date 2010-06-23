@@ -41,7 +41,6 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineContro
 
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
-//static log4cpp::Category& ADPT_LOGGER(log4cpp::Category::getInstance("AdaptCtrl"));
 
 using namespace std;
 
@@ -134,12 +133,17 @@ void CombineController::setVelocity(math::Vector2 velocity)
 
 void CombineController::setSpeed(double speed)
 {
+    // when going between control modes, reset the velocity
+    if(m_transController->getControlMode() != ControlMode::OPEN_LOOP)
+        setDesiredVelocity(math::Vector2(0,0), IController::INERTIAL_FRAME);
+
+    // clamp speeds
     if(speed > 5)
         speed = 5;
     else if(speed < -5)
         speed = -5;
 
-    double sidewaysSpeed = getDesiredVelocity(IController::BODY_FRAME)[1];
+    double sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
 
     /*  Store velocity as if the robots frame is the inertial frame.  
         In other words, the robot should always travel at this velocity 
@@ -151,12 +155,17 @@ void CombineController::setSpeed(double speed)
 
 void CombineController::setSidewaysSpeed(double speed)
 {
+    // when going between control modes, reset the velocity
+    if(m_transController->getControlMode() != ControlMode::OPEN_LOOP)
+        setDesiredVelocity(math::Vector2(0,0), IController::INERTIAL_FRAME);
+
+    // clamp speeds
     if(speed > 5)
         speed = 5;
     else if(speed < -5)
         speed = -5;
 
-    double forwardSpeed = getDesiredVelocity(IController::BODY_FRAME)[0];
+    double forwardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
 
     /*  Store velocity as if the robots frame is the inertial frame.  
         In other words, the robot should always travel at this velocity 
@@ -169,7 +178,7 @@ void CombineController::setSidewaysSpeed(double speed)
 void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+        velocity = nRb(desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
     desiredState->setDesiredVelocity(velocity);
     m_transController->setControlMode(ControlMode::VELOCITY);
 }

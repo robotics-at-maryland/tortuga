@@ -60,6 +60,7 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
                                               controltest::DesiredStatePtr desiredState) = 0;
 
     virtual void setControlMode(ControlMode::ModeType mode) = 0;
+    virtual ControlMode::ModeType getControlMode() = 0;
 };
     
 } // namespace control

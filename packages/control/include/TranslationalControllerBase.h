@@ -43,6 +43,7 @@ class RAM_EXPORT TranslationalControllerBase :
 
 
     virtual void setControlMode(ControlMode::ModeType mode);
+    virtual ControlMode::ModeType getControlMode();
     
   protected:
 

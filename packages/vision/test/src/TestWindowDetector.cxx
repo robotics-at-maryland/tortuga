@@ -102,7 +102,7 @@ SUITE(WindowDetector) {
 
 TEST_FIXTURE(WindowDetectorFixture, FourTargetsFound)
 {
-    makeColor(&input, 0, 0, 0);
+    makeColor(&input, 1, 0, 0);
 
     // Top left square
     drawTarget(&input, 280, 180, 140, 140, 20, 0, cvScalar(0, 0, 255));

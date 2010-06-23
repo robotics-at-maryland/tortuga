@@ -50,7 +50,13 @@ class RAM_EXPORT WindowDetector : public Detector
 
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output,
-                      ColorFilter& filter, BlobDetector::Blob& outBlob);
+                      ColorFilter& filter,
+                      BlobDetector::Blob& outerBlob,
+                      BlobDetector::Blob& innerBlob);
+
+    bool processBackground(Image *input, ColorFilter& filter,
+                           BlobDetector::Blob& outerBlob,
+                           BlobDetector::Blob& innerBlob);
     
     /* Process current state, and publishes TARGET_FOUND event */
     void publishFoundEvent(const BlobDetector::Blob& blob,
@@ -65,6 +71,7 @@ class RAM_EXPORT WindowDetector : public Detector
     ColorFilter *m_greenFilter;
     ColorFilter *m_yellowFilter;
     ColorFilter *m_blueFilter;
+    ColorFilter *m_bgFilter;
 
     /** Blob detector */
     BlobDetector m_blobDetector;
@@ -87,7 +94,13 @@ class RAM_EXPORT WindowDetector : public Detector
     int m_minWidth;
     int m_minHeight;
 
+    int m_minInnerWidth;
+    int m_minInnerHeight;
+
     double m_minPixelPercentage;
+    double m_maxPixelPercentage;
+
+    double m_innerMinPixelPercentage;
 
     int m_erodeIterations;
     int m_dilateIterations;

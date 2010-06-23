@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "control/include/ITranslationalController.h"
+#include "control/include/IController.h"
 #include "core/include/ConfigNode.h"
 
 class MockTranslationalController :
@@ -41,6 +42,8 @@ public:
         return force; }
 
     virtual void setControlMode(ram::control::ControlMode::ModeType mode){}
+    virtual ram::control::ControlMode::ModeType getControlMode(){
+        return ram::control::ControlMode::OPEN_LOOP;}
 
     double timestep;
     ram::math::Vector3 linearAcceleration;
