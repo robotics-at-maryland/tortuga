@@ -105,7 +105,7 @@ WindowDetector:
     dilateIterations: 0
     erodeIterations: 0
     filtBgHMax: 115
-    filtBgHMin: 96
+    filtBgHMin: 93
     filtBgSMax: 196
     filtBgSMin: 0
     filtBgVMax: 96
@@ -116,14 +116,14 @@ WindowDetector:
     filtBlueSMin: 196
     filtBlueVMax: 255
     filtBlueVMin: 151
-    filtGreenHMax: 96
-    filtGreenHMin: 80
+    filtGreenHMax: 95
+    filtGreenHMin: 82
     filtGreenSMax: 255
     filtGreenSMin: 60
     filtGreenVMax: 220
     filtGreenVMin: 60
     filtRedHMax: 32
-    filtRedHMin: 110
+    filtRedHMin: 108
     filtRedSMax: 255
     filtRedSMin: 0
     filtRedVMax: 230
@@ -134,12 +134,12 @@ WindowDetector:
     filtYellowSMin: 0
     filtYellowVMax: 230
     filtYellowVMin: 90
-    innerMinPixelPercentage: 0.7
-    maxAspectRatio: 2
-    maxPixelPercentage: 0.43
-    minAspectRatio: 0.5
-    minHeight: 60
-    minInnerHeight: 30
-    minInnerWidth: 30
+    innerMinPixelPercentage: 0.6
+    maxAspectRatio: 3
+    maxPixelPercentage: 0.5
+    minAspectRatio: 0.3
+    minHeight: 40
+    minInnerHeight: 25
+    minInnerWidth: 25
     minPixelPercentage: 0.2
-    minWidth: 60
+    minWidth: 40
