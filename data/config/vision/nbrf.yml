@@ -126,20 +126,32 @@ WindowDetector:
     filtRedHMin: 108
     filtRedSMax: 255
     filtRedSMin: 0
-    filtRedVMax: 230
-    filtRedVMin: 60
-    filtYellowHMax: 86
-    filtYellowHMin: 20
-    filtYellowSMax: 255
-    filtYellowSMin: 0
-    filtYellowVMax: 230
-    filtYellowVMin: 90
-    innerMinPixelPercentage: 0.6
-    maxAspectRatio: 3
-    maxPixelPercentage: 0.5
-    minAspectRatio: 0.3
-    minHeight: 40
-    minInnerHeight: 25
-    minInnerWidth: 25
-    minPixelPercentage: 0.2
-    minWidth: 40
+
+BuoyDetector:
+    almostHitRadius: 200
+    debug: 2
+    filtGreenLMax: 255
+    filtGreenLMin: 0
+    filtGreenUMax: 255
+    filtGreenUMin: 0
+    filtGreenVMax: 145
+    filtGreenVMin: 128
+    filtRedLMax: 255
+    filtRedLMin: 0
+    filtRedUMax: 255
+    filtRedUMin: 96
+    filtRedVMax: 255
+    filtRedVMin: 129
+    filtYellowLMax: 255
+    filtYellowLMin: 0
+    filtYellowUMax: 125
+    filtYellowUMin: 0
+    filtYellowVMax: 255
+    filtYellowVMin: 135
+    maxAspectRatio: 1.5
+    maxDistance: 15
+    minAspectRatio: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.52
+    minPixels: 200
+    minWidth: 50

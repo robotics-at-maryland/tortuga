@@ -92,6 +92,9 @@ void BuoyDetector::init(core::ConfigNode config)
                          "Minimum percentage of pixels / area",
                          0.1, &m_minPixelPercentage, 0.0, 1.0);
 
+    propSet->addProperty(config, false, "minPixels",
+                         "Minimum number of pixels", 15, &m_minPixels);
+
     propSet->addProperty(config, false, "maxDistance",
                          "Maximum distance between two blobs from different frames",
                          15.0, &m_maxDistance);
@@ -102,20 +105,20 @@ void BuoyDetector::init(core::ConfigNode config)
 
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
-                                    "RedH", "Red Hue",
-                                    "RedS", "Red Saturation",
+                                    "RedL", "Red L",
+                                    "RedU", "Red U",
                                     "RedV", "Red Value",
                                     0, 255, 0, 255, 0, 255);
     m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_greenFilter->addPropertiesToSet(propSet, &config,
-                                      "GreenH", "Green Hue",
-                                      "GreenS", "Green Saturation",
+                                      "GreenL", "Green L",
+                                      "GreenU", "Green U",
                                       "GreenV", "Green Value",
                                       0, 255, 0, 255, 0, 255);
     m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_yellowFilter->addPropertiesToSet(propSet, &config,
-                                       "YellowH", "Yellow Hue",
-                                       "YellowS", "Yellow Saturation",
+                                       "YellowL", "Yellow L",
+                                       "YellowU", "Yellow U",
                                        "YellowV", "Yellow Value",
                                        0, 255, 0, 255, 0, 255);
 
@@ -149,15 +152,15 @@ void BuoyDetector::update()
 }
 
 bool BuoyDetector::processColor(Image* input, Image* output,
-                                  ColorFilter& filter,
-                                  BlobDetector::Blob& outBlob)
+                                ColorFilter& filter,
+                                BlobDetector::Blob& outBlob)
 {
     output->copyFrom(input);
-    output->setPixelFormat(Image::PF_HSV_8);
+    output->setPixelFormat(Image::PF_LUV_8);
     filter.filterImage(output);
 
     OpenCVImage debug(output->getWidth(), output->getHeight(),
-                              Image::PF_BGR_8);
+                      Image::PF_BGR_8);
     m_blobDetector.processImage(output, &debug);
     //Image::showImage(&debug);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
@@ -165,7 +168,12 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Sanity check blob
-        if (blob.getAspectRatio() < m_maxAspectRatio)
+        double percent = (double) blob.getSize() /
+            (blob.getWidth() * blob.getHeight());
+        if (blob.getAspectRatio() < m_maxAspectRatio &&
+            blob.getSize() > m_minPixels &&
+            percent > m_minPixelPercentage &&
+            blob.getAspectRatio() > m_minAspectRatio)
         {
             outBlob = blob;
             return true;

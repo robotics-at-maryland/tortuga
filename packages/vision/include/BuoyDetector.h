@@ -90,6 +90,7 @@ class RAM_EXPORT BuoyDetector : public Detector
     int m_minHeight;
 
     double m_minPixelPercentage;
+    int m_minPixels;
     double m_maxDistance;
 
     int m_debug;
