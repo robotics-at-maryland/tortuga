@@ -97,8 +97,14 @@ BarbedWireDetector:
 VelocityDetector:
     usePhaseCorrelation: 0
     useLKFlow: 1
+
 HedgeDetector:
-    filtVMin: 130
+    filtHedgeHMax: 96
+    filtHedgeHMin: 82
+    filtHedgeSMax: 255
+    filtHedgeSMin: 60
+    filtHedgeVMax: 220
+    filtHedgeVMin: 60
 
 WindowDetector:
     debug: 2
@@ -126,6 +132,23 @@ WindowDetector:
     filtRedHMin: 108
     filtRedSMax: 255
     filtRedSMin: 0
+    filtRedVMax: 230
+    filtRedVMin: 60
+    filtYellowHMax: 86
+    filtYellowHMin: 20
+    filtYellowSMax: 255
+    filtYellowSMin: 0
+    filtYellowVMax: 230
+    filtYellowVMin: 90
+    innerMinPixelPercentage: 0.6
+    maxAspectRatio: 3
+    maxPixelPercentage: 0.5
+    minAspectRatio: 0.3
+    minHeight: 40
+    minInnerHeight: 25
+    minInnerWidth: 25
+    minPixelPercentage: 0.2
+    minWidth: 40
 
 BuoyDetector:
     almostHitRadius: 200

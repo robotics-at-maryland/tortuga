@@ -134,7 +134,13 @@ bool HedgeDetector::processColor(Image* input, Image* output,
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Sanity check blob
-        if (blob.getAspectRatio() < m_maxAspectRatio)
+        double percent = (double) blob.getSize() /
+            (blob.getHeight() * blob.getWidth());
+        if (blob.getAspectRatio() < m_maxAspectRatio &&
+            blob.getAspectRatio() > m_minAspectRatio &&
+            m_minWidth < blob.getWidth() &&
+            m_minHeight < blob.getHeight() &&
+            percent > m_minPixelPercentage)
         {
             outBlob = blob;
             return true;
