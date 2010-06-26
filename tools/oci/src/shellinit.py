@@ -111,6 +111,18 @@ def allStop():
 s = allStop
 stop = allStop
 
+@requires('vehicle')
+def safe():
+    vehicle.safeThrusters()
+
+@requires('vehicle')
+def unsafe():
+    vehicle.unsafeThrusters()
+    # Wait for a second an unsafe the thrusters again
+    # This is because unsafeThrusters doesn't always succeed completely
+    timer.sleep(1)
+    vehicle.unsafeThrusters()
+
 @requires('stateMachine')
 def start(state):
     allStop()
