@@ -385,7 +385,7 @@ class Target(ram.sim.object.Object):
             ogre.Degree(90), ogre.Vector3.UNIT_Z)
 
         # Set the color of the target
-        self._color = node.get('color', 'GREEN')
+        self._color = node.get('color', 'GREEN').upper()
 
         # For the material color
         color = self._color.lower().capitalize()
@@ -444,7 +444,7 @@ class TargetArray(Visual):
     """
     Represents a 2x2 target array
     """
-    core.implements(ram.sim.object.IObject, ITarget)
+    core.implements(ram.sim.object.IObject)
 
     DISTANCE = 0.375
 
@@ -466,7 +466,7 @@ class TargetArray(Visual):
         scene, parent, node = data_object
         ram.sim.object.Object.load(self, (parent, node))
 
-        colors = node.get('colors', ['red', 'orange', 'blue', 'green'])
+        colors = node.get('colors', ['red', 'yellow', 'blue', 'green'])
         while len(colors) < 4:
             # Green is the default
             colors.append('green')
@@ -929,6 +929,10 @@ class IdealSimVision(ext.vision.VisionSystem):
         self._foundTarget = False
         self._targetID = 1
 
+        # Window Detector variables
+        self._runWindow = False
+        self._foundWindows = set()
+
         # BarbedWire Detector Variables
         self._runBarbedWire = False
         self._foundBarbedWire = False
@@ -1017,6 +1021,16 @@ class IdealSimVision(ext.vision.VisionSystem):
         self.publish(ext.vision.EventType.TARGET_DETECTOR_OFF,
                      ext.core.Event())
 
+    def windowDetectorOn(self):
+        self._runWindow = True
+        self.publish(ext.vision.EventType.WINDOW_DETECTOR_ON,
+                     ext.core.Event())
+
+    def windowDetectorOff(self):
+        self._runWindow = False
+        self.publish(ext.vision.EventType.WINDOW_DETECTOR_OFF,
+                     ext.core.Event())
+
     def barbedWireDetectorOn(self):
         self._runBarbedWire = True
         self.publish(ext.vision.EventType.BARBED_WIRE_DETECTOR_ON,
@@ -1058,6 +1072,8 @@ class IdealSimVision(ext.vision.VisionSystem):
             self._checkDownwardSafe()
         if self._runTarget:
             self._checkTarget()
+        if self._runWindow:
+            self._checkWindow()
         if self._runBarbedWire:
             self._checkBarbedWire()
         if self._runHedge:
@@ -1317,6 +1333,52 @@ class IdealSimVision(ext.vision.VisionSystem):
                 self.publish(ext.vision.EventType.TARGET_LOST, ext.core.Event())
 
         self._foundTarget = targetVisible
+
+    def _checkWindow(self):
+        """
+        Check for each window
+        """
+        # Windows are targets
+        if self._targets is None:
+            return
+        if len(self._targets) == 0:
+            return
+
+        found = set()
+        robotPos = self.robot.position + \
+            (self.robot.orientation * ogre.Vector3(0.5, 0, 0))
+        
+        for target in self._targets:
+            # Determine orientation to the target
+            relativePos = target.position - robotPos
+            targetVisible, x, y, azimuth, elevation, angle = \
+                self._forwardCheck(relativePos, target)
+            color = getattr(ext.vision.Color, target._color)
+            
+            if targetVisible and (relativePos.length() < 3) and \
+                    color not in found:
+                # Pack data into the event
+                event = ext.core.Event()
+                event.x = x
+                event.y = y
+                event.squareNess =  math.fabs(math.cos(angle.valueRadians()))
+                event.color = getattr(ext.vision.Color, target._color)
+
+                found.add(event.color)
+
+                # Convert to feet
+                event.range = relativePos.length() * 3.2808399
+                
+                self.publish(ext.vision.EventType.WINDOW_FOUND, event)
+
+        # Publish lost events for windows that are now gone
+        lostWindows = self._foundWindows.difference(found)
+        for lost in lostWindows:
+            event = ext.core.Event()
+            event.color = lost
+            self.publish(ext.vision.EventType.WINDOW_LOST, event)
+
+        self._foundWindows = found
 
     def _checkBarbedWire(self):
         """
