@@ -19,6 +19,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
+#include "vision/include/BlobDetector.h"
 #include "vision/include/LineDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
@@ -54,7 +55,7 @@ class RAM_EXPORT HedgeDetector : public Detector
                       ColorFilter& filter, BlobDetector::Blob& outBlob);
 
     // Process current state, and publish the HEDGE_FOUND event
-    void publishFoundEvent(const BlobDetector::Blob& blob);
+    void publishFoundEvent(BlobDetector::Blob& blob);
 
     void publishLostEvent();
 

@@ -60,11 +60,11 @@ void HedgeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "maxAspectRatio",
                          "Maximum aspect ratio (width/height)",
-                         1.1, &m_maxAspectRatio);
+                         2.5, &m_maxAspectRatio);
 
     propSet->addProperty(config, false, "minAspectRatio",
                          "Minimum aspect ratio (width/height)",
-                         0.25, &m_minAspectRatio);
+                         0.75, &m_minAspectRatio);
 
     propSet->addProperty(config, false, "minWidth",
                          "Minimum width for a blob",
@@ -84,9 +84,9 @@ void HedgeDetector::init(core::ConfigNode config)
 
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
-                                    "HedgeH", "Hedge Hue",
-                                    "HedgeS", "Hedge Saturation",
-                                    "HedgeV", "Hedge Value",
+                                    "H", "Hue",
+                                    "S", "Saturation",
+                                    "V", "Value",
                                     0, 255, 0, 255, 0, 255);
 
     // Make sure the configuration is valid
@@ -103,6 +103,8 @@ HedgeDetector::~HedgeDetector()
 {
     delete frame;
     delete greenFrame;
+
+    delete m_colorFilter;
 }
 
 void HedgeDetector::show(char* window)
@@ -136,8 +138,8 @@ bool HedgeDetector::processColor(Image* input, Image* output,
         // Sanity check blob
         double percent = (double) blob.getSize() /
             (blob.getHeight() * blob.getWidth());
-        if (blob.getAspectRatio() < m_maxAspectRatio &&
-            blob.getAspectRatio() > m_minAspectRatio &&
+        if (blob.getAspectRatio() <= m_maxAspectRatio &&
+            blob.getAspectRatio() >= m_minAspectRatio &&
             m_minWidth < blob.getWidth() &&
             m_minHeight < blob.getHeight() &&
             percent > m_minPixelPercentage)
@@ -161,7 +163,7 @@ void HedgeDetector::processImage(Image* input, Image* output)
         publishFoundEvent(hedgeBlob);
     } else {
         // Publish lost event if this was found previously
-        if(found) {
+        if(m_found) {
             publishLostEvent();
         }
     }
@@ -193,8 +195,10 @@ void HedgeDetector::processImage(Image* input, Image* output)
 
                 if(found){
                     CvPoint center;
-                    center.x = hedgeBlob.getCenterX();
-                    center.y = hedgeBlob.getCenterY();
+                    center.x = (hedgeBlob.getMaxX() - hedgeBlob.getMinX()) / 2 +
+                        hedgeBlob.getMinX();
+                    center.y = (hedgeBlob.getMaxY() - hedgeBlob.getMinY()) / 2 +
+                        hedgeBlob.getMinY();
                     
                     hedgeBlob.drawStats(output);
 
@@ -206,14 +210,22 @@ void HedgeDetector::processImage(Image* input, Image* output)
     }
 }
 
-void HedgeDetector::publishFoundEvent(const BlobDetector::Blob& blob)
+void HedgeDetector::publishFoundEvent(BlobDetector::Blob& blob)
 {
     HedgeEventPtr event(new HedgeEvent());
+
+    int imageX = (blob.getMaxX() - blob.getMinX()) / 2 + blob.getMinX();
+    int imageY = (blob.getMaxY() - blob.getMinY()) / 2 + blob.getMinY();
     
-    event->x = blob.getCenterX();
-    event->y = blob.getCenterY();
-    event->squareNess = 0;
-    event->range = 0;
+    double centerX, centerY;
+    Detector::imageToAICoordinates(frame, imageX, imageY,
+                                   centerX, centerY);
+
+    event->x = centerX;
+    event->y = centerY;
+    event->squareNess = 1.0 / blob.getTrueAspectRatio();
+    event->range = 1.0 - (((double)blob.getHeight()) /
+                          ((double)frame->getHeight()));
 
     publish(EventType::HEDGE_FOUND, event);
 
@@ -221,14 +233,13 @@ void HedgeDetector::publishFoundEvent(const BlobDetector::Blob& blob)
 
 void HedgeDetector::publishLostEvent()
 {
-    HedgeEventPtr event(new HedgeEvent());
-    
+    HedgeEventPtr event(new HedgeEvent());    
     publish(EventType::HEDGE_LOST, event);
 }
 
 IplImage* HedgeDetector::getAnalyzedImage()
 {
-    return frame->asIplImage();
+    return greenFrame->asIplImage();
 }
 
 

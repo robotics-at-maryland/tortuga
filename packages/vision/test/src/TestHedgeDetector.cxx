@@ -30,35 +30,34 @@ using namespace ram;
  * Values passed in should not draw anything outside the field of view, as
  * this function does not check for boundary conditions.
  */
-void drawHedge(vision::Image* input, int x, int y, double w, int thickness)
+void drawHedge(vision::Image* input, int x, int y, double w,
+               double h, int thickness)
 {
-    // Get width in relation to 640x480 screen
-    double width = w * 640;
-    double height = width / 2.0;
-
     // Left vertical line
     vision::drawLine(input,
-                     x-((int)width/2), y-((int)height/2),
-                     x-((int)width/2), y+((int)height/2),
+                     x-((int)w/2), y-((int)h/2),
+                     x-((int)w/2), y+((int)h/2),
                      thickness, CV_RGB(0, 255, 0));
 
     // Right vertical line
     vision::drawLine(input,
-                     x+((int)width/2), y-((int)height/2),
-                     x+((int)width/2), y+((int)height/2),
+                     x+((int)w/2), y-((int)h/2),
+                     x+((int)w/2), y+((int)h/2),
                      thickness, CV_RGB(0, 255, 0));
 
     // Bottom horizontal line
     vision::drawLine(input,
-                     x-((int)width/2), y+((int)height/2),
-                     x+((int)width/2), y+((int)height/2),
+                     x-((int)w/2), y+((int)h/2),
+                     x+((int)w/2), y+((int)h/2),
                      thickness, CV_RGB(0, 255, 0));
 }
 
 static const std::string CONFIG =
     "{"
     " 'name' : 'HedgeDetector',"
-    " 'filtGMin' : 150"
+    " 'filtHMin' : 60,"
+    " 'filtHMax' : 60,"
+    " 'filtVMin' : 10"
     "}";
 
 struct HedgeDetectorFixture
@@ -66,7 +65,7 @@ struct HedgeDetectorFixture
     HedgeDetectorFixture() :
         found(false),
         event(vision::HedgeEventPtr()),
-        input(640, 480),
+        input(640, 480, vision::Image::PF_BGR_8),
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString(CONFIG), eventHub)
     {
@@ -85,25 +84,25 @@ struct HedgeDetectorFixture
     void lostHandler(core::EventPtr event_)
     {
         found = false;
-        event = vision::HedgeEventPtr();
+        event = boost::dynamic_pointer_cast<vision::HedgeEvent>(event_);
     }
 
     void processImage(vision::Image* image, bool show = false)
     {
         if (show)
-	{
-	    vision::OpenCVImage input(640, 480);
-	    input.copyFrom(image);
-	    vision::Image::showImage(&input, "Input");
+        {
+            vision::OpenCVImage input(640, 480);
+            input.copyFrom(image);
+            vision::Image::showImage(&input, "Input");
 
-	    vision::OpenCVImage output(640, 480);
-	    detector.processImage(image, &output);
-	    vision::Image::showImage(&output, "Output");
-	}
-	else
+            vision::OpenCVImage output(640, 480);
+            detector.processImage(image, &output);
+            vision::Image::showImage(&output, "Output");
+        }
+        else
         {
             detector.processImage(image);
-	}
+        }
     }
     
     bool found;
@@ -118,44 +117,72 @@ SUITE(HedgeDetector) {
 TEST_FIXTURE(HedgeDetectorFixture, Center)
 {
     // Blue Image with green pipe in the center (horizontal)
+    int width = 200, height = 100;
     makeColor(&input, 120, 120, 255);
-    drawHedge(&input, 320, 240, .5, 10);
-    cvSaveImage("hedge.png", input.asIplImage());
+    drawHedge(&input, 320, 240, width, height, 10);
 
     // Process it
     processImage(&input);
 
     double expectedX = 0 * 640.0/480.0;
     double expectedY = 0;
-    double expectedWidth = 0.5;
+    double expectedRange = 1.0 - ((height + 11)/480.0);
+    double expectedSquareNess = width / (double) height;
     
     // Check the events
     CHECK(found);
     CHECK(event);
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
-    CHECK_CLOSE(expectedWidth, event->width, 0.005);
+    CHECK_CLOSE(expectedRange, event->range, 0.005);
+    CHECK_CLOSE(expectedSquareNess, event->squareNess, 0.15);
 }
 
 TEST_FIXTURE(HedgeDetectorFixture, Left)
 {
     // Blue Image with green pipe in the center (horizontal)
+    int width = 200, height = 100;
     makeColor(&input, 120, 120, 255);
-    drawHedge(&input, 240, 240, .5, 3);
+    drawHedge(&input, 240, 240, width, height, 10);
 
     // Process it
     processImage(&input);
 
-    double expectedX = -0.1875 * 640.0/480.0;
+    double expectedX = -0.25 * 640.0/480.0;
     double expectedY = 0;
-    double expectedWidth = 0.5;
+    double expectedRange = 1.0 - ((height + 11)/480.0);
+    double expectedSquareNess = width / (double) height;
     
     // Check the events
     CHECK(found);
     CHECK(event);
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
-    CHECK_CLOSE(expectedWidth, event->width, 0.005);
+    CHECK_CLOSE(expectedRange, event->range, 0.005);
+    CHECK_CLOSE(expectedSquareNess, event->squareNess, 0.15);
+}
+
+TEST_FIXTURE(HedgeDetectorFixture, LostEvent)
+{
+    int width = 200, height = 100;
+    makeColor(&input, 120, 120, 255);
+    drawHedge(&input, 320, 240, width, height, 10);
+
+    // Process it for the found event
+    processImage(&input);
+
+    // Clear out the event variable
+    CHECK(found);
+    event = vision::HedgeEventPtr();
+
+    // Now draw a blank image
+    makeColor(&input, 120, 120, 255);
+
+    // Process it and look for the lost event
+    processImage(&input);
+
+    CHECK_EQUAL(false, found);
+    CHECK(event);
 }
 
 } // SUITE(HedgeDetector)
