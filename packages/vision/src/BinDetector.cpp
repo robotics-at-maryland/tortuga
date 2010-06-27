@@ -1262,6 +1262,13 @@ Symbol::SymbolType BinDetector::determineSymbol(Image* input,
     {
         symbol = symbolFound;
     }
+    else if (symbolFound == Symbol::AXE ||
+             symbolFound == Symbol::CLIPPERS ||
+             symbolFound == Symbol::HAMMER ||
+             symbolFound == Symbol::MACHETE)
+    {
+        symbol = symbolFound;
+    }
     
     return symbol;
 }

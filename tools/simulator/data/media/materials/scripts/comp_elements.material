@@ -237,6 +237,65 @@ material CompElement/FactoryBin
 	}
 }
 
+material CompElement/AxeBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture axe.png
+			}
+		}
+	}
+}
+
+material CompElement/ClippersBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture clippers.png
+			}
+		}
+	}
+}
+
+material CompElement/HammerBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture hammer.png
+			}
+		}
+	}
+}
+
+material CompElement/MacheteBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture machete.png
+			}
+		}
+	}
+}
 
 material CompElement/AirDuctSide
 {

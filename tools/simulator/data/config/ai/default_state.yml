@@ -248,6 +248,9 @@ ram.ai.window.CorrectHeight:
 ram.ai.window.Approach:
     depthGain: 0
     desiredRange: 0.6
+ram.ai.window.ApproachAligning:
+    depthGain: 0
+    desiredRange: 0.6
 
 # Pipe AI
 ram.ai.pipe.BetweenPipes:
