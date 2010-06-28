@@ -41,13 +41,16 @@ public:
     enum PixelFormat
     {
         PF_START = 0, /** Sentinal Value */
-        PF_RGB_8, /** Red Green Blue, 8 bits per channel */
-        PF_BGR_8, /** Blue Green Red, 8 bits*/
-        PF_YUV444_8, /** YUV, 8 bits for each channel */
-        PF_GRAY_8, /** Grayscale, 8 bits one channel */
-        PF_HSV_8, /** HSV, 8 bits per channel */
-        PF_LUV_8, /** CIELUV, 8 bits per channel */
-        PF_END,   /** Sentinal Value */
+        PF_RGB_8,     /** Red Green Blue, 8 bits per channel */
+        PF_BGR_8,     /** Blue Green Red, 8 bits*/
+        PF_YUV444_8,  /** YUV, 8 bits for each channel */
+        PF_GRAY_8,    /** Grayscale, 8 bits one channel */
+        PF_HSV_8,     /** HSV, 8 bits per channel */
+        PF_LUV_8,     /** CIELUV, 8 bits per channel */
+        PF_LCHUV_8,   /** CIELCH_UV, 8 bits per channel */
+        PF_LAB_8,     /** CIELAB, 8 bits per channel */
+        PF_LCHAB_8,   /** CIELCH_AB, 8 bits per channel */
+        PF_END,       /** Sentinal Value */
     };
 
     /* Open image from given file, returns 0 on error */

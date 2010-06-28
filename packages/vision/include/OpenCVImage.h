@@ -15,6 +15,7 @@
 
 // Project Imports
 #include "vision/include/Image.h"
+#include "math/include/Matrix3.h"
 
 // This must be included last
 #include "vision/include/Export.h"
@@ -87,13 +88,67 @@ public:
     
     virtual IplImage* asIplImage() const;
     
+    /* Here are the steps to convert a BGR pixel to a CIELCH pixel
+       assuming a pointer px = &channel 1
+
+       1. invGammaCorrection(px, px + 1, px + 2);
+       2. rgb2xyz(px, px + 1, px + 2);
+       3. xyz2luv(px, px + 1, px + 2);
+       4. luv2lch(px, px + 1, px + 2);
+
+       The pixel channels are now converted to CIELCh
+       If gamma correction is turned off, the first step should be ignored
+    */
+
+    static void invGammaCorrection(double *ch1, double *ch2, double *ch3);
+
+    void RGB2LCHuv();
+
+    // convert the values of a single pixel from rgb to xyz
+    // requires input in range [0, 1]
+    static void rgb2xyz(double *r2x, double *g2y, double *b2z);
+
+    // convert the values of a single pixel from xyz to lab
+    // requires input processed from rgb2xyz()
+    static void xyz2lab(double *x2l, double *y2a, double *z2b);
+
+    // convert the values of a single pixel from xyz to luv
+    // requires input processed from rgb2xyz()
+    static void xyz2luv(double *x2l, double *y2u, double *z2v);
+
+    // convert the values of a single pixel from lab to lch
+    // output is (0, 255)
+    // requires input process from xyz2lab() / xyz2luv() respectively
+    static void lab2lch_ab(double *l2l, double *a2c, double *b2h);
+    static void luv2lch_uv(double *l2l, double *a2c, double *b2h);
     
 private:
+    void initTransform();
+
     /** Gets the parameters needed for cvCreateImage from the lookup table */
     void getFormatParameters(const Image::PixelFormat& fmt,
                              int& depth, int& channels);
 
-    void LuvToLCh();
+
+
+    // gamma correction factor
+    static double gamma;
+
+    // matrix for transforming rgb to xyz
+    static math::Matrix3 rgb2xyzTransform;
+
+    // white points for xyz to lab transform
+    static double X_ref;
+    static double Y_ref;
+    static double Z_ref;
+
+    // ref points for xyz to luv transform
+    static double u_prime_ref;
+    static double v_prime_ref;
+    static double eps; // CIE Standard
+    static double kappa; // CIE Standard
+
+    static bool initialized;
 
     bool m_own;
     unsigned char* m_data;
