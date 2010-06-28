@@ -31,6 +31,10 @@ class WindowTrackingState(state.State):
         return { vision.EventType.WINDOW_FOUND : foundState,
                  vision.EventType.WINDOW_LOST : lostState }
 
+    @staticmethod
+    def getattr():
+        return set(['eventDelay'])
+
     def enter(self):
         self.ai.data.setdefault('windowData', {})
 
@@ -43,6 +47,34 @@ class WindowTrackingState(state.State):
         
         # Convert the string into the appropriate attribute
         self._desiredColor = getattr(vision.Color, colorString.upper())
+        self._eventDelay = self._config.get('eventDelay', 1000)
+
+    def mergeWindows(self, event):
+        windowData = self.ai.data['windowData']
+        def recent_event(a):
+            return (event.timeStamp - \
+                        a.timeStamp) < self._eventDelay
+        eventList = __builtins__['filter'](recent_event,
+                                           windowData.values())
+        
+        eventList = map(lambda a: event if a.color == event.color else a,
+                        eventList)
+        
+        # Add all variables
+        x, y, range, squareNess = 0, 0, 0, 0
+        for e in eventList:
+            x += e.x
+            y += e.y
+            range += e.range
+            squareNess += e.squareNess
+
+        # Average the variables
+        x /= len(eventList)
+        y /= len(eventList)
+        range /= len(eventList)
+        squareNess /= len(eventList)
+
+        return (x, y, range, squareNess)
 
     def WINDOW_FOUND(self, event):
         windowData = self.ai.data['windowData']
@@ -111,10 +143,13 @@ class RangeXYHold(FilteredState, WindowTrackingState):
 
     @staticmethod
     def getattr():
-        return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
-                    'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
-                    'desiredRange', 'maxRangeDiff', 'maxSpeed',
-                    'translateGain', 'filterSize', 'timeStampDelay'])
+        attr = WindowTrackingState.getattr()
+        attr.update(
+            set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
+                 'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
+                 'desiredRange', 'maxRangeDiff', 'maxSpeed',
+                 'translateGain', 'filterSize']))
+        return attr
 
     def WINDOW_FOUND(self, event):
         """Update the state of the target, this moves the vehicle"""
@@ -125,30 +160,7 @@ class RangeXYHold(FilteredState, WindowTrackingState):
 
         # Average the found windows if specified
         if self._average:
-            # Filter out old events
-            windowData = self.ai.data['windowData']
-            def recent_event(a):
-                return (event.timeStamp - \
-                            a.timeStamp) < self._timeStampDelay
-            eventList = __builtins__['filter'](recent_event,
-                                               windowData.values())
-
-            eventList = map(lambda a: event if a.color == event.color else a,
-                            eventList)
-
-            # Add all variables
-            x, y, range, squareNess = 0, 0, 0, 0
-            for e in eventList:
-                x += e.x
-                y += e.y
-                range += e.range
-                squareNess += e.squareNess
-
-            # Average the variables
-            x /= len(eventList)
-            y /= len(eventList)
-            range /= len(eventList)
-            squareNess /= len(eventList)
+            x, y, range, squareNess = self.mergeWindows(event)
         else:
             x, y, range, squareNess = \
                 event.x, event.y, event.range, event.squareNess
@@ -179,7 +191,6 @@ class RangeXYHold(FilteredState, WindowTrackingState):
         # Ensure vision system is on
         self.visionSystem.windowDetectorOn()
         self._average = average
-        self._timeStampDelay = self._config.get('timeStampDelay', 1000)
         
         # Create tracking object
         self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
@@ -400,7 +411,7 @@ class Approach(RangeXYHold):
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(Approach,
-                                       { RangeXYHold.IN_RANGE : CorrectHeight },
+                                       { RangeXYHold.IN_RANGE : ApproachAligning },
                                        Searching)
 
     def IN_RANGE(self, event):
@@ -589,8 +600,15 @@ class FireTorpedos(RangeXYHold):
 class TargetAlignState(FilteredState, WindowTrackingState):
     def WINDOW_FOUND(self, event):
         ret = WindowTrackingState.WINDOW_FOUND(self, event)
-        if ret is False:
+        if ret is False and self._average is False:
             return ret
+
+        if self._average:
+            x, y, range, squareNess = \
+                self.mergeWindows(event)
+        else:
+            x, y, range, squareNess = \
+                event.x, event.y, event.range, event.squareNess
 
         self._updateFilters(event.x, event.y, event.range, event.squareNess)
         """Update the state of the light, this moves the vehicle"""
@@ -601,7 +619,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
                               self._filterdAlign * self._alignSign,
                               event.timeStamp)
         
-    def enter(self):
+    def enter(self, average = False):
         FilteredState.enter(self)
         
         # Ensure vision system is on
@@ -610,6 +628,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         # Create tracking object
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
                                             vehicle = self.vehicle)
+        self._average = average
         self._alignSign = 1
         
         # Read in configuration settings
@@ -644,7 +663,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
     def exit(self):
         self.motionManager.stopCurrentMotion()
         
-class SeekingToAligned(TargetAlignState, WindowTrackingState):
+class SeekingToAligned(TargetAlignState):
     """
     Holds the target at range and in the center of the field of view while
     rotating around it.  If its rotating the wrong direction is will reverse
@@ -668,13 +687,10 @@ class SeekingToAligned(TargetAlignState, WindowTrackingState):
                     'minSquareNess', 'checkDelay', 'filterSize'])
 
     def WINDOW_FOUND(self, event):
-        # Filter out undesired colors
-        ret = WindowTrackingState.WINDOW_FOUND(self, event)
-        if ret is False:
+        # Filter out undesired colors and upate motion (if necessary)
+        ret = TargetAlignState.WINDOW_FOUND(self, event)
+        if ret is False and self._average is False:
             return ret
-
-        # Update motion
-        TargetAlignState.WINDOW_FOUND(self, event)
 
         # Record first squareNess and every squareness
         squareNess = self._filterdAlign + 1
@@ -691,8 +707,8 @@ class SeekingToAligned(TargetAlignState, WindowTrackingState):
         if self._currentSquareNess < self._startSquareNess:
             self._alignSign *= -1
             
-    def enter(self):
-        TargetAlignState.enter(self)
+    def enter(self, average = False):
+        TargetAlignState.enter(self, average)
         WindowTrackingState.enter(self)
 
         self._firstEvent = True
@@ -709,6 +725,19 @@ class SeekingToAligned(TargetAlignState, WindowTrackingState):
     def exit(self):
         TargetAlignState.exit(self)
         self._timer.stop()
+
+class ApproachAligning(SeekingToAligned):
+    """
+    Aligns to the targets while approaching them all as a group.
+    """
+    @staticmethod
+    def transitions():
+        trans = SeekingToAligned.transitions()
+        trans.update({ SeekingToAligned.ALIGNED : CorrectHeight })
+        return trans
+
+    def enter(self):
+        SeekingToAligned.enter(self, average = True)
 
 class Reposition(state.State):
     """

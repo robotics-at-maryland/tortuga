@@ -451,7 +451,7 @@ class TestApproach(support.AITestCase):
                          color = vision.Color.YELLOW)
         self.qeventHub.publishEvents()
 
-        self.assertCurrentState(window.CorrectHeight)
+        self.assertCurrentState(window.ApproachAligning)
 
 class TestSeekingToCentered(TestRangeXYHold):
     def setUp(self):
@@ -787,6 +787,23 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         # Inject another update and make sure the sign hasn't flipped
         self._sendSquareNessEvent(0.75)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
+
+class TestApproachAligning(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'windowDepth' : 12,
+                    'targetWindows' : ['yellow', 'red']
+                    }
+                }
+            }
+
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(window.ApproachAligning)
+
+    def testWindowFound(self):
+        pass
         
 class TestReposition(support.AITestCase):
     def setUp(self):
