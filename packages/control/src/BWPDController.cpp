@@ -840,41 +840,47 @@ void BWPDController::publishAtOrientation()
 /** Sets desired velocity and velocity based control for new controllers */
 void BWPDController::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
-
+    std::cerr << "BWPDController: NOT YET IMPLEMENTED" << std::endl;
 }
     
 /** Sets desired position and position based control for new controllers */
 void BWPDController::setDesiredPosition(math::Vector2 position, int frame)
 {
-     
+     std::cerr << "BWPDController::setDesiredPosition(): NOT IMPLEMENTED"
+               << std::endl;
 }
  
 /** Sets a desired position and velocity for controling of both simultaneously */
 void BWPDController::setDesiredPositionAndVelocity(math::Vector2 position,
                                                    math::Vector2 velocity)
 {
-     
+     std::cerr << "BWPDController::setDesiredPositionAndVelocity(): NOT IMPLEMENTED"
+               << std::endl;
 }
 
 /** Gets desired velocity */
 math::Vector2 BWPDController::getDesiredVelocity(int frame)
 {
+    std::cerr << "BWPDController::getDesiredVelocity(): NOT IMPLEMENTED" << std::endl;
     return math::Vector2::ZERO;
 }
 
 /** Gets desired position */
 math::Vector2 BWPDController::getDesiredPosition(int frame)
 {
+    std::cerr << "BWPDController::getDesiredPosition(): NOT IMPLEMENTED" << std::endl;
     return math::Vector2::ZERO;
 }
 
 bool BWPDController::atPosition()
 {
+    std::cerr << "BWPDController::atPositioN(): NOT IMPLEMENTED" << std::endl;
     return 0;
 }
 
 bool BWPDController::atVelocity()
 {
+    std::cerr << "BWPDController::atVelocity(): NOT IMPLEMENTED" << std::endl;
     return 0;
 }
         

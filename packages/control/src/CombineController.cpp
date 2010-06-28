@@ -133,9 +133,7 @@ void CombineController::setVelocity(math::Vector2 velocity)
 
 void CombineController::setSpeed(double speed)
 {
-    // when going between control modes, reset the velocity
-    if(m_transController->getControlMode() != ControlMode::OPEN_LOOP)
-        setDesiredVelocity(math::Vector2(0,0), IController::INERTIAL_FRAME);
+    double sidewaysSpeed = 0;
 
     // clamp speeds
     if(speed > 5)
@@ -143,7 +141,9 @@ void CombineController::setSpeed(double speed)
     else if(speed < -5)
         speed = -5;
 
-    double sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
+    // when going between control modes, reset the sideways speed to 0
+    if(m_transController->getControlMode() == ControlMode::OPEN_LOOP)
+        sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
 
     /*  Store velocity as if the robots frame is the inertial frame.  
         In other words, the robot should always travel at this velocity 
@@ -155,17 +155,17 @@ void CombineController::setSpeed(double speed)
 
 void CombineController::setSidewaysSpeed(double speed)
 {
-    // when going between control modes, reset the velocity
-    if(m_transController->getControlMode() != ControlMode::OPEN_LOOP)
-        setDesiredVelocity(math::Vector2(0,0), IController::INERTIAL_FRAME);
-
+    double forwardSpeed = 0;
+    
     // clamp speeds
     if(speed > 5)
         speed = 5;
     else if(speed < -5)
         speed = -5;
 
-    double forwardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
+    // when going between control modes, reset the velocity
+    if(m_transController->getControlMode() == ControlMode::OPEN_LOOP)
+        forwardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
 
     /*  Store velocity as if the robots frame is the inertial frame.  
         In other words, the robot should always travel at this velocity 

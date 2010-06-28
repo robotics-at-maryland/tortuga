@@ -62,60 +62,84 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     switch(m_controlMode){
     case ControlMode::POSITION:
         desiredVelocity = (desiredPosition - currentPosition)/timestep; 
-        desiredState->setDesiredVelocity(desiredVelocity);
+        //desiredState->setDesiredVelocity(desiredVelocity);
         break;
     case ControlMode::VELOCITY:
-        desiredPosition += desiredVelocity*timestep;
-        desiredState->setDesiredPosition(desiredPosition);
+        desiredPosition = position + desiredVelocity*timestep;
+        //desiredState->setDesiredPosition(desiredPosition);
         break;
     case ControlMode::POSITIONANDVELOCITY:
     case ControlMode::OPEN_LOOP:;
     }
 
-    //Initialize error vectors
-    math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
-    math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
+    if(m_controlMode != ControlMode::OPEN_LOOP) {
+        //Initialize error vectors
+        math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
+        math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
 
-    //Calculate proportional errors
-    positionPError = desiredPosition - currentPosition;
-    velocityPError = desiredVelocity - currentVelocity;
+        //Calculate proportional errors
+        positionPError = desiredPosition - currentPosition;
+        velocityPError = desiredVelocity - currentVelocity;
 
-    //Calculate derivative errors
-    positionDError = (positionPError - m_prevPositionError)/timestep;
-    velocityDError = (velocityPError - m_prevVelocityError)/timestep;
+        //Calculate derivative errors
+        positionDError = (positionPError - m_prevPositionError)/timestep;
+        velocityDError = (velocityPError - m_prevVelocityError)/timestep;
 
-    //Calculate integral errors
-    positionIError = m_iPositionError + positionPError * timestep;
-    velocityIError = m_iVelocityError + velocityPError * timestep;
+        //Calculate integral errors
+        positionIError = m_iPositionError + positionPError * timestep;
+        velocityIError = m_iVelocityError + velocityPError * timestep;
 	 
-    //Calculate the signal
-    double signal_x1, signal_x2;
+        //Calculate the signal
+        double signal_x1, signal_x2;
 
-    signal_x1 = 
-        x1kp * positionPError[0] +
-        x1kd * velocityPError[0] +
-        x1ki * positionIError[0];
+        signal_x1 = 
+            x1kp * positionPError[0] +
+            x1kd * velocityPError[0] +
+            x1ki * positionIError[0];
 
-    signal_x2 = 
-        x2kp * positionPError[1] +
-        x2kd * velocityPError[1] +
-        x2ki * positionIError[1];
+        signal_x2 = 
+            x2kp * positionPError[1] +
+            x2kd * velocityPError[1] +
+            x2ki * positionIError[1];
 
-    math::Vector2 translationalSignal_n(signal_x1,signal_x2);
+        math::Vector2 translationalSignal_n(signal_x1,signal_x2);
 
-    //Calculate desired yaw based on direction of translationalSignal_n
-    //double desired_yaw = atan(signal_n[1]/signal_n[0]);
+        //Calculate desired yaw based on direction of translationalSignal_n
+        //double desired_yaw = atan(signal_n[1]/signal_n[0]);
 
-    //Rotate translationalSignal_n from the inertial frame to the body frame
-    math::Vector2 translationalSignal_b(bRn(yaw)*translationalSignal_n);
+        //Rotate translationalSignal_n from the inertial frame to the body frame
+        math::Vector2 translationalSignal_b(bRn(yaw)*translationalSignal_n);
 	 
-    //Store previous error to be used in the next call
-    m_prevPositionError = positionPError;
-    m_prevVelocityError = velocityPError;
+        //Store previous error to be used in the next call
+        m_prevPositionError = positionPError;
+        m_prevVelocityError = velocityPError;
 
-    //Need to return a Vector3
-    return math::Vector3(translationalSignal_b[0],
-                         translationalSignal_b[1], 0);
+        //Need to return a Vector3
+        return math::Vector3(translationalSignal_b[0],
+                             translationalSignal_b[1], 0);
+    } else {
+        // The quaternion with just the pitch
+        math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
+                                   math::Vector3::UNIT_Y);
+
+        /*  Retrieve velocity as if the robots frame is the inertial frame.  
+            In other words, the robot should always travel at this velocity 
+            relative to itself.  Doing this, the robot's actual velocity in
+            the true inertial frame will change as its orientation changes. */
+        math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
+
+        // Compute the base force
+        math::Vector3 foreAftComponent(
+            x1kd * desiredVelocity[0],
+            x2kd * desiredVelocity[1],
+            0);
+
+        // Rotate it to account for odd pitches
+        math::Vector3 result = quatPitch * foreAftComponent;
+
+        // Return the results
+        return result;
+    }
 }
 
 } // namespace control
