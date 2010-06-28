@@ -91,10 +91,11 @@ public:
     /* Here are the steps to convert a BGR pixel to a CIELCH pixel
        assuming a pointer px = &channel 1
 
-       1. invGammaCorrection(px, px + 1, px + 2);
-       2. rgb2xyz(px, px + 1, px + 2);
-       3. xyz2luv(px, px + 1, px + 2);
-       4. luv2lch(px, px + 1, px + 2);
+       1. convert to rgb!!! i can try to make it direct from bgr later
+       2. invGammaCorrection(px, px + 1, px + 2);
+       3. rgb2xyz(px, px + 1, px + 2);
+       4. xyz2luv(px, px + 1, px + 2);
+       5. luv2lch_uv(px, px + 1, px + 2);
 
        The pixel channels are now converted to CIELCh
        If gamma correction is turned off, the first step should be ignored
