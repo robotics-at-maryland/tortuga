@@ -10,23 +10,44 @@
 // Library Includes
 #include <iostream>
 #include <boost/smart_cast.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/Events.h"
 #include "vehicle/estimator/include/modules/BasicDepthEstimationModule.h"
 
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
+
 namespace ram {
 namespace estimator {
 
-BasicDepthEstimationModule::BasicDepthEstimationModule(core::ConfigNode config)
+BasicDepthEstimationModule::BasicDepthEstimationModule(core::ConfigNode config) :
+    m_location(math::Vector3::ZERO),
+    m_calibSlope(0),
+    m_calibIntercept(0)
 {
     /* initialization from config values should be done here */
+
+    LOGGER.info("% Name EstDepth");
 }
 
 
 void BasicDepthEstimationModule::init(core::EventPtr event)
 {
+    // receive the sensor config parameters
+    vehicle::DepthSensorInitEventPtr ievent = 
+        boost::dynamic_pointer_cast<vehicle::DepthSensorInitEvent>(event);
 
+    if(!event) {
+        std::cerr << "BasicDepthEstimationModule: init: Invalid Event Type"
+                  << std::endl; 
+        return;
+    }
+
+    m_name = ievent->name;
+    m_location = ievent->location;
+    m_calibSlope = ievent->depthCalibSlope;
+    m_calibIntercept = ievent->depthCalibIntercept;
 }
 
 void BasicDepthEstimationModule::update(core::EventPtr event, 
@@ -46,25 +67,23 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
     /* This is where the estimation should be done
        The result should be stored in estimatedState */
 
-    // Temporarily ignoring correction until orientation estimator implemented
-    /*
     // Determine depth correction
-    math::Vector3 initialSensorLocation = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
-      estimatedState->getEstimatedOrientation() * initialSensorLocation;
+      estimatedState->getEstimatedOrientation() * m_location;
     math::Vector3 sensorMovement = 
-      currentSensorLocation - initialSensorLocation;
+      currentSensorLocation - m_location;
     double correction = sensorMovement.z;
-    */
+    
 
     // Grab the depth
     double depth = ievent->rawDepth;
 
     // Return the corrected depth (its addition and not subtraction because
     // depth is positive down)
-    // correction not used right now because the new state estimator doesnt
-    // handle the orientation estimation yet
-    estimatedState->setEstimatedDepth(depth);// + correction);
+    estimatedState->setEstimatedDepth(depth + correction);
+
+    LOGGER.infoStream() << m_name << " "
+                        << depth + correction;
 }
 
 } // namespace estimatior

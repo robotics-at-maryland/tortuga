@@ -90,7 +90,7 @@ struct RawIMUDataEvent : public core::Event
 {
     std::string name;
     RawIMUData rawIMUData;
-    math::Vector3 sensorLocation;
+    double timestep;
 
     virtual core::EventPtr clone();
 };
@@ -99,8 +99,9 @@ typedef boost::shared_ptr<RawIMUDataEvent> RawIMUDataEventPtr;
 
 struct RawDVLDataEvent : public core::Event
 {
+    std::string name;
     RawDVLData rawDVLData;
-    math::Vector3 sensorLocation;
+    double timestep;
 
     virtual core::EventPtr clone();
 };
@@ -109,8 +110,9 @@ typedef boost::shared_ptr<RawDVLDataEvent> RawDVLDataEventPtr;
 
 struct RawDepthSensorDataEvent : public core::Event
 {
+    std::string name;
     double rawDepth;
-    math::Vector3 sensorLocation;
+    double timestep;
 
     virtual core::EventPtr clone();
 };
@@ -146,7 +148,8 @@ typedef boost::shared_ptr<IMUInitEvent> IMUInitEventPtr;
 
 struct DVLInitEvent : public core::Event
 {
-    // not sure what all needs to go here
+    std::string name;
+    double angularOffset;
 
     virtual core::EventPtr clone();
 };
@@ -155,7 +158,10 @@ typedef boost::shared_ptr<DVLInitEvent> DVLInitEventPtr;
 
 struct DepthSensorInitEvent : public core::Event
 {
-    // not sure if anything needs to go here
+    std::string name;
+    math::Vector3 location;
+    double depthCalibSlope;
+    double depthCalibIntercept;
 
     virtual core::EventPtr clone();
 };

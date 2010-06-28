@@ -39,7 +39,14 @@ RAM_VEHICLE_RAWDVLDATA_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
 RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::DepthSensorInitEvent>
+RAM_VEHICLE_DEPTHSENSORINIT_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::IMUInitEvent>
+RAM_VEHICLE_IMUINIT_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::DVLInitEvent>
+RAM_VEHICLE_DVLINIT_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
 
@@ -93,17 +100,22 @@ core::EventPtr SonarEvent::clone()
 core::EventPtr RawIMUDataEvent::clone()
 {
     RawIMUDataEventPtr event = RawIMUDataEventPtr(new RawIMUDataEvent());
+
     event->name = name;
     event->rawIMUData = rawIMUData;
-    event->sensorLocation = sensorLocation;
+    event->timestep = timestep;
+
     return event;
 }
 
 core::EventPtr RawDVLDataEvent::clone()
 {
     RawDVLDataEventPtr event = RawDVLDataEventPtr(new RawDVLDataEvent());
+
+    event->name = name;
     event->rawDVLData = rawDVLData;
-    event->sensorLocation = sensorLocation;
+    event->timestep = timestep;
+
     return event;
 }
 
@@ -111,8 +123,11 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 {
     RawDepthSensorDataEventPtr event = RawDepthSensorDataEventPtr(
         new RawDepthSensorDataEvent());
+
+    event->name = name;
     event->rawDepth = rawDepth;
-    event->sensorLocation = sensorLocation;
+    event->timestep = timestep;
+
     return event;
 }
 
@@ -133,6 +148,10 @@ core::EventPtr IMUInitEvent::clone()
 core::EventPtr DVLInitEvent::clone()
 {
     DVLInitEventPtr event = DVLInitEventPtr(new DVLInitEvent());
+
+    event->name = name;
+    event->angularOffset = angularOffset;
+
     return event;
 }
 
@@ -140,6 +159,12 @@ core::EventPtr DepthSensorInitEvent::clone()
 {
     DepthSensorInitEventPtr event = DepthSensorInitEventPtr(
         new DepthSensorInitEvent());
+
+    event->name = name;
+    event->location = location;
+    event->depthCalibSlope = depthCalibSlope;
+    event->depthCalibIntercept = depthCalibIntercept;
+
     return event;
 }
 

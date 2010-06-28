@@ -104,6 +104,22 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_torpedoLauncher(device::IPayloadSetPtr()),
     stateEstimator(estimator::IStateEstimatorPtr())
 {
+
+    /* Make the new state estimator.  This needs to be changed to replace the old one 
+       once it is throughly tested.  Right now its added into this file in a 
+       hackish way.  Sorry.  This MUST be created before the sensors.  Otherwise,
+       it will not receive their configuration values when they publish init events */
+
+    if(!stateEstimator)
+    {
+        stateEstimator = estimator::IStateEstimatorPtr(
+            new estimator::ModularStateEstimator(
+                config["NewStateEstimator"],
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+
+
     // Create devices
     if (config.exists("Devices"))
     {
@@ -146,16 +162,6 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         m_stateEstimator = device::IStateEstimatorPtr(
             new device::LoopStateEstimator(
                 config,
-                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
-                IVehiclePtr(this, null_deleter())));
-    }
-
-    // make the new test state estimator
-    if(!stateEstimator)
-    {
-        stateEstimator = estimator::IStateEstimatorPtr(
-            new estimator::ModularStateEstimator(
-                config["NewStateEstimator"],
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
     }

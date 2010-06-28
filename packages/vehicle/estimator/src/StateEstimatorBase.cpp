@@ -31,7 +31,7 @@ StateEstimatorBase::StateEstimatorBase(
     initConnection_DVL(core::EventConnectionPtr()),
     initConnection_DepthSensor(core::EventConnectionPtr()),
     estimatedState(EstimatedStatePtr(new EstimatedState(
-                                         config["EstiamtedState"],
+                                         config["EstimatedState"],
                                          eventHub)))
 {
 

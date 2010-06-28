@@ -61,6 +61,15 @@ SensorBoard::SensorBoard(int deviceFD,
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
+
+    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
+        new DepthSensorInitEvent());
+    depthSensorInit->location = m_location;
+    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
+    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
+
+    publish(IDepthSensor::INIT, depthSensorInit);
+
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
@@ -95,6 +104,14 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
+
+    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
+        new DepthSensorInitEvent());
+    depthSensorInit->name = config["name"].asString();
+    depthSensorInit->location = m_location;
+    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
+    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
+
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
@@ -160,6 +177,14 @@ void SensorBoard::update(double timestep)
 
     // Publish depth event
     depthEvent(depth);
+
+    /* publish the new depth sensor reading */
+    vehicle::RawDepthSensorDataEventPtr rawEvent(
+        new vehicle::RawDepthSensorDataEvent());
+    rawEvent->name = getName();
+    rawEvent->rawDepth = depth;
+    rawEvent->timestep = timestep;
+    publish(IDepthSensor::RAW_UPDATE, rawEvent);
 
     // If we got the battery use status or the latest voltages recompute bus
     // Voltage
@@ -540,12 +565,7 @@ void SensorBoard::depthEvent(double depth)
     event->number = depth;
     publish(IDepthSensor::UPDATE, event);
 
-    /* publish the new depth sensor reading */
-    vehicle::RawDepthSensorDataEventPtr rawEvent(
-        new vehicle::RawDepthSensorDataEvent());
-    rawEvent->rawDepth = depth;
-    rawEvent->sensorLocation = getLocation();
-    publish(IDepthSensor::RAW_UPDATE, rawEvent);
+
 }
     
 void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)

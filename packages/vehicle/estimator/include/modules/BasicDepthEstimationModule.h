@@ -39,6 +39,10 @@ public:
 
 private:
     /* any necessary persistent variables should be declared here */
+    std::string m_name;
+    math::Vector3 m_location;
+    double m_calibSlope;
+    double m_calibIntercept;
 };
 
 } // namespace estimatior

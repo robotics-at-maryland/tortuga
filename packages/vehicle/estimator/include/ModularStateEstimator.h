@@ -54,14 +54,6 @@ private:
     EstimationModulePtr imuEstimationModule;
     EstimationModulePtr depthEstimationModule;
 
-    /* These contain the most recent events passed to each update function */
-    /* I dont think these are necessary any more. This storage should occur in
-       the estimation modules */
-    core::EventPtr rawDVLDataEvent;
-    core::EventPtr rawIMUDataEvent;
-    core::EventPtr rawBoomIMUDataEvent;
-    core::EventPtr rawDepthDataEvent;
-
     /* this may be removed in the future*/
     vehicle::IVehiclePtr m_vehicle;
 };

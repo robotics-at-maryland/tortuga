@@ -24,6 +24,7 @@
 
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix2.h"
 
 // Forward declare structure from dvlapi.h
 struct _RawDVLData;
@@ -38,8 +39,6 @@ typedef boost::shared_ptr<DVL> DVLPtr;
 
 // Consult with Joe for how big he wants this filter
 const static int DVL_FILTER_SIZE = 10;
-
-typedef RawDVLData FilteredDVLData;
 
 class DVL : public IVelocitySensor,
             public Device, // for getName
@@ -61,8 +60,6 @@ public:
 
     /** Grabs the raw DVL state */
     void getRawState(RawDVLData& dvlState);
-    /** Grab the filtered state */
-    void getFilteredState(FilteredDVLData& dvlState);
     
     virtual std::string getName() { return Device::getName(); }
     
@@ -97,6 +94,8 @@ public:
     };
     
 private:
+    IVehiclePtr m_vehicle;
+    
     /** Name of the serial device file */
     std::string m_devfile;
     
@@ -110,15 +109,16 @@ private:
     core::ReadWriteMutex m_velocityMutex;
     math::Vector2 m_velocity;
 
+    /** sensor location **/
     math::Vector3 m_location;
+
+    /** rotation matrix from transducer frame to body frame */
+    math::Matrix2 bRt;
 
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
-
-    /** Filtered and rotated IMU data */
-    FilteredDVLData* m_filteredState;
 };
     
 } // namespace device
