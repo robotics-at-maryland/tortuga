@@ -61,18 +61,17 @@ class WindowTrackingState(state.State):
                         eventList)
         
         # Add all variables
-        x, y, range, squareNess = 0, 0, 0, 0
+        x, y, range, squareNess = 0, 0, 0, float('inf')
         for e in eventList:
             x += e.x
             y += e.y
             range += e.range
-            squareNess += e.squareNess
+            squareNess = min(squareNess, e.squareNess)
 
         # Average the variables
         x /= len(eventList)
         y /= len(eventList)
         range /= len(eventList)
-        squareNess /= len(eventList)
 
         return (x, y, range, squareNess)
 
@@ -272,7 +271,7 @@ class FindAttempt(state.FindAttempt, WindowTrackingState):
         if myState is None:
             myState = SeekingToCentered
         return state.FindAttempt.transitions(vision.EventType.WINDOW_FOUND,
-                                       myState, Recover)
+                                             myState, Recover)
         
     def enter(self):
         state.FindAttempt.enter(self)
@@ -288,6 +287,11 @@ class FindAttemptAligned(FindAttempt):
     @staticmethod
     def transitions():
         return FindAttempt.transitions(myState = SeekingToAligned)
+
+class FindAttemptApproachAligning(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = ApproachAligning)
 
 class FindAttemptFireTorpedos(FindAttempt):
     @staticmethod
@@ -610,7 +614,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
             x, y, range, squareNess = \
                 event.x, event.y, event.range, event.squareNess
 
-        self._updateFilters(event.x, event.y, event.range, event.squareNess)
+        self._updateFilters(x, y, range, squareNess)
         """Update the state of the light, this moves the vehicle"""
         azimuth = self._filterdX * -107.0/2.0
         elevation = self._filterdY * -80.0/2.0
@@ -673,10 +677,14 @@ class SeekingToAligned(TargetAlignState):
     CHECK_DIRECTION = core.declareEventType('CHECK_DIRECTION_')
     
     @staticmethod
-    def transitions():
-        return { vision.EventType.WINDOW_FOUND : SeekingToAligned,
-                 vision.EventType.WINDOW_LOST : FindAttemptAligned,
-                 SeekingToAligned.CHECK_DIRECTION : SeekingToAligned,
+    def transitions(myState = None, lostState = None):
+        if myState is None:
+            myState = SeekingToAligned
+        if lostState is None:
+            lostState = FindAttemptAligned
+        return { vision.EventType.WINDOW_FOUND : myState,
+                 vision.EventType.WINDOW_LOST : lostState,
+                 SeekingToAligned.CHECK_DIRECTION : myState,
                  SeekingToAligned.ALIGNED : FireTorpedos }
 
     @staticmethod
@@ -732,7 +740,8 @@ class ApproachAligning(SeekingToAligned):
     """
     @staticmethod
     def transitions():
-        trans = SeekingToAligned.transitions()
+        trans = SeekingToAligned.transitions(ApproachAligning,
+                                             FindAttemptApproachAligning)
         trans.update({ SeekingToAligned.ALIGNED : CorrectHeight })
         return trans
 
