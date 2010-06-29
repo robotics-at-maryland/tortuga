@@ -154,23 +154,23 @@ BuoyDetector:
     almostHitRadius: 200
     debug: 2
     filtGreenLMax: 255
-    filtGreenLMin: 0
-    filtGreenUMax: 255
+    filtGreenLMin: 130
+    filtGreenUMax: 75
     filtGreenUMin: 0
-    filtGreenVMax: 145
-    filtGreenVMin: 128
+    filtGreenVMax: 255
+    filtGreenVMin: 125
     filtRedLMax: 255
-    filtRedLMin: 0
+    filtRedLMin: 140
     filtRedUMax: 255
-    filtRedUMin: 96
+    filtRedUMin: 95
     filtRedVMax: 255
-    filtRedVMin: 129
+    filtRedVMin: 130
     filtYellowLMax: 255
-    filtYellowLMin: 0
-    filtYellowUMax: 125
-    filtYellowUMin: 0
+    filtYellowLMin: 140
+    filtYellowUMax: 92
+    filtYellowUMin: 78
     filtYellowVMax: 255
-    filtYellowVMin: 135
+    filtYellowVMin: 130
     maxAspectRatio: 1.5
     maxDistance: 15
     minAspectRatio: 0.25
