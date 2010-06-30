@@ -312,17 +312,64 @@ class Recover(state.FindAttempt, BuoyTrackingState):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
-	self.controller.setSpeed(0)
-	self.controller.setSidewaysSpeed(0)
+        self.controller.setSpeed(0)
+        self.controller.setSidewaysSpeed(0)
+
+class CorrectDepth(BuoyTrackingState):
+
+    FINISHED = core.declareEventType('FINISHED')
+
+    @staticmethod
+    def transitions():
+        trans = BuoyTrackingState.transitions(CorrectDepth, FindAttempt)
+        trans.update({ CorrectDepth.FINISHED : Align })
+
+        return trans
+
+    @staticmethod
+    def getattr():
+        return BuoyTrackingState.update(
+            set(['yThreshold', 'depthGain', 'speed']))
+
+    def BUOY_FOUND(self, event):
+        ret = BuoyTrackingState.BUOY_FOUND(self, event)
+        if ret is False:
+            return ret
+
+        if abs(event.y) <= self._yThreshold:
+            self.publish(CorrectDepth.FINISHED, core.Event())
+        else:
+            desiredDepth = self.vehicle.getDepth()
+            if event.y < 0.0:
+                desiredDepth += self._depthGain
+            else:
+                desiredDepth -= self._depthGain
+
+            #m = motion.basic.RateChangeDepth(desiredDepth, self._speed)
+            #self.motionManager.setMotion(m)
+            self.controller.setDepth(desiredDepth)
+
+    def enter(self):
+        BuoyTrackingState.enter(self)
+
+        self._yThreshold = self._config.get('yThreshold', 0.05)
+        self._depthGain = self._config.get('depthGain', 0.3)
+        self._speed = self._config.get('speed', (1.0/3.0))
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        self.controller.holdCurrentDepth()
 
 class Align(BuoyTrackingState):
 
     SEEK_BUOY = core.declareEventType('SEEK_BUOY')
+    INCORRECT_DEPTH = core.declareEventType('INCORRECT_DEPTH')
 
     @staticmethod
     def transitions():
         trans = BuoyTrackingState.transitions(Align, FindAttempt)
         trans.update({ motion.seek.SeekPoint.POINT_ALIGNED : Align,
+                       Align.INCORRECT_DEPTH : CorrectDepth,
                        Align.SEEK_BUOY : Seek })
 
         return trans
@@ -364,7 +411,13 @@ class Align(BuoyTrackingState):
         change = self._buoy.changeOverTime()
         if self._compareChange((event.x, event.y),
                                (change[3], change[4])):
-            self.publish(Align.SEEK_BUOY, core.Event())
+            # Only applies if depthGain is set to 0
+            if abs(event.y) > self._planeThreshold:
+                # Need to recorrect the height
+                self.publish(Align.INCORRECT_DEPTH, core.Event())
+            else:
+                # We are properly aligned
+                self.publish(Align.SEEK_BUOY, core.Event())
 
     def enter(self):
         BuoyTrackingState.enter(self)
@@ -409,13 +462,15 @@ class Seek(BuoyTrackingState):
     @staticmethod
     def transitions():
         trans = BuoyTrackingState.transitions(Seek, FindAttemptSeek)
-        trans.update({ vision.EventType.BUOY_ALMOST_HIT : Hit })
+        trans.update({ vision.EventType.BUOY_ALMOST_HIT : Hit,
+                       Align.INCORRECT_DEPTH : CorrectDepth })
 
         return trans
 
     @staticmethod
     def getattr():
-        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'speed'])
+        return set(['depthGain', 'iDepthGain', 'dDepthGain', 'speed',
+                    'planeThreshold'])
 
     def BUOY_FOUND(self, event):
         """Update the state of the buoy, this moves the vehicle"""
@@ -423,8 +478,11 @@ class Seek(BuoyTrackingState):
         if ret is False:
             return ret
 
-        self._buoy.setState(event.azimuth, event.elevation, event.range,
-                             event.x, event.y, event.timeStamp)
+        if event.y > self._planeThreshold:
+            self.publish(Align.INCORRECT_DEPTH, core.Event())
+        else:
+            self._buoy.setState(event.azimuth, event.elevation, event.range,
+                                event.x, event.y, event.timeStamp)
 
     def enter(self):
         BuoyTrackingState.enter(self)
@@ -432,6 +490,7 @@ class Seek(BuoyTrackingState):
         self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
                                                   vehicle = self.vehicle)
+        self._planeThreshold = self._config.get('planeThreshold', 0.1)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0)
