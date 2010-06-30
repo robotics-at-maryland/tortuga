@@ -44,7 +44,6 @@ class PipeTrackingState(state.State):
     A more generic version of PipeFollowingState that filters the PIPE_FOUND
     input to ignore all pipes that are outside of the threshold.
     """
-    FOUND_PIPE = core.declareEventType('FOUND_PIPE')
     
     @staticmethod
     def transitions(myState = None, trans = None):
@@ -52,9 +51,10 @@ class PipeTrackingState(state.State):
             myState = PipeTrackingState
         if trans is None:
             trans = {}
-        trans.update({vision.EventType.PIPE_FOUND : myState})
 
-        return trans
+        newTrans = {vision.EventType.PIPE_FOUND : myState}
+        newTrans.update(trans)
+        return newTrans
     
     def PIPE_FOUND(self, event):
         """
@@ -63,12 +63,6 @@ class PipeTrackingState(state.State):
         """
         pipeData = self.ai.data['pipeData']
         angle = event.angle
-        
-        # Create a copy of the event and its properties
-        newEvent = vision.PipeEvent()
-        propNames = [p for p in dir(vision.PipeEvent()) if not p.startswith('_')]
-        for name in propNames:
-            setattr(newEvent, name, getattr(event, name))
         
         # Find absolute vehicle direction
         vehicleOrientation = self.vehicle.getOrientation()
@@ -95,21 +89,23 @@ class PipeTrackingState(state.State):
                             (absPipeDirection - self._threshold <= \
                                  self._biasDirection + ext.math.Degree(180) <= \
                                  absPipeDirection + self._threshold)):
-                        self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+                            return True
                 else:
-                    self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+                    return True
             else: # If there isn't a biasDirection, raise an error
                 raise Exception("A threshold is set with no biasDirection")
         else:
-            # If a currentID exists or there is no threshold set, call FOUND_PIPE
-            self.publish(PipeTrackingState.FOUND_PIPE, newEvent)
+            # If a currentID exists or there is no threshold set
+            return True
+        
+        return False
             
     def enter(self):
         # Ensure pipe tracking
         ensurePipeTracking(self.queuedEventHub, self.ai)
         
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
-
+        
         self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
         self._threshold = self.ai.data.get('pipeThreshold', None)
         if self._biasDirection is not None:
@@ -144,7 +140,7 @@ class PipeFollowingState(PipeTrackingState):
             trans = {}
         trans.update({vision.EventType.PIPE_LOST : FindAttempt,
                       vision.EventType.PIPE_DROPPED : myState,
-                      PipeTrackingState.FOUND_PIPE : myState})
+                      vision.EventType.PIPE_FOUND: myState})
         
         return PipeTrackingState.transitions(myState, trans)
 
@@ -210,13 +206,15 @@ class PipeFollowingState(PipeTrackingState):
                                     pipeData['itemData'][minID].angle,
                                     pipeData['itemData'][minID].timeStamp)
 
-    def FOUND_PIPE(self, event):
+    def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         pipeData = self.ai.data['pipeData']
         angle = event.angle
         
-        if event.id not in pipeData['currentIds']:
-            # Stop, it's an old event
+        goodPipe = PipeTrackingState.PIPE_FOUND(self, event)
+        
+        # If it is not vetoed
+        if goodPipe is False:
             return False
 
         # Find absolute vehicle direction
@@ -225,51 +223,50 @@ class PipeFollowingState(PipeTrackingState):
         
         # Get the currentID
         pipeData.setdefault('currentID', event.id)
-        
-        # Check if this pipe still exists
-        if pipeData['currentID'] in pipeData['currentIds']:
-            if self._currentPipe(event):
-                self.ai.data['lastPipeEvent'] = event
 
-            # Check if this pipe exists
-            if not pipeData['itemData'].has_key(pipeData['currentID']):
-                # If it doesn't, set the currentID to event.id
-                pipeData['currentID'] = event.id
+        if self._currentPipe(event):
+            self.ai.data['lastPipeEvent'] = event
 
-            # Only do work if we are biasing the direction
-            if self._biasDirection is not None:    
-                # If the pipe event is not the currently followed pipe
-                if not self._currentPipe(event):
-                    # If the new pipe is closer to the biasDirection, switch
-                    currentPipeDifference = \
-                        ext.math.Degree(self._biasDirection) - \
-                        pipeData['absoluteDirection'][pipeData['currentID']]
-                    newPipeDifference = ext.math.Degree(self._biasDirection) - \
-                        pipeData['absoluteDirection'][event.id]
+        # Check if this pipe exists
+        if not pipeData['itemData'].has_key(pipeData['currentID']):
+            # If it doesn't, set the currentID to event.id
+            pipeData['currentID'] = event.id
 
-                    if math.fabs(newPipeDifference.valueDegrees()) < \
-                            math.fabs(currentPipeDifference.valueDegrees()):
-                        pipeData['currentID'] = event.id
-                        self._pipe.setState(event.x, event.y, angle,
-                                            event.timeStamp)
-                else: # Otherwise continue normally
-                    # Check difference between actual and "biasDirection"
-                    difference = self._biasDirection - \
-                        pipeData['absoluteDirection'][event.id]
-                    
-                    if math.fabs(difference.valueDegrees()) > 90:
-                        # We are pointing the wrong direction, so lets switch
-                        # it around
-                        if angle.valueDegrees() < 0:
-                            angle = ext.math.Degree(180) + angle
-                        else:
-                            angle = ext.math.Degree(-180) + angle
+        # Only do work if we are biasing the direction
+        if self._biasDirection is not None:
+            # If the pipe event is not the currently followed pipe
+            if not self._currentPipe(event):
+                # If the new pipe is closer to the biasDirection, switch
+                currentPipeDifference = \
+                    ext.math.Degree(self._biasDirection) - \
+                    pipeData['absoluteDirection'][pipeData['currentID']]
+                newPipeDifference = ext.math.Degree(self._biasDirection) - \
+                    pipeData['absoluteDirection'][event.id]
+
+                if math.fabs(newPipeDifference.valueDegrees()) < \
+                        math.fabs(currentPipeDifference.valueDegrees()):
+                    pipeData['currentID'] = event.id
                     self._pipe.setState(event.x, event.y, angle,
-                                        event.timeStamp)
+                                            event.timeStamp)
+            else: # Otherwise continue normally
+                # Check difference between actual and "biasDirection"
+                difference = self._biasDirection - \
+                    pipeData['absoluteDirection'][event.id]
+                    
+                if math.fabs(difference.valueDegrees()) > 90:
+                    # We are pointing the wrong direction, so lets switch
+                    # it around
+                    if angle.valueDegrees() < 0:
+                        angle = ext.math.Degree(180) + angle
+                    else:
+                        angle = ext.math.Degree(-180) + angle
+                self._pipe.setState(event.x, event.y, angle,
+                                    event.timeStamp)
         
-            else: # If we are not biasing the direction
-                # If the pipe event is not the currently followed pipe
-                if not self._currentPipe(event):
+        else: # If we are not biasing the direction
+            # If the pipe event is not the currently followed pipe
+            # And if the new pipe is closer to our current direction
+            if not self._currentPipe(event):
                     # If the new pipe is closer to our current direction, switch
                     if math.fabs(angle.valueDegrees()) < \
                             math.fabs(pipeData['itemData'][pipeData['currentID']]
@@ -277,13 +274,9 @@ class PipeFollowingState(PipeTrackingState):
                         pipeData['currentID'] = event.id
                         self._pipe.setState(event.x, event.y, angle,
                                             event.timeStamp)
-                else: # Otherwise continue normally
-                    self._pipe.setState(event.x, event.y, angle,
-                                        event.timeStamp)
-        else:
-            pipeData['currentID'] = event.id
-
-        return True
+            else: # Otherwise continue normally
+                self._pipe.setState(event.x, event.y, angle,
+                                    event.timeStamp)
 
     def enter(self):
         PipeTrackingState.enter(self)
@@ -352,7 +345,7 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
         if foundState is None:
             foundState = Seeking
         return state.FindAttempt.transitions(
-            PipeTrackingState.FOUND_PIPE, foundState, Searching)
+            vision.EventType.PIPE_FOUND, foundState, Searching)
 
     @staticmethod
     def getattr():
@@ -385,13 +378,13 @@ class Searching(PipeTrackingState):
     @staticmethod
     def transitions():
         return PipeTrackingState.transitions(Searching,
-            { PipeTrackingState.FOUND_PIPE : Seeking })
+            { vision.EventType.PIPE_FOUND : Seeking })
 
     @staticmethod
     def getattr():
         return set(['forwardSpeed'])
 
-    def FOUND_PIPE(self, event):
+    def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
         if event.id == currentID:
             self.ai.data['lastPipeEvent'] = event
@@ -491,7 +484,7 @@ class AlongPipe(PipeFollowingState):
     @staticmethod
     def transitions():
         trans = { vision.EventType.PIPE_LOST : BetweenPipes, 
-                 PipeTrackingState.FOUND_PIPE : AlongPipe,
+                 vision.EventType.PIPE_FOUND : AlongPipe,
                  vision.EventType.PIPE_DROPPED : AlongPipe,
                  AlongPipe.FOUND_NEW_PIPE : Seeking }
         return PipeTrackingState.transitions(AlongPipe, trans)
@@ -501,7 +494,7 @@ class AlongPipe(PipeFollowingState):
         return set(['angleDistance', 'forwardSpeed']).union(
             PipeFollowingState.getattr())
 
-    def FOUND_PIPE(self, event):
+    def PIPE_FOUND(self, event):
         """Update the state of the pipe, this moves the vehicle"""
         
         # Determine if a new pipe has appeared in the field of view
@@ -516,7 +509,9 @@ class AlongPipe(PipeFollowingState):
         if event.x < self._angleDistance and event.y < self._angleDistance:
             angle = event.angle
         event.angle = angle
-        PipeFollowingState.FOUND_PIPE(self, event)
+
+        # This must be called after the event is changed
+        PipeFollowingState.PIPE_FOUND(self, event)
 
     def enter(self):
         """Makes the vehicle follow along line outlined by the pipe"""
@@ -551,14 +546,14 @@ class BetweenPipes(PipeTrackingState):
     @staticmethod
     def transitions():
         return PipeTrackingState.transitions(BetweenPipes,
-                                             {PipeTrackingState.FOUND_PIPE : Seeking,
+                                             {vision.EventType.PIPE_FOUND : Seeking,
                                               BetweenPipes.LOST_PATH : End })
 
     @staticmethod
     def getattr():
         return set(['forwardTime', 'forwardSpeed'])
     
-    def FOUND_PIPE(self, event):
+    def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
         if event.id == currentID:
             self.ai.data['lastPipeEvent'] = event

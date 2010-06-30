@@ -7,8 +7,8 @@ GUI:
 # Each module is a seperate system that needs to be started up
 Subsystems:
     VisionSystem:
-        #type: SimVision
-        type: IdealSimVision
+        type: SimVision
+        #type: IdealSimVision
         #type: CrappyVision
         cameraRate: 10
         #failureRate: .03

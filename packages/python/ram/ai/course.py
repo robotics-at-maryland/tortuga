@@ -264,7 +264,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         trans = pipe.PipeTrackingState.transitions(myState)
 
         trans.update({ motion.basic.MotionManager.FINISHED : myState,
-                       pipe.PipeTrackingState.FOUND_PIPE : myState,
+                       vision.EventType.PIPE_FOUND : myState,
                        PipeObjective.TIMEOUT : myState,
                        task.TIMEOUT : task.Next,
                        pipe.Centering.SETTLED : task.Next })
@@ -278,7 +278,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             if self.timer is not None:
                 self.timer.stop()
 
-    def FOUND_PIPE(self, event):
+    def PIPE_FOUND(self, event):
         if not self._branched:
             self.motionManager.stopCurrentMotion()
             self.stateMachine.start(state.Branch(pipe.Seeking))

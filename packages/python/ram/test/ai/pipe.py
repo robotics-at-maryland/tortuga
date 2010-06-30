@@ -53,7 +53,7 @@ class TestPipeTracking(PipeTest):
         PipeTest.setUp(self)
         self.machine.start(pipe.PipeTrackingState)
         self._foundPipeEvent = None
-        self.qeventHub.subscribeToType(pipe.PipeTrackingState.FOUND_PIPE,
+        self.qeventHub.subscribeToType(vision.EventType.PIPE_FOUND,
                                        self._foundPipeHandler)
         
     def _foundPipeHandler(self, event):
@@ -75,7 +75,7 @@ class TestPipeTracking(PipeTest):
         cstate._threshold = None
         self.publishQueuedPipeFound(angle = math.Degree(0), id = 0)
         
-        self.assertNotEqual(None, self._foundPipeEvent)
+        self.assertNotEqual(False, cstate.PIPE_FOUND(self._foundPipeEvent))
         self._foundPipeEvent = None
         
         # Bias and threshold inside threshold
@@ -83,7 +83,7 @@ class TestPipeTracking(PipeTest):
         cstate._threshold = math.Degree(45)
         self.publishQueuedPipeFound(angle = math.Degree(35), id = 0)
         
-        self.assertNotEqual(None, self._foundPipeEvent)
+        self.assertNotEqual(False, cstate.PIPE_FOUND(self._foundPipeEvent))
         self._foundPipeEvent = None
         
         # Bias and threshold outside threshold
@@ -91,7 +91,7 @@ class TestPipeTracking(PipeTest):
         cstate._threshold = math.Degree(45)
         self.publishQueuedPipeFound(angle = math.Degree(50), id = 0)
         
-        self.assertEqual(None, self._foundPipeEvent)
+        self.assertFalse(cstate.PIPE_FOUND(self._foundPipeEvent))
         self._foundPipeEvent = None
 
 class TestFindAttempt(PipeTest):
@@ -109,7 +109,7 @@ class TestFindAttempt(PipeTest):
         self.assertAlmostEqual(cstate._direction.valueDegrees(), -45, 5)
 
     def testPipeFound(self):
-        self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)
+        self.injectPipeEvent(0, 0, math.Degree(0))
         self.assertCurrentState(pipe.Seeking)
 
     def testTimeout(self):
@@ -131,7 +131,7 @@ class TestFindAttempt(PipeTest):
         self.assertAlmostEqual(0, self.controller.yawChange, 5)
 
         # Now try injecting an event to make sure it works correctly
-        self.injectEvent(pipe.PipeTrackingState.FOUND_PIPE)
+        self.injectPipeEvent(0, 0, math.Degree(0))
         self.qeventHub.publishEvents()
         self.assertCurrentState(pipe.Seeking)
         
@@ -340,7 +340,7 @@ def pipeFoundHelper(self, myState = None):
         self._foundPipe = True
         self.qeventHub.publishEvents()
 
-    self.qeventHub.subscribeToType(pipe.PipeTrackingState.FOUND_PIPE,
+    self.qeventHub.subscribeToType(vision.EventType.PIPE_FOUND,
                                        foundPipeHandler)
     
     # Publish a found event
@@ -454,6 +454,7 @@ class TestAlongPipe(PipeTest):
         
         # The outside angle case
         self.publishQueuedPipeFound(x = 0.5, y = -0.5, angle = math.Degree(15.0))
+        self.qeventHub.publishEvents()
         
         # Goes forward even when pipe behind vehicle
         self.assertGreaterThan(self.controller.speed, 0)
@@ -464,6 +465,7 @@ class TestAlongPipe(PipeTest):
         
         # The inside range case
         self.publishQueuedPipeFound(x = 0.4, y = -0.4, angle = math.Degree(15.0))
+        self.qeventHub.publishEvents()
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertGreaterThan(self.controller.yawChange, 0)
