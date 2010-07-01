@@ -23,6 +23,8 @@
 #include "vision/include/BasicWW2Detector.h"
 #include "vision/include/FANNSuitDetector.h"
 #include "vision/include/FANNWW2Detector.h"
+#include "vision/include/BasicWeaponDetector.h"
+#include "vision/include/FANNWeaponDetector.h"
 #include "vision/include/DuctDetector.h"
 #include "vision/include/DownwardDuctDetector.h"
 #include "vision/include/SafeDetector.h"
@@ -65,6 +67,12 @@ registerFANNSuitDetector("FANNSuitDetector");
 
 static DetectorMakerTemplate<FANNWW2Detector>
 registerFANNWW2Detector("FANNWW2Detector");
+
+static DetectorMakerTemplate<BasicWeaponDetector>
+registerBasicWeaponDetector("BasicWeaponDetector");
+
+static DetectorMakerTemplate<FANNWeaponDetector>
+registerFANNWeaponDetector("FANNWeaponDetector");
     
 static DetectorMakerTemplate<DuctDetector>
 registerDuctDetector("DuctDetector");
