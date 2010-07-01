@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cmath>
 
 // Library Includes
@@ -51,6 +52,9 @@ double OpenCVImage::eps = 0;
 double OpenCVImage::kappa = 0;
 
 bool OpenCVImage::initialized = false;
+bool OpenCVImage::lookupInit = false;
+
+unsigned char OpenCVImage::rgb2lchLookup[256][256][256][3] = {{{{0}}}};
 
 OpenCVImage::OpenCVImage(int width, int height, Image::PixelFormat fmt) :
     m_own(true),
@@ -141,14 +145,14 @@ void OpenCVImage::initTransform()
         gamma = 2.2; // sRGB
     
         // sRGB transform matrix
-        // rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
-        //                                  0.2126729, 0.7151522, 0.0721750,
-        //                                  0.0193339, 0.1191920, 0.9503041);
+         rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
+                                          0.2126729, 0.7151522, 0.0721750,
+                                          0.0193339, 0.1191920, 0.9503041);
 
         // NTSC RGB
-        rgb2xyzTransform = math::Matrix3(0.6068909,  0.1735011,  0.2003480,
-                                         0.2989164,  0.5865990,  0.1144845,
-                                         -0.0000000,  0.0660957,  1.1162243);
+        //rgb2xyzTransform = math::Matrix3(0.6068909,  0.1735011,  0.2003480,
+        //                                 0.2989164,  0.5865990,  0.1144845,
+        //                                 -0.0000000,  0.0660957,  1.1162243);
 
 
         /* We are currently using values from a 2 degree observer */
@@ -166,8 +170,8 @@ void OpenCVImage::initTransform()
         // y = 0.31485;
 
         // C illuminant
-        // x = 0.31006;
-        // y = 0.31616;
+         x = 0.31006;
+         y = 0.31616;
 
         // calculate xyz tristimulus values
         X_ref = (x * Y) / y;
@@ -556,6 +560,134 @@ void OpenCVImage::RGB2LCHuv()
     }
     m_fmt = PF_LCHUV_8;
 }
+
+void OpenCVImage::createLookupTable()
+{
+    double ch1 = 0, ch2 = 0, ch3 = 0;
+
+    static unsigned char lookup[256][256][256][3];
+    
+    for(unsigned char c1 = 0; c1 < 256; c1++){
+        for(unsigned char c2 = 0; c2 < 256; c2++){
+            for(unsigned char c3 = 0; c3 < 256; c3++){
+                ch1 = c1;
+                ch2 = c2;
+                ch3 = c3;
+                
+                invGammaCorrection(&ch1, &ch2, &ch3);
+                rgb2xyz(&ch1, &ch2, &ch3);
+                xyz2luv(&ch1, &ch2, &ch3);
+                luv2lch_uv(&ch1, &ch2, &ch3);
+                
+                lookup[c1][c2][c3][0] = ch1;
+                lookup[c1][c2][c3][1] = ch2;
+                lookup[c1][c2][c3][2] = ch3;
+            }
+        }
+    }
+    saveLookupTable((char*)&(lookup[0][0][0][0]));
+}
+
+void OpenCVImage::saveLookupTable(char *data)
+{
+    if(lookupInit) {
+        std::ofstream lookupFile;
+//        RAM_SVN_DIR
+        lookupFile.open(" rgb2luvLookup.bin", std::ios::out | std::ios::binary);
+        if(lookupFile.is_open()){   
+            lookupFile.write(data, 256*256*256*3);
+        } else {
+            std::cerr << "Error opening file for output." << std::endl;
+        }
+    }
+}
+
+void OpenCVImage::loadLookupTable()
+{
+    if(!lookupInit){
+        std::ifstream lookupFile;
+        char *data = (char *)(&rgb2lchLookup[0][0][0][0]);
+        lookupFile.open("rgb2luvLookup.bin", std::ios::in | std::ios::binary);
+        
+        assert(lookupFile.is_open() && "Lookup file does not exist. Please generate it.");
+        lookupFile.seekg(0, std::ios::beg);
+        lookupFile.read(data, 256*256*256*3);
+        lookupInit = true;
+    }
+}
+
+
+// float OpenCVImage::fast_atan2(float y, float x)
+// {
+//   /*
+//     The function f(r)=atan((1-r)/(1+r)) for r in [-1,1] is easier to
+//     approximate than atan(z) for z in [0,inf]. To approximate f(r) to
+//     the third degree we may solve the system
+
+//      f(+1) = c0 + c1 + c2 + c3 = atan(0) = 0
+//      f(-1) = c0 - c1 + c2 - c3 = atan(inf) = pi/2
+//      f(0)  = c0                = atan(1) = pi/4
+
+//     which constrains the polynomial to go through the end points and
+//     the middle point.
+
+//     We still miss a constrain, which might be simply a constarint on
+//     the derivative in 0. Instead we minimize the Linf error in the
+//     range [0,1] by searching for an optimal value of the free
+//     parameter. This turns out to correspond to the solution
+     
+//      c0=pi/4, c1=-0.9675, c2=0, c3=0.1821
+
+//     which has maxerr = 0.0061 rad = 0.35 grad.
+//   */
+
+//   float angle, r ;
+//   float const c3 = 0.1821 ;
+//   float const c1 = 0.9675 ;
+//   float abs_y    = abs(y) + float(1e-10) ;
+
+//   if (x >= 0) {
+//     r = (x - abs_y) / (x + abs_y) ;
+//     angle = float(CV_PI/4.0) ;
+//   } else {
+//     r = (x + abs_y) / (abs_y - x) ;
+//     angle = float(3*CV_PI/4.0) ;
+//   } 
+//   angle += (c3*r*r - c1) * r ; 
+//   return (y < 0) ? -angle : angle ;
+// }
+
+// /** @brief Fast @c sqrt
+//  ** @param x argument.
+//  ** @return Approximation to @c sqrt(x).
+//  **/
+// float OpenCVImage::fast_sqrt(float x)
+// {
+//   return (x < 1e-8) ? 0 : x * fast_resqrt(x) ;
+// }
+
+
+
+// /** @brief Fast @c resqrt
+//  ** @param x argument.
+//  ** @return Approximation to @c resqrt(x).
+//  **/
+
+// float OpenCVImage::fast_resqrt(float x)
+// {
+//   // Works if VL::float_t is 32 bit ...
+//   union {
+//     float x ;
+//     float i ;
+//   } u ;
+//   float xhalf = float(0.5) * x ;
+//   u.x = x ;                               // get bits for floating value
+//   u.i = 0x5f3759df - ((int)(u.i)>>1);            // gives initial guess y0
+//   //u.i = 0xdf59375f - (u.i>>1);          // gives initial guess y0
+//   u.x = u.x*(float(1.5) - xhalf*u.x*u.x); // Newton step (may repeat)
+//   u.x = u.x*(float(1.5) - xhalf*u.x*u.x); // Newton step (may repeat)
+//   return u.x ;
+// }
 
 
 } // namespace vision

@@ -91,17 +91,20 @@ public:
     /* Here are the steps to convert a BGR pixel to a CIELCH pixel
        assuming a pointer px = &channel 1
 
-       1. convert to rgb!!! i can try to make it direct from bgr later
-       2. invGammaCorrection(px, px + 1, px + 2);
-       3. rgb2xyz(px, px + 1, px + 2);
-       4. xyz2luv(px, px + 1, px + 2);
-       5. luv2lch_uv(px, px + 1, px + 2);
+       1. invGammaCorrection(px, px + 1, px + 2);
+       2. rgb2xyz(px, px + 1, px + 2);
+       3. xyz2luv(px, px + 1, px + 2);
+       4. luv2lch_uv(px, px + 1, px + 2);
 
        The pixel channels are now converted to CIELCh
        If gamma correction is turned off, the first step should be ignored
     */
 
     static void invGammaCorrection(double *ch1, double *ch2, double *ch3);
+
+    static void createLookupTable();
+    static void saveLookupTable(char *);
+    static void loadLookupTable();
 
     void RGB2LCHuv();
 
@@ -129,8 +132,12 @@ private:
     /** Gets the parameters needed for cvCreateImage from the lookup table */
     void getFormatParameters(const Image::PixelFormat& fmt,
                              int& depth, int& channels);
+    
+    // static float fast_atan2(float y, float x);
+    // static float fast_sqrt(float x);
+    // static float fast_resqrt(float x);
 
-
+    static unsigned char rgb2lchLookup[256][256][256][3];
 
     // gamma correction factor
     static double gamma;
@@ -150,6 +157,7 @@ private:
     static double kappa; // CIE Standard
 
     static bool initialized;
+    static bool lookupInit;
 
     bool m_own;
     unsigned char* m_data;
