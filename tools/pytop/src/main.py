@@ -10,6 +10,7 @@ from optparse import OptionParser
 
 # Project Imports
 import top.top as top
+import top.mem as mem
 
 def vprint(verbose):
     if verbose:
@@ -56,12 +57,19 @@ def main():
                       help='options: user, nice, sys, '
                       'idle, iowait, irq, sirq, all [default: %default]',
                       type='string', metavar='TYPES')
+    parser.add_option('--meminfo', dest='meminfo', action='store_true',
+                      default=False, help='Run memory analysis tool')
 
     (options, args) = parser.parse_args()
 
     # Setting print mode
     printfunc = vprint(options.verbose)
     printfunc("Setting print mode to verbose")
+
+    if options.meminfo:
+        printfunc('Running meminfo')
+        mem.analyze()
+        return
 
     printfunc("Monitoring cpu types %s" % options.types)
     type_locs = set()
