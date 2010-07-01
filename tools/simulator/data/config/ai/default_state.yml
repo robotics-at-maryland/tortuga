@@ -98,7 +98,7 @@ ram.ai.light.Continue:
 ram.ai.buoy.Searching:
     legTime: 5
 ram.ai.buoy.Align:
-    desiredRange: 7
+    desiredRange: 5
     depthGain: 4
     maxDepthDt: 0.3
 ram.ai.buoy.Reposition:

@@ -26,8 +26,12 @@ Scene:
     Robots:
         Tortuga: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
     
-    Objects:        
-        pinger1:
+    Objects:
+        pinger:
+            type: [sim.sonar.IPinger, sim.sonar.Pinger]
+            position: [-12, -2, -5]
+        
+        safe:
             type: [sim.vision.ISafe, sim.vision.Safe]
             position: [-12, -2, -5]
         
