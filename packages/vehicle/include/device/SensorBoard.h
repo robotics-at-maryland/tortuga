@@ -160,6 +160,14 @@ public:
      *      The number of the torpedo fired, -1 if all torpedos are used.
      */
     virtual int fireTorpedo();
+
+    /** Releases the object in the treasure grabber. Only works once.
+     *
+     *  @return
+     *      0 if the grabber successfully released the object. -1 if
+     *      the object was already released.
+     */
+    virtual int releaseGrabber();
     
    /** Returns true if the vehicle can draw power from the power source
      *
@@ -288,6 +296,9 @@ private:
 
     /** The fire servo position for the second servo */
     int m_servo2FirePosition;
+
+    /** The fire servo position for the treasure grabber */
+    int m_servo3FirePosition;
 };
     
 } // namespace device

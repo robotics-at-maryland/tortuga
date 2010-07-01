@@ -102,6 +102,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_markerDropper(device::IPayloadSetPtr()),
     m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
     m_torpedoLauncher(device::IPayloadSetPtr()),
+    m_grabberName(config["GrabberName"].asString("Grabber")),
+    m_grabber(device::IPayloadSetPtr()),
     stateEstimator(estimator::IStateEstimatorPtr())
 {
 
@@ -323,6 +325,11 @@ void Vehicle::fireTorpedo()
 {
     m_torpedoLauncher->releaseObject();
 }
+
+void Vehicle::releaseGrabber()
+{
+    m_grabber->releaseObject();
+}
     
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
                                     const math::Vector3& rotationalTorques)
@@ -435,6 +442,13 @@ int Vehicle::_addDevice(device::IDevicePtr device)
     if ((!m_torpedoLauncher) && (name == m_torpedoLauncherName))
     {
         m_torpedoLauncher =
+            device::IDevice::castTo<device::IPayloadSet>(device);
+        return 0;
+    }
+
+    if ((!m_grabber) && (name == m_grabberName))
+    {
+        m_grabber =
             device::IDevice::castTo<device::IPayloadSet>(device);
         return 0;
     }

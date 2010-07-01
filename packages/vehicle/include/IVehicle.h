@@ -137,6 +137,9 @@ public:
 
     /** Fire torpedo from the front of the vehicle */
     virtual void fireTorpedo() = 0;
+
+    /** Drop the PVC cube */
+    virtual void releaseGrabber() = 0;
     
 protected:
     IVehicle(std::string name,

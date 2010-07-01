@@ -409,6 +409,29 @@ TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
     delete testSb;
 }
 
+TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
+{
+    TestSensorBoard* testSb = new TestSensorBoard(
+        ram::core::ConfigNode::fromString(BASE_CONFIG +
+            "'servo3FirePosition' : 6000}"));
+    ram::vehicle::device::SensorBoard* sb =
+        (ram::vehicle::device::SensorBoard*)testSb;
+
+    // Release Grabber
+    CHECK_EQUAL(0, sb->releaseGrabber());
+    CHECK_EQUAL(SERVO_3, testSb->servoUsed);
+    CHECK_EQUAL(6000, testSb->servoPosition);
+    CHECK_EQUAL(SERVO_ENABLE_3, testSb->servoEnable);
+    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
+    
+    // Fire non-existent torpedo
+    CHECK_EQUAL(-1, sb->releaseGrabber());
+    CHECK_EQUAL(SERVO_3, testSb->servoUsed);
+    CHECK_EQUAL(6000, testSb->servoPosition);
+
+    delete testSb;
+}
+
 typedef std::vector<ram::math::NumericEventPtr>
 DepthSensorEventPtrList;
 

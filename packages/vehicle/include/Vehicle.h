@@ -62,6 +62,8 @@ public:
     virtual void dropMarker();
 
     virtual void fireTorpedo();
+
+    virtual void releaseGrabber();
     
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);
@@ -176,6 +178,9 @@ private:
 
     std::string m_torpedoLauncherName;
     vehicle::device::IPayloadSetPtr m_torpedoLauncher;
+
+    std::string m_grabberName;
+    vehicle::device::IPayloadSetPtr m_grabber;
 
 
     estimator::IStateEstimatorPtr stateEstimator;

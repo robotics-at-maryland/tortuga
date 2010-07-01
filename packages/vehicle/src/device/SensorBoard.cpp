@@ -79,6 +79,7 @@ SensorBoard::SensorBoard(int deviceFD,
 
     m_servo1FirePosition = config["servo1FirePosition"].asInt(4000);
     m_servo2FirePosition = config["servo2FirePosition"].asInt(4000);
+    m_servo3FirePosition = config["servo3FirePosition"].asInt(4000);
     
     // If we get a negative FD, don't try to talk to the board
     if (deviceFD >= 0)
@@ -121,6 +122,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
 
     m_servo1FirePosition = config["servo1FirePosition"].asInt(4000);
     m_servo2FirePosition = config["servo2FirePosition"].asInt(4000);
+    m_servo3FirePosition = config["servo3FirePosition"].asInt(4000);
 
     // Connect to the sensor board
     establishConnection();
@@ -460,6 +462,25 @@ int SensorBoard::fireTorpedo()
     return torpedoFired;
 }
 
+int SensorBoard::releaseGrabber()
+{
+    static int released = 0;
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    
+    if (!released)
+    {
+        // Yes this code looks weird, but MotorBoard r3 has some bugs that we
+        // need to code around
+        setServoPosition(SERVO_3, m_servo3FirePosition);
+        setServoEnable(SERVO_ENABLE_3);
+        setServoPower(SERVO_POWER_ON);
+
+        released = -1;
+        return 0;
+    } else {
+        return -1;
+    }
+}
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 {

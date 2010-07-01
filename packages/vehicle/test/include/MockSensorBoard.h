@@ -37,6 +37,7 @@ public:
         mainBusVoltage = 0.0;
         markerDropNum = -1;
         torpedoFireNum = -1;
+        grabberReleased = -1;
     }    
     virtual ~MockSensorBoard() {}
 
@@ -78,6 +79,8 @@ public:
 
     virtual int fireTorpedo() { return torpedoFireNum; }
 
+    virtual int releaseGrabber() { return grabberReleased; }
+
     bool thrusterEnables[6];
     int thrusterValues[6];
 
@@ -86,6 +89,7 @@ public:
 
     int markerDropNum;
     int torpedoFireNum;
+    int grabberReleased;
 
     double mainBusVoltage;
     

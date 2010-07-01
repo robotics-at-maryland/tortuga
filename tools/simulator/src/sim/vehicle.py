@@ -297,11 +297,11 @@ device.IDeviceMaker.registerDevice('SimThruster', SimThruster)
 
 class SimPayloadSet(SimDevice, device.IPayloadSet):
     def __init__(self, eventHub, name, count = 2, scene = None, robot = None,
-                 marker = True):
+                 payload = None):
         device.IPayloadSet.__init__(self, eventHub, name)
         
         self._scene = scene
-        self._marker = marker
+        self._payload = payload
         self._robot = robot
         self._name = name
         self._initialCount = count
@@ -324,10 +324,12 @@ class SimPayloadSet(SimDevice, device.IPayloadSet):
                 self._count -= 1
                 return
             
-            if self._marker:
+            if self._payload == 'marker':
                 self._spawnMarker()
-            else:
+            elif self._payload == 'torpedo':
                 self._spawnTorpedo()
+            elif self._payload == 'grabber':
+                self._spawnCube()
             
             self._count -= 1
             
@@ -396,7 +398,39 @@ class SimPayloadSet(SimDevice, device.IPayloadSet):
         }
         obj.load((self._scene, None, cfg))
         obj._body.setVelocity(robotOrient * ogre.Vector3(10, 0, 0))
-        self._scene._objects.append(obj)  
+        self._scene._objects.append(obj)
+
+    def _spawnCube(self):
+        # Now lets spawn an object
+        obj = scene.SceneObject()
+        position = self._robot._main_part._node.position
+        robotOrient = self._robot._main_part._node.orientation
+
+        # 30cm below robot
+        offset = ogre.Vector3(0.4, 0.30 - (self._count * 0.2), 0)
+        position = position + robotOrient * offset 
+        
+        cfg = {
+            'name' : self._name + str(self._count),
+            'position' : position,
+            'Graphical' : {
+                'mesh' : 'cylinder.mesh', 
+                'scale' : [0.127, 0.0127, 0.0127],
+                'material' : 'Simple/Yellow',
+                'orientation' : robotOrient 
+            },
+            'Physical' : {
+                'mass' : 0.005,
+                'orientation' : robotOrient,
+                'Shape' : {
+                    'type' : 'cylinder',
+                    'radius' : 0.0127,
+                    'height' : 0.0127
+                }
+            }
+        }
+        obj.load((self._scene, None, cfg))
+        self._scene._objects.append(obj)
 
 class SimMarkerDropper(SimPayloadSet): # SimPayloadSet
     def __init__(self, config, eventHub, vehicle):
@@ -405,7 +439,7 @@ class SimMarkerDropper(SimPayloadSet): # SimPayloadSet
         
         SimPayloadSet.__init__(self, eventHub, self._name, count = 2, 
                                scene = simDevice.scene, 
-                               robot = simDevice.robot, marker = True)
+                               robot = simDevice.robot, payload = 'marker')
 
 device.IDeviceMaker.registerDevice('SimMarkerDropper', SimMarkerDropper)
 
@@ -416,10 +450,20 @@ class SimTorpedoLauncher(SimPayloadSet): # SimPayloadSet
         
         SimPayloadSet.__init__(self, eventHub, self._name, count = 2, 
                                scene = simDevice.scene, 
-                               robot = simDevice.robot, marker = False)
+                               robot = simDevice.robot, payload = 'torpedo')
 
 device.IDeviceMaker.registerDevice('SimTorpedoLauncher', SimTorpedoLauncher)
 
+class SimGrabber(SimPayloadSet): # SimPayloadSet
+    def __init__(self, config, eventHub, vehicle):
+        self._name = config['name']
+        simDevice = vehicle.getDevice('SimulationDevice')
+
+        SimPayloadSet.__init__(self, eventHub, self._name, count = 2,
+                               scene = simDevice.scene,
+                               robot = simDevice.robot, payload = 'grabber')
+
+device.IDeviceMaker.registerDevice('SimGrabber', SimGrabber)
 
 class TrailMarker(SimDevice, device.IDevice):
     def __init__(self, config, eventHub, vehicle):

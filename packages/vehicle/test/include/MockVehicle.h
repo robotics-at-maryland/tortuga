@@ -112,6 +112,8 @@ public:
 
     virtual void fireTorpedo() {assert(false && "Method not implemented");}
 
+    virtual void releaseGrabber() {assert(false && "Method not implemented");}
+
     virtual int startStatus()
     {
         assert(false && "Method not implemented");
