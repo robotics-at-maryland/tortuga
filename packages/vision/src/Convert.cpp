@@ -44,14 +44,14 @@ void Convert::initTransform()
         gamma = 2.2; // sRGB
     
         // sRGB transform matrix
-         rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
-                                          0.2126729, 0.7151522, 0.0721750,
-                                          0.0193339, 0.1191920, 0.9503041);
+        // rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
+        //                                  0.2126729, 0.7151522, 0.0721750,
+        //                                  0.0193339, 0.1191920, 0.9503041);
 
         // NTSC RGB
-        //rgb2xyzTransform = math::Matrix3(0.6068909,  0.1735011,  0.2003480,
-        //                                 0.2989164,  0.5865990,  0.1144845,
-        //                                 -0.0000000,  0.0660957,  1.1162243);
+        rgb2xyzTransform = math::Matrix3(0.6068909,  0.1735011,  0.2003480,
+                                         0.2989164,  0.5865990,  0.1144845,
+                                         -0.0000000,  0.0660957,  1.1162243);
 
 
         /* We are currently using values from a 2 degree observer */
@@ -85,6 +85,7 @@ void Convert::initTransform()
         v_prime_ref = (9 * Y_ref) / refDenom;
 
         initialized = true;
+        std::cout << "Initialized Transform" << std::endl;
     }
 }
 
@@ -197,6 +198,7 @@ void Convert::luv2lch_uv(double *l2l, double *u2c, double *v2h)
 void Convert::invGammaCorrection(double *ch1, double *ch2, double *ch3)
 {
     // this is a simplified gamma correction if the RGB system is sRGB
+    // this takes in values between [0, 1]
     initTransform();
     *ch1 = pow(*ch1, gamma);
     *ch2 = pow(*ch2, gamma);
@@ -240,9 +242,9 @@ void Convert::createLookupTable()
     for(int c1 = 0; c1 < 256; c1++){
         for(int c2 = 0; c2 < 256; c2++){
             for(int c3 = 0; c3 < 256; c3++){
-                ch1 = (char) c1;
-                ch2 = (char) c2;
-                ch3 = (char) c3;
+                ch1 = (double) c1 / 255;
+                ch2 = (double) c2 / 255;
+                ch3 = (double) c3 / 255;
                 
                 invGammaCorrection(&ch1, &ch2, &ch3);
                 rgb2xyz(&ch1, &ch2, &ch3);
@@ -252,11 +254,9 @@ void Convert::createLookupTable()
                 lookup[c1][c2][c3][0] = ch1;
                 lookup[c1][c2][c3][1] = ch2;
                 lookup[c1][c2][c3][2] = ch3;
-
-                std::cout << "\r" << counter << " / " << size;
-                //std::cout.flush();
-                counter++;
             }
+            std::cout << "\r" << 256*counter << " / " << size;
+            counter++;
         }
     }
     std::cout << std::endl;
@@ -267,7 +267,6 @@ void Convert::saveLookupTable(const char *data)
 {
     initTransform();
     std::ofstream lookupFile;
-//        RAM_SVN_DIR
     lookupFile.open("rgb2luvLookup.bin", std::ios::out | std::ios::binary);
     if(lookupFile.is_open()){   
         lookupFile.write(data, 256*256*256*3);
