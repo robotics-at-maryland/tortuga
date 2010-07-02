@@ -206,27 +206,25 @@ void Convert::invGammaCorrection(double *ch1, double *ch2, double *ch3)
 void Convert::RGB2LCHuv(vision::Image* image)
 {
     assert(image->getPixelFormat() == Image::PF_RGB_8 && "Incorrect Pixel Format");
-    initTransform();
+    // TODO: Make me a real assert!
+    assert("Lookup table not loaded");
+    
     unsigned char *data = (unsigned char *) image->getData();
 
     unsigned int numpixels = image->getWidth() * image->getHeight();
     for(unsigned int pix = 0; pix < numpixels; pix++)
     {
-        double ch1 = (double) data[3*pix] / (double) 255;
-        double ch2 = (double) data[1 + 3*pix] / (double) 255;
-        double ch3 = (double) data[2 + 3*pix] / (double) 255;
+        unsigned char ch1 = data[0];
+        unsigned char ch2 = data[1];
+        unsigned char ch3 = data[2];
 
-        // remove this when gamma correction is turned off
-        invGammaCorrection(&ch1, &ch2, &ch3);
+        unsigned char *tablePos = rgb2lchLookup[ch1][ch2][ch3];
 
-        // convert to xyz then luv then lch
-        rgb2xyz(&ch1, &ch2, &ch3);
-        xyz2luv(&ch1, &ch2, &ch3);
-        luv2lch_uv(&ch1, &ch2, &ch3);
+        data[0] = tablePos[0];
+        data[1] = tablePos[1];
+        data[2] = tablePos[2];
 
-        data[3*pix] = ch1;
-        data[1 + 3*pix] = ch2;
-        data[2 + 3*pix] = ch3;
+        data += 3;
     }
 }
 
@@ -270,7 +268,7 @@ void Convert::saveLookupTable(const char *data)
     initTransform();
     std::ofstream lookupFile;
 //        RAM_SVN_DIR
-    lookupFile.open(" rgb2luvLookup.bin", std::ios::out | std::ios::binary);
+    lookupFile.open("rgb2luvLookup.bin", std::ios::out | std::ios::binary);
     if(lookupFile.is_open()){   
         lookupFile.write(data, 256*256*256*3);
     } else {
@@ -278,17 +276,21 @@ void Convert::saveLookupTable(const char *data)
     }
 }
 
-void Convert::loadLookupTable()
+bool Convert::loadLookupTable()
 {
     initTransform();
     std::ifstream lookupFile;
     char *data = (char *)(&rgb2lchLookup[0][0][0][0]);
     lookupFile.open("rgb2luvLookup.bin", std::ios::in | std::ios::binary);
-        
-    assert(lookupFile.is_open() && "Lookup file does not exist. Please generate it.");
-    lookupFile.seekg(0, std::ios::beg);
-    lookupFile.read(data, 256*256*256*3);
-    lookupInit = true;
+    
+    if (lookupFile.is_open()) {
+        lookupFile.seekg(0, std::ios::beg);
+        lookupFile.read(data, 256*256*256*3);
+        lookupInit = true;
+        return false;
+    } else {
+        return false;
+    }
 }
 
 

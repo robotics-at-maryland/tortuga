@@ -18,6 +18,7 @@
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/FFMPEGRecorder.h"
 #include "vision/include/FFMPEGNetworkRecorder.h"
+#include "vision/include/Convert.h"
 
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BuoyDetector.h"
@@ -126,6 +127,13 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;
+
+    // Load the lookup table if necessary
+    int lchLookupTable = config["loadLCHLookupTable"].asInt(0);
+    if (lchLookupTable) {
+        bool loaded = Convert::loadLookupTable();
+        assert(loaded && "Failed to load lookup table");
+    }
 
     // Recorders
     if (config.exists("ForwardRecorders"))

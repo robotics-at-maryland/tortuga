@@ -14,7 +14,8 @@
 
 // Library Includes
 #include <boost/program_options.hpp>
-#include <boost/foreach.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -33,10 +34,14 @@
 #endif
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 using namespace ram;
 
 vision::FANNSymbolDetectorPtr createDetector(std::string type,
                                              core::ConfigNode config);
+
+void analyze_image(vision::FANNSymbolDetectorPtr fannDetector,
+                   float* features, std::string path);
 
 vision::FANNSymbolDetectorPtr createDetector(std::string type,
                                              core::ConfigNode config)
@@ -54,6 +59,21 @@ vision::FANNSymbolDetectorPtr createDetector(std::string type,
     return fannDetector;
 }
 
+void analyze_image(vision::FANNSymbolDetectorPtr fannDetector,
+                  float* features, std::string path)
+{
+    vision::Image *image = vision::Image::loadFromFile(path);
+    
+    fannDetector->getImageFeatures(image, features);
+    
+    // Write out all of the feature numbers
+    for (int i = 0; i < fannDetector->getNumberFeatures(); i++)
+    {
+        std::cout << features[i] << " ";
+    }
+    std::cout << std::endl;
+}
+
 int main(int argc, char* argv[])
 {
     po::options_description desc("Allowed options");
@@ -63,6 +83,7 @@ int main(int argc, char* argv[])
     std::string input;
     std::string detector;
     std::string configPath;
+    std::string directory;
 
     try
     {
@@ -79,6 +100,8 @@ int main(int argc, char* argv[])
              default_value("FANNWW2Detector"), "Detector to run on the input")
             ("config,c", po::value<std::string>(&configPath)->
              default_value("NONE"), "Path to config with detector settings")
+            ("dir,d", po::value<std::string>(&directory)->
+             default_value("NONE"), "Path to directory with images")
             ;
 
         po::store(po::command_line_parser(argc, argv).
@@ -112,19 +135,28 @@ int main(int argc, char* argv[])
         fannDetector = createDetector(detector, config);
     }
 
-    vision::Image *image = vision::Image::loadFromFile(input);
+    // Allocate space to store the features
+    int featureNum = fannDetector->getNumberFeatures();
+    float *features = new float[featureNum];
+    float *max = new float[featureNum];
+    float *min = new float[featureNum];
 
-    float *features = new float[fannDetector->getNumberFeatures()];
-    fannDetector->getImageFeatures(image, features);
-
-    // Write out all of the feature numbers
-    for (int i = 0; i < fannDetector->getNumberFeatures(); i++)
-    {
-        std::cout << features[i] << " ";
+    // Check if directory or file mode
+    if (directory == "NONE") {
+        analyze_image(fannDetector, features, input);
+    } else {
+        fs::directory_iterator end;
+        for (fs::directory_iterator iter(directory);
+             iter != end; iter++)
+        {
+            std::cout << iter->path() << std::endl;
+            analyze_image(fannDetector, features, iter->path().string());
+        }
     }
-    std::cout << std::endl;
 
     delete[] features;
+    delete[] max;
+    delete[] min;
 
     return 0;
 }

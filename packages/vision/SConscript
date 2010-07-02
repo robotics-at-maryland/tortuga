@@ -98,11 +98,12 @@ envt.RAMProgram(target = 'PhaseCorrelation',
 # FeatureAnalyzer
 envt.RAMProgram(target = 'FeatureAnalyzer',
                 source = 'test/src/FeatureAnalyzer.cpp',
-                int_deps = ['vision'], ext_deps = ['Boost.ProgramOptions'])
+                int_deps = ['vision'], ext_deps = ['Boost.ProgramOptions',
+                                                   'Boost.Filesystem'])
 
-# GenerateLCHLookupTable
-envt.RAMProgram(target = 'GenerateLCHLookupTable',
-                source = 'test/src/GenerateLCHLookupTable.cpp',
+# LCHLookupTable
+envt.RAMProgram(target = 'LCHLookupTable',
+                source = 'test/src/LCHLookupTable.cpp',
                 int_deps = ['vision'])
 
 # Unit Tests

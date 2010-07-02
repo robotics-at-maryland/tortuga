@@ -36,7 +36,7 @@ public:
 
     static void createLookupTable();
     static void saveLookupTable(const char *);
-    static void loadLookupTable();
+    static bool loadLookupTable();
 
     static void RGB2LCHuv(vision::Image* image);
 
