@@ -117,10 +117,9 @@ def safe():
 
 @requires('vehicle')
 def unsafe():
-    vehicle.unsafeThrusters()
-    # Wait for a second an unsafe the thrusters again
-    # This is because unsafeThrusters doesn't always succeed completely
-    timer.sleep(1)
+    controller.setDepth(vehicle.getDepth())
+    allStop()
+    # This is unsafe, since this doesn't always work
     vehicle.unsafeThrusters()
 
 @requires('stateMachine')
