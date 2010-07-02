@@ -26,12 +26,14 @@
 #     print "world!"
 #
 # This block is not in """ Text Here """ comments because these are printed out
-# in the OCI. Only use comments with the '#' symbol.
+# in the OCI. Only use comments with the '#' symbol. Docstrings within functions
+# can, and are encouraged, to be used.
 
 import math as pmath
 import ext.core as core
 import ext.math as math
 import ram.ai.light as light
+import ram.ai.buoy as buoy
 import ram.ai.gen2.light as light2
 import ram.ai.pipe as pipe
 import ram.ai.bin as bin
@@ -71,6 +73,13 @@ class requires(object):
 # Helper methods
 @requires('motionManager')
 def diveTo(depth, speed = 0.3):
+    """
+    Dive to the specified depth.
+
+    @param depth Desired depth
+    @param speed Speed of the dive
+    @requires motionManager
+    """
     motionManager.setMotion(basic.RateChangeDepth(depth, speed))
 
 # dive and diveTo are the same function.
@@ -78,29 +87,78 @@ dive = diveTo
 
 @requires('vehicle', 'motionManager')
 def up(depthChange, speed = 0.3):
+    """
+    Move the vehicle upward by the specified value.
+
+    @param depthChange Distance upwards to move.
+    @param speed Speed of the dive
+    @requires vehicle, motionManager
+    """
     diveTo(vehicle.getDepth() - depthChange, speed = speed)
 
 @requires('vehicle', 'motionManager')
 def down(depthChange, speed = 0.3):
+    """
+    Move the vehicle downward by the specified value.
+
+    @param depthChange Distance downwards to move.
+    @param speed Speed of the dive
+    @requires vehicle, motionManager
+    """
     diveTo(vehicle.getDepth() + depthChange, speed = speed)
 
 # Surface depth to 0.3 because 0.0 causes the vehicle to always try and get
 # above the water
 def surface(speed = 0.3):
+    """
+    Dives the vehicle to the surface.
+    The surface is an approximate value, and the vehicle may
+    be slightly underwater or try to force itself above water at
+    the end.
+
+    @param speed Speed of the dive
+    @requires motionManager
+    """
     diveTo(depth = 0.3, speed = speed)
 
 @requires('motionManager')
 def yaw(yawChange, speed = 30, absolute = False):
+    """
+    Yaws the vehicle the specified number of degrees.
+    Positive values rotate counter-clockwise, negative values rotate
+    clockwise. Use the right-hand rule.
+
+    @param yawChange Distance to yaw in degrees. A value of greater than 180
+                     will just loop around.
+    @param speed Speed to yaw the vehicle
+    @param absolute If True, the vehicle will yaw to the heading given.
+                    Otherwise, it will figure out a relative number of
+                    degrees to yaw.
+    @requires motionManager
+    """
     motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
 
 @requires('motionManager')
-def yawTo(yawChange, speed = 30):
+def yawTo(angle, speed = 30):
+    """
+    This yaws the vehicle to the specified absolute angle.
+
+    @param angle Angle to yaw to in degrees
+    @param speed Speed to yaw the vehicle
+    @see yaw
+    @requires motionManager
+    """
     yaw(yawChange, speed, absolute = True)
 
 yaw2 = yawTo
 
 @requires('motionManager', 'controller', 'stateMachine')
 def allStop():
+    """
+    Stops every possible system that could move the vehicle.
+
+    @requires motionManager, controller, stateMachine
+    """
     stateMachine.stop()
     motionManager.stopCurrentMotion()
     controller.setSpeed(0)
@@ -113,17 +171,35 @@ stop = allStop
 
 @requires('vehicle')
 def safe():
+    """
+    Safes the thrusters on the vehicle.
+
+    @requires vehicle
+    """
     vehicle.safeThrusters()
 
 @requires('vehicle')
 def unsafe():
+    """
+    Unsafes the thrusters on the vehicle, stops every motion the
+    vehicle may be trying to do, and resets the depth to avoid any
+    complications while unsafing the thrusters.
+
+    @requires vehicle
+    """
     controller.setDepth(vehicle.getDepth())
     allStop()
     # This is unsafe, since this doesn't always work
     vehicle.unsafeThrusters()
+    controller.setDepth(vehicle.getDepth())
 
 @requires('stateMachine')
 def start(state):
+    """
+    Starts the state machine using the specified state.
+
+    @param state The state to start
+    """
     allStop()
     stateMachine.start(state)
 
@@ -171,15 +247,39 @@ class RecorderManager(object):
 
 # Use these functions to interact with the RecorderManager.
 def fstream(port = 50000, size = (320, 240), rate = 5):
+    """
+    Starts forward video streaming.
+
+    @param port The port to stream video over
+    @param size The size to send video at
+    @param rate The rate of the video
+    """
     RecorderManager.fstream(port, size, rate)
 
 def dstream(port = 50001, size = (320, 240), rate = 5):
+    """
+    Starts downward video streaming.
+
+    @param port The port to stream video over
+    @param size The size to send video at
+    @param rate The rate of the video
+    """
     RecorderManager.dstream(port, size, rate)
 
 def removefs(port = 50000):
+    """
+    Removes the forward recorder associated with the given port.
+
+    @param port The port to remove forward streaming from.
+    """
     RecorderManager.removefs(port)
 
 def removeds(port = 50001):
+    """
+    Removes the downward recorder associated iwth the given port.
+
+    @param port The port to remove downward streaming from.
+    """
     RecorderManager.removeds(port)
 
 fsremove = removefs
@@ -190,6 +290,8 @@ dsremove = removeds
 # make error functions for all of them
 lightOn = error_function("lightOn", "visionSystem")
 lightOff = error_function("lightOff", "visionSystem")
+buoyOn = error_function("buoyOn", "visionSystem")
+buoyOff = error_function("buoyOff", "visionSystem")
 pipeOn = error_function("lightOn", "visionSystem")
 pipeOff = error_function("pipeOff", "visionSystem")
 bwireOn = error_function("bwireOn", "visionSystem")
@@ -203,6 +305,8 @@ targetOff = error_function("targetOff", "visionSystem")
 if('visionSystem' in vars):
     lightOn = visionSystem.redLightDetectorOn
     lightOff = visionSystem.redLightDetectorOff
+    buoyOn = visionSystem.buoyDetectorOn
+    buoyOff = visionSystem.buoyDetectorOff
     pipeOn = visionSystem.pipeLineDetectorOn
     pipeOff = visionSystem.pipeLineDetectorOff
     bwireOn = visionSystem.barbedWireDetectorOn
@@ -243,9 +347,27 @@ if "visionSystem" in vars:
         recordClip = recordClipImpl
 
 def takeFClip(seconds, name = None, extension = ".rmv", rate = 5):
+    """
+    Takes a forward video and saves it to disk.
+
+    @param seconds Time to record video
+    @param name The name to save the video as. If None, this will be
+                auto-generated based on the current date/time.
+    @param extension Extension to save the video as. .rmv or .avi are supported.
+    @param rate The rate to record video at
+    """
     recordClip(visionSystem.addForwardRecorder, visionSystem.removeForwardRecorder, seconds, name, extension, rate)
 
 def takeDClip(seconds, name = None, extension = ".rmv", rate = 5):
+    """
+    Takes a downward video and saves it to disk.
+
+    @param seconds Time to record video
+    @param name The name to save the video as. If None, this will be
+                auto-generated based on the current date/time.
+    @param extension Extension to save the video as. .rmv or .avi are supported.
+    @param rate The rate to record video at
+    """
     recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
 
 del vars
