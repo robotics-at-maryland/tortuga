@@ -112,6 +112,8 @@ class MockVehicle(vehicle.IVehicle):
         
         self.markersDropped = 0
         self.torpedosFired = 0
+        self.grabberRelease = False
+        self.unsafed = True
         self.linAccel = ext.math.Vector3.ZERO
         self.angRate = ext.math.Vector3.ZERO
         self.force = ext.math.Vector3.ZERO
@@ -147,6 +149,15 @@ class MockVehicle(vehicle.IVehicle):
 
     def fireTorpedo(self):
         self.torpedosFired += 1
+
+    def releaseGrabber(self):
+        self.grabberReleased = True
+
+    def unsafeThrusters(self):
+        self.unsafed = True
+
+    def safeThrusters(self):
+        self.unsafed = False
 
     def getDeviceNames(self):
         return self._devices

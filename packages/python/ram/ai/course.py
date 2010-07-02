@@ -853,16 +853,41 @@ class Octagon(task.Task):
     """
     Surface in the octagon with or without the treasure, but with the sonar on
     """
+    SURFACED = core.declareEventType('SURFACED_')
+
     @staticmethod
     def _transitions():
-        return { motion.basic.MotionManager.FINISHED : task.Next }
+        return { motion.basic.MotionManager.FINISHED : Octagon,
+                 Octagon.SURFACED : task.Next }
 
     @staticmethod
     def getattr():
-        return set(['depth', 'diveSpeed']).union(task.Task.getattr())
+        return set(['depth', 'diveSpeed', 'delay', 'release']).union(
+            task.Task.getattr())
+
+    def FINISHED(self, event):
+        """
+        Waits for the vehicle to balance out on the top of the water
+        before releasing the grabber.
+        """
+        # Safe the thrusters (that way we float to the absolute top)
+        self.vehicle.safeThrusters()
+        self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
+        self._timer.start()
+
+    def SURFACED_(self, event):
+        """
+        Releases the grabber.
+        """
+        if self._release:
+            self.vehicle.releaseGrabber()
 
     def enter(self):
         task.Task.enter(self)
+
+        self._delay = self._config.get('delay', 5)
+        self._release = self._config.get('release', True)
+
         # Start our dive
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self._config.get('depth', 0),
@@ -873,6 +898,9 @@ class Octagon(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
+
+        if self._timer is not None:
+            self._timer.stop()
 
 class RecoverFromSafe(task.Task):
     """

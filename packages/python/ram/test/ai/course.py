@@ -1062,7 +1062,22 @@ class TestOctagon(support.AITestCase):
                 
     def testDiveFinished(self):
         self.injectEvent(motion.basic.MotionManager.FINISHED)
+        self.assert_(not self.vehicle.unsafed)
+
+    def testRelease(self):
+        # Finish the motion to start the timer
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
+
+        # Release the timer
+        self.releaseTimer(course.Octagon.SURFACED)
+        self.assert_(self.vehicle.grabberReleased)
         self.assert_(self.machine.complete)
+
+    def testExit(self):
+        """
+        Test an early exit to make sure it doesn't crash
+        """
+        self.machine.stop()
 
 class TestTimedTravel(support.AITestCase):
     def setUp(self):
