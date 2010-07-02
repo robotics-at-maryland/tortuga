@@ -34,6 +34,11 @@ public:
 
     static void invGammaCorrection(double *ch1, double *ch2, double *ch3);
 
+    // Converts a single pixel
+    static void convertPixel(unsigned char &r,
+                             unsigned char &g,
+                             unsigned char &b);
+
     static void createLookupTable();
     static void saveLookupTable(const char *);
     static bool loadLookupTable();
@@ -59,30 +64,11 @@ public:
     static void luv2lch_uv(double *l2l, double *a2c, double *b2h);
 
 private:
-    static void initTransform();
-
     // static float fast_atan2(float y, float x);
     // static float fast_sqrt(float x);
     // static float fast_resqrt(float x);
 
     static unsigned char rgb2lchLookup[256][256][256][3];
-
-    // gamma correction factor
-    static double gamma;
-
-    // matrix for transforming rgb to xyz
-    static math::Matrix3 rgb2xyzTransform;
-
-    // white points for xyz to lab transform
-    static double X_ref;
-    static double Y_ref;
-    static double Z_ref;
-
-    // ref points for xyz to luv transform
-    static double u_prime_ref;
-    static double v_prime_ref;
-    static double eps; // CIE Standard
-    static double kappa; // CIE Standard
 
     static bool lookupInit;
 

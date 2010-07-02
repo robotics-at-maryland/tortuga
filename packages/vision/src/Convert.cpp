@@ -22,78 +22,59 @@
 namespace ram {
 namespace vision {
 
-double Convert::gamma = 2.2;
-math::Matrix3 Convert::rgb2xyzTransform = math::Matrix3::IDENTITY;
-
-double Convert::X_ref = 0;
-double Convert::Y_ref = 0;
-double Convert::Z_ref = 0;
-
-double Convert::u_prime_ref = 0;
-double Convert::v_prime_ref = 0;
-double Convert::eps = 0;
-double Convert::kappa = 0;
+bool Convert::lookupInit = false;
 
 unsigned char Convert::rgb2lchLookup[256][256][256][3] = {{{{0}}}};
 
-bool Convert::lookupInit = false;
-
-void Convert::initTransform()
-{
-    static bool initialized = false;
-    if(!initialized) {
-        // gamma correction factor
-        gamma = 2.2; // sRGB
+// gamma correction factor
+static double gamma = 2.2; // sRGB
     
-        // sRGB transform matrix
-        // rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
-        //                                  0.2126729, 0.7151522, 0.0721750,
-        //                                  0.0193339, 0.1191920, 0.9503041);
+// sRGB transform matrix
+// rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
+//                                  0.2126729, 0.7151522, 0.0721750,
+//                                  0.0193339, 0.1191920, 0.9503041);
 
-        // NTSC RGB
-        rgb2xyzTransform = math::Matrix3(0.6068909,  0.1735011,  0.2003480,
-                                         0.2989164,  0.5865990,  0.1144845,
-                                         -0.0000000,  0.0660957,  1.1162243);
+// NTSC RGB
+static math::Matrix3 rgb2xyzTransform =
+    math::Matrix3(0.6068909,  0.1735011,  0.2003480,
+                  0.2989164,  0.5865990,  0.1144845,
+                  -0.0000000,  0.0660957,  1.1162243);
 
 
-        /* We are currently using values from a 2 degree observer */
+/**
+ * We are currently using values from a 2 degree observer
+ * X, Y, Z White Point tristimulus values can be calculated
+ * from x, y chromaticity values by setting Y = 1, then X = x/y
+ * and Z = (1 - x - y) / y
+ */
 
-        /* X, Y, Z White Point tristimulus values can be calculated from x, y chromaticity
-           values by setting Y = 1, then X = x/y and Z = (1 - x - y) / y */
+// D65 illuminant
+static double Y = 1;
+static double x = 0.31271;
+static double y = 0.32902;
 
-        // D65 illuminant
-        double Y = 1;
-        double x = 0.31271;
-        double y = 0.32902;
+// D75 illuminant
+// x = 0.29902;
+// y = 0.31485;
 
-        // D75 illuminant
-        // x = 0.29902;
-        // y = 0.31485;
+// C illuminant
+//x = 0.31006;
+// y = 0.31616;
 
-        // C illuminant
-        //x = 0.31006;
-        // y = 0.31616;
+// calculate xyz tristimulus values
+static double X_ref = (x * Y) / y;
+static double Y_ref = Y;
+static double Z_ref = (Y * (1 - x - y) )/ y;
 
-        // calculate xyz tristimulus values
-        X_ref = (x * Y) / y;
-        Y_ref = Y;
-        Z_ref = (Y * (1 - x - y) )/ y;
+static double eps = 0.008856; // CIE Standard
+static double kappa = 903.3;  // CIE Standard
 
-        eps = 0.008856; // CIE Standard
-        kappa = 903.3;  // CIE Standard
-
-        double refDenom = (X_ref + (15 * Y_ref) + (3 * Z_ref));
-        u_prime_ref = (4 * X_ref) / refDenom;
-        v_prime_ref = (9 * Y_ref) / refDenom;
-
-        initialized = true;
-        std::cout << "Initialized Transform" << std::endl;
-    }
-}
+static double refDenom = (X_ref + (15 * Y_ref) + (3 * Z_ref));
+static double u_prime_ref = (4 * X_ref) / refDenom;
+static double v_prime_ref = (9 * Y_ref) / refDenom;
 
 void Convert::rgb2xyz(double *r2x, double *g2y, double *b2z)
 {
-    initTransform();
     math::Vector3 rgb(*r2x, *g2y, *b2z);
     math::Vector3 xyz = rgb2xyzTransform * rgb;
     *r2x = xyz[0]; // X
@@ -103,7 +84,6 @@ void Convert::rgb2xyz(double *r2x, double *g2y, double *b2z)
 
 void Convert::xyz2lab(double *x2l, double *y2a, double *z2b)
 {
-    initTransform();
     double X = *x2l / X_ref;
     double Y = *y2a / Y_ref;
     double Z = *z2b / Z_ref;
@@ -127,7 +107,6 @@ void Convert::xyz2lab(double *x2l, double *y2a, double *z2b)
 
 void Convert::xyz2luv(double *x2l, double *y2u, double *z2v)
 {
-    initTransform();
     double X = *x2l, Y = *y2u, Z = *z2v;
 
     double pxDenom = (X + (15 * Y) + (3 * Z));
@@ -153,7 +132,6 @@ void Convert::xyz2luv(double *x2l, double *y2u, double *z2v)
 
 void Convert::lab2lch_ab(double *l2l, double *a2c, double *b2h)
 {
-    initTransform();
     double a = *a2c;
     double b = *b2h;
 
@@ -176,7 +154,6 @@ void Convert::lab2lch_ab(double *l2l, double *a2c, double *b2h)
 
 void Convert::luv2lch_uv(double *l2l, double *u2c, double *v2h)
 {
-    initTransform();
     double u = *u2c;
     double v = *v2h;
 
@@ -201,8 +178,7 @@ void Convert::invGammaCorrection(double *ch1, double *ch2, double *ch3)
 {
     // this is a simplified gamma correction if the RGB system is sRGB
     // this takes in values between [0, 1]
-    initTransform();
-    *ch1 = pow(*ch1, gamma);
+        *ch1 = pow(*ch1, gamma);
     *ch2 = pow(*ch2, gamma);
     *ch3 = pow(*ch3, gamma);
 }
@@ -232,11 +208,26 @@ void Convert::RGB2LCHuv(vision::Image* image)
     }
 }
 
+void Convert::convertPixel(unsigned char &r,
+                           unsigned char &g,
+                           unsigned char &b)
+{
+    double ch1 = (double) r / 255;
+    double ch2 = (double) g / 255;
+    double ch3 = (double) b / 255;
+
+    invGammaCorrection(&ch1, &ch2, &ch3);
+    rgb2xyz(&ch1, &ch2, &ch3);
+    xyz2luv(&ch1, &ch2, &ch3);
+    luv2lch_uv(&ch1, &ch2, &ch3);
+
+    r = ch1;
+    g = ch2;
+    b = ch3;
+}
+
 void Convert::createLookupTable()
 {
-    initTransform();
-    double ch1 = 0, ch2 = 0, ch3 = 0;
-
     static unsigned char lookup[256][256][256][3];
     
     int counter = 0;
@@ -244,15 +235,9 @@ void Convert::createLookupTable()
     for(int c1 = 0; c1 < 256; c1++){
         for(int c2 = 0; c2 < 256; c2++){
             for(int c3 = 0; c3 < 256; c3++){
-                ch1 = (double) c1 / 255;
-                ch2 = (double) c2 / 255;
-                ch3 = (double) c3 / 255;
-                
-                invGammaCorrection(&ch1, &ch2, &ch3);
-                rgb2xyz(&ch1, &ch2, &ch3);
-                xyz2luv(&ch1, &ch2, &ch3);
-                luv2lch_uv(&ch1, &ch2, &ch3);
-                
+                unsigned char ch1 = c1, ch2 = c2, ch3 = c3;
+                convertPixel(ch1, ch2, ch3);
+                                
                 lookup[c1][c2][c3][0] = ch1;
                 lookup[c1][c2][c3][1] = ch2;
                 lookup[c1][c2][c3][2] = ch3;
@@ -267,7 +252,6 @@ void Convert::createLookupTable()
 
 void Convert::saveLookupTable(const char *data)
 {
-    initTransform();
     std::ofstream lookupFile;
     std::string baseDir(getenv("RAM_SVN_DIR"));
     lookupFile.open((baseDir + "/rgb2luvLookup.bin").c_str(),
@@ -281,7 +265,6 @@ void Convert::saveLookupTable(const char *data)
 
 bool Convert::loadLookupTable()
 {
-    initTransform();
     std::ifstream lookupFile;
     char *data = (char *) &rgb2lchLookup[0][0][0][0];
     std::string baseDir(getenv("RAM_SVN_DIR"));
