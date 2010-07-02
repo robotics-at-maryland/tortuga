@@ -11,6 +11,8 @@
 #include <assert.h>
 #include <string>
 #include <utility>
+#include <math.h>
+#include <algorithm>
 
 // Library Includes
 #include <boost/program_options.hpp>
@@ -138,25 +140,51 @@ int main(int argc, char* argv[])
     // Allocate space to store the features
     int featureNum = fannDetector->getNumberFeatures();
     float *features = new float[featureNum];
-    float *max = new float[featureNum];
-    float *min = new float[featureNum];
 
     // Check if directory or file mode
     if (directory == "NONE") {
         analyze_image(fannDetector, features, input);
     } else {
+        float *max = new float[featureNum];
+        for (int i=0; i < featureNum; i++) {
+            max[i] = 0.0;
+        }
+        float *min = new float[featureNum];
+        for (int i=0; i < featureNum; i++) {
+            min[i] = HUGE_VAL;
+        }
+        
         fs::directory_iterator end;
         for (fs::directory_iterator iter(directory);
              iter != end; iter++)
         {
             std::cout << iter->path() << std::endl;
             analyze_image(fannDetector, features, iter->path().string());
+
+            for (int i=0; i < featureNum; i++) {
+                min[i] = std::min(min[i], features[i]);
+                max[i] = std::max(max[i], features[i]);
+            }
         }
+
+        // Print the min/max features
+        std::cout << "Minimum values:" << std::endl;
+        for (int i=0; i < featureNum; i++) {
+            std::cout << min[i] << " ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "Maximum values:" << std::endl;
+        for (int i=0; i < featureNum; i++) {
+            std::cout << max[i] << " ";
+        }
+        std::cout << std::endl;
+
+        delete[] max;
+        delete[] min;
     }
 
     delete[] features;
-    delete[] max;
-    delete[] min;
 
     return 0;
 }

@@ -397,7 +397,7 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "centeredLimit",
         "Maximum distance for the bin to be considred \"centered\"",
         0.1, &m_centeredLimit, 0.0, 4.0/3.0);
-    propSet->addProperty(config, false, "logSymbolsImages",
+    propSet->addProperty(config, false, "logSymbolImages",
         "Log all the images passed to the symbols detector to disk",
         false, &m_logSymbolImages);
     
