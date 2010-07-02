@@ -17,24 +17,24 @@ namespace ram {
 namespace vision {
 
 double BasicWeaponDetector::AXE_DEFAULTS_MIN[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {3.51, 8.93, 0.26, 0.13};
 double BasicWeaponDetector::AXE_DEFAULTS_MAX[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {4.86, 1.01, 0.49, 0.20};
 
 double BasicWeaponDetector::CLIPPERS_DEFAULTS_MIN[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {2.12, 1.09, 0.00, 0.14};
 double BasicWeaponDetector::CLIPPERS_DEFAULTS_MAX[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {3.39, 3.67, 0.04, 0.22};
 
 double BasicWeaponDetector::HAMMER_DEFAULTS_MIN[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {3.66, 1.02, 0.00, 0.15};
 double BasicWeaponDetector::HAMMER_DEFAULTS_MAX[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {4.86, 7.65, 0.24, 0.21};
 
 double BasicWeaponDetector::MACHETE_DEFAULTS_MIN[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {3.71, 2.48, 0.03, 0.25};
 double BasicWeaponDetector::MACHETE_DEFAULTS_MAX[FEATURE_COUNT] =
-    {0.0, 0.0, 0.0, 0.0};
+    {7.64, 8.57, 0.45, 0.51};
 
 BasicWeaponDetector::BasicWeaponDetector(core::ConfigNode config,
                                          core::EventHubPtr eventHub) :

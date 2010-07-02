@@ -13,11 +13,13 @@
 #include <utility>
 #include <math.h>
 #include <algorithm>
+#include <vector>
 
 // Library Includes
 #include <boost/program_options.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -145,14 +147,9 @@ int main(int argc, char* argv[])
     if (directory == "NONE") {
         analyze_image(fannDetector, features, input);
     } else {
-        float *max = new float[featureNum];
-        for (int i=0; i < featureNum; i++) {
-            max[i] = 0.0;
-        }
-        float *min = new float[featureNum];
-        for (int i=0; i < featureNum; i++) {
-            min[i] = HUGE_VAL;
-        }
+        // Vector to store values
+        std::vector< std::vector<float> > farr(featureNum,
+                                               std::vector<float>(0, 0));
         
         fs::directory_iterator end;
         for (fs::directory_iterator iter(directory);
@@ -162,26 +159,53 @@ int main(int argc, char* argv[])
             analyze_image(fannDetector, features, iter->path().string());
 
             for (int i=0; i < featureNum; i++) {
-                min[i] = std::min(min[i], features[i]);
-                max[i] = std::max(max[i], features[i]);
+                farr[i].push_back(features[i]);
             }
         }
 
-        // Print the min/max features
-        std::cout << "Minimum values:" << std::endl;
-        for (int i=0; i < featureNum; i++) {
-            std::cout << min[i] << " ";
+        // Sort the arrays
+        for (int i=0; i < (int) farr.size(); i++) {
+            std::sort(farr[i].begin(), farr[i].end());
         }
-        std::cout << std::endl;
 
-        std::cout << "Maximum values:" << std::endl;
-        for (int i=0; i < featureNum; i++) {
-            std::cout << max[i] << " ";
+        for (int i=0; i < (int) farr.size(); i++) {
+            std::cout << "Feature #" << i << std::endl;
+            std::vector<float> flist = farr[i];
+            std::cout << "Min: " << flist.front()
+                      << "\nMax: " << flist.back() << std::endl;
+
+            // Calculate the mean
+            float mean = 0;
+            BOOST_FOREACH(float f, flist)
+            {
+                mean += f;
+            }
+            mean /= flist.size();
+            std::cout << "Mean: " << mean << std::endl;
+
+            // Calculate the median
+            float median = INFINITY;
+            if (flist.size() % 2 == 0) {
+                // Even
+                median = (flist[flist.size()/2-1] + flist[flist.size()/2]) / 2;
+            } else {
+                // Odd
+                median = flist[flist.size()/2];
+            }
+            std::cout << "Median: " << median << std::endl;
+
+            // Calculate the standard deviation
+            float stddev = 0;
+            for (int i=0; i < (int) flist.size(); i++) {
+                float diff = flist[i] - mean;
+                stddev += diff * diff;
+            }
+            stddev /= flist.size() - 1;
+            stddev = sqrt(stddev);
+            std::cout << "Standard Deviation: " << stddev << std::endl;
+
+            // TODO: Calculate these values for the trim
         }
-        std::cout << std::endl;
-
-        delete[] max;
-        delete[] min;
     }
 
     delete[] features;

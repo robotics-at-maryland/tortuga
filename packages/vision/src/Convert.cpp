@@ -11,6 +11,8 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <stdlib.h>
 
 // Project Includes
 #include "math/include/Math.h"
@@ -267,7 +269,9 @@ void Convert::saveLookupTable(const char *data)
 {
     initTransform();
     std::ofstream lookupFile;
-    lookupFile.open("rgb2luvLookup.bin", std::ios::out | std::ios::binary);
+    std::string baseDir(getenv("RAM_SVN_DIR"));
+    lookupFile.open((baseDir + "/rgb2luvLookup.bin").c_str(),
+                    std::ios::out | std::ios::binary);
     if(lookupFile.is_open()){   
         lookupFile.write(data, 256*256*256*3);
     } else {
@@ -279,14 +283,16 @@ bool Convert::loadLookupTable()
 {
     initTransform();
     std::ifstream lookupFile;
-    char *data = (char *)(&rgb2lchLookup[0][0][0][0]);
-    lookupFile.open("rgb2luvLookup.bin", std::ios::in | std::ios::binary);
+    char *data = (char *) &rgb2lchLookup[0][0][0][0];
+    std::string baseDir(getenv("RAM_SVN_DIR"));
+    lookupFile.open((baseDir + "/rgb2luvLookup.bin").c_str(),
+                    std::ios::in | std::ios::binary);
     
     if (lookupFile.is_open()) {
         lookupFile.seekg(0, std::ios::beg);
         lookupFile.read(data, 256*256*256*3);
         lookupInit = true;
-        return false;
+        return true;
     } else {
         return false;
     }

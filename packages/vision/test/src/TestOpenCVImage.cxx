@@ -15,6 +15,7 @@
 #include "cv.h"
 
 // Project Includes
+#include "vision/include/Convert.h"
 #include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
@@ -290,6 +291,24 @@ TEST_FIXTURE(GrayImageFixture, Gray_to_BGR)
     CHECK_EQUAL(128, afterData[1]); // Green
     CHECK_EQUAL(128, afterData[2]); // Red
     CHECK_EQUAL(vision::Image::PF_BGR_8, img.getPixelFormat());
+}
+
+TEST_FIXTURE(RGBImageFixture, RGB_to_LCH)
+{
+    if (vision::Convert::loadLookupTable()) {
+        unsigned char* beforeData = img.getData();
+        CHECK_EQUAL(255, beforeData[0]);
+        CHECK_EQUAL(vision::Image::PF_RGB_8, img.getPixelFormat());
+        
+        // Convert to LCH
+        img.setPixelFormat(vision::Image::PF_LCHUV_8);
+        
+        //unsigned char* afterData = img.getData();
+        CHECK_EQUAL(vision::Image::PF_LCHUV_8, img.getPixelFormat());
+    } else { // Skip this test if there's no lookup table
+        std::cout << "Skipped optional test: RGB_to_LCH (no lookup table)"
+                  << std::endl;
+    }
 }
 
 } // SUITE(OpenCVImage)

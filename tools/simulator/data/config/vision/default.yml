@@ -63,3 +63,8 @@ WindowDetector:
     minHeight: 50
     minPixelPercentage: 0.1
     minWidth: 50
+
+BinDetector:
+#    logSymbolImages: true
+    symbolDetector: BasicWeaponDetector
+
