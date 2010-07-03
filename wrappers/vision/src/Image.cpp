@@ -132,6 +132,10 @@ void registerImageClass()
         .value("PF_YUV444_8", ram::vision::Image::PF_YUV444_8)
         .value("PF_GRAY_8", ram::vision::Image::PF_GRAY_8)
         .value("PF_HSV_8", ram::vision::Image::PF_HSV_8)
+        .value("PF_LUV_8", ram::vision::Image::PF_LUV_8)
+        .value("PF_LCHUV_8", ram::vision::Image::PF_LCHUV_8)
+        .value("PF_LAB_8", ram::vision::Image::PF_LAB_8)
+        .value("PF_LCHAB_8", ram::vision::Image::PF_LCHAB_8)
         .value("PF_END", ram::vision::Image::PF_END)
         .export_values();
 
