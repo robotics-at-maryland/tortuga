@@ -30,15 +30,16 @@ unsigned char Convert::rgb2lchLookup[256][256][256][3] = {{{{0}}}};
 static double gamma = 2.2; // sRGB
     
 // sRGB transform matrix
-// rgb2xyzTransform = math::Matrix3(0.4124564, 0.3575761, 0.1804375,
-//                                  0.2126729, 0.7151522, 0.0721750,
-//                                  0.0193339, 0.1191920, 0.9503041);
+static math::Matrix3 rgb2xyzTransform = 
+    math::Matrix3(0.4124564, 0.3575761, 0.1804375,
+                  0.2126729, 0.7151522, 0.0721750,
+                  0.0193339, 0.1191920, 0.9503041);
 
 // NTSC RGB
-static math::Matrix3 rgb2xyzTransform =
-    math::Matrix3(0.6068909,  0.1735011,  0.2003480,
-                  0.2989164,  0.5865990,  0.1144845,
-                  -0.0000000,  0.0660957,  1.1162243);
+//static math::Matrix3 rgb2xyzTransform =
+//    math::Matrix3(0.6068909,  0.1735011,  0.2003480,
+//                  0.2989164,  0.5865990,  0.1144845,
+//                  -0.0000000,  0.0660957,  1.1162243);
 
 
 /**
@@ -186,8 +187,9 @@ void Convert::invGammaCorrection(double *ch1, double *ch2, double *ch3)
 void Convert::RGB2LCHuv(vision::Image* image)
 {
     assert(image->getPixelFormat() == Image::PF_RGB_8 && "Incorrect Pixel Format");
-    // TODO: Make me a real assert!
-    assert("Lookup table not loaded");
+
+    if(!lookupInit)
+        loadLookupTable();
     
     unsigned char *data = (unsigned char *) image->getData();
 

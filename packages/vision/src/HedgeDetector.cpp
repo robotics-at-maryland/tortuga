@@ -56,7 +56,7 @@ void HedgeDetector::init(core::ConfigNode config)
 
 
     propSet->addProperty(config, false, "debug",
-                         "Debug level", 2, &m_debug, 0, 2);
+                         "Debug level", 2, &m_debug, 0, 3);
 
     propSet->addProperty(config, false, "maxAspectRatio",
                          "Maximum aspect ratio (width/height)",
@@ -78,15 +78,19 @@ void HedgeDetector::init(core::ConfigNode config)
                          "Minimum percentage of pixels / area",
                          0.1, &m_minPixelPercentage, 0.0, 1.0);
 
+    propSet->addProperty(config, false, "maxPixelPercentage",
+                         "Maximum percentage of pixels / area",
+                         1.0, &m_minPixelPercentage, 0.0, 1.0);
+
     propSet->addProperty(config, false, "maxDistance",
                          "Maximum distance between two blobs from different frames",
                          15.0, &m_maxDistance);
 
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
+                                    "L", "Luminance",
+                                    "C", "Chrominance",
                                     "H", "Hue",
-                                    "S", "Saturation",
-                                    "V", "Value",
                                     0, 255, 0, 255, 0, 255);
 
     // Make sure the configuration is valid
@@ -124,7 +128,49 @@ bool HedgeDetector::processColor(Image* input, Image* output,
                                   BlobDetector::Blob& outBlob)
 {
     output->copyFrom(input);
-    output->setPixelFormat(Image::PF_HSV_8);
+    output->setPixelFormat(Image::PF_RGB_8);
+    output->setPixelFormat(Image::PF_LCHUV_8);
+
+
+    if(m_debug == 3) {
+        OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
+        OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
+        OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
+        unsigned char* lchData = (unsigned char *) output->getData();
+        unsigned char* debug1Data = (unsigned char *) debug1.getData();
+        unsigned char* debug2Data = (unsigned char *) debug2.getData();
+        unsigned char* debug3Data = (unsigned char *) debug3.getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug1Data = lchData[0];
+            debug1Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug1);
+
+        lchData = (unsigned char *) output->getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug2Data = lchData[1];
+            debug2Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug2);
+
+        lchData = (unsigned char *) output->getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug3Data = lchData[2];
+            debug3Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug3);
+    }
+
+
     filter.filterImage(output);
 
     OpenCVImage debug(output->getWidth(), output->getHeight(),
@@ -138,11 +184,12 @@ bool HedgeDetector::processColor(Image* input, Image* output,
         // Sanity check blob
         double percent = (double) blob.getSize() /
             (blob.getHeight() * blob.getWidth());
-        if (blob.getAspectRatio() <= m_maxAspectRatio &&
-            blob.getAspectRatio() >= m_minAspectRatio &&
+        if (blob.getTrueAspectRatio() <= m_maxAspectRatio &&
+            blob.getTrueAspectRatio() >= m_minAspectRatio &&
             m_minWidth < blob.getWidth() &&
             m_minHeight < blob.getHeight() &&
-            percent > m_minPixelPercentage)
+            percent > m_minPixelPercentage &&
+            percent < m_maxPixelPercentage)
         {
             outBlob = blob;
             return true;

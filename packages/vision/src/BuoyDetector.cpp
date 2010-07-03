@@ -70,7 +70,7 @@ void BuoyDetector::init(core::ConfigNode config)
     core::PropertySetPtr propSet(getPropertySet());
 
     propSet->addProperty(config, false, "debug",
-                         "Debug level", 2, &m_debug, 0, 2);
+                         "Debug level", 2, &m_debug, 0, 3);
 
     propSet->addProperty(config, false, "maxAspectRatio",
                          "Maximum aspect ratio (width/height)",
@@ -105,21 +105,21 @@ void BuoyDetector::init(core::ConfigNode config)
 
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
-                                    "RedL", "Red L",
-                                    "RedU", "Red U",
-                                    "RedV", "Red Value",
+                                    "RedL", "Red Luminance",
+                                    "RedC", "Red Chrominance",
+                                    "RedH", "Red Hue",
                                     0, 255, 0, 255, 0, 255);
     m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_greenFilter->addPropertiesToSet(propSet, &config,
-                                      "GreenL", "Green L",
-                                      "GreenU", "Green U",
-                                      "GreenV", "Green Value",
+                                      "GreenL", "Green Luminance",
+                                      "GreenC", "Green Chrominance",
+                                      "GreenH", "Green Hue",
                                       0, 255, 0, 255, 0, 255);
     m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_yellowFilter->addPropertiesToSet(propSet, &config,
-                                       "YellowL", "Yellow L",
-                                       "YellowU", "Yellow U",
-                                       "YellowV", "Yellow Value",
+                                       "YellowL", "Yellow Luminance",
+                                       "YellowC", "Yellow Chrominance",
+                                       "YellowH", "Yellow Hue",
                                        0, 255, 0, 255, 0, 255);
 
 
@@ -156,13 +156,50 @@ bool BuoyDetector::processColor(Image* input, Image* output,
                                 BlobDetector::Blob& outBlob)
 {
     output->copyFrom(input);
-    output->setPixelFormat(Image::PF_LUV_8);
+    output->setPixelFormat(Image::PF_RGB_8);
+    output->setPixelFormat(Image::PF_LCHUV_8);
+
+    if(m_debug == 3) {
+        OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
+        OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
+        OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
+        unsigned char* lchData = (unsigned char *) output->getData();
+        unsigned char* debug1Data = (unsigned char *) debug1.getData();
+        unsigned char* debug2Data = (unsigned char *) debug2.getData();
+        unsigned char* debug3Data = (unsigned char *) debug3.getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug1Data = lchData[0];
+            debug1Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug1);
+
+        lchData = (unsigned char *) output->getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug2Data = lchData[1];
+            debug2Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug2);
+
+        lchData = (unsigned char *) output->getData();
+
+        for(int i=0; i<640*480; i++)
+        {
+            *debug3Data = lchData[2];
+            debug3Data += 1;
+            lchData += 3;
+        }
+        Image::showImage(&debug3);
+    }
+
     filter.filterImage(output);
 
-    OpenCVImage debug(output->getWidth(), output->getHeight(),
-                      Image::PF_BGR_8);
-    m_blobDetector.processImage(output, &debug);
-    //Image::showImage(&debug);
+    m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
@@ -170,10 +207,12 @@ bool BuoyDetector::processColor(Image* input, Image* output,
         // Sanity check blob
         double percent = (double) blob.getSize() /
             (blob.getWidth() * blob.getHeight());
-        if (blob.getAspectRatio() < m_maxAspectRatio &&
+        if (blob.getTrueAspectRatio() < m_maxAspectRatio &&
+            blob.getHeight() > m_minHeight &&
+            blob.getWidth() > m_minWidth &&
             blob.getSize() > m_minPixels &&
             percent > m_minPixelPercentage &&
-            blob.getAspectRatio() > m_minAspectRatio)
+            blob.getTrueAspectRatio() > m_minAspectRatio)
         {
             outBlob = blob;
             return true;

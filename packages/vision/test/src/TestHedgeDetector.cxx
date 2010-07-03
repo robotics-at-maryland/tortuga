@@ -57,7 +57,7 @@ static const std::string CONFIG =
     " 'name' : 'HedgeDetector',"
     " 'filtHMin' : 60,"
     " 'filtHMax' : 60,"
-    " 'filtVMin' : 10"
+    " 'filtLMin' : 10"
     "}";
 
 struct HedgeDetectorFixture
