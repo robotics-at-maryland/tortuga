@@ -74,7 +74,7 @@ class RAM_EXPORT BuoyDetector : public Detector
     BlobDetector m_blobDetector;
     
     /** Threshold for almost hitting the red light */
-    double m_almostHitRadius;
+    double m_almostHitPercentage;
 
     /** Working Images */
     Image *frame;

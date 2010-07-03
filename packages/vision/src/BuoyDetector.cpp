@@ -70,7 +70,7 @@ void BuoyDetector::init(core::ConfigNode config)
     core::PropertySetPtr propSet(getPropertySet());
 
     propSet->addProperty(config, false, "debug",
-                         "Debug level", 2, &m_debug, 0, 3);
+                         "Debug level", 2, &m_debug, 0, 2);
 
     propSet->addProperty(config, false, "maxAspectRatio",
                          "Maximum aspect ratio (width/height)",
@@ -101,7 +101,7 @@ void BuoyDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "almostHitRadius",
                          "Radius when the buoy is considered almost hit",
-                         200.0, &m_almostHitRadius);
+                         80.0, &m_almostHitPercentage,0.0, 100.0);
 
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
@@ -159,43 +159,43 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     output->setPixelFormat(Image::PF_RGB_8);
     output->setPixelFormat(Image::PF_LCHUV_8);
 
-    if(m_debug == 3) {
-        OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
-        OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
-        OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
-        unsigned char* lchData = (unsigned char *) output->getData();
-        unsigned char* debug1Data = (unsigned char *) debug1.getData();
-        unsigned char* debug2Data = (unsigned char *) debug2.getData();
-        unsigned char* debug3Data = (unsigned char *) debug3.getData();
+    // if(m_debug == 3) {
+    //     OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
+    //     OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
+    //     OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
+    //     unsigned char* lchData = (unsigned char *) output->getData();
+    //     unsigned char* debug1Data = (unsigned char *) debug1.getData();
+    //     unsigned char* debug2Data = (unsigned char *) debug2.getData();
+    //     unsigned char* debug3Data = (unsigned char *) debug3.getData();
 
-        for(int i=0; i<640*480; i++)
-        {
-            *debug1Data = lchData[0];
-            debug1Data += 1;
-            lchData += 3;
-        }
-        Image::showImage(&debug1);
+    //     for(int i=0; i<640*480; i++)
+    //     {
+    //         *debug1Data = lchData[0];
+    //         debug1Data += 1;
+    //         lchData += 3;
+    //     }
+    //     Image::showImage(&debug1);
 
-        lchData = (unsigned char *) output->getData();
+    //     lchData = (unsigned char *) output->getData();
 
-        for(int i=0; i<640*480; i++)
-        {
-            *debug2Data = lchData[1];
-            debug2Data += 1;
-            lchData += 3;
-        }
-        Image::showImage(&debug2);
+    //     for(int i=0; i<640*480; i++)
+    //     {
+    //         *debug2Data = lchData[1];
+    //         debug2Data += 1;
+    //         lchData += 3;
+    //     }
+    //     Image::showImage(&debug2);
 
-        lchData = (unsigned char *) output->getData();
+    //     lchData = (unsigned char *) output->getData();
 
-        for(int i=0; i<640*480; i++)
-        {
-            *debug3Data = lchData[2];
-            debug3Data += 1;
-            lchData += 3;
-        }
-        Image::showImage(&debug3);
-    }
+    //     for(int i=0; i<640*480; i++)
+    //     {
+    //         *debug3Data = lchData[2];
+    //         debug3Data += 1;
+    //         lchData += 3;
+    //     }
+    //     Image::showImage(&debug3);
+    // }
 
     filter.filterImage(output);
 
@@ -230,8 +230,14 @@ void BuoyDetector::processImage(Image* input, Image* output)
     bool redFound = false, greenFound = false,
         yellowFound = false;
 
+    int imPixels = frame->getHeight() * frame->getWidth();
+
     if ((redFound = processColor(frame, redFrame, *m_redFilter, redBlob))) {
         publishFoundEvent(redBlob, Color::RED);
+        int blobPixels = redBlob.getSize();
+        if(blobPixels > imPixels * m_almostHitPercentage)
+            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
+
     } else {
         // Publish lost event if this was found previously
         if (m_redFound) {
@@ -243,6 +249,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
     if ((greenFound = processColor(frame, greenFrame,
                                    *m_greenFilter, greenBlob))) {
         publishFoundEvent(greenBlob, Color::GREEN);
+        int blobPixels = greenBlob.getSize();
+        if(blobPixels > imPixels * m_almostHitPercentage)
+            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
+
     } else {
         // Publish lost event if this was found previously
         if (m_greenFound) {
@@ -254,6 +264,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
     if ((yellowFound = processColor(frame, yellowFrame,
                                     *m_yellowFilter, yellowBlob))) {
         publishFoundEvent(yellowBlob,  Color::YELLOW);
+        int blobPixels = yellowBlob.getSize();
+        if(blobPixels > imPixels * m_almostHitPercentage)
+            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
+
     } else {
         // Publish lost event if this was found previously
         if (m_yellowFound) {
