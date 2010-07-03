@@ -78,6 +78,7 @@ class RAM_EXPORT HedgeDetector : public Detector
     int m_minHeight;
 
     double m_minPixelPercentage;
+    double m_maxPixelPercentage;
     double m_maxDistance;
 
     int m_debug;

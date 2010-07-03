@@ -80,7 +80,7 @@ void HedgeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "maxPixelPercentage",
                          "Maximum percentage of pixels / area",
-                         1.0, &m_minPixelPercentage, 0.0, 1.0);
+                         1.0, &m_maxPixelPercentage, 0.0, 1.0);
 
     propSet->addProperty(config, false, "maxDistance",
                          "Maximum distance between two blobs from different frames",
