@@ -48,7 +48,7 @@ void drawTarget(vision::Image* image, int x, int y, int height = 100,
                 int width = -1);
     
 void drawCircle(vision::Image* image, int x, int y, int radius,
-		CvScalar color);
+                CvScalar color);
 
 void drawLine(vision::Image* image, int x1, int y1, int x2, int y2,
               int lineWidth, CvScalar color);

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <iostream>
 #include <string>
+#include <vector>
 #include <string.h>
 #include <time.h>
 
@@ -34,6 +35,21 @@ bool verify(const unsigned char &expected,
     }
 }
 
+std::vector<std::string> split(std::string input, std::string delim)
+{
+    std::vector<std::string> strings;
+    size_t pos = 0;
+    size_t back = 0;
+    while (std::string::npos != (back = input.find(delim, pos)))
+    {
+        strings.push_back(input.substr(pos, back-pos));
+        pos = back + delim.size();
+    }
+    strings.push_back(input.substr(pos, std::string::npos));
+
+    return strings;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2 || (strcmp("-h", argv[1]) == 0 ||
@@ -43,7 +59,8 @@ int main(int argc, char* argv[])
             "\t--help,-h    \t\tDisplays this message\n"
             "\t-g,--generate\t\tGenerates the lookup table\n"
             "\t-t,--test    \t\tTests the lookup table loading\n"
-            "\t-v,--verify  \t\tVerifies the lookup table" << std::endl;
+            "\t-v,--verify  \t\tVerifies the lookup table\n"
+            "\t-c,--convert \t\tConvert a single pixel (r,g,b)" << std::endl;
         return 1;
     }
 
@@ -85,6 +102,26 @@ int main(int argc, char* argv[])
             }
         }
         std::cout << std::endl;
+    } else if (strcmp("-c", argv[1]) == 0 ||
+               strcmp("--convert", argv[1]) == 0) {
+        if (argc < 3) {
+            std::cout << "Must specify an argument [r,g,b]" << std::endl;
+            return 1;
+        }
+        std::vector<std::string> values = split(argv[2], ",");
+
+        if (values.size() != 3) {
+            std::cout << "Incorrect number of values!"
+                " Must enter 3 numbers, seperated by commas" << std::endl;
+            return 1;
+        }
+
+        unsigned char r = (unsigned char) atoi(values[0].c_str());
+        unsigned char g = (unsigned char) atoi(values[1].c_str());
+        unsigned char b = (unsigned char) atoi(values[2].c_str());
+        
+        Convert::convertPixel(r, g, b);
+        std::cout << (int) r << "," << (int) g << "," << (int) b << std::endl;
     } else {
         std::cout << "Invalid option: " << argv[1] << std::endl;
         goto help;

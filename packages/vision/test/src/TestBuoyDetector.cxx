@@ -16,6 +16,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
 #include "vision/include/Color.h"
+#include "vision/include/Convert.h"
 #include "vision/test/include/Utility.h"
 
 #include "core/include/EventHub.h"
@@ -29,25 +30,24 @@ static const std::string CONFIG =
     "'minHeight' : 50,"
     "'minPixelPercentage' : .1,"
     "'maxDistance' : 15,"
-    "'almostHitRadius' : 200,"
-    "'filtRedLMin' : 1,"
-    "'filtRedLMax' : 255,"
-    "'filtRedCMin' : 1,"
-    "'filtRedCMax' : 255,"
-    "'filtRedHMin' : 1,"
-    "'filtRedHMax' : 255,"
-    "'filtGreenLMin' : 1,"
-    "'filtGreenLMax' : 255,"
-    "'filtGreenCMin' : 1,"
-    "'filtGreenCMax' : 255,"
-    "'filtGreenHMin' : 1,"
-    "'filtGreenHMax' : 255,"
-    "'filtYellowLMin' : 1,"
-    "'filtYellowLMax' : 255,"
-    "'filtYellowCMin' : 1,"
-    "'filtYellowCMax' : 255,"
-    "'filtYellowHMin' : 1,"
-    "'filtYellowHMax' : 255,"
+    "'filtRedLMin' : 53,"
+    "'filtRedLMax' : 53,"
+    "'filtRedCMin' : 179,"
+    "'filtRedCMax' : 179,"
+    "'filtRedHMin' : 8,"
+    "'filtRedHMax' : 8,"
+    "'filtGreenLMin' : 87,"
+    "'filtGreenLMax' : 87,"
+    "'filtGreenCMin' : 135,"
+    "'filtGreenCMax' : 135,"
+    "'filtGreenHMin' : 90,"
+    "'filtGreenHMax' : 90,"
+    "'filtYellowLMin' : 97,"
+    "'filtYellowLMax' : 97,"
+    "'filtYellowCMin' : 107,"
+    "'filtYellowCMax' : 107,"
+    "'filtYellowHMin' : 60,"
+    "'filtYellowHMax' : 60,"
     "}";
 
     using namespace ram;
@@ -71,6 +71,8 @@ struct BuoyDetectorFixture
             boost::bind(&BuoyDetectorFixture::lostHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BUOY_ALMOST_HIT,
             boost::bind(&BuoyDetectorFixture::almostHitHandler, this, _1));
+
+        vision::Convert::loadLookupTable();
     }
 
     void processImage(vision::Image* image, bool show = false)
@@ -111,6 +113,7 @@ struct BuoyDetectorFixture
     void lostHandler(core::EventPtr event_)
     {
         found = false;
+        event = boost::dynamic_pointer_cast<vision::BuoyEvent>(event_);
     }
 
     bool found;
@@ -133,7 +136,6 @@ TEST_FIXTURE(BuoyDetectorFixture, CenterRedBuoy)
 {
     vision::makeColor(&input, 0, 0, 0);
     
-    vision::OpenCVImage output(640, 480, vision::Image::PF_BGR_8);
     vision::drawCircle(&input, 320, 240, 50, cvScalar(0, 0, 255));
     processImage(&input);
     
@@ -143,6 +145,39 @@ TEST_FIXTURE(BuoyDetectorFixture, CenterRedBuoy)
     // Radius of 25
     CHECK_CLOSE(2.963753, event->range, 0.3);
     CHECK_EQUAL(vision::Color::RED, event->color);
+}
+
+TEST_FIXTURE(BuoyDetectorFixture, BuoyLost)
+{
+    vision::makeColor(&input, 0, 0, 0);
+
+    // Send a buoy that would be found
+    vision::drawCircle(&input, 320, 240, 50, cvScalar(0, 0, 255));
+    processImage(&input);
+
+    CHECK(found);
+
+    // Draw a blank image and process that
+    vision::makeColor(&input, 0, 0, 0);
+    processImage(&input);
+
+    CHECK(!found);
+    CHECK_EQUAL(vision::Color::RED, event->color);
+}
+
+TEST_FIXTURE(BuoyDetectorFixture, AlmostHit)
+{
+    vision::makeColor(&input, 0, 0, 0);
+
+    vision::drawCircle(&input, 320, 240, 200, cvScalar(0, 0, 255));
+    processImage(&input, true);
+
+    CHECK(found);
+    CHECK_CLOSE(0.0, event->x, 0.02);
+    CHECK_CLOSE(0.0, event->y, 0.02);
+    CHECK_EQUAL(vision::Color::RED, event->color);
+
+    CHECK(almostHit);
 }
 
 } // SUITE(BuoyDetector)

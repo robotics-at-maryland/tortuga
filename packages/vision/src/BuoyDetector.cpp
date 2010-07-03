@@ -99,9 +99,9 @@ void BuoyDetector::init(core::ConfigNode config)
                          "Maximum distance between two blobs from different frames",
                          15.0, &m_maxDistance);
 
-    propSet->addProperty(config, false, "almostHitRadius",
+    propSet->addProperty(config, false, "almostHitPercentage",
                          "Radius when the buoy is considered almost hit",
-                         80.0, &m_almostHitPercentage,0.0, 100.0);
+                         0.2, &m_almostHitPercentage, 0.0, 1.0);
 
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
