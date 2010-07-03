@@ -118,15 +118,19 @@ OpenCVImage::OpenCVImage(std::string fileName, Image::PixelFormat fmt) :
 }
 
 void OpenCVImage::getFormatParameters(const Image::PixelFormat& fmt,
-                                    int& depth, int &channels)
+                                      int& depth, int &channels)
 {
-    static const std::pair<int, int> lookupTable[7] = {
+    static const std::pair<int, int> lookupTable[11] = {
         std::make_pair(8, 3), // PF_START
         std::make_pair(8, 3), // PF_RGB_8
         std::make_pair(8, 3), // PF_BGR_8
         std::make_pair(8, 3), // PF_YUV444_8
         std::make_pair(8, 1), // PF_GRAY_8
         std::make_pair(8, 3), // PF_HSV_8
+        std::make_pair(8, 3), // PF_LUV_8
+        std::make_pair(8, 3), // PF_LCHUV_8
+        std::make_pair(8, 3), // PF_LAB_8
+        std::make_pair(8, 3), // PF_LCHAB_8
         std::make_pair(8, 3)  // PF_END
     };
 
