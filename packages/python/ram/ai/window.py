@@ -544,6 +544,12 @@ class FireTorpedos(RangeXYHold):
         return set(['fireDelay', 'minSquareNess', 'startFireDelay']).union(
             RangeXYHold.getattr())
 
+    def WINDOW_LOST(self, event):
+        ret = WindowTrackingState.WINDOW_LOST(self, event)
+        # Ignore lost events if the torpedo has fired already
+        if ret is False or self._fired:
+            return False
+
     def IN_RANGE(self, event):
         """
         Fires the torpedos only when armed, disarms the torpedos afterward so
@@ -554,6 +560,9 @@ class FireTorpedos(RangeXYHold):
             squareNess = self._filterdAlign + 1
             if squareNess > self._minSquareNess:
                 self.vehicle.fireTorpedo()
+                # Mark down that the torpedo has been fired,
+                # to avoid race conditions with WINDOW_LOST
+                self._fired = True
             else:
                 self.publish(FireTorpedos.MISALIGNED, core.Event())
                 return
@@ -580,6 +589,7 @@ class FireTorpedos(RangeXYHold):
 
         self._timer = None
         self._delay = self._config.get('fireDelay', 2)
+        self._fired = False
         self._armed = False
         self._minSquareNess = self._config.get('minSquareNess', 0.85)
 
@@ -601,8 +611,8 @@ class FireTorpedos(RangeXYHold):
     
     def _check(self):
         """
-        Initiates a timer which arms the firing of a torpedo after the desired
-        delay
+        Checks whether to loopback and look for the next window, or
+        to move on and finish the window AI.
         """
         if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
             # Restart with the next window
