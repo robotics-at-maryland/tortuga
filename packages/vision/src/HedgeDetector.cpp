@@ -82,6 +82,14 @@ void HedgeDetector::init(core::ConfigNode config)
                          "Maximum percentage of pixels / area",
                          1.0, &m_maxPixelPercentage, 0.0, 1.0);
 
+    propSet->addProperty(config, false, "erodeIterations",
+                         "Number of times to erode the binary image",
+                         0, &m_erodeIterations);
+
+    propSet->addProperty(config, false, "dilateIterations",
+                         "Number of times to dilate the binary image",
+                         0, &m_dilateIterations);
+
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
                                     "L", "Luminance",
@@ -168,6 +176,17 @@ bool HedgeDetector::processColor(Image* input, Image* output,
 
 
     filter.filterImage(output);
+
+    // Erode and dilate the image (only if necessary)
+    if (m_erodeIterations > 0) {
+        IplImage* img = output->asIplImage();
+        cvErode(img, img, NULL, m_erodeIterations);
+    }
+
+    if (m_dilateIterations > 0) {
+        IplImage* img = output->asIplImage();
+        cvDilate(img, img, NULL, m_dilateIterations);
+    }
 
     OpenCVImage debug(output->getWidth(), output->getHeight(),
                               Image::PF_BGR_8);
