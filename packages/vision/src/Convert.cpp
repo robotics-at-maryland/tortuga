@@ -126,7 +126,7 @@ void Convert::xyz2luv(double *x2l, double *y2u, double *z2v)
     u = 13 * L * (u_prime - u_prime_ref);
     v = 13 * L * (v_prime - v_prime_ref);
 
-    *x2l = L;
+    *x2l = L*2.55;
     *y2u = u;
     *z2v = v;
 }
