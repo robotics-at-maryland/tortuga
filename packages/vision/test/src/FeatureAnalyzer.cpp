@@ -41,6 +41,8 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 using namespace ram;
 
+bool quiet = false;
+
 vision::FANNSymbolDetectorPtr createDetector(std::string type,
                                              core::ConfigNode config);
 
@@ -73,9 +75,11 @@ void analyze_image(vision::FANNSymbolDetectorPtr fannDetector,
     // Write out all of the feature numbers
     for (int i = 0; i < fannDetector->getNumberFeatures(); i++)
     {
-        std::cout << features[i] << " ";
+        if (!quiet)
+            std::cout << features[i] << " ";
     }
-    std::cout << std::endl;
+    if (!quiet)
+        std::cout << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -88,6 +92,7 @@ int main(int argc, char* argv[])
     std::string detector;
     std::string configPath;
     std::string directory;
+    double trim;
 
     try
     {
@@ -106,6 +111,9 @@ int main(int argc, char* argv[])
              default_value("NONE"), "Path to config with detector settings")
             ("dir,d", po::value<std::string>(&directory)->
              default_value("NONE"), "Path to directory with images")
+            ("q,quiet", po::bool_switch(&quiet), "Print only the end results")
+            ("trim", po::value<double>(&trim)->
+             default_value(5), "Percent to use for trim")
             ;
 
         po::store(po::command_line_parser(argc, argv).
@@ -125,6 +133,8 @@ int main(int argc, char* argv[])
 
         return EXIT_FAILURE;
     }
+
+    trim /= 100.0;
 
     vision::FANNSymbolDetectorPtr fannDetector =
         vision::FANNSymbolDetectorPtr();
@@ -155,7 +165,8 @@ int main(int argc, char* argv[])
         for (fs::directory_iterator iter(directory);
              iter != end; iter++)
         {
-            std::cout << iter->path() << std::endl;
+            if (!quiet)
+                std::cout << iter->path() << std::endl;
             analyze_image(fannDetector, features, iter->path().string());
 
             for (int i=0; i < featureNum; i++) {
@@ -196,7 +207,8 @@ int main(int argc, char* argv[])
 
             // Calculate the standard deviation
             float stddev = 0;
-            for (int i=0; i < (int) flist.size(); i++) {
+            BOOST_FOREACH(float f, flist)
+            {
                 float diff = flist[i] - mean;
                 stddev += diff * diff;
             }
@@ -205,6 +217,28 @@ int main(int argc, char* argv[])
             std::cout << "Standard Deviation: " << stddev << std::endl;
 
             // TODO: Calculate these values for the trim
+            int trim_start = (int) flist.size() * trim;
+            int trim_end = (int) flist.size() - ((int) flist.size() * trim) - 1;
+
+            std::cout << "Trim Min: " << flist[trim_start] << std::endl
+                      << "Trim Max: " << flist[trim_end] << std::endl;
+
+            double trim_mean = 0;
+            for (int i=trim_start; i < trim_end; i++) {
+                trim_mean += flist[i];
+            }
+            trim_mean /= trim_end - trim_start;
+            std::cout << "Trim Mean: " << trim_mean << std::endl;
+
+            float trim_stddev = 0;
+            for (int i=trim_start; i < trim_end; i++) {
+                float diff = flist[i] - trim_mean;
+                trim_stddev += diff * diff;
+            }
+            trim_stddev /= trim_end - trim_start - 1;
+            trim_stddev = sqrt(trim_stddev);
+            std::cout << "Trim Standard Deviation: " << trim_stddev
+                      << std::endl;
         }
     }
 
