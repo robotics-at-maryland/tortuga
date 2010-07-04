@@ -85,6 +85,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_bottomThrusterName(
         config["BottomThrusterName"].asString("BottomThruster")),
     m_bottomThruster(device::IThrusterPtr()),
+    m_topThrusterThrottle(config["TopThrusterThrottle"].asDouble(1.0)),
     m_stateEstimatorName(config["StateEstimatorName"].asString("StateEstimator")),
     m_stateEstimator(device::IStateEstimatorPtr()),
     m_imuName(config["IMUName"].asString("IMU")),
@@ -338,6 +339,14 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     if (!lookupThrusterDevices())
         return;
 
+/* m_topThrusterThrottle was added to tweak the forces in order to compensate
+   for rolling during sideways translation.  Make sure it is not greater than 1.0
+Make sure it is positive */
+    if(m_topThrusterThrottle > 1)
+        m_topThrusterThrottle = 1.0;
+    if(m_topThrusterThrottle < 0)
+        m_topThrusterThrottle = 0;
+
     // Calculate indivdual thruster foces
     double star = translationalForces[0] / 2 +
         0.5 * rotationalTorques[2] / m_starboardThruster->getOffset();
@@ -347,7 +356,7 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
         0.5 * rotationalTorques[1] / m_foreThruster->getOffset();
     double aft = translationalForces[2]/2 +
         0.5 * rotationalTorques[1] / m_aftThruster->getOffset();
-    double top = translationalForces[1] / 2 +
+    double top = m_topThrusterThrottle * translationalForces[1] / 2 +
         0.5 * rotationalTorques[0] / m_topThruster->getOffset();
     double bottom = translationalForces[1]/2 -
         0.5 * rotationalTorques[0] / m_bottomThruster->getOffset();

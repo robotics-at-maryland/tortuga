@@ -149,6 +149,8 @@ private:
     std::string m_bottomThrusterName;
     vehicle::device::IThrusterPtr m_bottomThruster;
 
+    double m_topThrusterThrottle;
+
     std::string m_stateEstimatorName;
     vehicle::device::IStateEstimatorPtr m_stateEstimator;
     
