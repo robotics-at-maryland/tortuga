@@ -82,10 +82,6 @@ void HedgeDetector::init(core::ConfigNode config)
                          "Maximum percentage of pixels / area",
                          1.0, &m_maxPixelPercentage, 0.0, 1.0);
 
-    propSet->addProperty(config, false, "maxDistance",
-                         "Maximum distance between two blobs from different frames",
-                         15.0, &m_maxDistance);
-
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
                                     "L", "Luminance",
@@ -184,8 +180,8 @@ bool HedgeDetector::processColor(Image* input, Image* output,
         // Sanity check blob
         double percent = (double) blob.getSize() /
             (blob.getHeight() * blob.getWidth());
-        if (blob.getTrueAspectRatio() <= m_maxAspectRatio &&
-            blob.getTrueAspectRatio() >= m_minAspectRatio &&
+        if (1.0/blob.getTrueAspectRatio() <= m_maxAspectRatio &&
+            1.0/blob.getTrueAspectRatio() >= m_minAspectRatio &&
             m_minWidth < blob.getWidth() &&
             m_minHeight < blob.getHeight() &&
             percent > m_minPixelPercentage &&

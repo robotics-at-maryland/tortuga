@@ -160,7 +160,7 @@ void WindowDetector::init(core::ConfigNode config)
     
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-
+    binary = new OpenCVImage(640, 480, Image::PF_BGR_8);
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -221,7 +221,7 @@ bool WindowDetector::processColor(Image* input, Image* output,
     //     Image::showImage(&debug3);
     // }
 
-    filter.filterImage(output);
+    filter.filterImage(output, binary);
 
     // Erode the image (only if necessary)
     IplImage* img = output->asIplImage();
@@ -234,9 +234,8 @@ bool WindowDetector::processColor(Image* input, Image* output,
         cvDilate(img, img, NULL, m_dilateIterations);
     }
 
-    m_blobDetector.processImage(output);
+    m_blobDetector.processImage(binary);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
-
 
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
@@ -250,7 +249,7 @@ bool WindowDetector::processColor(Image* input, Image* output,
             m_minWidth <= blob.getWidth() &&
             m_minPixelPercentage <= pixelPercentage &&
             m_maxPixelPercentage >= pixelPercentage &&
-            processBackground(input, *m_bgFilter, blob, innerBlob))
+            processBackground(output, *m_bgFilter, blob, innerBlob))
         {
             outerBlob = blob;
             return true;
@@ -264,18 +263,13 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
                                        BlobDetector::Blob& outerBlob,
                                        BlobDetector::Blob& innerBlob)
 {
-    OpenCVImage frame(640, 480, Image::PF_BGR_8);
-    frame.copyFrom(input);
-    frame.setPixelFormat(Image::PF_HSV_8);
-
     unsigned char *buffer = new unsigned char[outerBlob.getWidth()*outerBlob.getHeight()*3];
     Image *innerFrame = Image::extractSubImage(
-        &frame, buffer,
+        input, buffer,
         outerBlob.getMinX(), outerBlob.getMinY(),
         outerBlob.getMaxX(), outerBlob.getMaxY());
 
     filter.filterImage(innerFrame);
-    
     m_blobDetector.processImage(innerFrame);
 
     BlobDetector::BlobList bgBlobs = m_blobDetector.getBlobs();

@@ -77,6 +77,7 @@ class RAM_EXPORT WindowDetector : public Detector
     BlobDetector m_blobDetector;
 
     Image *frame;
+    Image *binary;
     Image *redFrame;
     Image *greenFrame;
     Image *yellowFrame;

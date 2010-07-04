@@ -55,9 +55,12 @@ void drawHedge(vision::Image* input, int x, int y, double w,
 static const std::string CONFIG =
     "{"
     " 'name' : 'HedgeDetector',"
-    " 'filtHMin' : 60,"
-    " 'filtHMax' : 60,"
-    " 'filtLMin' : 10"
+    " 'filtLMin' : 223,"
+    " 'filtLMax' : 223,"
+    " 'filtCMin' : 135,"
+    " 'filtCMax' : 135,"
+    " 'filtHMin' : 90,"
+    " 'filtHMax' : 90"
     "}";
 
 struct HedgeDetectorFixture

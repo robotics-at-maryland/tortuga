@@ -208,7 +208,6 @@ HedgeDetector:
     filtLMax: 255
     filtLMin: 37
     maxAspectRatio: 4
-    maxDistance: 15
     minAspectRatio: 0.3
     minHeight: 10
     minPixelPercentage: 0.04

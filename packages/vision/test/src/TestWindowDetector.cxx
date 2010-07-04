@@ -28,31 +28,37 @@
 using namespace ram;
 
 static const std::string CONFIG =
-    "{\n"
-    "    'filtRedLMin' : 1,\n"
-    "    'filtRedLMax' : 255,\n"
-    "    'filtRedCMin' : 1,\n"
-    "    'filtRedCMin' : 255,\n"
-    "    'filtRedHMin' : 1,\n"
-    "    'filtRedHMin' : 255,\n"
-    "    'filtGreenLMin' : 1,\n"
-    "    'filtGreenLMax' : 255,\n"
-    "    'filtGreenCMin' : 1,\n"
-    "    'filtGreenCMin' : 255,\n"
-    "    'filtGreenHMax' : 1,\n"
-    "    'filtGreenHMin' : 255,\n"
-    "    'filtYellowLMin' : 1,\n"
-    "    'filtYellowLMax' : 255,\n"
-    "    'filtYellowCMin' : 1,\n"
-    "    'filtYellowCMin' : 255,\n"
-    "    'filtYellowHMax' : 1,\n"
-    "    'filtYellowHMin' : 255,\n"
-    "    'filtBlueLMin' : 1,\n"
-    "    'filtBlueLMax' : 255,\n"
-    "    'filtBlueCMin' : 1\n"
-    "    'filtBlueCMin' : 255,\n"
-    "    'filtBlueHMax' : 1,\n"
-    "    'filtBlueHMin' : 255\n"
+    "{"
+    "    'filtBgLMin' : 0,"
+    "    'filtBgLMax' : 0,"
+    "    'filtBgCMin' : 0,"
+    "    'filtBgCMax' : 0,"
+    "    'filtBgHMin' : 0,"
+    "    'filtBgHMax' : 0,"
+    "    'filtRedLMin' : 135,"
+    "    'filtRedLMax' : 135,"
+    "    'filtRedCMin' : 179,"
+    "    'filtRedCMin' : 179,"
+    "    'filtRedHMin' : 8,"
+    "    'filtRedHMin' : 8,"
+    "    'filtGreenLMin' : 223,"
+    "    'filtGreenLMax' : 223,"
+    "    'filtGreenCMin' : 135,"
+    "    'filtGreenCMin' : 135,"
+    "    'filtGreenHMax' : 90,"
+    "    'filtGreenHMin' : 90,"
+    "    'filtYellowLMin' : 247,"
+    "    'filtYellowLMax' : 247,"
+    "    'filtYellowCMin' : 107,"
+    "    'filtYellowCMin' : 107,"
+    "    'filtYellowHMax' : 60,"
+    "    'filtYellowHMin' : 60,"
+    "    'filtBlueLMin' : 82,"
+    "    'filtBlueLMax' : 82,"
+    "    'filtBlueCMin' : 130,"
+    "    'filtBlueCMin' : 130,"
+    "    'filtBlueHMax' : 188,"
+    "    'filtBlueHMin' : 188"
     "}";
 
 static void drawTarget(vision::Image* image, int x, int y, int width,
@@ -114,7 +120,7 @@ SUITE(WindowDetector) {
 
 TEST_FIXTURE(WindowDetectorFixture, FourTargetsFound)
 {
-    makeColor(&input, 1, 0, 0);
+    makeColor(&input, 0, 0, 0);
 
     // Top left square
     drawTarget(&input, 280, 180, 140, 140, 20, 0, cvScalar(0, 0, 255));
