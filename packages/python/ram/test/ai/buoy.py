@@ -314,6 +314,59 @@ class TestAlign(support.AITestCase, BuoyTrackingTest):
         self.qeventHub.publishEvents()
         self.assertCurrentState(buoy.Seek)
 
+class TestCorrectDepth(support.AITestCase, BuoyTrackingTest):
+    def setUp(self):
+        BuoyTrackingTest.setUp(self, buoy.CorrectDepth, buoy.CorrectDepth,
+                               buoy.FindAttempt)
+        self.vehicle.depth = 5
+
+    def testCorrectHeight(self):
+        self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
+                         0, vision.Color.YELLOW, y = 0.05)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(buoy.Align)
+
+    def testBelow(self):
+        self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
+                         0, vision.Color.YELLOW, y = -0.5)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(buoy.CorrectDepth)
+        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+
+    def testDownTooFar(self):
+        """
+        Test if the vehicle is trying to exit the bottom of its bounding box
+        """
+        self.vehicle.depth = 6.5
+        self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
+                         0, vision.Color.YELLOW, y = -0.5)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(buoy.CorrectDepth)
+        self.assertEqual(6.5, self.controller.depth)
+
+    def testAbove(self):
+        self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
+                         0, vision.Color.YELLOW, y = 0.5)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(buoy.CorrectDepth)
+        self.assertLessThan(self.controller.depth, self.vehicle.depth)
+
+    def testUpTooFar(self):
+        """
+        Test if the vehicle is trying to exit the top of its bounding box
+        """
+        self.vehicle.depth = 3.5
+        self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
+                         0, vision.Color.YELLOW, y = 0.5)
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentState(buoy.CorrectDepth)
+        self.assertEqual(3.5, self.controller.depth)
+
 class TestSeek(support.AITestCase, BuoyTrackingTest):
     def setUp(self):
         BuoyTrackingTest.setUp(self, buoy.Seek, buoy.Seek, buoy.FindAttemptSeek)

@@ -334,7 +334,7 @@ class CorrectDepth(BuoyTrackingState):
     @staticmethod
     def getattr():
         return BuoyTrackingState.update(
-            set(['yThreshold', 'depthGain', 'speed']))
+            set(['yThreshold', 'depthGain', 'speed', 'boxHeight']))
 
     def BUOY_FOUND(self, event):
         ret = BuoyTrackingState.BUOY_FOUND(self, event)
@@ -347,8 +347,12 @@ class CorrectDepth(BuoyTrackingState):
             desiredDepth = self.vehicle.getDepth()
             if event.y < 0.0:
                 desiredDepth += self._depthGain
+                desiredDepth = min(desiredDepth,
+                                   self._midDepth + self._boxHeight)
             else:
                 desiredDepth -= self._depthGain
+                desiredDepth = max(desiredDepth,
+                                   self._midDepth - self._boxHeight)
 
             #m = motion.basic.RateChangeDepth(desiredDepth, self._speed)
             #self.motionManager.setMotion(m)
@@ -360,6 +364,8 @@ class CorrectDepth(BuoyTrackingState):
         self._yThreshold = self._config.get('yThreshold', 0.05)
         self._depthGain = self._config.get('depthGain', 0.3)
         self._speed = self._config.get('speed', (1.0/3.0))
+        self._boxHeight = self._config.get('boxHeight', 1.5)
+        self._midDepth = self.ai.data['config'].get('buoyDepth', 5)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
