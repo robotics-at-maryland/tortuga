@@ -1,20 +1,23 @@
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Pipe1',
-            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
-            'ram.ai.course.Bin', 'ram.ai.course.PipeBin',
-            'ram.ai.course.Target', 'ram.ai.course.Pinger',
-            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+            'ram.ai.course.Bin', 'ram.ai.course.Window',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar']
 
 config:
-    lightDepth: 6
+    lightDepth: 9.5 #6
     pipeDepth: 7
     bwireDepth: 11.3
     targetDepth: 7.5
     binDepth: 12
-    targetSymbols: ['Tank', 'Factory']
+    targetSymbols: ['Aircraft', 'Ship']
+    targetBuoys: ['red', 'yellow']
+    targetWindows: ['yellow', 'blue']
+    buoyDepth: 8.0
+    hedgeDepth: 10.8
+    windowDepth: 11.4
     sonarDepth: 15
     safeDepth: 10
-    safeDepthOffset: 1
+    #safeDepthOffset: 1
     safeOffset: -0.4
     Pipe1:
         biasDirection: 0

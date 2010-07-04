@@ -5,9 +5,9 @@ ram.ai.course.Pipe:
 # Gate sub task
 ram.ai.gate.Start:
     speed: 0.33
-ram.ai.gate.Forward:
-    time: 3 #15
-    speed: 2
+#ram.ai.gate.Forward:
+#    time: 3 #15
+#    speed: 2
 
 # Pipe task
 ram.ai.pipe.Seeking:
@@ -18,6 +18,10 @@ ram.ai.pipe.Centering:
     speedGain: 3
     forwardSpeed: 4
     yawGain: 0.25
+    planeThreshold: 0.1
+    angleThreshold: 3
+    planeChange: 0.05
+    angleChange: 1
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
     yawGain: 0.25
@@ -52,6 +56,26 @@ ram.ai.duct.SeekingToAligned:
 ram.ai.duct.Aligning:
     filterSize: 10
     desiredRange: 0.5
+
+# Buoy Task
+ram.ai.buoy.Searching:
+    legTime: 5
+    sweepAngle: 30
+ram.ai.buoy.Align:
+    desiredRange: 5
+    depthGain: 0
+    dDepthGain: 0.2
+    iDepthGain: 0.0
+    maxDepthDt: 0.3
+    planeThreshold: 0.15
+    yawGain: 0.8
+    translate: False
+    iTranslateGain: 0.1
+    dTranslateGain: 0.2
+ram.ai.buoy.Hit:
+    duration: 1
+ram.ai.buoy.Reposition:
+    duration: 10
 
 # Target Task
 ram.ai.target.SeekingToCentered:
@@ -180,6 +204,34 @@ ram.ai.bin.RecoverDive:
     increase: 0
 ram.ai.bin.RecoverCloserLook:
     increase: 0
+
+# Window AI
+ram.ai.window.Start:
+    diveSpeed: 1
+ram.ai.window.SeekingToCentered:
+    depthGain: 0
+    desiredRange: 0.6
+    translateGain: 2.5
+ram.ai.window.SeekingToRange:
+    desiredRange: 0.55
+    depthGain: 0
+ram.ai.window.SeekingToAligned:
+    checkDelay: 1.5
+    depthGain: 0
+    alignGain: 10
+    minSquareNess: 0.95
+    desiredRange: 0.5
+ram.ai.window.FireTorpedos:
+    depthGain: 0
+    desiredRange: 0.45
+ram.ai.window.CorrectHeight:
+    offset: 1.1
+ram.ai.window.Approach:
+    depthGain: 0
+    desiredRange: 0.7
+ram.ai.window.Reposition:
+    speed: 2
+    duration: 3
 
 # Sonar subtask
 ram.ai.sonar.CloseSeeking:
