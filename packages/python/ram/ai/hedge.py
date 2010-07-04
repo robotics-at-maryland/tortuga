@@ -507,7 +507,8 @@ class Through(state.State):
 
     @staticmethod
     def getattr():
-        return set(['duration', 'speed', 'distance'])
+        return set(['duration', 'speed', 'distance', 'depthOffset',
+                    'diveSpeed'])
 
     def enter(self):
         self.visionSystem.hedgeDetectorOff()
@@ -515,21 +516,28 @@ class Through(state.State):
         speed = self._config.get('speed', 3)
         duration = self._config.get('duration', 15)
         distance = self._config.get('distance', 5)
+        depthOffset = self._config.get('depthOffset', 0.8)
+        diveSpeed = self._config.get('diveSpeed', (1.0/3.0))
         heading = self.vehicle.getOrientation().getYaw(True).valueDegrees()
+
+        desiredDepth = self.vehicle.getDepth() - depthOffset
+        diveMotion = motion.basic.RateChangeDepth(desiredDepth = desiredDepth,
+                                                  speed = diveSpeed)
         
         # Assumes that the DVL is named 'DVL'
         if 'DVL' in self.vehicle.getDeviceNames():
             # Set the DVL motion
-            m = motion.basic.MoveDistance(desiredHeading = heading,
-                                          distance = distance,
-                                          speed = speed)
+            moveMotion = motion.basic.MoveDistance(desiredHeading = heading,
+                                                   distance = distance,
+                                                   speed = speed)
         else:
             # No DVL, use a timed motion
-            m = motion.basic.TimedMoveDirection(desiredHeading = heading,
-                                                speed = speed,
-                                                duration = duration)
+            moveMotion = motion.basic.TimedMoveDirection(
+                desiredHeading = heading,
+                speed = speed,
+                duration = duration)
 
-        self.motionManager.setMotion(m)
+        self.motionManager.setMotion(diveMotion, moveMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()

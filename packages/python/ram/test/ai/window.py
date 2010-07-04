@@ -558,7 +558,7 @@ class TestSeekingToRange(TestRangeXYHold):
         TestRangeXYHold.testInRange(self, color = vision.Color.GREEN)
 
         # Make sure we ended up in the right place
-        self.assertCurrentState(window.SeekingToAligned)
+        self.assertCurrentState(window.FireTorpedos)
 
     def testIncorrectWindow(self):
         TestRangeXYHold.testIncorrectWindow(self, color = vision.Color.YELLOW)

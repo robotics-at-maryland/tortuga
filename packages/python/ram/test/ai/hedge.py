@@ -459,7 +459,7 @@ class TestAligning(AlignmentTest, support.AITestCase):
         self.injectEvent(hedge.Aligning.SETTLED)
         self.assertCurrentState(hedge.Through)
 
-class Through(support.AITestCase):
+class TestThrough(support.AITestCase):
     def setUp(self):
         # Leave set up for each individual test
         pass
@@ -470,11 +470,15 @@ class Through(support.AITestCase):
         # Turn this on, so we make sure it goes off
         self.visionSystem.hedgeDetector = True
         
-        # Make sure we start driving forward
+        # Make sure we start correcting depth
         self.machine.start(hedge.Through)
-        self.assert_(self.controller.speed > 0)
-        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertEqual(False, self.visionSystem.hedgeDetector)
+
+        # Finish the motion and start the forward motion
+        self.motionManager.currentMotion._finish()
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assert_(self.controller.speed > 0)
 
         # Subscribe to end events
         self._throughHedge = False
@@ -515,5 +519,8 @@ class Through(support.AITestCase):
         support.AITestCase.setUp(self, cfg = cfg)
 
         self.machine.start(hedge.Through)
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+
+        self.motionManager.currentMotion._finish()
         self.assert_(self.controller.speed > 0)
         self.assertCurrentMotion(motion.basic.MoveDistance)
