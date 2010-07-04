@@ -47,7 +47,8 @@ class BuoyTrackingState(state.State):
 
     def BUOY_LOST(self, event):
         # Remove the stored data and veto the event if the wrong color
-        del self.ai.data['buoyData'][event.color]
+        if self.ai.data['buoyData'].has_key(event.color):
+            del self.ai.data['buoyData'][event.color]
         if event.color != self._desiredColor:
             return False
 

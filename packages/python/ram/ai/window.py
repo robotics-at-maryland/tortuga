@@ -288,10 +288,20 @@ class FindAttemptAligned(FindAttempt):
     def transitions():
         return FindAttempt.transitions(myState = SeekingToAligned)
 
+class FindAttemptApproach(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = Approach)
+
 class FindAttemptApproachAligning(FindAttempt):
     @staticmethod
     def transitions():
         return FindAttempt.transitions(myState = ApproachAligning)
+
+class FindAttemptCorrectHeight(FindAttempt):
+    @staticmethod
+    def transitions():
+        return FindAttempt.transitions(myState = CorrectHeight)
 
 class FindAttemptFireTorpedos(FindAttempt):
     @staticmethod
@@ -416,7 +426,7 @@ class Approach(RangeXYHold):
     def transitions():
         return RangeXYHold.transitions(Approach,
                                        { RangeXYHold.IN_RANGE : ApproachAligning },
-                                       Searching)
+                                       FindAttemptApproach)
 
     def IN_RANGE(self, event):
         """
@@ -437,7 +447,7 @@ class CorrectHeight(WindowTrackingState):
     @staticmethod
     def transitions():
         return { motion.basic.MotionManager.FINISHED : SeekingToCentered,
-                 vision.EventType.WINDOW_LOST : Searching }
+                 vision.EventType.WINDOW_LOST : FindAttemptCorrectHeight }
 
     @staticmethod
     def getattr():

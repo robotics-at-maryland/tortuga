@@ -170,7 +170,7 @@ TEST_FIXTURE(BuoyDetectorFixture, AlmostHit)
     vision::makeColor(&input, 0, 0, 0);
 
     vision::drawCircle(&input, 320, 240, 200, cvScalar(0, 0, 255));
-    processImage(&input, true);
+    processImage(&input);
 
     CHECK(found);
     CHECK_CLOSE(0.0, event->x, 0.02);
