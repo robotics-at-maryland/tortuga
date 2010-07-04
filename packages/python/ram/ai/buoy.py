@@ -47,8 +47,7 @@ class BuoyTrackingState(state.State):
 
     def BUOY_LOST(self, event):
         # Remove the stored data and veto the event if the wrong color
-        if self.ai.data['buoyData'].has_key(event.color):
-            del self.ai.data['buoyData'][event.color]
+        #del self.ai.data['buoyData'][event.color]
         if event.color != self._desiredColor:
             return False
 
@@ -316,14 +315,61 @@ class Recover(state.FindAttempt, BuoyTrackingState):
         self.controller.setSpeed(0)
         self.controller.setSidewaysSpeed(0)
 
+class CorrectDepth(BuoyTrackingState):
+
+    FINISHED = core.declareEventType('FINISHED')
+
+    @staticmethod
+    def transitions():
+        trans = BuoyTrackingState.transitions(CorrectDepth, FindAttempt)
+        trans.update({ CorrectDepth.FINISHED : Align })
+
+        return trans
+
+    @staticmethod
+    def getattr():
+        return BuoyTrackingState.update(
+            set(['yThreshold', 'depthGain', 'speed']))
+
+    def BUOY_FOUND(self, event):
+        ret = BuoyTrackingState.BUOY_FOUND(self, event)
+        if ret is False:
+            return ret
+
+        if abs(event.y) <= self._yThreshold:
+            self.publish(CorrectDepth.FINISHED, core.Event())
+        else:
+            desiredDepth = self.vehicle.getDepth()
+            if event.y < 0.0:
+                desiredDepth += self._depthGain
+            else:
+                desiredDepth -= self._depthGain
+
+            #m = motion.basic.RateChangeDepth(desiredDepth, self._speed)
+            #self.motionManager.setMotion(m)
+            self.controller.setDepth(desiredDepth)
+
+    def enter(self):
+        BuoyTrackingState.enter(self)
+
+        self._yThreshold = self._config.get('yThreshold', 0.05)
+        self._depthGain = self._config.get('depthGain', 0.3)
+        self._speed = self._config.get('speed', (1.0/3.0))
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        self.controller.holdCurrentDepth()
+
 class Align(BuoyTrackingState):
 
     SEEK_BUOY = core.declareEventType('SEEK_BUOY')
+    INCORRECT_DEPTH = core.declareEventType('INCORRECT_DEPTH')
 
     @staticmethod
     def transitions():
         trans = BuoyTrackingState.transitions(Align, FindAttempt)
         trans.update({ motion.seek.SeekPoint.POINT_ALIGNED : Align,
+                       Align.INCORRECT_DEPTH : CorrectDepth,
                        Align.SEEK_BUOY : Seek })
 
         return trans
@@ -333,17 +379,19 @@ class Align(BuoyTrackingState):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'speed', 'alignmentThreshold',
                     'translate', 'translateGain', 'iTranslateGain',
-                    'dTranslateGain', 'planeThreshold', 'kp', 'kd'])
+                    'dTranslateGain', 'planeThreshold', 'kp', 'kd', 'yawGain'])
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
-        #if self._depthGain != 0:
-        #    self.controller.holdCurrentDepth()
-        pass
+        if self._depthGain != 0:
+            self.controller.holdCurrentDepth()
 
     def _compareChange(self, pvalues, dvalues):
         x, y = pvalues
         dx, dy = dvalues
+
+        if self._depthGain == 0:
+            y = 0
 
         finalx = self._kp * abs(x) + self._kd * abs(dx)
         finaly = self._kp * abs(y) + self._kd * abs(dy)
@@ -357,22 +405,19 @@ class Align(BuoyTrackingState):
         if ret is False:
             return ret
 
-        y = event.y
-        if self._depthGain == 0:
-            y = 0
-
-        if abs(event.x) <= self._planeThreshold:
-            self._buoy.setState(event.azimuth, event.elevation, event.range,
-                                event.x, event.y, event.timeStamp)
-        else:
-            # If unaligned on the x-coordinate, ignore depth
-            self._buoy.setState(event.azimuth, event.elevation, event.range,
-                                event.x, 0, event.timeStamp)
+        self._buoy.setState(event.azimuth, event.elevation, event.range,
+                            event.x, event.y, event.timeStamp)
 
         change = self._buoy.changeOverTime()
         if self._compareChange((event.x, event.y),
                                (change[3], change[4])):
-            self.publish(Align.SEEK_BUOY, core.Event())
+            # Only applies if depthGain is set to 0
+            if abs(event.y) > self._planeThreshold:
+                # Need to recorrect the height
+                self.publish(Align.INCORRECT_DEPTH, core.Event())
+            else:
+                # We are properly aligned
+                self.publish(Align.SEEK_BUOY, core.Event())
 
     def enter(self):
         BuoyTrackingState.enter(self)
@@ -395,6 +440,7 @@ class Align(BuoyTrackingState):
         iTranslateGain = self._config.get('iTranslateGain', 0)
         dTranslateGain = self._config.get('dTranslateGain', 0)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
+	yawGain = self._config.get('yawGain', 1.0)
         motion = ram.motion.seek.SeekPointToRange(target = self._buoy,
                                                   alignmentThreshold = alignmentThreshold,
                                                   desiredRange = desiredRange,
@@ -407,7 +453,8 @@ class Align(BuoyTrackingState):
                                                   translate = translate,
                                                   translateGain = translateGain,
                                                 iTranslateGain = iTranslateGain,
-                                                dTranslateGain = dTranslateGain)
+                                                dTranslateGain = dTranslateGain,
+						yawGain = yawGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -432,8 +479,11 @@ class Seek(BuoyTrackingState):
         if ret is False:
             return ret
 
-        self._buoy.setState(event.azimuth, event.elevation, event.range,
-                            event.x, event.y, event.timeStamp)
+        if event.y > self._planeThreshold:
+            self.publish(Align.INCORRECT_DEPTH, core.Event())
+        else:
+            self._buoy.setState(event.azimuth, event.elevation, event.range,
+                                event.x, event.y, event.timeStamp)
 
     def enter(self):
         BuoyTrackingState.enter(self)

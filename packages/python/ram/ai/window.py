@@ -514,7 +514,7 @@ class SeekingToRange(RangeXYHold):
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
-            RangeXYHold.IN_RANGE : SeekingToAligned },
+            RangeXYHold.IN_RANGE : FireTorpedos },
                                        lostState = FindAttemptRange)
         
 class FireTorpedos(RangeXYHold):
@@ -796,4 +796,5 @@ class Reposition(state.State):
 
 class End(state.State):
     def enter(self):
+        self.visionSystem.windowDetectorOff()
         self.publish(COMPLETE, core.Event())
