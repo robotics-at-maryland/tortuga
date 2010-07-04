@@ -154,16 +154,20 @@ class Searching(BuoyTrackingState):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class FindAttempt(state.FindAttempt):
+class FindAttempt(state.FindAttempt, BuoyTrackingState):
     @staticmethod
     def transitions(myState = None):
         if myState is None:
             myState = Align
         return state.FindAttempt.transitions(vision.EventType.BUOY_FOUND,
                                              myState, Recover)
+
+    def BUOY_FOUND(self, event):
+        return BuoyTrackingState.BUOY_FOUND(self, event)
         
     def enter(self):
         state.FindAttempt.enter(self, timeout = 2)
+        BuoyTrackingState.enter(self)
 
 class FindAttemptSeek(FindAttempt):
     @staticmethod
@@ -307,6 +311,7 @@ class Recover(state.FindAttempt, BuoyTrackingState):
                 self._finished = True
             else:
                 # Otherwise, wait for a symbol before continuing
+                self._recoverMethod = "Wait"
                 self._finished = True
                 self.motionManager.stopCurrentMotion()
 
@@ -440,7 +445,7 @@ class Align(BuoyTrackingState):
         iTranslateGain = self._config.get('iTranslateGain', 0)
         dTranslateGain = self._config.get('dTranslateGain', 0)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
-	yawGain = self._config.get('yawGain', 1.0)
+        yawGain = self._config.get('yawGain', 1.0)
         motion = ram.motion.seek.SeekPointToRange(target = self._buoy,
                                                   alignmentThreshold = alignmentThreshold,
                                                   desiredRange = desiredRange,
@@ -454,7 +459,7 @@ class Align(BuoyTrackingState):
                                                   translateGain = translateGain,
                                                 iTranslateGain = iTranslateGain,
                                                 dTranslateGain = dTranslateGain,
-						yawGain = yawGain)
+                                                  yawGain = yawGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):

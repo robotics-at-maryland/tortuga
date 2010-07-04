@@ -66,108 +66,124 @@ class TestStart(WindowTest):
         self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.assertCurrentState(window.Searching)
 
-# class TestFindAttempt(support.AITestCase):
-#     TIMEOUT = 2
-#     def setUp(self):
-#         cfg = {
-#             'StateMachine' : {
-#                 'States' : {
-#                     'ram.ai.window.FindAttempt' : {
-#                         'timeout' : TestFindAttempt.TIMEOUT,
-#                     },
-#                 }
-#             }
-#         }
-#         support.AITestCase.setUp(self, cfg = cfg)
-#         self.machine.start(window.FindAttempt)
+class TestFindAttempt(support.AITestCase):
+    TIMEOUT = 2
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['red', 'yellow']
+                    }
+                },
+            'StateMachine' : {
+                'States' : {
+                    'ram.ai.window.FindAttempt' : {
+                        'timeout' : TestFindAttempt.TIMEOUT,
+                    },
+                }
+            }
+        }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(window.FindAttempt)
     
-#     def testStart(self):
-#         """Make sure we have the detector on when starting"""
-#         self.assert_(self.visionSystem.windowDetector)
-#         self.assertCurrentMotion(type(None))
-#         self.assertEqual(1, self.controller.headingHolds)
+    def testStart(self):
+        """Make sure we have the detector on when starting"""
+        self.assert_(self.visionSystem.windowDetector)
+        self.assertCurrentMotion(type(None))
+        self.assertEqual(1, self.controller.headingHolds)
                 
-#     def testWindowFound(self):
-#         # Now change states
-#         self.injectEvent(vision.EventType.WINDOW_FOUND, 
-#                          vision.WindowEvent, 0, 0, 0, 0)
-#         self.assertCurrentState(window.SeekingToCentered)
+    def testWindowFound(self):
+        # Now change states
+        self.injectEvent(vision.EventType.WINDOW_FOUND, 
+                         vision.WindowEvent, color = vision.Color.RED)
+        self.assertCurrentState(window.SeekingToCentered)
         
-#         # Leave and make sure its still on
-#         self.assert_(self.visionSystem.windowDetector)
+        # Leave and make sure its still on
+        self.assert_(self.visionSystem.windowDetector)
 
-#     def testTimeout(self):
-#         """
-#         Make sure that the timeout works properly
-#         """
-#         # Restart with a working timer
-#         self.machine.stop()
-#         self.machine.start(window.FindAttempt)
+    def testTimeout(self):
+        """
+        Make sure that the timeout works properly
+        """
+        # Restart with a working timer
+        self.machine.stop()
+        self.machine.start(window.FindAttempt)
 
-#         # Make sure the timer has the correct value
-#         self.assertEquals(self.machine.currentState()._timeout,
-#                           TestFindAttempt.TIMEOUT)
+        # Make sure the timer has the correct value
+        self.assertEquals(self.machine.currentState()._timeout,
+                          TestFindAttempt.TIMEOUT)
         
-#         # For Recover
-#         self.ai.data['lastWindowEvent'] = vision.WindowEvent()
+        # For Recover
+        self.ai.data['windowData'][vision.Color.RED] = vision.WindowEvent()
 
-#         # Release timer
-#         self.releaseTimer(state.FindAttempt.TIMEOUT)
+        # Release timer
+        self.releaseTimer(state.FindAttempt.TIMEOUT)
         
-#         # Test that the timeout worked properly
-#         self.assertCurrentState(window.Recover)
-#         self.assert_(self.visionSystem.windowDetector)
+        # Test that the timeout worked properly
+        self.assertCurrentState(window.Recover)
+        self.assert_(self.visionSystem.windowDetector)
 
-# class TestRecover(support.AITestCase):
-#     def setUp(self):
-#         support.AITestCase.setUp(self)
-#         self.ai.data['lastWindowEvent'] = vision.WindowEvent()
+class TestRecover(support.AITestCase):
+    def setUp(self):
+        cfg = {
+            'Ai' : {
+                'config' : {
+                    'targetWindows' : ['red', 'yellow']
+                    }
+                }
+            }
 
-#     def testLightFound(self):
-#         self.machine.start(window.Recover)
-#         self.assertCurrentState(window.Recover)
-#         self.injectEvent(vision.EventType.WINDOW_FOUND,
-#                          vision.WindowEvent, 0.5, 0, 0, 0)
-#         self.qeventHub.publishEvents()
-#         self.assertCurrentState(window.SeekingToCentered)
-#         self.assertEqual(0.5, self.ai.data['lastWindowEvent'].x)
-#         self.assertEqual(0, self.ai.data['lastWindowEvent'].y)
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.ai.data['windowData'] = { vision.Color.RED : vision.WindowEvent() }
+
+    def testWindowFound(self):
+        self.machine.start(window.Recover)
+        self.assertCurrentState(window.Recover)
+        self.injectEvent(vision.EventType.WINDOW_FOUND,
+                         vision.WindowEvent, 0.5, 0, 0, 0,
+                         color = vision.Color.RED)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(window.SeekingToCentered)
+        self.assertEqual(0.5, self.ai.data['windowData'][vision.Color.RED].x)
+        self.assertEqual(0, self.ai.data['windowData'][vision.Color.RED].y)
         
-#     def testBackwardsMovement(self):        
-#         # Set the range to a close enough value
-#         self.ai.data['lastWindowEvent'].range = 0.4
+    def testBackwardsMovement(self):        
+        # Set the range to a close enough value
+        self.ai.data['windowData'][vision.Color.RED].range = 0.4
         
-#         # Restart the machine
-#         self.machine.start(window.Recover)
-#         self.assertCurrentMotion(motion.basic.MoveDirection)
-#         self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
-#         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        # Restart the machine
+        self.machine.start(window.Recover)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
-#         # Restart the machine, test light below
-#         self.machine.stop()
-#         self.ai.data['lastWindowEvent'].x = 0
-#         self.ai.data['lastWindowEvent'].y = 1
-#         self.machine.start(window.Recover)
-#         self.assertCurrentMotion(motion.basic.MoveDirection)
-#         self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
-#         self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
+        # Restart the machine, test light below
+        self.machine.stop()
+        self.ai.data['windowData'][vision.Color.RED].x = 0
+        self.ai.data['windowData'][vision.Color.RED].y = 1
+        self.machine.start(window.Recover)
+        self.assertCurrentMotion(motion.basic.MoveDirection)
+        self.assertAlmostEqual(self.controller.getSpeed(), -3.0, 5)
+        self.assertAlmostEqual(self.controller.getSidewaysSpeed(), 0, 5)
 
-#         # Now inject an event to cause it to change depth
-#         self.injectEvent(vision.EventType.WINDOW_FOUND)
-#         self.assertCurrentState(window.SeekingToCentered)
+        # Now inject an event to cause it to change depth
+        self.injectEvent(vision.EventType.WINDOW_FOUND,
+                         vision.WindowEvent, color = vision.Color.RED)
+        self.assertCurrentState(window.SeekingToCentered)
 
-#     def testNoEvent(self):
-#         # Get rid of the event that was created
-#         del self.ai.data['lastWindowEvent']
+    def testNoEvent(self):
+        # Get rid of the event that was created
+        del self.ai.data['windowData'][vision.Color.RED]
 
-#         self.machine.start(window.Recover)
-#         self.assertCurrentMotion(type(None))
-#         self.assertAlmostEqual(0, self.controller.getSpeed(), 5)
-#         self.assertAlmostEqual(0, self.controller.getSidewaysSpeed(), 5)
+        self.machine.start(window.Recover)
+        self.assertCurrentMotion(type(None))
+        self.assertAlmostEqual(0, self.controller.getSpeed(), 5)
+        self.assertAlmostEqual(0, self.controller.getSidewaysSpeed(), 5)
 
-#         # Check that injecting an event doesn't do anything bad
-#         self.injectEvent(vision.EventType.WINDOW_FOUND)
-#         self.assertCurrentState(window.SeekingToCentered)
+        # Check that injecting an event doesn't do anything bad
+        self.injectEvent(vision.EventType.WINDOW_FOUND,
+                         vision.WindowEvent, color = vision.Color.RED)
+        self.assertCurrentState(window.SeekingToCentered)
         
 class TestSearching(WindowTest):
     def setUp(self):

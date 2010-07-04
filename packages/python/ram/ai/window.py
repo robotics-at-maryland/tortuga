@@ -327,7 +327,7 @@ class Recover(state.FindAttempt, WindowTrackingState):
         WindowTrackingState.enter(self)
         self.visionSystem.windowDetectorOn()
 
-        event = self.ai.data.get('lastTargetEvent', None)
+        event = self.ai.data['windowData'].get(vision.Color.RED, None)
         
         self._recoverMethod = "Default"
         
