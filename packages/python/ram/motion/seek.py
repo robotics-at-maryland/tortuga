@@ -117,7 +117,8 @@ class SeekPoint(Motion):
     def __init__(self, target, maxSpeed = 0.0, depthGain = 1, 
                  translate = False, translateGain = 1, iDepthGain = 0,
                  dDepthGain = 0, iTranslateGain = 0, dTranslateGain = 0,
-                 yawGain = 1.0, maxDepthDt = 0, alignmentThreshold = 0.1):
+                 yawGain = 1.0, maxDepthDt = 0, alignmentThreshold = 0.1,
+                 maxYaw = None):
         """
         @type  target: ram.motion.seek.PointTarget
         @param target: Target to attempt to reach
@@ -135,7 +136,8 @@ class SeekPoint(Motion):
         self._maxSpeed = maxSpeed
         self._alignmentThreshold = alignmentThreshold
         
-        self._yawGain = yawGain 
+        self._yawGain = yawGain
+        self._maxYaw = maxYaw
         
         self._translate = translate
         self._translateGain = translateGain
@@ -208,8 +210,10 @@ class SeekPoint(Motion):
             desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
             desiredHeading = desiredHeading.valueDegrees()
             
-            yawCommand = absoluteTargetHeading - desiredHeading
-            self._controller.yawVehicle(yawCommand * self._yawGain)
+            yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
+            if self._maxYaw is not None and abs(yawCommand) > self._maxYaw:
+                yawCommand = self._maxYaw * (yawCommand / abs(yawCommand))
+            self._controller.yawVehicle(yawCommand)
         else:
             sidewaysSpeed, self._sumX, self._oldX = common.PIDLoop(
                 x = self._target.x,
@@ -287,7 +291,7 @@ class SeekPointToRange(SeekPoint):
                  maxSpeed = 0.0, depthGain = 1, translate = False, 
                  translateGain = 1, iDepthGain = 0, dDepthGain = 0,
                  iTranslateGain = 0, dTranslateGain = 0, yawGain = 1.0,
-                 maxDepthDt = 0, alignmentThreshold = 0.1):
+                 maxDepthDt = 0, alignmentThreshold = 0.1, maxYaw = None):
         """
         @type desiredRange: float
         @param desiredRange: The range you wish to be at relative to the target
@@ -303,7 +307,8 @@ class SeekPointToRange(SeekPoint):
                            iTranslateGain = iTranslateGain, 
                            dTranslateGain = dTranslateGain, yawGain = yawGain,
                            maxDepthDt = maxDepthDt, 
-                           alignmentThreshold = alignmentThreshold)
+                           alignmentThreshold = alignmentThreshold,
+                           maxYaw = maxYaw)
         
         self._desiredRange = desiredRange
         self._maxRangeDiff = maxRangeDiff

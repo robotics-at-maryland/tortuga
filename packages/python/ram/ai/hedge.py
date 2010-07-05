@@ -377,7 +377,8 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
     def getattr():
         attr = set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
-                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain'])
+                    'alignGain', 'maxSpeed', 'maxSidewaysSpeed',
+                    'yawGain', 'maxYaw'])
         return attr.union(FilteredState.getattr())
         
     def enter(self):
@@ -404,6 +405,7 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
         yawGain = self._config.get('yawGain', 1.0)
+        maxYaw = self._config.get('maxYaw', 2.0)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._hedge,
             desiredRange = desiredRange,
@@ -416,7 +418,8 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
             maxDepthDt = maxDepthDt,
-            yawGain = yawGain)
+            yawGain = yawGain,
+            maxYaw = maxYaw)
         
         self.motionManager.setMotion(motion)
         

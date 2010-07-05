@@ -390,7 +390,8 @@ class Align(BuoyTrackingState):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'speed', 'alignmentThreshold',
                     'translate', 'translateGain', 'iTranslateGain',
-                    'dTranslateGain', 'planeThreshold', 'kp', 'kd', 'yawGain'])
+                    'dTranslateGain', 'planeThreshold', 'kp', 'kd',
+                    'yawGain', 'maxYaw'])
 
     def POINT_ALIGNED(self, event):
         """Holds the current depth when we find we are aligned"""
@@ -452,6 +453,7 @@ class Align(BuoyTrackingState):
         dTranslateGain = self._config.get('dTranslateGain', 0)
         alignmentThreshold = self._config.get('alignmentThreshold', 0.1)
         yawGain = self._config.get('yawGain', 1.0)
+        maxYaw = self._config.get('maxYaw', 2.0)
         motion = ram.motion.seek.SeekPointToRange(target = self._buoy,
                                                   alignmentThreshold = alignmentThreshold,
                                                   desiredRange = desiredRange,
@@ -465,7 +467,8 @@ class Align(BuoyTrackingState):
                                                   translateGain = translateGain,
                                                 iTranslateGain = iTranslateGain,
                                                 dTranslateGain = dTranslateGain,
-                                                  yawGain = yawGain)
+                                                  yawGain = yawGain,
+                                                  maxYaw = maxYaw)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -562,26 +565,34 @@ class Reposition(state.State):
 
     @staticmethod
     def getattr():
-        return set(['speed', 'duration', 'diveSpeed', 'headingSpeed'])
+        return set(['speed', 'primaryDuration', 'secondaryDuration',
+                    'diveSpeed', 'headingSpeed'])
 
     def enter(self):
         self._speed = self._config.get('speed', 3)
-        self._duration = self._config.get('duration', 7)
+        self._primaryDuration = self._config.get('primaryDuration', 2)
+        self._secondaryDuration = self._config.get('secondaryDuration', 4)
 
-        backwardsMotion = motion.basic.TimedMoveDirection(180, self._speed,
-                                                          self._duration,
-                                                          absolute = False)
+        primaryMotion = motion.basic.TimedMoveDirection(180, self._speed,
+                                                        self._primaryDuration,
+                                                        absolute = False)
 
         self._desiredHeading = self.ai.data['buoyStartOrientation']
         self._headingSpeed = self._config.get('headingSpeed', 20)
         headingMotion = motion.basic.RateChangeHeading(self._desiredHeading,
                                                        self._headingSpeed)
 
+        secondaryMotion = \
+            motion.basic.TimedMoveDirection(180, self._speed,
+                                            self._secondaryDuration,
+                                            absolute = False)
+
         self._depth = self.ai.data['config'].get('buoyDepth', 5)
         self._diveSpeed = self._config.get('diveSpeed', 1.0/3.0)
         diveMotion = motion.basic.RateChangeDepth(self._depth, self._diveSpeed)
 
-        self.motionManager.setMotion(backwardsMotion, headingMotion, diveMotion)
+        self.motionManager.setMotion(primaryMotion, headingMotion,
+                                     secondaryMotion, diveMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()

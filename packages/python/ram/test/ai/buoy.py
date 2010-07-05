@@ -501,6 +501,13 @@ class TestReposition(support.AITestCase):
         self.motionManager.currentMotion._finish()
 
         self.assertCurrentState(buoy.Reposition)
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertLessThan(self.controller.speed, 0)
+
+        # Release the timer on the second backward motion
+        self.releaseTimer(motion.basic.TimedMoveDirection.COMPLETE)
+
+        self.assertCurrentState(buoy.Reposition)
         self.assertCurrentMotion(motion.basic.RateChangeDepth)
         self.assertEqual(7, self.motionManager.currentMotion.desiredDepth)
 
