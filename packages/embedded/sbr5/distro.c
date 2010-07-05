@@ -1,5 +1,6 @@
 #include <p30fxxxx.h>
 #include <string.h>
+#include <stdio.h>
 #include "buscodes.h"
 
 #define SENSORBOARD_DISTROBOARD
@@ -9,7 +10,7 @@
 /******************************************************************/
 /* The marker droppers will not work unless you remove this line! */
 /******************************************************************/
-#define DVL_INSIDE
+// #define DVL_INSIDE
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
@@ -176,6 +177,14 @@ _FWDT ( WDT_OFF );
 /* On R4, this is 18V ISEN */
 #define ADC_IAUX        0x0D
 
+/* Function Prototypes */
+void checkOvrReg();
+void disableBusInterrupt();
+void enableBusInterrupt();
+void setBarMode(byte);
+void setBars(byte);
+
+/* Global Variables */
 unsigned int iMotor[8];
 unsigned int refVoltage;
 unsigned int v5VBus;
@@ -184,15 +193,12 @@ unsigned int i5VBus;
 unsigned int i12VBus;
 unsigned int iAux;
 
-
 /* Transmit buffer */
 #define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
-
 void dropMarker(byte id);
-
 
 /*
  * Configuration Registers
@@ -345,13 +351,17 @@ void processData(byte data)
 
                 case BUS_CMD_DVL_ON:
                 {
+#ifdef DVL_INSIDE
                     LAT_DVL= DVL_ON;
+#endif
                     break;
                 }
 
                 case BUS_CMD_DVL_OFF:
                 {
+#ifdef DVL_INSIDE
                     LAT_DVL= !DVL_ON;
+#endif
                     break;
                 }
 
@@ -1046,7 +1056,7 @@ void updateBars()
 }
 
 
-void main()
+int main(void)
 {
     byte i;
     byte ovrTmp = 0x00;
