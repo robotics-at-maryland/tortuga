@@ -31,6 +31,8 @@
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/Symbol.h"
+#include "vision/include/SymbolDetector.h"
 #include "vision/include/FANNSymbolDetector.h"
 
 #ifndef EXIT_FAILURE
@@ -43,14 +45,17 @@ using namespace ram;
 
 bool quiet = false;
 
-vision::FANNSymbolDetectorPtr createDetector(std::string type,
-                                             core::ConfigNode config);
+vision::SymbolDetectorPtr createDetector(std::string type,
+                                         core::ConfigNode config);
 
-void analyze_image(vision::FANNSymbolDetectorPtr fannDetector,
-                   float* features, std::string path);
+void analyzeImage(vision::FANNSymbolDetectorPtr fannDetector,
+                  float* features, std::string path);
 
-vision::FANNSymbolDetectorPtr createDetector(std::string type,
-                                             core::ConfigNode config)
+void processImage(vision::SymbolDetectorPtr symbolDetector,
+                  std::string path);
+
+vision::SymbolDetectorPtr createDetector(std::string type,
+                                         core::ConfigNode config)
 {
     config.set("type", type);
     // Set to training mode
@@ -58,14 +63,27 @@ vision::FANNSymbolDetectorPtr createDetector(std::string type,
     vision::DetectorPtr detector = vision::DetectorMaker::newObject(
         vision::DetectorMakerParamType(config, core::EventHubPtr()));
 
-    vision::FANNSymbolDetectorPtr fannDetector =
-        boost::dynamic_pointer_cast<vision::FANNSymbolDetector>(detector);
-    assert(fannDetector && "Symbol detector not of FANNSymbolDetector type");
+    vision::SymbolDetectorPtr symbolDetector =
+        boost::dynamic_pointer_cast<vision::SymbolDetector>(detector);
+    assert(symbolDetector && "Detector given is not a SymbolDetector");
 
-    return fannDetector;
+    return symbolDetector;
 }
 
-void analyze_image(vision::FANNSymbolDetectorPtr fannDetector,
+void processImage(vision::SymbolDetectorPtr symbolDetector, std::string path)
+{
+    vision::Image *image = vision::Image::loadFromFile(path);
+    symbolDetector->processImage(image);
+
+    if (!quiet)
+    {
+        std::string symbol(vision::Symbol::symbolToText(
+                               symbolDetector->getSymbol()));
+        std::cout << "Found Symbol: " << symbol << std::endl;
+    }
+}
+
+void analyzeImage(vision::FANNSymbolDetectorPtr fannDetector,
                   float* features, std::string path)
 {
     vision::Image *image = vision::Image::loadFromFile(path);
@@ -136,26 +154,35 @@ int main(int argc, char* argv[])
 
     trim /= 100.0;
 
-    vision::FANNSymbolDetectorPtr fannDetector =
-        vision::FANNSymbolDetectorPtr();
+    vision::SymbolDetectorPtr symbolDetector =
+        vision::SymbolDetectorPtr();
     if (configPath != "NONE")
     {
         core::ConfigNode config(core::ConfigNode::fromFile(configPath));
-        fannDetector = createDetector(detector, config);
+        symbolDetector = createDetector(detector, config);
     }
     else
     {
         core::ConfigNode config(core::ConfigNode::fromString("{}"));
-        fannDetector = createDetector(detector, config);
+        symbolDetector = createDetector(detector, config);
     }
 
     // Allocate space to store the features
-    int featureNum = fannDetector->getNumberFeatures();
-    float *features = new float[featureNum];
+    vision::FANNSymbolDetectorPtr fannDetector =
+        boost::dynamic_pointer_cast<vision::FANNSymbolDetector>(symbolDetector);
+    int featureNum = 0;
+    float *features = 0;
+    if (fannDetector) {
+        featureNum = fannDetector->getNumberFeatures();
+        features = new float[featureNum];
+    }
 
     // Check if directory or file mode
-    if (directory == "NONE") {
-        analyze_image(fannDetector, features, input);
+    if (directory == "NONE") {   
+        if (fannDetector)
+            analyzeImage(fannDetector, features, input);
+        else
+            processImage(symbolDetector, input);
     } else {
         // Vector to store values
         std::vector< std::vector<float> > farr(featureNum,
@@ -167,78 +194,84 @@ int main(int argc, char* argv[])
         {
             if (!quiet)
                 std::cout << iter->path() << std::endl;
-            analyze_image(fannDetector, features, iter->path().string());
 
-            for (int i=0; i < featureNum; i++) {
-                farr[i].push_back(features[i]);
+            if (fannDetector) {
+                analyzeImage(fannDetector, features, iter->path().string());
+
+                for (int i=0; i < featureNum; i++) {
+                    farr[i].push_back(features[i]);
+                }
+
+                // Sort the arrays
+                for (int i=0; i < (int) farr.size(); i++) {
+                    std::sort(farr[i].begin(), farr[i].end());
+                }
+
+                for (int i=0; i < (int) farr.size(); i++) {
+                    std::cout << "Feature #" << i << std::endl;
+                    std::vector<float> flist = farr[i];
+                    std::cout << "Min: " << flist.front()
+                              << "\nMax: " << flist.back() << std::endl;
+
+                    // Calculate the mean
+                    float mean = 0;
+                    BOOST_FOREACH(float f, flist)
+                    {
+                        mean += f;
+                    }
+                    mean /= flist.size();
+                    std::cout << "Mean: " << mean << std::endl;
+
+                    // Calculate the median
+                    float median = INFINITY;
+                    if (flist.size() % 2 == 0) {
+                        // Even
+                        median = (flist[flist.size()/2-1] + flist[flist.size()/2]) / 2;
+                    } else {
+                        // Odd
+                        median = flist[flist.size()/2];
+                    }
+                    std::cout << "Median: " << median << std::endl;
+
+                    // Calculate the standard deviation
+                    float stddev = 0;
+                    BOOST_FOREACH(float f, flist)
+                    {
+                        float diff = flist[i] - mean;
+                        stddev += diff * diff;
+                    }
+                    stddev /= flist.size() - 1;
+                    stddev = sqrt(stddev);
+                    std::cout << "Standard Deviation: " << stddev << std::endl;
+
+                    // TODO: Calculate these values for the trim
+                    int trim_start = (int) flist.size() * trim;
+                    int trim_end = (int) flist.size() - ((int) flist.size() * trim) - 1;
+
+                    std::cout << "Trim Min: " << flist[trim_start] << std::endl
+                              << "Trim Max: " << flist[trim_end] << std::endl;
+
+                    double trim_mean = 0;
+                    for (int i=trim_start; i < trim_end; i++) {
+                        trim_mean += flist[i];
+                    }
+                    trim_mean /= trim_end - trim_start;
+                    std::cout << "Trim Mean: " << trim_mean << std::endl;
+
+                    float trim_stddev = 0;
+                    for (int i=trim_start; i < trim_end; i++) {
+                        float diff = flist[i] - trim_mean;
+                        trim_stddev += diff * diff;
+                    }
+                    trim_stddev /= trim_end - trim_start - 1;
+                    trim_stddev = sqrt(trim_stddev);
+                    std::cout << "Trim Standard Deviation: " << trim_stddev
+                              << std::endl;
+                }
             }
-        }
-
-        // Sort the arrays
-        for (int i=0; i < (int) farr.size(); i++) {
-            std::sort(farr[i].begin(), farr[i].end());
-        }
-
-        for (int i=0; i < (int) farr.size(); i++) {
-            std::cout << "Feature #" << i << std::endl;
-            std::vector<float> flist = farr[i];
-            std::cout << "Min: " << flist.front()
-                      << "\nMax: " << flist.back() << std::endl;
-
-            // Calculate the mean
-            float mean = 0;
-            BOOST_FOREACH(float f, flist)
-            {
-                mean += f;
+            else {
+                processImage(symbolDetector, iter->path().string());
             }
-            mean /= flist.size();
-            std::cout << "Mean: " << mean << std::endl;
-
-            // Calculate the median
-            float median = INFINITY;
-            if (flist.size() % 2 == 0) {
-                // Even
-                median = (flist[flist.size()/2-1] + flist[flist.size()/2]) / 2;
-            } else {
-                // Odd
-                median = flist[flist.size()/2];
-            }
-            std::cout << "Median: " << median << std::endl;
-
-            // Calculate the standard deviation
-            float stddev = 0;
-            BOOST_FOREACH(float f, flist)
-            {
-                float diff = flist[i] - mean;
-                stddev += diff * diff;
-            }
-            stddev /= flist.size() - 1;
-            stddev = sqrt(stddev);
-            std::cout << "Standard Deviation: " << stddev << std::endl;
-
-            // TODO: Calculate these values for the trim
-            int trim_start = (int) flist.size() * trim;
-            int trim_end = (int) flist.size() - ((int) flist.size() * trim) - 1;
-
-            std::cout << "Trim Min: " << flist[trim_start] << std::endl
-                      << "Trim Max: " << flist[trim_end] << std::endl;
-
-            double trim_mean = 0;
-            for (int i=trim_start; i < trim_end; i++) {
-                trim_mean += flist[i];
-            }
-            trim_mean /= trim_end - trim_start;
-            std::cout << "Trim Mean: " << trim_mean << std::endl;
-
-            float trim_stddev = 0;
-            for (int i=trim_start; i < trim_end; i++) {
-                float diff = flist[i] - trim_mean;
-                trim_stddev += diff * diff;
-            }
-            trim_stddev /= trim_end - trim_start - 1;
-            trim_stddev = sqrt(trim_stddev);
-            std::cout << "Trim Standard Deviation: " << trim_stddev
-                      << std::endl;
         }
     }
 
