@@ -60,7 +60,7 @@ struct BinDetectorFixture
         receivedMultiBinAngleEvent(false),
         event(vision::BinEventPtr()),
         droppedEvent(vision::BinEventPtr()),
-        input(640, 480),
+        input(640, 480, vision::Image::PF_BGR_8),
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString("{}"), eventHub)
     {
@@ -119,7 +119,7 @@ struct BinDetectorFixture
         
         if (show)
         {
-            vision::OpenCVImage input(640, 480);
+            vision::OpenCVImage input(640, 480, vision::Image::PF_BGR_8);
             input.copyFrom(image);
             vision::Image::showImage(&input, "Input");
             
@@ -273,7 +273,7 @@ TEST_FIXTURE(BinDetectorFixture, multiBinAngles)
     }
 }
 
-TEST_FIXTURE(BinDetectorFixture, TestLUV)
+TEST_FIXTURE(BinDetectorFixture, TestLCH)
 {
     detector.setSymbolDetectionOn(false);
     
@@ -283,7 +283,6 @@ TEST_FIXTURE(BinDetectorFixture, TestLUV)
     drawBin(&input, 640/4, 480/4, 130, 25);
     
     // Process it
-    detector.setUseLUVFilter(true);
     processImage(&input);
     double expectedX = -0.5 * 640.0/480.0;
     double expectedY = 0.5;
@@ -293,28 +292,6 @@ TEST_FIXTURE(BinDetectorFixture, TestLUV)
     CHECK_CLOSE(expectedX, detector.getX(), 0.05);
     CHECK_CLOSE(expectedY, detector.getY(), 0.05);
 }
-
-TEST_FIXTURE(BinDetectorFixture, TestNoLUV)
-{
-    detector.setSymbolDetectionOn(false);
-    
-    // Blue Image with orange rectangle in it
-    vision::makeColor(&input, 0, 0, 255);
-    // draw the bin (upper left)
-    drawBin(&input, 640/4, 480/4, 130, 25);
-    
-    // Process it
-    detector.setUseLUVFilter(false);
-    processImage(&input);
-    double expectedX = -0.5 * 640.0/480.0;
-    double expectedY = 0.5;
-    math::Degree expectedAngle(25);
-    
-    CHECK(detector.found());
-    CHECK_CLOSE(expectedX, detector.getX(), 0.05);
-    CHECK_CLOSE(expectedY, detector.getY(), 0.05);
-}
-
 
 TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 {

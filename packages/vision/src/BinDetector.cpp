@@ -128,10 +128,10 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_binHoughMinLineLength(0),
     m_binHoughMaxLineGap(0),
     m_binID(0),
-    m_useLUVFilter(0),
     m_whiteFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
     m_blackFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
-    m_redFilter(new ColorFilter(0, 255, 0, 255, 0, 255))
+    m_redFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_frame(0)
 {
     // Load all config based settings
     init(config);
@@ -151,34 +151,29 @@ BinDetector::~BinDetector()
 
 void BinDetector::processImage(Image* input, Image* out)
 {
+    m_frame->copyFrom(input);
+
     // Ensure all the images are the proper size
-    if ((m_whiteMaskedFrame->getWidth() != input->getWidth()) || 
-        (m_whiteMaskedFrame->getHeight() != input->getHeight()))
+    if ((m_whiteMaskedFrame->getWidth() != m_frame->getWidth()) || 
+        (m_whiteMaskedFrame->getHeight() != m_frame->getHeight()))
     {
         // We are the wrong size delete them and recreate
         deleteImages();
-        allocateImages(input->getWidth(), input->getHeight());
+        allocateImages(m_frame->getWidth(), m_frame->getHeight());
     }
 
-    // Make debug output look like input (will be marked up later)
+    // Make debug output look like m_frame (will be marked up later)
     if (out)
-        out->copyFrom(input);
+        out->copyFrom(m_frame);
     
-    if (!m_useLUVFilter)
-    {
-        // Create the percents images for the white, black and red filters
-        m_percents->copyFrom(input);
-        to_ratios(m_percents->asIplImage());
-    }
-    else
-    {
-        cvCvtColor(input->asIplImage(), input->asIplImage(), CV_BGR2Luv);
-    }
+    // Convert the image to LCh
+    m_frame->setPixelFormat(Image::PF_RGB_8);
+    m_frame->setPixelFormat(Image::PF_LCHUV_8);
     
     // Filter for white, black, and red
-    filterForWhite(input, m_whiteMaskedFrame);
-    filterForRed(input, m_redMaskedFrame);
-    filterForBlack(input, m_blackMaskedFrame);
+    filterForWhite(m_frame, m_whiteMaskedFrame);
+    filterForRed(m_frame, m_redMaskedFrame);
+    filterForBlack(m_frame, m_blackMaskedFrame);
     
     // Update debug image with black, white and red color info
     filterDebugOutput(out);
@@ -361,10 +356,6 @@ void BinDetector::setSymbolImageLogging(bool value)
     m_logSymbolImages = value;
 }
 
-void BinDetector::setUseLUVFilter(bool value)
-{
-    m_useLUVFilter = value;
-}
     
 void BinDetector::init(core::ConfigNode config)
 {
@@ -482,34 +473,33 @@ void BinDetector::init(core::ConfigNode config)
         "Maximum gap between lines for them to be joined",
         50, &m_binHoughMaxLineGap, 0, 300); // 50 in Dans version
 
-    // Color filter
-    propSet->addProperty(config, false, "useLUVFilter",
-        "Use LUV based color filter",  false, &m_useLUVFilter);
 
     m_whiteFilter->addPropertiesToSet(propSet, &config,
-                                      "whiteL", "L* (White)",
-                                      "whiteU", "Blue Chrominance (White)",
-                                      "whiteV", "Red Chrominance (White)",
+                                      "whiteL", "Luminance",
+                                      "whiteC", "Chrominance",
+                                      "whiteH", "Hue",
                                       125, 255,  // L defaults // 180,255
                                       0, 255,  // U defaults // 76, 245
                                       0, 255); // V defaults // 200,255
 
     m_blackFilter->addPropertiesToSet(propSet, &config,
-                                      "blackL", "L* (Black)",
-                                      "blackU", "Blue Chrominance (Black)",
-                                      "blackV", "Red Chrominance (Black)",
+                                      "blackL", "Luminance",
+                                      "blackC", "Chrominance",
+                                      "blackH", "Hue",
                                       0, 124,  // L defaults // 180,255
                                       0, 255,  // U defaults // 76, 245
                                       0, 255); // V defaults // 200,255
 
     
     m_redFilter->addPropertiesToSet(propSet, &config,
-                                    "redL", "L* (Red)",
-                                    "redU", "Blue Chrominance (Red)",
-                                    "redV", "Red Chrominance (Red)",
+                                    "redL", "Luminance",
+                                    "redC", "Chrominance",
+                                    "redH", "Hue",
                                     0, 255,  // L defaults // 180,255
                                     0, 200,  // U defaults // 76, 245
                                     200, 255); // V defaults // 200,255
+
+    m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
@@ -542,31 +532,13 @@ void BinDetector::deleteImages()
     
 void BinDetector::filterForWhite(Image* input, Image* output)
 {
-    if (m_useLUVFilter)
-    {
-        m_whiteFilter->filterImage(input, output);
-    }
-    else
-    {
-        white_mask(m_percents->asIplImage(), input->asIplImage(),
-                   output->asIplImage(),
-                   m_whiteMaskMinimumPercent, m_whiteMaskMinimumIntensity);
-    }
+    m_whiteFilter->filterImage(input, output);
 }
 
 void BinDetector::filterForBlack(Image* input, Image* output)
 {
-    if (m_useLUVFilter)
-    {
-        m_blackFilter->filterImage(input, output);
-    }
-    else
-    {
-        black_mask(m_percents->asIplImage(), input->asIplImage(),
-                   output->asIplImage(),
-                   m_blackMaskMinimumPercent, m_blackMaskMaxTotalIntensity);
-    }
-
+    m_blackFilter->filterImage(input, output);
+  
     // And the red and black filter into the black
     if (m_blackIsRed)
     {
@@ -585,32 +557,8 @@ void BinDetector::filterForBlack(Image* input, Image* output)
 
 void BinDetector::filterForRed(Image* input, Image* output)
 {
-    if (m_useLUVFilter)
-    {
-        m_redFilter->filterImage(input, output);
-    }
-    else
-    {
-        int size = m_percents->getWidth() * m_percents->getHeight() * 3;
-        unsigned char* percentData = m_percents->getData();
-        unsigned char* inputData = input->getData();
-        unsigned char* outputData = output->getData();
 
-        for (int count = 0; count < size; count += 3)
-        {
-            if ((percentData[count+2] > m_redMinPercent) && // min R Percent
-                (inputData[count+2] > m_redMinRValue) && // min R
-                (inputData[count] < m_redMaxGValue) && // max G
-                (inputData[count+1] < m_redMaxBValue)) // max B
-            {
-                outputData[count]=outputData[count+1]=outputData[count+2]=255;
-            }
-            else
-            {
-                outputData[count]=outputData[count+1]=outputData[count+2]=0;
-            }
-        }
-    }
+    m_redFilter->filterImage(input, output);
 
     if (m_redErodeIterations)
     {
