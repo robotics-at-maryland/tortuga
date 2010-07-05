@@ -29,12 +29,6 @@ using namespace ram;
 
 static const std::string CONFIG =
     "{"
-    "    'filtBgLMin' : 0,"
-    "    'filtBgLMax' : 0,"
-    "    'filtBgCMin' : 0,"
-    "    'filtBgCMax' : 0,"
-    "    'filtBgHMin' : 0,"
-    "    'filtBgHMax' : 0,"
     "    'filtRedLMin' : 135,"
     "    'filtRedLMax' : 135,"
     "    'filtRedCMin' : 179,"

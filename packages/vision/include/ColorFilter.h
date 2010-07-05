@@ -39,7 +39,7 @@ public:
      *  @param output  Place results, (its input if NULL)
      */
     virtual void filterImage(Image* input, Image* output = 0);
-
+    void inverseFilterImage(Image* input, Image* output = 0);
 
     /**
      * @defgroup Set/Get methods for channel low and high values

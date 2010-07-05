@@ -71,7 +71,11 @@ class RAM_EXPORT WindowDetector : public Detector
     ColorFilter *m_greenFilter;
     ColorFilter *m_yellowFilter;
     ColorFilter *m_blueFilter;
-    ColorFilter *m_bgFilter;
+
+    ColorFilter *m_antiRedFilter;
+    ColorFilter *m_antiGreenFilter;
+    ColorFilter *m_antiYellowFilter;
+    ColorFilter *m_antiBlueFilter;
 
     /** Blob detector */
     BlobDetector m_blobDetector;
@@ -95,8 +99,11 @@ class RAM_EXPORT WindowDetector : public Detector
     int m_minWidth;
     int m_minHeight;
 
-    int m_minInnerWidth;
-    int m_minInnerHeight;
+    double m_minRelInnerWidth;
+    double m_minRelInnerHeight;
+
+    int m_centerXDisagreement;
+    int m_centerYDisagreement;
 
     double m_minPixelPercentage;
     double m_maxPixelPercentage;

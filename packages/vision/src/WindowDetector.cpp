@@ -97,13 +97,21 @@ void WindowDetector::init(core::ConfigNode config)
                          "Minimum height for a blob",
                          50, &m_minHeight);
 
-    propSet->addProperty(config, false, "minInnerWidth",
+    propSet->addProperty(config, false, "minRelInnerWidth",
                         "Minimum width for the inside of the target",
-                        20, &m_minInnerWidth);
+                         0.1, &m_minRelInnerWidth, 0.0, 1.0);
 
-    propSet->addProperty(config, false, "minInnerHeight",
+    propSet->addProperty(config, false, "minRelInnerHeight",
                         "Minimum height for the inside of the target",
-                        20, &m_minInnerHeight);
+                         0.1, &m_minRelInnerHeight, 0.0, 1.0);
+
+    propSet->addProperty(config, false, "maxCenterXDisagreement",
+                        "Maximum distance between the window and background centers",
+                        1000, &m_centerXDisagreement);
+
+    propSet->addProperty(config, false, "maxCenterYDisagreement",
+                        "Maximum distance between the window and background centers",
+                        1000, &m_centerYDisagreement);
 
     propSet->addProperty(config, false, "minPixelPercentage",
                          "Minimum percentage of pixels / area",
@@ -149,12 +157,6 @@ void WindowDetector::init(core::ConfigNode config)
                                      "BlueC", "Blue Chrominance",
                                      "BlueH", "Blue Hue",
                                      0, 255, 0, 255, 0, 255);
-    m_bgFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
-    m_bgFilter->addPropertiesToSet(propSet, &config,
-                                   "BgL", "Background Luminance",
-                                   "BgC", "Background Chrominance",
-                                   "BgH", "Background Hue",
-                                   0, 255, 0, 255, 0, 255);
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
@@ -205,6 +207,8 @@ bool WindowDetector::processColor(Image* input, Image* output,
         // Sanity check blob
         double pixelPercentage = blob.getSize() /
             (double) (blob.getHeight() * blob.getWidth());
+
+
         double aspect = blob.getTrueAspectRatio();
         if (aspect <= m_maxAspectRatio &&
             aspect >= m_minAspectRatio &&
@@ -212,10 +216,23 @@ bool WindowDetector::processColor(Image* input, Image* output,
             m_minWidth <= blob.getWidth() &&
             m_minPixelPercentage <= pixelPercentage &&
             m_maxPixelPercentage >= pixelPercentage &&
-            processBackground(tempFrame, *m_bgFilter, blob, innerBlob))
+            processBackground(tempFrame, filter, blob, innerBlob))
         {
-            outerBlob = blob;
-            return true;
+
+            int centerXdiff = abs(blob.getCenterX() - innerBlob.getCenterX());
+            int centerYdiff = abs(blob.getCenterY() - innerBlob.getCenterY());
+            double relHeight = (double) innerBlob.getHeight() / blob.getHeight();
+            double relWidth = (double) innerBlob.getWidth() / blob.getWidth();
+
+            if(centerXdiff < m_centerXDisagreement &&
+               centerYdiff < m_centerYDisagreement &&
+               relHeight > m_minRelInnerHeight &&
+               relWidth > m_minRelInnerWidth) {
+
+                outerBlob = blob;
+                return true;
+
+            }
         }
     }
 
@@ -232,7 +249,7 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
         outerBlob.getMinX(), outerBlob.getMinY(),
         outerBlob.getMaxX(), outerBlob.getMaxY());
 
-    filter.filterImage(innerFrame);
+    filter.inverseFilterImage(innerFrame);
     m_blobDetector.processImage(innerFrame);
     delete innerFrame;
 
@@ -240,9 +257,7 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
     
     BOOST_FOREACH(BlobDetector::Blob blob, bgBlobs) {
         double pxPercentage = blob.getFillPercentage();
-        if(pxPercentage >= m_innerMinPixelPercentage &&
-           blob.getHeight() >= m_minInnerHeight &&
-           blob.getWidth()  >= m_minInnerWidth) {
+        if(pxPercentage >= m_innerMinPixelPercentage) {
             innerBlob = blob;
             return true;
         }
@@ -272,7 +287,7 @@ void WindowDetector::processImage(Image* input, Image* output)
     m_redFound = redFound;
 
     if ((greenFound = processColor(frame, greenFrame, *m_greenFilter,
-                                   greenBlob, innerGreenBlob))) {
+                                  greenBlob, innerGreenBlob))) {
         publishFoundEvent(greenBlob, Color::GREEN);
     } else {
         // Publish lost event if this was found previously

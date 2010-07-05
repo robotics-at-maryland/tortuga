@@ -122,6 +122,38 @@ void ColorFilter::filterImage(Image* input, Image* output)
     }
 }
 
+void ColorFilter::inverseFilterImage(Image* input, Image *output)
+{
+    int numPixels = input->getWidth() * input->getHeight();
+    int nChannels;
+    unsigned char* inputData = input->getData();
+    unsigned char* outputData = 0;
+    if (output) {
+        outputData = output->getData();
+        nChannels = output->getNumChannels();
+    } else {
+        outputData = input->getData();
+        nChannels = input->getNumChannels();
+    }
+
+    for (int i = 0; i < numPixels; ++i)
+    {
+        unsigned char result = 255 * !(
+            m_channel1Range[*inputData] & 
+            m_channel2Range[*(inputData + 1)] &
+            m_channel3Range[*(inputData + 2)]);
+        
+        for (int k = 0; k < nChannels; k++, outputData++) {
+            *outputData = result;
+        }
+        
+        inputData += 3;
+    }
+}
+
+
+
+
 void ColorFilter::setChannel1Low(int value)
 {
     // Ensure the value is in the proper range
