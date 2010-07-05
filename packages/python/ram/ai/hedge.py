@@ -100,7 +100,8 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         return set(['rangeThreshold', 'frontThreshold', 'alignmentThreshold',
                     'depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxSpeed',
-                    'translateGain']).union(FilteredState.getattr())
+                    'translateGain', 'iTranslateGain',
+                    'dTranslateGain']).union(FilteredState.getattr())
 
     def HEDGE_FOUND(self, event):
         """Update the state of the hedge, this moves the vehicle"""
@@ -145,6 +146,8 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxSpeed = self._config.get('maxSpeed', 1)
         translateGain = self._config.get('translateGain', 2)
+        iTranslateGain = self._config.get('iTranslateGain', 0)
+        dTranslateGain = self._config.get('dTranslateGain', 0)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._hedge,
             alignmentThreshold = alignmentThreshold,
@@ -156,7 +159,9 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
             dDepthGain = dDepthGain,
             maxDepthDt = maxDepthDt,
             translate = True,
-            translateGain = translateGain)
+            translateGain = translateGain,
+            iTranslateGain = iTranslateGain,
+            dTranslateGain = dTranslateGain)
         
         self.motionManager.setMotion(motion)
         
