@@ -64,6 +64,7 @@ WindowDetector::~WindowDetector()
     delete m_blueFilter;
 
     delete frame;
+    delete tempFrame;
     delete redFrame;
     delete greenFrame;
     delete yellowFrame;
@@ -160,7 +161,7 @@ void WindowDetector::init(core::ConfigNode config)
     
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    binary = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    tempFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -179,49 +180,11 @@ bool WindowDetector::processColor(Image* input, Image* output,
                                   BlobDetector::Blob& outerBlob,
                                   BlobDetector::Blob& innerBlob)
 {
-    output->copyFrom(input);
-    output->setPixelFormat(Image::PF_RGB_8);
-    output->setPixelFormat(Image::PF_LCHUV_8);
+    tempFrame->copyFrom(input);
+    tempFrame->setPixelFormat(Image::PF_RGB_8);
+    tempFrame->setPixelFormat(Image::PF_LCHUV_8);
 
-    // if(m_debug == 3) {
-    //     OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
-    //     OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
-    //     OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
-    //     unsigned char* lchData = (unsigned char *) output->getData();
-    //     unsigned char* debug1Data = (unsigned char *) debug1.getData();
-    //     unsigned char* debug2Data = (unsigned char *) debug2.getData();
-    //     unsigned char* debug3Data = (unsigned char *) debug3.getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug1Data = lchData[0];
-    //         debug1Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug1);
-
-    //     lchData = (unsigned char *) output->getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug2Data = lchData[1];
-    //         debug2Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug2);
-
-    //     lchData = (unsigned char *) output->getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug3Data = lchData[2];
-    //         debug3Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug3);
-    // }
-
-    filter.filterImage(output, binary);
+    filter.filterImage(tempFrame, output);
 
     // Erode the image (only if necessary)
     IplImage* img = output->asIplImage();
@@ -234,7 +197,7 @@ bool WindowDetector::processColor(Image* input, Image* output,
         cvDilate(img, img, NULL, m_dilateIterations);
     }
 
-    m_blobDetector.processImage(binary);
+    m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
@@ -249,7 +212,7 @@ bool WindowDetector::processColor(Image* input, Image* output,
             m_minWidth <= blob.getWidth() &&
             m_minPixelPercentage <= pixelPercentage &&
             m_maxPixelPercentage >= pixelPercentage &&
-            processBackground(output, *m_bgFilter, blob, innerBlob))
+            processBackground(tempFrame, *m_bgFilter, blob, innerBlob))
         {
             outerBlob = blob;
             return true;
@@ -271,6 +234,7 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
 
     filter.filterImage(innerFrame);
     m_blobDetector.processImage(innerFrame);
+    delete innerFrame;
 
     BlobDetector::BlobList bgBlobs = m_blobDetector.getBlobs();
     
