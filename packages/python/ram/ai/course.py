@@ -161,11 +161,15 @@ class PipeGate(task.Task):
     @staticmethod
     def _transitions():
         return { pipe.Centering.SETTLED : task.Next,
+                 task.TIMEOUT : task.Next,
                  'GATE' : state.Branch(pipe.Searching),
                  'PIPE' : state.Branch(pipe.Seeking) }
     
-    def enter(self):
-        task.Task.enter(self)
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
         
         self.ai.data['pipeBiasDirection'] = \
             self.ai.data['config'].get('PipeGate', {}).get(
@@ -318,7 +322,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             'timeout', 10)
         self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
         self.timer.start()
-
+        
         self._motion = motion
         self._motionList = motionList
         self.motionManager.setMotion(motion, *motionList)

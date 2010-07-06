@@ -13,7 +13,7 @@
 # Demo course with everything
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Pipe1',
-            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire', 
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
             'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
             'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',

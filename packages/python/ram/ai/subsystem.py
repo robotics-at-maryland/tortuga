@@ -88,7 +88,7 @@ class AI(core.Subsystem):
                        'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth',
                        'buoyDepth', 'targetBuoys', 'windowDepth',
                        'targetWindows', 'windowOffset'])
-        pipeOptions = set(['biasDirection', 'threshold'])
+        pipeOptions = set(['biasDirection', 'threshold', 'taskTimeout'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
                              'absolute', 'taskTimeout'])
@@ -120,7 +120,7 @@ class AI(core.Subsystem):
                     if innerItem not in taskOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
-            elif item == 'Bin':
+            elif item == 'Bin' or item == 'RandomBin':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in binOptions:
                         raise Exception("'%s' is not a valid config "
@@ -133,6 +133,11 @@ class AI(core.Subsystem):
             elif item == 'TimedTravel':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in moveOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'SafeSonar':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in set(['taskTimeout']):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:
