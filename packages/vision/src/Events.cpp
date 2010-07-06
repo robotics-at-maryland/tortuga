@@ -215,8 +215,10 @@ core::EventPtr HedgeEvent::clone()
 {
     HedgeEventPtr event = HedgeEventPtr(new HedgeEvent());
     copyInto(event);
-    event->x = x;
-    event->y = y;
+    event->leftX = leftX;
+    event->leftY = leftY;
+    event->rightX = rightX;
+    event->rightY = rightY;
     event->squareNess = squareNess;
     event->range = range;
     return event;

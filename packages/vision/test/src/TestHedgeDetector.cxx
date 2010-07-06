@@ -127,16 +127,20 @@ TEST_FIXTURE(HedgeDetectorFixture, Center)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
-    double expectedY = 0;
+    double expectedLeftX = -0.1625 * 640.0/480.0;
+    double expectedLeftY = 0 * 640.0/480.0;
+    double expectedRightX = 0.1625 * 640.0/480.0;
+    double expectedRightY = 0 * 640.0/480.0;
     double expectedRange = 1.0 - ((height + 11)/480.0);
     double expectedSquareNess = width / (double) height;
     
     // Check the events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.005);
-    CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(expectedLeftX, event->leftX, 0.005);
+    CHECK_CLOSE(expectedLeftY, event->leftY, 0.005);
+    CHECK_CLOSE(expectedRightX, event->rightX, 0.005);
+    CHECK_CLOSE(expectedRightY, event->rightY, 0.005);
     CHECK_CLOSE(expectedRange, event->range, 0.005);
     CHECK_CLOSE(expectedSquareNess, event->squareNess, 0.15);
 }
@@ -151,16 +155,20 @@ TEST_FIXTURE(HedgeDetectorFixture, Left)
     // Process it
     processImage(&input);
 
-    double expectedX = -0.25 * 640.0/480.0;
-    double expectedY = 0;
+    double expectedLeftX = -0.4125 * 640.0/480.0;
+    double expectedLeftY = 0;
+    double expectedRightX = -0.0875 * 640.0/480.0;
+    double expectedRightY = 0;
     double expectedRange = 1.0 - ((height + 11)/480.0);
     double expectedSquareNess = width / (double) height;
     
     // Check the events
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(expectedX, event->x, 0.005);
-    CHECK_CLOSE(expectedY, event->y, 0.005);
+    CHECK_CLOSE(expectedLeftX, event->leftX, 0.005);
+    CHECK_CLOSE(expectedLeftY, event->leftY, 0.005);
+    CHECK_CLOSE(expectedRightX, event->rightX, 0.005);
+    CHECK_CLOSE(expectedRightY, event->rightY, 0.005);
     CHECK_CLOSE(expectedRange, event->range, 0.005);
     CHECK_CLOSE(expectedSquareNess, event->squareNess, 0.15);
 }

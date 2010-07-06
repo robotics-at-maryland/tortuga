@@ -279,12 +279,17 @@ void HedgeDetector::publishFoundEvent(BlobDetector::Blob& blob)
     int imageX = (blob.getMaxX() - blob.getMinX()) / 2 + blob.getMinX();
     int imageY = (blob.getMaxY() - blob.getMinY()) / 2 + blob.getMinY();
     
-    double centerX, centerY;
-    Detector::imageToAICoordinates(frame, imageX, imageY,
-                                   centerX, centerY);
+    double leftX, leftY, rightX, rightY;
+    Detector::imageToAICoordinates(frame, imageX - blob.getWidth() / 4,
+                                   imageY, leftX, leftY);
 
-    event->x = centerX;
-    event->y = centerY;
+    Detector::imageToAICoordinates(frame, imageX + blob.getWidth() / 4,
+                                   imageY, rightX, rightY);
+
+    event->leftX = leftX;
+    event->leftY = leftY;
+    event->rightX = rightX;
+    event->rightY = rightY;
     event->squareNess = 1.0 / blob.getTrueAspectRatio();
     event->range = 1.0 - (((double)blob.getHeight()) /
                           ((double)frame->getHeight()));

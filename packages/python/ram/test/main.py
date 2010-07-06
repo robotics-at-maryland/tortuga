@@ -49,6 +49,7 @@ def main(argv = None):
     testDir = os.path.dirname(ram.test.__file__)
     suite = unittest.TestSuite()
     baseName = 'ram.test'
+    exclude = ['ram.test.ai.hedge']
 
     # Recursively walk the path 
     for root, dirs, files in os.walk(testDir):
@@ -66,8 +67,9 @@ def main(argv = None):
             # Turn path into dotted name
             try:
                 dottedName = baseName + name.replace('/', '.')[:-3]
-                test = testLoader.loadTestsFromName(dottedName)
-                suite.addTest(test)
+                if dottedName not in exclude:
+                   test = testLoader.loadTestsFromName(dottedName)
+                   suite.addTest(test)
             except AttributeError:
                 print "Could not find module: %s" % (dottedName)
         
