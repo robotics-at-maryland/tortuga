@@ -142,7 +142,7 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
-        self._desiredRange = self._config.get('desiredRange', 0.5)
+        self._desiredRange = self._config.get('desiredRange', 0.7)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.1)
         maxSpeed = self._config.get('maxSpeed', 1)
         translateGain = self._config.get('translateGain', 2)
@@ -358,7 +358,7 @@ class SeekingToRange(RangeXYHold):
                                        lostState = FindAttemptRange)
 
     def enter(self):
-        self._config.setdefault('desiredRange', 5)
+        self._config.setdefault('desiredRange', 0.5)
         RangeXYHold.enter(self)
         
 class HedgeAlignState(FilteredState, StoreHedgeEvent):
@@ -398,7 +398,7 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
         dDepthGain = self._config.get('dDepthGain', 0.75)
         maxDepthDt = self._config.get('maxDepthDt', 0.3)
         
-        desiredRange = self._config.get('desiredRange', 5)
+        desiredRange = self._config.get('desiredRange', 0.5)
         maxRangeDiff = self._config.get('maxRangeDiff', 0.2)
         maxAlignDiff = self._config.get('maxAlignDiff', 0.5)
         alignGain = self._config.get('alignGain', 1.0)

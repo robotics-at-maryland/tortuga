@@ -333,7 +333,9 @@ class CorrectDepth(BuoyTrackingState):
 
     @staticmethod
     def getattr():
-        return BuoyTrackingState.update(
+        attr = BuoyTrackingState.getattr()
+	attr.update(set(['yThreshold', 'depthGain', 'speed', 'boxHeight']))
+        return BuoyTrackingState.getattr().union(
             set(['yThreshold', 'depthGain', 'speed', 'boxHeight']))
 
     def BUOY_FOUND(self, event):
