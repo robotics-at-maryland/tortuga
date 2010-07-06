@@ -102,7 +102,8 @@ ram.ai.buoy.Align:
     depthGain: 4
     maxDepthDt: 0.3
 ram.ai.buoy.Reposition:
-    duration: 12
+    primaryDuration: 4
+    secondaryDuration: 6
 
 # Target AI
 ram.ai.target.Start:
