@@ -13,6 +13,9 @@ ram.ai.gate.Start:
 ram.ai.pipe.Seeking:
     speedGain: 3
     forwardSpeed: 4
+    sidewaysSpeedGain: 7
+    iSidewaysSpeedGain: 1
+    dSidewaysSpeedGain: 2
     yawGain: 0.25
 ram.ai.pipe.Centering:
     speedGain: 3
@@ -61,6 +64,8 @@ ram.ai.duct.Aligning:
 ram.ai.buoy.Searching:
     legTime: 5
     sweepAngle: 30
+ram.ai.buoy.CorrectDepth:
+    boxHeight: 2.0
 ram.ai.buoy.Align:
     desiredRange: 5
     depthGain: 0
@@ -72,10 +77,11 @@ ram.ai.buoy.Align:
     translate: False
     iTranslateGain: 0.1
     dTranslateGain: 0.2
+    maxYaw: 2
 ram.ai.buoy.Hit:
     duration: 1
 ram.ai.buoy.Reposition:
-    duration: 10
+    duration: 6
 
 # Target Task
 ram.ai.target.SeekingToCentered:
@@ -153,10 +159,26 @@ ram.ai.barbedwire.Through:
 # Hedge AI
 ram.ai.hedge.SeekingToCentered:
     depthGain: 0
+    translateGain: 10
+    iTranslateGain: 1
+    dTranslateGain: 4
 ram.ai.hedge.SeekingToRange:
     depthGain: 0
 ram.ai.hedge.SeekingToAligned:
     depthGain: 0
+    alignGain: 0.6
+    yawGain: 0.6
+    maxYaw: 2
+    checkDelay: 2
+    minSquareNess: 1.8
+ram.ai.hedge.Aligning:
+    settleTime: 5
+    depthGain: 0
+    yawGain: 0.4
+    alignGain: 0.4
+    maxYaw: 1
+ram.ai.hedge.Through:
+    depthOffset: 0.8
 
 # Bin Sub task
 ram.ai.bin.Seeking:
@@ -223,7 +245,7 @@ ram.ai.window.SeekingToAligned:
     desiredRange: 0.5
 ram.ai.window.FireTorpedos:
     depthGain: 0
-    desiredRange: 0.45
+    desiredRange: 0.40
 ram.ai.window.CorrectHeight:
     offset: 1.1
 ram.ai.window.Approach:

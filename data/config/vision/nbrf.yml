@@ -49,6 +49,24 @@ BinDetector:
     whiteMaskMinimumPercent: 15
     whiteMaskMinimumIntensity: 137
     redMinRValue: 70
+    filtblackCMax: 19
+    filtblackCMin: 0
+    filtblackHMax: 255
+    filtblackHMin: 0
+    filtblackLMax: 81
+    filtblackLMin: 0
+    filtredCMax: 255
+    filtredCMin: 20
+    filtredHMax: 32
+    filtredHMin: 236
+    filtredLMax: 255
+    filtredLMin: 15
+    filtwhiteCMax: 255
+    filtwhiteCMin: 0
+    filtwhiteHMax: 103
+    filtwhiteHMin: 158
+    filtwhiteLMax: 255
+    filtwhiteLMin: 147
     weaponMinAspectRatioAxe: 1
     weaponMaxAspectRatioAxe: 5.125
     weaponMinSideFillRatioAxe: 1.0
@@ -56,7 +74,7 @@ BinDetector:
     weaponMinCornerFillAvgAxe: 0.01
     weaponMaxCornerFillAvgAxe: 0.37
     weaponMinMiddleFillAvgAxe: 0.08
-    weaponMinMiddleFillAvgAxe: 0.69
+    weaponMaxMiddleFillAvgAxe: 0.69
     weaponMinAspectRatioMachete: 1.75
     weaponMaxAspectRatioMachete: 3.87
     weaponMinSideFillRatioMachete: 1.1
@@ -80,7 +98,7 @@ BinDetector:
     weaponMinCornerFillAvgHammer: 0.0
     weaponMaxCornerFillAvgHammer: 0.31
     weaponMinMiddleFillAvgHammer: 0.09
-    weaponMinMiddleFillAvgHammer: 0.24
+    weaponMaxMiddleFillAvgHammer: 0.24
 DuctDetector:
     minRedOverGreen: 0.5
     maxRedOverGreen: 1.5
@@ -160,12 +178,12 @@ WindowDetector:
     debug: 0
     dilateIterations: 0
     erodeIterations: 0
-    filtBgCMax: 85
-    filtBgCMin: 0
-    filtBgHMax: 255
-    filtBgHMin: 118
-    filtBgLMax: 255
-    filtBgLMin: 0
+    #filtBgCMax: 51
+    #filtBgCMin: 0
+    #filtBgHMax: 63
+    #filtBgHMin: 199
+    #filtBgLMax: 255
+    #filtBgLMin: 0
     filtBlueCMax: 255
     filtBlueCMin: 40
     filtBlueHMax: 216
@@ -195,8 +213,8 @@ WindowDetector:
     maxPixelPercentage: 0.5
     minAspectRatio: 0.5
     minHeight: 40
-    minInnerHeight: 20
-    minInnerWidth: 20
+    minRelInnerHeight: .3
+    minRelInnerWidth: .3
     minPixelPercentage: 0.12
     minWidth: 40
 HedgeDetector:
