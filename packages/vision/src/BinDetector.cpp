@@ -92,6 +92,7 @@ void BinDetector::Bin::draw(Image* image)
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
+    m_debug(0),
     m_blobDetector(config, eventHub),
     m_symbolDetector(SymbolDetectorPtr()),
     m_found(false),
@@ -384,6 +385,10 @@ void BinDetector::init(core::ConfigNode config)
     // Add properties of the symbolDetector
     propSet->addPropertiesFromSet(m_symbolDetector->getPropertySet().get());
     
+    // Debug parameter
+    propSet->addProperty(config, false, "debug",
+                         "Debug parameter", 0, &m_debug, 0, 1);
+
     // General properties
     propSet->addProperty(config, false, "centeredLimit",
         "Maximum distance for the bin to be considred \"centered\"",
@@ -1014,7 +1019,7 @@ bool BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
         cvLine(input->asIplImage(), line[0], line[1], CV_RGB(255,255,0),
                5, CV_AA, 0);
         
-        if (output)
+        if (output && m_debug == 1)
         {
             line[0].x += bin.getCenterX() - input->getWidth() / 2;
             line[0].y += bin.getCenterY() - input->getHeight() / 2;

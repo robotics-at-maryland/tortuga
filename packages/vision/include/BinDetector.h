@@ -191,6 +191,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** Logs the image of the symbol to file based on the symbol type */
     void logSymbolImage(Image* image, Symbol::SymbolType symbol);
     
+    /** determines the debug output */
+    int m_debug;
+
     /** Object that detects the current on screen blobs */
     BlobDetector m_blobDetector;
 
