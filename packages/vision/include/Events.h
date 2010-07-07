@@ -325,13 +325,16 @@ class RAM_EXPORT HedgeEvent : public core::Event
 {
   public:
     HedgeEvent(double leftX_, double leftY_, double rightX_, double rightY_,
-               double width_, double range_) :
+               double width_, double range_,
+               bool haveLeft_, bool haveRight_) :
         leftX(leftX_),
         leftY(leftY_),
         rightX(rightX_),
         rightY(rightY_),
         squareNess(width_),
-        range(range_)
+        range(range_),
+        haveLeft(haveLeft_),
+        haveRight(haveRight_)
     {
     }
 
@@ -341,7 +344,9 @@ class RAM_EXPORT HedgeEvent : public core::Event
         rightX(0),
         rightY(0),
         squareNess(0),
-        range(0)
+        range(0),
+        haveLeft(false),
+        haveRight(false)
     {
     }
 
@@ -349,9 +354,14 @@ class RAM_EXPORT HedgeEvent : public core::Event
     double leftY;
     double rightX;
     double rightY;
+
     // Calculated on width / height
     double squareNess;
     double range;
+
+    bool haveLeft;
+    bool haveRight;
+
 
     virtual core::EventPtr clone();
 };

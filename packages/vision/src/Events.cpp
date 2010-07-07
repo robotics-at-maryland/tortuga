@@ -221,6 +221,8 @@ core::EventPtr HedgeEvent::clone()
     event->rightY = rightY;
     event->squareNess = squareNess;
     event->range = range;
+    event->haveLeft = haveLeft;
+    event->haveRight = haveRight;
     return event;
 }
 
