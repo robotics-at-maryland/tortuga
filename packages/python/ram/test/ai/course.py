@@ -175,6 +175,20 @@ class TestPipe(PipeTestCase):
         PipeTestCase.checkStart(self, course.Pipe)
         #self.assert_(self.visionSystem.pipeLineDetector)
         
+    def testFinish(self):
+        """
+        Makes sure that the pipe task cleans up after itself
+        """
+        self.ai.data['pipeBiasDirection'] = 45
+        self.ai.data['pipeThreshold'] = 45
+        self.ai.data['pipeStartOrientation'] = 45
+
+        self.machine.stop()
+
+        self.assert_(not self.ai.data.has_key('pipeBiasDirection'))
+        self.assert_(not self.ai.data.has_key('pipeThreshold'))
+        self.assert_(not self.ai.data.has_key('pipeStartOrientation'))
+
     def testSettled(self):
         """
         Make sure that we move onto the light once we get over the pipe
@@ -377,13 +391,19 @@ class PipeObjectiveTest(object):
     def testStart(self):
         self.assertCurrentState(self.myState)
 
-        self.assert_(not self.ai.data.has_key('pipeStartOrientation'))
+        #self.assert_(not self.ai.data.has_key('pipeStartOrientation'))
 
         # Make sure we've started the first motion
         self.assertCurrentMotion(self.motion)
 
         # We should have no branches yet
         self.assertCurrentBranches([])
+
+    def testFinish(self):
+        self.machine.stop()
+
+        # Make sure it's cleaned up after itself
+        self.assert_(not self.ai.data.has_key('pipeStartOrientation'))
 
     def testMultiMotion(self):
         self.assertCurrentState(self.myState)

@@ -3,6 +3,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Window']
 
 config:
+    gateDepth: 5
     lightDepth: 9.5 #6
     pipeDepth: 7
     bwireDepth: 11.3
@@ -18,24 +19,32 @@ config:
     safeDepth: 10
     #safeDepthOffset: 1
     safeOffset: -0.4
+    Gate:
+        speed: 3
+        time: 5
+    PipeGate:
+        taskTimeout: 30
+        biasDirection: -125
+        threshold: 30
     Pipe1:
         biasDirection: -100
-        threshold: 50
-    PipeBarbedWire:
-        #biasDirection: -100
-        #threshold: 0
-        rotation: 0
-        duration: 0
-        legTime: 5
-        sweepAngle: 30
-        sweepSpeed: 3
+        threshold: 30
+    PipeTarget:
+        biasDirection: 15
+        threshold: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 180
+                duration: 4
+                absolute: False
     PipeBin:
-        #biasDirection: -110
-        #threshold: 0
-        rotation: -40
-        duration: 0
-        legTime: 3
-        sweepAngle: 45
-        sweepSpeed: 3
+        biasDirection: 165
+        threshold: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 120
+                speed: 20
     Buoy:
         taskTimeout: 135

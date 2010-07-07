@@ -38,8 +38,27 @@ config:
     safeDepth: 15
     safeOffset: -0.35
     Gate:
-         time: 30
-         speed: 3
+        time: 30
+        speed: 3
+    PipeTarget:
+        taskTimeout: 45
+        motionTimeout: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 10
+                speed: 1
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 90
+                speed: 10
+                absolute: False
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 0
+                speed: 5
+                duration: 5
+                absolute: False
     #PipeGate:
     #    biasDirection: 0
     #    threshold: 0

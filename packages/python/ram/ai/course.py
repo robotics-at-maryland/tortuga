@@ -144,6 +144,8 @@ class Pipe(task.Task):
     def exit(self):
         del self.ai.data['pipeBiasDirection']
         del self.ai.data['pipeThreshold']
+        if self.ai.data.has_key('pipeStartOrientation'):
+            del self.ai.data['pipeStartOrientation']
         
         task.Task.exit(self)
         self.stateMachine.stopBranch(pipe.Start)
@@ -297,10 +299,6 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self._branched = True
 
     def enter(self):
-        # Cleanup pipeStartOrientation if it exists in the ai data
-        if self.ai.data.has_key('pipeStartOrientation'):
-            del self.ai.data['pipeStartOrientation']
-
         pipe.PipeTrackingState.enter(self)
 
         self.visionSystem.pipeLineDetectorOn()
@@ -319,7 +317,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         task.Task.enter(self, taskTimeout)
 
         timeout = self.ai.data['config'].get(self._className, {}).get(
-            'timeout', 10)
+            'motionTimeout', 10)
         self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
         self.timer.start()
         
@@ -332,8 +330,11 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self.motionManager.setMotion(*motions)
 
     def exit(self):
+        # Cleanup global variables
         del self.ai.data['pipeBiasDirection']
         del self.ai.data['pipeThreshold']
+        if self.ai.data.has_key('pipeStartOrientation'):
+            del self.ai.data['pipeStartOrientation']
 
         task.Task.exit(self)
 

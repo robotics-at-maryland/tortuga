@@ -91,7 +91,8 @@ class AI(core.Subsystem):
         pipeOptions = set(['biasDirection', 'threshold', 'taskTimeout'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
-                             'absolute', 'taskTimeout', 'timeout', 'motions'])
+                             'absolute', 'taskTimeout', 'motionTimeout',
+                             'motions'])
         taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
         moveOptions = set(['depth', 'heading', 'speed', 'duration',
                            'turnSpeed', 'depthSpeed'])
