@@ -896,6 +896,7 @@ class ExamineTestCase(object):
         self.nextState = nextState
         self.failureState = failureState
         self.recoverState = recoverState
+        self.ai.data['doICare'] = True
 
         self.machine.start(self.myState)
 
@@ -1473,6 +1474,7 @@ class TestDropMarker(BinTestCase):
         self.ai.data['droppingSymbol'] = vision.Symbol.CLUB
         self.machine.start(bin.DropMarker)
         self.ai.data['binData']['currentID'] = 0
+        self.ai.data['doICare'] = True
 
         def binComplete(event):
             self._binComplete = True
@@ -1619,6 +1621,7 @@ class TestCheckDropped(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
         self.ai.data['startSide'] = bin.BinSortingState.RIGHT
+        self.ai.data['doICare'] = True
 
         def binComplete(event):
             self._binComplete = True
@@ -1666,9 +1669,23 @@ class TestCheckDropped(BinTestCase):
                 'closerlook_offsetTheOffset'))
         
     def testTooManyScans(self):
+        # Test going into the failsafe scan
         self.ai.data['markersDropped'] = 1
         self.ai.data['numOfScans'] = 2
         self.assertAIDataValue('startSide', bin.BinSortingState.RIGHT)
+        self.machine.start(bin.CheckDropped)
+        
+        self.qeventHub.publishEvents()
+        
+        self.assertCurrentState(bin.Dive)
+
+        
+        # Test after the failsafe scan
+        self.ai.data['markersDropped'] = 1
+        self.ai.data['numOfScans'] = 2
+        self.ai.data['doICare'] = False
+        self.ai.data['startSide'] = bin.BinSortingState.RIGHT
+
         self.machine.start(bin.CheckDropped)
         
         self.qeventHub.publishEvents()

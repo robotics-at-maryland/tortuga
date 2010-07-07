@@ -558,6 +558,9 @@ class Start(state.State):
     def enter(self):
         # Store the initial direction
         self.ai.data['numOfScans'] = 0
+        
+        # Set the failsafe
+        self.ai.data.setdefault('doICare', True)
 
         orientation = self.vehicle.getOrientation()
         self.ai.data['binStartOrientation'] = \
@@ -1012,6 +1015,7 @@ class Examine(HoveringState):
             HoveringState.getattr())
 
     def BIN_FOUND(self, event):
+        
         if not self._adjustAngle:
             event.angle = math.Degree(0)
         
@@ -1019,11 +1023,14 @@ class Examine(HoveringState):
 
         # Only look at the current bin
         if self._currentBin(event):
-            # Check if it's over the minimum required data
-            if self.ai.data['binData']['histogram'][event.id]['totalHits'] >= \
-                    self._minimumHits:
-                # Have it determine the symbol if it's got enough data
-                self._determineSymbols(event.id)
+            if self.ai.data['doICare']:
+                # Check if it's over the minimum required data
+                if self.ai.data['binData']['histogram'][event.id]['totalHits'] >= \
+                        self._minimumHits:
+                    # Have it determine the symbol if it's got enough data
+                    self._determineSymbols(event.id)
+            else:
+                self.publish(Examine.FOUND_TARGET, core.Event())
 
     def _determineSymbols(self, currentID):
         """
@@ -1420,9 +1427,10 @@ class DropMarker(SettlingState):
         # Release the marker
         self.vehicle.dropMarker()
 
-        # Mark that we dropped the symbol
-        droppingSymbol = self.ai.data['droppingSymbol']
-        self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
+        if self.ai.data['doICare']:
+            # Mark that we dropped the symbol
+            droppingSymbol = self.ai.data['droppingSymbol']
+            self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
 
         markerNum = self.ai.data['markersDropped']
         if markerNum < 2:
@@ -1484,11 +1492,16 @@ class CheckDropped(HoveringState):
                 data['startSide'] = BinSortingState.RIGHT
             else:
                 data['startSide'] = BinSortingState.LEFT
+            
             if data['numOfScans'] == -1 or \
 	    	data['numOfScans'] < self._maximumScans:
                 self.publish(CheckDropped.RESTART, core.Event())
             else:
-                self.publish(CheckDropped.FINISH, core.Event())
+                if not data['doICare']:
+                    self.publish(CheckDropped.FINISH, core.Event())
+                else:
+                    data['doICare'] = False
+                    self.publish(CheckDropped.RESTART, core.Event())
         else:
             # We've dropped them all. Finish.
             self.publish(CheckDropped.FINISH, core.Event())
