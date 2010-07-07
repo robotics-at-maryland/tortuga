@@ -36,6 +36,8 @@ HedgeDetector::HedgeDetector(core::ConfigNode config,
     cam(0),
     m_colorFilter(0),
     m_blobDetector(config, eventHub),
+    m_lBlobDetector(config, eventHub),
+    m_rBlobDetector(config, eventHub),
     frame(0),
     greenFrame(0)
     
@@ -90,6 +92,11 @@ void HedgeDetector::init(core::ConfigNode config)
                          "Number of times to dilate the binary image",
                          0, &m_dilateIterations);
 
+    propSet->addProperty(config, false, "lostPoleThreshold",
+                         "Threshold for deciding we cannot see one of the poles."
+                         "Percentage relative to full center height.",
+                         0.0, &m_poleThreshold, 0.0, 1.0);
+
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
                                     "L", "Luminance",
@@ -100,11 +107,9 @@ void HedgeDetector::init(core::ConfigNode config)
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
 
-
     // Working images
     frame = new vision::OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new vision::OpenCVImage(640, 480, Image::PF_BGR_8);
-
 }
 
 HedgeDetector::~HedgeDetector()
@@ -128,52 +133,14 @@ void HedgeDetector::update()
 
 
 bool HedgeDetector::processColor(Image* input, Image* output,
-                                  ColorFilter& filter,
-                                  BlobDetector::Blob& outBlob)
+                                 ColorFilter& filter,
+                                 BlobDetector::Blob& leftBlob,
+                                 BlobDetector::Blob& rightBlob,
+                                 BlobDetector::Blob& outBlob)
 {
     output->copyFrom(input);
     output->setPixelFormat(Image::PF_RGB_8);
     output->setPixelFormat(Image::PF_LCHUV_8);
-
-
-    // if(m_debug == 3) {
-    //     OpenCVImage debug1(640, 480, Image::PF_GRAY_8);
-    //     OpenCVImage debug2(640, 480, Image::PF_GRAY_8);
-    //     OpenCVImage debug3(640, 480, Image::PF_GRAY_8);
-    //     unsigned char* lchData = (unsigned char *) output->getData();
-    //     unsigned char* debug1Data = (unsigned char *) debug1.getData();
-    //     unsigned char* debug2Data = (unsigned char *) debug2.getData();
-    //     unsigned char* debug3Data = (unsigned char *) debug3.getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug1Data = lchData[0];
-    //         debug1Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug1);
-
-    //     lchData = (unsigned char *) output->getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug2Data = lchData[1];
-    //         debug2Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug2);
-
-    //     lchData = (unsigned char *) output->getData();
-
-    //     for(int i=0; i<640*480; i++)
-    //     {
-    //         *debug3Data = lchData[2];
-    //         debug3Data += 1;
-    //         lchData += 3;
-    //     }
-    //     Image::showImage(&debug3);
-    // }
-
 
     filter.filterImage(output);
 
@@ -206,6 +173,7 @@ bool HedgeDetector::processColor(Image* input, Image* output,
             percent > m_minPixelPercentage &&
             percent < m_maxPixelPercentage)
         {
+            processSides(output, blob, leftBlob, rightBlob);
             outBlob = blob;
             return true;
         }
@@ -214,15 +182,54 @@ bool HedgeDetector::processColor(Image* input, Image* output,
     return false;
 }
 
+bool HedgeDetector::processSides(Image* input, 
+                                 BlobDetector::Blob& fullBlob,
+                                 BlobDetector::Blob& leftBlob,
+                                 BlobDetector::Blob& rightBlob)
+{
+    int width = fullBlob.getWidth();
+    int height = fullBlob.getHeight();
+
+    int minX = fullBlob.getMinX(), maxX = fullBlob.getMaxX();
+    int minY = fullBlob.getMinY(), maxY = fullBlob.getMaxY();
+
+    // data storage for half hedge sub images
+    unsigned char *lbuffer = new unsigned char[width * height * 3];
+    unsigned char *rbuffer = new unsigned char[width * height * 3];
+
+    // extract left and right halves of the hedge candidate
+    Image *lFrame = Image::extractSubImage(
+        input, lbuffer, minX, minY, minX + width/2, maxY);
+
+    Image *rFrame = Image::extractSubImage(
+        input, rbuffer, minX + width/2, minY, maxX, maxY);
+
+    m_lBlobDetector.processImage(lFrame);
+    m_rBlobDetector.processImage(rFrame);
+
+    BlobDetector::BlobList lBlobs = m_lBlobDetector.getBlobs();
+    BlobDetector::BlobList rBlobs = m_rBlobDetector.getBlobs();
+
+    leftBlob = lBlobs[0];
+    rightBlob = rBlobs[0];
+
+    delete lFrame;
+    delete rFrame;
+
+    return true;
+}
+
 void HedgeDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
     
-    BlobDetector::Blob hedgeBlob;
+    BlobDetector::Blob hedgeBlob, leftBlob, rightBlob;
     bool found = false;
 
-    if((found = processColor(frame, greenFrame, *m_colorFilter, hedgeBlob))) {
-        publishFoundEvent(hedgeBlob);
+    if((found = processColor(frame, greenFrame, *m_colorFilter,
+                             leftBlob, rightBlob, hedgeBlob))) {
+        publishFoundEvent(hedgeBlob, leftBlob, rightBlob);
+
     } else {
         // Publish lost event if this was found previously
         if(m_found) {
@@ -261,35 +268,103 @@ void HedgeDetector::processImage(Image* input, Image* output)
                         hedgeBlob.getMinX();
                     center.y = (hedgeBlob.getMaxY() - hedgeBlob.getMinY()) / 2 +
                         hedgeBlob.getMinY();
-                    
+
                     hedgeBlob.drawStats(output);
+
+                    // draw full rectangle and center point
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(hedgeBlob.getMinX(), hedgeBlob.getMinY()),
+                                cvPoint(hedgeBlob.getMaxX(), hedgeBlob.getMaxY()),
+                                cvScalar(255,255,255), 2);
 
                     cvCircle(output->asIplImage(), center, 3,
                              cvScalar(0, 255, 0), -1);
+
+                    // draw left rectangle and center point
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(hedgeBlob.getMinX() + leftBlob.getMinX(),
+                                        hedgeBlob.getMinY() + leftBlob.getMinY()),
+                                cvPoint(hedgeBlob.getMinX() + leftBlob.getMaxX(),
+                                        hedgeBlob.getMinY() + leftBlob.getMaxY()),
+                                cvScalar(150,150,150), 2);
+                    
+                    CvPoint lCenter;
+                    lCenter.x = hedgeBlob.getMinX() + 
+                        (leftBlob.getMaxX() - leftBlob.getMinX()) / 2 +
+                        leftBlob.getMinX();
+                    lCenter.y = hedgeBlob.getMinY() + 
+                        (leftBlob.getMaxY() - leftBlob.getMinY()) / 2 +
+                        leftBlob.getMinY();
+                    
+                    cvCircle(output->asIplImage(),
+                             lCenter,
+                             3, cvScalar(0,0,0), -1);
+
+                    // draw right rectangle and center point
+                    cvRectangle(output->asIplImage(),
+                                cvPoint(hedgeBlob.getMinX() + rightBlob.getMinX(),
+                                        hedgeBlob.getMinY() + rightBlob.getMinY()),
+                                cvPoint(hedgeBlob.getMinX() + hedgeBlob.getWidth() / 2 + 
+                                        rightBlob.getMaxX(),
+                                        hedgeBlob.getMinY() + rightBlob.getMaxY()),
+                                cvScalar(150,150,150), 2);
+
+                    CvPoint rCenter;
+                    rCenter.x = hedgeBlob.getMinX() + hedgeBlob.getWidth() / 2 + 
+                        (rightBlob.getMaxX() - rightBlob.getMinX()) / 2 +
+                        rightBlob.getMinX();
+                    rCenter.y = hedgeBlob.getMinY() + 
+                        (rightBlob.getMaxY() - rightBlob.getMinY()) / 2 +
+                        rightBlob.getMinY();
+
+                    cvCircle(output->asIplImage(),
+                             rCenter,
+                             3, cvScalar(0,0,0), -1);
+
                 }
             }
         }
     }
 }
 
-void HedgeDetector::publishFoundEvent(BlobDetector::Blob& blob)
+void HedgeDetector::publishFoundEvent(BlobDetector::Blob& blob,
+                                      BlobDetector::Blob& leftBlob,
+                                      BlobDetector::Blob& rightBlob)
 {
     HedgeEventPtr event(new HedgeEvent());
 
-    int imageX = (blob.getMaxX() - blob.getMinX()) / 2 + blob.getMinX();
-    int imageY = (blob.getMaxY() - blob.getMinY()) / 2 + blob.getMinY();
+    int imFullY = (blob.getMaxY() - blob.getMinY()) / 2 
+        + blob.getMinY();
+ 
+
+    int imLeftX = blob.getMinX() + (leftBlob.getMaxX() - leftBlob.getMinX()) / 2 
+        + leftBlob.getMinX();
+    int imLeftY = blob.getMinY() + (leftBlob.getMaxY() - leftBlob.getMinY()) / 2 
+        + leftBlob.getMinY();
+
+
+    int imRightX = blob.getMinX() + blob.getWidth() / 2 + 
+        (rightBlob.getMaxX() - rightBlob.getMinX()) / 2 
+        + rightBlob.getMinX(); 
+    int imRightY = blob.getMinY() +  (rightBlob.getMaxY() - rightBlob.getMinY()) / 2 
+        + rightBlob.getMinY();
+
+    double minPoleY = m_poleThreshold * imFullY;
+
+    bool haveLeft = minPoleY < imLeftY;
+    bool haveRight = minPoleY < imRightY;
     
     double leftX, leftY, rightX, rightY;
-    Detector::imageToAICoordinates(frame, imageX - blob.getWidth() / 4,
-                                   imageY, leftX, leftY);
+    Detector::imageToAICoordinates(frame, imLeftX, imLeftY, leftX, leftY);
 
-    Detector::imageToAICoordinates(frame, imageX + blob.getWidth() / 4,
-                                   imageY, rightX, rightY);
+    Detector::imageToAICoordinates(frame, imRightX, imRightY, rightX, rightY);
 
     event->leftX = leftX;
     event->leftY = leftY;
     event->rightX = rightX;
     event->rightY = rightY;
+    event->haveLeft = haveLeft;
+    event->haveRight = haveRight;
     event->squareNess = 1.0 / blob.getTrueAspectRatio();
     event->range = 1.0 - (((double)blob.getHeight()) /
                           ((double)frame->getHeight()));

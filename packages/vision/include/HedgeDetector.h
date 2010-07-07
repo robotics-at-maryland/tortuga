@@ -52,10 +52,20 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output,
-                      ColorFilter& filter, BlobDetector::Blob& outBlob);
+                      ColorFilter& filter,
+                      BlobDetector::Blob& leftBlob,
+                      BlobDetector::Blob& rightBlob,
+                      BlobDetector::Blob& outBlob);
+
+    bool processSides(Image* input,
+                      BlobDetector::Blob& fullBlob,
+                      BlobDetector::Blob& leftBlob,
+                      BlobDetector::Blob& rightBlob);
 
     // Process current state, and publish the HEDGE_FOUND event
-    void publishFoundEvent(BlobDetector::Blob& blob);
+    void publishFoundEvent(BlobDetector::Blob& blob,
+                           BlobDetector::Blob& leftBlob,
+                           BlobDetector::Blob& rightBlob);
 
     void publishLostEvent();
 
@@ -66,6 +76,8 @@ class RAM_EXPORT HedgeDetector : public Detector
 
     /** Blob detector */
     BlobDetector m_blobDetector;
+    BlobDetector m_lBlobDetector;
+    BlobDetector m_rBlobDetector;
 
     Image *frame;
     Image *greenFrame;
@@ -80,6 +92,7 @@ class RAM_EXPORT HedgeDetector : public Detector
     double m_minPixelPercentage;
     double m_maxPixelPercentage;
     double m_maxDistance;
+    double m_poleThreshold;
 
     int m_erodeIterations;
     int m_dilateIterations;

@@ -218,9 +218,17 @@ bool WindowDetector::processColor(Image* input, Image* output,
             m_maxPixelPercentage >= pixelPercentage &&
             processBackground(tempFrame, filter, blob, innerBlob))
         {
+            int outerCenterX = (blob.getMaxX() - blob.getMinX()) / 2 + blob.getMinX();
+            int innerCenterX = (innerBlob.getMaxX() - innerBlob.getMinX()) /
+                2 + innerBlob.getMinX();
 
-            int centerXdiff = abs(blob.getCenterX() - innerBlob.getCenterX());
-            int centerYdiff = abs(blob.getCenterY() - innerBlob.getCenterY());
+            int outerCenterY = (blob.getMaxY() - blob.getMinY()) / 2 + blob.getMinY();
+            int innerCenterY = (innerBlob.getMaxY() - innerBlob.getMinY()) /
+                2 + innerBlob.getMinY();
+
+            int centerXdiff = abs(outerCenterX - innerCenterX);
+            int centerYdiff = abs(outerCenterY - innerCenterY);
+
             double relHeight = (double) innerBlob.getHeight() / blob.getHeight();
             double relWidth = (double) innerBlob.getWidth() / blob.getWidth();
 
