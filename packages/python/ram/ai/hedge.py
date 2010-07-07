@@ -48,6 +48,9 @@ class FilteredState(object):
     def enter(self):
         # Read in filter size
         filterSize = self._config.get('filterSize', 1)
+
+        self._haveLeftPipe = False
+        self._haveRightPipe = False
         
         # Create filters
         self._xFilter = filter.MovingAverageFilter(filterSize)
@@ -60,11 +63,20 @@ class FilteredState(object):
         self._filterdY = self._yFilter.getAverage()
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
+        self._filterdAngle = None
         
     def _updateFilters(self, event):
+        # Find x and y positions based on both poles
+        self._haveLeft = event.haveLeft
+        self._haveRight = event.haveRight
+
+        x = (event.leftX + event.rightX) / 2.0
+        y = (event.leftY + event.rightY) / 2.0
+        angle = None # ?
+
         # Add to filters
-        self._xFilter.append(event.x)
-        self._yFilter.append(event.y)
+        self._xFilter.append(x)
+        self._yFilter.append(y)
         self._rangeFilter.append(event.range)
         self._alignFilter.append(event.squareNess - 2)
         
@@ -73,6 +85,7 @@ class FilteredState(object):
         self._filterdY = self._yFilter.getAverage()
         self._filterdRange = self._rangeFilter.getAverage()
         self._filterdAlign = self._alignFilter.getAverage()
+        self._filterdAngle = angle
 
 class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
     """
@@ -131,8 +144,8 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         
         # Create tracking object
         self._hedge = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                   timeStamp = None,
-                                                   vehicle = self.vehicle)
+                                                  timeStamp = None,
+                                                  vehicle = self.vehicle)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -328,24 +341,7 @@ class SeekingToCentered(RangeXYHold):
         """When aligned we are at a good depth so hold it"""
         if self._depthGain != 0:
             self.controller.holdCurrentDepth()
-        
-    def HEDGE_FOUND(self, event):
-        """Update the state of the hedge, this moves the vehicle"""
-        self._updateFilters(event)
-
-        # To keep the range the same, the vehicle saves its first range
-        # value and keeps the vehicle at this range
-        if (self._firstRun):
-            self._offset = self._filterdRange
-            self._firstRun = False
-        # TODO: take a close look at range seeking here
-        # We ignore azimuth and elevation because we aren't using them
-        self._hedge.setState(0, 0, self._filterdRange, #- self._offset +
-                              #self._desiredRange, 
-                              self._filterdX,
-                              self._filterdY,
-                              event.timeStamp)
-        
+                
 class SeekingToRange(RangeXYHold):
     """
     Heads toward the hedge until it reaches the desired range
@@ -459,7 +455,8 @@ class SeekingToAligned(HedgeAlignState, state.State):
         self._currentSquareNess = squareNess
             
         # Publish aligned event if needed
-        if squareNess > self._minSquareNess:
+        if squareNess > self._minSquareNess and \
+                self._haveLeft and self._haveRight:
             self.publish(SeekingToAligned.ALIGNED, core.Event())
 
     def CHECK_DIRECTION_(self, event):

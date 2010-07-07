@@ -49,7 +49,7 @@ def main(argv = None):
     testDir = os.path.dirname(ram.test.__file__)
     suite = unittest.TestSuite()
     baseName = 'ram.test'
-    exclude = ['ram.test.ai.hedge']
+    exclude = []
 
     # Recursively walk the path 
     for root, dirs, files in os.walk(testDir):
