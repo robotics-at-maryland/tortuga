@@ -643,7 +643,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
                               self._filterdAlign * self._alignSign,
                               event.timeStamp)
         
-    def enter(self, average = False):
+    def enter(self, average = False, alignSign = 1):
         FilteredState.enter(self)
         
         # Ensure vision system is on
@@ -653,7 +653,8 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
                                             vehicle = self.vehicle)
         self._average = average
-        self._alignSign = 1
+            
+        self._alignSign = alignSign
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)
@@ -735,8 +736,8 @@ class SeekingToAligned(TargetAlignState):
         if self._currentSquareNess < self._startSquareNess:
             self._alignSign *= -1
             
-    def enter(self, average = False):
-        TargetAlignState.enter(self, average)
+    def enter(self, average = False, alignSign = 1):
+        TargetAlignState.enter(self, average = average, alignSign = alignSign)
         WindowTrackingState.enter(self)
 
         self._firstEvent = True
@@ -766,7 +767,47 @@ class ApproachAligning(SeekingToAligned):
         return trans
 
     def enter(self):
-        SeekingToAligned.enter(self, average = True)
+        # Choose initial direction based on previous window data (if we have it)
+        alignSign = 1
+        if self.ai.data.has_key('windowData') and \
+                len(self.ai.data['windowData']) > 1:
+
+            matches = {}
+            for event in self.ai.data['windowData'].itervalues():
+                matched = False
+                for x in matches.iterkeys():
+                    # Close enough that it's in the same column
+                    if abs(x - event.x) < 0.10:
+                        matches[x].append(event)
+                        matched = True
+                if not matched:
+                    matches[event.x] = [event]
+
+            keys = sorted(matches.keys())
+            if len(keys) > 1:
+                direction = 0
+                # Only try this if there are multiple colums
+                aspectRatios = [matches[x][0].squareNess for x in keys]
+
+                previous = None
+                for ratio in aspectRatios:
+                    if previous is None:
+                        previous = ratio
+                    else:
+                        if ratio - previous > 0:
+                            if direction != 1:
+                                direction = -1
+                            else:
+                                break
+                        elif ratio - previous < 0:
+                            if direction != -1:
+                                direction = 1
+                            else:
+                                break
+                if direction != 0:
+                    alignSign = direction
+
+        SeekingToAligned.enter(self, average = True, alignSign = alignSign)
 
 class Reposition(state.State):
     """
@@ -793,9 +834,9 @@ class Reposition(state.State):
         speed = self._config.get('speed', 3)
         duration = self._config.get('duration', 5)
         backwardsMotion = motion.basic.TimedMoveDirection(desiredHeading = 180,
-                                                         speed = speed,
-                                                         duration = 5,
-                                                         absolute = False)
+                                                          speed = speed,
+                                                          duration = 5,
+                                                          absolute = False)
 
         depth = self.ai.data['config'].get('windowDepth', 12)
         diveSpeed = self._config.get('diveSpeed', (1.0/3.0))

@@ -1382,7 +1382,7 @@ class IdealSimVision(ext.vision.VisionSystem):
                 found.add(event.color)
 
                 # Convert to feet
-                event.range = relativePos.length() * 3.2808399
+                event.range = relativePos.length() / 3 #relativePos.length() * 3.2808399
                 
                 self.publish(ext.vision.EventType.WINDOW_FOUND, event)
 
