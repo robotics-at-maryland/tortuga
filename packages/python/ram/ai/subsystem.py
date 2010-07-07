@@ -53,7 +53,7 @@ class AI(core.Subsystem):
         taskOrder = cfg.get('taskOrder', None)
         if taskOrder is None:
             taskOrder = []
-        for i, taskName  in enumerate(taskOrder):
+        for i, taskName in enumerate(taskOrder):
             # Determine which task is really next
             nextTask = 'ram.ai.task.End'
             if i != (len(taskOrder) - 1):
@@ -91,7 +91,7 @@ class AI(core.Subsystem):
         pipeOptions = set(['biasDirection', 'threshold', 'taskTimeout'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
-                             'absolute', 'taskTimeout'])
+                             'absolute', 'taskTimeout', 'timeout', 'motions'])
         taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
         moveOptions = set(['depth', 'heading', 'speed', 'duration',
                            'turnSpeed', 'depthSpeed'])

@@ -215,23 +215,26 @@ class MotionManager(core.Subsystem):
                             'motion is required' % class_)
 
         # Generate an instance of the motion using kwargs
-        return class_(**kwargs)
+        try:
+            return class_(**kwargs)
+        except TypeError, e:
+            raise TypeError('Not enough arguments for motion %s' % dottedName)
 
     @staticmethod
     def generateMotionList(mList):
         # Number of total motions
-        max = len(mList) - 1
-        motionList = []
+        max = len(mList)
+        motionList = [0]*max
 
-        for num, info in enumerate(mList):
+        for num, info in mList.iteritems():
             type_ = info.pop('type')
-            if num == max:
+            if int(num) == max:
                 m = MotionManager.generateMotion(
                     type_, complete = False, **info)
             else:
                 m = MotionManager.generateMotion(
                     type_, complete = True, **info)
-            motionList.append(m)
+            motionList[int(num)-1] = m
         return motionList
             
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)

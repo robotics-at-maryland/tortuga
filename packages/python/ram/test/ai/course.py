@@ -393,17 +393,16 @@ class PipeObjectiveTest(object):
         self.assertCurrentBranches([])
 
         # Now finish the first motion
-        self.machine.currentState()._motion._finish()
+        self.motionManager.currentMotion._finish()
         self.qeventHub.publishEvents()
 
         # Now make sure it goes through all motions and doesn't enter
         # any branches without a timeout or found pipe
-        for m, name in zip(self.machine.currentState()._motionList,
-                           self.motionList):
+        for name in self.motionList:
             self.assertCurrentState(self.myState)
             self.assertCurrentBranches([])
             self.assertCurrentMotion(name)
-            m._finish()
+            self.motionManager.currentMotion._finish()
             self.qeventHub.publishEvents()
 
         self.qeventHub.publishEvents()
@@ -455,9 +454,36 @@ class PipeObjectiveTest(object):
 
 class TestPipeBarbedWire(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' :
-                        [ 'ram.ai.course.PipeBarbedWire',
-                          'ram.ai.course.Target' ]} }
+        cfg = {
+            'Ai' : {
+                'taskOrder' :
+                    [ 'ram.ai.course.PipeBarbedWire',
+                      'ram.ai.course.Target' ],
+                'config' : {
+                    'PipeBarbedWire' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.RateChangeDepth',
+                                'desiredDepth' : 6,
+                                'speed' : 0.3,
+                                },
+                            '2' : {
+                                'type' : 'ram.motion.basic.RateChangeHeading',
+                                'desiredHeading' : -30,
+                                'speed' : 10,
+                                'absolute' : False
+                                },
+                            '3' : {
+                                'type' : 'ram.motion.search.ForwardZigZag',
+                                'legTime' : 5,
+                                'sweepAngle' : 30,
+                                'speed' : 3
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         support.AITestCase.setUp(self, cfg = cfg)
         PipeObjectiveTest.setUp(self, course.PipeBarbedWire, course.Target,
                                 motion.basic.RateChangeDepth,
@@ -551,9 +577,36 @@ class TestLight(support.AITestCase):
 
 class TestPipeTarget(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' :
-                        [ 'ram.ai.course.PipeTarget',
-                          'ram.ai.course.Bin' ]} }
+        cfg = {
+            'Ai' : {
+                'taskOrder' :
+                    [ 'ram.ai.course.PipeTarget',
+                      'ram.ai.course.Bin' ],
+                'config' : {
+                    'PipeTarget' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.RateChangeDepth',
+                                'desiredDepth' : 6,
+                                'speed' : 0.3,
+                                },
+                            '2' : {
+                                'type' : 'ram.motion.basic.RateChangeHeading',
+                                'desiredHeading' : -30,
+                                'speed' : 10,
+                                'absolute' : False
+                                },
+                            '3' : {
+                                'type' : 'ram.motion.search.ForwardZigZag',
+                                'legTime' : 5,
+                                'sweepAngle' : 30,
+                                'speed' : 3
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         support.AITestCase.setUp(self, cfg = cfg)
         PipeObjectiveTest.setUp(self, course.PipeTarget, course.Bin,
                                 motion.basic.RateChangeDepth,
@@ -563,9 +616,36 @@ class TestPipeTarget(PipeObjectiveTest, support.AITestCase):
 
 class TestPipeBin(PipeObjectiveTest, support.AITestCase):
     def setUp(self):
-        cfg = { 'Ai' : {'taskOrder' :
-                        [ 'ram.ai.course.PipeBin',
-                          'ram.ai.course.Pinger' ]} }
+        cfg = {
+            'Ai' : {
+                'taskOrder' :
+                    [ 'ram.ai.course.PipeBin',
+                      'ram.ai.course.Pinger' ],
+                'config' : {
+                    'PipeBin' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.RateChangeDepth',
+                                'desiredDepth' : 6,
+                                'speed' : 0.3,
+                                },
+                            '2' : {
+                                'type' : 'ram.motion.basic.RateChangeHeading',
+                                'desiredHeading' : -30,
+                                'speed' : 10,
+                                'absolute' : False
+                                },
+                            '3' : {
+                                'type' : 'ram.motion.search.ForwardZigZag',
+                                'legTime' : 5,
+                                'sweepAngle' : 30,
+                                'speed' : 3
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         support.AITestCase.setUp(self, cfg = cfg)
         PipeObjectiveTest.setUp(self, course.PipeBin, course.Pinger,
                                 motion.basic.RateChangeDepth,

@@ -296,7 +296,7 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
             self.stateMachine.start(state.Branch(pipe.Searching))
             self._branched = True
 
-    def enter(self, motion, *motionList):
+    def enter(self):
         # Cleanup pipeStartOrientation if it exists in the ai data
         if self.ai.data.has_key('pipeStartOrientation'):
             del self.ai.data['pipeStartOrientation']
@@ -323,9 +323,13 @@ class PipeObjective(task.Task, pipe.PipeTrackingState):
         self.timer = self.timerManager.newTimer(PipeObjective.TIMEOUT, timeout)
         self.timer.start()
         
-        self._motion = motion
-        self._motionList = motionList
-        self.motionManager.setMotion(motion, *motionList)
+        generateMotionList = motion.basic.MotionManager.generateMotionList
+        self._motionList = self.ai.data['config'].get(self._className, {}).get(
+            'motions', {})
+        motions = generateMotionList(self._motionList)
+
+        if len(motions) > 0:
+            self.motionManager.setMotion(*motions)
 
     def exit(self):
         del self.ai.data['pipeBiasDirection']
@@ -348,74 +352,15 @@ class PipeBarbedWire(PipeObjective):
     def _transitions():
         return PipeObjective._transitions(PipeBarbedWire)
 
-    def enter(self):
-        self._rotation = self.ai.data['config'].get('PipeBarbedWire', {}).get(
-                'rotation', -30)
-        self._legTime = self.ai.data['config'].get('PipeBarbedWire', {}).get(
-            'legTime', 5)
-        self._sweepAngle = self.ai.data['config'].get('PipeBarbedWire', {}).get(
-            'sweepAngle', 30)
-        self._sweepSpeed = self.ai.data['config'].get('PipeBarbedWire', {}).get(
-            'sweepSpeed', 3)
-
-        m1 = motion.basic.RateChangeDepth(
-            self.ai.data['config'].get('pipeDepth', 6), 0.3)
-        m2 = motion.basic.RateChangeHeading(
-            self._rotation, 10, absolute = False)
-        m3 = motion.search.ForwardZigZag(self._legTime, self._sweepAngle,
-                                         self._sweepSpeed)
-
-        PipeObjective.enter(self, m1, m2, m3)
-
 class PipeTarget(PipeObjective):
     @staticmethod
     def _transitions():
         return PipeObjective._transitions(PipeTarget)
 
-    def enter(self):
-        self._rotation = self.ai.data['config'].get('PipeTarget', {}).get(
-                'rotation', -30)
-        self._legTime = self.ai.data['config'].get('PipeTarget', {}).get(
-            'legTime', 5)
-        self._sweepAngle = self.ai.data['config'].get('PipeTarget', {}).get(
-            'sweepAngle', 30)
-        self._sweepSpeed = self.ai.data['config'].get('PipeTarget', {}).get(
-            'sweepSpeed', 3)
-        self._absolute = self.ai.data['config'].get('PipeTarget', {}).get(
-            'absolute', False)
-
-        m1 = motion.basic.RateChangeDepth(
-            self.ai.data['config'].get('pipeDepth', 6), 0.3)
-        m2 = motion.basic.RateChangeHeading(
-            self._rotation, 10, absolute = self._absolute)
-        m3 = motion.search.ForwardZigZag(self._legTime, self._sweepAngle,
-                                         self._sweepSpeed)
-
-        PipeObjective.enter(self, m1, m2, m3)
-
 class PipeBin(PipeObjective):
     @staticmethod
     def _transitions():
         return PipeObjective._transitions(PipeBin)
-
-    def enter(self):
-        self._rotation = self.ai.data['config'].get('PipeBin', {}).get(
-                'rotation', -30)
-        self._legTime = self.ai.data['config'].get('PipeBin', {}).get(
-            'legTime', 5)
-        self._sweepAngle = self.ai.data['config'].get('PipeBin', {}).get(
-            'sweepAngle', 30)
-        self._sweepSpeed = self.ai.data['config'].get('PipeBin', {}).get(
-            'sweepSpeed', 3)
-
-        m1 = motion.basic.RateChangeDepth(
-            self.ai.data['config'].get('pipeDepth', 6), 0.3)
-        m2 = motion.basic.RateChangeHeading(
-            self._rotation, 10, absolute = False)
-        m3 = motion.search.ForwardZigZag(self._legTime, self._sweepAngle,
-                                         self._sweepSpeed)
-
-        PipeObjective.enter(self, m1, m2, m3)
 
 class PipeStaged(Pipe):
     """
