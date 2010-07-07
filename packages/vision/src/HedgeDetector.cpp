@@ -302,7 +302,8 @@ void HedgeDetector::processImage(Image* input, Image* output)
 
                     // draw right rectangle and center point
                     cvRectangle(output->asIplImage(),
-                                cvPoint(hedgeBlob.getMinX() + rightBlob.getMinX(),
+                                cvPoint(hedgeBlob.getMinX() + hedgeBlob.getWidth() / 2 +
+                                        rightBlob.getMinX(),
                                         hedgeBlob.getMinY() + rightBlob.getMinY()),
                                 cvPoint(hedgeBlob.getMinX() + hedgeBlob.getWidth() / 2 + 
                                         rightBlob.getMaxX(),
@@ -353,6 +354,12 @@ void HedgeDetector::publishFoundEvent(BlobDetector::Blob& blob,
 
     bool haveLeft = minPoleY < imLeftY;
     bool haveRight = minPoleY < imRightY;
+
+    if (haveLeft && !haveRight)
+        imRightY = imLeftY;
+
+    if (haveRight && !haveLeft)
+        imLeftY = imRightY;
     
     double leftX, leftY, rightX, rightY;
     Detector::imageToAICoordinates(frame, imLeftX, imLeftY, leftX, leftY);
