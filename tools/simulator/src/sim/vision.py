@@ -976,6 +976,16 @@ class IdealSimVision(ext.vision.VisionSystem):
         self.publish(ext.vision.EventType.BUOY_DETECTOR_OFF,
                      ext.core.Event())
 
+    def buoyLost(self, color):
+        event = ext.vision.BuoyEvent()
+        event.color = color
+        self.publish(ext.vision.EventType.BUOY_LOST, event)
+
+        if self._buoys is not None:
+            for buoy in self._buoys:
+                if getattr(ext.vision.Color, buoy._color) == color:
+                    buoy._visible = False
+
     def pipeLineDetectorOn(self):
         self._runOrangePipe = True
         self.publish(ext.vision.EventType.PIPELINE_DETECTOR_ON,
@@ -1199,7 +1209,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             visible = True
         
             x = yaw / (self._horizontalFOV/2)
-            # Negative because of the corindate system
+            # Negative because of the coordinate system
             y = math.fabs(pitch / (self._verticalFOV/2))
             if relativePos.z < 0:
                 y = -y
@@ -1554,15 +1564,20 @@ class IdealSimVision(ext.vision.VisionSystem):
 
         if hedgeVisible and (relativePos.length() < 3) and not range < 3.18:
             event = ext.core.Event()
-            event.x = x
-            event.y = y
+            # Not real values
+            event.leftX = x
+            event.rightX = x
+            event.leftY = y
+            event.rightY = y
+            event.haveLeft = True
+            event.haveRight = True
 
             # Exponent chosen so pi/6 would be 1.0
             # TODO: Find a mathematical "best" value for this
             event.squareNess = 2*math.fabs(math.cos(angle.valueRadians()))**4.82
 
             # Convert to feet
-            event.range = range
+            event.range = range / 3.18
 
             found = True
             self.publish(ext.vision.EventType.HEDGE_FOUND, event)
