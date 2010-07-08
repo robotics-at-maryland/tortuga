@@ -1219,3 +1219,126 @@ class TestTimedTravel(support.AITestCase):
         self.qeventHub.publishEvents()
 
         self.assert_(self.machine.complete)
+
+class TestTravel(support.AITestCase):
+    def setUp(self):
+        # Allow each individual test to make their own config file
+        pass
+
+    def testSingleMotion(self):
+        """
+        Test a single motion in the config file
+        """
+        cfg = {
+            'Ai' : {
+                'taskOrder' : ['ram.ai.course.Travel'],
+                'config' : {
+                    'Travel' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.RateChangeHeading',
+                                'desiredHeading' : 45,
+                                'speed' : 10
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Travel)
+
+        self.assertCurrentMotion(motion.basic.RateChangeHeading)
+        self.assertCurrentState(course.Travel)
+        self.motionManager.currentMotion._finish()
+
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentMotion(type(None))
+        self.assertCurrentState(type(None))
+
+    def testMultiMotion(self):
+        """
+        Test multiple motions in the config file
+        """
+        cfg = {
+            'Ai' : {
+                'taskOrder' : ['ram.ai.course.Travel'],
+                'config' : {
+                    'Travel' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.TimedMoveDirection',
+                                'desiredHeading' : 45,
+                                'speed' : 3,
+                                'duration' : 5
+                                },
+                            '2' : {
+                                'type' : 'ram.motion.basic.RateChangeDepth',
+                                'desiredDepth' : 5,
+                                'speed' : 1.0/3.0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Travel)
+
+        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertCurrentState(course.Travel)
+        self.motionManager.currentMotion._finish()
+
+        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentState(course.Travel)
+        self.motionManager.currentMotion._finish()
+
+        self.qeventHub.publishEvents()
+
+        self.assertCurrentMotion(type(None))
+        self.assertCurrentState(type(None))
+
+    def testNoMotion(self):
+        """
+        Test no motions in the config file
+        """
+        cfg = {
+            'Ai' : {
+                'taskOrder' : ['ram.ai.course.Travel']
+                }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        self.machine.start(course.Travel)
+        self.qeventHub.publishEvents()
+        self.assertCurrentState(type(None))
+
+    def testIncompleteMotion(self):
+        """
+        Tests that no incomplete motions are allowed (even if they're
+        the last motion)
+        """
+        cfg = {
+            'Ai' : {
+                'taskOrder' : ['ram.ai.course.Travel'],
+                'config' : {
+                    'Travel' : {
+                        'motions' : {
+                            '1' : {
+                                'type' : 'ram.motion.basic.MoveDirection',
+                                'desiredHeading' : 45,
+                                'speed' : 3
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        support.AITestCase.setUp(self, cfg = cfg)
+        exception = False
+        try:
+            # This should throw an exception because MoveDirection is incomplete
+            self.machine.start(course.Travel)
+        except Exception, e:
+            exception = True
+        self.assert_(exception)

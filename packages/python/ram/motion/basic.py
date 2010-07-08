@@ -221,7 +221,35 @@ class MotionManager(core.Subsystem):
             raise TypeError('Not enough arguments for motion %s' % dottedName)
 
     @staticmethod
-    def generateMotionList(mList):
+    def generateMotionList(mList, strict = False):
+        """
+        Generates a list of motions from the given dictionary/config section.
+
+        The format of the config file should have ONLY motion entries.
+        Each entry should be labeled with its position in the list.
+        For example, to generate 3 motions, you would use this:
+
+        '1':
+            type: 'ram.motion.basic.TimedMoveDirection'
+            ...
+        '2':
+            type: 'ram.motion.basic.RateChangeDepth'
+            ...
+
+        The entries for a motion should contain the full dotted name of the
+        motion and any named parameters for the motion. This does not error
+        check if the parameters you sent are correct, and will just merely
+        error out when it tries to create the motion.
+
+        The motion list must contain only complete motions. A complete motion
+        is any motion that will finish on its own without being explicitly
+        stopped. The exception is the last motion. If strict is set to
+        False, then the last motion can be incomplete. If strict is set to
+        True, then the last motion must complete.
+
+        @param mList config for motions to generate
+        @param strict Whether to be strict with the last motion, see above
+        """
         # Number of total motions
         max = len(mList)
         motionList = [0]*max
@@ -230,7 +258,7 @@ class MotionManager(core.Subsystem):
             type_ = info.pop('type')
             if int(num) == max:
                 m = MotionManager.generateMotion(
-                    type_, complete = False, **info)
+                    type_, complete = strict, **info)
             else:
                 m = MotionManager.generateMotion(
                     type_, complete = True, **info)

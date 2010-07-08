@@ -881,7 +881,8 @@ class Travel(task.Task):
 
         motions = self.ai.data['config'].get(self._className, {}).get(
             'motions', {})
-        motionList = self.motionManager.generateMotionList(motions)
+        motionList = self.motionManager.generateMotionList(motions,
+                                                           strict = True)
 
         if len(motionList) > 0:
             self.motionManager.setMotion(*motionList)
