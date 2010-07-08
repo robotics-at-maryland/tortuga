@@ -99,6 +99,7 @@ class AI(core.Subsystem):
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
                           'forwardSpeed', 'adjustAngle', 'binDirection',
                           'duration', 'travelSpeed', 'taskTimeout'])
+        travelOptions = set(['taskTimeout', 'motions'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
@@ -116,9 +117,14 @@ class AI(core.Subsystem):
                                         "option for %s." % (innerItem, item))
             elif item == 'Light' or item == 'BarbedWire' \
                     or item == 'Target' or item == 'LightStaged' \
-                    or item == 'Hedge' or item == 'Buoy' or item == 'Window':
+                    or item == 'Hedge' or item == 'Buoy':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in taskOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Window':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in taskOptions.union(set(['angle'])):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Bin' or item == 'RandomBin':
@@ -134,6 +140,12 @@ class AI(core.Subsystem):
             elif item == 'TimedTravel':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in moveOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Travel' or item == 'Travel1' \
+                    or item == 'Travel2' or item == 'Travel3':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in travelOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'SafeSonar':

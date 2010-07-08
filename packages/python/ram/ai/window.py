@@ -6,10 +6,11 @@
 # File:  packages/python/ram/ai/window.py
 
 # STD Imports
-import math
+import math as pmath
 
 # Project Imports
 import ext.core as core
+import ext.math as math
 import ext.vision as vision
 
 import ram.filter as filter
@@ -175,8 +176,8 @@ class RangeXYHold(FilteredState, WindowTrackingState):
         
         # Only triggered the in range event if we are close and the target is
         # centered in the field of view
-        rangeError = math.fabs(self._filterdRange - self._desiredRange)
-        frontDistance = math.sqrt(self._filterdX ** 2 + y ** 2)
+        rangeError = pmath.fabs(self._filterdRange - self._desiredRange)
+        frontDistance = pmath.sqrt(self._filterdX ** 2 + y ** 2)
         if (rangeError < self._rangeThreshold) and \
             (frontDistance < self._frontThreshold):
             self.publish(SeekingToRange.IN_RANGE, core.Event())
@@ -654,7 +655,25 @@ class TargetAlignState(FilteredState, WindowTrackingState):
                                             vehicle = self.vehicle)
         self._average = average
             
-        self._alignSign = alignSign
+        if self.ai.data['config'].get('Window', {}).has_key('angle'):
+            # Check the robot's orientation
+            orientation = self.vehicle.getOrientation().getYaw(True)\
+                .valueRadians()
+            current = math.Vector2(pmath.cos(orientation),
+                                   pmath.sin(orientation))
+            angle = pmath.radians(self.ai.data['config'].get(
+                    'Window', {})['angle'])
+            desired = math.Vector2(pmath.cos(angle),
+                                   pmath.sin(angle))
+
+            directionAngle = desired.crossProduct(current)
+            
+            if directionAngle > 0:
+                self._alignSign = -1
+            else:
+                self._alignSign = 1
+        else:
+            self._alignSign = alignSign
         
         # Read in configuration settings
         depthGain = self._config.get('depthGain', 1.5)

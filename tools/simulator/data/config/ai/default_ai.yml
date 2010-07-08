@@ -17,7 +17,8 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
             'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon', 'ram.ai.course.Pipe']
+            'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
+            'ram.ai.course.Travel1']
 
 failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 
@@ -58,6 +59,17 @@ config:
                 desiredHeading: 0
                 speed: 5
                 duration: 5
+                absolute: False
+    Window:
+        angle: 45
+    Travel1:
+        taskTimeout: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 45
+                speed: 3
+                duration: 4
                 absolute: False
     #PipeGate:
     #    biasDirection: 0

@@ -860,6 +860,43 @@ class RecoverFromSafe(task.Task):
     """
     pass
 
+class Travel(task.Task):
+    """
+    Loads the motion from the config and does it.
+    """
+
+    FINISHED = core.declareEventType('FINISHED')
+
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next,
+                 Travel.FINISHED : task.Next }
+
+    def enter(self):
+        self._className = type(self).__name__
+
+        taskTimeout = self.ai.data['config'].get(self._className, {}).get(
+            'taskTimeout', 30)
+        task.Task.enter(self, defaultTimeout = taskTimeout)
+
+        motions = self.ai.data['config'].get(self._className, {}).get(
+            'motions', {})
+        motionList = self.motionManager.generateMotionList(motions)
+
+        if len(motionList) > 0:
+            self.motionManager.setMotion(*motionList)
+        else:
+            self.publish(Travel.FINISHED, core.Event())
+
+class Travel1(Travel):
+    pass
+
+class Travel2(Travel):
+    pass
+
+class Travel3(Travel):
+    pass
+
 class TimedTravel(task.Task):
     """
     A pre-determined move that changes depth, changes heading, then moves
