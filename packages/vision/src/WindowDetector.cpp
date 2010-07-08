@@ -270,6 +270,8 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
             return true;
         }
     }
+    delete [] buffer;
+    delete innerFrame;
     return false;
 }
 

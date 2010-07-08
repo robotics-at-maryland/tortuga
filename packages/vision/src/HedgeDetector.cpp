@@ -213,6 +213,9 @@ bool HedgeDetector::processSides(Image* input,
     leftBlob = lBlobs[0];
     rightBlob = rBlobs[0];
 
+
+    delete [] lbuffer;
+    delete [] rbuffer;
     delete lFrame;
     delete rFrame;
 
