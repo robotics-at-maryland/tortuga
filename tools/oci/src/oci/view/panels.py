@@ -1463,29 +1463,35 @@ class MonitorPanel(BasePanel):
     def __init__(self, parent, eventHub, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
 
-        layout = wx.FlexGridSizer(2, 1, 5, 0)
-        layout.AddGrowableCol(0)
-        layout.AddGrowableRow(1)
+        self._layout = wx.FlexGridSizer(2, 1, 5, 0)
+        self._layout.AddGrowableCol(0)
+        self._layout.AddGrowableRow(1)
 
-        infoBox = wx.FlexGridSizer(1, 2, 0, 5)
+        infoBox = wx.FlexGridSizer(1, 3, 0, 5)
         infoBox.AddGrowableRow(0)
         infoBox.AddGrowableCol(1)
-        label = wx.StaticText(self, label = 'Status')
-        infoBox.Add(label, 1, flag = wx.ALIGN_CENTER)
 
         # LED
         size = (self._getTextSize()[0], ram.gui.led.LED.HEIGHT)
         self._buoyLED = ram.gui.led.LED(self, state = 3, size = size)
         self._buoyLED.MinSize = size
         infoBox.Add(self._buoyLED, 1, flag = wx.ALIGN_CENTER | wx.EXPAND)
-        layout.Add(infoBox, 1, flag = wx.ALIGN_RIGHT | wx.EXPAND)
+        self._layout.Add(infoBox, 1, flag = wx.ALIGN_CENTER | wx.EXPAND)
+
+        label = wx.StaticText(self, label = 'Status')
+        infoBox.Add(label, 1, flag = wx.ALIGN_CENTER)
+
+        self._display = True
+        self._hide = wx.Button(self, label = "Hide")
+        infoBox.Add(self._hide, 1, flag = wx.ALIGN_CENTER)
+        self._hide.Bind(wx.EVT_BUTTON, self._onButton)
 
         self._messages = wx.ListBox(self)
-        layout.Add(self._messages, 1, flag = wx.EXPAND)
+        self._layout.Add(self._messages, 1, flag = wx.EXPAND)
 
         self._warningLevels = {}
 
-        self.SetSizerAndFit(layout)
+        self.SetSizerAndFit(self._layout)
 
         # Subscribe to monitor subsystem signals
         self._connections = []
@@ -1500,6 +1506,21 @@ class MonitorPanel(BasePanel):
         conn = eventHub.subscribeToType(monitor.Monitor.CRITICAL,
                                         self._onCriticalSignal)
         self._connections.append(conn)
+
+    def _toggleDisplay(self, display):
+        self._display = display
+
+        # Show/Hide button text change
+        if self._display:
+            self._hide.Label = "Hide"
+        else:
+            self._hide.Label = "Show"
+
+        self._layout.Show(1, display)
+        self._layout.Layout()
+
+    def _onButton(self, event):
+        self._toggleDisplay(not self._display)
 
     def _onClose(self, event):
         for conn in self._connections:

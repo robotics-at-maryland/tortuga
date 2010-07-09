@@ -45,6 +45,6 @@ Subsystems:
                 warning: 27
                 critical: 26
 
-    CpuMonitor:
-        type: CpuMonitor
-        depends_on: ["QueuedEventHub"]
+    #CpuMonitor:
+    #    type: CpuMonitor
+    #    depends_on: ["QueuedEventHub"]
