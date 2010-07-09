@@ -1452,16 +1452,40 @@ class RecorderPanel(wx.Panel):
 
         return []
 
-class MonitorPanel(wx.Panel):
+class MonitorPanel(BasePanel):
     implements(IPanelProvider)
+
+    # These correspond to the LED color, NOT the threat level
+    NOMINAL = 2
+    WARNING = 1
+    CRITICAL = 0
 
     def __init__(self, parent, eventHub, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
 
+        layout = wx.FlexGridSizer(2, 1, 5, 0)
+        layout.AddGrowableCol(0)
+        layout.AddGrowableRow(1)
+
+        infoBox = wx.FlexGridSizer(1, 2, 0, 5)
+        infoBox.AddGrowableRow(0)
+        infoBox.AddGrowableCol(1)
+        label = wx.StaticText(self, label = 'Status')
+        infoBox.Add(label, 1, flag = wx.ALIGN_CENTER)
+
         # LED
-        #size = (self._getTextSize()[0], ram.gui.led.LED.HEIGHT)
-        #self._bouyLED = ram.gui.led.LED(self, state = 3, size = size)
-        #self._bouyLED.MinSize = size
+        size = (self._getTextSize()[0], ram.gui.led.LED.HEIGHT)
+        self._buoyLED = ram.gui.led.LED(self, state = 3, size = size)
+        self._buoyLED.MinSize = size
+        infoBox.Add(self._buoyLED, 1, flag = wx.ALIGN_CENTER | wx.EXPAND)
+        layout.Add(infoBox, 1, flag = wx.ALIGN_RIGHT | wx.EXPAND)
+
+        self._messages = wx.ListBox(self)
+        layout.Add(self._messages, 1, flag = wx.EXPAND)
+
+        self._warningLevels = {}
+
+        self.SetSizerAndFit(layout)
 
         # Subscribe to monitor subsystem signals
         self._connections = []
@@ -1482,13 +1506,39 @@ class MonitorPanel(wx.Panel):
             conn.disconnect()
 
     def _onNominalSignal(self, event):
-        pass
+        eventType, property, name, value = event.string.split(':', 4)
+        self._messages.InsertItems(['NOMINAL: ' + name + ' - ' + value], 0)
+        self._warningLevels[name] = MonitorPanel.NOMINAL
+        self._refreshWarningState()
 
     def _onWarningSignal(self, event):
-        pass
+        eventType, property, name, value = event.string.split(':', 4)
+        self._messages.InsertItems(['WARNING: ' + name + ' - ' + value], 0)
+        self._warningLevels[name] = MonitorPanel.WARNING
+        self._refreshWarningState()
 
     def _onCriticalSignal(self, event):
-        pass
+        eventType, property, name, value = event.string.split(':', 4)
+        self._messages.InsertItems(['CRITICAL: ' + name + ' - ' + value], 0)
+        self._warningLevels[name] = MonitorPanel.CRITICAL
+        self._refreshWarningState()
+
+    def _refreshWarningState(self):
+        """
+        Sets the LED to reflect the worst warning condition currently in effect
+        """
+        highestLevel = MonitorPanel.NOMINAL
+        for name, state in self._warningLevels.iteritems():
+            if state == MonitorPanel.CRITICAL:
+                highestLevel = MonitorPanel.CRITICAL
+            elif state == MonitorPanel.WARNING and \
+                    highestLevel != MonitorPanel.CRITICAL:
+                highestLevel = MonitorPanel.WARNING
+            else:
+                # Do not change anything if state is nominal
+                pass
+
+        self._buoyLED.SetState(highestLevel)
 
     @staticmethod
     def getPanels(subsystems, parent):
@@ -1496,8 +1546,8 @@ class MonitorPanel(wx.Panel):
                                                      subsystems, nonNone = True)
 
         if eventHub is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Log")
-            paneInfo = paneInfo.Caption("Log").Left()
+            paneInfo = wx.aui.AuiPaneInfo().Name("Monitor")
+            paneInfo = paneInfo.Caption("Monitor").Left()
 
             return [(paneInfo, MonitorPanel(parent, eventHub),
                      [eventHub])]

@@ -141,9 +141,10 @@ class Signal(object):
         value = getattr(event, self._property)
 
         newEvent = core.StringEvent()
-        newEvent.string = '%s:%s:%s' % (self._eventType,
-                                        self._property,
-                                        self._name)
+        newEvent.string = '%s:%s:%s:%s' % (self._eventType,
+                                           self._property,
+                                           self._name,
+                                           value)
 
         if self._critical > self._warning:
             self._checkMaximum(value, newEvent)

@@ -227,7 +227,7 @@ class MotionManager(core.Subsystem):
 
         The format of the config file should have ONLY motion entries.
         Each entry should be labeled with its position in the list.
-        For example, to generate 3 motions, you would use this:
+        For example, to generate 2 motions, you would use this:
 
         '1':
             type: 'ram.motion.basic.TimedMoveDirection'
