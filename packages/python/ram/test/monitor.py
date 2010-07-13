@@ -74,7 +74,7 @@ class TestMonitor(unittest.TestCase):
         self.qeventHub.publishEvents()
 
         self.assertEqual("ram.test.monitor.TestMonitor.TESTEVENT:"
-                         "number:testing123", self._string)
+                         "number:testing123:5.0", self._string)
 
     def testCritical(self):
         # Subscribe to the warning event
@@ -107,7 +107,7 @@ class TestMonitor(unittest.TestCase):
         self.qeventHub.publishEvents()
 
         self.assertEqual("ram.test.monitor.TestMonitor.TESTEVENT:"
-                         "number:testing123", self._string)
+                         "number:testing123:10.0", self._string)
 
     def testNominal(self):
         # Set the monitor to be at critical value
@@ -127,4 +127,4 @@ class TestMonitor(unittest.TestCase):
         self.qeventHub.publishEvents()
 
         self.assertEqual("ram.test.monitor.TestMonitor.TESTEVENT:"
-                         "number:testing123", self._string)
+                         "number:testing123:3.0", self._string)

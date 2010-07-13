@@ -18,7 +18,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
-            'ram.ai.course.Travel1']
+            'ram.ai.course.Travel1', 'ram.ai.course.Window']
 
 failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 
@@ -29,9 +29,9 @@ config:
     bwireDepth: 8.3
     targetDepth: 5.5
     windowDepth: 10.5
-    targetWindows: ['blue', 'red']
+    targetWindows: 'blue'
     buoyDepth: 6.5
-    targetBuoys: ['yellow', 'green']
+    targetBuoys: ['red', 'green']
     hedgeDepth: 9.8
     binDepth: 13
     targetSymbols: ['Aircraft', 'Ship']

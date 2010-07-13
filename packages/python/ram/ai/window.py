@@ -40,11 +40,7 @@ class WindowTrackingState(state.State):
         self.ai.data.setdefault('windowData', {})
 
         # Load the current target color
-        colorList = self.ai.data['config'].get('targetWindows',['red', 'green'])
-        torpedosFired = self.ai.data.get('torpedosFired', 0)
-
-        # Go to end state if there are no target windows
-        colorString = colorList[self.ai.data.get('torpedosFired', 0)]
+        colorString = self.ai.data['config'].get('targetWindows', 'red')
         
         # Convert the string into the appropriate attribute
         self._desiredColor = getattr(vision.Color, colorString.upper())
@@ -515,7 +511,7 @@ class SeekingToRange(RangeXYHold):
     @staticmethod
     def transitions():
         return RangeXYHold.transitions(SeekingToRange, {
-            RangeXYHold.IN_RANGE : FireTorpedos },
+            RangeXYHold.IN_RANGE : SeekingToAligned },
                                        lostState = FindAttemptRange)
         
 class FireTorpedos(RangeXYHold):
@@ -527,7 +523,6 @@ class FireTorpedos(RangeXYHold):
     NUMBER_TORPEDOS = 2
     ARM_TORPEDOS = core.declareEventType('ARM_TORPEDOS_')
     MOVE_ON = core.declareEventType('MOVE_ON')
-    REPOSITION = core.declareEventType('REPOSITION')
     MISALIGNED = core.declareEventType('MISALIGNED')
 
     @staticmethod
@@ -536,7 +531,6 @@ class FireTorpedos(RangeXYHold):
             RangeXYHold.IN_RANGE : FireTorpedos,
             FireTorpedos.ARM_TORPEDOS: FireTorpedos,
             FireTorpedos.MOVE_ON : End,
-            FireTorpedos.REPOSITION : Reposition,
             FireTorpedos.MISALIGNED : SeekingToAligned },
             lostState = FindAttemptFireTorpedos)
 
@@ -548,7 +542,8 @@ class FireTorpedos(RangeXYHold):
     def WINDOW_LOST(self, event):
         ret = WindowTrackingState.WINDOW_LOST(self, event)
         # Ignore lost events if the torpedo has fired already
-        if ret is False or self._fired:
+        if ret is False or self.ai.data.get('torpedosFired', 0) >= \
+                FireTorpedos.NUMBER_TORPEDOS:
             return False
 
     def IN_RANGE(self, event):
@@ -561,9 +556,6 @@ class FireTorpedos(RangeXYHold):
             squareNess = self._filterdAlign + 1
             if squareNess > self._minSquareNess:
                 self.vehicle.fireTorpedo()
-                # Mark down that the torpedo has been fired,
-                # to avoid race conditions with WINDOW_LOST
-                self._fired = True
             else:
                 self.publish(FireTorpedos.MISALIGNED, core.Event())
                 return
@@ -577,7 +569,7 @@ class FireTorpedos(RangeXYHold):
             self.ai.data['torpedosFired'] = fireCount + 1
 
             # Check which state we move to next
-            self._check()
+            self._resetFireTimer()
 
     def ARM_TORPEDOS_(self, event):
         """
@@ -590,17 +582,9 @@ class FireTorpedos(RangeXYHold):
 
         self._timer = None
         self._delay = self._config.get('fireDelay', 2)
-        self._fired = False
-        self._armed = False
         self._minSquareNess = self._config.get('minSquareNess', 0.85)
 
-        delay = self._config.get('startDelay', 0)
-        if delay > 0:
-            self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
-                                                     delay)
-            self._timer.start()
-        else:
-            self._armed = True
+        self._resetFireTimer(delay = self._config.get('startFireDelay', 0))
 
     def exit(self):
         if self._timer is not None:
@@ -610,14 +594,21 @@ class FireTorpedos(RangeXYHold):
     def armed(self):
         return self._armed
     
-    def _check(self):
+    def _resetFireTimer(self, delay = None):
         """
-        Checks whether to loopback and look for the next window, or
-        to move on and finish the window AI.
+        Initiates a timer which arms the firing of a torpedo after the desired
+        delay
         """
+        if delay is None:
+            delay = self._delay
+
         if self.ai.data.get('torpedosFired', 0) < FireTorpedos.NUMBER_TORPEDOS:
-            # Restart with the next window
-            self.publish(FireTorpedos.REPOSITION, core.Event())
+            if delay > 0:
+                self._timer = self.timerManager.newTimer(FireTorpedos.ARM_TORPEDOS,
+                                                         delay)
+                self._timer.start()
+            else:
+                self._armed = True
         else:
             # All torpedos fired, lets get out of this state
             self.publish(FireTorpedos.MOVE_ON, core.Event())

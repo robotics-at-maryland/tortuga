@@ -72,7 +72,7 @@ class TestFindAttempt(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['red', 'yellow']
+                    'targetWindows' : 'red'
                     }
                 },
             'StateMachine' : {
@@ -128,7 +128,7 @@ class TestRecover(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['red', 'yellow']
+                    'targetWindows' : 'red'
                     }
                 }
             }
@@ -190,7 +190,7 @@ class TestSearching(WindowTest):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['yellow', 'green']
+                    'targetWindows' : 'yellow'
                     }
                 }
             }
@@ -265,7 +265,7 @@ class TestCorrectHeight(WindowTest):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['yellow', 'green'],
+                    'targetWindows' : 'yellow',
                     'windowDepth' : TestCorrectHeight.DEPTH
                     }
                 }
@@ -344,7 +344,7 @@ class TestRangeXYHold(support.AITestCase):
             cfg = {
                 'Ai' : {
                     'config' : {
-                        'targetWindows' : ['red', 'green']
+                        'targetWindows' : 'red'
                         }
                     }
                 }
@@ -427,7 +427,7 @@ class TestApproach(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['yellow', 'blue']
+                    'targetWindows' : 'yellow'
                     }
                 }
             }
@@ -474,7 +474,7 @@ class TestSeekingToCentered(TestRangeXYHold):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['blue', 'yellow']
+                    'targetWindows' : 'blue'
                     }
                 }
             }
@@ -560,7 +560,7 @@ class TestSeekingToRange(TestRangeXYHold):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['green', 'blue']
+                    'targetWindows' : 'green'
                     }
                 }
             }
@@ -574,7 +574,7 @@ class TestSeekingToRange(TestRangeXYHold):
         TestRangeXYHold.testInRange(self, color = vision.Color.GREEN)
 
         # Make sure we ended up in the right place
-        self.assertCurrentState(window.FireTorpedos)
+        self.assertCurrentState(window.SeekingToAligned)
 
     def testIncorrectWindow(self):
         TestRangeXYHold.testIncorrectWindow(self, color = vision.Color.YELLOW)
@@ -587,7 +587,7 @@ class TestFireTorpedos(TestRangeXYHold):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['blue', 'red']
+                    'targetWindows' : 'blue'
                     }
                 }
             }
@@ -626,7 +626,7 @@ class TestFireTorpedos(TestRangeXYHold):
         self.assertEqual(1, self.ai.data['torpedosFired'])
         self.assertEqual(1, self.vehicle.torpedosFired)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(window.Reposition)
+        self.assertCurrentState(window.FireTorpedos)
 
     def testSecondTorpedo(self):
         # Set the torpedos fired to 1 and restart
@@ -647,7 +647,7 @@ class TestFireTorpedos(TestRangeXYHold):
         self.assert_(self.machine.currentState().armed)
 
         # Fire second torpedo
-        TestRangeXYHold.testInRange(self, color = vision.Color.RED)
+        TestRangeXYHold.testInRange(self, color = vision.Color.BLUE)
         self.assertEqual(2, self.ai.data['torpedosFired'])
         self.assertEqual(2, self.vehicle.torpedosFired)
         self.qeventHub.publishEvents()
@@ -735,7 +735,7 @@ class TestSeekingToAligned(AlignmentTest, support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'targetWindows' : ['red', 'green']
+                    'targetWindows' : 'red'
                     }
                 }
             }
@@ -810,7 +810,7 @@ class TestApproachAligning(support.AITestCase):
             'Ai' : {
                 'config' : {
                     'windowDepth' : 12,
-                    'targetWindows' : ['yellow', 'red']
+                    'targetWindows' : 'yellow'
                     }
                 }
             }
@@ -827,7 +827,7 @@ class TestReposition(support.AITestCase):
             'Ai' : {
                 'config' : {
                     'windowDepth' : 12,
-                    'targetWindows' : ['yellow', 'red']
+                    'targetWindows' : 'yellow'
                     }
                 }
             }

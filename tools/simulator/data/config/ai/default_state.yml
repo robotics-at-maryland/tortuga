@@ -101,6 +101,7 @@ ram.ai.buoy.Align:
     desiredRange: 5
     depthGain: 4
     maxDepthDt: 0.3
+    planeThreshold: 0.10
 ram.ai.buoy.Reposition:
     primaryDuration: 4
     secondaryDuration: 6
@@ -244,6 +245,7 @@ ram.ai.window.SeekingToAligned:
     minSquareNess: 0.95
 ram.ai.window.FireTorpedos:
     depthGain: 0
+    desiredRange: 0.35
 ram.ai.window.CorrectHeight:
     offset: 0.5
 ram.ai.window.Approach:
