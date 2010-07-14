@@ -105,6 +105,8 @@ ram.ai.buoy.Align:
 ram.ai.buoy.Reposition:
     primaryDuration: 4
     secondaryDuration: 6
+ram.ai.buoy.Continue:
+    forwardDuration: 5
 
 # Target AI
 ram.ai.target.Start:
@@ -231,6 +233,8 @@ ram.ai.hedge.SeekingToRange:
     depthGain: 0
 ram.ai.hedge.SeekingToAligned:
     depthGain: 0
+ram.ai.hedge.Through:
+    duration: 6
 
 # Window AI
 ram.ai.window.Start:

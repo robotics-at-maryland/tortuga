@@ -1,0 +1,46 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Buoy', 'ram.ai.course.Pipe1',
+            'ram.ai.course.Hedge', 'ram.ai.course.PipeTarget',
+            'ram.ai.course.Window', 'ram.ai.course.PipeBin',
+            'ram.ai.course.Bin', 'ram.ai.course.Pipe2',
+            'ram.ai.course.Hedge2', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeDive', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 4
+    lightDepth: 4.75
+    pipeDepth: 7
+    bwireDepth: 10
+    windowDepth: 7
+    binDepth: 12
+    targetSymbols: ['Machete', 'Clippers']
+    targetBuoys: ['red', 'green']
+    targetWindows: 'red'
+    hedgeDepth: 10
+    sonarDepth: 5
+    safeDepth: 14
+    safeOffset: -0.4
+    Gate:
+        time: 30
+        speed: 3
+    Buoy:
+        forwardDuration: 10
+    PipeBarbedWire:
+        biasDirection: -55
+        threshold: 15
+        rotation: -10
+        duration: 5
+    PipeTarget:
+        biasDirection: -65
+        threshold: 15
+        rotation: 90
+        duration: 5
+    PipeBin:
+        biasDirection: 75
+        threshold: 15
+        rotation: 90
+        duration: 5
+    Pipe2:
+        biasDirection: -40
+        threshold: 15

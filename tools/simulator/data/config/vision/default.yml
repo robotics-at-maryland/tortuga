@@ -30,6 +30,28 @@ OrangePipeDetector:
     filtUMax: 230
     filtUMin: 155
 
+BuoyDetector:
+    filtRedLMin: 135
+    filtRedLMax: 135
+    filtRedCMin: 179
+    filtRedCMax: 179
+    filtRedHMin: 8
+    filtRedHMax: 8
+    filtGreenLMin: 223
+    filtGreenLMax: 223
+    filtGreenCMin: 135
+    filtGreenCMax: 135
+    filtGreenHMin: 90
+    filtGreenHMax: 90
+    filtYellowLMin: 247
+    filtYellowLMax: 247
+    filtYellowCMin: 107
+    filtYellowCMax: 107
+    filtYellowHMin: 60
+    filtYellowHMax: 60
+    minWidth: 10
+    minHeight: 10
+
 BinDetector:
 #    logSymbolImages: true
     symbolDetector: BasicWeaponDetector

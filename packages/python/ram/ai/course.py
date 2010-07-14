@@ -594,6 +594,16 @@ class Hedge(task.Task):
         self.stateMachine.stopBranch(hedge.Start)
         self.visionSystem.hedgeDetectorOff()
         self.motionManager.stopCurrentMotion()
+
+class Hedge2(Hedge):
+    @staticmethod
+    def _transitions():
+        return Hedge._transitions()
+
+class Hedge3(Hedge):
+    @staticmethod
+    def _transitions():
+        return Hedge._transitions()
     
 class Target(task.Task):
     """
