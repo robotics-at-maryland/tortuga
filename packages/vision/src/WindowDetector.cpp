@@ -260,6 +260,7 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
     filter.inverseFilterImage(innerFrame);
     m_blobDetector.processImage(innerFrame);
     delete innerFrame;
+    delete [] buffer;
 
     BlobDetector::BlobList bgBlobs = m_blobDetector.getBlobs();
     
@@ -270,8 +271,6 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
             return true;
         }
     }
-    delete [] buffer;
-    delete innerFrame;
     return false;
 }
 
