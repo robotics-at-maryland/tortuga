@@ -29,15 +29,16 @@ Vehicle:
 
     MagBoomName: MagBoom
 
+    TopThrusterThrottle: 0.6
+
     # The list of devices to create for the vehicle
     Devices:
         # NOTE: All current numbers here are BS and need to updated
-        VelocitySensor:
-            depends_on: ["SensorBoard"]
-            type: VisionVelocitySensor
+        #VelocitySensor:
+        #    depends_on: ["SensorBoard"]
+        #    type: VisionVelocitySensor
         SensorBoard:
             type: SensorBoard
-            depends_on: ["StateEstimator"]
             update_interval: 25
             priority: high
             depthCalibSlope: 35.5
@@ -158,7 +159,6 @@ Vehicle:
             
         MagBoom:
             type: IMU
-            depends_on: ['StateEstimator']
             num: 1
             devfile: /dev/magboom
             update_interval: 5
@@ -180,9 +180,13 @@ Vehicle:
             #                        [-0.9638, 0.2654, 0.0245],
             #                        [-0.0204, 0.0182, -0.9996]]
             #from 2010-01-14
-            imuToVehicleRotMatrix: [[ 0.0257, 0.9994, -0.0222 ],
-                                    [ 0.9995, -0.0253, 0.0161 ],
-                                    [ 0.0155, -0.0226, -0.9996 ]]
+            #imuToVehicleRotMatrix: [[ 0.0257, 0.9994, -0.0222 ],
+            #                        [ 0.9995, -0.0253, 0.0161 ],
+            #                        [ 0.0155, -0.0226, -0.9996 ]]
+            #from 2010-07-13
+            imuToVehicleRotMatrix: [[ 0.3740, 0.9274, -0.0035 ],
+                                    [ 0.9271, -0.3738, 0.0288 ],
+                                    [ 0.0254, -0.0140, -0.9996 ]]
             #magXBias: -0.0702
             #magYBias:  0.0056
             #magZBias:  0.0124
@@ -194,9 +198,13 @@ Vehicle:
             #magYBias: 0.0147
             #magZBias: -0.0495
             # Tortuga 3  from 2010-01-14
-            magXBias: 0.0075
-            magYBias: -0.0217
-            magZBias: -0.0909
+            #magXBias: 0.0075
+            #magYBias: -0.0217
+            #magZBias: -0.0909
+            # Tortuga 3  from 2010-07-14
+            magXBias: 0.0177
+            magYBias: -0.0670
+            magZBias: -0.0815
 
             #gyroXBias: 0.0013
             #gyroYBias: 0.0499
@@ -207,15 +215,18 @@ Vehicle:
             #gyroYBias: 0.0201
             #gyroZBias: -0.0084
             # Tortuga 3
-            gyroXBias: -0.0003
-            gyroYBias: -0.0027
-            gyroZBias: 0.0015
+            #gyroXBias: -0.0003
+            #gyroYBias: -0.0027
+            #gyroZBias: 0.0015
+            # Tortuga 3  from 2010-07-14
+            gyroXBias: -0.0051
+            gyroYBias: 0.0021
+            gyroZBias: 0.0040
 
             localMagneticPitch: 60
 
         IMU:
             type: IMU
-            depends_on: ['StateEstimator']
             num: 0
             update_interval: 5
             priority: high
@@ -253,9 +264,13 @@ Vehicle:
             #magYBias: 0.0384
             #magZBias: 0.5876 
             # Tortuga 3  from 2010-01-14
-            magXBias: 0.1130
-            magYBias: -0.0529
-            magZBias: 0.5463
+            #magXBias: 0.1130
+            #magYBias: -0.0529
+            #magZBias: 0.5463
+            # Tortuga 3  from 2010-07-14
+            magXBias: 0.1631
+            magYBias: -0.0391
+            magZBias: 0.5789
 
             # Tortuga 2.5
             #gyroXBias: 0.0216
@@ -266,9 +281,13 @@ Vehicle:
             #gyroYBias: -0.0136
             #gyroZBias: -0.0304
             # Tortuga 3  from 2010-01-14
-            gyroXBias: 0.0179
-            gyroYBias: -0.0223
-            gyroZBias: -0.0336
+            #gyroXBias: 0.0179
+            #gyroYBias: -0.0223
+            #gyroZBias: -0.0336
+            # Tortuga 3  from 2010-07-14
+            gyroXBias: 0.0123
+            gyroYBias: -0.0269
+            gyroZBias: -0.0359
 
             # Tortuga 2.5
             #imuToVehicleRotMatrix: [[-0.8794, 0.0060, -0.4761],
@@ -283,13 +302,23 @@ Vehicle:
             #                        [0.9959, -0.0011, -0.0904],
             #                        [-0.0019, 0.9995, -0.0326]]
             # Tortuga 3  from 2010-01-14
-            imuToVehicleRotMatrix: [[ 0.1629, 0.0284, 0.9862],
-                                    [ 0.9864, 0.0183, -0.1635],
-                                    [ -0.0227, 0.9994, -0.0250]]
+            #imuToVehicleRotMatrix: [[ 0.1629, 0.0284, 0.9862],
+            #                        [ 0.9864, 0.0183, -0.1635],
+            #                        [ -0.0227, 0.9994, -0.0250]]
+            # Tortuga 3  from 2010-07-14
+            imuToVehicleRotMatrix: [[ 0.2608, 0.0058, 0.9654],
+                                    [ 0.9642, -0.0519, -0.2601],
+                                    [ 0.0486, 0.9986, -0.0192]]
             
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
             localMagneticPitch: 60
+
+        #DVL:
+        #    type: DVL
+        #    depends_on: ["SensorBoard"]
+        #    devfile: /dev/dvl
+
 RemoteController:
     type: RemoteController
     depends_on: ["Controller"]
@@ -407,41 +436,41 @@ Controller:
     depthKi: 1.0
     depthKd: 1.0 #3.0
 
-Monitor:
-    type: Monitor
-    depends_on: ["QueuedEventHub", "Vehicle"]
+#Monitor:
+    #type: Monitor
+    #depends_on: ["QueuedEventHub"]
 
-    Battery1:
-        name: "Battery 1"
-        publisher: "Vehicle.Device.Batt 1"
-        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
-        property: number
-        warning: 26.7
-        critical: 26
+    #Battery1:
+    #    name: "Battery 1"
+    #    publisher: "Vehicle.Device.Batt 1"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26
 
-    Battery2:
-        name: "Battery 2"
-        publisher: "Vehicle.Device.Batt 2"
-        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
-        property: number
-        warning: 26.7
-        critical: 26
+    #Battery2:
+    #    name: "Battery 2"
+    #    publisher: "Vehicle.Device.Batt 2"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26
 
-    Battery3:
-        name: "Battery 3"
-        publisher: "Vehicle.Device.Batt 3"
-        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
-        property: number
-        warning: 26.7
-        critical: 26
+    #Battery3:
+    #    name: "Battery 3"
+    #    publisher: "Vehicle.Device.Batt 3"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26
 
-    Battery4:
-        name: "Battery 4"
-        publisher: "Vehicle.Device.Batt 4"
-        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
-        property: number
-        warning: 26.7
-        critical: 26
+    #Battery4:
+    #    name: "Battery 4"
+    #    publisher: "Vehicle.Device.Batt 4"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26
 
     #Battery5:
     #    name: "Battery 5"
@@ -450,3 +479,4 @@ Monitor:
     #    property: number
     #    warning: 26.7
     #    critical: 26
+
