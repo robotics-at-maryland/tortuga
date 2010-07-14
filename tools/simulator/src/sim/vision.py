@@ -1577,7 +1577,7 @@ class IdealSimVision(ext.vision.VisionSystem):
             event.squareNess = 2*math.fabs(math.cos(angle.valueRadians()))**4.82
 
             # Convert to feet
-            event.range = range / 3.18
+            event.range = range / (3 * 3.2808399)
 
             found = True
             self.publish(ext.vision.EventType.HEDGE_FOUND, event)
