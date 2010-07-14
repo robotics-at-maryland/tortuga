@@ -991,8 +991,8 @@ class HedgePanel(BaseVisionPanel):
 
     def _onHedgeFound(self, event):
         if self._detector:
-            self._x.Value = "% 4.2f" % event.x
-            self._y.Value = "% 4.2f" % event.y
+            self._x.Value = "% 4.2f" % ((event.leftX + event.rightX) / 2.0)
+            self._y.Value = "% 4.2f" % ((event.leftY + event.rightY) / 2.0)
             self._squareNess.Value = "% 4.2f" % event.squareNess
             self._range.Value = "% 4.2f" % event.range
         
