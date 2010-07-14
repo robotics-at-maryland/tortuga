@@ -69,6 +69,9 @@ private:
     /** Sets the brightness to the desired value (or auto) */
     void setBrightness(uint32_t value, bool makeAuto = false);
 
+    /** Sets the exposure to the desired value (or auto) */
+    void setExposure(uint32_t value, bool makeAuto = false);
+
     /** Sets teh brightness to the desired value (or auto) */
     void setWhiteBalance(uint32_t uValue, uint32_t vValue,
                          bool makeAuto = false);

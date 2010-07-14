@@ -282,6 +282,20 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         }
     }
 
+    if (config.exists("exposure"))
+    {
+        // Read in and set values
+        if (boost::to_lower_copy(config["exposure"].asString()) == "auto")
+        {
+            setExposure(0, true);
+        }
+        else
+        {
+            uint32_t value = (uint32_t)config["exposure"].asInt();
+            setExposure(value);
+        }
+    }
+
     err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
                                                 &m_vValue);
     std::cout << "Set U: " << m_uValue << " V: " << m_vValue << std::endl;
@@ -330,7 +344,7 @@ void DC1394Camera::setBrightness(uint32_t value, bool makeAuto)
     
     // Make sure its available
     assert((brightness.available == DC1394_TRUE) &&
-           "White balance not supported by camera");
+           "Brightness not supported by camera");
 
     if (makeAuto)
     {
@@ -359,6 +373,46 @@ void DC1394Camera::setBrightness(uint32_t value, bool makeAuto)
         assert(DC1394_SUCCESS == err && "Could not set brightness");
     }
 
+}
+
+void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
+{
+    // Grab the white balance feature
+    dc1394feature_info_t exposure;
+    exposure.id = DC1394_FEATURE_EXPOSURE;
+    dc1394error_t err = dc1394_feature_get(m_camera, &exposure);
+    assert(DC1394_SUCCESS == err && "Could not get exposure feature info");
+    
+    // Make sure its available
+    assert((exposure.available == DC1394_TRUE) &&
+           "Exposure not supported by camera");
+
+    if (makeAuto)
+    {
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_EXPOSURE,
+                                      DC1394_FEATURE_MODE_AUTO);
+        assert(DC1394_SUCCESS == err && "Could not set exposure to auto");
+    }
+    else
+    {
+        // Set manual mode
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_EXPOSURE,
+                                      DC1394_FEATURE_MODE_MANUAL);
+        assert(DC1394_SUCCESS == err && "Could not set exposure to manual");
+
+        // Error on out of bounds values
+        if ((value > exposure.max) || (value < exposure.min))
+        {
+            fprintf(stderr, "ERROR: Exposure is out of bounds: (%u, %u)\n",
+                    exposure.min, exposure.max);
+            assert(false && "Exposure out of bounds");
+        }
+        
+        // Set value
+        err = dc1394_feature_set_value(m_camera, DC1394_FEATURE_EXPOSURE,
+                                       value);
+        assert(DC1394_SUCCESS == err && "Could not set exposure");
+    }
 }
     
 void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
