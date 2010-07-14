@@ -80,6 +80,7 @@ SensorBoard::SensorBoard(int deviceFD,
     m_servo1FirePosition = config["servo1FirePosition"].asInt(4000);
     m_servo2FirePosition = config["servo2FirePosition"].asInt(4000);
     m_servo3FirePosition = config["servo3FirePosition"].asInt(4000);
+    m_servo4FirePosition = config["servo4FirePosition"].asInt(4000);
     
     // If we get a negative FD, don't try to talk to the board
     if (deviceFD >= 0)
@@ -141,6 +142,7 @@ SensorBoard::~SensorBoard()
     boost::mutex::scoped_lock lock(m_deviceMutex);
     if (m_deviceFD >= 0)
     {
+        setServoPower(SERVO_POWER_OFF);
         close(m_deviceFD);
         m_deviceFD = -1;
     }
@@ -445,14 +447,21 @@ int SensorBoard::fireTorpedo()
         // need to code around
         if (torpedoNum == 0)
         {
-            setServoPosition(SERVO_1, m_servo1FirePosition);
-            setServoEnable(SERVO_ENABLE_1);
-            setServoPower(SERVO_POWER_ON);
+            // Hacky because the command doesn't always work
+            for (int i=0; i < 10; i++)
+            {
+                setServoPosition(SERVO_1, m_servo1FirePosition);
+                setServoEnable(SERVO_ENABLE_1);
+            }
         }
         else if (torpedoNum == 1)
         {
-            setServoPosition(SERVO_2, m_servo2FirePosition);
-            setServoEnable(SERVO_ENABLE_2);
+            // Hacky because the command doesn't always work
+            for (int i=0; i < 10; i++)
+            {
+                setServoPosition(SERVO_2, m_servo2FirePosition);
+                setServoEnable(SERVO_ENABLE_2);
+            }
         }
         
         torpedoFired = torpedoNum;
@@ -469,11 +478,14 @@ int SensorBoard::releaseGrabber()
     
     if (!released)
     {
-        // Yes this code looks weird, but MotorBoard r3 has some bugs that we
-        // need to code around
-        setServoPosition(SERVO_3, m_servo3FirePosition);
-        setServoEnable(SERVO_ENABLE_3);
-        setServoPower(SERVO_POWER_ON);
+        // Hacky because the command doesn't always work
+        for (int i=0; i < 10; i++)
+        {
+            setServoPosition(SERVO_3, m_servo3FirePosition);
+            setServoPosition(SERVO_4, m_servo4FirePosition);
+
+            setServoEnable(SERVO_ENABLE_3_4);
+        }
 
         released = -1;
         return 0;
@@ -565,6 +577,9 @@ void SensorBoard::establishConnection()
     }
 
     syncBoard();
+
+    // Turn on the servos
+    setServoPower(SERVO_POWER_ON);
 }
 
 bool SensorBoard::handleReturn(int ret)

@@ -36,13 +36,15 @@ public:
         updateDone(false),
         thrusterState(0),
         markerDropped(-1),
-        servoUsed(-1),
-        servoPosition(-1),
         servoEnable(-1),
         servoPower(-1)
     {
         memset(speeds, 0, sizeof(int) * 6);
         memset(&currentTelemetry, 0, sizeof(struct boardInfo));
+
+        // SensorBoard constructor does not call this
+        // (no connection to a real sensor board)
+        setServoPower(SERVO_POWER_ON);
     }
 
     int speeds[6];
@@ -52,8 +54,8 @@ public:
     int thrusterState;
     int batteryState;
     int markerDropped;
-    int servoUsed;
-    int servoPosition;
+    std::vector<int> servosUsed;
+    std::vector<int> servoPositions;
     int servoEnable;
     int servoPower;
     
@@ -88,8 +90,8 @@ protected:
     virtual void setServoPosition(unsigned char servoNumber,
                                  unsigned short position)
     {
-        servoUsed = servoNumber;
-        servoPosition = position;
+        servosUsed.push_back(servoNumber);
+        servoPositions.push_back(position);
     }
 
     virtual void setServoEnable(unsigned char mask)
@@ -389,22 +391,26 @@ TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
 
     // Fire first torpedo
     CHECK_EQUAL(0, sb->fireTorpedo());
-    CHECK_EQUAL(SERVO_1, testSb->servoUsed);
-    CHECK_EQUAL(8000, testSb->servoPosition);
+    CHECK_EQUAL(10, (int) testSb->servosUsed.size());
+    CHECK_EQUAL(SERVO_1, testSb->servosUsed[0]);
+    CHECK_EQUAL(10, (int) testSb->servoPositions.size());
+    CHECK_EQUAL(8000, testSb->servoPositions[0]);
     CHECK_EQUAL(SERVO_ENABLE_1, testSb->servoEnable);
     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
     // Fire second torpedo
     CHECK_EQUAL(1, sb->fireTorpedo());
-    CHECK_EQUAL(SERVO_2, testSb->servoUsed);
-    CHECK_EQUAL(7000, testSb->servoPosition);
+    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+    CHECK_EQUAL(SERVO_2, testSb->servosUsed[10]);
+    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+    CHECK_EQUAL(7000, testSb->servoPositions[10]);
     CHECK_EQUAL(SERVO_ENABLE_2, testSb->servoEnable);
     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
 
     
     // Fire non-existent torpedo
     CHECK_EQUAL(-1, sb->fireTorpedo());
-    CHECK_EQUAL(SERVO_2, testSb->servoUsed);
-    CHECK_EQUAL(7000, testSb->servoPosition);
+    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
 
     delete testSb;
 }
@@ -413,21 +419,26 @@ TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
 {
     TestSensorBoard* testSb = new TestSensorBoard(
         ram::core::ConfigNode::fromString(BASE_CONFIG +
-            "'servo3FirePosition' : 6000}"));
+            "'servo3FirePosition' : 6000,"
+            "'servo4FirePosition' : 5000}"));
     ram::vehicle::device::SensorBoard* sb =
         (ram::vehicle::device::SensorBoard*)testSb;
 
     // Release Grabber
     CHECK_EQUAL(0, sb->releaseGrabber());
-    CHECK_EQUAL(SERVO_3, testSb->servoUsed);
-    CHECK_EQUAL(6000, testSb->servoPosition);
-    CHECK_EQUAL(SERVO_ENABLE_3, testSb->servoEnable);
+    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+    CHECK_EQUAL(SERVO_3, testSb->servosUsed[0]);
+    CHECK_EQUAL(SERVO_4, testSb->servosUsed[1]);
+    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+    CHECK_EQUAL(6000, testSb->servoPositions[0]);
+    CHECK_EQUAL(5000, testSb->servoPositions[1]);
+    CHECK_EQUAL(SERVO_ENABLE_3_4, testSb->servoEnable);
     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
     
-    // Fire non-existent torpedo
+    // Fire non-existent grabber
     CHECK_EQUAL(-1, sb->releaseGrabber());
-    CHECK_EQUAL(SERVO_3, testSb->servoUsed);
-    CHECK_EQUAL(6000, testSb->servoPosition);
+    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
 
     delete testSb;
 }

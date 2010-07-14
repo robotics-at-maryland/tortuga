@@ -299,6 +299,9 @@ private:
 
     /** The fire servo position for the treasure grabber */
     int m_servo3FirePosition;
+
+    /** The fire servo position for the treasure grabber */
+    int m_servo4FirePosition;
 };
     
 } // namespace device
