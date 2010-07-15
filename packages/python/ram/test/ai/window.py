@@ -143,7 +143,7 @@ class TestRecover(support.AITestCase):
                          vision.WindowEvent, 0.5, 0, 0, 0,
                          color = vision.Color.RED)
         self.qeventHub.publishEvents()
-        self.assertCurrentState(window.SeekingToCentered)
+        self.assertCurrentState(window.Approach)
         self.assertEqual(0.5, self.ai.data['windowData'][vision.Color.RED].x)
         self.assertEqual(0, self.ai.data['windowData'][vision.Color.RED].y)
         
@@ -169,7 +169,7 @@ class TestRecover(support.AITestCase):
         # Now inject an event to cause it to change depth
         self.injectEvent(vision.EventType.WINDOW_FOUND,
                          vision.WindowEvent, color = vision.Color.RED)
-        self.assertCurrentState(window.SeekingToCentered)
+        self.assertCurrentState(window.Approach)
 
     def testNoEvent(self):
         # Get rid of the event that was created
@@ -183,7 +183,7 @@ class TestRecover(support.AITestCase):
         # Check that injecting an event doesn't do anything bad
         self.injectEvent(vision.EventType.WINDOW_FOUND,
                          vision.WindowEvent, color = vision.Color.RED)
-        self.assertCurrentState(window.SeekingToCentered)
+        self.assertCurrentState(window.Approach)
         
 class TestSearching(WindowTest):
     def setUp(self):

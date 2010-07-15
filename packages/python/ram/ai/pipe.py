@@ -198,7 +198,8 @@ class PipeFollowingState(PipeTrackingState):
                                 < pipeData['absoluteDirection'][minID]:
                             minID = i
             if minID is None:
-                del pipeData['currentID']
+                if pipeData.has_key('currentID'):
+                    del pipeData['currentID']
             else:
                 pipeData['currentID'] = minID
                 self._pipe.setState(pipeData['itemData'][minID].x,

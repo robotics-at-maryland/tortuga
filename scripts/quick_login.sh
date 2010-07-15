@@ -9,7 +9,7 @@ fi
 
 echo "Enter tortuga3 password"
 idrsa=$(cat ~/.ssh/id_rsa.pub)
-ssh jlisee@tortuga3 ./ram_code/scripts/register_computer.sh $idrsa
+ssh jlisee@192.168.10.11 ./ram_code/scripts/register_computer.sh $idrsa
 
 # Check the .bashrc file for the string "alias ssh-hack"
 # Does not check for scp-hack, just assumes it is there if ssh-hack is there

@@ -312,7 +312,7 @@ class Recover(state.FindAttempt, WindowTrackingState):
     @staticmethod
     def transitions():
         return state.FindAttempt.transitions(vision.EventType.WINDOW_FOUND,
-                                             SeekingToCentered, Searching)
+                                             Approach, Searching)
 
     @staticmethod
     def getattr():

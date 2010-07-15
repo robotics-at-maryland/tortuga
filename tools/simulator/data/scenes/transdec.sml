@@ -28,7 +28,7 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga3.rml'
-            position: [-27, -10, 0]
+            position: [-23, -15, 0]
             orientation: [0, 0, 1, -55]
             #position: [-25, -1, 0]
             #orientation: [0, 0, 1, 60]
@@ -40,67 +40,68 @@ Scene:
 
             startType: [sim.vision.IPipe, sim.vision.Pipe]
             start: pipe1
-            startPos: [-22, -19]
+            startPos: [-16, -24]
             startDepth: -4.2672
-            startHeading: 65
+            startHeading: 40
 
             pipe1:        
                 greenBuoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 6
-                    depth: -1.425
+                    distance: 5.5
+                    depth: -2.438
                     offset: -0.5
                     Graphical:
                         material: Simple/Green
 
                 yellowBuoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 6.5
-                    depth: -1.5
+                    distance: 6
+                    depth: -1.981
                     offset: 0.5
                     Graphical:
                         material: Simple/Yellow
 
                 redBuoy:
                     type: [sim.vision.IBuoy, sim.vision.Buoy]
-                    distance: 6
-                    depth: -1.3
+                    distance: 5.5
+                    depth: -1.524
                     Graphical:
                         material: Simple/Red
 
             greenBuoy:
                 pipe2:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
-                    distance: 2
+                    distance: 3
                     depth: -4.2672
-                    heading: -50
+                    heading: -15
+                    offset: -0.5
 
             pipe2:
                 hedge1:
                     type: [sim.vision.IHedge, sim.vision.Hedge]
-                    distance: 7
-                    depth: -3.048
-                    heading: 10
+                    distance: 6
+                    depth: -2.469
+                    heading: -5
 
             hedge1:
                 rightpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 2
-                    heading: 40
-                    offset: -0.7
+                    heading: 10
+                    offset: -0.5
                     depth: -4.2672
                 leftpipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
-                    distance: 2
-                    heading: -35
-                    offset: 0.7
+                    distance: 1.8
+                    heading: -45
+                    offset: 0.4
                     depth: -4.2672
 
             leftpipe:
                 bin:
                     type: [ram.sim.object.IObject, sim.vision.BlackJackTable]
                     distance: 6
-                    heading: 30
+                    heading: 0
                     depth: -3.9
                     symbols: ['axe', 'hammer', 'machete', 'clippers']
 
@@ -108,65 +109,67 @@ Scene:
                 targetPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 0.3
-                    heading: 90
+                    heading: 100
                     offset: -3
                     depth: -4.2672
                 binSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
                     distance: 1.5
-                    heading: 20
+                    heading: 10
                     depth: -4.2672
 
             windows:
                 binPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
-                    distance: -1.4
-                    heading: -150
-                    offset: 0.8
+                    distance: -1
+                    heading: -135
+                    offset: 1
                     depth: -4.2672
                 targetSonarPipe:
                     type: [sim.vision.IPipe, sim.vision.Pipe]
-                    distance: -0.5
-                    heading: -70
-                    offset: 1
+                    distance: 1.5
+                    heading: -60
+                    offset: 0.5
                     depth: -4.2672
 
             rightpipe:
                 windows:
                     type: [ram.sim.object.IObject, sim.vision.TargetArray]
                     distance: 9
-                    heading: 10
-                    depth: -2.46888
+                    heading: 5
+                    depth: -2.591
                     colors: ['yellow', 'blue', 'green', 'red']
 
             targetSonarPipe:
                 hedge3:
                     type: [sim.vision.IHedge, sim.vision.Hedge]
-                    distance: 3
-                    depth: -3.048
-                    heading: 0
-
+                    distance: 15.5
+                    depth: -2.469
+                    heading: -30
+           
+            hedge3:
                 fakeSafe:
                     type: [sim.vision.ISafe, sim.vision.Safe]
-                    distance: 8
-                    depth: -4.2672
+                    distance: 7
+                    depth: -3.048
 
             binSonarPipe:
                 hedge2:
                     type: [sim.vision.IHedge, sim.vision.Hedge]
-                    distance: 4
-                    depth: -3.048
-                    heading: 0
+                    distance: 14
+                    depth: -2.469
+                    heading: -15
 
+            hedge2:
                 sonar:
                     type: [sim.sonar.IPinger, sim.sonar.Pinger]
-                    distance: 10
+                    distance: 7.5
                     depth: -4.572
 
                 safe:
                     type: [sim.vision.ISafe, sim.vision.Safe]
-                    distance: 10
-                    depth: -4.2672
+                    distance: 7.5
+                    depth: -3.048
 
         course2:
             type: [sim.vision.ICourse, sim.vision.Course]
@@ -229,7 +232,7 @@ Scene:
         tank_walls:
             type: [ram.sim.scene.ISceneObject, ram.sim.scene.SceneObject]
             position: [0, 0, 0]
-            orientation: [1, 0, 0, 90]
+            orientation: [0.97028687514552081, 0.17108808730113592, 0.17108808730113592, 91.727979443648806]
             
             Graphical:
                 mesh: 'TankWallsMesh.mesh'
