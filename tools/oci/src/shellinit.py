@@ -32,6 +32,7 @@
 import math as pmath
 import ext.core as core
 import ext.math as math
+import ext.vehicle as vehicle
 import ram.ai.light as light
 import ram.ai.buoy as buoy
 import ram.ai.gen2.light as light2
@@ -369,6 +370,17 @@ def takeDClip(seconds, name = None, extension = ".rmv", rate = 5):
     @param rate The rate to record video at
     """
     recordClip(visionSystem.addDownwardRecorder, visionSystem.removeDownwardRecorder, seconds, name, extension, rate)
+
+@requires("queuedEventHub")
+def sendPing(x = 0, y = 0, z = 0, pingerID = 0):
+    event = vehicle.SonarEvent()
+    event.direction = math.Vector3(x, y, z)
+    event.pingerID = pingerID
+    queuedEventHub.publish(vehicle.device.ISonar.UPDATE, event)
+
+def sendPingDirection(angle, pingerID = 0):
+    x, y = pmath.cos(angle), pmath.sin(angle)
+    sendPing(x, y, pingerID = pingerID)
 
 del vars
 del error_function
