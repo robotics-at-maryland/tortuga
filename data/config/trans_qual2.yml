@@ -36,7 +36,7 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/transdec2010.yml
+            INCLUDE: data/config/ai/transdec2010_state.yml
 
 
     # Includes all common subsystems    
