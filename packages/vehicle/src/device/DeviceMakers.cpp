@@ -27,6 +27,7 @@
 #include "vehicle/include/device/SBSonar.h"
 #include "vehicle/include/device/SBMarkerDropper.h"
 #include "vehicle/include/device/SBTorpedoLauncher.h"
+#include "vehicle/include/device/SBGrabber.h"
 #endif // RAM_WITH_DRIVERS
 
 #include "vehicle/include/device/LoopStateEstimator.h"
