@@ -53,6 +53,15 @@ Vehicle:
         TorpedoLauncher:
             type: SBTorpedoLauncher
             depends_on: ['SensorBoard']
+
+            servo1FirePosition: 400
+            servo2FirePosition: 3500
+            servo3FirePosition: 3500
+            servo4FirePosition: 400
+        Grabber:
+            type: SBGrabber
+            depends_on: ["SensorBoard"]
+
         Sonar:
             depends_on: ['SensorBoard']
             type: SBSonar
