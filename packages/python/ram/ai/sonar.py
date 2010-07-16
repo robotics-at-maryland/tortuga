@@ -132,30 +132,56 @@ class Searching(state.State):
     """
     Waits for a ping to happen, and when it gets one, turns toward the source.
     Then it waits for 4 seconds, to allow the any disturbances in pinger data 
-    from the vehicles rotation to die down, and then moves on to the next state. 
+    from the vehicles rotation to die down, and then moves on to the next state.
     """
-    CHANGE = core.declareEventType("CHANGE")
+    SPIN = core.declareEventType('SPIN_')
 
     @staticmethod
     def transitions():
         return { vehicle.device.ISonar.UPDATE : Searching,
-	             Searching.CHANGE : FarSeeking }
+                 motion.basic.MotionManager.FINISHED : FarSeeking,
+                 Searching.SPIN : Searching }
+    @staticmethod
+    def getattr():
+        return set(['yawSpeed'])
+
         
     def UPDATE(self, event):
         if self._first:
+            if self.timer is not None:
+                self.timer.stop()
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
-	   
-	    self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
-	    self.timer.start()
+
+            headingMotion = motion.basic.RateChangeHeading(
+                desiredHeading = pingerOrientation.getYaw(True).valueDegrees(),
+                speed = self._yawSpeed)
+
+            self.motionManager.setMotion(headingMotion)
+
 	    self._first = False
+
+    def SPIN_(self, event):
+        spinMotion = motion.basic.RateChangeHeading(
+            desiredHeading = 40,
+            speed = self._yawSpeed,
+            absolute = False)
+
+        self.motionManager.setMotion(spinMotion)
+
+        self.timer = self.timerManager.newTimer(Searching.SPIN, self._pause)
+        self.timer.start()
 
     def enter(self):
         self._first = True
-        self.timer = None
+        self._pause = \
+            self.ai.data['config'].get('Pinger', {}).get('pauseTime', 3)
+        self.timer = self.timerManager.newTimer(Searching.SPIN, self._pause)
+        self._yawSpeed = self._config.get('yawSpeed', 10)
+        self.timer.start()
         
     def exit(self):
+        self.motionManager.stopCurrentMotion()
         if self.timer is not None:
             self.timer.stop()
 

@@ -1,8 +1,8 @@
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Buoy', 'ram.ai.course.Pipe1',
-             travel, 'ram.ai.course.PipeTarget',
+            'ram.ai.course.PipeTarget',
             'ram.ai.course.Window', 'ram.ai.course.PipeBin',
-            'ram.ai.course.Bin', travel, 'ram.ai.course.Pinger',
+            'ram.ai.course.Bin', 'ram.ai.course.Pinger',
             'ram.ai.course.SafeDive', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon']
 
