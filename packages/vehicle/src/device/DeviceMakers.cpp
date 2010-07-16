@@ -55,6 +55,8 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,
                                    SBMarkerDropper);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBTorpedoLauncher,
                                    SBTorpedoLauncher);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBGrabber,
+                                   SBGrabber);
 #endif // RAM_WITH_DRIVERS
 
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::LoopStateEstimator,
