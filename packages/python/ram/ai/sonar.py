@@ -67,8 +67,8 @@ class PingerState(state.State):
         self._speedGain = self._config.get('speedGain', 5)
         self._yawGain = self._config.get('yawGain', 1)
         self._maxSpeed = self._config.get('maxSpeed', 1)
-        self._maxSidewaysSpeed = 0
-        self._sidewaysSpeedGain = 0
+        self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
+        self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
      
     def enter(self, timeout = 2.5):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
@@ -199,8 +199,8 @@ class TranslationSeeking(PingerState):
     
     def _loadSettings(self):
         PingerState._loadSettings(self)
-        self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
-        self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
+        #self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
+        #self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
 
     def UPDATE(self, event):
         PingerState.UPDATE(self, event)
@@ -248,7 +248,7 @@ class CloseSeeking(TranslationSeeking):
         return set(['closeZ']).union(TranslationSeeking.getattr())
 
     def _loadSettings(self):
-        PingerState._loadSettings(self)
+        TranslationSeeking._loadSettings(self)
         self._closeZ = self._config.get('closeZ', 0.8)
     
 class Hovering(TranslationSeeking):
