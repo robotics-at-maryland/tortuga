@@ -831,7 +831,7 @@ class Octagon(task.Task):
         before releasing the grabber.
         """
         # Safe the thrusters (that way we float to the absolute top)
-        self.vehicle.safeThrusters()
+        #self.vehicle.safeThrusters()
         self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
         self._timer.start()
 
