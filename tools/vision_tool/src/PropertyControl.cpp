@@ -302,6 +302,7 @@ void PropertyControl::onDefaultButton(wxCommandEvent& event)
 void PropertyControl::setPropertyValue(wxString value)
 {
     bool converted = false;
+
     switch (m_prop->getType())
     {
         case core::Property::PT_INT:
@@ -309,7 +310,18 @@ void PropertyControl::setPropertyValue(wxString value)
                 int val = 0;
                 converted = value.ToLong((long int*)&val);
                 if (converted)
+                {
+                    if (m_prop->hasMinMax())
+                    {
+                        if (val > boost::any_cast<int>(m_prop->getMaxValue()))
+                            val = boost::any_cast<int>(m_prop->getMaxValue());
+                        else if (val < boost::any_cast<int>(
+                                     m_prop->getMinValue()))
+                            val = boost::any_cast<int>(m_prop->getMinValue());
+                    }
+
                     m_prop->set(val);
+                }
             }
             break;
         case core::Property::PT_DOUBLE:
@@ -317,7 +329,17 @@ void PropertyControl::setPropertyValue(wxString value)
                 double val = 0;
                 converted = value.ToDouble(&val);
                 if (converted)
+                {
+                    if (m_prop->hasMinMax())
+                    {
+                        if (val > boost::any_cast<double>(m_prop->getMaxValue()))
+                            val = boost::any_cast<double>(m_prop->getMaxValue());
+                        else if (val < boost::any_cast<double>(m_prop->getMinValue()))
+                            val = boost::any_cast<double>((m_prop->getMinValue()));
+                    }
+
                     m_prop->set(val);
+                }
             }
             break;
         case core::Property::PT_BOOL:
