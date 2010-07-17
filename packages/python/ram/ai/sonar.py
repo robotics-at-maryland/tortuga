@@ -42,7 +42,8 @@ class PingerState(state.State):
 
     @staticmethod
     def getattr():
-        return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout'])
+        return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout',
+                    'maxSidewaysSpeed', 'sidewaysSpeedGain'])
 
     def UPDATE(self, event):
         if self._timeout > 0:
@@ -132,56 +133,30 @@ class Searching(state.State):
     """
     Waits for a ping to happen, and when it gets one, turns toward the source.
     Then it waits for 4 seconds, to allow the any disturbances in pinger data 
-    from the vehicles rotation to die down, and then moves on to the next state.
+    from the vehicles rotation to die down, and then moves on to the next state. 
     """
-    SPIN = core.declareEventType('SPIN_')
+    CHANGE = core.declareEventType("CHANGE")
 
     @staticmethod
     def transitions():
         return { vehicle.device.ISonar.UPDATE : Searching,
-                 motion.basic.MotionManager.FINISHED : FarSeeking,
-                 Searching.SPIN : Searching }
-    @staticmethod
-    def getattr():
-        return set(['yawSpeed'])
-
+	             Searching.CHANGE : FarSeeking }
         
     def UPDATE(self, event):
         if self._first:
-            if self.timer is not None:
-                self.timer.stop()
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-
-            headingMotion = motion.basic.RateChangeHeading(
-                desiredHeading = pingerOrientation.getYaw(True).valueDegrees(),
-                speed = self._yawSpeed)
-
-            self.motionManager.setMotion(headingMotion)
-
+            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
+	   
+	    self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
+	    self.timer.start()
 	    self._first = False
-
-    def SPIN_(self, event):
-        spinMotion = motion.basic.RateChangeHeading(
-            desiredHeading = 40,
-            speed = self._yawSpeed,
-            absolute = False)
-
-        self.motionManager.setMotion(spinMotion)
-
-        self.timer = self.timerManager.newTimer(Searching.SPIN, self._pause)
-        self.timer.start()
 
     def enter(self):
         self._first = True
-        self._pause = \
-            self.ai.data['config'].get('Pinger', {}).get('pauseTime', 3)
-        self.timer = self.timerManager.newTimer(Searching.SPIN, self._pause)
-        self._yawSpeed = self._config.get('yawSpeed', 10)
-        self.timer.start()
+        self.timer = None
         
     def exit(self):
-        self.motionManager.stopCurrentMotion()
         if self.timer is not None:
             self.timer.stop()
 
@@ -191,11 +166,6 @@ class TranslationSeeking(PingerState):
     toward the pinger.
     """
     CLOSE = core.declareEventType('CLOSE')
-
-    @staticmethod
-    def getattr():
-        return set(['maxSidewaysSpeed', 'sidewaysSpeedGain']).union(
-            PingerState.getattr())
     
     def _loadSettings(self):
         PingerState._loadSettings(self)

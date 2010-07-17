@@ -68,9 +68,9 @@ class TestSearching(aisupport.AITestCase):
         
         self.assertAlmostEqual(0, self.controller.speed, 3)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
+        self.assertGreaterThan(self.controller.yawChange, 0)
         
-        self.injectEvent(motion.basic.MotionManager.FINISHED)
+        self.releaseTimer(sonar.Searching.CHANGE)
         self.assertCurrentState(sonar.FarSeeking)
     
     def testUpdateRight(self):
@@ -81,9 +81,9 @@ class TestSearching(aisupport.AITestCase):
         
         self.assertAlmostEqual(0, self.controller.speed, 3)
         self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
-        self.assertCurrentMotion(motion.basic.RateChangeHeading)
+        self.assertLessThan(self.controller.yawChange, 0)
         
-        self.injectEvent(motion.basic.MotionManager.FINISHED)
+        self.releaseTimer(sonar.Searching.CHANGE)
         self.assertCurrentState(sonar.FarSeeking)
         
 class TransSeekingTestCase(object):
