@@ -123,7 +123,7 @@ class Pipe(task.Task):
             # We found enough pipes move on
             self.publish(Pipe.COMPLETE, core.Event())
     
-    def enter(self, defaultTimeout = 10):
+    def enter(self, defaultTimeout = 60):
         self._className = type(self).__name__
         timeout = self.ai.data['config'].get(self._className, {}).get(
                     'taskTimeout', defaultTimeout)

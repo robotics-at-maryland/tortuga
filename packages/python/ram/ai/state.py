@@ -200,7 +200,7 @@ class Machine(core.Subsystem):
         self._subsystems = {}
         self._branches = {}
 
-        self._configCheck(cfg.get('States', {}))
+        #self._configCheck(cfg.get('States', {}))
         
         # Deal with Subsystems
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,

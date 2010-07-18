@@ -58,12 +58,17 @@ class WindowTrackingState(state.State):
                         eventList)
         
         # Add all variables
-        x, y, range, squareNess = 0, 0, 0, float('inf')
+        x, y, range, squareNessList = 0, 0, 0, []
         for e in eventList:
             x += e.x
             y += e.y
             range += e.range
-            squareNess = min(squareNess, e.squareNess)
+            squareNessList.append(e.squareNess)
+
+        squareNessList.sort()
+	if len(squareNessList) > 2:
+	    squareNessList = squareNessList[1:-1]
+	squareNess = sum(squareNessList) / len(squareNessList)
 
         # Average the variables
         x /= len(eventList)
@@ -679,6 +684,7 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         maxSpeed = self._config.get('maxSpeed', 0.75)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
         yawGain = self._config.get('yawGain', 1.0)
+	maxYaw = self._config.get('maxYaw', 2.0)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,
@@ -691,7 +697,8 @@ class TargetAlignState(FilteredState, WindowTrackingState):
             iDepthGain = iDepthGain,
             dDepthGain = dDepthGain,
             maxDepthDt = maxDepthDt,
-            yawGain = yawGain)
+            yawGain = yawGain,
+	    maxYaw = maxYaw)
         
         self.motionManager.setMotion(motion)
         
@@ -723,7 +730,7 @@ class SeekingToAligned(TargetAlignState):
         return set(['depthGain', 'iDepthGain', 'dDepthGain', 'maxDepthDt',
                     'desiredRange', 'maxRangeDiff', 'maxAlignDiff',
                     'alignGain', 'maxSpeed', 'maxSidewaysSpeed', 'yawGain',
-                    'minSquareNess', 'checkDelay', 'filterSize'])
+                    'minSquareNess', 'checkDelay', 'filterSize', 'maxYaw'])
 
     def WINDOW_FOUND(self, event):
         # Filter out undesired colors and upate motion (if necessary)

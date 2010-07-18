@@ -263,6 +263,8 @@ class MotionManager(core.Subsystem):
                 m = MotionManager.generateMotion(
                     type_, complete = True, **info)
             motionList[int(num)-1] = m
+	    # Fix the config file
+	    info['type'] = type_
         return motionList
             
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)

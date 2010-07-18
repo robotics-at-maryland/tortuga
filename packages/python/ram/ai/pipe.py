@@ -148,7 +148,7 @@ class PipeFollowingState(PipeTrackingState):
     def getattr():
         return set(['speedGain', 'dSpeedGain', 'iSpeedGain',
                     'sidewaysSpeedGain', 'iSidewaysSpeedGain',
-                    'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed'])
+                    'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed', 'maxSidewaysSpeed'])
 
     def PIPE_LOST(self, event):
         """
@@ -294,10 +294,11 @@ class PipeFollowingState(PipeTrackingState):
         
         yawGain = self._config.get('yawGain', 1)
         maxSpeed = self._config.get('forwardSpeed', 5)
+	maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         
         motion = ram.motion.pipe.Hover(pipe = self._pipe,
                                        maxSpeed = maxSpeed,
-                                       maxSidewaysSpeed = 3,
+                                       maxSidewaysSpeed = maxSidewaysSpeed,
                                        sidewaysSpeedGain = sidewaysSpeedGain,
                                        iSidewaysSpeedGain = iSidewaysSpeedGain,
                                        dSidewaysSpeedGain = dSidewaysSpeedGain,
