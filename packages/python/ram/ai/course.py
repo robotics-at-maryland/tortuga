@@ -673,14 +673,45 @@ class Window(task.Task):
     @staticmethod
     def _transitions():
         return { task.TIMEOUT : task.Next,
+                 vision.EventType.WINDOW_FOUND : Window,
+                 window.Searching.WINDOW_SEARCHING : Window,
                  window.COMPLETE : task.Next,
                  'GO' : state.Branch(window.Start) }
+
+    def WINDOW_SEARCHING(self, event):
+        # This is defensive, it should never happen
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._windowFound:
+            # We should not continue searching for too long
+            self._lostTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._lostDelay)
+            self._lostTimeout.start()
+
+    def WINDOW_FOUND(self, event):
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        self._windowFound = True
+
+    def TIMEOUT_WINDOW(self, event):
+        while self.ai.data.get('torpedosFired', 0) < \
+                window.FireTorpedos.NUMBER_TORPEDOS:
+            self.vehicle.fireTorpedo()
+            self.ai.data['torpedosFired'] = \
+                self.ai.data.get('torpedosFired', 0) + 1
     
     def enter(self, defaultTimeout = 120):
         # Initialize task part of class
         timeout = self.ai.data['config'].get('Window', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
+
+        self._lostDelay = self.ai.data['config'].get('Window', {}).get(
+            'lostTimeout', 5)
+        self._lostTimeout = None
+        self._windowFound = False
 
         self.stateMachine.start(state.Branch(window.Start))
     

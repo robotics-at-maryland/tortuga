@@ -359,6 +359,9 @@ class Searching(WindowTrackingState):
     """
     Runs a zig-zag search pattern until it finds the correct colored window
     """
+
+    WINDOW_SEARCHING = core.declareEventType('WINDOW_SEARCHING')
+
     @staticmethod
     def transitions():
         return { vision.EventType.WINDOW_FOUND : Approach }
@@ -377,6 +380,8 @@ class Searching(WindowTrackingState):
         # TODO: Advanced checking if the vehicle is too close to the window
 
     def enter(self):
+        self.publish(Searching.WINDOW_SEARCHING, core.Event())
+
         WindowTrackingState.enter(self)
 
         # Make sure the detector is on the vision system

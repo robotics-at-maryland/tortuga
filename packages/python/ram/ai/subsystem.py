@@ -130,7 +130,8 @@ class AI(core.Subsystem):
                                         "option for %s." % (innerItem, item))
             elif item == 'Window':
                 for innerItem in cfg[item].iterkeys():
-                    if innerItem not in taskOptions.union(set(['angle'])):
+                    if innerItem not in taskOptions.union(set(['angle',
+                                                               'lostTimeout'])):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Bin' or item == 'RandomBin':
