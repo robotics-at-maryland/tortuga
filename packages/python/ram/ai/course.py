@@ -527,16 +527,43 @@ class Buoy(task.Task):
     """
     Task for completion of the Buoy objective within a certain time limit.
     """
+
     @staticmethod
     def _transitions():
         return { buoy.COMPLETE : task.Next,
+                 buoy.Searching.BUOY_SEARCHING : Buoy,
+                 vision.EventType.BUOY_FOUND : Buoy,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(buoy.Start) }
+
+    def BUOY_SEARCHING(self, event):
+        # This is defensive, it should never happen
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._buoyFound:
+            # We should not continue searching for too long
+            self._lostTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._lostDelay)
+            self._lostTimeout.start()
+
+    def BUOY_FOUND(self, event):
+        # Stop the lost timeout if we find a buoy
+        # Set it so we are in the vicinity of the buoys
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        self._buoyFound = True
 
     def enter(self, defaultTimeout = 90):
         timeout = self.ai.data['config'].get('Buoy', {}).get(
             'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
+
+        self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'lostTimeout', 5)
+        self._lostTimeout = None
+        self._buoyFound = False
 
         self.stateMachine.start(state.Branch(buoy.Start))
 
@@ -546,6 +573,9 @@ class Buoy(task.Task):
         self.stateMachine.stopBranch(buoy.Start)
         self.visionSystem.buoyDetectorOff()
         self.motionManager.stopCurrentMotion()
+
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
     
 class BarbedWire(task.Task):
     """

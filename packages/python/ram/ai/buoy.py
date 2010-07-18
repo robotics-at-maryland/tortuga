@@ -104,6 +104,9 @@ class Start(state.State):
         pass
 
 class Searching(BuoyTrackingState):
+
+    BUOY_SEARCHING = core.declareEventType('BUOY_SEARCHING')
+
     @staticmethod
     def transitions():
         return BuoyTrackingState.transitions(Align, Searching)
@@ -113,6 +116,8 @@ class Searching(BuoyTrackingState):
         return set(['legTime', 'sweepAngle', 'speed'])
 
     def enter(self):
+        self.publish(Searching.BUOY_SEARCHING, core.Event())
+
         BuoyTrackingState.enter(self)
 
         # Turn on the vision system
