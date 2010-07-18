@@ -1,7 +1,9 @@
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Buoy', 'ram.ai.course.Travel1',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon']
+            'ram.ai.course.Octagon', 'ram.ai.course.Travel2',
+            'ram.ai.course.Bin', 'ram.ai.course.PipeTarget',
+            'ram.ai.course.Window']
 
 config:
     gateDepth: 4
@@ -34,4 +36,44 @@ config:
                 speed: 5
                 duration: 33
                 absolute: True
-
+    Travel2:
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 4
+                speed: 0.33
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -141
+                speed: 20
+                absolute: True
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: -141
+                speed: 5
+                duration: 10
+    Bin:
+        forwardSpeed: 3
+        forwardDuration: 10
+        taskTimeout: 180
+    PipeTarget:
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 7
+                speed: 0.33
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -95
+                speed: 20
+                absolute: True
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: -95
+                speed: 3
+                duration: 5
+        motionTimeout: 10
+        taskTimeout: 30
+    Window:
+        forwardSpeed: 3
+        forwardDuration: 10
