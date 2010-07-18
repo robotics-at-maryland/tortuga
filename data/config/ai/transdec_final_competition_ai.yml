@@ -8,7 +8,8 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
 config:
     gateDepth: 4
     pipeDepth: 7
-    binDepth: 12
+    binDepth: 11.5
+    buoyDepth: 8.5
     targetBuoys: ['green', 'red']
     targetWindows: 'red'
     targetSymbols: ['Clippers', 'Axe']
