@@ -5,6 +5,7 @@ lcdshow -c
 echo "Running: SONAR only mission"
 lcdshow -s
 lcdshow -t "Get ready..."
+echo "Starting mission"
 #lcdshow -redgreen
 sleep 2
 #lcdshow -noblink

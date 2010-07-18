@@ -14,6 +14,7 @@ ram.ai.pipe.Seeking:
     speedGain: 3
     forwardSpeed: 4
     sidewaysSpeedGain: 7
+    maxSidewaysSpeed: 4
     iSidewaysSpeedGain: 1
     dSidewaysSpeedGain: 2
     yawGain: 0.25
@@ -239,12 +240,12 @@ ram.ai.window.Start:
     diveSpeed: 1
 ram.ai.window.SeekingToCentered:
     depthGain: 0
-    desiredRange: 0.6
+    desiredRange: 0.65
     translateGain: 10.0
     iTranslateGain: 1.0
     dTranslateGain: 2.0
 ram.ai.window.SeekingToRange:
-    desiredRange: 0.55
+    desiredRange: 0.60
     depthGain: 0
 ram.ai.window.SeekingToAligned:
     checkDelay: 3
@@ -257,18 +258,18 @@ ram.ai.window.SeekingToAligned:
     alignSign: -1
 ram.ai.window.FireTorpedos:
     depthGain: 0
-    desiredRange: 0.35
+    desiredRange: 0.4
 ram.ai.window.CorrectHeight:
     offset: 1.1
 ram.ai.window.Approach:
     depthGain: 0
-    desiredRange: 0.65
+    desiredRange: 0.7
     translateGain: 10.0
     iTranslateGain: 1.0
     dTranslateGain: 2.0
 ram.ai.window.ApproachAligning:
     depthGain: 0
-    desiredRange: 0.55
+    desiredRange: 0.60
     minSquareNess: 0.95
     maxYaw: 2.0
     yawGain: 5.0
@@ -281,16 +282,17 @@ ram.ai.window.Reposition:
 # Sonar subtask
 ram.ai.sonar.CloseSeeking:
     maxSidewaysSpeed: 3
-    sidewaysSpeedGain: 1
+    sidewaysSpeedGain: 5
     maxSpeed: 1.5
     speedGain: 3
     closeZ: 0.98
 ram.ai.sonar.FarSeeking:
-    maxSidewaysSpeed: 4
-    sidewaysSpeedGain: 2
+    maxSidewaysSpeed: 3
+    sidewaysSpeedGain: 7
     maxSpeed: 2
     speedGain: 5
     midRangeZ: 0.8
+    timeout: 6.5
 ram.ai.sonar.Hovering:
     maxSidewaysSpeed: 1
     sidewaysSpeedGain: 2
