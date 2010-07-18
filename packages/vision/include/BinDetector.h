@@ -41,7 +41,7 @@ class RAM_EXPORT BinDetector : public Detector
         Symbol::SymbolType getSymbol() { return m_symbol; }
 
         /** Draws the bounds of the bin in green, and its ID */
-        void draw(Image* image);
+        void draw(Image* image, Image* red = 0);
         
 
     private:
@@ -152,7 +152,7 @@ class RAM_EXPORT BinDetector : public Detector
                                 int binNum, Image* ouput);
 
     /** Finds the percentage of the bin that is red pixel */
-    double getRedFillPercentage(BlobDetector::Blob bin);
+    static double getRedFillPercentage(BlobDetector::Blob bin, Image* redImage);
 
     /** Called by process bin, must be called regardless of whether we plan
      *  to detect symbols, as this function sets the angle of the bin.

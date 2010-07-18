@@ -62,7 +62,7 @@ BinDetector::Bin::Bin(BlobDetector::Blob blob, Image* source,
 {
 }
     
-void BinDetector::Bin::draw(Image* image)
+void BinDetector::Bin::draw(Image* image, Image* redImage)
 {
     IplImage* out = image->asIplImage();
     // Draw green rectangle around the blob
@@ -80,6 +80,13 @@ void BinDetector::Bin::draw(Image* image)
     std::stringstream ss;
     ss << getId();
     Image::writeText(image, ss.str(), tl.x, tl.y);
+
+    if (redImage)
+    {
+        std::stringstream ss3;
+        ss3 << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
+        Image::writeText(image, ss3.str(), br.x-30, tl.y);
+    }
 
     std::stringstream ss2;
     ss2 << std::setprecision(1) << getAngle().valueDegrees();
@@ -661,7 +668,8 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             if (whiteBlob.containsInclusive(blackBlob, 2) &&
                 (blackBlob.getAspectRatio() < m_binMaxAspectRatio) &&
                 (blackBlob.getFillPercentage() > m_binMinFillPercentage) &&
-		(getRedFillPercentage(blackBlob) >= m_minRedFillPercentage))
+		(getRedFillPercentage(blackBlob, m_redMaskedFrame)
+		 >= m_minRedFillPercentage))
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
                 candidateBins.push_back(blackBlob);
@@ -987,7 +995,8 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
     return Bin(bin, m_percents, binAngle, m_binID++, symbol);
 }
 
-double BinDetector::getRedFillPercentage(BlobDetector::Blob bin)
+double BinDetector::getRedFillPercentage(BlobDetector::Blob bin,
+					 Image* redImage)
 {
     // Get corners of area to extract (must be multiple of 4)
     int width = bin.getWidth()/4 * 4;
@@ -999,11 +1008,11 @@ double BinDetector::getRedFillPercentage(BlobDetector::Blob bin)
     int lowerRightY = bin.getCenterY() + height/2 + BIN_EXTRACT_BORDER;
 
     // Get the red pixels
-    int redPixels = Image::countWhitePixels(m_redMaskedFrame,
+    int redPixels = Image::countWhitePixels(redImage,
 					    upperLeftX, upperLeftY,
 					    lowerRightX, lowerRightY);
 
-					    return ((double)redPixels) / ((double)(width * height));
+    return ((double)redPixels) / ((double)(bin.getWidth() * bin.getHeight()));
 					      //  return 0;
 }
 
