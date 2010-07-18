@@ -20,7 +20,7 @@ Subsystems:
         #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
-        INCLUDE: data/config/vision/transdec.yml
+        INCLUDE: data/config/vision/transdec_sunny.yml
         
 
     Ai:
@@ -36,7 +36,7 @@ Subsystems:
                      "MotionManager", "TimerManager", "Ai", "VisionSystem"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/san_diego_state.yml
+            INCLUDE: data/config/ai/transdec2010_state.yml
 
 
     # Includes all common subsystems    
