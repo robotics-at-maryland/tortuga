@@ -94,6 +94,7 @@ class AI(core.Subsystem):
                              'absolute', 'taskTimeout', 'motionTimeout',
                              'motions'])
         taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
+        buoyOptions = taskOptions.union(set(['lostTimeout']))
         moveOptions = set(['depth', 'heading', 'speed', 'duration',
                            'turnSpeed', 'depthSpeed'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
@@ -117,9 +118,14 @@ class AI(core.Subsystem):
                                         "option for %s." % (innerItem, item))
             elif item == 'Light' or item == 'BarbedWire' \
                     or item == 'Target' or item == 'LightStaged' \
-                    or item == 'Hedge' or item == 'Buoy':
+                    or item == 'Hedge':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in taskOptions:
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Buoy':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in buoyOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Window':
