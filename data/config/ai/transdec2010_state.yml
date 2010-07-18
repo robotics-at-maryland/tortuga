@@ -64,7 +64,7 @@ ram.ai.duct.Aligning:
 # Buoy Task
 ram.ai.buoy.Searching:
     legTime: 5
-    sweepAngle: 30
+    sweepAngle: 15
 ram.ai.buoy.CorrectDepth:
     boxHeight: 2.0
 ram.ai.buoy.Align:
