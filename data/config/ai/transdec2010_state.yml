@@ -71,7 +71,7 @@ ram.ai.buoy.Searching:
 ram.ai.buoy.CorrectDepth:
     boxHeight: 2.0
 ram.ai.buoy.Align:
-    desiredRange: 5
+    desiredRange: 7
     depthGain: 0
     dDepthGain: 0.0
     iDepthGain: 0.0
