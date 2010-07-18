@@ -53,6 +53,12 @@ class RAM_EXPORT BuoyDetector : public Detector
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output, ColorFilter& filter,
                       BlobDetector::Blob& outBlob);
+
+    /** Counts the number of white pixels in the sub area of the image */
+    int countWhitePixels(Image* source,
+                         int upperLeftX, int upperLeftY,
+                         int lowerRightX, int lowerRightY);
+
     
     // Process current state, and publishes LIGHT_FOUND event
     void publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color);
@@ -69,6 +75,7 @@ class RAM_EXPORT BuoyDetector : public Detector
     ColorFilter *m_redFilter;
     ColorFilter *m_greenFilter;
     ColorFilter *m_yellowFilter;
+    ColorFilter *m_blackFilter;
 
     /** Blob Detector */
     BlobDetector m_blobDetector;
@@ -76,11 +83,34 @@ class RAM_EXPORT BuoyDetector : public Detector
     /** Threshold for almost hitting the red light */
     double m_almostHitPercentage;
 
+    /** Whether or not to check for black below the buoy */
+    bool m_checkBlack;
+
+    /** The precentage of the subwindow that must be black */
+    double m_minBlackPercentage;
+
+    /** The biggest fraction of the window for the black check */
+    double m_maxTotalBlackCheckSize;
+
+    /** Percentage of the image to remove from the top */
+    double m_topRemovePercentage;
+
+    /** Percentage of the image to remove from the bottom */
+    double m_bottomRemovePercentage;
+
+    /** Percentage of the image to remove from the left */
+    double m_leftRemovePercentage;
+
+    /** Percentage of the image to remove from the right */
+    double m_rightRemovePercentage;
+
+
     /** Working Images */
     Image *frame;
     Image *redFrame;
     Image *greenFrame;
     Image *yellowFrame;
+    Image *blackFrame;
 
     /* Configuration variables */
     double m_maxAspectRatio;

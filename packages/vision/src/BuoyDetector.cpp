@@ -45,7 +45,10 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
     m_redFilter(0),
     m_greenFilter(0),
     m_yellowFilter(0),
-    m_blobDetector(config, eventHub)
+    m_blobDetector(config, eventHub),
+    m_checkBlack(false),
+    m_minBlackPercentage(0),
+    m_maxTotalBlackCheckSize(0)
 {
     init(config);
 }
@@ -57,7 +60,10 @@ BuoyDetector::BuoyDetector(Camera* camera) :
     m_yellowFound(false),
     m_redFilter(0),
     m_greenFilter(0),
-    m_yellowFilter(0)
+    m_yellowFilter(0),
+    m_checkBlack(false),
+    m_minBlackPercentage(0),
+    m_maxTotalBlackCheckSize(0)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -103,6 +109,39 @@ void BuoyDetector::init(core::ConfigNode config)
                          "Radius when the buoy is considered almost hit",
                          0.2, &m_almostHitPercentage, 0.0, 1.0);
 
+
+    propSet->addProperty(config, false, "checkBlack",
+                         "Whether or not to look for black beneath the buoy",
+                         false, &m_checkBlack);
+
+    propSet->addProperty(config, false, "minBlackPercentage",
+                         "The precentage of the subwindow that must be black",
+                         0.25, &m_minBlackPercentage, 0.0, 1.0);
+
+    propSet->addProperty(config, false, "maxTotalBlackCheckSize",
+                         "The biggest fraction of the window for the black check",
+                         0.1, &m_maxTotalBlackCheckSize, 0.0, 1.0);
+
+
+    propSet->addProperty(config, false, "topRemovePercentage",
+        "% of the screen from the top to be blacked out",
+        0.0, &m_topRemovePercentage);
+
+    propSet->addProperty(config, false, "bottomRemovePercentage",
+        "% of the screen from the bottom to be blacked out",
+        0.0, &m_bottomRemovePercentage);
+
+    propSet->addProperty(config, false, "leftRemovePercentage",
+        "% of the screen from the left to be blacked out",
+        0.0, &m_leftRemovePercentage);
+
+    propSet->addProperty(config, false, "rightRemovePercentage",
+        "% of the screen from the right to be blacked out",
+        0.0, &m_rightRemovePercentage);
+    
+
+
+
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedL", "Red Luminance",
@@ -122,6 +161,14 @@ void BuoyDetector::init(core::ConfigNode config)
                                        "YellowH", "Yellow Hue",
                                        0, 255, 0, 255, 0, 255);
 
+    m_blackFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_blackFilter->addPropertiesToSet(propSet, &config,
+                                      "BlackL", "Black Luminance",
+                                      "BlackC", "Black Chrominance",
+                                      "BlackH", "Black Hue",
+                                      0, 255, 0, 255, 0, 255);
+
+
 
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
@@ -132,6 +179,7 @@ void BuoyDetector::init(core::ConfigNode config)
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    blackFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 }
 
 BuoyDetector::~BuoyDetector()
@@ -164,6 +212,8 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
+    bool foundBlob = false;
+    
     BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
         // Sanity check blob
@@ -176,23 +226,145 @@ bool BuoyDetector::processColor(Image* input, Image* output,
             percent > m_minPixelPercentage &&
             blob.getTrueAspectRatio() > m_minAspectRatio)
         {
-            outBlob = blob;
-            return true;
+            foundBlob = true;
+
+            // Check for black below blob (if desired)
+            if (m_checkBlack)
+            {
+                int height = blob.getHeight();
+                double totalSize = blob.getHeight() * blob.getWidth();
+        
+                // Only check this when the buoy should be far away
+                if ((totalSize / (640.0*480.0)) < m_maxTotalBlackCheckSize )
+                {
+                    double blackCount = countWhitePixels(blackFrame,         
+                                                         blob.getMinX(), 
+                                                         blob.getMinY() + height,
+                                                         blob.getMaxX(), 
+                                                         blob.getMaxY() + height);
+            
+                    double blackPercentage = blackCount / totalSize;
+                    if (blackPercentage < m_minBlackPercentage)
+                        foundBlob = false;
+                }
+            }
+
+            if(foundBlob)
+            {
+                outBlob = blob;
+                break;
+            }
         }
     }
 
-    return false;
+ 
+
+    return foundBlob;
 }
+
+int BuoyDetector::countWhitePixels(Image* source,
+                                   int upperLeftX, int upperLeftY,
+                                   int lowerRightX, int lowerRightY)
+{
+    unsigned char* sourceBuffer = source->getData();
+    unsigned char* srcPtr = sourceBuffer;
+
+    int width = lowerRightX - upperLeftX; //+ 1;
+    int height = lowerRightY - upperLeftY; //+ 1;
+
+    int yStart = upperLeftY;
+    int yEnd = yStart + height;
+
+    int whiteCount = 0;
+
+    for (int y = yStart; y < yEnd; ++y)
+    {
+        // Get us to right row and column to start
+        int offset = (y * source->asIplImage()->widthStep) + (upperLeftX * 3);
+        srcPtr = sourceBuffer + offset;
+        
+        for (int x = 0; x < (width * 3); ++x)
+        {
+            // If white increment (note this is for subpixels)
+            if (*srcPtr)
+                whiteCount++;
+
+            ++srcPtr;
+        }
+    }
+
+    return whiteCount / 3;
+}
+
 
 void BuoyDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
+
+    // Filter for black if needed
+    if (m_checkBlack)
+    {
+        blackFrame->copyFrom(frame);
+        blackFrame->setPixelFormat(Image::PF_RGB_8);
+        blackFrame->setPixelFormat(Image::PF_LCHUV_8);
+
+        m_blackFilter->filterImage(blackFrame);
+    }
+
+    int totRowsRemoved = 0;
+    int totColRemoved = 0;
+
+    // Remove top chunk if desired
+    if (m_topRemovePercentage != 0)
+    {
+        int linesToRemove = (int)(m_topRemovePercentage * frame->getHeight());
+        totRowsRemoved += linesToRemove;
+        size_t bytesToBlack = linesToRemove * frame->getWidth() * 3;
+        memset(frame->getData(), 0, bytesToBlack);
+    }
+    
+
+    if (m_bottomRemovePercentage != 0)
+    {
+//        printf("Removing \n");
+        int linesToRemove = (int)(m_bottomRemovePercentage * frame->getHeight());
+        totRowsRemoved += linesToRemove;
+        size_t bytesToBlack = linesToRemove * frame->getWidth() * 3;
+        memset(&(frame->getData()[frame->getWidth() * frame->getHeight()
+                                  * 3 - bytesToBlack]), 0, bytesToBlack);
+    }
+
+    if (m_rightRemovePercentage != 0)
+    {
+        size_t lineSize = frame->getWidth() * 3;
+        size_t bytesToBlack = (int)(m_rightRemovePercentage * lineSize);
+        totColRemoved += bytesToBlack / 3;
+        for (unsigned int i = 0; i < frame->getHeight(); ++i)
+        {
+            size_t offset = i * lineSize - bytesToBlack;
+            memset(frame->getData() + offset, 0, bytesToBlack);
+        }
+    }
+
+    if (m_leftRemovePercentage != 0)
+    {
+        size_t lineSize = frame->getWidth() * 3;
+        size_t bytesToBlack = (int)(m_leftRemovePercentage * lineSize);
+        totColRemoved += bytesToBlack / 3;
+        for (unsigned int i = 0; i < frame->getHeight(); ++i)
+        {
+            size_t offset = i * lineSize;
+            memset(frame->getData() + offset, 0, bytesToBlack);
+        }
+    }
+
     BlobDetector::Blob redBlob, greenBlob, yellowBlob;
     bool redFound = false, greenFound = false,
         yellowFound = false;
 
-    int imPixels = frame->getHeight() * frame->getWidth();
+    int imPixels = (frame->getHeight() - totRowsRemoved) *
+        (frame->getWidth() - totColRemoved);
 
     if ((redFound = processColor(frame, redFrame, *m_redFilter, redBlob))) {
         publishFoundEvent(redBlob, Color::RED);
@@ -250,6 +422,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
             unsigned char* redPtr = redFrame->getData();
             unsigned char* greenPtr = greenFrame->getData();
             unsigned char* yellowPtr = yellowFrame->getData();
+            unsigned char* blackPtr = blackFrame->getData();
 
             unsigned char* end = output->getData() +
                 (output->getWidth() * output->getHeight() * 3);
@@ -267,11 +440,17 @@ void BuoyDetector::processImage(Image* input, Image* output)
                     data[0] = 0;
                     data[1] = 255;
                     data[2] = 255;
+                } else if (*blackPtr) {
+                    data[0] = 255;
+                    data[1] = 20;
+                    data[2] = 147;
                 }
+
                 // Advance all of the pointers
                 redPtr += 3;
                 greenPtr += 3;
                 yellowPtr += 3;
+                blackPtr += 3;
             }
             if (m_debug == 2) {
                 if (redFound) {
