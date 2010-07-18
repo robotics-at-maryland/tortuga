@@ -161,30 +161,30 @@ VelocityDetector:
 
 BuoyDetector:
     debug: 0
-    filtBlackCMax: 50
+    filtBlackCMax: 38
     filtBlackCMin: 0
-    filtBlackHMax: 255
-    filtBlackHMin: 0
-    filtBlackLMax: 150
-    filtBlackLMin: 59
-    filtGreenCMax: 21
-    filtGreenCMin: 0
-    filtGreenHMax: 255
-    filtGreenHMin: 0
-    filtGreenLMax: 255
+    filtBlackHMax: 18
+    filtBlackHMin: 101
+    filtBlackLMax: 147
+    filtBlackLMin: 53
+    filtGreenCMax: 255
+    filtGreenCMin: 47
+    filtGreenHMax: 104
+    filtGreenHMin: 57
+    filtGreenLMax: 235
     filtGreenLMin: 0 #120
     filtRedCMax: 255
     filtRedCMin: 44
-    filtRedHMax: 33
+    filtRedHMax: 57
     filtRedHMin: 233
     filtRedLMax: 255
     filtRedLMin: 0
     filtYellowCMax: 255
-    filtYellowCMin: 40
-    filtYellowHMax: 68
-    filtYellowHMin: 35
+    filtYellowCMin: 44
+    filtYellowHMax: 57
+    filtYellowHMin: 233
     filtYellowLMax: 255
-    filtYellowLMin: 75 #120
+    filtYellowLMin: 0 #120
     maxAspectRatio: 1.4
     minAspectRatio: 0.6
     minHeight: 20
