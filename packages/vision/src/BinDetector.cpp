@@ -916,10 +916,10 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
     int width = bin.getWidth()/4 * 4;
     int height = bin.getHeight()/4 * 4;
     
-    int upperLeftX = bin.getCenterX() - width/2 - BIN_EXTRACT_BORDER;
-    int upperLeftY = bin.getCenterY() - height/2 - BIN_EXTRACT_BORDER;
-    int lowerRightX = bin.getCenterX() + width/2 + BIN_EXTRACT_BORDER;
-    int lowerRightY = bin.getCenterY() + height/2 + BIN_EXTRACT_BORDER;
+    int upperLeftX = bin.getCenterX() - width/2;
+    int upperLeftY = bin.getCenterY() - height/2;
+    int lowerRightX = bin.getCenterX() + width/2;
+    int lowerRightY = bin.getCenterY() + height/2;
 
     // Make sure we are not outside the image
     upperLeftX = std::max(0, upperLeftX);
@@ -1006,6 +1006,22 @@ double BinDetector::getRedFillPercentage(BlobDetector::Blob bin,
     int upperLeftY = bin.getCenterY() - height/2 - BIN_EXTRACT_BORDER;
     int lowerRightX = bin.getCenterX() + width/2 + BIN_EXTRACT_BORDER;
     int lowerRightY = bin.getCenterY() + height/2 + BIN_EXTRACT_BORDER;
+
+    // Make sure we are not outside the image
+    upperLeftX = std::max(0, upperLeftX);
+    upperLeftX = std::min((int)redImage->getWidth() - 1, upperLeftX);
+
+    upperLeftY = std::max(0, upperLeftY);
+    upperLeftY = std::min((int)redImage->getHeight() - 1, upperLeftY);
+
+    lowerRightX = std::max(0, lowerRightX);
+    lowerRightX = std::min((int)redImage->getWidth() - 1,
+                           lowerRightX);
+
+    lowerRightY = std::max(0, lowerRightY);
+    lowerRightY = std::min((int)redImage->getHeight() - 1,
+                           lowerRightY);
+
 
     // Get the red pixels
     int redPixels = Image::countWhitePixels(redImage,
