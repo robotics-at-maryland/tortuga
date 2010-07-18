@@ -151,6 +151,8 @@ class RAM_EXPORT BinDetector : public Detector
     BinDetector::Bin processBin(BlobDetector::Blob bin, bool detectSymbol,
                                 int binNum, Image* ouput);
 
+    /** Finds the percentage of the bin that is red pixel */
+    double getRedFillPercentage(BlobDetector::Blob bin);
 
     /** Called by process bin, must be called regardless of whether we plan
      *  to detect symbols, as this function sets the angle of the bin.
@@ -295,6 +297,9 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Minimum percentage a bin has to be filled to be a bin */
     double m_binMinFillPercentage;
+
+    /** The minimum amount of the black bob that must be filled to be a bin */
+    double m_minRedFillPercentage;
 
     /** The maximum number of bin overlaps aloud */
     int m_binMaxOverlaps;

@@ -104,6 +104,40 @@ Image* Image::extractSubImage(Image* source, unsigned char* buffer,
     return loadFromBuffer(buffer, width, height, false, fmt);
 }
 
+int Image::countWhitePixels(Image* source,
+			    int upperLeftX, int upperLeftY,
+			    int lowerRightX, int lowerRightY)
+{
+    unsigned char* sourceBuffer = source->getData();
+    unsigned char* srcPtr = sourceBuffer;
+
+    int width = lowerRightX - upperLeftX; //+ 1;
+    int height = lowerRightY - upperLeftY; //+ 1;
+
+    int yStart = upperLeftY;
+    int yEnd = yStart + height;
+
+    int whiteCount = 0;
+
+    for (int y = yStart; y < yEnd; ++y)
+    {
+        // Get us to right row and column to start
+        int offset = (y * source->asIplImage()->widthStep) + (upperLeftX * 3);
+        srcPtr = sourceBuffer + offset;
+        
+        for (int x = 0; x < (width * 3); ++x)
+        {
+            // If white increment (note this is for subpixels)
+            if (*srcPtr)
+                whiteCount++;
+
+            ++srcPtr;
+        }
+    }
+
+    return whiteCount / 3;
+}
+
 
 void Image::blitImage(Image* toBlit, Image* src, Image* dest,
                       unsigned char R, unsigned char G, unsigned char B,

@@ -55,7 +55,10 @@ class RAM_EXPORT BlobDetector  : public Detector
         // They returns the average coordinate over all blob pixels
         int getCenterX() const { return m_centerX; }
         int getCenterY() const { return m_centerY; }
-        
+
+	int getTrueCenterX() const { return (m_maxX - m_minX)/2 + m_minX; }
+	int getTrueCenterY() const { return (m_maxY - m_minY)/2 + m_minY; }
+	
         int getMaxX() const { return m_maxX; }
         int getMinX() const { return m_minX; }
         

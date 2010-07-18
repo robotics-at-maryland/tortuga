@@ -112,6 +112,11 @@ public:
     static Image* extractSubImage(Image* source, unsigned char* buffer,
                                   int upperLeftX, int upperLeftY,
                                   int lowerRightX, int lowerRightY);
+						
+    /** Count white pixels in the sub part of the given image */
+    static int countWhitePixels(Image* source,
+				int upperLeftX, int upperLeftY,
+				int lowerRightX, int lowerRightY);
 
     
     /** Blits the images using the clear color to the destination image */

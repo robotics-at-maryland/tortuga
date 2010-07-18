@@ -455,6 +455,9 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "binMinFillPrecentage",
        "The minimum amount of the black bob that must be filled to be a bin",
         0.0, &m_binMinFillPercentage, 0.0, 1.0);
+    propSet->addProperty(config, false, "redMinFillPrecentage",
+       "The minimum amount of the black blob that must be red to be a bin",
+        0.0, &m_minRedFillPercentage, 0.0, 1.0);
     propSet->addProperty(config, false, "binMaxOverlaps",
        "The minimum amount of the black bob that must be filled to be a bin",
         20, &m_binMaxOverlaps, 0, 20);
@@ -657,7 +660,8 @@ void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
             // crap damn.
             if (whiteBlob.containsInclusive(blackBlob, 2) &&
                 (blackBlob.getAspectRatio() < m_binMaxAspectRatio) &&
-                (blackBlob.getFillPercentage() > m_binMinFillPercentage))
+                (blackBlob.getFillPercentage() > m_binMinFillPercentage) &&
+		(getRedFillPercentage(blackBlob) >= m_minRedFillPercentage))
             {
                 // blackBlobs[blackBlobIndex] is the black rectangle of a bin
                 candidateBins.push_back(blackBlob);
@@ -983,6 +987,25 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
     return Bin(bin, m_percents, binAngle, m_binID++, symbol);
 }
 
+double BinDetector::getRedFillPercentage(BlobDetector::Blob bin)
+{
+    // Get corners of area to extract (must be multiple of 4)
+    int width = bin.getWidth()/4 * 4;
+    int height = bin.getHeight()/4 * 4;
+    
+    int upperLeftX = bin.getCenterX() - width/2 - BIN_EXTRACT_BORDER;
+    int upperLeftY = bin.getCenterY() - height/2 - BIN_EXTRACT_BORDER;
+    int lowerRightX = bin.getCenterX() + width/2 + BIN_EXTRACT_BORDER;
+    int lowerRightY = bin.getCenterY() + height/2 + BIN_EXTRACT_BORDER;
+
+    // Get the red pixels
+    int redPixels = Image::countWhitePixels(m_redMaskedFrame,
+					    upperLeftX, upperLeftY,
+					    lowerRightX, lowerRightY);
+
+					    return ((double)redPixels) / ((double)(width * height));
+					      //  return 0;
+}
 
 bool BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
                                       math::Degree& foundAngle, Image* output)
