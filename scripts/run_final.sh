@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "Running GATE -> PIPEGATE -> LIGHT -> BIN -> TARGET -> SONAR"
+echo "Running GATE -> PIPEGATE -> BUOY -> SONAR -> BINS -> WINDOW"
 scripts/reload_cameras.sh
-lcdshow -unsafe
 source scripts/setenv
+lcdshow -unsafe
 
 lcdshow -c
 #lcdshow -noblink

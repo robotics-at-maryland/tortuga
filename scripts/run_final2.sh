@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Running GATE -> PIPEGATE -> BUOY -> SONAR"
+echo "Running GATE -> SONAR -> BINS -> WINDOW"
 scripts/reload_cameras.sh
 lcdshow -unsafe
 source scripts/setenv
