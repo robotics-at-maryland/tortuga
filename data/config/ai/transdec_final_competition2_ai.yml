@@ -1,13 +1,14 @@
-taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Travel1', 'ram.ai.course.Pinger',
-            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon',
-            'ram.ai.course.Travel2', 'ram.ai.course.Bin',
-            'ram.ai.course.PipeTarget', 'ram.ai.course.Window']
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Travel1',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon', 'ram.ai.course.Travel2',
+            'ram.ai.course.Bin', 'ram.ai.course.Travel3',
+            'ram.ai.course.Window']
 
 config:
     gateDepth: 4
     pipeDepth: 7
-    binDepth: 12
+    binDepth: 11.5
+    buoyDepth: 8.5
     targetBuoys: ['green', 'red']
     targetWindows: 'red'
     targetSymbols: ['Clippers', 'Axe']
@@ -17,21 +18,21 @@ config:
     Gate:
         time: 32
         speed: 3
-    #Buoy:
-    #    forwardDuration: 10
-    #    forwardSpeed: 2
-    #    taskTimeout: 180
-    #    lostTimeout: 5
+    Buoy:
+        forwardDuration: 10
+        forwardSpeed: 2
+        taskTimeout: 180
+        lostTimeout: 5
     Travel1:
         motions:
             '1':
                 type: 'ram.motion.basic.RateChangeHeading'
-                desiredHeading: 10
+                desiredHeading: 9
                 speed: 20
                 absolute: True
             '2':
                 type: 'ram.motion.basic.TimedMoveDirection'
-                desiredHeading: 10
+                desiredHeading: 9
                 speed: 5
                 duration: 33
                 absolute: True
@@ -43,36 +44,41 @@ config:
                 speed: 0.33
             '2':
                 type: 'ram.motion.basic.RateChangeHeading'
-                desiredHeading: -141
+                desiredHeading: -160
                 speed: 20
                 absolute: True
             '3':
                 type: 'ram.motion.basic.TimedMoveDirection'
-                desiredHeading: -141
+                desiredHeading: -160
                 speed: 5
                 duration: 10
+                absolute: True
     Bin:
         forwardSpeed: 3
         forwardDuration: 10
         taskTimeout: 180
-    PipeTarget:
+    Travel3:
         motions:
             '1':
                 type: 'ram.motion.basic.RateChangeDepth'
-                desiredDepth: 7
+                desiredDepth: 4
                 speed: 0.33
             '2':
                 type: 'ram.motion.basic.RateChangeHeading'
-                desiredHeading: -95
+                desiredHeading: -120
                 speed: 20
                 absolute: True
             '3':
                 type: 'ram.motion.basic.TimedMoveDirection'
-                desiredHeading: -95
-                speed: 3
-                duration: 5
-        motionTimeout: 10
-        taskTimeout: 30
+                desiredHeading: -120
+                speed: 5
+                duration: 0
+                absolute: True
+            '4':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -20
+                speed: 20
+                absolute: True
     Window:
         forwardSpeed: 3
         forwardDuration: 10

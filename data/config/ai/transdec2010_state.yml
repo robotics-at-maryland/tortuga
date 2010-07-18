@@ -1,3 +1,6 @@
+# Gate
+ram.ai.course.Gate:
+    pipeDelay: 60
 # Pipe
 ram.ai.course.Pipe:
     pipesToFind: 3
