@@ -67,17 +67,17 @@ BinDetector:
     filtblackLMax: 129
     filtblackLMin: 0
     filtredCMax: 255
-    filtredCMin: 0
-    filtredHMax: 255
-    filtredHMin: 0
+    filtredCMin: 17
+    filtredHMax: 65
+    filtredHMin: 220
     filtredLMax: 255
-    filtredLMin: 140
+    filtredLMin: 13
     filtwhiteCMax: 255
-    filtwhiteCMin: 17
-    filtwhiteHMax: 59
-    filtwhiteHMin: 232
+    filtwhiteCMin: 0
+    filtwhiteHMax: 255
+    filtwhiteHMin: 0
     filtwhiteLMax: 255
-    filtwhiteLMin: 13
+    filtwhiteLMin: 112
     weaponMinAspectRatioAxe: 1
     weaponMaxAspectRatioAxe: 5.125
     weaponMinSideFillRatioAxe: 1.0
