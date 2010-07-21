@@ -176,7 +176,6 @@ int main(int argc, char* argv[])
         featureNum = fannDetector->getNumberFeatures();
         features = new float[featureNum];
     }
-
     // Check if directory or file mode
     if (directory == "NONE") {   
         if (fannDetector)
@@ -201,77 +200,76 @@ int main(int argc, char* argv[])
                 for (int i=0; i < featureNum; i++) {
                     farr[i].push_back(features[i]);
                 }
-
-                // Sort the arrays
-                for (int i=0; i < (int) farr.size(); i++) {
-                    std::sort(farr[i].begin(), farr[i].end());
-                }
-
-                for (int i=0; i < (int) farr.size(); i++) {
-                    std::cout << "Feature #" << i << std::endl;
-                    std::vector<float> flist = farr[i];
-                    std::cout << "Min: " << flist.front()
-                              << "\nMax: " << flist.back() << std::endl;
-
-                    // Calculate the mean
-                    float mean = 0;
-                    BOOST_FOREACH(float f, flist)
-                    {
-                        mean += f;
-                    }
-                    mean /= flist.size();
-                    std::cout << "Mean: " << mean << std::endl;
-
-                    // Calculate the median
-                    float median = INFINITY;
-                    if (flist.size() % 2 == 0) {
-                        // Even
-                        median = (flist[flist.size()/2-1] + flist[flist.size()/2]) / 2;
-                    } else {
-                        // Odd
-                        median = flist[flist.size()/2];
-                    }
-                    std::cout << "Median: " << median << std::endl;
-
-                    // Calculate the standard deviation
-                    float stddev = 0;
-                    BOOST_FOREACH(float f, flist)
-                    {
-                        float diff = flist[i] - mean;
-                        stddev += diff * diff;
-                    }
-                    stddev /= flist.size() - 1;
-                    stddev = sqrt(stddev);
-                    std::cout << "Standard Deviation: " << stddev << std::endl;
-
-                    // TODO: Calculate these values for the trim
-                    int trim_start = (int) flist.size() * trim;
-                    int trim_end = (int) flist.size() - ((int) flist.size() * trim) - 1;
-
-                    std::cout << "Trim Min: " << flist[trim_start] << std::endl
-                              << "Trim Max: " << flist[trim_end] << std::endl;
-
-                    double trim_mean = 0;
-                    for (int i=trim_start; i < trim_end; i++) {
-                        trim_mean += flist[i];
-                    }
-                    trim_mean /= trim_end - trim_start;
-                    std::cout << "Trim Mean: " << trim_mean << std::endl;
-
-                    float trim_stddev = 0;
-                    for (int i=trim_start; i < trim_end; i++) {
-                        float diff = flist[i] - trim_mean;
-                        trim_stddev += diff * diff;
-                    }
-                    trim_stddev /= trim_end - trim_start - 1;
-                    trim_stddev = sqrt(trim_stddev);
-                    std::cout << "Trim Standard Deviation: " << trim_stddev
-                              << std::endl;
-                }
-            }
-            else {
+            } else {
                 processImage(symbolDetector, iter->path().string());
             }
+        }
+
+        // Sort the arrays
+        for (int i=0; i < (int) farr.size(); i++) {
+            std::sort(farr[i].begin(), farr[i].end());
+        }
+            
+        for (int i=0; i < (int) farr.size(); i++) {
+            std::cout << "Feature #" << i << std::endl;
+            std::vector<float> flist = farr[i];
+            std::cout << "Min: " << flist.front()
+                      << "\nMax: " << flist.back() << std::endl;
+                
+            // Calculate the mean
+            float mean = 0;
+            BOOST_FOREACH(float f, flist)
+            {
+                mean += f;
+            }
+            mean /= flist.size();
+            std::cout << "Mean: " << mean << std::endl;
+                
+            // Calculate the median
+            float median = INFINITY;
+            if (flist.size() % 2 == 0) {
+                // Even
+                median = (flist[flist.size()/2-1] + flist[flist.size()/2]) / 2;
+            } else {
+                // Odd
+                median = flist[flist.size()/2];
+            }
+            std::cout << "Median: " << median << std::endl;
+                
+            // Calculate the standard deviation
+            float stddev = 0;
+            BOOST_FOREACH(float f, flist)
+            {
+                float diff = flist[i] - mean;
+                stddev += diff * diff;
+            }
+            stddev /= flist.size() - 1;
+            stddev = sqrt(stddev);
+            std::cout << "Standard Deviation: " << stddev << std::endl;
+                
+            // TODO: Calculate these values for the trim
+            int trim_start = (int) flist.size() * trim;
+            int trim_end = (int) flist.size() - ((int) flist.size() * trim) - 1;
+                
+            std::cout << "Trim Min: " << flist[trim_start] << std::endl
+                      << "Trim Max: " << flist[trim_end] << std::endl;
+                
+            double trim_mean = 0;
+            for (int i=trim_start; i < trim_end; i++) {
+                trim_mean += flist[i];
+            }
+            trim_mean /= trim_end - trim_start;
+            std::cout << "Trim Mean: " << trim_mean << std::endl;
+                
+            float trim_stddev = 0;
+            for (int i=trim_start; i < trim_end; i++) {
+                float diff = flist[i] - trim_mean;
+                trim_stddev += diff * diff;
+            }
+            trim_stddev /= trim_end - trim_start - 1;
+            trim_stddev = sqrt(trim_stddev);
+            std::cout << "Trim Standard Deviation: " << trim_stddev
+                      << std::endl;
         }
     }
 
