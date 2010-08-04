@@ -27,6 +27,13 @@ struct Utility
      */
     static math::Quaternion quaternionFromMagAccel(const math::Vector3& mag,
                                                    const math::Vector3& accel);
+
+    /** Compute an orientation estimate from the previous orientation and
+     * the angular rate.
+     */
+    static math::Quaternion quaternionFromRate(const math::Quaternion &quatOld,
+                                               const math::Vector3 &angRate,
+                                               double deltaT);
 };
     
 } // namespace vehicle

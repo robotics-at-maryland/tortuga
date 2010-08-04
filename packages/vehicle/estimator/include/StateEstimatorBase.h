@@ -37,6 +37,8 @@ public:
 
     ~StateEstimatorBase(){};
  
+    /* Define basic implementations of the functions required by IStateEstimator
+     */
     virtual math::Vector2 getEstimatedPosition();
     virtual math::Vector2 getEstimatedVelocity();
     virtual math::Vector3 getEstimatedLinearAcceleration();
@@ -55,19 +57,29 @@ protected:
                        core::EventHubPtr eventHub = core::EventHubPtr(),
                        vehicle::IVehiclePtr = vehicle::IVehiclePtr());
 
-    /* These functions should be bound to events of the correct type */
+    /* These functions should be bound to events of the correct type.
+    ** Each sensor will publish RAW_UPDATE events when new data is
+    ** received.  Vision detectors will publish similar events when
+    ** they compute the results from single frames.
+    */
     virtual void rawUpdate_DVL(core::EventPtr event) = 0;
     virtual void rawUpdate_IMU(core::EventPtr event) = 0;
     virtual void rawUpdate_DepthSensor(core::EventPtr event) = 0;
     virtual void update_Vision(core::EventPtr event) = 0;
     virtual void update_Sonar(core::EventPtr event) = 0;
 
-    /* These should be bound to sensor init events to get calibration values */
+    /* These should be bound to sensor init events to get calibration values.
+    ** When sensors are initialized, they will publish their configuation.
+    ** These functions should somehow store the configuation so it is
+    ** available to the estimator update functions 
+    */
     virtual void init_DVL(core::EventPtr event) = 0;
     virtual void init_IMU(core::EventPtr event) = 0;
     virtual void init_DepthSensor(core::EventPtr event) = 0;
 
-    /* These keep track of the event subscriptions */
+    /* These keep track of the event subscriptions.
+    ** This class will delete them on deconstruction.
+    */
     core::EventConnectionPtr updateConnection_IMU;
     core::EventConnectionPtr updateConnection_DVL;
     core::EventConnectionPtr updateConnection_DepthSensor;
@@ -78,6 +90,7 @@ protected:
     core::EventConnectionPtr initConnection_DVL;
     core::EventConnectionPtr initConnection_DepthSensor;
 
+    // Pointer to access the estimated state for this estimator
     EstimatedStatePtr estimatedState;
 };
 

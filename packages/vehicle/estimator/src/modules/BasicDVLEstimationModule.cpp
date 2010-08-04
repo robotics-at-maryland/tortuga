@@ -18,7 +18,9 @@
 namespace ram {
 namespace estimator {
 
-BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config)
+BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config,
+                                                   core::EventHubPtr eventHub) :
+    EstimationModule(eventHub, "BasicDVLEstimationModule")
 {
     /* initialization from config values should be done here */
 }

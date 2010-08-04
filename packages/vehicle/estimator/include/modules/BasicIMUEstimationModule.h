@@ -41,7 +41,8 @@ const static int FILTER_SIZE = 10;
 class BasicIMUEstimationModule : public EstimationModule
 {
 public:
-    BasicIMUEstimationModule(core::ConfigNode config);
+    BasicIMUEstimationModule(core::ConfigNode config,
+                             core::EventHubPtr eventHub);
     ~BasicIMUEstimationModule(){};
 
 
@@ -50,28 +51,14 @@ public:
 
     /* The IMU Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event,
+                        EstimatedStatePtr estimatedState);
 
 private:
     /* any helper functions should be prototyped here */
 
-    void rotateAndFilterData(const RawIMUData* newState, std::string name);
-    
-    static void quaternionFromIMU(double mag[3], double accel[3],
-                                  double* quaternion);
-
-    // Plan for future
-    // static math::Quaternion quaternionFromIMU(math::Vector3 mag, math::Vector3 accel);
-    
-    static void quaternionFromRate(double* quaternionOld,
-				   double angRate[3],
-				   double deltaT,
-				   double* quaternionNew);
-
-    // Plan for future
-    // static math::Quaternion quaternionFromRate(math::Quaternion quatOld,
-    //                                            math::Vector3 angRate,
-    //                                            double deltaT);
+    void rotateAndFilterData(const RawIMUData* newState,
+                             std::string name);
 
     /* any necessary persistent variables should be declared here */
 
@@ -82,26 +69,33 @@ private:
 
     std::string m_magIMUName;
     std::string m_cgIMUName;
-    math::Quaternion m_orientation;
 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelX; 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelY;
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelZ; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelY;
+    std::map<std::string,
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelZ; 
 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroX; 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroY;
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroZ;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroY;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroZ;
 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagX; 
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagY;
-    std::map<std::string, core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagZ; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagY;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagZ; 
 
-    core::ReadWriteMutex m_orientationMutex;
     core::ReadWriteMutex m_stateMutex;
 
 };
 
-} // namespace estimatior
+} // namespace estimator
 } // namespace ram
 
 #endif // RAM_VEHICLE_ESTIMATOR_BASICIMUESTIMATIONMODULE_H

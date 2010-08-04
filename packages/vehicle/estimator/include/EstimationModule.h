@@ -23,6 +23,7 @@
 #include "vehicle/estimator/include/EstimatedState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
+#include "core/include/EventPublisher.h"
 
 namespace ram {
 namespace estimator {
@@ -31,13 +32,14 @@ class EstimationModule;
 
 typedef boost::shared_ptr<EstimationModule> EstimationModulePtr;
 
-class EstimationModule 
+class EstimationModule : public core::EventPublisher
 {
 public:
 
     /* The config node should contain the values necessary for initializing the
        specifig EstimationModule. */
-    EstimationModule(){};
+    EstimationModule(core::EventHubPtr eventHub = core::EventHubPtr(),
+                     std::string name = "");
     virtual ~EstimationModule(){}
 
     /* init - called when a sensor publishes calibration values */

@@ -46,7 +46,7 @@ public:
     virtual double getEstimatedDepth() = 0;
     virtual double getEstimatedDepthDot() = 0;
     
-    /* Implementations of IStateEstimatior should store the information about course
+    /* Implementations of IStateEstimator should store the information about course
        obstacles.  These functions allow interaction with each obstacle. */
     virtual void addObstacle(std::string name, ObstaclePtr obstacle) = 0;
     virtual math::Vector2 getObstaclePosition(std::string name) = 0;

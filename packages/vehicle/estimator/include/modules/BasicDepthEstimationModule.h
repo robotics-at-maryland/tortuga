@@ -27,7 +27,8 @@ namespace estimator {
 class BasicDepthEstimationModule : public EstimationModule
 {
 public:
-    BasicDepthEstimationModule(core::ConfigNode config);
+    BasicDepthEstimationModule(core::ConfigNode config,
+                               core::EventHubPtr eventHub);
     ~BasicDepthEstimationModule(){};
 
     /* called when a depth sensor publishes calibration values */

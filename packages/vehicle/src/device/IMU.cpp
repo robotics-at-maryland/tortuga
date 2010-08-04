@@ -103,6 +103,24 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
                 " Gyro-Raw Quat TimeStamp");
 
+    /* Publish the IMU calibration values for the estimator */
+    IMUInitEventPtr initEvent = IMUInitEventPtr(new IMUInitEvent());
+    initEvent->name = getName();
+    initEvent->IMUtoVehicleFrame = math::Matrix3(m_IMUToVehicleFrame);
+
+    initEvent->magBias = math::Vector3(m_magXBias,
+				       m_magYBias,
+				       m_magZBias);
+
+    initEvent->gyroBias = math::Vector3(m_gyroXBias,
+					m_gyroYBias,
+					m_gyroZBias);
+
+    initEvent->magCorruptThreshold = m_magCorruptThresh;
+    initEvent->magNominalLength = m_magNominalLength;
+
+    publish(IIMU::INIT, initEvent);
+
     // what is the purpose of this?
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -124,7 +142,6 @@ IMU::~IMU()
 
 void IMU::update(double timestep)
 {
-//    std::cout << "IMU update" << std::endl;
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {

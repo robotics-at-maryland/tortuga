@@ -27,7 +27,8 @@ namespace estimator {
 class BasicDVLEstimationModule : public EstimationModule
 {
 public:
-    BasicDVLEstimationModule(core::ConfigNode config);
+    BasicDVLEstimationModule(core::ConfigNode config,
+                             core::EventHubPtr eventHub);
     ~BasicDVLEstimationModule(){};
 
     /* This is called when an DVL publishes its calibration values */

@@ -62,11 +62,11 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
 
     // Construct the estimation modules
     dvlEstimationModule = EstimationModulePtr(
-        new BasicDVLEstimationModule(config["DVLEstimationModule"]));
+        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub));
     imuEstimationModule = EstimationModulePtr(
-        new BasicIMUEstimationModule(config["IMUEstimationModule"]));
+        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub));
     depthEstimationModule = EstimationModulePtr(
-        new BasicDepthEstimationModule(config["DepthEstimationModule"]));
+        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub));
 }
 
 
@@ -102,16 +102,19 @@ ModularStateEstimator::~ModularStateEstimator()
 
 void ModularStateEstimator::init_DVL(core::EventPtr event)
 {
+    /* Pass along sensor init events to estimation module */
     dvlEstimationModule->init(event);
 }
 
 void ModularStateEstimator::init_IMU(core::EventPtr event)
 {
+    /* Pass along sensor init events to estimation module */
     imuEstimationModule->init(event);
 }
 
 void ModularStateEstimator::init_DepthSensor(core::EventPtr event)
 {
+    /* Pass along sensor init events to estimation module */
     depthEstimationModule->init(event);
 }
 
@@ -123,38 +126,12 @@ void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
 
 void ModularStateEstimator::rawUpdate_IMU(core::EventPtr event)
 {
-    // vehicle::RawIMUDataEventPtr ievent =
-    //     boost::dynamic_pointer_cast<vehicle::RawIMUDataEvent>(event);
-
-    // /* Return if the cast failed and let people know about it. */
-    // if(!ievent){
-    //     std::cerr << "ModularStateEstimator: rawUpdate_IMU: Invalid Event" 
-    //               << std::endl;
-    //     return;
-    // }
-
-    // /* Keep the most recent event from each IMU */
-    // if(ievent->name == "MagBoom")
-    //     rawBoomIMUDataEvent = ievent;
-    // else
-    //     rawIMUDataEvent = ievent;
-    
     /* Update the estimated state by using an estimation module */
     imuEstimationModule->update(event, estimatedState);
 }
 
 void ModularStateEstimator::rawUpdate_DepthSensor(core::EventPtr event)
 {
-    // vehicle::RawDepthSensorDataEventPtr ievent =
-    //     boost::dynamic_pointer_cast<vehicle::RawDepthSensorDataEvent>(event);
-
-    // /* Return if the cast failed and let people know about it. */
-    // if(!ievent){
-    //     std::cerr << "ModularStateEstimator: rawUpdate_DepthSensor: Invalid Event"
-    //               << std::endl;
-    //     return;
-    // }   
-
     /* Update the estimated state by using an estimation module */
     depthEstimationModule->update(event, estimatedState);
 }

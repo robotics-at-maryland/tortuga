@@ -62,8 +62,10 @@ SensorBoard::SensorBoard(int deviceFD,
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
 
+    /* Publish the Depth Sensor calibration values for the estimator */
     DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
         new DepthSensorInitEvent());
+    depthSensorInit->name = getName();
     depthSensorInit->location = m_location;
     depthSensorInit->depthCalibSlope = m_depthCalibSlope;
     depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
@@ -107,6 +109,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
 
+    /* Publish the Depth Sensor calibration values for the estimator */
     DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
         new DepthSensorInitEvent());
     depthSensorInit->name = config["name"].asString();

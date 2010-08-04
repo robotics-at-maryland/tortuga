@@ -21,14 +21,15 @@ static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 namespace ram {
 namespace estimator {
 
-BasicDepthEstimationModule::BasicDepthEstimationModule(core::ConfigNode config) :
+BasicDepthEstimationModule::BasicDepthEstimationModule(core::ConfigNode config,
+                                                       core::EventHubPtr eventHub) :
+    EstimationModule(eventHub, "BasicDepthEstimationModule"),
     m_location(math::Vector3::ZERO),
     m_calibSlope(0),
     m_calibIntercept(0)
 {
-    /* initialization from config values should be done here */
-
-    LOGGER.info("% Name EstDepth");
+    /* initialization of estimator from config values should be done here */
+    LOGGER.info("% Name EstDepth RawDepth Correction");
 }
 
 
@@ -39,9 +40,11 @@ void BasicDepthEstimationModule::init(core::EventPtr event)
         boost::dynamic_pointer_cast<vehicle::DepthSensorInitEvent>(event);
 
     if(!event) {
-        std::cerr << "BasicDepthEstimationModule: init: Invalid Event Type"
-                  << std::endl; 
+        LOGGER.warn("BasicDepthEstimationModule: init: Invalid EventType");
         return;
+    } else {
+        LOGGER.info("BasicIMUEstimationModule: init: Config Received "
+                    + ievent->name);
     }
 
     m_name = ievent->name;
@@ -59,8 +62,7 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
 
     /* Return if the cast failed and let people know about it. */
     if(!ievent){
-        std::cerr << "BasicDepthEstimationModule: update: Invalid Event Type" 
-                  << std::endl;
+        LOGGER.warn("BasicDepthEstimationModule: update: Invalid Event Type");
         return;
     }
 
@@ -83,8 +85,10 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
     estimatedState->setEstimatedDepth(depth + correction);
 
     LOGGER.infoStream() << m_name << " "
-                        << depth + correction;
+                        << depth + correction << " "
+                        << depth << " "
+                        << correction;
 }
 
-} // namespace estimatior
+} // namespace estimator
 } // namespace ram

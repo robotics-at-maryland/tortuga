@@ -36,11 +36,25 @@ math::Quaternion Utility::quaternionFromMagAccel(const math::Vector3& mag,
 
     math::Quaternion result;
     math::quaternionFromnCb((double (*)[3])(nCb[0]), result.ptr());
-
-		//shouldn't it be this though???!?!?!?!?!
-		//math::quaternionFromnCb((double (*)[3])(bCn[0]), result.ptr());
     
     return result;
+}
+
+math::Quaternion Utility::quaternionFromRate(const math::Quaternion& quatOld, 
+                                             const math::Vector3& angRate,
+                                             double deltaT)
+{
+    // work with a copy of the quaternion
+    math::Quaternion qOld(quatOld);
+
+    // find quaternion derivative based off old quaternion and ang rate
+    math::Quaternion qDot = qOld.derivative(angRate);
+
+    // trapezoidal integration
+    math::Quaternion qNew = qOld + qDot*deltaT;
+
+    // return the normalized orientaiton estimate
+    return qNew.normalise();
 }
     
 } // namespace vehicle
