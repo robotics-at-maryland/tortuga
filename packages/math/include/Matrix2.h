@@ -32,6 +32,7 @@ we basically took the Matrix3 class and rewrote it for a general 2x2 matrix
 
 edited by Joseph Gland and Jaymit Patel on 2008-2-19
 
+
 -----------------------------------------------------------------------------
 */
 #ifndef RAM_MATH_MATRIX2_H_08_05_2007
@@ -151,12 +152,12 @@ namespace math {
          /** Creata rotation matrix from the given angle (counter clockwise)*/
          void fromAngle(Radian angle);
          
-        /* THIS STUFF is neat but we don't have time to implement
+
         Matrix2 Transpose () const;
-        bool Inverse (Matrix2& rkInverse, Real fTolerance = 1e-06) const;
-        Matrix2 Inverse (Real fTolerance = 1e-06) const;
+        Matrix2 Inverse () const;
         Real Determinant () const;
 
+/*
         // singular value decomposition
         void SingularValueDecomposition (Matrix2& rkL, Vector2& rkS,
             Matrix2& rkR) const;
