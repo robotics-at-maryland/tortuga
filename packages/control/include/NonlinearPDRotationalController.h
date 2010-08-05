@@ -11,6 +11,7 @@
 #define RAM_CONTROL_NONLINEARPDROTATIONALCONTROLLER_H
 
 #include "control/include/RotationalControllerBase.h"
+#include "math/include/Matrix3.h"
 
 namespace ram {
 namespace control {    
@@ -28,10 +29,9 @@ public:
 
 private:
 
-    double dtMin, dtMax;
     double angularPGain;
     double angularDGain;
-    double inertiaEstimate[3][3];
+    math::Matrix3 inertiaEstimate;
 
 };
 
