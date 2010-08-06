@@ -4,14 +4,14 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/modules/BasicIMUEstimationModule.h
+ * File:  packages/estimation/include/modules/BasicIMUEstimationModule.h
  */
 
 /* This is currently a template for a IMU EstimationModule implementation */
 
 
-#ifndef RAM_VEHICLE_ESTIMATOR_BASICIMUESTIMATIONMODULE_H
-#define RAM_VEHICLE_ESTIMATOR_BASICIMUESTIMATIONMODULE_H
+#ifndef RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
+#define RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
 
 // Library Includes
 #include <map>
@@ -23,8 +23,8 @@
 #include "core/include/Event.h"
 #include "core/include/ReadWriteMutex.h"
 
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/EstimationModule.h"
 #include "vehicle/include/Events.h"
 
 #include "math/include/Vector3.h"
@@ -32,7 +32,7 @@
 #include "math/include/Events.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 typedef RawIMUData FilteredIMUData;
 typedef vehicle::IMUInitEventPtr IMUConfigPtr;
@@ -95,7 +95,7 @@ private:
 
 };
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_BASICIMUESTIMATIONMODULE_H
+#endif // RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H

@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/IStateEstimator.h
+ * File:  packages/estimation/include/IStateEstimator.h
  */
 
 /* IStateEstimator is the public interface to a state estimator.  All
@@ -12,8 +12,8 @@
 ** interface.
 */
 
-#ifndef RAM_VEHICLE_ESTIMATOR_ISTATEESTIMATOR_H
-#define RAM_VEHICLE_ESTIMATOR_ISTATEESTIMATOR_H
+#ifndef RAM_ESTIMATION_ISTATEESTIMATOR_H
+#define RAM_ESTIMATION_ISTATEESTIMATOR_H
 
 // Library Includes
 #include <string>
@@ -23,13 +23,13 @@
 #include "vehicle/include/Common.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
-#include "vehicle/estimator/include/Obstacle.h"
+#include "estimation/include/Obstacle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class IStateEstimator
 {
@@ -59,13 +59,14 @@ public:
     static const core::Event::EventType ESTIMATED_LINEARACCELERATION_UPDATE;
     static const core::Event::EventType ESTIMATED_DEPTHDOT_UPDATE;
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
+    static const core::Event::EventType ESTIMATED_THRUST_UPDATE;
 
 protected:
     IStateEstimator(){};
 };
 
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_ISTATEESTIMATOR_H
+#endif // RAM_ESTIMATION_ISTATEESTIMATOR_H

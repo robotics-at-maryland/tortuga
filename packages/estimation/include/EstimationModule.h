@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/EstimationModule.h
+ * File:  packages/estimation/include/EstimationModule.h
  */
 
 /* EstimationModule provides the means for making hot-swappable estimation
@@ -13,20 +13,20 @@
  * estimation modules and pass them the appropriate type of event.
 */
 
-#ifndef RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H
-#define RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H
+#ifndef RAM_ESTIMATION_ESTIMATIONMODULE_H
+#define RAM_ESTIMATION_ESTIMATIONMODULE_H
 
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
-#include "vehicle/estimator/include/EstimatedState.h"
+#include "estimation/include/EstimatedState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class EstimationModule;
 
@@ -50,7 +50,7 @@ public:
 
 }; 
 
-} // namespace estimatior
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_ESTIMATIONMODULE_H
+#endif // RAM_ESTIMATION_ESTIMATIONMODULE_H

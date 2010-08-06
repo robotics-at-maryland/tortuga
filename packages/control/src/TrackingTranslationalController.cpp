@@ -15,6 +15,7 @@
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
 #include "control/include/Helpers.h"
+#include "math/include/Helpers.h"
 
 namespace ram {
 namespace control {
@@ -53,7 +54,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
 
     //Update current position and velocity
     math::Vector2 currentPosition = position;     //assume position in inertial frame
-    math::Vector2 currentVelocity = nRb(yaw)*velocity; //rotate velocity to inertial frame
+    math::Vector2 currentVelocity = math::nRb(yaw)*velocity; //rotate velocity to inertial frame
 
     math::Vector2 desiredPosition = desiredState->getDesiredPosition();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
@@ -108,7 +109,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
         //double desired_yaw = atan(signal_n[1]/signal_n[0]);
 
         //Rotate translationalSignal_n from the inertial frame to the body frame
-        math::Vector2 translationalSignal_b(bRn(yaw)*translationalSignal_n);
+        math::Vector2 translationalSignal_b(math::bRn(yaw)*translationalSignal_n);
 	 
         //Store previous error to be used in the next call
         m_prevPositionError = positionPError;

@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/modules/BasicDepthEstimationModule.cpp
+ * File:  packages/estimation/src/modules/BasicDepthEstimationModule.cpp
  */
 
 // Library Includes
@@ -14,12 +14,12 @@
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/BasicDepthEstimationModule.h"
+#include "estimation/include/modules/BasicDepthEstimationModule.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 BasicDepthEstimationModule::BasicDepthEstimationModule(core::ConfigNode config,
                                                        core::EventHubPtr eventHub) :
@@ -71,7 +71,7 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
 
     // Determine depth correction
     math::Vector3 currentSensorLocation = 
-      estimatedState->getEstimatedOrientation() * m_location;
+      estimatedState->getEstOrientation() * m_location;
     math::Vector3 sensorMovement = 
       currentSensorLocation - m_location;
     double correction = sensorMovement.z;
@@ -82,7 +82,7 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
 
     // Return the corrected depth (its addition and not subtraction because
     // depth is positive down)
-    estimatedState->setEstimatedDepth(depth + correction);
+    estimatedState->setEstDepth(depth + correction);
 
     LOGGER.infoStream() << m_name << " "
                         << depth + correction << " "
@@ -90,5 +90,5 @@ void BasicDepthEstimationModule::update(core::EventPtr event,
                         << correction;
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

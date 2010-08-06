@@ -21,7 +21,7 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "estimation/include/IStateEstimator.h"
 
 namespace ram {
 namespace vehicle {
@@ -113,7 +113,7 @@ public:
     virtual math::Quaternion getRawOrientation();
 
     /** Get the state estimator */
-    virtual estimator::IStateEstimatorPtr getStateEstimator();
+    virtual estimation::IStateEstimatorPtr getStateEstimator();
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
@@ -185,7 +185,7 @@ private:
     vehicle::device::IPayloadSetPtr m_grabber;
 
 
-    estimator::IStateEstimatorPtr stateEstimator;
+    estimation::IStateEstimatorPtr stateEstimator;
 };
     
 } // namespace vehicle

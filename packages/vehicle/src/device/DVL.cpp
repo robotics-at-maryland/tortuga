@@ -133,7 +133,7 @@ void DVL::update(double timestep)
 
         double yaw = m_vehicle->getOrientation().getYaw().valueRadians();
         
-        math::Vector2 vel_n = control::nRb(yaw)*vel_b;
+        math::Vector2 vel_n = math::nRb(yaw)*vel_b;
 
         {
             core::ReadWriteMutex::ScopedWriteLock lock(m_velocityMutex);

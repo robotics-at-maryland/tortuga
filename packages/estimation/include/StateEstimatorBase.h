@@ -4,15 +4,15 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/StateEstimatorBase.h
+ * File:  packages/estimation/include/StateEstimatorBase.h
  */
 
 /* StateEstimatorBase is a basic implementation of an IStateEstimator to simpify
 ** the creation of more sophisticated state estimators.
 */
 
-#ifndef RAM_VEHICLE_ESTIMATOR_STATEESTIMATORBASE_H
-#define RAM_VEHICLE_ESTIMATOR_STATEESTIMATORBASE_H
+#ifndef RAM_ESTIMATION_STATEESTIMATORBASE_H
+#define RAM_ESTIMATION_STATEESTIMATORBASE_H
 
 // Library Includes
 
@@ -20,16 +20,16 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/Forward.h"
 #include "core/include/EventHub.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/Obstacle.h"
+#include "estimation/include/IStateEstimator.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/Obstacle.h"
 #include "vehicle/include/Common.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class StateEstimatorBase : public IStateEstimator
 {
@@ -95,7 +95,7 @@ protected:
 };
 
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_STATEESTIMATORBASE_H
+#endif // RAM_ESTIMATION_STATEESTIMATORBASE_H

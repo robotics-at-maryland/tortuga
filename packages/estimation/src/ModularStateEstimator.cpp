@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/ModularStateEstimator.cpp
+ * File:  packages/estimation/src/ModularStateEstimator.cpp
  */
 
 // Library Includes
@@ -18,11 +18,11 @@
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/ModularStateEstimator.h"
+#include "estimation/include/ModularStateEstimator.h"
 #include "vehicle/include/Events.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 ModularStateEstimator::ModularStateEstimator(core::ConfigNode config, 
                                              core::EventHubPtr eventHub,
@@ -146,5 +146,5 @@ void ModularStateEstimator::update_Sonar(core::EventPtr event)
     std::cout << "ModularStateEstimator: rawUpdate_Sonar: Placeholder" << std::endl;
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

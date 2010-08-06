@@ -4,25 +4,25 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/modules/BasicDepthEstimationModule.h
+ * File:  packages/estimation/include/modules/BasicDepthEstimationModule.h
  */
 
 /* This is currently a template for a Depth EstimationModule implementation */
 
 
-#ifndef RAM_VEHICLE_ESTIMATOR_BASICDEPTHESTIMATIONMODULE_H
-#define RAM_VEHICLE_ESTIMATOR_BASICDEPTHESTIMATIONMODULE_H
+#ifndef RAM_ESTIMATION_BASICDEPTHESTIMATIONMODULE_H
+#define RAM_ESTIMATION_BASICDEPTHESTIMATIONMODULE_H
 
 // Library Includes
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/EstimationModule.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class BasicDepthEstimationModule : public EstimationModule
 {
@@ -46,7 +46,7 @@ private:
     double m_calibIntercept;
 };
 
-} // namespace estimatior
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_BASICDEPTHESTIMATIONMODULE_H
+#endif // RAM_ESTIMATION_BASICDEPTHESTIMATIONMODULE_H

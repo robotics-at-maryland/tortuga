@@ -46,7 +46,10 @@ def get_features():
                     deps = ['math', 'core', 'pattern'])
     
     add_feature('control', dirs = ['packages/control'],
-                deps = ['math', 'core', 'vehicle'])
+                deps = ['math', 'core', 'vehicle','estimation'])
+
+    add_feature('estimation', dirs = ['packages/estimation'],
+                deps = ['math','core','vehicle'])
 
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],

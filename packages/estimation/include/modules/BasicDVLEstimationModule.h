@@ -4,25 +4,25 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/modules/BasicDVLEstimationModule.h
+ * File:  packages/estimation/include/modules/BasicDVLEstimationModule.h
  */
 
 /* This is currently a template for a DVL EstimationModule implementation */
 
 
-#ifndef RAM_VEHICLE_ESTIMATOR_BASICDVLESTIMATIONMODULE_H
-#define RAM_VEHICLE_ESTIMATOR_BASICDVLESTIMATIONMODULE_H
+#ifndef RAM_ESTIMATION_BASICDVLESTIMATIONMODULE_H
+#define RAM_ESTIMATION_BASICDVLESTIMATIONMODULE_H
 
 // Library Includes
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/EstimationModule.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class BasicDVLEstimationModule : public EstimationModule
 {
@@ -42,7 +42,7 @@ private:
     /* any necessary persistent variables should be declared here */
 };
 
-} // namespace estimatior
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_BASICDVLESTIMATIONMODULE_H
+#endif // RAM_ESTIMATION_BASICDVLESTIMATIONMODULE_H

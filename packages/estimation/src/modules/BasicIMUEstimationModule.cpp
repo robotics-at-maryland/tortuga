@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/modules/BasicIMUEstimationModule.cpp
+ * File:  packages/estimation/src/modules/BasicIMUEstimationModule.cpp
  */
 
 /* These algorithms were originally coded by Joseph Galante.  I tried to
@@ -19,13 +19,13 @@
 // Project Includes
 #include "math/include/Helpers.h"
 #include "vehicle/include/Utility.h"
-#include "vehicle/estimator/include/modules/BasicIMUEstimationModule.h"
+#include "estimation/include/modules/BasicIMUEstimationModule.h"
 #include "vehicle/include/device/IIMU.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstIMU"));
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
                                                    core::EventHubPtr eventHub) :
@@ -148,7 +148,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
             omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
         }
 
-        math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
+        math::Quaternion oldOrientation = estimatedState->getEstOrientation();
 
         estOrientation = vehicle::Utility::quaternionFromRate(oldOrientation,
                                                               omega,
@@ -157,7 +157,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     }
 
     // Update local storage of previous orientation and estimator
-    estimatedState->setEstimatedOrientation(estOrientation);
+    estimatedState->setEstOrientation(estOrientation);
 
     // Send Event
     math::OrientationEventPtr oevent(new math::OrientationEvent());
@@ -255,5 +255,5 @@ void BasicIMUEstimationModule::rotateAndFilterData(const RawIMUData* newState,
     }
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

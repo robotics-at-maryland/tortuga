@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/StateEstimatorBase.cpp
+ * File:  packages/estimation/src/StateEstimatorBase.cpp
  */
 
 
@@ -12,10 +12,10 @@
 #include <iostream>
 
 // Project Includes
-#include "vehicle/estimator/include/StateEstimatorBase.h"
+#include "estimation/include/StateEstimatorBase.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 StateEstimatorBase::StateEstimatorBase(
     core::ConfigNode config,
@@ -40,37 +40,37 @@ StateEstimatorBase::StateEstimatorBase(
 
 math::Vector2 StateEstimatorBase::getEstimatedPosition()
 {
-    return estimatedState->getEstimatedPosition();
+    return estimatedState->getEstPosition();
 }
 
 math::Vector2 StateEstimatorBase::getEstimatedVelocity()
 {
-    return estimatedState->getEstimatedVelocity();
+    return estimatedState->getEstVelocity();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedLinearAcceleration()
 {
-    return estimatedState->getEstimatedLinearAcceleration();
+    return estimatedState->getEstLinearAccel();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedAngularRate()
 {
-    return estimatedState->getEstimatedAngularRate();
+    return estimatedState->getEstAngularRate();
 }
 
 math::Quaternion StateEstimatorBase::getEstimatedOrientation()
 {
-    return estimatedState->getEstimatedOrientation();
+    return estimatedState->getEstOrientation();
 }
 
 double StateEstimatorBase::getEstimatedDepth()
 {
-    return estimatedState->getEstimatedDepth();
+    return estimatedState->getEstDepth();
 }
 
 double StateEstimatorBase::getEstimatedDepthDot()
 {
-    return estimatedState->getEstimatedDepthDot();
+    return estimatedState->getEstDepthDot();
 }
 
 void StateEstimatorBase::addObstacle(std::string name, ObstaclePtr obstacle)
@@ -88,5 +88,5 @@ double StateEstimatorBase::getObstacleDepth(std::string name)
     return estimatedState->getObstacleDepth(name);
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

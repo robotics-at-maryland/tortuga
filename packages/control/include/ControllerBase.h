@@ -17,7 +17,7 @@
 #include "control/include/Helpers.h"
 
 #include "vehicle/include/Common.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "estimation/include/IStateEstimator.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
@@ -231,7 +231,7 @@ protected:
 
 
     controltest::DesiredStatePtr desiredState;
-    estimator::IStateEstimatorPtr stateEstimator;
+    estimation::IStateEstimatorPtr stateEstimator;
 
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;    

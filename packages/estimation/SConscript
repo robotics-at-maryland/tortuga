@@ -1,0 +1,32 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/estimation/SConscript
+
+import os
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+# Sources
+sources = env.Glob('src', '*.cpp')
+sources.extend(env.Glob('src/modules','*.cpp'))
+
+# Build Products (library will be called 'libram_vehicle.so')
+envl.RAMSharedLibrary('estimation',  source = sources)
+
+
+# Testing
+envt = env.Clone()
+
+#if os.name == 'posix':
+#   envt.RAMProgram(target = 'EstimationTest',
+#                   source = 'test/src/EstimationTest.cpp'
+#                   int_deps = ['estimation'],
+#                   ext_deps = ['Boost.ProgramOptions'])
+
+
+envt.Tests(int_deps = 'estimation')

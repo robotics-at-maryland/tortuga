@@ -100,6 +100,7 @@ core::EventPtr SonarEvent::clone()
 core::EventPtr RawIMUDataEvent::clone()
 {
     RawIMUDataEventPtr event = RawIMUDataEventPtr(new RawIMUDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawIMUData = rawIMUData;
@@ -111,6 +112,7 @@ core::EventPtr RawIMUDataEvent::clone()
 core::EventPtr RawDVLDataEvent::clone()
 {
     RawDVLDataEventPtr event = RawDVLDataEventPtr(new RawDVLDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawDVLData = rawDVLData;
@@ -123,6 +125,7 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 {
     RawDepthSensorDataEventPtr event = RawDepthSensorDataEventPtr(
         new RawDepthSensorDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawDepth = rawDepth;
@@ -134,6 +137,7 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 core::EventPtr IMUInitEvent::clone()
 {
     IMUInitEventPtr event = IMUInitEventPtr(new IMUInitEvent());
+    copyInto(event);
 
     event->name = name;
     event->IMUtoVehicleFrame = math::Matrix3(IMUtoVehicleFrame);
@@ -148,6 +152,7 @@ core::EventPtr IMUInitEvent::clone()
 core::EventPtr DVLInitEvent::clone()
 {
     DVLInitEventPtr event = DVLInitEventPtr(new DVLInitEvent());
+    copyInto(event);
 
     event->name = name;
     event->angularOffset = angularOffset;
@@ -159,6 +164,7 @@ core::EventPtr DepthSensorInitEvent::clone()
 {
     DepthSensorInitEventPtr event = DepthSensorInitEventPtr(
         new DepthSensorInitEvent());
+    copyInto(event);
 
     event->name = name;
     event->location = location;

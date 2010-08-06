@@ -15,6 +15,7 @@
 #include "math/include/Helpers.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix3.h"
+#include "math/include/Matrix2.h"
 
 namespace ram {
 namespace math {
@@ -708,6 +709,21 @@ void rotationYaw(double psi, double * pMatrix){
     *(pMatrix+7) = 0;
     *(pMatrix+8) = 1;
 }
+
+
+Matrix2 bRn(double radians)
+{
+    double r_cos = cos(radians), r_sin = sin(radians);
+    return Matrix2(r_cos,-r_sin,r_sin,r_cos);
+}
+
+Matrix2 nRb(double radians)
+{
+    double r_cos = cos(radians), r_sin = sin(radians);
+    return Matrix2(r_cos,r_sin,-r_sin,r_cos);
+}
+
+
 
 } // namespace math
 } // namespace ram

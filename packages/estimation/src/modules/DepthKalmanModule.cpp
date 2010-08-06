@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/modules/DepthKalmanModule.cpp
+ * File:  packages/estimation/src/modules/DepthKalmanModule.cpp
  */
 
 /* This module implements a simple Kalman filter to estimate depth and depth_dot */
@@ -15,7 +15,7 @@
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/DepthKalmanModule.h"
+#include "estimation/include/modules/DepthKalmanModule.h"
 #include "math/include/Matrix2.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -23,7 +23,7 @@
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 DepthKalmanModule::DepthKalmanModule(core::ConfigNode config, 
                                      core::EventHubPtr eventHub) :
@@ -61,7 +61,7 @@ void DepthKalmanModule::init(core::EventPtr event)
 }
 
 void DepthKalmanModule::update(core::EventPtr event, 
-                                        EstimatedStatePtr estimatedState)
+                               EstimatedStatePtr estimatedState)
 {
     /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
     vehicle::RawDepthSensorDataEventPtr ievent =
@@ -79,7 +79,7 @@ void DepthKalmanModule::update(core::EventPtr event,
 
     // Determine depth correction
     math::Vector3 currentSensorLocation = 
-      estimatedState->getEstimatedOrientation() * m_location;
+      estimatedState->getEstOrientation() * m_location;
     math::Vector3 sensorMovement = 
       currentSensorLocation - m_location;
     double correction = sensorMovement.z;
@@ -89,16 +89,16 @@ void DepthKalmanModule::update(core::EventPtr event,
     // Add since depth is positive
     double x_meas = depth + correction;
 
-    double del_t = ievent->timestep;
-    double del_t_sq = del_t * del_t;
+    double dt = ievent->timestep;
+    double dt_sq = dt * dt;
 
 
     // State Transition Model
-    math::Matrix2 Ak(1, del_t,
-		     0, 1 - (m_drag * del_t_sq) / (2 * m_mass));
+    math::Matrix2 Ak(1, dt,
+		     0, 1 - (m_drag * dt_sq) / (2 * m_mass));
 
     // Control Input Model - F_thrusters * Bk = x change from control
-    math::Vector2 Bk(del_t_sq /(2*m_mass), del_t / m_mass);
+    math::Vector2 Bk(dt_sq /(2*m_mass), dt / m_mass);
 
     // Observation Model
     math::Vector2 Hk(1, 0);
@@ -106,17 +106,13 @@ void DepthKalmanModule::update(core::EventPtr event,
     math::Matrix2 Q(math::Matrix2::ZERO);
     math::Vector2 Rn(math::Vector2::ZERO);
 
-    math::Matrix2 Ak_prev_trans = math::Matrix2(m_Ak_prev[0][0],
-                                                m_Ak_prev[1][0],
-                                                m_Ak_prev[0][1],
-                                                m_Ak_prev[1][1]);
     // Update the predicted state
     math::Vector2 x_pred = Ak * m_xPrev + Bk * m_uPrev + Bk * (-m_buoyancy);
-    math::Matrix2 P_pred = m_Ak_prev * m_PPrev * Ak_prev_trans + Q;
+    math::Matrix2 P_pred = m_Ak_prev * m_PPrev * m_Ak_prev.Transpose() + Q;
 
     // Update the estimated state
     // Hk is automatically treated as a row vector for Hk*P_pred
-    math::Vector2 K = P_pred*Hk*/*inverse*/(Hk*P_pred*Hk + Rn)/*end_inverse*/;
+    math::Vector2 K = P_pred*Hk*/*inverse*/(Hk*P_pred*Hk + Rn);
     m_PPrev = (1 - K.dotProduct(Hk))*P_pred;
     math::Vector2 x_curr = x_pred + K*(x_meas - Hk.dotProduct(x_pred));
 
@@ -125,8 +121,8 @@ void DepthKalmanModule::update(core::EventPtr event,
     m_Ak_prev = Ak;
 
     // Set the estimated depth
-    estimatedState->setEstimatedDepth(x_curr[0]);
-    estimatedState->setEstimatedDepthDot(x_curr[1]);
+    estimatedState->setEstDepth(x_curr[0]);
+    estimatedState->setEstDepthDot(x_curr[1]);
 
     LOGGER.infoStream() << m_name << " "
                         << depth  << " "
@@ -135,5 +131,5 @@ void DepthKalmanModule::update(core::EventPtr event,
 			<< x_curr[1] << " ";
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

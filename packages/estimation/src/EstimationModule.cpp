@@ -4,18 +4,18 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/EstimationModule.cpp
+ * File:  packages/estimation/src/EstimationModule.cpp
  */
 
 // Library Includes
 #include <string.h>
 
 // Package Includes
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "estimation/include/EstimationModule.h"
 
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 EstimationModule::EstimationModule(core::EventHubPtr eventHub,
                                    std::string name) :
@@ -23,5 +23,5 @@ EstimationModule::EstimationModule(core::EventHubPtr eventHub,
 {
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

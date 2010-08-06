@@ -41,7 +41,7 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     IController(config["name"].asString()),
     desiredState(controltest::DesiredStatePtr(
                      new controltest::DesiredState(config["DesiredState"]))),
-    stateEstimator(estimator::IStateEstimatorPtr()),
+    stateEstimator(estimation::IStateEstimatorPtr()),
     m_vehicle(vehicle),
     conn_desired_atDepth(core::EventConnectionPtr()),
     conn_estimated_atDepth(core::EventConnectionPtr()),
@@ -73,7 +73,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
                      new controltest::DesiredState(
                          config["DesiredState"],
                          core::Subsystem::getSubsystemOfType<core::EventHub>(deps)))),
-    stateEstimator(estimator::IStateEstimatorPtr()),
+    stateEstimator(estimation::IStateEstimatorPtr()),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),  
     conn_desired_atDepth(core::EventConnectionPtr()),
     conn_estimated_atDepth(core::EventConnectionPtr()),
@@ -108,7 +108,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
             boost::bind(&ControllerBase::atDepthUpdate,this,_1));
 
         conn_estimated_atDepth = eventHub->subscribeToType(
-            estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
+            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
             boost::bind(&ControllerBase::atDepthUpdate,this,_1));
 
         conn_desired_atPosition = eventHub->subscribeToType(
@@ -116,7 +116,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
             boost::bind(&ControllerBase::atPositionUpdate,this,_1));
 
         conn_estimated_atPosition = eventHub->subscribeToType(
-            estimator::IStateEstimator::ESTIMATED_POSITION_UPDATE,
+            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
             boost::bind(&ControllerBase::atPositionUpdate,this,_1));
 
         conn_desired_atVelocity = eventHub->subscribeToType(
@@ -124,7 +124,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
             boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
 
         conn_estimated_atVelocity = eventHub->subscribeToType(
-            estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
+            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
             boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
 
         conn_desired_atOrientation = eventHub->subscribeToType(
@@ -132,7 +132,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
             boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
 
         conn_estimated_atOrientation = eventHub->subscribeToType(
-            estimator::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
+            estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
             boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
     }
     if(m_vehicle != vehicle::IVehiclePtr()){
@@ -225,14 +225,14 @@ void ControllerBase::setSidewaysSpeed(double speed)
 void ControllerBase::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     desiredState->setDesiredVelocity(velocity);
 }
 
 void ControllerBase::setDesiredPosition(math::Vector2 position, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        position = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+        position = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     desiredState->setDesiredPosition(position);
 }
 
@@ -256,7 +256,7 @@ double ControllerBase::getSidewaysSpeed()
 math::Vector2 ControllerBase::getVelocity()
 {
     math::Vector2 velocity(desiredState->getDesiredVelocity());
-    velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+    velocity = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -264,7 +264,7 @@ math::Vector2 ControllerBase::getDesiredVelocity(int frame)
 {
     math::Vector2 velocity(desiredState->getDesiredVelocity());
     if(frame == IController::BODY_FRAME)
-        velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -272,7 +272,7 @@ math::Vector2 ControllerBase::getDesiredPosition(int frame)
 {
     math::Vector2 position(desiredState->getDesiredPosition());
     if(frame == IController::BODY_FRAME)
-        position = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+        position = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     return position;
 }
 

@@ -21,7 +21,7 @@
 #include "vehicle/include/device/Common.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class IStateEstimator;
 typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;

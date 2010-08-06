@@ -4,139 +4,163 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/EstimatedState.cpp
+ * File:  packages/estimation/src/EstimatedState.cpp
  */
 
 
 // Library Includes
 
 // Package Includes
-#include "vehicle/estimator/include/EstimatedState.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/Events.h"
 #include "math/include/Events.h"
 #include "core/include/ReadWriteMutex.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventHub) :
     core::EventPublisher(eventHub, "EstimatedState"),
-    estimatedPosition(math::Vector2::ZERO),
-    estimatedVelocity(math::Vector2::ZERO),
-    estimatedLinearAcceleration(math::Vector3::ZERO),
-    estimatedAngularRate(math::Vector3::ZERO),
-    estimatedOrientation(math::Quaternion::IDENTITY),
-    estimatedDepth(0),
-    estimatedDepthDot(0)
+    estPosition(math::Vector2::ZERO),
+    estVelocity(math::Vector2::ZERO),
+    estLinearAccel(math::Vector3::ZERO),
+    estAngularRate(math::Vector3::ZERO),
+    estOrientation(math::Quaternion::IDENTITY),
+    estDepth(0),
+    estDepthDot(0)
 {
     
 }
 
-math::Vector2 EstimatedState::getEstimatedPosition()
+math::Vector2 EstimatedState::getEstPosition()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedPosition;
+    return estPosition;
 }
 
-math::Vector2 EstimatedState::getEstimatedVelocity()
+math::Vector2 EstimatedState::getEstVelocity()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedVelocity;
+    return estVelocity;
 }
 
-math::Vector3 EstimatedState::getEstimatedLinearAcceleration()
+math::Vector3 EstimatedState::getEstLinearAccel()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedLinearAcceleration;
+    return estLinearAccel;
 }
 
-math::Vector3 EstimatedState::getEstimatedAngularRate()
+math::Vector3 EstimatedState::getEstAngularRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedAngularRate;
+    return estAngularRate;
 }
 
-math::Quaternion EstimatedState::getEstimatedOrientation()
+math::Quaternion EstimatedState::getEstOrientation()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedOrientation;
+    return estOrientation;
 }
 
-double EstimatedState::getEstimatedDepth()
+double EstimatedState::getEstDepth()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedDepth;
+    return estDepth;
 }
 
-double EstimatedState::getEstimatedDepthDot()
+double EstimatedState::getEstDepthDot()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estimatedDepthDot;
+    return estDepthDot;
 }
 
-void EstimatedState::setEstimatedPosition(math::Vector2 position)
+math::Vector3 EstimatedState::getEstThrusterForces()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return estThrusterForces;
+}
+
+math::Vector3 EstimatedState::getEstThrusterTorques()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return estThrusterTorques;
+}
+
+void EstimatedState::setEstPosition(math::Vector2 position)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedPosition = position;
+        estPosition = position;
     }    
     publishPositionUpdate(position);
 }
 
-void EstimatedState::setEstimatedVelocity(math::Vector2 velocity)
+void EstimatedState::setEstVelocity(math::Vector2 velocity)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedVelocity = velocity;
+        estVelocity = velocity;
     }
     publishVelocityUpdate(velocity);
 }
 
-void EstimatedState::setEstimatedLinearAcceleration(
-    math::Vector3 linearAcceleration)
+void EstimatedState::setEstLinearAccel(
+    math::Vector3 linearAccel)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedLinearAcceleration = linearAcceleration;
+        estLinearAccel = linearAccel;
     }    
-    publishLinearAccelerationUpdate(linearAcceleration);
+    publishLinearAccelUpdate(linearAccel);
 }
 
-void EstimatedState::setEstimatedAngularRate(
+void EstimatedState::setEstAngularRate(
     math::Vector3 angularRate)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedAngularRate = angularRate;
+        estAngularRate = angularRate;
     }
     publishAngularRateUpdate(angularRate);
 }
 
-void EstimatedState::setEstimatedOrientation(
+void EstimatedState::setEstOrientation(
     math::Quaternion orientation)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedOrientation = orientation;
+        estOrientation = orientation;
     }
     publishOrientationUpdate(orientation);
 }
 
-void EstimatedState::setEstimatedDepth(double depth)
+void EstimatedState::setEstDepth(double depth)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedDepth = depth;
+        estDepth = depth;
     }
     publishDepthUpdate(depth);
 }
 
-void EstimatedState::setEstimatedDepthDot(double depthDot)
+void EstimatedState::setEstDepthDot(double depthDot)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estimatedDepthDot = depthDot;
+        estDepthDot = depthDot;
     }
     publishDepthDotUpdate(depthDot);
+}
+
+void EstimatedState::setEstThrust(math::Vector3 forces,
+                                  math::Vector3 torques)
+{
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        estThrusterForces = forces;
+        estThrusterTorques = torques;
+    }
+    publishThrustUpdate(forces, torques);
 }
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
@@ -159,44 +183,52 @@ void EstimatedState::publishPositionUpdate(const math::Vector2& position)
 {
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = position;
-    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
 }
 void EstimatedState::publishVelocityUpdate(const math::Vector2& velocity)
 {
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = velocity;
-    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
 }
-void EstimatedState::publishLinearAccelerationUpdate(const math::Vector3& linearAcceleration)
+void EstimatedState::publishLinearAccelUpdate(const math::Vector3& linearAccel)
 {
     math::Vector3EventPtr event(new math::Vector3Event());
-    event->vector3 = linearAcceleration;
-    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    event->vector3 = linearAccel;
+    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
 }
 void EstimatedState::publishAngularRateUpdate(const math::Vector3& angularRate)
 {
     math::Vector3EventPtr event(new math::Vector3Event());
     event->vector3 = angularRate;
-    publish(estimator::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
 }
 void EstimatedState::publishOrientationUpdate(const math::Quaternion& orientation)
 {
     math::OrientationEventPtr event(new math::OrientationEvent());
     event->orientation = orientation;
-    publish(estimator::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE, event);
 }
 void EstimatedState::publishDepthUpdate(const double& depth)
 {
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
-    publish(estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
 }
 void EstimatedState::publishDepthDotUpdate(const double& depthDot)
 {
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depthDot;
-    publish(estimator::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
+}
+void EstimatedState::publishThrustUpdate(const math::Vector3& forces,
+                                         const math::Vector3& torques)
+{
+    estimation::ThrustUpdateEventPtr event(new estimation::ThrustUpdateEvent());
+    event->forces = forces;
+    event->torques = torques;
+    publish(estimation::IStateEstimator::ESTIMATED_THRUST_UPDATE, event);
 }
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram

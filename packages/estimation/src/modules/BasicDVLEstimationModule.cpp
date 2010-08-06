@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/src/modules/BasicDVLEstimationModule.cpp
+ * File:  packages/estimation/src/modules/BasicDVLEstimationModule.cpp
  */
 
 // Library Includes
@@ -13,10 +13,10 @@
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/BasicDVLEstimationModule.h"
+#include "estimation/include/modules/BasicDVLEstimationModule.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config,
                                                    core::EventHubPtr eventHub) :
@@ -49,5 +49,5 @@ void BasicDVLEstimationModule::update(core::EventPtr event,
 
 }
 
-} // namespace estimatior
+} // namespace estimation
 } // namespace ram

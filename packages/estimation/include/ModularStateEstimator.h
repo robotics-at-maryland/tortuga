@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/ModularStateEstimator.h
+ * File:  packages/estimation/include/ModularStateEstimator.h
  */
 
 // Library Includes
@@ -14,15 +14,15 @@
 #include "core/include/EventHub.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
-#include "vehicle/estimator/include/EstimationModule.h"
-#include "vehicle/estimator/include/StateEstimatorBase.h"
-#include "vehicle/estimator/include/modules/IncludeAllModules.h"
+#include "estimation/include/EstimationModule.h"
+#include "estimation/include/StateEstimatorBase.h"
+#include "estimation/include/modules/IncludeAllModules.h"
 
-#ifndef RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
-#define RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#ifndef RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
+#define RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class ModularStateEstimator : public StateEstimatorBase
 {
@@ -58,7 +58,7 @@ private:
     vehicle::IVehiclePtr m_vehicle;
 };
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
+#endif // RAM_ESTIMATION_MODULARSTATEESTIMATOR_H

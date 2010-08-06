@@ -242,7 +242,7 @@ def _get_internal_lib(env, name):
     """
     Maps internal library name with the information needed to build it
     """
-    vehicle_int_deps = ['core', 'pattern','math','logging']
+    vehicle_int_deps = ['core', 'pattern','math']
     if env.HasFeature('drivers'):
         vehicle_int_deps.extend(['imu', 'carnetix', 'sensor', 'thruster', 'dvl'])
     # Determine the sonar deps
@@ -302,8 +302,12 @@ def _get_internal_lib(env, name):
                                         ext_deps = []),
 
             'control' : InternalLibrary('control',
-                                        int_deps = ['math', 'core', 'vehicle'],
+                                        int_deps = ['math', 'core', 'vehicle','estimation'],
                                         ext_deps = []),
+
+            'estimation' : InternalLibrary('estimation',
+                                           int_deps = ['math','core','vehicle'],
+                                           ext_deps = []),
 
             'vehicle' : InternalLibrary('vehicle',
                                         int_deps = vehicle_int_deps,

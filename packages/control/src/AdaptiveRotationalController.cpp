@@ -25,9 +25,26 @@ registerAdaptiveRotationalController("AdaptiveRotationalController");
 
 AdaptiveRotationalController::AdaptiveRotationalController(
     core::ConfigNode config) :
-    RotationalControllerBase(config)
-
+    RotationalControllerBase(config),
+    m_dtMin(config["dtMin"].asDouble(0.0)),
+    m_dtMax(config["dtMax"].asDouble(1.0)),
+    m_rotLambda(config["rotLambda"].asDouble(1.0)),
+    m_rotGamma(config["rotGamma"].asDouble(1.0)),
+    m_rotK(config["rotK"].asDouble(1.0)),
+    m_params(math::MatrixN(12,1))
 {
+	m_params[0][0] = config["adaptParams"][0].asDouble(0.5);
+	m_params[1][0] = config["adaptParams"][1].asDouble(0);
+	m_params[2][0] = config["adaptParams"][2].asDouble(-0.1);
+	m_params[3][0] = config["adaptParams"][3].asDouble(1);
+	m_params[4][0] = config["adaptParams"][4].asDouble(0);
+	m_params[5][0] = config["adaptParams"][5].asDouble(1);
+	m_params[6][0] = config["adaptParams"][6].asDouble(0);
+	m_params[7][0] = config["adaptParams"][7].asDouble(0);	
+	m_params[8][0] = config["adaptParams"][8].asDouble(0);
+	m_params[9][0] = config["adaptParams"][9].asDouble(1);
+	m_params[10][0] = config["adaptParams"][10].asDouble(2);
+	m_params[11][0] = config["adaptParams"][11].asDouble(2);
 
 }
 

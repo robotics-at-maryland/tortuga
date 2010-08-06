@@ -32,8 +32,8 @@
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "vehicle/include/device/LoopStateEstimator.h"
-#include "vehicle/estimator/include/ModularStateEstimator.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "estimation/include/ModularStateEstimator.h"
+#include "estimation/include/IStateEstimator.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 
@@ -105,7 +105,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_torpedoLauncher(device::IPayloadSetPtr()),
     m_grabberName(config["GrabberName"].asString("Grabber")),
     m_grabber(device::IPayloadSetPtr()),
-    stateEstimator(estimator::IStateEstimatorPtr())
+    stateEstimator(estimation::IStateEstimatorPtr())
 {
 
     /* Make the new state estimator.  This needs to be changed to replace the old one 
@@ -115,8 +115,8 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
 
     if(!stateEstimator)
     {
-        stateEstimator = estimator::IStateEstimatorPtr(
-            new estimator::ModularStateEstimator(
+        stateEstimator = estimation::IStateEstimatorPtr(
+            new estimation::ModularStateEstimator(
                 config["NewStateEstimator"],
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter())));
@@ -276,7 +276,7 @@ math::Quaternion Vehicle::getOrientation(std::string obj)
     return m_stateEstimator->getOrientation(obj);
 }
 
-estimator::IStateEstimatorPtr Vehicle::getStateEstimator()
+estimation::IStateEstimatorPtr Vehicle::getStateEstimator()
 {
     return stateEstimator;
 }

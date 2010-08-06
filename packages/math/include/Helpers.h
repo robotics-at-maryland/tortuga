@@ -12,6 +12,7 @@
 
 // Must Be Included last
 #include "math/include/Export.h"
+#include "math/include/Matrix2.h"
 
 namespace ram {
 namespace math {
@@ -61,6 +62,11 @@ void RAM_EXPORT quaternionFromnCb(double nCb[3][3], double * pQ);
 void RAM_EXPORT rotationRoll(double phi, double * pMatrix);
 void RAM_EXPORT rotationPitch(double theta, double * pMatrix);
 void RAM_EXPORT rotationYaw(double psi, double * pMatrix);
+
+
+Matrix2 RAM_EXPORT bRn(double radians);
+
+Matrix2 RAM_EXPORT nRb(double radians);
 
 } // namespace math
 } // namespace ram

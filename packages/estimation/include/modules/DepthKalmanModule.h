@@ -4,28 +4,28 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/modules/BasicDepthEstimationModule.h
+ * File:  packages/estimation/include/modules/BasicDepthEstimationModule.h
  */
 
 /* This module attempts to estimate depth and depth_dot via a Kalman filter */
 
 
-#ifndef RAM_VEHICLE_ESTIMATOR_DEPTHKALMANMODULE_H
-#define RAM_VEHICLE_ESTIMATOR_DEPTHKALMANMODULE_H
+#ifndef RAM_ESTIMATION_DEPTHKALMANMODULE_H
+#define RAM_ESTIMATION_DEPTHKALMANMODULE_H
 
 // Library Includes
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/EstimationModule.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class DepthKalmanModule : public EstimationModule
 {
@@ -79,7 +79,7 @@ private:
 
 };
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_DEPTHKALMANMODULE_H
+#endif // RAM_ESTIMATION_DEPTHKALMANMODULE_H

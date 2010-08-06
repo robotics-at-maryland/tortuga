@@ -4,15 +4,15 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vehicle/estimator/include/Obstacle.h
+ * File:  packages/estimation/include/Obstacle.h
  */
 
 /* Obstacle represents a course obstacle and contains all data that would be
 ** stored for an obstacle.
 */
 
-#ifndef RAM_VEHICLE_ESTIMATOR_OBSTACLE_H
-#define RAM_VEHICLE_ESTIMATOR_OBSTACLE_H
+#ifndef RAM_ESTIMATION_OBSTACLE_H
+#define RAM_ESTIMATION_OBSTACLE_H
 
 
 // Library Includes
@@ -23,7 +23,7 @@
 
 
 namespace ram {
-namespace estimator {
+namespace estimation {
 
 class Obstacle;
 typedef boost::shared_ptr<Obstacle> ObstaclePtr;
@@ -47,7 +47,7 @@ private:
 
 
 
-} // namespace estimator
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_ESTIMATOR_OBSTACLE_H
+#endif // RAM_ESTIMATION_OBSTACLE_H
