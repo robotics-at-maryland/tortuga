@@ -19,13 +19,43 @@
 
 namespace ram {
 namespace vision {    
-
+    
 void makeColor(vision::Image* image, unsigned char R, unsigned char G,
                unsigned char B);
+
+void makeGray(vision::Image* image, unsigned char G);
 
 void drawSquare(vision::Image* image, int x, int y, int width, int height,
                 double angle, CvScalar color);
 
+enum TestSuitType
+{
+    Heart,
+    Spade,
+    Club,
+    Diamond,
+    Tank,
+    Ship,
+    Aircraft,
+    Factory,
+    None
+};
+    
+void drawBin(vision::Image* image, int x, int y, int width, double angle,
+             TestSuitType suitType = None);
+
+void drawTarget(vision::Image* image, int x, int y, int height = 100,
+                int width = -1);
+    
+void drawCircle(vision::Image* image, int x, int y, int radius,
+                CvScalar color);
+
+void drawLine(vision::Image* image, int x1, int y1, int x2, int y2,
+              int lineWidth, CvScalar color);
+
+/** Get the process ID of the current process */    
+int getPid();
+    
 } // namespace vision
 } // namespace ram
 

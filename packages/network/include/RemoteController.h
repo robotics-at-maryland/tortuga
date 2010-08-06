@@ -45,15 +45,25 @@ class RAM_EXPORT RemoteController :
     /** Runs in a continous loop blocking on reading messages */
     virtual void update(double timeSinceLastUpdate);
 
-    virtual void background(int interval)
-    {
-        core::Updatable::background(interval);
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
     }
 
-    virtual void unbackground(bool join = false)
-    {
-        core::Updatable::unbackground(join);
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
     }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
+    
+    virtual void background(int interval);
+
+    virtual void unbackground(bool join = false);
 
     virtual bool backgrounded()
     {
@@ -74,6 +84,9 @@ class RAM_EXPORT RemoteController :
      */
     bool processMessage(unsigned char cmd, signed char param = 0);
 
+    /** The port to listen on*/
+    int m_port;
+    
     /** Socket to recieve on */
     int m_sockfd;
 

@@ -30,8 +30,7 @@ def generate(module_builder, local_ns, global_ns):
         cls.include()
         cls.already_exposed = True
 
-    wrap.make_already_exposed(global_ns, 'ram::core',
-                              ['Subsystem'])
+    module_builder.class_('::ram::core::Subsystem').already_exposed = True
 
     classes = []
 
@@ -86,9 +85,10 @@ def generate(module_builder, local_ns, global_ns):
                                 allow_empty = True):
         cls.include()
         classes.append(cls)
-
+        eventsFound = True
     if eventsFound:
-        wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
+        module_builder.class_('::ram::core::Event').already_exposed = True
+       #wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
     
     # Added the needed includes
     wrap.add_needed_includes(classes)

@@ -16,6 +16,9 @@ from buildit.task import Task
 
 # Project Imports
 from buildfiles.common.commands import *
+import buildfiles.variants as variants
+
+pythonExecutable = '"%s"' % sys.executable
 
 # Setup basic directory structure
 setup_directories = Task(
@@ -27,7 +30,8 @@ setup_directories = Task(
                 Mkdir('${ram_prefix}/lib/pkgconfig/'),
                 Mkdir('${ram_prefix}/include/'),
                 Mkdir('${ram_prefix}/bin/'),
-                Mkdir('${ram_prefix}/man/')],
+                Mkdir('${ram_prefix}/man/'),
+                Mkdir('${ram_prefix}/pkgs/')],
     )
 
 # Install Python Modules
@@ -36,7 +40,7 @@ install_pygccxml = Task(
     namespaces = 'pygccxml',
     targets = '${py_site_packages}/pygccxml',
     workdir = '${deps_dir}/pygccxml',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -46,17 +50,7 @@ install_pyplusplus = Task(
     namespaces = 'pyplusplus',
     targets = '${py_site_packages}/pyplusplus',
     workdir = '${deps_dir}/pyplusplus',
-    commands = [sys.executable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-install_pyserial = Task(
-    'Install PySerial',
-    namespaces = 'pyserial',
-    targets = '${py_site_packages}/serial',
-    workdir = '${deps_dir}/pyserial',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -66,7 +60,7 @@ install_pyyaml = Task(
     namespaces = 'pyyaml',
     targets = '${py_site_packages}/yaml',
     workdir = '${deps_dir}/pyyaml',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -77,7 +71,7 @@ install_scons = Task(
     namespaces = 'scons',
     targets = '${py_site_packages}/SCons',
     workdir = '${deps_dir}/scons',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'
                 '  --standard-lib'],
     dependencies = (setup_directories,)
@@ -88,8 +82,20 @@ install_zope_interface = Task(
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
-    commands = [sys.executable + ' setup.py install'
+    commands = [pythonExecutable + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
+    dependencies = (setup_directories,)
+    )
+
+symlink_python = Task(
+    'Make Symlink to Proper Python Version',
+    namespaces = 'python_symlink',
+    targets = '${buildoutdir}/scripts/link_done',
+    workdir = '${buildoutdir}',
+    commands = ['ln -sf ' + pythonExecutable + 
+		' ${buildoutdir}/scripts/python',
+		'ln -sf /usr/bin/pydoc2.5 ${buildoutdir}/scripts/pydoc',
+		'touch ${buildoutdir}/scripts/link_done'],
     dependencies = (setup_directories,)
     )
 
@@ -97,10 +103,43 @@ install_python_modules = Task(
     'Install Python Modules',
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
-     commands = [],
-     dependencies = (install_pygccxml, install_pyplusplus, install_pyserial,
-                     install_pyyaml, install_scons, install_zope_interface)
+     dependencies = (install_pygccxml, install_pyplusplus,
+                     install_pyyaml, install_scons, install_zope_interface,
+		     symlink_python)
     )
+
+# Package Installation
+
+# Small hack to find arch
+#arch = 'x86'
+#if 'big' == sys.byteorder:
+#    arch = 'ppc'
+
+#get_package_list = Task(
+#    'Get Package List',
+#    namespaces = 'bootstrap',
+#    workdir = '${buildoutdir}',
+#    commands = [Download('${ram_prefix}/pkgs/packages.txt',
+#                         'https://ram.umd.edu/software/' + arch + '/'
+#                         variants.get_platform() + '/packages.txt')]
+#    dependencies = (setup_directories,)
+#    )
+
+#download_packages = Task(
+#    'Download Packages',
+#    namespaces = 'bootstrap',
+#    workdir = '${buildoutdir}',
+#    commands = [DownloadPackages('${ram_prefix}/pkgs/packages.txt',
+#                                 '${ram_prefix}')]
+#    dependencies = (get_package_list,)
+#   )
+
+#pkgs = Task(
+#    'Install Packages',
+#     namespaces = 'bootstrap',
+#     workdir = '${buildoutdir}',
+#     dependencies = (unpack_packages)
+#    )
 
 # Generate Environment File
 
@@ -129,8 +168,8 @@ def get_wx_prefix():
     if platform.system() == 'Darwin':
     	cmd = "python -c 'import wx;print(wx.__file__)'"
     	try:
-    		wx_imported_path = execute_like_backticks(cmd)
-    	except CommandReturnedNOnZeroError:
+            	wx_imported_path = execute_like_backticks(cmd)
+    	except CommandReturnedNonZeroError:
 			print 'Please install wxPython 2.8.x from http://www.wxpython.org'
 			raise
         return os.path.dirname(wx_imported_path)

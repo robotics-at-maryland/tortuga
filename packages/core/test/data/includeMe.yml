@@ -1,0 +1,3 @@
+Other:
+    key: 1
+    INCLUDE: packages/core/test/data/includeRecursive.yml

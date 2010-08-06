@@ -16,3 +16,9 @@ xHat4 = xHat4 + xHat4_dot*dt;
 
 %Fthrust = C_c*(xHat4-[0 xd 0 0]');
 Fthrust = C_c*xHat4;
+
+if (abs((y-xd)*100/xd) <= 30)
+    Fthrust = Fthrust;
+    xHat4_dot;
+    xHat4;
+end

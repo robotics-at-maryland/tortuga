@@ -22,7 +22,8 @@
 #include "core/include/Subsystem.h"
 #include "core/include/Event.h"
 #include "math/include/Vector3.h"
-
+#include "math/include/Vector2.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -52,11 +53,16 @@ public:
     /** When the vehicles angular rate changes (ram::math::Vector3Event) */
     //static const core::Event::EventType ANGULAR_RATE_UPDATE;
     
-    /** When the vehicles depth changes changes (ram::math::NumericEvent) */
+    /** When the vehicles depth changes (ram::math::NumericEvent) */
     static const core::Event::EventType DEPTH_UPDATE;
-    
-    /* @{ */
 
+    /** When the vehicles position changes (ram::math::Vector2Event) */
+    static const core::Event::EventType POSITION_UPDATE;
+
+    /** When the vehicles velocity changes (ram::math::Vector2Event) */
+    static const core::Event::EventType VELOCITY_UPDATE;
+
+    /* @{ */
     
     virtual ~IVehicle();
 
@@ -67,15 +73,40 @@ public:
     virtual std::vector<std::string> getDeviceNames() = 0;
     
     /** Return the current vehicle depth in feet */
-    virtual double getDepth() = 0;
+    virtual double getDepth(std::string obj = "vehicle") = 0;
+
+    /** The position of the vehicle, in world frame, in meters */
+    virtual math::Vector2 getPosition(std::string obj = "vehicle") = 0;
+
+    /** The velocity of the vehicle, in world frame, in meters/second */
+    virtual math::Vector2 getVelocity(std::string obj = "vehicle") = 0;
     
     /** The linear of acceleration (w/gravity) in the vehicle's local frame */
     virtual math::Vector3 getLinearAcceleration() = 0;
 
+    /** The rate of the vehicle rotation in the local frame */
     virtual math::Vector3 getAngularRate() = 0;
     
     /** The orientation of the vehicle relative to North with zero roll */
-    virtual math::Quaternion getOrientation() = 0;
+    virtual math::Quaternion getOrientation(std::string obj = "vehicle") = 0;
+
+    /** Get the depth directly from the depth sensor */
+    virtual double getRawDepth() = 0;
+
+    /** Get the position directly from the position sensor */
+    virtual math::Vector2 getRawPosition() = 0;
+
+    /** Get the velocity directly from the velocity sensor */
+    virtual math::Vector2 getRawVelocity() = 0;
+
+    /** Get the orientation directly from the orientation sensor */
+    virtual math::Quaternion getRawOrientation() = 0;
+
+    /** Get the state estimator */
+    virtual estimator::IStateEstimatorPtr getStateEstimator() = 0;
+
+    /** Checks if the internal map has the object */
+    virtual bool hasObject(std::string obj) = 0;
 
     /** Combines the given force and torque into motor forces the applies them
 
@@ -91,6 +122,8 @@ public:
                                        const math::Vector3& torque) = 0;
 
 
+    void handleReturn(int flags);
+
     // These should not be here, but since the property interface is not done
     // yet, they will have to stay
     /** Truns <b>ON</b> the thruster safety */
@@ -98,6 +131,16 @@ public:
  
     /** Turns <b>OFF</b> the thruster safety */
     virtual void unsafeThrusters() = 0;
+
+    /** Drop a marker from the bottom of the vehicle */
+    virtual void dropMarker() = 0;
+
+    /** Fire torpedo from the front of the vehicle */
+    virtual void fireTorpedo() = 0;
+
+    /** Drop the PVC cube */
+    virtual void releaseGrabber() = 0;
+    
 protected:
     IVehicle(std::string name,
              core::EventHubPtr eventHub = core::EventHubPtr());

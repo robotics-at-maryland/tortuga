@@ -1,230 +1,44 @@
-# This is our config file
-# It tells the program what kind of vehicle to create
-
-
 GUI:
     # In Hz
     updateRate: 30
     guiConfigFile: ramsim.yml
 
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
 Subsystems:
     VisionSystem:
-        type: SimVision
-#        type: IdealSimVision
+        #type: SimVision
+        type: IdealSimVision
+        #type: CrappyVision
         cameraRate: 10
+        #failureRate: .03
         depends_on: ["EventHub", "Vehicle", "Simulation"]
 
-        # Recording Settings
-        maxRecordRate: 10 # Hz
-        #forwardFile: forward.avi
-        downwardFile: downward.avi
-        #forwardPort: 50000
-        downwardPort: 57002
+        #ForwardRecorders:
+        #    forward.avi: 5 # Really compressed @ 5Hz
+        #    forward.rmv: 5 # Raw video at 10Hz
+        #    "50000(320,240)": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+        #    downward.avi: 5 # Really compressed @ 5Hz
+        #    downward.rmv: 5 # Raw video at 10Hz
+        #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
 
-#       RedLightDetector:       
-#           intialMinPixels: 400
-#           foundMinPixelScale: 0.85
-#           lostMinPixelScale: 0.75
-#           # About 20% of the total pixels
-#           almostHitPixels: 61440.0
-           
-    EventHub:
-        type: EventHub
-        
-    # Queues events from background threads so they can be executed in python
-    QueuedEventHub:
-        depends_on: ["EventHub"]
-        type: QueuedEventHub
+        # Includes all camera and vision system settings
+        INCLUDE: tools/simulator/data/config/vision/default.yml
 
-    Vehicle:
-        type: SimVehicle
-        depends_on: ["Simulation", "EventHub"]
+    Ai:
+        type: AI
 
-    # Exectures Motions
-    MotionManager:
-        type: MotionManager
-        depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
-
-    # Handles Timers
-    TimerManager:
-        type: TimerManager
-        depends_on: ["EventHub"]
+        # Includes the "taskOrder" for the AI
+        INCLUDE: tools/simulator/data/config/ai/transdec2010.yml
 
     StateMachine:
         type: StateMachine
-        depends_on: ["EventHub", "QueuedEventHub", "Controller", 
-                     "MotionManager", "TimerManager", "VisionSystem"]
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: tools/simulator/data/config/ai/default_state.yml
 
-#    RemoteController:
-#        type: RemoteController
-#        depends_on: ["Controller"]
-#        update_interval: -1
-#        yawGain: 50
-
-    Controller:
-        
-        depends_on: ["Vehicle", "EventHub"]
-        type: BWPDController
-        #update_interval: 10
-        ##################################
-        ##GAINS SHOULD NEVER BE NEGATIVE##
-        ##################################
-        angularPGain: 10
-        angularDGain: 1
-        speedPGain: 3
-        sidewaysSpeedPGain: 3
-        
-        #Select type of Depth Controller
-        # set depthControlType = (1 for P control) 
-        #                       (2 for observer control for a 2d depth state) 
-        #                       (3 for observer control for a 4d depth state)
-        #                       (4 yet to be implemented)
-        depthControlType: 1
-        #parameters for depth P controller
-        depthPGain: 20
-        #parameters for depth observer controller 
-        depthKx: 34.06
-        depthKy: 40.70
-        depthLx: 43.53
-        depthLy: 461.17
-
-
-        #parameters for depth PID controller
-        depthKi: 1
-        depthKp: 10
-        depthKd: 4
-        depthSumError: 0
-        depthPrevX: 0
-
-        depthA1: 0
-        depthA2: 1
-        depthA3: 0
-        depthA4: -.575
-        depthBx: 0
-        depthBy: 0.05
-        depthCx: 1
-        depthCy: 0
-
-
-        depthOCGainK: [1, 2]
-        depthOCGainL: [3, 4]
-        #parameters for depth observer controller with integrator
-        # K gains: -2       L gains: -15
-        depthOCIA4: [-6, -70409, -199, 0, 
-                    0, -45, 1.0, 0, 
-                    0, -667, -1, 0, 
-                    -6, -185, -199, 0]
-        depthOCIB4: [70224, 45, 667, 0]
-        depthOCIC4: [0, 0, 0, 1]
-        # K gains: -2       L gains: -10
-        #depthOCIA4: [-6, -20242, -248, 0, 
-        #            0, -29, 1.0, 0, 
-        #            0, -283, -1, 0, 
-        #            -6, -244, -248, 0]
-        #depthOCIB4: [19998, 29, 283, 0]
-        #depthOCIC4: [0, 0, 0, 1]
-
-        #parameters for ***discrete*** depth observer controller with integrator
-        # K gains: -2      L gains: -100
-        #depthOCIA4: [0, 12217, -469, 0, 
-        #            0, 0, 0, 0, 
-        #            0, -9, 0, 0, 
-        #            0, 2932, 49, 1]
-        #depthOCIB4: [-12221, 1, 9, -2937]
-        #depthOCIC4: [0, 0, 0, 1]
-        # K gains: -1      L gains: -100
-        #depthOCIA4: [1, 10884, -494, 0, 
-        #            0, 0, 0, 0, 
-        #            0, -10, 0, 0, 
-        #            0, 1246, 21, 1]
-        #depthOCIB4: [-10884, 1, 10, -1247]
-        #depthOCIC4: [0, 0, 0, 1]
-        
-        #parameters for depth LQG controller
-        #parameters for depth LQG controller with integrator
-
-        desiredSpeed: 0
-        desiredDepth: 2
-        desiredQuaternion: [0, 0, 0, 1]
-
-#    RemoteController:
-#        type: RemoteController
-#        depends_on: ["Controller"]
-#        update_interval: -1
-
-    KeyboardController:
-        depends_on: ["Controller"]
-        type: KeyboardController
-
-    Simulation:
-        type: Simulation
-        scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
-        #debug: 0
-        
-        Scenes:
-            # Each scene must be on the given scene_path, this for example is 
-            # in 'data/scenes/nxtest.xml'
-            #Main: pipe.sml
-            #Main: transdec.sml
-            #Main: buoy.sml
-            Main: nxtest.sml
-        
-        Graphics:
-            Plugins:
-                # TODO: Remove the extra paths
-                search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
-                'C:\Libraries\PythonOgre\plugins',
-                'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
-                '/home/lsinger/ram_deps/python-ogre-snapshot/plugins',
-                '/opt/ram/local/lib/OGRE']
-                
-                plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
-                'Plugin_OctreeSceneManager']
-                       
-            RenderSystem:
-                type: OpenGL
-                
-                OpenGL:
-                    - [Colour Depth, '32']
-                    - [FSAA, '0']
-                    - [RTT Preferred Mode, 'FBO']
-                    - [VSync, 'No']
-                    
-        Input:
-            KeyMap:
-                # Camera Controls
-                W : CAM_FORWARD
-                A : CAM_LEFT 
-                S : CAM_BACK 
-                D : CAM_RIGHT
-                Q : CAM_UP 
-                E : CAM_DOWN
-                R : CAM_ZOOM_IN
-                F : CAM_ZOOM_OUT
-                V : CAM_TOGGLE_FOLLOW
-                
-                NUMPAD8 : CAM_FORWARD
-                NUMPAD4 : CAM_LEFT 
-                NUMPAD5 : CAM_BACK 
-                NUMPAD6 : CAM_RIGHT
-                NUMPAD7 : CAM_UP 
-                NUMPAD9 : CAM_DOWN
-                ADD : CAM_ZOOM_IN
-                SUBTRACT : CAM_ZOOM_OUT
-                NUMPAD2 : CAM_PITCH_UP
-                NUMPAD0 : CAM_PITCH_DOWN
-                NUMPAD1 : CAM_YAW_LEFT
-                NUMPAD3 : CAM_YAW_RIGHT
-                
-                # Vehicle Controls
-                I : THRUST_FORE
-                K : THRUST_BACK
-                G : THRUST_KILL
-                J : TURN_LEFT
-                L : TURN_RIGHT
-                U : SURFACE
-                O : DIVE
-                Y : PITCH_UP
-                H : PITCH_DOWN
-                Z : ROLL_PORT
-                X : ROLL_STARBOARD
+    # Includes all common subsystems    
+    INCLUDE: tools/simulator/data/config/base.yml

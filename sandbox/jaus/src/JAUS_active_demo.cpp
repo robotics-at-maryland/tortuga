@@ -10,7 +10,7 @@
 
 // Project Includes
 #include "JAUS_helpers.h"
-#include "thrusterapi/include/thrusterapi.h"
+#include "drivers/thruster/include/thrusterapi.h"
 
 #define VEHICLE_SUBSYSTEM_ID 100
 

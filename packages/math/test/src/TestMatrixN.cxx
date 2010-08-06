@@ -65,6 +65,23 @@ TEST(multiplication)
 	CHECK_CLOSE(n3, exp, 0.001);
 }
 
+TEST(multiplication2)
+{
+	double data1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	MatrixN n4x3(data1,4,3);
+	
+	double data2[] = {13, 14, 15};
+	MatrixN n3x1(data2,3,1);
+	
+	MatrixN n4x1 = n4x3 * n3x1;
+	
+	double dataExp[] = {86, 212, 338, 464};
+	MatrixN expected = MatrixN(dataExp,4,1);
+	
+	CHECK_CLOSE(n4x1,expected,0.001);
+
+}
+
 TEST(invert)
 {
 	double data1[] = {10, 14, 2, 4};

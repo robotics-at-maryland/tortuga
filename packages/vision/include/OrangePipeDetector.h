@@ -10,10 +10,12 @@
 #ifndef RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
 #define RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
 
+// STD Includes
+#include <set>
 
 // Project Includes
 #include "vision/include/Common.h"
-#include "vision/include/Detector.h"
+#include "vision/include/PipeDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
 
@@ -23,31 +25,39 @@
 namespace ram {
 namespace vision {
         
-class RAM_EXPORT OrangePipeDetector  : public Detector
+class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 {
   public:
     OrangePipeDetector(core::ConfigNode config,
                        core::EventHubPtr eventHub = core::EventHubPtr());
-    OrangePipeDetector(Camera*);
     ~OrangePipeDetector();
     
     void processImage(Image* input, Image* output= 0);
     
     bool found();
+
     /** Get normalized X cordinate of the center of the orange line */
     double getX();
+
     /** Get normalized Y cordinate of the center of the orange line */
     double getY();
-    math::Degree getAngle();
-    void update();
 
-    
-    void show(char* window);
-    IplImage* getAnalyzedImage();
-    
+    math::Degree getAngle();
+
+    /** Set whether or not to use the LUV filter */
+    void setUseLUVFilter(bool value);
     
   private:
     void init(core::ConfigNode config);
+
+    /** Use Dan's custom mask_orange function */
+    void filterForOrangeOld(Image* image);
+
+    /** Use LUV color mask function  */
+    void filterForOrangeNew(Image* image);
+    
+    /** Use the color filter to filter for orange */
+    //    void filterForOrange();
 
     /** Angle of the pipe */
     math::Radian m_angle;
@@ -57,12 +67,18 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
     
     /** Y cordinate of pipe */
     double m_lineY;
-    IplImage* m_rotated;
-    Image* m_frame;
-    Camera* m_cam;
 
+    double m_rOverGMin;
+    double m_rOverGMax;
+    double m_bOverRMax;
     bool m_found;
 
+    /** Filters for orange */
+    ColorFilter* m_filter;
+
+    /** Whether or not to use the newer LUV color filter */
+    bool m_useLUVFilter;
+    
     /** Maximum distance for the pipe to be considred "centered" */
     double m_centeredLimit;
 
@@ -74,6 +90,9 @@ class RAM_EXPORT OrangePipeDetector  : public Detector
 
     /** Number of times to erode the masked image before the hough */
     int m_erodeIterations;
+
+    /** The set of IDs of the pipes that were present in the last frame */
+    std::set<int> m_lastPipeIds;
 };
     
 } // namespace vision

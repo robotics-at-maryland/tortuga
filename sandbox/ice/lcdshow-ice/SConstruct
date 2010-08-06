@@ -1,0 +1,21 @@
+import os
+import sys
+
+# Import path from environment
+print os.environ['PATH']
+env = Environment(ENV = {'PATH' : os.environ['PATH']})
+
+if sys.platform == 'darwin':
+	env.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '.'])
+	env.Append(LIBPATH = ['/opt/local/lib'])
+	env.Append(LIBS = ['ZeroCIce', 'IceUtil'])
+else:
+	env.Append(CPPPATH = ['.', '/opt/ram/local/include'])
+        env.Append(LIBPATH = ['/opt/ram/local/lib'])
+	#env.Append(BIN_DIR = ['/opt/ram/local/bin'])
+	env.Append(LIBS = ['Ice', 'IceUtil'])
+
+print env
+
+Export('env')
+env.SConscript('src/SConscript', variant_dir='#build')

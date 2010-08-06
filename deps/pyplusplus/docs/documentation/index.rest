@@ -14,7 +14,7 @@ task to create and maintain it. I will appreciate **any help**!
 How can you help?
 
 * Lets face it: today it is not possible to use `Py++`_ without eventually
-  looking into source code. `Py++`_ uses `Epydoc`_ to generate documentation
+  looking into source code. `Py++`_ uses `epydoc`_ to generate documentation
   from source files. So, if you found some undocumented piece of code and you
   understand what it does, please write documentation string.
 
@@ -43,36 +43,20 @@ Overview
 
 .. _`architecture` : ./architecture.html
 
-* `best practices`_ - `Py++`_ is huge, this document will explain you how to
-  effectively use it
-
-.. _`best practices`: ./best_practices.html
-
-* `documentation string`_ - explains how to automaticly extract a documentation
+* `documentation string`_ - explains how to automatically extract a documentation
   from the source files and put it as Python documentation string
 
 .. _`documentation string` : ./doc_string.html
 
-* `warnings`_ - `Py++`_ could be used as some kind of validator. It checks the
-  exposed declarations and reports the potential errors. Thus you are able to
-  create high quality Python bindings from the beginning. This document also
-  describes how to supress the errors\\warnings.
-
-.. _`warnings` : ./warnings.html
-
 * `functions & operators`_ - contains a complete guide to exposing functions and
   operators, including "call policies" and description of different caveats
 
-.. _`functions & operators` : ../functions/functions.html
+.. _`functions & operators` : ./functions/functions.html
 
-* `hints`_ - describes few techinques, which will help you with exposing template
-  instantiations
+* `how to ... ?`_ - contains answers for different FAQs and my suggestions about
+  better `Py++`_ usage.
 
-.. _`hints`: ./hints.html
-
-* `how to ... ?`_ - contains answers for different frequently asked questions
-
-.. _`how to ... ?` : ./how_to.html
+.. _`how to ... ?` : ./how_to/how_to.html
 
 * `inserting code`_ - a complete guide for insert your code into the generated one
 
@@ -88,22 +72,29 @@ Overview
 
 .. _`properties`: ./properties.html
 
+* `splitting generated code to files`_ - `Py++`_ provides 4 different strategies 
+   for splitting the generated code into files. Take a look on this document, 
+   it will save you the time.
+  
+.. _`splitting generated code to files` : ./split_module.html
+   
 * `tutorials`_ - don't know where to start? Start here. Small and simple example
   will help you to start with `Py++`_. If you want to evaluate `Py++`_ you will
   find here small and handy GUI program.
 
 .. _`tutorials` : ./tutorials/tutorials.html
 
-.. _`Epydoc` : http://epydoc.sourceforge.net/
+* `warnings`_ - `Py++`_ could be used as some kind of validator. It checks the
+  exposed declarations and reports the potential errors. Thus you are able to
+  create high quality Python bindings from the beginning. This document also
+  describes how to suppress the errors\\warnings.
+
+.. _`warnings` : ./warnings.html
+
+
+.. _`epydoc` : http://epydoc.sourceforge.net/
 .. _`Py++` : ./../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

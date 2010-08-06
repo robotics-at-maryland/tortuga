@@ -17,8 +17,11 @@
 #include <boost/foreach.hpp>
 
 // Project Includes
-#include "vehicle/include/IVehicle.h"
 #include "vehicle/include/device/IDevice.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/IVehicle.h"
+#include "math/include/Vector2.h"
+#include "math/include/Quaternion.h"
 
 // Must Be Included last
 //#include "vehicle/include/Export.h"
@@ -29,6 +32,8 @@ public:
     MockVehicle() :
         IVehicle("MockVehicle"),
         depth(0),
+        position(0, 0),
+        velocity(0, 0),
         linearAcceleration(0, 0, 0),
         angularRate(0, 0, 0),
         orientation(0,0,0,1),
@@ -57,7 +62,13 @@ public:
         return names;
     }
     
-    virtual double getDepth()  { return depth; }
+    virtual double getDepth(std::string obj = "vehicle")  { return depth; }
+
+    virtual ram::math::Vector2 getPosition(std::string obj = "vehicle")
+	{ return position; }
+
+    virtual ram::math::Vector2 getVelocity(std::string obj = "vehicle")
+	{ return velocity; }
 
     virtual std::vector<std::string> getTemperatureNames()
     {
@@ -75,13 +86,33 @@ public:
      
     virtual ram::math::Vector3 getAngularRate() { return angularRate; }
     
-    virtual ram::math::Quaternion getOrientation() { return orientation; }
+    virtual ram::math::Quaternion getOrientation(std::string obj = "vehicle")
+	{ return orientation; }
+
+    virtual double getRawDepth() { return 0; }
+
+    virtual ram::math::Vector2 getRawPosition() { return ram::math::Vector2::ZERO; }
+
+    virtual ram::math::Vector2 getRawVelocity() { return ram::math::Vector2::ZERO; }
+
+    virtual ram::math::Quaternion getRawOrientation() { 
+        return ram::math::Quaternion::IDENTITY; }
+
+    virtual ram::estimator::IStateEstimatorPtr getStateEstimator() {
+        return ram::estimator::IStateEstimatorPtr();
+    }
+    virtual bool hasObject(std::string obj)
+        { return obj == "vehicle"; }
     
     virtual void safeThrusters() { assert(false && "Method not implemented"); }
 
     virtual void unsafeThrusters() {assert(false && "Method not implemented");}
     
     virtual void dropMarker() {assert(false && "Method not implemented");}
+
+    virtual void fireTorpedo() {assert(false && "Method not implemented");}
+
+    virtual void releaseGrabber() {assert(false && "Method not implemented");}
 
     virtual int startStatus()
     {
@@ -101,12 +132,29 @@ public:
         torque = torque_;
     }
 
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    };
     virtual void update(double) {};
     virtual void background(int) {};
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
 
+    void _setOrientation(ram::math::Quaternion quat) {
+      orientation = quat; }
+
+    void _setDepth(double depth_) {
+        depth = depth_; }
+
+    
     double depth;
+    ram::math::Vector2 position;
+    ram::math::Vector2 velocity;
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 angularRate;
     ram::math::Quaternion orientation;

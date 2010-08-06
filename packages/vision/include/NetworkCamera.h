@@ -45,8 +45,20 @@ public:
     
     virtual size_t height();
 
-    virtual size_t fps();
+    virtual double fps();
 
+    virtual double duration();
+
+    virtual void seekToTime(double seconds);
+
+    virtual double currentTime();
+
+protected:
+    /** Decompresses the incoming buffer */
+    virtual void decompress(unsigned char* compressedBuffer,
+                            size_t compressedSize,
+                            unsigned char* outputBuffer);
+    
 private:
     /** Reads a packet off the socket, and transforms to host order
      *

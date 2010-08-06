@@ -51,7 +51,7 @@ IDeviceMaker.registerDevice = staticmethod(registerDevice)
 
 class Device(_device.IDevice):
     def __init__(self, name, eventHub = None):
-        _device.IDevice.__init__(self, eventHub)
+        _device.IDevice.__init__(self, eventHub, name)
         self._name = name
 
     def getName(self):

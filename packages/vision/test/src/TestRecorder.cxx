@@ -15,7 +15,9 @@
 
 // Project Includes
 #include "vision/test/include/MockRecorder.h"
+#include "vision/test/include/MockCamera.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
@@ -108,5 +110,29 @@ TEST_FIXTURE(RecorderFixture, Update_MAX_RATE)
         delete image;
     }
 }
+
+TEST_FIXTURE(RecorderFixture, createFromString)
+{
+    MockCamera camera;
+    std::string message;
+    vision::Recorder* recorder = vision::Recorder::createRecorderFromString(
+        "50000(320,240)", &camera, message, vision::Recorder::MAX_RATE, 5);
+
+    CHECK_EQUAL(320u, recorder->getRecordingWidth());
+    CHECK_EQUAL(240u, recorder->getRecordingHeight());
+    CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
+    
+    delete recorder;
+
+    recorder = vision::Recorder::createRecorderFromString(
+        "50000", &camera, message, vision::Recorder::MAX_RATE, 5);
+
+    CHECK_EQUAL(640u, recorder->getRecordingWidth());
+    CHECK_EQUAL(480u, recorder->getRecordingHeight());
+    CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
+
+    delete recorder;
+}
+
 
 } // SUITE(Recorder)

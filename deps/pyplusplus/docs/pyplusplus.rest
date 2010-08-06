@@ -23,7 +23,7 @@ Code generation process
 
 `Boost.Python`_ library allows you to expose C++ code to `Python`_ in quick and
 elegant way. Code generation process, using Py++ consists from few steps.
-Next paragraphs will tell you more about every step.
+The following paragraphs will tell you more about every step.
 
 
 *"read declarations"*
@@ -81,7 +81,7 @@ being exported:
   mb.calldefs( access_type_matcher_t( 'protected' ) ).exclude()
 
 The developer can create custom criteria, for example exclude all declarations
-that have 'impl' ( implementation ) string within the name.
+with 'impl' ( implementation ) string within the name.
 
 .. code-block:: Python
 
@@ -118,7 +118,7 @@ to disc.
 -----------------------
 During this step Py++ reads code creators tree and writes code to the
 disc. The result of code generation process should not be different from the one,
-that would be achieved by human. For small project writing all code into single
+which would be achieved by human. For small project writing all code into single
 file is good approach, for big ones code should be written into multiple files.
 Py++ implements both strategies.
 
@@ -126,12 +126,16 @@ Py++ implements both strategies.
 Features list
 -------------
 
-* `Py++`_ support almost all features found in `Boost.Python`_ library
+* `Py++`_ supports almost all features found in `Boost.Python`_ library
 
+* Using `Py++`_ you can develop few extension modules simultaneously, especially
+  when they share the code.
 
-* `Py++`_ generates code, which will help you to understand compiler generated
-  error messages
+* `Py++`_ generates code, which will help you:
 
+   * to understand compiler generated error messages
+
+   * to minimize project built time
 
 * `Py++`_ has few modes of writing code into files:
 
@@ -139,15 +143,14 @@ Features list
 
   * multiple files
 
-  * multiple files, where single class code is split to few files
+  * fixed set of multiple files
 
-* `Py++`_ will save your compilation time - it will rewrite a file, only in case
-  of change
+  * multiple files, where single class code is split to few files
 
 * You have full control over generated code. Your code could be inserted almost
   anywhere.
 
-* Your license is written at the top of every file
+* Your license is written at the top of every generated file
 
 * `Py++`_ will check the "completeness" of the bindings. It will check for you
   that the exposed declarations don't have references to unexposed ones.
@@ -172,12 +175,3 @@ License
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 .. _`Boost Software License`: http://boost.org/more/license_info.html
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
-

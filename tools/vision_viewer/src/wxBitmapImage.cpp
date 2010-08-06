@@ -115,6 +115,16 @@ size_t wxBitmapImage::getHeight() const
     return m_bitmap->GetHeight();
 }
 
+size_t wxBitmapImage::getDepth() const
+{
+    return 8;
+}
+
+size_t wxBitmapImage::getNumChannels() const
+{
+    return 3;
+}
+
 vision::Image::PixelFormat wxBitmapImage::getPixelFormat() const
 {
     return vision::Image::PF_RGB_8;

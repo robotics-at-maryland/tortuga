@@ -7,11 +7,20 @@
  * File:  packages/vision/include/Camera.h
  */
 
+// STD Includes
+#include <sstream>
+
+// Library Includes
+#include <boost/regex.hpp>
+#include <boost/tuple/tuple.hpp>
+
 // Project Includes
 #include "vision/include/Camera.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
+#include "vision/include/CameraMaker.h"
+#include "vision/include/VisionSystem.h"
 
 RAM_CORE_EVENT_TYPE(ram::vision::Camera, RAW_IMAGE_CAPTURED);
 RAM_CORE_EVENT_TYPE(ram::vision::Camera, IMAGE_CAPTURED);
@@ -92,6 +101,67 @@ void Camera::unbackground(bool join)
 {
     Updatable::unbackground(join);
     m_imageLatch.countDown();
+}
+
+CameraPtr Camera::createCamera(const std::string input,
+                               const std::string configPath,
+                               std::string& message,
+                               core::EventHubPtr eventHub,
+                               const std::string cameraName)
+{
+    std::stringstream ss;    
+    
+    // Look up the configuration for the camera
+    bool found = false;
+    std::string nodeUsed;
+    core::ConfigNode config(core::ConfigNode::fromString("{}"));
+    if ("NONE" != configPath)
+    {
+        core::ConfigNode cfg(core::ConfigNode::fromFile(configPath));
+        
+        if (cfg.exists(cameraName))
+        {
+            config = cfg[cameraName];
+            found = true;
+        }
+        else
+        {
+            cfg = VisionSystem::findVisionSystemConfig(cfg, nodeUsed);
+            if (nodeUsed.size() > 0 && cfg.exists(cameraName))
+            {
+                config = cfg[cameraName];
+                found = true;
+            }
+            
+        }
+    }
+
+    CameraPtr camera;
+    if (found)
+    {
+        ss << " Using section \"" << nodeUsed << "\" for "
+           << " \"" << cameraName << "\" from config file: \""
+           << configPath << "\"";
+
+        camera = Camera::createCamera(input, config, message);
+        message = message + ss.str();
+    }
+    else
+    {
+        camera = Camera::createCamera(input, core::ConfigNode::fromString("{}"),
+                                      message);
+    }
+
+    return camera;
+}
+
+CameraPtr Camera::createCamera(const std::string input,
+                               core::ConfigNode config,
+                               std::string& message,
+                               core::EventHubPtr eventHub)
+{
+    return CameraMaker::newObject(CameraMakerParamType(input, config, message,
+                                                       eventHub));
 }
     
 void Camera::cleanup()

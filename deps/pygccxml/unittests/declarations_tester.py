@@ -1,9 +1,10 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
-import pprint 
+import sys
+import pprint
 import unittest
 import autoconfig
 import parser_test_case
@@ -13,22 +14,11 @@ from pygccxml.utils import *
 from pygccxml.parser import *
 from pygccxml.declarations import *
 
+
 class declarations_t( parser_test_case.parser_test_case_t ):
-    global_ns = None
     def __init__(self, *args ):
         parser_test_case.parser_test_case_t.__init__( self, *args )
-        self.test_files = [ 'declarations_enums.hpp'
-                            , 'declarations_variables.hpp'
-                            , 'declarations_calldef.hpp'
-        ]
         self.global_ns = None
-        
-    def setUp(self):
-        if not declarations_t.global_ns:
-            decls = parse( self.test_files, self.config, self.COMPILATION_MODE )
-            declarations_t.global_ns = get_global_namespace( decls )
-        if not self.global_ns:
-            self.global_ns = declarations_t.global_ns
 
     def test_enumeration_t(self):
         enum = self.global_ns.enum( 'ENumbers' )
@@ -47,9 +37,16 @@ class declarations_t( parser_test_case.parser_test_case_t ):
     def test_variables(self):
         variables = self.global_ns.namespace( 'variables' )
         initialized = self.global_ns.variable( name='initialized' )
-        self.failUnless( initialized.value == '10122004'
+
+        expected_value = None
+        if '0.9' in initialized.compiler:
+            expected_value = '10122004ul'
+        else:
+            expected_value = '10122004'
+
+        self.failUnless( initialized.value == expected_value
                          , "there is a difference between expected value( %s ) and real value(%s) of 'initialized' variable" \
-                           % ( '10122004', initialized.value ) )
+                           % ( expected_value, initialized.value ) )
         self._test_type_composition( initialized.type, const_t, long_unsigned_int_t )
 
         static_var = initialized = self.global_ns.variable( name='static_var' )
@@ -57,6 +54,9 @@ class declarations_t( parser_test_case.parser_test_case_t ):
                          , "static_var must have static type qualifier" )
         self.failUnless( not static_var.type_qualifiers.has_mutable
                          , "static_var must not have mutable type qualifier" )
+
+        if 'PDB' in self.global_ns.compiler:
+            return #TODO find out work around
 
         m_mutable = initialized = self.global_ns.variable( name='m_mutable' )
         self.failUnless( not m_mutable.type_qualifiers.has_static
@@ -140,7 +140,7 @@ class declarations_t( parser_test_case.parser_test_case_t ):
         #there is nothing to check about constructors - I know the implementation of parser
         #In this case it doesn't different from any other function
 
-    def test_operator_symbol(self):        
+    def test_operator_symbol(self):
         calldefs_operators = ['=', '==' ]
         calldefs_cast_operators = ['char *', 'double']
         struct_calldefs = self.global_ns.class_( 'calldefs_t')
@@ -153,20 +153,54 @@ class declarations_t( parser_test_case.parser_test_case_t ):
             else:
                 self.failUnless( decl.return_type.decl_string in calldefs_cast_operators, "unable to find operator symbol for operator '%s'" % decl.decl_string )
 
-class all_at_once_tester_t( declarations_t ):
+    def test_ellipsis( self ):
+        ns = self.global_ns.ns( 'ellipsis_tester' )
+        do_smth = ns.mem_fun( 'do_smth' )
+        for a in do_smth.arguments:
+            print str(a)
+        self.failUnless( do_smth.has_ellipsis )
+        do_smth_else = ns.free_fun( 'do_smth_else' )
+        self.failUnless( do_smth_else.has_ellipsis )
+
+class gccxml_declarations_t( declarations_t ):
+    global_ns = None
+    def __init__(self, *args ):
+        declarations_t.__init__( self, *args )
+        self.test_files = [ 'declarations_enums.hpp'
+                            , 'declarations_variables.hpp'
+                            , 'declarations_calldef.hpp'
+        ]
+        self.global_ns = None
+
+    def setUp(self):
+        if not gccxml_declarations_t.global_ns:
+            decls = parse( self.test_files, self.config, self.COMPILATION_MODE )
+            gccxml_declarations_t.global_ns = get_global_namespace( decls )
+        if not self.global_ns:
+            self.global_ns = gccxml_declarations_t.global_ns
+
+class all_at_once_tester_t( gccxml_declarations_t ):
     COMPILATION_MODE = COMPILATION_MODE.ALL_AT_ONCE
     def __init__(self, *args):
-        declarations_t.__init__(self, *args)
+        gccxml_declarations_t.__init__(self, *args)
 
-class file_by_file_tester_t( declarations_t ):
+class file_by_file_tester_t( gccxml_declarations_t ):
     COMPILATION_MODE = COMPILATION_MODE.FILE_BY_FILE
     def __init__(self, *args):
-        declarations_t.__init__(self, *args)
+        gccxml_declarations_t.__init__(self, *args)
+
+class pdb_based_tester_t( declarations_t ):
+    def __init__(self, *args ):
+        declarations_t.__init__( self, *args )
+        self.global_ns = autoconfig.get_pdb_global_ns()
 
 def create_suite():
-    suite = unittest.TestSuite()        
+    suite = unittest.TestSuite()
     suite.addTest( unittest.makeSuite(file_by_file_tester_t))
     suite.addTest( unittest.makeSuite(all_at_once_tester_t))
+    if sys.platform == 'win32' and autoconfig.get_pdb_global_ns():
+        suite.addTest( unittest.makeSuite(pdb_based_tester_t))
+
     return suite
 
 def run_suite():

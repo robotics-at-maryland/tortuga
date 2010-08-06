@@ -37,6 +37,8 @@ def get_features():
     add_feature('core', dirs = ['packages/core'])
     add_feature('pattern', dirs = ['packages/pattern'])
     add_feature('math', dirs = ['packages/math'])
+    add_feature('logging', dirs = ['packages/logging'],
+                deps = ['core'])
     add_feature('vision', dirs = ['packages/vision'],
                 deps = ['pattern', 'core', 'math'])
 	
@@ -45,7 +47,7 @@ def get_features():
     
     add_feature('control', dirs = ['packages/control'],
                 deps = ['math', 'core', 'vehicle'])
-    
+
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
                     {'control' : ['wrappers/control'],
                      'math' : ['wrappers/math'],
@@ -55,14 +57,22 @@ def get_features():
                      
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])
+
+        add_feature('sonar', dirs = 
+                    ['packages/sonar',
+                     'packages/drivers/bfin_spartan'],
+                    deps = ['math'])
         
         add_feature('vision_tools',
-                opt_dirs = {'vision' : ['tools/vision_viewer']} )
+                opt_dirs = {'vision' : ['tools/vision_viewer',
+                                        'tools/vision_tool'] })
     
-        add_feature('drivers', dirs = ['packages/sensorapi-r5',
-                                       'packages/thrusterapi',
-                                       'packages/imu',
-                                       'packages/carnetix'])
+        add_feature('drivers', dirs = ['packages/drivers/sensor-r5',
+                                       'packages/drivers/thruster',
+                                       'packages/drivers/imu',
+                                       'packages/drivers/carnetix',
+                                       'packages/drivers/dvl'])
+
 
         add_feature('calib_tools', dirs = ['tools/MagInclination',
                                            'tools/BiasFinder'])

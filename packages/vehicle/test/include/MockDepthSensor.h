@@ -13,24 +13,54 @@
 // Project Includes
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/Device.h"
+#include "math/include/Events.h"
 
 class MockDepthSensor : public ram::vehicle::device::IDepthSensor,
                         public ram::vehicle::device::Device
 {
 public:
+    MockDepthSensor(ram::core::ConfigNode config,
+                    ram::core::EventHubPtr eventHub,
+                    ram::vehicle::IVehiclePtr vehicle) :
+        ram::vehicle::device::IDepthSensor(eventHub,config["name"].asString()),
+        Device(config["name"].asString()),
+        depth(config["depth"].asDouble(0)),
+        location(ram::math::Vector3::ZERO)
+    {
+    }
+    
     MockDepthSensor(std::string name) :
         Device(name),
-        depth(0.0)
-        {}
+        depth(0.0),
+        location(ram::math::Vector3::ZERO)
+    {}
 
-    virtual double getDepth() { return depth; }
-    
     double depth;
+    ram::math::Vector3 location;
+
+    virtual double getDepth() { return depth;}
+    virtual ram::math::Vector3 getLocation() { return location; }
+
+    void publishUpdate(double update)
+    {
+        depth = update;
+        ram::math::NumericEventPtr nevent(new ram::math::NumericEvent());
+        nevent->number = update;
+        publish(ram::vehicle::device::IDepthSensor::UPDATE, nevent);
+    }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
     }
-
+    
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    };
     virtual void update(double) {}
     virtual void background(int) {}
     virtual void unbackground(bool) {}

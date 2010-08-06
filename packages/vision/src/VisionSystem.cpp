@@ -7,20 +7,35 @@
  * File:  packages/vision/src/VisionSystem.cpp
  */
 
+// Library Includes
+#include <boost/foreach.hpp>
+
 // Project Includes
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
-#include "vision/include/OpenCVCamera.h"
+#include "vision/include/DC1394Camera.h"
 #include "vision/include/FileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
+#include "vision/include/FFMPEGRecorder.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
+#include "vision/include/Convert.h"
 
 #include "vision/include/RedLightDetector.h"
+#include "vision/include/BuoyDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
+#include "vision/include/DuctDetector.h"
+#include "vision/include/TargetDetector.h"
+#include "vision/include/WindowDetector.h"
+#include "vision/include/BarbedWireDetector.h"
+#include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
+#include "vision/include/VelocityDetector.h"
+#include "vision/include/HedgeDetector.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
+#include "core/include/Logging.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
@@ -28,19 +43,37 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 namespace ram {
 namespace vision {
 
+static math::Degree FISHEYE_HFO(107);
+static math::Degree FISHEYE_VFO(78);
+static math::Degree WIDE_HFO(150);
+static math::Degree WIDE_VFO(81);
+    
+math::Degree VisionSystem::s_frontHorizontalFieldOfView = FISHEYE_HFO;
+math::Degree VisionSystem::s_frontVeritcalFieldOfView = FISHEYE_VFO;
+int VisionSystem::s_frontHorizontalPixelResolution = 640;
+int VisionSystem::s_frontVerticalPixelResolution = 480;
+math::Degree VisionSystem::s_downHorizontalFieldOfView = WIDE_HFO;
+math::Degree VisionSystem::s_downVeritcalFieldOfView = WIDE_VFO;
+int VisionSystem::s_downHorizontalPixelResolution = 640;
+int VisionSystem::s_downVerticalPixelResolution = 480;
+    
 VisionSystem::VisionSystem(core::ConfigNode config,
                            core::SubsystemList deps) :
     Subsystem(config["name"].asString("VisionSystem"), deps),
     m_forwardCamera(CameraPtr()),
     m_downwardCamera(CameraPtr()),
-    m_forwardRecorder(0),
-    m_downwardRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
+    m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
-    m_gateDetector(DetectorPtr())
+    m_gateDetector(DetectorPtr()),
+    m_targetDetector(DetectorPtr()),
+    m_windowDetector(DetectorPtr()),
+    m_barbedWireDetector(DetectorPtr()),
+    m_hedgeDetector(DetectorPtr()),
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -50,14 +83,20 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     Subsystem("VisionSystem", deps),
     m_forwardCamera(forward),
     m_downwardCamera(downward),
-    m_forwardRecorder(0),
-    m_downwardRecorder(0),
     m_forward(0),
     m_downward(0),
     m_redLightDetector(DetectorPtr()),
+    m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
-    m_gateDetector(DetectorPtr())
+    m_ductDetector(DetectorPtr()),
+    m_downwardSafeDetector(DetectorPtr()),
+    m_gateDetector(DetectorPtr()),
+    m_targetDetector(DetectorPtr()),
+    m_windowDetector(DetectorPtr()),
+    m_barbedWireDetector(DetectorPtr()),
+    m_hedgeDetector(DetectorPtr()),
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -65,50 +104,42 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
 void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 {
     if (!m_forwardCamera)
-        m_forwardCamera = CameraPtr(new OpenCVCamera(0, true));
+    {
+        core::ConfigNode cameraConfig(config["ForwardCamera"]);
+        std::string cameraStr = cameraConfig["typeStr"].asString("100");
+        std::string message;
+        m_forwardCamera = CameraPtr(Camera::createCamera(cameraStr,
+                                                         cameraConfig,
+                                                         message,
+                                                         eventHub));
+    }
 
     if (!m_downwardCamera)
-        m_downwardCamera = CameraPtr(new OpenCVCamera(1, false));
+    {
+        core::ConfigNode cameraConfig(config["DownwardCamera"]);
+        std::string cameraStr = cameraConfig["typeStr"].asString("101");
+        std::string message;
+        m_downwardCamera = CameraPtr(Camera::createCamera(cameraStr,
+                                                          cameraConfig,
+                                                          message,
+                                                          eventHub));
+    }
 
     // Read int as bool
     m_testing = config["testing"].asInt(0) != 0;
 
-    // Max number of frames per second to record
-    int maxRecordRate = config["maxRecordRate"].asInt(5);
-    
+    // Load the lookup table if necessary
+    int lchLookupTable = config["loadLCHLookupTable"].asInt(0);
+    if (lchLookupTable) {
+        bool loaded = Convert::loadLookupTable();
+        assert(loaded && "Failed to load lookup table");
+    }
+
     // Recorders
-    if (config.exists("forwardFile"))
-    {
-        m_forwardRecorder = new FileRecorder(m_forwardCamera.get(),
-                                             Recorder::MAX_RATE,
-                                             config["forwardFile"].asString(),
-                                             maxRecordRate);
-    }
-    else if (config.exists("forwardPort"))
-    {
-        m_forwardRecorder = new NetworkRecorder(m_forwardCamera.get(),
-                                                Recorder::MAX_RATE,
-                                                config["forwardPort"].asInt(),
-                                                maxRecordRate);
-    }
-        
-
-    if (config.exists("downwardFile"))
-    {
-        m_downwardRecorder = new FileRecorder(m_downwardCamera.get(),
-                                              Recorder::MAX_RATE,
-                                              config["downwardFile"].asString(),
-                                              maxRecordRate);
-
-    }
-    else if (config.exists("downwardPort"))
-    {
-        m_downwardRecorder = new NetworkRecorder(m_downwardCamera.get(),
-                                                 Recorder::MAX_RATE,
-                                                 config["downwardPort"].asInt(),
-                                                 maxRecordRate);
-    }
-    
+    if (config.exists("ForwardRecorders"))
+        createRecordersFromConfig(config["ForwardRecorders"], m_forwardCamera);
+    if (config.exists("DownwardRecorders"))
+        createRecordersFromConfig(config["DownwardRecorders"], m_downwardCamera);
     
     // Detector runners (go as fast as possible)
     m_forward = new VisionRunner(m_forwardCamera.get(), Recorder::NEXT_FRAME);
@@ -116,17 +147,93 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
     // Detectors
     m_redLightDetector = DetectorPtr(
-        new RedLightDetector(config["RedLightDetector"], eventHub));
+        new RedLightDetector(getConfig(config, "RedLightDetector"), eventHub));
+    m_buoyDetector = DetectorPtr(
+        new BuoyDetector(getConfig(config, "BuoyDetector"), eventHub));
     m_binDetector = DetectorPtr(
-        new BinDetector(config["BinDetector"], eventHub));
+        new BinDetector(getConfig(config, "BinDetector"), eventHub));
     m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(config["PipelineDetector"], eventHub));
+        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
+                                         eventHub));
+    m_ductDetector = DetectorPtr(
+        new DuctDetector(getConfig(config, "DuctDetector"), eventHub));
+    m_downwardSafeDetector = DetectorPtr(
+        new SafeDetector(getConfig(config, "SafeDetector"), eventHub));
     m_gateDetector = DetectorPtr(
-        new GateDetector(config["GateDetector"], eventHub));
-
+        new GateDetector(getConfig(config, "GateDetector"), eventHub));
+    m_targetDetector = DetectorPtr(
+        new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
+    m_windowDetector = DetectorPtr(
+        new WindowDetector(getConfig(config, "WindowDetector"), eventHub));
+    m_barbedWireDetector = DetectorPtr(
+        new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
+                               eventHub));
+    m_hedgeDetector = DetectorPtr(
+        new HedgeDetector(getConfig(config, "HedgeDetector"),
+                          eventHub));
+    m_velocityDetector = DetectorPtr(
+        new VelocityDetector(getConfig(config, "VelocityDetector"),
+                             eventHub));
+    
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
     m_downwardCamera->background(-1);
+}
+    
+void VisionSystem::createRecordersFromConfig(core::ConfigNode recorderCfg,
+                                             CameraPtr camera)
+{
+    BOOST_FOREACH(std::string recorderString, recorderCfg.subNodes())
+    {
+        // Get in the rate, or the signal to record every frame
+        int frameRate = recorderCfg[recorderString].asInt();
+
+        // Create the recorder
+        createRecorder(camera, recorderString, frameRate, true);
+    }
+}
+    
+void VisionSystem::createRecorder(CameraPtr camera, std::string recorderString,
+                                  int frameRate, bool debugPrint)
+{
+    Recorder::RecordingPolicy policy = Recorder::MAX_RATE;
+
+    // Get in the rate, or the signal to record every frame
+    int policyArg = frameRate;
+    if (policyArg <= 0)
+        policy = Recorder::NEXT_FRAME;
+
+    // Create the actual recorder
+    std::string message;
+    Recorder* recorder = Recorder::createRecorderFromString(
+        recorderString, camera.get(), message, policy, policyArg,
+        core::Logging::getLogDir().string());
+    if (debugPrint)
+        std::cout << "RECORDING>>>> "  << message << std::endl;
+
+    // Store it for later desctruction
+    m_recorders[recorderString] = recorder;
+}
+    
+void VisionSystem::addForwardDetector(DetectorPtr detector)
+{
+    assert(detector && "Can't use a NULL detector");
+    m_forward->addDetector(detector);
+}
+
+void VisionSystem::addDownwardDetector(DetectorPtr detector)
+{
+    assert(detector && "Can't use a NULL detector");
+    m_downward->addDetector(detector);
+}
+
+core::ConfigNode VisionSystem::getConfig(core::ConfigNode config,
+                                         std::string name)
+{
+    if (config.exists(name))
+        return config[name];
+    else
+        return core::ConfigNode::fromString("{}");
 }
     
 VisionSystem::~VisionSystem()
@@ -138,8 +245,9 @@ VisionSystem::~VisionSystem()
     m_forwardCamera->unbackground(true);
     m_downwardCamera->unbackground(true);
 
-    delete m_forwardRecorder;
-    delete m_downwardRecorder;
+    // Stop recorders
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        delete pair.second;
     
     // Shutdown our detectors running on our cameras
     delete m_forward;
@@ -148,44 +256,237 @@ VisionSystem::~VisionSystem()
 
 void VisionSystem::binDetectorOn()
 {
-    m_downward->addDetector(m_pipelineDetector);
+    addDownwardDetector(m_binDetector);
+    publish(EventType::BIN_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::binDetectorOff()
 {
-    m_downward->removeDetector(m_pipelineDetector);
+    m_downward->removeDetector(m_binDetector);
+    publish(EventType::BIN_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::pipeLineDetectorOn()
 {
-    m_downward->addDetector(m_pipelineDetector);
+    addDownwardDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::pipeLineDetectorOff()
 {
     m_downward->removeDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
 }
 
+void VisionSystem::ductDetectorOn()
+{
+    addForwardDetector(m_ductDetector);
+    publish(EventType::DUCT_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::ductDetectorOff()
+{
+    m_forward->removeDetector(m_ductDetector);
+    publish(EventType::DUCT_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::downwardSafeDetectorOn()
+{
+    addDownwardDetector(m_downwardSafeDetector);
+    publish(EventType::SAFE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+    
+void VisionSystem::downwardSafeDetectorOff()
+{
+    m_downward->removeDetector(m_downwardSafeDetector);
+    publish(EventType::SAFE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+    
 void VisionSystem::gateDetectorOn()
 {
-    m_forward->addDetector(m_gateDetector);
+    addForwardDetector(m_gateDetector);
+    publish(EventType::GATE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::gateDetectorOff()
 {
     m_forward->removeDetector(m_gateDetector);
+    publish(EventType::GATE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::redLightDetectorOn()
 {
-    m_forward->addDetector(m_redLightDetector);
+    addForwardDetector(m_redLightDetector);
+    publish(EventType::RED_LIGHT_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::redLightDetectorOff()
 {
     m_forward->removeDetector(m_redLightDetector);
+    publish(EventType::RED_LIGHT_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
 }
 
+void VisionSystem::buoyDetectorOn()
+{
+    addForwardDetector(m_buoyDetector);
+    publish(EventType::BUOY_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::buoyDetectorOff()
+{
+    m_forward->removeDetector(m_buoyDetector);
+    publish(EventType::BUOY_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::targetDetectorOn()
+{
+    addForwardDetector(m_targetDetector);
+    publish(EventType::TARGET_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::targetDetectorOff()
+{
+    m_forward->removeDetector(m_targetDetector);
+    publish(EventType::TARGET_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::windowDetectorOn()
+{
+    addForwardDetector(m_windowDetector);
+    publish(EventType::WINDOW_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::windowDetectorOff()
+{
+    m_forward->removeDetector(m_windowDetector);
+    publish(EventType::WINDOW_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::barbedWireDetectorOn()
+{
+    addForwardDetector(m_barbedWireDetector);
+    publish(EventType::BARBED_WIRE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::barbedWireDetectorOff()
+{
+    m_forward->removeDetector(m_barbedWireDetector);
+    publish(EventType::BARBED_WIRE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::hedgeDetectorOn()
+{
+    addForwardDetector(m_hedgeDetector);
+    publish(EventType::HEDGE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::hedgeDetectorOff()
+{
+    m_forward->removeDetector(m_hedgeDetector);
+    publish(EventType::HEDGE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::velocityDetectorOn()
+{
+    addDownwardDetector(m_velocityDetector);
+}
+    
+void VisionSystem::velocityDetectorOff()
+{
+    m_downward->removeDetector(m_velocityDetector);
+}
+
+
+void VisionSystem::addForwardRecorder(std::string recorderString, int frameRate,
+                                      bool debugPrint)
+{
+    if (m_recorders.end() == m_recorders.find(recorderString))
+    {
+        if (m_forwardCamera)
+        {
+            createRecorder(m_forwardCamera, recorderString, frameRate,
+                           debugPrint);
+        }
+    }
+}
+
+void VisionSystem::addDownwardRecorder(std::string recorderString,
+                                       int frameRate,
+                                       bool debugPrint)
+{
+    if (m_recorders.end() == m_recorders.find(recorderString))
+    {
+        if (m_downwardCamera)
+        {
+            createRecorder(m_downwardCamera, recorderString, frameRate,
+                           debugPrint);
+        }
+    }
+}
+    
+void VisionSystem::removeForwardRecorder(std::string recorderString)
+{
+    if (m_recorders.end() != m_recorders.find(recorderString))
+    {
+        delete m_recorders[recorderString];
+        m_recorders.erase(recorderString);
+    }
+    else
+    {
+        std::cerr<<"Could not remove forward recorder: "<<
+	  recorderString<<std::endl;
+    }
+}
+
+void VisionSystem::removeDownwardRecorder(std::string recorderString)
+{
+    if (m_recorders.end() != m_recorders.find(recorderString))
+    {
+        delete m_recorders[recorderString];
+        m_recorders.erase(recorderString);
+    }
+    else
+    {
+        std::cerr<<"Could not remove downward recorder: "<<
+	  recorderString<<std::endl;
+    }
+}
+    
+void VisionSystem::setPriority(core::IUpdatable::Priority priority)
+{
+//    assert(m_testing && "Can't background when not testing");
+    m_forwardCamera->setPriority(priority);
+    m_downwardCamera->setPriority(priority);
+
+    m_forward->setPriority(priority);
+    m_downward->setPriority(priority);
+
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->setPriority(priority);
+}
+    
 void VisionSystem::background(int interval)
 {
     assert(m_testing && "Can't background when not testing");
@@ -198,10 +499,8 @@ void VisionSystem::background(int interval)
     m_downward->background(interval);
 
     // Start recorders
-    if (m_forwardRecorder)
-        m_forwardRecorder->background(interval);
-    if (m_downwardRecorder)
-        m_downwardRecorder->background(interval);    
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->background(interval);
 }
         
 void VisionSystem::unbackground(bool join)
@@ -217,10 +516,8 @@ void VisionSystem::unbackground(bool join)
     m_downward->unbackground(join);
 
     // Stop recorders
-    if (m_forwardRecorder)
-        m_forwardRecorder->unbackground(join);
-    if (m_downwardRecorder)
-        m_downwardRecorder->unbackground(join);    
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->unbackground(join);
 }
 
 void VisionSystem::update(double timestep)
@@ -236,10 +533,116 @@ void VisionSystem::update(double timestep)
     m_downward->update(timestep);
 
     // Update the recorders to record the data
-    if (m_forwardRecorder)
-        m_forwardRecorder->update(timestep);
-    if (m_downwardRecorder)
-        m_downwardRecorder->update(timestep);
+    BOOST_FOREACH(StrRecorderMapPair pair, m_recorders)
+        pair.second->update(timestep);
+}
+
+math::Degree VisionSystem::getFrontHorizontalFieldOfView()
+{
+    return s_frontHorizontalFieldOfView;
+}
+
+math::Degree VisionSystem::getFrontVerticalFieldOfView()
+{
+    return s_frontVeritcalFieldOfView;
+}
+
+int VisionSystem::getFrontHorizontalPixelResolution()
+{
+    return s_frontHorizontalPixelResolution;
+}
+
+int VisionSystem::getFrontVerticalPixelResolution()
+{
+    return s_frontVerticalPixelResolution;
+}
+
+math::Degree VisionSystem::getDownHorizontalFieldOfView()
+{
+    return s_frontHorizontalFieldOfView;
+}
+
+math::Degree VisionSystem::getDownVerticalFieldOfView()
+{
+    return s_frontVeritcalFieldOfView;
+}
+
+int VisionSystem::getDownHorizontalPixelResolution()
+{
+    return s_frontHorizontalPixelResolution;
+}
+
+int VisionSystem::getDownVerticalPixelResolution()
+{
+    return s_frontVerticalPixelResolution;
+}
+    
+void VisionSystem::_setFrontHorizontalFieldOfView(math::Degree degree)
+{
+    s_frontHorizontalFieldOfView = degree;
+}
+
+void VisionSystem::_setFrontVerticalFieldOfView(math::Degree degree)
+{
+    s_frontVeritcalFieldOfView = degree;
+}
+
+void VisionSystem::_setFrontHorizontalPixelResolution(int pixels)
+{
+    s_frontHorizontalPixelResolution = pixels;
+}
+
+void VisionSystem::_setFrontVerticalPixelResolution(int pixels)
+{
+    s_frontVerticalPixelResolution = pixels;    
+}
+
+void VisionSystem::_setDownHorizontalFieldOfView(math::Degree degree)
+{
+    s_frontHorizontalFieldOfView = degree;
+}
+
+void VisionSystem::_setDownVerticalFieldOfView(math::Degree degree)
+{
+    s_frontVeritcalFieldOfView = degree;
+}
+
+void VisionSystem::_setDownHorizontalPixelResolution(int pixels)
+{
+    s_frontHorizontalPixelResolution = pixels;
+}
+
+void VisionSystem::_setDownVerticalPixelResolution(int pixels)
+{
+    s_frontVerticalPixelResolution = pixels;    
+}
+
+core::ConfigNode VisionSystem::findVisionSystemConfig(core::ConfigNode cfg,
+                                                      std::string& nodeUsed)
+{
+    core::ConfigNode config(core::ConfigNode::fromString("{}"));
+    // Attempt to find the section deeper in the file
+    if (cfg.exists("Subsystems"))
+    {
+        cfg = cfg["Subsystems"];
+        
+        // Attempt to find a VisionSystem subsystem
+        core::NodeNameList nodeNames(cfg.subNodes());
+        BOOST_FOREACH(std::string nodeName, nodeNames)
+        {
+            core::ConfigNode subsysCfg(cfg[nodeName]);
+            if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
+                ("SimVision" == subsysCfg["type"].asString("NONE")))
+            {
+                config = subsysCfg;
+                std::stringstream ss;
+                ss << "Subsystem:" << nodeName << ":" << nodeUsed;
+                nodeUsed = ss.str();
+            }
+        }
+    }
+
+    return config;
 }
     
 } // namespace vision

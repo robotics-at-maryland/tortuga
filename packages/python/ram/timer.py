@@ -104,7 +104,7 @@ class Timer(threading.Thread):
     Throws event after given duration sleep in a background thread
     """
     
-    def __init__(self, eventPublisher, eventType, duration):
+    def __init__(self, eventPublisher, eventType, duration, repeat = False):
         """
         @type  eventPublisher: ext.core.EventPublisher
         @param eventPublisher: Publisher to publish the event with
@@ -114,13 +114,17 @@ class Timer(threading.Thread):
         
         @type  duration: float
         @param duration: The seconds to sleep
+        
+        @type  repeat: bool
+        @param repeat: Whether or not the timer repeats
         """
         threading.Thread.__init__(self)
         
         self._eventPublisher = eventPublisher
         self._eventType = eventType
-        self._sleepTime = duration
+        self._sleepTime = float(duration)
         self._running = True
+        self._repeat = repeat
         
     def run(self):
         """
@@ -128,14 +132,19 @@ class Timer(threading.Thread):
 
         This is implements the standard python threading.Thread method.
         """
-        # Sleep for that time period
-        sleep(self._sleepTime)
+        while True:
+            # Sleep for that time period
+            sleep(self._sleepTime)
 
-        # Publish event
-        self._complete()
+            # Publish event
+            self._complete()
 
-        # Set running to false
-        self.stop()
+            # Set running to false
+            if not self._repeat:
+                self.stop()
+            
+            if not self._running:
+                break
  
     def stop(self):
         """
@@ -152,6 +161,12 @@ class Timer(threading.Thread):
             self._eventPublisher.publish(self._eventType, ext.core.Event())
         
 class TimerManager(ext.core.Subsystem):
+    """
+    Creates ram.timer.Timer objects, using itself as the EventPublisher
+    
+    It makes sure all of its events are forward to the main EventHub so they
+    can be properly queued by the QueuedEventHub.
+    """
     def __init__(self, config = None, deps = None):
         if config is None:
             config = {}
@@ -164,7 +179,15 @@ class TimerManager(ext.core.Subsystem):
                                     deps)
         
     def newTimer(self, eventType, duration):
+        """
+        Create a Timer object which publishes using this object.
+        
+        @rtype: ram.timer.Timer
+        @return: A Timer objects which uses this object to publish its event
+        """
         return Timer(self, eventType, duration)
 
 
+    def backgrounded(self):
+        return True
 ext.core.registerSubsystem('TimerManager', TimerManager)

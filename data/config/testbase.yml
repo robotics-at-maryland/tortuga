@@ -1,0 +1,449 @@
+EventHub:
+    type: EventHub
+
+# Queues events from background threads so they can be executed in python
+QueuedEventHub:
+    depends_on: ["EventHub"]
+    type: QueuedEventHub
+
+# Exectures Motions
+MotionManager:
+    type: MotionManager
+    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+
+# Handles Timers
+TimerManager:
+    type: TimerManager
+    depends_on: ["EventHub"]
+
+# Object that creates the vehicle interface
+Vehicle:
+    # The full name of the class to instantiate in this case its a wrapper
+    # for the base C++ vehicle
+    type: Vehicle
+    # Time between updates in ms
+    update_interval: 25
+    priority: high
+
+    depends_on: ["EventHub", "Logging"]
+
+    MagBoomName: MagBoom
+
+    # The list of devices to create for the vehicle
+    Devices:
+        # NOTE: All current numbers here are BS and need to updated
+        VelocitySensor:
+            depends_on: ["SensorBoard"]
+            type: VisionVelocitySensor
+        SensorBoard:
+            type: SensorBoard
+            depends_on: ["StateEstimator"]
+            update_interval: 25
+            priority: high
+            depthCalibSlope: 35.5
+            depthCalibIntercept: 1182
+            # Position is for Tortuga 2 measured in inches as (-11, 1.5, 3)
+            depthSensorLocation: [-0.916666667, 0.125, 0.25]
+            servo1FirePosition: 4000 # Range 256-4352
+            servo2FirePosition: 256 # Range 256-4352
+        MarkerDropper:
+            type: SBMarkerDropper
+            depends_on: ["SensorBoard"]
+        TorpedoLauncher:
+            type: SBTorpedoLauncher
+            depends_on: ['SensorBoard']
+        Sonar:
+            depends_on: ['SensorBoard']
+            type: SBSonar
+        Battery1:
+            depends_on: ['SensorBoard']
+            type: SBPowerSource
+            id: 0
+
+        Battery2:
+            depends_on: ['SensorBoard']
+            type: SBPowerSource
+            id: 1
+
+        Battery3:
+            depends_on: ['SensorBoard']
+            type: SBPowerSource
+            id: 2
+
+        Battery4:
+            depends_on: ['SensorBoard']
+            type: SBPowerSource
+            id: 3
+
+        Shore:
+            depends_on: ['SensorBoard']
+            type: SBPowerSource
+            id: 4
+
+        Temp1:
+            depends_on: ['SensorBoard']
+            type: SBTempSensor
+            id: 0
+
+        Temp2:
+            depends_on: ['SensorBoard']
+            type: SBTempSensor
+            id: 5
+
+        Temp3:
+            depends_on: ['SensorBoard']
+            type: SBTempSensor
+            id: 6
+
+        # This entry creates a thruster
+        StarboardThruster:
+            depends_on: ['SensorBoard']
+            # serial: 147
+            type: SBThruster
+            update_interval: 100
+
+            # String representing the address of the thruster
+            address: 1
+            # Number determined by testing
+            calibration_factor: 25
+            # Number used to flip thruster forces (if thruster is reversed
+                
+            # on the vehicle)
+            direction: 1
+            # Distance from center of rotation
+            offset: 0.19685
+        PortThruster:
+            depends_on: ['SensorBoard']
+            # serial: 149
+            type: SBThruster
+            address: 0
+            calibration_factor: 25
+            direction: 1
+            offset: 0.19685
+
+        ForeThruster:
+            depends_on: ['SensorBoard']
+            type: SBThruster
+            # serial: 146
+            address: 3
+            calibration_factor: 25
+            direction: -1
+            offset: 0.2413
+
+        AftThruster:
+            depends_on: ['SensorBoard']
+            # Serial 148
+            type: SBThruster
+            address: 5
+            calibration_factor: 25
+            direction: -1
+            offset: 0.381
+
+        TopThruster:
+            depends_on: ['SensorBoard']
+            # serial: 149
+            type: SBThruster
+            address: 2
+            calibration_factor: 25
+            direction: 1
+            offset: 0.19685
+
+        BottomThruster:
+            depends_on: ['SensorBoard']
+            type: SBThruster
+            address: 4
+            calibration_factor: 25
+            direction: -1
+            offset: 0.19685
+            
+        MagBoom:
+            type: IMU
+            depends_on: ['StateEstimator']
+            num: 1
+            devfile: /dev/magboom
+            update_interval: 5
+            priority: high
+
+            #imuToVehicleRotMatrix: [[ 0.9140, -0.4048, -0.0273],
+            #                        [-0.4057, -0.9123, -0.0554],
+            #                        [-0.0024,  0.0617, -0.9981]] 
+
+            #imuToVehicleRotMatrix: [[0.6022, -0.7980, 0.0253],
+            #                        [-0.7975, -0.5997, 0.0655],
+            #                        [-0.0371, -0.0597, -0.9975]]
+            #from 2009-7-22
+            #imuToVehicleRotMatrix: [[-0.4351, -0.9000, -0.0268],
+            #                        [-0.9004, 0.4346, 0.0216],
+            #                        [-0.0077, 0.0335, -0.9994]]
+            #from 2009-8-1
+            #imuToVehicleRotMatrix: [[-0.2657, -0.9640, -0.0121],
+            #                        [-0.9638, 0.2654, 0.0245],
+            #                        [-0.0204, 0.0182, -0.9996]]
+            #from 2010-01-14
+            imuToVehicleRotMatrix: [[ 0.0257, 0.9994, -0.0222 ],
+                                    [ 0.9995, -0.0253, 0.0161 ],
+                                    [ 0.0155, -0.0226, -0.9996 ]]
+            #magXBias: -0.0702
+            #magYBias:  0.0056
+            #magZBias:  0.0124
+            #magXBias: -0.0735
+            #magYBias: 0.0056
+            #magZBias: -0.0109
+            # Tortuga 3  from 2009-7-22
+            #magXBias: -0.0135
+            #magYBias: 0.0147
+            #magZBias: -0.0495
+            # Tortuga 3  from 2010-01-14
+            magXBias: 0.0075
+            magYBias: -0.0217
+            magZBias: -0.0909
+
+            #gyroXBias: 0.0013
+            #gyroYBias: 0.0499
+            #gyroZBias: -0.0501
+
+            # Tortuga 3
+            #gyroXBias: 0.0087
+            #gyroYBias: 0.0201
+            #gyroZBias: -0.0084
+            # Tortuga 3
+            gyroXBias: -0.0003
+            gyroYBias: -0.0027
+            gyroZBias: 0.0015
+
+            localMagneticPitch: 60
+
+        IMU:
+            type: IMU
+            depends_on: ['StateEstimator']
+            num: 0
+            update_interval: 5
+            priority: high
+            # These are in VEHICLE FRAME
+            # Pre-thruster change out
+            #magXBias: 0.158325
+            #magYBias: 0.229488
+            #magZBias: -0.270406
+            # Post Thruster change out, and with 6 thrusters
+            #magXBias: 0.243511
+            #magYBias: 0.260058
+            #magZBias: -0.211263
+            # New Electronics
+            #magXBias: 0.243998
+            #magYBias: 0.269084
+            #magZBias: -0.221182
+            # Tortuga 2 first dive
+            #magXBias: 0.251043
+            #magYBias: 0.196805
+            #magZBias: -0.171669
+            # Tortuga 2 With Everthing
+            #magXBias: 0.25861
+            #magYBias: 0.252917
+            #magZBias: -0.183411
+            # Tortuga 2 Redo
+            #magXBias: 0.2010
+            #magYBias: 0.2160
+            #magZBias: -0.1899
+            # Tortuga 2.5
+            #magXBias: -0.1698
+            #magYBias: -0.1691
+            #magZBias: -0.2362
+            # Tortuga 3
+            #magXBias: 0.0798
+            #magYBias: 0.0384
+            #magZBias: 0.5876 
+            # Tortuga 3  from 2010-01-14
+            magXBias: 0.1130
+            magYBias: -0.0529
+            magZBias: 0.5463
+
+            # Tortuga 2.5
+            #gyroXBias: 0.0216
+            #gyroYBias: -0.0148
+            #gyroZBias: -0.0242
+            # Tortuga 3
+            #gyroXBias: 0.0174
+            #gyroYBias: -0.0136
+            #gyroZBias: -0.0304
+            # Tortuga 3  from 2010-01-14
+            gyroXBias: 0.0179
+            gyroYBias: -0.0223
+            gyroZBias: -0.0336
+
+            # Tortuga 2.5
+            #imuToVehicleRotMatrix: [[-0.8794, 0.0060, -0.4761],
+            #                        [0.4759, 0.0424, -0.8785],
+            #                        [0.0149, -0.9991, -0.0401]]
+            # Tortuga 3   from 2009-7-22
+            #imuToVehicleRotMatrix: [[0.1806, 0.0378, 0.9828],
+            #                        [0.9833, -0.0313, -0.1795],
+            #                        [0.0240, 0.9988, -0.0428]]
+            # from 2009-8-1
+            #imuToVehicleRotMatrix: [[0.0904, 0.0326, 0.9954],
+            #                        [0.9959, -0.0011, -0.0904],
+            #                        [-0.0019, 0.9995, -0.0326]]
+            # Tortuga 3  from 2010-01-14
+            imuToVehicleRotMatrix: [[ 0.1629, 0.0284, 0.9862],
+                                    [ 0.9864, 0.0183, -0.1635],
+                                    [ -0.0227, 0.9994, -0.0250]]
+            
+            # Set me to zero to ignore mag.
+            #magCorruptThresh: 0.0
+            localMagneticPitch: 60
+RemoteController:
+    type: RemoteController
+    depends_on: ["Controller"]
+    update_interval: -1
+    yawGain: 40
+
+Logging:
+    type: Logging
+    #update_interval: -1
+    Appenders:
+        ThrusterLog:
+            type: File
+            fileName: thrusters.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        PowerLog:
+            type: File
+            fileName: power.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        ControlLog:
+            type: File
+            fileName: control.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+                    
+        IMULog:
+            type: File
+            fileName: imu.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
+        DVLLog:
+            type: File
+            fileName: dvl.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
+        VehicleLog:
+            type: File
+            fileName: vehicle.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+                    
+        Console:
+            type: Console
+            Layout:
+                type: Pattern
+                pattern: "%c %m %r%n"
+    Categories:
+        Thruster:
+            appenders: ['ThrusterLog'] #,'Console']
+        Power:
+            appenders: ['PowerLog'] #,'Console']
+        Controller:
+            appenders: ['ControlLog'] #'Console']
+        IMU:
+            appenders: ['IMULog'] #'Console']
+        DVL:
+            appenders: ['DVLLog']
+        Vehicle:
+            appenders: ['VehicleLog']
+
+Controller:
+    depends_on: ["Vehicle", "EventHub"]
+    type: CombineController
+    update_interval: 40
+    priority: high
+
+    holdCurrentHeading: 1 # Set to 0 to always point north
+    holdCurrentDepth: 1
+
+    initializationPause: 2
+
+    orientationThreshold: 0.05
+    depthThreshold: 0.2
+    velocityThreshold: 0.1
+    positionThreshold: 0.1
+
+ TranslationalController:
+        #type: TrackingTranslationalController
+        #x1kp: 10
+        #x1ki: 1
+        #x1kd: 3
+        #x2kp: 10
+        #x2ki: 1
+        #x2kd: 3
+
+        type: OpenLoopTranslationalController
+        speedPGain: 8
+        sidewaysSpeedPGain: 8
+
+    DepthController:
+        type: PIDDepthController
+        kp: 10
+        ki: 1
+        kd: 1
+        dtMin: 0.005
+        dtMax: 0.05
+
+    RotationalController:
+        type: NonlinearPDRotationalController
+        kp: 15
+        kd: 2
+        dtMin: 0.005
+        dtMax: 0.05
+        desiredOrientation: [0, 0, 0, 1]
+
+Monitor:
+    type: Monitor
+    depends_on: ["QueuedEventHub", "Vehicle"]
+
+    Battery1:
+        name: "Battery 1"
+        publisher: "Vehicle.Device.Batt 1"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery2:
+        name: "Battery 2"
+        publisher: "Vehicle.Device.Batt 2"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery3:
+        name: "Battery 3"
+        publisher: "Vehicle.Device.Batt 3"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    Battery4:
+        name: "Battery 4"
+        publisher: "Vehicle.Device.Batt 4"
+        eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+        property: number
+        warning: 26.7
+        critical: 26
+
+    #Battery5:
+    #    name: "Battery 5"
+    #    publisher: "Vehicle.Device.Batt 5"
+    #    eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+    #    property: number
+    #    warning: 26.7
+    #    critical: 26

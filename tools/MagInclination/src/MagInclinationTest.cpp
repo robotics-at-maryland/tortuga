@@ -8,7 +8,7 @@
 #include "vehicle/include/device/IMU.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Helpers.h"
-#include "imu/include/imuapi.h"
+#include "drivers/imu/include/imuapi.h"
 
 using namespace ram::math;
 using namespace ram::core;

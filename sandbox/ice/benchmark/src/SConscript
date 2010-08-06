@@ -1,0 +1,16 @@
+import os.path
+
+Import('env')
+
+# NATIVE MARSHALING CODE FOR C++
+##############################
+
+env.Command(['bench.cpp','bench.h'], 
+	'bench.ice', 'slice2cpp --output-dir ' + os.path.dirname(env.File('bench.ice').path) + ' $SOURCES')
+
+
+# BENCHMARK PROGRAM
+##############################
+
+prog = env.Program(['bench.cpp', 'main.cpp'])
+Return('prog')

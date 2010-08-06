@@ -1,0 +1,39 @@
+# Copyright (C) 2007 Robotics at Maryland
+# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# All rights reserved.
+#
+# Author: Joseph Lisee <jlisee@umd.edu>
+# File:  packages/math/SConscript
+
+# Build System imports
+import buildfiles.libs as libs
+
+# Copy Our Build Environment
+Import('env')
+envl = env.Clone()
+
+ext_deps = []
+int_deps = ['core', 'logging']
+# Only need boost if we are compling the wrappers
+if env.HasFeature('wrappers'):
+    libs.add_external(envl, 'Boost.Python')
+    ext_deps = ['Boost.Python']
+
+eventFeatures = ['math', 'vehicle', 'vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        print "Adding features:",feature
+        int_deps.append(feature)
+
+# Sources
+sources = envl.Glob('src', '*.cpp')
+
+if not env.HasFeature('vision'):
+    sources.remove("src/PlaybackCamera.cpp")
+
+# Build Procducts (library will be called 'libram_logging.so')
+envl.RAMSharedLibrary('logging',  source = sources)
+
+# Tests
+envt = env.Clone()
+envt.Tests(int_deps = int_deps, ext_deps = ext_deps)

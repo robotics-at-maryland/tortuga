@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <utility>
+#include <iostream>
 
 // Project Includes
 #include "core/include/EventConverter.h"
@@ -88,6 +89,8 @@ boost::python::object EventConverter::convertEvent(ram::core::EventPtr event)
             registry->find(eventTypeName);
 
         // We *must* find a converter, or things will break
+	if (registry->end() == registryIter)
+            std::cerr << "Could not convert: " << eventTypeName << std::endl;
         assert(registry->end() != registryIter &&
                "Could not find converter for event type in registry");
 

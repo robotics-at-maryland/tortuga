@@ -1,0 +1,46 @@
+GUI:
+    # In Hz
+    updateRate: 30
+    guiConfigFile: ramsim.yml
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:    
+    VisionSystem:
+        type: SimVision
+        #type: IdealSimVision
+        #type: CrappyVision
+        cameraRate: 10
+        #failureRate: .03
+        depends_on: ["EventHub", "Vehicle", "Simulation"]
+
+        #ForwardRecorders:
+        #    forward.avi: 5 # Really compressed @ 5Hz
+        #    forward.rmv: 5 # Raw video at 10Hz
+        #    "50000(320,240)": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+        #    downward.avi: 5 # Really compressed @ 5Hz
+        #    downward.rmv: 5 # Raw video at 10Hz
+        #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
+
+        # Includes all camera and vision system settings
+        INCLUDE: tools/simulator/data/config/vision/default.yml
+
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: tools/simulator/data/config/ai/transdec_final.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: tools/simulator/data/config/ai/san_diego_state.yml
+
+
+    # Includes all common subsystems    
+    INCLUDE: tools/simulator/data/config/base.yml

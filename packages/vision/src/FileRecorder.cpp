@@ -21,19 +21,20 @@ namespace ram {
 namespace vision {
 
 FileRecorder::FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
-                           std::string filename, int policyArg) :
-    Recorder(camera, policy, policyArg),
+                           std::string filename, int policyArg,
+                           int recordWidth, int recordHeight) :
+    Recorder(camera, policy, policyArg, recordWidth, recordHeight),
     m_writer(0)
 {
     assert((RP_START < policy) && (policy < RP_END) &&
            "Invalid recording policy");
     
     // Determine video FPS (default to 30)
-    int fps = camera->fps();
+    int fps = (int)(camera->fps());
     if (0 == fps)
         fps = 30;
 
-    CvSize size = cvSize(camera->width(), camera->height());
+    CvSize size = cvSize(getRecordingWidth(), getRecordingHeight());
     
     FILE* video = fopen(filename.c_str(), "w");
     // Yes, thats a comma, not a semicolon, it forces the compiler to close

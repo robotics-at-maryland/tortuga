@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +15,7 @@ Those functions are very valuable for code generation. Almost all functions
 within this module works on L{type_t} class hierarchy and\\or L{class_t}.
 """
 
+import os
 import types
 import matchers
 import typedef
@@ -26,6 +27,7 @@ import namespace
 import templates
 import enumeration
 import class_declaration
+from pygccxml import utils
 import types as build_in_types
 
 def __remove_alias(type_):
@@ -109,7 +111,7 @@ def does_match_definition(given, main, secondary ):
 def is_bool( type_ ):
     """returns True, if type represents C{bool}, False otherwise"""
     return remove_alias( type_ ) in create_cv_types( cpptypes.bool_t() )
-    
+
 def is_void( type ):
     """returns True, if type represents C{void}, False otherwise"""
     return remove_alias( type ) in create_cv_types( cpptypes.void_t() )
@@ -153,6 +155,16 @@ def is_pointer(type):
     return does_match_definition( type
                                   , cpptypes.pointer_t
                                   , (cpptypes.const_t, cpptypes.volatile_t) )
+
+def is_calldef_pointer(type):
+    """returns True, if type represents pointer to free/member function, False otherwise"""
+    if not is_pointer(type):
+        return False
+    nake_type = remove_alias( type )
+    nake_type = remove_const( nake_type )
+    nake_type = remove_volatile( nake_type )
+    return isinstance( nake_type, cpptypes.compound_t ) \
+           and isinstance( nake_type.base, cpptypes.calldef_type_t )
 
 def remove_pointer(type):
     """removes pointer from the type definition
@@ -201,7 +213,7 @@ def array_item_type(type_):
         return remove_pointer( type_ )
     else:
         assert 0
-    
+
 def remove_reference(type):
     """removes reference from the type definition
 
@@ -334,58 +346,48 @@ is_class_declaration = class_declaration_traits.is_my_case
 def find_trivial_constructor( type ):
     """returns reference to trivial constructor or None"""
     assert isinstance( type, class_declaration.class_t )
-    constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                     and 0 == len( x.arguments ) \
-                           , type.public_members )
-    if constructors:
-        return constructors[0]
-    else:
-        return None
+    return type.find_trivial_constructor()
 
-def has_trivial_constructor( type ):
-    """returns True, if class has trivial constructor, False otherwise"""
-    return None != find_trivial_constructor( type )
+def has_trivial_constructor( class_ ):
+    """if class has public trivial constructor, this function will return reference to it, None otherwise"""
+    class_ = class_traits.get_declaration( class_ )
+    trivial = class_.find_trivial_constructor()
+    if trivial and trivial.access_type == 'public':
+        return trivial
 
-def has_trivial_copy( type):
-    """returns True, if class has copy constructor, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                     and x.is_copy_constructor
-                           , type.public_members )
-    return bool( constructors )
+def has_copy_constructor( class_ ):
+    """if class has public copy constructor, this function will return reference to it, None otherwise"""
+    class_ = class_traits.get_declaration( class_ )
+    copy_constructor = class_.find_copy_constructor()
+    if copy_constructor and copy_constructor.access_type == 'public':
+        return copy_constructor
 
-def has_destructor(type):
-    """returns True, if class has destructor, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    return bool( algorithm.find_declaration( type.get_members()
-                                             , type=calldef.destructor_t
-                                             , recursive=False ) )
+def has_destructor(class_):
+    """if class has destructor, this function will return reference to it, None otherwise"""
+    class_ = class_traits.get_declaration( class_ )
+    destructor = class_.decls( decl_type=calldef.destructor_t, recursive=False, allow_empty=True )
+    if destructor:
+        return destructor[0]
 
-def has_public_constructor(type):
-    """returns True, if class has public constructor, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    decls = algorithm.find_all_declarations( type.public_members
-                                             , type=calldef.constructor_t
-                                             , recursive=False )
-    constructors = filter( lambda decl: not decl.is_copy_constructor, decls )
-    return bool( constructors )
+def has_public_constructor(class_):
+    """if class has any public constructor, this function will return list of them, otherwise None"""
+    class_ = class_traits.get_declaration(class_)
+    decls = class_.constructors( lambda c: not c.is_copy_constructor and c.access_type == 'public'
+                                 , recursive=False, allow_empty=True )
+    if decls:
+        return decls
 
-def has_public_assign(type):
+def has_public_assign(class_):
     """returns True, if class has public assign operator, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    decls = algorithm.find_all_declarations( type.public_members
-                                             , type=calldef.member_operator_t
-                                             , recursive=False )
-    decls = filter( lambda decl: decl.symbol == '=', decls )
+    class_ = class_traits.get_declaration( class_ )
+    decls = class_.mem_opers( lambda o: o.symbol == '=' and o.access_type == 'public'
+                              , recursive=False, allow_empty=True )
     return bool( decls )
 
 def has_public_destructor(type):
     """returns True, if class has public destructor, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    return bool( algorithm.find_declaration( type.public_members
-                                             , type=calldef.destructor_t
-                                             , recursive=False ) )
-
+    d = has_destructor( type )
+    return d and d.access_type == 'public'
 
 def is_base_and_derived( based, derived ):
     """returns True, if there is "base and derived" relationship between classes, False otherwise"""
@@ -397,20 +399,20 @@ def is_base_and_derived( based, derived ):
         all_derived = ( [derived] )
     else: #tuple
         all_derived = derived
-    
+
     for derived_cls in all_derived:
         for base_desc in derived_cls.recursive_bases:
             if base_desc.related_class == based:
                 return True
     return False
-    
+
 def has_any_non_copyconstructor( type):
-    """returns True, if class has any non "copy constructor", otherwise False"""
-    assert isinstance( type, class_declaration.class_t )
-    constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                     and not x.is_copy_constructor
-                           , type.public_members )
-    return bool( constructors )
+    """if class has any public constructor, which is not copy constructor, this function will return list of them, otherwise None"""
+    class_ = class_traits.get_declaration( type )
+    decls = class_.constructors( lambda c: not c.is_copy_constructor and c.access_type == 'public'
+                                 , recursive=False, allow_empty=True )
+    if decls:
+        return decls
 
 def has_public_binary_operator( type, operator_symbol ):
     """returns True, if type has public binary operator, otherwise False"""
@@ -619,7 +621,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -632,7 +634,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -645,7 +647,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -658,7 +660,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -798,67 +800,83 @@ def is_convertible( source, target ):
     """returns True, if source could be converted to target, otherwise False"""
     return __is_convertible_t( source, target ).is_convertible()
 
-def __is_noncopyable_single( class_ ):
+def __is_noncopyable_single( class_):
     """implementation details"""
     #It is not enough to check base classes, we should also to check
     #member variables.
-    
-    if has_trivial_copy( class_ ) \
+    logger = utils.loggers.cxx_parser
+
+    if has_copy_constructor( class_ ) \
        and has_public_constructor( class_ ) \
        and has_public_assign( class_ ) \
        and has_public_destructor( class_ ):
+        msg = os.linesep.join([
+            "__is_noncopyable_single - %s - COPYABLE:" % class_.decl_string
+            , "    trivial copy constructor: yes"
+            , "    public constructor: yes"
+            , "    public assign: yes"
+            , "    public destructor: yes"
+        ])
+        logger.debug( msg )
         return False
-    
-    mvars = filter( lambda x: isinstance( x, variable.variable_t )
-                    , class_.declarations )
-    for mvar in mvars:
-        if mvar.type_qualifiers.has_static:
-            continue
-        type_ = remove_alias( mvar.type )
-        type_ = remove_reference( type_ )
-        if is_const( type_ ):
-            no_const = remove_const( type_ )
-            if is_fundamental( no_const ) or is_enum( no_const):
-                return True
-            if is_class( no_const ):
-                return True
-        if is_class( type_ ):
-            cls = type_.declaration
-            if is_noncopyable( cls ):
-                return True
-    return False
+    if class_.find_noncopyable_vars():
+        logger.debug( "__is_noncopyable_single(TRUE) - %s - contains noncopyable members" % class_.decl_string )
+        return True
+    else:
+        logger.debug( "__is_noncopyable_single(FALSE) - %s - COPYABLE, because is doesn't contains noncopyable members" % class_.decl_string )
+        return False
 
 def is_noncopyable( class_ ):
     """returns True, if class is noncopyable, False otherwise"""
+    logger = utils.loggers.cxx_parser
     class_ = class_traits.get_declaration( class_ )
-    
+
+    true_header = "is_noncopyable(TRUE) - %s - " % class_.decl_string
+    false_header = "is_noncopyable(false) - %s - " % class_.decl_string
+
     if class_.class_type == class_declaration.CLASS_TYPES.UNION:
         return False
+
+    if class_.is_abstract:
+        logger.debug( true_header + "abstract client" )
+        return True
+
+    #if class has public, user defined copy constructor, than this class is
+    #copyable
+    copy_ = class_.find_copy_constructor()
+    if copy_ and copy_.access_type == 'public' and not copy_.is_artificial:
+        return False
+
     for base_desc in class_.recursive_bases:
         assert isinstance( base_desc, class_declaration.hierarchy_info_t )
         if base_desc.related_class.decl_string in ('::boost::noncopyable', '::boost::noncopyable_::noncopyable' ):
+            logger.debug( true_header + "derives from boost::noncopyable" )
             return True
-        if not has_trivial_copy( base_desc.related_class ):
-            protected_ctrs = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                               and x.is_copy_constructor
-                                     , base_desc.related_class.protected_members )
-            if not protected_ctrs:
-                return True
-
+        if not has_copy_constructor( base_desc.related_class ):
+            base_copy_ = base_desc.related_class.find_copy_constructor()
+            if base_copy_:
+                if base_copy_.access_type == 'private':
+                    logger.debug( true_header + "there is private copy constructor" )
+                    return True
+            else:
+                if __is_noncopyable_single( base_desc.related_class ):
+                    logger.debug( true_header + "__is_noncopyable_single returned True" )
+                    return True
         if __is_noncopyable_single( base_desc.related_class ):
+            logger.debug( true_header + "__is_noncopyable_single returned True" )
             return True
 
-    if class_.is_abstract:
-        return True
-    elif not has_trivial_copy( class_ ):
+    if not has_copy_constructor( class_ ):
+        logger.debug( true_header + "does not have trival copy constructor" )
         return True
     elif not has_public_constructor( class_ ):
+        logger.debug( true_header + "does not have a public constructor" )
         return True
     elif has_destructor( class_ ) and not has_public_destructor( class_ ):
+        logger.debug( true_header + "has private destructor")
         return True
     else:
         return __is_noncopyable_single( class_ )
-
 
 def is_defined_in_xxx( xxx, cls ):
     """small helper function, that checks whether class ( C{cls} ) is defined
@@ -920,9 +938,10 @@ class impl_details:
         found = global_ns.decls( name=value_type_str
                                  , function=lambda decl: not isinstance( decl, calldef.calldef_t )
                                  ,  allow_empty=True )
-        if not found:            
-            if cpptypes.FUNDAMENTAL_TYPES.has_key( value_type_str[2:] ): #remove leading ::
-                return cpptypes.FUNDAMENTAL_TYPES[value_type_str[2:]]
+        if not found:
+            no_global_ns_value_type_str = value_type_str[2:]
+            if cpptypes.FUNDAMENTAL_TYPES.has_key( no_global_ns_value_type_str ):
+                return cpptypes.FUNDAMENTAL_TYPES[ no_global_ns_value_type_str ]
             elif is_std_string( value_type_str ):
                 string_ = global_ns.typedef( '::std::string' )
                 return remove_declarated( string_ )
@@ -930,14 +949,16 @@ class impl_details:
                 string_ = global_ns.typedef( '::std::wstring' )
                 return remove_declarated( string_ )
             else:
-                value_type_str = value_type_str[2:]#removing leading ::
+                value_type_str = no_global_ns_value_type_str
                 has_const = value_type_str.startswith( 'const ' )
                 if has_const:
                     value_type_str = value_type_str[ len('const '): ]
                 has_pointer = value_type_str.endswith( '*' )
                 if has_pointer:
                     value_type_str = value_type_str[:-1]
-                found = impl_details.find_value_type( global_ns, value_type_str )
+                found = None
+                if has_const or has_pointer:
+                    found = impl_details.find_value_type( global_ns, value_type_str )
                 if not found:
                     return None
                 else:
@@ -952,6 +973,28 @@ class impl_details:
             return found[0]
         else:
             return None
+
+class internal_type_traits:
+    """small convenience class, which provides access to internal types"""
+    #TODO: add exists function
+    @staticmethod
+    def get_by_name( type, name ):
+        if class_traits.is_my_case( type ):
+            cls = class_traits.declaration_class( type )
+            return remove_declarated( cls.typedef( name, recursive=False ).type )
+        elif class_declaration_traits.is_my_case( type ):
+            cls = class_declaration_traits.get_declaration( type )
+            value_type_str = templates.args( cls.name )[0]
+            ref = impl_details.find_value_type( cls.top_parent, value_type_str )
+            if ref:
+                return ref
+            else:
+                raise RuntimeError( "Unable to find reference to internal type '%s' in type '%s'."
+                                    % ( name, cls.decl_string ) )
+        else:
+            raise RuntimeError( "Unable to find reference to internal type '%s' in type '%s'."
+                                % ( name, type.decl_string ) )
+
 
 class smart_pointer_traits:
     """implements functionality, needed for convinient work with smart pointers"""
@@ -973,19 +1016,30 @@ class smart_pointer_traits:
         """returns reference to boost::shared_ptr value type"""
         if not smart_pointer_traits.is_smart_pointer( type ):
             raise TypeError( 'Type "%s" is not instantiation of boost::shared_ptr' % type.decl_string )
+        return internal_type_traits.get_by_name( type, "value_type" )
+
+class auto_ptr_traits:
+    """implements functionality, needed for convinient work with std::auto_ptr pointers"""
+
+    @staticmethod
+    def is_smart_pointer( type ):
+        """returns True, if type represents instantiation of C{boost::shared_ptr}, False otherwise"""
         type = remove_alias( type )
-        cls = remove_cv( type )
-        cls = remove_declarated( type )
-        if isinstance( cls, class_declaration.class_t ):
-            return remove_declarated( cls.typedef( "value_type", recursive=False ).type )
-        elif not isinstance( cls, ( class_declaration.class_declaration_t, class_declaration.class_t ) ):
-            raise RuntimeError( "Unable to find out shared_ptr value type. shared_ptr class is: %s" % cls.decl_string )
-        else:
-            value_type_str = templates.args( cls.name )[0]
-            ref = impl_details.find_value_type( cls.top_parent, value_type_str )
-            if None is ref:
-                raise RuntimeError( "Unable to find out shared_ptr value type. shared_ptr class is: %s" % cls.decl_string )
-            return ref
+        type = remove_cv( type )
+        type = remove_declarated( type )
+        if not isinstance( type, ( class_declaration.class_declaration_t, class_declaration.class_t ) ):
+            return False
+        if not impl_details.is_defined_in_xxx( 'std', type ):
+            return False
+        return type.decl_string.startswith( '::std::auto_ptr<' )
+
+    @staticmethod
+    def value_type( type ):
+        """returns reference to boost::shared_ptr value type"""
+        if not auto_ptr_traits.is_smart_pointer( type ):
+            raise TypeError( 'Type "%s" is not instantiation of std::auto_ptr' % type.decl_string )
+        return internal_type_traits.get_by_name( type, "element_type" )
+
 
 def is_std_string( type ):
     """returns True, if type represents C++ std::string, False otherwise"""
@@ -1022,7 +1076,7 @@ def is_std_ostream( type ):
     else:
         type = remove_alias( type )
         return remove_cv( type ).decl_string in decl_strings
-    
+
 
 def is_std_wostream( type ):
     """returns True, if type represents C++ std::string, False otherwise"""

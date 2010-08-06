@@ -36,15 +36,25 @@ public:
     static const core::Event::EventType ENABLED;
     /** Fired when the power source becomes disabled */
     static const core::Event::EventType DISABLED;
+    /** Fired when the power source becomes inUse */
+    static const core::Event::EventType USING;
+    /** Fired when the power source becomes stops being used */
+    static const core::Event::EventType NOT_USING;
     
     virtual ~IPowerSource();
 
+    /** Whether or not the vehicle can draw power from this power source */
     virtual bool isEnabled() = 0;
 
-    //virtual bool inUse() = 0;
+    /** Whether the vehicle is drawing power from this power source */
+    virtual bool inUse() = 0;
+
+    /** Set whether or not the vehicle can draw power from this power source */
+    virtual void setEnabled(bool state) = 0;
     
 protected:
-    IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IPowerSource(core::EventHubPtr eventHub = core::EventHubPtr(),
+                 std::string name = "UNNAMED");
 };
     
 } // namespace device

@@ -1,0 +1,2 @@
+for fname in `ls ../test_data/spintest2/`; do ./pingDtest ../test_data/spintest2/$fname; done
+for fname in `ls ../../spintest/*.bin`; do ./pingDtest $fname; done

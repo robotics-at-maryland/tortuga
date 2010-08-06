@@ -10,9 +10,10 @@
 // STD Includes
 #include <algorithm>
 #include <cmath>
-
+#include <limits>
 // Library Includes
 #include "highgui.h"
+#include <boost/foreach.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -20,9 +21,12 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/Events.h"
+#include "vision/include/ColorFilter.h"
+
+#include "core/include/PropertySet.h"
 
 #ifndef M_PI
-#define M_PI 3.14159
+#define M_PI 3.1415926
 #endif
 
 namespace ram {
@@ -31,13 +35,15 @@ namespace vision {
 RedLightDetector::RedLightDetector(core::ConfigNode config,
                                    core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    cam(0),
+    m_filter(0)
 {
     init(config);
 }
     
 RedLightDetector::RedLightDetector(Camera* camera) :
-    cam(camera)    
+    cam(camera),
+    m_filter(0)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -45,15 +51,69 @@ RedLightDetector::RedLightDetector(Camera* camera) :
 void RedLightDetector::init(core::ConfigNode config)
 {
     // Detection variables
-    m_initialMinRedPixels = config["intialMinPixels"].asInt(400);
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
+    propSet->addProperty(config, false, "initialMinPixels",
+        "Red pixel count required for blob to a buoy",
+        400, &m_initialMinRedPixels);
     minRedPixels = m_initialMinRedPixels;
+
+    propSet->addProperty(config, false, "foundMinPixelScale",
+        "Scale value for the buoy pixel count when its found",
+        0.85, &m_foundMinPixelScale);
     
-    m_foundMinPixelScale = config["lostMinPixelScale"].asDouble(0.85);
-    m_lostMinPixelScale = config["foundMinPixelScale"].asDouble(0.75);
-    m_almostHitPercentage = config["almostHitPercentage"].asDouble(0.2);
-    m_topRemovePercentage = config["topRemovePercentage"].asDouble(0);
-    m_redPercentage = config["redPercentage"].asDouble(40);
-    m_redIntensity = config["redIntensity"].asInt(200);
+    propSet->addProperty(config, false, "lostMinPixelScale",
+        "Scale value for the buoy pixel count before its found",
+        0.75, &m_lostMinPixelScale);
+
+    propSet->addProperty(config, false, "almostHitPercentage",
+        "% of visible screen at which point the ball is considered \"hit\"",
+        0.2, &m_almostHitPercentage);
+
+    propSet->addProperty(config, false, "topRemovePercentage",
+        "% of the screen from the top to be blacked out",
+        0.0, &m_topRemovePercentage);
+
+    propSet->addProperty(config, false, "bottomRemovePercentage",
+        "% of the screen from the bottom to be blacked out",
+        0.0, &m_bottomRemovePercentage);
+
+    propSet->addProperty(config, false, "leftRemovePercentage",
+        "% of the screen from the left to be blacked out",
+        0.0, &m_leftRemovePercentage);
+
+    propSet->addProperty(config, false, "rightRemovePercentage",
+        "% of the screen from the right to be blacked out",
+        0.0, &m_rightRemovePercentage);
+    
+    propSet->addProperty(config, false, "redPercentage",
+        "Minimum % of total color in the pixel which must be red",
+        40.0, &m_redPercentage);
+
+    propSet->addProperty(config, false, "redIntensity",
+        "Minimum absolute intensity of the red pixel value",
+        200, &m_redIntensity);
+
+    propSet->addProperty(config, false, "maxAspectRatio",
+        "Max aspect ratio of the blob",
+        2.0, &m_maxAspectRatio);
+
+    // Color filter
+    propSet->addProperty(config, false, "useLUVFilter",
+        "Use LUV based color filter",  false, &m_useLUVFilter);
+
+    m_filter = new ColorFilter(0, 255, 0, 255, 0, 255);
+    m_filter->addPropertiesToSet(propSet, &config,
+                                 "L", "L*",
+                                 "U", "Blue Chrominance",
+                                 "V", "Red Chrominance",
+                                 0, 255,  // L defaults // 180,255
+                                 0, 200,  // U defaults // 76, 245
+                                 200, 255); // V defaults // 200,255
+
+    // Make sure the configuration is valid
+    propSet->verifyConfig(config, true);
     
     // State machine variables 
     found=false;
@@ -67,10 +127,10 @@ void RedLightDetector::init(core::ConfigNode config)
 
     // Working images
     frame = new ram::vision::OpenCVImage(640,480);
-    image=cvCreateImage(cvSize(480,640),8,3);//480 by 640 if we put the camera on sideways again...
+    image=cvCreateImage(cvSize(640,480),8,3);//480 by 640 if we put the camera on sideways again...
     raw=cvCreateImage(cvGetSize(image),8,3);
     flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
-    saveFrame=cvCreateImage(cvSize(640,480),8,3);    
+    saveFrame=cvCreateImage(cvSize(640,480),8,3);
 }
     
 RedLightDetector::~RedLightDetector()
@@ -92,6 +152,21 @@ double RedLightDetector::getY()
     return m_redLightCenterY;
 }
 
+void RedLightDetector::setTopRemovePercentage(double percent)
+{
+    m_topRemovePercentage = percent;
+}
+
+void RedLightDetector::setBottomRemovePercentage(double percent)
+{
+    m_bottomRemovePercentage = percent;
+}
+
+void RedLightDetector::setUseLUVFilter(bool value)
+{
+    m_useLUVFilter = value;
+}
+    
 void RedLightDetector::show(char* window)
 {
     //Chris:  If you want to see an image other than the raw image with a box drawn if light found
@@ -116,26 +191,23 @@ void RedLightDetector::update()
     
 void RedLightDetector::processImage(Image* input, Image* output)
 {
-    IplImage* sideways =(IplImage*)(*input);
-
     // Resize images if needed
-    if ((image->width != (int)input->getHeight()) &&
-        (image->height != (int)input->getWidth()))
+    if ((image->width != (int)input->getWidth()) &&
+        (image->height != (int)input->getHeight()))
     {
         cvReleaseImage(&image);
-        image = cvCreateImage(cvSize(input->getHeight(), input->getWidth()), 8, 3);
+        image = cvCreateImage(cvSize(input->getWidth(),
+                                     input->getHeight()), 8, 3);
         cvReleaseImage(&raw);
         raw=cvCreateImage(cvGetSize(image),8,3);
         cvReleaseImage(&flashFrame);
         flashFrame=cvCreateImage(cvGetSize(image), 8, 3);
     }
-    
-    rotate90Deg(sideways,image);//  Don't do this unless we put the cameras on sideways again...
-	//	image=(IplImage*)(*frame);
-    cvCopyImage(image,raw);//Now both are rotated 90 degrees
-    cvCopyImage(image, flashFrame);
 
-    // Remove top chunck if desired
+    cvCopyImage(input->asIplImage(), image);
+    cvCopyImage(image, flashFrame);
+    
+    // Remove top chunk if desired
     if (m_topRemovePercentage != 0)
     {
         int linesToRemove = (int)(m_topRemovePercentage * image->height);
@@ -143,21 +215,110 @@ void RedLightDetector::processImage(Image* input, Image* output)
         memset(image->imageData, 0, bytesToBlack);
         memset(flashFrame->imageData, 0, bytesToBlack);
     }
-
-    // Process Image
-    to_ratios(image);
-    CvPoint boundUR;
-    CvPoint boundLL;
-    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
     
-    int redPixelCount = histogram(flashFrame, &lightCenter.x, &lightCenter.y,
-                                  &boundUR.x, &boundUR.y,
-                                  &boundLL.x, &boundLL.y);
+
+    if (m_bottomRemovePercentage != 0)
+    {
+//        printf("Removing \n");
+        int linesToRemove = (int)(m_bottomRemovePercentage * image->height);
+        size_t bytesToBlack = linesToRemove * image->width * 3;
+        memset(&(image->imageData[image->width * image->height * 3 - bytesToBlack]), 0, bytesToBlack);
+        memset(&(flashFrame->imageData[flashFrame->width * flashFrame->height * 3 - bytesToBlack]), 0, bytesToBlack);
+    }
+
+    if (m_rightRemovePercentage != 0)
+    {
+        size_t lineSize = image->width * 3;
+        size_t bytesToBlack = (int)(m_rightRemovePercentage * lineSize);;
+        for (int i = 0; i < image->height; ++i)
+        {
+            size_t offset = i * lineSize - bytesToBlack;
+            memset(image->imageData + offset, 0, bytesToBlack);
+            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+        }
+    }
+
+    if (m_leftRemovePercentage != 0)
+    {
+        size_t lineSize = image->width * 3;
+        size_t bytesToBlack = (int)(m_leftRemovePercentage * lineSize);;
+        for (int i = 0; i < image->height; ++i)
+        {
+            size_t offset = i * lineSize;
+            memset(image->imageData + offset, 0, bytesToBlack);
+            memset(flashFrame->imageData + offset, 0, bytesToBlack);
+        }
+    }
+
+    
+    // Process Image
+    CvPoint boundUR = {0};
+    CvPoint boundLL = {0};
+    boundUR.x = 0;
+    boundUR.y = 0;
+    boundLL.x = 0;
+    boundLL.y = 0;
+
+    if (m_useLUVFilter)
+        filterForRedNew(flashFrame);
+    else
+        filterForRedOld(image, flashFrame);
+
+    
+    // Find the red blobs
+    m_blobDetector.setMinimumBlobSize(minRedPixels);
+    OpenCVImage temp(flashFrame, false);
+    m_blobDetector.processImage(&temp);
+    
+    // See if we have any
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+    int redPixelCount = 0;
 
     // Determine if the light has been found or lost
     double lightPixelRadius = 0;
-    
-    if (redPixelCount < minRedPixels)
+
+    if (blobs.size() > 0)
+    {
+        BlobDetector::Blob redBlob(0, 0, 0, 0, 0, 0, 0);
+
+        // Attempt to find a valid blob
+        if (processBlobs(blobs, redBlob))
+        {
+            // Record info
+            //BlobDetector::Blob redBlob(blobs[0]);
+            lightCenter.x = redBlob.getCenterX();
+            lightCenter.y = redBlob.getCenterY();
+            boundUR.x = redBlob.getMaxX();
+            boundUR.y = redBlob.getMaxY();
+            boundLL.x = redBlob.getMinX();
+            boundLL.y = redBlob.getMinY();
+            redPixelCount = redBlob.getSize();
+
+
+            lightPixelRadius = sqrt((double)redPixelCount/M_PI);
+            minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
+        
+            found=true; //completely ignoring the state machine for the time being.
+//                 cout<<"FOUND RED LIGHT "<<endl;
+            // Transform to the AI's coordinates then publish the event
+            Detector::imageToAICoordinates(input, lightCenter.x, lightCenter.y,
+                                           m_redLightCenterX, m_redLightCenterY);
+            publishFoundEvent(lightPixelRadius);
+
+            // Tell the watcher we are really freaking close to the light
+            int pixelSize = (int)(input->getHeight() * input->getWidth());
+            pixelSize = (int)(pixelSize * (1 - m_topRemovePercentage -
+                                           m_bottomRemovePercentage));
+
+            int pixelThreshold = (int)(pixelSize * m_almostHitPercentage);
+            if (redPixelCount > pixelThreshold)
+            {
+                publish(EventType::LIGHT_ALMOST_HIT,
+                        core::EventPtr(new core::Event()));
+            }
+        }
+    }
+    else
     {
         // Just lost the light so issue a lost event
         if (found)
@@ -168,63 +329,29 @@ void RedLightDetector::processImage(Image* input, Image* output)
             minRedPixels = (int)(minRedPixels * m_lostMinPixelScale);
         else
             minRedPixels = m_initialMinRedPixels;
-    }	
-    else
-    {
-        // Determine if we have actual found the light
-        lightPixelRadius = sqrt((double)redPixelCount/M_PI);
-        
-        minRedPixels=(int)(redPixelCount * m_foundMinPixelScale);
-        
-        found=true; //completely ignoring the state machine for the time being.
-//	        	        cout<<"FOUND RED LIGHT "<<endl;
-
     }
 
     // Do all the needed work if the light is found
-    if (found)
-    {
-        // Shift origin to the center
-        m_redLightCenterX = -1 * ((image->width / 2) - lightCenter.x);
-        m_redLightCenterY = (image->height / 2) - lightCenter.y;
-    
-        // Normalize (-1 to 1)
-        m_redLightCenterX = m_redLightCenterX / ((double)(image->width)) * 2.0;
-        m_redLightCenterY = m_redLightCenterY / ((double)(image->height)) * 2.0;
-
-        // Account for the aspect ratio difference
-        // 640/480
-        m_redLightCenterX *= (double)image->height / image->width;
-
-        publishFoundEvent(lightPixelRadius);
-        
-        // Tell the watcher we are really freaking close to the light
-        int pixelThreshold = (int)(input->getHeight() * input->getWidth() *
-                                   m_almostHitPercentage);
-        if (redPixelCount > pixelThreshold)
-        {
-            publish(EventType::LIGHT_ALMOST_HIT,
-                    core::EventPtr(new core::Event()));
-        }
-    }
 
     
 /*    if (found)
-    {
-        std::cout << 1 <<" "<< m_redLightCenterX << " "
-                  << m_redLightCenterY << " " << redPixelCount
-                  << std::endl;
-    }
-    else
-    {
-        std::cout << "0 0 0 0" << std::endl;
-        }*/
+      {
+      std::cout << 1 <<" "<< m_redLightCenterX << " "
+      << m_redLightCenterY << " " << redPixelCount
+      << std::endl;
+      }
+      else
+      {
+      std::cout << "0 0 0 0" << std::endl;
+      }*/
 
     if (output)
     {
+        cvCopyImage(flashFrame, raw);            
         // Only draw debug info if we found the light
         if (found)
         {
+//            cvCopyImage(image, raw);
             CvPoint tl,tr,bl,br;
             tl.x = bl.x = std::max(lightCenter.x-4,0);
             tr.x = br.x = std::min(lightCenter.x+4,raw->width-1);
@@ -253,6 +380,21 @@ void RedLightDetector::processImage(Image* input, Image* output)
     }
 }
 
+
+void RedLightDetector::filterForRedOld(IplImage* image, IplImage* flashFrame)
+{
+    to_ratios(image);
+    redMask(image, flashFrame, (int)m_redPercentage, m_redIntensity);
+}
+
+void RedLightDetector::filterForRedNew(IplImage* image)
+{
+    cvCvtColor(image, image, CV_BGR2Luv);
+    Image* tmpImage = new OpenCVImage(image, false);
+    m_filter->filterImage(tmpImage);
+    delete tmpImage;
+}
+    
 void RedLightDetector::publishFoundEvent(double lightPixelRadius)
 {
     if (found)
@@ -263,18 +405,36 @@ void RedLightDetector::publishFoundEvent(double lightPixelRadius)
         event->y = m_redLightCenterY;
         event->azimuth = math::Degree(
             (78.0 / 2) * event->x * -1.0 *
-            (double)flashFrame->width/flashFrame->height);
+            (double)flashFrame->height/flashFrame->width);
         event->elevation = math::Degree((105.0 / 2) * event->y * 1);
         
         // Compute range (assume a sphere)
         double lightRadius = 0.25; // feet
-        event->range = (lightRadius * image->width) /
+        event->range = (lightRadius * image->height) /
             (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
         
         publish(EventType::LIGHT_FOUND, event);
     }
 }
-        
+    
+bool RedLightDetector::processBlobs(const BlobDetector::BlobList& blobs,
+                                    BlobDetector::Blob& outBlob)
+{
+    //Assumed sorted biggest to smallest by BlobDetector.
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
+    {
+        // Determine if we have actual found the light
+        if (blob.getAspectRatio() < m_maxAspectRatio)
+        {
+            // Found our blob record and leave
+            outBlob = blob;
+            return true;
+        }
+    }
+    
+    return false;
+}
+    
     
 } // namespace vision
 } // namespace ram

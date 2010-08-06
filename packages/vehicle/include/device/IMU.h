@@ -12,7 +12,6 @@
 
 // STD Includes
 #include <string>
-#include <fstream>
 
 // Project Includes
 #include "vehicle/include/device/Device.h"
@@ -37,7 +36,7 @@ namespace device {
 
 class IMU;
 typedef boost::shared_ptr<IMU> IMUPtr;
-    
+
 const static int FILTER_SIZE = 10;
 
 typedef RawIMUData FilteredIMUData;
@@ -58,6 +57,8 @@ public:
     
     virtual math::Vector3 getLinearAcceleration();
 
+    virtual math::Vector3 getMagnetometer();
+    
     virtual math::Vector3 getAngularRate();
 
     virtual math::Quaternion getOrientation();
@@ -72,6 +73,21 @@ public:
     /** This is called at the desired interval to read data from the IMU */
     virtual void update(double timestep);
 
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
     
     virtual void background(int interval) {
         Updatable::background(interval);
@@ -85,16 +101,31 @@ public:
     };
     
 private:
-    void rotateAndFilterData(RawIMUData* newState);
+    void rotateAndFilterData(const RawIMUData* newState);
     
     static void quaternionFromIMU(double mag[3], double accel[3],
                                   double* quaternion);
     
+    static void quaternionFromRate(double* quaternionOld,
+				   double angRate[3],
+				   double deltaT,
+				   double* quaternionNew);
+
+    math::Quaternion computeQuaternion(math::Vector3 mag, 
+					      math::Vector3 accel,
+					      math::Vector3 angRate,
+					      double deltaT,
+					      math::Quaternion quaternionOld);
+    
+
     /** Name of the serial device file */
     std::string m_devfile;
     
     /** File descriptor for the serial device file once open */
     int m_serialFD;
+
+    /** IMU number for the log file */
+    int m_imuNum;
 
     /** Rotates data from the IMU to the Vehicle frame */
     double m_IMUToVehicleFrame[3][3];
@@ -103,6 +134,17 @@ private:
     double m_magXBias;
     double m_magYBias;
     double m_magZBias;
+
+    /** Bias based on flaws in the gyro */
+    double m_gyroXBias;
+    double m_gyroYBias;
+    double m_gyroZBias;
+    
+    /** Magnetic Corruption Threshold based on experimental vehicle data **/
+    double m_magCorruptThresh;
+
+    /** Nominal value of magnetic vector length obtained experimentally **/
+    double m_magNominalLength;
     
     /** Protects acces to public state */
     core::ReadWriteMutex m_orientationMutex;
@@ -127,9 +169,6 @@ private:
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagX; 
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagY;
     core::AveragingFilter<double, FILTER_SIZE> m_filteredMagZ; 
-    
-    /** Protects access to derived state */
-    std::ofstream m_logfile;
 };
 
     

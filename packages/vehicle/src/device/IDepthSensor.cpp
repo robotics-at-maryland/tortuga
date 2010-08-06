@@ -10,12 +10,16 @@
 // Project Includes
 #include "vehicle/include/device/IDepthSensor.h"
 
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, RAW_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::vehicle::device::IDepthSensor, INIT);
+
 namespace ram {
 namespace vehicle {
 namespace device {
 
-IDepthSensor::IDepthSensor(core::EventHubPtr eventHub) :
-    IDevice(eventHub)
+IDepthSensor::IDepthSensor(core::EventHubPtr eventHub, std::string name) :
+    IDevice(eventHub, name)
 {
 }
 

@@ -28,10 +28,11 @@ class TestIController(unittest.TestCase):
         cfg = core.ConfigNode.fromString(str(cfg))
         obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
-        # Make sure the casting works and is needed
-        #self.assert_(not hasattr(obj,'setSpeed'))
-        #controller = ext.control.IController.castTo(obj)
-        #self.assert_(hasattr(controller,'setSpeed'))
+        # Make sure we have the right methods on the controller object
+        controller = obj
+        self.assert_(hasattr(controller,'setSpeed'))
+        self.assert_(hasattr(controller,'yawVehicle'))
+        self.assert_(hasattr(controller,'setDepth'))
         
 
 if __name__ == '__main__':

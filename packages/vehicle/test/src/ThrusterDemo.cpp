@@ -21,7 +21,6 @@
 // Project Includes
 #include "math/include/Vector3.h"
 #include "vehicle/include/Vehicle.h"
-#include "vehicle/include/device/Thruster.h"
 #include "core/include/ConfigNode.h"
 
 using namespace std;
@@ -78,9 +77,11 @@ int main(int argc, char** argv)
     core::ConfigNode modules(root["Subsystems"]);
 
     // Create vehicle and devices
+    modules["Vehicle"].set("name", "Vehicle");
     core::ConfigNode veh_cfg(modules["Vehicle"]);
     vehicle::Vehicle vehicle(veh_cfg);
     math::Vector3 force;
+    vehicle.background(25);
 
     // Apply a forward force
     force = math::Vector3(FORCE, 0, 0);
@@ -158,7 +159,7 @@ void testForce(vehicle::Vehicle* vehicle, math::Vector3 force,
                math::Vector3 torque)
 {
     vehicle->applyForcesAndTorques(force, torque);
-    vehicle->update(0);
+    //vehicle->update(0);
     quitSleep(vehicle, APPLY_SLEEP);
 }
 
@@ -166,7 +167,7 @@ void stopThrusters(vehicle::Vehicle* vehicle)
 {
     std::cout << "Stoping thrusters" << std::endl;
     vehicle->applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
-    vehicle->update(0);
+    //vehicle->update(0);
     quitSleep(vehicle, POST_CMD_SLEEP);
     std::cout << "Thrusters stopped" << std::endl;
 }

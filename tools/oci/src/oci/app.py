@@ -44,7 +44,7 @@ class Application(wx.App):
         self._configPath = configPath
         
         # Now call parent class
-        wx.App.__init__(self)
+        wx.App.__init__(self, 0)
     
     
     def OnInit(self):
@@ -53,6 +53,7 @@ class Application(wx.App):
         self._lastTime = 0.0
         self._updateInterval = 0.0
         self._heartBeat = 0
+        self._numSubsystems = -1
 
         # Create config file
         config = {}
@@ -73,10 +74,12 @@ class Application(wx.App):
 
         # Create the Main Frame
         guiCfg = config.get('GUI', {})
-        frame = oci.frame.MainFrame(guiCfg, subsystems)
+        self._numSubsystems = guiCfg.get('numSubsystems', -1)
+        self._frame = oci.frame.MainFrame(guiCfg, subsystems)
                                       
-        frame.Show(True)
-        self.SetTopWindow(frame)
+        self._frame.Show(True)
+        self._frame.Bind(wx.EVT_CLOSE, self._onClose)
+        self.SetTopWindow(self._frame)
         
         # Setup Update timer and start timer loop
         self.timer = wx.Timer()
@@ -97,6 +100,13 @@ class Application(wx.App):
         del self._app
         
         return 0
+
+    def _onClose(self, event):
+        """
+        Closes the timer when the main application closes
+        """
+        self.timer.Stop()
+        event.Skip()
         
     def _getTime(self):
         """
@@ -129,13 +139,25 @@ class Application(wx.App):
         names = self._app.getSubsystemNames()
         subsystemIter = (self._app.getSubsystem(names[i]) for i in 
                          xrange(0, len(names)) )
+
+        updated = 0
         for subsystem in subsystemIter:
             if not subsystem.backgrounded():
+                updated += 1
                 subsystem.update(timeSinceLastIteration)
-        
         self._lastTime = currentTime
+
+        # Check if the number of updated subsystems matches the expected
+        if self._numSubsystems > -1 and (updated != self._numSubsystems):
+            # Shit hit the fan, close the application
+            self._frame.Close(True)
+            errorMsg = "ERROR: Wrong number of subsystems updating." \
+                       " Expected %d, found %d." % \
+                       (self._numSubsystems, updated)
+            #print errorMsg 
+            raise Exception(errorMsg)
         
-        # If we have run over into the next intervale, just wait an entire 
+        # If we have run over into the next interval, just wait an entire 
         # interval
         updateTime = self._updateInterval - (self._getTime() - currentTime)
         if updateTime < 0:

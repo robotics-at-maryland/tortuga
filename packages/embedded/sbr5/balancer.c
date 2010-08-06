@@ -1,3 +1,8 @@
+// #define BBR2
+#define BBR3
+
+
+
 #include <p30fxxxx.h>
 #include <string.h>
 #include "buscodes.h"
@@ -17,6 +22,12 @@ _FWDT ( WDT_OFF );
 #define TRIS_OUT 0
 #define TRIS_IN  1
 #define byte unsigned char
+
+/* I Originally had plans to have BBR2 and BBR3 have different
+ * numbers of batteries, but then I realized that both needed
+ * to have 6 in order to have the same number of packets
+ */
+#define BATT_COUNT 6
 
 /*
  * Bus = D1 D0 E5-E0
@@ -40,6 +51,8 @@ _FWDT ( WDT_OFF );
 #define RW_WRITE    1
 
 
+
+
 /* Level specification for battery inputs */
 #define BATT_ON     1
 
@@ -59,19 +72,41 @@ _FWDT ( WDT_OFF );
 #define IN_BATT5    _RG12
 #define TRIS_BATT5  _TRISG12
 
-/* We know this one is active low */
-#define IN_WTRSEN   _RB15
-#define TRIS_WTRSEN _TRISB15
-#define WATER_CN_BIT  (CNEN1bits.CN12IE)
 
+#ifdef BBR3
+    /* Rev 3 only */
+    #define IN_BATT6    _RG1
+    #define TRIS_BATT6  _TRISG1
+#endif
+
+#ifdef BBR2
+    /* We know this one is active low */
+    #define IN_WTRSEN   _RB15
+    #define TRIS_WTRSEN _TRISB15
+    #define WATER_CN_BIT  (CNEN1bits.CN12IE)
+#endif
+
+#ifdef BBR3
+    /* We know this one is active low */
+    #define IN_WTRSEN   _RB2
+    #define TRIS_WTRSEN _TRISB2
+    #define WATER_CN_BIT  (CNEN1bits.CN4IE)
+#endif
 
 /* Power kill output level specification */
 #define PWRKILL_ON  0
 
-/* Power kill pin assignment */
-#define LAT_PWRKILL _LATB14
-#define TRIS_PWRKILL _TRISB14
+#ifdef BBR2
+    /* Power kill pin assignment */
+    #define LAT_PWRKILL _LATB14
+    #define TRIS_PWRKILL _TRISB14
+#endif
 
+#ifdef BBR3
+    /* Power kill pin assignment */
+    #define LAT_PWRKILL _LATD14
+    #define TRIS_PWRKILL _TRISD14
+#endif
 
 
 /* Level specification for battery control outputs */
@@ -91,9 +126,19 @@ _FWDT ( WDT_OFF );
 #define LAT_BATT4_CTL   _LATC1
 #define TRIS_BATT4_CTL  _TRISC1
 
-#define LAT_BATT5_CTL   _LATG13
-#define TRIS_BATT5_CTL  _TRISG13
+#ifdef BBR3
+    #define LAT_BATT5_CTL   _LATG13
+    #define TRIS_BATT5_CTL  _TRISG13
 
+    #define LAT_BATT6_CTL   _LATG0
+    #define TRIS_BATT6_CTL  _TRISG0
+#else
+    #define LAT_BATT5_CTL   _LATG0
+    #define TRIS_BATT5_CTL  _TRISG0
+
+    #define LAT_BATT6_CTL   _LATG13
+    #define TRIS_BATT6_CTL  _TRISG13
+#endif
 
 /* LED level specification */
 #define LED_ON          0
@@ -102,16 +147,27 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_STA     _LATF7
 #define TRIS_LED_STA    _TRISF7
 
-#define LAT_LED_ERR     _LATF8
-#define TRIS_LED_ERR    _TRISF8
+#define LAT_LED_BATTLOW     _LATF8
+#define TRIS_LED_BATTLOW    _TRISF8
 
 
 /* ADC Inputs */
-#define ADC_B1V     0x0B
-#define ADC_B2V     0x09
-#define ADC_B3V     0x07
-#define ADC_B4V     0x03
-#define ADC_B5V     0x05
+
+#ifdef BBR3
+    #define ADC_B1V     0x0B
+    #define ADC_B2V     0x09
+    #define ADC_B3V     0x07
+    #define ADC_B4V     0x03
+    #define ADC_B5V     0x05
+    #define ADC_B6V     0x0F
+#else
+    #define ADC_B1V     0x0B
+    #define ADC_B2V     0x09
+    #define ADC_B3V     0x07
+    #define ADC_B4V     0x03
+    #define ADC_B5V     0x0F /* This is a dummy (There is not 6 battery slots on BBR2) */
+    #define ADC_B6V     0x05
+#endif
 
 #define ADC_26V     0x0D
 
@@ -119,12 +175,17 @@ _FWDT ( WDT_OFF );
 #define ADC_B2I     0x0A
 #define ADC_B3I     0x08
 #define ADC_B4I     0x06
-#define ADC_B5I     0x04
 
+#ifdef BBR3
+    #define ADC_B5I     0x04
+    #define ADC_B6I     0x0E
+#else
+    #define ADC_B5I     0x0E /* Also a dummy (no battery here) */
+    #define ADC_B6I     0x04
+#endif
 
-
-unsigned int vBatt[6];
-unsigned int iBatt[5];
+unsigned int vBatt[7];
+unsigned int iBatt[6];
 
 /* Transmit buffer */
 #define TXBUF_LEN 60
@@ -246,12 +307,15 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(IN_BATT5 == BATT_ON) txBuf[1] |= 0x01;
-                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x02;
+                    if(IN_BATT6 == BATT_ON) txBuf[1] |= 0x20;
+#ifdef BBR3
+                    if(IN_BATT5 == BATT_ON) txBuf[1] |= 0x10;
+#endif
+                    if(IN_BATT4 == BATT_ON) txBuf[1] |= 0x08;
                     if(IN_BATT3 == BATT_ON) txBuf[1] |= 0x04;
-                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x08;
-                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x10;
-                    if(IN_WTRSEN == 0) txBuf[1] |= 0x20;
+                    if(IN_BATT2 == BATT_ON) txBuf[1] |= 0x02;
+                    if(IN_BATT1 == BATT_ON) txBuf[1] |= 0x01;
+                    if(IN_WTRSEN == 0) txBuf[1] |= 0x80;
 
 //                     enableBusInterrupt();
                     break;
@@ -268,22 +332,37 @@ void processData(byte data)
                 case BUS_CMD_BATT2_OFF: {LAT_BATT2_CTL = ~BATT_ENABLE; break;}
                 case BUS_CMD_BATT3_OFF: {LAT_BATT3_CTL = ~BATT_ENABLE; break;}
                 case BUS_CMD_BATT4_OFF: {LAT_BATT4_CTL = ~BATT_ENABLE; break;}
-                case BUS_CMD_BATT5_OFF: {LAT_BATT5_CTL = ~BATT_ENABLE; break;}
+                case BUS_CMD_BATT5_OFF: {
+#ifdef BBR3
+                                          LAT_BATT5_CTL = ~BATT_ENABLE;
+#endif
+                                          break;
+                                        }
+                case BUS_CMD_BATT6_OFF: {LAT_BATT6_CTL = ~BATT_ENABLE; break;}
 
                 case BUS_CMD_BATT1_ON: {LAT_BATT1_CTL = BATT_ENABLE; break;}
                 case BUS_CMD_BATT2_ON: {LAT_BATT2_CTL = BATT_ENABLE; break;}
                 case BUS_CMD_BATT3_ON: {LAT_BATT3_CTL = BATT_ENABLE; break;}
                 case BUS_CMD_BATT4_ON: {LAT_BATT4_CTL = BATT_ENABLE; break;}
-                case BUS_CMD_BATT5_ON: {LAT_BATT5_CTL = BATT_ENABLE; break;}
+                case BUS_CMD_BATT5_ON: {
+#ifdef BBR3
+                                         LAT_BATT5_CTL = BATT_ENABLE;
+#endif
+                                         break;
+                                       }
+                case BUS_CMD_BATT6_ON: {LAT_BATT6_CTL = BATT_ENABLE; break;}
 
                 case BUS_CMD_EXTPOWER:
                 {
-                    LAT_BATT5_CTL = BATT_ENABLE;
+                    LAT_BATT6_CTL = BATT_ENABLE;
+#ifdef BBR3
+                    LAT_BATT5_CTL = ~BATT_ENABLE;
+#endif
                     LAT_BATT1_CTL = ~BATT_ENABLE;
                     LAT_BATT2_CTL = ~BATT_ENABLE;
                     LAT_BATT3_CTL = ~BATT_ENABLE;
                     LAT_BATT4_CTL = ~BATT_ENABLE;
-                    break;
+                   break;
                 }
 
                 case BUS_CMD_INTPOWER:
@@ -292,7 +371,10 @@ void processData(byte data)
                     LAT_BATT2_CTL = BATT_ENABLE;
                     LAT_BATT3_CTL = BATT_ENABLE;
                     LAT_BATT4_CTL = BATT_ENABLE;
-                    LAT_BATT5_CTL = ~BATT_ENABLE;
+#ifdef BBR3
+                    LAT_BATT5_CTL = BATT_ENABLE;
+#endif
+                    LAT_BATT6_CTL = ~BATT_ENABLE;
                     break;
                 }
 
@@ -307,21 +389,24 @@ void processData(byte data)
                 {
                     txBuf[0] = 1;
                     txBuf[1] = 0;
-                    if(LAT_BATT5_CTL == BATT_ENABLE) txBuf[1] |= 0x01;
-                    if(LAT_BATT4_CTL == BATT_ENABLE) txBuf[1] |= 0x02;
+                    if(LAT_BATT6_CTL == BATT_ENABLE) txBuf[1] |= 0x20;
+#ifdef BBR3
+                    if(LAT_BATT5_CTL == BATT_ENABLE) txBuf[1] |= 0x10;
+#endif
+                    if(LAT_BATT4_CTL == BATT_ENABLE) txBuf[1] |= 0x08;
                     if(LAT_BATT3_CTL == BATT_ENABLE) txBuf[1] |= 0x04;
-                    if(LAT_BATT2_CTL == BATT_ENABLE) txBuf[1] |= 0x08;
-                    if(LAT_BATT1_CTL == BATT_ENABLE) txBuf[1] |= 0x10;
+                    if(LAT_BATT2_CTL == BATT_ENABLE) txBuf[1] |= 0x02;
+                    if(LAT_BATT1_CTL == BATT_ENABLE) txBuf[1] |= 0x01;
                     break;
                 }
 
                 case BUS_CMD_BATTVOLTAGE:
                 {
-                    txBuf[0] = 12;
+                    txBuf[0] = 14;
                     byte i;
 
                     /* Battery voltages. Big-endian. */
-                    for(i=0; i<6; i++)
+                    for(i=0; i < 7; i++)
                     {
                         unsigned int t = vBatt[i];
                         txBuf[2*i+1] = t >> 8;
@@ -332,11 +417,11 @@ void processData(byte data)
 
                 case BUS_CMD_BATTCURRENT:
                 {
-                    txBuf[0] = 10;
+                    txBuf[0] = 12;
                     byte i;
 
                     /* Battery currents. Big-endian. */
-                    for(i=0; i<5; i++)
+                    for(i=0; i < BATT_COUNT; i++)
                     {
                         unsigned int t = iBatt[i];
                         txBuf[2*i+1] = t >> 8;
@@ -594,7 +679,6 @@ void _ISR _T2Interrupt(void)
 }
 
 
-
 /*
  * Initialize ADC for depth sensor. All this code really needs to be split up
  * into different files, each one different for each slave. But for now, write
@@ -603,7 +687,14 @@ void _ISR _T2Interrupt(void)
 void initADC()
 {
 
-    ADPCFG = 0x8000; // all PORTB = Digital; RB2 = analog
+#ifdef BBR2
+    ADPCFG = 0x8000;
+#endif
+
+#ifdef BBR3
+    ADPCFG = 0x0000;
+#endif
+
     ADCON1 = 0x0000; // SAMP bit = 0 ends sampling ...
     // and starts converting
     ADCHS = 0x0002; // Connect RB2/AN2 as CH0 input ..
@@ -668,16 +759,16 @@ unsigned int applyCalibration(unsigned int x, float a, float b)
 }
 
 
-const static byte iADCs[5]=
+const static byte iADCs[6]=
 {
-    ADC_B1I, ADC_B2I, ADC_B3I, ADC_B4I, ADC_B5I
+    ADC_B1I, ADC_B2I, ADC_B3I, ADC_B4I, ADC_B5I, ADC_B6I
 };
 
 
 #define IHISTORY_SIZE   32
 #define IHISTORY_LOG2   5
 
-unsigned int iADCVal[5][IHISTORY_SIZE];
+unsigned int iADCVal[6][IHISTORY_SIZE];
 
 unsigned int avgRow(byte r)
 {
@@ -687,6 +778,85 @@ unsigned int avgRow(byte r)
         t += iADCVal[r][i];
     return t >> IHISTORY_LOG2;
 }
+
+
+void initBattlowLight()
+{
+    PR3 = 100;              /* Period */
+    TMR3 = 0;               /* Reset timer */
+    IFS0bits.T3IF = 0;      /* Clear interrupt flag */
+    IEC0bits.T3IE = 1;      /* Enable interrupts */
+    T3CONbits.TCS = 0;      /* Use internal clock */
+    T3CONbits.TCKPS = 3;    /* 1:256 prescaler */
+    T3CONbits.TON = 1;      /* Start Timer3 */
+}
+
+byte battlowState = 0;  /* 0 = off, 1 = on */
+byte battlowEnabled = 1;
+
+int battlowOffTime()
+{
+    long vb = 0;
+#ifdef BBR2
+    byte nBatt = 0;
+    if(IN_BATT6 == BATT_ON) {vb += vBatt[5]; nBatt++;}
+    /* There should never be a BATT5 in BBR2, so skip it */
+    if(IN_BATT4 == BATT_ON) {vb += vBatt[3]; nBatt++;}
+    if(IN_BATT3 == BATT_ON) {vb += vBatt[2]; nBatt++;}
+    if(IN_BATT2 == BATT_ON) {vb += vBatt[1]; nBatt++;}
+    if(IN_BATT1 == BATT_ON) {vb += vBatt[0]; nBatt++;}
+
+    if(nBatt == 0)
+        vb = 0;
+    else
+        vb /= nBatt;
+#else
+    vb= vBatt[6]; /* We don't have to average anything!
+                     Just use the ADC measurement of the
+                     26V rail */
+#endif
+
+    vb -= 24500;
+    if(vb <= 0)
+        vb = 1;
+
+    vb *= 3;
+
+    if(vb > 9000)
+    {
+        battlowEnabled = 0;
+        return 50;
+    } else
+        battlowEnabled = 1;
+
+    return vb;
+}
+
+
+/* ISR for Timer3. Used for making the battery low indicator pretty */
+void _ISR _T3Interrupt(void)
+{
+    IFS0bits.T3IF = 0;      /* Clear interrupt flag */
+    LAT_LED_BATTLOW = ~LED_ON;
+
+    if(battlowState == 0) /* Light was off */
+    {
+        battlowState = 1;
+
+        if(battlowEnabled == 1)
+            LAT_LED_BATTLOW = LED_ON;
+
+        PR3 = 200;  /* Turn light on for X much */
+    } else
+    {
+        battlowState = 0;
+        LAT_LED_BATTLOW = ~LED_ON;
+        PR3 = battlowOffTime();  /* Turn light off for X much */
+    }
+}
+
+
+
 
 void main()
 {
@@ -699,20 +869,30 @@ void main()
     LAT_BATT2_CTL = BATT_ENABLE;
     LAT_BATT3_CTL = BATT_ENABLE;
     LAT_BATT4_CTL = BATT_ENABLE;
+#ifdef BBR2
+    LAT_BATT5_CTL = ~BATT_ENABLE;
+#else
     LAT_BATT5_CTL = BATT_ENABLE;
+#endif
+    LAT_BATT6_CTL = BATT_ENABLE;
 
     TRIS_BATT1_CTL = TRIS_OUT;
     TRIS_BATT2_CTL = TRIS_OUT;
     TRIS_BATT3_CTL = TRIS_OUT;
     TRIS_BATT4_CTL = TRIS_OUT;
+#ifdef BBR2
+    TRIS_BATT5_CTL = TRIS_IN;
+#else
     TRIS_BATT5_CTL = TRIS_OUT;
-
+#endif
+    TRIS_BATT6_CTL = TRIS_OUT;
 
     TRIS_BATT1 = TRIS_IN;
     TRIS_BATT2 = TRIS_IN;
     TRIS_BATT3 = TRIS_IN;
     TRIS_BATT4 = TRIS_IN;
     TRIS_BATT5 = TRIS_IN;
+    TRIS_BATT6 = TRIS_IN;
 
     TRIS_WTRSEN = TRIS_IN;
 
@@ -720,20 +900,22 @@ void main()
     TRIS_PWRKILL = TRIS_OUT;
 
     TRIS_LED_STA = TRIS_OUT;
-    TRIS_LED_ERR = TRIS_OUT;
+    TRIS_LED_BATTLOW = TRIS_OUT;
 
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = LED_ON;
+    LAT_LED_BATTLOW = LED_ON;
 
 
     initBus();
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_BATTLOW = ~LED_ON;
 
   //  while(1);
 
     initADC();
     initI2C();
+
+    initBattlowLight();
 
 #ifdef HAS_UART
     initInterruptUarts();
@@ -742,7 +924,7 @@ void main()
     for(l=0; l<50000; l++);
 
     LAT_LED_STA = LED_ON;
-    LAT_LED_ERR = ~LED_ON;
+    LAT_LED_BATTLOW = ~LED_ON;
 
     for(l=0; l<50000; l++);
 
@@ -779,19 +961,24 @@ void main()
             myTemperature = rx;
         }
 
-
-        static const byte vADCs[]={ADC_B1V, ADC_B2V, ADC_B3V, ADC_B4V, ADC_B5V, ADC_26V};
+        static const byte vADCs[]={ADC_B1V, ADC_B2V, ADC_B3V, ADC_B4V, ADC_B5V, ADC_B6V, ADC_26V};
 
         /* Measure battery voltages */
-        for(i=0; i<6; i++)
-        {
+        for(i=0; i < 7; i++) {
+#ifdef BBR2
+            /* There is no fifth battery in BBR2, so skip it */
+            if(i == 4) { vBatt[4]= 0; continue; }
+#endif
             setADC(vADCs[i]);
             vBatt[i] = applyCalibration(readADC(), CAL_V_A, CAL_V_B);
         }
 
         /* Maintain running averages of the I sensors */
-        for(i=0; i<5; i++)
-        {
+        for(i=0; i < BATT_COUNT; i++) {
+#ifdef BBR2
+            /* There is no fifth battery in BBR2, so skip it */
+            if(i == 4) { iADCVal[4][writeIndex] = 0; continue; }
+#endif
             setADC(iADCs[i]);
             iADCVal[i][writeIndex] = readADC();
         }
@@ -800,9 +987,13 @@ void main()
         if(writeIndex >= IHISTORY_SIZE)
             writeIndex = 0;
 
-
         /* Calculate running averages of the battery currents */
-         for(i=0; i<5; i++)
-             iBatt[i] = applyCalibration(avgRow(i), CAL_I12V_A, CAL_I12V_B);
+        for(i=0; i < BATT_COUNT; i++) {
+#ifdef BBR2
+            /* There is no fifth battery in BBR2, so skip it. */
+            if(i == 4) { iBatt[4] = 0; continue; }
+#endif
+            iBatt[i] = applyCalibration(avgRow(i), CAL_I12V_A, CAL_I12V_B);
+        }
     }
 }

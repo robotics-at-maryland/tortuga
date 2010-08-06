@@ -88,6 +88,35 @@ TEST_UTILITY(quatIMU, (Vector3 expVehicleMag, Vector3 expVehicleAccel,
     CHECK_ARRAY_CLOSE(expected.ptr(), result, 4, 0.0001);
 }
 
+TEST(quaternionFromRate){
+
+  //given an old quaternion value
+  double qOld[] = {0, 0, 0, 1};
+  //an angular rate
+  double w[] = {1, 2, 1};
+  //and a timestep
+  double deltaT = 1.2;
+  //find a new quaternion estimate
+  double qOut[4];
+  //it should look like this
+  double qExp[] = {0.3375, 0.6751, 0.3375, 0.5625};
+  //run the function
+  ram::vehicle::device::IMU::quaternionFromRate(qOld,w,deltaT,qOut);
+  //check if close, test case data from MATLAB using 4 sig figs
+  CHECK_ARRAY_CLOSE(qExp,qOut,4,0.001);
+
+
+  //another test case with different data
+  
+  double qOld2[] = {0.4082, 0.8165, 0.4082, 0.0000};
+  double w2[] = {-2, 3, -1};
+  double deltaT2 = 0.3;
+  double qOut2[4];
+  double qExp2[] = {0.0890, 0.6586, 0.7298, -0.1602};
+  ram::vehicle::device::IMU::quaternionFromRate(qOld2,w2,deltaT2,qOut2);
+  CHECK_ARRAY_CLOSE(qExp2,qOut2,4,0.001);
+
+}
 
 TEST_FIXTURE(IMU, quaternionFromIMU)
 {

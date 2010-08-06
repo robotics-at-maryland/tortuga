@@ -83,12 +83,27 @@ public:
     
     /** Map a key to a given value */
     virtual void set(std::string key, std::string str);
+
+    virtual void set(std::string key, int value);
     
     /** Open a file using the python Yaml parser */
     static ConfigNodeImpPtr fromYamlFile(std::string filename);
 
     virtual std::string toString();
+
+    /**
+     * Dumps the config file to disk.
+     *
+     * @param fileName File to dump data to
+     * @param silent A silent write will never crash even if the python
+     *               code fails for some reason. Default is false.
+     */
+    virtual void writeToFile(std::string fileName, bool silent);
 private:
+    /** Helper function used to make sure we have run the needed include
+        statements */
+    static void includeIfNeeded(boost::python::object pyObj);
+    
     boost::python::object m_pyobj;
 
     std::string m_debugPath;

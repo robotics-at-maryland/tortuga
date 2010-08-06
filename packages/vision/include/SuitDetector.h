@@ -12,7 +12,10 @@
 
 // Project Includes
 #include "vision/include/Common.h"
-#include "vision/include/Detector.h"
+#include "vision/include/SymbolDetector.h"
+#include "vision/include/BlobDetector.h"
+#include "vision/include/Symbol.h"
+
 #include "core/include/ConfigNode.h"
 
 // Must be included last
@@ -20,33 +23,64 @@
 
 namespace ram {
 namespace vision {
-		
-enum Suit {CLUB, SPADE, HEART, DIAMOND, UNKNOWN};
-    
-class RAM_EXPORT SuitDetector : public Detector
+   
+class RAM_EXPORT SuitDetector : public SymbolDetector
 {
   public:
-    Suit suit;
+    Symbol::SymbolType suit;
     SuitDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
     SuitDetector(Camera*);
     ~SuitDetector();
+
+    // SymbolDetector methods
+    virtual Symbol::SymbolType getSymbol();
+    virtual bool needSquareCropped() { return true; }
+
+    // Detector methods
     void processImage(Image* input, Image* output= 0);
+
+    // Other methods
     void update();
     IplImage* getAnalyzedImage();
-    double getX();
-    double getY();
-    Suit getSuit();
-	int edgeRun(int startx, int starty, IplImage* img);
-	
+    //Fills numBackups if numBackups!=null
+    int edgeRun(int startx, int starty, int endx, int endy, IplImage* img, int dir, int* numBackups = 0);
+    void doEdgeRunning(IplImage*);
+    bool makeSuitHistogram(IplImage*);
+	bool cropImage(IplImage*);
+    bool cyclicCompare(int[], int[], int[], int);
   private:
     Camera* cam;
+    IplImage* rightSize;
     IplImage* ratioImage;
     IplImage* analyzedImage;
+	IplImage* tempHoughImage;
     void init(core::ConfigNode config);
-    double suitX;
-    double suitY;
-    
+    BlobDetector blobDetector;
+    int findPointsOnEdges2(IplImage* img, int xPositions[], int yPositions[]);
+    int findPointsOnEdges(IplImage* img, int xPositions[], int yPositions[]);
+
+    int histoArr[128]; //twice scaledRedSuit's height.
+    static const int HISTOARRSIZE = 128;
+    static int HEARTMIN[]; 
+    static int HEARTMAX[]; 
+    static int HEARTSIZE;
+
+    static int SPADEMIN[]; 
+    static int SPADEMAX[]; 
+    static int SPADESIZE; 
+
+    static int CLUBMIN[];
+    static int CLUBMAX[];
+    static int CLUBSIZE;
+
+    static int DIAMONDMIN[];
+    static int DIAMONDMAX[];
+    static int DIAMONDSIZE;
+
+    static int SPLITMIN[];
+    static int SPLITMAX[];
+    static int SPLITSIZE;
 };
 	
 } // namespace vision

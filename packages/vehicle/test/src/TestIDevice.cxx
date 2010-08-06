@@ -15,28 +15,35 @@
 #include "vehicle/include/device/Common.h"
 
 // Test Classes
-class DeviceA : public ram::vehicle::device::IDevice
+class TestDevice : public ram::vehicle::device::IDevice
 {
 public:
-    DeviceA() :
+    TestDevice() :
         ram::vehicle::device::IDevice(ram::core::EventHubPtr()) {};
-    virtual std::string getName() { return "DeviceA"; }
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    };
     virtual void update(double) {}
     virtual void background(int) {}
     virtual void unbackground(bool) {}
     virtual bool backgrounded() { return false; }
 };
 
-class DeviceB : public ram::vehicle::device::IDevice
+class DeviceA : public TestDevice
 {
 public:
-    DeviceB() :
-        ram::vehicle::device::IDevice(ram::core::EventHubPtr()) {};
+    virtual std::string getName() { return "DeviceA"; }
+};
+
+class DeviceB : public TestDevice
+{
+public:
     virtual std::string getName() { return "DeviceB"; }
-    virtual void update(double) {}
-    virtual void background(int) {}
-    virtual void unbackground(bool) {}
-    virtual bool backgrounded() { return false; }
 };
     
 TEST(castTo)

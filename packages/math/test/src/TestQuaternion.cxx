@@ -16,6 +16,7 @@
 #include "math/include/Matrix3.h"
 #include "math/include/Math.h"
 #include "math/include/Helpers.h"
+#include "math/include/Vector3.h"
 
 using namespace ram::math;
 
@@ -76,6 +77,14 @@ TEST(getPitch)
     CHECK_CLOSE(0, quat.getYaw().valueDegrees(), 0.0001);
     CHECK_CLOSE(0, quat.getRoll().valueDegrees(), 0.0001);
     CHECK_CLOSE(53, quat.getPitch().valueDegrees(), 0.0001);
+
+    Quaternion quat2(Degree(180), Vector3::UNIT_Z);
+    Quaternion quat3 = quat * quat2;
+
+    CHECK_CLOSE(180, quat3.getYaw().valueDegrees(), 0.0001);
+    // TO DO: Fix me
+    //CHECK_CLOSE(0, quat3.getRoll().valueDegrees(), 0.0001);
+    CHECK_CLOSE(53, quat3.getPitch().valueDegrees(), 0.0001);
 }
 
 TEST(getYaw)
@@ -104,6 +113,8 @@ TEST(getRollPitchYaw)
 
 TEST(errorQuaternion)
 {
+  /*
+    //i suspect this test case is "backwards"
     Quaternion quatA(Quaternion::IDENTITY);
     Quaternion quatB(Degree(45), Vector3::UNIT_Y);
 
@@ -112,5 +123,110 @@ TEST(errorQuaternion)
     
     Quaternion result = quatA.errorQuaternion(quatB);
 
-    CHECK_CLOSE(expected, result, 0.0001);
+    CHECK_CLOSE(expected, result, 0.0001);*/
+
+    //simple test
+    Quaternion quatA1(0,0,0.2756,0.9613);
+    Quaternion quatB1(0,0,0,1);
+    Quaternion result1 = quatA1.errorQuaternion(quatB1);
+    Quaternion expected1(0,0,0.2756,0.9613);
+    CHECK_CLOSE(expected1,result1,0.0001);
+    
+
+    //more complicated test
+/*
+    Quaternion quatA2(-0.3320,0.6640,-0.6640,0.0890);
+    Quaternion quatB2(-0.7913,0,0.1583,0.5906);
+    Quaternion result2 = quatA2.errorQuaternion(quatB2);
+    Quaternion expected2(-0.0206,0.9702,0.1192,0.2102);
+    CHECK_CLOSE(expected2,result2,0.0001);
+
+    //same test as above but q_meas and q_des are not unit quaternions
+    
+    Quaternion quatA3(-0.9659,1.9319,-1.9319,0.2588);
+    Quaternion quatB3(-1.2941,0,0.2588,0.9659);
+    Quaternion result3 = quatA3.errorQuaternion(quatB3);
+    Quaternion expected3(-0.0206,0.9702,0.1192,0.2102);
+    CHECK_CLOSE(expected3,result3,0.0001);
+*/
+}
+
+
+TEST(quaternionDerivative)
+{
+	Quaternion q(0.243,0.243,0.243,0.9071);
+	Vector3 w(2,-4,-3);
+	Quaternion expected(1.0286,-1.2067,-2.0897,0.6075);
+	Quaternion result = q.derivative(w);
+	CHECK_CLOSE(expected,result,0.0002);
+
+	Quaternion q2(0,0,0.9659,0.2588);
+	Vector3 w2(0,0,3);
+	Quaternion expected2(0,0,0.3882,-1.4489);
+	Quaternion result2 = q2.derivative(w2);
+	CHECK_CLOSE(expected,result,0.0002);
+
+	Quaternion q3(-0.9659,-2.8978,0.9659,0.2588);
+	Vector3 w3(-2,-2,-3);
+	Quaternion expected3(5.0538,-2.6736,-2.3201,-2.4148);
+	Quaternion result3 = q3.derivative(w3);
+	CHECK_CLOSE(expected,result,0.0002);
+}
+
+TEST(ToRotationMatrix)
+{
+  //simple case
+  Quaternion q(0,0,0,1);
+  Matrix3 exp(1,0,0,0,1,0,0,0,1);
+  Matrix3 actual;
+  q.ToRotationMatrix(actual);
+  CHECK_CLOSE(exp,actual,0.0002);
+
+  //yawed case
+  Quaternion q2(0,0,0.9659,0.2588);
+  Matrix3 exp2(-0.866,0.5,0,-0.5,-0.866,0,0,0,1);
+  Matrix3 actual2;
+  q2.ToRotationMatrix(actual2);
+  CHECK_CLOSE(exp2.Transpose(),actual2,0.0002);
+  //CAUTION!  OGRE's default rotation matrix is the transpose of the rotation matrix you like to use!
+
+  //horribly confusing case
+  Quaternion q3(-0.332,0.664,-0.664,0.089);
+  Matrix3 exp3(-0.7637,-0.5591,0.3228,-0.3228,-0.1023,-0.9409,0.5591,-0.8228,-0.1023);
+  Matrix3 actual3;
+  q3.ToRotationMatrix(actual3);
+  CHECK_CLOSE(exp3.Transpose(),actual3,0.0002);
+}
+
+TEST(toQ)
+{
+  //create a result array that is too big
+  MatrixN big(5,5);
+  big.identity();
+  CHECK_EQUAL(big.getRows(),5);
+  CHECK_EQUAL(big.getCols(),5);
+
+  //test trivial case (result should be resized as well)
+  Quaternion q(0,0,0,1);
+  q.toQ(&big);
+  CHECK_EQUAL(big.getRows(),4);
+  CHECK_EQUAL(big.getCols(),3);
+  double expArray[] = {1,0,0,0,1,0,0,0,1,0,0,0};
+  MatrixN expMat(expArray,4,3);
+  CHECK_CLOSE(expMat,big,0.0005);
+  
+  //test yawed orientation case
+  Quaternion q2(0,0,0.9659,0.2588);
+  q2.toQ(&big);
+  double expArray2[]={0.2588, -0.9659, 0, 0.9659,0.2588,0,0,0,0.2588,0,0,-0.9659};
+  MatrixN expMat2(expArray2,4,3);
+  CHECK_CLOSE(expMat2,big,0.0005);
+  
+  //test terribly confusing orientation
+  Quaternion q3(-0.9659,1.9319,-1.9319,0.2588);
+  q3.toQ(&big);
+  double expArray3[]={0.2588,1.9319,1.9319,-1.9319,0.2588,0.9659,-1.9319,-0.9659,0.2588,0.9659,-1.9319,1.9319};
+  MatrixN expMat3(expArray3,4,3);
+  CHECK_CLOSE(expMat3,big,0.0005);
+
 }

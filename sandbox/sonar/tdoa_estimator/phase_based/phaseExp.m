@@ -26,6 +26,8 @@ function phaseExp(delayBetweenPlots,NoiseLevel,loopLength,freq,ksps,N,scale);
 % sets to evaluate, input frequency in kHz, sample frequency 
 % in ksps, samples in window, amplitude of input signal-for 
 % simulating different bit depths)
+%
+% phaseExp(.01,.1,80,20,500,100,10)
 
 clf;
 number_of_samples=N;

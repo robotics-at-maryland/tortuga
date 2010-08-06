@@ -112,6 +112,33 @@ void EventHub::publish(EventPtr event)
         event);
 }
 
+void EventHub::publish(Event::EventType etype, EventPtr event)
+{
+    event->type = etype;
+    event->sender = this;
+    publish(event);
+}
+  
+void EventHub::setPriority(IUpdatable::Priority)
+{
+}
+
+IUpdatable::Priority EventHub::getPriority()
+{
+    return IUpdatable::NORMAL_PRIORITY;
+}
+
+
+void EventHub::setAffinity(size_t)
+{
+}
+
+int EventHub::getAffinity()
+{
+    return -1;
+}
+
+    
 void EventHub::update(double)
 {
 }
@@ -126,7 +153,7 @@ void EventHub::unbackground(bool)
 
 bool EventHub::backgrounded()
 {
-    return false;
+    return true;
 }
     
 } // namespace core

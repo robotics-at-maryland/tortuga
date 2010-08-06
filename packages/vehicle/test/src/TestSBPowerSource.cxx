@@ -6,7 +6,7 @@
  * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/packages/vehicle/test/src/TestSBPowerSource.cxx
  */
-
+#include <iostream>
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
@@ -45,6 +45,20 @@ struct SBPowerSourceFixture
     ram::vehicle::device::IPowerSource* powerSource;
 };
 
+TEST_FIXTURE(SBPowerSourceFixture, initialization)
+{
+    sensorBoard->powerSourceEnables[3] = true;
+    sensorBoard->powerSourceUsed[3] = true;
+    
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 3 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK(powerSource->isEnabled());
+    CHECK(powerSource->inUse());
+    delete powerSource;
+}
+
 TEST_FIXTURE(SBPowerSourceFixture, getVoltage)
 {
     powerSource = new ram::vehicle::device::SBPowerSource(
@@ -57,8 +71,9 @@ TEST_FIXTURE(SBPowerSourceFixture, getVoltage)
     CHECK_EQUAL(0.0, powerSource->getVoltage());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(1, false, 12.5, 0);
+    sensorBoard->publishPowerSourceUpdate(1, false, false, 12.5, 0);
     CHECK_EQUAL(12.5, powerSource->getVoltage());
+    delete powerSource;
 }
 
 TEST_FIXTURE(SBPowerSourceFixture, getCurrent)
@@ -73,8 +88,9 @@ TEST_FIXTURE(SBPowerSourceFixture, getCurrent)
     CHECK_EQUAL(0.0, powerSource->getCurrent());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(2, false, 0, 18.5);
+    sensorBoard->publishPowerSourceUpdate(2, false, false, 0, 18.5);
     CHECK_EQUAL(18.5, powerSource->getCurrent());
+    delete powerSource;
 }
 
 TEST_FIXTURE(SBPowerSourceFixture, isEnabled)
@@ -83,14 +99,52 @@ TEST_FIXTURE(SBPowerSourceFixture, isEnabled)
         ram::core::ConfigNode::fromString("{ 'id' : 4 }"),
         ram::core::EventHubPtr(), ivehicle);
 
-    CHECK_EQUAL("Shore", powerSource->getName());
+    CHECK_EQUAL("Batt 5", powerSource->getName());
 
     // Check default
     CHECK_EQUAL(false, powerSource->isEnabled());
 
     // Publish event and check values
-    sensorBoard->publishPowerSourceUpdate(4, true, 0, 0);
+    sensorBoard->publishPowerSourceUpdate(4, true, false, 0, 0);
     CHECK_EQUAL(true, powerSource->isEnabled());
+    delete powerSource;
+}
+
+TEST_FIXTURE(SBPowerSourceFixture, used)
+{
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 2 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK_EQUAL("Batt 3", powerSource->getName());
+
+    // Check default
+    CHECK_EQUAL(false, powerSource->inUse());
+
+    // Publish event and check values
+    sensorBoard->publishPowerSourceUpdate(2, true, true, 0, 0);
+    CHECK_EQUAL(true, powerSource->inUse());
+    delete powerSource;
+}
+
+TEST_FIXTURE(SBPowerSourceFixture, setEnabled)
+{
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 4 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    // Check default
+    CHECK_EQUAL(false, sensorBoard->powerSourceEnables[4]);
+
+    // Toggle on and check
+    powerSource->setEnabled(true);
+    CHECK_EQUAL(true, sensorBoard->powerSourceEnables[4]);
+
+    // Toggle off and check
+    powerSource->setEnabled(false);
+    CHECK_EQUAL(false, sensorBoard->powerSourceEnables[4]);
+    
+    delete powerSource;
 }
 
 TEST_FIXTURE(SBPowerSourceFixture, updateID)
@@ -105,6 +159,24 @@ TEST_FIXTURE(SBPowerSourceFixture, updateID)
     CHECK_EQUAL(false, powerSource->isEnabled());
 
     // Publish event and make sure it didn't change
-    sensorBoard->publishPowerSourceUpdate(4, true, 0, 0);
+    sensorBoard->publishPowerSourceUpdate(4, true, false, 0, 0);
     CHECK_EQUAL(false, powerSource->isEnabled());
+    delete powerSource;
+}
+
+TEST_FIXTURE(SBPowerSourceFixture, isEnabled2)
+{
+    powerSource = new ram::vehicle::device::SBPowerSource(
+        ram::core::ConfigNode::fromString("{ 'id' : 5 }"),
+        ram::core::EventHubPtr(), ivehicle);
+
+    CHECK_EQUAL("Shore", powerSource->getName());
+
+    // Check default
+    CHECK_EQUAL(false, powerSource->isEnabled());
+
+    // Publish event and check values
+    sensorBoard->publishPowerSourceUpdate(5, true, false, 0, 0);
+    CHECK_EQUAL(true, powerSource->isEnabled());
+    delete powerSource;
 }

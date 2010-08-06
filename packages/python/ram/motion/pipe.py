@@ -9,23 +9,30 @@
 import math
 
 # Project Imports
-import ram.core as core
-from ram.motion.basic import Motion
 import ext.core
+import ram.core as core
+import ram.motion.common as common
+import ram.timer
+from ram.motion.basic import Motion
 
-class Pipe(ext.core.EventPublisher):
+class Pipe(common.Target):
     """
     Represents the pipe we are trying to follow
     """
-    UPDATE = ext.core.declareEventType('UPDATE')
     
-    def __init__(self, x, y, relativeAngle):
-        ext.core.EventPublisher.__init__(self)
-        self.setState(x, y, relativeAngle, publish = False)
+    def __init__(self, x, y, relativeAngle, timeStamp = None,
+                 kp = 1.0, kd = 1.0):
+        common.Target.__init__(self, x, y, timeStamp, kp, kd)
+        self.prevRelativeAngle = None
+        self.relativeAngle = relativeAngle
 
-    def setState(self, x, y, relativeAngle, publish = True):
-        self.x = x
-        self.y = y
+    def setState(self, x, y, relativeAngle, timeStamp, publish = True):
+        common.Target.setState(self, x, y, timeStamp, False)
+        
+        # Store the old values
+        self.prevRelativeAngle = self.relativeAngle
+
+        # Store the new values
         self.relativeAngle = relativeAngle
 
         # Change them to degrees if they are ext.math.Degree/Radian types
@@ -34,97 +41,84 @@ class Pipe(ext.core.EventPublisher):
 
         if publish:
             self.publish(Pipe.UPDATE, ext.core.Event())
+
+    def changeOverTime(self):
+        diff = common.Target.changeOverTime(self)
+        if self.prevTimeStamp is not None:
+            diffAngle = self.relativeAngle - self.prevRelativeAngle
+            diffTime = self.timeStamp - self.prevTimeStamp
+
+            return diff + ((diffAngle / diffTime),)
+        else:
+            return diff + (float('inf'),)
+
+    def errorAdj(self):
+        adj = common.Target.errorAdj(self)
+       
+        errorAngle = self._kp * abs(self.relativeAngle) + \
+            self._kd * Pipe.changeOverTime(self)[2]
+
+        return adj + (errorAngle,)
     
-class Base(Motion):
+class Hover(common.Hover):
     """
-    Base motion, by default it hovers over the center of the pipe and alings
+    A version of ram.motion.common.Hover which aligns to target too
     """
     def __init__(self, pipe, maxSpeed = 0.0, maxSidewaysSpeed = 0.0,
-                 #speedGain = 1.0, sidewaysSpeedGain = 1.0, 
-                 yawGain = 1.0):
+                 speedGain = 1.0, sidewaysSpeedGain = 1.0, 
+                 yawGain = 1.0,
+                 iSpeedGain = 0.0, dSpeedGain = 0.0, iSidewaysSpeedGain = 0.0,
+                 dSidewaysSpeedGain = 0.0):
         """
         @type  pipe: ram.motion.pipe.Pipe
         @param pipe: Target to attempt to reach
         """
-        Motion.__init__(self)
+        _mtype = Motion.IN_PLANE
+        if yawGain > 0:
+            _mtype = Motion.IN_PLANE | Motion.ORIENTATION
         
-        self._running = False
+        common.Hover.__init__(self, pipe, maxSpeed, maxSidewaysSpeed,
+                              _type = _mtype,
+                              speedGain = speedGain, 
+                              sidewaysSpeedGain = sidewaysSpeedGain,
+                              iSpeedGain = iSpeedGain, dSpeedGain = dSpeedGain, 
+                              iSidewaysSpeedGain = iSidewaysSpeedGain,
+                              dSidewaysSpeedGain = dSidewaysSpeedGain)
+        
         self._pipe = pipe
-        self._maxSpeed = maxSpeed
-        self._maxSidewaysSpeed = maxSidewaysSpeed
-        #self._speedGain = speedGain
-        #self._sidewaysSpeedGain = sidewaysSpeedGain
         
         if yawGain > 1:
             raise TypeError("Yaw Gain must be <= 1")
         self._yawGain = yawGain
         
-        self._conn = pipe.subscribe(Pipe.UPDATE, self._onPipeUpdate)
-        
-    def _start(self):
-        self._running = True
-        self._seek()
-        
-    def _setForwardSpeed(self):
-        """Determin forward speed (and bound within limits)"""
-        forwardSpeed = self._pipe.y * self._maxSpeed
-#        forwardSpeed = Hover._limit(self._pipe.y * self._speedGain,
-#                                    -self._maxSpeed, self._maxSpeed)
-        self._controller.setSpeed(forwardSpeed)
-        
-    def _setSidewaysSpeed(self):
-        """Determine sideways speed (and bound within limits)"""
-        sidewaysSpeed = self._pipe.x * self._maxSidewaysSpeed
-#        sidewaysSpeed = Hover._limit(self._pipe.x * self._sidewaysSpeedGain,
-#                                     -self._maxSidewaysSpeed,
-#                                     self._maxSidewaysSpeed)
-        self._controller.setSidewaysSpeed(sidewaysSpeed)
-        
     def _turn(self):
         """Determine turn"""
-        vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
-        vehicleHeading = vehicleHeading.valueDegrees()
-        absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
+        # If yawGain is zero, don't run any of this code
+        if self._yawGain != 0.0:
+            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading = vehicleHeading.valueDegrees()
+            absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
         
-        desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
-        desiredHeading = desiredHeading.valueDegrees()
+            desiredHeading = self._controller.getDesiredOrientation().getYaw(True)
+            desiredHeading = desiredHeading.valueDegrees()
         
-        yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
+            yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
 
-        # Command the vehicle
-        self._controller.yawVehicle(yawCommand) 
+            # Command the vehicle
+            self._controller.yawVehicle(yawCommand) 
         
     def _seek(self):
-        self._setForwardSpeed()
-        self._setSidewaysSpeed()
+        common.Hover._seek(self)
         self._turn()
 
-    @staticmethod
-    def _limit(val, min, max):
-        if val < min:
-            return min
-        elif val > max:
-            return max
-        return val
-
-    def _onPipeUpdate(self, event):
-        if self._running:
-            # Data already updated, so lets just keep seeking
-            self._seek()
-            
-    def stop(self):
-        """
-        Finishes off the motion, disconnects events, and putlishes finish event
-        """
-        self._running = False
-        self._controller.setSpeed(0)
-        self._controller.setSidewaysSpeed(0)
-        self._conn.disconnect()
-
-Hover = Base
-
-class Follow(Base):
+class Follow(Hover):
     def _setForwardSpeed(self):
-        """Determin forward speed (and bound within limits)"""
-        forwardSpeed = (1 - math.fabs(self._pipe.x)) * self._maxSpeed
+        """Determine forward speed (and bound within limits)"""
+        forwardSpeed = (1 - math.fabs(self._pipe.x)) * self._speedGain
+        
+        if forwardSpeed > self._maxSpeed:
+            forwardSpeed = self._maxSpeed
+        elif forwardSpeed < self._minSpeed:
+            forwardSpeed = self._minSpeed
+
         self._controller.setSpeed(forwardSpeed)

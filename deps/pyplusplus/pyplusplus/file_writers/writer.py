@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -7,6 +7,9 @@
 
 import os
 import time
+import codecs
+import md5sum_repository
+from pyplusplus import utils
 from pyplusplus import _logging_
 from pyplusplus import code_creators
 from pyplusplus import code_repository
@@ -21,17 +24,31 @@ class writer_t(object):
     """
     logger = _logging_.loggers.file_writer
     
-    def __init__(self, extmodule):
+    def __init__(self, extmodule, files_sum_repository=None, encoding='ascii'):
         object.__init__(self)
         self.__extmodule = extmodule
-        
-        
-    def _get_extmodule(self):
+        self.__files_sum_repository = files_sum_repository
+        self.__encoding=encoding
+        if None is files_sum_repository:
+            self.__files_sum_repository = md5sum_repository.dummy_repository_t()
+        self.__exposed_decls_db = utils.exposed_decls_db_t()
+        self.__exposed_decls_db.register_decls( extmodule.global_ns
+                                                , extmodule.specially_exposed_decls )        
+
+    @property
+    def encoding( self ):
+        """encoding name used to write generated code to files"""
+        return self.__encoding
+            
+    @property
+    def extmodule(self):
+        """The root of the code creator tree ( code_creators.module_t )"""
         return self.__extmodule
-    extmodule = property( _get_extmodule,
-                          doc="""The root of the code creator tree.
-                          @type: module_t""")
-    
+
+    @property
+    def files_sum_repository( self ):
+        return self.__files_sum_repository
+
     def write(self):
         """ Main write method.  Should be overridden by derived classes. """
         raise NotImplementedError()
@@ -57,7 +74,7 @@ class writer_t(object):
         self.write_file( os.path.join( dir, code_repository.named_tuple.file_name )
                          , code_repository.named_tuple.code ) 
     @staticmethod
-    def write_file( fpath, content ):
+    def write_file( fpath, content, files_sum_repository=None, encoding='ascii' ):
         """Write a source file.
 
         This method writes the string content into the specified file.
@@ -81,23 +98,39 @@ class writer_t(object):
         fcontent_new.append( content )
         fcontent_new.append( os.linesep ) #keep gcc happy
         fcontent_new = ''.join( fcontent_new )
+        if not isinstance( fcontent_new, unicode ):
+            fcontent_new = unicode( fcontent_new, encoding ) 
         
-        if os.path.exists( fpath ):
+        new_hash_value = None
+        curr_hash_value = None
+        if files_sum_repository:
+            new_hash_value  = files_sum_repository.get_text_value( fcontent_new )
+            curr_hash_value = files_sum_repository.get_file_value( fname )
+            if new_hash_value == curr_hash_value:
+                writer_t.logger.debug( 'file was not changed( hash ) - done( %f seconds )'
+                                       % ( time.clock() - start_time ) )
+                return
+
+        if None is curr_hash_value and os.path.exists( fpath ):
+            #It could be a first time the user uses files_sum_repository, don't force him
+            #to recompile the code
             #small optimization to cut down compilation time
-            f = file( fpath, 'rb' )
+            f = codecs.open( fpath, 'rb', encoding )
             fcontent = f.read()
             f.close()
             if fcontent == fcontent_new:
-                writer_t.logger.debug( 'file was not changed - done( %f seconds )'
+                writer_t.logger.debug( 'file was not changed( content ) - done( %f seconds )'
                                        % ( time.clock() - start_time ) )
                 return
-        else:
-            writer_t.logger.debug( 'file does not exist' )
+        
+        writer_t.logger.debug( 'file changed or it does not exist' )
             
         writer_t.create_backup( fpath )
-        f = file( fpath, 'w+b' )
+        f = codecs.open( fpath, 'w+b', encoding )
         f.write( fcontent_new )
         f.close()
+        if new_hash_value:
+            files_sum_repository.update_value( fname, new_hash_value )
         writer_t.logger.info( 'file "%s" - updated( %f seconds )' % ( fname, time.clock() - start_time ) )
     
     def get_user_headers( self, creators ):
@@ -107,3 +140,8 @@ class writer_t(object):
         map( lambda creator: headers.extend( creator.get_user_headers() )
              , creators )
         return code_creators.code_creator_t.unique_headers( headers )
+
+    def save_exposed_decls_db( self, file_path ):
+        self.__exposed_decls_db.save( file_path )
+        
+        

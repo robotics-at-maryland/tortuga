@@ -24,8 +24,57 @@ namespace core {
 class RAM_EXPORT IUpdatable
 {
 public:
+    enum Priority
+    {
+        RT_HIGH_PRIORITY,
+        RT_NORMAL_PRIORITY,
+        RT_LOW_PRIORITY,
+        HIGH_PRIORITY,
+        NORMAL_PRIORITY,
+        LOW_PRIORITY
+    };
+    
     virtual ~IUpdatable() {};
 
+    /** Changes the priority of the background thread
+     *
+     *  Higher priority threads will be run in whenever they need to, even if
+     *  there are other lower priority threads which can run. RT threads are
+     *  real time threads.  Even the lowest priority real time threads has
+     *  priority over any non-realtime thread.
+     *
+     *  @priority
+     *      A value of the Priority enum
+     */
+    virtual void setPriority(Priority priority) = 0;
+
+    /** Returns the current priority of the background thread */
+    virtual Priority getPriority() = 0;
+
+    /** Converts given string (ie: "low", "rt_high") to a Priority
+     *
+     * @warning
+     *     This will assert if the string does not match properly
+     *
+     * @param str
+     *     Case insensitive.
+     */
+    static IUpdatable::Priority stringToPriority(std::string str);
+    
+    /** Set which CPU core you wish the background thread to run
+     *
+     *  By default it will run on any core.
+     *
+     *  @core
+     *      The CPU core you wish to run on, starts at 0.
+     */
+    virtual void setAffinity(size_t core) = 0;
+
+    /** Gets the current core the background thread runs on
+     *
+     *  @return -1, if no affinity has been set.
+     */
+    virtual int getAffinity() = 0;
     
     /** Updates the Object.
      *

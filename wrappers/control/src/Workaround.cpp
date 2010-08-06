@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
- * Author: Joseph Lisee jlisee@umd.edu>
+ * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  wrappers/control/src/Workaround.cpp
  */
 

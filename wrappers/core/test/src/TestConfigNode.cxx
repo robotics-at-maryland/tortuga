@@ -61,7 +61,7 @@ extern "C" void initevent_functor();
 
 int main()
 {
-    PyImport_AppendInittab("event_functor", initevent_functor);
+  PyImport_AppendInittab((char*)"event_functor", initevent_functor);
     Py_Initialize();
     return UnitTest::RunAllTests();
 }

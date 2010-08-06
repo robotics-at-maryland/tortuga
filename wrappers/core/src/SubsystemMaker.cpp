@@ -71,13 +71,18 @@ void registerSubsystemMakerClass(){
             , ( bp::arg("config"), bp::arg("deps") ) )
         .def( 
             "getRegisteredKeys"
-            , &SubsystemMakerWrapper::getRegisteredKeys)    
+            , &SubsystemMakerWrapper::getRegisteredKeys)
+        .def( 
+            "isKeyRegistered"
+            , &SubsystemMakerWrapper::isKeyRegistered)    
+
         .def( 
             "makeObject"
             , bp::pure_virtual( &SubsystemMakerWrapper::makeObject )
             , ( bp::arg("params") ) )
         .staticmethod( "newObject" )
-        .staticmethod( "getRegisteredKeys" );
+        .staticmethod( "getRegisteredKeys" )
+        .staticmethod( "isKeyRegistered" );
     
 
 }

@@ -9,7 +9,7 @@ Introduction
 ------------
 
 There is more than one way to export function with default arguments. Before we
-proceed, please take a look on next class:
+proceed, please take a look on the following class:
 
 .. code-block:: C++
 
@@ -142,15 +142,8 @@ and you cannot change the source code, consider contacting `Py++`_ developers.
 I am sure we will be able to help you.
 
 
-.. _`Py++` : ./../pyplusplus.html
+.. _`Py++` : ./../../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

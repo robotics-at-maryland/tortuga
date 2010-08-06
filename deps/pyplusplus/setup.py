@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -90,7 +90,7 @@ if sys.argv[-1]=="sdist":
 
 
 setup( name = "Py++",
-       version = "0.8.6",
+       version = "1.0.0",
        description="Py++ is a framework of components for creating C++ code generator for Boost.Python library",
        author="Roman Yakovenko",
        author_email="roman.yakovenko@gmail.com",
@@ -98,7 +98,6 @@ setup( name = "Py++",
        scripts = ["scripts/pyplusplus_gui",
                   "scripts/pyplusplus_gui.pyw"],
        packages=[ 'pyplusplus',
-                  'pyplusplus.gui',
                   'pyplusplus.file_writers',
                   'pyplusplus.code_creators',
                   'pyplusplus.module_creator',

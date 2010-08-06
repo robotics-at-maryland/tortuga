@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -39,11 +39,12 @@ class argument_t(object):
     class, that describes argument of "callable" declaration
     """
 
-    def __init__( self, name='', type=None, default_value=None ):
+    def __init__( self, name='', type=None, default_value=None, attributes=None):
         object.__init__(self)
         self._name = name
         self._default_value = default_value
         self._type = type
+        self._attributes = attributes        
 
     def clone( self, **keywd ):
         """constructs new argument_t instance
@@ -51,16 +52,22 @@ class argument_t(object):
         return argument_t( name=keywd.get( 'name', self.name )
                            , type=keywd.get( 'type', self.type )
                            , default_value=keywd.get( 'default_value', self.default_value )
+                           , attributes=keywd.get( 'attributes', self.attributes ) )
+
         """
         return argument_t( name=keywd.get( 'name', self.name )
                            , type=keywd.get( 'type', self.type )
-                           , default_value=keywd.get( 'default_value', self.default_value ) )
+                           , default_value=keywd.get( 'default_value', self.default_value )
+                           , attributes=keywd.get( 'attributes', self.attributes ) )
         
     def __str__(self):
-        if self.default_value==None:
-            return "%s %s"%(self.type, self.name)
+        if self.ellipsis:
+            return "..."
         else:
-            return "%s %s=%s"%(self.type, self.name, self.default_value)
+            if self.default_value==None:
+                return "%s %s"%(self.type, self.name)
+            else:
+                return "%s %s=%s"%(self.type, self.name, self.default_value)
 
     def __eq__(self, other):
         if not isinstance( other, self.__class__ ):
@@ -87,6 +94,11 @@ class argument_t(object):
                      , doc="""Argument name.
                      @type: str""" )
 
+    @property
+    def ellipsis(self):
+        """bool, if True argument represents ellipsis ( "..." ) in function definition"""
+        return isinstance( self.type, cpptypes.ellipsis_t )
+
     def _get_default_value(self):
         return self._default_value
     def _set_default_value(self, default_value):
@@ -102,6 +114,16 @@ class argument_t(object):
     type = property( _get_type, _set_type
                      , doc="""The type of the argument.
                      @type: L{type_t}""")
+                     
+    def _get_attributes( self ):
+        return self._attributes
+    def _set_attributes( self, attributes ):
+        self._attributes = attributes
+    attributes = property( _get_attributes, _set_attributes
+                        , doc="""GCCXML attributes, set using __attribute__((gccxml("...")))
+                        @type: str
+                        """ )
+
 
 class calldef_t( declaration.declaration_t ):
     """base class for all "callable" declarations"""
@@ -151,6 +173,10 @@ class calldef_t( declaration.declaration_t ):
                           @type: list of L{argument_t}""")
 
     @property
+    def has_ellipsis( self ):
+        return self.arguments and self.arguments[-1].ellipsis
+
+    @property
     def argument_types( self ):
         """list of all argument types"""
         return [ arg.type for arg in self.arguments ]
@@ -197,20 +223,19 @@ class calldef_t( declaration.declaration_t ):
                             , doc='''The type of the return value of the "callable" or None (constructors).
                             @type: L{type_t}
                             ''')
-
-    def _get_overloads(self):
+    @property
+    def overloads(self):
+        """A list of overloaded "callables" (i.e. other callables with the same name within the same scope.
+        
+        @type: list of L{calldef_t}
+        """ 
         if not self.parent:
             return []
         # finding all functions with the same name
-        return self.parent.calldefs(
-            name=self.name
-            , function=lambda decl: not (decl is self )
-            , allow_empty=True
-            , recursive=False )
-
-    overloads = property( _get_overloads
-                          , doc="""A list of overloaded "callables" (i.e. other callables with the same name within the same scope.
-                          @type: list of L{calldef_t}""" )
+        return self.parent.calldefs( name=self.name
+                                     , function=lambda decl: not (decl is self )
+                                     , allow_empty=True
+                                     , recursive=False )
 
     def _get_has_extern(self):
         return self._has_extern
@@ -285,13 +310,13 @@ class calldef_t( declaration.declaration_t ):
                               , doc="returns function demangled name. It can help you to deal with function template instantiations")
 
     def i_depend_on_them( self, recursive=True ):
-        report_dependency = lambda x: dependencies.dependency_info_t( self, x )
+        report_dependency = lambda *args, **keywd: dependencies.dependency_info_t( self, *args, **keywd )
         answer = []
+        if self.return_type:
+            answer.append( report_dependency( self.return_type, hint="return type" ) )       
         map( lambda arg: answer.append( report_dependency( arg.type ) )
              , self.arguments )
-        if self.return_type:
-            answer.append( report_dependency( self.return_type ) )
-        map( lambda exception: answer.append( report_dependency( exception ) )
+        map( lambda exception: answer.append( report_dependency( exception, hint="exception" ) )
              , self.exceptions )
         return answer
 
@@ -379,9 +404,12 @@ class member_calldef_t( calldef_t ):
                                            , arguments_types=[ arg.type for arg in self.arguments ]
                                            , has_const=self.has_const )
 
-    def _create_decl_string(self):
-        return self.function_type().decl_string
-
+    def create_decl_string(self, with_defaults=True):
+        f_type = self.function_type()
+        if with_defaults:
+            return f_type.decl_string
+        else:
+            return f_type.partial_decl_string
 
 class free_calldef_t( calldef_t ):
     """base class for "callable" declarations that defined within C++ namespace"""
@@ -418,8 +446,13 @@ class free_calldef_t( calldef_t ):
         return cpptypes.free_function_type_t( return_type=self.return_type
                                      , arguments_types=[ arg.type for arg in self.arguments ] )
 
-    def _create_decl_string(self):
-        return self.function_type().decl_string
+    def create_decl_string(self, with_defaults=True):
+        f_type = self.function_type()
+        if with_defaults:
+            return f_type.decl_string
+        else:
+            return f_type.partial_decl_string
+
 
 class operator_t(object):
     """base class for "operator" declarations"""
@@ -427,17 +460,16 @@ class operator_t(object):
     def __init__(self):
         object.__init__(self)
 
-    def _get_symbol(self):
+    @property
+    def symbol(self):
+        "operator's symbol. For example: operator+, symbol is equal to '+'"
         return self.name[operator_t.OPERATOR_WORD_LEN:].strip()
-    symbol = property( _get_symbol,
-                       doc="returns symbol of operator. For example: operator+, symbol is equal to '+'")
 
 #Third level in hierarchy of calldef
 class member_function_t( member_calldef_t ):
     """describes member function declaration"""
     def __init__( self, *args, **keywords ):
         member_calldef_t.__init__( self, *args, **keywords )
-
 
 class constructor_t( member_calldef_t ):
     """describes constructor declaration"""
@@ -458,7 +490,9 @@ class constructor_t( member_calldef_t ):
             cls = 'copy ' + cls
         return "%s [%s]"%(res, cls)
 
-    def _get_is_copy_constructor(self):
+    @property
+    def is_copy_constructor(self):
+        """returns True if described declaration is copy constructor, otherwise False"""
         args = self.arguments
         if 1 != len( args ):
             return False
@@ -472,8 +506,11 @@ class constructor_t( member_calldef_t ):
         if not isinstance( unaliased.base, cpptypes.declarated_t ):
             return False
         return id(unaliased.base.declaration) == id(self.parent)
-    is_copy_constructor = property(_get_is_copy_constructor
-                                   , doc="returns True if described declaration is copy constructor, otherwise False")
+    
+    @property
+    def is_trivial_constructor(self):
+        return not bool( self.arguments )
+    
 
 class destructor_t( member_calldef_t ):
     """describes deconstructor declaration"""
@@ -485,6 +522,7 @@ class member_operator_t( member_calldef_t, operator_t ):
     def __init__( self, *args, **keywords ):
         member_calldef_t.__init__( self, *args, **keywords )
         operator_t.__init__( self, *args, **keywords )
+        self.__class_types = None
 
 class casting_operator_t( member_calldef_t, operator_t ):
     """describes casting operator declaration"""
@@ -502,3 +540,22 @@ class free_operator_t( free_calldef_t, operator_t ):
     def __init__( self, *args, **keywords ):
         free_calldef_t.__init__( self, *args, **keywords )
         operator_t.__init__( self, *args, **keywords )
+        self.__class_types = None
+        
+    @property
+    def class_types( self ):
+        """list of class/class declaration types, extracted from the operator arguments"""
+        if None is self.__class_types:
+            self.__class_types = []
+            for type_ in self.argument_types:
+                decl = None
+                type_ = type_traits.remove_reference( type_ )
+                if type_traits.is_class( type_ ):
+                    decl = type_traits.class_traits.get_declaration( type_ )
+                elif type_traits.is_class_declaration( type_ ):
+                    decl = type_traits.class_declaration_traits.get_declaration( type_ )
+                else:
+                    pass
+                if decl:
+                    self.__class_types.append( decl )
+        return self.__class_types

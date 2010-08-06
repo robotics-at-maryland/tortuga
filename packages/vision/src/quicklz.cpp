@@ -221,15 +221,17 @@ static size_t qlz_compress_core(const unsigned char *source, unsigned char *dest
 			o = hashtable[hash].offset[0];
 			hashtable[hash].offset[0] = src;
 #ifdef X86X64
-			if ((cached & 0xffffff) == 0 && src - o > MINOFFSET && hash_counter[hash] != 0)
+			if (((cached & 0xffffff) == 0) && (src - o > MINOFFSET)
+                            && (hash_counter[hash] != 0))
 #else
-			if (cached == 0 && src - o > MINOFFSET && hash_counter[hash] != 0)
+                        if ((cached == 0) && (src - o > MINOFFSET) &&
+                            (hash_counter[hash] != 0))
 #endif
 			{
 				if (*(o + 3) != *(src + 3))
 				{
 					cword_val = (cword_val >> 1) | (1U << 31);
-					fast_write(3 - 2 | (hash << 4), dst, 2);
+					fast_write((3 - 2) | (hash << 4), dst, 2);
 					src += 3;
 					dst += 2;
 				}

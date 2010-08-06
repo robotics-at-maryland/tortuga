@@ -6,10 +6,13 @@
  * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/core/src/PythonConfigNodeImp.cpp
  */
+
 #include <iostream>
+#include <vector>
 
 // Library Includea
 //#include <Python.h>
+#include "boost/foreach.hpp"
 
 // Project Includes
 #ifdef RAM_WINDOWS
@@ -132,17 +135,18 @@ ConfigNodeImpPtr PythonConfigNodeImp::map(std::string key)
         std::string debugPath(m_debugPath + "." + key);
 
         if ((m_pyobj.ptr() != Py_None) &&
-            PyObject_HasAttrString (m_pyobj.ptr(), "has_key")
-            && (m_pyobj.attr("has_key")(key)))
+            PyObject_HasAttrString (m_pyobj.ptr(), "has_key"))
         {
-	    return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key], debugPath));
+            // Run the includes if needed
+            includeIfNeeded(m_pyobj);
+            if (m_pyobj.attr("has_key")(key))
+            {
+                return ConfigNodeImpPtr(new PythonConfigNodeImp(m_pyobj[key], debugPath));
+            }
         }
-        else
-        {
-            //py::object newObject;
-            //m_pyobj[key] = newObject;
-            return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object(), debugPath));
-        }    
+
+        // If we got here, we haven't found it
+        return ConfigNodeImpPtr(new PythonConfigNodeImp(py::object(), debugPath));
     } catch(py::error_already_set err) {
         printf("ConfigNode (map) Error:\n");
         PyErr_Print();
@@ -241,13 +245,25 @@ int PythonConfigNodeImp::asInt(const int def)
 NodeNameList PythonConfigNodeImp::subNodes()
 {
     try {
+        if (m_pyobj.ptr() == Py_None)
+            return NodeNameList();
+        
+        // Make sure to pull in any nodes needed for includes
+        includeIfNeeded(m_pyobj);
+
+        // Get the python list that is the subnode names
         NodeNameList subnodes;
         py::object nodes(m_pyobj.attr("keys")());
         size_t size = py::len(nodes);
         
         for (size_t i = 0; i < size; ++i)
         {
-            subnodes.insert(py::extract<std::string>(nodes[i]));
+            std::string nodeName = py::extract<std::string>(nodes[i]);
+
+            // Only include values that aren't our special "INCLUDE" and
+            // "INCLUDED_LOADED" values
+            if ((nodeName != "INCLUDE") && (nodeName != "INCLUDE_LOADED"))
+                subnodes.insert(nodeName);
         }
         return subnodes;
     } catch(py::error_already_set err ) {
@@ -275,16 +291,64 @@ void PythonConfigNodeImp::set(std::string key, std::string str)
     try {
         m_pyobj[key] = py::str(str);
     } catch(py::error_already_set err) {
-        printf("ConfigNode (set) Error:\n");
+        printf("ConfigNode (set string) at: %s with key: %s Error:\n",
+	       m_debugPath.c_str(), key.c_str());
         PyErr_Print();
 
         throw err;
     }
 }
 
+    
+void PythonConfigNodeImp::set(std::string key, int value)
+{
+    try {
+        m_pyobj[key] = py::object(value);
+    } catch(py::error_already_set err) {
+        printf("ConfigNode (set value) at: %s with key: %s Error:\n",
+	       m_debugPath.c_str(), key.c_str());
+        PyErr_Print();
+
+        throw err;
+    }
+}
+
+    
+struct null_deleter
+{
+    void operator()(void const *) const
+    {
+    }
+};
+
+
 std::string PythonConfigNodeImp::toString()
 {
     try {
+        // Force includes of all nodes
+        std::vector<ConfigNodeImpPtr> nodes;
+        ConfigNodeImpPtr thisPtr(this, null_deleter());
+        nodes.push_back(thisPtr);
+        
+        do {
+            // Pull a node off the list
+            ConfigNodeImpPtr currentNode = nodes.back();
+            nodes.pop_back();
+
+            // Get all of its subnodes
+            PythonConfigNodeImp* imp =
+                (PythonConfigNodeImp*)currentNode.get();
+            if (PyObject_HasAttrString(imp->m_pyobj.ptr(), "has_key"))
+            {
+                NodeNameList subNodeNames = currentNode->subNodes();
+
+                // Add then all to the list
+                BOOST_FOREACH(std::string nodeName, subNodeNames)
+                    nodes.push_back(currentNode->map(nodeName));
+            }
+            
+        } while (nodes.size() > 0);
+        
         return py::extract<std::string>(py::str(m_pyobj));
     } catch(py::error_already_set err) {
         printf("ConfigNode (toString) Error:\n");
@@ -292,6 +356,88 @@ std::string PythonConfigNodeImp::toString()
 
         throw err;
     }
+}
+
+void PythonConfigNodeImp::writeToFile(std::string fileName, bool silent)
+{
+    try {
+        // Create python module and namespace
+        py::object main_module((py::handle<>(py::borrowed(
+            PyImport_AddModule("__main__")))));
+
+        py::object main_namespace = main_module.attr("__dict__");
+        // Insert node and filename into the namespace
+        main_namespace["node"] = m_pyobj;
+        main_namespace["filename"] = fileName;
+
+        // Python dump file code
+        std::stringstream ss;
+        ss << "import yaml\n"
+           << "def write_to_file(node, filename):\n"
+           << "    fd = open(filename, 'w')\n"
+           << "    yaml.dump(node, fd)\n"
+           << "    fd.close()\n"
+           << "write_to_file(node, filename)\n";
+
+        py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
+                                                  Py_file_input,
+                                                  main_namespace.ptr(),
+                                                  main_namespace.ptr())));
+    } catch (py::error_already_set err) {
+        printf("Error during write out\n");
+        PyErr_Print();
+
+        if (!silent)
+            throw err;
+    }
+}
+
+void PythonConfigNodeImp::includeIfNeeded(boost::python::object pyObj)
+{
+    try {
+        // Only include if there is an include tag and we haven't already done
+        // an include
+        if ((!pyObj.attr("has_key")("INCLUDE_LOADED")) &&
+            (pyObj.attr("has_key")("INCLUDE")))
+        {
+            py::object main_module((py::handle<>(py::borrowed(
+                PyImport_AddModule("__main__")))));
+
+            py::object main_namespace = main_module.attr("__dict__");
+            main_namespace["node"] = pyObj;
+        
+            std::stringstream ss;
+            ss << "import yaml, os, os.path\n"
+	       << "def add_include(node):\n"
+                // All paths are resolved from the root of the SVN dir
+               << "    basePath = os.environ['RAM_SVN_DIR']\n"
+	       << "    include_path = node['INCLUDE']\n"
+               << "    filePath = node['INCLUDE'].replace('/', os.sep)\n"
+               << "    fullPath = os.path.join(basePath, filePath)\n"
+               << "    cfg = yaml.load(file(os.path.normpath(fullPath)))\n"
+                // Place all loaded item into the key
+               << "    for key, val in cfg.iteritems():\n"
+               << "        node[key] = val\n"
+		// If the include_path has not been changed, mark as finished
+	       << "    if include_path == node['INCLUDE']:\n"
+	       << "        node['INCLUDE_LOADED'] = True\n"
+	       << "    else:\n"
+		// Otherwise add the new include
+	       << "        add_include(node)\n"
+	       << "add_include(node)\n"; 
+        
+            py::object obj(py::handle<> (PyRun_String(ss.str().c_str(),
+                                                      Py_file_input,
+                                                      main_namespace.ptr(),
+                                                      main_namespace.ptr())));
+        }
+    } catch(py::error_already_set err) {
+        printf("Error during include:\n");
+        PyErr_Print();
+
+        throw err;
+    }
+
 }
 
 } // namespace core

@@ -18,12 +18,19 @@
 
 // Project Includes
 #include "control/include/IController.h"
+#include "math/include/Vector3.h"
 
 class MockController : public ram::control::IController
 {
 public:
     MockController(std::string name) : IController(name) {}
-	
+
+    virtual void setVelocity(ram::math::Vector2 velocity_) {
+        velocity = velocity_; }
+
+    virtual ram::math::Vector2 getVelocity() {
+        return ram::math::Vector2::ZERO; }
+    
     virtual void setSpeed(double speed_) { speed = speed_; }
 
     virtual void setSidewaysSpeed(double speed) { sidewaysSpeed = speed; }
@@ -33,6 +40,23 @@ public:
     virtual double getSpeed() { return speed; }
 
     virtual double getSidewaysSpeed() { return sidewaysSpeed; }
+
+    virtual void holdCurrentPosition() {}
+
+    virtual void setDesiredVelocity(ram::math::Vector2 velocity,
+                                    int frame){}
+    virtual void setDesiredPosition(ram::math::Vector2 position,
+                                    int frame){}
+    virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position,
+                                               ram::math::Vector2 velocity){}
+
+    virtual ram::math::Vector2 getDesiredVelocity(int frame)
+    {return ram::math::Vector2::ZERO;}
+    virtual ram::math::Vector2 getDesiredPosition(int frame)
+    {return ram::math::Vector2::ZERO;}
+
+    virtual bool atPosition(){return 0;}
+    virtual bool atVelocity(){return 0;}
 
     virtual double getDepth() { return depth; }
     
@@ -56,12 +80,24 @@ public:
     
     virtual bool atDepth() { return atdepth; }
 
+    virtual void holdCurrentDepth() {}
 
+    virtual void holdCurrentHeading() {}
+    
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    }
     virtual void update(double) {};
     virtual void background(int) {};
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
-    
+
+    ram::math::Vector2 velocity;
     double speed;
     double sidewaysSpeed;
     double depth;
@@ -77,6 +113,8 @@ TEST(MockController)
 
     controller->setSpeed(5);
     CHECK_EQUAL(5, mockController->speed);
+
+    delete mockController;
 }
 
 

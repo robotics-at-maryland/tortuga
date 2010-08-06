@@ -1,3 +1,19 @@
+/*
+    SBR5 = Define this for Sensor Board Revision 5 and 6.
+           This is the first generation of the backplane-aware sensor board.
+           This board is listed as SensorBoardRev5 in Eagle
+
+    SBR7 = Define this for Sensor Board Revision 7 and 8. This
+           This is the second generation of the backplane-aware sensor board.
+           Originally two were made.
+           This is listed as SensorBoardRev7 in Eagle and was made at Goddard
+           only a few days before leaving.
+*/
+
+//#define SBR5
+#define SBR7
+#define MOTORBOARD
+
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
@@ -38,22 +54,42 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_ACT     _LATF1
 #define TRIS_LED_ACT    _TRISF1
 
-#define LAT_LED_ERR     _LATB6
-#define TRIS_LED_ERR    _TRISB6
+
+#ifdef SBR5
+    #define LAT_LED_ERR     _LATB6
+    #define TRIS_LED_ERR    _TRISB6
+
+    #define LAT_IRQ0     _LATB0
+    #define LAT_IRQ1     _LATB1
+    #define LAT_IRQ2     _LATB2
+    #define LAT_IRQ3     _LATB4
+    #define LAT_IRQ4     _LATB3
+    #define LAT_IRQ5     _LATB7
+    #define LAT_IRQ6     _LATB8
+
+    #define USB_PRESENT     1
+#else
+
+    #define LAT_LED_ERR     _LATF0
+    #define TRIS_LED_ERR    _TRISF0
+
+    #define LAT_IRQ0     _LATB0
+    #define LAT_IRQ1     _LATB1
+    #define LAT_IRQ2     _LATB2
+    #define LAT_IRQ3     _LATB4
+    #define LAT_IRQ4     _LATB6
+    #define LAT_IRQ5     _LATB7
+    #define LAT_IRQ6     _LATB8
+
+    #define USB_PRESENT     0
+#endif
+
+
+
 
 /* USB detection */
 #define IN_USBDETECT    _RC15
 #define TRIS_USBDETECT  _TRISC15
-
-/* The PC jumper */
-#define LAT_PCJ_L   _LATB7
-#define TRIS_PCJ_L  _TRISB7
-
-#define LAT_PCJ_H   _LATD3
-#define TRIS_PCJ_H  _TRISD3
-
-#define IN_PCJ_I    _RB8
-#define TRIS_PCJ_I  _TRISB8
 
 #define IRQ_IC2         2
 #define IRQ_IC3         1
@@ -61,6 +97,7 @@ _FWDT ( WDT_OFF );
 #define IRQ_DISTRO      3
 #define IRQ_BALANCER    4
 #define IRQ_SONAR       5
+#define IRQ_MOTOR       6
 
 #define SLAVE_ID_POWERBOARD IRQ_DISTRO
 
@@ -78,6 +115,9 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_BARS       IRQ_DISTRO
 #define SLAVE_ID_IMOTOR     IRQ_DISTRO
 #define SLAVE_ID_VLOW       IRQ_DISTRO
+#define SLAVE_ID_DVL        IRQ_DISTRO
+#define SLAVE_ID_MOTOR      IRQ_MOTOR
+#define SLAVE_ID_SERVOS     IRQ_MOTOR
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -122,18 +162,60 @@ _FWDT ( WDT_OFF );
 #define DIAG_TIMEOUT     25000
 
 
-/* No sonar? No power board either...*/
-#define NUM_SLAVES  3
+/* How many chips are in the POST list? */
+#ifndef MOTORBOARD
+    #define NUM_SLAVES  6
+#else
+    #define NUM_SLAVES  7
+#endif
+
+
+#ifndef SBR5
+    #ifndef SBR7
+        #error You have to define a board revision- SBR5 or SBR7. See ic1.c
+    #endif
+#endif
+
+#ifndef MOTORBOARD
+    static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR};
+#else
+    static const unsigned char postList[]={IRQ_IC2, IRQ_IC3, IRQ_IC4, IRQ_DISTRO, IRQ_BALANCER, IRQ_SONAR, IRQ_MOTOR};
+#endif
+
 
 static const unsigned char hkSafety[]={0xDE, 0xAD, 0xBE, 0xEF, 0x3E};
 static const unsigned char tkSafety[]={0xB1, 0xD0, 0x23, 0x7A, 0x69};
 static const unsigned char cdSafety[]={0xBA, 0xDB, 0xEE, 0xEF, 0x4A};
 
-
-void processRuntimeDiag();
+signed int waitchar(byte timeout);
 
 
 byte failsafeTripped = 0;   /* Gets set to 1 */
+
+/* Takes the high and low byte from a 16bit speed packet and scales it
+ * to the new 8-bit format. */
+byte convertSpeed(byte high, byte low) {
+    byte ret;
+    short therealchunk= high;
+    long multTemp;
+
+    therealchunk<<= 8;
+    therealchunk|= low;
+    multTemp= therealchunk;
+
+    multTemp*= 102;
+    /* We need a bias for negative numbers */
+    if(multTemp < 0)
+        multTemp+= 0x3FF;
+    multTemp>>= 10;
+
+    if(multTemp < 0)
+        ret= 0x7F + multTemp;
+    else
+        ret= 0x80 + multTemp;
+
+    return ret;
+}
 
 /* Read byte from bus */
 byte readBus()
@@ -165,10 +247,16 @@ void freeBus()
 
 byte diagMsg=1;
 
+void checkFailsafe();
+
+#define ERR_NOUSB   -1
+
 /* Wait for a byte on the serial console */
-unsigned char waitchar(byte timeout)
+/* Returns 0-255 for byte read, or -1 if USB error */
+/* Timeout is not implemented... but in two years it seems this has been fine */
+signed int waitchar(byte timeout)
 {
-    long waitTime=0;
+    long waitTime=0, j;
     byte x;
 
     U1STAbits.OERR = 0;
@@ -178,16 +266,23 @@ unsigned char waitchar(byte timeout)
 
     checkFailsafe();
 
+    /* Spin in while loop until we receive a byte */
     while(U1STAbits.URXDA == 0)
     {
-        if(diagMsg && waitTime++ == DIAG_TIMEOUT)
+        /* Do we not have USB? */
+        if(IN_USBDETECT != USB_PRESENT)
         {
-            processRuntimeDiag();
-            waitTime=0;
+            /* If USB goes away, we give up */
+            return ERR_NOUSB;
         }
+
+        /* We need to check the failsafe timeout */
+        /* If failsafe tripped, send motor-off commands */
         checkFailsafe();
     }
 
+    /* Byte is unsigned char and X is defined as byte, so any */
+    /* values returned will be in the 0-255 range             */
     x = U1RXREG;
     U1STAbits.URXDA = 0;
     return x;
@@ -208,22 +303,25 @@ void initBus()
 void setReq(byte req, byte val)
 {
     if(req == 0)
-        _LATB0 = val;
+        LAT_IRQ0 = val;   /* IRQ 0 - B0 */
 
     if(req == 1)
-        _LATB1 = val;
+        LAT_IRQ1 = val;   /* IRQ 1 - B1 */
 
     if(req == 2)
-        _LATB2 = val;
+        LAT_IRQ2 = val;   /* IRQ 2 - B2 */
 
     if(req == 3)
-        _LATB4 = val;
+        LAT_IRQ3 = val;   /* IRQ 3 - B4 */
 
     if(req == 4)
-        _LATB3 = val;
+        LAT_IRQ4 = val;   /* IRQ 4 - B3 */
 
-//    if(req == 5)
-//        _LATB6 = val;
+    if(req == 5)
+        LAT_IRQ5 = val;   /* IRQ 5 - B7 */
+
+    if(req == 6)
+        LAT_IRQ6 = val;   /* IRQ 6 - B8 */
 }
 
 
@@ -325,7 +423,7 @@ int busWriteByte(byte data, byte req)
     return 0;
 }
 
-
+/* Turn on the yellow LED and set a timer to turn it off about 0.1s later */
 void actLight()
 {
     PR2 = 100;            /* Period */
@@ -344,14 +442,15 @@ void _ISR _T2Interrupt(void)
     IFS0bits.T2IF = 0;      /* Clear interrupt flag */
     IEC0bits.T2IE = 0;      /* Disable interrupts */
     LAT_LED_ACT = ~LED_ON;
-    T2CONbits.TON = 0;  /* Stop Timer1 */
+    T2CONbits.TON = 0;      /* Stop Timer2 */
 }
 
 
 void setMotorFailsafe()
 {
     failsafeTripped = 0;
-    PR1 = 5000;            /* Period */
+    /* 43945 = 3 sec */
+    PR1 = 21972;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -360,7 +459,7 @@ void setMotorFailsafe()
     T1CONbits.TON = 1;      /* Start Timer1 */
 }
 
-/* ISR for Timer2. Used for making the ACT light pretty */
+/* ISR for Timer1. Used for the motor failsafe */
 void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
@@ -373,7 +472,7 @@ void _ISR _T1Interrupt(void)
 void initMasterUart()
 {
     U1MODE = 0x0000;
-//    U1BRG = 15;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
+//    U1BRG = 1;  /* 7 for 230400, 15 for 115200 194 for 9600  AT 30 MIPS*/
     U1BRG = MASTER_U1_BRG;  /* 7 for 115200 at 15 MIPS */
     U1MODEbits.ALTIO = 1;   // Use alternate IO
     U1MODEbits.UARTEN = 1;
@@ -454,19 +553,6 @@ int pollStartSw()
     return rxBuf[0] & 0x01;
 }
 
-
-byte pollThrusterState()
-{
-#warning WRITE NEW THRUSTER STATE FUNCTION
-    return -1;
-}
-
-
-/* Run a bit of the run-time diagnostic message system */
-void processRuntimeDiag()
-{
-#warning WRITE NEW RUNTIME DIAGNOSTIC FUNCTION
-}
 
 
 void checkChip(unsigned char * str, byte irq)
@@ -602,6 +688,81 @@ void showBootDiag(int mode)
         showString(tmp, 1);
 
     }
+
+    if(mode == 4)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0,
+                                         (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0,
+                                         (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);;
+        showString(tmp, 1);
+    }
+
+    if(mode == 5)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0,
+                                         (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[12] << 8 | rxBuf[13]) / 1000.0,
+                                         (rxBuf[14] << 8 | rxBuf[15]) / 1000.0);;
+        showString(tmp, 1);
+    }
+
+    if(mode == 6)
+    {
+        if(busWriteByte(BUS_CMD_BATTVOLTAGE, SLAVE_ID_BATTSTAT) != 0)
+        {
+            showString("BATTV READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 14)
+        {
+            showString("BATTV LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[16] << 8 | rxBuf[17]) / 1000.0,
+                                         (rxBuf[18] << 8 | rxBuf[19]) / 1000.0);;
+        showString(tmp, 0);
+
+        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[20] << 8 | rxBuf[21]) / 1000.0,
+                                         (rxBuf[22] << 8 | rxBuf[23]) / 1000.0);;
+        showString(tmp, 1);
+    }
 }
 
 void diagBootMode()
@@ -617,7 +778,7 @@ void diagBootMode()
         if(pollStartSw())
         {
             mode++;
-            if(mode == 4)
+            if(mode == 7)
             {
                 showString("Diagnostic Mode ", 0);
                 mode = 0;
@@ -666,8 +827,13 @@ void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
 }
 
 
+/* Check if our timeout has occurred, and if so,
+   - send out speed commands to set speed to 0
+   - safe all thrusters in case that didn't work
+*/
 void checkFailsafe()
 {
+#ifndef MOTORBOARD
     if(failsafeTripped == 1)
     {
         failsafeTripped = 0;
@@ -704,8 +870,87 @@ void checkFailsafe()
         busWriteByte(BUS_CMD_THRUSTER5_OFF, SLAVE_ID_THRUSTERS);
         busWriteByte(BUS_CMD_THRUSTER6_OFF, SLAVE_ID_THRUSTERS);
     }
+#else
+    if(failsafeTripped == 1)
+    {
+        failsafeTripped= 0;
+        busWriteByte(BUS_CMD_KILL_MOTORS, SLAVE_ID_MOTOR);
+
+        busWriteByte(BUS_CMD_THRUSTER1_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER2_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER3_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER4_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER5_OFF, SLAVE_ID_THRUSTERS);
+        busWriteByte(BUS_CMD_THRUSTER6_OFF, SLAVE_ID_THRUSTERS);
+    }
+#endif
 }
 
+/* Flash the yellow LED on and off n times */
+/* Will block until the blinking is done */
+void blink(byte n)
+{
+    long j;
+    byte i;
+    for(i=0; i<n; i++)
+    {
+        LAT_LED_ACT = LED_ON;
+        for(j=0; j<30000; j++);
+        LAT_LED_ACT = ~LED_ON;
+        for(j=0; j<50000; j++);
+   }
+   for(j=0; j<100000; j++);
+}
+
+/* If OK, returns 0. If error, returns non 0 */
+byte pingChip(byte irq)
+{
+    switch(busWriteByte(BUS_CMD_PING, irq))
+    {
+        case BUS_ERROR:
+        case BUS_FAILURE:
+            return 1;
+        break;
+
+        case 0:
+        {
+            byte len = readDataBlock(irq);
+
+            switch(len)
+            {
+                case 0:
+                    return 0;
+                break;
+
+                case BUS_ERROR:
+                case BUS_FAILURE:
+                default:
+                    return 1;
+            }
+            break;
+        }
+    }
+    return 0;
+}
+
+/* If there is a problem, ERR light is on and ACT light blinks (1+num of failed irq) times */
+/* .. because blinking 0 times is hard to see */
+void post()
+{
+    byte i, j;
+    for(i=0; i<NUM_SLAVES; i++)
+    {
+        if(pingChip(postList[i]) != 0) /* Someone failed */
+        {
+            LAT_LED_ERR = LED_ON;
+            for(j=0; j<2; j++)
+            {
+                /* Flash error light 3 times */
+                blink(postList[i]+1);
+            }
+        }
+    }
+}
 
 int main(void)
 {
@@ -713,19 +958,19 @@ int main(void)
     byte i;
     _TRISF0 = TRIS_IN;
     TRIS_USBDETECT = TRIS_IN;
-    TRIS_PCJ_I = TRIS_IN;
-    TRIS_PCJ_L = TRIS_OUT;
-    TRIS_PCJ_H = TRIS_OUT;
 
-    LAT_PCJ_L = 0;
-    LAT_PCJ_H = 1;
+    ADPCFG = 0xFFFF;
+    LATB = 0;
+    TRISB = 0x000;    /* We want ALL of portB to be outputs. */
 
     for(i=0; i<NUM_SLAVES; i++)
         setReq(i, 0);
 
-    ADPCFG = 0xFFFF;
-    LATB = 0;
-    TRISB = 0x100;
+    LAT_LED_ACT = LED_ON;
+    LAT_LED_ERR = LED_ON;
+
+    TRIS_LED_ACT = TRIS_OUT;
+    TRIS_LED_ERR = TRIS_OUT;
 
     initBus();
 
@@ -733,20 +978,14 @@ int main(void)
     initInterruptUarts();
 #endif
 
-    LAT_LED_ACT = LED_ON;
-    LAT_LED_ERR = LED_ON;
-
-
-    TRIS_LED_ACT = TRIS_OUT;
-    TRIS_LED_ERR = TRIS_OUT;
-
-
-    for(j=0; j<20000; j++);
+    /* Don't run POST until we've given SONAR enough time to start */
+    for(j=0; j<1500000; j++);
 
 
     LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
 
+    post();
 
     for(j=0; j<20000; j++);
 
@@ -768,23 +1007,20 @@ int main(void)
     LAT_LED_ACT = ~LED_ON;
 
 
-    if(IN_USBDETECT == 0)
+    if(IN_USBDETECT != USB_PRESENT)
     {
-        if(IN_PCJ_I == 1)
-        {
-            showString("  Moan for me,  ", 0);
-            showString("    BITCH !     ", 1);
-        } else
-        {
-            showString("No USB link     ", 0);
-            showString("detected        ", 1);
-        }
+        showString("   Self-Test    ", 0);
+        showString("    Complete    ", 1);
+
+//         showString("No USB link     ", 0);
+//         showString("detected        ", 1);
+
     }
 
     LAT_LED_ACT = ~LED_ON;
     LAT_LED_ERR = LED_ON;
 
-    while(IN_USBDETECT == 0)
+    while(IN_USBDETECT != USB_PRESENT)
     {
         for(j=0; j<50000; j++);
         LAT_LED_ACT = ~LAT_LED_ACT;
@@ -802,12 +1038,42 @@ int main(void)
 
     while(1)
     {
-//         LAT_LED_ACT = ~LED_ON;
         actLight();
-        byte c = waitchar(0);
-//         LAT_LED_ACT = LED_ON;
+        byte c = waitchar(0);   // This returns if USB disappears
+
+
+//        Try this again after optoisolation got put in...
+        if(IN_USBDETECT != USB_PRESENT)
+        {
+            showString("Lost Mini...    ", 0);
+            showString("      ;_;       ", 1);
+
+            LAT_LED_ACT = ~LED_ON;  // Red on
+            LAT_LED_ERR = LED_ON;   // Yellow off
+
+            while(IN_USBDETECT != USB_PRESENT)
+            {
+                for(j=0; j<50000; j++);
+                LAT_LED_ACT = ~LAT_LED_ACT;
+                LAT_LED_ERR = ~LAT_LED_ERR;
+            }
+
+            showString("USB Restored... ", 0);
+            showString("     d^_^b      ", 1);
+        }
 
         long t1, t2;
+
+        //TODO:do we have to do anything with TRIS_LED_ACT?
+            // no. it is always an output. -steve
+
+        // Neil's old code, here commented out for now
+/*        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
+        {
+	        blink(5);
+	        showString("lost mini...    ", 0);
+	        showString("                ", 1);
+        }*/
 
         switch(c)
         {
@@ -1055,7 +1321,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_SWITCHPOWER != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_SWITCHPOWER) & 0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1075,7 +1341,7 @@ int main(void)
             }
 
 
-            // [S  K  W B1 B2 B3 B4 B5]
+            // [0 0 0 0 0 0 S K] [W 0 B6 B5 B4 B3 B2 B1]
             case HOST_CMD_BOARDSTATUS:
             {
                 t1 = waitchar(1);
@@ -1099,6 +1365,8 @@ int main(void)
                     break;
                 }
 
+                /* Now that all the formailities are done, we get the byte from the */
+                /* Balancer Board, store it in the first byte of the message. */
                 t1 = rxBuf[0];
 //#endif
 
@@ -1116,8 +1384,15 @@ int main(void)
                     break;
                 }
 
+                /* t2 is the second reply byte
+                 * If you modify what bit this is stored in, be sure to mark
+                 * the change in sensorapi.h status bits for kill switch */
+                t2= rxBuf[0] & 0x01;
+
+                /* This was pre the 2 byte status reply
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x40;
+                */
 
 
                 /* Read start switch from another chip......... */
@@ -1133,12 +1408,18 @@ int main(void)
                     break;
                 }
 
+                /* Check the byte, and or it in to bit 2 in packet t2 */
+                t2 |= (rxBuf[0] & 0x01) << 1;
+
+                /* This was the pre-2 byte status reply
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x80;
+                */
 
                 sendByte(HOST_REPLY_BOARDSTATUS);
+                sendByte(t2);
                 sendByte(t1);
-                sendByte(HOST_REPLY_BOARDSTATUS+t1);
+                sendByte(HOST_REPLY_BOARDSTATUS+t1+t2);
 
                 break;
             }
@@ -1181,7 +1462,7 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_MARKER != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_MARKER)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1206,7 +1487,7 @@ int main(void)
                 const static unsigned char blCommands[]=
                         {BUS_CMD_LCD_LIGHT_OFF, BUS_CMD_LCD_LIGHT_ON, BUS_CMD_LCD_LIGHT_FLASH};
 
-                if((t1 != 0 && t1 != 1 && t1 != 2) || (t1+HOST_CMD_BACKLIGHT != t2))
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BACKLIGHT)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1221,6 +1502,90 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+
+
+            case HOST_CMD_BFIN_STATE:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                const static unsigned char bfCommands[]=
+                        {BUS_CMD_BFIN_STOP, BUS_CMD_BFIN_START};
+
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_BFIN_STATE)&0xFF) != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(bfCommands[t1], SLAVE_ID_SONAR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
+            case HOST_CMD_BARANIMATION:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BARANIMATION)&0xFF) != t2))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_BARMODE, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
+            case HOST_CMD_SET_BARS:
+            {
+                t1 = waitchar(1);
+                t2 = waitchar(1);
+
+                if(((t1+HOST_CMD_SET_BARS)&0xFF) != t2)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_BARS, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
 
             case HOST_CMD_THRUSTERS:
             {
@@ -1244,6 +1609,8 @@ int main(void)
                 cs += t1 + HOST_CMD_THRUSTERS;
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char tkCommands[]=
                 {
                     BUS_CMD_THRUSTER1_OFF, BUS_CMD_THRUSTER2_OFF,
@@ -1277,13 +1644,15 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if(t1 + HOST_CMD_BARS != t2 || t1 > 15)
+                if(((t1 + HOST_CMD_BARS)&0xFF) != t2 || t1 > 15)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char barCommands[]=
                 {
                     BUS_CMD_BAR1_OFF, BUS_CMD_BAR2_OFF,
@@ -1312,22 +1681,24 @@ int main(void)
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if(t1 + HOST_CMD_BATTCTL != t2 || t1 > 9)
+                if(((t1 + HOST_CMD_BATTCTL)&0xFF) != t2 || t1 > 9)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
 
+                /* If you mess with these arrays, please remember to update */
+                /* the sensorapi.h in ../../drivers/sensor-r5/include */
                 const static unsigned char battCommands[]=
                 {
                     BUS_CMD_BATT1_OFF, BUS_CMD_BATT2_OFF,
                     BUS_CMD_BATT3_OFF, BUS_CMD_BATT4_OFF,
-                    BUS_CMD_BATT5_OFF,
+                    BUS_CMD_BATT5_OFF, BUS_CMD_BATT6_OFF,
 
                     BUS_CMD_BATT1_ON, BUS_CMD_BATT2_ON,
                     BUS_CMD_BATT3_ON, BUS_CMD_BATT4_ON,
-                    BUS_CMD_BATT5_ON
+                    BUS_CMD_BATT5_ON, BUS_CMD_BATT6_ON
                 };
 
                 if(busWriteByte(battCommands[t1], SLAVE_ID_BATTSTAT) != 0)
@@ -1401,6 +1772,7 @@ int main(void)
 
                 byte cs=0;
 
+// sb x x x x distro balancer
                 for(i=0; i<5; i++)
                 {
                     cs += rxBuf[i];
@@ -1456,7 +1828,6 @@ int main(void)
             case HOST_CMD_SONAR:
             {
                 t1 = waitchar(1);
-		        byte cs=HOST_CMD_SONAR+t1;
 
                 if(t1 != HOST_CMD_SONAR)
 		        {
@@ -1472,7 +1843,7 @@ int main(void)
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
-                if(len != 5)
+                if(len != SONAR_PACKET_LEN)
 		        {
 			        sendByte(HOST_REPLY_FAILURE);
 			        break;
@@ -1480,8 +1851,8 @@ int main(void)
 
 		        sendByte(HOST_REPLY_SONAR);
 
-		        cs=0;
-                for(i=0; i<5; i++)
+		        byte cs=0;
+                for(i=0; i<SONAR_PACKET_LEN; i++)
                 {
                     cs += rxBuf[i];
 	                sendByte(rxBuf[i]);
@@ -1491,12 +1862,34 @@ int main(void)
 		        break;
             }
 
+            /* May vastly change */
+            case HOST_CMD_BFRESET:
+            {
+                t1 = waitchar(1);
+
+                if(t1 != HOST_CMD_BFRESET)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_BFRESET, SLAVE_ID_SONAR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+
             case HOST_CMD_RUNTIMEDIAG:
             {
                 t1 = waitchar(1);
                 t2 = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (t1+HOST_CMD_RUNTIMEDIAG != t2))
+                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_RUNTIMEDIAG)&0xFF) != t2))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1533,6 +1926,8 @@ int main(void)
                 }
 
                 t1 = 0;
+
+#ifndef MOTORBOARD
                 if(busWriteByte(SLAVE_MM1_WRITE_CMD, SLAVE_ID_MM1) != 0) t1++;
                 if(busWriteByte(rxBuf[0], SLAVE_ID_MM1) != 0) t1++;
                 if(busWriteByte(rxBuf[1], SLAVE_ID_MM1) != 0) t1++;
@@ -1556,6 +1951,14 @@ int main(void)
                 if(busWriteByte(SLAVE_MM6_WRITE_CMD, SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[10], SLAVE_ID_MM6) != 0) t1++;
                 if(busWriteByte(rxBuf[11], SLAVE_ID_MM6) != 0) t1++;
+#else
+                busWriteByte(BUS_CMD_SET_MOT_SPEEDS, SLAVE_ID_MOTOR);
+
+                for(i= 0;(i >> 1) < 6;i+= 2) {
+                    if(busWriteByte(convertSpeed(rxBuf[i], rxBuf[i+1]), SLAVE_ID_MOTOR))
+                        t1++;
+                }
+#endif
 
                 /* Inform distro board of new speeds */
                 if(busWriteByte(BUS_CMD_MOTRSPEEDS, SLAVE_ID_THRUSTERS) == 0)
@@ -1724,7 +2127,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_BATTSTAT);
 
-                if(len != 12)
+                if(len != 14)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1734,7 +2137,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<12; i++)
+                for(i=0; i<14; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
@@ -1762,7 +2165,7 @@ int main(void)
 
                 int len = readDataBlock(SLAVE_ID_BATTSTAT);
 
-                if(len != 10)
+                if(len != 12)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1772,7 +2175,7 @@ int main(void)
 
                 byte cs=0;
 
-                for(i=0; i<10; i++)
+                for(i=0; i<12; i++)
                 {
                     cs += rxBuf[i];
                     sendByte(rxBuf[i]);
@@ -1781,6 +2184,177 @@ int main(void)
                 sendByte(cs + HOST_REPLY_BATTCURRENT);
                 break;
             }
+
+            case HOST_CMD_DVL_ON:
+            {
+                t1= waitchar(1);
+
+                if(t1 != HOST_CMD_DVL_ON)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DVL_ON, SLAVE_ID_DVL) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+            case HOST_CMD_DVL_OFF:
+            {
+                t1= waitchar(1);
+
+                if(t1 != HOST_CMD_DVL_OFF)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DVL_OFF, SLAVE_ID_DVL) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+            case HOST_CMD_SERVO_ENABLE:
+            {
+                /* Get the mask and the checksum */
+                for(i= 0;i < 2;i++)
+                    rxBuf[i]= waitchar(1);
+
+                t1= 0;
+                t1+= rxBuf[0];
+                t1+= HOST_CMD_SERVO_ENABLE;
+
+                if(rxBuf[1] != (t1 & 0xFF))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SERVO_ENABLE, SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[0], SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
+            case HOST_CMD_SET_SERVO_POS:
+            {
+                /* Get the servonum, and the two bytes of position, and the checksum */
+                for(i= 0;i < 4;i++)
+                    rxBuf[i]= waitchar(1);
+
+                t1= 0;
+
+                for(i=0; i<3; i++)
+                    t1 += rxBuf[i];
+
+                t1 += HOST_CMD_SET_SERVO_POS;
+
+                if(rxBuf[3] != (t1 & 0xFF))
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_SERVO_POS, SLAVE_ID_SERVOS) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                for(i= 0;i < 3;i++) {
+                    if(busWriteByte(rxBuf[i], SLAVE_ID_SERVOS) != 0)
+                    {
+                        sendByte(HOST_REPLY_FAILURE);
+                        i= 0xFF;
+                        break;
+                    }
+                }
+
+                if(i == 0xFF)
+                    break;
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_SERVO_POWER_ON:
+            {
+                if(waitchar(1) != HOST_CMD_SERVO_POWER_ON) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SERVO_POWER_ON, SLAVE_ID_SERVOS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_SERVO_POWER_OFF:
+            {
+                if(waitchar(1) != HOST_CMD_SERVO_POWER_OFF) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SERVO_POWER_OFF, SLAVE_ID_SERVOS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_MTR_RST:
+            {
+                if(waitchar(1) != HOST_CMD_MTR_RST) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_MTR_RST, SLAVE_ID_SERVOS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
         }
     }
 }
+
+
+#ifdef SBR5
+    #ifdef SBR7
+        #error You defined SBR5 and SBR7. So, which is it?
+    #endif
+#endif

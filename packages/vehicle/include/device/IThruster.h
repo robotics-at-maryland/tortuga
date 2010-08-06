@@ -29,6 +29,11 @@ class RAM_EXPORT IThruster : public IDevice, // boost::noncopyable
                              public ICurrentProvider
 {
 public:
+    /** Fired when the power source becomes enabled */
+    static const core::Event::EventType ENABLED;
+    /** Fired when the power source becomes disabled */
+    static const core::Event::EventType DISABLED;
+    /** Fired when the thruster force changes */
     static const core::Event::EventType FORCE_UPDATE;
     
     virtual ~IThruster();
@@ -63,7 +68,8 @@ public:
     virtual double getOffset() = 0;
 
 protected:
-    IThruster(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IThruster(core::EventHubPtr eventHub = core::EventHubPtr(),
+              std::string name = "UNNAMED");
 };
     
 } // namespace device

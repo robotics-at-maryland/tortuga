@@ -1,10 +1,16 @@
 #include <p30fxxxx.h>
 #include <string.h>
+#include <stdio.h>
 #include "buscodes.h"
 
 #define SENSORBOARD_DISTROBOARD
 #include "uart.c"
 #include "i2c.c"
+
+/******************************************************************/
+/* The marker droppers will not work unless you remove this line! */
+/******************************************************************/
+// #define DVL_INSIDE
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
@@ -65,6 +71,10 @@ _FWDT ( WDT_OFF );
 #define LAT_MOTR6   _LATC2
 #define TRIS_MOTR6  _TRISC2
 
+/* DVL power Specification */
+#define DVL_ON      1
+#define LAT_DVL     _LATC1
+#define TRIS_DVL    _TRISC1 
 
 /* Kill switch level specification */
 #define KILLSW_ON 0
@@ -72,6 +82,14 @@ _FWDT ( WDT_OFF );
 /* Kill switch input */
 #define IN_KILLSW   _RD15
 #define TRIS_KILLSW _TRISD15
+
+/* The 18_V enable pin in the schematic is now the DCP enable pin */
+#define LAT_DCP_EN   _LATA7
+#define TRIS_DCP_EN  _TRISA7
+
+/* The AUX_EN will enable the computron's power */
+#define TRIS_AUX_EN  _TRISD12
+#define LAT_AUX_EN   _LATD12
 
 
 /* LED Bar and Fan output definitions */
@@ -132,6 +150,8 @@ _FWDT ( WDT_OFF );
 #define LAT_LED_OVR     _LATA9
 #define TRIS_LED_OVR    _TRISA9
 
+
+
 /* Motor controller and marker currents */
 #define ADC_IM1         0x09
 #define ADC_IM2         0x08
@@ -142,7 +162,9 @@ _FWDT ( WDT_OFF );
 #define ADC_IM7         0x04
 #define ADC_IM8         0x05
 
+
 /* The reference input. Hasn't been attached yet */
+/* On R4, this is 18V ISEN */
 #define ADC_VREF        0x0A
 
 /* 5V and 12V voltage and current sensing */
@@ -152,9 +174,17 @@ _FWDT ( WDT_OFF );
 #define ADC_I5V         0x0E
 #define ADC_I12V        0x0F
 
+/* On R4, this is 18V ISEN */
 #define ADC_IAUX        0x0D
 
+/* Function Prototypes */
+void checkOvrReg();
+void disableBusInterrupt();
+void enableBusInterrupt();
+void setBarMode(byte);
+void setBars(byte);
 
+/* Global Variables */
 unsigned int iMotor[8];
 unsigned int refVoltage;
 unsigned int v5VBus;
@@ -163,15 +193,12 @@ unsigned int i5VBus;
 unsigned int i12VBus;
 unsigned int iAux;
 
-
 /* Transmit buffer */
 #define TXBUF_LEN 60
 byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
-
 void dropMarker(byte id);
-
 
 /*
  * Configuration Registers
@@ -196,6 +223,11 @@ byte cfgRegs[16];
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
 #define STATE_MOTRSPEEDS    6
+#define STATE_SET_BARMODE   7   /* Which animation, if any */
+#define STATE_SET_BARS      8   /* Sets state of all bits at once */
+
+byte readBars();
+
 
 byte busState = 0;
 byte nParam = 0;
@@ -205,7 +237,8 @@ byte p1=0;
 byte myTemperature = 255;
 
 byte ovrReg = 0;    /* Overcurrent register */
-
+byte barMode = 0;
+byte barBlinkState = 0;
 byte mSpeeds[6];
 
 /* If Master writes us data, this gets called */
@@ -245,6 +278,13 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_SET_BARS:
+                {
+                    busState = STATE_SET_BARS;
+                    nParam = 0;
+                    break;
+                }
+
                 case BUS_CMD_MOTRSPEEDS:
                 {
                     busState = STATE_MOTRSPEEDS;
@@ -265,6 +305,13 @@ void processData(byte data)
                     nParam = 0;
                     break;
                 }
+
+                case BUS_CMD_SET_BARMODE:
+                {
+                    busState = STATE_SET_BARMODE;
+                    nParam=0;
+                    break;
+                };
 
 #ifdef HAS_U1
                 case BUS_CMD_GETREPLY_U1:
@@ -299,6 +346,22 @@ void processData(byte data)
                 case BUS_CMD_MARKER2:
                 {
                     dropMarker(1);
+                    break;
+                }
+
+                case BUS_CMD_DVL_ON:
+                {
+#ifdef DVL_INSIDE
+                    LAT_DVL= DVL_ON;
+#endif
+                    break;
+                }
+
+                case BUS_CMD_DVL_OFF:
+                {
+#ifdef DVL_INSIDE
+                    LAT_DVL= !DVL_ON;
+#endif
                     break;
                 }
 
@@ -357,14 +420,7 @@ void processData(byte data)
                     txBuf[0] = 1;
                     txBuf[1] = 0;
 
-                    if(LAT_BAR1 == BAR_ON) txBuf[1] |= 0x01;
-                    if(LAT_BAR2 == BAR_ON) txBuf[1] |= 0x02;
-                    if(LAT_BAR3 == BAR_ON) txBuf[1] |= 0x04;
-                    if(LAT_BAR4 == BAR_ON) txBuf[1] |= 0x08;
-                    if(LAT_BAR5 == BAR_ON) txBuf[1] |= 0x10;
-                    if(LAT_BAR6 == BAR_ON) txBuf[1] |= 0x20;
-                    if(LAT_BAR7 == BAR_ON) txBuf[1] |= 0x40;
-                    if(LAT_BAR8 == BAR_ON) txBuf[1] |= 0x80;
+                    txBuf[1] = readBars();
 
                     enableBusInterrupt();
                     break;
@@ -512,6 +568,22 @@ void processData(byte data)
             break;
         }
 
+        case STATE_SET_BARMODE:
+        {
+            setBarMode(data);
+            nParam = 0;
+            busState = STATE_TOP_LEVEL;
+            break;
+        }
+
+        case STATE_SET_BARS:
+        {
+            setBars(data);
+            nParam = 0;
+            busState = STATE_TOP_LEVEL;
+            break;
+        }
+
     }
 }
 
@@ -601,6 +673,8 @@ byte checkBus()
 }
 
 
+int markerCountsLeft = 0;
+
 /*
  * Drop the first marker. I am assuming we have multiple markers. This is
  * really here to let me play with interrupts and learn how to use the
@@ -610,6 +684,10 @@ byte checkBus()
  */
 void dropMarker(byte id)
 {
+#ifdef DVL_INSIDE
+    return;
+#endif
+
     /* Set appropriate output to 1 */
     if(id == 0)
         LAT_MRKR1 = MRKR_ON;
@@ -624,7 +702,9 @@ void dropMarker(byte id)
      * marker, but I would like to know the reason for this discrepantcy.
      */
 
-    PR1 = 7500;            /* Period */
+    markerCountsLeft = 1;
+
+    PR1 = 10000;            /* Period */
     TMR1 = 0;               /* Reset timer */
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
     IEC0bits.T1IE = 1;      /* Enable interrupts */
@@ -651,17 +731,21 @@ void actLight()
 void _ISR _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0;      /* Clear interrupt flag */
-    IEC0bits.T1IE = 0;      /* Disable interrupts */
 
     /* This timer kills both solenoids. If one marker is dropped, and another is
      * dropped before the first soleniod deactivates, the timer is reset and both
      * solenids will deactivate when the timer expires.
      */
 
-    LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
-    LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+    markerCountsLeft--;
 
-    T1CONbits.TON = 0;  /* Stop Timer1 */
+    if(markerCountsLeft == 0)
+    {
+        LAT_MRKR1 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+        LAT_MRKR2 = ~MRKR_ON;         /* Turn off marker soleniod (or LED in my case) */
+        T1CONbits.TON = 0;  /* Stop Timer1 */
+        IEC0bits.T1IE = 0;      /* Disable interrupts */
+    }
 }
 
 
@@ -871,6 +955,7 @@ void checkSafetyIndicator()
 
 }
 
+
 void checkOvrReg()
 {
     if(ovrReg)
@@ -886,7 +971,92 @@ void checkOvrReg()
     if(ovrReg & 0x20) LAT_MOTR6 = ~MOTR_ON;
 }
 
-void main()
+void checkKillSwitch()
+{
+    if(IN_KILLSW != KILLSW_ON)
+    {
+        LAT_MOTR1 = ~MOTR_ON;
+        LAT_MOTR2 = ~MOTR_ON;
+        LAT_MOTR3 = ~MOTR_ON;
+        LAT_MOTR4 = ~MOTR_ON;
+        LAT_MOTR5 = ~MOTR_ON;
+        LAT_MOTR6 = ~MOTR_ON;
+        ovrReg &= 0xC0;
+    }
+}
+
+void setBars(byte b)
+{
+    if(b & 0x01) LAT_BAR1 = BAR_ON; else LAT_BAR1 = ~BAR_ON;
+    if(b & 0x02) LAT_BAR2 = BAR_ON; else LAT_BAR2 = ~BAR_ON;
+    if(b & 0x04) LAT_BAR3 = BAR_ON; else LAT_BAR3 = ~BAR_ON;
+    if(b & 0x08) LAT_BAR4 = BAR_ON; else LAT_BAR4 = ~BAR_ON;
+    if(b & 0x10) LAT_BAR5 = BAR_ON; else LAT_BAR5 = ~BAR_ON;
+    if(b & 0x20) LAT_BAR6 = BAR_ON; else LAT_BAR6 = ~BAR_ON;
+    if(b & 0x40) LAT_BAR7 = BAR_ON; else LAT_BAR7 = ~BAR_ON;
+    if(b & 0x80) LAT_BAR8 = BAR_ON; else LAT_BAR8 = ~BAR_ON;
+}
+
+byte readBars()
+{
+    byte t = 0;
+    if(LAT_BAR1 == BAR_ON) t |= 0x01;
+    if(LAT_BAR2 == BAR_ON) t |= 0x02;
+    if(LAT_BAR3 == BAR_ON) t |= 0x04;
+    if(LAT_BAR4 == BAR_ON) t |= 0x08;
+    if(LAT_BAR5 == BAR_ON) t |= 0x10;
+    if(LAT_BAR6 == BAR_ON) t |= 0x20;
+    if(LAT_BAR7 == BAR_ON) t |= 0x40;
+    if(LAT_BAR8 == BAR_ON) t |= 0x80;
+    return t;
+}
+
+
+byte oldBarState = 0;
+
+void setBarMode(byte data)
+{
+    if(barMode == 0)
+        oldBarState = readBars();   /* Preserve old value of bars */
+
+    if(data == 0)
+        setBars(oldBarState);
+
+    barMode = data;
+    barBlinkState = 0;
+}
+
+
+const static byte redBlueAnim[]={0xC0,0x03,0x30,0x03};
+const static byte redGreenAnim[]={0x30,0xC0,0x0C,0xC0};
+byte barDelaySteps = 0;
+
+void updateBars()
+{
+    if(barMode != 0)
+    {
+        if(barDelaySteps == 0)
+            barDelaySteps = 10;
+        else
+        {
+            barDelaySteps--;
+            return;
+        }
+
+        barBlinkState++;
+        if(barBlinkState == 4)
+            barBlinkState = 0;
+
+        if(barMode == 1)
+            setBars(redBlueAnim[barBlinkState]);
+
+        if(barMode == 2)
+            setBars(redGreenAnim[barBlinkState]);
+    }
+}
+
+
+int main(void)
 {
     byte i;
     byte ovrTmp = 0x00;
@@ -894,11 +1064,21 @@ void main()
     long l;
     ovrReg = 0; /* Clear overcurrent register */
 
+    barMode = 0;
+
+#ifndef DVL_INSIDE
     LAT_MRKR1 = ~MRKR_ON;
     LAT_MRKR2 = ~MRKR_ON;
 
     TRIS_MRKR1 = TRIS_OUT;
     TRIS_MRKR2 = TRIS_OUT;
+#else
+    LAT_DVL = ~DVL_ON;
+    TRIS_DVL = TRIS_OUT;
+
+    LAT_MRKR2 = ~MRKR_ON;
+    TRIS_MRKR2 = TRIS_OUT;
+#endif
 
     LAT_MOTR1 = ~MOTR_ON;
     LAT_MOTR2 = ~MOTR_ON;
@@ -957,6 +1137,11 @@ void main()
     LAT_LED_ERR = LED_ON;
     LAT_LED_OVR = LED_ON;
 
+    LAT_AUX_EN = 1;
+    TRIS_AUX_EN = TRIS_OUT;
+
+    TRIS_DCP_EN = TRIS_IN;
+
 //    while(1);
 
     initBus();
@@ -983,6 +1168,9 @@ void main()
 
     for(l=0; l<55000; l++);
 
+    LAT_DCP_EN = 0;
+    TRIS_DCP_EN = TRIS_OUT;
+
     LAT_LED_STA1 = ~LED_ON;
     LAT_LED_STA2 = ~LED_ON;
     LAT_LED_ERR = ~LED_ON;
@@ -1001,6 +1189,8 @@ void main()
     while(1)
     {
         checkSafetyIndicator();
+        checkKillSwitch();
+        updateBars();
 
         byte rx = readTemp(0x9E);
 
@@ -1029,8 +1219,9 @@ void main()
         writeIndex++;
 
         if(writeIndex >= IHISTORY_SIZE)
+        {
             writeIndex = 0;
-
+        }
         /* Measure the voltages */
         setADC(ADC_VREF);
         refVoltage = readADC();

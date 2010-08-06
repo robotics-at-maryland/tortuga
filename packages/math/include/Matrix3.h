@@ -280,6 +280,8 @@ namespace math {
         inline void FromEulerAnglesZYX (float fYAngle, float fPAngle, float fRAngle) {
 			FromEulerAnglesZYX ( Radian(fYAngle), Radian(fPAngle), Radian(fRAngle) );
 		}
+		
+		
 #endif//OGRE_FORCE_ANGLE_TYPES
         // eigensolver, matrix must be symmetric
         void EigenSolveSymmetric (Real afEigenvalue[3],
@@ -305,7 +307,19 @@ namespace math {
 			return false;
 		}
 
-
+		inline void ToSkewSymmetric(Vector3 vect) {
+		    // set matrix values here
+			m[0][0] = 0; 
+			m[0][1] = -vect[2];
+			m[0][2] = vect[1];
+			m[1][0] = vect[2];
+			m[1][1] = 0;
+			m[1][2] = -vect[0];
+			m[2][0] = -vect[1];
+			m[2][1] = vect[0];
+			m[2][2] = 0;
+		}
+		
         static const Real EPSILON;
         static const Matrix3 ZERO;
         static const Matrix3 IDENTITY;

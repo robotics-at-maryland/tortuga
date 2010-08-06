@@ -9,7 +9,7 @@ clear
 % 'oc' for observer control
 % 'lqg' for linear quadratic gaussian control
 % 'lqgi' for an observer controller with integral augmentation
-controlType = 'PID';
+controlType = 'pid';
 
 
 %create a global variable so observer controllers can store variables
@@ -42,13 +42,13 @@ v_displaced=(1+m*g)/(p_water*g);%volume of water displaced by sub in m^3
 %constant=(p_water*v_displaced-m)*g;
 constant=g*(m-p_water*v_displaced);
 
-time=linspace(0,20,6000);
+time=linspace(0,30,6000);
 dt=time(2)-time(1);
 %sensor delay time
 %delay =0.05;
 
 %desired depth
-xd=15;
+xd=5;
 %desired depth_dot (downward velocity)
 
 
@@ -65,9 +65,10 @@ elseif strcmp('PD',upper(controlType))==1
     kd =30;
 elseif strcmp('PID',upper(controlType))==1
     %PID Control
-    kp =40;
-    kd =30;
-    ki =0.5;
+    disp('PID controller initialized')
+    kp =0;
+    kd =0;
+    ki =0;
     x_pid=[0 0]';%x_pid=[sum_error previous_position]'
 elseif strcmp('OC',upper(controlType))==1
     %Observer Controller - ObserverControllerCoefficients.m
@@ -81,22 +82,33 @@ elseif strcmp('LQG',upper(controlType))==1
      L = [ 0.229271574791027;
    0.026282727503579];
 elseif strcmp('LQGI',upper(controlType))==1
-%    LQG Controller - LQGIntegraterCoefficients
-% K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
-% L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
-A_c = 1.0e+04 * [-0.0006   -2.0242   -0.0248         0;
-         0   -0.0029    0.0001         0;
-    0.0000   -0.0283   -0.0001         0;
-   -0.0006   -0.0244   -0.0248         0];
+%   LQG Controller - LQGIntegraterCoefficients
+%K_a = place(A_a,B_a,[-2 -2.1 -2.9]);
+%L_a = (place(A_a',C_a',[-10 -10.1 -9.9]))';
+% A_c = 1.0e+04 * [-0.0006   -2.0242   -0.0248         0;
+%         0   -0.0029    0.0001         0;
+%    0.0000   -0.0283   -0.0001         0;
+%   -0.0006   -0.0244   -0.0248         0];
+% 
+% 
+% B_c = 1.0e+04 *[1.9998;
+%    0.0029;
+%    0.0283;
+%         0];
+% 
+% C_c = [0     0     0     1];
+A_c = 1.0e+03 *[
 
+   -0.0012   -4.2042   -0.0073         0;
+         0   -0.0174    0.0010         0;
+    0.0001   -0.0970   -0.0006         0;
+   -0.0012   -0.0042   -0.0073         0];
 
-B_c = 1.0e+04 *[1.9998;
-    0.0029;
-    0.0283;
-         0];
-
-
-C_c = [0     0     0     1];
+B_c =   1.0e+03 * [4.2000;
+                   0.0174;
+                   0.0970;
+                   0];
+C_c = [0 0 0 1];
 end    
 
 %create array to store actual vehicle states
@@ -162,7 +174,7 @@ for i=2:length(time)
     %simulate measurement
     y=x(1,i-1);
     %add gaussian white noise
-    y=y+(rand-0.5);
+    y=y+(randn-0.5);
     %store measurement
     y_array(i)=y;
 
@@ -205,13 +217,13 @@ for i=2:length(time)
         x_hat_array(2,i) = xHat4(3);
     end
     
-    
+    %Fthrust(i) = Fthrust(i)*40/8000;
     %Account for thruster saturation
-    if (Fthrust(i) > max_thrust)
-        Fthrust(i) = max_thrust;
-    elseif (Fthrust(i) < -max_thrust)
-        Fthrust(i) =  -max_thrust;
-    end
+    %if (Fthrust(i) > max_thrust)
+    %    Fthrust(i) = max_thrust;
+    %elseif (Fthrust(i) < -max_thrust)
+    %    Fthrust(i) =  -max_thrust;
+    %end
     
     %use control law in simulation of acceleration so long as we aren't
     %above the surface
@@ -228,12 +240,12 @@ figure (1)
 %plot actual and measured position
 desired = xd*ones(1,length(time));
 subplot(2,1,1)
-plot(time,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',1)
+plot(time,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',4)
 set(gca,'YDir','reverse')
 legend('measured','desired','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
-plot(time,x(2,:))
+plot(time,x(2,:),'LineWidth',4)
 set(gca,'YDir','reverse')
 ylabel('x2 - velocity')
 xlabel('time')
@@ -241,12 +253,12 @@ xlabel('time')
 figure (2)
 %plot position and Control Signal
 subplot(2,1,1)
-plot(time,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',1)
+plot(time,y_array,'.g',time,desired,'r',time,x(1,:),'b','LineWidth',4)
 set(gca,'YDir','reverse')
 legend('measured','desired','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
-plot(time,Fthrust)
+plot(time,Fthrust,'LineWidth',4)
 %set(gca,'YDir','reverse')
 ylabel('u - control signal')
 xlabel('time')
@@ -254,12 +266,12 @@ xlabel('time')
 figure(3)
 %plot actual and estimated position
 subplot(2,1,1)
-plot(time,x_hat_array(1,:),'g',time,x(1,:),'b','LineWidth',1)
+plot(time,x_hat_array(1,:),'g',time,x(1,:),'b','LineWidth',4)
 set(gca,'YDir','reverse')
 legend('estimated','actual')
 ylabel('x1 - depth')
 subplot(2,1,2)
-plot(time,x_hat_array(2,:),'g',time,x(2,:),'b','LineWidth',1)
+plot(time,x_hat_array(2,:),'g',time,x(2,:),'b','LineWidth',4)
 set(gca,'YDir','reverse')
 ylabel('x2 - velocity')
 xlabel('time')

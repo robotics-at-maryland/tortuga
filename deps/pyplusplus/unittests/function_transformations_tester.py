@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -90,6 +90,10 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
         transfer_ownership_tester = mb.class_( 'transfer_ownership_tester_t' )
         tester = transfer_ownership_tester.mem_fun( 'tester' )
         tester.add_transformation( ft.transfer_ownership( 0 ) )
+        
+        render_queue_listener_t = mb.class_( 'render_queue_listener_t' )
+        render_queue_ended = render_queue_listener_t.mem_fun( 'render_queue_ended' )
+        render_queue_ended.add_transformation( ft.inout(2) )
         
     def run_tests(self, module):
         """Run the actual unit tests.

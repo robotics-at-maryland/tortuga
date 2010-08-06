@@ -8,6 +8,8 @@ import pprint
 
 # Library Imports
 from pyplusplus import module_builder
+mod_builder = module_builder
+from pyplusplus.module_builder import call_policies
 
 # Project Imports
 import buildfiles.wrap as wrap
@@ -54,8 +56,14 @@ def generate(module_builder, local_ns, global_ns):
     classes.append(ConfigNode)
 
     # Event Subsystem
-    EventPublisher = expose_publisher(local_ns, 'EventPublisher')
+    EventPublisher = expose_publisher(local_ns, 'EventPublisher')    
     EventPublisher.include_files.append('core/include/EventHub.h')
+
+    # Apply return value policy
+    lookupByName = EventPublisher.member_function('lookupByName')
+    lookupByName.call_policies = \
+        mod_builder.call_policies.return_value_policy(
+            mod_builder.call_policies.manage_new_object)
     classes.append(EventPublisher)
 
     QueuedEventPublisher = expose_publisher(local_ns, 'QueuedEventPublisher')
@@ -94,6 +102,15 @@ def generate(module_builder, local_ns, global_ns):
     Application.include_files.append('core/include/SubsystemConverter.h')
     
     classes.append(Application)
+
+    # Wrap Events
+    def filterFunc(val):
+        if val.name.endswith('Event') and (val != 'Event'):
+            return True
+        return False
+    for cls in local_ns.classes(function= filterFunc, allow_empty = True):
+        cls.include()
+        classes.append(cls)
 
     # Add registrations functions for hand wrapped classes
     module_builder.add_registration_code("registerSubsystemList();")

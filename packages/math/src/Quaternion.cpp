@@ -46,6 +46,10 @@ Torus Knot Software Ltd.
 #include "math/include/Math.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Vector3.h"
+#include "math/include/MatrixN.h"
+#include "math/include/Vector4.h"
+
+#include <iostream>
 
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
@@ -622,13 +626,84 @@ namespace math {
     {
         Quaternion result;
         
+	/*this is backwards!!!!!
         result.x =  (w * q.x) + (z * q.y) - (y * q.z) - (x * q.w);
         result.y = (-z * q.x) + (w * q.y) + (x * q.z) - (y * q.w);
         result.z =  (y * q.x) - (x * q.y) + (w * q.z) - (z * q.w);
         result.w =  (x * q.x) + (y * q.y) + (z * q.z) + (w * q.w);
+	*/
 
+	//ensure quaternions are of unit length
+	(*this).normalise();
+	q.normalise();
+//  isn't this wrong?  replaced with Julie Thienel's version
+        result.x =  (q.w * x) + (q.z * y) - (q.y * z) - (q.x * w);
+        result.y = -(q.z * x) + (q.w * y) + (q.x * z) - (q.y * w);
+        result.z =  (q.y * x) - (q.x * y) + (q.w * z) - (q.z * w);
+        result.w =  (q.x * x) + (q.y * y) + (q.z * z) + (q.w * w);
+
+/*//Julie Thienel's version
+        result.x =  (q.w * x) - (q.z * y) + (q.y * z) - (q.x * w);
+        result.y =  (q.z * x) + (q.w * y) - (q.x * z) - (q.y * w);
+        result.z = -(q.y * x) + (q.x * y) + (q.w * z) - (q.z * w);
+        result.w =  (q.x * x) + (q.y * y) + (q.z * z) + (q.w * w);
+*/
         return result;
     }
+	
+	/*
+	find quaternion derivative based off previous quaternion and 
+	current angular rate
+	
+	the formula for quaternion rate is:
+	dg=0.5*Q(q)*w
+	*/
+	Quaternion Quaternion::derivative(Vector3 velocity){
+		
+		//reformat velocity as a matrixN
+		MatrixN velocityN(3,1);
+		velocityN[0][0]=velocity[0];
+		velocityN[1][0]=velocity[1];
+		velocityN[2][0]=velocity[2];
+		
+		MatrixN Q;
+		(*this).toQ(&Q);
+		//result vector
+		MatrixN result(4,1);
+		result = 0.5*Q*velocityN;
+		Quaternion ret(result[0][0], result[1][0], result[2][0],result[3][0]);
+		
+		return ret;
+	}
+
+  // create a Q matrix (used for q_dot=0.5*Q(q)*w )
+  void Quaternion::toQ(MatrixN* result){
+    //ensure output matrix is proper size
+    result->resize(4,3);
+    //break up input quaternion into vector and scalar components
+    Vector3 epsilon(x, y, z);
+    double  eta;
+    eta = w;
+
+    //find Q(q)=[eta*eye(3)+S(epsilon); -epsilon']
+    Matrix3 S;
+    S.ToSkewSymmetric(epsilon);
+    //the Q matrix
+    (*result)[0][0]=S[0][0]+eta;
+    (*result)[0][1]=S[0][1];
+    (*result)[0][2]=S[0][2];
+    (*result)[1][0]=S[1][0];
+    (*result)[1][1]=S[1][1]+eta;
+    (*result)[1][2]=S[1][2];
+    (*result)[2][0]=S[2][0];
+    (*result)[2][1]=S[2][1];
+    (*result)[2][2]=S[2][2]+eta;
+    (*result)[3][0]=-epsilon[0];
+    (*result)[3][1]=-epsilon[1];
+    (*result)[3][2]=-epsilon[2];
+
+  }
+	
 
 } // namespace math
 } // namespace ram

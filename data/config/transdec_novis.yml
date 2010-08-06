@@ -1,0 +1,25 @@
+GUI:
+    updateRate: 5
+    singleSubsystem: 1
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:    
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/ai/transdec_ai.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/ai/san_diego_state.yml
+
+
+    # Includes all common subsystems    
+    INCLUDE: data/config/base.yml

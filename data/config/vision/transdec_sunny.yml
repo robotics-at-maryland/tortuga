@@ -1,0 +1,241 @@
+ForwardCamera:
+    brightness: auto # 275
+    #uValue: 72 # 80 (NBRF sun) # 100
+    #vValue: 114 # 90 (NBRF sun) # 100
+    uValue: 53
+    vValue: 141
+    exposure: auto #500
+
+DownwardCamera:
+    brightness: auto # 275
+    exposure: 24 #147 #490
+    uValue: 58
+    #uValue: 72 # 80 (NBRF sun) # 100
+    #vValue: 114 # 90 (NBRF sun) # 100
+    vValue: 122
+
+AdaptiveThresher:
+    foobared: true
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.2
+    topRemovePercentage: 0.33
+    bottomRemovePercentage: 0.33
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+RedLightDetector:
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.17
+    topRemovePercentage: 0.0
+    bottomRemovePercentage: 0.0
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+OrangePipeDetector:
+    rOverGMin: 1.05 #0.75 (NEW# 0.88)
+    rOverGMax: 2.41 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
+    centeredLimitt: 0.4
+    filtUMax: 148
+    filtUMin: 55
+    filtVMax: 255
+    filtVMin: 71
+    useLUVFilter: True
+    minBrightness: 100
+    minPixels: 3000
+    minPixelsFound: 1500
+    erodeIterations: 1
+BinDetector:
+    symbolDetector: BasicWeaponDetector
+    logSymbolImages: false
+    centeredLimit: 0.2
+    #sameBinThreshold: 0.2
+    #maxAspectRatio: 3
+    blackMaskMinimumPercent: 10
+    blackMaskMaxTotalIntensity: 350
+    whiteMaskMinimumPercent: 15
+    whiteMaskMinimumIntensity: 137
+    redMinRValue: 70
+    filtblackCMax: 255
+    filtblackCMin: 0
+    filtblackHMax: 255
+    filtblackHMin: 0
+    filtblackLMax: 129
+    filtblackLMin: 0
+    filtredCMax: 255
+    filtredCMin: 0
+    filtredHMax: 255
+    filtredHMin: 0
+    filtredLMax: 255
+    filtredLMin: 140
+    filtwhiteCMax: 255
+    filtwhiteCMin: 17
+    filtwhiteHMax: 59
+    filtwhiteHMin: 232
+    filtwhiteLMax: 255
+    filtwhiteLMin: 13
+    weaponMinAspectRatioAxe: 1
+    weaponMaxAspectRatioAxe: 5.125
+    weaponMinSideFillRatioAxe: 1.0
+    weaponMaxSideFillRatioAxe: 5.84
+    weaponMinCornerFillAvgAxe: 0.01
+    weaponMaxCornerFillAvgAxe: 0.37
+    weaponMinMiddleFillAvgAxe: 0.08
+    weaponMaxMiddleFillAvgAxe: 0.69
+    weaponMinAspectRatioMachete: 1.75
+    weaponMaxAspectRatioMachete: 3.87
+    weaponMinSideFillRatioMachete: 1.1
+    weaponMaxSideFillRatioMachete: 5.5
+    weaponMinCornerFillAvgMachete: 0.0
+    weaponMaxCornerFillAvgMachete: 0.47
+    weaponMinMiddleFillAvgMachete: 0.2
+    weaponMaxMiddleFillAvgMachete: 0.44
+    weaponMinAspectRatioClippers: 1.57
+    weaponMaxAspectRatioClippers: 2.81
+    weaponMinSideFillRatioClippers: 1.01
+    weaponMaxSideFillRatioClippers: 2.27
+    weaponMinCornerFillAvgClippers: 0.06
+    weaponMaxCornerFillAvgClippers: 0.65
+    weaponMinMiddleFillAvgClippers: 0.19
+    weaponMaxMiddleFillAvgClippers: 0.47
+    weaponMinAspectRatioHammer: 1.5
+    weaponMaxAspectRatioHammer: 3.33
+    weaponMinSideFillRatioHammer: 1.2
+    weaponMaxSideFillRatioHammer: 22.5
+    weaponMinCornerFillAvgHammer: 0.0
+    weaponMaxCornerFillAvgHammer: 0.31
+    weaponMinMiddleFillAvgHammer: 0.09
+    weaponMaxMiddleFillAvgHammer: 0.24
+DuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+    erodeIterations: 3
+    #dilateIterations: 3
+    minBlackPercent: 5
+    maxBlackTotal: 300
+    defaultGrowThreshX: 0.05
+    defaultGrowThreshY: 0.05
+    minXOverYToUpGrowThresh: 1.5
+    uppedGrowThreshX: 0.5
+    uppedGrowThreshY: 0.05
+DownwardDuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+SafeDetector:
+    rOverGMin: 0.9
+    rOverGMax: 4.0
+    bOverRMax: 0.55
+    erodeIterations: 0
+    #dilateIterations: 0
+    minTotal: 100
+
+TargetDetector:
+    filtUMax: 79
+    filtUMin: 0
+    filtVMax: 179
+    filtVMin: 130
+
+BarbedWireDetector:
+    bottomRemovePercentage: 0.1
+    filtVMax: 247
+    filtVMin: 121
+    filtUMax: 75
+    filtUMin: 0
+VelocityDetector:
+    usePhaseCorrelation: 0
+    useLKFlow: 1
+
+BuoyDetector:
+    debug: 0
+    filtBlackCMax: 50
+    filtBlackCMin: 0
+    filtBlackHMax: 255
+    filtBlackHMin: 0
+    filtBlackLMax: 150
+    filtBlackLMin: 59
+    filtGreenCMax: 21
+    filtGreenCMin: 0
+    filtGreenHMax: 255
+    filtGreenHMin: 0
+    filtGreenLMax: 255
+    filtGreenLMin: 0 #120
+    filtRedCMax: 255
+    filtRedCMin: 44
+    filtRedHMax: 33
+    filtRedHMin: 233
+    filtRedLMax: 255
+    filtRedLMin: 0
+    filtYellowCMax: 255
+    filtYellowCMin: 40
+    filtYellowHMax: 68
+    filtYellowHMin: 35
+    filtYellowLMax: 255
+    filtYellowLMin: 75 #120
+    maxAspectRatio: 1.4
+    minAspectRatio: 0.6
+    minHeight: 20
+    minPixelPercentage: 0.46
+    minPixels: 15
+    minWidth: 20
+    almostHitPercentage: 0.24
+    bottomRemovePercentage: 0.15
+    checkBlack: true
+    leftRemovePercentage: 0
+    rightRemovePercentage: 0
+    maxTotalBlackCheckSize: 0.1
+    minBlackPercentage: 0.02
+    topRemovePercentage: 0.2
+    bottomRemovePercentage: 0.15
+WindowDetector:
+    #debug: 2
+    #dilateIterations: 0
+    #erodeIterations: 0
+    filtBlueCMax: 46
+    filtBlueCMin: 0
+    filtBlueHMax: 187
+    filtBlueHMin: 111
+    filtBlueLMax: 250
+    filtBlueLMin: 114
+    filtGreenCMax: 255
+    filtGreenCMin: 255
+    filtGreenHMax: 100
+    filtGreenHMin: 68
+    filtGreenLMax: 190
+    filtGreenLMin: 60
+    filtRedCMax: 150
+    filtRedCMin: 0
+    filtRedHMax: 40
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 60
+    filtYellowCMax: 255
+    filtYellowCMin: 50
+    filtYellowHMax: 83
+    filtYellowHMin: 44
+    filtYellowLMax: 240
+    filtYellowLMin: 116
+    innerMinPixelPercentage: 0.68
+    maxAspectRatio: 1.5
+    maxCenterXDisagreement: 1000
+    maxCenterYDisagreement: 1000
+    maxPixelPercentage: 0.6
+    minAspectRatio: 0.75
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minRelInnerHeight: 0.5
+    minRelInnerWidth: 0.5
+    minWidth: 50

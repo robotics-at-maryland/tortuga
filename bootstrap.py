@@ -26,7 +26,7 @@ def main(argv=None):
     parser = OptionParser()
     parser.set_defaults(task = str(DEFULT_TASKS), prefix = DEFAULT_PREFIX)
     parser.add_option('-t','--task', nargs = 1,
-                      help = 'Bootstrap tasks to run')
+                      help = 'Bootstrap tasks to run', default = None)
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
                              ' [default: %default]')
@@ -53,11 +53,13 @@ def main(argv=None):
     context.globals['python_version_str'] = PYTHON_VERSION_STR
     context.globals['py_site_packages'] = site_package_dir
     context.globals['py_site_packages_suffix'] = PYTHON_SITE_PACKAGE_SUFFIX
-    context.globals['python_executable'] = os.path.realpath(sys.executable)
+    context.globals['python_executable'] = sys.executable
         
 
     # Determing and run build tasks
-    if len(args) > 0:
+    if options.task is not None:
+        tasks = [options.task]
+    elif len(args) > 0:
         tasks = args
     else:
         tasks = DEFULT_TASKS

@@ -42,7 +42,8 @@ class ShellPanel(wx.py.shell.Shell):
         self.redirectStdout(False)
         
         # Remove intrepter references
-        del self.interp
+        if hasattr(self, 'interp'):
+            del self.interp
         
         closeEvent.Skip()
             

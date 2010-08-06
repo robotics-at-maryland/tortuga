@@ -24,7 +24,8 @@ def generate(module_builder, local_ns, global_ns):
     classes = []
 
     # Lets Py++ know to make VisionSystem a subclass of Subsystem
-    wrap.make_already_exposed(global_ns, 'ram::core', ['Subsystem', 'Event'])
+    module_builder.class_('::ram::core::Subsystem').already_exposed = True
+    module_builder.class_('::ram::core::Event').already_exposed = True
 
     # Vision System
     VisionSystem = local_ns.class_('VisionSystem')
@@ -36,15 +37,31 @@ def generate(module_builder, local_ns, global_ns):
     EventType = local_ns.class_('EventType')
     EventType.include()
     classes.append(EventType)
+
+    Symbol = local_ns.class_('Symbol')
+    Symbol.include()
+    Symbol.member_function('getSymbolNames').exclude()
+    Symbol.member_function('symbolToText').exclude()
+    classes.append(Symbol)
+
+    Color = local_ns.class_('Color')
+    Color.include()
+    Color.member_function('getColorNames').exclude()
+    Color.member_function('colorToText').exclude()
+    classes.append(Color)
     
     eventsFound = False
     for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
                                 allow_empty = True):
         cls.include()
         classes.append(cls)
+
     ImageEvent = local_ns.class_('ImageEvent')
     ImageEvent.include_files.append('vision/include/Image.h')
     wrap.set_implicit_conversions([ImageEvent], False)
+
+    BinEvent = local_ns.class_('BinEvent')
+    wrap.set_implicit_conversions([BinEvent], False)
 
     if eventsFound:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])

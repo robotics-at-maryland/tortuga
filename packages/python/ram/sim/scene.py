@@ -71,7 +71,7 @@ class Scene(object):
     scene_loaders = core.ExtensionPoint(ISceneLoader)    
     
     #@log_init(defaults.sim_log_config)
-    def __init__(self, name, scene_data):
+    def __init__(self, name, scene_data, debug = False):
         """
         @type name: string
         @param name: The name of scene
@@ -85,6 +85,8 @@ class Scene(object):
         self._cameras = {}
         self._camera_controllers = []
         self._physics_update_interval = 1.0 / 60
+
+        self._debug = debug
         
         # Create Ogre SceneManager and OgreNewt World
         self._scene_manager = \
@@ -115,7 +117,7 @@ class Scene(object):
         """
         
         # Release all references
-        print 'Release references to scene objects'
+        self._debug_print('Release references to scene objects')
         del self._objects
         del self._robots
         del self._cameras
@@ -124,10 +126,10 @@ class Scene(object):
         # Shutdown the world
         self._world.shutdown()
         
-        print 'Release reference to world object'
+        self._debug_print('Release reference to world object')
         # Not deleting this here seems to work out properly?
         #del self._world
-        print 'Done'
+        self._debug_print('Done')
 
     class scene_mgr(core.cls_property):
         """
@@ -202,8 +204,10 @@ class Scene(object):
                                              self.name, False)
         rsrc_mrg.initialiseResourceGroup(self.name)
     
-    def create_camera(self, name, position, offset, near_clip = 0.5):
-        self._cameras[name] = Camera(name, self, position, offset, near_clip)
+    def create_camera(self, name, position, offset, orientation,
+                      near_clip = 0.5):
+        self._cameras[name] = Camera(name, self, position, offset, orientation,
+                                     near_clip)
         self._camera_controllers.append(CameraController(self._cameras[name]))
     
     def create_object(self, obj_type, *args, **kwargs):
@@ -220,6 +224,10 @@ class Scene(object):
         robot = Robot(self, config_path)
         self._robots[robot.name] = robot
         return robot
+
+    def _debug_print(self, statement):
+        if self._debug:
+            print statement
 
 
 class ISceneObject(core.Interface):
@@ -427,10 +435,11 @@ class KMLSceneLoader(core.Component):
     # TODO: move me into object heirarchy    
     def _create_camera(self, node):
         name = node['name']
-        position = node.get('position', Ogre.Vector3.ZERO)
+        position, orientation = parse_position_orientation(node)
         offset = node.get('offset', (0,1,0))
         near_clip = node.get('near_clip', 0.5)
         
-        self._scene.create_camera(name, position, offset, near_clip)
+        self._scene.create_camera(name, position, offset, orientation, 
+                                  near_clip)
         
         

@@ -11,6 +11,7 @@
 #define RAM_VISION_DETECTOR_H_02_07_2008
 
 // Project Includes
+#include "core/include/Forward.h"
 #include "core/include/EventPublisher.h"
 #include "vision/include/Common.h"
 
@@ -20,6 +21,13 @@
 namespace ram {
 namespace vision {
 
+/** A detector is an encapsulation of an algorithm to find an objective
+ *
+ *  It takes in an image, and sends out Events when it finds the desired
+ *  objective.  Optionally you can get an output image for debugging the
+ *  algorithm.  Also each Detector has a core::PropertySet to allow easy
+ *  tweaking of its numerous parameters.
+ */  
 class RAM_EXPORT Detector : public core::EventPublisher
 {
 public:
@@ -30,8 +38,36 @@ public:
      */
     virtual void processImage(Image* input, Image* output = 0) = 0;
 
+    /** Get the set of properties for this object */
+    virtual core::PropertySetPtr getPropertySet();
+
+    /** Transfrom from OpenCV image coordinates to AI cordinates 
+     *
+     *  AI coordinates have the origin at the center, +Y up and +X to the 
+     *  right.  Y goes from 1 to -1 and X goes from width/height to
+     *  -width/height.
+     *
+     *  @param image
+     *      The image the coordinates were taken from.
+     *  @param imageX
+     *      The x coordinate in the image frame.
+     *  @param imageY
+     *      The y coordinate in the image frame.
+     *  @param outX
+     *      The value which will be changed the X coordinate in AI frame
+     *  @param outY
+     *      The value which will be changed the Y coordinate in AI frame
+     */
+    static void imageToAICoordinates(const Image* image, 
+				     const int& imageX, const int& imageY,
+				     double& outX, double& outY);
+    
 protected:
     Detector(core::EventHubPtr eventHub = core::EventHubPtr());
+
+private:
+    /** Holds all the properties for this detector */
+    core::PropertySetPtr m_propertySet;
 };
     
 } // namespace vision

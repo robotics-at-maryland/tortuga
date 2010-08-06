@@ -10,13 +10,16 @@ This is a library of commands that can be reused during our build out
 """
 
 import os
+import re
 import sys
 import time
 import platform
-import os
+import subprocess
 import os.path
 from StringIO import StringIO
 from urllib2 import urlopen
+from urlparse import urlparse
+import urllib2
 
 from util import CommandError, safe_system
 
@@ -24,17 +27,21 @@ __all__ = ['Download', 'Template', 'UpdatePkgConfig', 'Mkdir', 'Archive',
            'UnArchive']  
 
 # If On Windows import modules to update registry
-if os.name == 'nt':
-    import _winreg
-    import win32gui
-    import win32con
-    __all__.append('EditEnvironment')
+#if os.name == 'nt':
+    #import _winreg
+    #import win32gui
+    #import win32con
+    #__all__.append('EditEnvironment')
            
 class Download(object):
     """
     This is downloads a given url to a filename.  urllib.urlretrieve can replace
     some of this functionality
+
+    @cvar passwd_manager Handles authentication, caches credentials
     """
+
+    passwd_manager = urllib2.HTTPPasswordMgrWithDefaultRealm()
     
     CHUNK_SIZE = 4096
     SPINRATE = 32768 / CHUNK_SIZE
@@ -68,11 +75,11 @@ class Download(object):
         try:
             # Open up remote and local file
             self.outfile = file(self.filename, 'wb')
-            urlfile = urlopen(self.url)
+            urlfile = self._open_url(self.url)
             self.filesize = int(urlfile.info().get('Content-Length', None))
             
             # Report beginning of download
-            print 'Beginning download of: %s' % url
+            print 'Beginning download of: %s' % self.url
             print '\tSize:',
             if self.filesize is None:
                 print 'Unknown'
@@ -135,6 +142,33 @@ class Download(object):
             except:
                 pass
     check = represent
+
+    def _open_url(self, url, cache = True):
+        scheme, server, path, parameters, query, fragment = urlparse(url)
+        
+        if scheme == 'https':
+            
+            # Grab the password manager
+            pm = Download.passwd_manager
+
+            # Attempt to find credientials
+            username, password = pm.find_user_password(None, server)
+
+            # If none are found generate a set
+            if username is None:
+                print 'Getting credientials for',server
+                username = raw_input('Username:')
+                password = raw_input('Password:')
+
+                # Store for further use
+                pm.add_password(None, server, username, password)
+
+            # Store under the actual address we are about to use
+            pm.add_password(None, url, username, password)
+            opener = urllib2.build_opener(urllib2.HTTPBasicAuthHandler(pm))
+            urllib2.install_opener(opener)
+            
+        return urlopen(url)
 
 class Template(object):
     def __init__(self, in_filename, out_filename, **kwargs):
@@ -290,7 +324,6 @@ class Mkdir(object):
             os.makedirs(dpath)
 
 class ArchiveBase(object):
-
     def __init__(self, compressing = True):
         cmd = 'a'
         if not compressing:
@@ -306,6 +339,38 @@ class ArchiveBase(object):
         else:
             return '7ZIP_FIXME'
 
+    @staticmethod
+    def get_archive_files(filename):
+        """
+        Uses zip to return a list of all the files in an archive
+        """
+        # Normal path and ensure file exists
+        filepath = os.path.normpath(filename)
+        if not os.path.exists(filepath):
+            raise Exception(
+                'Can\'t get archive files: "%s" does not exist' % filepath);
+        
+        # Form command to get file contents
+        cmd = '%s l %s' % (ArchiveBase.get_7zip_name(), filename)
+
+        # Create Object to run the command and pipe the data
+        pipe = subprocess.Popen(cmd, shell=True,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE).stdout
+
+        # Read from the pipe
+        files = []
+        for l in pipe.readlines():
+            items = l.split()
+            
+            # The string we want is in more then 4 parts, with a date
+            pattern = re.compile('\d{4,4}-\d{2,2}-\d{2,2}')
+            if (len(items) >= 4) and (pattern.match(items[0]) is not None):
+                files.append(items.pop())
+
+        return files
+
+
 
 class Archive(ArchiveBase):
     def __init__(self, filename, *file_list):
@@ -320,7 +385,7 @@ class Archive(ArchiveBase):
         if 0 == len(file_list):
             self.files = '<Entire Working Directory>'
         else:
-            self.file =  ' '.join(file_list)
+            self.files =  ' '.join(file_list)
 
     def check(self, task):
         self.filename = task.interpolate(self.filename)
@@ -343,14 +408,19 @@ class Archive(ArchiveBase):
         return '%s %s %s' % (self.archive_cmd, self.filename, self.files)
     
 class UnArchive(ArchiveBase):
-    def __init__(self, filename):
+    def __init__(self, filename, destDir = None):
         """
         @type  filename: string
         @param filename: The name of the archive to create
+
+        @type  destDir: string
+        @param destDir: The directory to unpack the archive to
         """
         ArchiveBase.__init__(self, False)
 
         self.filename = filename
+        self.destDir = destDir
+        self.cwd = None
 
     def check(self, task):
         self.filename = task.interpolate(self.filename)
@@ -364,7 +434,20 @@ class UnArchive(ArchiveBase):
     def execute(self, task = None):
         if task is not None:
             self.check(task)
+
+        # Preform a directory change if desired
+        if self.destDir is not None:
+            # Record current working directory
+            self.cwd = os.getcwd()
+            # Change to desired directory
+            os.chdir(self.destDir)
+            
         safe_system(self.getcmd())
+
+        # Change back to original working dir if needed
+        if self.cwd is not None:
+            assert self.destDir is not None
+            os.chdir(self.cwd)
                  
     def getcmd(self):
         return '%s %s' % (self.archive_cmd, self.filename)

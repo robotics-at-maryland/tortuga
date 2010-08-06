@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -57,8 +57,10 @@ class array_1_registrator_t( registration_based.registration_based_t ):
             fn_name = 'register_array_1'
 
         fn_def_tmpl_args = [ declarations.array_item_type(self.array_type).decl_string
-                             , str( declarations.array_size(self.array_type) )
-                             , self.call_policies.create(self, call_policies.CREATION_POLICY.AS_TEMPLATE_ARGUMENT )]
+                             , str( declarations.array_size(self.array_type) ) ]
+        if not self.call_policies.is_default():
+            fn_def_tmpl_args.append( 
+                self.call_policies.create(self, call_policies.CREATION_POLICY.AS_TEMPLATE_ARGUMENT ) )
 
         fn_def = templates.join( '::'.join( [ns_name, fn_name] ), fn_def_tmpl_args )
         return call_invocation.join( fn_def, [ '"%s"' % self._create_name() ] ) + ';'

@@ -23,7 +23,7 @@
 
 #include "math/include/Events.h"
 
-#include "sensorapi-r5/include/sensorapi.h"
+#include "drivers/sensor-r5/include/sensorapi.h"
 
 namespace ram {
 namespace vehicle {
@@ -33,7 +33,7 @@ SBTempSensor::SBTempSensor(core::ConfigNode config,
                              core::EventHubPtr eventHub,
                              IVehiclePtr vehicle) :
     Device(tempSensorIDToText(config["id"].asInt())),
-    ITempSensor(eventHub),
+    ITempSensor(eventHub, tempSensorIDToText(config["id"].asInt())),
     m_id(config["id"].asInt()),
     m_temp(0),
     m_sensorBoard(SensorBoardPtr())

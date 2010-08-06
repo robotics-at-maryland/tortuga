@@ -25,19 +25,21 @@ namespace device {
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
 
-
+class IStateEstimator;
+typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
+    
 class IThruster;
 typedef boost::shared_ptr<IThruster> IThrusterPtr;
     
-class Thruster;
-typedef boost::shared_ptr<Thruster> ThrusterPtr;
-
 class IPowerSource;
 typedef boost::shared_ptr<IPowerSource> IPowerSourcePtr;
 
 class ITempSensor;
 typedef boost::shared_ptr<ITempSensor> ITempSensorPtr;
-    
+
+class ISonar;
+typedef boost::shared_ptr<ISonar> ISonarPtr;
+
 class IIMU;
 typedef boost::shared_ptr<IIMU> IIMUPtr;
     
@@ -46,6 +48,15 @@ typedef boost::shared_ptr<IPSU> IPSUPtr;
 
 class IDepthSensor;
 typedef boost::shared_ptr<IDepthSensor> IDepthSensorPtr;
+
+class IPositionSensor;
+typedef boost::shared_ptr<IPositionSensor> IPositionSensorPtr;
+
+class IVelocitySensor;
+typedef boost::shared_ptr<IVelocitySensor> IVelocitySensorPtr;
+    
+class IPayloadSet;
+typedef boost::shared_ptr<IPayloadSet> IPayloadSetPtr;
     
 class SensorBoard;
 typedef boost::shared_ptr<SensorBoard> SensorBoardPtr;
@@ -56,6 +67,14 @@ typedef DoubleList VoltageList;
 typedef DoubleList WattageList;
 typedef DoubleList CurrentList;
 typedef std::vector<std::string> StringList;
+
+// Types for devices (used for the state estimator)
+typedef enum {
+    NO_DEVICE = 0,
+    DVL_DEVICE,
+    IMU_DEVICE,
+    SENSORBOARD_DEVICE,
+} deviceType;
     
 } // namespace device
 } // namespace vehicle

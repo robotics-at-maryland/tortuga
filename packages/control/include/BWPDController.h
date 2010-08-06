@@ -10,16 +10,11 @@
 #ifndef RAM_CONTROL_BWDCONTROLER_07_07_2007
 #define RAM_CONTROL_BWDCONTROLER_07_07_2007
 
-// STD Includes
-#include <fstream>
-
 // Project Includes
 #include "control/include/Common.h"
 #include "control/include/IController.h"
 
 #include "vehicle/include/Common.h"
-
-#include "pattern/include/Subject.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
@@ -27,6 +22,8 @@
 
 // Must Be Included last
 #include "control/include/Export.h"
+
+#include "math/include/Vector3.h"
 
 namespace ram {
 namespace control {
@@ -50,6 +47,12 @@ public:
     virtual ~BWPDController();
     
     /** @copydoc IController::setSpeed() */
+    /** NOT IMPLEMENTED */
+    virtual void setVelocity(math::Vector2 velocity);
+
+    /** NOT IMPLEMENTED */
+    virtual math::Vector2 getVelocity();
+    
     virtual void setSpeed(double speed);
 
     virtual void setSidewaysSpeed(double speed);
@@ -101,6 +104,29 @@ public:
 
     /** @copydoc IController::atDepth() */
     virtual bool atDepth();
+
+    virtual void holdCurrentDepth();
+
+    /** loads current orientation into desired (fixes offset in roll and pitch)*/
+    virtual void holdCurrentHeading();
+
+    virtual void holdCurrentPosition();
+
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
     
     virtual void background(int interval) {
         Updatable::background(interval);
@@ -113,13 +139,28 @@ public:
         return Updatable::backgrounded();
     };
 
+    virtual void setDesiredVelocity(math::Vector2 velocity, int frame);
+    virtual void setDesiredPosition(math::Vector2 position, int frame);
+    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
+                                               math::Vector2 velocity);
+    virtual math::Vector2 getDesiredVelocity(int frame);
+    virtual math::Vector2 getDesiredPosition(int frame);
+    virtual bool atPosition();
+    virtual bool atVelocity();
+
     /** Called at a fixed rate.  Grabs latest vehicle state, runs the controller, the commands the
         thrusters */
     virtual void update(double timestep);
     
+    virtual void setBuoyantTorqueCorrection(double x, double y, double z);
+    
 private:
     void init(core::ConfigNode config);
 
+    void publishAtDepth();
+
+    void publishAtOrientation();
+    
     /** Used to maintain state, so we don't issue continuous at depth updates */
     bool m_atDepth;
 
@@ -138,6 +179,12 @@ private:
     /** Contains settings for the controller */
     core::ConfigNode m_config;
     
+    /** True if we are holding starting orientation */
+    bool m_holdStartOrientation;
+
+    /** The pause during which we wait for the vehicle to initialize */
+    double m_initializationPause;
+    
     /** Syncs asscess to the desired state */
     core::ReadWriteMutex m_desiredEstimatedStateMutex;
     
@@ -153,7 +200,7 @@ private:
     /** Internal State of the controller */
     ControllerState* m_controllerState;
     
-    std::ofstream m_logfile;
+    math::Vector3 m_buoyantTorqueCorrection;
 };
     
 } // namespace control

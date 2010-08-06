@@ -7,131 +7,1302 @@
  * File:  packages/vision/src/BinDetector.cpp
  */
 
+// STD Includes
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+#include <sstream>
+#include <iomanip>
+//#include <cassert>
 
 // Library Includes
 #include "cv.h"
 #include "highgui.h"
+#include <log4cpp/Category.hh>
+#include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/Camera.h"
+#include "vision/include/Events.h"
+#include "vision/include/DetectorMaker.h"
+#include "vision/include/SymbolDetector.h"
+#include "vision/include/ColorFilter.h"
 
+#include "math/include/Vector2.h"
+
+#include "core/include/Logging.h"
+#include "core/include/PropertySet.h"
+
+//static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
+
+static const int BIN_EXTRACT_BORDER = 16;
 
 namespace ram {
 namespace vision {
 
+static bool binToCenterComparer(BinDetector::Bin b1, BinDetector::Bin b2)
+{
+    return b1.distanceTo(0,0) < b2.distanceTo(0,0);
+}
+    
+BinDetector::Bin::Bin() :
+    TrackedBlob(),
+    m_symbol(Symbol::NONEFOUND)
+{
+}
+    
+BinDetector::Bin::Bin(BlobDetector::Blob blob, Image* source,
+                      math::Degree angle, int id, Symbol::SymbolType symbol) :
+    TrackedBlob(blob, source, angle, id),
+    m_symbol(symbol)
+{
+}
+    
+void BinDetector::Bin::draw(Image* image, Image* redImage)
+{
+    IplImage* out = image->asIplImage();
+    // Draw green rectangle around the blob
+    CvPoint tl,tr,bl,br;
+    tl.x = bl.x = getMinX();
+    tr.x = br.x = getMaxX();
+    tl.y = tr.y = getMinY();
+    bl.y = br.y = getMaxY();
+    cvLine(out, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0);
+    cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0);
+
+    // Now draw my id
+    std::stringstream ss;
+    ss << getId();
+    Image::writeText(image, ss.str(), tl.x, tl.y);
+
+    if (redImage)
+    {
+        std::stringstream ss3;
+        ss3 << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
+        Image::writeText(image, ss3.str(), br.x-30, tl.y);
+    }
+
+    std::stringstream ss2;
+    ss2 << std::setprecision(1) << getAngle().valueDegrees();
+    Image::writeText(image, ss2.str(), br.x-30, br.y-15);
+
+    // Now do the symbol
+    Image::writeText(image, Symbol::symbolToText(m_symbol), bl.x, bl.y - 15);
+}
+        
 BinDetector::BinDetector(core::ConfigNode config,
                          core::EventHubPtr eventHub) :
     Detector(eventHub),
-    cam(0)
+    m_debug(0),
+    m_blobDetector(config, eventHub),
+    m_symbolDetector(SymbolDetectorPtr()),
+    m_found(false),
+    m_centered(false),
+    m_runSymbolDetector(true),
+    m_logSymbolImages(false),
+    m_percents(0),
+    m_whiteMaskedFrame(0),
+    m_blackMaskedFrame(0),
+    m_redMaskedFrame(0),
+    m_extractBuffer(0),
+    m_scratchBuffer1(0),
+    m_scratchBuffer2(0),
+    m_whiteMaskMinimumPercent(0),
+    m_whiteMaskMinimumIntensity(0),
+    m_blackMaskMinimumPercent(0),
+    m_blackMaskMaxTotalIntensity(0),
+    m_redErodeIterations(0),
+    m_redDilateIterations(0),
+    m_redMinPercent(0),
+    m_redMinRValue(0),
+    m_redMaxGValue(0),
+    m_redMaxBValue(0),
+    m_blobMinBlackPixels(0),
+    m_blobMinWhitePixels(0),
+    m_blobMinRedPercent(0),
+    m_binMaxAspectRatio(0),
+    m_binMinFillPercentage(0),
+    m_binMaxOverlaps(0),
+    m_binSameThreshold(0),
+    m_binLostFrames(0),
+    m_binHoughPixelRes(0),
+    m_binHoughThreshold(0),
+    m_binHoughMinLineLength(0),
+    m_binHoughMaxLineGap(0),
+    m_binID(0),
+    m_whiteFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_blackFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_redFilter(new ColorFilter(0, 255, 0, 255, 0, 255)),
+    m_frame(0)
 {
+    // Load all config based settings
     init(config);
+
+    // Allocate images at default size
+    allocateImages(640, 480);
+    
+    // By default we turn symbol detection on
+    setSymbolDetectionOn(true);
 }
     
-BinDetector::BinDetector(Camera* camera) :
-    cam(camera)
-{
-    init(core::ConfigNode::fromString("{}"));
-}
-
-void BinDetector::init(core::ConfigNode)
-{
-	frame = new OpenCVImage(640, 480);
-	rotated = cvCreateImage(cvSize(640,480),8,3);//Its only 480 by 640 if the cameras on sideways
-	binFrame =cvCreateImage(cvGetSize(rotated),8,3);
-    bufferFrame = cvCreateImage(cvGetSize(rotated),8,3);
-	found=0;
-	binX=-1;
-	binY=-1;
-	binCount=0;
-}
     
 BinDetector::~BinDetector()
 {
-	delete frame;
-	cvReleaseImage(&binFrame);
-	cvReleaseImage(&rotated);
-    cvReleaseImage(&bufferFrame);
+    deleteImages();
 }
 
-void BinDetector::update()
+void BinDetector::processImage(Image* input, Image* out)
 {
-    cam->getImage(frame);
-    processImage(frame, 0);
+    m_frame->copyFrom(input);
+
+    // Ensure all the images are the proper size
+    if ((m_whiteMaskedFrame->getWidth() != m_frame->getWidth()) || 
+        (m_whiteMaskedFrame->getHeight() != m_frame->getHeight()))
+    {
+        // We are the wrong size delete them and recreate
+        deleteImages();
+        allocateImages(m_frame->getWidth(), m_frame->getHeight());
+    }
+
+    // Make debug output look like m_frame (will be marked up later)
+    if (out)
+        out->copyFrom(m_frame);
+    
+    // Convert the image to LCh
+    m_frame->setPixelFormat(Image::PF_RGB_8);
+    m_frame->setPixelFormat(Image::PF_LCHUV_8);
+    
+    // Filter for white, black, and red
+    filterForWhite(m_frame, m_whiteMaskedFrame);
+    filterForRed(m_frame, m_redMaskedFrame);
+    filterForBlack(m_frame, m_blackMaskedFrame);
+    
+    // Update debug image with black, white and red color info
+    filterDebugOutput(out);
+
+    // Find all the white blobs
+    m_blobDetector.setMinimumBlobSize(m_blobMinWhitePixels);
+    m_blobDetector.processImage(m_whiteMaskedFrame);
+    BlobDetector::BlobList whiteBlobs = m_blobDetector.getBlobs();
+    
+    // Find all the black blobs
+    m_blobDetector.setMinimumBlobSize(m_blobMinBlackPixels);
+    m_blobDetector.processImage(m_blackMaskedFrame);
+    BlobDetector::BlobList blackBlobs = m_blobDetector.getBlobs();
+
+    // Find bins
+    BlobDetector::BlobList binBlobs;
+    findBinBlobs(whiteBlobs, blackBlobs, binBlobs, out);
+    
+    if (out)
+    {
+        std::stringstream ss;
+        ss << "Bin#: " << binBlobs.size();
+        Image::writeText(out, ss.str(), out->getWidth() / 2,
+                         out->getHeight() - 15); 
+    }
+
+    // Process the individual bins if we have any
+    if (binBlobs.size() > 0)
+    {
+        // We found bins
+        m_found = true;
+        
+        // Process bins to determine there angle and symbol
+        BinList newBins;
+
+        int binNumber = 0;
+        BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
+        {
+            newBins.push_back(processBin(binBlob, m_runSymbolDetector,
+                                         binNumber, out));
+            binNumber++;
+        }
+
+        // Sort through our new bins and match them to the old ones
+        TrackedBlob::updateIds(&m_bins, &newBins, &m_lostBins,
+                               m_binSameThreshold, m_binLostFrames);
+
+        // Anybody left we didn't find this iteration, so its been dropped
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSymbol(), bin.getAngle()));
+            event->id = bin.getId();
+            publish(EventType::BIN_DROPPED, event);
+        }
+
+        // Our new bins are now "the bins", and sort then in relation to the
+        // center of the image
+        m_bins = newBins;
+        m_bins.sort(binToCenterComparer);
+
+        // Determine angle of the array of bins and publish the event
+        math::Degree arrayAngle;
+        if (findArrayAngle(m_bins, arrayAngle, out))
+        {
+            // It was a valid angle, send it out
+            BinEventPtr event(new BinEvent(arrayAngle));
+            publish(EventType::MULTI_BIN_ANGLE, event);
+        }
+
+        // Now publish the centered events
+        math::Vector2 toCenter(getX(), getY());
+        if (toCenter.normalise() < m_centeredLimit)
+        {
+            if(!m_centered)
+            {
+                m_centered = true;
+                BinEventPtr event(new BinEvent(getX(), getY(), getSymbol(),
+                                               getAngle()));
+                publish(EventType::BIN_CENTERED, event);
+            }
+        }
+        else
+        {
+            m_centered = false;
+        }
+
+        
+        // Send bin events and draw debug update 
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            // Draw the debug bin output
+            if (out)
+                bin.draw(out);
+
+            // Send out the bin event
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSymbol(), bin.getAngle()));
+            event->id = bin.getId();
+            publish(EventType::BIN_FOUND, event);
+        }
+
+    }
+    else if (m_found)
+    {
+        // Lets update the ids with no new bins
+        BinList emptyBins;
+        TrackedBlob::updateIds(&m_bins, &emptyBins, &m_lostBins,
+                               m_binSameThreshold, m_binLostFrames);
+
+        // Anybody left has run out of lost frames so its been dropped
+        BOOST_FOREACH(Bin bin, m_bins)
+        {
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+                                           bin.getSymbol(), bin.getAngle()));
+            event->id = bin.getId();
+            publish(EventType::BIN_DROPPED, event);
+        }
+
+        // Our new bins are now "the bins"
+        m_bins = emptyBins;
+
+        if (0 == m_lostBins.size())
+        {
+            // Publish lost event
+            m_found = false;
+            m_centered = false;
+            publish(EventType::BINS_LOST, core::EventPtr(new core::Event()));
+        }
+    }
+}
+
+bool BinDetector::found()
+{
+    return m_found;
 }
     
-void BinDetector::processImage(Image* input, Image* output)
+float BinDetector::getX()
 {
-	int binx=-1;
-	int biny=-1;
-	/*First argument to white_detect is a ratios frame, then a regular one*/
-	IplImage* image =(IplImage*)(*input);
-	
-	//This is only right if the camera is on sideways... again.
-	//rotate90Deg(image,rotated);
+    if (m_bins.size() > 0)
+        return m_bins.front().getX();
+    else
+        return 0;
+}
+float BinDetector::getY()
+{
+    if (m_bins.size() > 0)
+        return m_bins.front().getY();
+    else
+        return 0;
+}
+math::Degree BinDetector::getAngle()
+{
+    if (m_bins.size() > 0)
+        return m_bins.front().getAngle();
+    else
+        return math::Degree(0);
+}
 
-	//Else just copy
-	cvCopyImage(image,rotated);
-	image=rotated;//rotated is poorly named when camera is on correctly... oh well.
-	//Set image to a newly copied space so we don't write over opencv's private memory space...
-	//since opencv has a bad habit of making assumptions about what I want to do. :)
-	cvCopyImage(image,binFrame);
-	
-	to_ratios(image);
-	binCount=white_detect(image,binFrame, bufferFrame, &binx,&biny);
-	if (biny!=-1 && binx!=-1)
-	{
-		binX=binx;
-		binX/=image->width;
-		binY=biny;
-		binY/=image->height;
-		found=true;
+Symbol::SymbolType BinDetector::getSymbol()
+{
+    if (m_bins.size() > 0)
+        return m_bins.front().getSymbol();
+    else
+        return Symbol::NONEFOUND;
+}
+
+BinDetector::BinList BinDetector::getBins()
+{
+    return m_bins;
+}
+
+void BinDetector::setSymbolDetectionOn(bool on)
+{
+    m_runSymbolDetector = on;
+}
+
+void BinDetector::setSymbolImageLogging(bool value)
+{
+    m_logSymbolImages = value;
+}
+
+    
+void BinDetector::init(core::ConfigNode config)
+{
+    // Look up type for the symbol detector and validate it
+    std::string symbolDetectorType = "BasicWW2Detector";
+    if (config.exists("symbolDetector"))
+        symbolDetectorType = config["symbolDetector"].asString();
+    assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
+           "Invalid symbol detector type");
+
+    // Create the detector
+    config.set("type", symbolDetectorType);
+    DetectorPtr detector = vision::DetectorMaker::newObject(
+        DetectorMakerParamType(config, core::EventHubPtr()));
+
+    // Convert it the proper type
+    m_symbolDetector =
+        boost::dynamic_pointer_cast<SymbolDetector>(detector);
+    assert(m_symbolDetector && "Symbol detector not of SymbolDetector type");
+
+    
+    // NOTE: The property set automatically loads the value from the given
+    //       config if its present, if not it uses the default value presented.
+    core::PropertySetPtr propSet(getPropertySet());
+
+    // Add properties of the symbolDetector
+    propSet->addPropertiesFromSet(m_symbolDetector->getPropertySet().get());
+    
+    // Debug parameter
+    propSet->addProperty(config, false, "debug",
+                         "Debug parameter", 0, &m_debug, 0, 1);
+
+    // General properties
+    propSet->addProperty(config, false, "centeredLimit",
+        "Maximum distance for the bin to be considred \"centered\"",
+        0.1, &m_centeredLimit, 0.0, 4.0/3.0);
+    propSet->addProperty(config, false, "logSymbolImages",
+        "Log all the images passed to the symbols detector to disk",
+        false, &m_logSymbolImages);
+    
+    // Black mask properties
+    propSet->addProperty(config, false, "blackIsRed",
+        "Treat red as black",
+        true, &m_blackIsRed);
+    propSet->addProperty(config, false, "blackMaskMinimumPercent",
+        "% of for the black mask minimum",
+        10, &m_blackMaskMinimumPercent, 0, 100);
+    propSet->addProperty(config, false, "blackMaskMaxTotalIntensity",
+        "Maximum value of RGB pixels added together for black",
+        350, &m_blackMaskMaxTotalIntensity, 0, 765);
+
+    // White mask properties
+    propSet->addProperty(config, false, "whiteMaskMinimumPercent",
+        "% of for the white mask minimum",
+        30, &m_whiteMaskMinimumPercent, 0, 100);
+    propSet->addProperty(config, false, "whiteMaskMinimumIntensity",
+        "Minimum value of RGB pixels added together for white",
+        190, &m_whiteMaskMinimumIntensity, 0, 765);
+
+    // Red mask properties
+    propSet->addProperty(config, false, "redMinPercent",
+        "Minimum percent of the total pixel value for red",
+        35, &m_redMinPercent, 0, 255);
+    propSet->addProperty(config, false, "redMinRValue",
+        "Minimum value of Red pixel value for for red",
+        125, &m_redMinRValue, 0, 255);
+    propSet->addProperty(config, false, "redMaxGValue",
+        "Maximum value of Green pixel value for for red",
+        170, &m_redMaxGValue, 0, 255);
+    propSet->addProperty(config, false, "redMaxBValue",
+        "Maximum value of Blue pixel value for for red",
+        170, &m_redMaxBValue, 0, 255);
+    propSet->addProperty(config, false, "redErodeIterations",
+        "Erosion iterations on the red filtered image",
+	0, &m_redErodeIterations, 0, 10);
+    propSet->addProperty(config, false, "redDilateIterations",
+        "Dilation iterations on the red filtered image",
+         0, &m_redDilateIterations, 0, 10);
+    
+
+    // Blob detector properties
+    propSet->addProperty(config, false, "blobMinBlackPixels",
+       "Minimum pixel count of a black blob",
+        2500, &m_blobMinBlackPixels, 0, 10000);
+    propSet->addProperty(config, false, "blobMinWhitePixels",
+       "Minimum pixel count of a white blob",
+        1500, &m_blobMinWhitePixels, 0, 10000);
+    propSet->addProperty(config, false, "blobMinRedPercent",
+       "Size of min red blob as a percent of the smallest black bin blob",
+        10.0, &m_blobMinRedPercent, 0.0, 100.0);
+
+    // Bin Determination properties 
+    propSet->addProperty(config, false, "binMaxAspectRatio",
+       "The maximum aspect ratio the black blob of a bin can have",
+        3.0, &m_binMaxAspectRatio, 0.0, 10.0);
+    propSet->addProperty(config, false, "binMinFillPrecentage",
+       "The minimum amount of the black bob that must be filled to be a bin",
+        0.0, &m_binMinFillPercentage, 0.0, 1.0);
+    propSet->addProperty(config, false, "redMinFillPrecentage",
+       "The minimum amount of the black blob that must be red to be a bin",
+        0.0, &m_minRedFillPercentage, 0.0, 1.0);
+    propSet->addProperty(config, false, "binMaxOverlaps",
+       "The minimum amount of the black bob that must be filled to be a bin",
+        20, &m_binMaxOverlaps, 0, 20);
+    propSet->addProperty(config, false, "binSameThreshold",
+       "The max distance between bins on different frames",
+        0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
+    propSet->addProperty(config, false, "binLostFrames",
+       "How many frames a bin must be missing before reporting lost",
+        0, &m_binLostFrames, 0, 30);
+
+    propSet->addProperty(config, false, "binHoughPixelRes",
+        "Pixel resolution for hough based bin angle detection",
+        3, &m_binHoughPixelRes, 0, 100); // 3 in Dans version
+    propSet->addProperty(config, false, "binHoughThresdhold",
+        "Threshold for hough based bin angle detection",
+        110, &m_binHoughThreshold, 0, 300); // 150 in Dans version
+    propSet->addProperty(config, false, "binHoughMinLineLength",
+        "Minimum length of lines found when detemining bin angle",
+        20, &m_binHoughMinLineLength, 0, 100); // 5 in Dans version
+    propSet->addProperty(config, false, "binHoughMaxLineGap",
+        "Maximum gap between lines for them to be joined",
+        50, &m_binHoughMaxLineGap, 0, 300); // 50 in Dans version
+
+
+    m_whiteFilter->addPropertiesToSet(propSet, &config,
+                                      "whiteL", "Luminance",
+                                      "whiteC", "Chrominance",
+                                      "whiteH", "Hue",
+                                      125, 255,  // L defaults // 180,255
+                                      0, 255,  // U defaults // 76, 245
+                                      0, 255); // V defaults // 200,255
+
+    m_blackFilter->addPropertiesToSet(propSet, &config,
+                                      "blackL", "Luminance",
+                                      "blackC", "Chrominance",
+                                      "blackH", "Hue",
+                                      0, 124,  // L defaults // 180,255
+                                      0, 255,  // U defaults // 76, 245
+                                      0, 255); // V defaults // 200,255
+
+    
+    m_redFilter->addPropertiesToSet(propSet, &config,
+                                    "redL", "Luminance",
+                                    "redC", "Chrominance",
+                                    "redH", "Hue",
+                                    0, 255,  // L defaults // 180,255
+                                    0, 200,  // U defaults // 76, 245
+                                    200, 255); // V defaults // 200,255
+
+    m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
+    // Make sure the configuration is valid
+    //propSet->verifyConfig(config, true);
+}
+
+void BinDetector::allocateImages(int width, int height)
+{
+    m_percents = new OpenCVImage(width, height);
+    m_whiteMaskedFrame = new OpenCVImage(width, height);
+    m_blackMaskedFrame = new OpenCVImage(width, height);
+    m_redMaskedFrame = new OpenCVImage(width, height);
+    
+    int extra = BIN_EXTRACT_BORDER * 2;
+    size_t size = (width + extra) * (height + extra) * 3;
+    m_extractBuffer = new unsigned char[size];
+    m_scratchBuffer1 = new unsigned char[size];
+    m_scratchBuffer2 = new unsigned char[size];
+}
+
+void BinDetector::deleteImages()
+{
+    delete m_percents;
+    delete m_whiteMaskedFrame;
+    delete m_blackMaskedFrame;
+    delete m_redMaskedFrame;
+    delete [] m_extractBuffer;
+    delete [] m_scratchBuffer1;
+    delete [] m_scratchBuffer2;
+}
+    
+void BinDetector::filterForWhite(Image* input, Image* output)
+{
+    m_whiteFilter->filterImage(input, output);
+}
+
+void BinDetector::filterForBlack(Image* input, Image* output)
+{
+    m_blackFilter->filterImage(input, output);
+  
+    // And the red and black filter into the black
+    if (m_blackIsRed)
+    {
+        unsigned char* blackData = m_blackMaskedFrame->getData();
+        unsigned char* redData = m_redMaskedFrame->getData();
+        int size = input->getWidth() * input->getHeight() * 3;
+        for (int i = 0; i < size; ++i)
+        {
+            if (*redData)
+                *blackData = 255;
+            redData++;
+            blackData++;
+        }
+    }
+}
+
+void BinDetector::filterForRed(Image* input, Image* output)
+{
+
+    m_redFilter->filterImage(input, output);
+
+    if (m_redErodeIterations)
+    {
+      cvErode(output->asIplImage(), output->asIplImage(), 0, 
+	      m_redErodeIterations);
+    }
+    if (m_redDilateIterations)
+    {
+      cvDilate(output->asIplImage(), output->asIplImage(), 0, 
+	       m_redDilateIterations);
+    }
+
+}
+
+void BinDetector::filterDebugOutput(Image* out)
+{
+    if (out)
+    {
+        int size = out->getWidth() * out->getHeight() * 3;
+        unsigned char* outData = out->getData();
+        unsigned char* whiteData = m_whiteMaskedFrame->getData();
+        unsigned char* blackData = m_blackMaskedFrame->getData();
+        unsigned char* redData = m_redMaskedFrame->getData();
+
+
+        for (int count = 0; count < size; count += 3)
+        {
+            bool setColor = false;
+            unsigned char R = 147;
+            unsigned char G = 20;
+            unsigned char B = 255;
+
+            if ((whiteData[count] != 0) && (blackData[count] == 0))
+            {
+                // Make all white black
+                R = G = B = 0;
+                setColor = true;
+            }
+            else if ((blackData[count] != 0) && (whiteData[count] == 0))
+            {
+                // Make all black white
+                R = G = B = 255;
+                setColor = true;
+            }
+            else if  ((blackData[count] != 0) || (whiteData[count] != 0))
+            {
+                // else defaults to pink
+                setColor = true;
+            }
+
+            if (redData[count] != 0)
+            {
+                // we have red
+                R = 255;
+                G = B = 0;
+                setColor = true;
+            }
+            
+            if (setColor)
+            {
+                outData[count] = B;
+                outData[count+1] = G;
+                outData[count+2] = R;
+            }
+        }
+    }
+}
+
+void BinDetector::findBinBlobs(const BlobDetector::BlobList& whiteBlobs,
+                               const BlobDetector::BlobList& blackBlobs,
+                               BlobDetector::BlobList& binBlobs,
+                               Image* output)
+{
+    BlobDetector::BlobList nonBinBlobs;
+    BlobDetector::BlobList candidateBins;
+    double averageHeight = 0;
+    int foundBins = 0;
+
+    // TODO: Add fill percenter, full height percentage, border width
+    //       and aspect ratio to the configurable parameters
+
+
+    // NOTE: all blobs sorted largest to smallest
+    BOOST_FOREACH(BlobDetector::Blob blackBlob, blackBlobs)
+    {
+        bool matchedBlob = false;
         
-        CvPoint tl,tr,bl,br;
-		tl.x=bl.x= std::max(binx-4,0);
-		tr.x=br.x= std::min(binx+4,binFrame->width-1);
-		tl.y=tr.y= std::min(biny+4,binFrame->height-1);
-		br.y=bl.y= std::max(biny-4,0);
-		
-		cvLine(binFrame, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
-		cvLine(binFrame, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0 );
-	}
-	else
-	{
-		found=false;
-		binX=-1;
-		binY=-1;
-	}
+        BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
+        {
+            // Sadly, this totally won't work at the edges of the screen...
+            // crap damn.
+            if (whiteBlob.containsInclusive(blackBlob, 2) &&
+                (blackBlob.getAspectRatio() < m_binMaxAspectRatio) &&
+                (blackBlob.getFillPercentage() > m_binMinFillPercentage) &&
+		(getRedFillPercentage(blackBlob, m_redMaskedFrame)
+		 >= m_minRedFillPercentage))
+            {
+                // blackBlobs[blackBlobIndex] is the black rectangle of a bin
+                candidateBins.push_back(blackBlob);
+                matchedBlob = true;
+		averageHeight += blackBlob.getHeight();
+                // Don't add it once for each white blob containing it,
+                // thatd be dumb.
+                break;
+            }
+        }
 
+	if (!matchedBlob)
+	    nonBinBlobs.push_back(blackBlob);
+    }
+    
+    // Determine the average height
+    foundBins = binBlobs.size();
+    averageHeight /= foundBins;
+
+    // Now lets go through the non bin blobs, and see if we can figure
+    // out if they are black blobs that have just grown so large they only
+    // have white on the sides
+/*    BOOST_FOREACH(BlobDetector::Blob blackBlob, nonBinBlobs)
+    {
+        double blobHeight = blackBlob.getHeight();
+        double imageHeight = m_whiteMaskedFrame->getHeight();
+        if (((blobHeight / imageHeight) > 0.9) && 
+            (blackBlob.getFillPercentage() > 0.8))
+        {
+            // We are a full height blob, which just might have white blobs on 
+            // the side
+
+            bool whiteLeft = false;
+            bool whiteRight = false;
+
+            // Attempt to find white blobs on the side
+            BOOST_FOREACH(BlobDetector::Blob whiteBlob, whiteBlobs)
+            {
+                double whiteblobHeight = blackBlob.getHeight();
+                if ((whiteblobHeight / imageHeight) > 0.9)
+                {
+                    // The white blob is full height as well
+                    if (blackBlob.boundsIntersect(whiteBlob, 12))
+                    {
+                        if (whiteBlob.getCenterX() < blackBlob.getCenterX())
+                            whiteLeft = true;
+                        else
+                           whiteRight = true;
+                    }
+                }
+            } // foreach white blob
+
+            // Determine if the black blob is on the edge
+            bool onLeftEdge = blackBlob.getMinX() <= 12;
+            bool onRightEdge = 
+              blackBlob.getMaxX() >= (int)(m_whiteMaskedFrame->getWidth() - 12);
+            
+            // If we are the edge and have a white on the other side or
+            // we have white on the both sides, we are a bin! If both sides
+	    // are on the edge, we are not a bin
+            if ((onLeftEdge || whiteLeft) && (onRightEdge || whiteRight) && 
+                !(onLeftEdge && onRightEdge))
+            {
+       	        if (whiteLeft && whiteRight)
+		{
+		    // If both edges are white we need to be a proper aspect
+		    // ratio
+		    if (blackBlob.getAspectRatio() < 3)
+		        candidateBins.push_back(blackBlob);
+		}
+		else 
+		{
+		    if (foundBins > 0)
+		    {
+		        // If we found a "normal" bin make sure this bins
+		        // height is similar to that one
+		        double heightError = 
+			    fabs(blackBlob.getHeight() - averageHeight);
+			if ((heightError / averageHeight) < 0.2)
+			    candidateBins.push_back(blackBlob);
+		    }
+		    else
+		    {
+		        candidateBins.push_back(blackBlob);
+		    }
+		}
+            }
+        } // if (blob of full height)
+    }
+*/
+
+    bool removed = true;
+    while (removed)
+    {
+        removed = false;
+        
+        // Filter all the candidates and remove ones that overlap
+        BlobDetector::BlobList::iterator mainIter = candidateBins.begin();
+        BlobDetector::BlobList::iterator iterToRemove =
+            candidateBins.end();
+        int removeOverlaps = 0;
+        while (mainIter != candidateBins.end())
+        {
+            // Count the number of overlaps
+            int binOverlaps = 0;
+            BlobDetector::BlobList::const_iterator iter = candidateBins.begin();
+            while (iter != candidateBins.end())
+            {
+                if (mainIter->boundsIntersect(*iter) &&
+                    (mainIter->getCenterX() != iter->getCenterX()) &&
+                    (mainIter->getCenterY() != iter->getCenterY()))
+                {
+                    binOverlaps++;
+                }
+                iter++;
+            }
+
+            // Only add if its under the overlap count
+            if (binOverlaps > m_binMaxOverlaps && binOverlaps > removeOverlaps)
+            {
+                removeOverlaps = binOverlaps;
+                iterToRemove = mainIter;
+                // We found a bad bin remove and start over again
+                removed = true;
+            }
+            
+            // Advance through
+            mainIter++;
+        }
+
+        // Remove the bad bin
+        if (removed)
+        {
+            candidateBins.erase(iterToRemove);
+            if (output)
+                iterToRemove->draw(output);
+        }
+    }
+
+    // Anybody left is really a bin
+    binBlobs = candidateBins;
+}
+
+bool BinDetector::findArrayAngle(const BinList& bins, math::Degree& finalAngle,
+                                 Image* output)
+{
+    // Determine the angle of the bin array
+    if (bins.size() > 1 && bins.size() <= 4)
+    {
+        int curX = -1;
+        int curY = -1;
+        int prevX = -1;
+        int prevY = -1;
+        int binsCenterX = 0;
+        int binsCenterY = 0;
+        //If you change this from a 3, also change the loops below
+        double innerAngles[3];
+        
+        int angleCounter = 0;
+        BOOST_FOREACH(Bin bin, bins)
+        {
+            binsCenterX += bin.getCenterX();
+            binsCenterY += bin.getCenterY();
+            prevX = curX;
+            prevY = curY;
+            curX = bin.getCenterX();
+            curY = bin.getCenterY();
+            
+            if (prevX == -1 && prevY == -1)
+            {
+                // the first one
+            }
+            else
+            {
+                CvPoint prev;
+                CvPoint cur;
+                prev.x = prevX;
+                prev.y = prevY;
+                cur.x = curX;
+                cur.y = curY;
+                
+                //Swap so we always get answers mod 180.
+                if (prev.x > cur.x || (prev.x == cur.x && prev.y > cur.y))
+                {
+                    CvPoint swap = prev;
+                    prev = cur;
+                    cur = swap;
+                }
+                
+                double innerAng = atan2(cur.y - prev.y,cur.x - prev.x);
+                
+                innerAngles[angleCounter] = innerAng;
+                angleCounter++;
+
+                // Draw line between bins
+                if (output)
+                {
+                    cvLine(output->asIplImage(), prev, cur, CV_RGB(255,0,0), 5,
+                           CV_AA, 0);
+                }
+            }
+        }
+        
+        double sinTotal = 0;
+        double cosTotal = 0;
+        for (int i = 0; i < angleCounter && i < 3; i++)
+        {
+            sinTotal+=sin(innerAngles[i]);
+            cosTotal+=cos(innerAngles[i]);
+        }
+        
+        double finalAngleAcrossBins = atan2(sinTotal,cosTotal);
+
+        // Draw line across all the bins
         if (output)
         {
-            OpenCVImage temp(binFrame, false);
-            output->copyFrom(&temp);
+            CvPoint drawStart, drawEnd;
+            drawStart.x = binsCenterX/(angleCounter+1);
+            drawStart.y = binsCenterY/(angleCounter+1);
+            
+            drawEnd.x = (int)(drawStart.x + cosTotal / (angleCounter) * 250);
+            drawEnd.y = (int)(drawStart.y + sinTotal / (angleCounter) * 250);
+
+            cvLine(output->asIplImage(), drawStart, drawEnd, CV_RGB(255,255,0),
+                   5, CV_AA,0); 
         }
+        //printf("final angle across bins %f:\n", finalAngleAcrossBins);
+        
+        math::Radian angleAcrossBins(finalAngleAcrossBins);
+        
+        finalAngle = math::Degree(-angleAcrossBins.valueDegrees());
+        //printf("Final Inner Angle For Joe: %f\n", finalAngle.valueDegrees());
+        return true;
+    } // angle of bin array
+
+    return false;
 }
 
-void BinDetector::show(char* window)
+BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
+                                         bool detectSymbol,
+                                         int binNum, Image* output)
 {
-	cvShowImage(window,((IplImage*)(binFrame)));
+    // Get corners of area to extract (must be multiple of 4)
+    int width = bin.getWidth()/4 * 4;
+    int height = bin.getHeight()/4 * 4;
+    
+    int upperLeftX = bin.getCenterX() - width/2;
+    int upperLeftY = bin.getCenterY() - height/2;
+    int lowerRightX = bin.getCenterX() + width/2;
+    int lowerRightY = bin.getCenterY() + height/2;
+
+    // Make sure we are not outside the image
+    upperLeftX = std::max(0, upperLeftX);
+    upperLeftX = std::min((int)m_blackMaskedFrame->getWidth() - 1, upperLeftX);
+
+    upperLeftY = std::max(0, upperLeftY);
+    upperLeftY = std::min((int)m_blackMaskedFrame->getHeight() - 1, upperLeftY);
+
+    lowerRightX = std::max(0, lowerRightX);
+    lowerRightX = std::min((int)m_blackMaskedFrame->getWidth() - 1,
+                           lowerRightX);
+
+    lowerRightY = std::max(0, lowerRightY);
+    lowerRightY = std::min((int)m_blackMaskedFrame->getHeight() - 1,
+                           lowerRightY);
+    
+    Image* binImage = Image::extractSubImage(
+        m_blackMaskedFrame, m_extractBuffer, upperLeftX, upperLeftY,
+        lowerRightX, lowerRightY);
+
+    // Determine angle of the bin
+    math::Degree binAngle(0);
+    calculateAngleOfBin(bin, binImage, binAngle, output);
+    delete binImage; // m_extractBuffer free to use
+    
+    // Determine bin symbol if desired
+    Symbol::SymbolType symbol = Symbol::NONEFOUND;
+         
+    if (detectSymbol)
+    {
+        // Extract red masked image
+        Image* redBinImage = Image::extractSubImage(
+            m_redMaskedFrame, m_extractBuffer, upperLeftX, upperLeftY,
+            lowerRightX, lowerRightY);
+        
+        // Rotate to upright
+        Image* rotatedBinImage =
+            vision::Image::loadFromBuffer(m_scratchBuffer1,
+                                          redBinImage->getWidth(),
+                                          redBinImage->getHeight(),
+                                          false);
+        vision::Image::transform(redBinImage, rotatedBinImage, binAngle);
+        delete redBinImage; // m_scratchBuffer2 free to use
+        
+        // Crop down Image to square around bin symbol
+        Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer2);
+        delete rotatedBinImage; // m_scratchBuffer1 free to use
+        if (cropped)
+        {
+            symbol = determineSymbol(cropped, m_scratchBuffer1, output);
+
+            if (output && (binNum < 4))
+            {
+                // Scale the image to 128x128
+                Image* scaledBin =
+                    Image::loadFromBuffer(m_scratchBuffer1, 128, 128, false);
+                cvResize(cropped->asIplImage(), scaledBin->asIplImage(),
+                         CV_INTER_LINEAR);
+                Image::drawImage(scaledBin, binNum * 128, 0, output, output);
+                
+                delete scaledBin; // m_scratchBuffer1 free to use
+            }
+
+            // Log the images if desired
+            if (m_logSymbolImages)
+                logSymbolImage(cropped, symbol);
+            
+            delete cropped;// m_scratchBuffer2 free to use
+        }
+    }
+    
+    // Report our results
+    return Bin(bin, m_percents, binAngle, m_binID++, symbol);
 }
 
-IplImage* BinDetector::getAnalyzedImage()
+double BinDetector::getRedFillPercentage(BlobDetector::Blob bin,
+					 Image* redImage)
 {
-	return (IplImage*)(binFrame);
+    // Get corners of area to extract (must be multiple of 4)
+    int width = bin.getWidth()/4 * 4;
+    int height = bin.getHeight()/4 * 4;
+    
+    int upperLeftX = bin.getCenterX() - width/2 - BIN_EXTRACT_BORDER;
+    int upperLeftY = bin.getCenterY() - height/2 - BIN_EXTRACT_BORDER;
+    int lowerRightX = bin.getCenterX() + width/2 + BIN_EXTRACT_BORDER;
+    int lowerRightY = bin.getCenterY() + height/2 + BIN_EXTRACT_BORDER;
+
+    // Make sure we are not outside the image
+    upperLeftX = std::max(0, upperLeftX);
+    upperLeftX = std::min((int)redImage->getWidth() - 1, upperLeftX);
+
+    upperLeftY = std::max(0, upperLeftY);
+    upperLeftY = std::min((int)redImage->getHeight() - 1, upperLeftY);
+
+    lowerRightX = std::max(0, lowerRightX);
+    lowerRightX = std::min((int)redImage->getWidth() - 1,
+                           lowerRightX);
+
+    lowerRightY = std::max(0, lowerRightY);
+    lowerRightY = std::min((int)redImage->getHeight() - 1,
+                           lowerRightY);
+
+
+    // Get the red pixels
+    int redPixels = Image::countWhitePixels(redImage,
+					    upperLeftX, upperLeftY,
+					    lowerRightX, lowerRightY);
+
+    return ((double)redPixels) / ((double)(bin.getWidth() * bin.getHeight()));
+					      //  return 0;
 }
 
-double BinDetector::getX()
+bool BinDetector::calculateAngleOfBin(BlobDetector::Blob bin, Image* input,
+                                      math::Degree& foundAngle, Image* output)
 {
-	return binX;
+    // Grab a gray scale version of the input image
+    CvSize size = cvGetSize(input->asIplImage());
+    IplImage* grayScale = cvCreateImageHeader(size, IPL_DEPTH_8U, 1);
+    cvSetData(grayScale, m_scratchBuffer1, input->getWidth());
+    cvCvtColor(input->asIplImage(), grayScale, CV_BGR2GRAY);
+
+    // Grab a cannied version of our image
+    IplImage* cannied = cvCreateImageHeader(size, IPL_DEPTH_8U, 1);
+    cvSetData(cannied, m_scratchBuffer2, input->getWidth());
+    cvCanny(grayScale, cannied, 50, 200, 3 );
+
+    // Run the hough transform on the cannied image
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* lines = 0;
+    
+    lines = cvHoughLines2( cannied, storage, CV_HOUGH_PROBABILISTIC,
+                           m_binHoughPixelRes,
+                           CV_PI/180, m_binHoughThreshold,
+                           m_binHoughMinLineLength, m_binHoughMaxLineGap);
+
+    // Determine angle from hough transform
+    float longestLineLength = -1;
+    float angle = 0;
+    for(int i = 0; i < lines->total; i++ )
+    {
+        CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
+        float lineX = line[1].x - line[0].x; 
+        float lineY = line[1].y - line[0].y;
+
+        cvLine(input->asIplImage(), line[0], line[1], CV_RGB(255,255,0),
+               5, CV_AA, 0);
+        
+        if (output && m_debug == 1)
+        {
+            line[0].x += bin.getCenterX() - input->getWidth() / 2;
+            line[0].y += bin.getCenterY() - input->getHeight() / 2;
+            line[1].x += bin.getCenterX() - input->getWidth() / 2;
+            line[1].y += bin.getCenterY() - input->getHeight() / 2;
+            
+            cvLine(output->asIplImage(), line[0], line[1], CV_RGB(255,255,0),
+                   5, CV_AA, 0);
+        }
+//        printf("Line dimensions: %f, %f\n", lineX, lineY);
+
+        if (longestLineLength < (lineX * lineX + lineY * lineY))
+        {
+            angle = atan2(lineY,lineX);
+            longestLineLength = lineX * lineX + lineY * lineY;
+        }
+    }
+
+    bool success = false;
+    if (lines->total != 0)
+    {
+        // We can only computer and angle if we found the lines
+        double angInDegrees = math::Radian(angle).valueDegrees();
+        double angleToReturn = 90-angInDegrees;
+        
+        if (angleToReturn >= 90)
+            angleToReturn -= 180;
+        else if (angleToReturn < -90)
+            angleToReturn += 180;
+        
+        math::Degree finalJoeAngle(angleToReturn);
+        foundAngle = finalJoeAngle;
+        success = true;
+    }
+    
+    cvReleaseImageHeader(&cannied);
+    cvReleaseMemStorage(&storage);
+    cvReleaseImageHeader(&grayScale);
+    
+    return success;
 }
 
-double BinDetector::getY()
+
+//Returns false on failure, puts symbol into scaledRedSymbol.
+Image* BinDetector::cropBinImage(Image* redBinImage,
+                                 unsigned char* storageBuffer)
+{   
+    int minSymbolX = redBinImage->getWidth() + 1;
+    int minSymbolY = redBinImage->getHeight() + 1;
+    int maxSymbolX = 0;
+    int maxSymbolY = 0;
+    
+    // TODO: consider dilation of red image
+    //cvDilate(redBinImage->asIplImage(), redBinImage->asIplImage(), NULL, 1);
+
+    //   int size = 0;
+    m_blobDetector.setMinimumBlobSize(100);
+    m_blobDetector.processImage(redBinImage);
+    if (!m_blobDetector.found())
+    {
+        // No symbol found, don't make a histogram
+        return 0;
+    }
+    else
+    {
+        // TODO: General blob combine and apply it here to join broken up
+        //       symbols
+        
+        //find biggest two blobs (hopefully should be just one, but if spade or club split..)
+        std::vector<ram::vision::BlobDetector::Blob> blobs =
+            m_blobDetector.getBlobs();
+        ram::vision::BlobDetector::Blob biggest(-1,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob secondBiggest(0,0,0,0,0,0,0);
+        ram::vision::BlobDetector::Blob swapper(-1,0,0,0,0,0,0);
+        for (unsigned int blobIndex = 0; blobIndex < blobs.size(); blobIndex++)
+        {
+            if (blobs[blobIndex].getSize() > secondBiggest.getSize())
+            {
+                secondBiggest = blobs[blobIndex];
+                if (secondBiggest.getSize() > biggest.getSize())
+                {
+                    swapper = secondBiggest;
+                    secondBiggest = biggest;
+                    biggest = swapper;
+                }
+            }
+        }
+        minSymbolX = biggest.getMinX();
+        minSymbolY = biggest.getMinY();
+        maxSymbolX = biggest.getMaxX();
+        maxSymbolY = biggest.getMaxY();
+
+/*        if (!m_incrediblyWashedOutImages)//A fancy way to say that at transdec, the symbols don't get split.
+        {
+        if (blobs.size() > 1)
+        {
+            if (minSymbolX > secondBiggest.getMinX())
+                minSymbolX = secondBiggest.getMinX();
+            if (minSymbolY > secondBiggest.getMinY())
+                minSymbolY = secondBiggest.getMinY();
+            if (maxSymbolX < secondBiggest.getMaxX())
+                maxSymbolX = secondBiggest.getMaxX();
+            if (maxSymbolY < secondBiggest.getMaxY())
+                maxSymbolY = secondBiggest.getMaxY();
+
+        }
+        }*/
+    }
+
+    // Find the rows/cols of the croped image
+    int onlyRedSymbolRows = (maxSymbolX - minSymbolX + 1);// / 4 * 4;
+    int onlyRedSymbolCols = (maxSymbolY - minSymbolY + 1);// / 4 * 4;
+    if (onlyRedSymbolRows == 0 || onlyRedSymbolCols == 0)
+    {
+        return 0;
+    }
+
+    // Make the image sqaure on its biggest dimension
+    if (m_symbolDetector->needSquareCropped())
+    {
+        onlyRedSymbolRows = onlyRedSymbolCols = (onlyRedSymbolRows > onlyRedSymbolCols ? onlyRedSymbolRows : onlyRedSymbolCols);
+
+    }
+
+    // Sanity check on the sizes
+    if (onlyRedSymbolRows >= (int)redBinImage->getWidth() ||
+        onlyRedSymbolCols >= (int)redBinImage->getHeight())
+    {
+        return 0;
+    }
+
+    // Extract the symbol porition of the image
+    int centerX = (maxSymbolX+minSymbolX)/2;
+    int centerY = (maxSymbolY+minSymbolY)/2;
+    int upperLeftX = centerX - onlyRedSymbolRows/2;
+    int upperLeftY = centerY - onlyRedSymbolCols/2;
+    int lowerRightX = centerX + onlyRedSymbolRows/2;
+    int lowerRightY = centerY + onlyRedSymbolCols/2;
+
+    // Make sure we are not outside the image
+//    upperLeftX = std::max(0, upperLeftX);
+//    upperLeftY = std::max(0, upperLeftY);
+//    lowerRightX = std::min((int)redBinImage->getWidth() - 1, lowerRightX);
+//    lowerRightY = std::min((int)redBinImage->getWidth() - 1, lowerRightY);
+
+    Image* croppedImage = Image::extractSubImage(
+        redBinImage, storageBuffer, upperLeftX, upperLeftY,
+        lowerRightX, lowerRightY);
+
+    return croppedImage;
+}
+
+Symbol::SymbolType BinDetector::determineSymbol(Image* input,
+                                                unsigned char* scratchBuffer,
+                                                Image* output)
 {
-	return binY;
+    m_symbolDetector->processImage(input, output);
+    
+    // Filter symbol type
+    Symbol::SymbolType symbolFound = m_symbolDetector->getSymbol(); 
+    Symbol::SymbolType symbol = Symbol::UNKNOWN;
+
+    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 ||
+        symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
+    {
+        symbol = Symbol::CLUB;
+    }
+    else if (symbolFound == Symbol::SPADE ||
+             symbolFound == Symbol::SPADER90 ||
+             symbolFound == Symbol::SPADER180 ||
+             symbolFound == Symbol::SPADER270)
+    {
+        symbol = Symbol::SPADE;
+    }
+    else if (symbolFound == Symbol::HEART ||
+             symbolFound == Symbol::HEARTR90 ||
+             symbolFound == Symbol::HEARTR180 ||
+             symbolFound == Symbol::HEARTR270)
+    {
+        symbol = Symbol::HEART;
+    }
+    else if (symbolFound == Symbol::DIAMOND ||
+             symbolFound == Symbol::DIAMONDR90 ||
+             symbolFound == Symbol::DIAMONDR180 ||
+             symbolFound == Symbol::DIAMONDR270)
+    {
+        symbol = Symbol::DIAMOND;
+    }
+    else if (symbolFound == Symbol::SHIP ||
+             symbolFound == Symbol::AIRCRAFT ||
+             symbolFound == Symbol::TANK ||
+             symbolFound == Symbol::FACTORY)
+    {
+        symbol = symbolFound;
+    }
+    else if (symbolFound == Symbol::AXE ||
+             symbolFound == Symbol::CLIPPERS ||
+             symbolFound == Symbol::HAMMER ||
+             symbolFound == Symbol::MACHETE)
+    {
+        symbol = symbolFound;
+    }
+    
+    return symbol;
+}
+
+void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)
+{
+    static int saveCount = 1;
+    
+    if (saveCount == 1)
+    {
+        // First run, make sure all the directories are created
+        boost::filesystem::path base = core::Logging::getLogDir();
+
+        BOOST_FOREACH(std::string name, Symbol::getSymbolNames())
+        {
+            boost::filesystem::path symbolDir = base / name;
+            if (!boost::filesystem::exists(symbolDir))
+                boost::filesystem::create_directories(symbolDir);
+        }
+    }
+
+    // Determine the directory to place the image based on symbol
+    boost::filesystem::path base = core::Logging::getLogDir();
+    boost::filesystem::path baseDir = base / Symbol::symbolToText(symbol);
+
+    // Determine the final path
+    std::stringstream ss;
+    ss << saveCount << ".png";
+    boost::filesystem::path fullPath =  baseDir / ss.str();
+    
+    // Save the image and increment our counter
+    Image::saveToFile(image, fullPath.string());
+    saveCount++;
 }
 
 } // namespace vision

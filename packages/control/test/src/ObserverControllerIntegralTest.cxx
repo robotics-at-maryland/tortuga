@@ -150,7 +150,8 @@ state.depthA4 = math::Matrix4(-1.2, -4204.2, -7.3, 0.0,
                                 -1.2, -4.2, -7.3, 0.0);//Matrix A
 state.depthB4 = math::Vector4(4200.0,17.4, 97.0, 0.0); //Vector2 B 
 state.depthC4 = math::Vector4(0.0,0.0,0.0,1); //Vector2 C
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1;    
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 estimated.xHat4Depth = math::Vector4(0,1,1,0);
@@ -178,7 +179,8 @@ state.depthA4 = math::Matrix4(-1.2, -4204.2, -7.3, 0.0,
                                 -1.2, -4.2, -7.3, 0.0);//Matrix A
 state.depthB4 = math::Vector4(4200.0,17.4, 97.0, 0.0); //Vector2 B 
 state.depthC4 = math::Vector4(0.0,0.0,0.0,1); //Vector2 C
-state.dt = 1; //dt (delta_time)
+state.dtMin = .001;
+state.dtMax = 1; 
 
 control::EstimatedState estimated = {math::Vector2(0,0)};
 estimated.xHat4Depth = math::Vector4(0,-1,1,0);

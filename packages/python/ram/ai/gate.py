@@ -10,9 +10,9 @@ A state machine to go through the gate:
  - Waits for Switch
  - Dives to depth
  - Goes forward for a time
- - Surfaces
  
-Reguires the following subsystems:
+ 
+Requires the following subsystems:
  - timerManager - ram.timer.TimerManager
  - motionManager - ram.motion.MotionManager
  - controller - ext.control.IController
@@ -27,50 +27,65 @@ import ram.ai.state as state
 import ram.motion as motion
 import ram.motion.search
 
+# Denotes when this state machine finishes
+COMPLETE = core.declareEventType('COMPLETE')
+
 class Wait(state.State):
     @staticmethod
     def transitions():
         # TODO: Replace with a start event from the vehicle or sensor board
-        return {"Start" : Dive}
+        return {"Start" : Start}
     
-class Dive(state.State):
+class Start(state.State):
+    """
+    Gets the vehicle to the proper depth, so the forward charge through the 
+    gate can happen.
+    """
+    
     @staticmethod
     def transitions():
-        return {motion.basic.Motion.FINISHED : Forward}
+        return { motion.basic.MotionManager.FINISHED : Forward }
+
+    @staticmethod
+    def getattr():
+        return set(['speed'])
     
     def enter(self):
         # Go to 5 feet in 5 increments
-        diveMotion = motion.basic.ChangeDepth(5, 5)
+        diveMotion = motion.basic.RateChangeDepth(
+            desiredDepth = self.ai.data['config'].get('gateDepth', 5),
+            speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
     
 class Forward(state.State):
-    FORWARD_DONE = core.declareEventType('FORWARD_DONE')
+    """
+    A simple timed forward run through the gate.
+    """
+    
+    DONE = core.declareEventType('DONE')
 
     @staticmethod
     def transitions():
-        return {Forward.FORWARD_DONE : Surface}
+        return {Forward.DONE : End}
 
     def enter(self):
         # Full speed ahead!!
-        self.controller.setSpeed(3)
+        self.controller.setSpeed(self.ai.data['config'].get('Gate', {}).get(
+                'speed',3))
         
-        # Timer goes off in 10 seconds then sends off FORWARD_DONE
-        timer = self.timerManager.newTimer(Forward.FORWARD_DONE, 10)
-        timer.start()
+        # Timer goes off in X seconds then sends off DONE
+        self.timer = self.timerManager.newTimer(
+            eventType = Forward.DONE, 
+            duration = self.ai.data['config'].get('Gate', {}).get('time', 10))
+        self.timer.start()
     
     def exit(self):
+        self.timer.stop()
         self.controller.setSpeed(0)
-        
-class Surface(state.State):
-    @staticmethod
-    def transitions():
-        return {motion.basic.Motion.FINISHED : End}     
-    
-    def enter(self):  
-        # Go to 0 feet in 5 increments
-        surfaceMotion = motion.basic.ChangeDepth(0, 5)
-        self.motionManager.setMotion(surfaceMotion)
         
 class End(state.State):
     def enter(self):
-        print 'Mission Complete'
+        self.publish(COMPLETE, core.Event())

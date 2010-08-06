@@ -47,11 +47,25 @@ public:
     
     virtual bool isEnabled();
 
-    //virtual bool inUse() = 0;
+    virtual bool inUse();
+
+    virtual void setEnabled(bool state);
 
     virtual std::string getName() { return Device::getName(); }
     
     virtual void update(double timestep) {}
+
+    virtual void setPriority(core::IUpdatable::Priority) {}
+
+    virtual core::IUpdatable::Priority getPriority() {
+        return IUpdatable::NORMAL_PRIORITY;
+    }
+
+    virtual void setAffinity(size_t) {};
+    
+    virtual int getAffinity() {
+        return -1;
+    };
     
     virtual void background(int interval) {
         //Updatable::background(interval);
@@ -74,6 +88,7 @@ private:
 
     core::ReadWriteMutex m_mutex;
     bool m_enabled;
+    bool m_inUse;
     double m_voltage;
     double m_current;
 

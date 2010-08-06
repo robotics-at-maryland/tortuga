@@ -26,7 +26,7 @@ declaration or a type.
 On the earlier stage of the development, I realized, that all this functionality
 does not belong to code generator and should be implemented out side of it.
 `pygccxml`_ project was born. `pygccxml`_ made the code generator to be smaller
-and C++ parser independent. It provides next services:
+and C++ parser independent. It provides the following services:
 
 * definition of classes, that describe C++ declaration and types, and their
   analyzers ( type traits )
@@ -82,20 +82,16 @@ The user should be familiar with these parts and relevant API. In my opinion,
 wrapping or hiding the API will not provide an additional value. The interface
 of all those services is pretty simple and well polished.
 
-Before I explain how these services are integrated, take a look on next source
+Before I explain how these services are integrated, take a look on the following source
 code:
 
 .. code-block:: Python
 
   mb = module_builder_t( ... )
-
-.. code-block:: Python
-
+  
   details = mb.namespace( 'details' )
   details.exclude()
-
-.. code-block:: Python
-
+  
   my_class = mb.class_( 'my_class' )
   my_class.rename("MyClass")
 
@@ -111,7 +107,7 @@ What is the point of this example? From the user point of view it is perfectly
 good, it makes a lot of sense to configure the code generation engine, using
 the declarations tree. How does `Py++`_ add missing functionality to
 ``pygccxml.declarations`` classes? There were few possible solutions to the
-problem. The next one was implemented:
+problem. The following one was implemented:
 
 1. ``pygccxml.parser`` package interface was extended. Instead of creating
    a concrete instance of declaration classes, ``pygccxml.parser`` package uses
@@ -129,7 +125,7 @@ value to the project:
 * the functionality provided by ``pygccxml.declarations`` and ``pygccxml.parser``
   packages is available for ``pyplusplus.decl_wrappers`` classes
 
-* classes defined in ``pyplusplus.decl_wrappers`` package implement next
+* classes defined in ``pyplusplus.decl_wrappers`` package implement the following
   functionality:
 
   * setting reasonable defaults for the code generation engine( call policies,
@@ -161,7 +157,7 @@ different problems the engine should solve:
 -----------------
 
 Do you know how many ways exist to export member function? If you will try to
-answer the question, consider next function characteristics and their mix:
+answer the question, consider the following function characteristics and their mix:
 
 * virtuality( non virtual, virtual or pure virtual )
 
@@ -243,7 +239,7 @@ the code it creates. For example:
 ~~~~~~~~~~~~~~~~~~~~~~
 
 ``code_creators.module_t`` class is a top level ``code creator``. Take a look on
-next possible "snapshot" of the ``code creators tree``:
+the following possible "snapshot" of the ``code creators tree``:
 
 ::
 
@@ -296,7 +292,7 @@ their dependency graphs. As a result, this class can:
 ----------------
 
 ``File writers`` classes are responsible for writing ``code creators tree`` into
-the files. `Py++`_ implements next strategies of writing ``code creators tree``
+the files. `Py++`_ implements the following strategies of writing ``code creators tree``
 into files:
 
 * single file
@@ -333,11 +329,3 @@ It safe to use `Py++`_ for big and small projects!
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

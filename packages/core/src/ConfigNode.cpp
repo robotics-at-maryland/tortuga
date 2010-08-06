@@ -80,9 +80,9 @@ size_t ConfigNode::size()
 
 bool ConfigNode::exists(std::string name)
 {
-	NodeNameList nodes = subNodes();
-	NodeNameListIter result = nodes.find(name);
-	return (nodes.end() != result);
+    NodeNameList nodes = subNodes();
+    NodeNameListIter result = nodes.find(name);
+    return (nodes.end() != result);
 }
 
 void ConfigNode::set(std::string key, std::string str)
@@ -91,6 +91,12 @@ void ConfigNode::set(std::string key, std::string str)
     m_impl->set(key, str);
 }
 
+void ConfigNode::set(std::string key, int value)
+{
+    assert(m_impl.get() && "No ConfigNode impl found");
+    m_impl->set(key, value);
+}
+    
 ConfigNode ConfigNode::fromString(std::string data)
 {
     return ConfigNode(ConfigNodeImpPtr(new PythonConfigNodeImp(data)));
@@ -105,7 +111,11 @@ std::string ConfigNode::toString()
 ConfigNode ConfigNode::fromFile(std::string configPath)
 {
     boost::filesystem::path path(configPath);
-    return ConfigNode(PythonConfigNodeImp::fromYamlFile(path.string()));
+    if (path.extension() == ".yml" || path.extension() == ".sml") {
+        return ConfigNode(PythonConfigNodeImp::fromYamlFile(path.string()));
+    } else {
+        assert(false && "Invalid configuration type!");
+    }
 }
     
 ConfigNode::ConfigNode(ConfigNodeImpPtr impl) :
@@ -136,6 +146,11 @@ ConfigNode& ConfigNode::operator=(const ConfigNode& that)
         m_impl = that.m_impl;
     }
     return *this;    // Return ref for multiple assignment
+}
+
+void ConfigNode::writeToFile(std::string fileName, bool silent)
+{
+    m_impl->writeToFile(fileName, silent);
 }
 
 } // namespace core

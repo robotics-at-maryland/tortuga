@@ -44,9 +44,15 @@ public:
 
     virtual ~QueuedEventHub();
 
+    /** When set to true, update function waits for events before returning */
+    void setWaitUpdate(bool value);
+    
     /** Places the event on the intneral event queue*/
     virtual void publish(EventPtr event);
 
+    /** Publishs the event into the internal event queue (with sender=this) */
+    virtual void publish(Event::EventType type, EventPtr event);
+    
     /** @copydoc QueuedEventPublisher::publishEvents() */
     int publishEvents();
     
@@ -56,10 +62,8 @@ public:
     /** Has the same effect as publishEvents() */
     virtual void update(double timestep);
 
-    virtual void background(int interval);
-    virtual void unbackground(bool join);
-    virtual bool backgrounded();
-    
+    virtual bool backgrounded() { return false; }
+
 private:
     /** Publishes the event to all subscribers */
     void _publish(EventPtr event);
@@ -72,6 +76,9 @@ private:
 
     /// Connection EventHub being queued
     EventConnectionPtr m_connection;
+
+    /** When true we use waitAndPublish instead of Publish */
+    bool m_waitUpdate;
 };
     
 } // namespace core

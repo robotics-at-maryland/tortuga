@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -54,8 +54,8 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
             self.failUnless( kv.key == "x" and kv.value == "y" )
         for k, v in name2value:
             self.failUnless( k == "x" and v == "y" )
-        for k, v in name2value.iteritems():
-            self.failUnless( k == "x" and v == "y" )
+        #~ for k, v in name2value.iteritems():
+            #~ self.failUnless( k == "x" and v == "y" )
             
         items_ptr = module.items_ptr_t()
         items_ptr.append( item )

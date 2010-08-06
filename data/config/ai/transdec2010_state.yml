@@ -1,0 +1,359 @@
+# Gate
+ram.ai.course.Gate:
+    pipeDelay: 60
+# Pipe
+ram.ai.course.Pipe:
+    pipesToFind: 3
+
+# Gate sub task
+ram.ai.gate.Start:
+    speed: 0.33
+#ram.ai.gate.Forward:
+#    time: 3 #15
+#    speed: 2
+
+# Pipe task
+ram.ai.pipe.Seeking:
+    speedGain: 3
+    forwardSpeed: 4
+    sidewaysSpeedGain: 7
+    maxSidewaysSpeed: 4
+    iSidewaysSpeedGain: 1
+    dSidewaysSpeedGain: 2
+    yawGain: 0.25
+ram.ai.pipe.Centering:
+    speedGain: 3
+    forwardSpeed: 4
+    yawGain: 0.25
+    planeThreshold: 0.1
+    angleThreshold: 3
+    planeChange: 0.05
+    angleChange: 1
+ram.ai.pipe.AlongPipe:
+    angleDistance: 0.1
+    yawGain: 0.25
+
+# Light/Bouy sub task
+ram.ai.light.Searching:
+    sweepAngle: 0 #35
+    speed: 2
+ram.ai.light.Recover:
+    advanceSpeed: 2
+    reverseSpeed: 1.5
+    diveSpeed: 0.1
+ram.ai.light.Align:
+    depthGain: 0 #0.05
+    maxDepthDt: 0.30
+ram.ai.light.Seek:
+    depthGain: 0
+    speed: 2
+ram.ai.light.Hit:
+    duration: 2
+    speed: 2.5
+ram.ai.light.Continue:
+    backwardDuration: 2
+    forwardDuration: 7
+# Duct Sub task
+ram.ai.duct.SeekingToRange:
+    filterSize: 10
+    desiredRange: 0.5
+ram.ai.duct.SeekingToAligned:
+    filterSize: 10
+    desiredRange: 0.5
+ram.ai.duct.Aligning:
+    filterSize: 10
+    desiredRange: 0.5
+
+# Buoy Task
+ram.ai.buoy.Searching:
+    legTime: 5
+    sweepAngle: 15
+ram.ai.buoy.CorrectDepth:
+    boxHeight: 2.0
+ram.ai.buoy.Align:
+    desiredRange: 7
+    depthGain: 0
+    dDepthGain: 0.0
+    iDepthGain: 0.0
+    maxDepthDt: 0.3
+    planeThreshold: 0.15
+    yawGain: 0.8
+    translate: False
+    iTranslateGain: 0.1
+    dTranslateGain: 0.2
+    maxYaw: 2
+ram.ai.buoy.Seek:
+    maxYaw: 1
+ram.ai.buoy.Hit:
+    duration: 1
+ram.ai.buoy.Reposition:
+    duration: 6
+
+# Target Task
+ram.ai.target.SeekingToCentered:
+    depthGain: 0
+    maxSpeed: 3
+    maxRangeDiff: 0.3
+ram.ai.target.SeekingToRange:
+    depthGain: 0 #0.125
+    maxSpeed: 1.5
+    maxRangeDiff: 0.3
+ram.ai.target.SeekingToAligned:
+    depthGain: 0 #0.125
+    minSquareNess: 0.97
+    alignGain: 2
+    filterSize: 1
+    desiredRange: 0.45
+ram.ai.target.FireTorpedos:
+    depthGain: 0 #0.125
+    frontThreshold: 0.15
+    desiredRange: 0.35
+    rangeThreshold: 0.03
+    filterSize: 1
+       
+# Barbed wire AI     
+ram.ai.barbedwire.FarSeekingToRange:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    desiredRange: 0.55
+    translateGain: 2.5
+    maxSpeed: 3
+    maxRangeDiff: 0.5
+    rangeGain: 2.5
+    rangeThreshold: 0.15
+ram.ai.barbedwire.FarSeekingToAligned:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    alignGain: 20
+    minAlignment: 0.25
+    maxSidewaysSpeed: 1.0
+    maxSpeed: 5
+    maxRangeDiff: 0.5
+    rangeGain: 5
+    desiredRange: 0.5
+    rangeThreshold: 0.15
+ram.ai.barbedwire.CloseSeekingToRange:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    desiredRange: 0.45
+    translateGain: 2.5
+    maxSpeed: 3
+    maxRangeDiff: 0.5
+    rangeGain: 2.5
+ram.ai.barbedwire.CloseSeekingToAligned:
+    depthGain: 0 #0.1
+    maxDepthDt: 0.3
+    alignGain: 20
+    minAlignment: 0.1
+    maxSidewaysSpeed: 1.0
+    maxSpeed: 5
+    maxRangeDiff: 0.5
+    rangeGain: 5
+    desiredRange: 0.4
+    rangeThreshold: 0.1
+ram.ai.barbedwire.Aligning:
+    depthGain: 0 #0.125
+    maxDepthDt: 0.3
+    alignGain: 10
+    maxSidewaysSpeed: 2.0
+    desiredRange: 0.35
+ram.ai.barbedwire.Under:
+    sidewaysSpeedGain: 3
+ram.ai.barbedwire.Through:
+    forwardTime: 7
+
+# Hedge AI
+ram.ai.hedge.SeekingToCentered:
+    depthGain: 0
+    translateGain: 10
+    iTranslateGain: 1
+    dTranslateGain: 4
+    desiredRange: 0.60
+ram.ai.hedge.SeekingToRange:
+    depthGain: 0
+    desiredRange: 0.60
+ram.ai.hedge.SeekingToAligned:
+    depthGain: 0
+    alignGain: 0.6
+    yawGain: 0.6
+    maxYaw: 1
+    checkDelay: 2
+    minSquareNess: 1.82
+    desiredRange: 0.60
+ram.ai.hedge.Aligning:
+    settleTime: 5
+    depthGain: 0
+    yawGain: 0.4
+    alignGain: 0.4
+    maxYaw: 1
+    desiredRange: 0.60
+ram.ai.hedge.Through:
+    depthOffset: 0.8
+    duration: 10
+
+# Bin Sub task
+ram.ai.bin.Seeking:
+    speedGain: 3
+    maxSpeed: 3
+    sidewaysSpeedGain: 3
+    maxSidewaysSpeed: 3
+ram.ai.bin.Centering:
+    yawGain: 0.4
+    maxSpeed: 2
+ram.ai.bin.SeekEnd:
+    maxSpeed: 2
+    speedGain: 7
+    sidewaysSpeedGain: 7
+    #maxSidewaysSpeed: 1.5
+ram.ai.bin.SurfaceToMove:
+    maxSpeed: 2
+    offset: 5
+ram.ai.bin.Dive:
+    maxSpeed: 2
+    offset: 5
+    yawGain: 0.4
+ram.ai.bin.Aligning:
+    maxSpeed: 2
+    speedGain: 7
+    dSpeedGain: 1.5
+    iSpeedGain: 0.5
+    sidewaysSpeedGain: 8
+    dSidewaysSpeedGain: 1.5
+    iSidewaysSpeedGain: 0.5
+ram.ai.bin.PreDiveExamine:
+    maxSpeed: 2
+    speedGain: 5
+    dSpeedGain: 1.5
+    iSpeedGain: 0.5
+    sidewaysSpeedGain: 8
+    dSidewaysSpeedGain: 1.5
+    iSidewaysSpeedGain: 0.5
+ram.ai.bin.PostDiveExamine:
+    maxSpeed: 2
+    speedGain: 5
+    dSpeedGain: 1.5
+    iSpeedGain: 0.5
+    sidewaysSpeedGain: 8
+    dSidewaysSpeedGain: 1.5
+    iSidewaysSpeedGain: 0.5
+ram.ai.bin.CloserLook:
+    # This sets the depths the markers will be dropped
+    offset: 3
+    maxSpeed: 2
+ram.ai.bin.RecoverDive:
+    increase: 0
+ram.ai.bin.RecoverCloserLook:
+    increase: 0
+
+# Window AI
+ram.ai.window.Start:
+    diveSpeed: 1
+ram.ai.window.SeekingToCentered:
+    depthGain: 0
+    desiredRange: 0.65
+    translateGain: 10.0
+    iTranslateGain: 1.0
+    dTranslateGain: 2.0
+ram.ai.window.SeekingToRange:
+    desiredRange: 0.60
+    depthGain: 0
+ram.ai.window.SeekingToAligned:
+    checkDelay: 3
+    depthGain: 0
+    alignGain: 10
+    yawGain: 2.0
+    maxYaw: 1.0
+    minSquareNess: 0.98
+    desiredRange: 0.5
+    alignSign: -1
+ram.ai.window.FireTorpedos:
+    depthGain: 0
+    desiredRange: 0.4
+ram.ai.window.CorrectHeight:
+    offset: 1.1
+ram.ai.window.Approach:
+    depthGain: 0
+    desiredRange: 0.7
+    translateGain: 10.0
+    iTranslateGain: 1.0
+    dTranslateGain: 2.0
+ram.ai.window.ApproachAligning:
+    depthGain: 0
+    desiredRange: 0.60
+    minSquareNess: 0.95
+    maxYaw: 2.0
+    yawGain: 5.0
+    alignGain: 10
+    alignSign: -1
+ram.ai.window.Reposition:
+    speed: 2
+    duration: 3
+
+# Sonar subtask
+ram.ai.sonar.CloseSeeking:
+    maxSidewaysSpeed: 3
+    sidewaysSpeedGain: 5
+    maxSpeed: 1.5
+    speedGain: 3
+    closeZ: 0.98
+ram.ai.sonar.FarSeeking:
+    maxSidewaysSpeed: 3
+    sidewaysSpeedGain: 7
+    maxSpeed: 2
+    speedGain: 5
+    midRangeZ: 0.8
+    timeout: 6.5
+ram.ai.sonar.Hovering:
+    maxSidewaysSpeed: 1
+    sidewaysSpeedGain: 2
+    maxSpeed: 1
+    speedGain: 2
+
+# Vision Safe subtask
+ram.ai.safe.Seeking:
+    sidewaysSpeedGain: 4
+    maxSidewaysSpeed: 2
+ram.ai.safe.PreGrabDive:
+    diveRate: 0.3
+ram.ai.safe.Offsetting:
+    speedGain: 1.5
+    maxSpeed: 1.2
+    sidewaysSpeedGain: 1.5
+    maxSidewaysSpeed: 1.2
+    #centeredRange: 0.6
+    #sanity: YES
+ram.ai.safe.Settling:
+    speedGain: 0.7
+    maxSpeed: 1.2
+    sidewaysSpeedGain: 4
+    maxSidewaysSpeed: 1.5
+    duration: 5
+
+# SONAR & Safe subtask
+ram.ai.sonarSafe.Settling:
+    maxSidewaysSpeed: 2.25
+    sidewaysSpeedGain: 2.25
+    maxSpeed: 2.25
+    speedGain: 2.25
+ram.ai.sonarSafe.Dive:
+    #Hilton Pool
+    #safeDepth: 6.5
+    #depthOffset: 1
+    diveRate: 0.1
+    maxSidewaysSpeed: 2.25
+    sidewaysSpeedGain: 2.25
+    maxSpeed: 2.25
+    speedGain: 2.25
+ram.ai.sonarSafe.PreGrabSettling:
+    maxSidewaysSpeed: 3
+    sidewaysSpeedGain: 3
+    maxSpeed: 3
+    speedGain: 3
+    duration: 15
+    closeZ: 0.99
+#ram.ai.sonarSafe.Grabbing:
+    # Hilton Pool
+    #safeDepth: 6.5
+    #depthOffset: 1.5
+    #safeDepth: 19
+    #depthOffset: 1

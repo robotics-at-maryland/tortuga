@@ -1,0 +1,87 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Travel1',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon', 'ram.ai.course.Travel2',
+            'ram.ai.course.Bin', 'ram.ai.course.Travel3',
+            'ram.ai.course.Window']
+
+config:
+    gateDepth: 4
+    pipeDepth: 7
+    binDepth: 11.5
+    buoyDepth: 8.5
+    targetBuoys: ['red', 'green', 'yellow']
+    targetWindows: 'blue'
+    targetSymbols: ['Machete', 'Hammer']
+    sonarDepth: 3
+    safeDepth: 9.4
+    safeOffset: -0.4
+    Gate:
+        time: 32
+        speed: 3
+    Buoy:
+        forwardDuration: 10
+        forwardSpeed: 2
+        taskTimeout: 180
+        lostTimeout: 5
+    Travel1:
+        taskTimeout: 60
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 9
+                speed: 20
+                absolute: True
+            '2':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 9
+                speed: 5
+                duration: 33
+                absolute: True
+    Travel2:
+        taskTimeout: 60
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 6
+                speed: 0.33
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -160
+                speed: 20
+                absolute: True
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: -160
+                speed: 5
+                duration: 10
+                absolute: True
+    Bin:
+        forwardSpeed: 3
+        forwardDuration: 10
+        taskTimeout: 180
+    Travel3:
+        taskTimeout: 60
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 4
+                speed: 0.33
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -120
+                speed: 20
+                absolute: True
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: -120
+                speed: 5
+                duration: 10
+                absolute: True
+            '4':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: -20
+                speed: 20
+                absolute: True
+    Window:
+        forwardSpeed: 3
+        forwardDuration: 10

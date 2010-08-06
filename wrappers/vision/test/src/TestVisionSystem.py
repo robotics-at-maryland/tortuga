@@ -42,11 +42,11 @@ class TestVisionSystem(unittest.TestCase):
         self.found = False
         self.event = event
 
-    if platform.system() == "DON'T RUN":
+    if platform.system() == "Linux":
         
         def testRedLightDetector(self):
             # Create a vision system with two mock cameras and an EventHub
-            cfg = { 'name' : 'Test', 'type' : 'TestSubsystem' }
+            cfg = { 'testing' : 1 }
             cfg = core.ConfigNode.fromString(str(cfg))
             
             forwardCamera = vision.Camera(640,480)
@@ -59,37 +59,36 @@ class TestVisionSystem(unittest.TestCase):
                                                deps)
     
             # Subscribe to our events about the red light
-            qeventHub = core.QueuedEventHub(eventHub)
-            qeventHub.subscribeToType(vision.EventType.LIGHT_FOUND,
+            eventHub.subscribeToType(vision.EventType.LIGHT_FOUND,
                                      self.redFoundHandler)
-            qeventHub.subscribeToType(vision.EventType.LIGHT_LOST,
+            eventHub.subscribeToType(vision.EventType.LIGHT_LOST,
                                      self.redLostHandler)
     
-            # Load our test image
+            # Load our test image (really upper right)
             image = vision.Image.loadFromFile(
                 os.path.join(getConfigRoot(), 'red_light_upper_left.png'))
-            
-            # Have to wait for the processing thread to be waiting on the camera
+
+            # Start detector then unbackground it
             visionSystem.redLightDetectorOn()
-            timer.sleep(0.033)
-    
-            # Release a new image from the camera (and wait for the detector
-            # capture it)
+            visionSystem.unbackground(True)
+
             forwardCamera.capturedImage(image)
-            timer.sleep(0.033)
+            forwardCamera.background(0)
     
             # This stops the background thread
+            visionSystem.update(0)
             visionSystem.redLightDetectorOff()
     
             # Check the event
-            qeventHub.publishEvents()
             self.assert_(self.found)
             self.assert_(self.event)
-            self.assertAlmostEqual(-0.5, self.event.x, 2)
+            self.assertAlmostEqual(0.5 * 4.0/3.0, self.event.x, 2)
             self.assertAlmostEqual(0.5, self.event.y, 2)
             self.assertAlmostEqual(3, self.event.range, 1)
-            self.assertAlmostEqual(78.0/4, self.event.azimuth.valueDegrees(), 2)
-            self.assertAlmostEqual(105.0/4, self.event.elevation.valueDegrees(), 0)
+            self.assertAlmostEqual(-78.0/4, self.event.azimuth.valueDegrees(),
+                                   2)
+            self.assertAlmostEqual(105.0/4, self.event.elevation.valueDegrees(),
+                                   0)
 
 
 if __name__ == '__main__':

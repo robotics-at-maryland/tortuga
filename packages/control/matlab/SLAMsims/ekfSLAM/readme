@@ -1,0 +1,7 @@
+ekfSLAMsimMain.m and ekfDivergenceFinder.m use an ekf to perform SLAM for tortuga in an environment with two fixed pingers.  the coordinate system was chosen arbitrarily and it was later discovered with ekfDivergenceFinder.m that the discontinuity in atan2() leaves a significant portion of the competition arena as a divergence region for the ekf.  a plot is saved in this folder as divergencePlotSpacing1.png.
+
+ekfSLAMsimMain2.m and ekfDivergenceFinder2.m is an implementation of the exact same thing as above only the coordinate system is chosen to specifically minimize the impact of the discontinuity in the atan2() function.  it appears that this formulation of the code leads to a significant decrease in the divergence region of the plot, and the divergence regions are localized to regions where the vehicle will not likely operate in.   a plot is saved in this folder as divergencePlot2Spacing1.png
+
+ekfSLAMsimMain3.m is an implementation of the SLAM found in ekfSLAMsimMain2.m but now we incorporate the fact that only one pinger is active each second (and the pingers alternate every time).  
+
+

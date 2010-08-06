@@ -16,6 +16,8 @@
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
 
+#include "math/include/Vector3.h"
+
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -23,16 +25,26 @@ namespace ram {
 namespace vehicle {
 namespace device {
     
+/** Represents a sensor that returns the depth in feet */
 class RAM_EXPORT IDepthSensor : public IDevice         // For getName
              // boost::noncopyable
 {
 public:
+    static const core::Event::EventType UPDATE;
+    static const core::Event::EventType RAW_UPDATE;
+    static const core::Event::EventType INIT;
+    
     virtual ~IDepthSensor();
 
+    /** The current depth the sensor is reading in feet */
     virtual double getDepth() = 0;
+
+    /** The location of the depth sensor on the vehicle */
+    virtual math::Vector3 getLocation() = 0;
     
 protected:
-    IDepthSensor(core::EventHubPtr eventHub = core::EventHubPtr());  
+    IDepthSensor(core::EventHubPtr eventHub = core::EventHubPtr(),
+                 std::string name = "UNNAMED");
 };
     
 } // namespace device

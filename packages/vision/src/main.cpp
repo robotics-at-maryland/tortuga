@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 // Library Includes
 #include "cv.h"
@@ -27,6 +28,9 @@
 
 // Project Includes
 #include "vision/include/main.h"
+#include "vision/include/OpenCVImage.h"
+#include "vision/include/BlobDetector.h"
+
 
 /* 
 	Daniel Hakim
@@ -38,6 +42,40 @@
 */
 using namespace std;
 using namespace ram::vision;
+
+//int pixelCountsDiamond[] = {
+//0, 2, 4, 6, 8, 10, 12, 12, 14, 16, 18, 20, 22, 24, 26, 28,
+//30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 52, 54, 56, 58, 60, 62,
+//62, 60, 58, 56, 54, 52, 50, 48, 44, 42, 40, 38, 36, 34, 32, 30,
+//28, 26, 24, 22, 20, 18, 16, 14, 14, 12, 10, 8, 6, 4, 2, 2};
+//
+//int pixelCountsClub[] = {
+//8, 13, 16, 20, 22, 23, 24, 26, 26, 28, 28, 28, 28, 28, 28, 28,
+//28, 28, 28, 26, 26, 40, 49, 54, 56, 58, 59, 60, 62, 62, 62, 64,
+//64, 64, 64, 64, 64, 64, 64, 60, 60, 58, 54, 53, 49, 45, 42, 38,
+//30, 18, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 44, 44};
+//
+//int pixelCountsSpade[] = {
+//0, 2, 2, 2, 4, 4, 6, 8, 8, 10, 12, 14, 16, 18, 20, 24,
+//26, 28, 32, 34, 36, 40, 42, 46, 48, 50, 52, 54, 56, 58, 60, 62,
+//62, 62, 64, 64, 64, 64, 64, 62, 60, 58, 54, 50, 46, 40, 33, 18,
+//6, 6, 8, 8, 10, 12, 14, 16, 18, 22, 26, 30, 36, 46, 56, 56};
+//
+//int pixelCountsHeart[] = {
+//17, 28, 36, 42, 46, 50, 54, 56, 58, 60, 62, 63, 64, 64, 64, 64,
+//64, 62, 62, 62, 60, 60, 58, 58, 56, 55, 54, 52, 50, 49, 47, 45,
+//44, 42, 40, 38, 37, 35, 33, 32, 30, 28, 26, 24, 23, 22, 20, 18,
+//17, 15, 14, 12, 11, 10, 8, 8, 6, 6, 4, 4, 2, 2, 1, 0};
+
+ 
+int suitDifference(int array1[], int array2[], int len)
+{
+    int i = 0;
+    int diff = 0;
+    for (i = 0; i < len; i++)
+        diff += (array1[i]-array2[i]) * (array1[i]-array2[i]);
+    return diff;
+}
 
 //Allow testRecord to be called easily from within a dynamically linked library
 extern "C"{
@@ -399,6 +437,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 //				numPerEight=0;
 //				for (int z=0; z<8;z++)
 //				{
+//				
 //					if (dest[count]>5 && dest[count+1]>5 && dest[count+2]>5)
 //					{
 //						numPerEight++;
@@ -423,7 +462,7 @@ int gateDetect(IplImage* percents, IplImage* base, int* gatex, int* gatey)
 	//this returns an angle, or -10 (HOUGH_ERROR) on error
 double hough(IplImage* img, int* linex, int* liney)
 {
-	IplImage* color_dst =img;//cvLoadImage("DSC00099.jpg", 0 );
+	IplImage* color_dst = img;//cvLoadImage("DSC00099.jpg", 0 );
 	IplImage* src = cvCreateImage(cvGetSize(img), 8, 1);
 	cvCvtColor(img,src,CV_BGR2GRAY);
 	
@@ -463,7 +502,7 @@ double hough(IplImage* img, int* linex, int* liney)
 		cvLine( color_dst, pt1, pt2, CV_RGB(255,0,0), 3, CV_AA, 0 );
 	}
 #else
-	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, 10, 50, 10 );
+	lines = cvHoughLines2( dst, storage, CV_HOUGH_PROBABILISTIC, 3, CV_PI/180, 50, 70, 10 );
 	CvPoint start,end;
 	
 	start.x=start.y=end.x=end.y=0;
@@ -519,8 +558,8 @@ double hough(IplImage* img, int* linex, int* liney)
 		
 		cvLine(color_dst,start,end,CV_RGB(255,0,255), 3, CV_AA, 0);
 		cvReleaseImage(&src);
-        cvReleaseImage(&dst);
-        cvReleaseMemStorage(&storage);
+                cvReleaseImage(&dst);
+                cvReleaseMemStorage(&storage);
 
 		return angle;
 	}
@@ -585,6 +624,63 @@ typedef struct
 }Pos;
 typedef std::list<Pos> PosList;
 
+
+void safeMask(IplImage* base, double r_over_g_min, double r_over_g_max, double b_over_r_max, int minTotal)
+{
+	unsigned char* data=(unsigned char*)base->imageData;
+//    unsigned char* dataPercents = (unsigned char*) percents->imageData;
+	int width=base->width;
+	int height=base->height;
+	int count=0;
+	unsigned char r=0;
+	unsigned char g=0;
+	unsigned char b=0;
+    
+//    r_over_g_min=.5f;
+//    r_over_g_max=1.8f;
+//    b_over_r_max=1.25f;
+
+	for (int y=0; y<height; y++)
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			
+			if (r>r_over_g_min*g && r_over_g_max*g>r && b_over_r_max*r>b && r+g+b >= minTotal)
+                                data[count]=data[count+1]=data[count+2]=255;
+			else
+				data[count]=data[count+1]=data[count+2]=0;
+			count+=3;
+		}
+}
+
+//For crappy bluish camera (not on robot)
+//Use "if (data[count+2]>34 && data2[count+2]>75)// && data2[count]<75 && data2[count+1]<75)"
+void suitMask(IplImage* percents, IplImage* base)
+{
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
+	int width=percents->width;
+	int height=percents->height;
+    int count=0;
+    for (int y =0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if (data[count+2]>35 && data2[count+2] > 125 && data2[count]<170 && data2[count+1]<170)
+            {
+                data2[count]=data2[count+1]=data2[count+2]=255;
+            }
+            else
+            {
+                data2[count]=data2[count+1]=data2[count+2]=0;
+            }
+            count+=3;
+        }
+    }
+}
+
 void redMask(IplImage* percents, IplImage* base,
              int redPercent, int redIntensity)
 {
@@ -592,6 +688,7 @@ void redMask(IplImage* percents, IplImage* base,
 	unsigned char* data2=(unsigned char*)base->imageData;
 	int width=percents->width;
 	int height=percents->height;
+//    printf("width : %d height : %d vs width : %d height : %d", width, height, base->width, base->height);
 	int r;
 	int r2;
 	int count=0;
@@ -608,8 +705,9 @@ void redMask(IplImage* percents, IplImage* base,
 	{
 		for (int x=0; x<width; x++)
 		{
-			r=data[count+2];//r = percent red in the image
-			r2=data2[count+2];//r2 = intensity of red in the image
+//            data[count]=data2[count]=data2[count+1]=data2[count+2]=0;
+            r = data[count+2];//r = percent red in the image
+			r2 = data2[count+2];//r2 = intensity of red in the image
 			if (r > redPercent && r2 > redIntensity) 
 			{
 				data2[count]=255;
@@ -617,22 +715,10 @@ void redMask(IplImage* percents, IplImage* base,
 				data2[count+2]=255;
 			}
 			else
+          {
 				data2[count]=data2[count+1]=data2[count+2]=0;
-
-//			if (b>10 && g>10 && r>35)
-//			{
-//				if (b2>50 && g2>50 && r2>125)
-//				{
-//					data2[count]=255;
-//					data2[count+1]=255;
-//					data2[count+2]=255;
-//				}
-//				else
-//					data2[count]=data2[count+1]=data2[count+2]=0;
-//			}
-//			else
-//				data2[count]=data2[count+1]=data2[count+2]=0;
-			count+=3;
+          }
+		count+=3;
 		}
 	}
 }
@@ -854,8 +940,8 @@ int redDetect(IplImage* percents, IplImage* base, int* redx, int* redy)
 //-1 on failure from too many distinct pieces, 0 if nothing at all was found,
 //otherwise returns number of pixels in the largest connected white splotch in the image
 //and fills centerX and centerY with its center.
-int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
-              int* minX, int* minY)
+int histogram(IplImage* img, int* centerX, int* centerY, int* minX, int* minY,
+              int* maxX, int* maxY)
 {
 //	cout<<"starting histogram, beware."<<endl;
 	int width=img->width;
@@ -961,11 +1047,15 @@ int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
 	}
 //	cout<<"Made it through image, now creating useful data from arrays"<<endl;
 	int maxCount=0;
-	
+
+        // Work from the top to bottom, collapsing the pixel clusters together
 	for (int i=index-1;i>0;i--)
 	{
+                
 		if (joins[i]!=i)
 		{
+                    // "Unfinished" cluster of pixels, ie part of bigger cluster
+                    // So add all of its information to the parents information
 			totalX[joins[i]]+=totalX[i];
 			totalY[joins[i]]+=totalY[i];
 			pixelCounts[joins[i]]+=pixelCounts[i];
@@ -973,6 +1063,7 @@ int histogram(IplImage* img, int* centerX, int* centerY, int* maxX, int* maxY,
 		}
 		else
 		{
+                    // Found a final cluster
 			if (maxCount<pixelCounts[i])
 			{
                             // Transfer data from the correct blob back to caller
@@ -1186,8 +1277,10 @@ int guess_line(IplImage* img)
 }
 		
 
-int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
+int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict,
+		double r_over_g_min, double r_over_g_max, double b_over_r_max)
 {
+	strict=true;
 	unsigned char* data=(unsigned char*)img->imageData;
 	int width=img->width;
 	int height=img->height;
@@ -1196,23 +1289,23 @@ int mask_orange(IplImage* img, bool alter_img, int brightness, bool strict)
 	int r=0;
 	int g=0;
 	int b=0;
-	float r_over_g_min;
-	float r_over_g_max;
-	float b_over_r_max;
+//	float r_over_g_min;
+//	float r_over_g_max;
+//	float b_over_r_max;
 	int acceptable=0;
 
-	if (!strict)
-	{
-		r_over_g_min=1.2f;
-		r_over_g_max=2.1f;
-		b_over_r_max=0.6f;
-	}
-	else//(strict)
-	{
-		r_over_g_min=1.2f;
-		r_over_g_max=2.0f;
-		b_over_r_max=0.4f;
-	}
+//	if (!strict)
+//	{
+//		r_over_g_min=1.0f;
+//		r_over_g_max=2.1f;
+//		b_over_r_max=0.6f;
+//	}
+//	else//(strict)
+//	{
+//		r_over_g_min=1.0f;
+//		r_over_g_max=2.0f;
+//		b_over_r_max=0.4f;
+//	}
 
 //Competition Values	
 //	if (!strict)
@@ -1483,66 +1576,48 @@ int red_blue(IplImage* img, float ratio)
 	return total;
 }
 
-int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, int* biny)
+
+
+//Good ones are 30 and 190 for test images at least
+/* Masks the image for white, all parameters must be the same size,
+   output is filled with either 0's or 255s*/
+int white_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned char minPercentIntensity, unsigned char minIntensity)
 {
 	unsigned char* data=(unsigned char*)percents->imageData;
 	unsigned char* data2=(unsigned char*)base->imageData;
-    unsigned char* data3=(unsigned char*)temp->imageData;
+	unsigned char* data3=(unsigned char*)output->imageData;
 	int width=percents->width;
 	int height=percents->height;
 	int count=0;
-//	int pixel_count=0;
 	int r=0;
 	int g=0;
 	int b=0;
 	int r2=0;
 	int g2=0;
 	int b2=0;
-//	int total=0;
-//	int total2=0;
-//	
-//	int blackx=0;
-//	int blacky=0;
-//	int whitex=0;
-//	int whitey=0;
-	
-	int xdist=0;
-	int ydist=0;
-	int minx=999999;
-	int maxx=0;
-	int miny=999999;
-	int maxy=0;
-	for (int y=2; y<height-2; y++)
-	{
-		count=3*2+3*width*y;
-		for (int x=2; x<width-2; x++)
+	int pixelCount = 0;
+	if (percents->width != base->width || percents->width != output->width ||
+		percents->height != base->height || percents->height != output->height)
 		{
-			b=(data[count]+256)%256;
-			g=(data[count+1]+256)%256;
-			r=(data[count+2]+256)%256;
-			b2=(data2[count]+256)%256;
-			g2=(data2[count+1]+256)%256;
-			r2=(data2[count+2]+256)%256;
-			if (b>30 && g>30 && r>30)
+			assert(false && "Unmatched image width/height in white_mask, all parameters should have same width and all parameters should have same height");
+		}
+
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			b2=data2[count];
+			g2=data2[count+1];
+			r2=data2[count+2];
+			if (b>minPercentIntensity && g>minPercentIntensity && r>minPercentIntensity)
 			{
-				if (b2>210 && g2>210 && r2>210)
+				if (b2>minIntensity && g2>minIntensity && r2>minIntensity)
 				{
-					data2[count]=0;
-					data2[count+1]=0;
-					data2[count+2]=255;
-                    data[count]=0;
-                    data[count+1]=0;
-                    data[count+2]=100;
-                    data3[count]=255;
-                    data3[count+1]=255;
-                    data3[count+2]=255;
-//					whitex+=x;
-//					whitey+=y;
-//					total++;
-					minx=min(x,minx);
-					maxx=max(x,maxx);
-					miny=min(y,miny);
-					maxy=max(y,maxy);
+					data3[count]=data3[count+1]=data3[count+2]=255;
+					pixelCount++;
 				}
 				else
 				{
@@ -1556,117 +1631,61 @@ int white_detect(IplImage* percents, IplImage* base, IplImage* temp, int* binx, 
 			count+=3;
 		}
 	}
-    
-//    cout<<"Total = " << total <<endl;
-    int histoWhiteX, histoWhiteY;
-    int minX, minY, maxX, maxY;
-    int totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
-                               &minX, &minY, &maxX, &maxY);
-    //Erosion: cvErode( const CvArr* src, CvArr* dst, IplConvKernel* element=NULL, int iterations=1 );
-    while (totalWhite ==-1)
-    {
-        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
-        cvErode(temp,temp,NULL,1);
-        totalWhite = histogram(temp,&histoWhiteX,&histoWhiteY,
-                               &minX, &minY, &maxX, &maxY);
-    }
-//    cout<<"Histo Total = " << totalWhite << endl;
+	return pixelCount;
+}
 
-    //clear the temporary image
-    count=0;
-    for (int y=0; y<height; y++)
-    {
-        for (int x=0; x<width; x++)
-        {
-            data3[count]=data3[count+1]=data3[count+2]=0;
-            count+=3;
-        }
-    }    
-
-	count=0;
-	for (int y=miny;y<maxy;y++)
-	{
-		count=3*minx+3*width*y;
-		for (int x=minx; x<maxx; x++)
+//Good parameters are 15 and 350, except for stupid cam, for which drop it to 15 150
+/* masks the images for black. output is filled with 255s wherever base and percents were in black thresholds,
+filled with 0s elsewhere*/
+int black_mask(IplImage* percents, IplImage* base, IplImage* output, unsigned char minPercentIntensity, int maxTotalIntensity)
+{
+	unsigned char* data=(unsigned char*)percents->imageData;
+	unsigned char* data2=(unsigned char*)base->imageData;
+	unsigned char* data3=(unsigned char*)output->imageData;
+	int width=percents->width;
+	int height=percents->height;
+	int count=0;
+	int r=0;
+	int g=0;
+	int b=0;
+	int r2=0;
+	int g2=0;
+	int b2=0;
+	int pixelCount = 0;
+	if (percents->width != base->width || percents->width != output->width ||
+		percents->height != base->height || percents->height != output->height)
 		{
-            b=(data[count]+256)%256;
-			g=(data[count+1]+256)%256;
-			r=(data[count+2]+256)%256;
-			b2=(data2[count]+256)%256;
-			g2=(data2[count+1]+256)%256;
-			r2=(data2[count+2]+256)%256;
-			if (b2+g2+r2<350 && b>25 && g>25 && r>25)
+			assert(false && "Unmatched image width/height in white_mask, all parameters should have same width and all parameters should have same height");
+		}
+
+	for (int y=0; y<height; y++)
+	{
+		for (int x=0; x<width; x++)
+		{
+			b=data[count];
+			g=data[count+1];
+			r=data[count+2];
+			b2=data2[count];
+			g2=data2[count+1];
+			r2=data2[count+2];
+			if (b>minPercentIntensity && g>minPercentIntensity && r>minPercentIntensity)
 			{
-				data2[count]=255;
-				data2[count+1]=0;
-				data2[count+2]=0;
-                data[count]=100;
-                data[count+1]=0;
-                data[count+2]=0;
-                data3[count]=data3[count+1]=data3[count+2]=255;
-//				blackx+=x;
-//				blacky+=y;
-//				total2++;
+				if (b2 + g2 + r2 <= maxTotalIntensity)
+				{
+					data3[count]=data3[count+1]=data3[count+2]=255;
+					pixelCount++;
+				}
+				else
+				{
+                    data3[count]=data3[count+1]=data3[count+2]=0;
+				}
 			}
+			else
+			{
+                data3[count]=data3[count+1]=data3[count+2]=0;
+            }
 			count+=3;
 		}
 	}
-	
-//    cout<<"Black Total = " << total2 <<endl;
-    int histoBlackX, histoBlackY;
-    
-    int totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
-                               &minX, &minY, &maxX, &maxY);
-    while (totalBlack ==-1)
-    {
-        cout<<"Too many separate white pixel groups, eroding the image"<<endl;
-        cvErode(temp,temp,NULL,1);
-        totalBlack = histogram(temp,&histoBlackX,&histoBlackY,
-                               &minX, &minY, &maxX, &maxY);
-    }
-//    cout<<"Histo Total = " << totalBlack << endl;
-
-    if (totalWhite<0 || totalBlack<0)
-    {
-        cout<<"WHAT THE FUCK!?!? "<<totalWhite << " ," << totalBlack<<endl;
-    }
-	if (totalWhite>0 && totalBlack>0)
-	{
-//		whitex/=total;
-//		whitey/=total;
-//		blackx/=total2;
-//		blacky/=total2;
-//		xdist=blackx-whitex;
-//		ydist=blacky-whitey;
-
-        xdist=histoBlackX-histoWhiteX;
-        ydist=histoBlackY-histoWhiteY;
-		float distance=sqrt((float)(xdist*xdist+ydist*ydist));
-		
-        //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-        //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-        //cout<<"Distance:"<<distance<<endl;
-        cout<<"Total White Count:"<<totalWhite<<endl;
-        cout<<"Total Black Count:"<<totalBlack<<endl;
-		if (distance<100 && totalWhite > 1000 && totalBlack > 1000)
-		{
-			//cout<<"We've almost certainly found the bin!!  DROP THAT MARKER!!! WOOHOOHOOOHOO!!!!!!"<<endl;
-//			*binx=(whitex+blackx)/2;
-//			*biny=(whitey+blacky)/2;
-            *binx=(histoWhiteX + histoBlackX) /2;
-            *biny=(histoWhiteY + histoBlackY) /2;
-		}
-		else
-		{
-            //cout<<"HistoWhiteCenter:"<<histoWhiteX<<","<<histoWhiteY<<endl;
-            //cout<<"HistoBlackCenter:"<<histoBlackX<<","<<histoBlackY<<endl;
-			*binx=-1;
-			*biny=-1;
-		}
-	}
-	return min(totalWhite,totalBlack);
+	return pixelCount;
 }
-
-
-
-

@@ -17,6 +17,7 @@
 #include "math/include/Matrix2.h"
 #include "math/include/Vector4.h"
 #include "math/include/Matrix4.h"
+#include "math/include/MatrixN.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -41,6 +42,7 @@ struct RAM_EXPORT DesiredState{
     double depth;
     double quaternion[4];
     double angularRate[3];
+    math::Vector2 velocity;
 };
 
 // MeasuredState = struct('depth',1,
@@ -53,6 +55,7 @@ struct RAM_EXPORT MeasuredState{
     double magneticField[3];
     double quaternion[4];
     double angularRate[3];
+    math::Vector2 velocity;
 };
 
 struct RAM_EXPORT EstimatedState{
@@ -60,12 +63,45 @@ struct RAM_EXPORT EstimatedState{
     math::Vector2 xHat2Depth;  //<- want to use this, but having trouble
     //double xHat2;
     math::Vector4 xHat4Depth;
+
+    //for gyro bias observer controller
+    math::Quaternion qhat;//current attitude estimate
+    math::Vector3 what;//current angular rate estimate
+    math::Vector3 bhat;//current gyro bias estimate
+    math::Quaternion dqhat;//current attitude estimate rate
+    math::Vector3 dbhat;//current gyro bias estimate rate
+
 };
 
 struct RAM_EXPORT ControllerState{
+
+  //used by a variety of controllers to prevent multiply/divide by zero problems
+    double dtMin;
+    double dtMax;
+
+  /* ROTATIONAL CONTROL GAINS */
+
+  //for nonlinear PD control
     double angularPGain;
     double angularDGain;
     double inertiaEstimate[3][3];
+
+	//for nonlinear adaptive controller
+	double adaptCtrlRotK;//controller gain
+	double adaptCtrlRotLambda;//replacement model pole
+	double adaptCtrlRotGamma;//adaptation gain
+	math::MatrixN adaptCtrlParams;//parameter estimate vector
+
+	//for gyro bias observer controller
+	int gyroPDType;//used by rotationalGyroObsPDControllerSwitch
+	double gyroObsGain;//observer gain
+	math::Quaternion qhatold;//previous attitude estimate
+	math::Vector3 whatold;//previous angular rate estimate
+	math::Vector3 bhatold;//previous gyro bias estimate
+	math::Quaternion dqhatold;//previous attitude estimate rate
+	math::Vector3 dbhatold;//previous gyro bias estimate rate
+	
+
     
     /* DEPTH CONTROL GAINS*/
     //for depth P control
@@ -82,6 +118,8 @@ struct RAM_EXPORT ControllerState{
     
     double speedPGain;
     double sidewaysSpeedPGain;
+    double velocityPGain;
+    bool useVelocityControl;
     int depthControlType;
     math::Matrix2 depthA;
     math::Vector2 depthB;
@@ -92,7 +130,6 @@ struct RAM_EXPORT ControllerState{
     math::Matrix4 depthA4;
     math::Vector4 depthB4;
     math::Vector4 depthC4;
-    double dt;
     
 };
 
@@ -103,9 +140,31 @@ void RAM_EXPORT translationalController(MeasuredState* measuredState,
                                         double dt,
                                         double* translationalForces);
 
-void RAM_EXPORT BongWiePDRotationalController(MeasuredState* measuredState,
+void RAM_EXPORT rotationalPDController(MeasuredState* measuredState,
+                                       DesiredState* desiredState,
+                                       ControllerState* controllerState,
+				       EstimatedState* estimatedState,
+                                       double dt,
+                                       double* rotationalTorques);
+
+void RAM_EXPORT rotationalGyroObsPDController(MeasuredState* measuredState,
                                               DesiredState* desiredState,
                                               ControllerState* controllerState,
+					      EstimatedState* estimatedState,
+                                              double dt,
+                                              double* rotationalTorques);
+
+void RAM_EXPORT rotationalGyroObsPDControllerSwitch(MeasuredState* measuredState,
+                                              DesiredState* desiredState,
+                                              ControllerState* controllerState,
+					      EstimatedState* estimatedState,
+                                              double dt,
+                                              double* rotationalTorques);
+
+void RAM_EXPORT adaptiveRotationalController(MeasuredState* measuredState,
+                                              DesiredState* desiredState,
+                                              ControllerState* controllerState,
+					     EstimatedState* estimatedState,
                                               double dt,
                                               double* rotationalTorques);
                                    
@@ -135,6 +194,12 @@ double RAM_EXPORT depthObserverController4(MeasuredState* measuredState,
                                           ControllerState* controllerState,
                                           EstimatedState* estimatedState,
                                           double dt);
+										  
+double depthObserverController4WithScaling(MeasuredState* measuredState,
+                                DesiredState* desiredState,
+                                ControllerState* controllerState,
+                                EstimatedState* estimatedState,
+                                double dt);
 
 double depthObserverController4Discrete(MeasuredState* measuredState,
                     DesiredState* desiredState,

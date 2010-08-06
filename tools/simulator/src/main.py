@@ -10,10 +10,22 @@ import os
 import sys
 from optparse import OptionParser
 
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Project Imports
 import ext.core
 # NOTE: sim.subsystems delayed till after setting of sys.path for Python-Ogre
-    
+
+try:
+    import ctypes
+    import platform
+    end = 'so'
+    if 'Darwin' == platform.system():
+        end = 'dylib'
+    ctypes.CDLL("libram_network." + end, mode = ctypes.RTLD_GLOBAL)
+except OSError, e:
+    print e
 
 def stop(event):
     global APPLICATION

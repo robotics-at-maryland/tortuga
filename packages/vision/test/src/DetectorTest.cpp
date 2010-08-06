@@ -20,7 +20,6 @@
 #include <boost/foreach.hpp>
 
 // Project Includes
-#include "vision/include/OpenCVCamera.h"
 #include "vision/include/ImageCamera.h"
 #include "vision/include/Image.h"
 #include "vision/include/NetworkCamera.h"
@@ -29,18 +28,21 @@
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/ImageCamera.h"
 #include "vision/include/FileRecorder.h"
+#include "vision/include/FFMPEGRecorder.h"
 #include "vision/include/NetworkRecorder.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
+#include "vision/include/FFMPEGNetworkCamera.h"
+#include "vision/include/OpenCVCamera.h"
+#include "vision/include/DC1394Camera.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
+#include "core/include/PropertySet.h"
 
 namespace po = boost::program_options;
 using namespace ram;
 
 static const char* PROCESSED_WINDOW = "Processed Image";
-
-/** Creates the camera based on the input stream */
-vision::Camera* createCamera(std::string input);
 
 /** Creates a recorder based on the input stream */
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera);
@@ -53,6 +55,9 @@ vision::DetectorPtr createDetector(std::string dectorType,
 vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
                                              core::ConfigNode cfg,
                                              std::string& nodeUsed);
+
+/** Print out all the detectors properties and values */
+void dumpDetectorProperties(vision::DetectorPtr detector);
 
 // Handle a corner case on Mac OSX
 void brokenPipeHandler(int signum);
@@ -88,7 +93,7 @@ int main(int argc, char** argv)
             ("output,o", po::value<std::string>(&output),
              "File or network port to send images to")
             ("input", po::value<std::string>(&input),
-             "Video/Image file, camera #, hostname:port")
+             "Video/Image file, camera # (>= 100 == firewire), hostname:port")
             ("detector", po::value<std::string>(&detectorName)->
              default_value("RedLightDetector"), "Detector to run on the input")
             ("config,c", po::value<std::string>(&configPath)->
@@ -146,7 +151,10 @@ int main(int argc, char** argv)
     }
     
     // Setup camera and OpenCV Window, and the Recorder
-    vision::Camera* camera = createCamera(input);
+    std::string message;
+    vision::CameraPtr camera = vision::Camera::createCamera(input, configPath,
+                                                          message);
+    std::cout << message << std::endl;
     vision::Image* frame = new vision::OpenCVImage(camera->width(),
                                                    camera->height());
     vision::Image* outputImage = new vision::OpenCVImage(camera->width(),
@@ -169,13 +177,17 @@ int main(int argc, char** argv)
     }
 
     // Main Loop
+    bool inputing = true;
     while(1)
     {
         vision::Image* workingImage = frame;
         
         // Get one frame and process
-        camera->update(1.0 / camera->fps());
-        camera->getImage(frame);
+        if (inputing)
+        {
+            camera->update(1.0 / camera->fps());
+            camera->getImage(frame);
+        }
 
         if (runDetector)
         {
@@ -205,8 +217,9 @@ int main(int argc, char** argv)
         }
         
         if (show)
+		{
             cvShowImage(PROCESSED_WINDOW, workingImage->asIplImage());
-
+		}
         //If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
         //remove higher bits using AND operator
         if (show)
@@ -219,6 +232,11 @@ int main(int argc, char** argv)
             {
                 runDetector = !runDetector;
             }
+
+            if (key == 'p')
+            {
+                inputing = !inputing;
+            }
         }
     }
 
@@ -227,7 +245,7 @@ int main(int argc, char** argv)
     if (show)
         cvDestroyWindow(PROCESSED_WINDOW);
 
-    delete camera;
+    camera = vision::CameraPtr();
     delete recorder;
 
     delete recordCamera;
@@ -270,13 +288,14 @@ vision::DetectorPtr createDetector(std::string detectorType,
                 BOOST_FOREACH(std::string nodeName, nodeNames)
                 {
                     core::ConfigNode subsysCfg(cfg[nodeName]);
-                    if ("VisionSystem" == subsysCfg["type"].asString("NONE"))
+                    if (("VisionSystem" == subsysCfg["type"].asString("NONE"))||
+                        ("SimVision" == subsysCfg["type"].asString("NONE")))
                     {
                         std::cout << "Looking in config section" << std::endl;
                         // Attempt to find in the list of detectors
                         detector =
                             createDetectorFromConfig(detectorType,
-                                                     cfg["VisionSystem"],
+                                                     subsysCfg,
                                                      nodeUsed);
 
                         std::stringstream ss;
@@ -292,6 +311,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
             std::cout << "Using section \"" << nodeUsed << "\" for detector \""
                       << detectorType << "\"" << std::endl << "from config "
                       << "file: \"" << configPath << "\"" << std::endl;
+            dumpDetectorProperties(detector);
         }
         else
         {
@@ -304,6 +324,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
     }
     else
     {
+	std::cout << "---No Config File Specified!--- Using Default Values"<<std::endl;
         std::stringstream ss;
         ss << "{ 'type' : '" << detectorType << "'}";
         core::ConfigNode cfg(core::ConfigNode::fromString(ss.str()));
@@ -312,6 +333,7 @@ vision::DetectorPtr createDetector(std::string detectorType,
             vision::DetectorMakerParamType(cfg, core::EventHubPtr()));
     }
 
+    dumpDetectorProperties(detector);
     return detector;
 }
 
@@ -338,6 +360,22 @@ vision::DetectorPtr createDetectorFromConfig(std::string detectorType,
     return vision::DetectorPtr();
 }
 
+void dumpDetectorProperties(vision::DetectorPtr detector)
+{
+    core::PropertySetPtr propSet(detector->getPropertySet());
+    std::vector<std::string> propNames = propSet->getPropertyNames();
+    if (propNames.size() > 0)
+    {
+        std::cout << "Detector has the following properties:" << std::endl;
+        BOOST_FOREACH(std::string propName, propNames)
+        {
+            core::PropertyPtr prop(propSet->getProperty(propName));
+            std::cout << "\t" << propName << ": " << prop->toString()
+                      << std::endl;
+        }
+    }
+}
+
 vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
 {
     static boost::regex port("(\\d{1,5})");
@@ -349,59 +387,20 @@ vision::Recorder* createRecorder(std::string output, vision::Camera* camera)
                   << "'" << std::endl;
         boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(output);
 #ifdef RAM_POSIX
-        signal(SIGPIPE,brokenPipeHandler);
+        signal(SIGPIPE, brokenPipeHandler);
 #endif
         vision::Recorder* r =
-            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+//            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+            new vision::FFMPEGNetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
         return r;
     }
 
     std::cout <<"Assuming output is a file, Recording to '" << output << "'"
               << std::endl;
-    return new vision::FileRecorder(camera, vision::Recorder::NEXT_FRAME, output);
+    return new vision::FFMPEGRecorder(camera, vision::Recorder::NEXT_FRAME, output);
 }
 
 void brokenPipeHandler(int signum)
 {
     std::cout<<"Broken Pipe Ignored"<<std::endl;
-}
-
-vision::Camera* createCamera(std::string input)
-{
-    static boost::regex camnum("\\d+");
-    static boost::regex hostnamePort("([a-zA-Z0-9.-_]+):(\\d{1,5})");
-	static boost::regex image("[^\\.]+.(jpg|png)");
-    std::cout << "Images coming from: ";
-    
-    if (boost::regex_match(input, camnum))
-    {
-        int camnum = boost::lexical_cast<int>(input);
-        std::cout << "Forward Camera #" << camnum << std::endl;
-        return new vision::OpenCVCamera(camnum, true);
-    }
-
-    boost::smatch what;
-    if (boost::regex_match(input, what, hostnamePort))
-    {
-        std::string hostname = what.str(1);
-        boost::uint16_t port =
-            boost::lexical_cast<boost::uint16_t>(what.str(2));
-        std::cout << "Streaming images from host: \"" << hostname
-                  << "\" on port " << port << std::endl;
-        return new vision::NetworkCamera(hostname, port);
-    }
-	
-	if (boost::regex_match(input, image))
-	{
-		std::cout <<"'" << input <<"' image file" << std::endl;
-		
-		vision::Image* img = vision::Image::loadFromFile(input);
-		vision::ImageCamera* c = new vision::ImageCamera(640, 480, 30);
-		c->newImage(img);
-		//delete img;
-		return c;
-	}
-	
-    std::cout << "'" << input << "' video file" << std::endl;
-    return new vision::OpenCVCamera(input);
 }

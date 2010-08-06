@@ -13,16 +13,35 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IIMU.h"
+#include "math/include/Events.h"
 
 class MockIMU : public ram::vehicle::device::IIMU,
                 public ram::vehicle::device::Device                
 {
 public:
-    MockIMU(std::string name) : IIMU(ram::core::EventHubPtr()), Device(name) {}
+    MockIMU(ram::core::ConfigNode config,
+            ram::core::EventHubPtr eventHub,
+            ram::vehicle::IVehiclePtr vehicle) :
+        ram::vehicle::device::IIMU(eventHub, config["name"].asString()),
+        Device(config["name"].asString()),
+        orientation(config["orientation"][0].asDouble(0),
+                    config["orientation"][1].asDouble(0),
+                    config["orientation"][2].asDouble(0),
+                    config["orientation"][3].asDouble(1))
+    {
+    }
+    
+    MockIMU(std::string name) : 
+        IIMU(ram::core::EventHubPtr()), 
+        Device(name)
+	{}
 	
     virtual ram::math::Vector3 getLinearAcceleration() 
     	{ return linearAcceleration; }
 
+    virtual ram::math::Vector3 getMagnetometer()
+    	{ return magnetometer; }
+    
     virtual ram::math::Vector3 getAngularRate()
     	{ return angularRate; }
     
@@ -30,14 +49,31 @@ public:
      	{ return orientation; }
     
     ram::math::Vector3 linearAcceleration;
+    ram::math::Vector3 magnetometer;
     ram::math::Vector3 angularRate;
     ram::math::Quaternion orientation;
 
+    void publishUpdate(ram::math::Quaternion update)
+    {
+        orientation = update;
+        ram::math::OrientationEventPtr orientationEvent(
+            new ram::math::OrientationEvent());
+        orientationEvent->orientation = update;
+        publish(ram::vehicle::device::IIMU::UPDATE, orientationEvent);
+    }
     
     virtual std::string getName() {
         return ram::vehicle::device::Device::getName();
     }
 
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    };
     virtual void update(double) {}
     virtual void background(int) {}
     virtual void unbackground(bool) {}

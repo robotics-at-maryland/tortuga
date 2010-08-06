@@ -32,7 +32,7 @@ Installation
 ------------
 
 In command prompt or shell change current directory to be "pyplusplus-X.Y.Z".
-"X.Y.Z" is version of `Py++`_. Type next command:
+"X.Y.Z" is version of `Py++`_. Type the following command:
 
 | ``python setup.py install``
 
@@ -50,8 +50,8 @@ You will find hourly snapshots of the source code and the documentation for all
 Boost libraries.
 
 .. _`getting started guide` : http://boost.cvs.sourceforge.net/*checkout*/boost/boost/more/getting_started.html
-.. _`here` : http://www.boost-consulting.com/download.html
-.. _`installer for Boost Libraries` : http://www.boost-consulting.com/download.html
+.. _`here` : http://www.boost-consulting.com/products/free
+.. _`installer for Boost Libraries` : http://www.boost-consulting.com/products/free
 
 ------------
 Dependencies
@@ -63,10 +63,3 @@ Dependencies
 .. _`Py++` : ./pyplusplus.html
 .. _`pygccxml` : ./../pygccxml/pygccxml.html
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

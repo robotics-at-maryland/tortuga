@@ -1,0 +1,126 @@
+ForwardCamera:
+    brightness: auto # 275
+    uValue: 90 # 80 (NBRF sun) # 100
+    vValue: 80 # 90 (NBRF sun) # 100
+
+DownwardCamera:
+    brightness: auto # 275
+    uValue: 90 # 80 (NBRF sun) # 100
+    vValue: 80 # 90 (NBRF sun) # 100
+
+AdaptiveThresher:
+    foobared: true
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.2
+    topRemovePercentage: 0.33
+    bottomRemovePercentage: 0.33
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+RedLightDetector:
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.17
+    topRemovePercentage: 0.0
+    bottomRemovePercentage: 0.0
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+OrangePipeDetector:
+    rOverGMin: 1.05 #0.75 (NEW# 0.88)
+    rOverGMax: 2.41 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
+    centeredLimitt: 0.4
+    minBrightness: 100
+    minPixels: 3000
+    minPixelsFound: 1500
+    erodeIterations: 1
+
+BinDetector:
+    symbolDetector: BasicWW2Detector
+    binMinFillPercentage: 0.3
+    binLostFrames: 5
+    binMaxOverlap: 4
+    centeredLimit: 0.2
+    sameBinThreshold: 0.2
+    maxAspectRatio: 3
+    blackMaskMinimumPercent: 10
+    blackMaskMaxTotalIntensity: 350
+    whiteMaskMinimumPercent: 15
+    whiteMaskMinimumIntensity: 137
+    redMinRValue: 70
+    incrediblyWashedOut: 0
+    filtblackLMax: 255
+    filtblackLMin: 0
+    filtblackUMax: 79
+    filtblackUMin: 14
+    filtblackVMax: 90
+    filtblackVMin: 0
+    filtredLMax: 255
+    filtredLMin: 0
+    filtredUMax: 98
+    filtredUMin: 0
+    filtredVMax: 255
+    filtredVMin: 70
+    filtwhiteLMax: 245
+    filtwhiteLMin: 25
+    filtwhiteUMax: 255
+    filtwhiteUMin: 0
+    filtwhiteVMax: 255
+    filtwhiteVMin: 100
+    useLUVFilter: 1    
+DuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+    erodeIterations: 3
+    dilateIterations: 3
+    minBlackPercent: 5
+    maxBlackTotal: 300
+    defaultGrowThreshX: 0.05
+    defaultGrowThreshY: 0.05
+    minXOverYToUpGrowThresh: 1.5
+    uppedGrowThreshX: 0.5
+    uppedGrowThreshY: 0.05
+DownwardDuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+SafeDetector:
+    rOverGMin: 0.9
+    rOverGMax: 4.0
+    bOverRMax: 0.55
+    erodeIterations: 0
+    dilateIterations: 0
+    minTotal: 100
+
+TargetDetector:
+    dilateIterations: 3
+    erodeIterations: 2
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 88
+    filtUMin: 0
+    filtVMax: 255
+    filtVMin: 148
+ 
+BarbedWireDetector:
+    bottomRemovePercentage: 0.1
+    filtVMax: 247
+    filtVMin: 121
+    filtUMax: 75
+    filtUMin: 0
+VelocityDetector:
+    usePhaseCorrelation: 0
+    useLKFlow: 1

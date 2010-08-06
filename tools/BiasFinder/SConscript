@@ -9,7 +9,14 @@
 Import('env')
 envl = env.Clone()
 
+int_deps = ['vehicle','math']
+eventFeatures = ['vision', 'control']
+for feature in eventFeatures:
+    if env.HasFeature(feature):
+        int_deps.append(feature)
+
+
 # Build the ctx and consolemon
 envl.RAMProgram(target = 'BiasFinder', 
 		source = 'src/FindBias.cpp',
-                int_deps = ['vehicle','math'])
+                int_deps = int_deps)

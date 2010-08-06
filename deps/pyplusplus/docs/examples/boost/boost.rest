@@ -37,7 +37,7 @@ C++ Standard. More Boost libraries are proposed for the upcoming `TR2`_.
 
 I believe that `Py++`_ is ready for hard work. It is quick, stable and
 flexible. `Py++`_ is a new tool and in my opinion I should prove its
-usefulness. Using `Py++`_, I exposed next libraries to Python:
+usefulness. Using `Py++`_, I exposed the following libraries to Python:
 
   * `Boost.Date_Time`_
   * `Boost.CRC`_
@@ -262,12 +262,4 @@ http://sourceforge.net/project/showfiles.php?group_id=118209.
 .. _`boost.operators`: http://www.boost.org/
 .. _`GCC-XML`: http://www.gccxml.org
 .. _`Py++` : ./../../pyplusplus.html
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

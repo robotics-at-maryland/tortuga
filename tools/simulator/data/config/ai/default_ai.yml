@@ -1,0 +1,104 @@
+# Demo course without the barbed wire
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+#            'ram.ai.course.Bin', 'ram.ai.course.Pinger',
+#            'ram.ai.course.Octagon']
+
+# Demo course with the barbed wire    
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Light', 'ram.ai.course.Pipe2',
+#            'ram.ai.course.BarbedWire',
+#            'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
+
+# Demo course with everything
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+            'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
+            'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
+            'ram.ai.course.Travel1', 'ram.ai.course.Window']
+
+failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
+
+config:
+    gateDepth: 4
+    lightDepth: 5
+    pipeDepth: 3
+    bwireDepth: 8.3
+    targetDepth: 5.5
+    windowDepth: 10.5
+    targetWindows: 'blue'
+    buoyDepth: 6.5
+    targetBuoys: ['red', 'green']
+    hedgeDepth: 9.8
+    binDepth: 13
+    targetSymbols: ['Aircraft', 'Ship']
+    sonarDepth: 8
+    safeDepth: 15
+    safeOffset: -0.35
+    Gate:
+        time: 30
+        speed: 3
+    PipeTarget:
+        taskTimeout: 45
+        motionTimeout: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeDepth'
+                desiredDepth: 10
+                speed: 1
+            '2':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 90
+                speed: 10
+                absolute: False
+            '3':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 0
+                speed: 5
+                duration: 5
+                absolute: False
+    Window:
+        angle: 45
+    Travel1:
+        taskTimeout: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 45
+                speed: 3
+                duration: 4
+                absolute: False
+    #PipeGate:
+    #    biasDirection: 0
+    #    threshold: 0
+    #Pipe:
+    #    biasDirection: 10
+    #    threshold: 30
+    #Pipe1:
+    #    biasDirection: 5
+    #    threshold: 20
+    #Pipe2:
+    #    biasDirection: 0
+    #    threshold: 0
+    #Pipe3:
+    #    biasDirection: 0
+    #    threshold: 0
+    #PipeBarbedWire:
+    #    biasDirection: 0
+    #    threshold: 0
+    #    rotation: -30
+    #    legTime: 5
+    #    sweepAngle: 30
+    #    sweepSpeed: 3
+    #PipeTarget:
+    #    biasDirection: 0
+    #    threshold: 0
+    #    rotation: -30
+    #    legTime: 5
+    #    sweepAngle: 30
+    #    sweepSpeed: 3
+    #BarbedWire:
+    #     orientation: -20

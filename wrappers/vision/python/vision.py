@@ -25,6 +25,9 @@ try:
 
     from ext._vision import *
 
+    # Emulates the typedef for WindowEvent
+    WindowEvent = TargetEvent
+
 finally:
     sys.stderr = stderr
 

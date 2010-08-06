@@ -1,4 +1,5 @@
-// Copyright 2004 Roman Yakovenko.
+
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -8,11 +9,16 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
+#include <set>
+#include <map>
+#include "noncopyable.hpp"
 
 #define TYPE_PERMUTATION( BASE, NAME )                        \
-    typedef BASE NAME##_t;                                     \
-    typedef BASE const NAME##_const_t;                         \
-    typedef BASE volatile NAME##_volatile_t;                   
+    typedef BASE NAME##_t;                                    \
+    typedef BASE const NAME##_const_t;                        \
+    typedef BASE volatile NAME##_volatile_t;                  \
+    typedef BASE const volatile NAME##_const_volatile_t;      
 
 struct some_struct_t{
     void do_smth();
@@ -74,15 +80,151 @@ namespace detail{
 
         static const y_type zero;
     };
+    
+    struct instantiate_tmpls{
+        instantiate_tmpls()
+        : v(), s(), ms()
+        {}
+        
+        std::vector< int > v;
+        std::set< std::string > s;
+        std::multimap< std::string, std::string > ms;
+    };
+    
+    
+    class a_t{
+    public:
+
+        static char get_a(){ return 'a'; }
+
+    private:
+        a_t(){};
+        ~a_t(){};
+    };
+
+    class b_t{
+        ~b_t(){}
+    public:
+       
+        static char get_b(){ return 'b'; }
+
+    };
+
+    class c_t : public boost::noncopyable{
+    public:  
+        static char get_c(){ return 'c'; }
+
+    };
+
+    class d_t{  
+    private:
+        d_t( const d_t& );    
+    public:  
+        d_t(){}
+        ~d_t(){}
+        static char get_d(){ return 'd'; }
+
+    };
+
+    class dd_t : public d_t{
+    public:
+        dd_t(){}
+        ~dd_t(){}
+        static char get_dd(){ return 'D'; }        
+    };
+
+    struct e_t{
+        virtual void do_smth() = 0;
+    private:
+        c_t c;    
+    };
+
+    struct f_t{
+        f_t() : i(0){}
+        virtual void do_smth() = 0;
+    private:
+        const int i;    
+    };
+
+    struct g_t{    
+        enum E{e};
+        g_t() : e_(e){}
+        virtual void do_smth() = 0;
+    private:
+        const E e_;    
+    };    
+    
+    struct const_item{ const int values[10]; };
+
+    void test_const_item(const_item by_value);
+
+    struct const_container{ const const_item items[10]; };
+
+    void test_const_container(const_container by_value);
+
+    enum semantic{ position, normal, binormal };
+    enum element_type{ float_, color, short_ };
+    
+    struct vertex{
+        protected:
+            unsigned short source;
+            size_t offset;
+            semantic sem;
+            element_type el_type;
+        public:
+            vertex( int x, int y, int z );
+        
+            bool operator==( const vertex& ) const;
+    };
 }    
 
 namespace yes{
-    typedef detail::x x;
+    typedef detail::x x;    
+    typedef detail::a_t a_t;
+    typedef detail::b_t b_t;
+    typedef detail::c_t c_t;
+    typedef detail::d_t d_t;
+    typedef detail::dd_t dd_t;
+    typedef detail::f_t f_t;
+    typedef detail::g_t g_t;    
+    
+    typedef detail::const_container const_container_t;    
+    typedef detail::const_item const_item_t;    
+
 }
 namespace no{
     typedef std::string string_type;
     typedef detail::y_type y_type;    
+    typedef std::vector< int > vector_of_int_type;
+    typedef std::set< std::string > string_set_type;
+    typedef std::multimap< std::string, std::string > s2s_multimap_type;
+    typedef detail::vertex vertex_type;    
 }
+}
+
+
+
+namespace is_calldef_pointer{
+
+namespace details{
+struct X{
+    void do_smth( int ) const;
+};
+
+}    
+    
+namespace yes{
+    typedef void (*ff1)( int, int );
+    typedef void ( details::X::*mf1)( int ) const;
+    
+    TYPE_PERMUTATION( ff1, ff1_type );
+    TYPE_PERMUTATION( mf1, mf1_type );
+}
+
+namespace no{
+    typedef int int_;
+}
+
 }
 
 namespace is_integral{
@@ -386,6 +528,19 @@ namespace no{
 } }
 
 namespace has_trivial_constructor{
+
+namespace details{
+    
+    struct const_item{ const int values[10]; };
+
+    void test_const_item( const_item x = const_item() );
+    
+    struct const_container{ const const_item items[10]; };
+
+    void test_const_container( const_container x = const_container() );
+
+}
+    
 namespace yes{
     struct x{
         x(){}
@@ -393,9 +548,25 @@ namespace yes{
 }
     
 namespace no{
+
+    typedef details::const_item const_item;
+    typedef details::const_container const_container;
+    
     class y{
         private: 
         y(){}
+    };
+
+    class singleton_t
+    {
+    private:
+        static singleton_t *m_instance;
+    
+        singleton_t () {}
+        ~singleton_t () {}
+    
+    public:
+        static singleton_t* instance();
     };
 } }
 
@@ -404,6 +575,8 @@ namespace yes{
     struct x{
         x(){}
     };
+    
+    struct z{int i;};
 }
     
 namespace no{
@@ -427,11 +600,12 @@ namespace no{
     };
 } }
 
-namespace has_trivial_copy{
+namespace has_copy_constructor{
 namespace yes{
     struct x{
         x(const x&){}
     };
+    typedef is_noncopyable::detail::vertex vertex_type;
 }
     
 namespace no{

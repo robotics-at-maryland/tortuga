@@ -22,7 +22,8 @@ import logging
 import ogre.renderer.OGRE as Ogre
 #import ogre.io.OIS as OIS
 
-# Project Imports   
+# Project Imports
+import ram.sim as sim
 import ram.event as event
 import ram.core as core
 from ram.core import fixed_update, Component, implements, Interface, Attribute, cls_property
@@ -64,7 +65,8 @@ class Visual(Object):
     def _create(self, scene, mesh, material, position, orientation, scale):
         # Create the graphical representation of the object
         entity = scene.scene_mgr.createEntity(self.name, mesh)
-        entity.setMaterialName(material)
+        if material is not None:
+            entity.setMaterialName(material)
         
         # Attach graphical entity to a new node in the scene graph
         self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
@@ -73,7 +75,6 @@ class Visual(Object):
         # Apply scalling and normalized normals if object is actually scalled
         if scale != Ogre.Vector3(1,1,1):
             self._node.setScale(scale)
-            entity.setNormaliseNormals(True)       
             
         self._node.position = position
         self._node.orientation = orientation
@@ -85,6 +86,12 @@ class Visual(Object):
     class orientation(core.cls_property):
         def fget(self):
             return self._node.orientation
+            
+    class visible(core.cls_property):
+        def fset(self, value):
+            self._node.setVisible(value)
+        def fget(self):
+            return self._node.isVisible()
             
     # IStorable Methods
     def load(self, data_object):
@@ -99,8 +106,8 @@ class Visual(Object):
         
         gfx_node = node['Graphical'] 
         mesh = gfx_node['mesh']
-        material = gfx_node['material']
-        scale = Ogre.Vector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
+        material = gfx_node.get('material', None)
+        scale = sim.OgreVector3(gfx_node.get('scale', Ogre.Vector3(1,1,1)))
         
         # Handle special mesh generation
         if mesh.startswith('PLANE'):
@@ -119,9 +126,13 @@ class Visual(Object):
             plane = Ogre.Plane(norm, 0 );
             group_name = gfx_node.get('group', Ogre.ResourceGroupManager.DEFAULT_RESOURCE_GROUP_NAME)
             
+            xsegments = int(width)
+            ysegments = int(height)
+            
             Ogre.MeshManager.getSingletonPtr().createPlane(mesh, \
                 group_name, plane, width, height, upVector = upvec,
-                uTile = utile, vTile = vtile)
+                uTile = utile, vTile = vtile, xsegments = xsegments, 
+                ysegments = ysegments)
             Visual._plane_count += 1
         
         # Orientation defaults: IDENTITY, Position: (0,0,0)
@@ -161,24 +172,43 @@ class ICamera(Interface):
 class Camera(Component):
     implements(ICamera)
     
-    def __init__(self, name, scene, position, offset, near_clip = 0.5):
+    def __init__(self, name, scene, position, offset, orientation,
+                 near_clip = 0.5):
+        offset = sim.OgreVector3(offset)
+        
         self._camera = scene.scene_mgr.createCamera(name)
-        self._camera.position = (Ogre.Vector3(offset).length(),0,0)
-        self._camera.lookAt((0, 0, 0))
         self._camera.nearClipDistance = near_clip
+        self._camera.setFixedYawAxis(False)
+        
+        # Place the camera out in front at the needed distance
+        self._camera.position = (offset.length(),0,0)
+    
+        # Make it face back toward zero
+        self._camera.lookAt((0,0,0))
+      
+        # Account for the odd up vector difference between our and Ogre's 
+        # default coordinate systems
+        self._camera.roll(Ogre.Degree(90))
+        
+        # Apply custom rotation if desired
+        self._camera.rotate(orientation)
                 
         # Allows easier movement of camera
         self._node = scene.scene_mgr.getRootSceneNode().createChildSceneNode()
         self._node.position = (0, 0, 0)
         self._node.attachObject(self._camera)
-        self._camera.lookAt(0, 0, 0)
     
         # Rotate the node to place the camera in its desired offset position
-        self._node.rotate(self._camera.position.getRotationTo(offset))
-    
-        # Account for the odd up vector difference between our and Ogre's 
-        # default coordinate systems
-        self._camera.roll(Ogre.Degree(-90))
+        # Do the in plane rotation, then up rotation to keep the cameras up 
+        # facing the proper way
+        inPlane = Ogre.Vector3(offset.x, offset.y, 0)
+        if inPlane.length() != 0:
+            self._node.rotate(self._camera.position.getRotationTo(inPlane))
+        else:
+            # The camera is directly above or below
+            self._camera.roll(Ogre.Degree(180))
+            inPlane  = Ogre.Vector3.UNIT_X
+        self._node.rotate(inPlane.getRotationTo(offset), Ogre.Node.TS_WORLD)
     
         # position camera
         self._node.position = position

@@ -14,7 +14,7 @@ Introduction
 Py++ user interface
 -------------------
 
-I will use next C++ code as an example:
+I will use the following C++ code as an example:
 
 .. code-block:: C++
 
@@ -39,7 +39,7 @@ In order to export this class, we need:
 
 3. to rename ``x`` and ``y`` to ``X`` and ``Y``
 
-Today, in order to configure this class, the user has to write next code:
+Today, in order to configure this class, the user has to write the following code:
 
 .. code-block:: Python
 
@@ -117,7 +117,7 @@ Special syntax should be introduce to support
        PointTmpl = mb.module.template('Point')
        Point = PointTmpl( 'int' )
 
-  This is a trivial example, that is why it looks grate. Consider next class:
+  This is a trivial example, which is why it looks great. Consider the following class:
 
     .. code-block:: C++
 
@@ -163,7 +163,7 @@ Full name
 ---------
 
 Using B-API the user is forced to write full declaration name, otherwise he faces
-next problem:
+the following problem:
 
   .. code-block:: Python
 
@@ -210,12 +210,4 @@ very powerful and easy to use code generator.
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
 

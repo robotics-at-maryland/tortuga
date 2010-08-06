@@ -34,8 +34,7 @@ ogre_plugin_search_path = \
 render_system = 'OpenGL'
 
 render_system_options = \
-    [('Colour Depth', '32'),
-     ('Display Frequency', 'N/A'),
+    [('Display Frequency', 'N/A'),
      ('FSAA', '0'),
      ('RTT Preferred Mode', 'FBO'),
      ('VSync', 'No')]

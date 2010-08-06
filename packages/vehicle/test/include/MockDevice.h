@@ -41,6 +41,14 @@ public:
         return ram::vehicle::device::Device::getName();
     }
 
+    virtual void setPriority(ram::core::IUpdatable::Priority) {};
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        return ram::core::IUpdatable::NORMAL_PRIORITY;
+    };
+    virtual void setAffinity(size_t) {};
+    virtual int getAffinity() {
+        return -1;
+    };
     virtual void update(double) {}
     virtual void background(int) {}
     virtual void unbackground(bool) {}

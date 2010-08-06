@@ -12,8 +12,14 @@
 
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTH_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ORIENTATION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_VELOCITY_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_POSITION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_ORIENTATION);
+RAM_CORE_EVENT_TYPE(ram::control::IController, AT_VELOCITY);
+RAM_CORE_EVENT_TYPE(ram::control::IController, AT_POSITION);
+RAM_CORE_EVENT_TYPE(ram::control::IController, PARAM_SETUP);
+RAM_CORE_EVENT_TYPE(ram::control::IController, PARAM_UPDATE);
 
 namespace ram {
 namespace control {
@@ -22,6 +28,9 @@ IController::IController(std::string name, core::EventHubPtr eventHub) :
     core::Subsystem(name, eventHub)
 {
 }
+
+const int IController::BODY_FRAME=0;
+const int IController::INERTIAL_FRAME=1;
 
 } // namespace control
 } // namespace ram

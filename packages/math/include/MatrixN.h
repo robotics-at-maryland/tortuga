@@ -21,7 +21,7 @@
 // Slight hack to allow easier folding in of changes from Ogre
 #define Real double
 #define OGRE_FORCE_ANGLE_TYPES
-#define RAM_MATRIXN_RC(r,c) r*cols+c
+#define RAM_MATRIXN_RC(r,c) (r) * (cols) + (c)
 
 // Must Be Included last
 #include "math/include/Export.h"
@@ -55,6 +55,16 @@ public:
         *this = o;
     }
     
+    inline MatrixN(const Real value, int rows_, int cols_)
+	{
+		rows = rows_;
+		cols = cols_;
+		int rc = rows*cols;
+		data = new Real[rc];
+		for (int i = 0; i < rows*cols; ++i)
+		  data[i] = value;
+	}
+
 	inline MatrixN(int rows_, int cols_)
 	{
 		rows = rows_;
@@ -64,7 +74,7 @@ public:
 		memset(data, 0, sizeof(Real)*rows*cols);
 	}
 
-    inline MatrixN(Real *data_, int rows_, int cols_)
+    inline MatrixN(const Real *data_, int rows_, int cols_)
     {
         rows = rows_;
 		cols = cols_;
@@ -294,7 +304,7 @@ public:
     inline  friend std::ostream& operator <<
         ( std::ostream& o, const MatrixN& m )
     {
-		o << "MatrixN(" << m.rows << ", " << m.cols << " = {\n";
+		o << "MatrixN(" << m.rows << ", " << m.cols << ") = {\n";
 		for (int i=0;i<m.rows;i++)
 		{
 			for (int j=0;j<m.cols;j++)
@@ -307,17 +317,20 @@ public:
 
 	inline void resize(int rows_, int cols_)
 	{
+		if ((rows == rows_) && (cols == cols_))
+			return;
+	  
 		if (data)
 		{
 			Real *newData = new Real[rows_ * cols_];
 			for (int i=0;i<rows_;i++)
 			{
-				for (int j=0;j<cols_;j++)
+			  for (int j=0;j<cols_;j++)
 				{
-					if (i < rows && j < cols)
-						newData[RAM_MATRIXN_RC(i,j)] = data[RAM_MATRIXN_RC(i,j)];
-					else
-						newData[RAM_MATRIXN_RC(i,j)] = 0;
+				  if (i < rows && j < cols)
+					newData[i * cols_ + j] = data[i * cols + j];
+				  else
+					newData[i * cols_ + j] = 0;
 				}
 			}
 			delete[] data;
@@ -386,16 +399,31 @@ public:
 		resize(rows, cols-1);
 	}
 
-	//in place
+	// Pointer accessor for direct copying
+	inline Real* ptr(){
+	  return data;
+	}
+
+	/** In place LU factorization
+         *  @todo Document my parameter
+         */
 	bool factorLU(int *index, Real *det = NULL);
 
-	//in place
+	/** In place LU Solve
+         *  @todo Document my parameters
+         */
 	void solveLU(Real *x, Real *b, const int *index) const;
 
-	//in place
+	/** In place matrix inversion */
 	bool invert();
-
-        /** Preform an inplace Cholesky Factorization
+    
+    inline MatrixN inverse() const {
+        MatrixN inv(*this);
+        inv.invert();
+        return inv;
+    }
+    
+    /** Preform an inplace Cholesky Factorization
          *
          *  This function uses only the diagonal and upper triangle of the
          *  current matrix.  The initial matrix has to be symmetric positive

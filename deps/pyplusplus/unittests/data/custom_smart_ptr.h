@@ -3,6 +3,8 @@
 
 #include <assert.h>
 
+namespace smart_ptrs{
+
 template<class T> class my_smart_ptr_t {
 protected:
 	T* pRep;
@@ -100,6 +102,7 @@ template<class T, class U> inline bool operator!=(my_smart_ptr_t<T> const& a, my
 	return a.get() != b.get();
 }
 
+}
 
 #endif //__my_smart_ptr_t__
 

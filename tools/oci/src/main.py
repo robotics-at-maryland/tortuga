@@ -10,6 +10,9 @@ import sys
 import os
 from optparse import OptionParser
 
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Library Imports
 import yaml
 
@@ -22,9 +25,13 @@ import ext.vision
 
 try:
     import ctypes
-    ctypes.cdll.LoadLibrary("libram_network.so")
-except:
-    pass
+    import platform
+    end = 'so'
+    if 'Darwin' == platform.system():
+        end = 'dylib'
+    ctypes.CDLL("libram_network." + end, mode = ctypes.RTLD_GLOBAL)
+except OSError, e:
+    print e
 
 def main():            
     # Parse command line options

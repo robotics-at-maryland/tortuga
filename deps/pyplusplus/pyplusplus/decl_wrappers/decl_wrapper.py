@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -11,7 +11,8 @@ from pygccxml import declarations
 from pyplusplus import messages
 
 class decl_wrapper_t(object):
-    """code generator declaration configuration base class
+    """code generator declaration configuration base class
+
     This class contains configuration that could be applied to all declarations.
     """
     
@@ -77,9 +78,12 @@ class decl_wrapper_t(object):
                         and self.aliases[0].name not in container_aliases:
                             self._alias = self.aliases[0].name
                     else:
-                        self._alias = self._generate_valid_name()
+                        self._alias = algorithm.create_valid_name( self.partial_name )
                 else:
-                    self._alias = self.name
+                    if declarations.is_class( self ) or declarations.is_class_declaration( self ):
+                        self._alias = algorithm.create_valid_name( self.partial_name )
+                    else:
+                        self._alias = self.partial_name
         return self._alias
     def _set_alias(self, alias):
         self._alias = alias
@@ -97,17 +101,19 @@ class decl_wrapper_t(object):
     ignore = property( _get_ignore, _set_ignore
                        , doc="boolean flag, which says whether to export declaration to Python or not" )
 
-    def _get_already_exposed_impl( self ):
+    def get_already_exposed( self ):
         return self._already_exposed
-
-    def _get_already_exposed( self ):
-        return self._get_already_exposed_impl()
-    def _set_already_exposed( self, value ):
+    def set_already_exposed( self, value ):
         self._already_exposed = value
-    already_exposed = property( _get_already_exposed, _set_already_exposed                                , doc="boolean flag, which says whether the declaration is already exposed or not" )
+    already_exposed = property( get_already_exposed, set_already_exposed
+                                , doc="boolean flag, which says whether the declaration is already exposed or not" )
 
-    def exclude( self ):
-        """exclude "self" and child declarations from being exposed."""
+    def exclude( self, compilation_errors=False ):
+        """exclude "self" and child declarations from being exposed.
+        
+        If compile_time_errors is True, than only declarations, which will cause
+        compilation error will be excluded
+        """
         self.ignore = True
 
     def include( self, already_exposed=False ):
@@ -179,10 +185,11 @@ class decl_wrapper_t(object):
         return messages.filter_disabled_msgs( msgs, self.__msgs_to_ignore )
 
     @property
-    def disabled_messaged( self ):
+    def disabled_messages( self ):
         """list of messages to ignore"""
         return self.__msgs_to_ignore
-
+	disabled_messaged = disabled_messages
+	
     def disable_messages( self, *args ):
         """set messages, which should not be reported to you
         

@@ -14,8 +14,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
-IDevice::IDevice(core::EventHubPtr eventHub) :
-    core::EventPublisher(eventHub)
+IDevice::IDevice(core::EventHubPtr eventHub, std::string name) :
+    core::EventPublisher(eventHub, "Vehicle.Device." + name)
 {
 }
 

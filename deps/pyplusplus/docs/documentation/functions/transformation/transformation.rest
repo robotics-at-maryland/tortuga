@@ -65,7 +65,7 @@ producing the correct code:
    mb = module_builder.module_builder_t( ... )
    get_size = mb.mem_fun( 'image_t::get_size' )
    get_size.add_transformation( FT.output(0), FT.output(1) )
-   #Next line has same effect
+   #the following line has same effect
    get_size.add_transformation( FT.output('width'), FT.output('height') )
 
 `Py++`_ will generate a code, very similar to one found in 
@@ -75,18 +75,52 @@ producing the correct code:
 Thanks to 
 ---------
 
-Thanks goes to Matthias Baas for his efforts and hard work. He did a research,
+A thanks goes to Matthias Baas for his efforts and hard work. He did a research,
 implemented the initial working version and wrote a lot of documentation. 
 
-.. _`Py++` : ./../pyplusplus.html
+---------------------
+Built-in transformers
+---------------------
+
+`Py++`_ comes with few predefined transformers:
+
+* ``output``
+
+* ``input``
+
+* ``inout``
+
+* ``modify_type``
+
+* ``input_static_array``
+
+* ``output_static_array``
+
+* ``input_c_buffer``
+
+* ``transfer_ownership``
+
+The set doesn't cover all common use cases, but it will grow with every new
+version of `Py++`_. If you created your own transformer consider to contribute
+it to the project.
+
+I suggest you to start reading `output`_ transformer. It is pretty simple and
+well explained.
+
+.. _`output` : ./output.html
+
+All built-in transformers could be applied on any function, except constructors
+and pure virtual functions. The support for them be added in future releases.
+
+You don't have to worry about call policies. You can set the call policy and
+`Py++`_ will generate the correct code.
+
+You don't have to worry about the number of arguments, transformers or return
+value. `Py++`_ handles pretty well such use cases.
+
+
+.. _`Py++` : ./../../../pyplusplus.html
 .. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

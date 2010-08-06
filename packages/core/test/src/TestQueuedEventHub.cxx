@@ -116,6 +116,7 @@ TEST_FIXTURE(QueuedEventHubFixture, subscribeToType)
     
     // Make sure messages from the first publisher gets through
     publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(0, recv.calls);
     queuedEventHub->publishEvents();
     CHECK_EQUAL(1, recv.calls);
     CHECK_EQUAL("Type", recv.events[0]->type);
@@ -123,6 +124,7 @@ TEST_FIXTURE(QueuedEventHubFixture, subscribeToType)
     
     // Make sure messages from the second publisher gets through
     publisherB.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(1, recv.calls);
     queuedEventHub->publishEvents();
     CHECK_EQUAL(2, recv.calls);
     CHECK_EQUAL("Type", recv.events[1]->type);
@@ -158,6 +160,7 @@ TEST_FIXTURE(QueuedEventHubFixture, subscribeToAll)
     
     // Make sure messages from the first publisher gets through
     publisherA.publish("Type", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(0, recv.calls);
     queuedEventHub->publishEvents();
     CHECK_EQUAL(1, recv.calls);
     CHECK_EQUAL("Type", recv.events[0]->type);
@@ -165,6 +168,7 @@ TEST_FIXTURE(QueuedEventHubFixture, subscribeToAll)
     
     // Make sure messages from the second publisher gets through
     publisherB.publish("Type2", ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(1, recv.calls);
     queuedEventHub->publishEvents();
     CHECK_EQUAL(2, recv.calls);
     CHECK_EQUAL("Type2", recv.events[1]->type);
@@ -222,4 +226,80 @@ TEST_FIXTURE(QueuedEventHubFixture, multipleOrder)
 
     CHECK_EQUAL("E", recv.events[4]->type);
     CHECK_EQUAL(&publisherA, recv.events[4]->sender);
+}
+
+// Test EventHub::publish explicitly
+TEST_FIXTURE(QueuedEventHubFixture, publichEventHub)
+{
+    ram::core::EventConnectionPtr connectionA =
+        queuedEventHub->subscribeToType("Type",
+                                  boost::bind(&Reciever::handler, &recv, _1));
+
+    CHECK_EQUAL(0, recv.calls);
+
+    // Make sure messages of the desired type get through
+    ram::core::EventPtr event(new ram::core::Event());
+    event->type = "Type";
+    event->sender = &publisherB;
+    queuedEventHub->publish(event);
+
+    CHECK_EQUAL(0, recv.calls);
+    queuedEventHub->publishEvents();
+    CHECK_EQUAL(1, recv.calls);
+    CHECK_EQUAL("Type", recv.events[0]->type);
+    CHECK_EQUAL(&publisherB, recv.events[0]->sender);
+
+    connectionA->disconnect();
+
+    // Make sure we get all messages as well
+    ram::core::EventConnectionPtr connectionB =
+        queuedEventHub->subscribeToAll(boost::bind(&Reciever::handler, &recv,
+                                                   _1));
+
+    event = ram::core::EventPtr(new ram::core::Event());
+    event->type = "TypeB";
+    event->sender = &publisherA;
+    queuedEventHub->publish(event);
+
+    CHECK_EQUAL(1, recv.calls);
+    queuedEventHub->publishEvents();
+    CHECK_EQUAL(2, recv.calls);
+    CHECK_EQUAL("TypeB", recv.events[1]->type);
+    CHECK_EQUAL(&publisherA, recv.events[1]->sender);
+}
+
+// Test EventPublisher::publish explicitly
+TEST_FIXTURE(QueuedEventHubFixture, publichEventPublisher)
+{
+    ram::core::EventConnectionPtr connectionA =
+        queuedEventHub->subscribeToType("Type",
+                                  boost::bind(&Reciever::handler, &recv, _1));
+
+    CHECK_EQUAL(0, recv.calls);
+
+    // Make sure messages of the desired type get through
+    queuedEventHub->publish("Type",
+                            ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(0, recv.calls);
+    queuedEventHub->publishEvents();
+    CHECK_EQUAL(1, recv.calls);
+    CHECK_EQUAL("Type", recv.events[0]->type);
+    CHECK_EQUAL(queuedEventHub.get(), recv.events[0]->sender);
+
+    connectionA->disconnect();
+
+    // Make sure we get all messages as well
+    ram::core::EventConnectionPtr connectionB =
+        queuedEventHub->subscribeToAll(boost::bind(&Reciever::handler, &recv,
+                                                   _1));
+
+    queuedEventHub->publish("TypeB",
+                            ram::core::EventPtr(new ram::core::Event()));
+    CHECK_EQUAL(1, recv.calls);
+    queuedEventHub->publishEvents();
+    CHECK_EQUAL(2, recv.calls);
+    CHECK_EQUAL("TypeB", recv.events[1]->type);
+    CHECK_EQUAL(queuedEventHub.get(), recv.events[1]->sender);
+
+    connectionB->disconnect();
 }

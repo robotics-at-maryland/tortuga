@@ -14,6 +14,10 @@ import sys
 import platform
 import subprocess
 
+# Check if the environment has been setup
+if not os.environ.has_key('RAM_SVN_DIR'):
+   raise Exception('R@M Environment Not Setup. Run scripts/setenv')
+
 # Build system imports
 import buildfiles.helpers as helpers
 import buildfiles.platfrm as platfrm
@@ -47,8 +51,8 @@ opts.AddOptions(
      EnumOption('variant', 'The aviable variants to build', 'release',
                 allowed_values = variants.available()),
      PathOption('build_dir', 'Path to place build products in', 'build',
-                PathOption.PathIsDirCreate)
- 
+                PathOption.PathIsDirCreate),
+     BoolOption('bfin', "Build for the Blackfin", False)
      )
 
 # Platform specific options
@@ -67,8 +71,16 @@ tpath =  os.path.join(os.environ['RAM_SVN_DIR'],'buildfiles', 'tools')
 
 env = Environment(ENV = os.environ,
                   options = opts,
-                  tools = ['default','gccxml','pypp'],
+                  tools = ['default', 'gccxml', 'pypp'],
                   toolpath = [tpath])
+
+if env['bfin']:
+    env.Replace(CC =
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc')
+    env.Replace(CXX = 
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++')
+    env.Replace(AS = 
+                '/opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-as')
 
 Help(opts.GenerateHelpText(env))
 
@@ -88,7 +100,7 @@ env.Append(LIB_DIR = os.path.join(env['BUILD_DIR'], 'lib'))
 env.Append(BIN_DIR = os.path.join(env['BUILD_DIR'], 'bin'))
 
 # Sets platform specific settings, includes LIBPATH and CPPPATH
-# See: buildfiles/platfrm.py for more information
+# See: buildfiles/platform.py for more information
 platfrm.setup_environment(env)
 
 
@@ -114,7 +126,9 @@ if os.name == 'posix':
                                 '-Wall',   # All Warnings
                                 '-Werror', # Warnings as Errors
                                 '-fmessage-length=0'] # For gathering stats
-                     ) 
+                     )
+    if 'Darwin' != platform.system():
+        env.AppendUnique(LINKFLAGS = ['-Wl,-E'])
 else:
     env.AppendUnique(CCFLAGS = ['/W3',   # Level 3 out of 4 warnings
                                 '/WX',   # Warnings as Errors
@@ -122,10 +136,10 @@ else:
                                 '/EHa',  # Structured Exception Handling
                                 '/GR'])  # C++ RTTI
     
-    # These Warnings are disabled from the command line because the cause 
+    # These Warnings are disabled from the command line because they cause 
     # problems with STD headers and are just too pedantic (!)
-    # 4820 = Had to add pading to structure/class
-    # 4625 = Copy constructor not accesible in base class
+    # 4820 = Had to add padding to structure/class
+    # 4625 = Copy constructor not accessible in base class
     # 4626 = Assignement Operator is not accisble in base class
     # 4710 = inline was requested but not preformed
     # 4512 = assignment operator could not be generated
@@ -133,7 +147,7 @@ else:
     # 4514 = unreferenced inline function has been removed
     # 4100 = unreferenced formal parameter
     # 4255 = no function prototype given: converting '()' to '(void)'
-    # 4686 = possible change in behavious with FOREACH
+    # 4686 = possible change in behaviours with FOREACH
     # 4251 = needs to have dll interface
     # 4275 = needs to have dll interface
     # 4244 = conversion from one type to another
@@ -144,7 +158,7 @@ else:
     # 4264 = same as the above
     # 4191 = odd calling convention issue
     # 4996 = fopen issue
-    # 4273 = insconsistant dll linkage on windows
+    # 4273 = inconsistant dll linkage on windows
     env.AppendUnique(CCFLAGS = ['/wd4820', '/wd4625', '/wd4626', '/wd4710',
                                 '/wd4512', '/wd4127', '/wd4640', '/wd4061', 
                                 '/wd4514', '/wd4100', '/wd4255', '/wd4686',
@@ -179,8 +193,10 @@ if 1 == sys.argv.count('docs'):
     
     if doxygen_path is None:
         print 'Could not find doxygen, please make sure it is on your PATH'
+        env['epydoc_path'] = epydoc_path
     elif epydoc_path is None:
         print 'Could not find epydoc, please make sure it is on your PATH'
+        env['doxygen_path'] = doxygen_path
     elif (doxygen_path is None) and (epydoc_path is None):
         print 'Could not find any documentation tools!'
         Exit(1)
@@ -229,7 +245,7 @@ def docs_func(target = None, source = None, env = None):
         # Restore args
         sys.argv = origArgv
 
-# Creat are "phony" distclean target
+# Create our "phony" distclean target
 make_docs = env.Alias('docs', 'SConstruct', env.Action(docs_func))
 env.AlwaysBuild(make_docs)
 

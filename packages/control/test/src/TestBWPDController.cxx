@@ -3,7 +3,7 @@
  * Copyright (C) 2007 Joseph Lisee
  * All rights reserved.
  *
- * Authory: Joseph Lisee <jlisee@umd.edu>
+ * Author: Joseph Lisee <jlisee@umd.edu>
  * File:  packages/control/test/src/TestControlFunctions.cxx
  */
 
@@ -11,13 +11,25 @@
 #include <iostream>
 #include <UnitTest++/UnitTest++.h>
 #include <boost/bind.hpp>
+#include <boost/lambda/bind.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
+#include "core/include/Subsystem.h"
+#include "core/include/SubsystemMaker.h"
+
 #include "math/test/include/MathChecks.h"
 #include "math/include/Events.h"
+
 #include "vehicle/test/include/MockVehicle.h"
+
 #include "control/include/BWPDController.h"
-//#include "control/test/include/ControllerTests.h"
+#include "control/test/include/IControllerImpTests.h"
+#include "control/test/include/RotationalControllerTests.h"
+#include "control/test/include/DepthControllerTests.h"
+#include "control/test/include/TranslationalControllerTests.h"
+
+#include "core/test/include/BufferedAppender.h"
 
 using namespace ram;
 
@@ -35,6 +47,9 @@ struct Fixture
     MockVehicle* vehicle;
     control::BWPDController controller;
 };
+
+
+//use these to test the normal PD rotational controller
 
 TEST_FIXTURE(Fixture, YawControl)
 {
@@ -65,33 +80,31 @@ TEST_FIXTURE(Fixture, RollControl)
     CHECK_CLOSE(exp_rotTorque, vehicle->torque, 0.0001);
 }
 
+TEST_FIXTURE(Fixture, YawRateControl)
+{
+  vehicle->orientation = math::Quaternion(0,0,0,1);
+  vehicle->angularRate = math::Vector3(0,0,5);
+  
+  }
+
 TEST_FIXTURE(Fixture, yawVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Z);
-    controller.yawVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(yawVehicle)(&controller);
 }
 
 TEST_FIXTURE(Fixture, pitchVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Y);
-    controller.pitchVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(pitchVehicle)(&controller);
 }
 
 TEST_FIXTURE(Fixture, rollVehicle)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-    controller.rollVehicle(30);
-    CHECK_CLOSE(expected, controller.getDesiredOrientation(), 0.0001);
+    TEST_UTILITY_FUNC(rollVehicle)(&controller);
 }
 
-TEST_FIXTURE(Fixture, setDesiredOrientation)
+TEST_FIXTURE(Fixture, setGetDesiredOrientation)
 {
-    math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-    controller.setDesiredOrientation(expected);
-    math::Quaternion actual(controller.getDesiredOrientation());
-    CHECK_EQUAL(expected, actual);
+    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&controller);
 }
 
 TEST_FIXTURE(Fixture, DepthControl)
@@ -118,27 +131,26 @@ TEST_FIXTURE(Fixture, DepthControl)
     CHECK_CLOSE(exp_tranForce, vehicle->force, 0.0001);
 }
 
-TEST_FIXTURE(Fixture, atDepth)
+TEST_FIXTURE(Fixture, setGetDepth)
 {
-    // This assumes the default threshold for depth is 0.5
-    vehicle->depth = 4;
-    controller.update(1);
-    
-    controller.setDepth(5);
-    CHECK_EQUAL(false, controller.atDepth());
-
-    controller.setDepth(3);
-    CHECK_EQUAL(false, controller.atDepth());
-
-    controller.setDepth(4.3);
-    CHECK_EQUAL(true, controller.atDepth());
-
-    controller.setDepth(3.7);
-    CHECK_EQUAL(true, controller.atDepth());
-    
-    controller.setDepth(4);
-    CHECK(controller.atDepth());
+    TEST_UTILITY_FUNC(setGetDepth)(&controller);
 }
+
+// TEST_FIXTURE(Fixture, atDepth)
+// {
+//     TEST_UTILITY_FUNC(atDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
+
+// TEST_FIXTURE(Fixture, holdCurrentDepth)
+// {
+//     TEST_UTILITY_FUNC(holdCurrentDepth)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setDepth, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 void depthHelper(double* result, ram::core::EventPtr event)
 {
@@ -174,6 +186,10 @@ TEST_FIXTURE(Fixture, Event_AT_DEPTH)
     controller.update(1);
     controller.setDepth(3.7);
     CHECK_EQUAL(true, controller.atDepth());
+
+    // Make sure we get event if we are in range we set it
+    CHECK_EQUAL(4, actualDepth);
+    actualDepth = 0;
     
     // Make sure the event doesn't go off when we are at and loose it depth
     controller.setDepth(5);
@@ -232,33 +248,13 @@ TEST_FIXTURE(Fixture, Event_DESIRED_ORIENTATION_UPDATE)
     CHECK_EQUAL(expectedOrientation, actualDesiredOrientation);
 }
 
-TEST_FIXTURE(Fixture, atOrientation)
-{
-    // Yawed 15 degrees left
-    math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
-    vehicle->orientation = orientation;
-    controller.update(1);
-
-    // 15 degrees left of desired
-    controller.yawVehicle(30);
-    CHECK_EQUAL(false, controller.atOrientation());
-
-    // 15 degrees right of desired
-    controller.yawVehicle(-30);
-    CHECK_EQUAL(false, controller.atOrientation());
-
-    // 2.5 degrees right of desired
-    controller.yawVehicle(12.5);
-    CHECK_EQUAL(true, controller.atOrientation());
-
-    // 2.5 degrees left of desired
-    controller.yawVehicle(5);
-    CHECK_EQUAL(true, controller.atOrientation());
-
-    // Desired = Actual
-    controller.yawVehicle(-2.5);
-    CHECK_EQUAL(true, controller.atOrientation());
-}
+// TEST_FIXTURE(Fixture, atOrientation)
+// {
+//     TEST_UTILITY_FUNC(atOrientation)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1),
+//          boost::bind(&control::BWPDController::update, &controller, 1.0));
+// }
 
 TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
 {
@@ -276,6 +272,10 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     // 1 Degree difference
     controller.yawVehicle(16);
     CHECK_EQUAL(true, controller.atOrientation());
+
+    // Make sure when we set a value in range we still get the event
+    CHECK_EQUAL(orientation, actualOrientation);
+    actualOrientation = math::Quaternion::IDENTITY;
     
     // Make sure the event doesn't go off when we are at orientation and then
     // move out
@@ -288,7 +288,7 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
     // 1.5 degrees left of desired
     controller.yawVehicle(-2.5);
     controller.update(1);
-    CHECK_EQUAL(actualOrientation, actualOrientation);
+    CHECK_EQUAL(orientation, actualOrientation);
 
     // Make sure it doesn't go off again until we have left the depth range
     actualOrientation = math::Quaternion::IDENTITY;
@@ -305,4 +305,67 @@ TEST_FIXTURE(Fixture, Event_AT_ORIENTATION)
                                             math::Vector3::UNIT_Z);
     controller.update(1);
     CHECK_EQUAL(orientation, actualOrientation);
+}
+
+//  TEST_FIXTURE(Fixture, TestHoldCurrentHeading)
+//  {
+//     // Runs the test, passing it a function object which lets the test method
+//     // set the actual orientation of the vehicle
+//     TEST_UTILITY_FUNC(holdCurrentHeading)
+//         (&controller,
+//          boost::bind(&MockVehicle::_setOrientation, vehicle, _1));
+// }
+
+TEST_FIXTURE(Fixture, setGetSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSpeed)(&controller);
+}
+
+TEST_FIXTURE(Fixture, setGetSidewaysSpeed)
+{
+    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
+}
+
+
+/*
+made a change to log gyro controller, this test case breaks
+Joe G  2008-12-2
+TEST(BWPDControllerLogging)
+{
+    // Create in memory appender
+    BufferedAppender* appender = new BufferedAppender("Test");
+    log4cpp::Category::getInstance("Controller").setAppender(appender);
+
+    // Create Controller object
+    Fixture fixture;
+
+    // Make sure the header is present
+    CHECK_EQUAL(2u, appender->logEvents.size());
+	//    CHECK_EQUAL("% Time M-Quat M-Depth D-Quat D-Depth D-Speed RotTorq"
+	//                " TranForce", appender->logEvents[0].message);
+
+    // Just do an update and make sure we have a message
+    fixture.controller.update(1);
+    CHECK_EQUAL(3u, appender->logEvents.size());
+    CHECK(std::string("") !=  appender->logEvents[2].message);
+}
+*/
+
+TEST(SubsystemMaker)
+{
+    vehicle::IVehiclePtr veh(new MockVehicle());
+    core::SubsystemList deps;
+    deps.push_back(veh);
+    core::ConfigNode cfg(core::ConfigNode::fromString(
+                             "{ 'name' : 'Controller',"
+                             "'type' : 'BWPDController',"
+                             "'angularPGain' : 10,"
+                             "'angularDGain' : 1,"
+                             "'desiredQuaternion' : [0, 0, 0, 1] }"));
+    try {
+        core::SubsystemPtr subsystem(core::SubsystemMaker::newObject(
+                                         std::make_pair(cfg, deps)));
+    } catch (core::MakerNotFoundException& ex) {
+        CHECK(false && "BWPDController Maker not found");
+    }
 }

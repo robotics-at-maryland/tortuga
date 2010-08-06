@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -62,7 +62,7 @@ def create_valid_name(name):
         return name
     replace_table = {
           '<'  : '_less_'
-        , '>'  : '_grate_'
+        , '>'  : '_greater_'
         , '::' : '_scope_'
         , ','  : '_comma_'
         , ' '  : '_'
@@ -129,18 +129,21 @@ class registration_order:
             else:
                 pass
         return None
-    
+
     @staticmethod
     def select_problematics( calldef ):
         """Return list of problematic functions for function "calldef" """
         if 1 != len( calldef.required_args ):
             return []
+        arg_type = calldef.arguments[0].type
+        if declarations.is_calldef_pointer( arg_type ):
+            return []
         problematics = []
         for f in calldef.overloads:
             if 1 != len( f.required_args ):
                 continue
+            if f.ignore:
+                continue
             if None != registration_order.is_related( calldef.arguments[0].type, f.arguments[0].type ):
                 problematics.append( f )
         return problematics
-
-    

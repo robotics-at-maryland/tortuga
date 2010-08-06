@@ -46,6 +46,7 @@ Torus Knot Software Ltd.
 // STD Includes
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <ostream>
 
 // Project Includes
@@ -63,6 +64,11 @@ namespace math {
 
     class Matrix3;
     class Vector3;
+#ifndef __GCCXML__
+    class Matrix4;
+    class Vector4;
+    class MatrixN;
+#endif // __GCCXML__
     
     /** Implementation of a Quaternion, i.e. a rotation around an axis.
     */
@@ -121,7 +127,7 @@ namespace math {
 		{
 			assert( i < 4 );
 
-			return *(&w+i);
+			return *(ptr() + i);
 		}
 
 		/// Array accessor operator
@@ -129,7 +135,7 @@ namespace math {
 		{
 			assert( i < 4 );
 
-			return *(&w+i);
+			return *(ptr() + i);
 		}
 
 		/// Pointer accessor for direct copying
@@ -145,6 +151,13 @@ namespace math {
 		}
 
 		void FromRotationMatrix (const Matrix3& kRot);
+
+		/*
+		 * This creates a rotation matrix that represents the attitude
+		 * of the reference frame with respect to the attitude of the
+		 * quaternion.  OGRE's rotation matrix is the transpose of R(q)
+		 * as shown in Dr. Sanner's and Joseph Galante's work.
+		 */
         void ToRotationMatrix (Matrix3& kRot) const;
         void FromAngleAxis (const Radian& rfAngle, const Vector3& rkAxis);
         void ToAngleAxis (Radian& rfAngle, Vector3& rkAxis) const;
@@ -282,8 +295,26 @@ namespace math {
             return o;
         }
 
-        /** Find the error quaternion between this quaternion and other quat. */
+        /** Find the error between this quaternion and the other quaternion.
+         *
+         *  This function is written formally as:
+         *    q_tilde = q1 (x) q2^-1 where (x) indicates the tensor product
+         *  usage:
+         *    q_tilde = q1.errorQuaternion(q2);
+         *  The q_tilde quaternion defines the rotation from the frame defined
+         *  by q2 to the frame defined by q1.
+         *
+         */
         Quaternion errorQuaternion(Quaternion other);
+
+        /** Compute the derivative of a quaternion based on kinematic relationship to angular velocity */
+        Quaternion derivative(Vector3 velocity);
+
+#ifndef __GCCXML__
+        /** Create a Q matrix (used for q_dot=0.5*Q(q)*w */
+	void toQ(MatrixN* result);
+#endif // __GCCXML__
+
         
     };
 

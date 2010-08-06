@@ -1,0 +1,162 @@
+material Material_8
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.500000 0.500000 0.500000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Material_9
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.696470 0.254118 0.100392 1.000000
+			specular 0.435294 0.158824 0.062745 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Material_1
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture SSLTile.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
+material Material_2
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture tankwall.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
+material Material_3
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.759216 0.759216 0.759216 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture ladder.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
+material Material_4
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture metalLight.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
+material Material_5
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture porthole.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}
+material Material_6
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.000000 0.000000 0.000000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+		}
+	}
+}
+material Material_7
+{
+	receive_shadows on
+	technique
+	{
+		pass
+		{
+			ambient 0.500000 0.500000 0.500000 1.000000
+			diffuse 0.800000 0.800000 0.800000 1.000000
+			specular 0.500000 0.500000 0.500000 1.000000 1.000000
+			emissive 0.000000 0.000000 0.000000 1.000000
+			texture_unit
+			{
+				texture tankwall.png
+				tex_address_mode wrap
+				filtering trilinear
+			}
+		}
+	}
+}

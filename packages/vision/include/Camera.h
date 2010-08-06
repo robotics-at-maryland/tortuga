@@ -99,18 +99,45 @@ public:
     virtual size_t height() = 0;
 
     /** Returns the current FPS of the camera */
-    virtual size_t fps() = 0;
+    virtual double fps() = 0;
+    
+    /** Length of the image source in seconds (0 for live feeds) */
+    virtual double duration() = 0;
 
+    /** Seek to a specific time in the video (does nothing for live feeds) */
+    virtual void seekToTime(double seconds) = 0;
+
+    /** Get the current time in the video (0 for live feeds) */
+    virtual double currentTime() = 0;
+    
     /** Start the camera running the background */
     virtual void background(int rate = -1);
     
     /** Stop the camera running in the background */
     virtual void unbackground(bool join = false);
+
+    static CameraPtr createCamera(
+        const std::string input,
+        const std::string configPath,
+        std::string& message,
+        core::EventHubPtr eventHub = core::EventHubPtr(),
+        const std::string cameraName = "ForwardCamera");
+
+    
+    /** Creates a camera from the given input string
+     *
+     *  This can be a NetworkCamera, and FFMPEG camera, etc.
+     */
+    static CameraPtr createCamera(
+        const std::string input,
+        core::ConfigNode config,
+        std::string& message,
+        core::EventHubPtr eventHub = core::EventHubPtr());
     
 protected:
     /** No argument constructor
      *
-     *  You can not give the Camera and ram::core::EventHub to pass events on
+     *  You can not give the Camera a ram::core::EventHub to pass events on
      *  too because we wish to control the access to the image pointers.
      */
     Camera();

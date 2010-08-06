@@ -12,7 +12,7 @@
 #include "vehicle/include/device/IMU.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Vector3.h"
-#include "imu/include/imuapi.h" // for FilteredIMUData
+#include "drivers/imu/include/imuapi.h" // for FilteredIMUData
 
 using namespace ram::math;
 using namespace ram::core;

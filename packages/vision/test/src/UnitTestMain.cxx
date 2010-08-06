@@ -12,6 +12,7 @@
 
 // Project Includes
 #include "vision/test/include/detail/UnitTestChecksImp.h"
+#include "math/test/include/detail/MathChecksImp.h"
 
 int main()
 {

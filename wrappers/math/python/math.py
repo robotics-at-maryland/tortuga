@@ -30,6 +30,24 @@ try:
 
     from ext._math import *
 
+    def quatStr(self):
+        return 'Quaternion(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
+    Quaternion.__str__ = quatStr
+    Quaternion.__repr__ = quatStr
+    del quatStr
+
+    def vector3Str(self):
+        return 'Vector3(%f, %f, %f)' % (self.x, self.y, self.z)
+    Vector3.__str__ = vector3Str
+    Vector3.__repr__ = vector3Str
+    del vector3Str
+
+    def vector2Str(self):
+        return 'Vector2(%f, %f)' % (self.x, self.y)
+    Vector2.__str__ = vector2Str
+    Vector2.__repr__ = vector2Str
+    del vector2Str
+
 finally:
     sys.stderr = stderr
 

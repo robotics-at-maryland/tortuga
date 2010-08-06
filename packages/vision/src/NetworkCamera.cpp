@@ -11,7 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cerrno>
-#include <iostream>
+//#include <iostream>
 
 // System Includes
 #ifdef RAM_POSIX
@@ -88,13 +88,14 @@ NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
         assert(false && "connect");
     }
 
-    
+//    std::cout << "Reading header" << std::endl;
     // Read first no data packet to get width and height
     ImagePacketHeader header = {0, 0, 0};
     readPacketHeader(&header);
     m_width = header.width;
     m_height = header.height;
     m_fps = 30;
+//    std::cout << "Got Header" << std::endl;
 }
 
 NetworkCamera::~NetworkCamera()
@@ -114,10 +115,11 @@ NetworkCamera::~NetworkCamera()
 
 void NetworkCamera::update(double timestep)
 {
+//    std::cout << "UPDATE" << std::endl;
     // Read header
     ImagePacketHeader header;
     readPacketHeader(&header);
-
+    
     // TODO: Don't ignore this return value
     {                                                                       
         boost::mutex::scoped_lock lock(m_specsMutex);                     
@@ -127,12 +129,10 @@ void NetworkCamera::update(double timestep)
     }
 
     // Make buffer fit incomming image size
-    // Need to fix buffer sizes better
-#ifdef RAM_NETWORK_COMPRESSION
-    size_t dataSize = m_width * m_height * 3;
-#else
-    size_t dataSize = header.dataSize;
-#endif
+    size_t dataSize = m_width * m_height * 3; 
+    if (header.dataSize > dataSize)
+        dataSize = header.dataSize;
+
     if (dataSize && (dataSize != m_bufferSize))
     {
         m_bufferSize = dataSize;
@@ -151,6 +151,7 @@ void NetworkCamera::update(double timestep)
     }
 
     // Read image off the wire
+    assert(m_bufferSize >= header.dataSize && "Buffer to small");
     recieve(m_compressedBuffer, header.dataSize);
 
     // Create a temp image which doens't own the buffer, and then call capture
@@ -158,13 +159,12 @@ void NetworkCamera::update(double timestep)
     if (header.dataSize)
     {
 #ifdef RAM_NETWORK_COMPRESSION
-        char scratch[QLZ_SCRATCH_DECOMPRESS];
-        /*size_t newSize = */qlz_decompress((char*)m_compressedBuffer,
-                                            (void*)m_imageBuffer, scratch);
+        decompress(m_compressedBuffer, header.dataSize, m_imageBuffer);
         OpenCVImage newImage(m_imageBuffer, header.width, header.height,
                              false);
 #else
-        OpenCVImage newImage(m_buffer, header.width, header.height, false);
+        OpenCVImage newImage(m_compressedBuffer, header.width, header.height,
+                             false);
 #endif
 
         capturedImage(&newImage);
@@ -183,12 +183,37 @@ size_t NetworkCamera::height()
     return m_height;
 }
 
-size_t NetworkCamera::fps()
+double NetworkCamera::fps()
 {
     boost::mutex::scoped_lock lock(m_specsMutex);
     return m_fps;
 }
 
+double NetworkCamera::duration()
+{
+    return 0;
+}
+  
+void NetworkCamera::seekToTime(double seconds)
+{
+}
+
+double NetworkCamera::currentTime()
+{
+    return 0;
+}
+
+void NetworkCamera::decompress(unsigned char* compressedBuffer,
+                               size_t compressedSize,
+                               unsigned char* outputBuffer)
+{
+//    std::cout << "Norm decompress" << std::endl;
+    char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
+    memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
+    /*size_t newSize = */qlz_decompress((char*)compressedBuffer,
+                                        (void*)outputBuffer, scratch);
+}
+    
 void NetworkCamera::readPacketHeader(ImagePacketHeader* packetHeader)
 {
     recieve(packetHeader, sizeof(ImagePacketHeader));

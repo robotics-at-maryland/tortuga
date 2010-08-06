@@ -10,6 +10,9 @@
 #ifndef RAM_CORE_EVENTPUBLISHER_H_11_19_2007
 #define RAM_CORE_EVENTPUBLISHER_H_11_19_2007
 
+// STD Includes
+#include <string>
+
 // Library Includes
 #include <boost/utility.hpp>
 #include <boost/shared_ptr.hpp>
@@ -34,9 +37,10 @@ public:
      *      events it recievers there as well as to its own subscribers.
      *
      */
-    EventPublisher(EventHubPtr eventHub = EventHubPtr());
+    EventPublisher(EventHubPtr eventHub = EventHubPtr(),
+                   std::string name = "UNNAMED");
 
-    virtual ~EventPublisher() {};
+    virtual ~EventPublisher();
 
     /** Subscribe to recieve events of the given type
      *
@@ -52,13 +56,15 @@ public:
     
     /** Call all handlers of the given type with the given event */
     virtual void publish(Event::EventType type, EventPtr event);
-    
-//protected:
-    /** Publishes the message with the desired sender */
-//    void doPublish(Event::EventType type, EventPublisher* sender,
-//                   EventPtr event);
+
+    /** Gets the id of the EventPublisher, or "UNNAMED" if it has no name */
+    std::string getPublisherName();
+
+    /** @copydoc EventPublisherRegistery::lookupByName */
+    static EventPublisher* lookupByName(std::string name);
     
 private:
+    
     EventPublisherBasePtr m_imp;
 };
     

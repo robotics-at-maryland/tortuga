@@ -30,4 +30,32 @@ TEST(fromAngle)
     CHECK_CLOSE(expected, result, 0.001);
 }
 
+TEST(transpose)
+{
+    Matrix2 start(1,2,3,4);
+    Matrix2 expected(1,3,2,4);
+    
+    CHECK_EQUAL(true, start.Transpose() == expected);
+}
+
+TEST(determinant)
+{
+    Matrix2 start(1,2,3,4);
+    double expected = -2;
+
+    CHECK_CLOSE(expected, start.Determinant(), 0.001);
+}
+
+TEST(inverse)
+{
+    Matrix2 start(1,2,3,4);
+    Matrix2 expected(-2, 1.5, 1, -0.5);
+    Matrix2 result = start.Inverse();
+
+    CHECK_CLOSE(expected[0][0], result[0][0], 0.001);
+    CHECK_CLOSE(expected[0][1], result[0][1], 0.001);
+    CHECK_CLOSE(expected[1][0], result[1][0], 0.001);
+    CHECK_CLOSE(expected[1][1], result[1][1], 0.001);
+}
+
 } // SUITE(TestMatrix2) 

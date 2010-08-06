@@ -58,9 +58,23 @@ public:
         return m_height;
     }
 
-    virtual size_t fps()
+    virtual double fps()
     {
         return 30;
+    }
+
+    virtual double duration()
+    {
+        return 0; 
+    }
+
+    virtual void seekToTime(double seconds)
+    {
+    }
+
+    virtual double currentTime()
+    {
+        return 0;
     }
 
     // Override these to be compatible with users
@@ -90,7 +104,8 @@ void registerCameraClass()
 {
     bp::class_<CameraWrapper, boost::noncopyable >(
         "Camera", bp::init<int, int>((bp::arg("width"), bp::arg("height"))) )
-        .def("capturedImage", &CameraWrapper::capturedImage);
+        .def("capturedImage", &CameraWrapper::capturedImage)
+        .def("background", &CameraWrapper::background);
     bp::register_ptr_to_python< ram::vision::CameraPtr >();
 //    bp::implicitly_convertible< ram::core::SubsystemPtr, boost::shared_ptr< ram::core::EventPublisher > >();
 }

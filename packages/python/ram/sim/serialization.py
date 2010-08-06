@@ -125,8 +125,7 @@ def two_step_init(func):
 
 def parse_orientation(node):
     orientation = node.get('orientation', Ogre.Quaternion.IDENTITY)
-    if orientation != Ogre.Quaternion.IDENTITY:
-        orientation = Quat(orientation, axis_angle = True)
+    orientation = Quat(orientation, axis_angle = True)
         
     return orientation
 

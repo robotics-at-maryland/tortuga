@@ -12,7 +12,7 @@ Pyste
 any more. Nevertheless, users request to compare `Py++`_ and `Pyste`_. You
 can read `here`_ the comparison.
 
-.. _`here` : ./Pyste.html
+.. _`here` : ./pyste.html
 
 ----------
 SWIG & SIP
@@ -37,19 +37,19 @@ source project(s) "to talk":
   
   * `Python-Ogre`_ sources:
   
-    http://python-ogre.python-hosting.com/browser/trunk/python-ogre/code_generators/ogre/
+    http://python-ogre.svn.sourceforge.net/viewvc/python-ogre/trunk/python-ogre/code_generators/ogre/
      
-    http://python-ogre.python-hosting.com/browser/trunk/python-ogre/code_generators/common_utils/
+    http://python-ogre.svn.sourceforge.net/viewvc/python-ogre/trunk/python-ogre/code_generators/common_utils/
         
     Pay attention: functionality defined in "common_utils" package is used by 
     other scripts too. 
   
-  .. _`Python-OGRE` : http://python-ogre.python-hosting.com/
+  .. _`Python-OGRE` : http://www.python-ogre.org
 
   .. _`PyOgre` : http://www.ogre3d.org/wiki/index.php/PyOgre
   
   
-Some other links, that compare Boost.Python, SWIG, SIP and other tools:
+Some other links, which compares Boost.Python, SWIG, SIP and other tools:
 
 * `Evaluation of Python/C++ interfacing packages`_
 
@@ -65,13 +65,3 @@ Some other links, that compare Boost.Python, SWIG, SIP and other tools:
 
 .. _`Py++` : ./../pyplusplus.html
 .. _`Pyste`: http://www.boost.org/libs/python/doc/index.html
-
-
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:
-

@@ -38,6 +38,14 @@ typedef boost::shared_ptr<EventPublisherBase> EventPublisherBasePtr;
 
 class QueuedEventPublisherBase; 
 typedef boost::shared_ptr<QueuedEventPublisherBase> QueuedEventPublisherBasePtr;
+
+class Property;
+typedef boost::shared_ptr<Property> PropertyPtr;
+
+class PropertySet;
+typedef boost::shared_ptr<PropertySet> PropertySetPtr;
+
+class ConfigNode;
     
 } // namespace core
 } // namespace ram

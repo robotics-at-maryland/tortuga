@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -7,6 +7,8 @@
 """
 
 from config import config_t
+from config import gccxml_configuration_t
+
 from project_reader import COMPILATION_MODE
 from project_reader import project_reader_t
 from project_reader import file_configuration_t

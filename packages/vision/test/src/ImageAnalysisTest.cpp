@@ -20,8 +20,8 @@ char* makeOut(char* description, int size=MAX_FILENAME_LEN);
 
 char* makeOut(char* description, int size)
 {
-	char* outStarter="out-";
-	char* outEnder=".jpg";
+	const char* outStarter="out-";
+	const char* outEnder=".jpg";
 	clear(outName,size);
 	sprintf(outName,"%s%s%s",outStarter,description,outEnder);
 	return outName;

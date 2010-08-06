@@ -24,7 +24,28 @@ struct EstimatedState;
 
 class IController;
 typedef boost::shared_ptr<IController> IControllerPtr;
+
+class ITranslationalController;
+typedef boost::shared_ptr<ITranslationalController> ITranslationalControllerPtr;
+
+class ITranslationalControllerImp;
+typedef boost::shared_ptr<ITranslationalControllerImp>
+ITranslationalControllerImpPtr;
+
+class IDepthController;
+typedef boost::shared_ptr<IDepthController> IDepthControllerPtr;
+
+class IDepthControllerImp;
+typedef boost::shared_ptr<IDepthControllerImp> IDepthControllerImpPtr;
     
+class IRotationalController;
+typedef boost::shared_ptr<IRotationalController> IRotationalControllerPtr;
+
+class IRotationalControllerImp;
+typedef boost::shared_ptr<IRotationalControllerImp> IRotationalControllerImpPtr;
+
+
+
 } // namespace control
 } // namespace ram
 

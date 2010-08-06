@@ -1,4 +1,4 @@
-// Copyright 2004 Roman Yakovenko.
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -38,7 +38,7 @@ private:
 namespace abstracts{
 
 class abstract{
-public:   
+public:
     abstract(){}
     abstract(int){}
     abstract(int, double, const abstract&){}
@@ -48,13 +48,13 @@ public:
 
     virtual bool overloaded_virtual(){ return true;}
     virtual bool overloaded_virtual(int){ return true;}
-    
+
     virtual int overloaded_pure_virtual(int) const = 0;
     virtual void overloaded_pure_virtual(double) const = 0;
-    
+
     virtual int some_virtual(){ return 1; }
-};    
-    
+};
+
 }
 
 namespace constructors{
@@ -64,11 +64,11 @@ struct constructor1{
     constructor1( const constructor1& ){}
     constructor1(int x, int y){}
     constructor1(int y, const constructor1& x ){}
-    
+
     constructor1( const double ){}
     struct internal_data{};
     constructor1( const internal_data ){}
-};  
+};
 
 }
 
@@ -76,15 +76,17 @@ namespace scope_based{
 struct scope_based_exposer{
     enum EColor{ red, green, blue };
     scope_based_exposer(EColor c=blue){}
-};    
+};
 }
 
 namespace protected_static{
 class protected_static_t{
 protected:
     static int identity(int x){ return x; }
-    
+
     int invert_sign(int x){ return -1*x; }
+private:
+    int i;
 };
 };
 
@@ -95,15 +97,24 @@ struct protected_derived : protected protected_base{};
 
 }
 
-}//classes 
+union Word
+{
+       short word;
+       struct
+       {
+               char low, high;
+       };
+};
+
+}//classes
 
 namespace pyplusplus{ namespace aliases{
-    
+
 typedef classes::hierarchical::apple the_tastest_fruit;
-    
+
 typedef classes::protected_static::protected_static_t PROTECTED_STATIC_T_1;
 typedef classes::protected_static::protected_static_t PROTECTED_STATIC_T_2;
-    
+
 }}
 
 #endif//__classes_to_be_exported_hpp__

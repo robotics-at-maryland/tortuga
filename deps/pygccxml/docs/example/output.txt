@@ -1,0 +1,162 @@
+>e:\Python25\pythonw.exe -u "example.py"
+
+
+INFO Parsing source file "example.hpp" ... 
+
+
+INFO gccxml cmd: ""D:\dev\language-binding\sources\gccxml_bin\v09\win32\bin\gccxml.exe"  -I"."   "example.hpp" -fxml="e:\docume~1\romany\locals~1\temp\tmprehxyi.xml""
+
+
+INFO GCCXML version - 0.9
+D:\dev\language-binding\sources\pygccxml_dev\docs\example\..\..\pygccxml\parser\scanner.py:333: UserWarning: unable to find out array size from expression ""
+  warnings.warn( msg )
+"unittests" declarations: 
+namespace_t: 'unittests'
+    artificial: 'False' 
+    class_t: 'test_suite'
+        location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:45
+        artificial: '1'     
+        class type: 'struct'
+        size: 60            
+        align: 4            
+        base classes:       
+            class: '::unittests::test_case'
+                access: 'public'    
+        public:             
+        typedef_t: 'test_container'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:47
+            artificial: 'False' 
+            alias to: ::std::vector<unittests::test_case*, std::allocator<unittests::test_case*> >
+        constructor_t: 'test_suite'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:49
+            artificial: 'False' 
+            copy constructor: False
+        member_function_t: 'run'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:54
+            artificial: 'False' 
+            Signature: ['void', []]
+        member_function_t: 'get_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:56
+            artificial: 'False' 
+            Signature: ['::unittests::test_results const &', []]
+        protected:          
+        private:            
+        variable_t: 'm_tests'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:60
+            artificial: 'False' 
+            type: ::std::vector<unittests::test_case*, std::allocator<unittests::test_case*> > const  value: None
+            size: 0             
+            align: 0            
+            offset: 32
+        variable_t: 'm_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:61
+            artificial: 'False' 
+            type: ::unittests::test_results  value: None
+            size: 12            
+            align: 4            
+            offset: 48
+    class_t: 'test_results'
+        location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:15
+        artificial: '1'     
+        class type: 'struct'
+        size: 12            
+        align: 4            
+        public:             
+        enumeration_t: 'status'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:17
+            artificial: '1'     
+            values:             
+                ok : 0
+                fail : 1
+                error : 2
+        typedef_t: 'result_container'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:19
+            artificial: 'False' 
+            alias to: ::std::map<std::string, unittests::test_results::status, std::less<std::string>, std::allocator<std::pair<std::string const, unittests::test_results::status> > >
+        destructor_t: '~test_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:15
+            artificial: '1'     
+        constructor_t: 'test_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:15
+            artificial: '1'     
+            copy constructor: True
+        constructor_t: 'test_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:15
+            artificial: '1'     
+            copy constructor: False
+        member_function_t: 'update'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:21
+            artificial: 'False' 
+            Signature: ['void', ['::std::string const &', '::unittests::test_results::status']]
+        protected:          
+        private:            
+        variable_t: 'm_results'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:26
+            artificial: 'False' 
+            type: ::std::map<std::string, unittests::test_results::status, std::less<std::string>, std::allocator<std::pair<std::string const, unittests::test_results::status> > >  value: None
+            size: 12            
+            align: 4            
+            offset: 0
+    class_t: 'test_case'
+        location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:29
+        artificial: '1'     
+        class type: 'struct'
+        size: 32            
+        align: 4            
+        derived classes:    
+            class: '::unittests::test_suite'
+                access: 'public'    
+        public:             
+        destructor_t: '~test_case'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:29
+            artificial: '1'     
+        constructor_t: 'test_case'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:29
+            artificial: '1'     
+            copy constructor: True
+        constructor_t: 'test_case'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:31
+            artificial: 'False' 
+            copy constructor: False
+        member_function_t: 'set_up'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:35
+            artificial: 'False' 
+            Signature: ['void', []]
+        member_function_t: 'tear_down'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:37
+            artificial: 'False' 
+            Signature: ['void', []]
+        member_function_t: 'run'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:39
+            artificial: 'False' 
+            Signature: ['void', []]
+        protected:          
+        private:            
+        variable_t: 'm_name'
+            location: [D:\dev\language-binding\sources\pygccxml_dev\docs\example\example.hpp]:42
+            artificial: 'False' 
+            type: ::std::string const  value: None
+            size: 0             
+            align: 0            
+            offset: 4
+class "test_suite" hierarchy information:
+	base classes   :  ['test_case']
+	derived classes:  []
+
+
+class "test_results" hierarchy information:
+	base classes   :  []
+	derived classes:  []
+
+
+class "test_case" hierarchy information:
+	base classes   :  []
+	derived classes:  ['test_suite']
+
+
+the namespace contains 2 "run" member functions
+they are: 
+	::unittests::test_suite::run
+	::unittests::test_case::run
+Does all test_container_* refer to the same object?  True
+>Exit code: 0

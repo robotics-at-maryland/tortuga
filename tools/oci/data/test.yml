@@ -10,10 +10,41 @@ Subsystems:
 
     Sonar:
         type: DemoSonar
-        
-    Power:
-        type: DemoPower
+        depends_on: ["EventHub"]
         
     Vehicle:
         type: DemoVehicle
         depends_on: ["EventHub"]
+        
+    StateMachine:
+        type: DemoStateMachine
+        depends_on: ["EventHub"]
+        
+    VisionSystem:
+        type: DemoVisionSystem
+        depends_on: ["EventHub"]
+        
+    Controller:
+        type: DemoController
+        depends_on: ["EventHub"]
+
+    EventPlayer:
+        type: DemoEventPlayer
+        depends_on: ["EventHub"]
+
+    Monitor:
+        type: Monitor
+        depends_on: ["QueuedEventHub", "Vehicle"]
+
+        Systems:
+            Battery1:
+                publisher: "Vehicle.Device.Batt 1"
+                eventType: ext.vehicle.device.IVoltageProvider.UPDATE
+                property: number
+                name: "Battery 1"
+                warning: 27
+                critical: 26
+
+    #CpuMonitor:
+    #    type: CpuMonitor
+    #    depends_on: ["QueuedEventHub"]

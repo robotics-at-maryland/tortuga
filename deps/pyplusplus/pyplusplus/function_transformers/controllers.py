@@ -336,3 +336,80 @@ class virtual_mem_fun_controller_t( controller_base_t ):
     @property
     def default_controller( self ):
         return self.__default_cntrl
+
+
+#TODO: FT for constructor
+
+#~ class constructor_controller_t( controller_base_t ):
+    #~ def __init__( self, function ):
+        #~ controller_base_t.__init__( self, function )
+        #~ self.__vars_manager = create_variables_manager( function )
+        #~ self.__wrapper_args = [ arg.clone() for arg in function.arguments ]
+        #~ self.__result_var = variable_t( self.wrapper_return_type
+                                        #~ , self.register_variable_name( 'result' ) )
+        #~ self.__pre_call = []
+        #~ self.__post_call = []
+        #~ self.__arg_expressions = [ arg.name for arg in function.arguments ]
+        
+    #~ @property
+    #~ def variables( self ):
+        #~ return self.__vars_manager.variables
+        
+    #~ def declare_variable( self, type, name, initialize_expr='' ):
+        #~ return self.__vars_manager.declare_variable( type, name, initialize_expr)
+    
+    #~ def register_variable_name( self, name ):
+        #~ return self.__vars_manager.register_name( name )
+        
+    #~ @property 
+    #~ def result_variable( self ):
+        #~ return self.__result_var
+    
+    #~ @property
+    #~ def template( self ):
+        #~ return templates.constructor.body
+        
+    #~ @property
+    #~ def wrapper_args( self ):
+        #~ return filter( None, self.__wrapper_args )
+
+    #~ def find_wrapper_arg( self, name ):
+        #~ for arg in self.wrapper_args:
+            #~ if arg.name == name:
+                #~ return arg
+        #~ return None
+
+    #~ def remove_wrapper_arg( self, name ):
+        #~ arg = self.find_wrapper_arg( name )
+        #~ if not arg:
+            #~ raise LookupError( "Unable to remove '%s' argument - not found!" % name ) 
+        #~ self.__wrapper_args[ self.__wrapper_args.index(arg) ] = None
+
+    #~ @property
+    #~ def arg_expressions( self ):
+        #~ return self.__arg_expressions
+
+    #~ def modify_arg_expression( self, index, expression ):
+        #~ self.arg_expressions[ index ] = expression
+    
+    #~ @property
+    #~ def wrapper_return_type( self ):
+        #~ return declarations.dummy_type_t( 'std::auto_ptr< %s >' % self.function.parent.decl_string )
+            
+    #~ @property
+    #~ def pre_call( self ):
+        #~ return self.__pre_call
+        
+    #~ def add_pre_call_code( self, code ):
+        #~ self.__pre_call.append( code )
+        
+    #~ @property
+    #~ def post_call( self ):
+        #~ return self.__post_call
+    
+    #~ def add_post_call_code( self, code ):
+        #~ self.__post_call.append( code )
+
+    #~ def apply( self, transformations ):
+        #~ map( lambda t: t.configure_mem_fun( self ), transformations )
+

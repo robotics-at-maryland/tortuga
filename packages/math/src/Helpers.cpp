@@ -13,6 +13,8 @@
 // Project Includes
 #include "core/include/Platform.h"
 #include "math/include/Helpers.h"
+#include "math/include/Quaternion.h"
+#include "math/include/Matrix3.h"
 
 namespace ram {
 namespace math {
@@ -209,7 +211,7 @@ void matrixMult3x3by3x3(double a[3][3], double b[3][3], double* presult){
 * pre-multiplies a 4x1 matrix by a 4x4  (ie result[4][1]=bigMatrix[4][4]*littleMatrix[4][1])
 *
 */
-void matrixMult4x4by4x1(double big[4][4], double little[4], double* const presult){
+void matrixMult4x4by4x1(const double big[4][4], const double little[4], double* const presult){
     *(presult) = big[0][0]*little[0]+big[0][1]*little[1]+big[0][2]*little[2]+big[0][3]*little[3];
     *(presult+1) = big[1][0]*little[0]+big[1][1]*little[1]+big[1][2]*little[2]+big[1][3]*little[3];
     *(presult+2) = big[2][0]*little[0]+big[2][1]*little[1]+big[2][2]*little[2]+big[2][3]*little[3];
@@ -394,15 +396,10 @@ q - a quaternion with the parameterization:
 
 */
 void rotationMatrixFromQuaternion(double q[4], double * pRot){
-    *(pRot) = q[0]*q[0]-q[1]*q[1]-q[2]*q[2]+q[3]*q[3];
-    *(pRot+1) = 2*(q[0]*q[1]-q[2]*q[3]);
-    *(pRot+2) = 2*(q[0]*q[2]-q[1]*q[3]);
-    *(pRot+3) = 2*(q[0]*q[1]+q[2]*q[3]);
-    *(pRot+4) = -q[0]*q[0]+q[1]*q[1]-q[2]*q[2]+q[3]*q[3];
-    *(pRot+5) = 2*(q[1]*q[2]+q[0]*q[3]);
-    *(pRot+6) = 2*(q[0]*q[2]-q[1]*q[3]);
-    *(pRot+7) = 2*(q[1]*q[2]-q[0]*q[3]);
-    *(pRot+8) = -q[0]*q[0]-q[1]*q[1]+q[2]*q[2]+q[3]*q[3];
+    Quaternion quat(q);
+    Matrix3 result;
+    quat.ToRotationMatrix(result);
+    memcpy(pRot, &result, sizeof(double) * 9);
 }
 
 /*
@@ -441,7 +438,8 @@ q - a quaternion with the parameterization:
                where euler axis = [e1,e2,e3] and euler angle = et (radians!)
 
 */
-void quaternionCrossProduct(double q1[4], double q2[4],  double * pQ){
+void quaternionCrossProduct(const double q1[4], const double q2[4],
+                            double * pQ){
   //generate quaternion cross product matrix
   double qRotMatrix[4][4];
 

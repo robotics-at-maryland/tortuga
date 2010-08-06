@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -8,8 +8,9 @@ from pygccxml import declarations
 
 
 class default_argument_patcher_t( object ):
-    def __init__( self ):
+    def __init__( self, enums ):
         object.__init__( self )
+        self.__enums = enums
         
     def __call__(self, decl):
         for arg in decl.arguments:
@@ -102,10 +103,10 @@ class default_argument_patcher_t( object ):
         #this algorithm could be improved: it could take into account
         #1. unnamed namespaced
         #2. location within files
-        enumeration_t = declarations.enumeration_t
-        for decl in scope.declarations:
-            if isinstance( decl, enumeration_t ) and decl.has_value_name( default_value ):
-                return decl
+        
+        for enum in self.__enums:
+            if enum.parent is scope and enum.has_value_name( default_value ):
+                return enum
         return None
 
     def __is_double_call( self, func, arg ):
@@ -131,6 +132,8 @@ class default_argument_patcher_t( object ):
         return call_invocation.join( dv[:found1[0]], args2 )
 
     def __is_constructor_call( self, func, arg ):
+        #if '0.9' in func.compiler:
+        #    return False
         call_invocation = declarations.call_invocation
         dv = arg.default_value
         if not call_invocation.is_call_invocation( dv ):
@@ -174,14 +177,13 @@ class casting_operator_patcher_t( object ):
     def __call__(self, decl):
         decl.name = 'operator ' + decl.return_type.decl_string
 
-_default_arg_patcher_ = default_argument_patcher_t()
 _casting_oper_patcher_ = casting_operator_patcher_t()
 
-def fix_decls(decls):
+def fix_calldef_decls(decls, enums):
+    default_arg_patcher = default_argument_patcher_t(enums)
     #decls should be flat list of all declarations, you want to apply patch on
     for decl in decls:
-        if isinstance( decl, declarations.calldef_t ):
-            _default_arg_patcher_( decl )
+        default_arg_patcher( decl )
         if isinstance( decl, declarations.casting_operator_t):
             _casting_oper_patcher_( decl )
     

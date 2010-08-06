@@ -33,20 +33,16 @@ inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int
 	}
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
 	//bool CAMERA=true;
 
 	/* Create an object that decodes the input video stream. */
 //	CvCapture *capture = cvCaptureFromCAM( CV_CAP_ANY );
-	
-	CvCapture *capture = cvCaptureFromFile(
-		"/run1-2clipped.mov"
-		);
-	for (int i=0; i<300;i++)
-		cvQueryFrame( capture );
-		//Skip some frames in case video starts out all white
-
+	if (argc != 2) {
+        printf("%s", "usage: OpticalFlowTest <video_file_name>");
+    }
+	CvCapture *capture = cvCaptureFromFile(argv[1]);
 
 	if (capture == NULL)
 	{

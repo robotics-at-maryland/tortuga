@@ -1,4 +1,4 @@
-// Copyright 2004 Roman Yakovenko.
+// Copyright 2004-2008 Roman Yakovenko.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -14,6 +14,14 @@ namespace indexing_suites {
 typedef std::vector< std::string > strings_t;
 
 inline void do_nothing( const strings_t& ){}
+
+inline strings_t get_names(){
+    strings_t names;
+    names.push_back( "a" );
+    names.push_back( "a" );
+    names.push_back( "a" );
+    return names;
+}
 
 struct item_t{    
     item_t() : value( -1 ){}
@@ -32,8 +40,14 @@ struct item_t{
 
 typedef std::vector<item_t> items_t;
 
+typedef std::vector<item_t*> items_ptr_t;
+
 inline item_t get_value( const std::vector<item_t>& vec, unsigned int index ){
     return vec.at(index);
+}
+
+inline item_t get_ptr_value( const std::vector<item_t*>& vec, unsigned int index ){
+    return *vec.at(index);
 }
 
 inline void set_value( std::vector<item_t>& vec, unsigned int index, item_t value ){

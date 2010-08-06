@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <netdb.h>
 
 // Project Includes
 #include "network/include/RemoteController.h"
@@ -75,12 +76,10 @@ RemoteController::RemoteController(core::ConfigNode config,
                                    core::SubsystemList deps) :
     core::Subsystem(config["name"].asString(),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
+    m_port(config["port"].asInt(MYPORT)),
     m_sockfd(-1),
     m_controller(core::Subsystem::getSubsystemOfType<control::IController>(deps))
 {
-    m_controller =
-        boost::static_pointer_cast<control::IController>(deps[0]);
-//    printf("Deps: %d\n", (int)deps.size());
     assert(m_controller.get() != 0 && "Did not get controller");
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
     m_minDepth = config["minDepth"].asDouble(MIN_DEPTH);
@@ -93,12 +92,17 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_pitchGain = config["pitchGain"].asDouble(PITCH_GAIN);
     m_rollGain = config["rollGain"].asDouble(ROLL_GAIN);
 
-    setupNetworking(config["port"].asInt(MYPORT));
+    setupNetworking(m_port);
 }
 
 RemoteController::~RemoteController()
 {
-    close(m_sockfd);
+    if (-1 != m_sockfd)
+    {
+        close(m_sockfd);
+        m_sockfd = -1;
+    }
+    unbackground();
 }
 
 void RemoteController::enable()
@@ -133,6 +137,46 @@ void RemoteController::update(double)
         //printf("Procssing");
         // Process Packet (If quit message drop out of loop, stop running)
         processMessage(cmd, param);
+    }
+}
+
+void RemoteController::background(int interval)
+{
+    if (-1 == m_sockfd)
+        setupNetworking(m_port);        
+    core::Updatable::background(interval);
+}
+    
+void RemoteController::unbackground(bool join)
+{
+    if (-1 != m_sockfd)
+    {
+        // Send a UDP packet to break out of the loop
+        struct hostent* he = gethostbyname("localhost");
+        assert(he != NULL && "error with get host");
+        
+        int outSock = socket(AF_INET, SOCK_DGRAM, 0);
+        assert(outSock >= 0 && "error creating socket");
+
+        struct sockaddr_in their_addr; // connector's address information
+        memset((void *)&their_addr, 0, sizeof(their_addr));// zero
+        their_addr.sin_family = AF_INET;    // host byte order
+        their_addr.sin_port = htons(m_port);  // short, network byte order
+        their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+        
+        signed char buf[2] = {0, 0};
+        sendto(outSock, buf, 2, 0, (struct sockaddr *) &their_addr,
+               sizeof(struct sockaddr_in));
+        
+        close(outSock);
+    }
+    
+    core::Updatable::unbackground(join);
+    
+    if (-1 != m_sockfd)
+    {   
+        close(m_sockfd);
+        m_sockfd = -1;
     }
 }
 

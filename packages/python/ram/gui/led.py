@@ -31,24 +31,10 @@ class LED(wx.Control):
         self._state = None
         self.Bind(wx.EVT_PAINT, self.OnPaint, self)
 
-        self.SetState(state)
         
-    def SetState(self, i):
-        if i < 0:
-            raise ValueError, 'Cannot have a negative state value.'
-        elif i >= len(self._colors):
-            raise IndexError, 'There is no state with an index of %d.' % i
-        elif i == self._state:
-            return
-
-        self._state = i
-        base_color = self._colors[i]
-        light_color = change_intensity(base_color, 1.15)
-        shadow_color = change_intensity(base_color, 1.07)
-        highlight_color = change_intensity(base_color, 1.25)
-        
-        ascii_led = '''
-        000000-----000000      
+        self.SetAsciiPattern(
+        '''
+        000000-----000000
         0000---------0000
         000-----------000
         00-----XXX----=00
@@ -65,7 +51,32 @@ class LED(wx.Control):
         000===========000
         0000=========0000
         000000=====000000
-        '''.strip()
+        '''.strip())
+        
+        self.SetState(state)
+        
+    def SetAsciiPattern(self, text):
+        contents = [s.strip() for s in text.splitlines()]
+        if len(contents) != 17:
+            raise Exception("Must be ascii pattern must be 17 lines long")
+        for s in contents:
+            if len(s) != 17:
+                raise Exception("Each must be 17 character long")
+        self._ascii_led = text
+        
+    def SetState(self, i):
+        if i < 0:
+            raise ValueError, 'Cannot have a negative state value.'
+        elif i >= len(self._colors):
+            raise IndexError, 'There is no state with an index of %d.' % i
+        elif i == self._state:
+            return
+
+        self._state = i
+        base_color = self._colors[i]
+        light_color = change_intensity(base_color, 1.15)
+        shadow_color = change_intensity(base_color, 1.07)
+        highlight_color = change_intensity(base_color, 1.25)
         
         xpm = ['17 17 5 1', # width height ncolors chars_per_pixel
                '0 c None', 
@@ -74,7 +85,7 @@ class LED(wx.Control):
                '= c %s' % shadow_color.GetAsString(wx.C2S_HTML_SYNTAX).encode('ascii'),
                '* c %s' % highlight_color.GetAsString(wx.C2S_HTML_SYNTAX).encode('ascii')]
         
-        xpm += [s.strip() for s in ascii_led.splitlines()]
+        xpm += [s.strip() for s in self._ascii_led.splitlines()]
         
         self.bmp = wx.BitmapFromXPMData(xpm)
         

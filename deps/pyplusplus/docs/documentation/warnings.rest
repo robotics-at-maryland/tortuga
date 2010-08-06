@@ -35,7 +35,7 @@ some cases provide hints about how to resolve the problem. Few examples:
          virtual Y& do_smth();
      };
 
-  Member function ``do_smth`` can not be overridden in Python because... [FILL IN HERE].
+  Member function ``do_smth`` cannot be overridden in Python because ... .
 
 *
   .. code-block:: C++
@@ -45,7 +45,7 @@ some cases provide hints about how to resolve the problem. Few examples:
          void get_size( int& height, int& width ) const;
      };
 
-  Member function ``get_size`` can be exposed to Python, but it will not be callable because [FILL IN HERE].
+  Member function ``get_size`` can be exposed to Python, but it will not be callable because ... .
 
 * In order to expose free/member function that takes more than 10 arguments user
   should define ``BOOST_PYTHON_MAX_ARITY`` macro.
@@ -75,8 +75,8 @@ How it works?
 
 In previous paragraph, I described some pretty useful functionality but what should you
 do to enable it? - *Nothing!* By default, `Py++`_ only prints the
-important messages to ``stdout``. More over it prints them only for declarations
-that are going to be exported.
+important messages to ``stdout``. More over, it prints them only for to be exposed 
+declarations.
 
 `Py++`_ uses the python  `logging`_ package to write all user messages. By
 default, messages with ``DEBUG`` level will be skipped, all other messages will
@@ -128,7 +128,9 @@ edit it:
 .. code-block:: Python
 
    messages.disable( messages.W1020 )
-
+   
+   #you also can disable warnings reporting at all:
+   messages.disable( *messages.all_warning_msgs )
 
 Logging API
 -----------
@@ -157,7 +159,7 @@ and want to change it, right?
    The `Py++`_ package defines all loggers in the ``pyplusplus._logging_`` package.
 
    Both packages define a ``loggers`` class. Those classes keep references to
-   different loggers. The ``loggers`` classes look very similar to the next class:
+   different loggers. The ``loggers`` classes look very similar to the following class:
 
    .. code-block:: Python
 
@@ -205,7 +207,7 @@ Every declaration class has the following methods:
   is not exportable.
 
 
-.. _`Formatter` : http://docs.python.org/lib/node357.html
+.. _`Formatter` : http://docs.python.org/lib/node422.html
 .. _`logging` : http://docs.python.org/lib/module-logging.html
 .. _`Py++` : ./../pyplusplus.html
 .. _`pygccxml` : ./../../pygccxml/pygccxml.html
@@ -213,10 +215,3 @@ Every declaration class has the following methods:
 .. _`Python`: http://www.python.org
 .. _`GCC-XML`: http://www.gccxml.org
 
-..
-   Local Variables:
-   mode: indented-text
-   indent-tabs-mode: nil
-   sentence-end-double-space: t
-   fill-column: 70
-   End:

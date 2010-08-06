@@ -67,12 +67,14 @@
 #define BUS_CMD_BATT3_OFF       0x2A
 #define BUS_CMD_BATT4_OFF       0x2B
 #define BUS_CMD_BATT5_OFF       0x2C
+#define BUS_CMD_BATT6_OFF       0x51
 
 #define BUS_CMD_BATT1_ON        0x2D
 #define BUS_CMD_BATT2_ON        0x2E
 #define BUS_CMD_BATT3_ON        0x2F
 #define BUS_CMD_BATT4_ON        0x30
 #define BUS_CMD_BATT5_ON        0x31
+#define BUS_CMD_BATT6_ON        0x52
 
 
 /* Bars (LED and fan) on distro board */
@@ -111,17 +113,47 @@
 #define BUS_CMD_INTPOWER        0x4A
 
 #define BUS_CMD_MOTRSPEEDS      0x4B
-/* Next free is 0x4C */
+
+#define BUS_CMD_SET_BARMODE     0x4C
+#define BUS_CMD_BFRESET         0x4D
+
+#define BUS_CMD_SET_BARS        0x4E
+
+#define BUS_CMD_BFIN_STOP       0x4F
+#define BUS_CMD_BFIN_START      0x50
+
+/* NOTE: Since there was no space for BATT6_ON and
+ * BATT6_OFF I used 0x51 and 0x52 above
+ * --Kit (5/23/2009) */
+
+#define BUS_CMD_SET_MOT_SPEEDS  0x53
+#define BUS_CMD_KILL_MOTORS     0x54
+#define BUS_CMD_SET_MOT_N       0x55
+
+#define BUS_CMD_SERVO_POWER_ON  0x56
+#define BUS_CMD_SERVO_POWER_OFF 0x57
+#define BUS_CMD_SERVO_ENABLE    0x58
+#define BUS_CMD_SET_SERVO_POS   0x59
+
+#define BUS_CMD_MTR_RST         0x5A
+
+#define BUS_CMD_DVL_ON          0x5B
+#define BUS_CMD_DVL_OFF         0x5C
+/* Next free is 0x5D */
+
+
+/* I wanted a more Unique response to a ping.
+ * Ideally, the response would be 0xBEEF or 0xDEAD or 0xABADBABE
+ * Perhaps 0xFEEF1F0 like FEE FI FO FUM or 0xAC like the start of ACK
+ *
+ * For now, I think the response will have to be 0xA5 which is 10100101
+ * which, while not as fun, is symmetric, and hard to have happen randomly. */
+#define BUS_CMD_PING_RESP 0xA5;
 
 
 
-
-
-
-
-
-
-
+/* Host commands are commands which the computron sends to senior ic1.
+ * --Kit (5/23/2009) */
 #define HOST_CMD_SYNC               0xFF
 
 #define HOST_CMD_PING               0x00
@@ -195,38 +227,38 @@
 
 #define HOST_CMD_SET_OVRLIMIT       0x28
 
+#define HOST_CMD_BFRESET            0x29
+
+#define HOST_CMD_BARANIMATION       0x2A
+
+#define HOST_CMD_SET_BARS           0x2B
+
+#define HOST_CMD_BFIN_STATE         0x2C
+
+#define HOST_CMD_SERVO_ENABLE       0x2D
+#define HOST_CMD_SET_SERVO_POS      0x2E
+#define HOST_CMD_SERVO_POWER_ON     0x2F
+#define HOST_CMD_SERVO_POWER_OFF    0x30
+
+#define HOST_CMD_MTR_RST            0x31
+
+#define HOST_CMD_DVL_ON              0x32
+#define HOST_CMD_DVL_OFF             0x33
 
 
+/* So we have host commands, Bus commands,
+ * and then we had a section with commands.
+ *
+ * These turned out to be a reference to the array
+ * for turning batteries and bars on and off for
+ * lcdshow.  They're defined in
+ * ../../drivers/sensor-r5/include/sensorapi.h
+ *
+ * --Kit (5/23/2009) */
 
 
-#define CMD_BAR1_OFF     0x00
-#define CMD_BAR2_OFF     0x01
-#define CMD_BAR3_OFF     0x02
-#define CMD_BAR4_OFF     0x03
-#define CMD_BAR5_OFF     0x04
-#define CMD_BAR6_OFF     0x05
-#define CMD_BAR7_OFF     0x06
-#define CMD_BAR8_OFF     0x07
-
-#define CMD_BAR1_ON    0x08
-#define CMD_BAR2_ON    0x09
-#define CMD_BAR3_ON    0x0A
-#define CMD_BAR4_ON    0x0B
-#define CMD_BAR5_ON    0x0C
-#define CMD_BAR6_ON    0x0D
-#define CMD_BAR7_ON    0x0E
-#define CMD_BAR8_ON    0x0F
-
-
-
-#define CMD_BATT1_OFF     0x00
-#define CMD_BATT2_OFF     0x01
-#define CMD_BATT3_OFF     0x02
-#define CMD_BATT4_OFF     0x03
-#define CMD_BATT5_OFF     0x04
-
-#define CMD_BATT1_ON      0x05
-#define CMD_BATT2_ON      0x06
-#define CMD_BATT3_ON      0x07
-#define CMD_BATT4_ON      0x08
-#define CMD_BATT5_ON      0x09
+/* Another mysterious define, Hooray! This one *sounds*
+ * self-explanitory, and yet, is it important? Why is
+ * it in Buscodes.h?
+ * --Kit (5/23/2009) */
+#define SONAR_PACKET_LEN 22

@@ -1,4 +1,4 @@
-# Copyright 2004 Roman Yakovenko.
+# Copyright 2004-2008 Roman Yakovenko.
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -10,14 +10,14 @@ import fundamental_tester_base
 
 class tester_t(fundamental_tester_base.fundamental_tester_base_t):
     EXTENSION_NAME = 'module_body'
-    
+
     def __init__( self, *args ):
-        fundamental_tester_base.fundamental_tester_base_t.__init__( 
+        fundamental_tester_base.fundamental_tester_base_t.__init__(
             self
             , tester_t.EXTENSION_NAME
             , *args )
 
-    def customize(self, mb):        
+    def customize(self, mb):
         item = mb.class_( 'item_t' )
         item.include()
         item.add_declaration_code( "int get11( const mb::item_t& item ){ return 11;}" )
@@ -31,12 +31,14 @@ class tester_t(fundamental_tester_base.fundamental_tester_base_t):
 
         mb.build_code_creator( self.EXTENSION_NAME )
 
-    def run_tests(self, module):        
+        mb.add_constants( version='"0.0.0"')
+
+    def run_tests(self, module):
         self.failUnless( 1 == module.get1() )
         self.failUnless( 11 == module.item_t().get11() )
-    
+        self.failUnless( "0.0.0" == module.version )
 def create_suite():
-    suite = unittest.TestSuite()    
+    suite = unittest.TestSuite()
     suite.addTest( unittest.makeSuite(tester_t))
     return suite
 

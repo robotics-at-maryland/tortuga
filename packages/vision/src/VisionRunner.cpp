@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <utility>
+#include <iostream>
 
 // Project Includes
 #include <boost/foreach.hpp>
@@ -50,7 +51,6 @@ void VisionRunner::update(double timestep)
         else
             background(-1);
     }
-        
 }
     
 void VisionRunner::addDetector(DetectorPtr detector)
@@ -62,21 +62,21 @@ void VisionRunner::addDetector(DetectorPtr detector)
         processDetectorChanges();
 }
 
-void VisionRunner::removeDetector(DetectorPtr detector)
+void VisionRunner::removeDetector(DetectorPtr detector, bool join)
 {
     m_detectorChanges.push(std::make_pair(REMOVE, detector));
 
     // Make change right away if there is not background thread
-    if (!backgrounded())
+    if (!backgrounded() || join)
         processDetectorChanges();
 }
 
-void VisionRunner::removeAllDetectors()
+void VisionRunner::removeAllDetectors(bool join)
 {
     m_detectorChanges.push(std::make_pair(REMOVE_ALL, DetectorPtr()));
 
     // Make change right away if there is not background thread
-    if (!backgrounded())
+    if (!backgrounded() || join)
         processDetectorChanges();
 }
 
@@ -112,7 +112,12 @@ bool VisionRunner::processDetectorChanges(bool canBackground)
         {
             case ADD:
             {
-                m_detectors.insert(change.second);
+                // Only insert if its not already there
+                std::set<DetectorPtr>::iterator iter =
+                    m_detectors.find(change.second);
+                
+                if (m_detectors.end() == iter)
+                    m_detectors.insert(change.second);
             }
             break;
 

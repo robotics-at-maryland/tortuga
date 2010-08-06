@@ -1,0 +1,23 @@
+import os.path
+
+Import('env')
+
+# NATIVE MARSHALING CODE FOR C++
+##############################
+
+env.Command(['SensorBoard.cpp','SensorBoard.h'], 
+	'SensorBoard.ice', 'slice2cpp --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
+
+
+# NATIVE MARSHALING CODE FOR PYTHON
+##############################
+
+#env.Command(['ram_ice.py'], 
+#	'SensorBoard.ice', 'slice2py --output-dir ' + os.path.dirname(env.File('SensorBoard.ice').path) + ' $SOURCES')
+
+
+# BENCHMARK PROGRAM
+##############################
+
+prog = env.Program(['lcdshow.cpp', 'SensorBoard.cpp', 'sensorapi.c'])
+Return('prog')

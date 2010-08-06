@@ -21,32 +21,17 @@ TEST(PIDController)
     // Rotated 32 degrees from north to the west in horizontal (actual)
     
     // Quat = 0,0,0,1 and everything else zero
-    control::DesiredState desired = {0, // speed
-                                     0, // sidewaysSpeed
-                                     0, // depth
-                                     {0, 0, 0, 1}, // quat
-                                     {0} // angularRate
-    };
-
-    control::MeasuredState measured = {0,// depth
-                              {0},  // Accel
-                              {0}, // Mag
-                              {0, 0, 0, 1}, // Quat
-                              {0}}; // Ang Rate
-    
-    control::ControllerState state = {0, // angP gain
-                                0, // angD gain
-                                {{0.201, 0, 0}, // inertia estimates
-                                 {0, 1.288, 0},
-                                 {0, 0, 1.288}},
-                                0, // depthP gain (not used)
-                                0};// speedP gain (not used)
-    control::EstimatedState estimated = {math::Vector2(0,0)};
+  control::DesiredState desired;
+  control::MeasuredState measured; 
+  control::ControllerState state;
+  control::EstimatedState estimated;
 
    //Testing PID controller
     desired.depth = 2.2;
     measured.depth = 0;
-    //state.dt = 0.025;    
+    //state.dt = 0.025;
+    state.dtMin = .001;
+    state.dtMax = .05;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;
@@ -67,33 +52,18 @@ TEST(PIDController2)
     // Rotated 32 degrees from north to the west in horizontal (actual)
     
     // Quat = 0,0,0,1 and everything else zero
-    control::DesiredState desired = {0, // speed
-                                     0, // sidewaysSpeed
-                                     0, // depth
-                                     {0, 0, 0, 1}, // quat
-                                     {0} // angularRate
-    };
-
-    control::MeasuredState measured = {0,// depth
-                              {0},  // Accel
-                              {0}, // Mag
-                              {0, 0, 0, 1}, // Quat
-                              {0}}; // Ang Rate
-    
-    control::ControllerState state = {0, // angP gain
-                                0, // angD gain
-                                {{0.201, 0, 0}, // inertia estimates
-                                 {0, 1.288, 0},
-                                 {0, 0, 1.288}},
-                                0, // depthP gain (not used)
-                                0};// speedP gain (not used)
-    control::EstimatedState estimated = {math::Vector2(0,0)};
+  control::DesiredState desired;
+  control::MeasuredState measured;
+  control::ControllerState state;
+  control::EstimatedState estimated;
     estimated.xHat4Depth = math::Vector4(0,0,0,0);
 
 	 
    //Testing PID controller
     desired.depth = 3.1;
     measured.depth = 3.0;
+    state.dtMin = .001;
+    state.dtMax = .05;    
     state.depthKp = 40;
     state.depthKd = 30;
     state.depthKi = .5;

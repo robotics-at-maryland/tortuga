@@ -60,7 +60,7 @@ CREATED_LIBRARIES = set()
 
 def SharedLibrary(env, name, _source, **kwargs):
     """
-    Simple helper function to all easier building of shared libraries that
+    Simple helper function to allow easier building of shared libraries that
     integrate with the rest of the build system.
     """
     
@@ -102,6 +102,10 @@ def Program(env, target, source, *args, **kwargs):
     libraries, and makes program depend on them being installed.
     """
 
+    # See if we should be doing an install
+    install = kwargs.pop('install', False)
+    resources = kwargs.pop('resources', [])
+
     # Make sure settings for dependent libaries is included
     add_int_deps(env, kwargs.get('int_deps', []))
     add_ext_deps(env, kwargs.get('ext_deps', []))
@@ -111,62 +115,98 @@ def Program(env, target, source, *args, **kwargs):
     if env['RAM_OS'] == 'windows':
         add_msvs_project(env, prog, source)
 
+    if install:
+        if env['RAM_OS'] == 'darwin':
+            # Determine the locations inside the bundle
+            appName = target[0] + '.app'
+            bundleFileLoc = os.path.join(env['BIN_DIR'], appName, 'Contents')
+            bundleExeLoc = os.path.join(bundleFileLoc, 'MacOS')
+
+            # Install the exe
+            env.Install(dir = bundleExeLoc, source = prog)
+
+            # Install the resources
+            if len(resources) > 0:
+                env.Install(dir = bundleFileLoc, source = resources)
+        else:
+            env.Install(dir = env['BIN_DIR'], source = prog)
+        
+
     return prog
 
-def run_tests(env, output, inputs, message = None, deps = None):    
-    def run_test_imp(env, target, source):
-        """
-        Runs both C++ tests (executables) and Python unittest.TestCase's located
-        in the given modules
+def run_test_imp(env, target, source):
+    """
+    Runs both C++ tests (executables) and Python unittest.TestCase's located
+    in the given modules
 
-        @rtype : int
-        @return: A 0 on success and 1 on failure
-        """
+    @rtype : int
+    @return: A 0 on success and 1 on failure
+    """
         
-        # Split tests by type 
-        pytests = []
-        cpptests = []
-        for f in source:
+    # Split tests by type 
+    pytests = []
+    cpptests = []
+    for f in source:
+        fpath = None
+        if type(f) is type(''):
+            fpath = os.path.abspath(f)
+        else:
             fpath = f.abspath
-            if fpath.endswith('.py'):
-                pytests.append(fpath)
-            elif os.name == 'posix' and 0 == fpath.count('.'):
-                cpptests.append(fpath)
-            elif os.name != 'posix' and fpath.endswith('.exe'):
-                cpptests.append(fpath)
-            else:
-                pass
-                #raise Exception('Coult not determine type of test file: ' + fpath)
+            
+        if fpath.endswith('.py'):
+            pytests.append(fpath)
+        elif os.name == 'posix' and 0 == fpath.count('.'):
+            cpptests.append(fpath)
+        elif os.name != 'posix' and fpath.endswith('.exe'):
+            cpptests.append(fpath)
+        else:
+            pass
+            #raise Exception('Coult not determine type of test file: ' + fpath)
 
-        # Run the C++ Testsls
-        for cpptest in cpptests:
-            result = subprocess.call(str(cpptest))
-            if result:
-                return 1 # Failure
+    # Run the C++ Testsls
+    for cpptest in cpptests:
+        result = subprocess.call(str(cpptest))
+        if result:
+            return 1 # Failure
 
         # Run Python Tests
         if len(pytests) > 0:
             testerpath = os.path.join(os.environ['RAM_SVN_DIR'], 'scripts',
                                       'pytester.py')
             tests = '"' + '" "'.join(pytests) + '"'
-            cmd_str = '%s "%s" %s' % (sys.executable, testerpath, tests)
+            exe_str = sys.executable
+			# Add quotes if there is a space in the string
+            if -1 != exe_str.find(' '):
+                exe_str = '"' + exe_str + '"'
+            cmd_str = '%s "%s" %s' % (exe_str, testerpath, tests)
+
             result = subprocess.call(cmd_str, shell = True)
+
             if result:
                 return 1 # Failure
 
-        # Record the test success to the file
-        open(str(target[0]), 'w').write("PASSED\n")
+    # Record the test success to the file
+    output_path = str(target[0])
+    if not output_path.endswith('SConstruct'): # Slight hack
+        open(output_path, 'w').write("PASSED\n")
+	
+    # Success
+    return 0
 
-        # Success
-        return 0
+# List of all current tests
+ALL_TESTS = []
 
-    msg = 'Runnting Tests'
+def run_tests(env, output, inputs, message = None, deps = None):    
+    msg = 'Running Tests'
     if not message is None:
         msg = message
     if not deps is None:
         inputs.extend(deps)
+
+    # Command that actually does the testing
     return env.Command(output, inputs,
                        SCons.Action.Action(run_test_imp, msg))
+
 
 def Tests(env, target, source, run = True, **kwargs):
     _source = source
@@ -200,15 +240,34 @@ def Tests(env, target, source, run = True, **kwargs):
     for pytest in pytests:
         # Need the full path here for python's 'imp' module later
         tests.append(os.path.join(root, pytest))
+
+    # Message to show when running tests
+    message = 'Running Tests in: ' + \
+                  os.path.dirname(env.GetBuildPath('SConscript'))   
+
+    # Add to global test list
+#    def tester():
+#        print message
+    output_path = os.path.join(os.environ['RAM_SVN_DIR'], 'SConstruct')
+#    tester = env.AlwaysBuild(
+#        env.Command(output_path, tests, SCons.Action.Action(run_test_imp,
+#                                                            message)))
+#    env.Alias('test', tester)
+#        return 1
+#        return run_test_imp(env, _target[0], tests[0] + tests[1:])
+#    global ALL_TESTS
+#    ALL_TESTS.append(tester)
         
     if run:
-        cmd = run_tests(env, _target[0] + '.successful', tests,
-                        'Running Tests in: ' + \
-                        os.path.dirname(env.GetBuildPath('SConscript')))
-
+        cmd = run_tests(env, _target[0] + '.successful', tests, message)
                         
         if env['RAM_OS'] == 'windows':
             add_msvs_project(env, cmd, [])
+
+        # Independent test run
+        #cmdAll = run_tests(env, _target[0] + '.gsuccessful', tests, message)
+        #alias = env.Alias('test', cmdAll)
+        #env.AlwaysBuild(alias)
             
         return (prog, cmd)
     
@@ -217,7 +276,16 @@ def Tests(env, target, source, run = True, **kwargs):
             return run_tests(env, output, tests, message, deps)
         
         return (prog, test_runner)
-    
+
+def runAllTests():
+    """ Forces all unit tests to be run again """
+    global ALL_TESTS
+
+    result = True
+    for t in ALL_TESTS:
+        print ''
+        result &= ~t()
+    return result
 
 def add_helpers_to_env(env):
     env['BUILDERS']['RAMSharedLibrary'] = SharedLibrary

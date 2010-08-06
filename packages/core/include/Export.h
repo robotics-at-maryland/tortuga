@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee jlisee@umd.edu>
- * File:  packages/math/include/Export.h
+ * File:  packages/core/include/Export.h
  */
  
 // Note include guards intentially left out of this file

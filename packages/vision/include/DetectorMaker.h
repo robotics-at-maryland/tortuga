@@ -10,9 +10,6 @@
 #ifndef RAM_VISION_DETECTORMAKER_02_23_2008
 #define RAM_VISION_DETECTORMAKER_02_23_2008
 
-// Library Includes
-#include <boost/tuple/tuple.hpp>
-
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"

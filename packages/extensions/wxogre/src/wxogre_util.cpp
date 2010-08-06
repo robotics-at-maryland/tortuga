@@ -58,15 +58,19 @@ char* get_window_handle_str(void* _window)
     // Prevents flicker
     gtk_widget_set_double_buffered( private_handle, FALSE );
 
+    // The frame need to be realize unless the parent is already shown.
+    gtk_widget_realize(private_handle);
+
+
     // Grabs the window for use in the below macros
     GdkWindow *window = GTK_PIZZA(private_handle)->bin_window;
-    Display* display = GDK_WINDOW_XDISPLAY(window);
     Window wid = GDK_WINDOW_XWINDOW(window);
 
-    // Display
-    handleStream << (unsigned long)display << ':';
-
 /*#if OGRE_PATCH_VERSION == 0
+    // Display
+    Display* display = GDK_WINDOW_XDISPLAY(window);
+    handleStream << (unsigned long)display << ':';
+      
     // Screen (returns ":display.screen   ")
     std::string screenStr = DisplayString(display);
     int dotpos = screenStr.find(".", 0);

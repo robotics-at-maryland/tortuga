@@ -9,31 +9,46 @@
 
 // STD Includes
 #include <iostream>
+#include <string>
 #ifdef RAM_POSIX
     #include <unistd.h>
 #endif
 
 // Library Includes
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
+#include "vehicle/include/Utility.h"
+#include "vehicle/include/Events.h"
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/include/device/IThruster.h"
 #include "vehicle/include/device/IIMU.h"
 #include "vehicle/include/device/IDepthSensor.h"
+#include "vehicle/include/device/IPayloadSet.h"
+#include "vehicle/include/device/IPositionSensor.h"
+#include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/device/LoopStateEstimator.h"
+#include "vehicle/estimator/include/ModularStateEstimator.h"
+#include "vehicle/estimator/include/IStateEstimator.h"
 
-#include "vehicle/include/device/Common.h"
+//#include "sensorapi-r5/include/sensorapi.h"
 
 #include "math/include/Events.h"
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
 #include "core/include/DependencyGraph.h"
+#include "core/include/EventConnection.h"
+#include "core/include/TimeVal.h"
 
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vehicle"));
 
 using namespace ram::vehicle::device;
 
@@ -52,7 +67,6 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString(),
              core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_config(config),
-    
     m_starboardThrusterName(
         config["StarboardThrusterName"].asString("StarboardThruster")),
     m_starboardThruster(device::IThrusterPtr()),
@@ -71,12 +85,44 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_bottomThrusterName(
         config["BottomThrusterName"].asString("BottomThruster")),
     m_bottomThruster(device::IThrusterPtr()),
-    
+    m_topThrusterThrottle(config["TopThrusterThrottle"].asDouble(1.0)),
+    m_stateEstimatorName(config["StateEstimatorName"].asString("StateEstimator")),
+    m_stateEstimator(device::IStateEstimatorPtr()),
     m_imuName(config["IMUName"].asString("IMU")),
     m_imu(device::IIMUPtr()),
+    m_hasMagBoom(false),
+    m_magBoomName(config["MagBoomName"].asString("")),
+    m_magBoom(device::IIMUPtr()),
     m_depthSensorName(config["DepthSensorName"].asString("SensorBoard")),
-    m_depthSensor(device::IDepthSensorPtr())
+    m_depthSensor(device::IDepthSensorPtr()),
+    m_velocitySensorName(config["VelocitySensorName"].asString("VelocitySensor")),
+    m_velocitySensor(device::IVelocitySensorPtr()),
+    m_positionSensorName(config["PositionSensorName"].asString("PositionSensor")),
+    m_positionSensor(device::IPositionSensorPtr()),
+    m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
+    m_markerDropper(device::IPayloadSetPtr()),
+    m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
+    m_torpedoLauncher(device::IPayloadSetPtr()),
+    m_grabberName(config["GrabberName"].asString("Grabber")),
+    m_grabber(device::IPayloadSetPtr()),
+    stateEstimator(estimator::IStateEstimatorPtr())
 {
+
+    /* Make the new state estimator.  This needs to be changed to replace the old one 
+       once it is throughly tested.  Right now its added into this file in a 
+       hackish way.  Sorry.  This MUST be created before the sensors.  Otherwise,
+       it will not receive their configuration values when they publish init events */
+
+    if(!stateEstimator)
+    {
+        stateEstimator = estimator::IStateEstimatorPtr(
+            new estimator::ModularStateEstimator(
+                config["NewStateEstimator"],
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+
+
     // Create devices
     if (config.exists("Devices"))
     {
@@ -90,9 +136,11 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
         {
             core::ConfigNode node(deviceConfig[deviceName]);
             node.set("name", deviceName);
-            // TODO: Make me a log
-            //std::cout << "Creating device " << node["name"].asString()
-            //    << " of type: " << node["type"].asString() << std::endl;
+
+            LOGGER.infoStream() << "Creating device "
+                                << node["name"].asString()
+                                << " of type: "
+                                << node["type"].asString();
             
             // TODO: Figure out how to get my python object if needed
             device::IDeviceMakerParamType params(
@@ -100,19 +148,70 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
                 IVehiclePtr(this, null_deleter()));
             
-            _addDevice(device::IDeviceMaker::newObject(params));
+            if (!_addDevice(device::IDeviceMaker::newObject(params))) {
+                LOGGER.infoStream() << "Sucessfully set device "
+                                    << node["name"].asString()
+                                    << " of type: "
+                                    << node["type"].asString();
+            }
         }
     }
+
+    // Now lets create our default state estimator if we don't have one
+    if (!m_stateEstimator)
+    {
+        LOGGER.info("No state estimator found. "
+                    "Creating default LoopStateEstimator.");
+        m_stateEstimator = device::IStateEstimatorPtr(
+            new device::LoopStateEstimator(
+                config,
+                core::Subsystem::getSubsystemOfType<core::EventHub>(deps),
+                IVehiclePtr(this, null_deleter())));
+    }
+
+    // Now set the initial values of the estimator
+    LOGGER.info("Setting initial state estimator values.");
+    double timeStamp = core::TimeVal::timeOfDay().get_double();
+    if (m_depthSensor)
+        m_stateEstimator->depthUpdate(getRawDepth(), timeStamp);
+    if (m_imu)
+        m_stateEstimator->orientationUpdate(getRawOrientation(), timeStamp);
+    if (m_velocitySensor)
+        m_stateEstimator->velocityUpdate(getRawVelocity(), timeStamp);
+    if (m_positionSensor)
+        m_stateEstimator->positionUpdate(getRawPosition(), timeStamp);
+    
+    // If we specified a name of the mag boom we actually have one
+    if (m_magBoomName.size() > 0) {
+        LOGGER.info("MagBoom initialized.");
+        m_hasMagBoom = true;
+    }
+
+    // Make sure thrusters are unsafed
+    //unsafeThrusters();
 }
 
 Vehicle::~Vehicle()
-{    
+{
+    // Unconnect from all the events
+    if (m_depthConnection)
+        m_depthConnection->disconnect();
+
+    if (m_orientationConnection)
+        m_orientationConnection->disconnect();
+
+    if (m_positionConnection)
+        m_positionConnection->disconnect();
+
+    if (m_velocityConnection)
+        m_velocityConnection->disconnect();
+
+    
     // For safeties sake send a zero torque and force command which will kill
     // any current thruster power
-    for (int i = 0; i < 2; ++i) 
+    for (int i = 0; i < 2; ++i)
     {
         applyForcesAndTorques(math::Vector3::ZERO, math::Vector3::ZERO);
-        update(0);
         usleep(30 * 1000);
     }
     
@@ -147,24 +246,49 @@ std::vector<std::string> Vehicle::getDeviceNames()
     return names;
 }
     
-double Vehicle::getDepth()
+double Vehicle::getDepth(std::string obj)
 {
-    return getDepthSensor()->getDepth();
+    return m_stateEstimator->getDepth(obj);
 }
 
+math::Vector2 Vehicle::getPosition(std::string obj)
+{
+    return m_stateEstimator->getPosition(obj);
+}
+
+math::Vector2 Vehicle::getVelocity(std::string obj)
+{
+    return m_stateEstimator->getVelocity(obj);
+}
+    
 math::Vector3 Vehicle::getLinearAcceleration()
 {
-    return getIMU()->getLinearAcceleration();
+    return m_imu->getLinearAcceleration();
 }
     
 math::Vector3 Vehicle::getAngularRate()
 {
-    return getIMU()->getAngularRate();
+    return m_imu->getAngularRate();
 }
     
-math::Quaternion Vehicle::getOrientation()
+math::Quaternion Vehicle::getOrientation(std::string obj)
 {
-    return getIMU()->getOrientation();
+    return m_stateEstimator->getOrientation(obj);
+}
+
+estimator::IStateEstimatorPtr Vehicle::getStateEstimator()
+{
+    return stateEstimator;
+}
+
+bool Vehicle::hasObject(std::string obj)
+{
+    return m_stateEstimator->hasObject(obj);
+}
+
+bool Vehicle::hasMagBoom()
+{
+    return m_hasMagBoom;
 }
     
 void Vehicle::safeThrusters()
@@ -195,7 +319,17 @@ void Vehicle::unsafeThrusters()
 
 void Vehicle::dropMarker()
 {
-    // Do Nothing right now
+    m_markerDropper->releaseObject();
+}
+
+void Vehicle::fireTorpedo()
+{
+    m_torpedoLauncher->releaseObject();
+}
+
+void Vehicle::releaseGrabber()
+{
+    m_grabber->releaseObject();
 }
     
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
@@ -204,6 +338,14 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     // Bail out if we don't currently have all thruster devices
     if (!lookupThrusterDevices())
         return;
+
+/* m_topThrusterThrottle was added to tweak the forces in order to compensate
+   for rolling during sideways translation.  Make sure it is not greater than 1.0
+Make sure it is positive */
+    if(m_topThrusterThrottle > 1)
+        m_topThrusterThrottle = 1.0;
+    if(m_topThrusterThrottle < 0)
+        m_topThrusterThrottle = 0;
 
     // Calculate indivdual thruster foces
     double star = translationalForces[0] / 2 +
@@ -214,7 +356,7 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
         0.5 * rotationalTorques[1] / m_foreThruster->getOffset();
     double aft = translationalForces[2]/2 +
         0.5 * rotationalTorques[1] / m_aftThruster->getOffset();
-    double top = translationalForces[1] / 2 +
+    double top = m_topThrusterThrottle * translationalForces[1] / 2 +
         0.5 * rotationalTorques[0] / m_topThruster->getOffset();
     double bottom = translationalForces[1]/2 -
         0.5 * rotationalTorques[0] / m_bottomThruster->getOffset();
@@ -231,29 +373,176 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     m_bottomThruster->setForce(bottom);
 }
     
-void Vehicle::_addDevice(device::IDevicePtr device)
+int Vehicle::_addDevice(device::IDevicePtr device)
 {
-    m_devices[device->getName()] = device;
+    std::string name(device->getName());
+    m_devices[name] = device;
+
+        //device::LoopStateEstimator* loopEstimator =
+        //    boost::dynamic_pointer_cast<device::LoopStateEstimator>(
+        //        m_stateEstimator).get();
+    if (/*loopEstimator && (*/name == m_stateEstimatorName/*)*/)
+    {
+        m_stateEstimator =
+            device::IDevice::castTo<device::IStateEstimator>(device);
+        return 0;
+    }
+    
+    if ((!m_imu) && (name == m_imuName))
+    {
+        m_imu = device::IDevice::castTo<device::IIMU>(device);
+
+        m_orientationConnection = m_imu->subscribe(
+            device::IIMU::UPDATE,
+            boost::bind(&Vehicle::onOrientationUpdate, this, _1));
+        return 0;
+    }
+    
+    if ((!m_magBoom) && (name == m_magBoomName))
+    {
+        m_magBoom = device::IDevice::castTo<device::IIMU>(device);
+
+            // Disconnect from normal IMU event if we have one
+        if (m_orientationConnection)
+            m_orientationConnection->disconnect();
+        
+        m_orientationConnection = m_magBoom->subscribe(
+            device::IIMU::UPDATE,
+            boost::bind(&Vehicle::onOrientationUpdate, this, _1));
+        return 0;
+    }
+    
+    if ((!m_depthSensor) && (name == m_depthSensorName))
+    {
+        m_depthSensor = device::IDevice::castTo<device::IDepthSensor>(device);
+        m_depthConnection = m_depthSensor->subscribe(
+            device::IDepthSensor::UPDATE,
+            boost::bind(&Vehicle::onDepthUpdate, this, _1));
+        return 0;
+    }
+    
+    if ((!m_positionSensor) && (name == m_positionSensorName))
+    {
+        m_positionSensor =
+            device::IDevice::castTo<device::IPositionSensor>(device);
+        m_positionConnection = m_positionSensor->subscribe(
+            device::IPositionSensor::UPDATE,
+            boost::bind(&Vehicle::onPositionUpdate, this, _1));
+        return 0;
+    }
+
+    if ((!m_velocitySensor) && (name == m_velocitySensorName))
+    {
+        m_velocitySensor =
+            device::IDevice::castTo<device::IVelocitySensor>(device);
+        m_velocityConnection = m_velocitySensor->subscribe(
+            device::IVelocitySensor::UPDATE,
+            boost::bind(&Vehicle::onVelocityUpdate, this, _1));
+        return 0;
+    }
+
+    if ((!m_markerDropper) && (name == m_markerDropperName))
+    {
+        m_markerDropper =
+            device::IDevice::castTo<device::IPayloadSet>(device);
+        return 0;
+    }
+
+    if ((!m_torpedoLauncher) && (name == m_torpedoLauncherName))
+    {
+        m_torpedoLauncher =
+            device::IDevice::castTo<device::IPayloadSet>(device);
+        return 0;
+    }
+
+    if ((!m_grabber) && (name == m_grabberName))
+    {
+        m_grabber =
+            device::IDevice::castTo<device::IPayloadSet>(device);
+        return 0;
+    }
+
+    // Failure to set a device
+    return 1;
 }
 
 void Vehicle::update(double timestep)
 {
-    if (m_devices.end() != m_devices.find(m_imuName))
-    {    
-        math::OrientationEventPtr oevent(new math::OrientationEvent());
-        oevent->orientation = getOrientation();
-        publish(IVehicle::ORIENTATION_UPDATE, oevent);
-    }
-
-    if (m_devices.end() != m_devices.find(m_depthSensorName))
-    {    
-        math::NumericEventPtr nevent(new math::NumericEvent());
-        nevent->number = getDepth();
-        publish(IVehicle::DEPTH_UPDATE, nevent);
+    // Update the devices if we are not running the background
+    if (!backgrounded())
+    {
+        BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+            pair.second->update(timestep);
     }
 }
 
-void Vehicle::background(int interval) 
+double Vehicle::getRawDepth()
+{
+    // Get the reference to our depth sensor
+    device::IDepthSensorPtr depthSensor = m_depthSensor;
+
+    // Determine depth correction
+    math::Vector3 initialSensorLocation = depthSensor->getLocation();
+    math::Vector3 currentSensorLocation = 
+      getOrientation() * initialSensorLocation;
+    math::Vector3 sensorMovement = 
+      currentSensorLocation - initialSensorLocation;
+    double correction = sensorMovement.z;
+
+    // Grab the depth
+    double depth = depthSensor->getDepth();
+
+    // Return the corrected depth (its addition and not subtraction because
+    // depth is positive down)
+    return depth + correction;
+}
+
+math::Vector2 Vehicle::getRawPosition()
+{
+    return m_positionSensor->getPosition();
+}
+
+math::Vector2 Vehicle::getRawVelocity()
+{
+    return m_velocitySensor->getVelocity();
+}
+
+math::Quaternion Vehicle::getRawOrientation()
+{
+    if (m_hasMagBoom)
+    {
+        return Utility::quaternionFromMagAccel(
+            m_magBoom->getMagnetometer(),
+            m_imu->getLinearAcceleration());
+    }
+    else
+    {
+        return m_imu->getOrientation();
+    }
+}
+
+    
+void Vehicle::setPriority(core::IUpdatable::Priority priority)
+{
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        pair.second->setPriority(priority);
+    }
+
+    Updatable::setPriority(priority);    
+}
+
+void Vehicle::setAffinity(size_t affinity)
+{
+    BOOST_FOREACH(NameDeviceMap::value_type pair, m_devices)
+    {
+        pair.second->setAffinity(affinity);
+    }
+
+    Updatable::setAffinity(affinity);    
+}
+    
+void Vehicle::background(int interval)
 {
     core::ConfigNode deviceConfig(m_config["Devices"]);
     
@@ -265,6 +554,13 @@ void Vehicle::background(int interval)
             core::ConfigNode devCfg(deviceConfig[device->getName()]);
             if (devCfg.exists("update_interval"))
                 device->background(devCfg["update_interval"].asInt());
+
+            if (devCfg.exists("priority"))
+                device->setPriority(
+                    IUpdatable::stringToPriority(devCfg["priority"].asString()));
+
+            if (devCfg.exists("affinity"))
+                device->setAffinity(devCfg["affinity"].asInt());
         }
     }
     
@@ -279,23 +575,6 @@ void Vehicle::unbackground(bool join)
     }
 
     Updatable::unbackground(join);
-}
-
-device::IIMUPtr Vehicle::getIMU()
-{
-    if (!m_imu)
-        m_imu = device::IDevice::castTo<device::IIMU>(getDevice(m_imuName));
-    return m_imu;
-}
-
-device::IDepthSensorPtr Vehicle::getDepthSensor()
-{
-    if (!m_depthSensor)
-    {
-        m_depthSensor = device::IDevice::castTo<device::IDepthSensor>(
-            getDevice(m_depthSensorName));
-    }
-    return m_depthSensor;
 }
 
 bool Vehicle::lookupThrusterDevices()
@@ -395,5 +674,53 @@ bool Vehicle::lookupThrusterDevices()
     return good;
 }
 
+void Vehicle::onDepthUpdate(core::EventPtr event)
+{
+    math::NumericEventPtr devent =
+        boost::dynamic_pointer_cast<math::NumericEvent>(event);
+    
+    // Feed the latest value to the estimator, then broadcast the results
+    int flags = m_stateEstimator->depthUpdate(getRawDepth(),
+                                              devent->timeStamp);
+    
+    handleReturn(flags);
+}
+
+void Vehicle::onOrientationUpdate(core::EventPtr event)
+{
+    math::OrientationEventPtr oevent =
+        boost::dynamic_pointer_cast<math::OrientationEvent>(event);
+
+    // Feed the latest value to the estimator, then broadcast the results
+    int flags = m_stateEstimator->orientationUpdate(getRawOrientation(),
+                                                    oevent->timeStamp);
+
+    handleReturn(flags);
+}
+
+void Vehicle::onPositionUpdate(core::EventPtr event)
+{
+    math::Vector2EventPtr pevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    // Feed the latest value to the estimator, then broadcast the results
+    int flags = m_stateEstimator->positionUpdate(getRawPosition(),
+                                                 pevent->timeStamp);
+    
+    handleReturn(flags);
+}
+
+void Vehicle::onVelocityUpdate(core::EventPtr event)
+{
+    math::Vector2EventPtr vevent =
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    // Feed the latest value to the estimator, then broadcast the results
+    int flags = m_stateEstimator->velocityUpdate(getRawVelocity(),
+                                                 vevent->timeStamp);
+
+    handleReturn(flags);
+}
+    
 } // namespace vehicle
 } // namespace ram

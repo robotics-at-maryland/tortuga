@@ -45,8 +45,14 @@ public:
 
     virtual size_t height();
 
-    virtual size_t fps() { return _fps; }
+    virtual double fps() { return _fps; }
+
+    virtual double duration() { return _duration; }
+
+    virtual void seekToTime(double seconds) {}
     
+    virtual double currentTime() { return 0; }
+
     virtual bool backgrounded()
         { return _backgrounded; }
     
@@ -59,7 +65,8 @@ public:
         Camera::unbackground(join);
     };
 
-    size_t _fps;
+    double _fps;
+    double _duration;
 protected:
     bool _backgrounded;
     

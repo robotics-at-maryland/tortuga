@@ -14,8 +14,16 @@
 // Test Includes
 #include "vehicle/include/device/IDeviceMaker.h"
 #include "vehicle/test/include/MockDevice.h"
+#include "vehicle/test/include/MockIMU.h"
+#include "vehicle/test/include/MockDepthSensor.h"
+#include "vehicle/test/include/MockVelocitySensor.h"
+#include "vehicle/test/include/MockPositionSensor.h"
 
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockDevice, MockDevice);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockIMU, MockIMU);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockDepthSensor, MockDepthSensor);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockVelocitySensor, MockVelocitySensor);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(MockPositionSensor, MockPositionSensor);
 
 
 using namespace ram::vehicle;

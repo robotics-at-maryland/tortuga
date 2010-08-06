@@ -10,9 +10,13 @@
 
 // STD Includes
 #include <algorithm>
+#include <sstream>
 
 // Library Includes
 #include <boost/bind.hpp>
+#include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -21,19 +25,29 @@
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
 
+#include "vision/include/FileRecorder.h"
+#include "vision/include/RawFileRecorder.h"
+#include "vision/include/NetworkRecorder.h"
+#include "vision/include/FFMPEGNetworkRecorder.h"
+
 #include "core/include/TimeVal.h"
 #include "core/include/EventConnection.h"
+
+namespace ba = boost::algorithm;
+namespace bfs = boost::filesystem;
 
 namespace ram {
 namespace vision {
 
 Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
-                   int policyArg) :
+                   int policyArg, int recordWidth, int recordHeight) :
     m_policy(policy),
     m_policyArg(policyArg),
+    m_width(recordWidth),
+    m_height(recordHeight),
     m_newFrame(false),
-    m_nextFrame(new OpenCVImage(640, 480)),
-    m_currentFrame(new OpenCVImage(640, 480)),
+    m_nextFrame(new OpenCVImage(recordWidth, recordHeight)),
+    m_currentFrame(new OpenCVImage(recordWidth, recordHeight)),
     m_camera(camera),
     m_currentTime(0),
     m_nextRecordTime(0)
@@ -131,6 +145,104 @@ void Recorder::background(int interval)
     }
     Updatable::background(interval);
 }
+
+size_t Recorder::getRecordingWidth() const
+{
+    return m_width;
+}
+
+size_t Recorder::getRecordingHeight() const
+{
+    return m_height;
+}
+
+Recorder* Recorder::createRecorderFromString(const std::string& str,
+                                             Camera* camera,
+                                             std::string& message,
+                                             Recorder::RecordingPolicy policy,
+                                             int policyArg,
+                                             std::string recorderDir)
+{
+    static boost::regex port("(\\d{1,5})");
+    static boost::regex typeArg("([^(]+)(\\(([^)]+)\\))?");
+    std::stringstream ss;
+    
+    // Parse out the type str and the arguments
+    boost::smatch matcher;
+    if (!boost::regex_match(str, matcher, typeArg))
+    {
+        std::cerr << "Invalid record string: " << str << std::endl;
+        return 0;
+    }
+    std::string typeStr = matcher[1];
+
+    // Now split up the arguments
+    std::vector<std::string> args;
+    std::string argStr = matcher[3];
+    if (argStr.size() > 0)
+        ba::split(args, argStr, ba::is_any_of(","));
+    
+
+    // The first two args are always size
+    if (args.size() == 1u)
+    {
+        std::cerr << "Invalid number of args: " << args.size() << std::endl;
+        return 0;
+    }
+    int width = 640;
+    int height = 480;
+    if (args.size() >= 2u)
+    {
+        width = boost::lexical_cast<int>(args[0]);
+        height = boost::lexical_cast<int>(args[1]);
+        assert(width > 0 && "Record width must be positive");
+        assert(height > 0 && "Record height must be positive");
+    }
+
+    ss << "Size: (" << width << ", " << height << ") ";
+    
+    // Now lets create the recorder
+    Recorder* recorder = 0;
+    
+    boost::smatch portMatcher;
+    if (boost::regex_match(typeStr, portMatcher, port))
+    {
+        ss << "Recording to host : '" << boost::lexical_cast<int>(typeStr)
+           << "'";
+        boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(typeStr);
+//#ifdef RAM_POSIX
+//        signal(SIGPIPE, brokenPipeHandler);
+//#endif
+        recorder =
+//            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
+            new vision::FFMPEGNetworkRecorder(camera, policy, portNum,
+                                              policyArg, width, height);
+    }
+
+    if (!recorder)
+    {
+        std::string fullPath = (bfs::path(recorderDir) / typeStr).string();
+        std::string extension = bfs::path(typeStr).extension();
+
+        ss <<"Assuming string is a file, Recording to '" << typeStr << "'";
+        
+        if (".rmv" == extension)
+        {
+            ss << " as raw .rmv";
+            recorder = new vision::RawFileRecorder(camera, policy, fullPath,
+                                                   policyArg, width, height);
+        }
+        else
+        {
+            ss << " as a MPEG4 compressed .avi";
+            recorder = new vision::FileRecorder(camera, policy, fullPath,
+                                                policyArg, width, height);
+        }
+    }
+
+    message = ss.str();
+    return recorder;
+}
     
 void Recorder::cleanUp()
 {
@@ -149,8 +261,13 @@ void Recorder::newImageCapture(core::EventPtr event)
 
     // Copy new image to our local buffer
     m_newFrame = true;
-    m_nextFrame->copyFrom(
-        boost::dynamic_pointer_cast<ImageEvent>(event)->image);
+
+    // Resize to new size if needed
+    Image* newImage = boost::dynamic_pointer_cast<ImageEvent>(event)->image;
+    if (Image::sameSize(m_nextFrame, newImage))
+        m_nextFrame->copyFrom(newImage);
+    else
+        cvResize(newImage->asIplImage(), m_nextFrame->asIplImage());
 }
 
 } // namespace vision

@@ -48,14 +48,16 @@ namespace vision {
 
 NetworkRecorder::NetworkRecorder(Camera* camera,
                                  Recorder::RecordingPolicy policy,
-                                 boost::uint16_t port, int policyArg) :
-    Recorder(camera, policy, policyArg),
+                                 boost::uint16_t port, int policyArg,
+                                 int recordWidth, int recordHeight) :
+    Recorder(camera, policy, policyArg, recordWidth, recordHeight),
     m_port(port),
     m_listenSocket(-1),
     m_currentSocket(-1),
     m_addr(0),
     m_currentAddr(0),
-    m_compressedBuffer(0)
+    m_compressedBuffer(0),
+    m_bufferSize(0)
 {
 #ifdef RAM_WINDOWS
     WSADATA wsaData;
@@ -65,8 +67,8 @@ NetworkRecorder::NetworkRecorder(Camera* camera,
     error = WSAStartup( version, &wsaData );
 #endif
 
-    m_packet.width = htons(static_cast<boost::uint16_t>(camera->width()));
-    m_packet.height = htons(static_cast<boost::uint16_t>(camera->height()));
+    m_packet.width = htons(static_cast<boost::uint16_t>(getRecordingWidth()));
+    m_packet.height = htons(static_cast<boost::uint16_t>(getRecordingHeight()));
     m_packet.dataSize = 0;
     
     // Setup network
@@ -81,6 +83,8 @@ NetworkRecorder::~NetworkRecorder()
     // Stop the background thread, events, and network connections
     cleanUp();
     free(m_compressedBuffer);
+    free(m_addr);
+    free(m_currentAddr);
 }
 
 void NetworkRecorder::update(double timeSinceLastUpdate)
@@ -207,11 +211,8 @@ void NetworkRecorder::recordFrame(Image* image)
                 m_compressedBuffer = (unsigned char*)malloc(m_bufferSize);
             }
         }
-        
-        char scratch[QLZ_SCRATCH_DECOMPRESS];
-        size_t newSize = qlz_compress((void*)image->getData(),
-                                      (char*)m_compressedBuffer,
-                                      dataSize, scratch);
+
+        size_t newSize = compress(image, m_compressedBuffer, m_bufferSize);
         {
             boost::mutex::scoped_lock lock(m_mutex);
             dataSize = newSize;
@@ -235,6 +236,16 @@ void NetworkRecorder::recordFrame(Image* image)
     }
 }
 
+size_t NetworkRecorder::compress(Image* toCompress, unsigned char* output,
+                                 size_t)
+{
+    size_t dataSize = toCompress->getWidth() * toCompress->getHeight() * 3;
+    
+    char scratch[QLZ_SCRATCH_DECOMPRESS];
+    return qlz_compress((void*)toCompress->getData(), (char*)output,
+                        dataSize, scratch);
+}
+    
 void NetworkRecorder::setupListenSocket()
 {
     // Drop out if setup has already been done
@@ -250,6 +261,8 @@ void NetworkRecorder::setupListenSocket()
     }
 
     // Setup my address information
+    if (m_addr)
+        free(m_addr);
     m_addr = (struct sockaddr_in*)calloc(1, sizeof(*m_addr));
     m_addr->sin_family = AF_INET; // host byte order
     m_addr->sin_port = htons(m_port);  // short, network byte order
@@ -293,6 +306,8 @@ int NetworkRecorder::acceptConnection(double timeout)
 {
     // NOTE: no locking of m_listenSocket is done here because its only
     // read, and setupListenSocket cannot be called concurently with this
+    if (m_currentAddr)
+        free(m_currentAddr);
     
     m_currentAddr = (struct sockaddr_in*)calloc(sizeof(*m_currentAddr), 1);
 #ifdef RAM_POSIX

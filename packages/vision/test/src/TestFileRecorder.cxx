@@ -7,9 +7,6 @@
  * File:  packages/vision/test/src/TestFileRecorder.cxx
  */
 
-// Not tested yet on windows or Mac, so just go for Linux
-#ifdef RAM_LINUX
-
 // STD Includes
 #include <sstream>
 #include <string>
@@ -29,30 +26,14 @@
 #include "vision/test/include/UnitTestChecks.h"
 #include "vision/test/include/Utility.h"
 
-#include "core/include/TimeVal.h"
-
-// System Includes
-#ifdef RAM_POSIX
-#include <unistd.h>
-#else
-#include <windows.h>
-#endif
 
 using namespace ram;
 namespace bf = boost::filesystem;
 
-int getPid()
-{
-#ifdef RAM_POSIX
-    return getpid();
-#else
-    return (int)GetCurrentThreadId();
-#endif
-}
-
-
 SUITE(FileRecorder) {
 
+static int IMAGE_COUNT = 10;
+    
 struct RecorderFixture
 {
     RecorderFixture() :
@@ -60,7 +41,7 @@ struct RecorderFixture
         filename("")
     {
         std::stringstream ss;
-        ss << "RecorderTestMovie" << "_" << getPid() << ".avi";
+        ss << "TestFileRecorderTestMovie" << "_" << vision::getPid() << ".avi";
         filename = ss.str();
         camera->_fps = 30;
     }
@@ -69,8 +50,8 @@ struct RecorderFixture
     {
         // Remove movie file
         bf::path movieFile(filename);
-        if (bf::exists(movieFile))
-            bf::remove(movieFile);
+	if (bf::exists(movieFile))
+	    bf::remove(movieFile);
             
         delete camera;
     }
@@ -91,9 +72,9 @@ TEST_FIXTURE(RecorderFixture, Update)
                                   filename);
     recorder.unbackground(true);
 
-    // Generate 20 images
+    // Generate IMAGE_COUNT images
     std::vector<vision::Image*> images;
-    for (int i = 0; i < 20; ++i)
+    for (int i = 0; i < IMAGE_COUNT; ++i)
     {
         vision::Image* image = new vision::OpenCVImage(640,480);
         vision::makeColor(image, i * 20, 0, 0);
@@ -120,7 +101,8 @@ TEST_FIXTURE(RecorderFixture, Update)
     {
         movieCamera.update(0);
         movieCamera.getImage(actual);
-        CHECK_CLOSE(*expectedImage, *actual, 1);
+
+        CHECK_CLOSE(*expectedImage, *actual, 1.5);
     }    
     delete actual;
 
@@ -133,5 +115,3 @@ TEST_FIXTURE(RecorderFixture, Update)
 }
 
 } // SUITE(FileRecorder)
-
-#endif // RAM_LINUX

@@ -51,6 +51,31 @@ public:
          bp::wrapper< ram::core::Subsystem >()
     {}
 
+    virtual void setPriority(ram::core::IUpdatable::Priority priority) {
+        bp::override func_setPriority = this->get_override( "setPriority" );
+        func_setPriority( priority );
+    };
+    
+    virtual ram::core::IUpdatable::Priority getPriority() {
+        bp::override func_getPriority = this->get_override( "getPriority" );
+        return func_getPriority();
+    };
+
+    virtual void setAffinity(size_t affinity) {
+        bp::override func_setAffinity = this->get_override( "setAffinity" );
+        func_setAffinity( affinity );
+    };
+    
+    virtual int getAffinity() {
+        bp::override func_getAffinity = this->get_override( "getAffinity" );
+        return func_getAffinity();
+    };
+    
+    virtual void update( double timestep ){
+        bp::override func_update = this->get_override( "update" );
+        func_update( timestep );
+    }
+    
     virtual void background( int interval=-1 ){
         bp::override func_background = this->get_override( "background" );
         func_background( interval );
@@ -62,13 +87,14 @@ public:
     }
 
     virtual void unbackground( bool join=false ){
-        bp::override func_unbackground = this->get_override( "unbackground" );
-        func_unbackground( join );
-    }
-
-    virtual void update( double timestep ){
-        bp::override func_update = this->get_override( "update" );
-        func_update( timestep );
+        try {
+            bp::override func_unbackground =
+                this->get_override( "unbackground" );
+            func_unbackground( join );
+        } catch(bp::error_already_set err) {
+            PyErr_Print();
+            throw err;
+        }
     }
 };
 
