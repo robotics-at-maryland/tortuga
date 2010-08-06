@@ -147,8 +147,10 @@ void threadFunc(boost::barrier* barrier, ram::core::EventPublisher* publisher)
         publisher->publish("Type", ram::core::EventPtr(new ram::core::Event()));
 }
 
+boost::mutex mutex;
 void threadCount(int* calls, ram::core::EventPtr event)
 {
+    boost::mutex::scoped_lock(mutex);
     *calls = (*calls) + 1;
 }
 
