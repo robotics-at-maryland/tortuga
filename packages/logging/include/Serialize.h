@@ -27,13 +27,21 @@
 #include "core/include/EventPublisherRegistry.h"
 #include "core/include/Events.h"
 
+#ifdef RAM_WITH_MATH
 #include "math/include/Events.h"
+#endif
 
+#ifdef RAM_WITH_VISION
 #include "vision/include/Events.h"
+#endif
 
+#ifdef RAM_WITH_VEHICLE
 #include "vehicle/include/Events.h"
+#endif
 
+#ifdef RAM_WITH_CONTROL
 #include "control/include/Events.h"
+#endif
 
 namespace ram {
 namespace logging {
