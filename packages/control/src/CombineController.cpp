@@ -48,8 +48,9 @@ namespace ram {
 namespace control {
 
 CombineController::CombineController(vehicle::IVehiclePtr vehicle,
+                                     estimation::IStateEstimatorPtr estimator,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, config),
+    ControllerBase(vehicle, estimator, config),
     m_transController(ITranslationalControllerImpPtr()),
     m_depthController(IDepthControllerImpPtr()),
     m_rotController(IRotationalControllerImpPtr()),
@@ -92,12 +93,6 @@ void CombineController::init(core::ConfigNode config)
 }
 
 void CombineController::doUpdate(const double& timestep,
-                                 const math::Vector3& linearAcceleration,
-                                 const math::Quaternion& orientation,
-                                 const math::Vector3& angularRate,
-                                 const double& depth,
-                                 const math::Vector2& position,
-                                 const math::Vector2& velocity,
                                  math::Vector3& translationalForceOut,
                                  math::Vector3& rotationalTorqueOut)
 {
@@ -110,15 +105,19 @@ void CombineController::doUpdate(const double& timestep,
 
     // Update controllers
     math::Vector3 inPlaneControlForce(
-        m_transController->translationalUpdate(timestep, linearAcceleration,
-                                               orientation, position,
-                                               velocity, desiredState));
+        m_transController->translationalUpdate(timestep,
+                                               m_stateEstimator,
+                                               m_desiredState));
 
     math::Vector3 depthControlForce(
-        m_depthController->depthUpdate(timestep, depth, orientation, desiredState));
+        m_depthController->depthUpdate(timestep,
+                                       m_stateEstimator,
+                                       m_desiredState));
 
     math::Vector3 rotControlTorque(
-        m_rotController->rotationalUpdate(timestep, orientation, angularRate, desiredState));
+        m_rotController->rotationalUpdate(timestep,
+                                          m_stateEstimator,
+                                          m_desiredState));
     
     // Combine into desired rotational control and torque
     translationalForceOut = inPlaneControlForce + depthControlForce;
@@ -178,24 +177,24 @@ void CombineController::setSidewaysSpeed(double speed)
 void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = math::nRb(desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
-    desiredState->setDesiredVelocity(velocity);
+        velocity = math::nRb(m_desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
+    m_desiredState->setDesiredVelocity(velocity);
     m_transController->setControlMode(ControlMode::VELOCITY);
 }
 
 void CombineController::setDesiredPosition(math::Vector2 position, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        position = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
-    desiredState->setDesiredPosition(position);
+        position = math::nRb(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*position;
+    m_desiredState->setDesiredPosition(position);
     m_transController->setControlMode(ControlMode::POSITION);
 }
 
 void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
                                                       math::Vector2 velocity)
 {
-    desiredState->setDesiredVelocity(velocity);
-    desiredState->setDesiredPosition(position);
+    m_desiredState->setDesiredVelocity(velocity);
+    m_desiredState->setDesiredPosition(position);
     m_transController->setControlMode(ControlMode::POSITIONANDVELOCITY);
 }
 

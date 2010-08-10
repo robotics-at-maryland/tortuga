@@ -13,18 +13,21 @@
 #ifndef RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
 #define RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
 
-// Library Includes
+// STD Includes
 #include <map>
 #include <string>
 
+// Library Includes
+
 // Project Includes
+#include "estimation/include/EstimatedState.h"
+#include "estimation/include/EstimationModule.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/AveragingFilter.h"
 #include "core/include/Event.h"
 #include "core/include/ReadWriteMutex.h"
 
-#include "estimation/include/EstimatedState.h"
-#include "estimation/include/EstimationModule.h"
 #include "vehicle/include/Events.h"
 
 #include "math/include/Vector3.h"
@@ -35,7 +38,6 @@ namespace ram {
 namespace estimation {
 
 typedef RawIMUData FilteredIMUData;
-typedef vehicle::IMUInitEventPtr IMUConfigPtr;
 const static int FILTER_SIZE = 10;
 
 class BasicIMUEstimationModule : public EstimationModule
@@ -46,9 +48,6 @@ public:
     ~BasicIMUEstimationModule(){};
 
 
-    /* This is called when an IMU publishes its calibration values */
-    virtual void init(core::EventPtr event);
-
     /* The IMU Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
     virtual void update(core::EventPtr event,
@@ -56,13 +55,12 @@ public:
 
 private:
     /* any helper functions should be prototyped here */
+    std::set<std::string> imuList;
 
-    void rotateAndFilterData(const RawIMUData* newState,
-                             std::string name);
+    // void rotateAndFilterData(const RawIMUData* newState,
+    //                          std::string name);
 
     /* any necessary persistent variables should be declared here */
-
-    std::map<std::string, IMUConfigPtr> imuList;
 
     /** Filterd and rotated IMU data */
     std::map<std::string, FilteredIMUData*> m_filteredState;

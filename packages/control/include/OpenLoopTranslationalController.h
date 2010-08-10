@@ -22,12 +22,11 @@ class OpenLoopTranslationalController : public TranslationalControllerBase
 public:
     OpenLoopTranslationalController(ram::core::ConfigNode config);
 
-    virtual math::Vector3 translationalUpdate(double timestep,
-                                              math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation,
-                                              math::Vector2 position,
-                                              math::Vector2 velocity,
-                                              controltest::DesiredStatePtr desiredState);
+    virtual math::Vector3 translationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
+
 private:
     /** Gain for the normal speed */
     double m_speedPGain;

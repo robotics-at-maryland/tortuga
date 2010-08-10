@@ -44,17 +44,17 @@ TrackingTranslationalController::TrackingTranslationalController(core::ConfigNod
 
 math::Vector3 TrackingTranslationalController::translationalUpdate(
     double timestep,
-    math::Vector3 linearAcceleration,
-    math::Quaternion orientation,
-    math::Vector2 position,
-    math::Vector2 velocity,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
+    math::Quaternion orientation = estimator->getEstimatedOrientation();
     double yaw = orientation.getYaw().valueRadians(); 
 
     //Update current position and velocity
-    math::Vector2 currentPosition = position;     //assume position in inertial frame
-    math::Vector2 currentVelocity = math::nRb(yaw)*velocity; //rotate velocity to inertial frame
+    //assume position in inertial frame
+    math::Vector2 currentPosition = estimator->getEstimatedPosition();
+    //rotate velocity to inertial frame
+    math::Vector2 currentVelocity = math::nRb(yaw)*estimator->getEstimatedVelocity();
 
     math::Vector2 desiredPosition = desiredState->getDesiredPosition();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
@@ -66,7 +66,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
         //desiredState->setDesiredVelocity(desiredVelocity);
         break;
     case ControlMode::VELOCITY:
-        desiredPosition = position + desiredVelocity*timestep;
+        desiredPosition = currentPosition + desiredVelocity*timestep;
         //desiredState->setDesiredPosition(desiredPosition);
         break;
     case ControlMode::POSITIONANDVELOCITY:

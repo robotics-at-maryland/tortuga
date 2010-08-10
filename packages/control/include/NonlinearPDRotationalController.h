@@ -22,10 +22,10 @@ public:
     NonlinearPDRotationalController(ram::core::ConfigNode config);
     virtual ~NonlinearPDRotationalController() {}
 
-    virtual math::Vector3 rotationalUpdate(double timestep,
-                                           math::Quaternion orientation,
-                                           math::Vector3 angularRate,
-                                           controltest::DesiredStatePtr desiredState);
+    virtual math::Vector3 rotationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
 private:
 

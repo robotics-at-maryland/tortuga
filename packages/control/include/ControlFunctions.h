@@ -23,7 +23,8 @@
 #include "control/include/Export.h"
 
 namespace ram {
-namespace control {
+namespace control {    
+namespace bwpd {
 #else // RAM_MATLAB_CONTROL_TEST
 #define RAM_EXPORT
 #endif
@@ -31,6 +32,8 @@ namespace control {
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+
 
 // DesiredState = struct('speed',1,
 //                       'depth',1,
@@ -132,6 +135,7 @@ struct RAM_EXPORT ControllerState{
     math::Vector4 depthC4;
     
 };
+
 
 void RAM_EXPORT translationalController(MeasuredState* measuredState,
                                         DesiredState* desiredState,
@@ -238,6 +242,7 @@ double RAM_EXPORT HackedPDYawControl(MeasuredState* measuredState,
 #endif
 
 #ifndef RAM_MATLAB_CONTROL_TEST
+} // namespace bwpd
 } // namespace control
 } // namespace ram
 #endif // RAM_MATLAB_CONTROL_TEST

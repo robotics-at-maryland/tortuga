@@ -29,36 +29,21 @@ namespace control {
  */
 class RAM_EXPORT DepthControllerBase : public IDepthControllerImp
 {
-public:
+  public:
     DepthControllerBase(core::ConfigNode config);
     
     virtual ~DepthControllerBase() {}
 
-    /** Does housing keeping work, should be called first in every override
-     *
-     *  When this method is overridden to implement your controller, call this
-     *  method first with the same arguments you are given.
-     */
-    virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orienation,
-                                      controltest::DesiredStatePtr desiredState);
-protected:
-    // /** When we are within this limit atDepth returns */
-    // double m_depthThreshold;
+    virtual math::Vector3 depthUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
+  protected:
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
-
-    /** The depth from the last update command */
-    // double m_currentDepth;
-
-    // math::Quaternion m_currentOrientation;
-
-    // bool m_atDepth;
-
-    // bool m_atOrientation;
-
- private:
+    
+  private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);
 };

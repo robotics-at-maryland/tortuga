@@ -17,10 +17,12 @@ namespace ram {
 namespace control {
 
 // Forward Declartions
+namespace bwpd {
 struct DesiredState;
 struct MeasuredState;
 struct ControllerState;
 struct EstimatedState;
+}
 
 class IController;
 typedef boost::shared_ptr<IController> IControllerPtr;

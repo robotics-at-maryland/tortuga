@@ -1,9 +1,9 @@
-# Copyright (C) 2007 Maryland Robotics Club
-# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Wonders <jwonders@umd.edu>
 # All rights reserved.
 #
-# Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/control/gen_control.py
+# Author: Jonathan Wonders <jwonders@umd.edu>
+# File:  wrappers/estimation/gen_control.py
 
 import os
 

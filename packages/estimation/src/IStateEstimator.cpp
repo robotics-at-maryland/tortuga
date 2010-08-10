@@ -7,6 +7,7 @@
  * File:  packages/estimation/src/IStateEstimator.c
  */
 
+// Project Includes
 #include "estimation/include/IStateEstimator.h"
 
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_DEPTH_UPDATE);
@@ -17,5 +18,5 @@ RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_POSITION_UPDATE)
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_LINEARACCELERATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_DEPTHDOT_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_ANGULARRATE_UPDATE);
-RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_THRUST_UPDATE);
-
+RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_FORCES_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_TORQUES_UPDATE);

@@ -39,14 +39,8 @@ RAM_VEHICLE_RAWDVLDATA_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
 RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::DepthSensorInitEvent>
-RAM_VEHICLE_DEPTHSENSORINIT_EVENT;
-
-static ram::core::SpecificEventConverter<ram::vehicle::IMUInitEvent>
-RAM_VEHICLE_IMUINIT_EVENT;
-
-static ram::core::SpecificEventConverter<ram::vehicle::DVLInitEvent>
-RAM_VEHICLE_DVLINIT_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ThrustUpdateEvent>
+RAM_VEHICLE_THRUST_UPDATE_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
 
@@ -104,8 +98,9 @@ core::EventPtr RawIMUDataEvent::clone()
 
     event->name = name;
     event->rawIMUData = rawIMUData;
+    event->magIsCorrupt = magIsCorrupt; 
     event->timestep = timestep;
-
+ 
     return event;
 }
 
@@ -129,47 +124,19 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 
     event->name = name;
     event->rawDepth = rawDepth;
+    event->sensorLocation = sensorLocation;
     event->timestep = timestep;
 
     return event;
 }
 
-core::EventPtr IMUInitEvent::clone()
+core::EventPtr ThrustUpdateEvent::clone()
 {
-    IMUInitEventPtr event = IMUInitEventPtr(new IMUInitEvent());
+    ThrustUpdateEventPtr event = ThrustUpdateEventPtr(new ThrustUpdateEvent());
     copyInto(event);
 
-    event->name = name;
-    event->IMUtoVehicleFrame = math::Matrix3(IMUtoVehicleFrame);
-    event->magBias = math::Vector3(magBias);
-    event->gyroBias = math::Vector3(gyroBias);
-    event->magCorruptThreshold = magCorruptThreshold;
-    event->magNominalLength = magNominalLength;
-
-    return event;
-}
-
-core::EventPtr DVLInitEvent::clone()
-{
-    DVLInitEventPtr event = DVLInitEventPtr(new DVLInitEvent());
-    copyInto(event);
-
-    event->name = name;
-    event->angularOffset = angularOffset;
-
-    return event;
-}
-
-core::EventPtr DepthSensorInitEvent::clone()
-{
-    DepthSensorInitEventPtr event = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-    copyInto(event);
-
-    event->name = name;
-    event->location = location;
-    event->depthCalibSlope = depthCalibSlope;
-    event->depthCalibIntercept = depthCalibIntercept;
+    event->forces = forces;
+    event->torques = torques;
 
     return event;
 }

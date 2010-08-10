@@ -39,7 +39,9 @@ class RAM_EXPORT CombineController : public ControllerBase
 {
 public:
     /** Construct the controller with the given vehicle */
-    CombineController(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
+    CombineController(vehicle::IVehiclePtr vehicle,
+                      estimation::IStateEstimatorPtr estimator,
+                      core::ConfigNode config);
     
     /** The controller finds its vehicle from the given list of subsystems */
     CombineController(core::ConfigNode config,
@@ -63,12 +65,6 @@ public:
 
 protected:
     virtual void doUpdate(const double& timestep,
-                          const math::Vector3& linearAcceleration,
-                          const math::Quaternion& orientation,
-                          const math::Vector3& angularRate,
-                          const double& depth,
-                          const math::Vector2& position,
-                          const math::Vector2& velocity,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut);
 

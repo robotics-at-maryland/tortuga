@@ -90,6 +90,7 @@ struct RawIMUDataEvent : public core::Event
 {
     std::string name;
     RawIMUData rawIMUData;
+    bool magIsCorrupt;
     double timestep;
 
     virtual core::EventPtr clone();
@@ -112,6 +113,7 @@ struct RawDepthSensorDataEvent : public core::Event
 {
     std::string name;
     double rawDepth;
+    math::Vector3 sensorLocation;
     double timestep;
 
     virtual core::EventPtr clone();
@@ -119,54 +121,17 @@ struct RawDepthSensorDataEvent : public core::Event
 
 typedef boost::shared_ptr<RawDepthSensorDataEvent> RawDepthSensorDataEventPtr;
 
-
-/* The following events exist so that when a sensor is created, it can publish
-   its calibration values that might be needed by other parts of the code.  These
-   values arent passed in the update events for efficiency purposes since they will
-   not change during runtime */
-
-struct IMUInitEvent : public core::Event
+struct ThrustUpdateEvent : public core::Event
 {
-    std::string name;
-    
-    // rotation matrix from imu frame to vehicle frame
-    math::Matrix3 IMUtoVehicleFrame;
-
-    // [magXBias, magYBias, magZBias]
-    math::Vector3 magBias;
-
-    // [gyroXBias, gyroYBias, gyroZBias]
-    math::Vector3 gyroBias;
-
-    double magCorruptThreshold;
-    double magNominalLength;
+    math::Vector3 forces;
+    math::Vector3 torques;
 
     virtual core::EventPtr clone();
 };
 
-typedef boost::shared_ptr<IMUInitEvent> IMUInitEventPtr;
+typedef boost::shared_ptr<ThrustUpdateEvent> ThrustUpdateEventPtr;
 
-struct DVLInitEvent : public core::Event
-{
-    std::string name;
-    double angularOffset;
 
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<DVLInitEvent> DVLInitEventPtr;
-
-struct DepthSensorInitEvent : public core::Event
-{
-    std::string name;
-    math::Vector3 location;
-    double depthCalibSlope;
-    double depthCalibIntercept;
-
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<DepthSensorInitEvent> DepthSensorInitEventPtr;
     
 } // namespace vehicle
 } // namespace ram

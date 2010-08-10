@@ -16,7 +16,7 @@ import ext.control
 class TestIController(unittest.TestCase):
     def test(self):
         cfg = {
-            "type" : "BWPDController",
+            "type" : "CombineController",
             "angularPGain" : 10,
             "angularDGain" : 1,
             "speedPGain" : 3,

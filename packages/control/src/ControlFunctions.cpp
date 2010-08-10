@@ -31,6 +31,7 @@
 #ifndef RAM_MATLAB_CONTROL_TEST
 namespace ram {
 namespace control {
+namespace bwpd {
 #endif // RAM_MATLAB_CONTROL_TEST
 
 // Brings ram::math Helper functions into scope
@@ -1549,6 +1550,7 @@ void HackedPDRotationalController(MeasuredState* measuredState,
 */
 
 #ifndef RAM_MATLAB_CONTROL_TEST
+} // namespace bwpd
 } // namespace control
 } // namespace ram
 #endif // RAM_MATLAB_CONTROL_TEST

@@ -16,11 +16,14 @@
 #ifndef RAM_ESTIMATION_ESTIMATIONMODULE_H
 #define RAM_ESTIMATION_ESTIMATIONMODULE_H
 
+// STD Includes
+
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "estimation/include/EstimatedState.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
@@ -41,9 +44,6 @@ public:
     EstimationModule(core::EventHubPtr eventHub = core::EventHubPtr(),
                      std::string name = "");
     virtual ~EstimationModule(){}
-
-    /* init - called when a sensor publishes calibration values */
-    virtual void init(core::EventPtr event) = 0;
 
     /* update - the function that will be called to perform the estimation */
     virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState) = 0;

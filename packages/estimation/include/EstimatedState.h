@@ -16,16 +16,20 @@
 #ifndef RAM_ESTIMATION_ESTIMATEDSTATE_H
 #define RAM_ESTIMATION_ESTIMATEDSTATE_H
 
-// Library Includes
+// STD Includes
 #include <string>
 #include <map>
+
+// Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "estimation/include/IStateEstimator.h"
+#include "estimation/include/Obstacle.h"
+
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/EventPublisher.h"
-#include "estimation/include/Obstacle.h"
+
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"

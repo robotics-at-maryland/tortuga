@@ -21,12 +21,12 @@ TEST(TestDive0To1v2)
 	// L = {43.525, 461.173}
 	// xHat2Depth = {0, 0}
 	
-	control::DesiredState desired = {0};
+	control::bwpd::DesiredState desired = {0};
 	desired.depth = 1;
 		
-	control::MeasuredState measured = {0};
+	control::bwpd::MeasuredState measured = {0};
 
-	control::ControllerState state = {0};
+	control::bwpd::ControllerState state = {0};
 /*{0, //angP gain (not used)
 0, //angD gain (not used)
 {{0,0,0}, //inertia est (not used)
@@ -51,7 +51,7 @@ state.depthL = math::Vector2(43.525, 461.173); //Vector2 L
 state.dtMin = .001;
 state.dtMax = 1; 
 
-control::EstimatedState estimated = {math::Vector2(0,0)};
+control::bwpd::EstimatedState estimated = {math::Vector2(0,0)};
 
 depthObserver2(&measured,&desired,&state,&estimated,1);
 double result = depthPDController2(&measured,&desired,&state,&estimated);
@@ -66,10 +66,10 @@ TEST(Dive1To1v2){
 	// L = {43.525, 461.173}
 	// xHat2Depth = {1, 0}
 	
-	control::DesiredState desired = {0};
+	control::bwpd::DesiredState desired = {0};
 	desired.depth = 1;
 	
-	control::MeasuredState measured = {0};
+	control::bwpd::MeasuredState measured = {0};
 	measured.depth = 1;
 /*{1, //depth
 {0},  //accel
@@ -78,7 +78,7 @@ TEST(Dive1To1v2){
 	{0} //ang rate (not used)
 };*/
 
-control::ControllerState state= {0};
+control::bwpd::ControllerState state= {0};
 /*{0, //angP gain (not used)
 	0, //angD gain (not used)
 	{{0,0,0}, //inertia est (not used)
@@ -103,7 +103,7 @@ state.depthL = math::Vector2(43.525, 461.173); //Vector2 L
 state.dtMin = .001;
 state.dtMax = 1; 
 
-control::EstimatedState estimated = {math::Vector2(0,0)};
+control::bwpd::EstimatedState estimated = {math::Vector2(0,0)};
 estimated.xHat2Depth = math::Vector2(1,0);
 /*{ {1,0} //Vector2 xHat2Depth
 };*/
@@ -121,12 +121,12 @@ TEST(TestDive0To1withDiffKandLv2){
 	// L = {0.22927, 0.026282}
 	// xHat2Depth = {0, 0}
 	
-	control::DesiredState desired = {0};
+	control::bwpd::DesiredState desired = {0};
 	desired.depth = 1;
 	
-	control::MeasuredState measured = {0};
+	control::bwpd::MeasuredState measured = {0};
 
-control::ControllerState state = {0};
+control::bwpd::ControllerState state = {0};
 /*{0, //angP gain (not used)
 	0, //angD gain (not used)
 	{{0,0,0}, //inertia est (not used)
@@ -151,7 +151,7 @@ state.depthL = math::Vector2(0.22927, 0.026282); //Vector2 L
 state.dtMin = .001;
 state.dtMax = 1; 
 
-control::EstimatedState estimated = {math::Vector2(0,0)};
+control::bwpd::EstimatedState estimated = {math::Vector2(0,0)};
 
 depthObserver2(&measured,&desired,&state,&estimated,1);
 double result = depthPDController2(&measured,&desired,&state,&estimated);
@@ -167,12 +167,12 @@ TEST(TestDive0To2v2){
 	// L = {0.22927, 0.026282}
 	// xHat2Depth = {0, 0}
 	
-	control::DesiredState desired = {0};
+	control::bwpd::DesiredState desired = {0};
 	desired.depth = 2;
 	
-	control::MeasuredState measured = {0};
+	control::bwpd::MeasuredState measured = {0};
 
-control::ControllerState state = {0};
+control::bwpd::ControllerState state = {0};
 /*{0, //angP gain (not used)
 	0, //angD gain (not used)
 	{{0,0,0}, //inertia est (not used)
@@ -197,7 +197,7 @@ state.depthL = math::Vector2(0.22927, 0.026282); //Vector2 L
 state.dtMin = .001;
 state.dtMax = 1; 
 
-control::EstimatedState estimated = {math::Vector2(0,0)};
+control::bwpd::EstimatedState estimated = {math::Vector2(0,0)};
 
 depthObserver2(&measured,&desired,&state,&estimated,1);
 double result = depthPDController2(&measured,&desired,&state,&estimated);

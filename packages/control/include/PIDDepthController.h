@@ -22,9 +22,10 @@ public:
     PIDDepthController(ram::core::ConfigNode config);
     virtual ~PIDDepthController() {}
 
-    virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orientation,
-                                      controltest::DesiredStatePtr desiredState);
+    virtual math::Vector3 depthUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
 private:
 

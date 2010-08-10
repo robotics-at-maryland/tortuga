@@ -15,15 +15,20 @@
 #ifndef RAM_ESTIMATION_ISTATEESTIMATOR_H
 #define RAM_ESTIMATION_ISTATEESTIMATOR_H
 
-// Library Includes
+// STD Includes
 #include <string>
+
+// Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "estimation/include/Obstacle.h"
+
 #include "vehicle/include/Common.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
-#include "estimation/include/Obstacle.h"
+
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
@@ -59,7 +64,8 @@ public:
     static const core::Event::EventType ESTIMATED_LINEARACCELERATION_UPDATE;
     static const core::Event::EventType ESTIMATED_DEPTHDOT_UPDATE;
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
-    static const core::Event::EventType ESTIMATED_THRUST_UPDATE;
+    static const core::Event::EventType ESTIMATED_FORCES_UPDATE;
+    static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;
 
 protected:
     IStateEstimator(){};

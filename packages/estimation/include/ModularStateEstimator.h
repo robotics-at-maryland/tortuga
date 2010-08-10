@@ -7,16 +7,20 @@
  * File:  packages/estimation/include/ModularStateEstimator.h
  */
 
+// STD Includes
+
 // Library Includes
 
 // Project Includes
+#include "estimation/include/EstimationModule.h"
+#include "estimation/include/StateEstimatorBase.h"
+#include "estimation/include/modules/IncludeAllModules.h"
+
 #include "core/include/Forward.h"
 #include "core/include/EventHub.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
-#include "estimation/include/EstimationModule.h"
-#include "estimation/include/StateEstimatorBase.h"
-#include "estimation/include/modules/IncludeAllModules.h"
+
 
 #ifndef RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
 #define RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
@@ -43,10 +47,6 @@ protected:
     virtual void rawUpdate_DepthSensor(core::EventPtr event);
     virtual void update_Vision(core::EventPtr event);
     virtual void update_Sonar(core::EventPtr event);
-
-    virtual void init_IMU(core::EventPtr event);
-    virtual void init_DVL(core::EventPtr event);
-    virtual void init_DepthSensor(core::EventPtr event);
 
 private:
     /* These contain estimation routines that are config swappable */

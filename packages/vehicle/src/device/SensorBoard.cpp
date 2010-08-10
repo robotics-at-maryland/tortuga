@@ -62,16 +62,6 @@ SensorBoard::SensorBoard(int deviceFD,
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
 
-    /* Publish the Depth Sensor calibration values for the estimator */
-    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-    depthSensorInit->name = getName();
-    depthSensorInit->location = m_location;
-    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
-    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
-
-    publish(IDepthSensor::INIT, depthSensorInit);
-
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
@@ -108,14 +98,6 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
-
-    /* Publish the Depth Sensor calibration values for the estimator */
-    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-    depthSensorInit->name = config["name"].asString();
-    depthSensorInit->location = m_location;
-    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
-    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
 
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
@@ -190,6 +172,7 @@ void SensorBoard::update(double timestep)
         new vehicle::RawDepthSensorDataEvent());
     rawEvent->name = getName();
     rawEvent->rawDepth = depth;
+    rawEvent->sensorLocation = m_location;
     rawEvent->timestep = timestep;
     publish(IDepthSensor::RAW_UPDATE, rawEvent);
 

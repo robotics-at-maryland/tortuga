@@ -50,9 +50,8 @@ AdaptiveRotationalController::AdaptiveRotationalController(
 
 math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     double timestep,
-    math::Quaternion orientation,
-    math::Vector3 angularRate,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
     /* Prevent mult, div by zero bugs */
     clip(timestep, m_dtMin, m_dtMax);
@@ -64,9 +63,9 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
      * tilde denotes an error quantity
      */
     math::Quaternion qd(desiredState->getDesiredOrientation());
-    math::Quaternion q(orientation);
+    math::Quaternion q(estimator->getEstimatedOrientation());
     math::Vector3 wd(desiredState->getDesiredAngularRate());
-    math::Vector3 w(angularRate);
+    math::Vector3 w(estimator->getEstimatedAngularRate());
 
 	/****************************
        propagate desired states 

@@ -34,12 +34,10 @@ OpenLoopTranslationalController::OpenLoopTranslationalController(
     
 math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     double timestep,
-    math::Vector3 linearAcceleration,
-    math::Quaternion orientation,
-    math::Vector2 position,
-    math::Vector2 velocity,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
+    math::Quaternion orientation = estimator->getEstimatedOrientation();
     // The quaternion with just the pitch
     math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
                                math::Vector3::UNIT_Y);

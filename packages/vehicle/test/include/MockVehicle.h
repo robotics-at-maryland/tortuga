@@ -18,7 +18,6 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
-#include "estimation/include/IStateEstimator.h"
 #include "vehicle/include/IVehicle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Quaternion.h"
@@ -31,15 +30,9 @@ class MockVehicle : public ram::vehicle::IVehicle
 public:
     MockVehicle() :
         IVehicle("MockVehicle"),
-        depth(0),
-        position(0, 0),
-        velocity(0, 0),
-        linearAcceleration(0, 0, 0),
-        angularRate(0, 0, 0),
-        orientation(0,0,0,1),
         force(0,0,0),
         torque(0,0,0)
-    {};
+    {}
                 
 //    virtual ~MockVehicle {};
     
@@ -61,14 +54,6 @@ public:
         
         return names;
     }
-    
-    virtual double getDepth(std::string obj = "vehicle")  { return depth; }
-
-    virtual ram::math::Vector2 getPosition(std::string obj = "vehicle")
-	{ return position; }
-
-    virtual ram::math::Vector2 getVelocity(std::string obj = "vehicle")
-	{ return velocity; }
 
     virtual std::vector<std::string> getTemperatureNames()
     {
@@ -82,25 +67,6 @@ public:
         return std::vector<int>();
     }
 
-    virtual ram::math::Vector3 getLinearAcceleration() { return linearAcceleration;}
-     
-    virtual ram::math::Vector3 getAngularRate() { return angularRate; }
-    
-    virtual ram::math::Quaternion getOrientation(std::string obj = "vehicle")
-	{ return orientation; }
-
-    virtual double getRawDepth() { return 0; }
-
-    virtual ram::math::Vector2 getRawPosition() { return ram::math::Vector2::ZERO; }
-
-    virtual ram::math::Vector2 getRawVelocity() { return ram::math::Vector2::ZERO; }
-
-    virtual ram::math::Quaternion getRawOrientation() { 
-        return ram::math::Quaternion::IDENTITY; }
-
-    virtual ram::estimation::IStateEstimatorPtr getStateEstimator() {
-        return ram::estimation::IStateEstimatorPtr();
-    }
     virtual bool hasObject(std::string obj)
         { return obj == "vehicle"; }
     
@@ -145,19 +111,6 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
 
-    void _setOrientation(ram::math::Quaternion quat) {
-      orientation = quat; }
-
-    void _setDepth(double depth_) {
-        depth = depth_; }
-
-    
-    double depth;
-    ram::math::Vector2 position;
-    ram::math::Vector2 velocity;
-    ram::math::Vector3 linearAcceleration;
-    ram::math::Vector3 angularRate;
-    ram::math::Quaternion orientation;
     ram::math::Vector3 force;
     ram::math::Vector3 torque;
     ram::vehicle::NameDeviceMap devices;

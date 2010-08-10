@@ -19,60 +19,61 @@
 #include "vehicle/test/include/MockVehicle.h"
 #include "control/include/ControllerBase.h"
 #include "control/test/include/MockControllerBaseImp.h"
+#include "estimation/test/include/MockEstimator.h"
 
 using namespace ram;
 
 struct ControlBaseFixture
 {
-    ControlBaseFixture() : vehicle(new MockVehicle()),
-                mockController(ram::vehicle::IVehiclePtr(vehicle),
-                           core::ConfigNode::fromString(
-                               "{ 'name' : 'TestController'}"))
+    ControlBaseFixture() : 
+        vehicle(new MockVehicle()),
+        estimator(new MockEstimator()),
+        mockController(ram::vehicle::IVehiclePtr(vehicle),
+                       ram::estimation::IStateEstimatorPtr(estimator),
+                       core::ConfigNode::fromString(
+                           "{ 'name' : 'TestController'}"))
     {}
 
     MockVehicle* vehicle;
+    MockEstimator* estimator;
     MockControllerBaseImp mockController;
 };
 
 SUITE(ControllerBase) {
 
-// TEST_FIXTURE(ControlBaseFixture, update)
-// {
-//     // Values to passed off to the vehicle
-//     mockController.translationalForceOut = math::Vector3(3, 7, 1);
-//     mockController.rotationalTorqueOut = math::Vector3(11, 2, 5);
+TEST_FIXTURE(ControlBaseFixture, update)
+{
+    /* Make sure that update is able to correctly call doUpdate of the
+     * implementation.  Also make sure that update is able to correctly
+     * set forces and torques of the mock vehicle */
 
-//     // Values to be passed to controller
-//     double timestep = 0.892;
-//     vehicle->linearAcceleration = math::Vector3(1,2,3);
-//     vehicle->orientation = math::Quaternion(2.3, 4.12, 1.23, 1);
-//     vehicle->angularRate = math::Vector3(0.123, 6.56, 3.123);
-//     vehicle->depth = 2.123;
+    // Values to passed off to the vehicle
+    mockController.translationalForceOut = math::Vector3(3, 7, 1);
+    mockController.rotationalTorqueOut = math::Vector3(11, 2, 5);
 
-//     // Run the update
-//     mockController.update(timestep);
+    // Values to be passed to controller
+    double timestep = 0.892;
 
-//     // Check the values are passed to subclass properly
-//     CHECK_EQUAL(timestep, mockController.timestep);
-//     CHECK_EQUAL(vehicle->linearAcceleration, mockController.linearAcceleration);
-//     CHECK_EQUAL(vehicle->orientation, mockController.orientation);
-//     CHECK_EQUAL(vehicle->angularRate, mockController.angularRate);
-//     CHECK_EQUAL(vehicle->depth, mockController.depth);
+    // Run the update
+    mockController.update(timestep);
 
-//     // Check that the vehicle gets passed the proper values
-//     CHECK_EQUAL(mockController.translationalForceOut, vehicle->force);
-//     CHECK_EQUAL(mockController.rotationalTorqueOut, vehicle->torque);
-// }
+    // Check the values are passed to subclass properly
+    CHECK_EQUAL(timestep, mockController.timestep);
+     
+    // Check that the vehicle gets passed the proper values
+    CHECK_EQUAL(mockController.translationalForceOut, vehicle->force);
+    CHECK_EQUAL(mockController.rotationalTorqueOut, vehicle->torque);
+}
 
-// void depthHelper(double* result, ram::core::EventPtr event)
-// {
-//     ram::math::NumericEventPtr nevent =
-//         boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
-//     *result = nevent->number;
-// }
+void depthHelper(double* result, ram::core::EventPtr event)
+{
+    ram::math::NumericEventPtr nevent =
+        boost::dynamic_pointer_cast<ram::math::NumericEvent>(event);
+    *result = nevent->number;
+}
 
-// TEST_FIXTURE(ControlBaseFixture, newDepthSet)
-// {
+TEST_FIXTURE(ControlBaseFixture, newDepthSet)
+{
 //     double actualDesiredDepth = 0;
 //     double actualDepth = 0;
     
@@ -96,6 +97,59 @@ SUITE(ControllerBase) {
 //     mockController._newDepthSet(2.8);
 //     CHECK_EQUAL(2.8, actualDesiredDepth);
 //     CHECK_EQUAL(2.8, actualDepth);
-// }
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetDepth)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetSpeed)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetSidewaysSpeed)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetVelocity)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetPosition)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, setGetOrientation)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, holdCurrentPosition)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, holdCurrentOrientation)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, holdCurrentHeading)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, atDepthUpdate)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, atPositionUpdate)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, atVelocityUpdate)
+{
+}
+
+TEST_FIXTURE(ControlBaseFixture, atOrientationUpdate)
+{
+}
+
 
 } // SUITE(ControllerBase)

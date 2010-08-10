@@ -13,13 +13,17 @@
 #ifndef RAM_ESTIMATION_DEPTHKALMANMODULE_H
 #define RAM_ESTIMATION_DEPTHKALMANMODULE_H
 
+// STD Includes
+
 // Library Includes
 
 // Project Includes
-#include "core/include/ConfigNode.h"
-#include "core/include/Event.h"
 #include "estimation/include/EstimatedState.h"
 #include "estimation/include/EstimationModule.h"
+
+#include "core/include/ConfigNode.h"
+#include "core/include/Event.h"
+
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
@@ -34,19 +38,14 @@ public:
                       core::EventHubPtr eventHub);
     ~DepthKalmanModule(){};
 
-    /* called when a depth sensor publishes calibration values */
-    virtual void init(core::EventPtr event);
-
     /* The Depth Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event,
+                        EstimatedStatePtr estimatedState);
 
 private:
     /* any necessary persistent variables should be declared here */
     std::string m_name;
-    math::Vector3 m_location;
-    double m_calibSlope;
-    double m_calibIntercept;
 
     // Kalman Filter Variables
 

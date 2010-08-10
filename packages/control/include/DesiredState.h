@@ -25,7 +25,7 @@
 #include "control/include/Export.h"
 
 namespace ram {
-namespace controltest {
+namespace control {
 
 class DesiredState;
 typedef boost::shared_ptr<DesiredState> DesiredStatePtr;
@@ -105,7 +105,7 @@ private:
     core::ReadWriteMutex m_stateMutex;
 }; // class
 
-} //namespace controltest
+} //namespace control
 } //namespace ram
 
 #endif //RAM_CONTROL_DESIREDSTATE_H

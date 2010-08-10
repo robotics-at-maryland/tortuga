@@ -28,9 +28,6 @@ namespace estimation {
 DepthKalmanModule::DepthKalmanModule(core::ConfigNode config, 
                                      core::EventHubPtr eventHub) :
     EstimationModule(eventHub, "DepthKalmanModule"),
-    m_location(math::Vector3::ZERO),
-    m_calibSlope(0),
-    m_calibIntercept(0),
     m_mass(30),
     m_x0(math::Vector2::ZERO),
     m_P0(math::Matrix2(0.5,0.,0.,0.)),
@@ -39,25 +36,6 @@ DepthKalmanModule::DepthKalmanModule(core::ConfigNode config,
     /* initialization from config values should be done here */
 
     LOGGER.info("% Name EstDepth");
-}
-
-
-void DepthKalmanModule::init(core::EventPtr event)
-{
-    // receive the sensor config parameters
-    vehicle::DepthSensorInitEventPtr ievent = 
-        boost::dynamic_pointer_cast<vehicle::DepthSensorInitEvent>(event);
-
-    if(!event) {
-        std::cerr << "DepthKalmanModule: init: Invalid Event Type"
-                  << std::endl; 
-        return;
-    }
-
-    m_name = ievent->name;
-    m_location = ievent->location;
-    m_calibSlope = ievent->depthCalibSlope;
-    m_calibIntercept = ievent->depthCalibIntercept;
 }
 
 void DepthKalmanModule::update(core::EventPtr event, 
@@ -78,10 +56,10 @@ void DepthKalmanModule::update(core::EventPtr event,
        The result should be stored in estimatedState */
 
     // Determine depth correction
-    math::Vector3 currentSensorLocation = 
-      estimatedState->getEstOrientation() * m_location;
-    math::Vector3 sensorMovement = 
-      currentSensorLocation - m_location;
+    math::Vector3 currentSensorLocation = math::Vector3::ZERO; 
+//      estimatedState->getEstOrientation() * m_location;
+    math::Vector3 sensorMovement = math::Vector3::ZERO;
+//      currentSensorLocation - m_location;
     double correction = sensorMovement.z;
     
     // Grab the depth

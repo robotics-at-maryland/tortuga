@@ -36,11 +36,13 @@ PIDDepthController::PIDDepthController(ram::core::ConfigNode config) :
     dt_max = config["dtMax"].asDouble(0.5);
 }
 
-math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
-                                              math::Quaternion orientation,
-                                              controltest::DesiredStatePtr desiredState)
+math::Vector3 PIDDepthController::depthUpdate(
+    double timestep,
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
     double desiredDepth = desiredState->getDesiredDepth();
+    double depth = estimator->getEstimatedDepth();
 
     if(timestep < dt_min)
         timestep = dt_min;

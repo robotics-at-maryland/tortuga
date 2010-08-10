@@ -35,7 +35,7 @@
 //#include "imu/include/imuapi.h"
 
 // Register controller in subsystem maker system
-RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::BWPDController, BWPDController);
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::bwpd::BWPDController, BWPDController);
 
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
@@ -45,8 +45,10 @@ using namespace std;
 
 namespace ram {
 namespace control {
+namespace bwpd {
 
 BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
+                               estimation::IStateEstimatorPtr estimator,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
     m_atDepth(false),
@@ -54,6 +56,7 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
     m_depthThreshold(0),
     m_orientationThreshold(0),
     m_vehicle(vehicle),
+    m_estimator(estimator),
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
@@ -73,6 +76,7 @@ BWPDController::BWPDController(core::ConfigNode config,
     m_depthThreshold(0),
     m_orientationThreshold(0),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
+    m_estimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps)),
     m_config(config),
     m_desiredState(0),
     m_measuredState(0),
@@ -338,7 +342,7 @@ bool BWPDController::atDepth()
 void BWPDController::holdCurrentDepth()
 {
     // Set depth to the current vehicle depth
-    setDepth(m_vehicle->getDepth());
+    setDepth(m_estimator->getEstimatedDepth());
 }
     
   /*
@@ -353,7 +357,7 @@ void BWPDController::holdCurrentHeading()
     core::ReadWriteMutex::ScopedWriteLock lock(m_desiredEstimatedStateMutex);
     //get current orientation
     //math::Quaternion q(m_measuredState->quaternion);
-    math::Quaternion qCurrent(m_vehicle->getOrientation());
+    math::Quaternion qCurrent(m_estimator->getEstimatedOrientation());
 
     //find approximation of vehicle yaw based off orientation
     math::Radian yaw = qCurrent.getYaw();
@@ -406,25 +410,25 @@ void BWPDController::update(double timestep)
     }
 
     // Grab latest state (preform small hack to copy it over for the controller)
-    math::Vector3 linearAcceleration(m_vehicle->getLinearAcceleration());
+    math::Vector3 linearAcceleration(m_estimator->getEstimatedLinearAcceleration());
     memcpy(&m_measuredState->linearAcceleration[0],
            &linearAcceleration, sizeof(double) * 3);
 
     //std::cout << "A: " << linearAcceleration << std::endl;
-    math::Quaternion orientation(m_vehicle->getOrientation());
+    math::Quaternion orientation(m_estimator->getEstimatedOrientation());
     memcpy(&m_measuredState->quaternion[0],
            &orientation, sizeof(double) * 4);
 
     //std::cout << "O: " << orientation << std::endl;
     
-    math::Vector3 angularRate(m_vehicle->getAngularRate());
+    math::Vector3 angularRate(m_estimator->getEstimatedAngularRate());
     memcpy(&m_measuredState->angularRate[0],
            &angularRate, sizeof(double) * 3);
 
     //std::cout << "W: " << angularRate << std::endl;
-    m_measuredState->depth = m_vehicle->getDepth();
+    m_measuredState->depth = m_estimator->getEstimatedDepth();
 
-    m_measuredState->velocity = m_vehicle->getVelocity();
+    m_measuredState->velocity = m_estimator->getEstimatedVelocity();
     
     // Calculate new forces
     math::Vector3 translationalForce(0,0,0);
@@ -883,6 +887,7 @@ bool BWPDController::atVelocity()
     std::cerr << "BWPDController::atVelocity(): NOT IMPLEMENTED" << std::endl;
     return 0;
 }
-        
+
+} // namespace bwpd        
 } // namespace control
 } // namespace ram

@@ -12,7 +12,6 @@
 #include "control/include/DesiredState.h"
 #include "control/include/IController.h"
 #include "vehicle/include/Common.h"
-#include "vehicle/include/IVehicle.h"
 #include "core/include/ReadWriteMutex.h"
 #include "math/include/Events.h"
 #include "core/include/EventHub.h"
@@ -20,8 +19,8 @@
 // Must Be Included last
 #include "control/include/Export.h"
 
-namespace ram{
-namespace controltest{
+namespace ram {
+namespace control {
 
 DesiredState::DesiredState(core::ConfigNode config, core::EventHubPtr eventHub) :
     core::EventPublisher(eventHub, "DesiredState"),
@@ -125,10 +124,6 @@ void DesiredState::newDepthSet(const double& newDepth)
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = newDepth;
     publish(control::IController::DESIRED_DEPTH_UPDATE, event);
-
-    // Make sure to publish if we set a depth that is within our range
-    // if (atDepth())
-    //     publishAtDepth(newDepth);
 }
 
 void DesiredState::newDesiredOrientationSet(
@@ -137,9 +132,6 @@ void DesiredState::newDesiredOrientationSet(
     math::OrientationEventPtr event(new math::OrientationEvent());
     event->orientation = newOrientation;
     publish(control::IController::DESIRED_ORIENTATION_UPDATE, event);
-    
-    // if(atOrientation())
-    //     publishAtOrientation(newOrientation);
 }
 
 void DesiredState::newDesiredVelocitySet(const math::Vector2& newVelocity)
@@ -147,9 +139,6 @@ void DesiredState::newDesiredVelocitySet(const math::Vector2& newVelocity)
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = newVelocity;
     publish(control::IController::DESIRED_VELOCITY_UPDATE, event);
-    
-    // if(atVelocity())
-    //     publishAtVelocity(newVelocity);
 }
 
 void DesiredState::newDesiredPositionSet(const math::Vector2& newPosition)
@@ -157,9 +146,6 @@ void DesiredState::newDesiredPositionSet(const math::Vector2& newPosition)
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = newPosition;
     publish(control::IController::DESIRED_POSITION_UPDATE, event);
-    
-    // if(atPosition())
-    //     publishAtPosition(newPosition);
 }
 
 

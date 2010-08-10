@@ -68,15 +68,6 @@ protected:
     virtual void update_Vision(core::EventPtr event) = 0;
     virtual void update_Sonar(core::EventPtr event) = 0;
 
-    /* These should be bound to sensor init events to get calibration values.
-    ** When sensors are initialized, they will publish their configuation.
-    ** These functions should somehow store the configuation so it is
-    ** available to the estimator update functions 
-    */
-    virtual void init_DVL(core::EventPtr event) = 0;
-    virtual void init_IMU(core::EventPtr event) = 0;
-    virtual void init_DepthSensor(core::EventPtr event) = 0;
-
     /* These keep track of the event subscriptions.
     ** This class will delete them on deconstruction.
     */
@@ -85,10 +76,6 @@ protected:
     core::EventConnectionPtr updateConnection_DepthSensor;
     core::EventConnectionPtr updateConnection_Sonar;
     core::EventConnectionPtr updateConnection_Vision;
-
-    core::EventConnectionPtr initConnection_IMU;
-    core::EventConnectionPtr initConnection_DVL;
-    core::EventConnectionPtr initConnection_DepthSensor;
 
     // Pointer to access the estimated state for this estimator
     EstimatedStatePtr estimatedState;

@@ -16,6 +16,7 @@ import unittest
 import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
+import ext.estimation as estimation
 import ext.math
 
 import ram.timer as timer
@@ -197,7 +198,35 @@ class MockVehicle(vehicle.IVehicle):
                            orientation)
     velocity = property(lambda self: self._velocity['vehicle'], velocity)
     position = property(lambda self: self._position['vehicle'], position)
-    
+
+
+# Mock Estimatior
+class MockEstimator(estimation.IStateEstimator):
+    def __init__():
+        self.name = "BlahBlahThisDoesntMakeSense"
+        
+    def getEstimatedPosition():
+        return math.Vector2(0,0)
+    def getEstimatedVelocity():
+        return math.Vector2(0,0)
+    def getEstimatedLinearAcceleration():
+        return math.Vector3(0,0,0)
+    def getEstimatedAngularRate():
+        return math.Vector3(0,0,0)
+    def getEstimatedOrientation():
+        return math.Quaternion(0,0,0,1)
+    def getEstimatedDepth():
+        return 0
+    def getEstimatedDepthDot():
+        return 0
+    def addObstacle(name, obstacle):
+        self.name = name
+        self.obstacle = obstacle
+    def getObstaclePosition():
+        return math.Vector2(0,0)
+    def getObstacleDepth():
+        return 0
+
 # For testing purposes
 class MockTimer(timer.Timer):
     ORIG = timer.Timer

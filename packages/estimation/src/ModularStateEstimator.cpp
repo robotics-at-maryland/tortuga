@@ -7,19 +7,25 @@
  * File:  packages/estimation/src/ModularStateEstimator.cpp
  */
 
-// Library Includes
-#include <boost/bind.hpp>
+// STD Includes
 #include <iostream>
 
+// Library Includes
+#include <boost/bind.hpp>
+
 // Project Includes
+#include "estimation/include/ModularStateEstimator.h"
+
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/IIMU.h"
 #include "vehicle/include/device/IDepthSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
+#include "vehicle/include/Events.h"
+
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
-#include "estimation/include/ModularStateEstimator.h"
-#include "vehicle/include/Events.h"
+
+
 
 namespace ram {
 namespace estimation {
@@ -46,18 +52,6 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
         updateConnection_DVL = eventHub->subscribeToType(
             vehicle::device::IVelocitySensor::RAW_UPDATE,
             boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
-
-        initConnection_IMU = eventHub->subscribeToType(
-            vehicle::device::IIMU::INIT,
-            boost::bind(&ModularStateEstimator::init_IMU,this,_1));
-
-        initConnection_DVL = eventHub->subscribeToType(
-            vehicle::device::IVelocitySensor::INIT,
-            boost::bind(&ModularStateEstimator::init_DVL,this,_1));
-
-        initConnection_DepthSensor = eventHub->subscribeToType(
-            vehicle::device::IDepthSensor::INIT,
-            boost::bind(&ModularStateEstimator::init_DepthSensor,this,_1));
     }
 
     // Construct the estimation modules
@@ -88,35 +82,8 @@ ModularStateEstimator::~ModularStateEstimator()
     
     if(updateConnection_Vision)
         updateConnection_Vision->disconnect();
-
-    /* unbind the init functions */
-    if(initConnection_IMU)
-        initConnection_IMU->disconnect();
-
-    if(initConnection_DVL)
-        initConnection_DVL->disconnect();
-   
-    if(initConnection_DepthSensor)
-        initConnection_DepthSensor->disconnect();
 }
 
-void ModularStateEstimator::init_DVL(core::EventPtr event)
-{
-    /* Pass along sensor init events to estimation module */
-    dvlEstimationModule->init(event);
-}
-
-void ModularStateEstimator::init_IMU(core::EventPtr event)
-{
-    /* Pass along sensor init events to estimation module */
-    imuEstimationModule->init(event);
-}
-
-void ModularStateEstimator::init_DepthSensor(core::EventPtr event)
-{
-    /* Pass along sensor init events to estimation module */
-    depthEstimationModule->init(event);
-}
 
 void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
 {

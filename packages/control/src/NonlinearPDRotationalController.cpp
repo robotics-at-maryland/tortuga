@@ -41,16 +41,16 @@ NonlinearPDRotationalController::NonlinearPDRotationalController(
 
 math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     double timestep,
-    math::Quaternion orientation,
-    math::Vector3 angularRate,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
     math::Quaternion desiredOrientation = desiredState->getDesiredOrientation();
+    math::Vector3 angularRate = estimator->getEstimatedAngularRate();
 
     //compute error quaternion
     math::Quaternion q_tilde;
-    math::Quaternion q_meas(orientation);
-    math::Quaternion q_des(desiredOrientation);
+    math::Quaternion q_meas(estimator->getEstimatedOrientation());
+    math::Quaternion q_des(desiredState->getDesiredOrientation());
     q_tilde = q_meas.errorQuaternion(q_des);  
 
     //break up quaternion into vector and scalar parts for later convenience

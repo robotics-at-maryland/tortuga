@@ -21,10 +21,10 @@ TEST(PIDController)
     // Rotated 32 degrees from north to the west in horizontal (actual)
     
     // Quat = 0,0,0,1 and everything else zero
-  control::DesiredState desired;
-  control::MeasuredState measured; 
-  control::ControllerState state;
-  control::EstimatedState estimated;
+  control::bwpd::DesiredState desired;
+  control::bwpd::MeasuredState measured; 
+  control::bwpd::ControllerState state;
+  control::bwpd::EstimatedState estimated;
 
    //Testing PID controller
     desired.depth = 2.2;
@@ -38,7 +38,7 @@ TEST(PIDController)
     state.depthSumError = 0;
     state.depthPrevX = 0;
 
-    double result = control::depthPIDController(&measured,
+    double result = control::bwpd::depthPIDController(&measured,
                           &desired,
                           &state,
                           &estimated,0.025);
@@ -52,10 +52,10 @@ TEST(PIDController2)
     // Rotated 32 degrees from north to the west in horizontal (actual)
     
     // Quat = 0,0,0,1 and everything else zero
-  control::DesiredState desired;
-  control::MeasuredState measured;
-  control::ControllerState state;
-  control::EstimatedState estimated;
+  control::bwpd::DesiredState desired;
+  control::bwpd::MeasuredState measured;
+  control::bwpd::ControllerState state;
+  control::bwpd::EstimatedState estimated;
     estimated.xHat4Depth = math::Vector4(0,0,0,0);
 
 	 
@@ -70,7 +70,7 @@ TEST(PIDController2)
     state.depthSumError = -46;
     state.depthPrevX = 3.0;
 
-    double result = control::depthPIDController(&measured,
+    double result = control::bwpd::depthPIDController(&measured,
                           &desired,
                           &state,
                           &estimated,0.025);

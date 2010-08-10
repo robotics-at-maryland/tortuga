@@ -20,8 +20,9 @@ class MockTranslationalController :
 {
 public: 
     MockTranslationalController(ram::core::ConfigNode) :
-        timestep(0), linearAcceleration(0, 0, 0),
-        orientation(ram::math::Quaternion::IDENTITY),
+        timestep(0),
+        estimator(ram::estimation::IStateEstimatorPtr()),
+        desiredState(ram::control::DesiredStatePtr()),
         force(0, 0, 0)
         {}
     
@@ -29,28 +30,23 @@ public:
 
     virtual ram::math::Vector3 translationalUpdate(
         double timestep_,
-        ram::math::Vector3 linearAcceleration_,
-        ram::math::Quaternion orientation_,
-        ram::math::Vector2 position_,
-        ram::math::Vector2 velocity_,
-        ram::controltest::DesiredStatePtr desiredState_) {
+        ram::estimation::IStateEstimatorPtr estimator_,
+        ram::control::DesiredStatePtr desiredState_)
+    {
         timestep = timestep_;
-        linearAcceleration = linearAcceleration_;
-        orientation = orientation_;
-        position = position_;
-        velocity = velocity_;
-        return force; }
-
+        estimator = estimator_;
+        desiredState = desiredState_;
+        return force;
+    }
+    
     virtual void setControlMode(ram::control::ControlMode::ModeType mode){}
     virtual ram::control::ControlMode::ModeType getControlMode(){
         return ram::control::ControlMode::OPEN_LOOP;}
-
+    
     double timestep;
-    ram::math::Vector3 linearAcceleration;
-    ram::math::Quaternion orientation;
+    ram::estimation::IStateEstimatorPtr estimator;
+    ram::control::DesiredStatePtr desiredState;
     ram::math::Vector3 force;
-    ram::math::Vector2 position;
-    ram::math::Vector2 velocity;
 };
 
 #endif	// RAM_CONTROL_TEST_TRANSLATIONALCONTROLLER_09_01_2008

@@ -7,9 +7,10 @@
  * File:  packages/estimation/src/StateEstimatorBase.cpp
  */
 
+// STD Includes
+#include <iostream>
 
 // Library Includes
-#include <iostream>
 
 // Project Includes
 #include "estimation/include/StateEstimatorBase.h"
@@ -27,9 +28,6 @@ StateEstimatorBase::StateEstimatorBase(
     updateConnection_DepthSensor(core::EventConnectionPtr()),
     updateConnection_Sonar(core::EventConnectionPtr()),
     updateConnection_Vision(core::EventConnectionPtr()),
-    initConnection_IMU(core::EventConnectionPtr()),
-    initConnection_DVL(core::EventConnectionPtr()),
-    initConnection_DepthSensor(core::EventConnectionPtr()),
     estimatedState(EstimatedStatePtr(new EstimatedState(
                                          config["EstimatedState"],
                                          eventHub)))
@@ -90,3 +88,6 @@ double StateEstimatorBase::getObstacleDepth(std::string name)
 
 } // namespace estimation
 } // namespace ram
+
+
+

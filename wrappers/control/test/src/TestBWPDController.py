@@ -13,13 +13,17 @@ import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
 import ext.math as math
+import ext.estimation as estimation
 
 from ram.test.motion.support import MockVehicle
+from ram.test.motion.support import MockEstimator
+
 
 class TestBWPDController(unittest.TestCase):
     def setUp(self):
         self.vehicle = MockVehicle()
-        
+        self.estimator = MockEstimator()
+
         cfg = {
             'name' : 'TestController',
             'type' : 'BWPDController',

@@ -19,7 +19,7 @@ using namespace ram;
 
 
 TEST_UTILITY_IMP(setGetDesiredDepth, 
-                 (ram::controltest::DesiredStatePtr desiredState))
+                 (ram::control::DesiredStatePtr desiredState))
 {
     double depth = 6.7;
     desiredState->setDesiredDepth(depth);
@@ -27,7 +27,7 @@ TEST_UTILITY_IMP(setGetDesiredDepth,
 }
 
 TEST_UTILITY_IMP(setGetDesiredOrientation, 
-                 (ram::controltest::DesiredStatePtr desiredState))
+                 (ram::control::DesiredStatePtr desiredState))
 {
     math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
     desiredState->setDesiredOrientation(expected);
@@ -36,7 +36,7 @@ TEST_UTILITY_IMP(setGetDesiredOrientation,
 }
 
 TEST_UTILITY_IMP(setGetDesiredAngularRate, 
-                 (ram::controltest::DesiredStatePtr desiredState))
+                 (ram::control::DesiredStatePtr desiredState))
 {
     math::Vector3 expected(5.3,1.4,9.6);
     desiredState->setDesiredAngularRate(expected);
@@ -45,7 +45,7 @@ TEST_UTILITY_IMP(setGetDesiredAngularRate,
 }
 
 TEST_UTILITY_IMP(setGetDesiredPosition,
-                 (ram::controltest::DesiredStatePtr desiredState))
+                 (ram::control::DesiredStatePtr desiredState))
 {
     math::Vector2 expected(-5.3,2.5);
     desiredState->setDesiredPosition(expected);
@@ -54,7 +54,7 @@ TEST_UTILITY_IMP(setGetDesiredPosition,
 }
 
 TEST_UTILITY_IMP(setGetDesiredVelocity,
-                 (ram::controltest::DesiredStatePtr desiredState))
+                 (ram::control::DesiredStatePtr desiredState))
 {
     math::Vector2 expected(2.5,-5.3);
     desiredState->setDesiredVelocity(expected);

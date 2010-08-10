@@ -16,28 +16,20 @@ namespace ram {
 namespace control {
 
 RotationalControllerBase::RotationalControllerBase(core::ConfigNode config)
- // :
- //    m_orientationThreshold(0.001)
 {
     init(config);
 }
    
 math::Vector3 RotationalControllerBase::rotationalUpdate(
     double timestep,
-    math::Quaternion orientation,
-    math::Vector3 angularRate,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
-    // core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    // m_currentOrientation = orientation;
-
     return math::Vector3::ZERO;
 }
 
 void RotationalControllerBase::init(core::ConfigNode config)
 {
-    // m_orientationThreshold =
-    //     config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
 }
         
 } // namespace control

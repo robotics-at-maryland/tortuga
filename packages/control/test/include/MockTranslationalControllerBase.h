@@ -22,15 +22,12 @@ public:
     
     virtual ram::math::Vector3 translationalUpdate(
         double timestep,
-        ram::math::Vector3 linearAcceleration,
-        ram::math::Quaternion orientation,
-        ram::math::Vector2 position,
-        ram::math::Vector2 velocity,
-        ram::controltest::DesiredStatePtr desiredState)
+        ram::estimation::IStateEstimatorPtr estimator,
+        ram::control::DesiredStatePtr desiredState)
 
     {
         ram::control::TranslationalControllerBase::translationalUpdate(
-            timestep, linearAcceleration, orientation, position, velocity,desiredState);
+            timestep, estimator, desiredState);
         return ram::math::Vector3::ZERO;
     }
 };

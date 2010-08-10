@@ -7,10 +7,6 @@
  * File:  packages/vehicle/src/device/IMU.cpp
  */
 
-/*
- * This is a work in progress. It shouldn't be used yet.
- */
-
 // STD Includes
 #include <iostream>
 #include <cstdio>
@@ -26,6 +22,7 @@
 #include "vehicle/include/IVehicle.h"
 
 #include "control/include/Helpers.h"
+
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -100,68 +97,69 @@ void DVL::update(double timestep)
 	RawDVLData newState;
 	if (readDVLData(m_serialFD, &newState))
 	{
-	    {
-            // Thread safe copy of good dvl data
-            core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-            *m_rawState = newState;
-	    }
 
-        math::Vector2 oldVelocity;
-        {
-            core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
-            oldVelocity = m_velocity;
-        }
+// 	    {
+//             // Thread safe copy of good dvl data
+//             core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+//             *m_rawState = newState;
+// 	    }
 
-        // rotation matrix from transducer frame to body frame
-        math::Matrix2 bRt(math::Matrix2::IDENTITY);
+//         math::Vector2 oldVelocity;
+//         {
+//             core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
+//             oldVelocity = m_velocity;
+//         }
 
-        // heads 1 and 2 are opposite, heads 3 and 4 are opposite
-        // head 1 --> bt_velocity[0]
-        // head 2 --> bt_velocity[1]
-        // head 3 --> bt_velocity[2]
-        // head 4 --> bt_velocity[3]
+//         // rotation matrix from transducer frame to body frame
+//         math::Matrix2 bRt(math::Matrix2::IDENTITY);
 
-        // average the opposite velocities to get an estimate in the transducer frame
-        double vel_t1 = (newState.bt_velocity[0] + newState.bt_velocity[1]) / 2;
-        double vel_t2 = (newState.bt_velocity[2] + newState.bt_velocity[3]) / 2;
+//         // heads 1 and 2 are opposite, heads 3 and 4 are opposite
+//         // head 1 --> bt_velocity[0]
+//         // head 2 --> bt_velocity[1]
+//         // head 3 --> bt_velocity[2]
+//         // head 4 --> bt_velocity[3]
 
-        // velocity in transducer frame
-        math::Vector2 vel_t(vel_t1, vel_t2);
+//         // average the opposite velocities to get an estimate in the transducer frame
+//         double vel_t1 = (newState.bt_velocity[0] + newState.bt_velocity[1]) / 2;
+//         double vel_t2 = (newState.bt_velocity[2] + newState.bt_velocity[3]) / 2;
 
-        // velocity in body frame
-        math::Vector2 vel_b = bRt*vel_t;
+//         // velocity in transducer frame
+//         math::Vector2 vel_t(vel_t1, vel_t2);
 
-        double yaw = m_vehicle->getOrientation().getYaw().valueRadians();
+//         // velocity in body frame
+//         math::Vector2 vel_b = bRt*vel_t;
+
+//         double yaw = m_vehicle->getOrientation().getYaw().valueRadians();
         
-        math::Vector2 vel_n = math::nRb(yaw)*vel_b;
+//         math::Vector2 vel_n = math::nRb(yaw)*vel_b;
 
-        {
-            core::ReadWriteMutex::ScopedWriteLock lock(m_velocityMutex);
-            m_velocity = vel_n;
-//            m_position += (vel_n + oldVelocity)/2 * timestep;
-        }
+//         {
+//             core::ReadWriteMutex::ScopedWriteLock lock(m_velocityMutex);
+//             m_velocity = vel_n;
+// //            m_position += (vel_n + oldVelocity)/2 * timestep;
+//         }
 
-            LOGGER.infoStream() << newState.valid << " "
-                                << newState.bt_velocity[0] << " "
-                                << newState.bt_velocity[1] << " "
-                                << newState.bt_velocity[2] << " "
-                                << newState.bt_velocity[3] << " "
-                                << vel_t << " "
-                                << vel_b << " "
-                                << newState.ensemblenum << " "
-                                << newState.year << " "
-                                << newState.month << " "
-                                << newState.day << " "
-                                << newState.hour << " "
-                                << newState.min << " "
-                                << newState.sec << " "
-                                << newState.hundredth;
+//             LOGGER.infoStream() << newState.valid << " "
+//                                 << newState.bt_velocity[0] << " "
+//                                 << newState.bt_velocity[1] << " "
+//                                 << newState.bt_velocity[2] << " "
+//                                 << newState.bt_velocity[3] << " "
+//                                 << vel_t << " "
+//                                 << vel_b << " "
+//                                 << newState.ensemblenum << " "
+//                                 << newState.year << " "
+//                                 << newState.month << " "
+//                                 << newState.day << " "
+//                                 << newState.hour << " "
+//                                 << newState.min << " "
+//                                 << newState.sec << " "
+//                                 << newState.hundredth;
 
-	    // Now publish the new velocity
-	    math::Vector2EventPtr vevent(new math::Vector2Event());
-	    // TODO: Insert whatever the local variable for velocity is
-	    vevent->vector2 = vel_n;
-	    publish(IVelocitySensor::UPDATE, vevent);
+// 	    // Now publish the new velocity
+// 	    math::Vector2EventPtr vevent(new math::Vector2Event());
+// 	    // TODO: Insert whatever the local variable for velocity is
+// 	    vevent->vector2 = vel_n;
+// 	    publish(IVelocitySensor::UPDATE, vevent);
 	}
     }
     // We didn't connect, try to reconnect

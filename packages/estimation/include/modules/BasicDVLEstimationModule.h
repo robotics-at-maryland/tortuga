@@ -13,13 +13,16 @@
 #ifndef RAM_ESTIMATION_BASICDVLESTIMATIONMODULE_H
 #define RAM_ESTIMATION_BASICDVLESTIMATIONMODULE_H
 
+// STD Includes
+
 // Library Includes
 
 // Project Includes
-#include "core/include/ConfigNode.h"
-#include "core/include/Event.h"
 #include "estimation/include/EstimatedState.h"
 #include "estimation/include/EstimationModule.h"
+
+#include "core/include/ConfigNode.h"
+#include "core/include/Event.h"
 
 namespace ram {
 namespace estimation {
@@ -30,9 +33,6 @@ public:
     BasicDVLEstimationModule(core::ConfigNode config,
                              core::EventHubPtr eventHub);
     ~BasicDVLEstimationModule(){};
-
-    /* This is called when an DVL publishes its calibration values */
-    virtual void init(core::EventPtr event);
 
     /* The DVL Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */

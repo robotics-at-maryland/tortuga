@@ -38,24 +38,6 @@ BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
                 " Gyro-Raw[3] Quat[4] TimeStamp[1]");
 }
 
-void BasicIMUEstimationModule::init(core::EventPtr event)
-{
-    /* Receive the sensor config events and store them locally */
-    vehicle::IMUInitEventPtr ievent = 
-        boost::dynamic_pointer_cast<vehicle::IMUInitEvent>(event);
-
-    if(!event) {
-        LOGGER.warn("BasicIMUEstimationModule: init: Invalid Event Type");
-        return;
-    } else {
-        std::string name = ievent->name;
-        LOGGER.info("BasicIMUEstimationModule: init: Config Received "
-                    + name);
-        imuList[name] = ievent;
-        m_filteredState[ievent->name] = new FilteredIMUData();
-    }
-}
-
 void BasicIMUEstimationModule::update(core::EventPtr event,
                                       EstimatedStatePtr estimatedState)
 {
@@ -69,20 +51,16 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
         return;
     }
 
-    if(imuList.find(ievent->name) == imuList.end()){
-        LOGGER.warn("BasicIMUEstimationModule: update: IMU Not Configured");
-        return;
-    }
-
     /* This is where the estimation should be done
        The result should be stored in estimatedState */
 
     std::string name = ievent->name;
     double timestep = ievent->timestep;
-    IMUConfigPtr config = imuList[name];
+    bool magIsCorrupt = ievent->magIsCorrupt;
+    imuList.insert(name);
 
     RawIMUData newState = ievent->rawIMUData;
-    rotateAndFilterData(&newState, name);
+//    rotateAndFilterData(&newState, name);
  
 
     /* Pull the averaged values from the averaging filter and put them
@@ -121,9 +99,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
 
         estOrientation = vehicle::Utility::quaternionFromMagAccel(mag,accel);
 
-    } else if (fabs(imuList[m_cgIMUName]->magNominalLength - 
-                    imuList[m_cgIMUName]->magNominalLength) < 
-               imuList[m_cgIMUName]->magCorruptThreshold) {
+    } else if (magIsCorrupt) {
 
         /* If we dont have the magboom IMU and the magnetometer
          * reading is not corrupted, compute the estimated orientation
@@ -188,72 +164,72 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
                         << estOrientation[2] << " " << estOrientation[3];
 }
 
-void BasicIMUEstimationModule::rotateAndFilterData(const RawIMUData* newState, 
-                                                   std::string name)
-{
-    /* Grab the correct IMU configuration */
-    IMUConfigPtr config = imuList[name];
+// void BasicIMUEstimationModule::rotateAndFilterData(const RawIMUData* newState, 
+//                                                    std::string name)
+// {
+//     /* Grab the correct IMU configuration */
+//     IMUConfigPtr config = imuList[name];
 
-    /* Take the raw data, put it into OGRE format applying the
-     * bias corrections.
-     */
-    math::Vector3 linearAcceleration(newState->accelX,
-                                     newState->accelY,
-                                     newState->accelZ);
+//     /* Take the raw data, put it into OGRE format applying the
+//      * bias corrections.
+//      */
+//     math::Vector3 linearAcceleration(newState->accelX,
+//                                      newState->accelY,
+//                                      newState->accelZ);
 
-    math::Vector3 magnetometer(newState->magX - config->magBias[0],
-                               newState->magY - config->magBias[1],
-                               newState->magZ - config->magBias[2]);
+//     math::Vector3 magnetometer(newState->magX - config->magBias[0],
+//                                newState->magY - config->magBias[1],
+//                                newState->magZ - config->magBias[2]);
 
-    math::Vector3 gyro(newState->gyroX - config->gyroBias[0],
-                       newState->gyroY - config->gyroBias[1],
-                       newState->gyroZ - config->gyroBias[2]);
+//     math::Vector3 gyro(newState->gyroX - config->gyroBias[0],
+//                        newState->gyroY - config->gyroBias[1],
+//                        newState->gyroZ - config->gyroBias[2]);
 
-    /* Rotate the data from the IMU frame to the vehicle frame */
-    math::Vector3 rotatedLinearAccel = 
-        config->IMUtoVehicleFrame * linearAcceleration;
+//     /* Rotate the data from the IMU frame to the vehicle frame */
+//     math::Vector3 rotatedLinearAccel = 
+//         config->IMUtoVehicleFrame * linearAcceleration;
 
-    math::Vector3 rotatedMagnetometer = 
-        config->IMUtoVehicleFrame * magnetometer;
+//     math::Vector3 rotatedMagnetometer = 
+//         config->IMUtoVehicleFrame * magnetometer;
 
-    math::Vector3 rotatedGyro = 
-        config->IMUtoVehicleFrame * gyro;
+//     math::Vector3 rotatedGyro = 
+//         config->IMUtoVehicleFrame * gyro;
 
-    /* The rotated data is put into an averaging filter that keeps the
-     * most recent FILTER_SIZE (currently 10) measurements.  This
-     * helps account for magnetic fields of the the thrusters and other
-     * high frequency fluctuations.
-     */
-    m_filteredAccelX[name].addValue(rotatedLinearAccel[0]);
-    m_filteredAccelY[name].addValue(rotatedLinearAccel[1]);
-    m_filteredAccelZ[name].addValue(rotatedLinearAccel[2]);
+//     /* The rotated data is put into an averaging filter that keeps the
+//      * most recent FILTER_SIZE (currently 10) measurements.  This
+//      * helps account for magnetic fields of the the thrusters and other
+//      * high frequency fluctuations.
+//      */
+//     m_filteredAccelX[name].addValue(rotatedLinearAccel[0]);
+//     m_filteredAccelY[name].addValue(rotatedLinearAccel[1]);
+//     m_filteredAccelZ[name].addValue(rotatedLinearAccel[2]);
 
-    m_filteredMagX[name].addValue(rotatedMagnetometer[0]);
-    m_filteredMagY[name].addValue(rotatedMagnetometer[1]);
-    m_filteredMagZ[name].addValue(rotatedMagnetometer[2]);
+//     m_filteredMagX[name].addValue(rotatedMagnetometer[0]);
+//     m_filteredMagY[name].addValue(rotatedMagnetometer[1]);
+//     m_filteredMagZ[name].addValue(rotatedMagnetometer[2]);
 
-    m_filteredGyroX[name].addValue(rotatedGyro[0]);
-    m_filteredGyroY[name].addValue(rotatedGyro[1]);
-    m_filteredGyroZ[name].addValue(rotatedGyro[2]);
+//     m_filteredGyroX[name].addValue(rotatedGyro[0]);
+//     m_filteredGyroY[name].addValue(rotatedGyro[1]);
+//     m_filteredGyroZ[name].addValue(rotatedGyro[2]);
 
-    /* Grab the averaged values from the filters and put them into the
-     * member variables.
-     */
-    {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        m_filteredState[name]->accelX = m_filteredAccelX[name].getValue();
-        m_filteredState[name]->accelY = m_filteredAccelY[name].getValue();
-        m_filteredState[name]->accelZ = m_filteredAccelZ[name].getValue();
+//     /* Grab the averaged values from the filters and put them into the
+//      * member variables.
+//      */
+//     {
+//         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+//         m_filteredState[name]->accelX = m_filteredAccelX[name].getValue();
+//         m_filteredState[name]->accelY = m_filteredAccelY[name].getValue();
+//         m_filteredState[name]->accelZ = m_filteredAccelZ[name].getValue();
          
-        m_filteredState[name]->magX = m_filteredMagX[name].getValue();
-        m_filteredState[name]->magY = m_filteredMagY[name].getValue();
-        m_filteredState[name]->magZ = m_filteredMagZ[name].getValue();
+//         m_filteredState[name]->magX = m_filteredMagX[name].getValue();
+//         m_filteredState[name]->magY = m_filteredMagY[name].getValue();
+//         m_filteredState[name]->magZ = m_filteredMagZ[name].getValue();
          
-        m_filteredState[name]->gyroX = m_filteredGyroX[name].getValue();
-        m_filteredState[name]->gyroY = m_filteredGyroY[name].getValue();
-        m_filteredState[name]->gyroZ = m_filteredGyroZ[name].getValue();
-    }
-}
+//         m_filteredState[name]->gyroX = m_filteredGyroX[name].getValue();
+//         m_filteredState[name]->gyroY = m_filteredGyroY[name].getValue();
+//         m_filteredState[name]->gyroZ = m_filteredGyroZ[name].getValue();
+//     }
+// }
 
 } // namespace estimation
 } // namespace ram

@@ -7,13 +7,15 @@
  * File:  packages/estimation/src/EstimatedState.cpp
  */
 
+// STD Includes
 
 // Library Includes
 
 // Package Includes
 #include "estimation/include/EstimatedState.h"
-#include "estimation/include/Events.h"
+
 #include "math/include/Events.h"
+
 #include "core/include/ReadWriteMutex.h"
 
 namespace ram {
@@ -160,7 +162,6 @@ void EstimatedState::setEstThrust(math::Vector3 forces,
         estThrusterForces = forces;
         estThrusterTorques = torques;
     }
-    publishThrustUpdate(forces, torques);
 }
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
@@ -224,10 +225,13 @@ void EstimatedState::publishDepthDotUpdate(const double& depthDot)
 void EstimatedState::publishThrustUpdate(const math::Vector3& forces,
                                          const math::Vector3& torques)
 {
-    estimation::ThrustUpdateEventPtr event(new estimation::ThrustUpdateEvent());
-    event->forces = forces;
-    event->torques = torques;
-    publish(estimation::IStateEstimator::ESTIMATED_THRUST_UPDATE, event);
+    math::Vector3EventPtr fEvent(new math::Vector3Event());
+    fEvent->vector3 = forces;
+    publish(estimation::IStateEstimator::ESTIMATED_FORCES_UPDATE, fEvent);
+
+    math::Vector3EventPtr tEvent(new math::Vector3Event());
+    tEvent->vector3 = torques;
+    publish(estimation::IStateEstimator::ESTIMATED_TORQUES_UPDATE, tEvent);
 }
 
 } // namespace estimation

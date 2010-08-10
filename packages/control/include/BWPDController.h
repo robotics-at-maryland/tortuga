@@ -27,6 +27,7 @@
 
 namespace ram {
 namespace control {
+namespace bwpd {
 
 /** Tolerance for at Depth (1 foot in meters) */
 static const double DEPTH_TOLERANCE = 0.5;
@@ -39,7 +40,9 @@ class RAM_EXPORT BWPDController : public IController,
                                   public core::Updatable
 {
 public:
-    BWPDController(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
+    BWPDController(vehicle::IVehiclePtr vehicle,
+                   estimation::IStateEstimatorPtr estimator,
+                   core::ConfigNode config);
 
     BWPDController(core::ConfigNode config,
                    core::SubsystemList deps = core::SubsystemList());
@@ -175,6 +178,9 @@ private:
     
     /** Out Vehicle */
     vehicle::IVehiclePtr m_vehicle;
+
+    /** Estimator */
+    estimation::IStateEstimatorPtr m_estimator;
     
     /** Contains settings for the controller */
     core::ConfigNode m_config;
@@ -202,7 +208,8 @@ private:
     
     math::Vector3 m_buoyantTorqueCorrection;
 };
-    
+
+} // namespace bwpd
 } // namespace control
 } // namespace ram
 

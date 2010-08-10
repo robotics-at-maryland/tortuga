@@ -21,7 +21,6 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
-#include "estimation/include/IStateEstimator.h"
 
 namespace ram {
 namespace vehicle {
@@ -38,22 +37,6 @@ public:
     virtual device::IDevicePtr getDevice(std::string name);
 
     virtual std::vector<std::string> getDeviceNames();
-    
-    virtual double getDepth(std::string obj = "vehicle");
-
-    virtual math::Vector2 getPosition(std::string obj = "vehicle");
-    
-    virtual math::Vector2 getVelocity(std::string obj = "vehicle");
-
-    math::Vector3 getLinearAcceleration();
-
-    math::Vector3 getAngularRate();
-    
-    math::Quaternion getOrientation(std::string obj = "vehicle");
-
-    bool hasObject(std::string obj);
-
-    bool hasMagBoom();
 
     virtual void safeThrusters();
 
@@ -98,38 +81,10 @@ public:
 
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
-    
-
-    /** Get the depth directly from the depth sensor */
-    virtual double getRawDepth();
-
-    /** Get the position directly from the position sensor */
-    virtual math::Vector2 getRawPosition();
-
-    /** Get the velocity directly from the velocity sensor */
-    virtual math::Vector2 getRawVelocity();
-
-    /** Get the orientation directly from the orientation sensor */
-    virtual math::Quaternion getRawOrientation();
-
-    /** Get the state estimator */
-    virtual estimation::IStateEstimatorPtr getStateEstimator();
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
-
-    /** Called when the depth sensor has an update, publishes vehicle update */
-    void onDepthUpdate(core::EventPtr event);
-
-    /** Called when the IMU has an update, publishes vehicle update */
-    void onOrientationUpdate(core::EventPtr event);
-
-    /** Called when the position sensor has an update, publises vehicle up. */
-    void onPositionUpdate(core::EventPtr event);
-
-    /** Called when the velocity sensor has an update, publises vehicle up. */
-    void onVelocityUpdate(core::EventPtr event);
     
 private:
     core::ConfigNode m_config;
@@ -151,30 +106,6 @@ private:
 
     double m_topThrusterThrottle;
 
-    std::string m_stateEstimatorName;
-    vehicle::device::IStateEstimatorPtr m_stateEstimator;
-    
-    std::string m_imuName;
-    vehicle::device::IIMUPtr m_imu;
-    
-    bool m_hasMagBoom;
-    std::string m_magBoomName;
-    vehicle::device::IIMUPtr m_magBoom;
-
-    core::EventConnectionPtr m_orientationConnection;
-    
-    std::string m_depthSensorName;
-    vehicle::device::IDepthSensorPtr m_depthSensor;
-    core::EventConnectionPtr m_depthConnection;
-    
-    std::string m_velocitySensorName;
-    vehicle::device::IVelocitySensorPtr m_velocitySensor;
-    core::EventConnectionPtr m_velocityConnection;
-    
-    std::string m_positionSensorName;
-    vehicle::device::IPositionSensorPtr m_positionSensor;
-    core::EventConnectionPtr m_positionConnection;
-    
     std::string m_markerDropperName;
     vehicle::device::IPayloadSetPtr m_markerDropper;
 
@@ -184,8 +115,6 @@ private:
     std::string m_grabberName;
     vehicle::device::IPayloadSetPtr m_grabber;
 
-
-    estimation::IStateEstimatorPtr stateEstimator;
 };
     
 } // namespace vehicle

@@ -21,21 +21,21 @@ using namespace ram;
 TEST(TranslationController)
 {
     // Depth test
-    control::DesiredState desired;
-    memset(&desired, 0, sizeof(control::DesiredState));
+    control::bwpd::DesiredState desired;
+    memset(&desired, 0, sizeof(control::bwpd::DesiredState));
     desired.depth = 1;
 
     // At 0 depth, pitched down 45 degrees
-    control::MeasuredState measured = {0};
+    control::bwpd::MeasuredState measured = {0};
     math::Quaternion orien(math::Degree(45), math::Vector3::UNIT_Y);
     memcpy(measured.quaternion, orien.ptr(), sizeof(measured.quaternion));
 
-    control::ControllerState state = {0};
+    control::bwpd::ControllerState state = {0};
     state.depthPGain = 1;
     state.depthControlType = 1; // P controller
 
-    control::EstimatedState estimated;
-    memset(&estimated, 0, sizeof(control::EstimatedState));
+    control::bwpd::EstimatedState estimated;
+    memset(&estimated, 0, sizeof(control::bwpd::EstimatedState));
 
     // The expected
     math::Vector3 expected(0.707106781, 0, -0.707106781);
@@ -119,7 +119,7 @@ TEST(BongWiePDRotationalController)
     // Quat = 0,0,0,1 and everything else zero
   
 
-	control::DesiredState desired;
+	control::bwpd::DesiredState desired;
 	desired.speed=0;
 	desired.sidewaysSpeed=0;
 	desired.depth=0;
@@ -131,7 +131,7 @@ TEST(BongWiePDRotationalController)
 	desired.angularRate[1]=0;
 	desired.angularRate[2]=0;
 										   
-	control::MeasuredState measured;
+	control::bwpd::MeasuredState measured;
 	measured.depth=0;
 	measured.linearAcceleration[0]=0;
 	measured.linearAcceleration[1]=0;
@@ -147,7 +147,7 @@ TEST(BongWiePDRotationalController)
 	measured.angularRate[1]=0;
 	measured.angularRate[2]=0;
 
-	control::ControllerState state;
+	control::bwpd::ControllerState state;
 	state.angularPGain=10;
 	state.angularDGain=1;
 	state.inertiaEstimate[0][0]=0.201;
@@ -162,13 +162,13 @@ TEST(BongWiePDRotationalController)
 	state.depthPGain=0;
 	state.speedPGain=0;
 
-	control::EstimatedState estimated;
+	control::bwpd::EstimatedState estimated;
 
 
     // Testing Yaw Control
     double exp_rotTorques[3] = {0, 0, -3.5497};
     double act_rotTorques[3] = {0};
-    control::rotationalPDController(&measured, 
+    control::bwpd::rotationalPDController(&measured, 
 				    &desired, 
 				    &state,
 				    &estimated,
@@ -179,10 +179,10 @@ TEST(BongWiePDRotationalController)
 
     // Testing pitch Control
     double exp_rotTorques2[3] = {0, -2.7872, 0};
-    control::MeasuredState measured2 = {0, {0}, {0}, 
+    control::bwpd::MeasuredState measured2 = {0, {0}, {0}, 
                                        {0, 0.2164, 0, 0.9763},
                                        {0}};
-    control::rotationalPDController(&measured2, 
+    control::bwpd::rotationalPDController(&measured2, 
 				    &desired, 
 				    &state,
 				    &estimated,
@@ -191,10 +191,10 @@ TEST(BongWiePDRotationalController)
 
     // Testing Roll Control
     double exp_rotTorques3[3] = {0.7692, 0, 0};
-    control::MeasuredState measured3 = {0, {0}, {0}, 
+    control::bwpd::MeasuredState measured3 = {0, {0}, {0}, 
                                         {-0.3827, 0, 0, 0.9239},
                                        {0}};
-    control::rotationalPDController(&measured3, 
+    control::bwpd::rotationalPDController(&measured3, 
 				    &desired, 
 				    &state,
 				    &estimated,
@@ -203,10 +203,10 @@ TEST(BongWiePDRotationalController)
 }
 
 TEST(GyroBiasObserverController){
-  control::DesiredState desired;
-  control::MeasuredState measured;
-  control::ControllerState controller;
-  control::EstimatedState estimated;
+  control::bwpd::DesiredState desired;
+  control::bwpd::MeasuredState measured;
+  control::bwpd::ControllerState controller;
+  control::bwpd::EstimatedState estimated;
 
   //case 1
   //perfect estimates, no orientation/rate error
@@ -250,7 +250,7 @@ TEST(GyroBiasObserverController){
 
 
   double act_torques[3] = {0,0,0};
-  control::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques);
+  control::bwpd::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques);
 
   math::Quaternion qhatExp(0,0,0,1);
   CHECK_CLOSE(qhatExp,estimated.qhat,0.0002);
@@ -299,7 +299,7 @@ TEST(GyroBiasObserverController){
 
 
   double act_torques3[3] = {0,0,0};
-  control::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques3);
+  control::bwpd::rotationalGyroObsPDController(&measured, &desired, &controller, &estimated, 1, act_torques3);
 
 
   math::Quaternion qhatoldExp3(0, 0, 0, 1);
@@ -320,7 +320,7 @@ TEST(AdaptiveRotationalController)
     // First is north along horizontal (desired)
     // Rotated 32 degrees from north to the west in horizontal (actual)
 
-	control::DesiredState desired;
+	control::bwpd::DesiredState desired;
 	/*	desired.speed=0;
 	desired.sidewaysSpeed=0;
 	desired.depth=0;*/
@@ -332,7 +332,7 @@ TEST(AdaptiveRotationalController)
 	desired.angularRate[1]=0;
 	desired.angularRate[2]=0;
 										   
-	control::MeasuredState measured;
+	control::bwpd::MeasuredState measured;
 	/*	measured.depth=0;
 	measured.linearAcceleration[0]=0;
 	measured.linearAcceleration[1]=0;
@@ -348,7 +348,7 @@ TEST(AdaptiveRotationalController)
 	measured.angularRate[1]=0;
 	measured.angularRate[2]=0;
 
-	control::ControllerState state;
+	control::bwpd::ControllerState state;
 	/*	state.angularPGain=10;
 	state.angularDGain=1;
 	state.inertiaEstimate[0][0]=0.201;
@@ -383,11 +383,11 @@ TEST(AdaptiveRotationalController)
 	state.dtMin=0.01;
 	state.dtMax=1;
 
-	control::EstimatedState estimated;
+	control::bwpd::EstimatedState estimated;
 
 	double act_torques[3];
 	double expect_torques[3] = {0,0,0};
-	control::adaptiveRotationalController(&measured, &desired, &state, &estimated, 0.2, act_torques);
+	control::bwpd::adaptiveRotationalController(&measured, &desired, &state, &estimated, 0.2, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
 
 	//TEST 2
@@ -460,7 +460,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0.7071;
-	control::adaptiveRotationalController(&measured, &desired, &state, &estimated, 0.1, act_torques);
+	control::bwpd::adaptiveRotationalController(&measured, &desired, &state, &estimated, 0.1, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.0001);
 
 	//TEST 3
@@ -533,7 +533,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0.9192;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0;
-	control::adaptiveRotationalController(&measured, &desired, &state, &estimated,  0.3, act_torques);
+	control::bwpd::adaptiveRotationalController(&measured, &desired, &state, &estimated,  0.3, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.01);
 
 
@@ -607,7 +607,7 @@ TEST(AdaptiveRotationalController)
 	expect_torques[0] = 0.4582;
 	expect_torques[1] = 0;
 	expect_torques[2] = 0.0142;
-	control::adaptiveRotationalController(&measured, &desired, &state, &estimated,  0.05, act_torques);
+	control::bwpd::adaptiveRotationalController(&measured, &desired, &state, &estimated,  0.05, act_torques);
 	CHECK_ARRAY_CLOSE(expect_torques,act_torques,3,0.01);
 
 
@@ -643,17 +643,17 @@ TEST(AdaptiveRotationalController)
 TEST(doIsOriented)
 {
     // Not matching
-    control::DesiredState desiredBad = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
+    control::bwpd::DesiredState desiredBad = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
 
-    control::MeasuredState measuredBad = {0, {0}, {0},
+    control::bwpd::MeasuredState measuredBad = {0, {0}, {0},
                                           {0.2588, 0, 0, 0.9659},
                                           {0}};
 
     CHECK_EQUAL(false, doIsOriented(&measuredBad, &desiredBad, 0.15));
 
     // Matching
-    control::DesiredState desiredGood = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
-    control::MeasuredState measuredGood = {0, {0}, {0},
+    control::bwpd::DesiredState desiredGood = {0, 0, 0, {0.0872, 0, 0, 0.9962}, {0}};
+    control::bwpd::MeasuredState measuredGood = {0, {0}, {0},
                                            {0.173, 0.0858, -0.0151, 0.9811},
                                           {0}};
     

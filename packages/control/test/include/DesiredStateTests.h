@@ -21,18 +21,18 @@
 #include "math/include/Quaternion.h"
 
 TEST_UTILITY_FWD(setGetDesiredDepth, 
-                 (ram::controltest::DesiredStatePtr desiredState));
+                 (ram::control::DesiredStatePtr desiredState));
 
 TEST_UTILITY_FWD(setGetDesiredOrientation, 
-                 (ram::controltest::DesiredStatePtr desiredState));
+                 (ram::control::DesiredStatePtr desiredState));
 
 TEST_UTILITY_FWD(setGetDesiredAngularRate, 
-                 (ram::controltest::DesiredStatePtr desiredState));
+                 (ram::control::DesiredStatePtr desiredState));
 
 TEST_UTILITY_FWD(setGetDesiredPosition,
-                 (ram::controltest::DesiredStatePtr desiredState));
+                 (ram::control::DesiredStatePtr desiredState));
 
 TEST_UTILITY_FWD(setGetDesiredVelocity,
-                 (ram::controltest::DesiredStatePtr desiredState));
+                 (ram::control::DesiredStatePtr desiredState));
 
 #endif // RAM_CONTROL_TEST_DESIREDSTATETESTS_H

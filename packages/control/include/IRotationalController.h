@@ -37,10 +37,10 @@ class RAM_EXPORT IRotationalControllerImp : public IRotationalController
     virtual ~IRotationalControllerImp() {}
 
     /** Gets the needed vehicle torque based on current vehicle state */
-    virtual math::Vector3 rotationalUpdate(double timestep,
-                                           math::Quaternion orientation,
-                                           math::Vector3 angularRate,
-                                           controltest::DesiredStatePtr desiredState) = 0;
+    virtual math::Vector3 rotationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState) = 0;
 };
     
 } // namespace control

@@ -14,6 +14,7 @@
 #ifndef RAM_ESTIMATION_OBSTACLE_H
 #define RAM_ESTIMATION_OBSTACLE_H
 
+// STD Includes
 
 // Library Includes
 #include <boost/shared_ptr.hpp>

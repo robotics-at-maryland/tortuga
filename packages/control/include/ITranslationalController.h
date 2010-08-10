@@ -52,12 +52,10 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
     virtual ~ITranslationalControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */
-    virtual math::Vector3 translationalUpdate(double timestep,
-                                              math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation,
-                                              math::Vector2 position,
-                                              math::Vector2 velocity,
-                                              controltest::DesiredStatePtr desiredState) = 0;
+    virtual math::Vector3 translationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState) = 0;
 
     virtual void setControlMode(ControlMode::ModeType mode) = 0;
     virtual ControlMode::ModeType getControlMode() = 0;

@@ -38,7 +38,7 @@ static const double DEPTH_TOLERANCE = 0.5;
 /** About a 2.5 degree tolerance */
 static const double ORIENTATION_THRESHOLD = 0.03;
 
-static const double VELOCITY_THRESHOLD = 0.05;
+static const double VELOCITY_THRESHOLD = 0.1;
 static const double POSITION_THRESHOLD = 0.5;
     
 /** Base for controllers, assists in properly implementing the IController*/
@@ -46,7 +46,9 @@ class RAM_EXPORT ControllerBase : public IController,
                                   public core::Updatable
 {
 public:
-    ControllerBase(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
+    ControllerBase(vehicle::IVehiclePtr vehicle,
+                   estimation::IStateEstimatorPtr estimator,
+                   core::ConfigNode config);
 
     ControllerBase(core::ConfigNode config,
                    core::SubsystemList deps = core::SubsystemList());
@@ -200,40 +202,17 @@ protected:
      *
      *  @param timestep
      *      The time sice the last update
-     *  @param linearAcceleration
-     *      The current linear acceleration from the vehicle (m/s).
-     *  @param orientation
-     *      The current orientation of the vehicle (from north).
-     *  @param angularRate
-     *      The current angularRate of the vehicle (radians/sec)
-     *  @param depth
-     *      The current depth of the vehicle (feet)
-     *  @param position
-     *      The current position of the vehicle
-     *  @param velocity
-     *      The current velocity of the vehicle
      *  @param translationalForceOut
      *      The new force to apply to the vehicle (newtons)
      *  @param rotationalTorqueOut
      *      The new torque to apply to the vehicle (newtons)
      */
     virtual void doUpdate(const double& timestep,
-                          const math::Vector3& linearAcceleration,
-                          const math::Quaternion& orientation,
-                          const math::Vector3& angularRate,
-                          const double& depth,
-                          const math::Vector2& position,
-                          const math::Vector2& velocity,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut) = 0;
 
-
-
-
-    controltest::DesiredStatePtr desiredState;
-    estimation::IStateEstimatorPtr stateEstimator;
-
-    /** Out Vehicle */
+    control::DesiredStatePtr m_desiredState;
+    estimation::IStateEstimatorPtr m_stateEstimator;
     vehicle::IVehiclePtr m_vehicle;    
 
 private:

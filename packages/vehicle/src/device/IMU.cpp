@@ -103,24 +103,6 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
                 " Gyro-Raw Quat TimeStamp");
 
-    /* Publish the IMU calibration values for the estimator */
-    IMUInitEventPtr initEvent = IMUInitEventPtr(new IMUInitEvent());
-    initEvent->name = getName();
-    initEvent->IMUtoVehicleFrame = math::Matrix3(m_IMUToVehicleFrame);
-
-    initEvent->magBias = math::Vector3(m_magXBias,
-				       m_magYBias,
-				       m_magZBias);
-
-    initEvent->gyroBias = math::Vector3(m_gyroXBias,
-					m_gyroYBias,
-					m_gyroZBias);
-
-    initEvent->magCorruptThreshold = m_magCorruptThresh;
-    initEvent->magNominalLength = m_magNominalLength;
-
-    publish(IIMU::INIT, initEvent);
-
     // what is the purpose of this?
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -154,28 +136,70 @@ void IMU::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
+            /***************************/
+            /***************************/
+            /******** START NEW ********/
+            /***************************/
+            /***************************/
 
-            RawIMUDataEventPtr rawIMUDataEvent = RawIMUDataEventPtr(
+            /* Take the raw data, put it into OGRE format applying the
+             * bias corrections.
+             */
+            math::Vector3 linearAccel_debiased(newState.accelX,
+                                               newState.accelY,
+                                               newState.accelZ);
+
+            math::Vector3 mag_debiased(newState.magX - m_magXBias,
+                                       newState.magY - m_magYBias,
+                                       newState.magZ - m_magZBias);
+
+            math::Vector3 gyro_debiased(newState.gyroX - m_gyroXBias,
+                                        newState.gyroY - m_gyroYBias,
+                                        newState.gyroZ - m_gyroZBias);
+
+            math::Matrix3 imuToVehicleFrame(m_IMUToVehicleFrame);
+
+            /* Rotate the data from the IMU frame to the vehicle frame */
+            math::Vector3 rotatedLinearAccel = 
+                imuToVehicleFrame * linearAccel_debiased;
+
+            math::Vector3 rotatedMagnetometer = 
+                imuToVehicleFrame * mag_debiased;
+
+            math::Vector3 rotatedGyro = 
+                imuToVehicleFrame * gyro_debiased;
+
+
+            RawIMUData rotatedState;
+            rotatedState.accelX = rotatedLinearAccel[0];
+            rotatedState.accelY = rotatedLinearAccel[1];
+            rotatedState.accelZ = rotatedLinearAccel[2];
+
+            rotatedState.magX = rotatedMagnetometer[0];
+            rotatedState.magY = rotatedMagnetometer[1];
+            rotatedState.magZ = rotatedMagnetometer[2];
+
+            rotatedState.gyroX = rotatedGyro[0];
+            rotatedState.gyroY = rotatedGyro[1];
+            rotatedState.gyroZ = rotatedGyro[2];
+
+            vehicle::RawIMUDataEventPtr event = RawIMUDataEventPtr(
                 new RawIMUDataEvent());
-            rawIMUDataEvent->rawIMUData = newState;
-            rawIMUDataEvent->name = getName();
-            publish(IIMU::RAW_UPDATE,rawIMUDataEvent);
-            
-            
-            
-//            printf("MB: %7.4f %7.4f %7.4f ", newState.magX, newState.magY,
-//                   newState.magZ);
+            event->name = getName();
+            event->rawIMUData = rotatedState;
+            event->magIsCorrupt = false;
+            event->timestep = timestep;
+            publish(IIMU::RAW_UPDATE, event);
 
+            /***************************/
+            /***************************/
+            /********  END NEW  ********/
+            /***************************/
+            /***************************/
 
-            
-	    //	    printf("IMU F. Bias Raw: %7.4f %7.4f %7.4f\n", newState.magX, 
-	//	   newState.magY,
-          //         newState.magZ);
-	    
-            
             
             // Read from new state, un-rotate, un-bias and place into 
-	    // filtered values
+            // filtered values
             rotateAndFilterData(&newState);
 
             // Use filtered data to get quaternion
@@ -185,20 +209,20 @@ void IMU::update(double timestep)
             linearAcceleration[0] = m_filteredAccelX.getValue();
             linearAcceleration[1] = m_filteredAccelY.getValue();
             linearAcceleration[2] = m_filteredAccelZ.getValue();
-	    Vector3 linAccel(m_filteredAccelX.getValue(),
-			     m_filteredAccelY.getValue(),
-			     m_filteredAccelZ.getValue()); 
+            Vector3 linAccel(m_filteredAccelX.getValue(),
+                             m_filteredAccelY.getValue(),
+                             m_filteredAccelZ.getValue()); 
             
             magnetometer[0] = m_filteredMagX.getValue();
             magnetometer[1] = m_filteredMagY.getValue();
             magnetometer[2] = m_filteredMagZ.getValue();
-	    Vector3 mag(m_filteredMagX.getValue(),
-			m_filteredMagY.getValue(),
-			m_filteredMagZ.getValue());
+            Vector3 mag(m_filteredMagX.getValue(),
+                        m_filteredMagY.getValue(),
+                        m_filteredMagZ.getValue());
 
-	    Vector3 angRate(m_filteredGyroX.getValue(),
-			    m_filteredGyroY.getValue(),
-			    m_filteredGyroZ.getValue());
+            Vector3 angRate(m_filteredGyroX.getValue(),
+                            m_filteredGyroY.getValue(),
+                            m_filteredGyroZ.getValue());
 //            printf(" MF: %7.4f %7.4f %7.4f \n", magnetometer[0],
 //                   magnetometer[1], magnetometer[2]);
 
@@ -207,31 +231,31 @@ void IMU::update(double timestep)
             {
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
 
-		//m_orientation = computeQuaternion(mag, linAccel, angRate,
-		//				  timestep, m_orientation);
+                //m_orientation = computeQuaternion(mag, linAccel, angRate,
+                //				  timestep, m_orientation);
                 
-		double magLength;
-		magLength = magnitude3x1(magnetometer);
-		double difference;
-		difference = magLength-m_magNominalLength;
-		difference = fabs(difference);
+                double magLength;
+                magLength = magnitude3x1(magnetometer);
+                double difference;
+                difference = magLength-m_magNominalLength;
+                difference = fabs(difference);
 				
-		if(difference < m_magCorruptThresh){
-		  quaternionFromIMU(magnetometer, linearAcceleration,
-                                    quaternion);
-		}else{
-		  double quaternionOld[4] = {0,0,0,0};
-		  quaternionOld[0] = m_orientation.x;
-		  quaternionOld[1] = m_orientation.y;
-		  quaternionOld[2] = m_orientation.z;
-		  quaternionOld[3] = m_orientation.w;
-		  double omega[3] = {0,0,0};
-		  omega[0] = m_filteredGyroX.getValue();
-		  omega[1] = m_filteredGyroY.getValue();
-		  omega[2] = m_filteredGyroZ.getValue();
-		  quaternionFromRate(quaternionOld, omega, timestep,
-                                     quaternion);
-		}
+                if(difference < m_magCorruptThresh){
+                    quaternionFromIMU(magnetometer, linearAcceleration,
+                                      quaternion);
+                }else{
+                    double quaternionOld[4] = {0,0,0,0};
+                    quaternionOld[0] = m_orientation.x;
+                    quaternionOld[1] = m_orientation.y;
+                    quaternionOld[2] = m_orientation.z;
+                    quaternionOld[3] = m_orientation.w;
+                    double omega[3] = {0,0,0};
+                    omega[0] = m_filteredGyroX.getValue();
+                    omega[1] = m_filteredGyroY.getValue();
+                    omega[2] = m_filteredGyroZ.getValue();
+                    quaternionFromRate(quaternionOld, omega, timestep,
+                                       quaternion);
+                }
 
 				
 				
@@ -265,10 +289,10 @@ void IMU::update(double timestep)
                                 << newState.accelY << " "
                                 << newState.accelZ << " "
                                 << newState.magX << " " 
-				<< newState.magY << " "
+                                << newState.magY << " "
                                 << newState.magZ << " "
                                 << newState.gyroX << " " 
-				<< newState.gyroY << " "
+                                << newState.gyroY << " "
                                 << newState.gyroZ << " "
                                 << quaternion[0] << " " << quaternion[1] << " "
                                 << quaternion[2] << " " << quaternion[3];
@@ -412,33 +436,33 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     Matrix3 nCb = bCn.Transpose();
 
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
-		/*
-		but shouldn't it be
-		quaternionFromnCb((double (*)[3])(bCn[0]), quaternion);
-		*/
+    /*
+      but shouldn't it be
+      quaternionFromnCb((double (*)[3])(bCn[0]), quaternion);
+    */
 
 }
 
 /*
-an algorithm to estimate the current quaternion given a previous quaternion
-estimate, a current angular rate measurement, and a timestep.  this algorithm
-simply integrates the previous quaternion estimate using angular rate gyro data
+  an algorithm to estimate the current quaternion given a previous quaternion
+  estimate, a current angular rate measurement, and a timestep.  this algorithm
+  simply integrates the previous quaternion estimate using angular rate gyro data
 
-inputs:
-quaternionOld - a double array containing the old quaternion estimate
-angRate - a double array containing the current angular rate gyro data
-deltaT - a double quantifying the timestep from the previous time this function was called
-quaternionNew - pointer to a double array where the new quaternion estimate will be placed
+  inputs:
+  quaternionOld - a double array containing the old quaternion estimate
+  angRate - a double array containing the current angular rate gyro data
+  deltaT - a double quantifying the timestep from the previous time this function was called
+  quaternionNew - pointer to a double array where the new quaternion estimate will be placed
 
-output: - placed in data location specified by quaternionNew pointer
+  output: - placed in data location specified by quaternionNew pointer
 
-note: this routine uses OGRE to simplify the mathematic calculations, but the
-input/output format is designed to work in IMU.cpp which still uses double arrays
+  note: this routine uses OGRE to simplify the mathematic calculations, but the
+  input/output format is designed to work in IMU.cpp which still uses double arrays
 */
 void IMU::quaternionFromRate(double* quaternionOld,
-							   double angRate[3],
-							   double deltaT,
-							   double* quaternionNew){
+                             double angRate[3],
+                             double deltaT,
+                             double* quaternionNew){
 
 	//reformat arguments to OGRE syntax
 	Quaternion qOld(quaternionOld[0],quaternionOld[1],
@@ -468,36 +492,36 @@ void IMU::quaternionFromRate(double* quaternionOld,
 /*
  */
 Quaternion IMU::computeQuaternion(Vector3 mag, Vector3 accel,
-				  Vector3 angRate,
-				  double deltaT,
-				  Quaternion quaternionOld){
-  Quaternion dummy(0,0,0,1);
-  double magLength;
-  magLength = mag.length();
-  double difference;
-  difference = magLength-m_magNominalLength;
-  difference = fabs(difference);
+                                  Vector3 angRate,
+                                  double deltaT,
+                                  Quaternion quaternionOld){
+    Quaternion dummy(0,0,0,1);
+    double magLength;
+    magLength = mag.length();
+    double difference;
+    difference = magLength-m_magNominalLength;
+    difference = fabs(difference);
 				
-  if(difference < m_magCorruptThresh){
-    // should update quaternionFromIMU to take OGRE arguments instead of 
-    // double arrays
-    //    quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
-  }else{
-    double quaternionOld[4] = {0,0,0,0};
-    quaternionOld[0] = m_orientation.x;
-    quaternionOld[1] = m_orientation.y;
-    quaternionOld[2] = m_orientation.z;
-    quaternionOld[3] = m_orientation.w;
-    double omega[3] = {0,0,0};
-    omega[0] = m_filteredGyroX.getValue();
-    omega[1] = m_filteredGyroY.getValue();
-    omega[2] = m_filteredGyroZ.getValue();
-    // should update quaternionFromRate to take OGRE arguments instead of
-    // double arrays
-    //    quaternionFromRate(quaternionOld, angRate, deltaT, dummy);
-  }
+    if(difference < m_magCorruptThresh){
+        // should update quaternionFromIMU to take OGRE arguments instead of 
+        // double arrays
+        //    quaternionFromIMU(magnetometer, linearAcceleration, quaternion);
+    }else{
+        double quaternionOld[4] = {0,0,0,0};
+        quaternionOld[0] = m_orientation.x;
+        quaternionOld[1] = m_orientation.y;
+        quaternionOld[2] = m_orientation.z;
+        quaternionOld[3] = m_orientation.w;
+        double omega[3] = {0,0,0};
+        omega[0] = m_filteredGyroX.getValue();
+        omega[1] = m_filteredGyroY.getValue();
+        omega[2] = m_filteredGyroZ.getValue();
+        // should update quaternionFromRate to take OGRE arguments instead of
+        // double arrays
+        //    quaternionFromRate(quaternionOld, angRate, deltaT, dummy);
+    }
 
-  return dummy;
+    return dummy;
 }
    
 } // namespace device

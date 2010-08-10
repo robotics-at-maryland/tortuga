@@ -16,13 +16,13 @@
 using namespace ram;
 
 TEST(TestDive1To5){
-	control::DesiredState desired = {0};
+	control::bwpd::DesiredState desired = {0};
 	desired.depth = 5;
 		
-	control::MeasuredState measured = {0};
+	control::bwpd::MeasuredState measured = {0};
     measured.depth = 1;
 
-	control::ControllerState state = {0};
+	control::bwpd::ControllerState state = {0};
 
 state.depthA4 = math::Matrix4(.9501, -114.3028, -2.8764, 0.0,
                                 0.0, 0.4482, 0.0277, 0.0,
@@ -33,7 +33,7 @@ state.depthC4 = math::Vector4(0.0,0.0,0.0,1); //Vector2 C
 state.dtMin = .001;
 state.dtMax = 1; 
 
-control::EstimatedState estimated = {math::Vector2(0,0)};
+control::bwpd::EstimatedState estimated = {math::Vector2(0,0)};
 estimated.xHat4Depth = math::Vector4(0,-1,1,0);
 
 double result = depthObserverController4Discrete(&measured,&desired,&state,&estimated,1);
