@@ -16,13 +16,15 @@
 // Library Includes
 
 // Project Includes
-#include "estimation/include/IStateEstimator.h"
+#include "estimation/include/StateEstimatorBase.h"
+#include "core/include/EventHub.h"
 
-class MockEstimator : public ram::estimation::IStateEstimator
+class MockEstimator : public ram::estimation::StateEstimatorBase
 {
 public:
-    MockEstimator() :
-        IStateEstimator(),
+    MockEstimator(ram::core::EventHubPtr eventHub = ram::core::EventHubPtr(
+                      new ram::core::EventHub("defaultEventHub"))) :
+        StateEstimatorBase(ram::core::ConfigNode::fromString("{ }"), eventHub),
         estPosition(ram::math::Vector2::ZERO),
         estVelocity(ram::math::Vector2::ZERO),
         estLinearAccel(ram::math::Vector3::ZERO),
@@ -67,6 +69,14 @@ public:
     ram::math::Quaternion estOrientation;
     double estDepth;
     double estDepthDot;
+
+protected:
+    virtual void rawUpdate_DVL(ram::core::EventPtr event) {}
+    virtual void rawUpdate_IMU(ram::core::EventPtr event) {}
+    virtual void rawUpdate_DepthSensor(ram::core::EventPtr event) {}
+    virtual void update_Vision(ram::core::EventPtr event) {}
+    virtual void update_Sonar(ram::core::EventPtr event) {}
+
 };
 
 

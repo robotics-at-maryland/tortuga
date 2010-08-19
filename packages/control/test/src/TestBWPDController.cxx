@@ -47,13 +47,6 @@ struct Fixture
                                "'desiredQuaternion' : [0, 0, 0, 1] }"))
     {}
 
-    ~Fixture()
-    {
-        delete vehicle;
-        delete estimator;
-    }
-
-
     MockVehicle* vehicle;
     MockEstimator* estimator;
     control::bwpd::BWPDController controller;

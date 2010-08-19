@@ -47,10 +47,11 @@ using namespace std;
 namespace ram {
 namespace control {
 
-CombineController::CombineController(vehicle::IVehiclePtr vehicle,
+CombineController::CombineController(core::EventHubPtr eventHub,
+                                     vehicle::IVehiclePtr vehicle,
                                      estimation::IStateEstimatorPtr estimator,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, estimator, config),
+    ControllerBase(eventHub, vehicle, estimator, config),
     m_transController(ITranslationalControllerImpPtr()),
     m_depthController(IDepthControllerImpPtr()),
     m_rotController(IRotationalControllerImpPtr()),

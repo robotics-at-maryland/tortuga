@@ -60,6 +60,8 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
      * d as suffix means desired
      * d as prefix means derivative
      * m as suffix means measured
+     * q means quaternion
+     * w means angular rate (omega)
      * tilde denotes an error quantity
      */
     math::Quaternion qd(desiredState->getDesiredOrientation());
@@ -75,7 +77,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
 	// derivative of angular rate desired
     math::Vector3 dwd(0,0,0);
 	// simple integration
-	wd = wd+dwd*timestep;      
+	wd = wd+dwd*timestep;
 	
 	// integrate desired angular position
 	// compute derivative of quaternion desired

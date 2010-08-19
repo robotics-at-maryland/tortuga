@@ -28,6 +28,7 @@
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
+#include "core/include/Subsystem.h"
 
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -36,7 +37,7 @@
 namespace ram {
 namespace estimation {
 
-class IStateEstimator
+class IStateEstimator : public core::Subsystem
 {
 public:
     virtual ~IStateEstimator(){};
@@ -68,7 +69,8 @@ public:
     static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;
 
 protected:
-    IStateEstimator(){};
+    IStateEstimator(std::string name,
+                    core::EventHubPtr eventHub = core::EventHubPtr());
 };
 
 

@@ -112,6 +112,9 @@ private:
     /** sensor location **/
     math::Vector3 m_location;
 
+    /** angular offset of dvl */
+    double m_angOffset;
+
     /** rotation matrix from transducer frame to body frame */
     math::Matrix2 bRt;
 

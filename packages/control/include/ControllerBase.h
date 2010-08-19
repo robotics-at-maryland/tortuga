@@ -23,6 +23,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/EventConnection.h"
+#include "core/include/EventHub.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -32,12 +33,11 @@
 namespace ram {
 namespace control {
 
+/* Default values for deciding if we are at the desired state */
 /** Tolerance for at Depth (1 foot in meters) */
-static const double DEPTH_TOLERANCE = 0.5;
-
+static const double DEPTH_THRESHOLD = 0.5;
 /** About a 2.5 degree tolerance */
 static const double ORIENTATION_THRESHOLD = 0.03;
-
 static const double VELOCITY_THRESHOLD = 0.1;
 static const double POSITION_THRESHOLD = 0.5;
     
@@ -46,7 +46,8 @@ class RAM_EXPORT ControllerBase : public IController,
                                   public core::Updatable
 {
 public:
-    ControllerBase(vehicle::IVehiclePtr vehicle,
+    ControllerBase(core::EventHubPtr eventHub,
+                   vehicle::IVehiclePtr vehicle,
                    estimation::IStateEstimatorPtr estimator,
                    core::ConfigNode config);
 
@@ -214,6 +215,7 @@ protected:
     control::DesiredStatePtr m_desiredState;
     estimation::IStateEstimatorPtr m_stateEstimator;
     vehicle::IVehiclePtr m_vehicle;    
+    core::ReadWriteMutex m_mutex;
 
 private:
     void init(core::ConfigNode config);

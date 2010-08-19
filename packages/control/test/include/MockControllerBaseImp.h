@@ -22,10 +22,11 @@
 class MockControllerBaseImp : public ram::control::ControllerBase
 {
 public:
-    MockControllerBaseImp(ram::vehicle::IVehiclePtr vehicle,
+    MockControllerBaseImp(ram::core::EventHubPtr eventHub,
+                          ram::vehicle::IVehiclePtr vehicle,
                           ram::estimation::IStateEstimatorPtr estimator,
                           ram::core::ConfigNode config) :
-        ram::control::ControllerBase(vehicle, estimator, config),
+        ram::control::ControllerBase(eventHub, vehicle, estimator, config),
         translationalForceOut(0,0,0),
         rotationalTorqueOut(0,0,0)
     {

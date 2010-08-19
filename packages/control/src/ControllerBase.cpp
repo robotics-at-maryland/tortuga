@@ -36,12 +36,13 @@ using namespace std;
 namespace ram {
 namespace control {
 
-ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
+ControllerBase::ControllerBase(core::EventHubPtr eventHub,
+                               vehicle::IVehiclePtr vehicle,
                                estimation::IStateEstimatorPtr estimator,
                                core::ConfigNode config) :
-    IController(config["name"].asString()),
+    IController(config["name"].asString(), eventHub),
     m_desiredState(control::DesiredStatePtr(
-                     new control::DesiredState(config["DesiredState"]))),
+                       new control::DesiredState(config["DesiredState"], eventHub))),
     m_stateEstimator(estimator),
     m_vehicle(vehicle),
     conn_desired_atDepth(core::EventConnectionPtr()),
@@ -63,6 +64,45 @@ ControllerBase::ControllerBase(vehicle::IVehiclePtr vehicle,
     m_initHoldDepth(1),
     m_initHoldHeading(1)
 {   
+
+    if(eventHub != core::EventHubPtr()) {
+
+    /* Bind atDepth, atPosition, atVelocity, and atOrientation to desired state 
+       and estimated state update events */
+        
+        conn_desired_atDepth = eventHub->subscribeToType(
+            IController::DESIRED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_estimated_atDepth = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_desired_atPosition = eventHub->subscribeToType(
+            IController::DESIRED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_estimated_atPosition = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_desired_atVelocity = eventHub->subscribeToType(
+            IController::DESIRED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_estimated_atVelocity = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_desired_atOrientation = eventHub->subscribeToType(
+            IController::DESIRED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
+
+        conn_estimated_atOrientation = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
+    }
+
     init(config); 
 }
 
@@ -211,18 +251,21 @@ void ControllerBase::setSidewaysSpeed(double speed)
 void ControllerBase::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = math::nRb(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::nRb(m_stateEstimator->getEstimatedOrientation(
+                                 ).getYaw().valueRadians())*velocity;
     m_desiredState->setDesiredVelocity(velocity);
 }
 
 void ControllerBase::setDesiredPosition(math::Vector2 position, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        position = math::nRb(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*position;
+        position = math::nRb(m_stateEstimator->getEstimatedOrientation(
+                                 ).getYaw().valueRadians())*position;
     m_desiredState->setDesiredPosition(position);
 }
 
-void ControllerBase::setDesiredPositionAndVelocity(math::Vector2 position, math::Vector2 velocity)
+void ControllerBase::setDesiredPositionAndVelocity(math::Vector2 position,
+                                                   math::Vector2 velocity)
 {
     m_desiredState->setDesiredVelocity(velocity);
     m_desiredState->setDesiredPosition(position);
@@ -242,7 +285,8 @@ double ControllerBase::getSidewaysSpeed()
 math::Vector2 ControllerBase::getVelocity()
 {
     math::Vector2 velocity(m_desiredState->getDesiredVelocity());
-    velocity = math::bRn(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*velocity;
+    velocity = math::bRn(m_stateEstimator->getEstimatedOrientation(
+                             ).getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -250,7 +294,8 @@ math::Vector2 ControllerBase::getDesiredVelocity(int frame)
 {
     math::Vector2 velocity(m_desiredState->getDesiredVelocity());
     if(frame == IController::BODY_FRAME)
-        velocity = math::bRn(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::bRn(m_stateEstimator->getEstimatedOrientation(
+                                 ).getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -258,7 +303,8 @@ math::Vector2 ControllerBase::getDesiredPosition(int frame)
 {
     math::Vector2 position(m_desiredState->getDesiredPosition());
     if(frame == IController::BODY_FRAME)
-        position = math::bRn(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*position;
+        position = math::bRn(m_stateEstimator->getEstimatedOrientation(
+                                 ).getYaw().valueRadians())*position;
     return position;
 }
 
@@ -330,6 +376,7 @@ bool ControllerBase::atOrientation()
 void ControllerBase::holdCurrentOrientation()
 {    
     m_desiredState->setDesiredOrientation(m_stateEstimator->getEstimatedOrientation());
+    m_desiredState->setDesiredAngularRate(math::Vector3::ZERO);
 }
 
 void ControllerBase::setDepth(double depth)
@@ -354,6 +401,7 @@ double ControllerBase::getEstimatedDepthDot()
 
 bool ControllerBase::atDepth()
 {
+ 
     double currentDepth = m_stateEstimator->getEstimatedDepth();
     double desiredDepth = m_desiredState->getDesiredDepth();
     double difference = fabs(currentDepth - desiredDepth);
@@ -367,13 +415,17 @@ void ControllerBase::holdCurrentDepth()
 
 void ControllerBase::holdCurrentHeading()
 {
-    holdCurrentOrientation();
+    math::Quaternion qCurr(m_stateEstimator->getEstimatedOrientation());
+
+    m_desiredState->setDesiredOrientation(
+        holdCurrentHeadingHelper(qCurr));
+    m_desiredState->setDesiredAngularRate(math::Vector3::ZERO);
 }
 
 void ControllerBase::init(core::ConfigNode config)
 {
     // Load threshold for being at depth
-    m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_TOLERANCE);
+    m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_THRESHOLD);
     m_orientationThreshold =
         config["orientationThreshold"].asDouble(ORIENTATION_THRESHOLD);
     m_positionThreshold = config["positionThreshold"].asDouble(POSITION_THRESHOLD);
@@ -390,7 +442,6 @@ void ControllerBase::init(core::ConfigNode config)
                       
 void ControllerBase::publishAtDepth(const double& depth)
 {
-    m_atDepth = true;
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
     publish(IController::AT_DEPTH, event);
@@ -398,7 +449,6 @@ void ControllerBase::publishAtDepth(const double& depth)
 
 void ControllerBase::publishAtOrientation(const math::Quaternion& orientation)
 {
-    m_atOrientation = true;
     math::OrientationEventPtr event(new math::OrientationEvent());
     event->orientation = orientation;
     publish(IController::AT_ORIENTATION, event);        
@@ -407,7 +457,6 @@ void ControllerBase::publishAtOrientation(const math::Quaternion& orientation)
 
 void ControllerBase::publishAtVelocity(const math::Vector2& velocity)
 {
-    m_atVelocity = true;
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = velocity;
     publish(IController::AT_VELOCITY, event);
@@ -415,7 +464,6 @@ void ControllerBase::publishAtVelocity(const math::Vector2& velocity)
 
 void ControllerBase::publishAtPosition(const math::Vector2& position)
 {
-    m_atPosition = true;
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = position;
     publish(IController::AT_POSITION, event);
@@ -423,6 +471,7 @@ void ControllerBase::publishAtPosition(const math::Vector2& position)
 
 void ControllerBase::atDepthUpdate(core::EventPtr event)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     if(atDepth())
         if(!m_atDepth){
             m_atDepth = true;
@@ -436,6 +485,7 @@ void ControllerBase::atDepthUpdate(core::EventPtr event)
 
 void ControllerBase::atPositionUpdate(core::EventPtr event)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     if(atPosition())
         if(!m_atPosition){
             m_atPosition = true;
@@ -449,6 +499,7 @@ void ControllerBase::atPositionUpdate(core::EventPtr event)
 
 void ControllerBase::atVelocityUpdate(core::EventPtr event)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     if(atVelocity())
         if(!m_atVelocity){
             m_atVelocity = true;
@@ -462,6 +513,7 @@ void ControllerBase::atVelocityUpdate(core::EventPtr event)
 
 void ControllerBase::atOrientationUpdate(core::EventPtr event)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
     if(atOrientation())
         if(!m_atOrientation){
             m_atOrientation = true;
@@ -471,7 +523,6 @@ void ControllerBase::atOrientationUpdate(core::EventPtr event)
         }
     else
         m_atOrientation = false;
-   
 }
 
 } // namespace control

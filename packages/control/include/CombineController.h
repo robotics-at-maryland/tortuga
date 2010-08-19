@@ -28,7 +28,7 @@
 namespace ram {
 namespace control {
 
-/** A class whichs allows easy combine of fundamental controllers
+/** A class whichs allows easy combination of control algorithms
  *
  *  This class easily lets you change out just the rotational, or just the
  *  depth just the in plane controller.  Which allows for much easier over
@@ -39,7 +39,8 @@ class RAM_EXPORT CombineController : public ControllerBase
 {
 public:
     /** Construct the controller with the given vehicle */
-    CombineController(vehicle::IVehiclePtr vehicle,
+    CombineController(core::EventHubPtr eventHub,
+                      vehicle::IVehiclePtr vehicle,
                       estimation::IStateEstimatorPtr estimator,
                       core::ConfigNode config);
     

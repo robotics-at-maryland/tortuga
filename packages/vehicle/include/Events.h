@@ -102,6 +102,7 @@ struct RawDVLDataEvent : public core::Event
 {
     std::string name;
     RawDVLData rawDVLData;
+    double angOffset;
     double timestep;
 
     virtual core::EventPtr clone();

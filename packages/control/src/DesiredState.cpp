@@ -81,33 +81,47 @@ double DesiredState::getDesiredDepth()
     return m_desiredDepth;
 }
 
+/* For setting the desired state, it is important that the member
+ * variable is set before an event is published.  Otherwise, it
+ * would be possible that a function bound to the event would get
+ * the incorrect value.  Locks are held for minimal time.
+ */
+
 void DesiredState::setDesiredVelocity(math::Vector2 velocity)
 {
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredVelocity = velocity;
+    }
     newDesiredVelocitySet(velocity);
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredVelocity = velocity;
 }
 
 void DesiredState::setDesiredPosition(math::Vector2 position)
 {
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredPosition = position;
+    }
     newDesiredPositionSet(position);
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredPosition = position;
 }
 
 void DesiredState::setDesiredDepth(double depth)
 {
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredDepth = depth;
+    }
     newDepthSet(depth);
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredDepth = depth;
 }
 
 void DesiredState::setDesiredOrientation(math::Quaternion orientation)
 {
-    newDesiredOrientationSet(orientation);
     orientation.normalise();
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredOrientation = orientation;
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredOrientation = orientation;
+    }
+    newDesiredOrientationSet(orientation);
 }
 
 
@@ -147,11 +161,6 @@ void DesiredState::newDesiredPositionSet(const math::Vector2& newPosition)
     event->vector2 = newPosition;
     publish(control::IController::DESIRED_POSITION_UPDATE, event);
 }
-
-
-
-
-
 
 } //namespace control
 } //namespace ram

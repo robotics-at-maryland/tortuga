@@ -14,16 +14,22 @@
 #ifndef RAM_ESTIMATION_STATEESTIMATORBASE_H
 #define RAM_ESTIMATION_STATEESTIMATORBASE_H
 
+// STD Includes
+
 // Library Includes
 
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Forward.h"
 #include "core/include/EventHub.h"
+#include "core/include/Updatable.h"
+
 #include "estimation/include/IStateEstimator.h"
 #include "estimation/include/EstimatedState.h"
 #include "estimation/include/Obstacle.h"
+
 #include "vehicle/include/Common.h"
+
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
@@ -31,7 +37,8 @@
 namespace ram {
 namespace estimation {
 
-class StateEstimatorBase : public IStateEstimator
+class StateEstimatorBase : public IStateEstimator,
+                           public core::Updatable
 {
 public:
 
@@ -50,6 +57,38 @@ public:
     virtual void addObstacle(std::string name, ObstaclePtr obstacle);
     virtual math::Vector2 getObstaclePosition(std::string name);
     virtual double getObstacleDepth(std::string name);
+
+    // Does nothing for now as the state estimator is event driven
+    virtual void update(double timestep) {
+    }
+    
+    virtual void setPriority(core::IUpdatable::Priority priority) {
+        Updatable::setPriority(priority);
+    }
+    
+    virtual core::IUpdatable::Priority getPriority() {
+        return Updatable::getPriority();
+    }
+
+    virtual void setAffinity(size_t affinity) {
+        Updatable::setAffinity(affinity);
+    }
+    
+    virtual int getAffinity() {
+        return Updatable::getAffinity();
+    }
+    
+    virtual void background(int interval) {
+        Updatable::background(interval);
+    }
+    
+    virtual void unbackground(bool join = false) {
+        Updatable::unbackground(join);
+    }
+
+    virtual bool backgrounded() {
+        return Updatable::backgrounded();
+    }
 
 protected:
 

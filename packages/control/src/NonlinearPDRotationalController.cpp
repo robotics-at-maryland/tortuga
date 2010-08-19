@@ -44,29 +44,27 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     estimation::IStateEstimatorPtr estimator,
     control::DesiredStatePtr desiredState)
 {
-    math::Quaternion desiredOrientation = desiredState->getDesiredOrientation();
-    math::Vector3 angularRate = estimator->getEstimatedAngularRate();
-
-    //compute error quaternion
-    math::Quaternion q_tilde;
+    // get estimated and desired orientation and assure they are normalized
     math::Quaternion q_meas(estimator->getEstimatedOrientation());
+    q_meas.normalise();
     math::Quaternion q_des(desiredState->getDesiredOrientation());
-    q_tilde = q_meas.errorQuaternion(q_des);  
+    q_des.normalise();
 
-    //break up quaternion into vector and scalar parts for later convenience
+    // compute error quaternion
+    math::Quaternion q_tilde = q_meas.errorQuaternion(q_des);  
+
+    // break up quaternion into vector and scalar parts for later convenience
     math::Vector3 epsilon_tilde(q_tilde.x, q_tilde.y, q_tilde.z);
     double eta_tilde = q_tilde.w;
 
-    //compute angular rate error
-    math::Vector3 w_error(angularRate[0],
-                          angularRate[1],
-                          angularRate[2]);
+    // compute angular rate error
+    math::Vector3 w_error(estimator->getEstimatedAngularRate());
 
-    //compute matrix needed for gyroscopic term
+    // compute matrix needed for gyroscopic term
     math::Matrix3 w_tilde;
     w_tilde.ToSkewSymmetric(w_error);
 
-    //compute control signal
+    // compute control signal
     math::Vector3 rotTorques;
     double kp = angularPGain;
     double kd = angularDGain;

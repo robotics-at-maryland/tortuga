@@ -22,7 +22,7 @@ StateEstimatorBase::StateEstimatorBase(
     core::ConfigNode config,
     core::EventHubPtr eventHub,
     vehicle::IVehiclePtr vehicle) :
-    IStateEstimator(),
+    IStateEstimator(config["name"].asString(), eventHub),
     updateConnection_IMU(core::EventConnectionPtr()),
     updateConnection_DVL(core::EventConnectionPtr()),
     updateConnection_DepthSensor(core::EventConnectionPtr()),

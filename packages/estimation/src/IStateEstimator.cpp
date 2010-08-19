@@ -20,3 +20,14 @@ RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_DEPTHDOT_UPDATE)
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_ANGULARRATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_FORCES_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_TORQUES_UPDATE);
+
+namespace ram {
+namespace estimation {
+
+IStateEstimator::IStateEstimator(std::string name, core::EventHubPtr eventHub) :
+    core::Subsystem(name, eventHub)
+{
+}
+
+} // namespace vehicle
+} // namespace ram

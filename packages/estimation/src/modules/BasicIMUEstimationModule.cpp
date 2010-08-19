@@ -11,8 +11,10 @@
  * copy them and make them a little more readable by removing unused parts.
  */
 
-// Library Includes
+// STD Includes
 #include <iostream>
+
+// Library Includes
 #include <boost/smart_cast.hpp>
 #include <log4cpp/Category.hh>
 

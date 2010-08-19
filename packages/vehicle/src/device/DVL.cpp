@@ -20,6 +20,7 @@
 // Project Includes
 #include "vehicle/include/device/DVL.h"
 #include "vehicle/include/IVehicle.h"
+#include "vehicle/include/Events.h"
 
 #include "control/include/Helpers.h"
 
@@ -49,13 +50,14 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_dvlNum(config["num"].asInt(0)),
     m_velocity(0, 0),
     m_location(0, 0, 0),
+    m_angOffset(0),
     bRt(math::Matrix2::IDENTITY),
     m_rawState(0)
 {
     m_rawState = new RawDVLData();
 
-    double angOffset = config["angularOffset"].asDouble(0);
-    double r_cos = cos(angOffset), r_sin = sin(angOffset);
+    m_angOffset = config["angularOffset"].asDouble(0);
+    double r_cos = cos(m_angOffset), r_sin = sin(m_angOffset);
     bRt = math::Matrix2(r_cos, r_sin, -r_sin, r_cos);
 
     // Need an api before I can do this
@@ -98,11 +100,19 @@ void DVL::update(double timestep)
 	if (readDVLData(m_serialFD, &newState))
 	{
 
-// 	    {
-//             // Thread safe copy of good dvl data
-//             core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-//             *m_rawState = newState;
-// 	    }
+ 	    {
+             // Thread safe copy of good dvl data
+             core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+             *m_rawState = newState;
+ 	    }
+
+        RawDVLDataEventPtr event = RawDVLDataEventPtr(
+            new RawDVLDataEvent());
+        event->name = getName();
+        event->rawDVLData = newState;
+        event->angOffset = m_angOffset;
+        event->timestep = timestep;
+        publish(IVelocitySensor::RAW_UPDATE, event);
 
 //         math::Vector2 oldVelocity;
 //         {

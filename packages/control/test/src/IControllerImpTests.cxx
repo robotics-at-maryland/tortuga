@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 Robotics at Maryland
+ * Copyright (C) 2010 Jonathan Wonders <jwonders@umd.edu>
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
@@ -20,71 +21,138 @@ using namespace ram;
 
 TEST_UTILITY_IMP(setGetDepth, (ram::control::IController* controller))
 {
-    double depth = 1.67;
-    controller->setDepth(depth);
-    CHECK_EQUAL(depth, controller->getDepth());
+    {
+        double expDepth = 1.67;
+        controller->setDepth(expDepth);
+        CHECK_EQUAL(expDepth, controller->getDepth());
+    }
 
-    depth = 6.7;
-    controller->setDepth(depth);
-    CHECK_EQUAL(depth, controller->getDepth());
+    {
+        double expDepth = 6.7;
+        controller->setDepth(expDepth);
+        CHECK_EQUAL(expDepth, controller->getDepth());
+    }
 }
 
 TEST_UTILITY_IMP(yawVehicle, (ram::control::IController* controller))
 {
-    double orig_yaw = controller->getDesiredOrientation().getYaw().valueDegrees();
-    double degrees = 78.2;
-    controller->yawVehicle(degrees);
-    double new_yaw = controller->getDesiredOrientation().getYaw().valueDegrees();
-    CHECK_CLOSE(degrees, (new_yaw - orig_yaw), 0.0001);
+    {
+        const double startYaw = controller->getDesiredOrientation().getYaw().valueDegrees();
+        const double degreesToYaw = 78.2;
 
-    degrees = -degrees;
-    controller->yawVehicle(degrees);
-    new_yaw = controller->getDesiredOrientation().getYaw().valueDegrees();
-    CHECK_CLOSE(0, (new_yaw - orig_yaw), 0.0001);
+        controller->yawVehicle(degreesToYaw);
 
-//     math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Z);
-//     controller->yawVehicle(30);
-//     CHECK_CLOSE(expected, controller->getDesiredOrientation(), 0.0001);
+        const double middleYaw = controller->getDesiredOrientation().getYaw().valueDegrees();
+        CHECK_CLOSE(degreesToYaw, (middleYaw - startYaw), 0.0001);
+    
+        controller->yawVehicle(-degreesToYaw);
+
+        const double endYaw = controller->getDesiredOrientation().getYaw().valueDegrees();
+        CHECK_CLOSE(0, (endYaw - startYaw), 0.0001);
+    }
+
+    {
+        controller->setDesiredOrientation(math::Quaternion::IDENTITY);
+        const double degreesToYaw = 30;
+        math::Quaternion expOrientation(math::Degree(degreesToYaw), math::Vector3::UNIT_Z);
+        controller->yawVehicle(degreesToYaw);
+        CHECK_ARRAY_CLOSE(expOrientation.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+    }
 }
 
 TEST_UTILITY_IMP(pitchVehicle, (ram::control::IController* controller))
 {
-    double curr_pitch = controller->getDesiredOrientation().getPitch().valueDegrees();
-    double degrees = 45.2;
-    controller->pitchVehicle(degrees);
-    double new_pitch = controller->getDesiredOrientation().getPitch().valueDegrees();
-    CHECK_CLOSE(degrees, (new_pitch - curr_pitch), 0.0001);
+    {
+        const double startPitch = controller->getDesiredOrientation().getPitch().valueDegrees();
+        const double degreesToPitch = 45.2;
 
-//     math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_Y);
-//     controller->pitchVehicle(30);
-//     CHECK_CLOSE(expected, controller->getDesiredOrientation(), 0.0001);
+        controller->pitchVehicle(degreesToPitch);
+
+        const double middlePitch = controller->getDesiredOrientation().getPitch().valueDegrees();
+        CHECK_CLOSE(degreesToPitch, (middlePitch - startPitch), 0.0001);
+    
+        controller->pitchVehicle(-degreesToPitch);
+
+        const double endPitch = controller->getDesiredOrientation().getPitch().valueDegrees();
+        CHECK_CLOSE(0, (endPitch - startPitch), 0.0001);
+    }
+
+    {
+        controller->setDesiredOrientation(math::Quaternion::IDENTITY);
+        const double degreesToPitch = 30;
+        math::Quaternion expOrientation(math::Degree(degreesToPitch), math::Vector3::UNIT_Y);
+        controller->pitchVehicle(degreesToPitch);
+        CHECK_ARRAY_CLOSE(expOrientation.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+    }
 }
 
 TEST_UTILITY_IMP(rollVehicle, (ram::control::IController* controller))
 {
-    double curr_roll = controller->getDesiredOrientation().getRoll().valueDegrees();
-    double degrees = 45.2;
-    controller->rollVehicle(degrees);
-    double new_roll = controller->getDesiredOrientation().getRoll().valueDegrees();
-    CHECK_CLOSE(degrees, (new_roll - curr_roll), 0.0001);
+    {
+        const double startRoll = controller->getDesiredOrientation().getRoll().valueDegrees();
+        const double degreesToRoll = 45.2;
 
-//     math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-//     controller->rollVehicle(30);
-//     CHECK_CLOSE(expected, controller->getDesiredOrientation(), 0.0001);
+        controller->rollVehicle(degreesToRoll);
+
+        const double middleRoll = controller->getDesiredOrientation().getRoll().valueDegrees();
+        CHECK_CLOSE(degreesToRoll, (middleRoll - startRoll), 0.0001);
+    
+        controller->rollVehicle(-degreesToRoll);
+
+        const double endRoll = controller->getDesiredOrientation().getRoll().valueDegrees();
+        CHECK_CLOSE(0, (endRoll - startRoll), 0.0001);
+    }
+
+    {
+        controller->setDesiredOrientation(math::Quaternion::IDENTITY);
+        const double degreesToRoll = 30;
+        math::Quaternion expOrientation(math::Degree(degreesToRoll), math::Vector3::UNIT_X);
+        controller->rollVehicle(degreesToRoll);
+        CHECK_ARRAY_CLOSE(expOrientation.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+    }
 }
 
 TEST_UTILITY_IMP(setGetDesiredOrientation, (ram::control::IController* controller))
 {
-    math::Quaternion orientation(0.2, 1.2, 2.5, 1);
-    controller->setDesiredOrientation(orientation);
-    orientation.normalise();
-    CHECK_EQUAL(orientation, controller->getDesiredOrientation());
+    {
+        math::Quaternion orientation(0.2, 1.2, 2.5, 1);
+        controller->setDesiredOrientation(orientation);
+        
+        orientation.normalise();
+        CHECK_ARRAY_CLOSE(orientation.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+    }
 
+    /* Test to make sure that the desired orientation is always normalized */
+    {
+        math::Quaternion unnormalizedQuat(2,5,3,6);
+        math::Quaternion normalizedQuat(unnormalizedQuat);
+        normalizedQuat.normalise();
+        
+        controller->setDesiredOrientation(normalizedQuat);
+        CHECK_ARRAY_CLOSE(normalizedQuat.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+        
+        controller->setDesiredOrientation(unnormalizedQuat);
+        CHECK_ARRAY_CLOSE(normalizedQuat.ptr(),
+                          controller->getDesiredOrientation().ptr(),
+                          4, 0.0001);
+    }
 
-//     math::Quaternion expected(math::Degree(30), math::Vector3::UNIT_X);
-//     controller->setDesiredOrientation(expected);
-//     math::Quaternion actual(controller->getDesiredOrientation());
-//     CHECK_EQUAL(expected, actual);
+    {
+        const math::Quaternion expQuat(math::Degree(30), math::Vector3::UNIT_X);
+        controller->setDesiredOrientation(expQuat);
+        const math::Quaternion actQuat(controller->getDesiredOrientation());
+        CHECK_ARRAY_CLOSE(expQuat.ptr(), actQuat.ptr(), 4, 0.0001);
+    }
 }
 
 TEST_UTILITY_IMP(setGetVelocity, (ram::control::IController* controller))
@@ -92,191 +160,110 @@ TEST_UTILITY_IMP(setGetVelocity, (ram::control::IController* controller))
     math::Vector2 velocity(3.5,-2.7);
     controller->setVelocity(velocity);
     CHECK_EQUAL(velocity, controller->getVelocity());
-
-//     ram::math::Vector2 velocity(1.5, 2.9);
-//     controller->setVelocity(velocity);
-//     CHECK_EQUAL(velocity, controller->getVelocity());
-
 }
 
 TEST_UTILITY_IMP(setGetSpeed, (ram::control::IController* controller))
 {
-    double speed = 5.8;
-    controller->setSpeed(speed);
-    CHECK_EQUAL(5, controller->getSpeed());
+    const double MIN_SPEED = -5;
+    const double MAX_SPEED = 5;
 
-    controller->yawVehicle(30);
-    controller->setSpeed(-2);
-    CHECK_EQUAL(-2, controller->getSpeed());
+    {
+        const double expSpeed = 2.5;
+        controller->setSpeed(expSpeed);
+        CHECK_EQUAL(expSpeed, controller->getSpeed());
+    }
 
-//     double speed = 1.5;
-//     controller->setSpeed(speed);
-//     CHECK_EQUAL(speed, controller->getSpeed());
+    {
+        const double expSpeed = -2;
+        const double angleToYaw = 30;
+        // check that speed is invariant upon rotations
+        controller->yawVehicle(angleToYaw);
+        controller->setSpeed(expSpeed);
+        CHECK_EQUAL(expSpeed, controller->getSpeed());
+    }
 
+    // make sure speed is clamped at +/- 5
+    {
+        const double speed = MAX_SPEED + 0.8;
+        controller->setSpeed(speed);
+        CHECK_EQUAL(MAX_SPEED, controller->getSpeed());
+    }
+
+    {
+        const double speed = MIN_SPEED - 1.4;
+        controller->setSpeed(speed);
+        CHECK_EQUAL(MIN_SPEED, controller->getSpeed());
+    }
 }
 
 TEST_UTILITY_IMP(setGetSidewaysSpeed, (ram::control::IController* controller))
 {
-    double sidewaysSpeed = 2.8;
-    controller->setSidewaysSpeed(sidewaysSpeed);
-    CHECK_EQUAL(sidewaysSpeed, controller->getSidewaysSpeed());
+    const double MIN_SPEED = -5;
+    const double MAX_SPEED = 5;
 
-    controller->yawVehicle(-40);
-    controller->setSidewaysSpeed(-6);
-    CHECK_EQUAL(-5, controller->getSidewaysSpeed());
+    {
+        const double expSpeed = 2.5;
+        controller->setSidewaysSpeed(expSpeed);
+        CHECK_EQUAL(expSpeed, controller->getSidewaysSpeed());
+    }
 
-//     double sidewaysSpeed = 1.5;
-//     controller->setSidewaysSpeed(sidewaysSpeed);
-//     CHECK_EQUAL(sidewaysSpeed, controller->getSidewaysSpeed());
+    {
+        const double expSpeed = -2;
+        const double angleToYaw = 30;
+        // check that speed is invariant upon rotations
+        controller->yawVehicle(angleToYaw);
+        controller->setSidewaysSpeed(expSpeed);
+        CHECK_EQUAL(expSpeed, controller->getSidewaysSpeed());
+    }
 
+    // make sure speed is clamped at +/- 5
+    {
+        const double speed = MAX_SPEED + 0.8;
+        controller->setSidewaysSpeed(speed);
+        CHECK_EQUAL(MAX_SPEED, controller->getSidewaysSpeed());
+    }
+
+    {
+        const double speed = MIN_SPEED - 1.4;
+        controller->setSidewaysSpeed(speed);
+        CHECK_EQUAL(MIN_SPEED, controller->getSidewaysSpeed());
+    }
 }
 
 TEST_UTILITY_IMP(setGetDesiredVelocity, (ram::control::IController* controller))
 {
-/* Set Inertial, Get Inertial */
+    /* Set Inertial, Get Inertial */
     math::Vector2 velocity_n_n(2.4,-4.3);
-    controller->setDesiredVelocity(velocity_n_n, control::IController::INERTIAL_FRAME);
-    CHECK_EQUAL(velocity_n_n, controller->getDesiredVelocity(control::IController::INERTIAL_FRAME));
+    controller->setDesiredVelocity(velocity_n_n,
+                                   control::IController::INERTIAL_FRAME);
+    CHECK_EQUAL(velocity_n_n, controller->getDesiredVelocity(
+                    control::IController::INERTIAL_FRAME));
 
-/* The Following rely on the current orientation, so the vehicle's current orientation
-   must be set to a known value and correct results calculated with this value */
+    /* The Following rely on the current orientation, so the vehicle's current orientation
+       must be set to a known value and correct results calculated with this value */
 
-/* Set Inertial, Get Body */
+    /* Set Inertial, Get Body */
 
-/* Set Body, Get Body */
+    /* Set Body, Get Body */
 
-/* Set Body, Get Inertial */
+    /* Set Body, Get Inertial */
 }
 
 TEST_UTILITY_IMP(setGetDesiredPosition, (ram::control::IController* controller))
 {
-/* Set Inertial, Get Inertial */
+    /* Set Inertial, Get Inertial */
     math::Vector2 position_n_n(2.4,-4.3);
-    controller->setDesiredPosition(position_n_n, control::IController::INERTIAL_FRAME);
-    CHECK_EQUAL(position_n_n, controller->getDesiredPosition(control::IController::INERTIAL_FRAME));
+    controller->setDesiredPosition(position_n_n,
+                                   control::IController::INERTIAL_FRAME);
+    CHECK_EQUAL(position_n_n, controller->getDesiredPosition(
+                    control::IController::INERTIAL_FRAME));
 
-/* The Following rely on the current orientation, so the vehicle's current orientation
-   must be set to a known value and correct results calculated with this value */
+    /* The Following rely on the current orientation, so the vehicle's current orientation
+       must be set to a known value and correct results calculated with this value */
 
-/* Set Inertial, Get Body */
+    /* Set Inertial, Get Body */
 
-/* Set Body, Get Body */
+    /* Set Body, Get Body */
 
-/* Set Body, Get Inertial */
+    /* Set Body, Get Inertial */
 }
-
-
-
-// TEST_UTILITY_IMP(atDepth,
-//                  (control::IDepthController* controller,
-//                   boost::function<void(double)> setDepth,
-//                   boost::function<void (void)> update))
-// {
-//     // This assumes the default threshold for depth is 0.5
-//     setDepth(4);
-//     update();
-    
-//     controller->setDepth(5);
-//     CHECK_EQUAL(false, controller->atDepth());
-
-//     controller->setDepth(3);
-//     CHECK_EQUAL(false, controller->atDepth());
-
-//     controller->setDepth(4.3);
-//     CHECK_EQUAL(true, controller->atDepth());
-
-//     controller->setDepth(3.7);
-//     CHECK_EQUAL(true, controller->atDepth());
-    
-//     controller->setDepth(4);
-//     CHECK(controller->atDepth());
-// }
-
-// TEST_UTILITY_IMP(holdCurrentDepth,
-//                  (ram::control::IDepthController* controller,
-//                   boost::function<void(double)> setDepth,
-//                   boost::function<void (void)> update))
-// {
-//     // Lock in current depth
-//     setDepth(4);
-//     update();
-
-//     // Check Normall setting
-//     controller->setDepth(5);
-//     CHECK_EQUAL(5, controller->getDepth());
-
-//     // Hold and make sure we have changed
-//     controller->holdCurrentDepth();
-//     CHECK_EQUAL(4, controller->getDepth());
-// }
-
-
-
-
-// TEST_UTILITY_IMP(holdCurrentHeading,
-//                  (ram::control::IRotationalController* controller,
-//                   boost::function<void (ram::math::Quaternion)> setOrientation))
-// {
-//     // Test 1
-
-//     // Set the current "measured" orientation
-//     math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
-//     setOrientation(orientation);
-
-//     // Tell the controller to hold current heading (ignoring roll and pitch)
-//     controller->holdCurrentHeading();
-
-//     // Create the expected orientation and make sure the desired orientation
-//     // was set properly based on the vehicle current orientation
-//     math::Quaternion expectedOrientation(math::Degree(15), 
-// 					 math::Vector3::UNIT_Z);
-
-//     CHECK_EQUAL(expectedOrientation, controller->getDesiredOrientation());
-
-//     // Test 2
-    
-//     // set the current "measured" orientation
-//     math::Quaternion orientation2(0.0028, 0.0028, 0.7071, 0.7071);
-//     setOrientation(orientation2);
-
-//     // tell the controller to hold current heading
-//     controller->holdCurrentHeading();
-    
-//     // expected output
-//     math::Quaternion expectedOrientation2(0, 0, 0.7071, 0.7071);
-
-//     CHECK_CLOSE(expectedOrientation2, controller->getDesiredOrientation(),
-//                 0.001);
-// }
-
-// TEST_UTILITY_IMP(atOrientation,
-//                  (ram::control::IRotationalController* controller,
-//                   boost::function<void(ram::math::Quaternion)> setOrientation,
-//                   boost::function<void (void)> update))
-// {
-//     // Yawed 15 degrees left
-//     math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
-//     setOrientation(orientation);
-//     update();
-    
-//     // 15 degrees left of desired
-//     controller->yawVehicle(30);
-//     CHECK_EQUAL(false, controller->atOrientation());
-
-//     // 15 degrees right of desired
-//     controller->yawVehicle(-30);
-//     CHECK_EQUAL(false, controller->atOrientation());
-
-//     // 2.5 degrees right of desired
-//     controller->yawVehicle(12.5);
-//     CHECK_EQUAL(true, controller->atOrientation());
-
-//     // 2.5 degrees left of desired
-//     controller->yawVehicle(5);
-//     CHECK_EQUAL(true, controller->atOrientation());
-
-//     // Desired = Actual
-//     controller->yawVehicle(-2.5);
-//     CHECK_EQUAL(true, controller->atOrientation());
-
-// }
