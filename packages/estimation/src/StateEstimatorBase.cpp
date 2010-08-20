@@ -18,10 +18,8 @@
 namespace ram {
 namespace estimation {
 
-StateEstimatorBase::StateEstimatorBase(
-    core::ConfigNode config,
-    core::EventHubPtr eventHub,
-    vehicle::IVehiclePtr vehicle) :
+StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
+                                       core::EventHubPtr eventHub) :
     IStateEstimator(config["name"].asString(), eventHub),
     updateConnection_IMU(core::EventConnectionPtr()),
     updateConnection_DVL(core::EventConnectionPtr()),
@@ -31,6 +29,24 @@ StateEstimatorBase::StateEstimatorBase(
     estimatedState(EstimatedStatePtr(new EstimatedState(
                                          config["EstimatedState"],
                                          eventHub)))
+{
+
+
+}
+
+StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
+                                       core::SubsystemList deps) :
+    IStateEstimator(config["name"].asString(),
+        core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
+    updateConnection_IMU(core::EventConnectionPtr()),
+    updateConnection_DVL(core::EventConnectionPtr()),
+    updateConnection_DepthSensor(core::EventConnectionPtr()),
+    updateConnection_Sonar(core::EventConnectionPtr()),
+    updateConnection_Vision(core::EventConnectionPtr()),
+    estimatedState(EstimatedStatePtr(
+                       new EstimatedState(
+                           config["EstimatedState"],
+                           core::Subsystem::getSubsystemOfType<core::EventHub>(deps))))
 {
 
 

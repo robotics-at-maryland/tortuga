@@ -31,13 +31,11 @@ namespace ram {
 namespace estimation {
 
 ModularStateEstimator::ModularStateEstimator(core::ConfigNode config, 
-                                             core::EventHubPtr eventHub,
-                                             vehicle::IVehiclePtr vehicle) :
+                                             core::EventHubPtr eventHub) :
     StateEstimatorBase(config,eventHub),
     dvlEstimationModule(EstimationModulePtr()),
     imuEstimationModule(EstimationModulePtr()),
-    depthEstimationModule(EstimationModulePtr()),
-    m_vehicle(vehicle::IVehiclePtr(vehicle))
+    depthEstimationModule(EstimationModulePtr())
 {
     // Connect the event listeners to their respective events
     if(eventHub != core::EventHubPtr()){
@@ -63,6 +61,39 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
         new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub));
 }
 
+ModularStateEstimator::ModularStateEstimator(core::ConfigNode config, 
+                                             core::SubsystemList deps) :
+    StateEstimatorBase(config,deps),
+    dvlEstimationModule(EstimationModulePtr()),
+    imuEstimationModule(EstimationModulePtr()),
+    depthEstimationModule(EstimationModulePtr())
+{
+    core::EventHubPtr eventHub = core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
+
+    // Connect the event listeners to their respective events
+    if(eventHub != core::EventHubPtr()){
+        updateConnection_IMU = eventHub->subscribeToType(
+            vehicle::device::IIMU::RAW_UPDATE,
+            boost::bind(&ModularStateEstimator::rawUpdate_IMU,this, _1));
+            
+        updateConnection_DepthSensor = eventHub->subscribeToType(
+            vehicle::device::IDepthSensor::RAW_UPDATE,
+            boost::bind(&ModularStateEstimator::rawUpdate_DepthSensor,this, _1));
+            
+        updateConnection_DVL = eventHub->subscribeToType(
+            vehicle::device::IVelocitySensor::RAW_UPDATE,
+            boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
+    }
+        
+    // Construct the estimation modules
+    dvlEstimationModule = EstimationModulePtr(
+        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub));
+    imuEstimationModule = EstimationModulePtr(
+        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub));
+    depthEstimationModule = EstimationModulePtr(
+        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub));
+
+}
 
 
 ModularStateEstimator::~ModularStateEstimator()

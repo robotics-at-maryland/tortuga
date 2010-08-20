@@ -37,64 +37,96 @@
 namespace ram {
 namespace estimation {
 
-class StateEstimatorBase : public IStateEstimator,
-                           public core::Updatable
+class StateEstimatorBase : public IStateEstimator
 {
 public:
 
+
+    StateEstimatorBase(core::ConfigNode config,
+                       core::EventHubPtr eventHub = core::EventHubPtr());
+
+    StateEstimatorBase(core::ConfigNode config,
+                       core::SubsystemList deps = core::SubsystemList());
+
     ~StateEstimatorBase(){};
  
-    /* Define basic implementations of the functions required by IStateEstimator
-     */
+    /* Define basic implementations of the functions required by IStateEstimator */
+
+    /** Returns the estimated position */
     virtual math::Vector2 getEstimatedPosition();
+    /** Returns the estimated velocity */
     virtual math::Vector2 getEstimatedVelocity();
+    /** Returns the estimated linear acceleration */
     virtual math::Vector3 getEstimatedLinearAcceleration();
+    /** Returns the estimated angular rate */
     virtual math::Vector3 getEstimatedAngularRate();
+    /** Returns the estimated orientation */
     virtual math::Quaternion getEstimatedOrientation();
+    /** Returns the estimated depth */
     virtual double getEstimatedDepth();
+    /** Returns the estimated depth change rate */
     virtual double getEstimatedDepthDot();
 
+    /** Adds an obstacle to the list of course obstacles for tracking
+     *
+     * @param name
+     *    The name for the obstacle.
+     *
+     * @param obstacle
+     *    A smart pointer to the obstacle that is to be added.
+     */
     virtual void addObstacle(std::string name, ObstaclePtr obstacle);
+
+    /** Returns the position of an obstacle
+     *
+     * @param name
+     *    The name of the obstacle for which to retrieve the position.
+     *
+     * @return 
+     *    A Vector2 object representing the position of the obstacle.
+     */
     virtual math::Vector2 getObstaclePosition(std::string name);
+
+    /** Returns the depth of an obstacle
+     *
+     * @param name
+     *    The name of the obstacle for which to retrieve the depth.
+     *
+     * @return 
+     *    A double representing the depth of the obstacle.
+     */
     virtual double getObstacleDepth(std::string name);
+
 
     // Does nothing for now as the state estimator is event driven
     virtual void update(double timestep) {
     }
     
     virtual void setPriority(core::IUpdatable::Priority priority) {
-        Updatable::setPriority(priority);
     }
     
     virtual core::IUpdatable::Priority getPriority() {
-        return Updatable::getPriority();
+        return core::IUpdatable::NORMAL_PRIORITY;
     }
 
     virtual void setAffinity(size_t affinity) {
-        Updatable::setAffinity(affinity);
     }
     
     virtual int getAffinity() {
-        return Updatable::getAffinity();
+        return core::IUpdatable::NORMAL_PRIORITY;
     }
     
     virtual void background(int interval) {
-        Updatable::background(interval);
     }
     
     virtual void unbackground(bool join = false) {
-        Updatable::unbackground(join);
     }
 
     virtual bool backgrounded() {
-        return Updatable::backgrounded();
+        return true;
     }
 
 protected:
-
-    StateEstimatorBase(core::ConfigNode config,
-                       core::EventHubPtr eventHub = core::EventHubPtr(),
-                       vehicle::IVehiclePtr = vehicle::IVehiclePtr());
 
     /* These functions should be bound to events of the correct type.
     ** Each sensor will publish RAW_UPDATE events when new data is

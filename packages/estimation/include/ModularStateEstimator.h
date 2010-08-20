@@ -33,9 +33,11 @@ class ModularStateEstimator : public StateEstimatorBase
 public:
 
     ModularStateEstimator(core::ConfigNode config,
-                        core::EventHubPtr eventHub = core::EventHubPtr(),
-                        vehicle::IVehiclePtr vehicle = vehicle::IVehiclePtr());
+                          core::EventHubPtr eventHub = core::EventHubPtr());
 
+    ModularStateEstimator(core::ConfigNode config,
+                          core::SubsystemList deps = core::SubsystemList());
+    
     virtual ~ModularStateEstimator();
 
 protected:
@@ -53,9 +55,6 @@ private:
     EstimationModulePtr dvlEstimationModule;
     EstimationModulePtr imuEstimationModule;
     EstimationModulePtr depthEstimationModule;
-
-    /* this may be removed in the future*/
-    vehicle::IVehiclePtr m_vehicle;
 };
 
 } // namespace estimation
