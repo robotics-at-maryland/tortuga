@@ -719,10 +719,17 @@ class TestLightStaged(TestLight):
 class TestBuoy(support.AITestCase):
     def setUp(self):
         cfg = {
-            'Ai' : {'taskOrder' : ['ram.ai.course.Buoy',
-                                   'ram.ai.course.Pipe']
+            'Ai' : {
+                'taskOrder' : ['ram.ai.course.Buoy',
+                                   'ram.ai.course.Pipe'],
+                'config' : {
+                    'Buoy' : {
+                        'searchTimeout' : 20,
+                        'lostTimeout' : 10
                     }
+                }
             }
+        }
         support.AITestCase.setUp(self, cfg = cfg)
         self.machine.start(course.Buoy)
         self._stateType = course.Buoy
@@ -752,7 +759,7 @@ class TestBuoy(support.AITestCase):
         self.assertFalse(self.machine.branches.has_key(buoy.Start))
         self.assertFalse(self.visionSystem.buoyDetector)
 
-    def testTimeout(self):
+    def testTaskTimeout(self):
         """
         Make sure that the timeout works properly
         """
@@ -767,7 +774,52 @@ class TestBuoy(support.AITestCase):
         self.assertCurrentState(course.Pipe)
         self.assertFalse(self.machine.branches.has_key(buoy.Start))
         self.assertFalse(self.visionSystem.buoyDetector)
+    
+    def testSearchingTimeouts(self):
+        """
+        Make sure that the timeouts for the Searching state work properly
+        """
+        # Restart
+        self.machine.stop()
+        self.machine.start(self._stateType)
+
+        # Test the searchTimeout timeout
+
+        # Stop the task timeout timer
+        taskTimer = MockTimer.LOG[self.machine.currentState().timeoutEvent]
+        taskTimer.stop()
+
+        self.injectEvent(buoy.Searching.BUOY_SEARCHING, sendToBranches = True)
+
+        # Release the searchTimeout
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
         
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(buoy.Start))
+        self.assertFalse(self.visionSystem.buoyDetector)
+
+        
+        # Restart to test the lostTimeout timeout
+        self.machine.stop()
+        self.machine.start(self._stateType)
+        
+        # Stop the task timeout timer
+        taskTimer = MockTimer.LOG[self.machine.currentState().timeoutEvent]
+        taskTimer.stop()
+
+        self.injectEvent(vision.EventType.BUOY_FOUND, sendToBranches = True)
+        self.injectEvent(buoy.Searching.BUOY_SEARCHING, sendToBranches = True)
+
+        # Stop searchTimeout timer
+        self.machine.currentState()._searchTimeout.stop()
+
+        # Release the lostTimeout
+        self.releaseTimer(self.machine.currentState().timeoutEvent)
+        
+        self.assertCurrentState(course.Pipe)
+        self.assertFalse(self.machine.branches.has_key(buoy.Start))
+        self.assertFalse(self.visionSystem.buoyDetector)
+
 class TestBarbedWire(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : 
