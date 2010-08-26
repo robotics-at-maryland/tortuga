@@ -202,29 +202,29 @@ class MockVehicle(vehicle.IVehicle):
 
 # Mock Estimatior
 class MockEstimator(estimation.IStateEstimator):
-    def __init__():
+    def __init__(self, eventHub = core.EventHub(), cfg = None):
         self.name = "BlahBlahThisDoesntMakeSense"
         
-    def getEstimatedPosition():
+    def getEstimatedPosition(self):
         return math.Vector2(0,0)
-    def getEstimatedVelocity():
+    def getEstimatedVelocity(self):
         return math.Vector2(0,0)
-    def getEstimatedLinearAcceleration():
+    def getEstimatedLinearAcceleration(self):
         return math.Vector3(0,0,0)
-    def getEstimatedAngularRate():
+    def getEstimatedAngularRate(self):
         return math.Vector3(0,0,0)
-    def getEstimatedOrientation():
+    def getEstimatedOrientation(self):
         return math.Quaternion(0,0,0,1)
-    def getEstimatedDepth():
+    def getEstimatedDepth(self):
         return 0
-    def getEstimatedDepthDot():
+    def getEstimatedDepthDot(self):
         return 0
-    def addObstacle(name, obstacle):
+    def addObstacle(self, name, obstacle):
         self.name = name
         self.obstacle = obstacle
-    def getObstaclePosition():
+    def getObstaclePosition(self):
         return math.Vector2(0,0)
-    def getObstacleDepth():
+    def getObstacleDepth(self):
         return 0
 
 # For testing purposes

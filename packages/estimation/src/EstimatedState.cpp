@@ -34,61 +34,61 @@ EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventH
     
 }
 
-math::Vector2 EstimatedState::getEstPosition()
+math::Vector2 EstimatedState::getEstimatedPosition()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estPosition;
 }
 
-math::Vector2 EstimatedState::getEstVelocity()
+math::Vector2 EstimatedState::getEstimatedVelocity()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estVelocity;
 }
 
-math::Vector3 EstimatedState::getEstLinearAccel()
+math::Vector3 EstimatedState::getEstimatedLinearAccel()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estLinearAccel;
 }
 
-math::Vector3 EstimatedState::getEstAngularRate()
+math::Vector3 EstimatedState::getEstimatedAngularRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estAngularRate;
 }
 
-math::Quaternion EstimatedState::getEstOrientation()
+math::Quaternion EstimatedState::getEstimatedOrientation()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estOrientation;
 }
 
-double EstimatedState::getEstDepth()
+double EstimatedState::getEstimatedDepth()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estDepth;
 }
 
-double EstimatedState::getEstDepthDot()
+double EstimatedState::getEstimatedDepthDot()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estDepthDot;
 }
 
-math::Vector3 EstimatedState::getEstThrusterForces()
+math::Vector3 EstimatedState::getEstimatedThrusterForces()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estThrusterForces;
 }
 
-math::Vector3 EstimatedState::getEstThrusterTorques()
+math::Vector3 EstimatedState::getEstimatedThrusterTorques()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return estThrusterTorques;
 }
 
-void EstimatedState::setEstPosition(math::Vector2 position)
+void EstimatedState::setEstimatedPosition(math::Vector2 position)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
@@ -97,7 +97,7 @@ void EstimatedState::setEstPosition(math::Vector2 position)
     publishPositionUpdate(position);
 }
 
-void EstimatedState::setEstVelocity(math::Vector2 velocity)
+void EstimatedState::setEstimatedVelocity(math::Vector2 velocity)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
@@ -106,7 +106,7 @@ void EstimatedState::setEstVelocity(math::Vector2 velocity)
     publishVelocityUpdate(velocity);
 }
 
-void EstimatedState::setEstLinearAccel(
+void EstimatedState::setEstimatedLinearAccel(
     math::Vector3 linearAccel)
 {
     {
@@ -116,7 +116,7 @@ void EstimatedState::setEstLinearAccel(
     publishLinearAccelUpdate(linearAccel);
 }
 
-void EstimatedState::setEstAngularRate(
+void EstimatedState::setEstimatedAngularRate(
     math::Vector3 angularRate)
 {
     {
@@ -126,7 +126,7 @@ void EstimatedState::setEstAngularRate(
     publishAngularRateUpdate(angularRate);
 }
 
-void EstimatedState::setEstOrientation(
+void EstimatedState::setEstimatedOrientation(
     math::Quaternion orientation)
 {
     {
@@ -136,7 +136,7 @@ void EstimatedState::setEstOrientation(
     publishOrientationUpdate(orientation);
 }
 
-void EstimatedState::setEstDepth(double depth)
+void EstimatedState::setEstimatedDepth(double depth)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
@@ -145,7 +145,7 @@ void EstimatedState::setEstDepth(double depth)
     publishDepthUpdate(depth);
 }
 
-void EstimatedState::setEstDepthDot(double depthDot)
+void EstimatedState::setEstimatedDepthDot(double depthDot)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
@@ -154,8 +154,8 @@ void EstimatedState::setEstDepthDot(double depthDot)
     publishDepthDotUpdate(depthDot);
 }
 
-void EstimatedState::setEstThrust(math::Vector3 forces,
-                                  math::Vector3 torques)
+void EstimatedState::setEstimatedThrust(math::Vector3 forces,
+                                        math::Vector3 torques)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);

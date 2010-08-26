@@ -48,24 +48,24 @@ public:
                    core::EventHubPtr eventHub = core::EventHubPtr());
     virtual ~EstimatedState(){};
 
-    math::Vector2 getEstPosition();
-    math::Vector2 getEstVelocity();
-    math::Vector3 getEstLinearAccel();
-    math::Vector3 getEstAngularRate();
-    math::Quaternion getEstOrientation();
-    double getEstDepth();
-    double getEstDepthDot();
-    math::Vector3 getEstThrusterForces();
-    math::Vector3 getEstThrusterTorques();
+    math::Vector2 getEstimatedPosition();
+    math::Vector2 getEstimatedVelocity();
+    math::Vector3 getEstimatedLinearAccel();
+    math::Vector3 getEstimatedAngularRate();
+    math::Quaternion getEstimatedOrientation();
+    double getEstimatedDepth();
+    double getEstimatedDepthDot();
+    math::Vector3 getEstimatedThrusterForces();
+    math::Vector3 getEstimatedThrusterTorques();
 
-    void setEstPosition(math::Vector2 position);
-    void setEstVelocity(math::Vector2 velocity);
-    void setEstLinearAccel(math::Vector3 linearAccel);
-    void setEstAngularRate(math::Vector3 angularRate);
-    void setEstOrientation(math::Quaternion orientation);
-    void setEstDepth(double depth);
-    void setEstDepthDot(double depthDot);
-    void setEstThrust(math::Vector3 forces, math::Vector3 torques);
+    void setEstimatedPosition(math::Vector2 position);
+    void setEstimatedVelocity(math::Vector2 velocity);
+    void setEstimatedLinearAccel(math::Vector3 linearAccel);
+    void setEstimatedAngularRate(math::Vector3 angularRate);
+    void setEstimatedOrientation(math::Quaternion orientation);
+    void setEstimatedDepth(double depth);
+    void setEstimatedDepthDot(double depthDot);
+    void setEstimatedThrust(math::Vector3 forces, math::Vector3 torques);
 
 
     /* The estimated state will contain all information about obstacles in a

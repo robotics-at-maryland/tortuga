@@ -54,37 +54,37 @@ StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
 
 math::Vector2 StateEstimatorBase::getEstimatedPosition()
 {
-    return estimatedState->getEstPosition();
+    return estimatedState->getEstimatedPosition();
 }
 
 math::Vector2 StateEstimatorBase::getEstimatedVelocity()
 {
-    return estimatedState->getEstVelocity();
+    return estimatedState->getEstimatedVelocity();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedLinearAcceleration()
 {
-    return estimatedState->getEstLinearAccel();
+    return estimatedState->getEstimatedLinearAccel();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedAngularRate()
 {
-    return estimatedState->getEstAngularRate();
+    return estimatedState->getEstimatedAngularRate();
 }
 
 math::Quaternion StateEstimatorBase::getEstimatedOrientation()
 {
-    return estimatedState->getEstOrientation();
+    return estimatedState->getEstimatedOrientation();
 }
 
 double StateEstimatorBase::getEstimatedDepth()
 {
-    return estimatedState->getEstDepth();
+    return estimatedState->getEstimatedDepth();
 }
 
 double StateEstimatorBase::getEstimatedDepthDot()
 {
-    return estimatedState->getEstDepthDot();
+    return estimatedState->getEstimatedDepthDot();
 }
 
 void StateEstimatorBase::addObstacle(std::string name, ObstaclePtr obstacle)

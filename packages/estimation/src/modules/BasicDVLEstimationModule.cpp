@@ -67,21 +67,21 @@ void BasicDVLEstimationModule::update(core::EventPtr event,
     /* velocity in the body frame */
     math::Vector2 vel_b = bRt*vel_t;
 
-    double yaw = estimatedState->getEstOrientation().getYaw().valueRadians();
+    double yaw = estimatedState->getEstimatedOrientation().getYaw().valueRadians();
 
     /* calculate current velocity in inertial frame */
     math::Vector2 vel_n = math::nRb(yaw)*vel_b;
 
     /* grab the old position estimate */
-    math::Vector2 oldPos = estimatedState->getEstPosition();
-    math::Vector2 oldVel = estimatedState->getEstVelocity();
+    math::Vector2 oldPos = estimatedState->getEstimatedPosition();
+    math::Vector2 oldVel = estimatedState->getEstimatedVelocity();
     
     /* trapezoidal integration for new position */
     math::Vector2 pos_n = oldPos + (vel_n + oldVel) / 2 * timestep;
 
     /* store the new estimates */
-    estimatedState->setEstVelocity(vel_n);
-    estimatedState->setEstPosition(pos_n);
+    estimatedState->setEstimatedVelocity(vel_n);
+    estimatedState->setEstimatedPosition(pos_n);
 
     /* log the estimates */
     LOGGER.infoStream() << vel_t[0] << " "

@@ -57,7 +57,7 @@ void DepthKalmanModule::update(core::EventPtr event,
 
     // Determine depth correction
     math::Vector3 currentSensorLocation = math::Vector3::ZERO; 
-//      estimatedState->getEstOrientation() * m_location;
+//      estimatedState->getEstimatedOrientation() * m_location;
     math::Vector3 sensorMovement = math::Vector3::ZERO;
 //      currentSensorLocation - m_location;
     double correction = sensorMovement.z;
@@ -99,8 +99,8 @@ void DepthKalmanModule::update(core::EventPtr event,
     m_Ak_prev = Ak;
 
     // Set the estimated depth
-    estimatedState->setEstDepth(x_curr[0]);
-    estimatedState->setEstDepthDot(x_curr[1]);
+    estimatedState->setEstimatedDepth(x_curr[0]);
+    estimatedState->setEstimatedDepthDot(x_curr[1]);
 
     LOGGER.infoStream() << m_name << " "
                         << depth  << " "

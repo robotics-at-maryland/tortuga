@@ -52,7 +52,7 @@ void BasicDepthEstimationModule::update(
     // Determine depth correction
     math::Vector3 location = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
-        estimatedState->getEstOrientation() * location;
+        estimatedState->getEstimatedOrientation() * location;
     math::Vector3 sensorMovement = 
         currentSensorLocation - location;
     double correction = sensorMovement.z;
@@ -64,7 +64,7 @@ void BasicDepthEstimationModule::update(
     /* Return the corrected depth (its addition and not subtraction because
      * depth is positive down) */
 
-    estimatedState->setEstDepth(depth + correction);
+    estimatedState->setEstimatedDepth(depth + correction);
 
     LOGGER.infoStream() << m_name << " "
                         << depth + correction << " "

@@ -36,6 +36,7 @@ class TestBWPDController(unittest.TestCase):
         deps = core.SubsystemList()
         deps.append(self.eventHub)
         deps.append(self.vehicle)
+        deps.append(self.estimator)
 
         self.actualDepth = 0
         self.desiredDepth = 0

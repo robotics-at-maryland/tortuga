@@ -126,7 +126,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
             omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
         }
 
-        math::Quaternion oldOrientation = estimatedState->getEstOrientation();
+        math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
 
         estOrientation = vehicle::Utility::quaternionFromRate(oldOrientation,
                                                               omega,
@@ -135,7 +135,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     }
 
     // Update local storage of previous orientation and estimator
-    estimatedState->setEstOrientation(estOrientation);
+    estimatedState->setEstimatedOrientation(estOrientation);
 
     // Send Event
     math::OrientationEventPtr oevent(new math::OrientationEvent());
