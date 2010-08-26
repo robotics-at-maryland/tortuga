@@ -14,6 +14,8 @@
 #include "control/include/Common.h"
 #include "control/include/ControllerBase.h"
 
+#include "estimation/include/Common.h"
+
 #include "vehicle/include/Common.h"
 
 #include "core/include/ConfigNode.h"

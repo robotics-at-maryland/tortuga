@@ -49,15 +49,15 @@ def get_features():
                 deps = ['math', 'core', 'vehicle','estimation'])
 
     add_feature('estimation', dirs = ['packages/estimation'],
-                deps = ['math','core','vehicle'])
+                deps = ['math','core', 'vehicle'])
 
     add_feature('wrappers', dirs = ['wrappers/samples'], opt_dirs =
-                    {'control' : ['wrappers/control'],
+                    {'estimation' : ['wrappers/estimation'],
+                     'control' : ['wrappers/control'],
                      'math' : ['wrappers/math'],
                      'vehicle' : ['wrappers/vehicle'],
                      'vision' : ['wrappers/vision'],
-                     'core' : ['wrappers/core'],
-                     'estimation' : ['wrappers/estimation']})
+                     'core' : ['wrappers/core']})
                      
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])

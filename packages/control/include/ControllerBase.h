@@ -16,8 +16,10 @@
 #include "control/include/DesiredState.h"
 #include "control/include/Helpers.h"
 
-#include "vehicle/include/Common.h"
+#include "estimation/include/Common.h"
 #include "estimation/include/IStateEstimator.h"
+
+#include "vehicle/include/Common.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"

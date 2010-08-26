@@ -203,7 +203,7 @@ class MockVehicle(vehicle.IVehicle):
 # Mock Estimatior
 class MockEstimator(estimation.IStateEstimator):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
-        self.name = "BlahBlahThisDoesntMakeSense"
+        estimation.IStateEstimator.__init__(self, "StateEstimator", eventHub)
         
     def getEstimatedPosition(self):
         return math.Vector2(0,0)

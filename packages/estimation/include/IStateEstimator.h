@@ -22,9 +22,8 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
+#include "estimation/include/Common.h"
 #include "estimation/include/Obstacle.h"
-
-#include "vehicle/include/Common.h"
 
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"

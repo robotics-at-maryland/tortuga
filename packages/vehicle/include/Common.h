@@ -21,15 +21,6 @@
 #include "vehicle/include/device/Common.h"
 
 namespace ram {
-namespace estimation {
-
-class IStateEstimator;
-typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;
-
-}
-}
-
-namespace ram {
 namespace vehicle {
 
 // Forward Declartions

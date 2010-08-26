@@ -27,10 +27,14 @@ def generate(module_builder, local_ns, global_ns):
     """
 
     local_ns.exclude()
-    classes = []
 
     # Mark class from other modules as already exposed
-    module_builder.class_('::ram::core::Subsystem').already_esposed = True
+    module_builder.class_('::ram::core::Subsystem').already_exposed = True
+    module_builder.class_('::ram::math::Vector3').already_exposed = True
+    module_builder.class_('::ram::math::Vector2').already_exposed = True
+    Quaternion = module_builder.class_('::ram::math::Quaternion')
+    Quaternion.already_exposed = True
+    Quaternion.constructors().allow_implicit_conversion = False
 
     # Include state estimator class
     IStateEstimator = local_ns.class_('IStateEstimator')
@@ -38,3 +42,8 @@ def generate(module_builder, local_ns, global_ns):
 
     IStateEstimator.include_files.append(os.environ['RAM_SVN_DIR'] +
                                          '/packages/estimation/include/IStateEstimator.h')
+
+    wrap.registerSubsystemConverter(IStateEstimator)
+
+    module_builder.add_registration_code("registerIStateEstimatorPtrs();")
+    return ['wrappers/estimation/include/RegisterFunctions.h']

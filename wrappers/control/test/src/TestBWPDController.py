@@ -21,8 +21,9 @@ from ram.test.motion.support import MockEstimator
 
 class TestBWPDController(unittest.TestCase):
     def setUp(self):
-        self.vehicle = MockVehicle()
-        self.estimator = MockEstimator()
+        self.eventHub = core.EventHub()
+        self.vehicle = MockVehicle(eventHub = self.eventHub)
+        self.estimator = MockEstimator(eventHub = self.eventHub)
 
         cfg = {
             'name' : 'TestController',
@@ -31,7 +32,6 @@ class TestBWPDController(unittest.TestCase):
             'angularDGain' : 1,
             'desiredQuaternion' : [0, 0, 0, 1] }
         cfg = core.ConfigNode.fromString(str(cfg))
-        self.eventHub = core.EventHub()
 
         deps = core.SubsystemList()
         deps.append(self.eventHub)

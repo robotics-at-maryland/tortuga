@@ -8,7 +8,9 @@
 import os
 
 # Build System imports
+import buildfiles.wrap as wrap
 import buildfiles.libs as libs
+import buildfiles.helpers as helpers
 
 Import('env')
 envl = env.Clone()
@@ -50,7 +52,10 @@ def extras(env, output, message = None, deps = None):
 
     env.Depends(tester, py_install)    
     return tester
-                          
-envl.Pypp('_estimation', [os.path.join(header_dir, h) for h in wrapped_headers],
-          module = 'gen_estimation.py', tester = extras,
+
+envl.Pypp(['_estimation','_estimationtest'], wrapped_headers, module = 'gen_estimation.py',
+          tester = extras,
+          dep_wrappers = ['_core', 'core.py', '_math', 'math.py', '_vehicle',
+                          'vehicle/__init__.py'],
+          dont_build = ['SubsystemList.pypp.cpp'],
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])

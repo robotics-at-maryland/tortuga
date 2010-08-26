@@ -9,7 +9,6 @@
 import os
 import sys
 import StringIO
-import inspect
 from distutils import sysconfig
 
 # Ensure we are using the proper version of python
@@ -21,12 +20,10 @@ stderr = sys.stderr
 sys.stderr = StringIO.StringIO()
 
 try:
-    # Project Imports
-    import ext._estimation as _estimation
+    # Core import first because of Boost.Python wrapping dependencies
+    import ext.core
+
     from ext._estimation import *
 
 finally:
     sys.stderr = stderr
-
-class IStateEstimator(_estimation.IStateEstimator):
-    pass
