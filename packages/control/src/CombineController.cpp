@@ -180,6 +180,7 @@ void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
     if(frame == IController::BODY_FRAME)
         velocity = math::nRb(m_desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
     m_desiredState->setDesiredVelocity(velocity);
+    m_desiredState->setDesiredPosition(m_stateEstimator->getEstimatedPosition());
     m_transController->setControlMode(ControlMode::VELOCITY);
 }
 
@@ -188,6 +189,7 @@ void CombineController::setDesiredPosition(math::Vector2 position, int frame)
     if(frame == IController::BODY_FRAME)
         position = math::nRb(m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians())*position;
     m_desiredState->setDesiredPosition(position);
+    m_desiredState->setDesiredVelocity(math::Vector2::ZERO);
     m_transController->setControlMode(ControlMode::POSITION);
 }
 

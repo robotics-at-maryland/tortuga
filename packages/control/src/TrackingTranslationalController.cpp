@@ -59,21 +59,15 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     math::Vector2 desiredPosition = desiredState->getDesiredPosition();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
 
-    //Based on control mode, modify desired state
-    switch(m_controlMode){
-    case ControlMode::POSITION:
-        desiredVelocity = (desiredPosition - currentPosition)/timestep; 
-        //desiredState->setDesiredVelocity(desiredVelocity);
-        break;
-    case ControlMode::VELOCITY:
-        desiredPosition = currentPosition + desiredVelocity*timestep;
-        //desiredState->setDesiredPosition(desiredPosition);
-        break;
-    case ControlMode::POSITIONANDVELOCITY:
-    case ControlMode::OPEN_LOOP:;
-    }
-
     if(m_controlMode != ControlMode::OPEN_LOOP) {
+
+        // propagate the desired state
+        desiredPosition += desiredVelocity * timestep;
+        
+        // only set a new desire position if in velocity control mode or velocity == 0
+        if(m_controlMode != ControlMode::POSITIONANDVELOCITY)
+            desiredState->setDesiredPosition(desiredPosition);
+
         //Initialize error vectors
         math::Vector2 positionPError(0,0), positionIError(0,0), positionDError(0,0);
         math::Vector2 velocityPError(0,0), velocityIError(0,0), velocityDError(0,0);
