@@ -39,16 +39,30 @@ namespace estimation {
 class IStateEstimator : public core::Subsystem
 {
 public:
-    virtual ~IStateEstimator(){};
+
+    virtual ~IStateEstimator();
 
     /* Estimated quantities will be returned in the Inertial frame if applicable */
 
+    /** returns the estimated position in the inertial frame */
     virtual math::Vector2 getEstimatedPosition() = 0;
+
+    /** returns the estimated velocity in the inertial frame */
     virtual math::Vector2 getEstimatedVelocity() = 0;
+
+    /** returns the estimated linear acceleration in the inertial frame */
     virtual math::Vector3 getEstimatedLinearAcceleration() = 0;
+
+    /** returns the estimated angular rate */
     virtual math::Vector3 getEstimatedAngularRate() = 0;
+
+    /** returns the estimated orientation */
     virtual math::Quaternion getEstimatedOrientation() = 0;
+
+    /** returns the estimated depth */
     virtual double getEstimatedDepth() = 0;
+
+    /** returns the estiamted depth change rate */
     virtual double getEstimatedDepthDot() = 0;
     
     /* Implementations of IStateEstimator should store the information about course

@@ -23,7 +23,9 @@ class TestIController(unittest.TestCase):
             "depthPGain" : 20,
             "desiredSpeed" : 0,
             "desiredDepth" : 0.25,
-            "desiredQuaternion" : [0, 0, 0, 1]
+            "desiredQuaternion" : [0, 0, 0, 1],
+            "holdCurrentDepth" : 0,
+            "holdCurrentHeading" : 0
         }
         cfg = core.ConfigNode.fromString(str(cfg))
         obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())

@@ -29,5 +29,9 @@ IStateEstimator::IStateEstimator(std::string name, core::EventHubPtr eventHub) :
 {
 }
 
+IStateEstimator::~IStateEstimator()
+{
+}
+
 } // namespace vehicle
 } // namespace ram

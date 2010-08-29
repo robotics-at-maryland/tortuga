@@ -53,9 +53,10 @@ def extras(env, output, message = None, deps = None):
     env.Depends(tester, py_install)    
     return tester
 
-envl.Pypp(['_estimation','_estimationtest'], wrapped_headers, module = 'gen_estimation.py',
+envl.Pypp(['_estimation'], wrapped_headers, module = 'gen_estimation.py',
           tester = extras,
           dep_wrappers = ['_core', 'core.py', '_math', 'math.py', '_vehicle',
                           'vehicle/__init__.py'],
           dont_build = ['SubsystemList.pypp.cpp'],
           extra_sources = [os.path.join(extra_dir, s) for s in extra_sources])
+          
