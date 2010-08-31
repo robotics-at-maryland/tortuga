@@ -14,14 +14,13 @@
 #ifndef RAM_ESTIMATION_OBSTACLE_H
 #define RAM_ESTIMATION_OBSTACLE_H
 
-// STD Includes
-
 // Library Includes
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "math/include/Vector2.h"
-
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 namespace ram {
 namespace estimation {
@@ -32,17 +31,60 @@ typedef boost::shared_ptr<Obstacle> ObstaclePtr;
 class Obstacle
 {
 public:
-    virtual ~Obstacle(){};
+    /**
+     * Base constructor for an obstacle.
+     * Obstacles can track depth, position, velocity, and orientation.
+     *
+     * A specific obstacle is not guaranteed to track all of these.
+     * For example, in most cases, tracking velocity makes no sense.
+     *
+     * Use a bitmask when creating an obstacle to say what the obstacle
+     * is going to be used to track. Whenever somebody tries to use a getter
+     * on an untracked attribute, this will throw an exception. Anytime a
+     * setter is called, the obstacle will change to tracking that attribute.
+     * Because of this behavior, Obstacles default to tracking no attributes.
+     *
+     * This will throw an exception:
+     *     obstacle = Obstacle();
+     *     obstacle.getPosition();
+     *
+     * This is fine:
+     *     obstacle = Obstacle();
+     *     obstacle.setPosition(math::Vector2(0, 0));
+     *     obstacle.getPosition();
+     *
+     * This is also fine (but not recommended):
+     *     obstacle = Obstacle(Obstacle::POSITION);
+     *     obstacle.getPosition();
+     *
+     * Values contained are dependent on the specific state estimator's
+     * use of the class.
+     */
+    Obstacle(int attributes = 0x0);
+    virtual ~Obstacle();
 
-    math::Vector2 getObstaclePosition();
-    double getObstacleDepth();
+    double getDepth();
+    math::Vector2 getPosition();
+    math::Vector3 getVelocity();
+    math::Quaternion getOrientation();
     
-    void setObstaclePosition(math::Vector2 position);
-    void setObstacleDepth(double depth);
+    void setDepth(double depth);
+    void setPosition(math::Vector2 position);
+    void setVelocity(math::Vector3 velocity);
+    void setOrientation(math::Quaternion orientation);
+
+    static const int DEPTH;
+    static const int POSITION;
+    static const int VELOCITY;
+    static const int ORIENTATION;
 
 private:
-    double depth;
-    math::Vector2 position;
+    /* Includes depth and position */
+    math::Vector3 m_position;
+    math::Vector3 m_velocity;
+    math::Quaternion m_orientation;
+
+    int m_attribs;
     // possibly also store color or other properties that might need accessed
 };
 

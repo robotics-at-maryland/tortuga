@@ -36,6 +36,13 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion.already_exposed = True
     Quaternion.constructors().allow_implicit_conversion = False
 
+    # Include obstacle class
+    Obstacle = local_ns.class_('Obstacle')
+    Obstacle.include()
+
+    Obstacle.include_files.append(os.environ['RAM_SVN_DIR'] +
+                                  '/packages/estimation/include/Obstacle.h')
+
     # Include state estimator class
     IStateEstimator = local_ns.class_('IStateEstimator')
     IStateEstimator.include()
