@@ -12,6 +12,7 @@ import math as pmath
 import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
+import ext.estimation as estimation
 import ext.math as math
 
 import ram.timer as timer
@@ -47,6 +48,9 @@ class MotionManager(core.Subsystem):
         self._vehicle = core.Subsystem.getSubsystemOfType(vehicle.IVehicle, 
                                                           deps, 
                                                           nonNone = True)
+
+        self._estimator = core.Subsystem.getSubsystemOfType(
+            estimation.IStateEstimator, deps, nonNone = True)
         
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
                                                            deps,
@@ -72,8 +76,9 @@ class MotionManager(core.Subsystem):
                 self._stopMotion(self._inPlaneMotion)
             self._inPlaneMotion = motion
             
-            self._inPlaneMotion.start(self._controller, self._vehicle, 
-                                      self._qeventHub, eventPublisher)
+            self._inPlaneMotion.start(self._controller, self._vehicle,
+                                      self._estimator, self._qeventHub,
+                                      eventPublisher)
             started = True
             
         if motion.type & Motion.DEPTH:
@@ -82,8 +87,9 @@ class MotionManager(core.Subsystem):
             self._depthMotion = motion
             
             if not started:
-                self._depthMotion.start(self._controller, self._vehicle, 
-                                        self._qeventHub, eventPublisher)
+                self._depthMotion.start(self._controller, self._vehicle,
+                                        self._estimator, self._qeventHub,
+                                        eventPublisher)
                 started = True
             
         if motion.type & Motion.ORIENTATION:
@@ -92,8 +98,9 @@ class MotionManager(core.Subsystem):
             self._orientationMotion = motion
             
             if not started:
-                self._orientationMotion.start(self._controller, self._vehicle, 
-                                              self._qeventHub, eventPublisher)
+                self._orientationMotion.start(self._controller, self._vehicle,
+                                              self._estimator, self._qeventHub,
+                                              eventPublisher)
 
     def setMotion(self, motion, *motions):
         self._queuedMotions = []
@@ -285,10 +292,11 @@ class Motion(object):
         self._eventPublisher = None
         self._controller = None
         self._vehicle = None
+        self._estimator = None
         self._eventHub = None
         self._type = _type
     
-    def start(self, controller, vehicle, eventHub, eventPublisher):
+    def start(self, controller, vehicle, estimator, eventHub, eventPublisher):
         """
         Called by the motion manager to state main state variables
         
@@ -305,6 +313,7 @@ class Motion(object):
         """
         self._controller = controller
         self._vehicle = vehicle
+        self._estimator = estimator
         self._eventHub = eventHub
         self._eventPublisher = eventPublisher
         

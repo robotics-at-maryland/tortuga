@@ -136,8 +136,8 @@ class TestStart(support.AITestCase):
             }
 
         support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.orientation = math.Quaternion(math.Degree(45),
-                                                   math.Vector3.UNIT_Z)
+        self.estimator.orientation = math.Quaternion(math.Degree(45),
+                                                     math.Vector3.UNIT_Z)
         self.machine.start(buoy.Start)
         
     def testStart(self):
@@ -258,7 +258,7 @@ class TestAlign(support.AITestCase, BuoyTrackingTest):
                          azimuth = math.Degree(15))
         
         # Bigger numbers = deeper, and we want to go deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['buoyData'][vision.Color.YELLOW].x)
         self.assertEqual(-0.5, self.ai.data['buoyData'][vision.Color.YELLOW].y)
@@ -267,7 +267,7 @@ class TestAlign(support.AITestCase, BuoyTrackingTest):
         self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
                          0, vision.Color.YELLOW, y = 0.5,
                          azimuth = math.Degree(15))
-        self.assertLessThan(self.controller.depth, self.vehicle.depth)
+        self.assertLessThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['buoyData'][vision.Color.YELLOW].x)
         self.assertEqual(0.5, self.ai.data['buoyData'][vision.Color.YELLOW].y)
@@ -318,7 +318,7 @@ class TestCorrectDepth(support.AITestCase, BuoyTrackingTest):
     def setUp(self):
         BuoyTrackingTest.setUp(self, buoy.CorrectDepth, buoy.CorrectDepth,
                                buoy.FindAttempt)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
 
     def testCorrectHeight(self):
         self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
@@ -333,13 +333,13 @@ class TestCorrectDepth(support.AITestCase, BuoyTrackingTest):
         self.qeventHub.publishEvents()
 
         self.assertCurrentState(buoy.CorrectDepth)
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
 
     def testDownTooFar(self):
         """
         Test if the vehicle is trying to exit the bottom of its bounding box
         """
-        self.vehicle.depth = 6.5
+        self.estimator.depth = 6.5
         self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
                          0, vision.Color.YELLOW, y = -0.5)
         self.qeventHub.publishEvents()
@@ -353,13 +353,13 @@ class TestCorrectDepth(support.AITestCase, BuoyTrackingTest):
         self.qeventHub.publishEvents()
 
         self.assertCurrentState(buoy.CorrectDepth)
-        self.assertLessThan(self.controller.depth, self.vehicle.depth)
+        self.assertLessThan(self.controller.depth, self.estimator.depth)
 
     def testUpTooFar(self):
         """
         Test if the vehicle is trying to exit the top of its bounding box
         """
-        self.vehicle.depth = 3.5
+        self.estimator.depth = 3.5
         self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
                          0, vision.Color.YELLOW, y = 0.5)
         self.qeventHub.publishEvents()
@@ -384,7 +384,7 @@ class TestSeek(support.AITestCase, BuoyTrackingTest):
                          azimuth = math.Degree(15))
         
         # Bigger numbers = deeper, and the vehicle should not change depth
-        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertEqual(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['buoyData'][vision.Color.YELLOW].x)
         self.assertEqual(-0.5, self.ai.data['buoyData'][vision.Color.YELLOW].y)
@@ -393,7 +393,7 @@ class TestSeek(support.AITestCase, BuoyTrackingTest):
         self.injectEvent(vision.EventType.BUOY_FOUND, vision.BuoyEvent, 0,
                          0, vision.Color.YELLOW, y = 0.5,
                          azimuth = math.Degree(15))
-        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertEqual(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['buoyData'][vision.Color.YELLOW].x)
         self.assertEqual(0.5, self.ai.data['buoyData'][vision.Color.YELLOW].y)
@@ -474,7 +474,7 @@ class TestReposition(support.AITestCase):
         support.AITestCase.setUp(self, cfg = cfg)
 
         # Initial values
-        self.vehicle.depth = 7.8
+        self.estimator.depth = 7.8
         self.ai.data['buoyStartOrientation'] = 15
         self.ai.data['firstSearching'] = False
         

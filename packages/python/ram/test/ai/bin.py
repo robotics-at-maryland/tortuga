@@ -515,7 +515,7 @@ class TestLostCurrentBinNextBin(TestLostCurrentBin):
 
 class TestRecoverSeeking(aisupport.AITestCase):
     def testStart(self):
-        self.vehicle.depth = 9
+        self.estimator.depth = 9
         self.controller.depth = 9
         self.ai.data["lastBinX"] = 0.5
         self.ai.data["lastBinY"] = -0.5
@@ -822,7 +822,7 @@ class DiveTestCase(object):
     def setUp(self, myState, nextState):
         self.myState = myState
         self.nextState = nextState
-        self.vehicle.depth = 0
+        self.estimator.depth = 0
         self.machine.start(self.myState)
 
     def testStart(self):
@@ -1209,7 +1209,7 @@ class TestPostDiveExamine(ExamineTestCase, BinTestCase):
 class TestSurfaceToMove(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         # Set the start side to the left
         self.ai.data['startSide'] = bin.BinSortingState.LEFT
         self.ai.data['preBinCruiseDepth'] = 5.0
@@ -1706,7 +1706,7 @@ class TestCheckDropped(BinTestCase):
 class TestSurface(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         self.ai.data['preBinCruiseDepth'] = 5.0
         self.machine.start(bin.SurfaceToCruise)
     

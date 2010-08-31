@@ -22,7 +22,8 @@ import ram.motion.basic
 
 from ram.ai.subsystem import AI
 from ram.test.timer import TimerTester
-from ram.test.motion.support import MockController, MockVehicle, MockTimer
+from ram.test.motion.support import \
+    MockController, MockVehicle, MockTimer, MockEstimator
 
 
 class MockMotionManager(core.Subsystem):
@@ -154,13 +155,15 @@ class AITestCase(unittest.TestCase):
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
         self.controller = MockController(self.eventHub)
         self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
+        self.estimator = MockEstimator(cfg = cfg.get('Estimator', {}))
         self.visionSystem = MockVisionSystem()
         
         aCfg = cfg.get('Ai', {})
         self.ai = AI(aCfg)
         
         deps = [self.controller, self.timerManager, self.eventHub, 
-                self.qeventHub, self.vehicle, self.visionSystem, self.ai]
+                self.qeventHub, self.vehicle, self.visionSystem, self.ai,
+                self.estimator]
         
         mCfg = cfg.get('MotionManager', {})
         self.motionManager = motion.basic.MotionManager(mCfg, deps)

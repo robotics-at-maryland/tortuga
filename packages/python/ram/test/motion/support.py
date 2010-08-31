@@ -89,23 +89,6 @@ class MockVehicle(vehicle.IVehicle):
         if cfg is None:
             cfg = {}
 
-        self.validObj = set('vehicle')
-        self._depth = { 'vehicle' : 0 }
-        self._orientation = { 'vehicle' : ext.math.Quaternion.IDENTITY }
-        self._velocity = { 'vehicle' : ext.math.Vector2.ZERO }
-        self._position = { 'vehicle' : ext.math.Vector2.ZERO }
-        self._devices = []
-
-        # Move through the configuration file and add objects
-        for name, pos in cfg.get('StateEstimator', {}).iteritems():
-            self.validObj.add(name)
-            self._depth[name] = pos[2]
-            self._orientation[name] = ext.math.Quaternion(
-                ext.math.Degree(pos[3]),
-                ext.math.Vector3.UNIT_Z)
-            self._velocity[name] = ext.math.Vector2(0, 0)
-            self._position[name] = ext.math.Vector2(pos[0], pos[1])
-
         # Take the name of the device and store it 
         # don't care about the contents
         for device in cfg.get('Devices', {}).iterkeys():
@@ -115,8 +98,6 @@ class MockVehicle(vehicle.IVehicle):
         self.torpedosFired = 0
         self.grabberRelease = False
         self.unsafed = True
-        self.linAccel = ext.math.Vector3.ZERO
-        self.angRate = ext.math.Vector3.ZERO
         self.force = ext.math.Vector3.ZERO
         self.torque = ext.math.Vector3.ZERO
 
@@ -161,62 +142,35 @@ class MockVehicle(vehicle.IVehicle):
         self.unsafed = False
 
     def getDeviceNames(self):
-        return self._devices
-    
-    def publishOrientationUpdate(self, vehicleOrientation):
-        event = ext.math.OrientationEvent()
-        event.orientation = vehicleOrientation
-        self.publish(vehicle.IVehicle.ORIENTATION_UPDATE, event)
-
-    def publishVelocityUpdate(self, vehicleVelocity):
-        event = ext.math.Vector2Event()
-        event.vector2 = vehicleVelocity
-        self.publish(vehicle.IVehicle.VELOCITY_UPDATE, event)
-
-    def publishPositionUpdate(self, vehiclePosition):
-        event = ext.math.Vector2Event()
-        event.vector2 = vehiclePosition
-        self.publish(vehicle.IVehicle.POSITION_UPDATE, event)
-
-    def publishDepthUpdate(self, vehicleDepth):
-        event = ext.math.NumericEvent()
-        event.number = vehicleDepth
-        self.publish(vehicle.IVehicle.DEPTH_UPDATE, event)
-
-    # These are for compatibility with old tests
-    # They allow you to call vehicle.depth and automatically chooses vehicle
-    def depth(self, val):
-        self._depth['vehicle'] = val
-    def orientation(self, val):
-        self._orientation['vehicle'] = val
-    def velocity(self, val):
-        self._velocity['vehicle'] = val
-    def position(self, val):
-        self._position['vehicle'] = val
-    depth = property(lambda self: self._depth['vehicle'], depth)
-    orientation = property(lambda self: self._orientation['vehicle'],
-                           orientation)
-    velocity = property(lambda self: self._velocity['vehicle'], velocity)
-    position = property(lambda self: self._position['vehicle'], position)
+        return self._devices    
 
 
 # Mock Estimatior
 class MockEstimator(estimation.IStateEstimator):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
         estimation.IStateEstimator.__init__(self, "StateEstimator", eventHub)
+
+        self._pos = math.Vector2(0, 0)
+        self._vel = math.Vector2(0, 0)
+        self._orientation = math.Quaternion.IDENTITY
+        self._depth = 0
+        self.linAccel = ext.math.Vector3.ZERO
+        self.angRate = ext.math.Vector3.ZERO
+
+        self._obstacles = {}
         
     def getEstimatedPosition(self):
-        return math.Vector2(0,0)
+        return self._pos
     def getEstimatedVelocity(self):
-        return math.Vector2(0,0)
+        return self._vel
     def getEstimatedLinearAcceleration(self):
-        return math.Vector3(0,0,0)
+        return self.linAccel
     def getEstimatedAngularRate(self):
-        return math.Vector3(0,0,0)
+        return self.angRate
     def getEstimatedOrientation(self):
-        return math.Quaternion(0,0,0,1)
+        return self._orientation
     def getEstimatedDepth(self):
-        return 0
+        return self._depth
     def getEstimatedDepthDot(self):
         return 0
     def addObstacle(self, name, obstacle):
@@ -226,6 +180,42 @@ class MockEstimator(estimation.IStateEstimator):
         return math.Vector2(0,0)
     def getObstacleDepth(self):
         return 0
+
+    def publishOrientationUpdate(self, vehicleOrientation):
+        event = ext.math.OrientationEvent()
+        event.orientation = vehicleOrientation
+        self.publish(estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
+                     event)
+
+    def publishVelocityUpdate(self, vehicleVelocity):
+        event = ext.math.Vector2Event()
+        event.vector2 = vehicleVelocity
+        self.publish(estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE, event)
+
+    def publishPositionUpdate(self, vehiclePosition):
+        event = ext.math.Vector2Event()
+        event.vector2 = vehiclePosition
+        self.publish(estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE, event)
+
+    def publishDepthUpdate(self, vehicleDepth):
+        event = ext.math.NumericEvent()
+        event.number = vehicleDepth
+        self.publish(estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE, event)
+
+    def depth(self, val):
+        self._depth = val
+    def orientation(self, val):
+        self._orientation = val
+    def velocity(self, val):
+        self._velocity = val
+    def position(self, val):
+        self._position = val
+    depth = property(lambda self: self._depth, depth)
+    orientation = property(lambda self: self._orientation,
+                           orientation)
+    velocity = property(lambda self: self._velocity, velocity)
+    position = property(lambda self: self._position, position)
+
 
 # For testing purposes
 class MockTimer(timer.Timer):
@@ -288,11 +278,13 @@ class MotionTest(unittest.TestCase):
         self.eventHub = core.EventHub()
         self.vehicle = MockVehicle(self.eventHub)
         self.controller = MockController(self.eventHub)
+        self.estimator = MockEstimator(self.eventHub)
         
         # The QueuedEventHub lets us queue the events to be released when ready
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         
-        deps = [self.vehicle, self.controller, self.qeventHub, self.eventHub]
+        deps = [self.vehicle, self.controller, self.estimator,
+                self.qeventHub, self.eventHub]
         self.motionManager = motion.basic.MotionManager({}, deps)
 
         # Replace Timer with out Mock Timer Class

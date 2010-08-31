@@ -229,7 +229,7 @@ class TestRangeXYHold(support.AITestCase):
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].topWidth, 0.25)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
@@ -343,7 +343,7 @@ class AlignmentTest(object):
         self.assertEqual(self.ai.data['lastBarbedWireEvent'].bottomWidth, 0.2)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertGreaterThan(self.controller.yawChange, 0)
@@ -390,7 +390,7 @@ class AlignmentTest(object):
 
         # Top pipe is a little low, so we need to dive more
         self._sendAlignEvent(topX = 0, bottomX = 0, topY = 0.1)
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
 
 
 class TestFarSeekingToAligned(AlignmentTest, support.AITestCase):

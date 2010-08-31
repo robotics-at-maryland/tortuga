@@ -104,9 +104,9 @@ class TestPipeBias(PipeTestCase):
         
         # Now lets test biasing with vehicle at -80, and pipe 75 to the left
         # The bias is 0 degrees (north), absolute pipe direction is -155 deg.
-        self.vehicle.orientation = math.Quaternion(math.Degree(-80),
-                                                   math.Vector3.UNIT_Z)
-        self.controller.setDesiredOrientation(self.vehicle.orientation)
+        self.estimator.orientation = math.Quaternion(math.Degree(-80),
+                                                     math.Vector3.UNIT_Z)
+        self.controller.setDesiredOrientation(self.estimator.orientation)
         
         self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(-75))
         self.assertGreaterThan(self.controller.yawChange, 0)
@@ -1048,7 +1048,7 @@ class TestSafeDive(support.AITestCase):
         cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeDive', 
                                        'ram.ai.course.SafeVision'] } }
         support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 0
+        self.estimator.depth = 0
         self.machine.start(course.SafeDive)
     
     def testStart(self):
@@ -1072,7 +1072,7 @@ class TestSafeVision(support.AITestCase):
         cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeVision', 
                                        'ram.ai.course.Octagon'] } }
         support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(course.SafeVision)
         
     def testStart(self):
@@ -1112,7 +1112,7 @@ class TestSafeSonar(support.AITestCase):
         cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.SafeSonar', 
                                        'ram.ai.course.Octagon'] } }
         support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(course.SafeSonar)
         
     def testStart(self):
@@ -1151,7 +1151,7 @@ class TestOctagon(support.AITestCase):
     def setUp(self):
         cfg = { 'Ai' : {'taskOrder' : ['ram.ai.course.Octagon'] } }
         support.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(course.Octagon)
     
     def testStart(self):
@@ -1162,7 +1162,6 @@ class TestOctagon(support.AITestCase):
                 
     def testDiveFinished(self):
         self.injectEvent(motion.basic.MotionManager.FINISHED)
-        #self.assert_(not self.vehicle.unsafed)
 
     def testRelease(self):
         # Finish the motion to start the timer

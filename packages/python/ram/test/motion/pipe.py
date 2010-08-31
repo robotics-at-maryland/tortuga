@@ -80,7 +80,7 @@ class TestHover(ram.test.motion.common.TestHover):
         # Turning toward pipe at 30 Degrees off North
         self.controller.desiredOrientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
-        self.vehicle.orientation = \
+        self.estimator.orientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
         
         # Pipe at 45 degress left of vehicle's heading

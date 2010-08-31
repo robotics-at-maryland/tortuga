@@ -184,7 +184,7 @@ class TestZigZag(support.MotionTest):
         self.assertEquals(expType, m.type)
     
     def testStraightSpeeds(self):
-        self.vehicle.orientation = math.Quaternion.IDENTITY;
+        self.estimator.orientation = math.Quaternion.IDENTITY;
         
         m = motion.search.ZigZag(legTime = 6, sweepAngle = 0, speed = 5)
         self.motionManager.setMotion(m)
@@ -194,7 +194,7 @@ class TestZigZag(support.MotionTest):
         
     def testRightLeftSpeeds(self):
         # Vehicle pointed striagh ahead
-        self.vehicle.orientation = math.Quaternion.IDENTITY
+        self.estimator.orientation = math.Quaternion.IDENTITY
         
         m = motion.search.ZigZag(legTime = 6, sweepAngle = 180, speed = 5)
         self.motionManager.setMotion(m)
@@ -204,7 +204,7 @@ class TestZigZag(support.MotionTest):
         
         
     def testNormal(self):
-        self.vehicle.orientation = math.Quaternion.IDENTITY
+        self.estimator.orientation = math.Quaternion.IDENTITY
         m = motion.search.ZigZag(legTime = 6, sweepAngle = 90, speed = 8)
         
         # Start the motion
@@ -237,14 +237,14 @@ class TestZigZag(support.MotionTest):
     def testOrientationUpdate(self):
         """Make sure we update when we get an orientation event"""
         
-        self.vehicle.orientation = math.Quaternion.IDENTITY
+        self.estimator.orientation = math.Quaternion.IDENTITY
         m = motion.search.ZigZag(legTime = 6, sweepAngle = 90, speed = 8)
         
         # Start the motion
         self.motionManager.setMotion(m)
         
         orientation = math.Quaternion(math.Degree(-90), math.Vector3.UNIT_Z)
-        self.vehicle.publishOrientationUpdate(orientation)
+        self.estimator.publishOrientationUpdate(orientation)
         self.qeventHub.publishEvents()
         
         # Make sure the speeds result from the updated orientation not the
@@ -264,7 +264,7 @@ class TestZigZag(support.MotionTest):
         
         # Flip the vehicle around
         orientation = math.Quaternion(math.Degree(180), math.Vector3.UNIT_Z)
-        self.vehicle.publishOrientationUpdate(orientation)
+        self.estimator.publishOrientationUpdate(orientation)
         self.qeventHub.publishEvents()
         
         self.assertAlmostEqual(0, self.controller.speed, 6)

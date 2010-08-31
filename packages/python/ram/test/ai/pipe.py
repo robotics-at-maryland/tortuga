@@ -182,9 +182,9 @@ def pipeFoundHelper(self, myState = None):
     # Now lets test biasing with vehicle at -22.5, and pipe 22.5 to the right
     # we will do both +90, and -90 (west and east) bias direction.  Absolute
     # pipe orientation is -45 degrees.
-    self.vehicle.orientation = math.Quaternion(math.Degree(-22.5),
-                                               math.Vector3.UNIT_Z)
-    self.controller.setDesiredOrientation(self.vehicle.orientation)
+    self.estimator.orientation = math.Quaternion(math.Degree(-22.5),
+                                                 math.Vector3.UNIT_Z)
+    self.controller.setDesiredOrientation(self.estimator.orientation)
     
     cstate = self.machine.currentState()
     cstate._biasDirection = math.Degree(-90)
@@ -210,9 +210,9 @@ def pipeFoundHelper(self, myState = None):
     # Now lets test biasing with vehicle at 22.5, and pipe 22.5 to the left
     # we will do both +90, and -90 (west and east) bias direction.  Absolute
     # pipe orientation is 45 degrees.
-    self.vehicle.orientation = math.Quaternion(math.Degree(22.5),
-                                               math.Vector3.UNIT_Z)
-    self.controller.setDesiredOrientation(self.vehicle.orientation)
+    self.estimator.orientation = math.Quaternion(math.Degree(22.5),
+                                                 math.Vector3.UNIT_Z)
+    self.controller.setDesiredOrientation(self.estimator.orientation)
     
     cstate._biasDirection = math.Degree(-90)
     self.publishQueuedPipeFound(x = 0, y = -0, angle = math.Degree(22.5))

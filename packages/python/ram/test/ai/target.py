@@ -255,7 +255,7 @@ class TestRangeXYHold(support.AITestCase):
                          x = 0.5, y = -0.5, range = 4, squareNess = 1)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
@@ -320,7 +320,7 @@ class TestSeekingToCentered(TestRangeXYHold):
                          x = 0.5, y = -0.5, range = 4, squareNess = 1)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         # TODO: Take a close look at range seeking here
         #self.assertEqual(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
@@ -416,7 +416,7 @@ class AlignmentTest(object):
                          x = 0.5, y = -0.5, range = 3.5, squareNess = 0.5)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertLessThan(self.controller.yawChange, 0)

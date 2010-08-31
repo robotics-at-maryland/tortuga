@@ -383,12 +383,12 @@ class TestAlign(support.AITestCase):
         
     def testLightFound(self):
         """Make sure new found events move the vehicle"""
-        # Light  dead ahead and below us
+        # Light dead ahead and below us
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = -0.5, azimuth = math.Degree(15))
         
         # Bigger numbers = deeper, and we want to go deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['lastLightEvent'].x)
         self.assertEqual(-0.5, self.ai.data['lastLightEvent'].y)
@@ -396,7 +396,7 @@ class TestAlign(support.AITestCase):
         # Smaller numbers = shallow, and we want to go shallower
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = 0.5, azimuth = math.Degree(15))
-        self.assertLessThan(self.controller.depth, self.vehicle.depth)
+        self.assertLessThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['lastLightEvent'].x)
         self.assertEqual(0.5, self.ai.data['lastLightEvent'].y)
@@ -449,7 +449,7 @@ class TestSeek(support.AITestCase):
                          0, y = -0.5, azimuth = math.Degree(15))
         
         # Bigger numbers = deeper, and the vehicle should not change depth
-        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertEqual(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['lastLightEvent'].x)
         self.assertEqual(-0.5, self.ai.data['lastLightEvent'].y)
@@ -457,7 +457,7 @@ class TestSeek(support.AITestCase):
         # Smaller numbers = shallow, and the vehicle should not change depth
         self.injectEvent(vision.EventType.LIGHT_FOUND, vision.RedLightEvent, 0,
                          0, y = 0.5, azimuth = math.Degree(15))
-        self.assertEqual(self.controller.depth, self.vehicle.depth)
+        self.assertEqual(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.yawChange, 0)
         self.assertEqual(0, self.ai.data['lastLightEvent'].x)
         self.assertEqual(0.5, self.ai.data['lastLightEvent'].y)

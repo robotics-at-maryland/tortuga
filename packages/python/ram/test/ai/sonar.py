@@ -39,7 +39,7 @@ class TestStart(aisupport.AITestCase):
             },
         }
         aisupport.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 0
+        self.estimator.depth = 0
         self.machine.start(sonar.Start)
     
     def testStart(self):

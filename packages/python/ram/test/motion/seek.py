@@ -99,7 +99,7 @@ class TestPointTarget(unittest.TestCase):
         
         # Test with un-level vehicle pitched downward 11.25 degrees 
         # or 1/8 the FOV
-        mockVehicle.orientation = math.Quaternion(
+        mockEstimator.orientation = math.Quaternion(
             math.Degree(11.25), math.Vector3.UNIT_Y) 
         motion.seek.PointTarget.VERTICAL_FOV = 90
         
@@ -202,7 +202,7 @@ class TestSeekPoint(SeekPointTest):
     def testBelow(self):
         # Setup the vehicle and the controller, such that the vehicle is 
         # actually in a 0.5 foot oscillation around the target depth
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.controller.depth = 4.5
         
         # Buoy dead ahead and 5 feet below current vehicle position
@@ -211,7 +211,7 @@ class TestSeekPoint(SeekPointTest):
                           newDepth = 5.75)
 
         # Now do the same test with a limited depth delta
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.controller.depth = 4.5
         
         self.checkCommand(azimuth = 0, elevation = 0, y = -0.75, yawChange = 0, 
@@ -219,7 +219,7 @@ class TestSeekPoint(SeekPointTest):
         
     def testAbove(self):
         # Same oscillation issue as above
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         self.controller.depth = 10.5
         
         # Buoy dead ahead and 2.588 feet above the current vehicle
@@ -228,7 +228,7 @@ class TestSeekPoint(SeekPointTest):
                           newDepth = 9.5)
 
         # Now do the same test with a limited depth delta
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         self.controller.depth = 10.5
         
         self.checkCommand(azimuth = 0, elevation = 0, y = 0.5, yawChange = 0, 
@@ -238,7 +238,7 @@ class TestSeekPoint(SeekPointTest):
         # Turning toward light at 30 Degrees off North
         self.controller.desiredOrientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
-        self.vehicle.orientation = \
+        self.estimator.orientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
         
         # Buoy at same depth and 45 degrees left of vehicle's heading
@@ -250,7 +250,7 @@ class TestSeekPoint(SeekPointTest):
         # Turning away from light at 55 Degrees off North
         self.controller.desiredOrientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
-        self.vehicle.orientation = \
+        self.estimator.orientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
             
         # Buoy dead ahead and 45 degrees left of vehicle's heading
@@ -267,7 +267,7 @@ class TestSeekPoint(SeekPointTest):
         # Turning away from light at -30 Degrees off North
         self.controller.desiredOrientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
-        self.vehicle.orientation = \
+        self.estimator.orientation = \
             math.Quaternion(math.Degree(-15), math.Vector3.UNIT_Z)
        
         # Buoy at same depth and 15 degrees right of vehicle's heading
@@ -279,7 +279,7 @@ class TestSeekPoint(SeekPointTest):
         # Turning toward light at 55 Degrees off North
         self.controller.desiredOrientation = \
             math.Quaternion(math.Degree(-5), math.Vector3.UNIT_Z)
-        self.vehicle.orientation = \
+        self.estimator.orientation = \
             math.Quaternion(math.Degree(10), math.Vector3.UNIT_Z)
             
         # Buoy dead ahead and 20 degrees right of vehicle's heading
@@ -303,7 +303,7 @@ class TestSeekPoint(SeekPointTest):
         self.assertEqual(0, self.controller.speed)
 
     def testTrack(self):
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         
         # Create Buoy ahead of the vehicle
         Buoy = motion.seek.PointTarget(azimuth = 0, elevation = 0, range = 0,
