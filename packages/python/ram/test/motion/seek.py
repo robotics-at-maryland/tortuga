@@ -74,11 +74,11 @@ class TestPointTarget(unittest.TestCase):
         self.assertEqual(None, p.prevTimeStamp)
         
         # Test set state with a level vehicle present
-        mockVehicle = support.MockVehicle()
+        mockEstimator = support.MockEstimator()
         
         p = motion.seek.PointTarget(azimuth = 5, elevation = 5, range = 3, 
                                     x = 2, y = 1, timeStamp = None,
-                                    vehicle = mockVehicle)
+                                    estimator = mockEstimator)
 
         p.setState(azimuth = azimuth, elevation = elevation, 
                    range = range, x = x, y = y, timeStamp = timeStamp)

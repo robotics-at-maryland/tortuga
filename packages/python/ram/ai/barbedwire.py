@@ -169,7 +169,7 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
                                                    x = 0,
                                                    y = 0,
                                                    timeStamp = None,
-                                                   vehicle = self.vehicle)
+                                                   estimator = self.estimator)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
             desiredRange = self._desiredRange,

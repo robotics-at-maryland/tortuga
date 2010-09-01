@@ -60,7 +60,7 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial orientation
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['lightStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -90,7 +90,7 @@ class Searching(state.State, StoreLightEvent):
         self.visionSystem.redLightDetectorOn()
         
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('lightStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -175,7 +175,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
                 self.motionManager._stopMotion(self._recoverMotion)
                 
                 # Create the depth motion if needed
-                newDepth = self.vehicle.getDepth()
+                newDepth = self.stateEstimator.getEstimatedDepth()
                 changeDepth = False
                 
                 if event.y > self._yThreshold:
@@ -231,7 +231,8 @@ class Recover(state.FindAttempt, StoreLightEvent):
         else:
             vectorLength = math.Vector2(event.x, event.y).length()
             vehicleOrientation = \
-                self.vehicle.getOrientation().getYaw().valueDegrees()
+                self.stateEstimator.getEstimatedOrientation().\
+                getYaw().valueDegrees()
 
             if event.range < self._closeRangeThreshold:
                 # If the range is very close, backup and change depth
@@ -255,7 +256,7 @@ class Recover(state.FindAttempt, StoreLightEvent):
                 self.controller.yawVehicle(yawAngle)
             
                 # Change the depth if it's outside on the y-axis
-                newDepth = self.vehicle.getDepth()
+                newDepth = self.stateEstimator.getEstimatedDepth()
                 if event.y > self._radius:
                     newDepth = newDepth - self._depthChange
                 elif event.y < (0.0 - self._radius):
@@ -333,10 +334,11 @@ class Align(state.State, StoreLightEvent):
     def enter(self):
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
-        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  vehicle = self.vehicle,
-                                                  kp = self._kp, kd = self._kd)
+        self._light = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator,
+                                        kp = self._kp, kd = self._kd)
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
@@ -385,9 +387,10 @@ class Seek(state.State, StoreLightEvent):
                              event.x, event.y, event.timeStamp)
 
     def enter(self):
-        self._light = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  vehicle = self.vehicle)
+        self._light = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)
         dDepthGain = self._config.get('dDepthGain', 0)
@@ -459,7 +462,7 @@ class Continue(state.State):
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
-        currentDepth = self.vehicle.getDepth()
+        currentDepth = self.stateEstimator.getEstimatedDepth()
         self._upward = motion.basic.RateChangeDepth(
             desiredDepth = currentDepth - self._upwardDepth,
             speed = self._upwardSpeed)

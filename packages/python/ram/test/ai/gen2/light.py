@@ -21,68 +21,65 @@ import ram.motion.search
 
 import ram.test.ai.support as support
 
-class TestStart(support.AITestCase):
-    def testSuccess(self):
-        """Makes sure the state continues when it has the proper config"""
-
-        estimator._obstacles = {'buoy' : Obstacle()}
-        estimator._obstacles.setDepth(0)
-        estimator._obstacles.setPosition(math.Vector2(0, 0))
-        support.AITestCase.setUp(self, cfg = cfg)
+# class TestStart(support.AITestCase):
+#     def testSuccess(self):
+#         """Makes sure the state continues when it has the proper config"""
+#         support.AITestCase.setUp(self, cfg = cfg)
+#         self.estimator._obstacles = {'buoy' : Obstacle()}
+#         self.estimator._obstacles.setDepth(0)
+#         self.estimator._obstacles.setPosition(math.Vector2(0, 0))
         
-        self._success = False
-        def _handler(event):
-            self._success = True
+#         self._success = False
+#         def _handler(event):
+#             self._success = True
 
-        self.qeventHub.subscribeToType(light.Start.SUCCESS, _handler)
-        self.machine.start(light.Start)
+#         self.qeventHub.subscribeToType(light.Start.SUCCESS, _handler)
+#         self.machine.start(light.Start)
 
-        self.qeventHub.publishEvents()
-        self.qeventHub.publishEvents()
-        self.assert_(self._success)
+#         self.qeventHub.publishEvents()
+#         self.qeventHub.publishEvents()
+#         self.assert_(self._success)
 
-    def testFailure(self):
-        support.AITestCase.setUp(self)
+#     def testFailure(self):
+#         support.AITestCase.setUp(self)
 
-        self._failure = False
-        def _handler(event):
-            self._failure = True
-        self.qeventHub.subscribeToType(light.Start.FAIL, _handler)
-        self.machine.start(light.Start)
+#         self._failure = False
+#         def _handler(event):
+#             self._failure = True
+#         self.qeventHub.subscribeToType(light.Start.FAIL, _handler)
+#         self.machine.start(light.Start)
 
-        self.qeventHub.publishEvents()
-        self.assert_(self._failure)
+#         self.qeventHub.publishEvents()
+#         self.assert_(self._failure)
 
-    def testInit(self):
-        estimator._obstacles = {'buoy' : Obstacle()}
-        estimator._obstacles.setDepth(0)
-        estimator._obstacles.setPosition(math.Vector2(0, 0))
+#     def testInit(self):
+#         support.AITestCase.setUp(self, cfg = cfg)
+#         self.estimator._obstacles = {'buoy' : Obstacle()}
+#         self.estimator._obstacles.setDepth(0)
+#         self.estimator._obstacles.setPosition(math.Vector2(0, 0))
 
-        support.AITestCase.setUp(self, cfg = cfg)
+#         self.machine.start(light.Start)
 
-        self.machine.start(light.Start)
+#         # Interstate data has been declared
+#         self.assert_(self.ai.data.has_key('light'))
 
-        # Interstate data has been declared
-        self.assert_(self.ai.data.has_key('light'))
+# class TestDive(support.AITestCase):
+#     def setUp(self):
+#         support.AITestCase.setUp(self, cfg = cfg)
+#         self.estimator._obstacles = {'buoy' : Obstacle()}
+#         self.estimator._obstacles.setDepth(4)
+#         self.estimator._obstacles.setPosition(math.Vector2(0, 0))
+#         self.machine.start(light.Dive)
 
-class TestDive(support.AITestCase):
-    def setUp(self):
-        estimator._obstacles = {'buoy' : Obstacle()}
-        estimator._obstacles.setDepth(4)
-        estimator._obstacles.setPosition(math.Vector2(0, 0))
+#     def testStart(self):
+#         """Make sure we are diving with no detector on"""
+#         self.assertFalse(self.visionSystem.redLightDetector)
+#         self.assertCurrentMotion(motion.basic.RateChangeDepth)
+#         self.assertEqual(4, self.estimator.getObstacleDepth('buoy'))
 
-        support.AITestCase.setUp(self, cfg = cfg)
-        self.machine.start(light.Dive)
-
-    def testStart(self):
-        """Make sure we are diving with no detector on"""
-        self.assertFalse(self.visionSystem.redLightDetector)
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
-        self.assertEqual(4, self.estimator.getObstacleDepth('buoy'))
-
-    def testFinish(self):
-        self.injectEvent(motion.basic.MotionManager.FINISHED)
-        self.assertCurrentState(light.DeterminePath)
+#     def testFinish(self):
+#         self.injectEvent(motion.basic.MotionManager.FINISHED)
+#         self.assertCurrentState(light.DeterminePath)
 
 # class TestDeterminePath(support.AITestCase):
 #     def setUp(self):

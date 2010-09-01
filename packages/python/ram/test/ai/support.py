@@ -155,7 +155,7 @@ class AITestCase(unittest.TestCase):
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
         self.controller = MockController(self.eventHub)
         self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
-        self.estimator = MockEstimator(cfg = cfg.get('Estimator', {}))
+        self.estimator = MockEstimator(cfg = cfg.get('StateEstimator', {}))
         self.visionSystem = MockVisionSystem()
         
         aCfg = cfg.get('Ai', {})

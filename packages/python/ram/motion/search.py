@@ -9,6 +9,7 @@
 import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
+import ext.estimation as estimation
 import ext.math as math
 
 import ram.timer
@@ -47,7 +48,7 @@ class ForwardZigZag(Motion):
             currentAngle = 0
             desiredAngle = 0
         else:
-            vehicle = self._vehicle.getOrientation()
+            vehicle = self._estimator.getEstimatedOrientation()
             currentAngle = vehicle.getYaw().valueDegrees()
             desiredAngle = self._direction - currentAngle
 
@@ -126,8 +127,8 @@ class ZigZag(Motion):
     def _start(self):
         # Register to recieve ORIENTATION_UPDATE events
         conn = self._eventHub.subscribe(
-            vehicle.IVehicle.ORIENTATION_UPDATE,
-            self._vehicle, self._onOrientation)
+            estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
+            self._estimator, self._onOrientation)
         self._connections.append(conn)
         
         conn = self._eventHub.subscribeToType(ZigZag.LEG_COMPLETE,
@@ -135,7 +136,7 @@ class ZigZag(Motion):
         self._connections.append(conn)
 
         # Grab our general direction of motion
-        self._forwardDirection = self._vehicle.getOrientation()
+        self._forwardDirection = self._estimator.getEstimatedOrientation()
         
         # Start the pattern
         self._update()
@@ -149,7 +150,7 @@ class ZigZag(Motion):
         
         # Start the vehicle forward and create a timer to change the motion
         self._setDirection()
-        self._setSpeeds(self._vehicle.getOrientation())
+        self._setSpeeds(self._estimator.getEstimatedOrientation())
         
         self._timer = ram.timer.Timer(self._eventPublisher, 
                                       ZigZag.LEG_COMPLETE, legTime)

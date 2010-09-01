@@ -65,7 +65,7 @@ class PipeTrackingState(state.State):
         angle = event.angle
         
         # Find absolute vehicle direction
-        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
 
         # Determine the absolute pipe direction
@@ -183,7 +183,7 @@ class PipeFollowingState(PipeTrackingState):
             # comparing them to the vehicles
 
             # Find absolute vehicle direction
-            vehicleOrientation = self.vehicle.getOrientation()
+            vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
             vehicleDirection = vehicleOrientation.getYaw(True)
             
             # Find the id with the absolute direction closest to the
@@ -219,7 +219,7 @@ class PipeFollowingState(PipeTrackingState):
             return False
 
         # Find absolute vehicle direction
-        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
         
         # Get the currentID
@@ -318,7 +318,7 @@ class Start(state.State):
         return set(['speed', 'offset', 'minimumDepth'])
     
     def enter(self):
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['pipeStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -398,7 +398,7 @@ class Searching(PipeTrackingState):
         self.visionSystem.pipeLineDetectorOn()
 
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('pipeStartOrientation',
                                             orientation.getYaw().valueDegrees())
 

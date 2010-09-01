@@ -95,7 +95,7 @@ class Hover(common.Hover):
         """Determine turn"""
         # If yawGain is zero, don't run any of this code
         if self._yawGain != 0.0:
-            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading =  self._estimator.getEstimatedOrientation().getYaw(True)
             vehicleHeading = vehicleHeading.valueDegrees()
             absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
         

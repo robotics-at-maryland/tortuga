@@ -445,7 +445,7 @@ class Align(BuoyTrackingState):
         self._kd = self._config.get('kd', 1.0)
         self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
-                                                  vehicle = self.vehicle,
+                                                  estimator = self.estimator,
                                                   kp = self._kp, kd = self._kd)
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
@@ -511,7 +511,7 @@ class Seek(BuoyTrackingState):
 
         self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                   timeStamp = None,
-                                                  vehicle = self.vehicle)
+                                                  estimator = self.estimator)
         self._planeThreshold = self._config.get('planeThreshold', 0.1)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)

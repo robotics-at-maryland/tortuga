@@ -100,27 +100,6 @@ class MockVehicle(vehicle.IVehicle):
         self.unsafed = True
         self.force = ext.math.Vector3.ZERO
         self.torque = ext.math.Vector3.ZERO
-
-    def getLinearAcceleration(self):
-        return self.linAccel
-    
-    def getOrientation(self, obj = "vehicle"):
-        return self._orientation[obj]
-    
-    def getAngularRate(self):
-        return self.angRate
-
-    def getDepth(self, obj = "vehicle"):
-        return self._depth[obj]
-
-    def getVelocity(self, obj = "vehicle"):
-        return self._velocity[obj]
-
-    def getPosition(self, obj = "vehicle"):
-        return self._position[obj]
-
-    def hasObject(self, obj):
-        return obj in self.validObj
     
     def applyForcesAndTorques(self, force, torque):
         self.force = force
@@ -150,8 +129,8 @@ class MockEstimator(estimation.IStateEstimator):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
         estimation.IStateEstimator.__init__(self, "StateEstimator", eventHub)
 
-        self._pos = ext.math.Vector2(0, 0)
-        self._vel = ext.math.Vector2(0, 0)
+        self._position = ext.math.Vector2(0, 0)
+        self._velocity = ext.math.Vector2(0, 0)
         self._orientation = ext.math.Quaternion.IDENTITY
         self._depth = 0
         self.linAccel = ext.math.Vector3.ZERO
@@ -160,9 +139,9 @@ class MockEstimator(estimation.IStateEstimator):
         self._obstacles = {}
         
     def getEstimatedPosition(self):
-        return self._pos
+        return self._position
     def getEstimatedVelocity(self):
-        return self._vel
+        return self._velocity
     def getEstimatedLinearAcceleration(self):
         return self.linAccel
     def getEstimatedAngularRate(self):
@@ -258,15 +237,16 @@ class MockMotion(object):
         self.type = type
         self.started = False
     
-    def start(self, controller, vehicle, eventHub, eventPublisher):
+    def start(self, controller, vehicle, estimator, eventHub, eventPublisher):
         assert not self.started
 
         self.controller = controller
         self.vehicle = vehicle
+        self.estimator = estimator
         self.started = True
         
     def stop(self):
-        self.stoped = True
+        self.stopped = True
         
 # Provides basic test support
 class MotionTest(unittest.TestCase):

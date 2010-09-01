@@ -373,7 +373,7 @@ class ChangeDepth(Motion):
                                               self._controller, self._atDepth)
 
         # Start changing depth
-        self._nextDepth(self._vehicle.getDepth())
+        self._nextDepth(self._estimator.getEstimatedDepth())
         
     def _nextDepth(self,currentVehicleDepth):
         """
@@ -442,7 +442,7 @@ class RateChangeDepth(Motion):
     # Methods
     def _start(self):
         # Ensure the controller is consistent with vehicle
-        currentDepth = self._vehicle.getDepth()
+        currentDepth = self._estimator.getEstimatedDepth()
         self._controller.setDepth(currentDepth)
         
         absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
@@ -511,7 +511,7 @@ class ChangeHeading(Motion):
                                               self._atOrientation)
 
         # Start changing heading
-        self._nextHeading(self._vehicle.getOrientation().getYaw(True).valueDegrees())
+        self._nextHeading(self._estimator.getEstimatedOrientation().getYaw(True).valueDegrees())
         
     def _nextHeading(self, currentVehicleHeading):
         """
@@ -573,11 +573,11 @@ class RateChangeHeading(Motion):
         
     def _start(self):
         # Grab current State
-        currentOrient = self._vehicle.getOrientation()
+        currentOrient = self._estimator.getEstimatedOrientation()
         currentHeading = currentOrient.getYaw(True).valueDegrees()
         
         if not self._absolute:
-            heading = self._vehicle.getOrientation().getYaw().valueDegrees()
+            heading = self._estimator.getEstimatedOrientation().getYaw().valueDegrees()
             self._desiredHeading = heading + self._desiredHeading
         
         # Generate our source and dest orientation
@@ -666,13 +666,13 @@ class MoveDirection(Motion):
     def _start(self):
         # Register to receive ORIENTATION_UPDATE events
         conn = self._eventHub.subscribe(
-            vehicle.IVehicle.ORIENTATION_UPDATE,
-            self._vehicle, self._onOrientation)
+            estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
+            self._estimator, self._onOrientation)
         self._connections.append(conn)
         
         # Set the desired direction if it's not absolute
         if not self._absolute:
-            heading = self._vehicle.getOrientation().getYaw()
+            heading = self._estimator.getEstimatedOrientation().getYaw()
             orientation = math.Quaternion(math.Degree(heading),
                                           math.Vector3.UNIT_Z)
             self._direction = orientation * self._direction
@@ -681,7 +681,7 @@ class MoveDirection(Motion):
         
     def _update(self):
         # Start the vehicle forward and create a timer to change the motion
-        self._setSpeeds(self._vehicle.getOrientation())
+        self._setSpeeds(self._estimator.getEstimatedOrientation())
         
     def _setSpeeds(self, orientation):
         """
@@ -808,7 +808,8 @@ class MoveDistance(Motion):
 
         # Register to receive POSITION_UPDATE events
         conn = self._eventHub.subscribeToType(
-            vehicle.IVehicle.POSITION_UPDATE, self._onUpdate)
+            estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
+            self._onUpdate)
         self._connections.append(conn)
 
         conn = self._eventHub.subscribeToType(MoveDistance.COMPLETE,
@@ -816,12 +817,12 @@ class MoveDistance(Motion):
         self._connections.append(conn)
 
         # Find the current position
-        currentPosition = self._vehicle.getPosition()
+        currentPosition = self._estimator.getEstimatedPosition()
         #current = math.Quaternion(currentPosition.x, currentPosition.y, 0, 0)
 
         # Set the desired direction if it's not absolute
         if not self._absolute:
-            heading = self._vehicle.getOrientation().getYaw()
+            heading = self._estimator.getEstimatedOrientation().getYaw()
             orientation = math.Quaternion(math.Degree(heading),
                                           math.Vector3.UNIT_Z)
             self._direction = orientation * self._direction
@@ -878,7 +879,7 @@ class MoveDistance(Motion):
         direction = self._pathDirection(vector)
 
         # Vehicle heading in degrees
-        vehicleHeading = self._vehicle.getOrientation().getYaw(
+        vehicleHeading = self._estimator.getEstimatedOrientation().getYaw(
             True).valueDegrees()
         
         yawTransform = direction - vehicleHeading

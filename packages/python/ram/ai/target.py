@@ -133,7 +133,7 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
         # Create tracking object
         self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
                                                    timeStamp = None,
-                                                   vehicle = self.vehicle)
+                                                   estimator = self.estimator)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)

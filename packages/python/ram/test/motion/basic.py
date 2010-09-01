@@ -32,7 +32,7 @@ class TestMotionManager(support.MotionTest):
         
         m2 = support.MockMotion()
         self.motionManager.setMotion(m2)
-        self.assert_(m.stoped)
+        self.assert_(m.stopped)
         self.assertEquals(self.vehicle.getName(), m2.vehicle.getName())
         self.assertEquals(self.controller.getName(), m2.controller.getName())
         self.assertEquals(self.estimator.getName(), m2.estimator.getName())
@@ -53,7 +53,7 @@ class TestMotionManager(support.MotionTest):
         # Replace with just a depth one
         self.motionManager.setMotion(mPlane)
         self.assertEqual(mPlane, self.motionManager.currentMotion)
-        self.assert_(m.stoped)
+        self.assert_(m.stopped)
         self.assert_(mPlane.started)
         
         # Add a depth one and make sure they are both still present
@@ -73,14 +73,14 @@ class TestMotionManager(support.MotionTest):
         self.motionManager.setMotion(mPlaneOrien)
         self.assertEqual((mPlaneOrien,mDepth,mPlaneOrien),
                          self.motionManager.currentMotion)
-        self.assert_(mOrien.stoped)
-        self.assert_(mPlane.stoped)
+        self.assert_(mOrien.stopped)
+        self.assert_(mPlane.stopped)
         self.assert_(mPlaneOrien.started)
         
         # Now stop that multimotion by just doing a single type stop
         self.motionManager.stopMotionOfType(motion.basic.Motion.IN_PLANE)
         self.assertEqual(mDepth, self.motionManager.currentMotion)
-        self.assert_(mPlaneOrien.stoped)
+        self.assert_(mPlaneOrien.stopped)
         
         
         # Now make sure a single multi motion shows up like that
@@ -138,7 +138,7 @@ class TestMotionManager(support.MotionTest):
         self.motionManager.setMotion(m)
 
         self.motionManager.stopCurrentMotion()
-        self.assert_(m.stoped)
+        self.assert_(m.stopped)
   
         self.assertEqual(None, self.motionManager.currentMotion)
         
