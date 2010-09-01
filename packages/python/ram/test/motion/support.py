@@ -150,9 +150,9 @@ class MockEstimator(estimation.IStateEstimator):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
         estimation.IStateEstimator.__init__(self, "StateEstimator", eventHub)
 
-        self._pos = math.Vector2(0, 0)
-        self._vel = math.Vector2(0, 0)
-        self._orientation = math.Quaternion.IDENTITY
+        self._pos = ext.math.Vector2(0, 0)
+        self._vel = ext.math.Vector2(0, 0)
+        self._orientation = ext.math.Quaternion.IDENTITY
         self._depth = 0
         self.linAccel = ext.math.Vector3.ZERO
         self.angRate = ext.math.Vector3.ZERO
