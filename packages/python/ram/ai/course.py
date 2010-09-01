@@ -31,7 +31,6 @@ import ram.ai.hedge as hedge
 import ram.ai.target as target
 import ram.ai.window as window
 import ram.ai.bin as bin
-import ram.ai.randombin as randombin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
@@ -746,33 +745,6 @@ class Bin(task.Task):
         self.visionSystem.binDetectorOff()
         self.motionManager.stopCurrentMotion()
 
-class RandomBin(task.Task):
-
-    MOVE_ON = core.declareEventType('MOVE_ON')
-
-    @staticmethod
-    def _transitions():
-        return { bin.COMPLETE : task.Next,
-                 task.TIMEOUT : task.Next,
-                 RandomBin.MOVE_ON : task.Next,
-                 'GO' : state.Branch(bin.Start) }
-
-    def enter(self, defaultTimeout = 60):
-        timeout = self.ai.data['config'].get('RandomBin', {}).get(
-                    'taskTimeout', defaultTimeout)
-        task.Task.enter(self, defaultTimeout = timeout)
-
-        if self.ai.data.get('binComplete', False):
-            self.publish(RandomBin.MOVE_ON, core.Event())
-        else:
-            self.stateMachine.start(state.Branch(randombin.Start))
-    
-    def exit(self):
-        task.Task.exit(self)
-        if not self.ai.data.get('binComplete', False):
-            self.stateMachine.stopBranch(randombin.Start)
-        self.visionSystem.binDetectorOff()
-        self.motionManager.stopCurrentMotion()
         
 class Pinger(task.Task):
     """
