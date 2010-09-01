@@ -38,21 +38,50 @@ public:
     virtual ~DesiredState();
 
     // returned in inertial frame
+
+    /** Returns the desired velocity in the inertial frame */
     math::Vector2 getDesiredVelocity();
+
+    /** Returns the desired position in the inertial frame */
     math::Vector2 getDesiredPosition();
 
+    /** Returns the desired orientation */
     math::Quaternion getDesiredOrientation();
+
+    /** returns the desired angular rate */
     math::Vector3 getDesiredAngularRate();
 
+    /** returns the desired depth */
     double getDesiredDepth();
 
-    // set in inertial frame
+    /** Set the desired velocity in the inertial frame
+     *
+     * @param velocity - the desired velocity 2-vector
+     */
     void setDesiredVelocity(math::Vector2 velocity);
+
+    /** Set the desired position in the inertial frame
+     *
+     * @param position - the desired velocity 2-vector
+     */
     void setDesiredPosition(math::Vector2 position);
 
+    /** Set the desired depth
+     *
+     * @param depth - the desired depth
+     */
     void setDesiredDepth(double depth);
 
+    /** Set the desired orientation
+     *
+     * @param orientation - the desired quaternion
+     */
     void setDesiredOrientation(math::Quaternion orientation);
+    
+    /** Set the desired angular rate
+     *
+     * @param angularRate - a 3-vector representing the desired angular rate
+     */
     void setDesiredAngularRate(math::Vector3 angularRate);
 
 private:
@@ -94,8 +123,8 @@ private:
      */
     void newDesiredPositionSet(const math::Vector2& newPosition);
 
-    math::Vector2 m_desiredVelocity; // Stored in inertial frame
-    math::Vector2 m_desiredPosition; // Stored in inertial frame
+    math::Vector2 m_desiredVelocity; // stored in inertial frame
+    math::Vector2 m_desiredPosition; // stored in inertial frame
       
     double m_desiredDepth;
       

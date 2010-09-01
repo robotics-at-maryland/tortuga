@@ -73,7 +73,7 @@ BWPDController::BWPDController(core::ConfigNode config,
                 core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_atDepth(false),
     m_atOrientation(false),
-    m_depthThreshold(0),
+    m_depthThreshold(0.5),
     m_orientationThreshold(0),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),
     m_estimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps)),
@@ -335,7 +335,8 @@ bool BWPDController::atOrientation()
 
 bool BWPDController::atDepth()
 {
-    double difference = fabs(m_measuredState->depth - m_desiredState->depth);
+    double difference = fabs(m_estimator->getEstimatedDepth() - 
+                             m_desiredState->depth);
     return difference <= m_depthThreshold;
 }
 

@@ -17,13 +17,9 @@ class TestIController(unittest.TestCase):
     def test(self):
         cfg = {
             "type" : "CombineController",
-            "angularPGain" : 10,
-            "angularDGain" : 1,
-            "speedPGain" : 3,
-            "depthPGain" : 20,
-            "desiredSpeed" : 0,
-            "desiredDepth" : 0.25,
-            "desiredQuaternion" : [0, 0, 0, 1],
+            "TranslationalController" : {"type" : "OpenLoopTranslationalController"},
+            "DepthController" : {"type" : "PIDDepthController"},
+            "RotationalController" : {"type" : "NonlinearPDRotationalController"},
             "holdCurrentDepth" : 0,
             "holdCurrentHeading" : 0
         }
