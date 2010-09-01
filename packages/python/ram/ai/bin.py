@@ -562,7 +562,7 @@ class Start(state.State):
         # Set the failsafe
         self.ai.data.setdefault('doICare', True)
 
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['binStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -609,7 +609,7 @@ class Searching(state.State):
     def enter(self):
         ensureBinTracking(self.queuedEventHub, self.ai)
         
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault(
             'binStartOrientation', orientation.getYaw().valueDegrees())
 
@@ -952,7 +952,7 @@ class RecoverDive(Recover):
         if self.ai.data['dive_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
-            depth = self.vehicle.getDepth()
+            depth = self.stateEstimator.getEstimatedDepth()
             offset = self.ai.data['dive_offsetTheOffset']
             diveMotion = motion.basic.RateChangeDepth(
                                 desiredDepth = depth - offset,
@@ -1209,7 +1209,7 @@ class RecoverCloserLook(Recover):
         if self.ai.data['closerlook_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
-            depth = self.vehicle.getDepth()
+            depth = self.stateEstimator.getEstimatedDepth()
             offset = self.ai.data['closerlook_offsetTheOffset']
             diveMotion = motion.basic.RateChangeDepth(
                                 desiredDepth = depth - offset,

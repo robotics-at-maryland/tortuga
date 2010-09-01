@@ -194,9 +194,10 @@ class RangeXYHold(FilteredState, WindowTrackingState):
         self._average = average
         
         # Create tracking object
-        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                   timeStamp = None,
-                                                   estimator = self.estimator)
+        self._target = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -243,7 +244,7 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial orientation
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['windowStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -388,7 +389,7 @@ class Searching(WindowTrackingState):
         self.visionSystem.windowDetectorOn()
 
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('windowStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -653,12 +654,12 @@ class TargetAlignState(FilteredState, WindowTrackingState):
         
         # Create tracking object
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
-                                            vehicle = self.vehicle)
+                                            estimator = self.stateEstimator)
         self._average = average
             
         if self.ai.data['config'].get('Window', {}).has_key('angle'):
             # Check the robot's orientation
-            orientation = self.vehicle.getOrientation().getYaw(True)\
+            orientation = self.stateEstimator.getEstimatedOrientation().getYaw(True)\
                 .valueRadians()
             current = math.Vector2(pmath.cos(orientation),
                                    pmath.sin(orientation))
@@ -850,7 +851,7 @@ class Reposition(state.State):
 
         # Reset variables for searching
         self.ai.data['windowStartOrientation'] = \
-            self.vehicle.getOrientation().getYaw().valueDegrees()
+            self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
         self.ai.data['firstSearching'] = True
 
         speed = self._config.get('speed', 3)

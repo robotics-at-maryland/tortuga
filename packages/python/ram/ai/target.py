@@ -131,9 +131,10 @@ class RangeXYHold(FilteredState, state.State, StoreTargetEvent):
         self.visionSystem.targetDetectorOn()
         
         # Create tracking object
-        self._target = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                   timeStamp = None,
-                                                   estimator = self.estimator)
+        self._target = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -180,7 +181,7 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial orientation
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['targetStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -289,7 +290,7 @@ class Searching(state.State, StoreTargetEvent):
         self.visionSystem.targetDetectorOn()
 
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('targetStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -484,7 +485,7 @@ class TargetAlignState(FilteredState, StoreTargetEvent):
         
         # Create tracking object
         self._target = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
-                                            vehicle = self.vehicle)
+                                            estimator = self.stateEstimator)
         self._alignSign = 1
         
         # Read in configuration settings

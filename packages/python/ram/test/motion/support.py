@@ -91,6 +91,7 @@ class MockVehicle(vehicle.IVehicle):
 
         # Take the name of the device and store it 
         # don't care about the contents
+        self._devices = []
         for device in cfg.get('Devices', {}).iterkeys():
             self._devices.append(device)
         

@@ -163,13 +163,14 @@ class RangeXYHold(FilteredState, state.State, StoreBarbedWireEvent):
         # Create tracking object
         # Initializing the range to the desired range so the vehicle won't
         # move forward or backward (aka. no jerking backwards)
-        self._target = ram.motion.seek.PointTarget(azimuth = 0,
-                                                   elevation = 0,
-                                                   range = self._desiredRange,
-                                                   x = 0,
-                                                   y = 0,
-                                                   timeStamp = None,
-                                                   estimator = self.estimator)
+        self._target = \
+            ram.motion.seek.PointTarget(azimuth = 0,
+                                        elevation = 0,
+                                        range = self._desiredRange,
+                                        x = 0,
+                                        y = 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         
         motion = ram.motion.seek.SeekPointToRange(target = self._target,
             desiredRange = self._desiredRange,
@@ -205,7 +206,7 @@ class Start(state.State):
     
     def enter(self):
         # Set the initial direction
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['barbedWireStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -257,7 +258,7 @@ class Searching(state.State, StoreBarbedWireEvent):
         # Make sure the detector is on the vision system
         self.visionSystem.barbedWireDetectorOn()
 
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('barbedWireStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -448,7 +449,7 @@ class TargetAlignState(FilteredState, StoreBarbedWireEvent):
                                             x = 0,
                                             y = 0,
                                             alignment = 0,
-                                            vehicle = self.vehicle)
+                                            estimator = self.stateEstimator)
 
         motion = ram.motion.duct.DuctSeekAlign(target = self._target,
             desiredRange = desiredRange,

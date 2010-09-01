@@ -143,9 +143,10 @@ class RangeXYHold(FilteredState, state.State, StoreHedgeEvent):
         self.visionSystem.hedgeDetectorOn()
         
         # Create tracking object
-        self._hedge = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  estimator = self.estimator)
+        self._hedge = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         
         # Read in configuration settings
         self._rangeThreshold = self._config.get('rangeThreshold', 0.05)
@@ -196,7 +197,7 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial orientation
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['hedgeStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -288,7 +289,7 @@ class Searching(state.State, StoreHedgeEvent):
         self.visionSystem.hedgeDetectorOn()
 
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('hedgeStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -385,7 +386,7 @@ class HedgeAlignState(FilteredState, StoreHedgeEvent):
         
         # Create tracking object
         self._hedge = ram.motion.duct.Duct(0, 0, 0, 0, 0, 0,
-                                           vehicle = self.vehicle)
+                                           estimator = self.stateEstimator)
         self._alignSign = 1
         
         # Read in configuration settings
@@ -523,9 +524,9 @@ class Through(state.State):
         distance = self._config.get('distance', 5)
         depthOffset = self._config.get('depthOffset', 0.8)
         diveSpeed = self._config.get('diveSpeed', (1.0/3.0))
-        heading = self.vehicle.getOrientation().getYaw(True).valueDegrees()
+        heading = self.stateEstimator.getEstimatedOrientation().getYaw(True).valueDegrees()
 
-        desiredDepth = self.vehicle.getDepth() - depthOffset
+        desiredDepth = self.stateEstimator.getEstimatedDepth() - depthOffset
         diveMotion = motion.basic.RateChangeDepth(desiredDepth = desiredDepth,
                                                   speed = diveSpeed)
         

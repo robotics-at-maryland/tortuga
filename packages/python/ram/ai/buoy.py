@@ -84,7 +84,7 @@ class Start(state.State):
     
     def enter(self):
         # Store the initial orientation
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['buoyStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
@@ -124,7 +124,7 @@ class Searching(BuoyTrackingState):
         self.visionSystem.buoyDetectorOn()
         
         # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         direction = self.ai.data.setdefault('buoyStartOrientation',
                                 orientation.getYaw().valueDegrees())
 
@@ -215,7 +215,7 @@ class Recover(state.FindAttempt, BuoyTrackingState):
                 self.motionManager._stopMotion(self._recoverMotion)
                 
                 # Create the depth motion if needed
-                newDepth = self.vehicle.getDepth()
+                newDepth = self.stateEstimator.getEstimatedDepth()
                 changeDepth = False
                 
                 if event.y > self._yThreshold:
@@ -272,7 +272,7 @@ class Recover(state.FindAttempt, BuoyTrackingState):
         else:
             vectorLength = math.Vector2(event.x, event.y).length()
             vehicleOrientation = \
-                self.vehicle.getOrientation().getYaw().valueDegrees()
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
 
             if event.range < self._closeRangeThreshold:
                 # If the range is very close, backup and change depth
@@ -296,7 +296,7 @@ class Recover(state.FindAttempt, BuoyTrackingState):
                 self.controller.yawVehicle(yawAngle)
             
                 # Change the depth if it's outside on the y-axis
-                newDepth = self.vehicle.getDepth()
+                newDepth = self.stateEstimator.getEstimatedDepth()
                 if event.y > self._radius:
                     newDepth = newDepth - self._depthChange
                 elif event.y < (0.0 - self._radius):
@@ -351,7 +351,7 @@ class CorrectDepth(BuoyTrackingState):
         if abs(event.y) <= self._yThreshold:
             self.publish(CorrectDepth.FINISHED, core.Event())
         else:
-            desiredDepth = self.vehicle.getDepth()
+            desiredDepth = self.stateEstimator.getEstimatedDepth()
             if event.y < 0.0:
                 desiredDepth += self._depthGain
                 desiredDepth = min(desiredDepth,
@@ -443,10 +443,11 @@ class Align(BuoyTrackingState):
 
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
-        self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  estimator = self.estimator,
-                                                  kp = self._kp, kd = self._kd)
+        self._buoy = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator,
+                                        kp = self._kp, kd = self._kd)
         self._planeThreshold = self._config.get('planeThreshold', 0.03)
         self._depthGain = self._config.get('depthGain', 3)
         iDepthGain = self._config.get('iDepthGain', 0.5)
@@ -509,9 +510,10 @@ class Seek(BuoyTrackingState):
     def enter(self):
         BuoyTrackingState.enter(self)
 
-        self._buoy = ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
-                                                  timeStamp = None,
-                                                  estimator = self.estimator)
+        self._buoy = \
+            ram.motion.seek.PointTarget(0, 0, 0, 0, 0,
+                                        timeStamp = None,
+                                        estimator = self.stateEstimator)
         self._planeThreshold = self._config.get('planeThreshold', 0.1)
         depthGain = self._config.get('depthGain', 0)
         iDepthGain = self._config.get('iDepthGain', 0)
@@ -637,7 +639,7 @@ class Continue(state.State):
         self._backward = motion.basic.TimedMoveDirection(desiredHeading = 180,
             speed = self._backwardSpeed, duration = self._backwardDuration,
             absolute = False)
-        currentDepth = self.vehicle.getDepth()
+        currentDepth = self.stateEstimator.getEstimatedDepth()
         self._upward = motion.basic.RateChangeDepth(
             desiredDepth = currentDepth - self._upwardDepth,
             speed = self._upwardSpeed)
