@@ -71,7 +71,7 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
 
     // TODO: Temporary values until I know what to put in here
     LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
-		" BottomTrack2 BottomTrack3 Velocity ensembleNum"
+                " BottomTrack2 BottomTrack3 Velocity ensembleNum"
                 " year month day hour min sec hundredth TimeStamp");
 
     for (int i = 0; i < 5; ++i)
@@ -96,23 +96,23 @@ void DVL::update(double timestep)
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {
-	RawDVLData newState;
-	if (readDVLData(m_serialFD, &newState))
-	{
+        RawDVLData newState;
+        if (readDVLData(m_serialFD, &newState))
+        {
 
- 	    {
-             // Thread safe copy of good dvl data
-             core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-             *m_rawState = newState;
- 	    }
+            {
+                // Thread safe copy of good dvl data
+                core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+                *m_rawState = newState;
+            }
 
-        RawDVLDataEventPtr event = RawDVLDataEventPtr(
-            new RawDVLDataEvent());
-        event->name = getName();
-        event->rawDVLData = newState;
-        event->angOffset = m_angOffset;
-        event->timestep = timestep;
-        publish(IVelocitySensor::RAW_UPDATE, event);
+            RawDVLDataEventPtr event = RawDVLDataEventPtr(
+                new RawDVLDataEvent());
+            event->name = getName();
+            event->rawDVLData = newState;
+            event->angOffset = m_angOffset;
+            event->timestep = timestep;
+            publish(IVelocitySensor::RAW_UPDATE, event);
 
 //         math::Vector2 oldVelocity;
 //         {
@@ -165,24 +165,18 @@ void DVL::update(double timestep)
 //                                 << newState.sec << " "
 //                                 << newState.hundredth;
 
-// 	    // Now publish the new velocity
-// 	    math::Vector2EventPtr vevent(new math::Vector2Event());
-// 	    // TODO: Insert whatever the local variable for velocity is
-// 	    vevent->vector2 = vel_n;
-// 	    publish(IVelocitySensor::UPDATE, vevent);
-	}
+//      // Now publish the new velocity
+//      math::Vector2EventPtr vevent(new math::Vector2Event());
+//      // TODO: Insert whatever the local variable for velocity is
+//      vevent->vector2 = vel_n;
+//      publish(IVelocitySensor::UPDATE, vevent);
+        }
     }
     // We didn't connect, try to reconnect
     else
-    {	
-	//m_serialFD = openDVL(m_devfile.c_str());
+    {
+        //m_serialFD = openDVL(m_devfile.c_str());
     }
-}
-
-math::Vector2 DVL::getVelocity()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
-    return m_velocity;
 }
 
 math::Vector3 DVL::getLocation()

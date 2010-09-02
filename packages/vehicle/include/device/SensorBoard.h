@@ -116,7 +116,6 @@ public:
     };
     
     // IDepth interface methods
-    virtual double getDepth();
 
     virtual math::Vector3 getLocation();
 

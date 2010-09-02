@@ -54,8 +54,6 @@ public:
 
     virtual ~DVL();
     
-    virtual math::Vector2 getVelocity();
-
     virtual math::Vector3 getLocation();
 
     /** Grabs the raw DVL state */

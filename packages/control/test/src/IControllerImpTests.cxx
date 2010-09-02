@@ -155,13 +155,6 @@ TEST_UTILITY_IMP(setGetDesiredOrientation, (ram::control::IController* controlle
     }
 }
 
-TEST_UTILITY_IMP(setGetVelocity, (ram::control::IController* controller))
-{
-    math::Vector2 velocity(3.5,-2.7);
-    controller->setVelocity(velocity);
-    CHECK_EQUAL(velocity, controller->getVelocity());
-}
-
 TEST_UTILITY_IMP(setGetSpeed, (ram::control::IController* controller))
 {
     const double MIN_SPEED = -5;

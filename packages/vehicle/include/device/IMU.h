@@ -61,8 +61,6 @@ public:
     
     virtual math::Vector3 getAngularRate();
 
-    virtual math::Quaternion getOrientation();
-    
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
     /** Grab filtered state */
@@ -107,15 +105,15 @@ private:
                                   double* quaternion);
     
     static void quaternionFromRate(double* quaternionOld,
-				   double angRate[3],
-				   double deltaT,
-				   double* quaternionNew);
+                                   double angRate[3],
+                                   double deltaT,
+                                   double* quaternionNew);
 
     math::Quaternion computeQuaternion(math::Vector3 mag, 
-					      math::Vector3 accel,
-					      math::Vector3 angRate,
-					      double deltaT,
-					      math::Quaternion quaternionOld);
+                                       math::Vector3 accel,
+                                       math::Vector3 angRate,
+                                       double deltaT,
+                                       math::Quaternion quaternionOld);
     
 
     /** Name of the serial device file */

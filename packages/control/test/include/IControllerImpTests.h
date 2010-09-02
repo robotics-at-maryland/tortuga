@@ -27,7 +27,6 @@ TEST_UTILITY_FWD(pitchVehicle, (ram::control::IController* controller));
 TEST_UTILITY_FWD(rollVehicle, (ram::control::IController* controller));
 TEST_UTILITY_FWD(setGetDesiredOrientation, (ram::control::IController* controller));
 
-TEST_UTILITY_FWD(setGetVelocity, (ram::control::IController* controller));
 TEST_UTILITY_FWD(setGetSpeed, (ram::control::IController* controller));
 TEST_UTILITY_FWD(setGetSidewaysSpeed, (ram::control::IController* controller));
 TEST_UTILITY_FWD(setGetDesiredVelocity, (ram::control::IController* controller));

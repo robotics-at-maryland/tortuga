@@ -92,14 +92,14 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_gyroZBias = config["gyroZBias"].asDouble();
 
     
-	// Load Magnetic Corruption Threshold, default is ridiculously large acceptable range
-	m_magCorruptThresh = config["magCorruptThresh"].asDouble(2);
+    // Load Magnetic Corruption Threshold, default is ridiculously large acceptable range
+    m_magCorruptThresh = config["magCorruptThresh"].asDouble(2);
 
-	// Load nominal value of magnetic vector length
-	m_magNominalLength = config["magNominalLength"].asDouble(0.24);
-	
+    // Load nominal value of magnetic vector length
+    m_magNominalLength = config["magNominalLength"].asDouble(0.24);
+     
     //    printf("Bias X: %7.5f Bias Y: %7.5f Bias Z: %7.5f\n", m_magXBias, 
-    //	   m_magYBias, m_magZBias);
+    //        m_magYBias, m_magZBias);
     LOGGER.info("% IMU#(0=main,1=boom) Accel Mag Gyro Accel-Raw Mag-Raw"
                 " Gyro-Raw Quat TimeStamp");
 
@@ -232,14 +232,14 @@ void IMU::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_orientationMutex);
 
                 //m_orientation = computeQuaternion(mag, linAccel, angRate,
-                //				  timestep, m_orientation);
+                //                      timestep, m_orientation);
                 
                 double magLength;
                 magLength = magnitude3x1(magnetometer);
                 double difference;
                 difference = magLength-m_magNominalLength;
                 difference = fabs(difference);
-				
+                    
                 if(difference < m_magCorruptThresh){
                     quaternionFromIMU(magnetometer, linearAcceleration,
                                       quaternion);
@@ -257,8 +257,8 @@ void IMU::update(double timestep)
                                        quaternion);
                 }
 
-				
-				
+                    
+                    
                 m_orientation.x = quaternion[0];
                 m_orientation.y = quaternion[1];
                 m_orientation.z = quaternion[2];
@@ -326,12 +326,6 @@ math::Vector3 IMU::getAngularRate()
                          m_filteredState->gyroZ);
 }
 
-math::Quaternion IMU::getOrientation()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_orientationMutex);
-    return m_orientation;
-}
-    
 void IMU::getRawState(RawIMUData& imuState)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
@@ -432,7 +426,7 @@ void IMU::quaternionFromIMU(double _mag[3], double _accel[3],
     bCn.SetColumn(1, n2);
     bCn.SetColumn(2, n3);
     
-	//legacy version
+    //legacy version
     Matrix3 nCb = bCn.Transpose();
 
     quaternionFromnCb((double (*)[3])(nCb[0]), quaternion);
@@ -464,28 +458,28 @@ void IMU::quaternionFromRate(double* quaternionOld,
                              double deltaT,
                              double* quaternionNew){
 
-	//reformat arguments to OGRE syntax
-	Quaternion qOld(quaternionOld[0],quaternionOld[1],
-					quaternionOld[2],quaternionOld[3]);
-	Vector3 omega(angRate[0],angRate[1],angRate[2]);
+    //reformat arguments to OGRE syntax
+    Quaternion qOld(quaternionOld[0],quaternionOld[1],
+                    quaternionOld[2],quaternionOld[3]);
+    Vector3 omega(angRate[0],angRate[1],angRate[2]);
 
-	//find quaternion derivative based off old quaternion and ang rate
-	Quaternion qDot;
-	qDot = qOld.derivative(omega);
+    //find quaternion derivative based off old quaternion and ang rate
+    Quaternion qDot;
+    qDot = qOld.derivative(omega);
 
-	//trapezoidal integration
-	Quaternion qNew;
-	qNew = qOld + qDot*deltaT;
+    //trapezoidal integration
+    Quaternion qNew;
+    qNew = qOld + qDot*deltaT;
 
-	//normalize to make qNew a unit quaternion
-	qNew.normalise();
-	
-	//format for output
-	quaternionNew[0]=qNew.x;
-	quaternionNew[1]=qNew.y;
-	quaternionNew[2]=qNew.z;
-	quaternionNew[3]=qNew.w;
-	
+    //normalize to make qNew a unit quaternion
+    qNew.normalise();
+     
+    //format for output
+    quaternionNew[0]=qNew.x;
+    quaternionNew[1]=qNew.y;
+    quaternionNew[2]=qNew.z;
+    quaternionNew[3]=qNew.w;
+     
 }
  
 
@@ -501,7 +495,7 @@ Quaternion IMU::computeQuaternion(Vector3 mag, Vector3 accel,
     double difference;
     difference = magLength-m_magNominalLength;
     difference = fabs(difference);
-				
+                    
     if(difference < m_magCorruptThresh){
         // should update quaternionFromIMU to take OGRE arguments instead of 
         // double arrays

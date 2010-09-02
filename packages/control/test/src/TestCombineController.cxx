@@ -119,11 +119,6 @@ TEST_FIXTURE(CombineControllerFixture, setGetSidewaysSpeed)
     TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&controller);
 }
 
-TEST_FIXTURE(CombineControllerFixture, setGetVelocity)
-{
-    TEST_UTILITY_FUNC(setGetVelocity)(&controller);
-}
-
 TEST_FIXTURE(CombineControllerFixture, setGetDesiredVelocity)
 {
     TEST_UTILITY_FUNC(setGetDesiredVelocity)(&controller);

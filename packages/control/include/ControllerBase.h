@@ -64,12 +64,6 @@ public:
      */
     virtual void update(double timestep);
 
-
-    virtual void setVelocity(math::Vector2 velocity);  
-
-    /** Get the current desired velocity */
-    virtual math::Vector2 getVelocity();
-    
     /** Set the current speed, clamped between -5 and 5
      *
      *  Setting this turns off the velocity based control, and gives direct
@@ -132,18 +126,8 @@ public:
     /** Current desired depth of the sub in meters */
     virtual double getDepth();
     
-    /** Grab current estimated depth*/
-    virtual double getEstimatedDepth();
-    
-    /** Grab current estimated depth velocity (depthDot)*/
-    virtual double getEstimatedDepthDot();
-    
     /** Makes the current actual depth the desired depth */
     virtual void holdCurrentDepth();
-
-
-
-
 
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth();
@@ -156,9 +140,6 @@ public:
    
     /** Returns true if the vehicle is at the desired orientation */
     virtual bool atOrientation();
- 
-
-
 
     /** Loads current orientation into desired (fixes offset in roll and pitch)
      *
@@ -170,6 +151,7 @@ public:
      *      the interpretation of yaw and upright will be nonsensical.
      */
     virtual void holdCurrentOrientation();
+
     virtual void holdCurrentHeading();
 
     virtual void setPriority(core::IUpdatable::Priority priority) {
@@ -222,16 +204,16 @@ protected:
 private:
     void init(core::ConfigNode config);
 
-    /* Updates m_atDepth on a change to the desired or estimated depth */
+    /** Updates m_atDepth on a change to the desired or estimated depth */
     void atDepthUpdate(core::EventPtr event);
 
-    /* Updates m_atDepth on a change to the desired or estimated position */
+    /** Updates m_atDepth on a change to the desired or estimated position */
     void atPositionUpdate(core::EventPtr event);
 
-    /* Updates m_atDepth on a change to the desired or estimated velocity */
+    /** Updates m_atDepth on a change to the desired or estimated velocity */
     void atVelocityUpdate(core::EventPtr event);
 
-    /* Updates m_atDepth on a change to the desired or estimated orientation */
+    /** Updates m_atDepth on a change to the desired or estimated orientation */
     void atOrientationUpdate(core::EventPtr event);
 
     core::EventConnectionPtr conn_desired_atDepth;
@@ -246,10 +228,16 @@ private:
     core::EventConnectionPtr conn_desired_atOrientation;
     core::EventConnectionPtr conn_estimated_atOrientation;
     
-
+    /** Publishes the AT_DEPTH event for the depth given */
     void publishAtDepth(const double& depth);
+
+    /** Publishes the AT_ORIENTATION event for the orientation given */
     void publishAtOrientation(const math::Quaternion& orientation);
+
+    /** Publishes the AT_VELOCITY event for the velocity given */
     void publishAtVelocity(const math::Vector2& velocity);
+
+    /** Publishes the AT_POSITION event for the position given */
     void publishAtPosition(const math::Vector2& position);
     
     /** Used to maintain state so we don't issue continuous AT_*** at depth updates */

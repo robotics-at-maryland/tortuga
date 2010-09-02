@@ -71,29 +71,29 @@ struct VisionVelocitySensorFixture
     vehicle::device::IVelocitySensor* visionVelocitySensor;
 };
 
-TEST_FIXTURE(VisionVelocitySensorFixture, getVelocity)
-{
-    // Check default
-    CHECK_EQUAL(math::Vector2::ZERO, visionVelocitySensor->getVelocity());
+// TEST_FIXTURE(VisionVelocitySensorFixture, getVelocity)
+// {
+//     // // Check default
+//     // CHECK_EQUAL(math::Vector2::ZERO, visionVelocitySensor->getVelocity());
     
-    // Set the depth, FOV, and pixels
-    depthSensor->publishUpdate(5); // 12 meters difference
-    vision::VisionSystem::_setDownVerticalFieldOfView(math::Degree(45));
-    vision::VisionSystem::_setDownVerticalPixelResolution(480);
-    vision::VisionSystem::_setDownHorizontalFieldOfView(math::Degree(60));
-    vision::VisionSystem::_setDownHorizontalPixelResolution(640);
+//     // // Set the depth, FOV, and pixels
+//     // depthSensor->publishUpdate(5); // 12 meters difference
+//     // vision::VisionSystem::_setDownVerticalFieldOfView(math::Degree(45));
+//     // vision::VisionSystem::_setDownVerticalPixelResolution(480);
+//     // vision::VisionSystem::_setDownHorizontalFieldOfView(math::Degree(60));
+//     // vision::VisionSystem::_setDownHorizontalPixelResolution(640);
 
-    // Put in the first event, make sure we still have zero
-    math::Vector2 expectedVelocity(0, 0);
-    publishVisionVelocityEvent(expectedVelocity, 0);
+//     // // Put in the first event, make sure we still have zero
+//     // math::Vector2 expectedVelocity(0, 0);
+//     // publishVisionVelocityEvent(expectedVelocity, 0);
 
-    // Now pulish another value and check the results
-    math::Vector2 pixelVelocity(15, 30);
-    expectedVelocity = math::Vector2(0.324*2.0, 0.621*2.0);
-    publishVisionVelocityEvent(pixelVelocity, 0.5);
+//     // // Now pulish another value and check the results
+//     // math::Vector2 pixelVelocity(15, 30);
+//     // expectedVelocity = math::Vector2(0.324*2.0, 0.621*2.0);
+//     // publishVisionVelocityEvent(pixelVelocity, 0.5);
     
-    CHECK_CLOSE(expectedVelocity, visionVelocitySensor->getVelocity(), 0.05);
-}
+//     // CHECK_CLOSE(expectedVelocity, visionVelocitySensor->getVelocity(), 0.05);
+// }
 
 typedef std::vector<math::Vector2EventPtr>
 Vector2EventPtrList;
@@ -105,26 +105,26 @@ void velocityUpdateHelper(Vector2EventPtrList* list,
         boost::dynamic_pointer_cast<math::Vector2Event>(event));
 }
 
-TEST_FIXTURE(VisionVelocitySensorFixture, event_UPDATE)
-{
-    // Check default
-    CHECK_EQUAL(math::Vector2::ZERO, visionVelocitySensor->getVelocity());
+// TEST_FIXTURE(VisionVelocitySensorFixture, event_UPDATE)
+// {
+//     // Check default
+//     CHECK_EQUAL(math::Vector2::ZERO, visionVelocitySensor->getVelocity());
 
-    // Register for the event
-    Vector2EventPtrList eventList;
-    core::EventConnectionPtr conn = visionVelocitySensor->subscribe(
-        vehicle::device::IVelocitySensor::UPDATE,
-        boost::bind(velocityUpdateHelper, &eventList, _1));
+//     // Register for the event
+//     Vector2EventPtrList eventList;
+//     core::EventConnectionPtr conn = visionVelocitySensor->subscribe(
+//         vehicle::device::IVelocitySensor::UPDATE,
+//         boost::bind(velocityUpdateHelper, &eventList, _1));
     
-    // Publish event and make sure it didn't change
-    math::Vector2 expectedVelocity(12.5, 90.2);
-    publishVisionVelocityEvent(expectedVelocity);
+//     // Publish event and make sure it didn't change
+//     math::Vector2 expectedVelocity(12.5, 90.2);
+//     publishVisionVelocityEvent(expectedVelocity);
 
-    // Check results
-    CHECK_EQUAL(1u, eventList.size());
-    math::Vector2EventPtr event = eventList[0];
-    CHECK_CLOSE(expectedVelocity, event->vector2, 0.0001);
+//     // Check results
+//     CHECK_EQUAL(1u, eventList.size());
+//     math::Vector2EventPtr event = eventList[0];
+//     CHECK_CLOSE(expectedVelocity, event->vector2, 0.0001);
 
-    conn->disconnect();
-}
+//     conn->disconnect();
+// }
 

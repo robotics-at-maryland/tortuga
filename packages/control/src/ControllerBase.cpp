@@ -221,11 +221,6 @@ void ControllerBase::update(double timestep)
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
 }
 
-void ControllerBase::setVelocity(math::Vector2 velocity)
-{
-    setDesiredVelocity(velocity,IController::BODY_FRAME);
-}
-
 void ControllerBase::setSpeed(double speed)
 {
     // clip speed at 5
@@ -280,14 +275,6 @@ double ControllerBase::getSidewaysSpeed()
 {
     math::Vector2 velocity = getDesiredVelocity(IController::BODY_FRAME);
     return velocity[1];
-}
-
-math::Vector2 ControllerBase::getVelocity()
-{
-    math::Vector2 velocity(m_desiredState->getDesiredVelocity());
-    velocity = math::bRn(m_stateEstimator->getEstimatedOrientation(
-                             ).getYaw().valueRadians())*velocity;
-    return velocity;
 }
 
 math::Vector2 ControllerBase::getDesiredVelocity(int frame)
@@ -387,16 +374,6 @@ void ControllerBase::setDepth(double depth)
 double ControllerBase::getDepth()
 {
     return m_desiredState->getDesiredDepth();
-}
-
-double ControllerBase::getEstimatedDepth()
-{
-    return m_stateEstimator->getEstimatedDepth();
-}
-
-double ControllerBase::getEstimatedDepthDot()
-{
-    assert(0 && "Not Yet Implemented");
 }
 
 bool ControllerBase::atDepth()

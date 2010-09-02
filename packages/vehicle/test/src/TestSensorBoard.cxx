@@ -125,19 +125,19 @@ const std::string LOC_CONFIG = START_CONFIG + "'depthCalibSlope' : 1,"
 
 #define LENGTH(X) (sizeof(X)/sizeof(*X))
 
-TEST_FIXTURE(SensorBoardFixture, getDepth)
-{
-    std::string config = START_CONFIG + "'depthCalibSlope' : 5,"
-        "'depthCalibIntercept' : 2}";
+// TEST_FIXTURE(SensorBoardFixture, getDepth)
+// {
+//     std::string config = START_CONFIG + "'depthCalibSlope' : 5,"
+//         "'depthCalibIntercept' : 2}";
 
-    TestSensorBoard* sb = new TestSensorBoard(
-        ram::core::ConfigNode::fromString(config));
+//     TestSensorBoard* sb = new TestSensorBoard(
+//         ram::core::ConfigNode::fromString(config));
 
-    sb->depth = 17; // (3 * slope) + intercept
-    sb->update(0);
-    CHECK_CLOSE(3.0, sb->getDepth(), 0.00001);
-    delete sb;
-}
+//     sb->depth = 17; // (3 * slope) + intercept
+//     sb->update(0);
+//     CHECK_CLOSE(3.0, sb->getDepth(), 0.00001);
+//     delete sb;
+// }
 
 TEST_FIXTURE(SensorBoardFixture, getLocation)
 {

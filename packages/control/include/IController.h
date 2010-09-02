@@ -44,11 +44,6 @@ typedef boost::shared_ptr<IController> IControllerPtr;
 class RAM_EXPORT IController : public core::Subsystem
 {
 public:
-    virtual void setVelocity(math::Vector2 velocity) = 0;  
-
-    /** Get the current desired velocity */
-    virtual math::Vector2 getVelocity() = 0;
-    
     /** Set the current speed, clamped between -5 and 5
      *
      *  Setting this turns off the velocity based control, and gives direct
@@ -88,8 +83,10 @@ public:
     /** Gets desired position */
     virtual math::Vector2 getDesiredPosition(int frame) = 0;
 
+    /** Returns true if the vehicle is at the desired position */
     virtual bool atPosition() = 0;
     
+    /** Returns true if the vehicle is at the desired velocity */
     virtual bool atVelocity() = 0;
 
     /** Yaws the desired vehicle state by the desired number of degrees */
@@ -116,12 +113,6 @@ public:
     /** Current desired depth of the sub in meters */
     virtual double getDepth() = 0;
     
-    /** Grab current estimated depth*/
-    virtual double getEstimatedDepth() = 0;
-    
-    /** Grab current estimated depth velocity (depthDot)*/
-    virtual double getEstimatedDepthDot() = 0;
-    
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 
@@ -138,7 +129,6 @@ public:
      *      the interpretation of yaw and upright will be nonsensical.
      */
     virtual void holdCurrentHeading() = 0;
-
 
     /**
      * \defgroup Events IController Events

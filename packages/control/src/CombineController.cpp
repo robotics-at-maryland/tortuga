@@ -125,12 +125,6 @@ void CombineController::doUpdate(const double& timestep,
     rotationalTorqueOut = rotControlTorque;
 }
 
-void CombineController::setVelocity(math::Vector2 velocity)
-{
-    setDesiredVelocity(velocity,IController::BODY_FRAME);
-    m_transController->setControlMode(ControlMode::VELOCITY);
-}
-
 void CombineController::setSpeed(double speed)
 {
     double sidewaysSpeed = 0;

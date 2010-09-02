@@ -36,9 +36,6 @@ public:
     
     virtual ~IDepthSensor();
 
-    /** The current depth the sensor is reading in feet */
-    virtual double getDepth() = 0;
-
     /** The location of the depth sensor on the vehicle */
     virtual math::Vector3 getLocation() = 0;
     

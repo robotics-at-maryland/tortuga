@@ -37,9 +37,6 @@ public:
     
     virtual ~IVelocitySensor();
 
-    /** The current velocity the sensor is reading in meters/second */
-    virtual math::Vector2 getVelocity() = 0;
-
     /** The location of the velocity sensor on the vehicle */
     virtual math::Vector3 getLocation() = 0;
     

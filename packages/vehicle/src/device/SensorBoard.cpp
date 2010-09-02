@@ -245,12 +245,6 @@ void SensorBoard::update(double timestep)
     }
 }
 
-double SensorBoard::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_state.depth;
-}
-
 math::Vector3 SensorBoard::getLocation()
 {
     return m_location;
@@ -328,7 +322,7 @@ bool SensorBoard::isPowerSourceEnabled(int address)
         BATT3_ENABLED,
         BATT4_ENABLED,
         BATT5_ENABLED,
-	BATT6_ENABLED,
+        BATT6_ENABLED,
     };
 
     assert((0 <= address) && (address < 6) && "Address out of range");
@@ -345,7 +339,7 @@ bool SensorBoard::isPowerSourceInUse(int address)
         BATT3_INUSE,
         BATT4_INUSE,
         BATT5_INUSE,
-	BATT6_INUSE,
+        BATT6_INUSE,
     };
 
     assert((0 <= address) && (address < 6) && "Address out of range");
@@ -362,7 +356,7 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_ON,
         CMD_BATT4_ON,
         CMD_BATT5_ON,
-	CMD_BATT6_ON,
+        CMD_BATT6_ON,
     };
     
     static int addressToOff[] = {
@@ -371,7 +365,7 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_OFF,
         CMD_BATT4_OFF,
         CMD_BATT5_OFF,
-	CMD_BATT6_OFF,
+        CMD_BATT6_OFF,
     };
 
     assert((0 <= address) && (address < 6) && "Power source id out of range");
@@ -521,7 +515,7 @@ void SensorBoard::dropMarker(int markerNum)
 }
 
 void SensorBoard::setServoPosition(unsigned char servoNumber,
-                                  unsigned short position)
+                                   unsigned short position)
 {
     handleReturn(::setServoPosition(m_deviceFD, servoNumber, position));    
 }  

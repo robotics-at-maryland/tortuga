@@ -52,7 +52,6 @@ public:
 
     virtual ~CombineController();
     
-    virtual void setVelocity(math::Vector2 velocity);
     virtual void setSpeed(double speed);
     virtual void setSidewaysSpeed(double speed);
     virtual void setDesiredVelocity(math::Vector2 velocity, const int frame);
