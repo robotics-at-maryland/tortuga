@@ -1,0 +1,15 @@
+Requirements
+OpenCV R@M Precompiled Dependency (in /opt/ram/local/...)
+ROOT: A Data Analysis Framework
+
+How to build:
+1. sudo apt-get install root-system (this installs the ROOT dependency)
+2. cd build (from the image analyzer root directory) 
+3. cmake .. (creates a makefile in the build directory)
+4. make (runs the commands to build the program)
+
+How to run:
+./src/image_analyzer (from the build directory)
+
+The usage instructions will be printed
+
