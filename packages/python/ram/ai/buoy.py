@@ -39,6 +39,10 @@ class BuoyTrackingState(state.State):
                  vision.EventType.BUOY_LOST : lostState,
                  BuoyTrackingState.FINISHED : End }
 
+    @staticmethod
+    def getattr():
+        return set([])
+
     def BUOY_FOUND(self, event):
         # Store data and veto the event if the wrong color
         self.ai.data['buoyData'][event.color] = event

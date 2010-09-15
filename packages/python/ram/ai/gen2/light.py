@@ -131,6 +131,9 @@ class Searching(state.State):
     Searching template
     """
     @staticmethod
+    def getattr():
+        return set([])
+    @staticmethod
     def transitions():
         return { vision.EventType.LIGHT_FOUND : Align }
 
