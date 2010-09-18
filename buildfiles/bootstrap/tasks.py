@@ -99,23 +99,13 @@ symlink_python = Task(
     dependencies = (setup_directories,)
     )
 
-symlink_gcc = Task(
-    'Make Symlink to Proper GCC Version',
-    namespaces = 'gcc_symlink',
-    targets = '${buildoutdir}/scripts/gcc',
-    workdir = '${buildoutdir}',
-    commands = ['ln -sf /usr/bin/gcc-4.2 ${buildoutdir}/scripts/gcc',
-                'ln -sf /usr/bin/g++-4.2 ${buildoutdir}/scripts/g++'],
-    dependencies = (setup_directories,)
-    )
-
 install_python_modules = Task(
     'Install Python Modules',
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      dependencies = (install_pygccxml, install_pyplusplus,
                      install_pyyaml, install_scons, install_zope_interface,
-		     symlink_python, symlink_gcc)
+		     symlink_python)
     )
 
 # Package Installation
