@@ -18,7 +18,10 @@ from buildit.task import Task
 from buildfiles.common.commands import *
 import buildfiles.variants as variants
 
-pythonExecutable = '"%s"' % sys.executable
+pythonExecutable = '%s' % sys.executable
+pydoc = os.path.join(os.path.split(pythonExecutable)[0], 'pydoc2.5')
+if not os.path.exists(pydoc):
+    pydoc = os.path.join(os.path.split(pydoc)[0], 'pydoc')
 
 # Setup basic directory structure
 setup_directories = Task(
@@ -92,9 +95,9 @@ symlink_python = Task(
     namespaces = 'python_symlink',
     targets = '${buildoutdir}/scripts/link_done',
     workdir = '${buildoutdir}',
-    commands = ['ln -sf ' + pythonExecutable + 
-		' ${buildoutdir}/scripts/python',
-		'ln -sf /opt/ram/local/bin/pydoc2.5 ${buildoutdir}/scripts/pydoc',
+    commands = ['ln -sf "' + pythonExecutable + 
+		'" ${buildoutdir}/scripts/python',
+		'ln -sf "' + pydoc + '" ${buildoutdir}/scripts/pydoc',
 		'touch ${buildoutdir}/scripts/link_done'],
     dependencies = (setup_directories,)
     )
