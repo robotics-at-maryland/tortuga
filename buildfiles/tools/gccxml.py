@@ -33,7 +33,10 @@ def generate(env):
     gccxml_dir = os.path.dirname(gccxml_path)
     extra = ''
     if platform.system() == 'Linux':
-        extra += '--gccxml-compiler g++-4.2'
+        # Check for R@M compiled GCC
+        if not os.path.exists('/opt/ram/local/bin/g++'):
+            # Attempt to use default g++-4.2 on the platform
+            extra += '--gccxml-compiler g++-4.2'
 
     if os.name != 'posix':
         extra = '--gccxml-config "' + os.path.abspath(os.path.join(gccxml_dir, 'gccxml_config')) +'"'
