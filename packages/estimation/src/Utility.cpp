@@ -4,16 +4,16 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vehicle/src/Utility.cpp
+ * File:  packages/estimation/src/Utility.cpp
  */
 
 // Project Includes
-#include "vehicle/include/Utility.h"
+#include "estimation/include/Utility.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Helpers.h"
 
 namespace ram {
-namespace vehicle {
+namespace estimation {
 
 math::Quaternion Utility::quaternionFromMagAccel(const math::Vector3& mag,
                                                  const math::Vector3& accel)
@@ -57,5 +57,5 @@ math::Quaternion Utility::quaternionFromRate(const math::Quaternion& quatOld,
     return qNew.normalise();
 }
     
-} // namespace vehicle
+} // namespace estimation
 } // namespace ram

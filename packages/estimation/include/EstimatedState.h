@@ -7,7 +7,7 @@
  * File:  packages/estimation/include/EstiamtedState.h
  */
 
-/* EstiamtedState stores all state data and provides thread safe methods 
+/* EstimatedState stores all state data and provides thread safe methods 
 ** to set and get an estimated state quantity. This class should only be
 ** accessed directly from within the estimator framework because the
 ** IStateEstimator provides a public interface to get needed estimates.

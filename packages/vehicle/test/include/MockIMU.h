@@ -23,11 +23,7 @@ public:
             ram::core::EventHubPtr eventHub,
             ram::vehicle::IVehiclePtr vehicle) :
         ram::vehicle::device::IIMU(eventHub, config["name"].asString()),
-        Device(config["name"].asString()),
-        orientation(config["orientation"][0].asDouble(0),
-                    config["orientation"][1].asDouble(0),
-                    config["orientation"][2].asDouble(0),
-                    config["orientation"][3].asDouble(1))
+        Device(config["name"].asString())
     {
     }
     
@@ -45,17 +41,12 @@ public:
     virtual ram::math::Vector3 getAngularRate()
     	{ return angularRate; }
     
-    virtual ram::math::Quaternion getOrientation()
-     	{ return orientation; }
-    
     ram::math::Vector3 linearAcceleration;
     ram::math::Vector3 magnetometer;
     ram::math::Vector3 angularRate;
-    ram::math::Quaternion orientation;
 
     void publishUpdate(ram::math::Quaternion update)
     {
-        orientation = update;
         ram::math::OrientationEventPtr orientationEvent(
             new ram::math::OrientationEvent());
         orientationEvent->orientation = update;

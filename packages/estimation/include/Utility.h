@@ -4,18 +4,18 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/vehicle/include/Utility.h
+ * File:  packages/estimation/include/Utility.h
  */
 
-#ifndef RAM_VEHICLE_UTILITY_H_04_22_2009
-#define RAM_VEHICLE_UTILITY_H_04_22_2009
+#ifndef RAM_ESTIMATION_UTILITY_H_04_22_2009
+#define RAM_ESTIMATION_UTILITY_H_04_22_2009
 
 // Project Includes
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 
 namespace ram {
-namespace vehicle {
+namespace estimation {
 
 struct Utility
 {
@@ -36,7 +36,7 @@ struct Utility
                                                double deltaT);
 };
     
-} // namespace vehicle
+} // namespace estimation
 } // namespace ram
 
-#endif // RAM_VEHICLE_UTILITY_H_04_22_2009
+#endif // RAM_ESTIMATION_UTILITY_H_04_22_2009

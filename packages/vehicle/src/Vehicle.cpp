@@ -21,7 +21,6 @@
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
-#include "vehicle/include/Utility.h"
 #include "vehicle/include/Events.h"
 #include "vehicle/include/device/IPayloadSet.h"
 #include "vehicle/include/device/IDevice.h"

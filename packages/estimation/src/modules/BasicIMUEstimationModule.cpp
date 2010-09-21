@@ -20,7 +20,7 @@
 
 // Project Includes
 #include "math/include/Helpers.h"
-#include "vehicle/include/Utility.h"
+#include "estimation/include/Utility.h"
 #include "estimation/include/modules/BasicIMUEstimationModule.h"
 #include "vehicle/include/device/IIMU.h"
 
@@ -99,7 +99,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
             mag[2] = m_filteredState[m_magIMUName]->magZ;
         }
 
-        estOrientation = vehicle::Utility::quaternionFromMagAccel(mag,accel);
+        estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
     } else if (magIsCorrupt) {
 
@@ -108,7 +108,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
          * from the mag and accel readings from the single IMU
          */
 
-        estOrientation = vehicle::Utility::quaternionFromMagAccel(mag,accel);
+        estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
     } else {
 
@@ -128,7 +128,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
 
         math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
 
-        estOrientation = vehicle::Utility::quaternionFromRate(oldOrientation,
+        estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
                                                               omega,
                                                               timestep);
 
@@ -165,73 +165,6 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
                         << estOrientation[0] << " " << estOrientation[1] << " "
                         << estOrientation[2] << " " << estOrientation[3];
 }
-
-// void BasicIMUEstimationModule::rotateAndFilterData(const RawIMUData* newState, 
-//                                                    std::string name)
-// {
-//     /* Grab the correct IMU configuration */
-//     IMUConfigPtr config = imuList[name];
-
-//     /* Take the raw data, put it into OGRE format applying the
-//      * bias corrections.
-//      */
-//     math::Vector3 linearAcceleration(newState->accelX,
-//                                      newState->accelY,
-//                                      newState->accelZ);
-
-//     math::Vector3 magnetometer(newState->magX - config->magBias[0],
-//                                newState->magY - config->magBias[1],
-//                                newState->magZ - config->magBias[2]);
-
-//     math::Vector3 gyro(newState->gyroX - config->gyroBias[0],
-//                        newState->gyroY - config->gyroBias[1],
-//                        newState->gyroZ - config->gyroBias[2]);
-
-//     /* Rotate the data from the IMU frame to the vehicle frame */
-//     math::Vector3 rotatedLinearAccel = 
-//         config->IMUtoVehicleFrame * linearAcceleration;
-
-//     math::Vector3 rotatedMagnetometer = 
-//         config->IMUtoVehicleFrame * magnetometer;
-
-//     math::Vector3 rotatedGyro = 
-//         config->IMUtoVehicleFrame * gyro;
-
-//     /* The rotated data is put into an averaging filter that keeps the
-//      * most recent FILTER_SIZE (currently 10) measurements.  This
-//      * helps account for magnetic fields of the the thrusters and other
-//      * high frequency fluctuations.
-//      */
-//     m_filteredAccelX[name].addValue(rotatedLinearAccel[0]);
-//     m_filteredAccelY[name].addValue(rotatedLinearAccel[1]);
-//     m_filteredAccelZ[name].addValue(rotatedLinearAccel[2]);
-
-//     m_filteredMagX[name].addValue(rotatedMagnetometer[0]);
-//     m_filteredMagY[name].addValue(rotatedMagnetometer[1]);
-//     m_filteredMagZ[name].addValue(rotatedMagnetometer[2]);
-
-//     m_filteredGyroX[name].addValue(rotatedGyro[0]);
-//     m_filteredGyroY[name].addValue(rotatedGyro[1]);
-//     m_filteredGyroZ[name].addValue(rotatedGyro[2]);
-
-//     /* Grab the averaged values from the filters and put them into the
-//      * member variables.
-//      */
-//     {
-//         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-//         m_filteredState[name]->accelX = m_filteredAccelX[name].getValue();
-//         m_filteredState[name]->accelY = m_filteredAccelY[name].getValue();
-//         m_filteredState[name]->accelZ = m_filteredAccelZ[name].getValue();
-         
-//         m_filteredState[name]->magX = m_filteredMagX[name].getValue();
-//         m_filteredState[name]->magY = m_filteredMagY[name].getValue();
-//         m_filteredState[name]->magZ = m_filteredMagZ[name].getValue();
-         
-//         m_filteredState[name]->gyroX = m_filteredGyroX[name].getValue();
-//         m_filteredState[name]->gyroY = m_filteredGyroY[name].getValue();
-//         m_filteredState[name]->gyroZ = m_filteredGyroZ[name].getValue();
-//     }
-// }
 
 } // namespace estimation
 } // namespace ram

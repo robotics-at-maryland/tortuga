@@ -116,109 +116,27 @@ TEST(DeviceCreation)
     delete veh;
 }
 
-// TEST(ValueInitialization)
-// {
-//     // Create a vehicle with the some mock sensors that have initial state
-//     std::string config =
-//             "{"
-//             "'name' : 'TestVehicle',"
-//             "'DepthSensorName' : 'DepthSensor',"
-//             "'Devices' : {"
-//             "    'IMU' : {'type' : 'MockIMU', 'orientation' : [1, 2, 3, 4] },"
-//             "    'DepthSensor' : {'type' : 'MockDepthSensor', 'depth' : 5.6},"
-//             "    'VelocitySensor' : {'type' : 'MockVelocitySensor',"
-//             "                        'velocity' : [5, 6]},"
-//             "    'PositionSensor' : {'type' : 'MockPositionSensor',"
-//             "                        'position' : [3, 8]}"
-//             " },"
-//             "}";
+TEST(ValueInitialization)
+{
+    // Create a vehicle with the some mock sensors that have initial state
+    std::string config =
+            "{"
+            "'name' : 'TestVehicle',"
+            "'Devices' : {"
+            "    'IMU' : {'type' : 'MockIMU'},"
+            "    'DepthSensor' : {'type' : 'MockDepthSensor'},"
+            "    'VelocitySensor' : {'type' : 'MockVelocitySensor'},"
+            "    'PositionSensor' : {'type' : 'MockPositionSensor'},"
+            " },"
+            "}";
 
-//     core::EventHubPtr eventHub(new core::EventHub());
-//     vehicle::IVehicle* veh = 
-//         new vehicle::Vehicle(core::ConfigNode::fromString(config),
-//                              boost::assign::list_of(eventHub));
-
-//     // Now make sure the state estimator has been made aware of those initial
-//     // states
-//     double expectedDepth = 5.6;
-//     math::Quaternion expectedOrientation(1, 2, 3, 4);
-//     math::Vector2 expectedVelocity(5, 6);
-//     math::Vector2 expectedPosition(3, 8);
+    core::EventHubPtr eventHub(new core::EventHub());
+    vehicle::IVehicle* veh = 
+        new vehicle::Vehicle(core::ConfigNode::fromString(config),
+                             boost::assign::list_of(eventHub));
     
-//     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.0001);
-//     CHECK_CLOSE(expectedOrientation, veh->getOrientation(), 0.0001);
-//     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.0001);
-//     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.0001);
-// }
-
-// TEST_FIXTURE(VehicleFixture, IMU)
-// {
-//     MockIMU* imu = new MockIMU("IMU");
-//     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-    
-//     math::Vector3 accel(1,2,3);
-//     math::Vector3 angularRate(4,5,6);
-//     math::Quaternion orientation(7,8,9,10);
-    
-//     imu->linearAcceleration = accel;
-//     imu->angularRate = angularRate;
-//     imu->publishUpdate(orientation);
-//     CHECK_EQUAL(accel, veh->getLinearAcceleration());
-//     CHECK_EQUAL(angularRate, veh->getAngularRate());
-//     CHECK_EQUAL(orientation, veh->getOrientation());
-// }
-
-// TEST_FIXTURE(VehicleFixture, getDepth)
-// {
-//     // Create mock depth sensor and IMU
-//     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
-//     MockIMU* imu = new MockIMU("IMU");
-//     imu->orientation = math::Quaternion::IDENTITY;
-
-//     // Add the mock devices to our vehicle
-//     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
-//     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-//     // Check the depth
-//     double depth = 2.6;
-//     depthSensor->publishUpdate(depth);
-//     CHECK_EQUAL(depth, veh->getDepth());
-
-//     // Now check depth correction for orientation
-
-//     // The sensor is in the back, left, and upper corner of the vehicle
-//     depthSensor->location = math::Vector3(-1, -0.2, 0.2);
-//     // We are pitched forward down by 15 degrees
-//     math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
-    
-//     // We have to push updates to the orientation and the depth
-//     imu->publishUpdate(orientation);
-//     depthSensor->publishUpdate(depth);
-    
-//     // We add to the expected depth because the downward pitch moves our sensor
-//     // to a shallow depth then we are really at
-//     double expectedDepth = depth + 0.252;
-//     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
-
-//     // Now check for usage of the state estimator
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-//     estimator->timeStamp = 0;
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-
-//     expectedDepth = 6.7;
-//     estimator->depth["vehicle"] = expectedDepth;
-//     CHECK_CLOSE(expectedDepth, veh->getDepth(), 0.00001);
-
-//     // Check the extra object in the state estimator
-//     expectedDepth = 3.2;
-//     estimator->depth["buoy"] = expectedDepth;
-//     CHECK_CLOSE(expectedDepth, veh->getDepth("buoy"), 0.00001);
-
-//     // Check to make sure the time stamp changes
-//     double expectedTimeStamp = 1;
-//     estimator->depthUpdate(expectedDepth, expectedTimeStamp);
-//     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
-// }
+    CHECK(veh != 0);
+}
 
 // TEST_FIXTURE(VehicleFixture, getVelocity)
 // {

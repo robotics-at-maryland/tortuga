@@ -24,8 +24,11 @@
 
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
+#include "core/include/SubsystemMaker.h"
 
-
+// Register controller in subsystem maker system
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::estimation::ModularStateEstimator,
+                                  ModularStateEstimator);
 
 namespace ram {
 namespace estimation {
