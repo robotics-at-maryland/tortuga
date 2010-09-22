@@ -12,3 +12,4 @@ import sim.subsystems as _subsystems
 import sim.vehicle as _vehicle
 import sim.vision as _vision
 import sim.sonar as _sonar
+import sim.estimation as _estimation

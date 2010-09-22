@@ -90,41 +90,30 @@ Vehicle:
             simName: bot_thruster
             relAxis: z
 
-        StateEstimator:
-            type: LoopStateEstimator
+        # IMU: # MagBoom
+        #     depends_on: ['SimulationDevice']
+        #     type: SimIMU
 
-            INCLUDE: tools/simulator/data/config/maps/default.yml
+        # VelocitySensor:
+        #     depends_on: ['SimulationDevice']
+        #     type: SimVelocitySensor
 
-        IMU: # MagBoom
-            depends_on: ['SimulationDevice']
-            type: SimIMU
+        # PositionSensor:
+        #     depends_on: ['SimulationDevice']
+        #     type: IdealPositionSensor
 
-        VelocitySensor:
-            depends_on: ['SimulationDevice']
-            type: SimVelocitySensor
+        # DepthSensor:
+        #     depends_on: ["SimulationDevice"]
+        #     type: SimDepthSensor
 
-        PositionSensor:
-            depends_on: ['SimulationDevice']
-            type: IdealPositionSensor
-
-        DepthSensor:
-            depends_on: ["SimulationDevice"]
-            type: SimDepthSensor
-
-    NewStateEstimator:
-        DVLEstimationModule:
-            type: BasicDVLEstimationModule
-        IMUEstimationModule:
-            type: BasicIMUEstimationModule
-
-
-        DepthEstimationModule:
-            type: BasicDepthEstimationModule
+StateEstimator:
+    type: IdealStateEstimator
+    depends_on: ["Vehicle", "EventHub"]
 
 # Exectures Motions
 MotionManager:
     type: MotionManager
-    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub", "StateEstimator"]
 
 # Handles Timers
 TimerManager:
@@ -157,13 +146,13 @@ Logging:
         Vehicle:
             appenders: ['VehicleLog']
 
-EventLogger:
-    depends_on: ["EventHub"]
-    type: EventLogger
+# EventLogger:
+#     depends_on: ["EventHub"]
+#     type: EventLogger
 
 Controller:
     orientationThreshold: 0.1
-    depends_on: ["Vehicle", "EventHub"]
+    depends_on: ["Vehicle", "EventHub", "StateEstimator"]
     type: BWPDController
     holdCurrentHeading: 1
     holdCurrentDepth: 1
