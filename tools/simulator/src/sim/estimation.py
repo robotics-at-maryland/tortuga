@@ -18,6 +18,12 @@ def convertToQuaternion(qType, quat):
     return qType(quat.x, quat.y, quat.z, quat.w)
 
 class IdealStateEstimator(estimation.IStateEstimator):
+    """
+    Implementation of the state estimator. This implementation cheats
+    and uses the simulation device to figure out the status of the robot.
+
+    This estimator cannot function outside of the simulator.
+    """
     def __init__(self, cfg, deps):
         estimation.IStateEstimator.__init__(
             self, cfg.get('name', 'StateEstimator'),
@@ -31,6 +37,8 @@ class IdealStateEstimator(estimation.IStateEstimator):
             simDevice = self._vehicle.getDevice('SimulationDevice')
             self.robot = simDevice.robot
         else:
+            # Print out a warning and continue
+            print 'Warning! No simulation device found.'
             self.robot = None
 
         self._obstacles = {}
@@ -46,8 +54,11 @@ class IdealStateEstimator(estimation.IStateEstimator):
         Gets the robot's relative position in the world. Position is
         relative to the starting location of the robot.
         """
-        return math.Vector2(self.robot._main_part._node.position.x,
-                            -self.robot._main_part._node.position.y)
+        if self.robot is not None:
+            return math.Vector2(self.robot._main_part._node.position.x,
+                                -self.robot._main_part._node.position.y)
+        else:
+            return math.Vector2.ZERO
 
     def getEstimatedVelocity(self):
         """
@@ -56,23 +67,35 @@ class IdealStateEstimator(estimation.IStateEstimator):
         return self.velocity
 
     def getEstimatedLinearAcceleration(self):
-        baseAccel = convertToVector3(math.Vector3,
-                                     self.robot._main_part.acceleration)
-
-        # Add in gravity
-        return baseAccel + math.Vector3(0, 0, -9.8)
+        if self.robot is not None:
+            baseAccel = convertToVector3(math.Vector3,
+                                         self.robot._main_part.acceleration)
+            
+            # Add in gravity
+            return baseAccel + math.Vector3(0, 0, -9.8)
+        else:
+            return math.Vector3.ZERO
 
     def getEstimatedAngularRate(self):
-        return convertToVector3(math.Vector3,
-                                self.robot._main_part.angular_accel)
+        if self.robot is not None:
+            return convertToVector3(math.Vector3,
+                                    self.robot._main_part.angular_accel)
+        else:
+            return math.Vector3.ZERO
 
     def getEstimatedOrientation(self):
-        return convertToQuaternion(math.Quaternion,
-                                   self.robot._main_part._node.orientation)
+        if self.robot is not None:
+            return convertToQuaternion(math.Quaternion,
+                                       self.robot._main_part._node.orientation)
+        else:
+            return math.Quaternion.IDENTITY
 
     def getEstimatedDepth(self):
-        # Down is positive for depth
-        return -3.281 * self.robot._main_part._node.position.z
+        if self.robot is not None:
+            # Down is positive for depth
+            return -3.281 * self.robot._main_part._node.position.z
+        else:
+            return 0
 
     def getEstimatedDepthDot(self):
         return 0
@@ -96,11 +119,14 @@ class IdealStateEstimator(estimation.IStateEstimator):
         return False
 
     def update(self, time):
+        """
+        Sends out events using the current estimated values
+        """
         currentPos = self.getEstimatedPosition()
         self.velocity = (currentPos - self.oldPos) / time
         self.oldPos = currentPos
 
-        # TODO: Send out all events
+        # Package all events
         devent = math.NumericEvent()
         devent.number = self.getEstimatedDepth()
 
@@ -113,6 +139,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
         oevent = math.OrientationEvent()
         oevent.orientation = self.getEstimatedOrientation()
 
+        # Send all events at the same time
         self.publish(estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE, devent)
         self.publish(estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
                      pevent)
