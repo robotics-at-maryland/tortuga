@@ -105,7 +105,20 @@ class IdealStateEstimator(estimation.IStateEstimator):
         devent.number = self.getEstimatedDepth()
 
         pevent = math.Vector2Event()
-        pos = self.getEstimatedPosition()
-        pevent.x, pevent.y = pos.x, pos.y
+        pevent.vector2 = self.getEstimatedPosition()
+
+        vevent = math.Vector2Event()
+        vevent.vector2 = self.getEstimatedVelocity()
+
+        oevent = math.OrientationEvent()
+        oevent.orientation = self.getEstimatedOrientation()
+
+        self.publish(estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE, devent)
+        self.publish(estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
+                     pevent)
+        self.publish(estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE,
+                     vevent)
+        self.publish(estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
+                     oevent)
 
 core.registerSubsystem('IdealStateEstimator', IdealStateEstimator)
