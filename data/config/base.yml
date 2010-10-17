@@ -377,7 +377,14 @@ Logging:
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-                    
+
+        CameraLog:
+            type: File
+            fileName: camera.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
         Console:
             type: Console
             Layout:
@@ -396,6 +403,9 @@ Logging:
             appenders: ['DVLLog']
         Vehicle:
             appenders: ['VehicleLog']
+        Camera:
+            appenders: ['CameraLog', 'Console']
+            priority: 'info'
 
 Controller:
     depends_on: ["Vehicle", "EventHub"]

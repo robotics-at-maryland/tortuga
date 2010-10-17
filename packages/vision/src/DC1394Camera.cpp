@@ -11,12 +11,13 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
-#include <iostream>
 
 // Library Includes
 #include <dc1394/video.h>
 #include <dc1394/camera.h>
 #include <dc1394/conversions.h>
+
+#include <log4cpp/Category.hh>
 
 #include <boost/algorithm/string/case_conv.hpp>
 
@@ -27,6 +28,7 @@
 // Initialize static variables
 dc1394_t* ram::vision::DC1394Camera::s_libHandle = 0;
 size_t ram::vision::DC1394Camera::s_camCount = 0;
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CAMERA"));
 
 namespace ram {
 namespace vision {
@@ -51,6 +53,7 @@ DC1394Camera::DC1394Camera(core::ConfigNode config) :
     // Grab our list of cameras 
     dc1394camera_list_t * list;
     dc1394error_t err = dc1394_camera_enumerate(s_libHandle, &list);
+    LOGGER.infoStream() << "Number of Cameras: " << list->num;
     assert(DC1394_SUCCESS == err && "Failed to enumerate cameras");
     assert(list->num > 0 && "No cameras found");
 
@@ -78,6 +81,7 @@ DC1394Camera::DC1394Camera(core::ConfigNode config, size_t num) :
     // Grab our list of cameras 
     dc1394camera_list_t * list;
     dc1394error_t err = dc1394_camera_enumerate(s_libHandle, &list);
+    LOGGER.infoStream() << "Number of Cameras: " << list->num;
     assert(DC1394_SUCCESS == err && "Failed to enumerate cameras");
     assert(list->num > 0 && "No cameras found");
     assert(num < list->num && "Num too large");
@@ -106,6 +110,7 @@ DC1394Camera::~DC1394Camera()
     // Stop any background image processing
     cleanup();
     
+    LOGGER.infoStream() << m_guid << ": Turning off camera ";
     dc1394_video_set_transmission(m_camera, DC1394_OFF);
     dc1394_capture_stop(m_camera);
     dc1394_camera_set_power(m_camera, DC1394_OFF);
@@ -123,6 +128,8 @@ void DC1394Camera::update(double timestep)
     dc1394error_t err = DC1394_FAILURE;
     
     // Grab a frame
+    static unsigned int frameNum = 0;
+    LOGGER.debugStream() << m_guid << ": Grabbing frame " << ++frameNum;
     err = dc1394_capture_dequeue(m_camera, DC1394_CAPTURE_POLICY_WAIT, &frame);
     assert(DC1394_SUCCESS == err && "Could not capture a frame\n");
     
@@ -131,6 +138,7 @@ void DC1394Camera::update(double timestep)
     dc1394_convert_frames(frame, m_newFrame);
 
     // Free the space back up on the queue
+    LOGGER.debugStream() << m_guid << ": Releasing frame " << frameNum;
     err = dc1394_capture_enqueue(m_camera, frame);
     assert(DC1394_SUCCESS == err && "Could not enqueue used frame\n");
 
@@ -189,11 +197,14 @@ double DC1394Camera::currentTime()
 
 void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
 {
+    LOGGER.infoStream() << guid << ": Initializing camera ";
+    m_guid = guid;
+
     // Grab our camera 
     m_camera = dc1394_camera_new(s_libHandle, guid);
     if (!m_camera) {
-        std::cout << "Failed to initialize camera with guid: " << guid
-                  << std::endl;
+        LOGGER.errorStream() <<
+            "Failed to initialize camera with guid: " << guid;
         assert(m_camera && "Couldn't initialize camera");
     }
 
@@ -213,7 +224,9 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
     {
         err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
                                                     &m_vValue);
-        std::cout << "Current U: " << m_uValue << " V: " << m_vValue << std::endl;
+        LOGGER.infoStream() << m_guid
+                            << ": Current U: " << m_uValue
+                            << " V: " << m_vValue;
     }
     
     // Actually set the values if the user wants to
@@ -249,7 +262,7 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         }
         else if (custom)
         {
-            std::cout << "Using custom white balance" << std::endl;
+            LOGGER.infoStream() << m_guid << ": Using custom white balance";
             m_customWhiteBalance = custom;
             setWhiteBalance(m_uValue, m_vValue);
         }
@@ -298,7 +311,8 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
 
     err = dc1394_feature_whitebalance_get_value(m_camera, &m_uValue,
                                                 &m_vValue);
-    std::cout << "Set U: " << m_uValue << " V: " << m_vValue << std::endl;
+    LOGGER.infoStream() << m_guid
+                        << ": Set U: " << m_uValue << " V: " << m_vValue;
     
     // Grab image size
     err = dc1394_get_image_size_from_video_mode(m_camera, videoMode,
@@ -339,6 +353,13 @@ void DC1394Camera::setBrightness(uint32_t value, bool makeAuto)
     // Grab the white balance feature
     dc1394feature_info_t brightness;
     brightness.id = DC1394_FEATURE_BRIGHTNESS;
+
+    if (makeAuto) {
+        LOGGER.infoStream() << m_guid << ": Setting brightness automatically";
+    } else {
+        LOGGER.infoStream() << m_guid << ": Setting brightness to " << value;
+    }
+
     dc1394error_t err = dc1394_feature_get(m_camera, &brightness);
     assert(DC1394_SUCCESS == err && "Could not get brightness feature info");
     
@@ -373,6 +394,7 @@ void DC1394Camera::setBrightness(uint32_t value, bool makeAuto)
         assert(DC1394_SUCCESS == err && "Could not set brightness");
     }
 
+    LOGGER.infoStream() << m_guid << ": Successfully set brightness";
 }
 
 void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
@@ -380,6 +402,13 @@ void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
     // Grab the white balance feature
     dc1394feature_info_t exposure;
     exposure.id = DC1394_FEATURE_EXPOSURE;
+
+    if (makeAuto) {
+        LOGGER.infoStream() << m_guid << ": Setting exposure automatically";
+    } else {
+        LOGGER.infoStream() << m_guid << ": Setting exposure to " << value;
+    }
+
     dc1394error_t err = dc1394_feature_get(m_camera, &exposure);
     assert(DC1394_SUCCESS == err && "Could not get exposure feature info");
     
@@ -413,6 +442,8 @@ void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
                                        value);
         assert(DC1394_SUCCESS == err && "Could not set exposure");
     }
+
+    LOGGER.infoStream() << m_guid << ": Successfully set exposure";
 }
     
 void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
@@ -421,6 +452,15 @@ void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
     // Grab the white balance feature
     dc1394feature_info_t whiteBalance;
     whiteBalance.id = DC1394_FEATURE_WHITE_BALANCE;
+
+    if (makeAuto) {
+        LOGGER.infoStream() << m_guid << ": Setting white balance automatically";
+    } else {
+        LOGGER.infoStream() << m_guid << ": Setting white balance to "
+                            << "U Value: " << uValue << " "
+                            << "V Value: " << vValue;
+    }
+
     dc1394error_t err = dc1394_feature_get(m_camera, &whiteBalance);
     assert(DC1394_SUCCESS == err && "Could not get white balance feature info");
     
@@ -458,12 +498,15 @@ void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
         err = dc1394_feature_whitebalance_set_value(m_camera, uValue, vValue);
         assert(DC1394_SUCCESS == err && "Could not set whitebalance");
     }
+
+    LOGGER.infoStream() << m_guid << ": Successfully set white balance";
 }
 
 void DC1394Camera::balanceWhite()
 {
-    std::cout << "Balancing U: " << m_vValue << " V: " << m_uValue
-              << " Min: " << m_whiteMin << " Max: " << m_whiteMax << std::endl;
+    LOGGER.infoStream() << "Balancing U: " << m_vValue << " V: " << m_uValue
+                        << " Min: " << m_whiteMin
+                        << " Max: " << m_whiteMax;
     
     // Gather RGB statistics
     unsigned char* data = m_newFrame->image;
@@ -483,32 +526,32 @@ void DC1394Camera::balanceWhite()
     avg_r /= numPixels;
     avg_g /= numPixels;
     avg_b /= numPixels;
-    std::cout << "Avg R: " << avg_r << " G: " << avg_g << " B: " << avg_b;
-    
+    LOGGER.infoStream() << "Avg R: " << avg_r
+                        << " G: " << avg_g
+                        << " B: " << avg_b;
 
     /// TODO: Make this tweakable?
     double th = 5;
     double vGain = 1;
     double uGain = 1;
-    
 
     // Update white balance values
     if((avg_r - avg_g) > th) {
-        std::cout << " Gain V: " << avg_g/avg_r * vGain;
+        LOGGER.infoStream() << " Gain V: " << avg_g/avg_r * vGain;
 	m_vValue = m_vValue - 1;
 	//     m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
     } else if ((avg_g - avg_r) > th) {
-        std::cout << " Gain V: " << avg_r/avg_g * vGain;
+        LOGGER.infoStream() << " Gain V: " << avg_r/avg_g * vGain;
 	m_vValue = m_vValue + 1;
         //m_vValue =  (unsigned int)((m_vValue*avg_g)/avg_r) * vGain;
     }
  
     if((avg_b - avg_g) > th) {
-        std::cout << " Gain U: " << avg_g/avg_b * uGain << std::endl;
+        LOGGER.infoStream() << " Gain U: " << avg_g/avg_b * uGain;
 	m_uValue = m_uValue - 1;
         //m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
     } else if ((avg_g - avg_b) > th) {
-        std::cout << " Gain U: " << avg_b/avg_g * uGain << std::endl;
+        LOGGER.infoStream() << " Gain U: " << avg_b/avg_g * uGain;
 	m_uValue = m_uValue + 1;
 	// m_uValue =  (unsigned int)((m_uValue*avg_g)/avg_b) * uGain;
     }
@@ -519,7 +562,7 @@ void DC1394Camera::balanceWhite()
     if (m_uValue < 1)
         m_uValue = (m_whiteMax + m_whiteMin) / 2;
 
-    std::cout << "Balance U: " << m_vValue << " V: " << m_uValue << std::endl;
+    LOGGER.infoStream() << "Balance U: " << m_vValue << " V: " << m_uValue;
     
     // Clamp with min and maximum values
     if (m_vValue > m_whiteMax)
@@ -537,7 +580,8 @@ void DC1394Camera::balanceWhite()
         dc1394_feature_whitebalance_set_value(m_camera, m_uValue, m_vValue);
     assert(DC1394_SUCCESS == err && "Could not set whitebalance");
 
-    std::cout << "Done Balance U: " << m_vValue << " V: " << m_uValue << std::endl << std::endl;
+    LOGGER.infoStream() << "Done Balance U: " << m_vValue
+                        << " V: " << m_uValue;
 }
     
     
@@ -546,6 +590,7 @@ void DC1394Camera::initLibDC1394()
     if (s_camCount == 0)
     {
         // Create library handle
+        LOGGER.infoStream() << "Creating dc1394 library handle";
         s_libHandle = dc1394_new();
     }
 
@@ -563,6 +608,7 @@ void DC1394Camera::shutdownLibDC1394()
     if (s_camCount == 0)
     {
         // Free library
+        LOGGER.infoStream() << "Freeing dc1394 library handle";
         dc1394_free(s_libHandle);
         s_libHandle = 0;
     }

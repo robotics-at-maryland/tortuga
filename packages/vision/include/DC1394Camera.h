@@ -90,6 +90,9 @@ private:
      *  Only shutsdown libdc1394 if this is the last 1394 library.
      */
     static void shutdownLibDC1394();
+
+    /** GUID of this camera */
+    uint64_t m_guid;
     
     /** Calculated from the video mode chosen for the camera */
     uint32_t m_width;
