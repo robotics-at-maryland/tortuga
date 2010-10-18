@@ -28,7 +28,7 @@
 // Initialize static variables
 dc1394_t* ram::vision::DC1394Camera::s_libHandle = 0;
 size_t ram::vision::DC1394Camera::s_camCount = 0;
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CAMERA"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Camera"));
 
 namespace ram {
 namespace vision {
