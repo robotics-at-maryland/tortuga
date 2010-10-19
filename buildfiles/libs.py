@@ -299,7 +299,7 @@ def _get_internal_lib(env, name):
 
             'network' : InternalLibrary('network',
                                         int_deps = ['core', 'control'],
-                                        ext_deps = []),
+                                        ext_deps = ['Boost.System']),
 
             'control' : InternalLibrary('control',
                                         int_deps = ['math', 'core', 'vehicle'],

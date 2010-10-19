@@ -18,6 +18,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "control/include/Common.h"
+#include "network/include/Receiver.h"
 
 namespace ram {
 namespace network {
@@ -42,7 +43,7 @@ class RAM_EXPORT RemoteController :
     /** Turn off network control inputs */
     void disable();
 
-    /** Runs in a continous loop blocking on reading messages */
+    /** Does nothing (reads are done in a background process) */
     virtual void update(double timeSinceLastUpdate);
 
     virtual void setPriority(core::IUpdatable::Priority priority) {
@@ -67,16 +68,11 @@ class RAM_EXPORT RemoteController :
 
     virtual bool backgrounded()
     {
-        return Updatable::backgrounded();
+        return true;
     }
 
   private:
-    /** Sets up the networking based on the setting defined above
-     *
-     * @return  A socket file descriptor to listen on, if < 0 there was an
-     *          error.
-     */
-    void setupNetworking(int16_t port);
+    void accept(const char* msg);
 
     /** Process the incomming network messages
      *
@@ -86,12 +82,12 @@ class RAM_EXPORT RemoteController :
 
     /** The port to listen on*/
     int m_port;
-    
-    /** Socket to recieve on */
-    int m_sockfd;
 
     /** The controller to send commands to */
     control::IControllerPtr m_controller;
+
+    /** Message receiver */
+    Receiver* m_receiver;
 
     double m_maxDepth;
     double m_minDepth;
