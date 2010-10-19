@@ -198,7 +198,6 @@ class MotionManager(core.Subsystem):
         if self._conn is None:
             self._conn = self._eventHub.subscribeToType(Motion.FINISHED,
                                                         self._motionFinished)
-
         
     def backgrounded(self):
         return True
