@@ -66,7 +66,6 @@ void Receiver::handle_receive_from(const boost::system::error_code& err,
 {
     // Send the raw data to the handler
     if (!err && bytes_recvd > 0) {
-        std::cout << "received data: " << m_data << std::endl;
         m_handler(m_data);
     }
 

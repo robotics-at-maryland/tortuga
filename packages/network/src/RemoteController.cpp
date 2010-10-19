@@ -150,9 +150,7 @@ void RemoteController::unbackground(bool join)
 
 void RemoteController::accept(const char* msg)
 {
-    //processMessage(msg[0], msg[1]);
-    std::cout << "process message: " << (int) msg[0] << " "
-              << (int) msg[1] << std::endl;
+    processMessage(msg[0], msg[1]);
 }
 
 bool RemoteController::processMessage(unsigned char cmd, signed char param)
