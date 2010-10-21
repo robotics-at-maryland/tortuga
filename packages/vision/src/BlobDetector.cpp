@@ -98,8 +98,8 @@ BlobDetector::BlobDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
     Detector(eventHub),
     m_minBlobSize(0),
-    data(0),
-    m_dataSize(0)
+    m_pixelBlobIndex(0),
+    m_imageSize(0)
 {
     init(config);
 }
@@ -107,20 +107,20 @@ BlobDetector::BlobDetector(core::ConfigNode config,
 BlobDetector::BlobDetector(int minimumBlobSize) :
     Detector(core::EventHubPtr()),
     m_minBlobSize(minimumBlobSize),
-    data(0),
-    m_dataSize(0)
+    m_pixelBlobIndex(0),
+    m_imageSize(0)
 {
 }
     
 BlobDetector::~BlobDetector()
 {
-    free(data);
+    free(m_pixelBlobIndex);
 }
     
 void BlobDetector::processImage(Image* input, Image* output)
 {
     m_blobs.clear();
-    histogram(input->asIplImage());
+    buildBlobs(input->asIplImage());
 
     // Do debug stuff soon
     if (0 != output)
@@ -167,21 +167,21 @@ int BlobDetector::getMinimumBlobSize()
 void BlobDetector::init(core::ConfigNode config)
 {
     // Pre-allocate memory
-    joins.reserve(1024);
-    pixelCounts.reserve(1024);
-    totalX.reserve(1024);
-    totalY.reserve(1024);
-    totalMinX.reserve(1024);
-    totalMaxX.reserve(1024);
-    totalMinY.reserve(1024);
-    totalMaxY.reserve(1024);
+    m_joinedBlobIndex.reserve(1024);
+    m_pixelCounts.reserve(1024);
+    m_blobTotalX.reserve(1024);
+    m_blobTotalY.reserve(1024);
+    m_blobMinX.reserve(1024);
+    m_blobMaxX.reserve(1024);
+    m_blobMinY.reserve(1024);
+    m_blobMaxY.reserve(1024);
 
     ensureDataSize(640 * 480);
 
     m_minBlobSize = config["minBlobSize"].asInt(0);
 }
     
-int BlobDetector::histogram(IplImage* img)
+int BlobDetector::buildBlobs(IplImage* img)
 {
     int width=img->width;
     int height=img->height;
@@ -189,16 +189,16 @@ int BlobDetector::histogram(IplImage* img)
     // Make sure the data array is large enough
     ensureDataSize(width * height);
     
-    joins.resize(1, UINT_MAX);
-    pixelCounts.resize(1, 0);
-    totalX.resize(1, 0);
-    totalY.resize(1, 0);
-    totalMinX.resize(1, 0);
-    totalMaxX.resize(1, 0);
-    totalMinY.resize(1, 0);
-    totalMaxY.resize(1, 0);
+    m_joinedBlobIndex.resize(1, UINT_MAX);
+    m_pixelCounts.resize(1, 0);
+    m_blobTotalX.resize(1, 0);
+    m_blobTotalY.resize(1, 0);
+    m_blobMinX.resize(1, 0);
+    m_blobMaxX.resize(1, 0);
+    m_blobMinY.resize(1, 0);
+    m_blobMaxY.resize(1, 0);
         
-    unsigned int index=1;
+    unsigned int initialBlobIndex = 1;
     // Black out the top row, front edge so the above and left algos
     // work properly
     int imgCount=0;
@@ -206,13 +206,13 @@ int BlobDetector::histogram(IplImage* img)
 
     // Top row
     memset(imgData, 0, width * 3);
-    memset(data, 0, sizeof(*data) * width);
+    memset(m_pixelBlobIndex, 0, sizeof(*m_pixelBlobIndex) * width);
 
-    // Front enge
+    // Front edge
     for (int y=0;y<height;y++)
     {
         imgData[imgCount]=imgData[imgCount+1]=imgData[imgCount+2]=0;
-        data[count]=0;
+        m_pixelBlobIndex[count]=0;
         imgCount+=3*width;
         count += width;
     }
@@ -229,94 +229,71 @@ int BlobDetector::histogram(IplImage* img)
             if (imgData[imgCount]>0)
             {
                 // Found a valid pixel, check the value above and below it
-                unsigned int above=data[count-width];
-                unsigned int left=data[count-1];
-                if (above==0 && left==0)
+                unsigned int aboveBlobIndex = m_pixelBlobIndex[count-width];
+                unsigned int leftBlobIndex = m_pixelBlobIndex[count-1];
+                if (aboveBlobIndex == 0 && leftBlobIndex == 0)
                 {
                     // Start of a new blob
-                    
-                    //int neededSize = index + 1;
-                    //int presentSize = pixelCounts.size();
-                    //assert((presentSize + 1) == neededSize);
-                
-                    pixelCounts.push_back(1);
-                    totalX.push_back(x);
-                    totalY.push_back(y);
-                    totalMinX.push_back(x);
-                    totalMaxX.push_back(x);
-                    totalMinY.push_back(y);
-                    totalMaxY.push_back(y);
-                    joins.push_back(index);
-                    //assert((index + 1) == (totalX.size()));
-                    
-                    data[count]= (index++);
+                    m_pixelCounts.push_back(1);
+                    m_blobTotalX.push_back(x);
+                    m_blobTotalY.push_back(y);
+                    m_blobMinX.push_back(x);
+                    m_blobMaxX.push_back(x);
+                    m_blobMinY.push_back(y);
+                    m_blobMaxY.push_back(y);
+
+                    // add a new blob index and set the current pixel to belong to that blob
+                    m_joinedBlobIndex.push_back(initialBlobIndex);
+                    m_pixelBlobIndex[count]= (initialBlobIndex++);
                 }
                 else 
                 {
                     // Continuation of an existing blob
-                    unsigned int above2=above;
-                    unsigned int left2=left;
-                    if (above2==0)
-                        above2=UINT_MAX;
+                    unsigned int aboveJoinedBlobIndex = aboveBlobIndex;
+                    unsigned int leftJoinedBlobIndex = leftBlobIndex;
+                    if (aboveJoinedBlobIndex == 0)
+                        aboveJoinedBlobIndex = UINT_MAX;
                     else
                     {
-                        //assert(above2 <= index);
-                        //assert((int)joins.size() >= (above2 + 1));
-                            
-                        while (above2!=joins[above2])
-                            above2=joins[above2];
+                        while (aboveJoinedBlobIndex != m_joinedBlobIndex[aboveJoinedBlobIndex])
+                            aboveJoinedBlobIndex = m_joinedBlobIndex[aboveJoinedBlobIndex];
                     }
-                    if (left2==0)
-                        left2=UINT_MAX;
+                    if (leftJoinedBlobIndex == 0)
+                        leftJoinedBlobIndex = UINT_MAX;
                     else
                     {
-                        //assert(left2 <= index);
-                        //assert((int)joins.size() >= (left2 + 1));
-                            
-                        while (left2!=joins[left2])
-                            left2=joins[left2];
+                        while (leftJoinedBlobIndex != m_joinedBlobIndex[leftJoinedBlobIndex])
+                            leftJoinedBlobIndex = m_joinedBlobIndex[leftJoinedBlobIndex];
                     }
 
-                    //if ((left2 == above2) && (left2 == UINT_MAX))
-                    //{
-                    //    assert(false && "error");
-                    //}
-                    
-                    // More sanity checks
-                    //assert(left <= index);
-                    //assert((int)joins.size() >= (left + 1));
-                        
-                    //assert(above <= index);
-                    //assert((int)joins.size() >= (above + 1));
+                    unsigned int finalBlobIndex = 
+                        std::min(leftJoinedBlobIndex, aboveJoinedBlobIndex);
 
-                    unsigned int idx = std::min(left2,above2);
-                    joins[above]= idx;
-                    joins[left]= idx;
-                    data[count]= idx;
+                    // modify the joined blob indices to be the lowest index that this pixel
+                    // connects to
+                    m_joinedBlobIndex[aboveBlobIndex] = finalBlobIndex;
+                    m_joinedBlobIndex[leftBlobIndex] = finalBlobIndex;
+                    m_pixelBlobIndex[count]= finalBlobIndex;
 
-                    // Small sanity checks for refactoring
-                    //assert(data[count] <= index);
-                    //assert((int)totalX.size() >= (data[count] + 1));
-                        
-                    totalX[idx]+=x;
-                    totalY[idx]+=y;
-                    ++pixelCounts[idx];
+                    m_blobTotalX[finalBlobIndex]+=x;
+                    m_blobTotalY[finalBlobIndex]+=y;
+                    ++m_pixelCounts[finalBlobIndex];
                                         
                     // Min/Max
-                    if (x < totalMinX[idx])
-                        totalMinX[idx] = x;
-                    else if (x > totalMaxX[idx])
-                        totalMaxX[idx] = x;
-                    if (y < totalMinY[idx])
-                        totalMinY[idx] = y;
-                    else if (y > totalMaxY[idx])
-                        totalMaxY[idx] = y;
+                    if (x < m_blobMinX[finalBlobIndex])
+                        m_blobMinX[finalBlobIndex] = x;
+                    else if (x > m_blobMaxX[finalBlobIndex])
+                        m_blobMaxX[finalBlobIndex] = x;
+                    if (y < m_blobMinY[finalBlobIndex])
+                        m_blobMinY[finalBlobIndex] = y;
+                    else if (y > m_blobMaxY[finalBlobIndex])
+                        m_blobMaxY[finalBlobIndex] = y;
                 }
             }
             else
             {
                 // We need to zero the data as we go
-                data[count] = 0;
+                m_pixelBlobIndex[count] = 0;
             }
             count++;
             imgCount += 3;
@@ -326,47 +303,47 @@ int BlobDetector::histogram(IplImage* img)
     int maxCount=0;
 
     // Work from the top to bottom, collapsing the pixel clusters together
-    for (unsigned int i=index-1;i>0;i--)
+    for (unsigned int i=initialBlobIndex-1;i>0;i--)
     {
-        unsigned int join = joins[i];
+        unsigned int join = m_joinedBlobIndex[i];
 
         // Catch sentinal to make the first join, point to the last
         if (join == UINT_MAX)
-            join = joins.size() - 1;
+            join = m_joinedBlobIndex.size() - 1;
         
-        //assert(join <= index);
+        //assert(join <= initialBlobIndex);
         if (join!=i)
         {
             // "Unfinished" cluster of pixels, ie part of bigger cluster
             // So add all of its information to the parents information
-            totalX[join]+=totalX[i];
-            totalY[join]+=totalY[i];
+            m_blobTotalX[join]+=m_blobTotalX[i];
+            m_blobTotalY[join]+=m_blobTotalY[i];
 
             // Mins
-            if (totalMinX[i] < totalMinX[join])
-                totalMinX[join] = totalMinX[i];
-            if (totalMinY[i] < totalMinY[join])
-                totalMinY[join] = totalMinY[i];
+            if (m_blobMinX[i] < m_blobMinX[join])
+                m_blobMinX[join] = m_blobMinX[i];
+            if (m_blobMinY[i] < m_blobMinY[join])
+                m_blobMinY[join] = m_blobMinY[i];
 
             // Maxs
-            if (totalMaxX[i] > totalMaxX[join])
-                totalMaxX[join] = totalMaxX[i];
-            if (totalMaxY[i] > totalMaxY[join])
-                totalMaxY[join] = totalMaxY[i];
+            if (m_blobMaxX[i] > m_blobMaxX[join])
+                m_blobMaxX[join] = m_blobMaxX[i];
+            if (m_blobMaxY[i] > m_blobMaxY[join])
+                m_blobMaxY[join] = m_blobMaxY[i];
 
-            pixelCounts[join]+=pixelCounts[i];
-            pixelCounts[i]=0;
+            m_pixelCounts[join]+=m_pixelCounts[i];
+            m_pixelCounts[i]=0;
         }
         else
         {
-            maxCount=pixelCounts[i];
+            maxCount=m_pixelCounts[i];
             if (maxCount >= m_minBlobSize)
             {
                 // Found a final cluster
                 m_blobs.push_back(
-                    BlobDetector::Blob(pixelCounts[i], totalX[i]/maxCount,
-                                       totalY[i]/maxCount, totalMaxX[i],
-                                       totalMinX[i], totalMaxY[i], totalMinY[i])
+                    BlobDetector::Blob(m_pixelCounts[i], m_blobTotalX[i]/maxCount,
+                                       m_blobTotalY[i]/maxCount, m_blobMaxX[i],
+                                       m_blobMinX[i], m_blobMaxY[i], m_blobMinY[i])
                                   );
             }
         }
@@ -378,21 +355,20 @@ int BlobDetector::histogram(IplImage* img)
         std::sort(m_blobs.begin(), m_blobs.end(),
                   BlobDetector::BlobComparer::compare);
     }
-    //Deallocate arrays
-    //    cout<<"Happily reaching the end of histogram"<<endl;
+
     return maxCount;
 }
 
 void BlobDetector::ensureDataSize(int pixels)
 {
-    size_t bytes = (size_t)pixels * sizeof(*data);
-    if (m_dataSize < (size_t)pixels)
+    size_t bytes = (size_t)pixels * sizeof(*m_pixelBlobIndex);
+    if (m_imageSize < (size_t)pixels)
     {
-        m_dataSize = (int)pixels;
-        if (data)
-            data = (unsigned int*)realloc(data, bytes);
+        m_imageSize = (int)pixels;
+        if (m_pixelBlobIndex)
+            m_pixelBlobIndex = (unsigned int*)realloc(m_pixelBlobIndex, bytes);
         else
-            data = (unsigned int*)malloc(bytes);
+            m_pixelBlobIndex = (unsigned int*)malloc(bytes);
     }
 }
     
