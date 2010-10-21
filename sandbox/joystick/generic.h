@@ -14,6 +14,10 @@
 #define BTN_EMERGSTOP   11
 #define BTN_ZEROSPEED   4
 
+#define BTN_ARM_TORPEDO -1
+#define BTN_ARM_MARKER  -2
+#define BTN_FIRE        -3
+
 #define AXIS_SPEED      1
 
 void processAxis(int fd, int axis, int val)
