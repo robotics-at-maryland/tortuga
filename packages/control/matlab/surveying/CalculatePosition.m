@@ -35,7 +35,7 @@ for i = 1:int32(M.Count) % for each key
         v.planeIntersectionValid = 0;
         v.angleMethodValid = 0;
     end %planevalidation
-    if((isa(v,'Measurement') && isreal(v.x) && isreal(v.sigx) && isreal(v.y) && isreal(v.sigy) && isreal(v.s) && isreal(v.sigs) && isreal(v.r) && isreal(v.sigr)))
+    if((isa(v,'Measurement') && isreal(v.x) && isreal(v.sigx) && isreal(v.y) && isreal(v.sigy) && isreal(v.s) && isreal(v.sigs) && isreal(v.phi) && isreal(v.sigphi)))
         v.arcLengthValid = 1;
     else
         v.arcLengthValid = 0;
