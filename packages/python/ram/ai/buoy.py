@@ -55,8 +55,9 @@ class BuoyTrackingState(state.State):
         if event.color != self._desiredColor:
             return False
 
-    def enter(self):
-        self.visionSystem.buoyDetectorOn()
+    def enter(self, detector = True):
+        if detector:
+            self.visionSystem.buoyDetectorOn()
 
         self.ai.data.setdefault('buoyData', {})
         colorList = self.ai.data['config'].get('targetBuoys', [])
@@ -72,7 +73,7 @@ class BuoyTrackingState(state.State):
             self._desiredColor = getattr(vision.Color,
                                          colorList[buoysHit].upper())
 
-class Start(state.State):
+class Start(BuoyTrackingState):
     """
     Does all the setup work for the buoy task. This checks how many
     buoys have been hit. It then sets the next target. If there are
@@ -87,17 +88,20 @@ class Start(state.State):
         return set(['speed'])
     
     def enter(self):
+        BuoyTrackingState.enter(self, detector = False)
+
         # Store the initial orientation
         orientation = self.vehicle.getOrientation()
         self.ai.data['buoyStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
         # Go to 5 feet in 5 increments
+        buoyDepths = self.ai.data['config'].get('buoyDepth', {})
         headingMotion = motion.basic.RateChangeHeading(
             desiredHeading = self.ai.data['buoyStartOrientation'],
             speed = 10)
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('buoyDepth', 5),
+            desiredDepth = buoyDepths.get(str(self._desiredColor).lower(), 5),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(headingMotion, diveMotion)
 
