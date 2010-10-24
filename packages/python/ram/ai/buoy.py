@@ -573,7 +573,7 @@ class Hit(state.State):
         self.controller.setSpeed(0)
         self.publish(BUOY_HIT, core.Event())
 
-class Reposition(state.State):
+class Reposition(BuoyTrackingState):
     @staticmethod
     def transitions():
         return { motion.basic.MotionManager.FINISHED : Searching }
@@ -584,6 +584,8 @@ class Reposition(state.State):
                     'diveSpeed', 'headingSpeed'])
 
     def enter(self):
+        BuoyTrackingState.enter(self, detector = False)
+
         self._speed = self._config.get('speed', 3)
         self._primaryDuration = self._config.get('primaryDuration', 2)
         self._secondaryDuration = self._config.get('secondaryDuration', 4)
@@ -602,7 +604,8 @@ class Reposition(state.State):
                                             self._secondaryDuration,
                                             absolute = False)
 
-        self._depth = self.ai.data['config'].get('buoyDepth', 5)
+        buoyDepths = self.ai.data['config'].get('buoyDepth', {})
+        self._depth = buoyDepths.get(str(self._desiredColor).lower(), 5)
         self._diveSpeed = self._config.get('diveSpeed', 1.0/3.0)
         diveMotion = motion.basic.RateChangeDepth(self._depth, self._diveSpeed)
 

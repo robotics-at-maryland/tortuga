@@ -470,7 +470,10 @@ class TestReposition(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'buoyDepth' : 7,
+                    'buoyDepth' : {
+                        'red' : 7,
+                        'yellow' : 7
+                        },
                     'targetBuoys' : ['yellow', 'red']
                     }
                 }
