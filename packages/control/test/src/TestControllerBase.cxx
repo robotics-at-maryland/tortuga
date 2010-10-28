@@ -80,46 +80,30 @@ void depthHelper(double* result, ram::core::EventPtr event)
 }
 
 
-TEST_FIXTURE(ControlBaseFixture, setGetDepth)
+TEST_FIXTURE(ControlBaseFixture, changeDepth)
 {
-    TEST_UTILITY_FUNC(setGetDepth)(&mockController);
+    TEST_UTILITY_FUNC(changeDepth)(&mockController);
 }
 
-TEST_FIXTURE(ControlBaseFixture, setGetSpeed)
+TEST_FIXTURE(ControlBaseFixture, translate)
 {
-    TEST_UTILITY_FUNC(setGetSpeed)(&mockController);
+    TEST_UTILITY_FUNC(translate)(&mockController);
 }
 
-TEST_FIXTURE(ControlBaseFixture, setGetSidewaysSpeed)
+TEST_FIXTURE(ControlBaseFixture, rotate)
 {
-    TEST_UTILITY_FUNC(setGetSidewaysSpeed)(&mockController);
-}
-
-TEST_FIXTURE(ControlBaseFixture, setGetVelocity)
-{
-    TEST_UTILITY_FUNC(setGetDesiredVelocity)(&mockController);
-}
-
-TEST_FIXTURE(ControlBaseFixture, setGetPosition)
-{
-    TEST_UTILITY_FUNC(setGetDesiredPosition)(&mockController);
-}
-
-TEST_FIXTURE(ControlBaseFixture, setGetOrientation)
-{
-    TEST_UTILITY_FUNC(setGetDesiredOrientation)(&mockController);
+    TEST_UTILITY_FUNC(rotate)(&mockController);
 }
 
 TEST_FIXTURE(ControlBaseFixture, holdCurrentPosition)
 {
     math::Vector2 currentPos(5,3);
     estimator->estPosition = currentPos;
-    mockController.setDesiredPosition(math::Vector2(2,7),
-                                      control::IController::INERTIAL_FRAME);
+    mockController.translate(math::Vector2(2,7), math::Vector2::ZERO);
     CHECK_EQUAL(false, mockController.atPosition());
 
     mockController.holdCurrentPosition();
-    CHECK_EQUAL(mockController.getDesiredPosition(control::IController::INERTIAL_FRAME),
+    CHECK_EQUAL(mockController.getDesiredPosition(),
                 currentPos);
     CHECK_EQUAL(true, mockController.atPosition());
 }
@@ -130,7 +114,7 @@ TEST_FIXTURE(ControlBaseFixture, holdCurrentOrientation)
     normQuat.normalise();
 
     estimator->estOrientation = normQuat;
-    mockController.setDesiredOrientation(math::Quaternion::IDENTITY);
+    mockController.rotate(math::Quaternion::IDENTITY, math::Vector3::ZERO);
     CHECK_EQUAL(false, mockController.atOrientation());
 
     mockController.holdCurrentOrientation();
@@ -141,7 +125,6 @@ TEST_FIXTURE(ControlBaseFixture, holdCurrentOrientation)
 TEST_FIXTURE(ControlBaseFixture, holdCurrentHeading)
 {
     // Test 1
-
     // Set the current "measured" orientation
     math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Z);
     estimator->estOrientation = orientation;
@@ -160,7 +143,6 @@ TEST_FIXTURE(ControlBaseFixture, holdCurrentHeading)
     CHECK_EQUAL(true, mockController.atOrientation());
 
     // Test 2
-    
     // set the current "measured" orientation
     math::Quaternion orientation2(0.0028, 0.0028, 0.7071, 0.7071);
     estimator->estOrientation = orientation2;
@@ -181,13 +163,13 @@ TEST_FIXTURE(ControlBaseFixture, holdCurrentHeading)
 TEST_FIXTURE(ControlBaseFixture, holdCurrentDepth)
 {
     estimator->estDepth = 4.5;
-    mockController.setDepth(8.6);
+    mockController.changeDepth(8.6, 0);
 
     CHECK_EQUAL(false, mockController.atDepth());
 
     mockController.holdCurrentDepth();
 
-    CHECK_EQUAL(4.5, mockController.getDepth());
+    CHECK_EQUAL(4.5, mockController.getDesiredDepth());
     CHECK_EQUAL(true, mockController.atDepth());
 }
 
@@ -200,14 +182,14 @@ TEST_FIXTURE(ControlBaseFixture, atDepthUpdate)
 {
     bool eventHappened = false;
     estimator->estDepth = 4.5;
-    mockController.setDepth(8.6);
+    mockController.changeDepth(8.6, 0);
 
     CHECK_EQUAL(false, mockController.atDepth());
 
     mockController.subscribe(control::IController::AT_DEPTH,
                              boost::bind(invertBool, &eventHappened, _1));
 
-    mockController.setDepth(4.5);
+    mockController.changeDepth(4.5, 0);
     
     CHECK_EQUAL(true, mockController.atDepth());
     CHECK_EQUAL(true, eventHappened);
@@ -218,16 +200,14 @@ TEST_FIXTURE(ControlBaseFixture, atPositionUpdate)
 {
     bool eventHappened = false;
     estimator->estPosition = math::Vector2(3,7);
-    mockController.setDesiredPosition(math::Vector2(0,0),
-                                      control::IController::INERTIAL_FRAME);
+    mockController.translate(math::Vector2(0,0), math::Vector2::ZERO);
 
     CHECK_EQUAL(false, mockController.atPosition());
 
     mockController.subscribe(control::IController::AT_POSITION,
                              boost::bind(invertBool, &eventHappened, _1));
 
-    mockController.setDesiredPosition(math::Vector2(3,7),
-                                      control::IController::INERTIAL_FRAME);
+    mockController.translate(math::Vector2(3,7), math::Vector2::ZERO);
 
     CHECK_EQUAL(true, mockController.atPosition());
     CHECK_EQUAL(true, eventHappened);
@@ -237,16 +217,14 @@ TEST_FIXTURE(ControlBaseFixture, atVelocityUpdate)
 {
     bool eventHappened = false;
     estimator->estVelocity = math::Vector2(2.6, 5.4);
-    mockController.setDesiredVelocity(math::Vector2(0,0),
-                                      control::IController::INERTIAL_FRAME);
+    mockController.translate(math::Vector2(0,0),math::Vector2(0,0));
 
     CHECK_EQUAL(false, mockController.atVelocity());
 
     mockController.subscribe(control::IController::AT_VELOCITY,
                              boost::bind(invertBool, &eventHappened, _1));
 
-    mockController.setDesiredVelocity(math::Vector2(2.6, 5.4),
-                                      control::IController::INERTIAL_FRAME);
+    mockController.translate(math::Vector2::ZERO, math::Vector2(2.6, 5.4));
 
     CHECK_EQUAL(true, mockController.atVelocity());
     CHECK_EQUAL(true, eventHappened);
@@ -256,14 +234,14 @@ TEST_FIXTURE(ControlBaseFixture, atOrientationUpdate)
 {
     bool eventHappened = false;
     estimator->estOrientation = math::Quaternion(0, 0, 0.2756, 0.9613);
-    mockController.setDesiredOrientation(math::Quaternion(0,0,0,1));
+    mockController.rotate(math::Quaternion(0,0,0,1), math::Vector3::ZERO);
 
     CHECK_EQUAL(false, mockController.atOrientation());
 
     mockController.subscribe(control::IController::AT_ORIENTATION,
                              boost::bind(invertBool, &eventHappened, _1));
 
-    mockController.setDesiredOrientation(math::Quaternion(0, 0, 0.2756, 0.9613));
+    mockController.rotate(math::Quaternion(0, 0, 0.2756, 0.9613), math::Vector3::ZERO);
 
     CHECK_EQUAL(true, mockController.atOrientation());
     CHECK_EQUAL(true, eventHappened);
@@ -283,6 +261,5 @@ TEST_FIXTURE(ControlBaseFixture, rollVehicle)
 {
     TEST_UTILITY_FUNC(rollVehicle)(&mockController);
 }
-
 
 } // SUITE(ControllerBase)

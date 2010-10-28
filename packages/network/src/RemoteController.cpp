@@ -19,6 +19,8 @@
 #include "control/include/IController.h"
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
+#include "estimation/include/IStateEstimator.h"
+#include "math/include/Helpers.h"
 
 // TODO: move these to configured data memebers of the class
 // Setting for the hand control inputs
@@ -78,7 +80,8 @@ RemoteController::RemoteController(core::ConfigNode config,
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_port(config["port"].asInt(MYPORT)),
     m_sockfd(-1),
-    m_controller(core::Subsystem::getSubsystemOfType<control::IController>(deps))
+    m_controller(core::Subsystem::getSubsystemOfType<control::IController>(deps)),
+    m_stateEstimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps))
 {
     assert(m_controller.get() != 0 && "Did not get controller");
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
@@ -205,155 +208,211 @@ void RemoteController::setupNetworking(boost::int16_t port)
     }
 
 /*
-    unsigned char buf[65536];
-    struct sockaddr_in addr = {{0}, 0};
-    socklen_t t = sizeof(addr);
-    addr.sin_port = 0;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    // Return length is ignored
-    recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &addr, &t);
+  unsigned char buf[65536];
+  struct sockaddr_in addr = {{0}, 0};
+  socklen_t t = sizeof(addr);
+  addr.sin_port = 0;
+  addr.sin_addr.s_addr = INADDR_ANY;
+  // Return length is ignored
+  recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &addr, &t);
 
-    printf("Recieved first packet.\n");*/
+  printf("Recieved first packet.\n");*/
 }
 
 bool RemoteController::processMessage(unsigned char cmd, signed char param)
 {
     switch(cmd)
     {
-        case CMD_EMERGSTOP:
-        {
-            //printf("Emergency stop received\n");
-            // Return false to stop the main network loop
-            return false;
-            break;
-        }
+    case CMD_EMERGSTOP:
+    {
+        //printf("Emergency stop received\n");
+        // Return false to stop the main network loop
+        return false;
+        break;
+    }
 
-        case CMD_TURNLEFT:
-        {
-            //printf("Yaw left\n");
-            m_controller->yawVehicle(m_turnEnc);
-            break;
-        }
+    case CMD_TURNLEFT:
+    {
+        //printf("Yaw left\n");
+        m_controller->yawVehicle(m_turnEnc, 0);
+        break;
+    }
 
-        case CMD_TURNRIGHT:
-        {
-            //printf("Yaw right\n");
-            m_controller->yawVehicle(-m_turnEnc);
-            break;
-        }
+    case CMD_TURNRIGHT:
+    {
+        //printf("Yaw right\n");
+        m_controller->yawVehicle(-m_turnEnc, 0);
+        break;
+    }
 
-        case CMD_INCSPEED:
-        {
-            if(m_controller->getSpeed() < m_maxSpeed)
-                m_controller->setSpeed(m_controller->getSpeed()+ m_speedEnc);
+    case CMD_INCSPEED:
+    {
+        // get the current desired velocity (inertial frame)
+        math::Vector2 velocity = m_controller->getDesiredVelocity();
 
+        // get the current estimated position
+        math::Vector2 position = m_stateEstimator->getEstimatedPosition();
+        
+        // get the current desired yaw
+        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
+
+        // define a vector for the velocity increase (body frame)
+        math::Vector2 vInc_b(m_speedEnc, 0);
+
+        // rotate the incremental change to the inertial frame
+        math::Vector2 vInc_n = math::nRb(yaw) * vInc_b;
+        math::Vector2 newVelocity = velocity + vInc_n;
+
+        if(newVelocity[0] < m_maxSpeed && 
+           newVelocity[1] < m_maxSpeed)
+            m_controller->translate(position, newVelocity);
+
+        //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+        break;
+    }
+
+    case CMD_DECSPEED:
+    {
+
+        // get the current desired velocity (inertial frame)
+        math::Vector2 velocity = m_controller->getDesiredVelocity();
+
+        // get the current estimated position
+        math::Vector2 position = m_stateEstimator->getEstimatedPosition();
+        
+        // get the current desired yaw
+        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
+
+        // define a vector for the velocity increase (body frame)
+        math::Vector2 vInc_b(-m_speedEnc, 0);
+
+        // rotate the incremental change to the inertial frame
+        math::Vector2 vInc_n = math::nRb(yaw) * vInc_b;
+        math::Vector2 newVelocity = velocity + vInc_n;
+
+        if(newVelocity[0] > m_minSpeed && 
+           newVelocity[1] > m_minSpeed)
+            m_controller->translate(position, newVelocity);
+
+        //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+        break;
+    }
+
+    case CMD_DESCEND:
+    {
+        double depth = m_controller->getDesiredDepth();
+        if(depth < m_maxDepth)
+            m_controller->changeDepth(depth + m_depthEnc, 0);
+
+        //printf("NEW DEPTH: %f\n", m_controller->getDepth());
+        break;
+    }
+
+    case CMD_ASCEND:
+    {
+        double depth = m_controller->getDesiredDepth();
+        if(depth < m_maxDepth)
+            m_controller->changeDepth(depth - m_depthEnc, 0);
+
+        //printf("NEW DEPTH: %f\n", m_controller->getDepth());
+        break;
+    }
+
+    case CMD_ZEROSPEED:
+    {
+        m_controller->holdCurrentPosition();
+        //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+        break;
+    }
+
+    case CMD_SETSPEED:
+    {
+        // get the current estimated position
+        math::Vector2 position = m_stateEstimator->getEstimatedPosition();
+        
+        // get the current desired yaw
+        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
+
+        math::Vector2 newVelocity_b(param, 0);
+        math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
+
+        if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
+            newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
+        {
+            m_controller->translate(position, newVelocity_n);
             //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
-            break;
-        }
-
-        case CMD_DECSPEED:
+        } else
         {
-            if(m_controller->getSpeed() > m_minSpeed)
-                m_controller->setSpeed(m_controller->getSpeed() - m_speedEnc);
-
-            //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
-            break;
+            //printf("\nINVALID NEW SPEED: %d\n", param);
         }
 
-        case CMD_DESCEND:
-        {
-            if(m_controller->getDepth() < m_maxDepth)
-                m_controller->setDepth(m_controller->getDepth()+ m_depthEnc);
-
-            //printf("NEW DEPTH: %f\n", m_controller->getDepth());
-            break;
-        }
-
-        case CMD_ASCEND:
-        {
-            if(m_controller->getDepth() > m_minDepth)
-                m_controller->setDepth(m_controller->getDepth() - m_depthEnc);
-
-
-            //printf("NEW DEPTH: %f\n", m_controller->getDepth());
-            break;
-        }
-
-        case CMD_ZEROSPEED:
-        {
-            m_controller->setSpeed(0);
-            //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
-            break;
-        }
-
-        case CMD_SETSPEED:
-        {
-            if(param <= m_maxSpeed && param >= m_minSpeed)
-            {
-                m_controller->setSpeed(param);
-                //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
-            } else
-            {
-                //printf("\nINVALID NEW SPEED: %d\n", param);
-            }
-
-            break;
-        }
+        break;
+    }
 	case CMD_TSETSPEED:
 	{
-	    if(param <= MAX_SPEED && param >= MIN_SPEED)
-            {
-	        m_controller->setSidewaysSpeed(param);
-            } 
-            else
-            {
-            }
-            break;
-       }
-        case CMD_NOTHING:
-        {
-            // Ignore, just sent to keep the connection alive
-            break;
-        }
+        // get the current estimated position
+        math::Vector2 position = m_stateEstimator->getEstimatedPosition();
+        
+        // get the current desired yaw
+        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
 
-        case CMD_ANGLEYAW:
+        math::Vector2 newVelocity_b(0, param);
+        math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
+
+        if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
+            newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
         {
-            if(param != 0)
-            {
-                double yaw = param / m_yawGain;
+            m_controller->translate(position, newVelocity_n);
+            //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+        } else
+        {
+        }
+        break;
+    }
+    case CMD_NOTHING:
+    {
+        // Ignore, just sent to keep the connection alive
+        break;
+    }
+
+    case CMD_ANGLEYAW:
+    {
+        if(param != 0)
+        {
+            double yaw = param / m_yawGain;
 //                printf("Y: %f\n", yaw);
-	        m_controller->yawVehicle(yaw);
-            }
-            break;
+	        m_controller->yawVehicle(yaw, 0);
         }
+        break;
+    }
 
-        case CMD_ANGLEPITCH:
+    case CMD_ANGLEPITCH:
+    {
+        if(param != 0)
         {
-            if(param != 0)
-            {
-                double pitch = param / m_pitchGain;
+            double pitch = param / m_pitchGain;
 //                printf("P: %f\n", pitch);
-                m_controller->pitchVehicle(pitch);
-            }
-            break;
+            m_controller->pitchVehicle(pitch, 0);
         }
+        break;
+    }
 
-        case CMD_ANGLEROLL:
+    case CMD_ANGLEROLL:
+    {
+        if(param != 0)
         {
-            if(param != 0)
-            {
-                double roll = param / m_rollGain;
-                m_controller->rollVehicle(roll);
+            double roll = param / m_rollGain;
+            m_controller->rollVehicle(roll, 0);
 //                printf("R: %f\n", roll);
-            }
-            break;
         }
+        break;
+    }
 
 
-        default:
-        {
-            //printf("Invalid network command type: %c\n", cmd);
-        }
+    default:
+    {
+        //printf("Invalid network command type: %c\n", cmd);
+    }
 
     }
 

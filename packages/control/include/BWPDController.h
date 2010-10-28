@@ -51,6 +51,43 @@ public:
 
     virtual ~BWPDController();
     
+
+    /** Sets the desired position and velocity state variables */
+    virtual void translate(math::Vector2 position, math::Vector2 velocity){}
+
+    /** Sets the desired depth and depth change rate state variables */
+    virtual void changeDepth(double depth, double depthRate){}
+
+    /** Sets the desired orientation and angular rate state variables */
+    virtual void rotate(math::Quaternion orientation, math::Vector3 angularRate){}
+
+    /** Yaws the desired vehicle state by the desired number of degrees */
+    virtual void yawVehicle(double degrees, double rate){}
+
+    /** Pitches the desired vehicle state by the desired number of degrees */
+    virtual void pitchVehicle(double degrees, double rate){}
+
+    /** Rolls the desired vehicle state by the desired number of degrees */
+    virtual void rollVehicle(double degrees, double rate){}
+
+    /** Loads current orientation into the desired orientation */
+    virtual void holdCurrentOrientation(){}
+
+    /** Gets desired position in the inertial frame*/
+    virtual math::Vector2 getDesiredPosition(){return math::Vector2::ZERO;}
+
+    /** Gets desired velocity in the inertial frame*/
+    virtual math::Vector2 getDesiredVelocity(){return math::Vector2::ZERO;}
+
+    /** Current desired depth of the sub (uncalibrated units)*/
+    virtual double getDesiredDepth(){return 0;}
+
+    /** Gets the desired angular rate */
+    virtual math::Vector3 getDesiredAngularRate(){return math::Vector3::ZERO;}
+
+    /** Current desired depth rate change */
+    virtual double getDesiredDepthRate(){return 0;}
+
     /** @copydoc IController::setSpeed() */
     /** NOT IMPLEMENTED */
     virtual void setVelocity(math::Vector2 velocity);

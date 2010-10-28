@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/PIDDepthController.cpp
+ * File:  packages/control/include/PIDDepthController.h
  */
 
 

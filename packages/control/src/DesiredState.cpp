@@ -27,6 +27,7 @@ DesiredState::DesiredState(core::ConfigNode config, core::EventHubPtr eventHub) 
     m_desiredVelocity(math::Vector2::ZERO),
     m_desiredPosition(math::Vector2::ZERO),
     m_desiredDepth(0),
+    m_desiredDepthRate(0),
     m_desiredOrientation(math::Quaternion::IDENTITY),
     m_desiredAngularRate(math::Vector3::ZERO) 
 {}
@@ -37,14 +38,20 @@ void DesiredState::init(core::ConfigNode config)
 {
     setDesiredVelocity(math::Vector2(config["desiredVelocity"][0].asDouble(0),
                                      config["desiredVelocity"][1].asDouble(0)));
+
     setDesiredPosition(math::Vector2(config["desiredPosition"][0].asDouble(0),
                                      config["desiredPosition"][1].asDouble(0)));
+
     setDesiredDepth(config["desiredDepth"].asDouble(0));
+
+    setDesiredDepthRate(config["desiredDepthRate"].asDouble(0));
+
     setDesiredOrientation(
         math::Quaternion(config["desiredOrientation"][0].asDouble(0),
                          config["desiredOrientation"][1].asDouble(0),
                          config["desiredOrientation"][2].asDouble(0),
                          config["desiredOrientation"][3].asDouble(1)));
+
     setDesiredAngularRate(
         math::Vector3(config["desiredAngularRate"][0].asDouble(0),
                       config["desiredAngularRate"][1].asDouble(0),
@@ -81,6 +88,12 @@ double DesiredState::getDesiredDepth()
     return m_desiredDepth;
 }
 
+double DesiredState::getDesiredDepthRate()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredDepthRate;
+}
+
 /* For setting the desired state, it is important that the member
  * variable is set before an event is published.  Otherwise, it
  * would be possible that a function bound to the event would get
@@ -114,6 +127,15 @@ void DesiredState::setDesiredDepth(double depth)
     newDepthSet(depth);
 }
 
+void DesiredState::setDesiredDepthRate(double depthRate)
+{
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredDepthRate = depthRate;
+    }
+    newDepthRateSet(depthRate);
+}
+
 void DesiredState::setDesiredOrientation(math::Quaternion orientation)
 {
     orientation.normalise();
@@ -138,6 +160,14 @@ void DesiredState::newDepthSet(const double& newDepth)
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = newDepth;
     publish(control::IController::DESIRED_DEPTH_UPDATE, event);
+}
+
+void DesiredState::newDepthRateSet(const double& newDepthRate)
+{
+    // Publish event indicating new update
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = newDepthRate;
+    publish(control::IController::DESIRED_DEPTHRATE_UPDATE, event);
 }
 
 void DesiredState::newDesiredOrientationSet(

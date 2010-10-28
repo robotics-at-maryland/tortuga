@@ -28,9 +28,9 @@ class TestIController(unittest.TestCase):
 
         # Make sure we have the right methods on the controller object
         controller = obj
-        self.assert_(hasattr(controller,'setSpeed'))
+        self.assert_(hasattr(controller,'translate'))
         self.assert_(hasattr(controller,'yawVehicle'))
-        self.assert_(hasattr(controller,'setDepth'))
+        self.assert_(hasattr(controller,'changeDepth'))
         
 
 if __name__ == '__main__':

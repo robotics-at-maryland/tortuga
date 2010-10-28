@@ -11,6 +11,7 @@
 #include "control/include/IController.h"
 
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTH_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTHRATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ORIENTATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_VELOCITY_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_POSITION_UPDATE);
@@ -28,9 +29,6 @@ IController::IController(std::string name, core::EventHubPtr eventHub) :
     core::Subsystem(name, eventHub)
 {
 }
-
-const int IController::BODY_FRAME=0;
-const int IController::INERTIAL_FRAME=1;
 
 } // namespace control
 } // namespace ram

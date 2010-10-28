@@ -54,11 +54,11 @@ class TestBWPDController(unittest.TestCase):
         # Default Depth Threshold is 0.5
         self.vehicle.depth = 4;
         self.controller.update(1);
-        self.controller.setDepth(3.7);
+        self.controller.changeDepth(3.7, 0);
 #        self.assertEqual(True, self.controller.atDepth())
 
         # Ensure it does go off
-        self.controller.setDepth(4.3);
+        self.controller.changeDepth(4.3, 0);
         self.controller.update(1);
 #        self.assertEqual(4, self.actualDepth)
 
@@ -72,11 +72,11 @@ class TestBWPDController(unittest.TestCase):
         # Default Depth Threshold is 0.5
         self.vehicle.depth = 4;
         self.controller.update(1);
-        self.controller.setDepth(3.7);
+        self.controller.changeDepth(3.7, 0);
 #        self.assertEqual(True, self.controller.atDepth())
 
         # Ensure it does go off
-        self.controller.setDepth(4.3);
+        self.controller.changeDepth(4.3, 0);
         self.controller.update(1);
         self.qeventHub.publishEvents()
 #        self.assertEqual(4, self.actualDepth)
@@ -90,7 +90,7 @@ class TestBWPDController(unittest.TestCase):
 
         # Make sure the event has got through yet
 #        self.assertEquals(0, self.desiredDepth)
-        self.controller.setDepth(10)
+        self.controller.changeDepth(10, 0)
 #        self.assertEquals(0, self.desiredDepth)
 
         # Publish the event

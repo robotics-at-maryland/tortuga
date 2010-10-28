@@ -7,6 +7,7 @@
  * File:  packages/control/src/ControllerBase.cpp
  */
 
+
 // STD Includes
 #include <cmath>
 #include <cassert>
@@ -221,84 +222,105 @@ void ControllerBase::update(double timestep)
     m_vehicle->applyForcesAndTorques(translationalForce, rotationalTorque);
 }
 
-void ControllerBase::setSpeed(double speed)
-{
-    // clip speed at 5
-    if(speed > 5)
-        speed = 5;
-    else if(speed < -5)
-        speed = -5;
 
-    setDesiredVelocity(math::Vector2(speed,0), IController::BODY_FRAME);
-}
 
-void ControllerBase::setSidewaysSpeed(double speed)
-{
-    // clip speed at 5
-    if(speed > 5)
-        speed = 5;
-    else if(speed < -5)
-        speed = -5;
-
-    setDesiredVelocity(math::Vector2(0,speed), IController::BODY_FRAME);
-}
-
-void ControllerBase::setDesiredVelocity(math::Vector2 velocity, int frame)
-{
-    if(frame == IController::BODY_FRAME)
-        velocity = math::nRb(m_stateEstimator->getEstimatedOrientation(
-                                 ).getYaw().valueRadians())*velocity;
-    m_desiredState->setDesiredVelocity(velocity);
-}
-
-void ControllerBase::setDesiredPosition(math::Vector2 position, int frame)
-{
-    if(frame == IController::BODY_FRAME)
-        position = math::nRb(m_stateEstimator->getEstimatedOrientation(
-                                 ).getYaw().valueRadians())*position;
-    m_desiredState->setDesiredPosition(position);
-}
-
-void ControllerBase::setDesiredPositionAndVelocity(math::Vector2 position,
-                                                   math::Vector2 velocity)
+void ControllerBase::translate(math::Vector2 position, math::Vector2 velocity)
 {
     m_desiredState->setDesiredVelocity(velocity);
     m_desiredState->setDesiredPosition(position);
 }
-double ControllerBase::getSpeed()
+
+void ControllerBase::changeDepth(double depth, double rate)
 {
-    math::Vector2 velocity = getDesiredVelocity(IController::BODY_FRAME);
-    return velocity[0];
+    m_desiredState->setDesiredDepth(depth);
+    m_desiredState->setDesiredDepthRate(rate);
 }
 
-double ControllerBase::getSidewaysSpeed()
+void ControllerBase::rotate(math::Quaternion orientation, math::Vector3 angularRate)
 {
-    math::Vector2 velocity = getDesiredVelocity(IController::BODY_FRAME);
-    return velocity[1];
+    m_desiredState->setDesiredOrientation(orientation);
+    m_desiredState->setDesiredAngularRate(angularRate);
 }
 
-math::Vector2 ControllerBase::getDesiredVelocity(int frame)
+void ControllerBase::yawVehicle(double degrees, double rate)
 {
-    math::Vector2 velocity(m_desiredState->getDesiredVelocity());
-    if(frame == IController::BODY_FRAME)
-        velocity = math::bRn(m_stateEstimator->getEstimatedOrientation(
-                                 ).getYaw().valueRadians())*velocity;
-    return velocity;
+    rotate(yawVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
+           math::Vector3::UNIT_Z);
 }
 
-math::Vector2 ControllerBase::getDesiredPosition(int frame)
+void ControllerBase::pitchVehicle(double degrees, double rate)
 {
-    math::Vector2 position(m_desiredState->getDesiredPosition());
-    if(frame == IController::BODY_FRAME)
-        position = math::bRn(m_stateEstimator->getEstimatedOrientation(
-                                 ).getYaw().valueRadians())*position;
-    return position;
+    rotate(pitchVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
+           math::Vector3::UNIT_Y);
+}
+
+void ControllerBase::rollVehicle(double degrees, double rate)
+{
+    rotate(rollVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
+           math::Vector3::UNIT_X);
+}
+
+
+
+
+math::Vector2 ControllerBase::getDesiredPosition()
+{
+    return m_desiredState->getDesiredPosition();
+}
+
+math::Vector2 ControllerBase::getDesiredVelocity()
+{
+    return m_desiredState->getDesiredVelocity();
+}
+
+math::Quaternion ControllerBase::getDesiredOrientation()
+{
+    return m_desiredState->getDesiredOrientation();
+}
+
+math::Vector3 ControllerBase::getDesiredAngularRate()
+{
+    return m_desiredState->getDesiredAngularRate();
+}
+
+double ControllerBase::getDesiredDepth()
+{
+    return m_desiredState->getDesiredDepth();
+}
+
+double ControllerBase::getDesiredDepthRate()
+{
+    return m_desiredState->getDesiredDepthRate();
+}
+
+
+
+void ControllerBase::holdCurrentHeading()
+{
+    math::Quaternion qCurr(m_stateEstimator->getEstimatedOrientation());
+    math::Quaternion qHeading = holdCurrentHeadingHelper(qCurr);
+
+    rotate(qHeading, math::Vector3::ZERO);
+}
+
+void ControllerBase::holdCurrentOrientation()
+{    
+    rotate(m_stateEstimator->getEstimatedOrientation(), 
+           math::Vector3::ZERO);
 }
 
 void ControllerBase::holdCurrentPosition()
 {
-    setDesiredPosition(m_stateEstimator->getEstimatedPosition(),INERTIAL_FRAME);
+    translate(m_stateEstimator->getEstimatedPosition(),
+              math::Vector2::ZERO);
 }
+
+void ControllerBase::holdCurrentDepth()
+{
+    changeDepth(m_stateEstimator->getEstimatedDepth(), 0);
+}
+
+
 
 bool ControllerBase::atPosition()
 {
@@ -318,32 +340,13 @@ bool ControllerBase::atVelocity()
     return difference0 <= m_velocityThreshold && difference1 <= m_velocityThreshold;
 }
 
-void ControllerBase::yawVehicle(double degrees)
+bool ControllerBase::atDepth()
 {
-    m_desiredState->setDesiredOrientation(
-        yawVehicleHelper(m_desiredState->getDesiredOrientation(),degrees));
-}
-
-void ControllerBase::pitchVehicle(double degrees)
-{
-    m_desiredState->setDesiredOrientation(
-        pitchVehicleHelper(m_desiredState->getDesiredOrientation(),degrees));
-}
-
-void ControllerBase::rollVehicle(double degrees)
-{
-    m_desiredState->setDesiredOrientation(
-        rollVehicleHelper(m_desiredState->getDesiredOrientation(),degrees));
-}
-
-math::Quaternion ControllerBase::getDesiredOrientation()
-{
-    return m_desiredState->getDesiredOrientation();
-}
-
-void ControllerBase::setDesiredOrientation(math::Quaternion orientation)
-{
-    m_desiredState->setDesiredOrientation(orientation);
+ 
+    double currentDepth = m_stateEstimator->getEstimatedDepth();
+    double desiredDepth = m_desiredState->getDesiredDepth();
+    double difference = fabs(currentDepth - desiredDepth);
+    return difference <= m_depthThreshold;
 }
 
 bool ControllerBase::atOrientation()
@@ -360,44 +363,7 @@ bool ControllerBase::atOrientation()
         return true;
 }
 
-void ControllerBase::holdCurrentOrientation()
-{    
-    m_desiredState->setDesiredOrientation(m_stateEstimator->getEstimatedOrientation());
-    m_desiredState->setDesiredAngularRate(math::Vector3::ZERO);
-}
 
-void ControllerBase::setDepth(double depth)
-{
-    m_desiredState->setDesiredDepth(depth);
-}
-
-double ControllerBase::getDepth()
-{
-    return m_desiredState->getDesiredDepth();
-}
-
-bool ControllerBase::atDepth()
-{
- 
-    double currentDepth = m_stateEstimator->getEstimatedDepth();
-    double desiredDepth = m_desiredState->getDesiredDepth();
-    double difference = fabs(currentDepth - desiredDepth);
-    return difference <= m_depthThreshold;
-}
-
-void ControllerBase::holdCurrentDepth()
-{
-    m_desiredState->setDesiredDepth(m_stateEstimator->getEstimatedDepth());
-}
-
-void ControllerBase::holdCurrentHeading()
-{
-    math::Quaternion qCurr(m_stateEstimator->getEstimatedOrientation());
-
-    m_desiredState->setDesiredOrientation(
-        holdCurrentHeadingHelper(qCurr));
-    m_desiredState->setDesiredAngularRate(math::Vector3::ZERO);
-}
 
 void ControllerBase::init(core::ConfigNode config)
 {

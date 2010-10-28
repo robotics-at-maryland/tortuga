@@ -64,82 +64,47 @@ public:
      */
     virtual void update(double timestep);
 
-    /** Set the current speed, clamped between -5 and 5
-     *
-     *  Setting this turns off the velocity based control, and gives direct
-     *  speed based control.
-     */
-    virtual void setSpeed(double speed);
-
-    /** Set how fast the vehicle is going side to side (positive = right) */
-    virtual void setSidewaysSpeed(double speed);
-
-    /** Gets the current speed, a value between -5 and 5 */
-    virtual double getSpeed();
-
-    /** Gets the current sideways speed
-     *
-     *  @return
-     *      A value between -5 (left) and 5 (right)
-     */
-    virtual double getSidewaysSpeed();
-
-    /** Loads current position into desired and stays in that position */
-    virtual void holdCurrentPosition();
-
-    /** Sets desired velocity and velocity based control for new controllers */
-    virtual void setDesiredVelocity(math::Vector2 velocity, int frame);
-    
-    /** Sets desired position and position based control for new controllers */
-    virtual void setDesiredPosition(math::Vector2 position, int frame);
- 
-    /** Sets a desired position and velocity for controling of both simultaneously */
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position,
-					       math::Vector2 velocity);
-
-    /** Gets desired velocity */
-    virtual math::Vector2 getDesiredVelocity(int frame);
-
-    /** Gets desired position */
-    virtual math::Vector2 getDesiredPosition(int frame);
 
 
+    /** Sets the desired position and velocity state variables */
+    virtual void translate(math::Vector2 position, math::Vector2 velocity);
+
+    /** Sets the desired depth and depth change rate state variables */
+    virtual void changeDepth(double depth, double depthRate);
+
+    /** Sets the desired orientation and angular rate state variables */
+    virtual void rotate(math::Quaternion orientation, math::Vector3 angularRate);
 
     /** Yaws the desired vehicle state by the desired number of degrees */
-    virtual void yawVehicle(double degrees);
+    virtual void yawVehicle(double degrees, double rate);
 
     /** Pitches the desired vehicle state by the desired number of degrees */
-    virtual void pitchVehicle(double degrees);
+    virtual void pitchVehicle(double degrees, double rate);
 
     /** Rolls the desired vehicle state by the desired number of degrees */
-    virtual void rollVehicle(double degrees);
+    virtual void rollVehicle(double degrees, double rate);
+
+
+
+    /** Gets desired position */
+    virtual math::Vector2 getDesiredPosition();
+
+    /** Gets desired velocity */
+    virtual math::Vector2 getDesiredVelocity();
 
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation();
-    
-    /** Sets the current desired orientation */
-    virtual void setDesiredOrientation(math::Quaternion);
 
-    /** Sets the desired depth of the sub in meters */
-    virtual void setDepth(double depth);
+    /** Gets the desired angular rate */
+    virtual math::Vector3 getDesiredAngularRate();
 
-    /** Current desired depth of the sub in meters */
-    virtual double getDepth();
-    
-    /** Makes the current actual depth the desired depth */
-    virtual void holdCurrentDepth();
+    /** Current desired depth of the sub (uncalibrated units)*/
+    virtual double getDesiredDepth();
 
-    /** Returns true if the vehicle is at the desired depth */
-    virtual bool atDepth();
-    
-    /** Returns true if the vehicle is at the desired position */
-    virtual bool atPosition();
-    
-    /** Returns true if the vehicle is at the desired velocity */
-    virtual bool atVelocity();
-   
-    /** Returns true if the vehicle is at the desired orientation */
-    virtual bool atOrientation();
+    /** Current desired depth rate change */
+    virtual double getDesiredDepthRate();
+
+
 
     /** Loads current orientation into desired (fixes offset in roll and pitch)
      *
@@ -150,9 +115,32 @@ public:
      *      The vehicle should be upright when using this function, otherwise
      *      the interpretation of yaw and upright will be nonsensical.
      */
+    virtual void holdCurrentHeading();
+
+    /** Loads current orientation into the desired orientation */
     virtual void holdCurrentOrientation();
 
-    virtual void holdCurrentHeading();
+    /** Loads current position into desired and stays in that position */
+    virtual void holdCurrentPosition();
+
+    /** Makes the current actual depth the desired depth */
+    virtual void holdCurrentDepth();
+
+
+
+    /** Returns true if the vehicle is at the desired orientation */
+    virtual bool atOrientation();
+
+    /** Returns true if the vehicle is at the desired position */
+    virtual bool atPosition();
+    
+    /** Returns true if the vehicle is at the desired velocity */
+    virtual bool atVelocity();
+
+    /** Returns true if the vehicle is at the desired depth */
+    virtual bool atDepth();
+
+
 
     virtual void setPriority(core::IUpdatable::Priority priority) {
         Updatable::setPriority(priority);
@@ -198,7 +186,7 @@ protected:
 
     control::DesiredStatePtr m_desiredState;
     estimation::IStateEstimatorPtr m_stateEstimator;
-    vehicle::IVehiclePtr m_vehicle;    
+    vehicle::IVehiclePtr m_vehicle;
     core::ReadWriteMutex m_mutex;
 
 private:

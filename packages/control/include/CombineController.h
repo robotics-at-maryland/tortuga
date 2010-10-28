@@ -52,13 +52,6 @@ public:
 
     virtual ~CombineController();
     
-    virtual void setSpeed(double speed);
-    virtual void setSidewaysSpeed(double speed);
-    virtual void setDesiredVelocity(math::Vector2 velocity, const int frame);
-    virtual void setDesiredPosition(math::Vector2 position, const int frame);
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
-                                               math::Vector2 velocity);
-
     ITranslationalControllerPtr getTranslationalController();
     
     IDepthControllerPtr getDepthController();

@@ -360,7 +360,7 @@ Logging:
             appenders: ['VehicleLog']
 
 Controller:
-    depends_on: ["Vehicle", "EventHub"]
+    depends_on: ["Vehicle", "EventHub", "Estimator"]
     type: CombineController
     update_interval: 40
     priority: high
@@ -375,7 +375,7 @@ Controller:
     velocityThreshold: 0.1
     positionThreshold: 0.1
 
- TranslationalController:
+    TranslationalController:
         #type: TrackingTranslationalController
         #x1kp: 10
         #x1ki: 1
@@ -403,6 +403,12 @@ Controller:
         dtMin: 0.005
         dtMax: 0.05
         desiredOrientation: [0, 0, 0, 1]
+
+
+Estimator:
+    depends_on: ["EventHub", "Vehicle"]
+    type: ModularStateEstimator
+    
 
 Monitor:
     type: Monitor

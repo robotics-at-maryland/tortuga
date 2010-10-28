@@ -18,6 +18,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "control/include/Common.h"
+#include "estimation/include/Common.h"
 
 namespace ram {
 namespace network {
@@ -92,6 +93,9 @@ class RAM_EXPORT RemoteController :
 
     /** The controller to send commands to */
     control::IControllerPtr m_controller;
+
+    /** The state estimator to get the current state from */
+    estimation::IStateEstimatorPtr m_stateEstimator;
 
     double m_maxDepth;
     double m_minDepth;

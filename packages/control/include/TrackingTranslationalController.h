@@ -28,12 +28,7 @@ public:
         control::DesiredStatePtr desiredState);
 
 private:
-
-    math::Vector2 m_prevPositionError;
-    math::Vector2 m_prevVelocityError;
-
-    math::Vector2 m_iPositionError;
-    math::Vector2 m_iVelocityError;
+    math::Vector2 m_iError;
 
     double x1kp, x1ki, x1kd;
     double x2kp, x2ki, x2kd;
