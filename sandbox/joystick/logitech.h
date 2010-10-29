@@ -21,7 +21,7 @@
 #define AXIS_TSPEED 0
 #define AXIS_SPEED 1
 #define AXIS_YAW 2
-#define AXIS_THROTTLE 3
+#define AXIS_THROTTLE -1 /* to enable, use 3 */
 
 int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
 {
