@@ -24,6 +24,19 @@ struct StringEvent : public core::Event
 };
 
 typedef boost::shared_ptr<StringEvent> StringEventPtr;
+
+struct IntEvent : public core::Event
+{
+    IntEvent() : data(0) {}
+
+    IntEvent(int data_) : data(data_) {}
+
+    virtual EventPtr clone();
+
+    int data;
+};
+
+typedef boost::shared_ptr<IntEvent> IntEventPtr;
     
 } // namespace core
 } // namespace ram

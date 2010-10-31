@@ -10,6 +10,9 @@
 #ifndef RAM_CORE_IUPDATABLE_06_22_2006
 #define RAM_CORE_IUPDATABLE_06_22_2006
 
+// Project Includes
+#include "core/include/Event.h"
+
 // Must Be Included last
 #include "core/include/Export.h"
 
@@ -24,6 +27,8 @@ namespace core {
 class RAM_EXPORT IUpdatable
 {
 public:
+    static const ram::core::Event::EventType PROFILE;
+
     enum Priority
     {
         RT_HIGH_PRIORITY,
