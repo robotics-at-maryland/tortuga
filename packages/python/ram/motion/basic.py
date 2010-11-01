@@ -18,6 +18,8 @@ import ext.math as math
 import ram.timer as timer
 from ram.logloader import resolve
 
+import trajectories
+
 
 class MotionManager(core.Subsystem):
     """
@@ -353,142 +355,53 @@ class Motion(object):
         raise Exception("Not implemented")
     
 class ChangeDepth(Motion):
-    def __init__(self, desiredDepth, steps):
+    DEPTH_TRAJECTORY_UPDATE  = core.declareEventType('DEPTH_TRAJECTORY_UPDATE')
+
+    def __init__(self, trajectory, updateRate = 25):
         """
-        @type  desiredDepth: float
-        @param desiredDepth: Depth you wish the sub to be at
-        
-        @type  steps: int
-        @param steps: Number of increments you wish to change depth in    
+        @type  Trajectory
+        @param trajecotry
+        must evaluate with respect to absolute robot time
         """
         Motion.__init__(self, _type = Motion.DEPTH)
-        
-        self._steps = steps
-        self._desiredDepth = desiredDepth
-        self._conn = None
+        self._trajectory = trajectory
+        self._interval = updateRate
         
     def _start(self):
-        # Register to recieve AT_DEPTH events
-        self._conn = self._eventHub.subscribe(control.IController.AT_DEPTH,
-                                              self._controller, self._atDepth)
-
-        # Start changing depth
-        self._nextDepth(self._estimator.getEstimatedDepth())
-        
-    def _nextDepth(self,currentVehicleDepth):
-        """
-        Decreases depth by one 'step' of the remaining depth change
-        """
-        depthDifference = self._desiredDepth - currentVehicleDepth 
-        depthChange = depthDifference/self._steps
-        self._controller.setDepth(currentVehicleDepth + depthChange)
-        
-    def _atDepth(self, event):
-        """
-        AT_DEPTH event handler,
-        called when the vehicle reaches the command depth
-        """
-        self._steps -= 1
-        currentVehicleDepth = event.number
-        if not (self._steps == 0):
-            self._nextDepth(currentVehicleDepth)
-        else:
-            self._finish()
-    
-    def _finish(self):
-        """
-        Finishes off the motion, disconnects events, and publishes finish event
-        """
-        Motion._finish(self)
-        self._conn.disconnect()
-
-    def stop(self):
-        self._conn.disconnect()
-
-    @staticmethod
-    def isComplete():
-        return True
-
-class RateChangeDepth(Motion):
-    NEXT_DEPTH = core.declareEventType('NEXT_DEPTH')
-    
-    def __init__(self, desiredDepth, speed, rate = 10):
-        """
-        @type  desiredDepth: float
-        @param desiredDepth: Depth you wish the sub to be at
-        
-        @type  steps: int
-        @param steps: Number of increments you wish to change depth in    
-        """
-
-        Motion.__init__(self, _type = Motion.DEPTH)
-
-        self._desiredDepth = desiredDepth
-        self._speed = float(speed)
-        self._rate = float(rate)
-        self._interval = 1 / float(rate)
-        self._conn = None
-        self._timer = None
-        
-    # Properties
-    @property
-    def desiredDepth(self):
-        return self._desiredDepth
-    
-    @property
-    def speed(self):
-        return self._speed
-        
-    # Methods
-    def _start(self):
-        # Ensure the controller is consistent with vehicle
-        currentDepth = self._estimator.getEstimatedDepth()
-        self._controller.setDepth(currentDepth)
-        
-        absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
-
-        self._stepCount = absDepthDifference / (self._speed / self._rate)
-        if self._stepCount != 0:
-            self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
-        else:
-            self._stepSize = 0.0001
-        self._stepCount = int(self._stepCount)
-        
-        self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
+        self._timer  = timer.Timer(self, ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
                                    self._interval, repeat = True)
-        # Register to NEXT_DEPTH events
-        self._conn = self._eventHub.subscribeToType(RateChangeDepth.NEXT_DEPTH,
-                                                    self._onTimer)
-        self._timer.start()
 
-    def _onTimer(self, event):
-        setDepth = self._controller.getDepth()
-        depthDiff = pmath.fabs(setDepth - self._desiredDepth)
+        # evaluate the initial state of the trajectory
+        initialTime = self._trajectory.getInitialTime()
+        initialDepth = self._trajectory.computeValue(initialTime)
+        initialRate = self._trajectory.computeDerivative(initialTime,1)
         
-        if (self._stepCount > 0) and (depthDiff > 0.0001):
-            self._controller.setDepth(self._controller.getDepth() + \
-                                      self._stepSize)
-            self._stepCount -= 1
-        else:
+        # send the initial values to the controller
+        self._controller.changeDepth(initialDepth, initialRate)
+        
+    def _update():
+        currentTime = timer.time()
+
+        # evaluate the trajectory value and 1st derivative
+        newDepth = self._trajectory.computeValue(currentTime)
+        newRate = self._trajectory.computeDerivative(currentTime,1)
+
+        # send the new values to the controller
+        self._controller.changeDepth(newDepth, newRate)
+
+        if(currentTime >= self._trajectory.getFinalTime()):
             self._finish()
         
     def _finish(self):
-        """
-        Finishes off the motion, disconnects events, and putlishes finish event
-        """
-        self.stop()
         Motion._finish(self)
 
     def stop(self):
-        if self._timer is not None:
-            self._timer.stop()
-        if self._conn is not None:
-            self._conn.disconnect()
+        pass
 
     @staticmethod
     def isComplete():
-        return True
-        
+        return timer.time() > self._trajectory.getFinalTime()
+
 class ChangeHeading(Motion):
     def __init__(self, desiredHeading, steps):
         """
@@ -517,9 +430,9 @@ class ChangeHeading(Motion):
         """
         Changes the heading by one 'step' of the remaing heading change
         """
-        headingDifference = self._desiredHeading - currentVehicleHeading 
+        headingDifference = self._desiredHeading - currentVehicleHeading
         headingChange = headingDifference/self._steps
-        self._controller.yawVehicle(headingChange)
+        self._controller.yawVehicle(headingChange, 0)
         
     def _atOrientation(self, event):
         """

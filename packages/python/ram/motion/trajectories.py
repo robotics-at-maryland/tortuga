@@ -64,8 +64,8 @@ class ScalarCubicTrajectory(Trajectory):
 
     MAGIC_RATE_SLOPES = [1.45, 0.7465, 0.5, 0.375, 0.2147]
 
-    def __init__(self, initialValue, finalValue, initialRate,
-                 finalRate, maxRate, initialTime):
+    def __init__(self, initialValue, finalValue, initialTime, initialRate = 0,
+                 finalRate = 0, maxRate = 4):
         self._initialValue = initialValue
         self._finalValue = finalValue
         self._initialRate = initialRate
@@ -167,3 +167,29 @@ class ScalarCubicTrajectory(Trajectory):
 
         slope = self.MAGIC_RATE_SLOPES[iRate-1]
         return slope * changeInValue
+
+
+class StepTrajectory(Trajectory):
+    """
+    This trajectory is a step input
+    """
+
+    def __init__(self, finalValue, finalRate):
+        self._finalValue = finalValue
+        self._finalRate = finalRate
+        self._initialTime = timer.time()
+
+    def computeValue(self, time):
+        return self._finalValue
+
+    def computeDerivative(self, time, order):
+        return self._finalRate
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._initialTime
+
+    def getMaxOfDerivative(self, order):
+        return float('inf')

@@ -15,6 +15,9 @@ import ext.core as core
 import ext.control as control
 
 import ram.sim.input as input
+import ram.motion.basic as motion
+import ram.motion.trajectories as trajectories
+import ram.timer as timer
 
 import ram.event as event
 
@@ -59,21 +62,21 @@ class KeyboardController(core.Subsystem):
     def update(self, time_since_last_frame):
         # Turn (Yaw) Control
         if self._left:
-            self._controller.yawVehicle(30 * time_since_last_frame)
+            self._controller.yawVehicle(30 * time_since_last_frame, 0)
         elif self._right:
-            self._controller.yawVehicle(-30 * time_since_last_frame)
+            self._controller.yawVehicle(-30 * time_since_last_frame, 0)
         
         # Pitch Control
         if self._pitch_up:
-            self._controller.pitchVehicle(30 * time_since_last_frame)
+            self._controller.pitchVehicle(30 * time_since_last_frame, 0)
         elif self._pitch_down:
-            self._controller.pitchVehicle(-30 * time_since_last_frame)
+            self._controller.pitchVehicle(-30 * time_since_last_frame, 0)
         
         # Roll Control
         if self._roll_port:
-            self._controller.rollVehicle(30 * time_since_last_frame)
+            self._controller.rollVehicle(30 * time_since_last_frame, 0)
         elif self._roll_starboard:
-            self._controller.rollVehicle(-30 * time_since_last_frame)
+            self._controller.rollVehicle(-30 * time_since_last_frame, 0)
         
         # Speed Control
         if self._desiredSpeed > 5:
@@ -103,15 +106,19 @@ class KeyboardController(core.Subsystem):
             
         # Depth Control
         currentDepth = self._controller.getDepth()
+        depthRate = self._estimator.getEstimatedDepthRate()
+        
         if self._dive:
-            currentDepth += 2 * time_since_last_frame
-            self._controller.setDepth(currentDepth)
+            newDepth = currentDepth + 2 * time_since_last_frame
         elif self._surface:
-            currentDepth -= 2 * time_since_last_frame
-            self._controller.setDepth(currentDepth)
+            newDepth = currentDepth - 2 * time_since_last_frame
 
+        trajectory = trajectories.ScalarCubicTrajectory(
+            initialValue = currentDepth, finalValue = newDepth,
+            initialRate = depthRate, finalRate = 0,
+            maxRate = 3, initialTime = timer.time())
+            
         if self._stop:
-            self._controller.setSpeed(0)
-            self._controller.setSidewaysSpeed(0)
+            self._controller.holdCurrentPosition()
             
 core.SubsystemMaker.registerSubsystem('KeyboardController', KeyboardController)
