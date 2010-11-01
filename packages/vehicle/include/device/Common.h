@@ -24,6 +24,7 @@ namespace device {
 // Forward Declartions
 class IDevice;
 typedef boost::shared_ptr<IDevice> IDevicePtr;
+typedef std::vector<IDevicePtr> DeviceList;
 
 class IStateEstimator;
 typedef boost::shared_ptr<IStateEstimator> IStateEstimatorPtr;

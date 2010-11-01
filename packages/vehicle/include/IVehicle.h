@@ -15,6 +15,8 @@
 
 // Boost Includes
 #include <boost/array.hpp>
+#include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "vehicle/include/Common.h"
@@ -71,6 +73,23 @@ public:
 
     /** The name of all current devices of the vehicle */
     virtual std::vector<std::string> getDeviceNames() = 0;
+
+    /** Gets all devices that match the type of the template parameter */
+    template <typename DeviceType>
+        device::DeviceList getDevicesOfType()
+    {
+        device::DeviceList devices;
+        BOOST_FOREACH(std::string deviceName, getDeviceNames())
+        {
+            boost::shared_ptr<DeviceType> device =
+                boost::dynamic_pointer_cast<DeviceType>(getDevice(deviceName));
+            if (device)
+            {
+                devices.push_back(device);
+            }
+        }
+        return devices;
+    }
     
     /** Return the current vehicle depth in feet */
     virtual double getDepth(std::string obj = "vehicle") = 0;
