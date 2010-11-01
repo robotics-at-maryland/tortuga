@@ -31,7 +31,7 @@
 #include "Model.h"
 
 #include "core/include/PropertySet.h"
-#include "vision/include/Convert.h"
+#include "vision/include/LCHConverter.h"
 
 namespace ram {
 namespace tools {
@@ -51,7 +51,7 @@ DetectorControlPanel::DetectorControlPanel(Model* model,
     text->SetWindowStyle(wxALIGN_LEFT);
 
     // Load static LCH lookup table
-    vision::Convert::loadLookupTable();
+    vision::LCHConverter::loadLookupTable();
 
     // Create our detector choice gui element and add its options
     m_choice = new wxChoice(this, wxID_ANY);
