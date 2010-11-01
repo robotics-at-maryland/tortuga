@@ -60,7 +60,7 @@ public:
      * Values contained are dependent on the specific state estimator's
      * use of the class.
      */
-    Obstacle(int attributes = 0x0);
+    Obstacle(int attributes = NONE);
     virtual ~Obstacle();
 
     double getDepth();
@@ -73,6 +73,7 @@ public:
     void setVelocity(math::Vector3 velocity);
     void setOrientation(math::Quaternion orientation);
 
+    static const int NONE;
     static const int DEPTH;
     static const int POSITION;
     static const int VELOCITY;

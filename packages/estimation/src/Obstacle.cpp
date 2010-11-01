@@ -19,6 +19,7 @@
 namespace ram {
 namespace estimation {
 
+const int Obstacle::NONE = 0x0;
 const int Obstacle::DEPTH = 0x1;
 const int Obstacle::POSITION = 0x2;
 const int Obstacle::VELOCITY = 0x4;
