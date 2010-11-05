@@ -51,8 +51,9 @@ class MotionManager(core.Subsystem):
                                                           deps, 
                                                           nonNone = True)
 
-        self._estimator = core.Subsystem.getSubsystemOfType(
-            estimation.IStateEstimator, deps, nonNone = True)
+        self._estimator = core.Subsystem.getSubsystemOfType(estimation.IStateEstimator,
+                                                            deps,
+                                                            nonNone = True)
         
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
                                                            deps,
@@ -362,14 +363,22 @@ class ChangeDepth(Motion):
         @type  Trajectory
         @param trajecotry
         must evaluate with respect to absolute robot time
+
+        @type  updateRate: int
+        @param updateRate: rate to evaluate the trajectory   
         """
         Motion.__init__(self, _type = Motion.DEPTH)
         self._trajectory = trajectory
         self._interval = updateRate
+        self._conn = None
+        self._timer = None
         
     def _start(self):
         self._timer  = timer.Timer(self, ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
                                    self._interval, repeat = True)
+
+        self._conn = self._eventHub.subscribeToType(ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
+                                                    self._update)
 
         # evaluate the initial state of the trajectory
         initialTime = self._trajectory.getInitialTime()
@@ -378,18 +387,21 @@ class ChangeDepth(Motion):
         
         # send the initial values to the controller
         self._controller.changeDepth(initialDepth, initialRate)
+
+        self._timer.start()
         
     def _update():
         currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
         newDepth = self._trajectory.computeValue(currentTime)
-        newRate = self._trajectory.computeDerivative(currentTime,1)
+        newDepthRate = self._trajectory.computeDerivative(currentTime,1)
 
         # send the new values to the controller
-        self._controller.changeDepth(newDepth, newRate)
+        self._controller.changeDepth(newDepth, newDepthRate)
 
-        if(currentTime >= self._trajectory.getFinalTime()):
+        if (currentTime >= self._trajectory.getFinalTime() and
+           self._controller.atDepth()):
             self._finish()
         
     def _finish(self):
@@ -402,440 +414,132 @@ class ChangeDepth(Motion):
     def isComplete():
         return timer.time() > self._trajectory.getFinalTime()
 
-class ChangeHeading(Motion):
-    def __init__(self, desiredHeading, steps):
+class ChangeOrientation(Motion):
+    ORIENTATION_TRAJECTORY_UPDATE = core.declareEventType('ORIENTATION_TRAJECTORY_UPDATE')
+
+    def __init__(self, trajectory, updateRate = 25):
         """
-        @type  desiredHeading: float
-        @param desiredHeading: Heading you wish to sub to be at
+        @type  trajectory: Trajctory
+        @param trajectory: Heading you wish to sub to be at
         
-        @type  steps: int
-        @param steps: Number of increments you wish to change heading in    
+        @type  updateRate: int
+        @param updateRate: rate to evaluate the trajectory    
         """
         Motion.__init__(self, _type = Motion.ORIENTATION)
-        
-        self._steps = steps
-        self._desiredHeading = desiredHeading
-        self._conn = None
-        
-    def _start(self):
-        # Register to recieve AT_ORIENTATION events
-        self._conn = self._eventHub.subscribe(control.IController.AT_ORIENTATION,
-                                              self._controller, 
-                                              self._atOrientation)
 
-        # Start changing heading
-        self._nextHeading(self._estimator.getEstimatedOrientation().getYaw(True).valueDegrees())
+        self._trajectory = trajectory
+        self._interval = updateRate
+        self._conn = None
+        self._timer = None
+
+    def _start(self):
+
+        self._timer  = timer.Timer(
+            self, ChangeOrientation.ORIENTATION_TRAJECTORY_UPDATE,
+            self._interval, repeat = True)
+
+        self._conn = self._eventHub.subscribeToType(
+            ChangeOrientation.ORIENTATION_TRAJECTORY_UPDATE,
+            self._update)
+
+        # evaluate the initial state of the trajectory
+        initialTime = self._trajectory.getInitialTime()
+        initialOrientation = self._trajectory.computeValue(initialTime)
+        initialRate = self._trajectory.computeDerivative(initialTime,1)
         
-    def _nextHeading(self, currentVehicleHeading):
-        """
-        Changes the heading by one 'step' of the remaing heading change
-        """
-        headingDifference = self._desiredHeading - currentVehicleHeading
-        headingChange = headingDifference/self._steps
-        self._controller.yawVehicle(headingChange, 0)
+        # send the initial values to the controller
+        self._controller.rotate(initialOrientation, initialRate)
         
-    def _atOrientation(self, event):
-        """
-        AT_ORIENTATION event handler
-        
-        Called when the vehicle reaches the command orientation
-        """
-        self._steps -= 1
-        currentVehicleHeading = event.orientation.getYaw(True).valueDegrees()
-        if not (self._steps == 0):
-            self._nextHeading(currentVehicleHeading)
-        else:
+
+    def _update():
+        currentTime = timer.time()
+
+        # evaluate the trajectory value and 1st derivative
+        newOrientation = self._trajectory.computeValue(currentTime)
+        newAngularRate = self._trajectory.computeDerivative(currentTime,1)
+
+        # send the new values to the controller
+        self._controller.rotate(newOrientation, newAngularRate)
+
+        if (currentTime >= self._trajectory.getFinalTime() and 
+            self._controller.atOrientation()):
             self._finish()
-    
+        
+
     def _finish(self):
         """
-
         Finishes off the motion, disconnects events, and publishes finish event
         """
         Motion._finish(self)
         self._conn.disconnect()
 
+    def stop(self):
+        pass
+
     @staticmethod
     def isComplete():
         return True
-        
-class RateChangeHeading(Motion):
-    NEXT_HEADING = core.declareEventType('NEXT_HEADING')
-    
-    def __init__(self, desiredHeading, speed, rate = 10, absolute = True):
-        """
-        @type  desiredHeading: float
-        @param desiredHeading: Heading you wish to sub to be at
-        
-        @type  steps: int
-        @param steps: Number of increments you wish to change depth in    
-        """
 
-        Motion.__init__(self, _type = Motion.ORIENTATION)
+class MoveInPlane(Motion):
+    INPLANE_TRAJECTORY_UPDATE = core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
-        self._desiredHeading = desiredHeading
-        self._speed = float(speed)
-        self._rate = float(rate)
-        self._interval = 1 / float(rate)
+    def __init_(self, trajectory, updateRate = 25):
+        """
+        Initializes the motion to execute a trajectory at the specified rate
+        @type  trajectory: Trajctory
+        @param trajectory: Heading you wish to sub to be at
+        
+        @type  updateRate: int
+        @param updateRate: rate to evaluate the trajectory  
+        """
+        Motion.__init__(self, _type = Motion.IN_PLANE)
+
+        self._trajectory = trajectory
+        self._interval = updateRate
         self._conn = None
         self._timer = None
-        self._absolute = absolute
-        
-        self._rotFactor = 0.0
-        self._rotProgress = 0.0
-        
+
     def _start(self):
-        # Grab current State
-        currentOrient = self._estimator.getEstimatedOrientation()
-        currentHeading = currentOrient.getYaw(True).valueDegrees()
-        
-        if not self._absolute:
-            heading = self._estimator.getEstimatedOrientation().getYaw().valueDegrees()
-            self._desiredHeading = heading + self._desiredHeading
-        
-        # Generate our source and dest orientation
-        self._srcOrient = math.Quaternion(math.Degree(currentHeading),
-                                          math.Vector3.UNIT_Z)
-        self._destOrient = math.Quaternion(math.Degree(self._desiredHeading),
-                                          math.Vector3.UNIT_Z)
-        
-        # Ensure the controller is consistent with our start state
-        self._controller.setDesiredOrientation(self._srcOrient)
-        
-        # Determine slerp variables
-        absHeadingDifference = pmath.fabs(currentHeading - self._desiredHeading)
 
-        if absHeadingDifference != 0:
-            stepCount = absHeadingDifference / (self._speed / self._rate)
-            self._rotFactor = 1.0 / (stepCount)
-            self._rotProgress = 0.0
+        self._timer  = timer.Timer(
+            self, MoveInPlane.INPLANE_TRAJECTORY_UPDATE,
+            self._interval, repeat = True)
 
-            self._timer  = timer.Timer(self, RateChangeHeading.NEXT_HEADING,
-                                       self._interval, repeat = True)
+        self._conn = self._eventHub.subscribeToType(
+            MoveInPlane.INPLANE_TRAJECTORY_UPDATE,
+            self._update)
+
+        # evaluate the initial state of the trajectory
+        initialTime = self._trajectory.getInitialTime()
+        initialPosition = self._trajectory.computeValue(initialTime)
+        initialVelocity = self._trajectory.computeDerivative(initialTime,1)
         
-            # Register to NEXT_HEADING events
-            self._conn = self._eventHub.subscribeToType(
-                RateChangeHeading.NEXT_HEADING, self._onTimer)
-            self._timer.start()
-        else:
+        # send the initial values to the controller
+        self._controller.rotate(initialPosition, initialVelocity)
+
+    def _update(self):
+        currentTime = timer.time()
+
+        # evaluate the trajectory value and 1st derivative
+        newPosition = self._trajectory.computeValue(currentTime)
+        newVelocity = self._trajectory.computeDerivative(currentTime,1)
+
+        # send the new values to the controller
+        self._controller.rotate(newPosition, newVelocity)
+
+        if (currentTime >= self._trajectory.getFinalTime() and
+           self._controller.atPosition() and self._controller.atVelocity()):
             self._finish()
 
-    def _onTimer(self, event):
-        self._rotProgress += self._rotFactor
-        
-        if self._rotProgress <= 1.0:
-            newOrien = math.Quaternion.Slerp(self._rotProgress, 
-                                             self._srcOrient,
-                                             self._destOrient, True)
-            self._controller.setDesiredOrientation(newOrien)
-        else:
-            self._controller.setDesiredOrientation(self._destOrient)
-            self._finish()
-        
     def _finish(self):
         """
         Finishes off the motion, disconnects events, and publishes finish event
         """
-        if self._conn is not None:
-            self._conn.disconnect()
-        if self._timer is not None:
-            self._timer.stop()
         Motion._finish(self)
-
-    def stop(self):
-        if self._conn is not None:
-            self._conn.disconnect()
-        if self._timer is not None:
-            self._timer.stop()
-
-    @staticmethod
-    def isComplete():
-        return True
-        
-class MoveDirection(Motion):
-    """
-    Moves a direction. If absolute is set to true, then it moves an absolute
-    direction regardless of orientation. If absolute is set to false, it moves
-    relative to the current heading.
-    """
-    
-    def __init__(self, desiredHeading, speed, absolute = True):
-        """
-        @type desiredHeading: double
-        @param desiredHeading: compass heading in degrees (0 = north, + counter clockwise)
-        
-        @type absolute: boolean
-        @param absolute: the heading value as an absolute or relative value
-        """
-        Motion.__init__(self, _type = Motion.IN_PLANE)
-        
-        self._speed = speed
-        self._direction = math.Quaternion(math.Degree(desiredHeading),
-                                          math.Vector3.UNIT_Z)
-        self._absolute = absolute
-        
-        self._connections = []
-        
-    def _start(self):
-        # Register to receive ORIENTATION_UPDATE events
-        conn = self._eventHub.subscribe(
-            estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
-            self._estimator, self._onOrientation)
-        self._connections.append(conn)
-        
-        # Set the desired direction if it's not absolute
-        if not self._absolute:
-            heading = self._estimator.getEstimatedOrientation().getYaw()
-            orientation = math.Quaternion(math.Degree(heading),
-                                          math.Vector3.UNIT_Z)
-            self._direction = orientation * self._direction
-        
-        self._update()
-        
-    def _update(self):
-        # Start the vehicle forward and create a timer to change the motion
-        self._setSpeeds(self._estimator.getEstimatedOrientation())
-        
-    def _setSpeeds(self, orientation):
-        """
-        Steps the speeds to vehicle based on the given orientation
-        """
-        # Direction of desired vehicle motion
-        desiredDirection = self._direction.getYaw(True).valueDegrees()
-        
-        # Vehicle heading in degrees
-        vehicleHeading = orientation.getYaw(True).valueDegrees()
-        
-        yawTransform = vehicleHeading - desiredDirection
-
-        # Find speed in vehicle cordinates
-        baseSpeed = math.Vector3(self._speed, 0, 0)
-        toVehicleFrame = math.Quaternion(math.Degree(yawTransform),
-                                         math.Vector3.UNIT_Z)
-        vehicleSpeed = toVehicleFrame * baseSpeed
-        
-        # Finally set the speeds
-        self._controller.setSpeed(vehicleSpeed.x)
-        self._controller.setSidewaysSpeed(vehicleSpeed.y)
-        
-    def _onOrientation(self, event):
-        """
-        Corrects commanded speed based on vehicle alignment
-        """
-        self._setSpeeds(event.orientation)
+        self._conn.disconnect()
         
     def stop(self):
-        """
-        Called by the MotionManager when another motion takes over, stops movement
-        """
-        self._controller.setSpeed(0)
-        self._controller.setSidewaysSpeed(0)
-
-        for conn in self._connections:
-            conn.disconnect()
-
-    @staticmethod
-    def isComplete():
-        return False
-            
-class TimedMoveDirection(MoveDirection):
-    COMPLETE = core.declareEventType('COMPLETE')
-    
-    def __init__(self, desiredHeading, speed, duration, absolute = True):
-        MoveDirection.__init__(self, desiredHeading, speed, absolute)
-        self._duration = duration
-        self._timer = None
-        
-    def _start(self):
-        # Subscribe to our ending event
-        conn = self._eventHub.subscribeToType(TimedMoveDirection.COMPLETE,
-                                              self._onComplete)
-        self._connections.append(conn)
-        
-        self._startTimer()
-        MoveDirection._start(self)
-        
-    def _onComplete(self, event):
-        self.stop()
-        self._finish()
-
-    def _startTimer(self):
-        self._timer = timer.Timer(self._eventPublisher, 
-                                  TimedMoveDirection.COMPLETE,
-                                  self._duration)
-        self._timer.start()
-        
-    def stop(self):
-        if self._timer is not None:
-            self._timer.stop()
-            self._timer = None
-        MoveDirection.stop(self)
-
-    @staticmethod
-    def isComplete():
-        return True
-
-class MoveDistance(Motion):
-    """
-    Moves a distance. If absolute is set to true, then it moves an absolute
-    direction regardless of orientation. If absolute is set to false, it moves
-    relative to the current heading.
-    """
-
-    COMPLETE = core.declareEventType('COMPLETE')
-    def __init__(self, desiredHeading, distance, speed,
-                 threshold = 0.1, absolute = True):
-        """
-        @type desiredHeading: double
-        @param desiredHeading: compass heading in degrees (0 = north, + counter clockwise)
-
-        @type distance: double
-        @param distance: distance to travel in meters
-
-        @type speed: int
-        @param speed: the speed (0-5) to travel
-
-        @type threshold: double
-        @param threshold: the radius of where the robot is considered at
-        the location
-        
-        @type absolute: boolean
-        @param absolute: the heading value as an absolute or relative value
-        """
-        Motion.__init__(self, _type = Motion.IN_PLANE)
-        
-        self._speed = speed
-        self._direction = math.Quaternion(math.Degree(desiredHeading),
-                                          math.Vector3.UNIT_Z)
-        self._threshold = threshold
-        self._absolute = absolute
-        self._distance = distance
-        
-        self._connections = []
-
-    def _start(self):
-        # Register to receive ORIENTATION_UPDATE events
-        #conn = self._eventHub.subscribe(vehicle.IVehicle.ORIENTATION_UPDATE,
-        #                                self._vehicle, self._onOrientation)
-        #self._connections.append(conn)
-
-        # Register to receive POSITION_UPDATE events
-        conn = self._eventHub.subscribeToType(
-            estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
-            self._onUpdate)
-        self._connections.append(conn)
-
-        conn = self._eventHub.subscribeToType(MoveDistance.COMPLETE,
-                                              self._onComplete)
-        self._connections.append(conn)
-
-        # Find the current position
-        currentPosition = self._estimator.getEstimatedPosition()
-        #current = math.Quaternion(currentPosition.x, currentPosition.y, 0, 0)
-
-        # Set the desired direction if it's not absolute
-        if not self._absolute:
-            heading = self._estimator.getEstimatedOrientation().getYaw()
-            orientation = math.Quaternion(math.Degree(heading),
-                                          math.Vector3.UNIT_Z)
-            self._direction = orientation * self._direction
-
-        # 
-        unit = self._unitvector(self._direction.getYaw(True).valueDegrees())
-        mult = unit * self._distance
-        self._desiredPosition = currentPosition + mult
-
-        pathVector = self._desiredPosition - currentPosition
-
-        self._setSpeeds(pathVector)
-
-    def _unitvector(self, degrees):
-        # Converts from our degree system to the one needed for trig
-        conv = pmath.radians(degrees + 90)
-
-        return math.Vector2(pmath.cos(conv), pmath.sin(conv))
-
-    """
-    @type pathVector: Vector2
-
-    @return the angle this vector points
-    """
-    def _pathDirection(self, pathVector):
-        """
-        Finds the direction the path is pointing in and returns it as a degree
-        """
-        # Create a unit vector pointed north
-        north = math.Vector2(0.0, 1.0)
-
-        # Normalise the pathVector and find the dot product
-        norm = pathVector.normalisedCopy()
-        dot = norm.dotProduct(north)
-
-        # Convert into an angle
-        angle = pmath.degrees(pmath.acos(dot))
-
-        # This angle will be an absolute value
-        # make it negative if the xval is positive
-        if norm.x > 0:
-            angle *= -1
-        return angle
-    
-    """
-    @type vector: Vector2
-    @param vector: the path vector
-    """
-    def _setSpeeds(self, vector):
-        """
-        Steps the speeds to vehicle based on the given path vector
-        """
-        # Find the direction of the current vector
-        direction = self._pathDirection(vector)
-
-        # Vehicle heading in degrees
-        vehicleHeading = self._estimator.getEstimatedOrientation().getYaw(
-            True).valueDegrees()
-        
-        yawTransform = direction - vehicleHeading
-
-        # Find a speed based on this direction
-        unitVector = self._unitvector(yawTransform)
-        vehicleSpeed = unitVector * self._speed
-        
-        # Finally set the speeds
-        self._controller.setSpeed(vehicleSpeed.y)
-        self._controller.setSidewaysSpeed(vehicleSpeed.x)
-        
-    def _onUpdate(self, event):
-        """
-        Corrects commanded speed based on vehicle position
-        """
-        currentPosition = event.vector2
-
-        pathVector = self._desiredPosition - currentPosition
-
-        # Checks if our location is close to the target
-        if abs(pathVector.x) <= self._threshold and \
-               abs(pathVector.y) <= self._threshold:
-            self.publish(MoveDistance.COMPLETE, core.Event())
-
-        self._setSpeeds(pathVector)
-
-    def _onComplete(self, event):
-        """
-        Finishes the motion
-        """
-        self.stop()
-        self._finish()
-        
-    def stop(self):
-        """
-        Called by the MotionManager when another motion takes over, stops movement
-        """
-        self._controller.setSpeed(0)
-        self._controller.setSidewaysSpeed(0)
-
-        for conn in self._connections:
-            conn.disconnect()
+        pass
 
     @staticmethod
     def isComplete():

@@ -9,10 +9,12 @@
 This module uses the ram.sim.input package to turn key events into commands to
 an for an IController.
 """
+import math as pmath
 
 # Project Imports
 import ext.core as core
 import ext.control as control
+import ext.math as math
 
 import ram.sim.input as input
 import ram.motion.basic as motion
@@ -31,8 +33,7 @@ class KeyboardController(core.Subsystem):
         core.Subsystem.__init__(self, config.get('name', 'KeyboardController'))
 #        self._controller = control.IController.castTo(deps[0])
         self._controller = deps[0]
-        self._desiredSpeed = self._controller.getSpeed()
-        self._desiredSidewaysSpeed = self._controller.getSidewaysSpeed()
+        self._stateEstimator = deps[1]
         
         # Hook into input system
         watched_buttons = {'_left' : ['TURN_LEFT'],
@@ -59,6 +60,11 @@ class KeyboardController(core.Subsystem):
     def background(self):
         pass
     
+    def nRb(self, yaw):
+        r_cos = pmath.cos(yaw)
+        r_sin = pmath.sin(yaw)
+        return math.Matrix2(r_cos, r_sin, -r_sin, r_cos)
+
     def update(self, time_since_last_frame):
         # Turn (Yaw) Control
         if self._left:
@@ -79,46 +85,48 @@ class KeyboardController(core.Subsystem):
             self._controller.rollVehicle(-30 * time_since_last_frame, 0)
         
         # Speed Control
-        if self._desiredSpeed > 5:
-            self._desiredSpeed = 5
-        elif self._desiredSpeed < -5:
-            self._desiredSpeed = -5
-            
+        velocity = self._controller.getDesiredVelocity()
+        position = self._stateEstimator.getEstimatedPosition()
+        yaw = self._stateEstimator.getEstimatedOrientation().getYaw().valueRadians()
+
+        vIncForeward_b = math.Vector2(2 * time_since_last_frame, 0)
+        vIncForeward_n = self.nRb(yaw) * vIncForeward_b
+        
         if self._forward:
-            self._desiredSpeed += 2 * time_since_last_frame
-            self._controller.setSpeed(self._desiredSpeed)
+            newVelocity = velocity + vIncForeward_n
+            if newVelocity[0] < 5 and newVelocity[1] < 5:
+                self._controller.translate(position, newVelocity)
         elif self._backward:
-            self._desiredSpeed -= 2 * time_since_last_frame
-            self._controller.setSpeed(self._desiredSpeed)
+            newVelocity = velocity - vIncForeward_n
+            if newVelocity[0] > -5 and newVelocity[1] > -5:
+                self._controller.translate(position, newVelocity)
 
         # SidewaysSpeed Control
-        if self._desiredSidewaysSpeed > 5:
-            self._desiredSidewaysSpeed = 5
-        elif self._desiredSidewaysSpeed < -5:
-            self._desiredSidewaysSpeed = -5
-            
+        vIncSideways_b = math.Vector2(0, 2 * time_since_last_frame)
+        vIncSideways_n = self.nRb(yaw) * vIncSideways_b
+
         if self._strafe_right:
-            self._desiredSidewaysSpeed += 2 * time_since_last_frame
-            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
+            newVelocity = velocity + vIncSideways_n
+            if newVelocity[0] < 5 and newVelocity[1] < 5:
+                self._controller.translate(position, newVelocity)
         elif self._strafe_left:
-            self._desiredSidewaysSpeed -= 2 * time_since_last_frame
-            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
+            newVelocity = velocity - vIncSideways_n
+            if newVelocity[0] > -5 and newVelocity[1] > -5:
+                self._controller.translate(position, newVelocity)
             
         # Depth Control
-        currentDepth = self._controller.getDepth()
-        depthRate = self._estimator.getEstimatedDepthRate()
+        currentDepth = self._controller.getDesiredDepth()
         
         if self._dive:
             newDepth = currentDepth + 2 * time_since_last_frame
+            self._controller.changeDepth(newDepth, 0)
         elif self._surface:
             newDepth = currentDepth - 2 * time_since_last_frame
+            self._controller.changeDepth(newDepth, 0)
 
-        trajectory = trajectories.ScalarCubicTrajectory(
-            initialValue = currentDepth, finalValue = newDepth,
-            initialRate = depthRate, finalRate = 0,
-            maxRate = 3, initialTime = timer.time())
-            
         if self._stop:
             self._controller.holdCurrentPosition()
+            self._controller.holdOrientation()
+            self._controller.holdDepth()
             
 core.SubsystemMaker.registerSubsystem('KeyboardController', KeyboardController)

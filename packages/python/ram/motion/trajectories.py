@@ -59,9 +59,17 @@ class Trajectory:
 class ScalarCubicTrajectory(Trajectory):
     """
     Defines the creation and evaluation of a trajectory based
-    on a cubic polynomial.
+    on a cubic polynomial.  The trajectory is a scalar valued
+    function and therefore the values returned will be scalars.
+    This trajectory will be useful for changing depths.
     """
 
+    # The following slopes were determined to correspond roughly to
+    # calculate the time interval for the trajectory as follows
+    # time_interval = magic_slope[speed] * (final_value - initial_value)
+    # the speed is currently limited at 5.  More magic slopes can be
+    # determined from contour plots of specified max speeds on
+    # time_interval vs change_in_value
     MAGIC_RATE_SLOPES = [1.45, 0.7465, 0.5, 0.375, 0.2147]
 
     def __init__(self, initialValue, finalValue, initialTime, initialRate = 0,
@@ -75,7 +83,7 @@ class ScalarCubicTrajectory(Trajectory):
             finalValue - initialValue, maxRate)
 
         # the matrix will be singular if initial and final values are equal
-        # this shouldnt happen but just to be safe
+        # this shouldn't happen but just to be safe
         if initialValue == finalValue:
             tf = initialTime
             self._coefficients = None
@@ -84,6 +92,7 @@ class ScalarCubicTrajectory(Trajectory):
         else:
             ti = initialTime
             tf = self._finalTime
+
             # compute matrix A and vector b for equation Ax = b
             pow = pmath.pow
             A = numpy.array([[1., ti, pow(ti,2), pow(ti,3)],
@@ -101,9 +110,9 @@ class ScalarCubicTrajectory(Trajectory):
 
 
     def computeValue(self, time):
-        if(time < self._initialTime):
+        if time < self._initialTime:
             return self._initialValue
-        elif(time >= self._finalTime):
+        elif time >= self._finalTime:
             return self._finalValue
         else:
             c = self._coefficients
@@ -111,32 +120,32 @@ class ScalarCubicTrajectory(Trajectory):
 
     def computeDerivative(self, time, order):
         # handle t < ti
-        if(time < self._initialTime):
-            if(order == 1):
+        if time < self._initialTime:
+            if order == 1:
                 return self._initialRate
-            elif(order > 1):
+            elif order > 1:
                 return 0
             else:
                 return None
 
         # handle t > tf
-        if(time >= self._finalTime):
-            if(order == 1):
+        if time >= self._finalTime:
+            if order == 1:
                 return self._finalRate
-            elif(order > 1):
+            elif order > 1:
                 return 0
             else:
                 return None
 
         # hand times during the computed trajector
         c = self._coefficients
-        if(order < 1):
+        if order < 1 :
             return None
-        elif(order == 1):
+        elif order == 1:
             return c[1] + 2 * c[2] * time + 3 * c[3] * pow(time,2)
-        elif(order == 2):
+        elif order == 2:
             return 2 * c[2] + 6 * c[3] * time
-        elif(order == 3):
+        elif order == 3:
             return 6 * c[3]
         else:
             return 0
@@ -148,11 +157,11 @@ class ScalarCubicTrajectory(Trajectory):
         return self._finalTime
 
     def getMaxOfDerivative(self, order):
-        if(order == 1):
+        if order == 1:
             return self._maxRate
-        elif(order == 2):
+        elif order == 2:
             return 2 * coefficients[2]
-        elif(order > 2):
+        elif order > 2:
             return 0
         else:
             return None
@@ -171,7 +180,7 @@ class ScalarCubicTrajectory(Trajectory):
 
 class StepTrajectory(Trajectory):
     """
-    This trajectory is a step input
+    This trajectory is a step input that returns a scalar
     """
 
     def __init__(self, finalValue, finalRate):
@@ -183,7 +192,10 @@ class StepTrajectory(Trajectory):
         return self._finalValue
 
     def computeDerivative(self, time, order):
-        return self._finalRate
+        if order == 1:
+            return self._finalRate
+        else:
+            return None
 
     def getInitialTime(self):
         return self._initialTime

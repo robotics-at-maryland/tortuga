@@ -87,11 +87,6 @@ Vehicle:
             simName: bot_thruster
             relAxis: z
 
-        StateEstimator:
-            type: LoopStateEstimator
-
-            INCLUDE: tools/simulator/data/config/maps/default.yml
-
         IMU: # MagBoom
             depends_on: ['SimulationDevice']
             type: SimIMU
@@ -145,12 +140,12 @@ Logging:
         Vehicle:
             appenders: ['VehicleLog']
 
-EventLogger:
-    depends_on: ["EventHub"]
-    type: EventLogger
+#EventLogger:
+#    depends_on: ["EventHub"]
+#    type: EventLogger
 
 Controller:
-    depends_on: ["Vehicle", "EventHub"]
+    depends_on: ["Vehicle", "EventHub", "StateEstimator"]
     type: CombineController
 
     # wait for this amout of time before doing control
@@ -194,13 +189,17 @@ Controller:
         dtMax: 0.05
         desiredOrientation: [0, 0, 0, 1]
 
+StateEstimator:
+    depends_on: ["EventHub", "Vehicle"]
+    type: IdealStateEstimator
+
 #RemoteController:
 #    type: RemoteController
 #    depends_on: ["Controller"]
 #    update_interval: -1
 
 KeyboardController:
-    depends_on: ["Controller"]
+    depends_on: ["Controller", "StateEstimator"]
     type: KeyboardController
 
 Simulation:

@@ -303,7 +303,7 @@ Controller:
 #    update_interval: -1
 
 KeyboardController:
-    depends_on: ["Controller"]
+    depends_on: ["Controller", "StateEstimator"]
     type: KeyboardController
 
 Simulation:
