@@ -38,18 +38,11 @@ class RAM_EXPORT TranslationalControllerBase :
         double timestep,
         estimation::IStateEstimatorPtr estimator,
         control::DesiredStatePtr desiredState);
-
-
-    virtual void setControlMode(ControlMode::ModeType mode);
-    virtual ControlMode::ModeType getControlMode();
     
   protected:
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
-    /** What type of translation control we are doing */
-    ControlMode::ModeType m_controlMode;
-    
   private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);

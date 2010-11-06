@@ -358,7 +358,7 @@ class Motion(object):
 class ChangeDepth(Motion):
     DEPTH_TRAJECTORY_UPDATE  = core.declareEventType('DEPTH_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, updateRate = 25):
+    def __init__(self, trajectory, updateRate = 1/25):
         """
         @type  Trajectory
         @param trajecotry
@@ -390,7 +390,7 @@ class ChangeDepth(Motion):
 
         self._timer.start()
         
-    def _update():
+    def _update(self, event):
         currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative

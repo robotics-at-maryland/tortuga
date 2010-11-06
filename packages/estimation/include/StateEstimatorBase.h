@@ -65,7 +65,7 @@ public:
     /** Returns the estimated depth */
     virtual double getEstimatedDepth();
     /** Returns the estimated depth change rate */
-    virtual double getEstimatedDepthDot();
+    virtual double getEstimatedDepthRate();
 
     /** Adds an obstacle to the list of course obstacles for tracking
      *

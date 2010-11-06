@@ -23,7 +23,7 @@
 namespace ram {
 namespace control {
 
-/** Class to make implementation of an IDepthController simpler
+/** class to make implementation of an IDepthController simpler
  *
  *  Makes implementing IDepthControllerImp much easier.
  */
@@ -40,11 +40,11 @@ class RAM_EXPORT DepthControllerBase : public IDepthControllerImp
         control::DesiredStatePtr desiredState);
 
   protected:
-    /** Syncs asscess to the shared state */
+    /** syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
     
   private:
-    /** Does all initialzation based on the configuration settings */
+    /** does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);
 };
     

@@ -23,17 +23,6 @@
 namespace ram {
 namespace control {
 
-struct ControlMode
-{
-    enum ModeType {
-        OPEN_LOOP,
-        VELOCITY,
-        POSITION,
-        POSITIONANDVELOCITY
-    };
-};
-
-
 /** Defines the interface for controler which controls in plane motion */
 class RAM_EXPORT ITranslationalController 
 {
@@ -56,9 +45,6 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
         double timestep,
         estimation::IStateEstimatorPtr estimator,
         control::DesiredStatePtr desiredState) = 0;
-
-    virtual void setControlMode(ControlMode::ModeType mode) = 0;
-    virtual ControlMode::ModeType getControlMode() = 0;
 };
     
 } // namespace control

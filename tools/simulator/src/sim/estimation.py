@@ -26,8 +26,10 @@ class IdealStateEstimator(estimation.IStateEstimator):
     """
     def __init__(self, cfg, deps):
         estimation.IStateEstimator.__init__(
-            self, cfg.get('name', 'StateEstimator'),
-            core.Subsystem.getSubsystemOfType(core.EventHub, deps))
+            self, cfg.get('name', 'StateEstimator'))
+
+        self._eventHub = core.Subsystem.getSubsystemOfType(
+            core.EventHub, deps)
         self._vehicle = core.Subsystem.getSubsystemOfType(
             vehicle.IVehicle, deps)
 

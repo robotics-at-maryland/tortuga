@@ -40,25 +40,41 @@ namespace control {
 class RAM_EXPORT CombineController : public ControllerBase
 {
 public:
-    /** Construct the controller with the given vehicle */
+    /** Construct the controller with the given event hub, vehicle, and estimator.
+     ** This constructor will mainly be used for testing purposes.
+     **/
     CombineController(core::EventHubPtr eventHub,
                       vehicle::IVehiclePtr vehicle,
                       estimation::IStateEstimatorPtr estimator,
                       core::ConfigNode config);
     
-    /** The controller finds its vehicle from the given list of subsystems */
+    /** The controller finds its event hub, vehicle, and estimator from the 
+     ** given list of subsystems 
+     **/
     CombineController(core::ConfigNode config,
                       core::SubsystemList deps = core::SubsystemList());
 
     virtual ~CombineController();
     
+    /** Returns a smart pointer to the current translational controller */
     ITranslationalControllerPtr getTranslationalController();
     
+    /** Returns a smart pointer to the current depth controller */
     IDepthControllerPtr getDepthController();
     
+    /** Returns a smart pointer to the current rotational controller */
     IRotationalControllerPtr getRotationalController();
 
 protected:
+    /* doUpdate - performs actual controller work
+     *
+     *  @param timestep
+     *      The time sice the last update
+     *  @param translationalForceOut
+     *      The new force to apply to the vehicle (newtons)
+     *  @param rotationalTorqueOut
+     *      The new torque to apply to the vehicle (newtons)
+     */
     virtual void doUpdate(const double& timestep,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut);

@@ -57,9 +57,6 @@ private:
     /* any helper functions should be prototyped here */
     std::set<std::string> imuList;
 
-    // void rotateAndFilterData(const RawIMUData* newState,
-    //                          std::string name);
-
     /* any necessary persistent variables should be declared here */
 
     /** Filterd and rotated IMU data */

@@ -98,6 +98,7 @@ void CombineController::doUpdate(const double& timestep,
                                  math::Vector3& rotationalTorqueOut)
 {
 
+    // Don't do anything during the initialization pause
     if (m_initializationPause > 0)
     {
         m_initializationPause -= timestep;

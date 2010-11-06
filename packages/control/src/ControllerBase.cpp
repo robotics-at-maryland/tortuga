@@ -65,46 +65,7 @@ ControllerBase::ControllerBase(core::EventHubPtr eventHub,
     m_initHoldDepth(1),
     m_initHoldHeading(1)
 {   
-
-    if(eventHub != core::EventHubPtr()) {
-
-    /* Bind atDepth, atPosition, atVelocity, and atOrientation to desired state 
-       and estimated state update events */
-        
-        conn_desired_atDepth = eventHub->subscribeToType(
-            IController::DESIRED_DEPTH_UPDATE,
-            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
-
-        conn_estimated_atDepth = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
-            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
-
-        conn_desired_atPosition = eventHub->subscribeToType(
-            IController::DESIRED_POSITION_UPDATE,
-            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
-
-        conn_estimated_atPosition = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
-            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
-
-        conn_desired_atVelocity = eventHub->subscribeToType(
-            IController::DESIRED_VELOCITY_UPDATE,
-            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
-
-        conn_estimated_atVelocity = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
-            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
-
-        conn_desired_atOrientation = eventHub->subscribeToType(
-            IController::DESIRED_ORIENTATION_UPDATE,
-            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
-
-        conn_estimated_atOrientation = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
-            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
-    }
-
-    init(config); 
+    init(config, eventHub); 
 }
 
 ControllerBase::ControllerBase(core::ConfigNode config,
@@ -139,45 +100,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     core::EventHubPtr eventHub = 
         core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
 
-    if(eventHub != core::EventHubPtr()) {
-
-    /* Bind atDepth, atPosition, atVelocity, and atOrientation to desired state 
-       and estimated state update events */
-
-        conn_desired_atDepth = eventHub->subscribeToType(
-            IController::DESIRED_DEPTH_UPDATE,
-            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
-
-        conn_estimated_atDepth = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
-            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
-
-        conn_desired_atPosition = eventHub->subscribeToType(
-            IController::DESIRED_POSITION_UPDATE,
-            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
-
-        conn_estimated_atPosition = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
-            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
-
-        conn_desired_atVelocity = eventHub->subscribeToType(
-            IController::DESIRED_VELOCITY_UPDATE,
-            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
-
-        conn_estimated_atVelocity = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
-            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
-
-        conn_desired_atOrientation = eventHub->subscribeToType(
-            IController::DESIRED_ORIENTATION_UPDATE,
-            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
-
-        conn_estimated_atOrientation = eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
-            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
-    }
-
-    init(config); 
+    init(config, eventHub); 
 }
 
 ControllerBase::~ControllerBase()
@@ -365,8 +288,47 @@ bool ControllerBase::atOrientation()
 
 
 
-void ControllerBase::init(core::ConfigNode config)
+void ControllerBase::init(core::ConfigNode config, 
+                          core::EventHubPtr eventHub)
 {
+    if(eventHub != core::EventHubPtr()) {
+
+    /* Bind atDepth, atPosition, atVelocity, and atOrientation to desired state 
+       and estimated state update events */
+
+        conn_desired_atDepth = eventHub->subscribeToType(
+            IController::DESIRED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_estimated_atDepth = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
+            boost::bind(&ControllerBase::atDepthUpdate,this,_1));
+
+        conn_desired_atPosition = eventHub->subscribeToType(
+            IController::DESIRED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_estimated_atPosition = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
+            boost::bind(&ControllerBase::atPositionUpdate,this,_1));
+
+        conn_desired_atVelocity = eventHub->subscribeToType(
+            IController::DESIRED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_estimated_atVelocity = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
+            boost::bind(&ControllerBase::atVelocityUpdate,this,_1));
+
+        conn_desired_atOrientation = eventHub->subscribeToType(
+            IController::DESIRED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));
+
+        conn_estimated_atOrientation = eventHub->subscribeToType(
+            estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE,
+            boost::bind(&ControllerBase::atOrientationUpdate,this,_1));       
+    }
+
     // Load threshold for being at depth
     m_depthThreshold = config["depthThreshold"].asDouble(DEPTH_THRESHOLD);
     m_orientationThreshold =

@@ -190,7 +190,8 @@ protected:
     core::ReadWriteMutex m_mutex;
 
 private:
-    void init(core::ConfigNode config);
+    void init(core::ConfigNode config,
+              core::EventHubPtr eventHub);
 
     /** Updates m_atDepth on a change to the desired or estimated depth */
     void atDepthUpdate(core::EventPtr event);
@@ -228,13 +229,13 @@ private:
     /** Publishes the AT_POSITION event for the position given */
     void publishAtPosition(const math::Vector2& position);
     
-    /** Used to maintain state so we don't issue continuous AT_*** at depth updates */
+    /** Used to maintain state so we don't issue continuous AT_WHATEVER events*/
     bool m_atDepth;
     bool m_atOrientation;
     bool m_atVelocity;
     bool m_atPosition;
     
-    /** When we are within these limits we send off the AT_*** event */
+    /** When we are within these limits we send off the AT_WHATEVER event */
     double m_depthThreshold;
     double m_orientationThreshold;
     double m_velocityThreshold;

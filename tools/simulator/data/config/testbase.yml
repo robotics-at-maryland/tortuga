@@ -107,7 +107,7 @@ Vehicle:
 # Exectures Motions
 MotionManager:
     type: MotionManager
-    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub", "StateEstimator"]
 
 # Handles Timers
 TimerManager:

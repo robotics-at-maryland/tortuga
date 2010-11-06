@@ -9,6 +9,7 @@
 
 /* These algorithms were originally coded by Joseph Galante.  I tried to
  * copy them and make them a little more readable by removing unused parts.
+ * They have now been moved to the estimation utilities.
  */
 
 // STD Includes
@@ -61,9 +62,32 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     bool magIsCorrupt = ievent->magIsCorrupt;
     imuList.insert(name);
 
+    /* grab the new state and filter it */
     RawIMUData newState = ievent->rawIMUData;
-//    rotateAndFilterData(&newState, name);
+
+    m_filteredAccelX[name].addValue(newState.accelX); 
+    m_filteredAccelY[name].addValue(newState.accelY);
+    m_filteredAccelZ[name].addValue(newState.accelZ);
+
+    m_filteredMagX[name].addValue(newState.magX);
+    m_filteredMagY[name].addValue(newState.magY);
+    m_filteredMagZ[name].addValue(newState.magZ);
+
+    m_filteredGyroX[name].addValue(newState.gyroX);
+    m_filteredGyroY[name].addValue(newState.gyroY);
+    m_filteredGyroZ[name].addValue(newState.gyroZ);
+
+    m_filteredState[name]->accelX = m_filteredAccelX[name].getValue();
+    m_filteredState[name]->accelY = m_filteredAccelY[name].getValue();
+    m_filteredState[name]->accelZ = m_filteredAccelZ[name].getValue();
  
+    m_filteredState[name]->magX = m_filteredMagX[name].getValue();
+    m_filteredState[name]->magY = m_filteredMagY[name].getValue();
+    m_filteredState[name]->magZ = m_filteredMagZ[name].getValue();
+
+    m_filteredState[name]->gyroX = m_filteredGyroX[name].getValue();
+    m_filteredState[name]->gyroY = m_filteredGyroY[name].getValue();
+    m_filteredState[name]->gyroZ = m_filteredGyroZ[name].getValue();
 
     /* Pull the averaged values from the averaging filter and put them
      * into OGRE format for the following calculations
@@ -129,8 +153,8 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
         math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
 
         estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
-                                                              omega,
-                                                              timestep);
+                                                                 omega,
+                                                                 timestep);
 
     }
 

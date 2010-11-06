@@ -39,10 +39,6 @@ public:
         return force;
     }
     
-    virtual void setControlMode(ram::control::ControlMode::ModeType mode){}
-    virtual ram::control::ControlMode::ModeType getControlMode(){
-        return ram::control::ControlMode::OPEN_LOOP;}
-    
     double timestep;
     ram::estimation::IStateEstimatorPtr estimator;
     ram::control::DesiredStatePtr desiredState;

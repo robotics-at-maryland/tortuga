@@ -82,9 +82,9 @@ double StateEstimatorBase::getEstimatedDepth()
     return estimatedState->getEstimatedDepth();
 }
 
-double StateEstimatorBase::getEstimatedDepthDot()
+double StateEstimatorBase::getEstimatedDepthRate()
 {
-    return estimatedState->getEstimatedDepthDot();
+    return estimatedState->getEstimatedDepthRate();
 }
 
 void StateEstimatorBase::addObstacle(std::string name, ObstaclePtr obstacle)

@@ -36,7 +36,7 @@ namespace control {
 class IController;
 typedef boost::shared_ptr<IController> IControllerPtr;
 
-/** A single interface from which to control a vehicle
+/** A single interface from which to interact with the low level controller
  *
  *  This is a facade over a set of controllers which handle difference parts
  *  of the vehicles motion.

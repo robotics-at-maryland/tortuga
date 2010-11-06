@@ -54,7 +54,7 @@ public:
     math::Vector3 getEstimatedAngularRate();
     math::Quaternion getEstimatedOrientation();
     double getEstimatedDepth();
-    double getEstimatedDepthDot();
+    double getEstimatedDepthRate();
     math::Vector3 getEstimatedThrusterForces();
     math::Vector3 getEstimatedThrusterTorques();
 
@@ -64,7 +64,7 @@ public:
     void setEstimatedAngularRate(math::Vector3 angularRate);
     void setEstimatedOrientation(math::Quaternion orientation);
     void setEstimatedDepth(double depth);
-    void setEstimatedDepthDot(double depthDot);
+    void setEstimatedDepthRate(double depthRate);
     void setEstimatedThrust(math::Vector3 forces, math::Vector3 torques);
 
 
@@ -84,7 +84,7 @@ private:
     void publishAngularRateUpdate(const math::Vector3& angularRate);
     void publishOrientationUpdate(const math::Quaternion& orientation);
     void publishDepthUpdate(const double& depth);
-    void publishDepthDotUpdate(const double& depthDot);
+    void publishDepthRateUpdate(const double& depthRate);
     void publishThrustUpdate(const math::Vector3& forces,
                              const math::Vector3& torques);
 
@@ -96,7 +96,7 @@ private:
     math::Vector3 estAngularRate;
     math::Quaternion estOrientation;
     double estDepth;
-    double estDepthDot;
+    double estDepthRate;
     math::Vector3 estThrusterForces;
     math::Vector3 estThrusterTorques;
 

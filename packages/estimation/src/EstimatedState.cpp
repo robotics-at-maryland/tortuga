@@ -70,10 +70,10 @@ double EstimatedState::getEstimatedDepth()
     return estDepth;
 }
 
-double EstimatedState::getEstimatedDepthDot()
+double EstimatedState::getEstimatedDepthRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estDepthDot;
+    return estDepthRate;
 }
 
 math::Vector3 EstimatedState::getEstimatedThrusterForces()
@@ -145,13 +145,13 @@ void EstimatedState::setEstimatedDepth(double depth)
     publishDepthUpdate(depth);
 }
 
-void EstimatedState::setEstimatedDepthDot(double depthDot)
+void EstimatedState::setEstimatedDepthRate(double depthRate)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estDepthDot = depthDot;
+        estDepthRate = depthRate;
     }
-    publishDepthDotUpdate(depthDot);
+    publishDepthRateUpdate(depthRate);
 }
 
 void EstimatedState::setEstimatedThrust(math::Vector3 forces,
@@ -216,10 +216,10 @@ void EstimatedState::publishDepthUpdate(const double& depth)
     event->number = depth;
     publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
 }
-void EstimatedState::publishDepthDotUpdate(const double& depthDot)
+void EstimatedState::publishDepthRateUpdate(const double& depthRate)
 {
     math::NumericEventPtr event(new math::NumericEvent());
-    event->number = depthDot;
+    event->number = depthRate;
     publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
 }
 void EstimatedState::publishThrustUpdate(const math::Vector3& forces,

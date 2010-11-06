@@ -14,8 +14,7 @@ namespace ram {
 namespace control {
     
 TranslationalControllerBase::TranslationalControllerBase(
-    core::ConfigNode config) :
-    m_controlMode(ControlMode::OPEN_LOOP)
+    core::ConfigNode config)
 {
     init(config);
 }
@@ -26,18 +25,6 @@ math::Vector3 TranslationalControllerBase::translationalUpdate(
     control::DesiredStatePtr desiredState)
 {
     return math::Vector3::ZERO;
-}
-
-void TranslationalControllerBase::setControlMode(ControlMode::ModeType mode)
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_controlMode = mode;
-}
-
-ControlMode::ModeType TranslationalControllerBase::getControlMode()
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    return m_controlMode;
 }
 
 void TranslationalControllerBase::init(core::ConfigNode config)

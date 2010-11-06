@@ -74,16 +74,20 @@ class ScalarCubicTrajectory(Trajectory):
 
     def __init__(self, initialValue, finalValue, initialTime, initialRate = 0,
                  finalRate = 0, maxRate = 4):
+
+        # keep track of the arguments
         self._initialValue = initialValue
         self._finalValue = finalValue
         self._initialRate = initialRate
         self._finalRate = finalRate
         self._initialTime = initialTime
+
+        # compute the final time
         self._finalTime = initialTime + self.approximateTimeInterval(
-            finalValue - initialValue, maxRate)
+            pmath.fabs(finalValue - initialValue), maxRate)
 
         # the matrix will be singular if initial and final values are equal
-        # this shouldn't happen but just to be safe
+        # this shouldn't happen but 
         if initialValue == finalValue:
             tf = initialTime
             self._coefficients = None
@@ -94,17 +98,20 @@ class ScalarCubicTrajectory(Trajectory):
             tf = self._finalTime
 
             # compute matrix A and vector b for equation Ax = b
-            pow = pmath.pow
-            A = numpy.array([[1., ti, pow(ti,2), pow(ti,3)],
-                             [1., tf, pow(tf,2), pow(tf,3)],
-                             [0, 1., 2*ti, 3*pow(ti,2)],
-                             [0, 1., 2*tf, 3*pow(tf,2)]])
+            ti_p2 = ti * ti
+            ti_p3 = ti_p2 * ti
+
+            A = numpy.array([[1, ti, ti_p2, ti_p3],
+                             [1, tf, ti_p2, ti_p3],
+                             [0, 1, 2 * ti, 3 * ti_p2],
+                             [0, 1, 2 * tf, 3 * ti_p2]])
         
             b = numpy.array([initialValue, finalValue, initialRate, finalRate])
 
             # solve for coefficient vector x
             x = numpy.linalg.solve(A,b)
 
+            pow = pmath.pow
             self._coefficients = x
             self._maxRate = x[1] - pow(x[2],2) / (3 * x[3])
 
@@ -116,7 +123,7 @@ class ScalarCubicTrajectory(Trajectory):
             return self._finalValue
         else:
             c = self._coefficients
-            return c[0] + c[1] * time + c[2] * pow(time,2) + c[3] * pow(time,3)
+            return c[0] + time * (c[1] + time * (c[2]  + time * c[3]))
 
     def computeDerivative(self, time, order):
         # handle t < ti
@@ -142,7 +149,7 @@ class ScalarCubicTrajectory(Trajectory):
         if order < 1 :
             return None
         elif order == 1:
-            return c[1] + 2 * c[2] * time + 3 * c[3] * pow(time,2)
+            return c[1] + time * (2 * c[2] * time + (3 * time * c[3]))
         elif order == 2:
             return 2 * c[2] + 6 * c[3] * time
         elif order == 3:

@@ -63,7 +63,7 @@ public:
     virtual double getEstimatedDepth() = 0;
 
     /** returns the estiamted depth change rate */
-    virtual double getEstimatedDepthDot() = 0;
+    virtual double getEstimatedDepthRate() = 0;
     
     /* Implementations of IStateEstimator should store the information about course
        obstacles.  These functions allow interaction with each obstacle. */

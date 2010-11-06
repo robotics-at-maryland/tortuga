@@ -73,7 +73,7 @@ void DepthKalmanModule::update(core::EventPtr event,
 
     // State Transition Model
     math::Matrix2 Ak(1, dt,
-		     0, 1 - (m_drag * dt_sq) / (2 * m_mass));
+                     0, 1 - (m_drag * dt_sq) / (2 * m_mass));
 
     // Control Input Model - F_thrusters * Bk = x change from control
     math::Vector2 Bk(dt_sq /(2*m_mass), dt / m_mass);
@@ -100,13 +100,13 @@ void DepthKalmanModule::update(core::EventPtr event,
 
     // Set the estimated depth
     estimatedState->setEstimatedDepth(x_curr[0]);
-    estimatedState->setEstimatedDepthDot(x_curr[1]);
+    estimatedState->setEstimatedDepthRate(x_curr[1]);
 
     LOGGER.infoStream() << m_name << " "
                         << depth  << " "
-			<< correction << " "
-			<< x_curr[0] << " "
-			<< x_curr[1] << " ";
+                        << correction << " "
+                        << x_curr[0] << " "
+                        << x_curr[1] << " ";
 }
 
 } // namespace estimation

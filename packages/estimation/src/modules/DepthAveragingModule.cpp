@@ -16,23 +16,23 @@
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "estimation/include/modules/BasicDepthEstimationModule.h"
+#include "estimation/include/modules/DepthAveragingModule.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
 namespace ram {
 namespace estimation {
 
-BasicDepthEstimationModule::BasicDepthEstimationModule(
+DepthAveragingModule::DepthAveragingModule(
     core::ConfigNode config,
     core::EventHubPtr eventHub) :
-    EstimationModule(eventHub, "BasicDepthEstimationModule")
+    EstimationModule(eventHub, "DepthAveragingModule")
 {
     /* initialization of estimator from config values should be done here */
     LOGGER.info("% Name EstDepth RawDepth Correction");
 }
 
-void BasicDepthEstimationModule::update(
+void DepthAveragingModule::update(
     core::EventPtr event, 
     EstimatedStatePtr estimatedState)
 {
@@ -42,7 +42,7 @@ void BasicDepthEstimationModule::update(
 
     /* Return if the cast failed and let people know about it. */
     if(!ievent){
-        LOGGER.warn("BasicDepthEstimationModule: update: Invalid Event Type");
+        LOGGER.warn("DepthAveragingModule: update: Invalid Event Type");
         return;
     }
 
@@ -56,14 +56,22 @@ void BasicDepthEstimationModule::update(
     math::Vector3 sensorMovement = 
         currentSensorLocation - location;
     double correction = sensorMovement.z;
-    
-    // Grab the depth
-    double depth = ievent->rawDepth;
+
+    double timestep = ievent->timestep;
+
+    // grab the depth and calculate the depth rate
+    double depth = ievent->rawDepth + correction;
+    double depthRate = (depth - m_previousDepth) / timestep;
+
+    // put the depth into the averaging filter
+    m_filteredDepth.addValue(depth);
+    m_filteredDepthRate.addValue(depthRate);
 
     /* Return the corrected depth (its addition and not subtraction because
      * depth is positive down) */
 
-    estimatedState->setEstimatedDepth(depth + correction);
+    estimatedState->setEstimatedDepth(m_filteredDepth.getValue());
+    estimatedState->setEstimatedDepthRate(m_filteredDepthRate.getValue());
 
     LOGGER.infoStream() << m_name << " "
                         << depth + correction << " "

@@ -37,15 +37,13 @@ public:
                  core::EventHubPtr eventHub = core::EventHubPtr());
     virtual ~DesiredState();
 
-    // returned in inertial frame
-
-    /** Returns the desired velocity in the inertial frame */
+    /** returns the desired velocity in the inertial frame */
     math::Vector2 getDesiredVelocity();
 
-    /** Returns the desired position in the inertial frame */
+    /** returns the desired position in the inertial frame */
     math::Vector2 getDesiredPosition();
 
-    /** Returns the desired orientation */
+    /** returns the desired orientation */
     math::Quaternion getDesiredOrientation();
 
     /** returns the desired angular rate */
@@ -57,37 +55,37 @@ public:
     /** returns the desired depth change rate */
     double getDesiredDepthRate();
 
-    /** Set the desired velocity in the inertial frame
+    /** set the desired velocity in the inertial frame
      *
      * @param velocity - the desired velocity 2-vector
      */
     void setDesiredVelocity(math::Vector2 velocity);
 
-    /** Set the desired position in the inertial frame
+    /** set the desired position in the inertial frame
      *
      * @param position - the desired velocity 2-vector
      */
     void setDesiredPosition(math::Vector2 position);
 
-    /** Set the desired depth
+    /** set the desired depth
      *
      * @param depth - the desired depth
      */
     void setDesiredDepth(double depth);
 
-    /** Set the desired depth change rate
+    /** set the desired depth change rate
      *
      * @param depthRate - the desired depth change rate
      */
     void setDesiredDepthRate(double depthRate);
 
-    /** Set the desired orientation
+    /** set the desired orientation
      *
      * @param orientation - the desired quaternion
      */
     void setDesiredOrientation(math::Quaternion orientation);
     
-    /** Set the desired angular rate
+    /** set the desired angular rate
      *
      * @param angularRate - a 3-vector representing the desired angular rate
      */
@@ -96,38 +94,33 @@ public:
 private:
     void init(core::ConfigNode config);
 
-    /** Called whenever a new depth is set, handles events as needed
+    /** called whenever a new depth is set, handles events as needed
      *
-     *  This will always publish the DESIRED_DEPTH_UPDATE event and also
-     *  publish the AT_DEPTH event if needed.
+     *  This will always publish the DESIRED_DEPTH_UPDATE event
      */
     void newDepthSet(const double& newDepth);
 
-    /** Called whenever a new depth change rate is set, handles events as needed
+    /** called whenever a new depth change rate is set, handles events as needed
      *
-     *  This will always publish the DESIRED_DEPTHRATE_UPDATE event and also
-     *  publish the AT_DEPTHRATE event if needed.
+     *  This will always publish the DESIRED_DEPTHRATE_UPDATE event
      */
     void newDepthRateSet(const double& newDepthRate);
 
-    /** Called whenever the desired orientation changes, handles events
+    /** called whenever the desired orientation changes, handles events
      *
-     *  This will always publish the DESIRED_ORIENTATION_UPDATE event and also
-     *  publish the AT_ORIENTATION event if needed.
+     *  This will always publish the DESIRED_ORIENTATION_UPDATE event
      */
     void newDesiredOrientationSet(const math::Quaternion& newOrientation);
    
-    /** Called whenever the desired velocity changes, handles events
+    /** called whenever the desired velocity changes, handles events
      *
-     * This publishes the DESIRED_VELOCITY_UPDATE event and will
-     * publish the AT_VELOCITY event if needed.
+     * This publishes the DESIRED_VELOCITY_UPDATE event
      */
     void newDesiredVelocitySet(const math::Vector2& newVelocity);
 
-    /** Called whenever the desired velocity changes, handles events
+    /** called whenever the desired position changes, handles events
      *
-     * This publishes the DESIRED_POSITION_UPDATE event and will
-     * publish the AT_POSITION event if needed.
+     * This publishes the DESIRED_POSITION_UPDATE event
      */
     void newDesiredPositionSet(const math::Vector2& newPosition);
 
@@ -146,4 +139,4 @@ private:
 } //namespace control
 } //namespace ram
 
-#endif //RAM_CONTROL_DESIREDSTATE_H
+#endif // RAM_CONTROL_DESIREDSTATE_H

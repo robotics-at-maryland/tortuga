@@ -194,3 +194,4 @@ void DesiredState::newDesiredPositionSet(const math::Vector2& newPosition)
 
 } //namespace control
 } //namespace ram
+
