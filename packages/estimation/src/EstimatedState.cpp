@@ -29,7 +29,7 @@ EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventH
     estAngularRate(math::Vector3::ZERO),
     estOrientation(math::Quaternion::IDENTITY),
     estDepth(0),
-    estDepthDot(0)
+    estDepthRate(0)
 {
     
 }

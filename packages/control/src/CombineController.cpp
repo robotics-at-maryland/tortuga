@@ -91,6 +91,8 @@ void CombineController::init(core::ConfigNode config)
     m_rotController = RotationalControllerImpMaker::newObject(node);
 
     m_initializationPause = config["InitializationPause"].asDouble(0);
+
+    LOGGER.infoStream() << "DesiredDepth EstimatedDepth";
 }
 
 void CombineController::doUpdate(const double& timestep,
@@ -124,6 +126,9 @@ void CombineController::doUpdate(const double& timestep,
     // Combine into desired rotational control and torque
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
+
+    LOGGER.infoStream() << m_desiredState->getDesiredDepth() << " "
+                        << m_stateEstimator->getEstimatedDepth();
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()

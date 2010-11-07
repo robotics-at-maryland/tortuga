@@ -405,7 +405,14 @@ class ChangeDepth(Motion):
             self._finish()
         
     def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and publishes finish event
+        """
+        self._conn.disconnect()
+        self._timer.stop()
         Motion._finish(self)
+        
+
 
     def stop(self):
         pass
@@ -469,9 +476,11 @@ class ChangeOrientation(Motion):
     def _finish(self):
         """
         Finishes off the motion, disconnects events, and publishes finish event
-        """
-        Motion._finish(self)
+        """        
         self._conn.disconnect()
+        self._timer.stop()
+        Motion._finish(self)
+
 
     def stop(self):
         pass
@@ -537,6 +546,7 @@ class MoveInPlane(Motion):
         """
         Motion._finish(self)
         self._conn.disconnect()
+        self._timer.stop()
         
     def stop(self):
         pass

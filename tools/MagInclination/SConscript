@@ -1,30 +1,30 @@
-# Copyright (C) 2007 Robotics at Maryland
-# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
-# All rights reserved.
-#
-# Author: Joseph Lisee <jlisee@umd.edu>
-# File:  packages/carnetix/SConscript
+# # Copyright (C) 2007 Robotics at Maryland
+# # Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# # All rights reserved.
+# #
+# # Author: Joseph Lisee <jlisee@umd.edu>
+# # File:  packages/carnetix/SConscript
 
-# Copy Our Build Environment
-Import('env')
-envl = env.Clone()
+# # Copy Our Build Environment
+# Import('env')
+# envl = env.Clone()
 
-extra_int_deps = []
-eventFeatures = ['vision', 'control']
-for feature in eventFeatures:
-    if env.HasFeature(feature):
-        extra_int_deps.append(feature)
+# extra_int_deps = []
+# eventFeatures = ['vision', 'control']
+# for feature in eventFeatures:
+#     if env.HasFeature(feature):
+#         extra_int_deps.append(feature)
 
 
-# Build the ctx and consolemon
-int_deps = ['imu','math']
-int_deps.extend(extra_int_deps)
-envl.RAMProgram(target = 'MagInclination', 
-		source = 'src/MagInclination.cpp',
-                int_deps = int_deps)
+# # Build the ctx and consolemon
+# int_deps = ['imu','math']
+# int_deps.extend(extra_int_deps)
+# envl.RAMProgram(target = 'MagInclination', 
+# 		source = 'src/MagInclination.cpp',
+#                 int_deps = int_deps)
 
-int_deps = ['vehicle','math']
-int_deps.extend(extra_int_deps)
-envl.RAMProgram(target = 'MagInclinationTest', 
-		source = 'src/MagInclinationTest.cpp',
-                int_deps = int_deps)
+# int_deps = ['vehicle','math']
+# int_deps.extend(extra_int_deps)
+# envl.RAMProgram(target = 'MagInclinationTest', 
+# 		source = 'src/MagInclinationTest.cpp',
+#                 int_deps = int_deps)

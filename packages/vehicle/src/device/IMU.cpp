@@ -53,13 +53,10 @@ IMU::IMU(core::ConfigNode config, core::EventHubPtr eventHub,
     m_gyroZBias(0),
     m_magCorruptThresh(100),
     m_magNominalLength(0),
-    m_orientation(0,0,0,1),
-    m_rawState(0),
-    m_filteredState(0)
+    m_rawState(0)
 {
     m_serialFD = openIMU(m_devfile.c_str());
     m_rawState = new RawIMUData();
-    m_filteredState = new FilteredIMUData();
 
     // Load Rotation Matrix
     m_IMUToVehicleFrame[0][0] =
@@ -117,7 +114,6 @@ IMU::~IMU()
         close(m_serialFD);
 
     delete m_rawState;
-    delete m_filteredState;
 }
 
 
@@ -199,27 +195,6 @@ void IMU::update(double timestep)
     }
 }
     
-math::Vector3 IMU::getLinearAcceleration()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return math::Vector3(m_filteredState->accelX, m_filteredState->accelY,
-                         m_filteredState->accelZ);
-}
-
-math::Vector3 IMU::getMagnetometer()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return math::Vector3(m_filteredState->magX, m_filteredState->magY,
-                         m_filteredState->magZ);
-}
-    
-math::Vector3 IMU::getAngularRate()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return math::Vector3(m_filteredState->gyroX, m_filteredState->gyroY,
-                         m_filteredState->gyroZ);
-}
-
 void IMU::getRawState(RawIMUData& imuState)
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);

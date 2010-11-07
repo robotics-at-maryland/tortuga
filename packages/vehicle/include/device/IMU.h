@@ -55,12 +55,6 @@ public:
 
     virtual ~IMU();
     
-    virtual math::Vector3 getLinearAcceleration();
-
-    virtual math::Vector3 getMagnetometer();
-    
-    virtual math::Vector3 getAngularRate();
-
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
 

@@ -131,6 +131,13 @@ Logging:
                 type: Pattern
                 pattern: "%m %r%n"
 
+        ControlLog:
+            type: File
+            fileName: control.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
         Console:
             type: Console
             Layout:
@@ -139,6 +146,8 @@ Logging:
     Categories:
         Vehicle:
             appenders: ['VehicleLog']
+        Controller:
+            appenders: ['ControlLog']
 
 #EventLogger:
 #    depends_on: ["EventHub"]

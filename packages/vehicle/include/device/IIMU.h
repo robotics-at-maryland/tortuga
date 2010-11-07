@@ -36,12 +36,6 @@ public:
     
     virtual ~IIMU();
 
-    virtual math::Vector3 getLinearAcceleration() = 0;
-
-    virtual math::Vector3 getMagnetometer() = 0;
-    
-    virtual math::Vector3 getAngularRate() = 0;
-
 protected:
     IIMU(core::EventHubPtr eventHub = core::EventHubPtr(),
          std::string name = "UNNAMED");
