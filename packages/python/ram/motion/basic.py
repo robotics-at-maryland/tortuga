@@ -26,10 +26,10 @@ class MotionManager(core.Subsystem):
     Starts and stops the AI's currently active ram.motion.basic.Motion
     
     Requires the following subsystems:
-     - ext.control.IController
-     - ext.vehicle.IVehicle
-     - ext.core.EventHub
-     - ext.core.QueuedEventHub
+    - ext.control.IController
+    - ext.vehicle.IVehicle
+    - ext.core.EventHub
+    - ext.core.QueuedEventHub
     """
 
     FINISHED = core.declareEventType('FINISHED')
@@ -56,8 +56,8 @@ class MotionManager(core.Subsystem):
                                                             nonNone = True)
         
         self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
-                                                           deps,
-                                                           nonNone = True)
+                                                            deps,
+                                                            nonNone = True)
         
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
@@ -66,7 +66,7 @@ class MotionManager(core.Subsystem):
 
         self._queuedMotions = []
         self._queueActive = False
-            
+        
     def _setMotion(self, motion):
         """
         Stops the current motion and starts this one
@@ -148,11 +148,11 @@ class MotionManager(core.Subsystem):
             motionCount += 1
             motion = self._inPlaneMotion
         if not (self._depthMotion is None) and \
-          not (motion == self._depthMotion):
+                not (motion == self._depthMotion):
             motionCount += 1
             motion = self._depthMotion
         if not (self._orientationMotion is None) and \
-          not (motion == self._orientationMotion):
+                not (motion == self._orientationMotion):
             motionCount += 1
             motion = self._orientationMotion
             
@@ -187,7 +187,7 @@ class MotionManager(core.Subsystem):
     def _stopMotion(self, motion):
         motion.stop()
         self._removeMotion(motion)
-            
+        
     def _motionFinished(self, event):
         self._removeMotion(event.motion)
         # Start any remaining motions
@@ -205,13 +205,13 @@ class MotionManager(core.Subsystem):
         
     def background(self):
         pass
-        
+    
     def backgrounded(self):
         return True
-        
+    
     def unbackground(self, join = True):
         pass
-        
+    
     def update(self, timeSinceLastUpdate):
         pass
 
@@ -240,11 +240,11 @@ class MotionManager(core.Subsystem):
         For example, to generate 2 motions, you would use this:
 
         '1':
-            type: 'ram.motion.basic.TimedMoveDirection'
-            ...
+        type: 'ram.motion.basic.TimedMoveDirection'
+        ...
         '2':
-            type: 'ram.motion.basic.RateChangeDepth'
-            ...
+        type: 'ram.motion.basic.RateChangeDepth'
+        ...
 
         The entries for a motion should contain the full dotted name of the
         motion and any named parameters for the motion. This does not error
@@ -276,9 +276,9 @@ class MotionManager(core.Subsystem):
 	    # Fix the config file
 	    info['type'] = type_
         return motionList
-            
+    
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)
-        
+
 class Motion(object):
     """
     A class which encapsulates some sort of motion of the vehicle.
@@ -328,7 +328,7 @@ class Motion(object):
     @property
     def type(self):
         return self._type
-        
+    
     def _start(self):
         raise Exception("You must implement this method")
     
@@ -347,7 +347,7 @@ class Motion(object):
     def isComplete(self):
         """
         Returns true if the motion eventually terminates and calls _finish()
-      
+        
         All subclasses need to implement this feature, if they don't
         an exception will be thrown.  Abstract base classes, added to 
         python in 2.6, provide this same functionality but we only
@@ -401,7 +401,7 @@ class ChangeDepth(Motion):
         self._controller.changeDepth(newDepth, newDepthRate)
 
         if (currentTime >= self._trajectory.getFinalTime() and
-           self._controller.atDepth()):
+            self._controller.atDepth()):
             self._finish()
         
     def _finish(self):
@@ -537,7 +537,7 @@ class MoveInPlane(Motion):
         self._controller.rotate(newPosition, newVelocity)
 
         if (currentTime >= self._trajectory.getFinalTime() and
-           self._controller.atPosition() and self._controller.atVelocity()):
+            self._controller.atPosition() and self._controller.atVelocity()):
             self._finish()
 
     def _finish(self):
@@ -550,6 +550,146 @@ class MoveInPlane(Motion):
         
     def stop(self):
         pass
+
+    @staticmethod
+    def isComplete():
+        return True
+
+
+class StepChangeDepth(Motion):
+    def __init__(self, desiredDepth, steps):
+        """
+        @type  desiredDepth: float
+        @param desiredDepth: Depth you wish the sub to be at
+        
+        @type  steps: int
+        @param steps: Number of increments you wish to change depth in   
+        """
+        Motion.__init__(self, _type = Motion.DEPTH)
+        
+        self._steps = steps
+        self._desiredDepth = desiredDepth
+        self._conn = None
+        
+    def _start(self):
+        # Register to recieve AT_DEPTH events
+        self._conn = self._eventHub.subscribe(control.IController.AT_DEPTH,
+                                              self._controller, self._atDepth)
+
+        oldDesiredDepth = self._controller.getDesiredDepth()
+        self._stepChangeSize = (self._desiredDepth - oldDesiredDepth) / self._steps
+	
+        # Start changing depth
+        self._nextDepth()
+                
+    def _nextDepth(self):
+        """
+        Decreases depth by one 'step' of the remaining depth change
+        """
+        self._controller.changeDepth(self._controller.getDesiredDepth() \
+                                         + self._stepChangeSize, 0)
+        
+    def _atDepth(self, event):
+        """
+        AT_DEPTH event handler,
+        called when the vehicle reaches the command depth
+        """
+        self._steps -= 1
+        if not (self._steps == 0):
+            self._nextDepth()
+        else:
+            self._finish()
+                
+    def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and publishes finish event
+        """
+        Motion._finish(self)
+        self._conn.disconnect()
+	
+    def stop(self):
+        self._conn.disconnect()
+	
+    @staticmethod
+    def isComplete():
+        return True
+
+
+class RateChangeDepth(Motion):
+    NEXT_DEPTH = core.declareEventType('NEXT_DEPTH')
+    
+    def __init__(self, desiredDepth, speed, rate = 10):
+        """
+        @type  desiredDepth: float
+        @param desiredDepth: Depth you wish the sub to be at
+        
+        @type  steps: int
+        @param steps: Number of increments you wish to change depth in   
+        """
+
+        Motion.__init__(self, _type = Motion.DEPTH)
+
+        self._desiredDepth = desiredDepth
+        self._speed = float(speed)
+        self._rate = float(rate)
+        self._interval = 1 / float(rate)
+        self._conn = None
+        self._timer = None
+        
+    # Properties
+    @property
+    def desiredDepth(self):
+        return self._desiredDepth
+    
+    @property
+    def speed(self):
+        return self._speed
+    
+    # Methods
+    def _start(self):
+        # Ensure the controller is consistent with vehicle
+        currentDepth = self._estimator.getEstimatedDepth()
+        self._controller.changeDepth(currentDepth, 0)
+        
+        absDepthDifference = pmath.fabs(currentDepth - self._desiredDepth)
+
+        self._stepCount = absDepthDifference / (self._speed / self._rate)
+        if self._stepCount != 0:
+            self._stepSize = (self._desiredDepth - currentDepth) / self._stepCount
+        else:
+            self._stepSize = 0.0001
+        self._stepCount = int(self._stepCount)
+        
+        self._timer  = timer.Timer(self, RateChangeDepth.NEXT_DEPTH,
+                                   self._interval, repeat = True)
+        # Register to NEXT_DEPTH events
+        self._conn = self._eventHub.subscribeToType(RateChangeDepth.NEXT_DEPTH,
+                                                    self._onTimer)
+        self._timer.start()
+
+    def _onTimer(self, event):
+        setDepth = self._controller.getDesiredDepth()
+        depthDiff = pmath.fabs(setDepth - self._desiredDepth)
+        
+        if (self._stepCount > 0) and (depthDiff > 0.0001):
+            self._controller.changeDepth(self._controller.getDesiredDepth() + \
+                                             self._stepSize, 0)
+            self._stepCount -= 1
+        else:
+            self._finish()
+            
+    def _finish(self):
+        """
+        Finishes off the motion, disconnects events, and putlishes finish event
+        """
+        self.stop()
+        Motion._finish(self)
+
+    def stop(self):
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
 
     @staticmethod
     def isComplete():

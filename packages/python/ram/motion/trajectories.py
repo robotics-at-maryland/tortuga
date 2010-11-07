@@ -11,6 +11,7 @@ import numpy
 
 # Project Imports
 import ext.math as math
+import ram.timer as timer
 
 class Trajectory:
     """
@@ -64,13 +65,9 @@ class ScalarCubicTrajectory(Trajectory):
     This trajectory will be useful for changing depths.
     """
 
-    # The following slopes were determined to correspond roughly to
-    # calculate the time interval for the trajectory as follows
-    # time_interval = magic_slope[speed] * (final_value - initial_value)
-    # the speed is currently limited at 5.  More magic slopes can be
-    # determined from contour plots of specified max speeds on
-    # time_interval vs change_in_value
-    MAGIC_RATE_SLOPES = [1.45, 0.7465, 0.5, 0.375, 0.2147]
+    # The following slopes were determined by experimentation to give us some
+    # way to control the speed of the dive
+    MAGIC_RATE_SLOPES = [4, 3, 2.5, 2, 1.5]
 
     def __init__(self, initialValue, finalValue, initialTime, initialRate = 0,
                  finalRate = 0, maxRate = 4):
@@ -83,28 +80,34 @@ class ScalarCubicTrajectory(Trajectory):
         self._initialTime = initialTime
 
         # compute the final time
-        self._finalTime = initialTime + self.approximateTimeInterval(
+        self._timeInterval = self.approximateTimeInterval(
             pmath.fabs(finalValue - initialValue), maxRate)
 
         # the matrix will be singular if initial and final values are equal
         # this shouldn't happen but 
         if initialValue == finalValue:
-            tf = initialTime
+            tf = 0
             self._coefficients = None
             self._maxRate = 0
 
         else:
-            ti = initialTime
-            tf = self._finalTime
+            # we solve for the polynomial starting at time 0 to avoid
+            # numerical problems that could occur if we use the given
+            # initial time.
+            ti = 0
+            tf = self._timeInterval
 
             # compute matrix A and vector b for equation Ax = b
             ti_p2 = ti * ti
             ti_p3 = ti_p2 * ti
 
+            tf_p2 = tf * tf
+            tf_p3 = tf_p2 * tf
+
             A = numpy.array([[1, ti, ti_p2, ti_p3],
-                             [1, tf, ti_p2, ti_p3],
+                             [1, tf, tf_p2, tf_p3],
                              [0, 1, 2 * ti, 3 * ti_p2],
-                             [0, 1, 2 * tf, 3 * ti_p2]])
+                             [0, 1, 2 * tf, 3 * tf_p2]])
         
             b = numpy.array([initialValue, finalValue, initialRate, finalRate])
 
@@ -117,9 +120,13 @@ class ScalarCubicTrajectory(Trajectory):
 
 
     def computeValue(self, time):
-        if time < self._initialTime:
+        # compute the time from the beginning of the trajectory
+        # because we have constructed the trajectory starting at time 0
+        time = time - self._initialTime
+
+        if time < 0:
             return self._initialValue
-        elif time >= self._finalTime:
+        elif time >= self._timeInterval:
             return self._finalValue
         else:
             c = self._coefficients
@@ -127,7 +134,7 @@ class ScalarCubicTrajectory(Trajectory):
 
     def computeDerivative(self, time, order):
         # handle t < ti
-        if time < self._initialTime:
+        if time < 0:
             if order == 1:
                 return self._initialRate
             elif order > 1:
@@ -136,7 +143,7 @@ class ScalarCubicTrajectory(Trajectory):
                 return None
 
         # handle t > tf
-        if time >= self._finalTime:
+        if time >= self._timeInterval:
             if order == 1:
                 return self._finalRate
             elif order > 1:
@@ -161,7 +168,7 @@ class ScalarCubicTrajectory(Trajectory):
         return self._initialTime
 
     def getFinalTime(self):
-        return self._finalTime
+        return self._initialTime + self._timeInterval
 
     def getMaxOfDerivative(self, order):
         if order == 1:

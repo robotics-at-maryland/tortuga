@@ -166,7 +166,7 @@ Controller:
 
     velocityThreshold: 0.1
     positionThreshold: 0.1
-    depthThreshold: 0.05
+    depthThreshold: 0.1
     orientationThreshold: 0.01
 
     TranslationalController:
@@ -184,8 +184,8 @@ Controller:
 
     DepthController:
         type: PIDDepthController
-        kp: 30
-        ki: 0.5
+        kp: 70
+        ki: 2
         kd: 10
         dtMin: 0.005
         dtMax: 0.05
