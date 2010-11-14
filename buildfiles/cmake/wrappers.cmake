@@ -1,0 +1,15 @@
+
+find_package(PythonLibs)
+include_directories(${PYTHON_INCLUDE_PATH})
+set(WRAPPER_DIR ${CMAKE_SOURCE_DIR}/build_ext)
+
+macro(generate_wrappers _module)
+  set(_src ${_module}/${_module}.i)
+  set(SWIG_MODULE_${_module}_EXTRA_FLAGS "-DRAM_EXPORT")
+  make_directory(${CMAKE_BINARY_DIR}/wrappers/${_module})
+  include_directories(${CMAKE_SOURCE_DIR}/packages/${_module}/include)
+  set_source_files_properties(${_src} PROPERTIES CPLUSPLUS ON)
+  set_source_files_properties(${_src} PROPERTIES SWIG_FLAGS "-Wall")
+  swig_add_module(${_module} python ${_src})
+  swig_link_libraries(${_module} ram_${_module} ${PYTHON_LIBRARIES})
+endmacro ()
