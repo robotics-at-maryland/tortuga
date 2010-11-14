@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Robotics  Maryland
  * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *

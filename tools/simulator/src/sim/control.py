@@ -14,6 +14,7 @@ import math as pmath
 # Project Imports
 import ext.core as core
 import ext.control as control
+import ext.estimation as estimation
 import ext.math as math
 
 import ram.sim.input as input
@@ -31,10 +32,12 @@ event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
 class KeyboardController(core.Subsystem):
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'KeyboardController'))
-#        self._controller = control.IController.castTo(deps[0])
-        self._controller = deps[0]
-        self._stateEstimator = deps[1]
-        
+
+        self._controller = core.Subsystem.getSubsystemOfType(
+            control.IController, deps)
+        self._stateEstimator = core.Subsystem.getSubsystemOfType(
+            estimation.IStateEstimator, deps)
+
         # Hook into input system
         watched_buttons = {'_left' : ['TURN_LEFT'],
                            '_right' : ['TURN_RIGHT'],

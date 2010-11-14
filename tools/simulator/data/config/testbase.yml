@@ -114,11 +114,11 @@ TimerManager:
     type: TimerManager
     depends_on: ["EventHub"]
 
-#RemoteController:
-#    type: RemoteController
-#    depends_on: ["Controller"]
-#    update_interval: -1
-#    yawGain: 50
+RemoteController:
+    type: RemoteController
+    depends_on: ["Controller", "StateEstimator"]
+    update_interval: -1
+    yawGain: 50
 
 Logging:
     type: Logging
@@ -170,17 +170,17 @@ Controller:
     orientationThreshold: 0.01
 
     TranslationalController:
-        #type: TrackingTranslationalController
-        #x1kp: 10
-        #x1ki: 1
-        #x1kd: 3
-        #x2kp: 10
-        #x2ki: 1
-        #x2kd: 3
+        type: TrackingTranslationalController
+        x1kp: 10
+        x1ki: 1
+        x1kd: 3
+        x2kp: 10
+        x2ki: 1
+        x2kd: 3
 
-        type: OpenLoopTranslationalController
-        speedPGain: 8
-        sidewaysSpeedPGain: 8
+        #type: OpenLoopTranslationalController
+        #speedPGain: 8
+        #sidewaysSpeedPGain: 8
 
     DepthController:
         type: PIDDepthController

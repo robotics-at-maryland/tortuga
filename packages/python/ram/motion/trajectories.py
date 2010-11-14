@@ -69,8 +69,8 @@ class ScalarCubicTrajectory(Trajectory):
     # way to control the speed of the dive
     MAGIC_RATE_SLOPES = [4, 3, 2.5, 2, 1.5]
 
-    def __init__(self, initialValue, finalValue, initialTime, initialRate = 0,
-                 finalRate = 0, maxRate = 4):
+    def __init__(self, initialValue, finalValue, initialTime,
+                 initialRate = 0, finalRate = 0, maxRate = 3):
 
         # keep track of the arguments
         self._initialValue = initialValue

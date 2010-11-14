@@ -21,7 +21,8 @@ class TestIController(unittest.TestCase):
             "DepthController" : {"type" : "PIDDepthController"},
             "RotationalController" : {"type" : "NonlinearPDRotationalController"},
             "holdCurrentDepth" : 0,
-            "holdCurrentHeading" : 0
+            "holdCurrentHeading" : 0,
+            "holdCurrentPosition" : 0
         }
         cfg = core.ConfigNode.fromString(str(cfg))
         obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())

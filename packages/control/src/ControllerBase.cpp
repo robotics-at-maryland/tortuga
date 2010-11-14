@@ -63,7 +63,8 @@ ControllerBase::ControllerBase(core::EventHubPtr eventHub,
     m_velocityThreshold(0.05),
     m_positionThreshold(0.05),
     m_initHoldDepth(1),
-    m_initHoldHeading(1)
+    m_initHoldHeading(1),
+    m_initHoldPosition(1)
 {   
     init(config, eventHub); 
 }
@@ -95,7 +96,8 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_velocityThreshold(0.05),
     m_positionThreshold(0.05),
     m_initHoldDepth(1),
-    m_initHoldHeading(1)
+    m_initHoldHeading(1),
+    m_initHoldPosition(1)
 {
     core::EventHubPtr eventHub = 
         core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
@@ -338,11 +340,14 @@ void ControllerBase::init(core::ConfigNode config,
 
     m_initHoldDepth = config["holdCurrentDepth"].asInt(1);
     m_initHoldHeading = config["holdCurrentHeading"].asInt(1);
+    m_initHoldPosition = config["holdCurrentPosition"].asInt(1);
 
     if(m_initHoldDepth)
         holdCurrentDepth();
     if(m_initHoldHeading)
         holdCurrentHeading();
+    if(m_initHoldPosition)
+        holdCurrentPosition();
 }
                       
 void ControllerBase::publishAtDepth(const double& depth)

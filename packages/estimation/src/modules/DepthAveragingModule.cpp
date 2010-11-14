@@ -29,7 +29,7 @@ DepthAveragingModule::DepthAveragingModule(
     EstimationModule(eventHub, "DepthAveragingModule")
 {
     /* initialization of estimator from config values should be done here */
-    LOGGER.info("% Name EstDepth RawDepth Correction");
+    LOGGER.info("% RawDepth Correction EstDepth EstDepthRate");
 }
 
 void DepthAveragingModule::update(
@@ -53,14 +53,14 @@ void DepthAveragingModule::update(
     math::Vector3 location = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
         estimatedState->getEstimatedOrientation() * location;
-    math::Vector3 sensorMovement = 
-        currentSensorLocation - location;
+    math::Vector3 sensorMovement = currentSensorLocation - location;
     double correction = sensorMovement.z;
 
     double timestep = ievent->timestep;
 
     // grab the depth and calculate the depth rate
-    double depth = ievent->rawDepth + correction;
+    double rawDepth = ievent->rawDepth;
+    double depth = rawDepth + correction;
     double depthRate = (depth - m_previousDepth) / timestep;
 
     // put the depth into the averaging filter
@@ -70,13 +70,16 @@ void DepthAveragingModule::update(
     /* Return the corrected depth (its addition and not subtraction because
      * depth is positive down) */
 
-    estimatedState->setEstimatedDepth(m_filteredDepth.getValue());
-    estimatedState->setEstimatedDepthRate(m_filteredDepthRate.getValue());
+    double estDepth = m_filteredDepth.getValue();
+    double estDepthRate = m_filteredDepthRate.getValue();
 
-    LOGGER.infoStream() << m_name << " "
-                        << depth + correction << " "
-                        << depth << " "
-                        << correction;
+    estimatedState->setEstimatedDepth(estDepth);
+    estimatedState->setEstimatedDepthRate(estDepthRate);
+
+    LOGGER.infoStream() << rawDepth<< " "
+                        << correction << " "
+                        << estDepth << " "
+                        << estDepthRate;
 }
 
 } // namespace estimation

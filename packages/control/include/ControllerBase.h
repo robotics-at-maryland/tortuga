@@ -244,7 +244,7 @@ private:
     /** determine if we initially hold our depth and heading */
     int m_initHoldDepth;
     int m_initHoldHeading;
-    
+    int m_initHoldPosition;
 };
     
 } // namespace control

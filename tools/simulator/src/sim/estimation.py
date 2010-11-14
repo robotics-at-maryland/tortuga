@@ -5,6 +5,9 @@
 # Author: Jonathan Sternberg <jsternbe@umd.edu>
 # File:  tools/simulator/src/sim/estimation.py
 
+from __future__ import with_statement
+import threading as threading
+
 # Project Imports
 import ext.core as core
 import ext.math as math
@@ -50,56 +53,65 @@ class IdealStateEstimator(estimation.IStateEstimator):
         self.oldPos = self.initialPos
         self.velocity = math.Vector2(0, 0)
 
+        self._lock = threading.Lock()
+
     def getEstimatedPosition(self):
         """
         Gets the robot's relative position in the world. Position is
         relative to the starting location of the robot.
         """
-        if self.robot is not None:
-            return math.Vector2(self.robot._main_part._node.position.x,
-                                -self.robot._main_part._node.position.y)
-        else:
-            return math.Vector2.ZERO
+        with self._lock:
+            if self.robot is not None:
+                return math.Vector2(self.robot._main_part._node.position.x,
+                                    -self.robot._main_part._node.position.y)
+            else:
+                return math.Vector2.ZERO
 
     def getEstimatedVelocity(self):
         """
         Gets the robot's velocity.
         """
-        return self.velocity
+        with self._lock:
+            return self.velocity
 
     def getEstimatedLinearAcceleration(self):
-        if self.robot is not None:
-            baseAccel = convertToVector3(math.Vector3,
-                                         self.robot._main_part.acceleration)
-            
-            # Add in gravity
-            return baseAccel + math.Vector3(0, 0, -9.8)
-        else:
-            return math.Vector3.ZERO
+        with self._lock:
+            if self.robot is not None:
+                baseAccel = convertToVector3(math.Vector3,
+                                             self.robot._main_part.acceleration)
+                
+                # Add in gravity
+                return baseAccel + math.Vector3(0, 0, -9.8)
+            else:
+                return math.Vector3.ZERO
 
     def getEstimatedAngularRate(self):
-        if self.robot is not None:
-            return convertToVector3(math.Vector3,
-                                    self.robot._main_part.angular_accel)
-        else:
-            return math.Vector3.ZERO
+        with self._lock:
+            if self.robot is not None:
+                return convertToVector3(math.Vector3,
+                                        self.robot._main_part.angular_accel)
+            else:
+                return math.Vector3.ZERO
 
     def getEstimatedOrientation(self):
-        if self.robot is not None:
-            return convertToQuaternion(math.Quaternion,
-                                       self.robot._main_part._node.orientation)
-        else:
-            return math.Quaternion.IDENTITY
+        with self._lock:
+            if self.robot is not None:
+                return convertToQuaternion(math.Quaternion,
+                                           self.robot._main_part._node.orientation)
+            else:
+                return math.Quaternion.IDENTITY
 
     def getEstimatedDepth(self):
-        if self.robot is not None:
-            # Down is positive for depth
-            return -3.281 * self.robot._main_part._node.position.z
-        else:
-            return 0
+        with self._lock:
+            if self.robot is not None:
+                # Down is positive for depth
+                return -3.281 * self.robot._main_part._node.position.z
+            else:
+                return 0
 
     def getEstimatedDepthDot(self):
-        return 0
+        with self._lock:
+            return 0
 
     def addObstacle(self, name, obstacle):
         self._obstacles[name] = obstacle

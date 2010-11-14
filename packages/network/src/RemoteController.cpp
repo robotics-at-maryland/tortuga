@@ -21,6 +21,7 @@
 #include "core/include/SubsystemMaker.h"
 #include "estimation/include/IStateEstimator.h"
 #include "math/include/Helpers.h"
+#include "math/include/Quaternion.h"
 
 // TODO: move these to configured data memebers of the class
 // Setting for the hand control inputs
@@ -84,6 +85,7 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_stateEstimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps))
 {
     assert(m_controller.get() != 0 && "Did not get controller");
+    assert(m_stateEstimator.get() != 0 && "Did not get estimator");
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
     m_minDepth = config["minDepth"].asDouble(MIN_DEPTH);
     m_depthEnc = config["depthEnc"].asDouble(DEPTH_ENC);
@@ -132,15 +134,15 @@ void RemoteController::update(double)
     }
     //printf("Got message\n");
 
-    if (backgrounded())
-    {
+//    if (backgrounded())
+//    {
         // Break out commands and parameters
         unsigned char cmd = buf[0];
         signed char param = buf[1];
         //printf("Procssing");
         // Process Packet (If quit message drop out of loop, stop running)
         processMessage(cmd, param);
-    }
+//    }
 }
 
 void RemoteController::background(int interval)
@@ -149,7 +151,7 @@ void RemoteController::background(int interval)
         setupNetworking(m_port);        
     core::Updatable::background(interval);
 }
-    
+
 void RemoteController::unbackground(bool join)
 {
     if (-1 != m_sockfd)
@@ -331,13 +333,15 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         math::Vector2 position = m_stateEstimator->getEstimatedPosition();
         
         // get the current desired yaw
-        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
+        math::Quaternion orientation = m_stateEstimator->getEstimatedOrientation();
+
+        double yaw = orientation.getYaw().valueRadians();
 
         math::Vector2 newVelocity_b(param, 0);
         math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
 
         if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
-            newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
+           newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
         {
             m_controller->translate(position, newVelocity_n);
             //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
@@ -354,13 +358,15 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         math::Vector2 position = m_stateEstimator->getEstimatedPosition();
         
         // get the current desired yaw
-        double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
+        math::Quaternion orientation = m_stateEstimator->getEstimatedOrientation();
+
+        double yaw = orientation.getYaw().valueRadians();
 
         math::Vector2 newVelocity_b(0, param);
         math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
 
         if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
-            newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
+           newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
         {
             m_controller->translate(position, newVelocity_n);
             //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
@@ -415,7 +421,7 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
     }
 
     }
-
+    
     // Return true to keep running
     return true;
 }

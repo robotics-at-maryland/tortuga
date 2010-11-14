@@ -358,7 +358,7 @@ class Motion(object):
 class ChangeDepth(Motion):
     DEPTH_TRAJECTORY_UPDATE  = core.declareEventType('DEPTH_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, updateRate = 1/25):
+    def __init__(self, trajectory, updateRate = 0.04):
         """
         @type  Trajectory
         @param trajecotry
@@ -426,6 +426,7 @@ class ChangeOrientation(Motion):
 
     def __init__(self, trajectory, updateRate = 25):
         """
+        The trajectory must return Quaternion value and Vector3 derivative
         @type  trajectory: Trajctory
         @param trajectory: Heading you wish to sub to be at
         
@@ -458,7 +459,7 @@ class ChangeOrientation(Motion):
         self._controller.rotate(initialOrientation, initialRate)
         
 
-    def _update():
+    def _update(self, event):
         currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
@@ -488,13 +489,13 @@ class ChangeOrientation(Motion):
     @staticmethod
     def isComplete():
         return True
-
-class MoveInPlane(Motion):
+class Translate(Motion):
     INPLANE_TRAJECTORY_UPDATE = core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
-    def __init_(self, trajectory, updateRate = 25):
+    def __init__(self, trajectory, updateRate = 25):
         """
         Initializes the motion to execute a trajectory at the specified rate
+        The trajectory must return Vector2 values and derivatives
         @type  trajectory: Trajctory
         @param trajectory: Heading you wish to sub to be at
         
@@ -511,11 +512,11 @@ class MoveInPlane(Motion):
     def _start(self):
 
         self._timer  = timer.Timer(
-            self, MoveInPlane.INPLANE_TRAJECTORY_UPDATE,
+            self, Translate.INPLANE_TRAJECTORY_UPDATE,
             self._interval, repeat = True)
 
         self._conn = self._eventHub.subscribeToType(
-            MoveInPlane.INPLANE_TRAJECTORY_UPDATE,
+            Translate.INPLANE_TRAJECTORY_UPDATE,
             self._update)
 
         # evaluate the initial state of the trajectory
@@ -524,9 +525,9 @@ class MoveInPlane(Motion):
         initialVelocity = self._trajectory.computeDerivative(initialTime,1)
         
         # send the initial values to the controller
-        self._controller.rotate(initialPosition, initialVelocity)
+        self._controller.translate(initialPosition, initialVelocity)
 
-    def _update(self):
+    def _update(self, event):
         currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
