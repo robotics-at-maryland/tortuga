@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Sternberg <jsternbe@umd.edu>
- * File:  packages/network/include/NetworkHub.h
+ * File:  packages/network/include/NetworkPublisher.h
  */
 
 #ifndef RAM_NETWORK_NETWORKHUB_11_11_2010
@@ -28,15 +28,15 @@
 namespace ram {
 namespace network {
 
-class RAM_EXPORT NetworkHub :
+class RAM_EXPORT NetworkPublisher :
         public core::Subsystem,
         public core::Updatable
 {
   public:
-    NetworkHub(core::ConfigNode config,
+    NetworkPublisher(core::ConfigNode config,
                core::SubsystemList deps = core::SubsystemList());
 
-    virtual ~NetworkHub();
+    virtual ~NetworkPublisher();
 
     /** Does nothing (reads are done in a background process) */
     virtual void update(double timeSinceLastUpdate);

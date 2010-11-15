@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Sternberg <jsternbe@umd.edu>
- * File:  packages/network/src/NetworkHub.cpp
+ * File:  packages/network/src/NetworkPublisher.cpp
  */
 
 // STD Includes
@@ -15,7 +15,7 @@
 #include <boost/archive/text_oarchive.hpp>
 
 // Project Includes
-#include "network/include/NetworkHub.h"
+#include "network/include/NetworkPublisher.h"
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
 #include "logging/include/Serialize.h"
@@ -25,42 +25,42 @@
 
 #define PORT 51346
 
-RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkHub,
-                                  NetworkHub);
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkPublisher,
+                                  NetworkPublisher);
 
 using namespace boost::asio::ip;
 
 namespace ram {
 namespace network {
 
-NetworkHub::NetworkHub(core::ConfigNode config,
-                       core::SubsystemList deps) :
-    core::Subsystem(config["name"].asString("NetworkHub"),
+NetworkPublisher::NetworkPublisher(core::ConfigNode config,
+                                   core::SubsystemList deps) :
+    core::Subsystem(config["name"].asString("NetworkPublisher"),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_eventHub(core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     socket_(io_service, udp::endpoint(udp::v4(), config["port"].asInt(PORT))),
     m_bthread(0)
 {
     assert(m_eventHub && "Need an EventHub");
-    m_eventHub->subscribeToAll(boost::bind(&NetworkHub::handleEvent, this, _1));
+    m_eventHub->subscribeToAll(boost::bind(&NetworkPublisher::handleEvent, this, _1));
 }
 
-NetworkHub::~NetworkHub()
+NetworkPublisher::~NetworkPublisher()
 {
 }
 
-void NetworkHub::update(double timeSinceLastUpdate)
+void NetworkPublisher::update(double timeSinceLastUpdate)
 {
 }
 
-void NetworkHub::background(int interval)
+void NetworkPublisher::background(int interval)
 {
     startReceive();
     m_bthread = new boost::thread(
-        boost::bind(&NetworkHub::serviceRequests, this));
+        boost::bind(&NetworkPublisher::serviceRequests, this));
 }
 
-void NetworkHub::unbackground(bool join)
+void NetworkPublisher::unbackground(bool join)
 {
     io_service.stop();
     m_bthread->join();
@@ -69,21 +69,21 @@ void NetworkHub::unbackground(bool join)
     m_bthread = 0;
 }
 
-bool NetworkHub::backgrounded()
+bool NetworkPublisher::backgrounded()
 {
     return m_bthread != NULL;
 }
 
-void NetworkHub::startReceive()
+void NetworkPublisher::startReceive()
 {
     socket_.async_receive_from(
         boost::asio::buffer((char *) NULL, 0), sender_endpoint,
-        boost::bind(&NetworkHub::handleReceiveFrom, this,
+        boost::bind(&NetworkPublisher::handleReceiveFrom, this,
                     boost::asio::placeholders::error,
                     boost::asio::placeholders::bytes_transferred));
 }
 
-void NetworkHub::handleReceiveFrom(const boost::system::error_code& err,
+void NetworkPublisher::handleReceiveFrom(const boost::system::error_code& err,
                                    size_t bytes_recvd)
 {
     if (!err) {
@@ -96,17 +96,17 @@ void NetworkHub::handleReceiveFrom(const boost::system::error_code& err,
     startReceive();
 }
 
-void NetworkHub::handleSend(const boost::system::error_code& err,
+void NetworkPublisher::handleSend(const boost::system::error_code& err,
                             size_t bytes_sent)
 {
 }
 
-void NetworkHub::serviceRequests()
+void NetworkPublisher::serviceRequests()
 {
     io_service.run();
 }
 
-void NetworkHub::handleEvent(core::EventPtr event)
+void NetworkPublisher::handleEvent(core::EventPtr event)
 {
     // Serialize event to archive
     std::stringstream sstream;
@@ -121,7 +121,7 @@ void NetworkHub::handleEvent(core::EventPtr event)
             socket_.async_send_to(
                 boost::asio::buffer(sstream.str(), sstream.str().size()),
                 recipient,
-                boost::bind(&NetworkHub::handleSend, this,
+                boost::bind(&NetworkPublisher::handleSend, this,
                             boost::asio::placeholders::error,
                             boost::asio::placeholders::bytes_transferred));
         }
