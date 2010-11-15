@@ -115,9 +115,6 @@ void EventLogger::init(core::ConfigNode config, core::SubsystemList deps)
     // Create our archive
     m_archive = new boost::archive::text_oarchive(m_logFile);
 
-    // Register all types with the archive
-    ram::logging::registerTypes(*m_archive);
-
     // Get our subsystem
     core::EventHubPtr eventHub =
          core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
