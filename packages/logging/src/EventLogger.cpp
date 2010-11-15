@@ -54,7 +54,7 @@ EventLogger::~EventLogger()
     // Flush the log to disk
     core::EventPtr event;
     while(m_eventQueue.popNoWait(event))
-        writeEvent(event);
+        writeEvent(event, *m_archive);
 
     // Close the log file
     m_logFile.close();
@@ -66,7 +66,7 @@ void EventLogger::update(double)
     core::EventPtr event;
     
     while(m_eventQueue.popNoWait(event))
-        writeEvent(event);
+        writeEvent(event, *m_archive);
 }
 
 void EventLogger::setPriority(core::IUpdatable::Priority priority)
@@ -128,30 +128,6 @@ void EventLogger::queueEvent(core::EventPtr event)
 {
     // Queue up the event so it will get logged to disk in the background
     m_eventQueue.push(event);
-}
-
-void EventLogger::writeEvent(core::EventPtr event)
-{
-    std::string typeName(typeid(*(event.get())).name());
-    try
-    {
-        // Only attempt to convert events we now we can convert
-        if (m_unconvertableTypes.end() == m_unconvertableTypes.find(typeName))
-            (*m_archive) << event;
-    }
-    catch (boost::archive::archive_exception ex)
-    {
-        if (ex.code == boost::archive::archive_exception::unregistered_class)
-        {
-            std::cerr << "Could not convert: " << typeName << event->type
-                      << std::endl;
-            m_unconvertableTypes.insert(typeName);
-        }
-        else
-        {
-            throw ex;
-        }
-    }
 }
     
 } // namespace logging

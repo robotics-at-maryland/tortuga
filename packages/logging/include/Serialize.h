@@ -11,6 +11,11 @@
 #ifndef RAM_LOGGING_SERIALIZE_H_03_05_2009
 #define RAM_LOGGING_SERIALIZE_H_03_05_2009
 
+// STD Includes
+#include <set>
+#include <string>
+#include <typeinfo>
+
 // Library Includes
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/split_free.hpp>
@@ -21,6 +26,7 @@
 
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/thread/mutex.hpp>
 
 // Project Includes
 #include "core/include/Feature.h"
@@ -43,6 +49,47 @@
 #ifdef RAM_WITH_CONTROL
 #include "control/include/Events.h"
 #endif
+
+// ------------------------------------------------------------------------- //
+//                 S E R I A L I Z A T I O N   U T I L I T I E S             //
+// ------------------------------------------------------------------------- //
+
+namespace ram {
+namespace logging {
+
+static boost::mutex writeMutex;
+static std::set<std::string> unconvertableTypes;
+
+template <class Archive>
+bool writeEvent(core::EventPtr event, Archive& archive)
+{
+    std::string typeName(typeid(*(event.get())).name());
+    boost::mutex::scoped_lock lock(writeMutex);
+    try
+    {
+        // Only attempt to convert events we now we can convert
+        if (unconvertableTypes.end() == unconvertableTypes.find(typeName))
+            archive << event;
+        return true;
+    }
+    catch (boost::archive::archive_exception ex)
+    {
+        if (ex.code == boost::archive::archive_exception::unregistered_class)
+        {
+            std::cerr << "Could not convert: " << typeName << event->type
+                      << std::endl;
+            unconvertableTypes.insert(typeName);
+        }
+        else
+        {
+            throw ex;
+        }
+        return false;
+    }
+}
+
+} // namespace logging
+} // namespace ram
 
 namespace boost {
 namespace serialization {
