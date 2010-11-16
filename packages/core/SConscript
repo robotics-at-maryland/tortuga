@@ -47,10 +47,6 @@ envt.RAMProgram(target = 'UpdatableTest',
 envt.RAMProgram(target = 'AvgFilterTest',
                 source = ['test/src/AvgTest.cpp'], int_deps = testIntDeps)
 
-envt.RAMProgram(target = 'SGolayFilter',
-                source = ['test/src/SGolayFilter.cpp'], int_deps = testIntDeps)
-
-
 # Unit Tests
 envt = env.Clone()
 if platform.system() in ['Linux']:
