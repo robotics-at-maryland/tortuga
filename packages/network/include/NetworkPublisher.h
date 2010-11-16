@@ -7,15 +7,15 @@
  * File:  packages/network/include/NetworkPublisher.h
  */
 
-#ifndef RAM_NETWORK_NETWORKHUB_11_11_2010
-#define RAM_NETWORK_NETWORKHUB_11_11_2010
+#ifndef RAM_NETWORK_NETWORKPUBLISHER_11_11_2010
+#define RAM_NETWORK_NETWORKPUBLISHER_11_11_2010
 
 // STD Includes
+#include <stdint.h>
 #include <set>
 
 // Library Includes
 #include <boost/asio.hpp>
-#include <boost/cstdint.hpp>
 #include <boost/thread.hpp>
 
 // Project Includes
@@ -34,7 +34,7 @@ class RAM_EXPORT NetworkPublisher :
 {
   public:
     NetworkPublisher(core::ConfigNode config,
-               core::SubsystemList deps = core::SubsystemList());
+                     core::SubsystemList deps = core::SubsystemList());
 
     virtual ~NetworkPublisher();
 
@@ -62,6 +62,8 @@ class RAM_EXPORT NetworkPublisher :
     virtual void unbackground(bool join = false);
 
     virtual bool backgrounded();
+
+    static const uint16_t PORT;
 
   private:
     void startReceive();
@@ -92,4 +94,4 @@ class RAM_EXPORT NetworkPublisher :
 } // namespace network
 } // namespace ram
 
-#endif // RAM_NETWORK_NETWORKHUB_11_11_2010
+#endif // RAM_NETWORK_NETWORKPUBLISHER_11_11_2010

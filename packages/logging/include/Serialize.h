@@ -68,9 +68,11 @@ bool writeEvent(core::EventPtr event, Archive& archive)
     try
     {
         // Only attempt to convert events we now we can convert
-        if (unconvertableTypes.end() == unconvertableTypes.find(typeName))
+        bool convertable = unconvertableTypes.end() ==
+            unconvertableTypes.find(typeName);
+        if (convertable)
             archive << event;
-        return true;
+        return convertable;
     }
     catch (boost::archive::archive_exception ex)
     {

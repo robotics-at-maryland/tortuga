@@ -23,8 +23,6 @@
 // Must be included last
 #include "network/include/Export.h"
 
-#define PORT 51346
-
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkPublisher,
                                   NetworkPublisher);
 
@@ -32,6 +30,8 @@ using namespace boost::asio::ip;
 
 namespace ram {
 namespace network {
+
+const uint16_t NetworkPublisher::PORT = 51346;
 
 NetworkPublisher::NetworkPublisher(core::ConfigNode config,
                                    core::SubsystemList deps) :
@@ -110,16 +110,21 @@ void NetworkPublisher::handleEvent(core::EventPtr event)
 {
     // Serialize event to archive
     std::stringstream sstream;
-    boost::archive::text_oarchive archive(sstream);
+    bool writeSuccessful = false;
+
+    {
+        boost::archive::text_oarchive archive(sstream);
+        writeSuccessful = logging::writeEvent(event, archive);
+    }
 
     // Send serialized data to all registered endpoints
-    if ( logging::writeEvent(event, archive) )
+    if ( writeSuccessful )
     {
         boost::mutex::scoped_lock lock(m_mutex);
         BOOST_FOREACH(udp::endpoint recipient, m_endpoints)
         {
             socket_.async_send_to(
-                boost::asio::buffer(sstream.str(), sstream.str().size()),
+                boost::asio::buffer(sstream.str(), sstream.str().size() + 1),
                 recipient,
                 boost::bind(&NetworkPublisher::handleSend, this,
                             boost::asio::placeholders::error,
