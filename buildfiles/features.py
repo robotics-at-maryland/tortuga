@@ -41,10 +41,8 @@ def get_features():
                 deps = ['core'])
     add_feature('vision', dirs = ['packages/vision'],
                 deps = ['pattern', 'core', 'math'])
-	
     add_feature('vehicle', dirs = ['packages/vehicle'],
                     deps = ['math', 'core', 'pattern'])
-    
     add_feature('control', dirs = ['packages/control'],
                 deps = ['math', 'core', 'vehicle'])
 
@@ -53,7 +51,8 @@ def get_features():
                      'math' : ['wrappers/math'],
                      'vehicle' : ['wrappers/vehicle'],
                      'vision' : ['wrappers/vision'],
-                     'core' : ['wrappers/core']})
+                     'core' : ['wrappers/core'],
+                     'logging' : ['wrappers/logging']})
                      
     if os.name == 'posix':
         add_feature('network', dirs = ['packages/network'])
