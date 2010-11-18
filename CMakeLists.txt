@@ -11,3 +11,7 @@ subdirs(packages/core)
 # subdirs(packages/network)
 # subdirs(packages/vehicle)
 # subdirs(packages/control)
+
+######             WRAPPERS             #####
+include(${RAM_CMAKE_DIR}/wrappers.cmake)
+subdirs(wrappers/core)
