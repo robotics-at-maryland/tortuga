@@ -18,6 +18,7 @@ if (UNIX)
 elseif (WIN32)
   add_definitions(-DRAM_WINDOWS)
 endif ()
+add_definitions(-DBOOST_PYTHON_NO_PY_SIGNATURES -fmessage-length=0)
 
 option(WITH_TESTS "Build with unit tests" ON)
 if (WITH_TESTS)

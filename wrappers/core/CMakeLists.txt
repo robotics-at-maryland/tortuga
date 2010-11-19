@@ -8,4 +8,4 @@ set(HEADERS
   QueuedEventPublisher.h
   Events.h
   )
-gccxml( core "${HEADERS}" )
+generate_wrappers( core "${HEADERS}" )

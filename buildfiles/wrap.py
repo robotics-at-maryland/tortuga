@@ -18,7 +18,6 @@ import sys
 import distutils.sysconfig
 
 # Library Imports
-import SCons
 import pyplusplus
 from pyplusplus import module_builder
 from pygccxml import parser
@@ -26,9 +25,7 @@ from pygccxml import declarations
 
 # Setup logger tied into py++
 decl_logger = pyplusplus._logging_.loggers.declarations
-
-# Build System Imports
-import libs
+basedir = os.path.abspath( os.path.join(os.path.dirname(__file__), '..', '..') )
 
 def find_out_container_traits( cls ):
     for ct in declarations.all_container_traits:
@@ -98,7 +95,7 @@ def add_needed_includes(classes):
 
     for cls in classes:
         filename = cls.location.file_name
-        if filename.startswith(os.environ['RAM_SVN_DIR']):
+        if filename.startswith(basedir):
             includes.add(filename)
 
         # Attempt to find all used classes in the header, and include there
@@ -109,7 +106,7 @@ def add_needed_includes(classes):
                 
                 # We only want the file names from our source tree
                 filename = decl.location.file_name
-                if filename.startswith(os.environ['RAM_SVN_DIR']):
+                if filename.startswith(basedir):
                     includes.add(filename)
         # An exception is returned if we don't find any, so we have to catch
         # and supress
