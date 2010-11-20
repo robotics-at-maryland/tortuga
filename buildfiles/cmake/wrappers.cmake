@@ -34,7 +34,7 @@ macro(pypp MODULE HEADERS)
   make_directory(generated)
   add_custom_command(
     OUTPUT ${PYPP_FILE}
-    COMMAND "PYTHONPATH=${CMAKE_SOURCE_DIR}" ${PYTHON_EXECUTABLE}
+    COMMAND ${PYTHON_EXECUTABLE}
     ARGS "scripts/pypp.py" "-t" "${GEN_SOURCES}" "-m" "_${MODULE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py" ${XMLFILES}
     DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"

@@ -7,6 +7,9 @@
  * File:  packages/core/src/Updatable.cpp
  */
 
+// STD Includes
+#include <stdio.h>
+
 // Library Includes
 #include <boost/cstdint.hpp>
 #include <boost/thread/xtime.hpp>

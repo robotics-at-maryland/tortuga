@@ -5,7 +5,7 @@
 # UnitTest++_INCLUDE_DIR, where to find the headers
 #
 
-FIND_PATH(UnitTest++_INCLUDE_DIR unittest++/UnitTest++.h
+FIND_PATH(UnitTest++_INCLUDE_DIR UnitTest++/UnitTest++.h
   /opt/ram/local/include
   /usr/local/include
   /usr/include
@@ -14,7 +14,7 @@ FIND_PATH(UnitTest++_INCLUDE_DIR unittest++/UnitTest++.h
   )
 
 FIND_LIBRARY(UnitTest++_LIB_DIR
-  NAMES unittest++
+  NAMES UnitTest++
   PATHS
   /opt/ram/local/lib
   /usr/local/lib
