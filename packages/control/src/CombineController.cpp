@@ -178,7 +178,7 @@ void CombineController::setSidewaysSpeed(double speed)
 void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = nRb(desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::nRb(desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
     desiredState->setDesiredVelocity(velocity);
     m_transController->setControlMode(ControlMode::VELOCITY);
 }
@@ -186,7 +186,7 @@ void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
 void CombineController::setDesiredPosition(math::Vector2 position, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        position = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+        position = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     desiredState->setDesiredPosition(position);
     m_transController->setControlMode(ControlMode::POSITION);
 }

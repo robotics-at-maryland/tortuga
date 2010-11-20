@@ -10,11 +10,9 @@
 // STD Includes
 #include <cmath>
 #include <cassert>
-#include <boost/bind.hpp>
 
-#ifdef RAM_WINDOWS
-#define M_PI 3.14159265358979323846
-#endif
+// Library Includes
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "control/include/ControllerBase.h"
@@ -31,7 +29,9 @@
 #include "math/include/Events.h"
 #include "math/include/Quaternion.h"
 
-using namespace std;
+#ifdef RAM_WINDOWS
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace ram {
 namespace control {
@@ -225,14 +225,14 @@ void ControllerBase::setSidewaysSpeed(double speed)
 void ControllerBase::setDesiredVelocity(math::Vector2 velocity, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        velocity = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     desiredState->setDesiredVelocity(velocity);
 }
 
 void ControllerBase::setDesiredPosition(math::Vector2 position, int frame)
 {
     if(frame == IController::BODY_FRAME)
-        position = nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+        position = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     desiredState->setDesiredPosition(position);
 }
 
@@ -256,7 +256,7 @@ double ControllerBase::getSidewaysSpeed()
 math::Vector2 ControllerBase::getVelocity()
 {
     math::Vector2 velocity(desiredState->getDesiredVelocity());
-    velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+    velocity = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -264,7 +264,7 @@ math::Vector2 ControllerBase::getDesiredVelocity(int frame)
 {
     math::Vector2 velocity(desiredState->getDesiredVelocity());
     if(frame == IController::BODY_FRAME)
-        velocity = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
+        velocity = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*velocity;
     return velocity;
 }
 
@@ -272,7 +272,7 @@ math::Vector2 ControllerBase::getDesiredPosition(int frame)
 {
     math::Vector2 position(desiredState->getDesiredPosition());
     if(frame == IController::BODY_FRAME)
-        position = bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
+        position = math::bRn(m_vehicle->getOrientation().getYaw().valueRadians())*position;
     return position;
 }
 
