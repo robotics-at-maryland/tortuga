@@ -1,5 +1,5 @@
 
-set(HEADERS
+set(WRAPPED_HEADERS
   ConfigNode.h
   EventConnection.h
   EventPublisher.h
@@ -8,4 +8,4 @@ set(HEADERS
   QueuedEventPublisher.h
   Events.h
   )
-generate_wrappers( core "${HEADERS}" )
+generate_wrappers( core "${WRAPPED_HEADERS}" )

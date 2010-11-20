@@ -9,6 +9,7 @@ set(LINK_LIBS
   ${Boost_SIGNALS_LIBRARY}
   ${Boost_THREAD_LIBRARY}
   ${Log4CPP_LIBRARIES}
+  ${PYTHON_LIBRARIES}
   )
 
 add_library(ram_core SHARED ${SOURCES} ${HEADERS})
@@ -19,3 +20,5 @@ set_target_properties(ram_core PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
   RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
   )
+
+test_module(core)
