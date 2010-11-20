@@ -20,9 +20,9 @@ macro(test_module _name)
 
     add_custom_command(
       OUTPUT Tests_${_name}.success
-      COMMAND Tests_${_name}
+      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/Tests_${_name}
       MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/Tests_${_name}
       )
-    add_custom_target(ram_${_name}_tests ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Tests_${_name}.success)
+    add_custom_target(ram_${_name}_tests ALL DEPENDS Tests_${_name}.success)
   endif (RAM_TESTS)
 endmacro ()
