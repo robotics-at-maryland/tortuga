@@ -10,10 +10,7 @@ set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR} $ENV{PYTHONPATH})
 macro(gccxml MODULE HEADERS)
   set(DIRECTORY "${CMAKE_SOURCE_DIR}/packages/${MODULE}/include")
   set (XMLFILES "")
-  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I/opt/ram/local/include/boost-1_37" "-I${PYTHON_INCLUDE_PATH}" "-I/opt/ram/local/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
-  if (UNIX)
-    set(GCCXML_FLAGS ${GCCXML_FLAGS} "--gccxml-compiler" "gcc-4.2")
-  endif (UNIX)
+  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I/opt/ocm/local/include" "-I${PYTHON_INCLUDE_PATH}" "-I/opt/ram/local/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
 
   foreach (HEADER ${HEADERS})
     string (REGEX REPLACE "\\.h$" ".xml" XMLNAME ${HEADER})
@@ -45,6 +42,7 @@ macro(pypp MODULE HEADERS)
 endmacro ()
 
 make_directory(${CMAKE_SOURCE_DIR}/build_ext/ext)
+file(WRITE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py "")
 macro(generate_wrappers MODULE HEADERS)
   pypp( ${MODULE} "${HEADERS}" )
 
@@ -66,13 +64,14 @@ macro(generate_wrappers MODULE HEADERS)
     )
   target_link_libraries(_${MODULE} ram_core)
 
+  set(EXT_${MODULE} ${CMAKE_SOURCE_DIR}/build_ext/ext/${MODULE}.py)
   add_custom_command(
-    OUTPUT ${MODULE}.py
+    OUTPUT ${EXT_${MODULE}}
     COMMAND ${CMAKE_COMMAND} -E copy
-    ARGS python/${MODULE}.py ${CMAKE_SOURCE_DIR}/build_ext/ext
+    ARGS python/${MODULE}.py ${EXT_${MODULE}}
     DEPENDS _${MODULE}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Copying ${CMAKE_CURRENT_SOURCE_DIR}/python/${MODULE}.py to ${CMAKE_SOURCE_DIR}/build_ext/ext"
     )
-  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS ${MODULE}.py)
+  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS ${EXT_${MODULE}})
 endmacro ()
