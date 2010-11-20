@@ -18,11 +18,6 @@ from buildit.task import Task
 from buildfiles.common.commands import *
 import buildfiles.variants as variants
 
-pythonExecutable = '%s' % sys.executable
-pydoc = os.path.join(os.path.split(pythonExecutable)[0], 'pydoc2.5')
-if not os.path.exists(pydoc):
-    pydoc = os.path.join(os.path.split(pydoc)[0], 'pydoc')
-
 # Setup basic directory structure
 setup_directories = Task(
     'Setup Directory Structure',
@@ -43,7 +38,7 @@ install_pygccxml = Task(
     namespaces = 'pygccxml',
     targets = '${py_site_packages}/pygccxml',
     workdir = '${deps_dir}/pygccxml',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -53,7 +48,7 @@ install_pyplusplus = Task(
     namespaces = 'pyplusplus',
     targets = '${py_site_packages}/pyplusplus',
     workdir = '${deps_dir}/pyplusplus',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -63,20 +58,8 @@ install_pyyaml = Task(
     namespaces = 'pyyaml',
     targets = '${py_site_packages}/yaml',
     workdir = '${deps_dir}/pyyaml',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-
-install_scons = Task(
-    'Install Scons',
-    namespaces = 'scons',
-    targets = '${py_site_packages}/SCons',
-    workdir = '${deps_dir}/scons',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'
-                '  --standard-lib'],
     dependencies = (setup_directories,)
     )
 
@@ -85,20 +68,8 @@ install_zope_interface = Task(
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-symlink_python = Task(
-    'Make Symlink to Proper Python Version',
-    namespaces = 'python_symlink',
-    targets = '${buildoutdir}/scripts/link_done',
-    workdir = '${buildoutdir}',
-    commands = ['ln -sf "' + pythonExecutable + 
-		'" ${buildoutdir}/scripts/python',
-		'ln -sf "' + pydoc + '" ${buildoutdir}/scripts/pydoc',
-		'touch ${buildoutdir}/scripts/link_done'],
     dependencies = (setup_directories,)
     )
 
@@ -107,42 +78,8 @@ install_python_modules = Task(
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      dependencies = (install_pygccxml, install_pyplusplus,
-                     install_pyyaml, install_scons, install_zope_interface,
-		     symlink_python)
+                     install_pyyaml, install_zope_interface)
     )
-
-# Package Installation
-
-# Small hack to find arch
-#arch = 'x86'
-#if 'big' == sys.byteorder:
-#    arch = 'ppc'
-
-#get_package_list = Task(
-#    'Get Package List',
-#    namespaces = 'bootstrap',
-#    workdir = '${buildoutdir}',
-#    commands = [Download('${ram_prefix}/pkgs/packages.txt',
-#                         'https://ram.umd.edu/software/' + arch + '/'
-#                         variants.get_platform() + '/packages.txt')]
-#    dependencies = (setup_directories,)
-#    )
-
-#download_packages = Task(
-#    'Download Packages',
-#    namespaces = 'bootstrap',
-#    workdir = '${buildoutdir}',
-#    commands = [DownloadPackages('${ram_prefix}/pkgs/packages.txt',
-#                                 '${ram_prefix}')]
-#    dependencies = (get_package_list,)
-#   )
-
-#pkgs = Task(
-#    'Install Packages',
-#     namespaces = 'bootstrap',
-#     workdir = '${buildoutdir}',
-#     dependencies = (unpack_packages)
-#    )
 
 # Generate Environment File
 

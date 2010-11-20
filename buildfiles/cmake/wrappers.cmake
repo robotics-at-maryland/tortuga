@@ -35,7 +35,7 @@ macro(pypp MODULE HEADERS)
   add_custom_command(
     OUTPUT ${PYPP_FILE}
     COMMAND "PYTHONPATH=${CMAKE_SOURCE_DIR}" ${PYTHON_EXECUTABLE}
-    ARGS "scripts/pypp.py" "-t" "${GEN_SOURCES}" "-m" "_core" "${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py" ${XMLFILES}
+    ARGS "scripts/pypp.py" "-t" "${GEN_SOURCES}" "-m" "_${MODULE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py" ${XMLFILES}
     DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
@@ -62,16 +62,20 @@ macro(generate_wrappers MODULE HEADERS)
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
     )
-  target_link_libraries(_${MODULE} ram_core)
+  target_link_libraries(_${MODULE}
+    ram_${MODULE}
+    ${Boost_PYTHON_LIBRARY}
+    ${PYTHON_LIBRARIES}
+    )
 
   set(EXT_${MODULE} ${CMAKE_SOURCE_DIR}/build_ext/ext/${MODULE}.py)
   add_custom_command(
     OUTPUT ${EXT_${MODULE}}
     COMMAND ${CMAKE_COMMAND} -E copy
     ARGS python/${MODULE}.py ${EXT_${MODULE}}
-    DEPENDS _${MODULE}
+    DEPENDS python/${MODULE}.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Copying ${CMAKE_CURRENT_SOURCE_DIR}/python/${MODULE}.py to ${CMAKE_SOURCE_DIR}/build_ext/ext"
     )
-  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS ${EXT_${MODULE}})
+  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS ${EXT_${MODULE}} _${MODULE})
 endmacro ()
