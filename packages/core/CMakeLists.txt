@@ -12,13 +12,18 @@ set(LINK_LIBS
   ${PYTHON_LIBRARIES}
   )
 
-add_library(ram_core SHARED ${SOURCES} ${HEADERS})
-target_link_libraries(ram_core ${LINK_LIBS})
-set_target_properties(ram_core PROPERTIES
-  DEFINE_SYMBOL RAM_PKG_CORE
-  ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
-  LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
-  RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
-  )
+if (RAM_WITH_CORE)
+  add_library(ram_core SHARED ${SOURCES} ${HEADERS})
+  target_link_libraries(ram_core ${LINK_LIBS})
+  set_target_properties(ram_core PROPERTIES
+    DEFINE_SYMBOL RAM_PKG_CORE
+    ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
+    )
 
-test_module(core)
+  test_module(core)
+  if (RAM_WITH_MATH)
+    target_link_libraries(Tests_core ram_math)
+  endif (RAM_WITH_MATH)
+endif (RAM_WITH_CORE)

@@ -16,8 +16,9 @@ file(APPEND ${FEATURE_HEADER} "#ifndef RAM_CORE_FEATURES\n")
 file(APPEND ${FEATURE_HEADER} "#define RAM_CORE_FEATURES\n\n")
 
 add_feature(pattern)
-#add_feature(math)
+add_feature(drivers)
 add_feature(core)
+add_feature(math)
 
 file(APPEND ${FEATURE_HEADER} "\n#endif // RAM_CORE_FEATURES\n")
 message(STATUS "Features header file generated")
