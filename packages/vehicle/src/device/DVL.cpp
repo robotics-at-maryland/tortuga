@@ -25,7 +25,6 @@
 #include "vehicle/include/device/DVL.h"
 #include "vehicle/include/IVehicle.h"
 
-#include "control/include/Helpers.h"
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
@@ -133,7 +132,7 @@ void DVL::update(double timestep)
 
         double yaw = m_vehicle->getOrientation().getYaw().valueRadians();
         
-        math::Vector2 vel_n = control::nRb(yaw)*vel_b;
+        math::Vector2 vel_n = math::nRb(yaw)*vel_b;
 
         {
             core::ReadWriteMutex::ScopedWriteLock lock(m_velocityMutex);

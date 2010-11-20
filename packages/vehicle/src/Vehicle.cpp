@@ -32,8 +32,8 @@
 #include "vehicle/include/device/IPositionSensor.h"
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "vehicle/include/device/LoopStateEstimator.h"
-#include "vehicle/estimator/include/ModularStateEstimator.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/estimator/ModularStateEstimator.h"
+#include "vehicle/include/estimator/IStateEstimator.h"
 
 //#include "sensorapi-r5/include/sensorapi.h"
 

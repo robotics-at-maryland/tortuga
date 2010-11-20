@@ -7,7 +7,7 @@
  * File:  packages/vehicle/estimator/src/IStateEstimator.c
  */
 
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/estimator/IStateEstimator.h"
 
 RAM_CORE_EVENT_TYPE(ram::estimator::IStateEstimator, ESTIMATED_DEPTH_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimator::IStateEstimator, ESTIMATED_ORIENTATION_UPDATE);

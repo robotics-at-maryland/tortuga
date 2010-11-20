@@ -10,12 +10,11 @@
 /* This module implements a simple Kalman filter to estimate depth and depth_dot */
 // Library Includes
 #include <iostream>
-#include <boost/smart_cast.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/DepthKalmanModule.h"
+#include "vehicle/include/estimator/modules/DepthKalmanModule.h"
 #include "math/include/Matrix2.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"

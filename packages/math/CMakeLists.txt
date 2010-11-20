@@ -9,6 +9,9 @@ if (RAM_WITH_MATH)
   
   set_target_properties(ram_math PROPERTIES
     DEFINE_SYMBOL RAM_PKG_MATH
+    ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
   
   test_module(math)

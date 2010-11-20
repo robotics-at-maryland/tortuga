@@ -18,7 +18,7 @@
 #include "vehicle/include/device/IVelocitySensor.h"
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/ModularStateEstimator.h"
+#include "vehicle/include/estimator/ModularStateEstimator.h"
 #include "vehicle/include/Events.h"
 
 namespace ram {

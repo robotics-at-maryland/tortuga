@@ -1,9 +1,16 @@
 
 option(RAM_TESTS "Build and run unittests" ON)
+
+# Optional argument for an exclude list
 macro(test_module _name)
   if (RAM_TESTS)
     string(TOUPPER ${_name} _module_name)
     file(GLOB TEST_${_module_name}_SOURCES "test/src/*.cxx")
+
+    foreach (_file ${ARGV})
+      list(REMOVE_ITEM TEST_${_module_name}_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+    endforeach ()
     
     add_executable(Tests_${_name} ${TEST_${_module_name}_SOURCES})
     target_link_libraries(Tests_${_name}

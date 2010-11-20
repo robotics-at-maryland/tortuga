@@ -22,10 +22,10 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
-#include "vehicle/estimator/include/IStateEstimator.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/EventPublisher.h"
-#include "vehicle/estimator/include/Obstacle.h"
+#include "vehicle/include/estimator/IStateEstimator.h"
+#include "vehicle/include/estimator/Obstacle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"

@@ -20,7 +20,7 @@
 #include <boost/shared_ptr.hpp>
 
 // Project Includes
-#include "vehicle/estimator/include/EstimatedState.h"
+#include "vehicle/include/estimator/EstimatedState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"

@@ -10,5 +10,8 @@ if (RAM_WITH_PATTERN)
   target_link_libraries(ram_pattern ${LINK_LIBS})
   set_target_properties(ram_pattern PROPERTIES
     DEFINE_SYMBOL RAM_PKG_PATTERN
+    ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 endif (RAM_WITH_PATTERN)

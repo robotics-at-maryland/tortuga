@@ -13,13 +13,11 @@
 #ifndef RAM_VEHICLE_ESTIMATOR_DEPTHKALMANMODULE_H
 #define RAM_VEHICLE_ESTIMATOR_DEPTHKALMANMODULE_H
 
-// Library Includes
-
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "vehicle/include/estimator/EstimatedState.h"
+#include "vehicle/include/estimator/EstimationModule.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"

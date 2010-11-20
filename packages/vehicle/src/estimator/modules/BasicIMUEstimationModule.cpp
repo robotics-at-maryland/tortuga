@@ -13,13 +13,12 @@
 
 // Library Includes
 #include <iostream>
-#include <boost/smart_cast.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes
 #include "math/include/Helpers.h"
 #include "vehicle/include/Utility.h"
-#include "vehicle/estimator/include/modules/BasicIMUEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicIMUEstimationModule.h"
 #include "vehicle/include/device/IIMU.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstIMU"));

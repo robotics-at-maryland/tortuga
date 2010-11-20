@@ -18,8 +18,8 @@
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "vehicle/include/estimator/EstimatedState.h"
+#include "vehicle/include/estimator/EstimationModule.h"
 
 namespace ram {
 namespace estimator {

@@ -11,8 +11,7 @@
 #include <string.h>
 
 // Package Includes
-#include "vehicle/estimator/include/EstimationModule.h"
-
+#include "vehicle/include/estimator/EstimationModule.h"
 
 namespace ram {
 namespace estimator {

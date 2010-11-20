@@ -12,6 +12,6 @@
  * file.
 */
 
-#include "vehicle/estimator/include/modules/BasicDVLEstimationModule.h"
-#include "vehicle/estimator/include/modules/BasicIMUEstimationModule.h"
-#include "vehicle/estimator/include/modules/BasicDepthEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicDVLEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicIMUEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicDepthEstimationModule.h"

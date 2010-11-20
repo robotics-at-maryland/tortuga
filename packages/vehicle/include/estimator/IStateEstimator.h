@@ -23,7 +23,7 @@
 #include "vehicle/include/Common.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/EventHub.h"
-#include "vehicle/estimator/include/Obstacle.h"
+#include "vehicle/include/estimator/Obstacle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"

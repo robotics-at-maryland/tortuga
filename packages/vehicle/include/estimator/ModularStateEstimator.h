@@ -14,9 +14,9 @@
 #include "core/include/EventHub.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
-#include "vehicle/estimator/include/EstimationModule.h"
-#include "vehicle/estimator/include/StateEstimatorBase.h"
-#include "vehicle/estimator/include/modules/IncludeAllModules.h"
+#include "vehicle/include/estimator/EstimationModule.h"
+#include "vehicle/include/estimator/StateEstimatorBase.h"
+#include "vehicle/include/estimator/modules/IncludeAllModules.h"
 
 #ifndef RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H
 #define RAM_ESTIMATOR_MODULARSTATEESTIMATOR_H

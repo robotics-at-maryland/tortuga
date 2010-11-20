@@ -23,8 +23,8 @@
 #include "core/include/Event.h"
 #include "core/include/ReadWriteMutex.h"
 
-#include "vehicle/estimator/include/EstimatedState.h"
-#include "vehicle/estimator/include/EstimationModule.h"
+#include "vehicle/include/estimator/EstimatedState.h"
+#include "vehicle/include/estimator/EstimationModule.h"
 #include "vehicle/include/Events.h"
 
 #include "math/include/Vector3.h"

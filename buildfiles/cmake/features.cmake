@@ -19,6 +19,7 @@ add_feature(pattern)
 add_feature(drivers)
 add_feature(core)
 add_feature(math)
+add_feature(vehicle)
 
 file(APPEND ${FEATURE_HEADER} "\n#endif // RAM_CORE_FEATURES\n")
 message(STATUS "Features header file generated")

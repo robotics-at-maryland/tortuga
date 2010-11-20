@@ -18,7 +18,7 @@
 
 // Project Includes
 #include "vehicle/include/device/IDevice.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/estimator/IStateEstimator.h"
 #include "vehicle/include/IVehicle.h"
 #include "math/include/Vector2.h"
 #include "math/include/Quaternion.h"

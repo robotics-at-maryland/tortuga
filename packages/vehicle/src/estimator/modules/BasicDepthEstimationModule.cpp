@@ -9,12 +9,11 @@
 
 // Library Includes
 #include <iostream>
-#include <boost/smart_cast.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/BasicDepthEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicDepthEstimationModule.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 

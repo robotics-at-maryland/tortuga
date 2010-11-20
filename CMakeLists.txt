@@ -8,7 +8,7 @@ subdirs(packages/pattern)
 subdirs(packages/drivers)
 subdirs(packages/core)
 subdirs(packages/math)
-# subdirs(packages/vehicle)
+subdirs(packages/vehicle)
 # subdirs(packages/control)
 # subdirs(packages/network)
 

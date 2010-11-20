@@ -9,11 +9,10 @@
 
 // Library Includes
 #include <iostream>
-#include <boost/smart_cast.hpp>
 
 // Project Includes
 #include "vehicle/include/Events.h"
-#include "vehicle/estimator/include/modules/BasicDVLEstimationModule.h"
+#include "vehicle/include/estimator/modules/BasicDVLEstimationModule.h"
 
 namespace ram {
 namespace estimator {

@@ -15,18 +15,6 @@
 namespace ram {
 namespace control {
 
-math::Matrix2 bRn(double radians)
-{
-    double r_cos = cos(radians), r_sin = sin(radians);
-    return math::Matrix2(r_cos,-r_sin,r_sin,r_cos);
-}
-
-math::Matrix2 nRb(double radians)
-{
-    double r_cos = cos(radians), r_sin = sin(radians);
-    return math::Matrix2(r_cos,r_sin,-r_sin,r_cos);
-}
-
 math::Quaternion yawVehicleHelper(
     const math::Quaternion& currentOrientation, double degrees)
 {

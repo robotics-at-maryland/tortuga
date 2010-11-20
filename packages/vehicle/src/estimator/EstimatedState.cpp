@@ -7,11 +7,8 @@
  * File:  packages/vehicle/estimator/src/EstimatedState.cpp
  */
 
-
-// Library Includes
-
 // Package Includes
-#include "vehicle/estimator/include/EstimatedState.h"
+#include "vehicle/include/estimator/EstimatedState.h"
 #include "math/include/Events.h"
 #include "core/include/ReadWriteMutex.h"
 
@@ -141,7 +138,6 @@ void EstimatedState::setEstimatedDepthDot(double depthDot)
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
 {
-    std::cout << "EstimatedState::addObstacle - NOT YET IMPLEMENTED" << std::endl;
 }
 
 math::Vector2 EstimatedState::getObstaclePosition(std::string name)

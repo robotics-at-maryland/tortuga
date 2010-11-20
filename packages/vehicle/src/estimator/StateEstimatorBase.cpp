@@ -12,7 +12,7 @@
 #include <iostream>
 
 // Project Includes
-#include "vehicle/estimator/include/StateEstimatorBase.h"
+#include "vehicle/include/estimator/StateEstimatorBase.h"
 
 namespace ram {
 namespace estimator {
