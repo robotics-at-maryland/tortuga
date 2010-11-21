@@ -7,4 +7,6 @@ set(WRAPPED_HEADERS
   Matrix2.h
   Matrix3.h
   )
-generate_wrappers( math "${WRAPPED_HEADERS}" )
+gccxml( math "${WRAPPED_HEADERS}" )
+generate_wrappers( math )
+python_file( math )

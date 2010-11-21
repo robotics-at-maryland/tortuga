@@ -99,4 +99,8 @@ def generate(module_builder, local_ns, global_ns):
     wrap.registerSubsystemConverter(IVehicle)
 
     module_builder.add_registration_code("registerIVehiclePtrs();")
-    return ['wrappers/vehicle/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/vehicle/include/RegisterFunctions.h'] + list(include_files)

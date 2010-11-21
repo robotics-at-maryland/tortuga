@@ -10,7 +10,7 @@ set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR} $ENV{PYTHONPATH})
 macro(gccxml MODULE HEADERS)
   set(DIRECTORY "${CMAKE_SOURCE_DIR}/packages/${MODULE}/include")
   set (XMLFILES "")
-  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I/opt/ocm/local/include" "-I${PYTHON_INCLUDE_PATH}" "-I/opt/ram/local/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
+  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I${PYTHON_INCLUDE_PATH}" "-I${RAM_ROOT_DIR}/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
 
   foreach (HEADER ${HEADERS})
     string (REGEX REPLACE "\\.h$" ".xml" XMLNAME ${HEADER})
@@ -27,8 +27,9 @@ macro(gccxml MODULE HEADERS)
   endforeach ()
 endmacro ()
 
-macro(pypp MODULE HEADERS)
-  gccxml( ${MODULE} "${HEADERS}" )
+# Generates the source code for the wrappers.
+# The gccxml macro MUST be called before this macro.
+macro(pypp MODULE)
   set (GEN_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/_${MODULE}_gen-sources.txt.cache)
   set (PYPP_FILE ${CMAKE_CURRENT_BINARY_DIR}/generated/_${MODULE}.main.cpp)
   make_directory(generated)
@@ -43,8 +44,11 @@ endmacro ()
 
 make_directory(${CMAKE_SOURCE_DIR}/build_ext/ext)
 file(WRITE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py "")
-macro(generate_wrappers MODULE HEADERS)
-  pypp( ${MODULE} "${HEADERS}" )
+
+# Calls pypp to generate the source code files and then
+# compiles them. You MUST call the gccxml macro before this.
+macro(generate_wrappers MODULE)
+  pypp( ${MODULE} )
 
   file(GLOB ${MODULE}_WRAPPER_HEADERS "include/*.h")
   file(GLOB ${MODULE}_WRAPPER_SOURCES "src/*.cpp")
@@ -67,7 +71,10 @@ macro(generate_wrappers MODULE HEADERS)
     ${Boost_PYTHON_LIBRARY}
     ${PYTHON_LIBRARIES}
     )
+  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS _${MODULE})
+endmacro ()
 
+macro(python_file MODULE)
   set(EXT_${MODULE} ${CMAKE_SOURCE_DIR}/build_ext/ext/${MODULE}.py)
   add_custom_command(
     OUTPUT ${EXT_${MODULE}}
@@ -77,5 +84,5 @@ macro(generate_wrappers MODULE HEADERS)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Copying ${CMAKE_CURRENT_SOURCE_DIR}/python/${MODULE}.py to ${CMAKE_SOURCE_DIR}/build_ext/ext"
     )
-  add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS ${EXT_${MODULE}} _${MODULE})
+  add_custom_target(ram_${MODULE}_python ALL DEPENDS ${EXT_${MODULE}})
 endmacro ()

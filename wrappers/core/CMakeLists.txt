@@ -8,4 +8,6 @@ set(WRAPPED_HEADERS
   QueuedEventPublisher.h
   Events.h
   )
-generate_wrappers( core "${WRAPPED_HEADERS}" )
+gccxml( core "${WRAPPED_HEADERS}" )
+generate_wrappers( core )
+python_file( core )

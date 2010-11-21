@@ -96,8 +96,12 @@ def generate(module_builder, local_ns, global_ns):
     module_builder.add_registration_code("registerIDeviceMakerClass();")
     module_builder.add_registration_code("registerIDevicePtrs();")
     wrap.add_needed_includes(wrappedClasses)
+
+    include_files = set([cls.location.file_name for cls in wrappedClasses])
+    for cls in wrappedClasses:
+        include_files.update(cls.include_files)
     return ['wrappers/vehicle/include/RegisterFunctions.h',
-            'core/include/Event.h']
+            'core/include/Event.h'] + list(include_files)
     # Wrap IMU class
 #    IMU = expose_device(local_ns, 'IMU', False);
 #    IMU.include_files.append( "imu/include/imuapi.h" )
