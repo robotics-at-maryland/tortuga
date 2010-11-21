@@ -14,4 +14,6 @@ if (RAM_WITH_PATTERN)
     LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
+
+  test_module(pattern)
 endif (RAM_WITH_PATTERN)
