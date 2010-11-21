@@ -27,7 +27,7 @@ else (USB_LIBRARIES AND USB_INCLUDE_DIRS)
     NAMES
       usb.h
     PATHS
-      /opt/ram/local/include
+      ${RAM_ROOT_DIR}/include
       /usr/include
       /usr/local/include
       /opt/local/include
@@ -38,7 +38,7 @@ else (USB_LIBRARIES AND USB_INCLUDE_DIRS)
     NAMES
       usb
     PATHS
-      /opt/ram/local/lib
+      ${RAM_ROOT_DIR}/lib
       /usr/lib
       /usr/local/lib
       /opt/local/lib

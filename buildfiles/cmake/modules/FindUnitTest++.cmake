@@ -6,7 +6,7 @@
 #
 
 FIND_PATH(UnitTest++_INCLUDE_DIR UnitTest++/UnitTest++.h
-  /opt/ram/local/include
+  ${RAM_ROOT_DIR}/include
   /usr/local/include
   /usr/include
   /opt/local/include # DarwinPorts
@@ -16,7 +16,7 @@ FIND_PATH(UnitTest++_INCLUDE_DIR UnitTest++/UnitTest++.h
 FIND_LIBRARY(UnitTest++_LIB_DIR
   NAMES UnitTest++
   PATHS
-  /opt/ram/local/lib
+  ${RAM_ROOT_DIR}/lib
   /usr/local/lib
   /usr/lib
   /opt/local/lib

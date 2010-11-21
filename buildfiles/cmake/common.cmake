@@ -2,6 +2,8 @@
 set(RAM_CMAKE_DIR ${CMAKE_SOURCE_DIR}/buildfiles/cmake)
 set(CMAKE_MODULE_PATH ${RAM_CMAKE_DIR}/modules)
 
+set(RAM_ROOT_DIR "/opt/ram/local" CACHE STRING "Location of external dependencies")
+
 include(${RAM_CMAKE_DIR}/helpers.cmake)
 include(${RAM_CMAKE_DIR}/package-boost.cmake)
 include(${RAM_CMAKE_DIR}/package-log4cpp.cmake)

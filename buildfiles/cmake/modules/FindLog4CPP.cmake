@@ -10,7 +10,7 @@
 
 FIND_PATH(Log4CPP_INCLUDE_DIR log4cpp/Category.hh
   PATHS
-  /opt/ram/local/include
+  ${RAM_ROOT_DIR}/include
   /usr/local/include
   /usr/include
   $ENV{ProgramFiles}/log4cpp/include
@@ -18,7 +18,7 @@ FIND_PATH(Log4CPP_INCLUDE_DIR log4cpp/Category.hh
 
 FIND_LIBRARY(Log4CPP_LIBRARIES log4cpp
   PATHS
-  /opt/ram/local/lib
+  ${RAM_ROOT_DIR}/lib
   /usr/local/lib
   /usr/lib
   $ENV{ProgramFiles}/log4cpp/lib

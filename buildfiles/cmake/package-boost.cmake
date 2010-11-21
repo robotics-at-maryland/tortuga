@@ -1,5 +1,5 @@
 
-set(BOOST_ROOT /opt/ram/local)
+set(BOOST_ROOT ${RAM_ROOT_DIR})
 find_package(Boost 1.34 REQUIRED COMPONENTS filesystem date_time program_options python regex serialization signals thread)
 
 add_definitions(-Wno-deprecated)
