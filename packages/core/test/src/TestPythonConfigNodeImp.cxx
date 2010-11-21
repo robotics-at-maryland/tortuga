@@ -13,7 +13,6 @@
  
 // STD Includes
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <cstdlib>
 
@@ -211,15 +210,5 @@ TEST_FIXTURE(TestPythonConfigNode, writeToFile)
     
 int main(int argc, char* argv[])
 {
-    int returnCode = UnitTest::RunAllTests();
-    if (returnCode == 0) {
-        /* Write blank success file to disk */
-        std::string filename(argv[0]);
-        filename += ".success";
-        std::ofstream outfile (filename.c_str());
-        outfile.close();
-    }
-    return returnCode;
+    return UnitTest::RunAllTests();
 }
-
-    

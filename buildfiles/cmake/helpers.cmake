@@ -21,6 +21,7 @@ macro(test_module _name)
     add_custom_command(
       OUTPUT Tests_${_name}.success
       COMMAND Tests_${_name}
+      COMMAND ${CMAKE_COMMAND} -E touch Tests_${_name}.success
       DEPENDS Tests_${_name}
       )
     add_custom_target(ram_${_name}_tests ALL DEPENDS Tests_${_name}.success)

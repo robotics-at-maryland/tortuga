@@ -7,9 +7,6 @@
  * File:  packages/vision/test/src/UnitTestMain.cxx
  */
 
-// STD Includes
-#include <fstream>
-
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
@@ -18,13 +15,5 @@
 
 int main(int argc, char* argv[])
 {
-    int returnCode = UnitTest::RunAllTests();
-    if (returnCode == 0) {
-        /* Write blank success file to disk */
-        std::string filename(argv[0]);
-        filename += ".success";
-        std::ofstream outfile (filename.c_str());
-        outfile.close();
-    }
-    return returnCode;
+    return UnitTest::RunAllTests();
 }
