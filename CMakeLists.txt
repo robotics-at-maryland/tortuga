@@ -10,7 +10,7 @@ subdirs(packages/core)
 subdirs(packages/math)
 subdirs(packages/vehicle)
 subdirs(packages/control)
-# subdirs(packages/network)
+subdirs(packages/network)
 
 ######             WRAPPERS             #####
 include(${RAM_CMAKE_DIR}/wrappers.cmake)

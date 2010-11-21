@@ -60,16 +60,16 @@ macro(generate_wrappers MODULE)
     ${${MODULE}_WRAPPER_HEADERS}
     ${${MODULE}_WRAPPER_SOURCES}
     )
+  target_link_libraries(_${MODULE}
+    ram_${MODULE}
+    ${Boost_PYTHON_LIBRARY}
+    ${PYTHON_LIBRARIES}
+    )
   set_target_properties(_${MODULE} PROPERTIES
     PREFIX ""
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
-    )
-  target_link_libraries(_${MODULE}
-    ram_${MODULE}
-    ${Boost_PYTHON_LIBRARY}
-    ${PYTHON_LIBRARIES}
     )
   add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS _${MODULE})
 endmacro ()
