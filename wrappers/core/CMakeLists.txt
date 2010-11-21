@@ -10,4 +10,4 @@ set(WRAPPED_HEADERS
   )
 gccxml( core "${WRAPPED_HEADERS}" )
 generate_wrappers( core )
-python_file( core )
+python_files( core )

@@ -74,15 +74,21 @@ macro(generate_wrappers MODULE)
   add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS _${MODULE})
 endmacro ()
 
-macro(python_file MODULE)
-  set(EXT_${MODULE} ${CMAKE_SOURCE_DIR}/build_ext/ext/${MODULE}.py)
-  add_custom_command(
-    OUTPUT ${EXT_${MODULE}}
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ARGS python/${MODULE}.py ${EXT_${MODULE}}
-    DEPENDS python/${MODULE}.py
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Copying ${CMAKE_CURRENT_SOURCE_DIR}/python/${MODULE}.py to ${CMAKE_SOURCE_DIR}/build_ext/ext"
-    )
-  add_custom_target(ram_${MODULE}_python ALL DEPENDS ${EXT_${MODULE}})
+macro(python_files MODULE)
+  file(GLOB_RECURSE PYTHON_FILES "python/*.py")
+
+  set(FILELIST)
+  foreach (PYFILE ${PYTHON_FILES})
+    string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/python "" BASEDIR ${PYFILE})
+    set(OUTPUT_FILE ${CMAKE_SOURCE_DIR}/build_ext/ext${BASEDIR})
+    add_custom_command(
+      OUTPUT ${OUTPUT_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy
+      ARGS ${PYFILE} ${OUTPUT_FILE}
+      DEPENDS ${PYFILE}
+      COMMENT "Copying ${PYFILE} to ${OUTPUT_FILE}"
+      )
+    set(FILELIST ${FILELIST} ${OUTPUT_FILE})
+  endforeach ()
+  add_custom_target(ram_${MODULE}_python ALL DEPENDS ${FILELIST})
 endmacro ()

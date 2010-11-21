@@ -9,4 +9,4 @@ set(WRAPPED_HEADERS
   )
 gccxml( math "${WRAPPED_HEADERS}" )
 generate_wrappers( math )
-python_file( math )
+python_files( math )

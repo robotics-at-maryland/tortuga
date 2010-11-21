@@ -22,3 +22,4 @@ set(DEVICE_WRAPPED_HEADERS
 make_directory( ${CMAKE_CURRENT_BINARY_DIR}/device )
 gccxml( vehicle "${DEVICE_WRAPPED_HEADERS}" )
 generate_wrappers( vehicle_device )
+python_files( vehicle )
