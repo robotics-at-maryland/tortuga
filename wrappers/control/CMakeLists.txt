@@ -1,0 +1,12 @@
+
+set(WRAPPED_HEADERS
+  IController.h
+  DesiredState.h
+  )
+if (RAM_WITH_CORE)
+  list(APPEND WRAPPED_HEADERS Events.h)
+endif (RAM_WITH_CORE)
+
+gccxml( control "${WRAPPED_HEADERS}" )
+generate_wrappers( control )
+python_files( control )

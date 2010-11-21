@@ -26,13 +26,14 @@ def generate(module_builder, local_ns, global_ns):
     
     IController.include_files.append(os.environ['RAM_SVN_DIR'] +
                                      '/packages/control/include/IController.h')
+    classes.append(IController)
 
     # Include desired state class
     DesiredState = global_ns.class_('DesiredState')
     DesiredState.include()
     DesiredState.include_files.append(os.environ['RAM_SVN_DIR'] +
                                      '/packages/control/include/DesiredState.h')
-
+    classes.append(DesiredState)
 
     # Wrap Events
     eventsFound = False
@@ -51,5 +52,9 @@ def generate(module_builder, local_ns, global_ns):
     wrap.add_needed_includes(classes)
 #    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
     module_builder.add_registration_code("registerIControllerPtrs();")
-    return ['wrappers/control/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/control/include/RegisterFunctions.h'] + list(include_files)
 
