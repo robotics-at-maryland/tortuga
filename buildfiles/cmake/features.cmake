@@ -62,5 +62,7 @@ feature(math)
 feature(vehicle)
 feature(control)
 feature(network)
+feature(logging)
+feature(wrappers)
 
 check_features()
