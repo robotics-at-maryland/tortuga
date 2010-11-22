@@ -9,6 +9,12 @@ include(${RAM_CMAKE_DIR}/package-boost.cmake)
 include(${RAM_CMAKE_DIR}/package-log4cpp.cmake)
 include(${RAM_CMAKE_DIR}/package-python.cmake)
 include(${RAM_CMAKE_DIR}/package-unittestpp.cmake)
+include(${RAM_CMAKE_DIR}/package-wxwidgets.cmake)
+include(${RAM_CMAKE_DIR}/package-opencv.cmake)
+include(${RAM_CMAKE_DIR}/package-fftw.cmake)
+include(${RAM_CMAKE_DIR}/package-dc1394.cmake)
+include(${RAM_CMAKE_DIR}/package-fann.cmake)
+include(${RAM_CMAKE_DIR}/package-segment.cmake)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/packages

@@ -91,16 +91,14 @@ FANNSymbolDetector::FANNSymbolDetector(int numberOfFeatures, int outputCount,
     {
         assert(config.exists("nueralNetworkFile") &&
                "Not nueral network file found");
-        std::string shortPath(config["nueralNetworkFile"].asString());
+        boost::filesystem::path path(config["nueralNetworkFile"].asString());
         
         // Get the full path
-        boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-        boost::filesystem::path fullPath = root / shortPath;
-        assert(boost::filesystem::exists(fullPath) &&
+        assert(boost::filesystem::exists(path) &&
                "Nueral network file does not exists");
     
         // Load the network
-        assert(m_net->create_from_file(fullPath.file_string()) &&
+        assert(m_net->create_from_file(path.file_string()) &&
                "Nueral network file found, but error in loading");
 
         // Ensure it matches our parameters
