@@ -11,3 +11,5 @@ set(WRAPPED_HEADERS
 gccxml( core "${WRAPPED_HEADERS}" )
 generate_wrappers( core )
 python_files( core )
+
+test_wrapper( core "ram_core" )

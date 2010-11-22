@@ -32,5 +32,5 @@ if (RAM_WITH_LOGGING)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 
-  test_module(logging)
+  test_module(logging "ram_logging")
 endif (RAM_WITH_LOGGING)

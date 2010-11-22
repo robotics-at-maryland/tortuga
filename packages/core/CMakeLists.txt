@@ -22,7 +22,7 @@ if (RAM_WITH_CORE)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 
-  test_module(core)
+  test_module(core "ram_core")
   if (RAM_WITH_MATH AND RAM_TESTS)
     target_link_libraries(Tests_core ram_math)
   endif (RAM_WITH_MATH AND RAM_TESTS)

@@ -17,5 +17,5 @@ if (RAM_WITH_CONTROL)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 
-  test_module(control)
+  test_module(control "ram_control")
 endif (RAM_WITH_CONTROL)

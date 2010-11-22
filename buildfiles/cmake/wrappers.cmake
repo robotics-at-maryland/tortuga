@@ -50,8 +50,12 @@ file(WRITE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py "")
 macro(generate_wrappers MODULE)
   pypp( ${MODULE} )
 
-  file(GLOB ${MODULE}_WRAPPER_HEADERS "include/*.h")
-  file(GLOB ${MODULE}_WRAPPER_SOURCES "src/*.cpp")
+  set(_dir_extension)
+  if (DEFINED ${MODULE}_WRAPPER_DIRECTORY_EXT)
+    set(_dir_extension ${${MODULE}_WRAPPER_DIRECTORY_EXT})
+  endif ()
+  file(GLOB ${MODULE}_WRAPPER_HEADERS "include/${_dir_extension}/*.h")
+  file(GLOB ${MODULE}_WRAPPER_SOURCES "src/${_dir_extension}/*.cpp")
 
   add_definitions(-fno-strict-aliasing)
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/generated ${CMAKE_SOURCE_DIR})
@@ -60,8 +64,15 @@ macro(generate_wrappers MODULE)
     ${${MODULE}_WRAPPER_HEADERS}
     ${${MODULE}_WRAPPER_SOURCES}
     )
+
+  # If an alternative base has been set,
+  # use it instead of trying to figure it out ourselves
+  if (DEFINED ${MODULE}_WRAPPER_BASE)
+    target_link_libraries(_${MODULE} ${${MODULE}_WRAPPER_BASE})
+  else ()
+    target_link_libraries(_${MODULE} ram_${MODULE})
+  endif ()
   target_link_libraries(_${MODULE}
-    ram_${MODULE}
     ${Boost_PYTHON_LIBRARY}
     ${PYTHON_LIBRARIES}
     )

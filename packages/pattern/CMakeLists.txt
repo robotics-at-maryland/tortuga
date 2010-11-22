@@ -15,5 +15,5 @@ if (RAM_WITH_PATTERN)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 
-  test_module(pattern)
+  test_module(pattern "ram_pattern")
 endif (RAM_WITH_PATTERN)

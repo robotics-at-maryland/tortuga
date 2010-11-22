@@ -10,3 +10,5 @@ endif (RAM_WITH_CORE)
 gccxml( control "${WRAPPED_HEADERS}" )
 generate_wrappers( control )
 python_files( control )
+
+test_wrapper( control "ram_control" )

@@ -10,3 +10,5 @@ set(WRAPPED_HEADERS
 gccxml( math "${WRAPPED_HEADERS}" )
 generate_wrappers( math )
 python_files( math )
+
+test_wrapper( math "ram_math" )

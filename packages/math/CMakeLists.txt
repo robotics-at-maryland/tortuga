@@ -14,5 +14,5 @@ if (RAM_WITH_MATH)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
   
-  test_module(math)
+  test_module(math "ram_math")
 endif (RAM_WITH_MATH)
