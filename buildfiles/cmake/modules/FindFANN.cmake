@@ -18,11 +18,19 @@ find_library( FANN_LIBRARY fann
   /usr/local/lib
 )
 
+find_library( FLOATFANN_LIBRARY floatfann
+  ${RAM_ROOT_DIR}/lib
+  /usr/lib
+  /usr/local/lib
+  )
+
 set( FANN_FOUND "NO" )
-if( FANN_INCLUDE_DIR AND FANN_LIBRARY )
-  set( FANN_LIBRARIES ${FANN_LIBRARY} )
+if( FANN_INCLUDE_DIR AND FANN_LIBRARY AND FLOATFANN_LIBRARY )
+  message(STATUS "Found FANN: ${FANN_LIBRARY}")
+  message(STATUS "Found FLOATFANN: ${FLOATFANN_LIBRARY}")
+  set( FANN_LIBRARIES ${FANN_LIBRARY} ${FLOATFANN_LIBRARY} )
   set( FANN_FOUND "YES" )
-endif( FANN_INCLUDE_DIR AND FANN_LIBRARY )
+endif( FANN_INCLUDE_DIR AND FANN_LIBRARY AND FLOATFANN_LIBRARY )
 
 if(FANN_FIND_REQUIRED AND NOT FANN_FOUND)
   message(SEND_ERROR "Unable to find the requested FANN library")
