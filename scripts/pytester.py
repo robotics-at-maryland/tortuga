@@ -12,10 +12,6 @@ import os
 import unittest
 from distutils import sysconfig
 
-# Ensure we are using the proper version of python
-import ram_version_check
-
-
 def main(argv = None):
     if argv is None:
         argv = sys.argv    

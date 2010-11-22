@@ -7,6 +7,20 @@ endmacro ()
 
 macro(test_wrapper _name _link_libs)
   test_module_base(${_name}_wrapper "${_link_libs}" ${ARGV})
+
+  # Glob all python files
+  file(GLOB ${_name}_PYTESTS "${_directory}/*.py")
+  add_custom_command(
+    OUTPUT ${CMAKE_SOURCE_DIR}/build_ext/ext/_${_name}Tests.success
+    COMMAND ${PYTHON_EXECUTABLE}
+    ARGS "scripts/pytester.py" ${${_name}_PYTESTS}
+    COMMAND ${CMAKE_COMMAND} -E touch
+    ARGS build_ext/ext/_${_name}Tests.success
+    DEPENDS _${_name}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    )
+  add_custom_target(${_name}_pywrapper_tests ALL DEPENDS
+    ${CMAKE_SOURCE_DIR}/build_ext/ext/_${_name}Tests.success)
 endmacro ()
 
 # Optional argument for an exclude list
