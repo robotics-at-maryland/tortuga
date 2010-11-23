@@ -43,7 +43,6 @@ macro(pypp MODULE)
 endmacro ()
 
 make_directory(${CMAKE_SOURCE_DIR}/build_ext/ext)
-file(WRITE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py "")
 
 # Calls pypp to generate the source code files and then
 # compiles them. You MUST call the gccxml macro before this.
@@ -85,10 +84,13 @@ macro(generate_wrappers MODULE)
   add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS _${MODULE})
 endmacro ()
 
+set(EXT_INIT_FILE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py)
+file(WRITE ${EXT_INIT_FILE} "")
+
 macro(python_files MODULE)
   file(GLOB_RECURSE PYTHON_FILES "python/*.py")
 
-  set(FILELIST)
+  set(PYTHON_${MODULE}_FILELIST)
   foreach (PYFILE ${PYTHON_FILES})
     string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/python "" BASEDIR ${PYFILE})
     set(OUTPUT_FILE ${CMAKE_SOURCE_DIR}/build_ext/ext${BASEDIR})
@@ -96,10 +98,11 @@ macro(python_files MODULE)
       OUTPUT ${OUTPUT_FILE}
       COMMAND ${CMAKE_COMMAND} -E copy
       ARGS ${PYFILE} ${OUTPUT_FILE}
-      DEPENDS ${PYFILE}
+      DEPENDS ${PYFILE} ${EXT_INIT_FILE}
       COMMENT "Copying ${PYFILE} to ${OUTPUT_FILE}"
       )
-    set(FILELIST ${FILELIST} ${OUTPUT_FILE})
+    list(APPEND PYTHON_${MODULE}_FILELIST ${OUTPUT_FILE})
   endforeach ()
-  add_custom_target(ram_${MODULE}_python ALL DEPENDS ${FILELIST})
+  add_custom_target(ram_${MODULE}_python ALL DEPENDS
+    ${PYTHON_${MODULE}_FILELIST})
 endmacro ()

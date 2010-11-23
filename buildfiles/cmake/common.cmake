@@ -22,6 +22,7 @@ include_directories(
 
 set(LIBDIR ${CMAKE_BINARY_DIR}/lib)
 set(TESTDIR ${CMAKE_BINARY_DIR}/tests)
+set(BINDIR ${CMAKE_BINARY_DIR}/bin)
 
 if (UNIX)
   add_definitions(-Wall -Werror -DRAM_POSIX -DRAM_LINUX)

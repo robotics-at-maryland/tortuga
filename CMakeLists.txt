@@ -21,4 +21,7 @@ if (RAM_WITH_WRAPPERS)
   subdirs(wrappers/math)
   subdirs(wrappers/vehicle)
   subdirs(wrappers/control)
+  subdirs(wrappers/vision)
 endif ()
+
+subdirs(tools/vision_tool)

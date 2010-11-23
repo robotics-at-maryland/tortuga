@@ -3,10 +3,23 @@ option(RAM_TESTS "Build and run unittests" ON)
 
 macro(test_module _name _link_libs)
   test_module_base(${_name} "${_link_libs}" ${ARGV})
+
+  if (RAM_TESTS)
+    add_custom_target(ram_${_name}_tests ALL DEPENDS Tests_${_name}.success)
+  endif (RAM_TESTS)
 endmacro ()
 
 macro(test_wrapper _name _link_libs)
   test_module_base(${_name}_wrapper "${_link_libs}" ${ARGV})
+
+  if (RAM_TESTS)
+    set(WRAPPER_TEST_DEPENDS Tests_${_name}_wrapper.success _${_name})
+    if (DEFINED PYTHON_${_name}_FILELIST)
+      list(APPEND WRAPPER_TEST_DEPENDS ${PYTHON_${_name}_FILELIST})
+    endif ()
+    add_custom_target(ram_${_name}_wrapper_tests ALL DEPENDS
+      ${WRAPPER_TEST_DEPENDS})
+  endif (RAM_TESTS)
 
   # Glob all python files
   file(GLOB ${_name}_PYTESTS "${_directory}/*.py")
@@ -16,7 +29,7 @@ macro(test_wrapper _name _link_libs)
     ARGS "scripts/pytester.py" ${${_name}_PYTESTS}
     COMMAND ${CMAKE_COMMAND} -E touch
     ARGS build_ext/ext/_${_name}Tests.success
-    DEPENDS _${_name}
+    DEPENDS _${_name} ${WRAPPER_TEST_DEPENDS}
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
   add_custom_target(${_name}_pywrapper_tests ALL DEPENDS
@@ -53,6 +66,5 @@ macro(test_module_base _target _link_libs)
       COMMAND ${CMAKE_COMMAND} -E touch Tests_${_target}.success
       DEPENDS Tests_${_target}
       )
-    add_custom_target(ram_${_target}_tests ALL DEPENDS Tests_${_target}.success)
   endif (RAM_TESTS)
 endmacro ()

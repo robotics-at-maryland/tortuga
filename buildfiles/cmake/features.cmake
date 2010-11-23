@@ -65,5 +65,6 @@ feature(vision)
 feature(network)
 feature(logging)
 feature(wrappers)
+feature(vision_tools)
 
 check_features()
