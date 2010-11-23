@@ -65,6 +65,8 @@ feature(vision)
 feature(network)
 feature(logging)
 feature(wrappers)
+feature(sonar)
 feature(vision_tools)
+feature(vision_viewer)
 
 check_features()

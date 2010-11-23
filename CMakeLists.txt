@@ -13,6 +13,7 @@ subdirs(packages/control)
 subdirs(packages/vision)
 subdirs(packages/network)
 subdirs(packages/logging)
+subdirs(packages/sonar)
 
 ######             WRAPPERS             #####
 if (RAM_WITH_WRAPPERS)
@@ -25,3 +26,4 @@ if (RAM_WITH_WRAPPERS)
 endif ()
 
 subdirs(tools/vision_tool)
+subdirs(tools/vision_viewer)
