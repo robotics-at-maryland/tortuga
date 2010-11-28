@@ -1,8 +1,30 @@
 
 set(AVAILABLE_FEATURES)
 macro (feature _name)
+  # Create the cache entry for this feature
   string(TOUPPER ${_name} NAME)
-  option(RAM_WITH_${NAME} "Build ${_name} module" ON)
+  set(RAM_WITH_${NAME} ON CACHE BOOL "Build ${_name} module")
+
+  # If a DEPENDS list has been given, make sure all those features exist
+  set(ARGUMENTS ${ARGN})
+  list(FIND ARGUMENTS "DEPENDS" DEPENDS_LOC)
+  if (${DEPENDS_LOC} GREATER -1)
+    set(INDEX ${DEPENDS_LOC})
+    math(EXPR INDEX "1+${INDEX}")
+    list(LENGTH ARGUMENTS LENGTH)
+
+    # Prove that the feature is not available
+    while (${INDEX} LESS ${LENGTH})
+      list(GET ARGUMENTS ${INDEX} FEATURE_NAME)
+      string(TOUPPER ${FEATURE_NAME} FEATURE_NAME)
+
+      if (NOT ${RAM_WITH_${FEATURE_NAME}})
+        # Feature is not available as a dependency is not on
+        set(RAM_WITH_${NAME} OFF CACHE BOOL "Build ${_name} module" FORCE)
+      endif ()
+      math(EXPR INDEX "1+${INDEX}")
+    endwhile ()
+  endif ()
 
   if (RAM_WITH_${NAME})
     list(APPEND AVAILABLE_FEATURES "${_name}")
@@ -59,7 +81,7 @@ feature(pattern)
 feature(drivers)
 feature(core)
 feature(math)
-feature(vehicle)
+feature(vehicle DEPENDS math core pattern)
 feature(control)
 feature(vision)
 feature(network)
