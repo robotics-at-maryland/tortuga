@@ -1,5 +1,5 @@
 
-option(RAM_TESTS "Build and run unittests" ON)
+set(RAM_TESTS ON CACHE BOOL "Build and run unittests")
 
 macro(test_module _name _link_libs)
   test_module_base(${_name} "${_link_libs}" ${ARGV})

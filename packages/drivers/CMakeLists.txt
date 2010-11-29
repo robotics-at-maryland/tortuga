@@ -1,17 +1,5 @@
 
 if (UNIX AND RAM_WITH_DRIVERS)
-  remove_definitions(-Wno-deprecated)
-  file(GLOB BFIN_SPARTAN_HEADERS "bfin_spartan/include/*.h")
-  file(GLOB BFIN_SPARTAN_SOURCES "bfin_spartan/src/*.c")
-  
-  add_library(ram_bfin_spartan SHARED
-    ${BFIN_SPARTAN_SOURCES} ${BFIN_SPARTAN_HEADERS})
-  set_target_properties(ram_bfin_spartan PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
-    LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
-    RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
-    )
-
   find_package(USB REQUIRED)
   include_directories("carnetix/include" ${USB_INCLUDE_DIRS})
   file(GLOB CARNETIX_HEADERS "carnetix/include/*.h")
@@ -69,6 +57,21 @@ if (UNIX AND RAM_WITH_DRIVERS)
   add_library(ram_thruster SHARED
     ${THRUSTER_SOURCES} ${THRUSTER_HEADERS})
   set_target_properties(ram_thruster PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
+    )
+endif ()
+
+# bfin_spartan should be built with sonar feature
+if (UNIX AND RAM_WITH_SONAR)
+  remove_definitions(-Wno-deprecated)
+  file(GLOB BFIN_SPARTAN_HEADERS "bfin_spartan/include/*.h")
+  file(GLOB BFIN_SPARTAN_SOURCES "bfin_spartan/src/*.c")
+  
+  add_library(ram_bfin_spartan SHARED
+    ${BFIN_SPARTAN_SOURCES} ${BFIN_SPARTAN_HEADERS})
+  set_target_properties(ram_bfin_spartan PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
     LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"

@@ -6,8 +6,11 @@ file(GLOB FIXED "src/fixed/*.cpp")
 set(LINK_LIBS
   ram_math
   ram_bfin_spartan
-  ${FFTW_LIBRARY}
   )
+
+if (NOT BLACKFIN)
+  list(APPEND LINK_LIBS ${FFTW_LIBRARY})
+endif (NOT BLACKFIN)
 
 if (RAM_WITH_SONAR)
   include_directories("include")
