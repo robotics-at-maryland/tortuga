@@ -43,7 +43,6 @@ macro (feature _name)
 endmacro ()
 
 macro (generate_feature_list)
-  set(FEATURE_HEADER ${CMAKE_SOURCE_DIR}/packages/core/include/Feature.h)
   file(WRITE ${FEATURE_HEADER} "// DO NOT EDIT, This is a generated header\n")
   file(APPEND ${FEATURE_HEADER} "#ifndef RAM_CORE_FEATURES\n")
   file(APPEND ${FEATURE_HEADER} "#define RAM_CORE_FEATURES\n\n")
@@ -80,8 +79,17 @@ macro (check_features)
     set(GENERATE_HEADER YES)
   endif ()
 
-  if (GENERATE_HEADER)
+  if (GENERATE_HEADER OR FORCE_FEATURE_LIST)
     generate_feature_list()
+
+    # This cache is only used to check if Features.h has been changed
+    # since the creation of this file. This allows a hook to be created
+    # that will regenerate this file if Features.h has changed since last
+    # running cmake.
+    #
+    # The cache used for checking if the feature list has changed is kept
+    # internally within CMakeCache.txt.
+    file(WRITE ${CMAKE_BINARY_DIR}/_feature_list.cache "${AVAILABLE_FEATURES}")
   endif ()
 
   # Set current feature list in cache as persistent variable
