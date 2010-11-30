@@ -33,6 +33,7 @@ if (RAM_WITH_WRAPPERS)
   subdirs(wrappers/vehicle)
   subdirs(wrappers/control)
   subdirs(wrappers/vision)
+  subdirs(wrappers/logging)
 endif ()
 
 subdirs(tools/vision_tool)
