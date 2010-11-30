@@ -15,7 +15,7 @@
 #include "cv.h"
 
 // Project Includes
-#include "vision/include/Convert.h"
+#include "vision/include/LCHConverter.h"
 #include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
@@ -295,7 +295,7 @@ TEST_FIXTURE(GrayImageFixture, Gray_to_BGR)
 
 TEST_FIXTURE(RGBImageFixture, RGB_to_LCH)
 {
-    if (vision::Convert::loadLookupTable()) {
+    if (vision::LCHConverter::loadLookupTable()) {
         unsigned char* beforeData = img.getData();
         CHECK_EQUAL(255, beforeData[0]);
         CHECK_EQUAL(vision::Image::PF_RGB_8, img.getPixelFormat());

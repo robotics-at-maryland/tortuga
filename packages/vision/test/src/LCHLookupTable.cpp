@@ -10,7 +10,7 @@
 // Project Includes
 // For access to private lookup table
 #define private public
-#include "vision/include/Convert.h"
+#include "vision/include/LCHConverter.h"
 #undef private
 
 using namespace ram::vision;
@@ -67,30 +67,30 @@ int main(int argc, char* argv[])
     if (strcmp("-g", argv[1]) == 0 || strcmp("--generate", argv[1]) == 0) {
         std::cout << "Creating lookup table..." << std::endl
                   << "This will take awhile." << std::endl;
-        Convert::createLookupTable();
+        LCHConverter::createLookupTable(true);
         std::cout << "Finished!" << std::endl;
     } else if (strcmp("-t", argv[1]) == 0 || strcmp("--test", argv[1]) == 0) {
         // Load the lookup table and time it
         std::cout << "Testing lookup table loading speed..." << std::endl;
         clock_t start = clock();
-        Convert::loadLookupTable();
+        LCHConverter::loadLookupTable();
         clock_t end = clock();
         std::cout << "Finished! Took " << (end - start)/(double)CLOCKS_PER_SEC
                   << " seconds" << std::endl;        
     } else if (strcmp("-v", argv[1]) == 0 || strcmp("--verify", argv[1]) == 0) {
         int counter = 0, size = 256 * 256 * 256;
         std::cout << "Loading lookup table from disk..." << std::endl;
-        Convert::loadLookupTable();
+        LCHConverter::loadLookupTable();
         std::cout << "Verifying lookup table..." << std::endl
                   << "This will take awhile." << std::endl;
         for (int ch1=0; ch1 < 256; ch1++) {
             for (int ch2=0; ch2 < 256; ch2++) {
                 for (int ch3=0; ch3 < 256; ch3++) {
                     unsigned char r = ch1, g = ch2, b = ch3;
-                    Convert::convertPixel(r, g, b);
+                    LCHConverter::convertPixel(r, g, b);
 
                     unsigned char *tablePos =
-                        Convert::rgb2lchLookup[ch1][ch2][ch3];
+                        LCHConverter::rgb2lchLookup[ch1][ch2][ch3];
 
                     // Verify
                     verify(tablePos[0], r, "Incorrect conversion on channel 1");
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
         unsigned char g = (unsigned char) atoi(values[1].c_str());
         unsigned char b = (unsigned char) atoi(values[2].c_str());
         
-        Convert::convertPixel(r, g, b);
+        LCHConverter::convertPixel(r, g, b);
         std::cout << (int) r << "," << (int) g << "," << (int) b << std::endl;
     } else {
         std::cout << "Invalid option: " << argv[1] << std::endl;

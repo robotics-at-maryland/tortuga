@@ -49,6 +49,7 @@ namespace control {
 BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
+    Updatable(this),
     m_atDepth(false),
     m_atOrientation(false),
     m_depthThreshold(0),

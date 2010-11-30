@@ -66,6 +66,7 @@ struct null_deleter
 Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString(),
              core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
+    Updatable(this),
     m_config(config),
     m_starboardThrusterName(
         config["StarboardThrusterName"].asString("StarboardThruster")),

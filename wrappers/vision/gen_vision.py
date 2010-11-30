@@ -16,7 +16,6 @@ from buildfiles.wrap import make_already_exposed
 
 def generate(module_builder, local_ns, global_ns):
     """
-    name: is the name of the module being wrapped (in name::space::form)
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """

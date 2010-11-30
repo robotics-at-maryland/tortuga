@@ -17,9 +17,21 @@
 namespace ram {
 namespace vision {
 
-class Convert
+class LCHConverter
 {
 public:
+    // Converts a single pixel
+    static void convertPixel(unsigned char &r,
+                             unsigned char &g,
+                             unsigned char &b);
+
+    static void createLookupTable(bool verbose = false);
+    static void saveLookupTable(const char *);
+    static bool loadLookupTable();
+
+    static void convert(vision::Image* image);
+
+private:
     /* Here are the steps to convert a BGR pixel to a CIELCH pixel
        assuming a pointer px = &channel 1
 
@@ -31,19 +43,7 @@ public:
        The pixel channels are now converted to CIELCh
        If gamma correction is turned off, the first step should be ignored
     */
-
     static void invGammaCorrection(double *ch1, double *ch2, double *ch3);
-
-    // Converts a single pixel
-    static void convertPixel(unsigned char &r,
-                             unsigned char &g,
-                             unsigned char &b);
-
-    static void createLookupTable();
-    static void saveLookupTable(const char *);
-    static bool loadLookupTable();
-
-    static void RGB2LCHuv(vision::Image* image);
 
     // convert the values of a single pixel from rgb to xyz
     // requires input in range [0, 1]
@@ -63,18 +63,13 @@ public:
     static void lab2lch_ab(double *l2l, double *a2c, double *b2h);
     static void luv2lch_uv(double *l2l, double *a2c, double *b2h);
 
-private:
-    // static float fast_atan2(float y, float x);
-    // static float fast_sqrt(float x);
-    // static float fast_resqrt(float x);
-
     static unsigned char rgb2lchLookup[256][256][256][3];
 
     static bool lookupInit;
 
-    Convert() {};
+    LCHConverter() {};
 
-    Convert(const Convert& c) {};
+    LCHConverter(const LCHConverter& c) {};
 };
 
 } // namespace vision

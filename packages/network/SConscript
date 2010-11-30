@@ -32,5 +32,9 @@ int_deps = []
 envl.RAMSharedLibrary('network',  source = sources, ext_deps = ext_deps)
 
 # Tests
-#envt = env.Clone()
+envt = env.Clone()
 #envt.Tests(int_deps = 'network', ext_deps = ext_deps)
+
+envt.RAMProgram(target = 'EventListener',
+                source = 'test/src/EventListener.cpp',
+                int_deps = ['network', 'logging'])

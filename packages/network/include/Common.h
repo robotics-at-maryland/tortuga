@@ -21,6 +21,12 @@ class Receiver;
 class RemoteController;
 typedef boost::shared_ptr<RemoteController> RemoteControllerPtr;
 
+class NetworkPublisher;
+typedef boost::shared_ptr<NetworkPublisher> NetworkPublisherPtr;
+
+class NetworkHub;
+typedef boost::shared_ptr<NetworkHub> NetworkHubPtr;
+
 } // namespace network
 } // namespace ram
 

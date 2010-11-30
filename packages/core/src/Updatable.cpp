@@ -17,7 +17,9 @@
 #include <boost/bind.hpp>
 
 // Project Includes
+#include "core/include/Feature.h"
 #include "core/include/TimeVal.h"
+#include "core/include/Events.h"
 #include "core/include/Updatable.h"
 
 // System Includes
@@ -134,7 +136,7 @@ struct timeval *elapse_time(struct timeval *tv, unsigned msec) {
 }
 
     
-Updatable::Updatable() :
+Updatable::Updatable(EventPublisher *publisher) :
     m_backgrounded(0),
     m_interval(100),
     m_priority(NORMAL_PRIORITY),
@@ -142,7 +144,9 @@ Updatable::Updatable() :
     m_affinity(-1),
     m_settingChange(0),
     m_backgroundThread(0),
-    m_threadStopped(1)
+    m_threadStopped(1),
+    m_publisher(publisher),
+    m_profileCount(0)
 {
     initThreadingSettings();
 }
@@ -315,6 +319,7 @@ void Updatable::loop()
 {
     struct timeval last;
     struct timeval start;
+    struct timeval profile; // last time a profile update happened
     Usec sleep_time;
     Usec offset;
 
@@ -323,6 +328,10 @@ void Updatable::loop()
     gettimeofday(&last, NULL);
     gettimeofday(&start, NULL);
     offset = timeval_diff(&start, &last);
+
+    // Get time of day for profiling
+    gettimeofday(&profile, NULL);
+    m_profileCount = 0;
 
     // Zero last so we can check
     last.tv_usec = 0;
@@ -361,6 +370,20 @@ void Updatable::loop()
             
             // Call our update function
             update(diff / (double)1000000);
+            m_profileCount += 1;
+
+            Usec profile_time = timeval_diff(&last, &profile);
+            // If 1 second has passed since the last profile, publish and reset
+            if (profile_time > 1000000)
+            {
+                if (m_publisher) {
+                    IntEventPtr event(new IntEvent());
+                    event->data = m_profileCount;
+                    m_publisher->publish(IUpdatable::PROFILE, event);
+                }
+                profile = last;
+                m_profileCount = 0;
+            }
 
             // Only sleep if we aren't running all out
             if (interval > 0)

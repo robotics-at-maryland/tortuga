@@ -19,6 +19,8 @@
 
 #include "logging/include/Serialize.h"
 
+#include "core/include/Events.h"
+
 #include "vision/include/Events.h"
 
 #include "math/test/include/MathChecks.h"
@@ -38,7 +40,6 @@ struct Fixture
     void writeOut(ram::core::EventPtr event)
     {
         boost::archive::text_oarchive oa(ofs);
-        ram::logging::registerTypes(oa);
         oa << event;
     }
 
@@ -47,7 +48,6 @@ struct Fixture
         // Create the archive
         ifs.str(ofs.str());
         boost::archive::text_iarchive iar(ifs);
-        ram::logging::registerTypes(iar);
 
         // Read in the event
         ram::core::EventPtr event;        
@@ -80,6 +80,24 @@ TEST_FIXTURE(Fixture, Event)
     ram::core::EventPtr result = serializeDeSerialize<ram::core::Event>(event);
     
     // Check to make sure everything made it back
+    CHECK_EQUAL(event->type, result->type);
+    CHECK_EQUAL(event->sender, result->sender);
+    CHECK_EQUAL(event->timeStamp, result->timeStamp);
+}
+
+TEST_FIXTURE(Fixture, StringEvent)
+{
+    ram::core::EventPublisher publisher(ram::core::EventHubPtr(),
+                                        "PublisherName");
+
+    ram::core::StringEventPtr event(new ram::core::StringEvent());
+    event->string = "Hello, world";
+    event->type = "Bob";
+    event->sender = &publisher;
+
+    ram::core::StringEventPtr result =
+        serializeDeSerialize<ram::core::StringEvent>(event);
+
     CHECK_EQUAL(event->type, result->type);
     CHECK_EQUAL(event->sender, result->sender);
     CHECK_EQUAL(event->timeStamp, result->timeStamp);

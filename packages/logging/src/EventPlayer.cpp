@@ -242,9 +242,6 @@ void EventPlayer::init(core::ConfigNode config, core::SubsystemList deps)
 
     // Create our archive
     m_archive = new boost::archive::text_iarchive(m_logFile);
-
-    // Register all types with the archive
-    ram::logging::registerTypes(*m_archive);
     
     // Get our subsystem
     m_eventHub = core::Subsystem::getSubsystemOfType<core::EventHub>(deps);

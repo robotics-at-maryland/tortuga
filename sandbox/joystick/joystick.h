@@ -46,7 +46,6 @@ void processAxis(int fd, int axis, int val)
     case AXIS_THROTTLE:
     {
         val = SCALE_THROTTLE(val);
-        std::cout << val << std::endl;
 
         if(val != lastThrottleSpeed)
         {

@@ -17,6 +17,8 @@
 // Project Includes
 #include "core/include/IUpdatable.h"
 
+RAM_CORE_EVENT_TYPE(ram::core::IUpdatable, PROFILE);
+
 namespace ram {
 namespace core {
 
