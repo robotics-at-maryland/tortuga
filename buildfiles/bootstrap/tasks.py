@@ -10,6 +10,7 @@ import os
 import os.path
 import sys
 import platform
+import re
 
 # Library Imports
 from buildit.task import Task
@@ -63,13 +64,16 @@ install_pyyaml = Task(
     dependencies = (setup_directories,)
     )
 
+version = re.match(r'\d\.\d', sys.version).group(0)
 install_zope_interface = Task(
     'Install Zope.Interface',
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
     commands = ['python setup.py install'
-                '  --prefix=${ram_prefix}'],
+                '  --prefix=${ram_prefix}',
+                'cd ${py_site_packages} && '
+                '  ln -s zope.interface-3.3.0-py%s.egg/zope zope' % version],
     dependencies = (setup_directories,)
     )
 
