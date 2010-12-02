@@ -7,7 +7,9 @@
  * File:  packages/vision/src/SuitDetector.cpp
  */
 
-#include <iostream>
+// STD Includes
+#include <stdio.h>
+
 //Library Includes
 #include "cv.h"
 #include "highgui.h"

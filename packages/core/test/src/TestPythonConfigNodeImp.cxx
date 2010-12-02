@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <cstdio>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>

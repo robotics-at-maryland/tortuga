@@ -12,6 +12,10 @@ import imp
 import os
 import logging
 
+# pyplusplus pickles some objects that require a higher recursion limit
+# than normal. This is only sometimes needed, but always included to be safe.
+sys.setrecursionlimit(1500)
+
 # Library Imports
 import pygccxml
 import pyplusplus

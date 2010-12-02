@@ -7,6 +7,8 @@
  * File:  packages/vision/include/NetworkCamera.cpp
  */
 
+// STD Includes
+#include <stdio.h>
 
 // Library Includes
 extern "C" {
