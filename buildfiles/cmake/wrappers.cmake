@@ -84,8 +84,16 @@ macro(generate_wrappers MODULE)
   add_custom_target(ram_${MODULE}_wrapper ALL DEPENDS _${MODULE})
 endmacro ()
 
+set(EXT_SOURCE ${CMAKE_SOURCE_DIR}/wrappers/ext_init.py)
 set(EXT_INIT_FILE ${CMAKE_SOURCE_DIR}/build_ext/ext/__init__.py)
-file(WRITE ${EXT_INIT_FILE} "")
+add_custom_command(
+  OUTPUT ${EXT_INIT_FILE}
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ARGS ${EXT_SOURCE} ${EXT_INIT_FILE}
+  DEPENDS ${EXT_SOURCE}
+  COMMENT "Copying ${EXT_SOURCE} to ${EXT_INIT_FILE}"
+  )
+add_custom_target(ram_ext_init ALL DEPENDS ${EXT_INIT_FILE})
 
 macro(python_files MODULE)
   file(GLOB_RECURSE PYTHON_FILES "python/*.py")
