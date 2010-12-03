@@ -21,11 +21,9 @@
 #include "core/include/Subsystem.h"
 
 #include "math/include/Quaternion.h"
+#include "math/include/Vector2.h"
 
 #include "control/include/Common.h"
-#include "control/include/IDepthController.h"
-#include "control/include/ITranslationalController.h"
-#include "control/include/IRotationalController.h"
 
 // Must Be Included last
 #include "control/include/Export.h"

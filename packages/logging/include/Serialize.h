@@ -136,7 +136,6 @@ void serialize(Archive & ar, ram::core::Event& t,
 }
     
 BOOST_SERIALIZATION_SHARED_PTR(ram::core::Event)
-BOOST_CLASS_EXPORT_GUID(ram::core::Event, "ram.core.Event")
 
 // ------------------------------------------------------------------------- //
 //                           C O R E   E V E N T S                           //
@@ -151,7 +150,6 @@ void serialize(Archive &ar, ram::core::StringEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)
-BOOST_CLASS_EXPORT_GUID(ram::core::StringEvent, "ram.core.StringEvent")
 
 
 // ------------------------------------------------------------------------- //
@@ -189,8 +187,7 @@ void serialize(Archive &ar, ram::math::OrientationEvent &t,
   ar & t.orientation;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::math::OrientationEvent)    
-BOOST_CLASS_EXPORT_GUID(ram::math::OrientationEvent, "ram.math.OrientationEvent")
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::OrientationEvent)
 
 
 template <class Archive>
@@ -202,7 +199,6 @@ void serialize(Archive &ar, ram::math::Vector3Event &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)
-BOOST_CLASS_EXPORT_GUID(ram::math::Vector3Event, "ram.math.Vector3Event")
 
 
 template <class Archive>
@@ -214,7 +210,6 @@ void serialize(Archive &ar, ram::math::NumericEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::math::NumericEvent)
-BOOST_CLASS_EXPORT_GUID(ram::math::NumericEvent, "ram.math.NumericEvent")
 
 #endif // RAM_WITH_MATH
 
@@ -248,7 +243,6 @@ void serialize(Archive & ar, ram::vision::ImageEvent& t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::ImageEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::ImageEvent, "ram.vision.ImageEvent")
 
 
 template <class Archive>
@@ -266,7 +260,6 @@ void serialize(Archive &ar, ram::vision::RedLightEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::RedLightEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::RedLightEvent, "ram.vision.RedLightEvent")
 
 
 template <class Archive>
@@ -281,7 +274,6 @@ void serialize(Archive &ar, ram::vision::PipeEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::PipeEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::PipeEvent, "ram.vision.PipeEvent")
 
 
 template <class Archive>
@@ -297,7 +289,6 @@ void serialize(Archive &ar, ram::vision::BinEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BinEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::BinEvent, "ram.vision.BinEvent")
 
 
 template <class Archive>
@@ -314,7 +305,6 @@ void serialize(Archive &ar, ram::vision::DuctEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::DuctEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::DuctEvent, "ram.vision.DuctEvent")
 
 
 template <class Archive>
@@ -327,7 +317,6 @@ void serialize(Archive &ar, ram::vision::SafeEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::SafeEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::SafeEvent, "ram.vision.SafeEvent")
 
 
 template <class Archive>
@@ -342,7 +331,6 @@ void serialize(Archive &ar, ram::vision::TargetEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::TargetEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::TargetEvent, "ram.vision.TargetEvent")
 
 
 template <class Archive>
@@ -359,7 +347,6 @@ void serialize(Archive &ar, ram::vision::BarbedWireEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BarbedWireEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vision::BarbedWireEvent, "ram.vision.BarbedWireEvent")
 
 #endif // RAM_WITH_VISION
 
@@ -382,7 +369,6 @@ void serialize(Archive &ar, ram::vehicle::PowerSourceEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::PowerSourceEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vehicle::PowerSourceEvent, "ram.vehicle.PowerSourceEvent")
 
 
 template <class Archive>
@@ -395,7 +381,6 @@ void serialize(Archive &ar, ram::vehicle::TempSensorEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::TempSensorEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vehicle::TempSensorEvent, "ram.vehicle.TempSensorEvent")
 
 
 template <class Archive>
@@ -409,7 +394,6 @@ void serialize(Archive &ar, ram::vehicle::ThrusterEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::ThrusterEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vehicle::ThrusterEvent, "ram.vehicle.ThrusterEvent")
 
 
 template <class Archive>
@@ -426,7 +410,6 @@ void serialize(Archive &ar, ram::vehicle::SonarEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::SonarEvent)
-BOOST_CLASS_EXPORT_GUID(ram::vehicle::SonarEvent, "ram.vehicle.SonarEvent")
 
 #endif // RAM_WITH_VEHICLE
 
@@ -445,7 +428,6 @@ void serialize(Archive &ar, ram::control::ParamSetupEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::control::ParamSetupEvent)
-BOOST_CLASS_EXPORT_GUID(ram::control::ParamSetupEvent, "ram.control.ParamSetupEvent")
 
 
 template <class Archive>
@@ -457,7 +439,6 @@ void serialize(Archive &ar, ram::control::ParamUpdateEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::control::ParamUpdateEvent)
-BOOST_CLASS_EXPORT_GUID(ram::control::ParamUpdateEvent, "ram.control.ParamUpdateEvent")
 
 #endif // RAM_WITH_CONTROL
 

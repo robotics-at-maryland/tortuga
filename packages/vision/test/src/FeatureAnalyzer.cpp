@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
             float stddev = 0;
             BOOST_FOREACH(float f, flist)
             {
-                float diff = flist[i] - mean;
+                float diff = f - mean;
                 stddev += diff * diff;
             }
             stddev /= flist.size() - 1;

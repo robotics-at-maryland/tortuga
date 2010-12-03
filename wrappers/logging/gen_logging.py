@@ -45,4 +45,8 @@ def generate(module_builder, local_ns, global_ns):
 
     # Add registrations functions for hand wrapped classes
     module_builder.add_registration_code("registerLoggingPtrs();")
-    return ['wrappers/logging/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/logging/include/RegisterFunctions.h'] + list(include_files)

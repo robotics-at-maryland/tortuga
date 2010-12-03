@@ -14,6 +14,7 @@ if not os.environ.has_key('RAM_SVN_DIR'):
    raise Exception('R@M Environment Not Setup. Run scripts/setenv')
 
 # Project Imports
+from ext import import_all_modules
 import ext.core
 # NOTE: sim.subsystems delayed till after setting of sys.path for Python-Ogre
 
@@ -33,6 +34,7 @@ def stop(event):
 
 def commandLineStart(path):
     import sim.subsystems
+    import_all_modules()
     
     # Create Application class (creates all Subsystems)
     app = ext.core.Application(path)
@@ -61,6 +63,7 @@ def guiStart(path):
     
     # Now we can import OCI
     import oci.app
+    import_all_modules()
     
     # Now we can start up the vehicle
     application = oci.app.Application(path)

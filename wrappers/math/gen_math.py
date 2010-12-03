@@ -20,9 +20,6 @@ def generate(module_builder, local_ns, global_ns):
     global_ns: is the module builder for the entire library
     local_ns: is the namespace that coresponds to the given namespace
     """
-    base_path = os.path.join(os.environ['RAM_SVN_DIR'],'packages','math',
-                             'include')
-
     classes = []
 
     # Find all the classes to wrap
@@ -48,7 +45,6 @@ def generate(module_builder, local_ns, global_ns):
 
     # Map operator<< to __str__
     wrap.str_from_ostream(local_ns)
-
 
     # Fix '[]' operators on matrices
     c = Matrix2.operators('[]')
@@ -93,4 +89,7 @@ def generate(module_builder, local_ns, global_ns):
     wrap.set_implicit_conversions([Vector2, Vector3, Quaternion, Matrix2,
                                    Matrix3], False)
 
-    return ['math/include/Math.h']
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['math/include/Math.h'] + list(include_files)

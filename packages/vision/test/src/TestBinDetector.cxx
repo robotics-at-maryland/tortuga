@@ -10,8 +10,8 @@
 
 // STD Includes
 #include <cmath>
+#include <cstdio>
 #include <set>
-#include <iostream>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>

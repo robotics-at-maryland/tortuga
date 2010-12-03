@@ -14,10 +14,6 @@
 namespace ram {
 namespace control {
 
-math::Matrix2 bRn(double radians);
-
-math::Matrix2 nRb(double radians);
-
 math::Quaternion yawVehicleHelper(const math::Quaternion& currentOrientation, double degrees);
 math::Quaternion rollVehicleHelper(const math::Quaternion& currentOrientation, double degrees);
 math::Quaternion pitchVehicleHelper(const math::Quaternion& currentOrientation, double degrees);

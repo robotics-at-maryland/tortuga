@@ -72,4 +72,8 @@ def generate(module_builder, local_ns, global_ns):
 
     module_builder.add_registration_code("registerImageClass();")
     module_builder.add_registration_code("registerCameraClass();")
-    return ['wrappers/vision/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/vision/include/RegisterFunctions.h'] + list(include_files)

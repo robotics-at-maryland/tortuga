@@ -10,7 +10,10 @@
 #ifndef RAM_CONTROL_DESIREDSTATE_H
 #define RAM_CONTROL_DESIREDSTATE_H
 
+// Library Includes
 #include <boost/shared_ptr.hpp>
+
+// Project Includes
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
@@ -18,8 +21,6 @@
 
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/EventPublisher.h"
-
-#include "vehicle/include/IVehicle.h"
 
 // Must Be Included last
 #include "control/include/Export.h"

@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <sstream>
 

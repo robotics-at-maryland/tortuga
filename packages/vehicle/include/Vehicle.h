@@ -21,7 +21,7 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
-#include "vehicle/estimator/include/IStateEstimator.h"
+#include "vehicle/include/estimator/IStateEstimator.h"
 
 namespace ram {
 namespace vehicle {

@@ -1,6 +1,8 @@
 CHANGES.txt
+PKG-INFO
 README.txt
 buildout.cfg
+setup.cfg
 setup.py
 src/zope/__init__.py
 src/zope.interface.egg-info/PKG-INFO

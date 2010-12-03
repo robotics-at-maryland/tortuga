@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cerrno>
+#include <cstdio>
 //#include <iostream>
 
 // System Includes

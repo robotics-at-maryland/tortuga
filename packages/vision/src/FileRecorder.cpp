@@ -7,6 +7,8 @@
  * File:  packages/vision/src/FileRecorder.cpp
  */
 
+// STD Includes
+#include <stdio.h>
 
 // Library Includes
 #include "cv.h"

@@ -8,6 +8,7 @@
  */
 
 // STD Includes
+#include <stdio.h>
 #include <iostream>
 
 // Library Includes

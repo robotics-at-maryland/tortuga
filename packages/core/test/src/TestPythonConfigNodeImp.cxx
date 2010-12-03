@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <cstdio>
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
@@ -208,9 +209,7 @@ TEST_FIXTURE(TestPythonConfigNode, writeToFile)
 } // namespace core
 } // namespace ram
     
-int main()
+int main(int argc, char* argv[])
 {
-    return UnitTest::RunAllTests();;
+    return UnitTest::RunAllTests();
 }
-
-    

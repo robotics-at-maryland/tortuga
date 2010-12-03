@@ -7,8 +7,7 @@
  * File:  packages/control/src/RotationalControllerBase.h
  */
 
-// Project includes
-#include <iostream>
+// Project Includes
 #include "control/include/RotationalControllerBase.h"
 #include "control/include/ControllerBase.h"
 

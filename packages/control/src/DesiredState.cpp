@@ -7,7 +7,7 @@
  * File:  packages/control/include/DesiredState.cpp
  */
 
-#include <iostream>
+// Project Includes
 #include "control/include/Helpers.h"
 #include "control/include/DesiredState.h"
 #include "control/include/IController.h"
