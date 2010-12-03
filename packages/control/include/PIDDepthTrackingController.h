@@ -4,23 +4,23 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/PIDDepthController.h
+ * File:  packages/control/include/PIDDepthTrackingController.h
  */
 
+#ifndef RAM_CONTROL_PIDDEPTHTRACKINGCONTROLLER_H
+#define RAM_CONTROL_PIDDEPTHTRACKINGCONTROLLER_H
 
-#ifndef RAM_CONTROL_PIDDEPTHCONTROLLER_H
-#define RAM_CONTROL_PIDDEPTHCONTROLLER_H
-
+// Project Includes
 #include "control/include/DepthControllerBase.h"
 
 namespace ram {
 namespace control {    
 
-class PIDDepthController : public DepthControllerBase
+class PIDDepthTrackingController : public DepthControllerBase
 {
 public:
-    PIDDepthController(ram::core::ConfigNode config);
-    virtual ~PIDDepthController() {}
+    PIDDepthTrackingController(ram::core::ConfigNode config);
+    virtual ~PIDDepthTrackingController() {}
 
     virtual math::Vector3 depthUpdate(
         double timestep,
@@ -36,4 +36,4 @@ private:
 } // namespace control
 } // namespace ram
     
-#endif // RAM_CONTROL_PIDDEPTHCONTROLLER_H
+#endif // RAM_CONTROL_PIDDEPTHTRACKINGCONTROLLER_H

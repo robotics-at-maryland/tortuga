@@ -25,24 +25,31 @@ class MockController : public ram::control::IController
 public:
     MockController(std::string name) : IController(name) {}
 
-    virtual void changeDepth(double depth, double rate)
+    virtual void changeDepth(double depth,
+                             double rate = 0,
+                             double accel = 0)
     { 
         m_depth = depth;
         m_depthRate = rate;
+        m_depthAccel = accel;
     }
 
     virtual void translate(ram::math::Vector2 position,
-                           ram::math::Vector2 velocity)
+                           ram::math::Vector2 velocity = ram::math::Vector2::ZERO,
+                           ram::math::Vector2 accel = ram::math::Vector2::ZERO)
     {
         m_position = position;
         m_velocity = velocity;
+        m_accel = accel;
     }
 
     virtual void rotate(ram::math::Quaternion orientation,
-                        ram::math::Vector3 angularRate)
+                        ram::math::Vector3 angularRate = ram::math::Vector3::ZERO,
+                        ram::math::Vector3 angularAccel = ram::math::Vector3::ZERO)
     {
         m_orientation = orientation;
         m_angularRate = angularRate;
+        m_angularAccel = angularAccel;
     }
 
     virtual void yawVehicle(double degrees, double rate) { yaw = degrees; }
@@ -51,12 +58,15 @@ public:
 
     virtual double getDesiredDepth() {return m_depth;}
     virtual double getDesiredDepthRate() {return m_depthRate;}
+    virtual double getDesiredDepthAccel() {return m_depthAccel;}
 
     virtual ram::math::Vector2 getDesiredVelocity() {return m_velocity;}
     virtual ram::math::Vector2 getDesiredPosition() {return m_position;}
+    virtual ram::math::Vector2 getDesiredAccel() {return m_accel;}
 
     virtual ram::math::Quaternion getDesiredOrientation() {return m_orientation;}
     virtual ram::math::Vector3 getDesiredAngularRate() {return m_angularRate;}
+    virtual ram::math::Vector3 getDesiredAngularAccel() {return m_angularAccel;}
 
     virtual bool atPosition(){return m_atPosition;}
     virtual bool atVelocity(){return m_atVelocity;}
@@ -81,10 +91,10 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
 
-    double m_depth, m_depthRate;
-    ram::math::Vector2 m_position, m_velocity;
+    double m_depth, m_depthRate, m_depthAccel;
+    ram::math::Vector2 m_position, m_velocity, m_accel;
     ram::math::Quaternion m_orientation;
-    ram::math::Vector3 m_angularRate;
+    ram::math::Vector3 m_angularRate, m_angularAccel;
 
     double yaw;
     bool m_atPosition;

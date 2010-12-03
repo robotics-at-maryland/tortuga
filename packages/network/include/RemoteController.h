@@ -19,6 +19,7 @@
 #include "core/include/ConfigNode.h"
 #include "control/include/Common.h"
 #include "estimation/include/Common.h"
+#include "math/include/Vector2.h"
 #include "network/include/Receiver.h"
 
 namespace ram {
@@ -89,6 +90,8 @@ class RAM_EXPORT RemoteController :
 
     /** The state estimator to get the current state from */
     estimation::IStateEstimatorPtr m_stateEstimator;
+
+    math::Vector2 m_velocity_b;
 
     /** Message receiver */
     Receiver* m_receiver;

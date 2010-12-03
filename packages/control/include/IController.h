@@ -22,6 +22,7 @@
 
 #include "math/include/Quaternion.h"
 #include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
 
 #include "control/include/Common.h"
 
@@ -44,13 +45,19 @@ class RAM_EXPORT IController : public core::Subsystem
 public:
 
     /** Sets the desired position and velocity state variables */
-    virtual void translate(math::Vector2 position, math::Vector2 velocity) = 0;
+    virtual void translate(math::Vector2 position,
+                           math::Vector2 velocity = math::Vector2::ZERO,
+                           math::Vector2 accel = math::Vector2::ZERO) = 0;
 
     /** Sets the desired depth and depth change rate state variables */
-    virtual void changeDepth(double depth, double depthRate) = 0;
+    virtual void changeDepth(double depth,
+                             double depthRate = 0,
+                             double depthAccel = 0) = 0;
 
     /** Sets the desired orientation and angular rate state variables */
-    virtual void rotate(math::Quaternion orientation, math::Vector3 angularRate) = 0;
+    virtual void rotate(math::Quaternion orientation,
+                        math::Vector3 angularRate = math::Vector3::ZERO,
+                        math::Vector3 angularAccel = math::Vector3::ZERO) = 0;
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees, double rate) = 0;
@@ -69,11 +76,17 @@ public:
     /** Gets desired velocity in the inertial frame*/
     virtual math::Vector2 getDesiredVelocity() = 0;
 
+    /** Gets the desired in plane acceleration */
+    virtual math::Vector2 getDesiredAccel() = 0;
+
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation() = 0;
 
     /** Gets the desired angular rate */
     virtual math::Vector3 getDesiredAngularRate() = 0;
+
+    /** Gets the desired angular acceleration */
+    virtual math::Vector3 getDesiredAngularAccel() = 0;
 
     /** Current desired depth of the sub (uncalibrated units)*/
     virtual double getDesiredDepth() = 0;
@@ -81,6 +94,8 @@ public:
     /** Current desired depth rate change */
     virtual double getDesiredDepthRate() = 0;
 
+    /** Current desired depth acceleration */
+    virtual double getDesiredDepthAccel() = 0;
 
 
     /** Loads current orientation into desired (fixes offset in roll and pitch)

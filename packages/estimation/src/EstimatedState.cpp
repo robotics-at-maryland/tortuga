@@ -22,13 +22,14 @@ namespace estimation {
 
 EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventHub) :
     core::EventPublisher(eventHub, "EstimatedState"),
-    estPosition(math::Vector2::ZERO),
-    estVelocity(math::Vector2::ZERO),
-    estLinearAccel(math::Vector3::ZERO),
-    estAngularRate(math::Vector3::ZERO),
-    estOrientation(math::Quaternion::IDENTITY),
-    estDepth(0),
-    estDepthRate(0)
+    m_estPosition(math::Vector2::ZERO),
+    m_estVelocity(math::Vector2::ZERO),
+    m_estLinearAccel(math::Vector3::ZERO),
+    m_estAngularRate(math::Vector3::ZERO),
+    m_estOrientation(math::Quaternion::IDENTITY),
+    m_estDepth(0),
+    m_estDepthRate(0),
+    m_estMass(0)
 {
     
 }
@@ -36,62 +37,62 @@ EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventH
 math::Vector2 EstimatedState::getEstimatedPosition()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estPosition;
+    return m_estPosition;
 }
 
 math::Vector2 EstimatedState::getEstimatedVelocity()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estVelocity;
+    return m_estVelocity;
 }
 
 math::Vector3 EstimatedState::getEstimatedLinearAccel()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estLinearAccel;
+    return m_estLinearAccel;
 }
 
 math::Vector3 EstimatedState::getEstimatedAngularRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estAngularRate;
+    return m_estAngularRate;
 }
 
 math::Quaternion EstimatedState::getEstimatedOrientation()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estOrientation;
+    return m_estOrientation;
 }
 
 double EstimatedState::getEstimatedDepth()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estDepth;
+    return m_estDepth;
 }
 
 double EstimatedState::getEstimatedDepthRate()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estDepthRate;
+    return m_estDepthRate;
 }
 
 math::Vector3 EstimatedState::getEstimatedThrusterForces()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estThrusterForces;
+    return m_estThrusterForces;
 }
 
 math::Vector3 EstimatedState::getEstimatedThrusterTorques()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return estThrusterTorques;
+    return m_estThrusterTorques;
 }
 
 void EstimatedState::setEstimatedPosition(math::Vector2 position)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estPosition = position;
+        m_estPosition = position;
     }    
     publishPositionUpdate(position);
 }
@@ -100,7 +101,7 @@ void EstimatedState::setEstimatedVelocity(math::Vector2 velocity)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estVelocity = velocity;
+        m_estVelocity = velocity;
     }
     publishVelocityUpdate(velocity);
 }
@@ -110,7 +111,7 @@ void EstimatedState::setEstimatedLinearAccel(
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estLinearAccel = linearAccel;
+        m_estLinearAccel = linearAccel;
     }    
     publishLinearAccelUpdate(linearAccel);
 }
@@ -120,7 +121,7 @@ void EstimatedState::setEstimatedAngularRate(
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estAngularRate = angularRate;
+        m_estAngularRate = angularRate;
     }
     publishAngularRateUpdate(angularRate);
 }
@@ -130,7 +131,7 @@ void EstimatedState::setEstimatedOrientation(
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estOrientation = orientation;
+        m_estOrientation = orientation;
     }
     publishOrientationUpdate(orientation);
 }
@@ -139,7 +140,7 @@ void EstimatedState::setEstimatedDepth(double depth)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estDepth = depth;
+        m_estDepth = depth;
     }
     publishDepthUpdate(depth);
 }
@@ -148,7 +149,7 @@ void EstimatedState::setEstimatedDepthRate(double depthRate)
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estDepthRate = depthRate;
+        m_estDepthRate = depthRate;
     }
     publishDepthRateUpdate(depthRate);
 }
@@ -158,8 +159,8 @@ void EstimatedState::setEstimatedThrust(math::Vector3 forces,
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        estThrusterForces = forces;
-        estThrusterTorques = torques;
+        m_estThrusterForces = forces;
+        m_estThrusterTorques = torques;
     }
 }
 
@@ -178,6 +179,11 @@ double EstimatedState::getObstacleDepth(std::string name)
     return 0;
 }
 
+double EstimatedState::getEstimatedMass()
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    return m_estMass;
+}
 
 void EstimatedState::publishPositionUpdate(const math::Vector2& position)
 {

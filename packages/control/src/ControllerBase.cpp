@@ -149,40 +149,49 @@ void ControllerBase::update(double timestep)
 
 
 
-void ControllerBase::translate(math::Vector2 position, math::Vector2 velocity)
+void ControllerBase::translate(math::Vector2 position,
+                               math::Vector2 velocity,
+                               math::Vector2 accel)
 {
     m_desiredState->setDesiredVelocity(velocity);
     m_desiredState->setDesiredPosition(position);
+    m_desiredState->setDesiredAccel(accel);
 }
 
-void ControllerBase::changeDepth(double depth, double rate)
+void ControllerBase::changeDepth(double depth,
+                                 double depthRate,
+                                 double depthAccel)
 {
     m_desiredState->setDesiredDepth(depth);
-    m_desiredState->setDesiredDepthRate(rate);
+    m_desiredState->setDesiredDepthRate(depthRate);
+    m_desiredState->setDesiredDepthAccel(depthAccel);
 }
 
-void ControllerBase::rotate(math::Quaternion orientation, math::Vector3 angularRate)
+void ControllerBase::rotate(math::Quaternion orientation,
+                            math::Vector3 angularRate,
+                            math::Vector3 angularAccel)
 {
     m_desiredState->setDesiredOrientation(orientation);
     m_desiredState->setDesiredAngularRate(angularRate);
+    m_desiredState->setDesiredAngularAccel(angularAccel);
 }
 
 void ControllerBase::yawVehicle(double degrees, double rate)
 {
     rotate(yawVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
-           math::Vector3::UNIT_Z);
+           math::Vector3::UNIT_Z * rate);
 }
 
 void ControllerBase::pitchVehicle(double degrees, double rate)
 {
     rotate(pitchVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
-           math::Vector3::UNIT_Y);
+           math::Vector3::UNIT_Y * rate);
 }
 
 void ControllerBase::rollVehicle(double degrees, double rate)
 {
     rotate(rollVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
-           math::Vector3::UNIT_X);
+           math::Vector3::UNIT_X * rate);
 }
 
 
@@ -198,6 +207,13 @@ math::Vector2 ControllerBase::getDesiredVelocity()
     return m_desiredState->getDesiredVelocity();
 }
 
+math::Vector2 ControllerBase::getDesiredAccel()
+{
+    return m_desiredState->getDesiredAccel();
+}
+
+
+
 math::Quaternion ControllerBase::getDesiredOrientation()
 {
     return m_desiredState->getDesiredOrientation();
@@ -208,6 +224,13 @@ math::Vector3 ControllerBase::getDesiredAngularRate()
     return m_desiredState->getDesiredAngularRate();
 }
 
+math::Vector3 ControllerBase::getDesiredAngularAccel()
+{
+    return m_desiredState->getDesiredAngularAccel();
+}
+
+
+
 double ControllerBase::getDesiredDepth()
 {
     return m_desiredState->getDesiredDepth();
@@ -216,6 +239,11 @@ double ControllerBase::getDesiredDepth()
 double ControllerBase::getDesiredDepthRate()
 {
     return m_desiredState->getDesiredDepthRate();
+}
+
+double ControllerBase::getDesiredDepthAccel()
+{
+    return m_desiredState->getDesiredDepthAccel();
 }
 
 

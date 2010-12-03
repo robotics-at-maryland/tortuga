@@ -71,6 +71,9 @@ public:
     virtual math::Vector2 getObstaclePosition(std::string name) = 0;
     virtual double getObstacleDepth(std::string name) = 0;
 
+    /** return the estimated vehicle mass */
+    virtual double getEstimatedMass() = 0;
+
     static const core::Event::EventType ESTIMATED_DEPTH_UPDATE;
     static const core::Event::EventType ESTIMATED_ORIENTATION_UPDATE;
     static const core::Event::EventType ESTIMATED_VELOCITY_UPDATE;

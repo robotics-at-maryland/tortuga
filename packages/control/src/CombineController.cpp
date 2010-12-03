@@ -42,8 +42,6 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineContro
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
 
-using namespace std;
-
 namespace ram {
 namespace control {
 
@@ -92,7 +90,7 @@ void CombineController::init(core::ConfigNode config)
 
     m_initializationPause = config["InitializationPause"].asDouble(0);
 
-    LOGGER.infoStream() << "DesiredDepth EstimatedDepth";
+    LOGGER.infoStream() << "ForceOut TorqueOut";
 }
 
 void CombineController::doUpdate(const double& timestep,
@@ -127,8 +125,8 @@ void CombineController::doUpdate(const double& timestep,
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
 
-    LOGGER.infoStream() << m_desiredState->getDesiredDepth() << " "
-                        << m_stateEstimator->getEstimatedDepth();
+    LOGGER.infoStream() << translationalForceOut << " "
+                        << rotationalTorqueOut;
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()

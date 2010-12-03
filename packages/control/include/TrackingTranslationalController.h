@@ -30,8 +30,10 @@ public:
 private:
     math::Vector2 m_iError;
 
-    double x1kp, x1ki, x1kd;
-    double x2kp, x2ki, x2kd;
+    double m_x1kp, m_x1ki, m_x1kd;
+    double m_x2kp, m_x2ki, m_x2kd;
+
+    double m_dtMin, m_dtMax;
 
 };
 

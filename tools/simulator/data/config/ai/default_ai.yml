@@ -15,7 +15,6 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Light', 'ram.ai.course.Pipe1',
             'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
             'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
-            'ram.ai.course.Bin', 'ram.ai.course.RandomBin',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
             'ram.ai.course.Travel1', 'ram.ai.course.Window']

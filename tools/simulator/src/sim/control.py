@@ -13,9 +13,10 @@ import math as pmath
 
 # Project Imports
 import ext.core as core
+import ext.math as math
 import ext.control as control
 import ext.estimation as estimation
-import ext.math as math
+
 
 import ram.sim.input as input
 import ram.motion.basic as motion

@@ -39,9 +39,6 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     control::DesiredStatePtr desiredState)
 {
     math::Quaternion orientation = estimator->getEstimatedOrientation();
-    // The quaternion with just the pitch
-    math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
-                               math::Vector3::UNIT_Y);
 
     /*  Retrieve velocity as if the robots frame is the inertial frame.  
         In other words, the robot should always travel at this velocity 
@@ -55,8 +52,8 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
         m_sidewaysSpeedPGain * desiredVelocity[1],
         0);
 
-    // Rotate it to account for odd pitches
-    math::Vector3 result = quatPitch * foreAftComponent;
+    // Rotate it to the body frame
+    math::Vector3 result = orientation * foreAftComponent;
 
     // Return the results
     return result;

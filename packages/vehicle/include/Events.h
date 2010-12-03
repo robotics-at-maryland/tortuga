@@ -102,7 +102,7 @@ struct RawDVLDataEvent : public core::Event
 {
     std::string name;
     RawDVLData rawDVLData;
-    double angOffset;
+    math::Vector2 velocity_b;
     double timestep;
 
     virtual core::EventPtr clone();

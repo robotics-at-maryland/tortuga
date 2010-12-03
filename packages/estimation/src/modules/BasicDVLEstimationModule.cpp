@@ -30,7 +30,7 @@ BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config,
     EstimationModule(eventHub, "BasicDVLEstimationModule")
 {
     /* initialization from config values should be done here */
-    LOGGER.info("% Vel_t[2] Vel_b[2] Vel_n[2] Pos_n[2] Timestamp");
+    LOGGER.info("%Vel_b[2] Vel_n[2] Pos_n[2] Timestamp");
 }
 
 void BasicDVLEstimationModule::update(core::EventPtr event, 
@@ -52,19 +52,7 @@ void BasicDVLEstimationModule::update(core::EventPtr event,
 
     RawDVLData state = ievent->rawDVLData;
     double timestep = ievent->timestep;
-    double vel_t1 = (state.bt_velocity[0] + state.bt_velocity[1]) / 2;
-    double vel_t2 = (state.bt_velocity[2] + state.bt_velocity[3]) / 2;
-
-    /* grab the dvl offset angle */
-    double angOffset = ievent->angOffset;
-    double r_cos = cos(angOffset), r_sin = sin(angOffset);
-    math::Matrix2 bRt = math::Matrix2(r_cos, r_sin, -r_sin, r_cos);
-
-    /* velocity in the transducer frame */
-    math::Vector2 vel_t(vel_t1, vel_t2);
-
-    /* velocity in the body frame */
-    math::Vector2 vel_b = bRt*vel_t;
+    math::Vector2 vel_b = ievent->velocity_b;
 
     double yaw = estimatedState->getEstimatedOrientation().getYaw().valueRadians();
 
@@ -76,16 +64,14 @@ void BasicDVLEstimationModule::update(core::EventPtr event,
     math::Vector2 oldVel = estimatedState->getEstimatedVelocity();
     
     /* trapezoidal integration for new position */
-    math::Vector2 pos_n = oldPos + (vel_n + oldVel) / 2 * timestep;
+    math::Vector2 pos_n = oldPos + timestep * (vel_n + oldVel) / 2;
 
     /* store the new estimates */
     estimatedState->setEstimatedVelocity(vel_n);
     estimatedState->setEstimatedPosition(pos_n);
 
     /* log the estimates */
-    LOGGER.infoStream() << vel_t[0] << " "
-                        << vel_t[1] << " "
-                        << vel_b[0] << " "
+    LOGGER.infoStream() << vel_b[0] << " "
                         << vel_b[1] << " "
                         << vel_n[0] << " "
                         << vel_n[1] << " "

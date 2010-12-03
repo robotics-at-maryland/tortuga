@@ -9,6 +9,7 @@
 
 // Library Includes
 #include <iostream>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "control/include/NonlinearPDRotationalController.h"
@@ -16,6 +17,10 @@
 #include "math/include/Matrix3.h"
 #include "math/include/Helpers.h"
 #include "estimation/include/IStateEstimator.h"
+
+// create a category for logging specific depth controller info
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance(
+                                     "RotationalController"));
 
 namespace ram {
 namespace control {
@@ -37,7 +42,11 @@ NonlinearPDRotationalController::NonlinearPDRotationalController(
                                   config["inertia"][2][0].asDouble(0),
                                   config["inertia"][2][1].asDouble(0),
                                   config["inertia"][2][2].asDouble(1.288)))
-{}
+{
+    // logging header
+    LOGGER.info("NonlinarPD dQuat(4) eQuat(4) pTerm(3) dTerm(3) "
+                "gyroTerm(3) torques(3)");
+}
 
 
 math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
@@ -66,12 +75,40 @@ math::Vector3 NonlinearPDRotationalController::rotationalUpdate(
     w_tilde.ToSkewSymmetric(w_error);
 
     // compute control signal
-    math::Vector3 rotTorques;
     double kp = angularPGain;
     double kd = angularDGain;
-    rotTorques = - kp*inertiaEstimate*(math::sign(eta_tilde))*epsilon_tilde
-        - kd*inertiaEstimate*w_error + w_tilde*inertiaEstimate*w_error;
+    math::Vector3 rotTorques = 
+        - kp * inertiaEstimate * (math::sign(eta_tilde)) * epsilon_tilde
+        - kd * inertiaEstimate * w_error
+        + w_tilde * inertiaEstimate * w_error;
     
+    math::Vector3 pTerm = - kp * inertiaEstimate * 
+                           (math::sign(eta_tilde)) * epsilon_tilde;
+    math::Vector3 dTerm = - kd * inertiaEstimate * w_error;
+    math::Vector3 gTerm = w_tilde * inertiaEstimate * w_error;
+
+    // log everything we might want to know
+    LOGGER.infoStream() << q_des[0] << " "
+                        << q_des[1] << " "
+                        << q_des[2] << " "
+                        << q_des[3] << " "
+                        << q_meas[0] << " "
+                        << q_meas[1] << " "
+                        << q_meas[2] << " "
+                        << q_meas[3] << " "
+                        << pTerm[0] << " "
+                        << pTerm[1] << " "
+                        << pTerm[2] << " "
+                        << dTerm[0] << " "
+                        << dTerm[1] << " "
+                        << dTerm[2] << " "
+                        << gTerm[0] << " "
+                        << gTerm[1] << " "
+                        << gTerm[2] << " "
+                        << rotTorques[0] << " "
+                        << rotTorques[1] << " "
+                        << rotTorques[2];
+
     return rotTorques;
 }
 

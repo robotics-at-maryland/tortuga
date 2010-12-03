@@ -7,6 +7,11 @@
  * File:  packages/control/src/NonlinearPDRotationalController.cpp
  */
 
+
+// Library Includes
+#include <iostream>
+#include <log4cpp/Category.hh>
+
 // Project Includes
 #include "estimation/include/IStateEstimator.h"
 #include "control/include/AdaptiveRotationalController.h"
@@ -14,6 +19,10 @@
 #include "math/include/Matrix2.h"
 #include "math/include/Matrix3.h"
 #include "math/include/MatrixN.h"
+
+// create a category for logging specific depth controller info
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance(
+                                     "RotationalController"));
 
 namespace ram {
 namespace control {
@@ -44,6 +53,7 @@ AdaptiveRotationalController::AdaptiveRotationalController(
     m_params[10][0] = config["adaptParams"][10].asDouble(2);
     m_params[11][0] = config["adaptParams"][11].asDouble(2);
 
+    LOGGER.info("dQuat(4) dOmega(3) eQuat(4) eOmega(3) params(12) torque(3)");
 }
 
 math::Vector3 AdaptiveRotationalController::rotationalUpdate(
@@ -54,14 +64,15 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     /* Prevent mult, div by zero bugs */
     clip(timestep, m_dtMin, m_dtMax);
 
-    /* Using shortened variable names due to complicated computation.
+    /******************************************************************
+     Using shortened variable names due to complicated computation.
      * d as suffix means desired
      * d as prefix means derivative
      * m as suffix means measured
      * q means quaternion
      * w means angular rate (omega)
      * tilde denotes an error quantity
-     */
+     ******************************************************************/
     math::Quaternion qd(desiredState->getDesiredOrientation());
     math::Quaternion q(estimator->getEstimatedOrientation());
     math::Vector3 wd(desiredState->getDesiredAngularRate());
@@ -74,16 +85,18 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
 // integrate desired angular velocity
 // derivative of angular rate desired
     math::Vector3 dwd(0,0,0);
-// simple integration
-    wd = wd+dwd*timestep;
 
-// integrate desired angular position
-// compute derivative of quaternion desired
+	// simple numerical integration
+	wd = wd + dwd * timestep;
+	
+	// integrate desired angular position
+	// compute derivative of quaternion desired
     math::Quaternion dqd = qd.derivative(wd);
-// simple integration
-    qd = qd+dqd*timestep;
-// fix numerical drift
-    qd.normalise();
+
+	// simple numerical integration
+	qd = qd + dqd * timestep;
+	// fix numerical drift
+	qd.normalise();
 
     // update the desired state
     desiredState->setDesiredAngularRate(wd);
@@ -114,19 +127,19 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     math::Matrix3 S;//temp skew symmetric matrix
     S.ToSkewSymmetric(epsilon_c_tilde);
 
-    math::Matrix3 Q1;//temp Q1 matrix (subset of Q matrix)
-    Q1[0][0]=qc_tilde.w+S[0][0];
-    Q1[0][1]=S[0][1];
-    Q1[0][2]=S[0][2];
-    Q1[1][0]=S[1][0];
-    Q1[1][1]=qc_tilde.w+S[1][1];
-    Q1[1][2]=S[1][2];
-    Q1[2][0]=S[2][0];
-    Q1[2][1]=S[2][1];
-    Q1[2][2]=qc_tilde.w+S[2][2];
+    math::Matrix3 Q1;//temp Q1 matrix (subset of Q matrix)	
+	Q1[0][0] = qc_tilde.w + S[0][0];
+	Q1[0][1] = S[0][1];
+	Q1[0][2] = S[0][2];
+	Q1[1][0] = S[1][0];
+	Q1[1][1] = qc_tilde.w + S[1][1];
+	Q1[1][2] = S[1][2];
+	Q1[2][0] = S[2][0];
+	Q1[2][1] = S[2][1];
+	Q1[2][2] = qc_tilde.w + S[2][2];
 
     S.ToSkewSymmetric(wc_tilde);
-    math::Vector3 dwr = RotMatc_tilde*dwd - (m_rotLambda)*Q1*wc_tilde;
+    math::Vector3 dwr = RotMatc_tilde * dwd - (m_rotLambda) * Q1 * wc_tilde;
 
 
 /**********************************
@@ -223,7 +236,37 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     math::Vector3 output(adaptiveTerm[0][0],adaptiveTerm[1][0],adaptiveTerm[2][0]);
     output = output-(m_rotK)*shat;
  
-    return math::Vector3(output[0], output[1], output[2]);
+    LOGGER.infoStream() << qd[0] << " "
+                        << qd[1] << " "
+                        << qd[2] << " "
+                        << qd[3] << " "
+                        << wd[0] << " "
+                        << wd[1] << " "
+                        << wd[2] << " "
+                        << q[0] << " "
+                        << q[1] << " "
+                        << q[2] << " "
+                        << q[3] << " "
+                        << w[0] << " "
+                        << w[1] << " "
+                        << w[2] << " "
+                        << m_params[0] << " "
+                        << m_params[1] << " "
+                        << m_params[2] << " "
+                        << m_params[3] << " "
+                        << m_params[4] << " "
+                        << m_params[5] << " "
+                        << m_params[6] << " "
+                        << m_params[7] << " "
+                        << m_params[8] << " "
+                        << m_params[9] << " "
+                        << m_params[10] << " "
+                        << m_params[11] << " "
+                        << output[0] << " "
+                        << output[1] << " "
+                        << output[2];
+
+        return math::Vector3(output[0], output[1], output[2]);
 }
 
 void AdaptiveRotationalController::clip(double &var, double min, double max)

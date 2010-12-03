@@ -86,6 +86,7 @@ RemoteController::RemoteController(core::ConfigNode config,
 {
     //assert(m_controller.get() != 0 && "Did not get controller");
     assert(m_stateEstimator.get() != 0 && "Did not get estimator");
+    m_velocity_b = math::Vector2::ZERO;
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
     m_minDepth = config["minDepth"].asDouble(MIN_DEPTH);
     m_depthEnc = config["depthEnc"].asDouble(DEPTH_ENC);
@@ -186,9 +187,6 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 
     case CMD_INCSPEED:
     {
-        // get the current desired velocity (inertial frame)
-        math::Vector2 velocity = m_controller->getDesiredVelocity();
-
         // get the current estimated position
         math::Vector2 position = m_stateEstimator->getEstimatedPosition();
         
@@ -197,25 +195,25 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 
         // define a vector for the velocity increase (body frame)
         math::Vector2 vInc_b(m_speedEnc, 0);
+        math::Vector2 newVelocity_b = m_velocity_b + vInc_b;
+        math::Vector2 newVelocity_n;
 
-        // rotate the incremental change to the inertial frame
-        math::Vector2 vInc_n = math::nRb(yaw) * vInc_b;
-        math::Vector2 newVelocity = velocity + vInc_n;
+        if(newVelocity_b[0] < m_maxSpeed && 
+           newVelocity_b[1] < m_maxSpeed)
+        {
+            newVelocity_n = math::nRb(yaw) * newVelocity_b;
+            m_velocity_b = newVelocity_b;
+        }
+        else
+            newVelocity_n = math::nRb(yaw) * m_velocity_b;
 
-        if(newVelocity[0] < m_maxSpeed && 
-           newVelocity[1] < m_maxSpeed)
-            m_controller->translate(position, newVelocity);
+        m_controller->translate(position, newVelocity_n);
 
-        //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
         break;
     }
 
     case CMD_DECSPEED:
     {
-
-        // get the current desired velocity (inertial frame)
-        math::Vector2 velocity = m_controller->getDesiredVelocity();
-
         // get the current estimated position
         math::Vector2 position = m_stateEstimator->getEstimatedPosition();
         
@@ -223,17 +221,21 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         double yaw = m_stateEstimator->getEstimatedOrientation().getYaw().valueRadians();
 
         // define a vector for the velocity increase (body frame)
-        math::Vector2 vInc_b(-m_speedEnc, 0);
+        math::Vector2 vInc_b(m_speedEnc, 0);
+        math::Vector2 newVelocity_b = m_velocity_b - vInc_b;
+        math::Vector2 newVelocity_n;
 
-        // rotate the incremental change to the inertial frame
-        math::Vector2 vInc_n = math::nRb(yaw) * vInc_b;
-        math::Vector2 newVelocity = velocity + vInc_n;
+        if(newVelocity_b[0] > m_minSpeed && 
+           newVelocity_b[1] > m_minSpeed)
+        {
+            newVelocity_n = math::nRb(yaw) * newVelocity_b;
+            m_velocity_b = newVelocity_b;
+        }
+        else
+            newVelocity_n = math::nRb(yaw) * m_velocity_b;
 
-        if(newVelocity[0] > m_minSpeed && 
-           newVelocity[1] > m_minSpeed)
-            m_controller->translate(position, newVelocity);
+        m_controller->translate(position, newVelocity_n);
 
-        //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
         break;
     }
 
@@ -277,14 +279,12 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         math::Vector2 newVelocity_b(param, 0);
         math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
 
-        if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
-           newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
+        if(newVelocity_b[0] <= m_maxSpeed && newVelocity_b[0] >= m_minSpeed)
         {
             m_controller->translate(position, newVelocity_n);
-            //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+            m_velocity_b[0] = newVelocity_b[0];
         } else
         {
-            //printf("\nINVALID NEW SPEED: %d\n", param);
         }
 
         break;
@@ -303,11 +303,10 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         math::Vector2 newVelocity_b(0, param);
         math::Vector2 newVelocity_n = math::nRb(yaw) * newVelocity_b;
 
-        if(newVelocity_n[0] <= m_maxSpeed && newVelocity_n[0] >= m_minSpeed &&
-           newVelocity_n[1] <= m_maxSpeed && newVelocity_n[1] >= m_maxSpeed)
+        if(newVelocity_b[1] <= m_maxSpeed && newVelocity_b[1] >= m_maxSpeed)
         {
             m_controller->translate(position, newVelocity_n);
-            //printf("\nNEW SPEED:  %f\n", m_controller->getSpeed());
+            m_velocity_b[1] = newVelocity_b[1];
         } else
         {
         }

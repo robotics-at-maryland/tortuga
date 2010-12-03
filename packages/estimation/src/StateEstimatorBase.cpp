@@ -102,6 +102,11 @@ double StateEstimatorBase::getObstacleDepth(std::string name)
     return estimatedState->getObstacleDepth(name);
 }
 
+double StateEstimatorBase::getEstimatedMass()
+{
+    return estimatedState->getEstimatedMass();
+}
+
 } // namespace estimation
 } // namespace ram
 

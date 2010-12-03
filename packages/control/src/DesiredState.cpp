@@ -26,10 +26,13 @@ DesiredState::DesiredState(core::ConfigNode config, core::EventHubPtr eventHub) 
     core::EventPublisher(eventHub, "DesiredState"),
     m_desiredVelocity(math::Vector2::ZERO),
     m_desiredPosition(math::Vector2::ZERO),
+    m_desiredAccel(math::Vector2::ZERO),
     m_desiredDepth(0),
     m_desiredDepthRate(0),
+    m_desiredDepthAccel(0),
     m_desiredOrientation(math::Quaternion::IDENTITY),
-    m_desiredAngularRate(math::Vector3::ZERO) 
+    m_desiredAngularRate(math::Vector3::ZERO),
+    m_desiredAngularAccel(math::Vector3::ZERO)
 {}
 
 DesiredState::~DesiredState() {}
@@ -42,9 +45,14 @@ void DesiredState::init(core::ConfigNode config)
     setDesiredPosition(math::Vector2(config["desiredPosition"][0].asDouble(0),
                                      config["desiredPosition"][1].asDouble(0)));
 
+    setDesiredAccel(math::Vector2(config["desiredAccel"][0].asDouble(0),
+                                  config["desiredAccel"][1].asDouble(0)));
+
     setDesiredDepth(config["desiredDepth"].asDouble(0));
 
     setDesiredDepthRate(config["desiredDepthRate"].asDouble(0));
+
+    setDesiredDepthAccel(config["desiredDepthAccel"].asDouble(0));
 
     setDesiredOrientation(
         math::Quaternion(config["desiredOrientation"][0].asDouble(0),
@@ -56,6 +64,18 @@ void DesiredState::init(core::ConfigNode config)
         math::Vector3(config["desiredAngularRate"][0].asDouble(0),
                       config["desiredAngularRate"][1].asDouble(0),
                       config["desiredAngularRate"][2].asDouble(0)));
+
+    setDesiredAngularAccel(
+        math::Vector3(config["desiredAngularAccel"][0].asDouble(0),
+                      config["desiredAngularAccel"][1].asDouble(0),
+                      config["desiredAngularAccel"][2].asDouble(0)));
+}
+
+
+math::Vector2 DesiredState::getDesiredPosition()
+{   
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredPosition;
 }
 
 math::Vector2 DesiredState::getDesiredVelocity()
@@ -64,11 +84,13 @@ math::Vector2 DesiredState::getDesiredVelocity()
     return m_desiredVelocity;
 }
 
-math::Vector2 DesiredState::getDesiredPosition()
-{   
+math::Vector2 DesiredState::getDesiredAccel()
+{
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_desiredPosition;
-}  
+    return m_desiredAccel;
+}
+
+
 
 math::Quaternion DesiredState::getDesiredOrientation()
 {
@@ -82,6 +104,14 @@ math::Vector3 DesiredState::getDesiredAngularRate()
     return m_desiredAngularRate;
 }
 
+math::Vector3 DesiredState::getDesiredAngularAccel()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredAngularAccel;
+}
+
+
+
 double DesiredState::getDesiredDepth()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
@@ -94,11 +124,27 @@ double DesiredState::getDesiredDepthRate()
     return m_desiredDepthRate;
 }
 
+double DesiredState::getDesiredDepthAccel()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_desiredDepthAccel;
+}
+
+
 /* For setting the desired state, it is important that the member
  * variable is set before an event is published.  Otherwise, it
  * would be possible that a function bound to the event would get
  * the incorrect value.  Locks are held for minimal time.
  */
+
+void DesiredState::setDesiredPosition(math::Vector2 position)
+{
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredPosition = position;
+    }
+    newDesiredPositionSet(position);
+}
 
 void DesiredState::setDesiredVelocity(math::Vector2 velocity)
 {
@@ -109,14 +155,13 @@ void DesiredState::setDesiredVelocity(math::Vector2 velocity)
     newDesiredVelocitySet(velocity);
 }
 
-void DesiredState::setDesiredPosition(math::Vector2 position)
+void DesiredState::setDesiredAccel(math::Vector2 accel)
 {
-    {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        m_desiredPosition = position;
-    }
-    newDesiredPositionSet(position);
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredAccel = accel;
 }
+
+
 
 void DesiredState::setDesiredDepth(double depth)
 {
@@ -136,6 +181,15 @@ void DesiredState::setDesiredDepthRate(double depthRate)
     newDepthRateSet(depthRate);
 }
 
+void DesiredState::setDesiredDepthAccel(double depthAccel)
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredDepthAccel = depthAccel;
+}
+
+
+
+
 void DesiredState::setDesiredOrientation(math::Quaternion orientation)
 {
     orientation.normalise();
@@ -146,12 +200,19 @@ void DesiredState::setDesiredOrientation(math::Quaternion orientation)
     newDesiredOrientationSet(orientation);
 }
 
-
 void DesiredState::setDesiredAngularRate(math::Vector3 angularRate)
 {
     core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_desiredAngularRate = angularRate;
 }
+
+void DesiredState::setDesiredAngularAccel(math::Vector3 angularAccel)
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_desiredAngularAccel = angularAccel;
+}
+
+
 
 
 void DesiredState::newDepthSet(const double& newDepth)

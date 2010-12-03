@@ -57,6 +57,7 @@ public:
     double getEstimatedDepthRate();
     math::Vector3 getEstimatedThrusterForces();
     math::Vector3 getEstimatedThrusterTorques();
+    double getEstimatedMass();
 
     void setEstimatedPosition(math::Vector2 position);
     void setEstimatedVelocity(math::Vector2 velocity);
@@ -75,7 +76,6 @@ public:
     math::Vector2 getObstaclePosition(std::string name);
     double getObstacleDepth(std::string name);
 
-
 private:
 
     void publishPositionUpdate(const math::Vector2& position);
@@ -90,17 +90,19 @@ private:
 
     core::ReadWriteMutex m_stateMutex;
 
-    math::Vector2 estPosition;
-    math::Vector2 estVelocity;
-    math::Vector3 estLinearAccel;
-    math::Vector3 estAngularRate;
-    math::Quaternion estOrientation;
-    double estDepth;
-    double estDepthRate;
-    math::Vector3 estThrusterForces;
-    math::Vector3 estThrusterTorques;
+    math::Vector2 m_estPosition;
+    math::Vector2 m_estVelocity;
+    math::Vector3 m_estLinearAccel;
+    math::Vector3 m_estAngularRate;
+    math::Quaternion m_estOrientation;
+    double m_estDepth;
+    double m_estDepthRate;
+    math::Vector3 m_estThrusterForces;
+    math::Vector3 m_estThrusterTorques;
+    double m_estMass;
 
-    std::map<std::string, ObstaclePtr> obstacleMap;
+    std::map<std::string, ObstaclePtr> m_obstacleMap;
+
 
 };
 

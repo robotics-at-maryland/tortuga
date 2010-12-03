@@ -97,6 +97,8 @@ public:
      */
     virtual double getObstacleDepth(std::string name);
 
+    /** returns the estimated vehicle mass */
+    virtual double getEstimatedMass();
 
     // Does nothing for now as the state estimator is event driven
     virtual void update(double timestep) {

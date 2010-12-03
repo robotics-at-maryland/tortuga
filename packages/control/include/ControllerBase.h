@@ -68,13 +68,19 @@ public:
 
 
     /** Sets the desired position and velocity state variables */
-    virtual void translate(math::Vector2 position, math::Vector2 velocity);
+    virtual void translate(math::Vector2 position,
+                           math::Vector2 velocity = math::Vector2::ZERO,
+                           math::Vector2 accel = math::Vector2::ZERO);
 
     /** Sets the desired depth and depth change rate state variables */
-    virtual void changeDepth(double depth, double depthRate);
+    virtual void changeDepth(double depth,
+                             double depthRate = 0,
+                             double depthAccel = 0);
 
     /** Sets the desired orientation and angular rate state variables */
-    virtual void rotate(math::Quaternion orientation, math::Vector3 angularRate);
+    virtual void rotate(math::Quaternion orientation,
+                        math::Vector3 angularRate = math::Vector3::ZERO,
+                        math::Vector3 angularAccel = math::Vector3::ZERO);
 
     /** Yaws the desired vehicle state by the desired number of degrees */
     virtual void yawVehicle(double degrees, double rate);
@@ -93,11 +99,17 @@ public:
     /** Gets desired velocity */
     virtual math::Vector2 getDesiredVelocity();
 
+    /** Gets the desired in plane acceleration */
+    virtual math::Vector2 getDesiredAccel();
+
     /** Gets the current desired orientation */
     virtual math::Quaternion getDesiredOrientation();
 
     /** Gets the desired angular rate */
     virtual math::Vector3 getDesiredAngularRate();
+
+    /** Gets the desired angular acceleration */
+    virtual math::Vector3 getDesiredAngularAccel();
 
     /** Current desired depth of the sub (uncalibrated units)*/
     virtual double getDesiredDepth();
@@ -105,6 +117,8 @@ public:
     /** Current desired depth rate change */
     virtual double getDesiredDepthRate();
 
+    /** Current desired depth acceleration */
+    virtual double getDesiredDepthAccel();
 
 
     /** Loads current orientation into desired (fixes offset in roll and pitch)

@@ -38,11 +38,16 @@ public:
                  core::EventHubPtr eventHub = core::EventHubPtr());
     virtual ~DesiredState();
 
-    /** returns the desired velocity in the inertial frame */
-    math::Vector2 getDesiredVelocity();
 
     /** returns the desired position in the inertial frame */
     math::Vector2 getDesiredPosition();
+
+    /** returns the desired velocity in the inertial frame */
+    math::Vector2 getDesiredVelocity();
+
+    /** returns the desired acceleration in the inertial frame */
+    math::Vector2 getDesiredAccel();
+
 
     /** returns the desired orientation */
     math::Quaternion getDesiredOrientation();
@@ -50,11 +55,27 @@ public:
     /** returns the desired angular rate */
     math::Vector3 getDesiredAngularRate();
 
+    /** returns the desired angular acceleration */
+    math::Vector3 getDesiredAngularAccel();
+
+
     /** returns the desired depth */
     double getDesiredDepth();
 
     /** returns the desired depth change rate */
     double getDesiredDepthRate();
+
+    /** returns the desired depth change accel */
+    double getDesiredDepthAccel();
+
+
+
+
+    /** set the desired position in the inertial frame
+     *
+     * @param position - the desired velocity 2-vector
+     */
+    void setDesiredPosition(math::Vector2 position);
 
     /** set the desired velocity in the inertial frame
      *
@@ -62,11 +83,13 @@ public:
      */
     void setDesiredVelocity(math::Vector2 velocity);
 
-    /** set the desired position in the inertial frame
+    /** set the desired acceleration in the inertial frame
      *
-     * @param position - the desired velocity 2-vector
+     * @param velocity - the desired velocity 2-vector
      */
-    void setDesiredPosition(math::Vector2 position);
+    void setDesiredAccel(math::Vector2 accel);
+
+
 
     /** set the desired depth
      *
@@ -80,6 +103,14 @@ public:
      */
     void setDesiredDepthRate(double depthRate);
 
+    /** set the desired depth change accel
+     *
+     * @param depthRate - the desired depth change rate
+     */
+    void setDesiredDepthAccel(double depthAccel);
+
+
+
     /** set the desired orientation
      *
      * @param orientation - the desired quaternion
@@ -91,6 +122,12 @@ public:
      * @param angularRate - a 3-vector representing the desired angular rate
      */
     void setDesiredAngularRate(math::Vector3 angularRate);
+
+    /** set the desired angular acceleration
+     *
+     * @param angularRate - a 3-vector representing the desired angular rate
+     */
+    void setDesiredAngularAccel(math::Vector3 angularAccel);
 
 private:
     void init(core::ConfigNode config);
@@ -127,12 +164,15 @@ private:
 
     math::Vector2 m_desiredVelocity; // stored in inertial frame
     math::Vector2 m_desiredPosition; // stored in inertial frame
+    math::Vector2 m_desiredAccel; // stored in inertial frame
       
     double m_desiredDepth;
     double m_desiredDepthRate;
+    double m_desiredDepthAccel;
       
     math::Quaternion m_desiredOrientation;
     math::Vector3 m_desiredAngularRate;
+    math::Vector3 m_desiredAngularAccel;
 
     core::ReadWriteMutex m_stateMutex;
 }; // class
