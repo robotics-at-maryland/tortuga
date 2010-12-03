@@ -7,10 +7,13 @@
  * File:  packages/estimation/src/modules/DepthKalmanModule.cpp
  */
 
-/* This module implements a simple Kalman filter to estimate depth and depth_dot */
-// Library Includes
+/* This module implements a simple Kalman filter to estimate
+   depth and depth_dot */
+
+// STD Includes
 #include <iostream>
-#include <boost/smart_cast.hpp>
+
+// Library Includes
 #include <log4cpp/Category.hh>
 
 // Project Includes

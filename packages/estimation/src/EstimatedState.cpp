@@ -8,14 +8,13 @@
  */
 
 // STD Includes
+#include <iostream>
 
 // Library Includes
 
 // Package Includes
 #include "estimation/include/EstimatedState.h"
-
 #include "math/include/Events.h"
-
 #include "core/include/ReadWriteMutex.h"
 
 namespace ram {
@@ -166,7 +165,7 @@ void EstimatedState::setEstimatedThrust(math::Vector3 forces,
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
 {
-    std::cout << "EstimatedState::addObstacle - NOT YET IMPLEMENTED" << std::endl;
+    throw std::runtime_error("EstimatedState::addObstacle - NOT YET IMPLEMENTED");
 }
 
 math::Vector2 EstimatedState::getObstaclePosition(std::string name)

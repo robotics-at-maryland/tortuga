@@ -13,6 +13,7 @@
 // Project Includes
 #include "math/include/Quaternion.h"
 #include "math/include/Vector3.h"
+#include "estimation/include/Common.h"
 
 #include "control/include/DesiredState.h"
 

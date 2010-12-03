@@ -7,9 +7,12 @@
  * File:  packages/control/src/TrackingTranslationalController.cpp
  */
 
+// STD Includes
 #include <math.h>
 #include <iostream>
 
+// Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/TrackingTranslationalController.h"
 #include "control/include/ControllerMaker.h"
 #include "math/include/Vector3.h"

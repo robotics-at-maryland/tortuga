@@ -16,7 +16,6 @@
 #include <iostream>
 
 // Library Includes
-#include <boost/smart_cast.hpp>
 #include <log4cpp/Category.hh>
 
 // Project Includes

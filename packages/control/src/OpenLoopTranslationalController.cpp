@@ -8,6 +8,7 @@
  */
 
 // Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/OpenLoopTranslationalController.h"
 #include "control/include/ControllerMaker.h"
 #include "control/include/Helpers.h"

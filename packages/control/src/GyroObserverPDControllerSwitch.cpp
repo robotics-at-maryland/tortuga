@@ -7,10 +7,8 @@
  * File:  packages/control/src/GyroObserverPDControllerSwitch.cpp
  */
 
-// Library Includes
-#include <iostream>
-
 // Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/GyroObserverPDControllerSwitch.h"
 #include "control/include/ControllerMaker.h"
 #include "math/include/Matrix2.h"

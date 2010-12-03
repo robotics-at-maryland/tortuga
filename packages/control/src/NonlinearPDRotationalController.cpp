@@ -15,6 +15,7 @@
 #include "control/include/ControllerMaker.h"
 #include "math/include/Matrix3.h"
 #include "math/include/Helpers.h"
+#include "estimation/include/IStateEstimator.h"
 
 namespace ram {
 namespace control {

@@ -6,8 +6,13 @@
  * Author: Jonathan Wonders <jwonders@umd.edu>
  * File:  packages/control/include/PIDDepthController.cpp
  */
+
+// STD Includes
 #include <cmath>
 #include <stdlib.h>
+
+// Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/PIDDepthController.h"
 #include "control/include/ControllerMaker.h"
 
