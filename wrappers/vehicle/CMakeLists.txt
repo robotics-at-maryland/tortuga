@@ -28,5 +28,7 @@ python_files( vehicle )
 
 test_wrapper( vehicle "ram_vehicle" )
 
-set(VEHICLE_DEVICE_WRAPPER_DIRECTORY "test/src/device")
+set(vehicle_device_wrapper_DIRECTORY "test/src/device")
+# Hack to give vehicle_device the same dependencies as vehicle
+set(PYTHON_vehicle_device_FILELIST ${PYTHON_vehicle_FILELIST})
 test_wrapper( vehicle_device "ram_vehicle" )

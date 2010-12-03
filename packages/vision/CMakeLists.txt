@@ -84,6 +84,6 @@ if (RAM_WITH_VISION)
     ram_vision
     )
 
-  set(VISION_EXCLUDE_LIST "test/src/TestConvert.cxx")
+  set(vision_EXCLUDE_LIST "test/src/TestConvert.cxx")
   test_module(vision "ram_vision")
 endif (RAM_WITH_VISION)
