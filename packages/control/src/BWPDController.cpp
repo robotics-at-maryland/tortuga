@@ -51,6 +51,7 @@ BWPDController::BWPDController(vehicle::IVehiclePtr vehicle,
                                estimation::IStateEstimatorPtr estimator,
                                core::ConfigNode config) :
     IController(config["name"].asString()),
+    Updatable(this),
     m_atDepth(false),
     m_atOrientation(false),
     m_depthThreshold(0),

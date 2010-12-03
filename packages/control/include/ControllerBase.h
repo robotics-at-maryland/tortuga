@@ -21,6 +21,9 @@
 
 #include "vehicle/include/Common.h"
 
+#include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
+
 #include "core/include/ConfigNode.h"
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
@@ -29,8 +32,6 @@
 
 // Must Be Included last
 #include "control/include/Export.h"
-#include "math/include/Vector2.h"
-#include "math/include/Vector3.h"
 
 namespace ram {
 namespace control {

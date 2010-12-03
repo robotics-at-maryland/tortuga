@@ -125,7 +125,12 @@ class TestStart(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'buoyDepth' : 7
+                    'buoyDepth' : {
+                        'red' : 7,
+                        'green' : 9,
+                        'yellow' : 8
+                        },
+                    'targetBuoys' : ['red', 'green']
                     }
                 },
             'StateMachine' : {
@@ -465,7 +470,10 @@ class TestReposition(support.AITestCase):
         cfg = {
             'Ai' : {
                 'config' : {
-                    'buoyDepth' : 7,
+                    'buoyDepth' : {
+                        'red' : 7,
+                        'yellow' : 7
+                        },
                     'targetBuoys' : ['yellow', 'red']
                     }
                 }

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <cmath>
+#include <cstdio>
 #include <complex>
 
 #include "sonar/include/Sonar.h"

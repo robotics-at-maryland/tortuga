@@ -10,6 +10,9 @@
 #ifndef RAM_MATH_H_07_07_2007
 #define RAM_MATH_H_07_07_2007
 
+// Project Includes
+#include "math/include/Matrix2.h"
+
 // Must Be Included last
 #include "math/include/Export.h"
 #include "math/include/Matrix2.h"
@@ -63,9 +66,7 @@ void RAM_EXPORT rotationRoll(double phi, double * pMatrix);
 void RAM_EXPORT rotationPitch(double theta, double * pMatrix);
 void RAM_EXPORT rotationYaw(double psi, double * pMatrix);
 
-
 Matrix2 RAM_EXPORT bRn(double radians);
-
 Matrix2 RAM_EXPORT nRb(double radians);
 
 } // namespace math

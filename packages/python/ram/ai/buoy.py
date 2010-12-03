@@ -39,6 +39,10 @@ class BuoyTrackingState(state.State):
                  vision.EventType.BUOY_LOST : lostState,
                  BuoyTrackingState.FINISHED : End }
 
+    @staticmethod
+    def getattr():
+        return set([])
+
     def BUOY_FOUND(self, event):
         # Store data and veto the event if the wrong color
         self.ai.data['buoyData'][event.color] = event
@@ -51,8 +55,9 @@ class BuoyTrackingState(state.State):
         if event.color != self._desiredColor:
             return False
 
-    def enter(self):
-        self.visionSystem.buoyDetectorOn()
+    def enter(self, detector = True):
+        if detector:
+            self.visionSystem.buoyDetectorOn()
 
         self.ai.data.setdefault('buoyData', {})
         colorList = self.ai.data['config'].get('targetBuoys', [])
@@ -68,7 +73,7 @@ class BuoyTrackingState(state.State):
             self._desiredColor = getattr(vision.Color,
                                          colorList[buoysHit].upper())
 
-class Start(state.State):
+class Start(BuoyTrackingState):
     """
     Does all the setup work for the buoy task. This checks how many
     buoys have been hit. It then sets the next target. If there are
@@ -83,17 +88,20 @@ class Start(state.State):
         return set(['speed'])
     
     def enter(self):
+        BuoyTrackingState.enter(self, detector = False)
+
         # Store the initial orientation
         orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['buoyStartOrientation'] = \
             orientation.getYaw().valueDegrees()
 
         # Go to 5 feet in 5 increments
+        buoyDepths = self.ai.data['config'].get('buoyDepth', {})
         headingMotion = motion.basic.RateChangeHeading(
             desiredHeading = self.ai.data['buoyStartOrientation'],
             speed = 10)
         diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self.ai.data['config'].get('buoyDepth', 5),
+            desiredDepth = buoyDepths.get(str(self._desiredColor).lower(), 5),
             speed = self._config.get('speed', 1.0/3.0))
         self.motionManager.setMotion(headingMotion, diveMotion)
 
@@ -567,7 +575,7 @@ class Hit(state.State):
         self.controller.setSpeed(0)
         self.publish(BUOY_HIT, core.Event())
 
-class Reposition(state.State):
+class Reposition(BuoyTrackingState):
     @staticmethod
     def transitions():
         return { motion.basic.MotionManager.FINISHED : Searching }
@@ -578,6 +586,8 @@ class Reposition(state.State):
                     'diveSpeed', 'headingSpeed'])
 
     def enter(self):
+        BuoyTrackingState.enter(self, detector = False)
+
         self._speed = self._config.get('speed', 3)
         self._primaryDuration = self._config.get('primaryDuration', 2)
         self._secondaryDuration = self._config.get('secondaryDuration', 4)
@@ -596,7 +606,8 @@ class Reposition(state.State):
                                             self._secondaryDuration,
                                             absolute = False)
 
-        self._depth = self.ai.data['config'].get('buoyDepth', 5)
+        buoyDepths = self.ai.data['config'].get('buoyDepth', {})
+        self._depth = buoyDepths.get(str(self._desiredColor).lower(), 5)
         self._diveSpeed = self._config.get('diveSpeed', 1.0/3.0)
         diveMotion = motion.basic.RateChangeDepth(self._depth, self._diveSpeed)
 

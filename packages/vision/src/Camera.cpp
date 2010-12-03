@@ -29,6 +29,7 @@ namespace ram {
 namespace vision {
 
 Camera::Camera() :
+    Updatable(this),
     EventPublisher(core::EventHubPtr()),
     m_publicImage(0),
     m_imageLatch(1)

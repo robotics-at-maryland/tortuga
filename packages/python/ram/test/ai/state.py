@@ -173,6 +173,14 @@ class SecondParent(state.State):
     
     def enter(self):
         self.stateMachine.start(state.Branch(First))
+
+class ConfigState(state.State):
+    @staticmethod
+    def transitions():
+        return { "TEST" : ConfigState }
+    @staticmethod
+    def getattr():
+        return {'one': None, 'two': 10, 'three': 'REQUIRED', 'four': 'REQUIRED'}
     
 # --------------------------------------------------------------------------- #
 #                                 T E S T S                                   #
@@ -379,15 +387,48 @@ class TestStateMachine(unittest.TestCase):
                 'ram.test.ai.state.StateTestConfig' : {
                     'val' : 10,
                     'other' : 'job'
+                    },
+                'ram.test.ai.state.ConfigState' : {
+                    'one' : 20,
+                    'three' : 'apples'
+                    }
                 }
             }
-        }
         machine = state.Machine(cfg = cfg)
-        
         machine.start(StateTestConfig)
         current = machine.currentState()
         self.assertEqual(10, current.getConfig('val'))
         self.assertEqual('job', current.getConfig('other'))
+
+        # Test default config value loading
+        machine.stop()
+        try:
+            machine.start(ConfigState)
+            self.assert_(False)
+        except KeyError, e:
+            self.assertEqual(str(e), "'No config value for required field: four'")
+        cfg = { 
+            'param' : 5,
+            'States' : {
+                'ram.test.ai.state.StateTestConfig' : {
+                    'val' : 10,
+                    'other' : 'job'
+                    },
+                'ram.test.ai.state.ConfigState' : {
+                    'one' : 20,
+                    'three' : 'apples',
+                    'four' : None
+                    }
+                }
+            }
+        machine.stop()
+        machine = state.Machine(cfg = cfg)
+        machine.start(ConfigState)
+        current = machine.currentState()
+        self.assertEqual(current._one, 20)
+        self.assertEqual(current._two, 10)
+        self.assertEqual(current._three, 'apples')
+        self.assertEqual(current._four, None)
         
     def testSubsystemPassing(self):
         eventHub = core.EventHub("EventHub")

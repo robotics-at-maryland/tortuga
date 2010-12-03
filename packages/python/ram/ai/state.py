@@ -19,6 +19,8 @@ class State(object):
     Basic state class, its provides empty implementation for all the needed
     methods of a state
     """
+    REQUIRED = 'REQUIRED'
+
     def __init__(self, config = None, **subsystems):
         if config is None:
             config = {}
@@ -28,6 +30,18 @@ class State(object):
                 raise ValueError, "Subsystem cannot be named 'config'"
             setattr(self, name, subsystem)
 
+        if type(self.getattr())==type({}):
+            for name, default in self.getattr().iteritems():
+                attribs = self.getattr()
+                try:
+                    value = self._config[name]
+                except KeyError, e:
+                    if default == State.REQUIRED:
+                        raise KeyError, "No config value for required field: " + name
+                    else:
+                        value = default
+                setattr(self, "_" + name, value)
+            
     @staticmethod
     def transitions():
         """
@@ -40,7 +54,7 @@ class State(object):
         """
         Returns the possible config values of the state
         """
-        return set([])
+        return {}
 
     def enter(self):
         """

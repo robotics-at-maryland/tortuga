@@ -14,7 +14,6 @@ import platform
 import ext.core as core
 import ext.vision as vision
 import ext.math as math
-import ram.timer as timer
 
 def getConfigRoot():
     root = os.environ['RAM_SVN_DIR']

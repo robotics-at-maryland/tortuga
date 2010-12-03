@@ -56,8 +56,8 @@ class RAM_EXPORT BlobDetector  : public Detector
         int getCenterX() const { return m_centerX; }
         int getCenterY() const { return m_centerY; }
 
-	int getTrueCenterX() const { return (m_maxX - m_minX)/2 + m_minX; }
-	int getTrueCenterY() const { return (m_maxY - m_minY)/2 + m_minY; }
+        int getTrueCenterX() const { return (m_maxX - m_minX)/2 + m_minX; }
+        int getTrueCenterY() const { return (m_maxY - m_minY)/2 + m_minY; }
 	
         int getMaxX() const { return m_maxX; }
         int getMinX() const { return m_minX; }
@@ -189,7 +189,8 @@ class RAM_EXPORT BlobDetector  : public Detector
     /** Initializes the class */
     void init(core::ConfigNode config);
 
-    int histogram(IplImage* img);
+    /** Build the blobs */
+    int buildBlobs(IplImage* img);
 
     /** Ensures that data array is large enough to hold desired pixel count */
     void ensureDataSize(int pixels);
@@ -201,20 +202,23 @@ class RAM_EXPORT BlobDetector  : public Detector
     
     
     // Data used by internal blob algorithm
-    std::vector<int> pixelCounts;
-    std::vector<int> totalX;
-    std::vector<int> totalY;
-    std::vector<int> totalMaxX;
-    std::vector<int> totalMaxY;
-    std::vector<int> totalMinX;
-    std::vector<int> totalMinY;
-    std::vector<unsigned int> joins;
+    std::vector<int> m_pixelCounts;
+    std::vector<int> m_blobTotalX;
+    std::vector<int> m_blobTotalY;
+    std::vector<int> m_blobMaxX;
+    std::vector<int> m_blobMaxY;
+    std::vector<int> m_blobMinX;
+    std::vector<int> m_blobMinY;
+
+    // For each initial blob that is created, store the index of the blob that the initial
+    // blob was merged into.
+    std::vector<unsigned int> m_joinedBlobIndex;
 
     /** "Image" used during internal processing */
-    unsigned int* data;
+    unsigned int* m_pixelBlobIndex;
     
     /** Number of pixels represetned in the data array */
-    size_t m_dataSize;
+    size_t m_imageSize;
 };
     
 } // namespace vision

@@ -10,6 +10,7 @@ import os
 import os.path
 import sys
 import platform
+import re
 
 # Library Imports
 from buildit.task import Task
@@ -17,8 +18,6 @@ from buildit.task import Task
 # Project Imports
 from buildfiles.common.commands import *
 import buildfiles.variants as variants
-
-pythonExecutable = '"%s"' % sys.executable
 
 # Setup basic directory structure
 setup_directories = Task(
@@ -40,7 +39,7 @@ install_pygccxml = Task(
     namespaces = 'pygccxml',
     targets = '${py_site_packages}/pygccxml',
     workdir = '${deps_dir}/pygccxml',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -50,7 +49,7 @@ install_pyplusplus = Task(
     namespaces = 'pyplusplus',
     targets = '${py_site_packages}/pyplusplus',
     workdir = '${deps_dir}/pyplusplus',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -60,42 +59,21 @@ install_pyyaml = Task(
     namespaces = 'pyyaml',
     targets = '${py_site_packages}/yaml',
     workdir = '${deps_dir}/pyyaml',
-    commands = [pythonExecutable + ' setup.py install'
+    commands = ['python setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
 
-
-install_scons = Task(
-    'Install Scons',
-    namespaces = 'scons',
-    targets = '${py_site_packages}/SCons',
-    workdir = '${deps_dir}/scons',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'
-                '  --standard-lib'],
-    dependencies = (setup_directories,)
-    )
-
+version = re.match(r'\d\.\d', sys.version).group(0)
 install_zope_interface = Task(
     'Install Zope.Interface',
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
-    commands = [pythonExecutable + ' setup.py install'
-                '  --prefix=${ram_prefix}'],
-    dependencies = (setup_directories,)
-    )
-
-symlink_python = Task(
-    'Make Symlink to Proper Python Version',
-    namespaces = 'python_symlink',
-    targets = '${buildoutdir}/scripts/link_done',
-    workdir = '${buildoutdir}',
-    commands = ['ln -sf ' + pythonExecutable + 
-		' ${buildoutdir}/scripts/python',
-		'ln -sf /usr/bin/pydoc2.5 ${buildoutdir}/scripts/pydoc',
-		'touch ${buildoutdir}/scripts/link_done'],
+    commands = ['python setup.py install'
+                '  --prefix=${ram_prefix}',
+                'cd ${py_site_packages} && '
+                '  ln -s zope.interface-3.3.0-py%s.egg/zope zope' % version],
     dependencies = (setup_directories,)
     )
 
@@ -104,42 +82,8 @@ install_python_modules = Task(
      namespaces = 'bootstrap',
      workdir = '${buildoutdir}',
      dependencies = (install_pygccxml, install_pyplusplus,
-                     install_pyyaml, install_scons, install_zope_interface,
-		     symlink_python)
+                     install_pyyaml, install_zope_interface)
     )
-
-# Package Installation
-
-# Small hack to find arch
-#arch = 'x86'
-#if 'big' == sys.byteorder:
-#    arch = 'ppc'
-
-#get_package_list = Task(
-#    'Get Package List',
-#    namespaces = 'bootstrap',
-#    workdir = '${buildoutdir}',
-#    commands = [Download('${ram_prefix}/pkgs/packages.txt',
-#                         'https://ram.umd.edu/software/' + arch + '/'
-#                         variants.get_platform() + '/packages.txt')]
-#    dependencies = (setup_directories,)
-#    )
-
-#download_packages = Task(
-#    'Download Packages',
-#    namespaces = 'bootstrap',
-#    workdir = '${buildoutdir}',
-#    commands = [DownloadPackages('${ram_prefix}/pkgs/packages.txt',
-#                                 '${ram_prefix}')]
-#    dependencies = (get_package_list,)
-#   )
-
-#pkgs = Task(
-#    'Install Packages',
-#     namespaces = 'bootstrap',
-#     workdir = '${buildoutdir}',
-#     dependencies = (unpack_packages)
-#    )
 
 # Generate Environment File
 

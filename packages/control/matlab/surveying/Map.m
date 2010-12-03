@@ -111,7 +111,10 @@ classdef Map < dynamicprops
                     if strcmp(o.name, 'Origin')
                         plot(obj.originOffsetX,obj.originOffsetY,'or');
                     else
-                        plot(obj.originOffsetX + o.location.xobj,obj.originOffsetY + o.location.yobj,'+r');
+                        alpha = toRad(243);
+                        x_plot = obj.originOffsetX + o.location.xobj*cos(alpha) + o.location.yobj*sin(alpha);
+                        y_plot = obj.originOffsetY - o.location.xobj*sin(alpha) + o.location.yobj*cos(alpha);
+                        plot(x_plot,y_plot,'+r');
                     end
                 end
             end

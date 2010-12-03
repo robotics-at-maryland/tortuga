@@ -22,7 +22,6 @@
 #include "vehicle/include/IVehicle.h"
 #include "vehicle/include/Events.h"
 
-#include "control/include/Helpers.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"

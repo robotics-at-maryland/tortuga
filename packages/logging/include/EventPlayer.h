@@ -21,8 +21,8 @@
 #include "core/include/Subsystem.h"
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
-#include "core/include/ThreadedQueue.h"
 #include "core/include/ReadWriteMutex.h"
+#include "logging/include/Common.h"
 
 namespace ram {
 namespace logging {

@@ -20,7 +20,7 @@
 #include "highgui.h"
 
 // Project incldues
-#include "vision/include/Convert.h"
+#include "vision/include/LCHConverter.h"
 #include "vision/include/Exception.h"
 #include "vision/include/OpenCVImage.h"
 
@@ -311,7 +311,7 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
 
     int code = lookupTable[m_fmt][format];
     if(code == RGB2LCHUV) {
-        Convert::RGB2LCHuv(this);
+        LCHConverter::convert(this);
         m_fmt = Image::PF_LCHUV_8;
     } else if (code == -1) {
         throw ImageConversionException(m_fmt, format);

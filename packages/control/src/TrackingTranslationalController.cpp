@@ -66,7 +66,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     pError = desiredPosition - currentPosition;
     dError = desiredVelocity - currentVelocity;
     iError = m_iError + pError * timestep;
-	 
+    
     // calculate the signal
     double signal_x1, signal_x2;
 
@@ -84,7 +84,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
 
     // rotate translationalSignal_n from the inertial frame to the body frame
     math::Vector2 translationalSignal_b(math::bRn(yaw)*translationalSignal_n);
-	 
+    
     // the quaternion with just the pitch
     math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
                                math::Vector3::UNIT_Y);

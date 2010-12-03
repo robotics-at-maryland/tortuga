@@ -540,6 +540,11 @@ class Buoy(task.Task):
         if self._lostTimeout is not None:
             self._lostTimeout.stop()
 
+        if self._searchTimeout is None:
+            self._searchTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._searchDelay)
+            self._searchTimeout.start()
+
         if self._buoyFound:
             # We should not continue searching for too long
             self._lostTimeout = self.timerManager.newTimer(
@@ -552,6 +557,9 @@ class Buoy(task.Task):
         if self._lostTimeout is not None:
             self._lostTimeout.stop()
 
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
+
         self._buoyFound = True
 
     def enter(self, defaultTimeout = 90):
@@ -562,6 +570,9 @@ class Buoy(task.Task):
         self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
             'lostTimeout', 5)
         self._lostTimeout = None
+        self._searchDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'searchTimeout', 10)
+        self._searchTimeout = None
         self._buoyFound = False
 
         self.stateMachine.start(state.Branch(buoy.Start))
@@ -575,6 +586,8 @@ class Buoy(task.Task):
 
         if self._lostTimeout is not None:
             self._lostTimeout.stop()
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
     
 class BarbedWire(task.Task):
     """

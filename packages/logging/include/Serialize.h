@@ -11,15 +11,22 @@
 #ifndef RAM_LOGGING_SERIALIZE_H_03_05_2009
 #define RAM_LOGGING_SERIALIZE_H_03_05_2009
 
+// STD Includes
+#include <set>
+#include <string>
+#include <typeinfo>
+
 // Library Includes
-#include<boost/serialization/serialization.hpp>
-#include<boost/serialization/split_free.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/split_free.hpp>
+#include <boost/serialization/export.hpp>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/thread/mutex.hpp>
 
 // Project Includes
 #include "core/include/Feature.h"
@@ -43,57 +50,48 @@
 #include "control/include/Events.h"
 #endif
 
+// ------------------------------------------------------------------------- //
+//                 S E R I A L I Z A T I O N   U T I L I T I E S             //
+// ------------------------------------------------------------------------- //
+
 namespace ram {
 namespace logging {
 
-// ------------------------------------------------------------------------- //
-//                     T Y P E   R E G I S T R A T I O N                     //
-// ------------------------------------------------------------------------- //
+static boost::mutex writeMutex;
+static std::set<std::string> unconvertableTypes;
 
 template <class Archive>
-void registerTypes(Archive& ar)
+bool writeEvent(core::EventPtr event, Archive& archive)
 {
-    // Core Events
-    ar.register_type(static_cast<ram::core::StringEvent*>(NULL));
-
-#ifdef RAM_WITH_MATH
-    // Math Events
-    ar.register_type(static_cast<ram::math::OrientationEvent*>(NULL));
-    ar.register_type(static_cast<ram::math::Vector3Event*>(NULL));
-    ar.register_type(static_cast<ram::math::NumericEvent*>(NULL));
-#endif // RAM_WITH_MATH
-
-#ifdef RAM_WITH_VISION    
-    // Vision Events
-    ar.register_type(static_cast<ram::vision::ImageEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::RedLightEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::PipeEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::BinEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::DuctEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::SafeEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::TargetEvent*>(NULL));
-    ar.register_type(static_cast<ram::vision::BarbedWireEvent*>(NULL));
-#endif // RAM_WITH_VISION
-
-#ifdef RAM_WITH_VEHICLE    
-    // Vehicle Events
-    ar.register_type(static_cast<ram::vehicle::PowerSourceEvent*>(NULL));
-    ar.register_type(static_cast<ram::vehicle::TempSensorEvent*>(NULL));
-    ar.register_type(static_cast<ram::vehicle::ThrusterEvent*>(NULL));
-    ar.register_type(static_cast<ram::vehicle::SonarEvent*>(NULL));
-#endif // RAM_WITH_VEHICLE
-
-#ifdef RAM_WITH_CONTROL    
-    // Control Events
-    ar.register_type(static_cast<ram::control::ParamSetupEvent*>(NULL));
-    ar.register_type(static_cast<ram::control::ParamUpdateEvent*>(NULL));
-#endif // RAM_WITH_CONTROL    
+    std::string typeName(typeid(*(event.get())).name());
+    boost::mutex::scoped_lock lock(writeMutex);
+    try
+    {
+        // Only attempt to convert events we now we can convert
+        bool convertable = unconvertableTypes.end() ==
+            unconvertableTypes.find(typeName);
+        if (convertable)
+            archive << event;
+        return convertable;
+    }
+    catch (boost::archive::archive_exception ex)
+    {
+        if (ex.code == boost::archive::archive_exception::unregistered_class)
+        {
+            std::cerr << "Could not convert: " << typeName << event->type
+                      << std::endl;
+            unconvertableTypes.insert(typeName);
+        }
+        else
+        {
+            throw ex;
+        }
+        return false;
+    }
 }
-    
-    
-} // logging
-} // ram
 
+} // namespace logging
+} // namespace ram
 
 namespace boost {
 namespace serialization {
@@ -151,7 +149,7 @@ void serialize(Archive &ar, ram::core::StringEvent &t,
   ar & t.string;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)    
+BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)
 
 
 // ------------------------------------------------------------------------- //
@@ -189,7 +187,7 @@ void serialize(Archive &ar, ram::math::OrientationEvent &t,
   ar & t.orientation;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::math::OrientationEvent)    
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::OrientationEvent)
 
 
 template <class Archive>
@@ -200,7 +198,7 @@ void serialize(Archive &ar, ram::math::Vector3Event &t,
   ar & t.vector3;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)    
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)
 
 
 template <class Archive>
@@ -211,7 +209,7 @@ void serialize(Archive &ar, ram::math::NumericEvent &t,
   ar & t.number;
 }
 
-BOOST_SERIALIZATION_SHARED_PTR(ram::math::NumericEvent)    
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::NumericEvent)
 
 #endif // RAM_WITH_MATH
 
@@ -245,8 +243,8 @@ void serialize(Archive & ar, ram::vision::ImageEvent& t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::ImageEvent)
-    
-    
+
+
 template <class Archive>
 void serialize(Archive &ar, ram::vision::RedLightEvent &t,
                const unsigned int file_version)

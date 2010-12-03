@@ -15,6 +15,8 @@
 
 // Boost Includes
 #include <boost/array.hpp>
+#include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "vehicle/include/Common.h"
@@ -23,6 +25,7 @@
 #include "math/include/Vector3.h"
 #include "math/include/Vector2.h"
 #include "estimation/include/IStateEstimator.h"
+
 // Must Be Included last
 #include "vehicle/include/Export.h"
 
@@ -46,6 +49,23 @@ public:
 
     /** The name of all current devices of the vehicle */
     virtual std::vector<std::string> getDeviceNames() = 0;
+
+    /** Gets all devices that match the type of the template parameter */
+    template <typename DeviceType>
+        device::DeviceList getDevicesOfType()
+    {
+        device::DeviceList devices;
+        BOOST_FOREACH(std::string deviceName, getDeviceNames())
+        {
+            boost::shared_ptr<DeviceType> device =
+                boost::dynamic_pointer_cast<DeviceType>(getDevice(deviceName));
+            if (device)
+            {
+                devices.push_back(device);
+            }
+        }
+        return devices;
+    }
     
     /** Combines the given force and torque into motor forces the applies them
 

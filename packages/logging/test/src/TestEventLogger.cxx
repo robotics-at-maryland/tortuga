@@ -47,7 +47,7 @@ struct Fixture
     {
         std::string fileName = "event.log";
         std::string filePath = (core::Logging::getLogDir() / fileName).string();
-	std::ifstream ifs;
+        std::ifstream ifs;
         ifs.open(filePath.c_str());
 
         // get length of file:
@@ -57,12 +57,11 @@ struct Fixture
         
         // Create the archive
         boost::archive::text_iarchive iar(ifs);
-        ram::logging::registerTypes(iar);
 
-	// Read in all the events
-	EventList events;
-	while (ifs.tellg() < fileLength)
-	{
+        // Read in all the events
+        EventList events;
+        while (ifs.tellg() < fileLength)
+        {
             // Read in the event
             ram::core::EventPtr event;
             iar >> event;
@@ -78,7 +77,7 @@ TEST_FIXTURE(Fixture, BasicLogging)
     // Create our logger
     logging::EventLogger* logger = 
         new logging::EventLogger(core::ConfigNode::fromString("{}"),
-				 boost::assign::list_of(eventHub));
+                                 boost::assign::list_of(eventHub));
 
     // Where the results go
     EventList expected;

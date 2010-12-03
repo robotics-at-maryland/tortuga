@@ -80,11 +80,11 @@ RemoteController::RemoteController(core::ConfigNode config,
     core::Subsystem(config["name"].asString(),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_port(config["port"].asInt(MYPORT)),
-    m_sockfd(-1),
     m_controller(core::Subsystem::getSubsystemOfType<control::IController>(deps)),
-    m_stateEstimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps))
+    m_stateEstimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps)),
+    m_receiver(0)
 {
-    assert(m_controller.get() != 0 && "Did not get controller");
+    //assert(m_controller.get() != 0 && "Did not get controller");
     assert(m_stateEstimator.get() != 0 && "Did not get estimator");
     m_maxDepth = config["maxDepth"].asDouble(MAX_DEPTH);
     m_minDepth = config["minDepth"].asDouble(MIN_DEPTH);
@@ -96,129 +96,66 @@ RemoteController::RemoteController(core::ConfigNode config,
     m_yawGain = config["yawGain"].asDouble(YAW_GAIN);
     m_pitchGain = config["pitchGain"].asDouble(PITCH_GAIN);
     m_rollGain = config["rollGain"].asDouble(ROLL_GAIN);
-
-    setupNetworking(m_port);
 }
 
 RemoteController::~RemoteController()
 {
-    if (-1 != m_sockfd)
-    {
-        close(m_sockfd);
-        m_sockfd = -1;
-    }
-    unbackground();
+    disable();
 }
 
 void RemoteController::enable()
 {
-    // ok to call this multiple times in a row
-    background(-1);
+    /* Safe to call multiple times */
+    if (!m_receiver) {
+        m_receiver = new Receiver(m_port, 2, boost::bind(&RemoteController::accept, this, _1));
+    }
 }
 
 void RemoteController::disable()
 {
-    // Don't wait for it to stop
-    unbackground();
+    /* Safe to call multiple times */
+    if (m_receiver) {
+        delete m_receiver;
+        m_receiver = NULL;
+    }
 }
 
 void RemoteController::update(double)
 {
-    // Wait for command packet
-    signed char buf[2];
-    int len = recvfrom(m_sockfd, buf, 2, 0, NULL, NULL);
-    if(len != 2)
-    {
-        // If error from network drop out of receive loop
-        printf("Error reading from network\n");
-    }
-    //printf("Got message\n");
+    // // Wait for command packet
+    // signed char buf[2];
+    // int len = recvfrom(m_sockfd, buf, 2, 0, NULL, NULL);
+    // if(len != 2)
+    // {
+    //     // If error from network drop out of receive loop
+    //     printf("Error reading from network\n");
+    // }
+    // //printf("Got message\n");
 
-//    if (backgrounded())
-//    {
-        // Break out commands and parameters
-        unsigned char cmd = buf[0];
-        signed char param = buf[1];
-        //printf("Procssing");
-        // Process Packet (If quit message drop out of loop, stop running)
-        processMessage(cmd, param);
-//    }
+    // if (backgrounded())
+    // {
+    //     // Break out commands and parameters
+    //     unsigned char cmd = buf[0];
+    //     signed char param = buf[1];
+    //     //printf("Procssing");
+    //     // Process Packet (If quit message drop out of loop, stop running)
+    //     processMessage(cmd, param);
+    // }
 }
 
 void RemoteController::background(int interval)
 {
-    if (-1 == m_sockfd)
-        setupNetworking(m_port);        
-    core::Updatable::background(interval);
+    enable();
 }
 
 void RemoteController::unbackground(bool join)
 {
-    if (-1 != m_sockfd)
-    {
-        // Send a UDP packet to break out of the loop
-        struct hostent* he = gethostbyname("localhost");
-        assert(he != NULL && "error with get host");
-        
-        int outSock = socket(AF_INET, SOCK_DGRAM, 0);
-        assert(outSock >= 0 && "error creating socket");
-
-        struct sockaddr_in their_addr; // connector's address information
-        memset((void *)&their_addr, 0, sizeof(their_addr));// zero
-        their_addr.sin_family = AF_INET;    // host byte order
-        their_addr.sin_port = htons(m_port);  // short, network byte order
-        their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-        
-        signed char buf[2] = {0, 0};
-        sendto(outSock, buf, 2, 0, (struct sockaddr *) &their_addr,
-               sizeof(struct sockaddr_in));
-        
-        close(outSock);
-    }
-    
-    core::Updatable::unbackground(join);
-    
-    if (-1 != m_sockfd)
-    {   
-        close(m_sockfd);
-        m_sockfd = -1;
-    }
+    disable();
 }
 
-void RemoteController::setupNetworking(boost::int16_t port)
+void RemoteController::accept(const char* msg)
 {
-    // Grab socket to listen on
-    if ((m_sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
-        perror("socket");
-        assert(false && "Socket creation failed");
-    }
-
-    // Setup my address information
-    struct sockaddr_in addr;
-    memset((void *)&addr, 0, sizeof(addr)); /* zero */
-    addr.sin_family = AF_INET;    /* host byte order */
-    addr.sin_port = htons(port);  /* short, network byte order */
-    addr.sin_addr.s_addr = INADDR_ANY; /* auto-fill with my IP */
-
-    // Bind the socket to the address
-    int ret = bind(m_sockfd,(struct sockaddr *)&addr, sizeof(struct sockaddr));
-    if (ret < 0)
-    {
-        perror("bind");
-        assert(false && "Binding to port failed");
-    }
-
-/*
-  unsigned char buf[65536];
-  struct sockaddr_in addr = {{0}, 0};
-  socklen_t t = sizeof(addr);
-  addr.sin_port = 0;
-  addr.sin_addr.s_addr = INADDR_ANY;
-  // Return length is ignored
-  recvfrom(sockfd, buf, 65536, 0, (struct sockaddr *) &addr, &t);
-
-  printf("Recieved first packet.\n");*/
+    processMessage(msg[0], msg[1]);
 }
 
 bool RemoteController::processMessage(unsigned char cmd, signed char param)
@@ -352,8 +289,9 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
 
         break;
     }
-	case CMD_TSETSPEED:
-	{
+
+    case CMD_TSETSPEED:
+    {
         // get the current estimated position
         math::Vector2 position = m_stateEstimator->getEstimatedPosition();
         
@@ -386,8 +324,7 @@ bool RemoteController::processMessage(unsigned char cmd, signed char param)
         if(param != 0)
         {
             double yaw = param / m_yawGain;
-//                printf("Y: %f\n", yaw);
-	        m_controller->yawVehicle(yaw, 0);
+            m_controller->yawVehicle(yaw, 0);
         }
         break;
     }

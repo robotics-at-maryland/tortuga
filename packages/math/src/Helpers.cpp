@@ -710,7 +710,6 @@ void rotationYaw(double psi, double * pMatrix){
     *(pMatrix+8) = 1;
 }
 
-
 Matrix2 bRn(double radians)
 {
     double r_cos = cos(radians), r_sin = sin(radians);
@@ -722,8 +721,6 @@ Matrix2 nRb(double radians)
     double r_cos = cos(radians), r_sin = sin(radians);
     return Matrix2(r_cos,r_sin,-r_sin,r_cos);
 }
-
-
 
 } // namespace math
 } // namespace ram

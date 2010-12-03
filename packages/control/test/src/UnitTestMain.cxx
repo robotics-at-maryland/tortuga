@@ -13,7 +13,7 @@
 // Project Includes
 #include "math/test/include/detail/MathChecksImp.h"
 
-int main()
+int main(int argc, char* argv[])
 {
     return UnitTest::RunAllTests();
 }

@@ -59,6 +59,10 @@ class Pinger(Visual):
         self._robot = robot
         self._sonarSys = sonarSys
 
+    def destroy(self):
+        self._robot = None
+        self._sonarSys = None
+
     def update(self, timeSinceLastUpdate):
         self._timeSinceLastPing += timeSinceLastUpdate
         if self._timeSinceLastPing >= self._pingInterval:
@@ -92,13 +96,26 @@ class SimSonar(ext.core.Subsystem):
                                                     nonNone = True)
         vehicle = ext.core.Subsystem.getSubsystemOfType(IVehicle, deps, 
                                                         nonNone = True)
-        robot = vehicle.getDevice('SimulationDevice').robot
+        self._robot = vehicle.getDevice('SimulationDevice').robot
 
         # Grab the pinger object
         self._pingers = sim.scene.getObjectsByInterface(IPinger)
         assert len(self._pingers) <= 2
+        self._setup()
+
+    def _setup(self):
         for pinger in self._pingers:
-            pinger.setup(robot = robot, sonarSys = self)
+            pinger.setup(robot = self._robot, sonarSys = self)
+
+    def _destroy(self):
+        for pinger in self._pingers:
+            pinger.destroy()
+
+    def unbackground(self, join = True):
+        self._destroy()
+
+    def background(self):
+        self._setup()
 
     def backgrounded(self):
         return True

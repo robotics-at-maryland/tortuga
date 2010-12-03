@@ -27,15 +27,16 @@ def expose_publisher(local_ns, cls_name):
     # Replace 'subscribe' method
     ePublisher.member_function('subscribe').exclude()
     ePublisher.add_declaration_code("""
-    ram::core::EventConnectionPtr pysubscribe(ram::core::%s & epub,
+    ram::core::EventConnectionPtr %s_pysubscribe(ram::core::%s & epub,
                                               std::string type,
                                               boost::python::object pyFunction)
     {
         return epub.subscribe(type, EventFunctor(pyFunction));
     }
-    """ % (cls_name))
+    """ % (cls_name, cls_name))
     ePublisher.add_registration_code(
-        'def("subscribe", &::pysubscribe)', works_on_instance = True )
+        'def("subscribe", &::%s_pysubscribe)' % (cls_name),
+        works_on_instance = True )
     ePublisher.include_files.append('wrappers/core/include/EventFunctor.h')
     ePublisher.include_files.append('core/include/EventConnection.h')
     return ePublisher
@@ -73,6 +74,7 @@ def generate(module_builder, local_ns, global_ns):
     EventConnection = local_ns.class_('EventConnection')
     EventConnection.include()
     EventConnection.include_files.append('core/include/EventConnection.h')
+    classes.append(EventConnection)
     
     Event = local_ns.class_('Event')
     Event.include()
@@ -124,7 +126,11 @@ def generate(module_builder, local_ns, global_ns):
     wrap.set_implicit_conversions([Application, QueuedEventPublisher,
                                    EventPublisher], False)
     wrap.add_needed_includes(classes)
-    return ['wrappers/core/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/core/include/RegisterFunctions.h'] + list(include_files)
 
     #local_ns.class_('Updatable').include()
     #local_ns.class_('IUpdatable').include()

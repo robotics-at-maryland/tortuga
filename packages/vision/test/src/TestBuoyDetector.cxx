@@ -16,7 +16,7 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
 #include "vision/include/Color.h"
-#include "vision/include/Convert.h"
+#include "vision/include/LCHConverter.h"
 #include "vision/test/include/Utility.h"
 
 #include "core/include/EventHub.h"
@@ -72,7 +72,7 @@ struct BuoyDetectorFixture
         eventHub->subscribeToType(vision::EventType::BUOY_ALMOST_HIT,
             boost::bind(&BuoyDetectorFixture::almostHitHandler, this, _1));
 
-        vision::Convert::loadLookupTable();
+        vision::LCHConverter::loadLookupTable();
     }
 
     void processImage(vision::Image* image, bool show = false)

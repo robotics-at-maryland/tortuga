@@ -655,6 +655,76 @@ class EventRatePanel(wx.grid.Grid):
         
         return []
 
+class ProfilePanel(wx.grid.Grid):
+    implements(IPanelProvider)
+        
+    def __init__(self, parent, eventHub, *args, **kwargs):
+        wx.grid.Grid.__init__(self, parent, *args, **kwargs)
+        self.CreateGrid(0, 2)
+        self.SetColLabelSize(0)
+        self.SetRowLabelSize(0)
+
+        self._size = 0
+        self._profileTable = {}
+
+        self.Bind(wx.EVT_CLOSE, self._onClose)
+        self._timer = wx.Timer()
+        self._timer.Bind(wx.EVT_TIMER, self._timerHandler)
+
+        self._conn = eventHub.subscribeToType(core.IUpdatable.PROFILE, self._onProfile)
+        
+        self._timer.Start(1000)
+    
+    def _onProfile(self, event):
+        if event.sender != "UNNAMED":
+            sender = str(event.sender.getPublisherName())
+    
+            if not self._profileTable.has_key(sender):
+                self._profileTable[sender] = str(event.data)
+                location = self._findLocation(sender)
+                
+                self.InsertRows(pos = location )
+                self._size += 1
+                self.SetCellValue(location, 0, sender)
+                self.SetCellValue(location, 1, self._profileTable[sender])
+                self.SetReadOnly(location, 0, isReadOnly = True)
+                self.SetReadOnly(location, 1, isReadOnly = True)
+                self.AutoSizeColumn(0)
+                self.AutoSizeColumn(1)
+                self.AutoSizeRow(location)
+            else:
+                self._profileTable[sender] = str(event.data)
+
+    def _timerHandler(self, event):
+         for row in range(self._size):
+             data = self._profileTable[self.GetCellValue(row, 0)]
+             self.SetCellValue(row, 1, data)
+           
+    def _findLocation(self, name):
+        position = 0        
+        for row in range(self._size):
+            curr = self.GetCellValue(row, 0)
+            if name < curr:
+                position += 1
+       
+        return position
+        
+    def _onClose(self, closeEvent):
+        self._conn.disconnect()
+
+    @staticmethod
+    def getPanels(subsystems, parent):
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, nonNone = True)
+
+        paneInfo = wx.aui.AuiPaneInfo().Name("Profile")
+        paneInfo = paneInfo.Caption("Profile").Right()
+
+        panel = ProfilePanel(parent, eventHub)
+
+        return [(paneInfo, panel, [])]
+
+
 class PayloadPanel(wx.Panel):
     implements(IPanelProvider)
     

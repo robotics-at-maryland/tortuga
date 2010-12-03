@@ -50,7 +50,7 @@ classdef Measurement < handle
        sigd = .01
        
        % angle between local coordinate system and North
-       alpha = toRad(-90)
+       alpha = toRad(133)
        sigalpha = toRad(2)
        
        % Bridge coordinates in Global frame

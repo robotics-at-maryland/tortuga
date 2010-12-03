@@ -11,22 +11,17 @@ import sys
 import StringIO
 from distutils import sysconfig
 
-# Ensure we are using the proper version of python
-import ram_version_check
-
-
 # Capture stderr, to suppress unwanted warnings
 stderr = sys.stderr
 sys.stderr = StringIO.StringIO()
 
 try:
-    # Only import the core module if it exists, its a conditional dependency
-    import os as __os
-    __coreModulePath = __os.path.join(__os.environ['RAM_SVN_DIR'], 'build_ext',
-                                      'ext', 'core.py')
-    if __os.path.exists(__coreModulePath):
-        # Core more first because of Boost.Python wrapping dependencies
+    try:
         import ext.core
+    except ImportError:
+        # Only import the core module if it exists,
+        # it's a conditional dependency
+        pass
 
     from ext._math import *
 

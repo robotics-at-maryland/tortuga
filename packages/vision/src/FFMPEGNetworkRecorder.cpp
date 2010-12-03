@@ -7,6 +7,8 @@
  * File:  packages/vision/include/FFMPEGnetworkRecorder.h
  */
 
+// STD Includes
+#include <stdio.h>
 
 // Library Includes
 extern "C" {

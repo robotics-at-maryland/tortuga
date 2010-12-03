@@ -11,11 +11,9 @@
 // STD Includes
 #include <cmath>
 #include <cassert>
-#include <boost/bind.hpp>
 
-#ifdef RAM_WINDOWS
-#define M_PI 3.14159265358979323846
-#endif
+// Library Includes
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "control/include/ControllerBase.h"
@@ -32,7 +30,9 @@
 #include "math/include/Events.h"
 #include "math/include/Quaternion.h"
 
-using namespace std;
+#ifdef RAM_WINDOWS
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace ram {
 namespace control {

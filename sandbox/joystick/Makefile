@@ -1,15 +1,20 @@
 OIS_ROOT=$(RAM_ROOT_DIR)
-CFLAGS=-DSAITEK
+HEADERS=logitech.h joystick.h
 
-all: oisserver oisclient keepalive
+all: oisserver logitech keepalive
 
+.PHONY: saitek logitech generic
+saitek: JOYSTICK=SAITEK
+logitech: JOYSTICK=LOGITECH
+generic: JOYSTICK=GENERIC
+saitek logitech generic: oisclient
 
 oisserver: oisserver.c
 
 keepalive: keepalive.cpp
 
-oisclient: oisclient.cpp
-	g++ oisclient.cpp -lOIS $(CFLAGS) -L$(OIS_ROOT)/lib -I$(OIS_ROOT)/include/OIS/ -o oisclient -g
+oisclient: oisclient.cpp $(HEADERS)
+	g++ oisclient.cpp -D$(JOYSTICK) -lOIS $(CFLAGS) -L$(OIS_ROOT)/lib -I$(OIS_ROOT)/include/OIS/ -o oisclient -g
 
 clean:
 	rm -f oisclient oisserver *.o *~

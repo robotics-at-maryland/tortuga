@@ -34,6 +34,6 @@ def OgreVector3(args):
         return __OGRE.Vector3(args.x, args.y, args.z)
     else:
         assert len(args) == 3
-        return __OGRE.Vector3(args[0], args[1], args[2])
+        return __OGRE.Vector3(*[float(x) for x in args])
 
     

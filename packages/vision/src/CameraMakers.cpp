@@ -14,6 +14,7 @@
 #include <sstream>
 
 // Library Includes
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 #include <boost/filesystem.hpp>
 

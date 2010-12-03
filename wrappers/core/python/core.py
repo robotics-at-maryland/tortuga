@@ -13,7 +13,7 @@ import inspect
 from distutils import sysconfig
 
 # Ensure we are using the proper version of python
-import ram_version_check
+#import ram_version_check
 
 
 # Capture stderr, to suppress unwanted warnings

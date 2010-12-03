@@ -20,6 +20,7 @@ namespace boost { class thread; }
 // Project Includes
 #include "core/include/IUpdatable.h"
 #include "core/include/CountDownLatch.h"
+#include "core/include/EventPublisher.h"
 
 // Must Be Included last
 #include "core/include/Export.h"
@@ -27,7 +28,7 @@ namespace boost { class thread; }
 namespace ram {
 namespace core {
 
-/** Reprsents and object which can be updated, asyncronously or sequentially.
+/** Represents and object which can be updated, asyncronously or sequentially.
  *
  *  All you have to do to use it is subclass and implement the update() method,
  *  will be called the given interval in a background thread.
@@ -35,7 +36,7 @@ namespace core {
 class RAM_EXPORT Updatable : public IUpdatable, boost::noncopyable
 {
 public:
-    Updatable();
+    Updatable(EventPublisher *publisher = NULL);
     virtual ~Updatable();
 
     virtual void setPriority(Priority priority);
@@ -112,6 +113,10 @@ private:
     boost::thread* m_backgroundThread;
     
     CountDownLatch m_threadStopped;
+
+    /** The publisher to use for profiling updates */
+    EventPublisher *m_publisher;
+    unsigned int m_profileCount;
 };
 
 } // namespace core

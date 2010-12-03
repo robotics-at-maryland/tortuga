@@ -22,6 +22,7 @@
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ThreadedQueue.h"
+#include "logging/include/Common.h"
 
 namespace ram {
 namespace logging {
@@ -56,9 +57,6 @@ private:
 
     /** Store event on the internal queue so it can be written to disk */
     void queueEvent(core::EventPtr event);
-
-    /** Writes the event to disk through the archive */
-    void writeEvent(core::EventPtr event);
 
     /** Connection for the recieved events */
     core::EventConnectionPtr m_connection;

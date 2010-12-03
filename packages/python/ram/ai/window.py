@@ -66,9 +66,9 @@ class WindowTrackingState(state.State):
             squareNessList.append(e.squareNess)
 
         squareNessList.sort()
-	if len(squareNessList) > 2:
-	    squareNessList = squareNessList[1:-1]
-	squareNess = sum(squareNessList) / len(squareNessList)
+        if len(squareNessList) > 2:
+            squareNessList = squareNessList[1:-1]
+        squareNess = sum(squareNessList) / len(squareNessList)
 
         # Average the variables
         x /= len(eventList)

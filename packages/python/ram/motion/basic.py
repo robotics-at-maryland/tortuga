@@ -61,9 +61,10 @@ class MotionManager(core.Subsystem):
         
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
-        
-        self._eventHub.subscribeToType(Motion.FINISHED, self._motionFinished)
 
+        self._conn = self._eventHub.subscribeToType(Motion.FINISHED,
+                                                    self._motionFinished)
+        
         self._queuedMotions = []
         self._queueActive = False
         
@@ -204,13 +205,17 @@ class MotionManager(core.Subsystem):
             self._setMotion(motion)
         
     def background(self):
-        pass
+        if self._conn is None:
+            self._conn = self._eventHub.subscribeToType(Motion.FINISHED,
+                                                        self._motionFinished)
     
     def backgrounded(self):
         return True
     
     def unbackground(self, join = True):
-        pass
+        if self._conn is not None:
+            self._conn.disconnect()
+            self._conn = None
     
     def update(self, timeSinceLastUpdate):
         pass
@@ -273,8 +278,8 @@ class MotionManager(core.Subsystem):
                 m = MotionManager.generateMotion(
                     type_, complete = True, **info)
             motionList[int(num)-1] = m
-	    # Fix the config file
-	    info['type'] = type_
+            # Fix the config file
+            info['type'] = type_
         return motionList
     
 core.SubsystemMaker.registerSubsystem('MotionManager', MotionManager)

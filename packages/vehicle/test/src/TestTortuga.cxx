@@ -581,3 +581,17 @@ TEST_FIXTURE(ThrusterVehicleFixture, unsafeThrusters)
     CHECK_EQUAL(true, top->enabled);
     CHECK_EQUAL(true, bottom->enabled);
 }
+
+TEST_FIXTURE(ThrusterVehicleFixture, getDevicesOfType)
+{
+    // Add a non-thruster device
+    MockIMU* imu = new MockIMU("IMU");
+    veh->_addDevice(vehicle::device::IDevicePtr(imu));
+
+    vehicle::device::DeviceList devices =
+        veh->getDevicesOfType<vehicle::device::IThruster>();
+    CHECK_EQUAL(6u, devices.size());
+
+    devices = veh->getDevicesOfType<vehicle::device::IIMU>();
+    CHECK_EQUAL(1u, devices.size());
+}
