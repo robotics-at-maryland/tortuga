@@ -25,6 +25,7 @@ def generate(module_builder, local_ns, global_ns):
     local_ns: is the namespace that coresponds to the given namespace
     global_ns: is the module builder for the entire library
     """
+    classes = []
 
     local_ns.exclude()
 
@@ -49,8 +50,13 @@ def generate(module_builder, local_ns, global_ns):
 
     IStateEstimator.include_files.append(os.environ['RAM_SVN_DIR'] +
                                          '/packages/estimation/include/IStateEstimator.h')
+    classes.append(IStateEstimator)
 
     wrap.registerSubsystemConverter(IStateEstimator)
 
     module_builder.add_registration_code("registerIStateEstimatorPtrs();")
-    return ['wrappers/estimation/include/RegisterFunctions.h']
+
+    include_files = set([cls.location.file_name for cls in classes])
+    for cls in classes:
+        include_files.update(cls.include_files)
+    return ['wrappers/estimation/include/RegisterFunctions.h'] + list(include_files)
