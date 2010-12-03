@@ -31,6 +31,6 @@ if (RAM_WITH_VEHICLE)
 
   set(vehicle_device_wrapper_DIRECTORY "test/src/device")
   # Hack to give vehicle_device the same dependencies as vehicle
-  set(PYTHON_vehicle_device_FILELIST ${PYTHON_vehicle_FILELIST})
+  set(PYTHON_vehicle_device_wrapper_FILELIST ${PYTHON_vehicle_FILELIST})
   test_wrapper( vehicle_device "ram_vehicle" )
 endif (RAM_WITH_VEHICLE)
