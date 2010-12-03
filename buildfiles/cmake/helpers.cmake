@@ -10,16 +10,18 @@ endmacro ()
 
 macro(test_wrapper _name _link_libs)
   if (RAM_TESTS)
-    set(WRAPPER_TEST_DEPENDS Tests_${_name}_wrapper.success _${_name})
+    set(WRAPPER_TEST_DEPENDS)
     if (DEFINED PYTHON_${_name}_FILELIST)
       list(APPEND WRAPPER_TEST_DEPENDS ${PYTHON_${_name}_FILELIST})
     endif ()
 
     # Run macro to set up C++ tests
-    set(${_name}_DEPENDENCIES ${WRAPPER_TEST_DEPENDS})
+    set(${_name}_wrapper_DEPENDENCIES ${WRAPPER_TEST_DEPENDS})
     test_module_base(${_name}_wrapper "${_link_libs}" ${ARGV})
     add_custom_target(ram_${_name}_wrapper_tests ALL DEPENDS
       ${WRAPPER_TEST_DEPENDS})
+
+    list(APPEND WRAPPER_TEST_DEPENDS Tests_${_name}_wrapper.success _${_name})
 
     # Glob all python files
     file(GLOB ${_name}_PYTESTS "${_directory}/*.py")
