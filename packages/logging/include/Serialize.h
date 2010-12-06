@@ -167,6 +167,13 @@ void serialize(Archive &ar, ram::math::Vector3 &t,
   ar & t.z;
 }
 
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector2 &t,
+               const unsigned int file_version)
+{
+    ar & t.x;
+    ar & t.y;
+}
 
 template <class Archive>
 void serialize(Archive &ar, ram::math::Quaternion &t,
@@ -199,6 +206,17 @@ void serialize(Archive &ar, ram::math::Vector3Event &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector2Event &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.vector2;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector2Event)
 
 
 template <class Archive>
