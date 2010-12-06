@@ -322,3 +322,48 @@ def registerConverter(converter_cls, cls, include):
 
     cls.include_files.append(include)
 
+def register_event(cls):
+    """
+    Includes the class event and adds generic code to serialize the
+    event and export the class definition (only if the logging feature is
+    enabled).
+
+    @param cls The event class to register
+    """
+    cls.include()
+
+    # Find the full name of the class
+    def fullName(cls):
+        if cls.name == '::':
+            return []
+        else:
+            return fullName(cls.parent) + [cls.name]
+    className = '::'.join(fullName(cls))
+    # cls.add_declaration_code("""
+    # #include "core/include/Feature.h"
+    # #ifdef RAM_WITH_LOGGING
+    # #include <boost/archive/text_iarchive.hpp>
+    # #include <boost/archive/text_oarchive.hpp>
+
+    # #include "logging/include/Serialize.h"
+    # template <class Archive>
+    # void serialize(Archive & ar, %s_wrapper& t,
+    #                const unsigned int file_version)
+    # {
+    #     ar & boost::serialization::base_object< %s >(t);
+    # }
+
+    # #include <boost/serialization/export.hpp>
+    # BOOST_CLASS_EXPORT(%s_wrapper);
+    # #endif // RAM_WITH_LOGGING
+    # """ % (cls.name, className, cls.name))
+
+def expose_events(local_ns, filter_func= lambda x: x.name.endswith('Event')):
+    classes = []
+    
+    for cls in local_ns.classes(function= filter_func,
+                                allow_empty = True):
+        register_event(cls)
+        classes.append(cls)
+
+    return classes

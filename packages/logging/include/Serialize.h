@@ -151,6 +151,14 @@ void serialize(Archive &ar, ram::core::StringEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)
 
+template <class Archive>
+void serialize(Archive &ar, ram::core::IntEvent& t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.data;
+}
+
 
 // ------------------------------------------------------------------------- //
 //                           M A T H   E V E N T S                           //
@@ -281,6 +289,24 @@ BOOST_SERIALIZATION_SHARED_PTR(ram::vision::RedLightEvent)
 
 
 template <class Archive>
+void serialize(Archive &ar, ram::vision::BuoyEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.y;
+    ar & (*((double*)(&t.azimuth)));
+    ar & (*((double*)(&t.elevation)));
+    ar & t.range;
+    ar & t.x;
+    ar & t.y;
+    ar & t.id;
+    ar & t.color;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BuoyEvent)
+
+
+template <class Archive>
 void serialize(Archive &ar, ram::vision::PipeEvent &t,
                const unsigned int file_version)
 {
@@ -366,6 +392,22 @@ void serialize(Archive &ar, ram::vision::BarbedWireEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BarbedWireEvent)
 
+
+template <class Archive>
+void serialize(Archive &ar, ram::vision::HedgeEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.leftX;
+    ar & t.leftY;
+    ar & t.rightX;
+    ar & t.rightY;
+    ar & t.squareNess;
+    ar & t.range;
+    ar & t.haveLeft;
+    ar & t.haveRight;
+}
+
 #endif // RAM_WITH_VISION
 
 // ------------------------------------------------------------------------- //
@@ -428,6 +470,85 @@ void serialize(Archive &ar, ram::vehicle::SonarEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::SonarEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawIMUDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    // TODO: Serialize raw IMU data
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawIMUDataEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawDVLDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    // TODO: Serialize raw DVL data
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawDVLDataEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawDepthSensorDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    ar & t.rawDepth;
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawDepthSensorDataEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::IMUInitEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    // TODO: Serialize matrix3
+    ar & t.magBias;
+    ar & t.gyroBias;
+    ar & t.magCorruptThreshold;
+    ar & t.magNominalLength;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::IMUInitEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::DVLInitEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    ar & t.angularOffset;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::DVLInitEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::DepthSensorInitEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    ar & t.location;
+    ar & t.depthCalibSlope;
+    ar & t.depthCalibIntercept;
+}
 
 #endif // RAM_WITH_VEHICLE
 

@@ -80,15 +80,10 @@ def generate(module_builder, local_ns, global_ns):
     #wrap.mangle_container_names(local_ns)
 
     # Wrap Events
-    eventsFound = False
-    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
-                                allow_empty = True):
-        cls.include()
-        classes.append(cls)
-        eventsFound = True
-    if eventsFound:
+    events = wrap.expose_events(local_ns)
+    if events:
         module_builder.class_('::ram::core::Event').already_exposed = True
-       #wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
+        classes += events
     
     # Added the needed includes
     wrap.add_needed_includes(classes)

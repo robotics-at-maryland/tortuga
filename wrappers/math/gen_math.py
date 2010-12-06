@@ -71,15 +71,11 @@ def generate(module_builder, local_ns, global_ns):
     Radian.constructor(arg_types = ['double']).allow_implicit_conversion = False
 
     # Wrap Events
-    eventsFound = False
-    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
-                                allow_empty = True):
-        eventsFound = True
-        cls.include()
-        classes.append(cls)
+    events = wrap.expose_events(local_ns)
 
-    if eventsFound:
+    if events:
         module_builder.class_('::ram::core::Event').already_exposed = True
+        classes += events
 
     # Append the approaite include files
     wrap.add_needed_includes(classes)

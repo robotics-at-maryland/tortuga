@@ -29,6 +29,11 @@
 #include "core/include/EventHub.h"
 #include "core/include/Logging.h"
 #include "core/include/TimeVal.h"
+#include "core/include/Feature.h"
+
+#ifdef RAM_WITH_MATH
+#  include "math/include/Events.h"
+#endif // RAM_WITH_MATH
 
 #include "math/test/include/MathChecks.h"
 
@@ -154,7 +159,7 @@ struct Fixture
         event->timeStamp = timeStamp;
         events.push_back(event);
 
-        oa << event;
+        logging::writeEvent(event, oa);
     }
     
     EventList writeOutTestEvents(double startTime = 0.0)
@@ -170,6 +175,17 @@ struct Fixture
         insertEvent("1", 0, startTime + 0.3, events, oa);
         insertEvent("2", 0, startTime + 0.8, events, oa);
         insertEvent("3", 0, startTime + 1.5, events, oa);
+
+        // If math library enabled, test events from another archive
+#ifdef RAM_WITH_MATH
+        math::NumericEventPtr numberEvent(new math::NumericEvent());
+        numberEvent->number = 5;
+        numberEvent->type = "4";
+        numberEvent->sender = 0;
+        numberEvent->timeStamp = startTime + 2.2;
+        events.push_back(numberEvent);
+        logging::writeEvent(numberEvent, oa);
+#endif // RAM_WITH_MATH
 
         ofs.close();
         
@@ -211,6 +227,14 @@ TEST_FIXTURE(Fixture, BasicPlayer)
         CHECK_EQUAL(events[i]->sender, publishedEvents[i]->sender);
         CHECK_EQUAL(events[i]->timeStamp, publishedEvents[i]->timeStamp);
     }
+
+#ifdef RAM_WITH_MATH
+    // Check the contents of the last event
+    math::NumericEventPtr numberEvent =
+        boost::dynamic_pointer_cast<math::NumericEvent>(publishedEvents.back());
+    CHECK(numberEvent);
+    CHECK_EQUAL(5, numberEvent->number);
+#endif // RAM_WITH_MATH
 
     delete player;
 }

@@ -49,11 +49,8 @@ def generate(module_builder, local_ns, global_ns):
     Color.member_function('colorToText').exclude()
     classes.append(Color)
     
-    eventsFound = False
-    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
-                                allow_empty = True):
-        cls.include()
-        classes.append(cls)
+    events = wrap.expose_events(local_ns)
+    classes += events
 
     ImageEvent = local_ns.class_('ImageEvent')
     ImageEvent.include_files.append('vision/include/Image.h')
@@ -62,8 +59,9 @@ def generate(module_builder, local_ns, global_ns):
     BinEvent = local_ns.class_('BinEvent')
     wrap.set_implicit_conversions([BinEvent], False)
 
-    if eventsFound:
+    if events:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
+        classes += events
 
     # Append the approaite include files
 #    for cls in classes:

@@ -75,6 +75,11 @@ macro(generate_wrappers MODULE)
     ${Boost_PYTHON_LIBRARY}
     ${PYTHON_LIBRARIES}
     )
+  if (RAM_WITH_LOGGING) # Serialization if logging feature is available
+    target_link_libraries(_${MODULE}
+      ${Boost_SERIALIZATION_LIBRARY}
+      )
+  endif (RAM_WITH_LOGGING)
   set_target_properties(_${MODULE} PROPERTIES
     PREFIX ""
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext
