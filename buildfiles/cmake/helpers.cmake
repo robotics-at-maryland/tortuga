@@ -1,5 +1,8 @@
 
 set(RAM_TESTS ON CACHE BOOL "Build and run unittests")
+if (RAM_TESTS)
+  enable_testing()
+endif (RAM_TESTS)
 
 macro(test_module _name _link_libs)
   if (RAM_TESTS)
@@ -34,6 +37,8 @@ macro(test_wrapper _name _link_libs)
       DEPENDS _${_name} ${WRAPPER_TEST_DEPENDS}
       WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
       )
+    add_test(python_${_name}
+      python ${CMAKE_SOURCE_DIR}/scripts/pytester.py ${${_name}_PYTESTS})
     add_custom_target(${_name}_pywrapper_tests ALL DEPENDS
       ${CMAKE_SOURCE_DIR}/build_ext/ext/_${_name}Tests.success)
   endif (RAM_TESTS)
@@ -69,6 +74,7 @@ macro(test_module_base _target _link_libs)
       ${UnitTest++_LIB_DIR}
       )
 
+    add_test(Tests_${_target} Tests_${_target})
     add_custom_command(
       OUTPUT Tests_${_target}.success
       COMMAND Tests_${_target}
