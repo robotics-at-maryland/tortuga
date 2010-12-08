@@ -78,12 +78,12 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     math::Vector3 wd(desiredState->getDesiredAngularRate());
     math::Vector3 w(estimator->getEstimatedAngularRate());
 
-/****************************
+    /****************************
        propagate desired states 
-*****************************/
+    *****************************/
 
-// integrate desired angular velocity
-// derivative of angular rate desired
+    // integrate desired angular velocity
+    // derivative of angular rate desired
     math::Vector3 dwd(0,0,0);
 
 	// simple numerical integration
@@ -102,32 +102,32 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     desiredState->setDesiredAngularRate(wd);
     desiredState->setDesiredOrientation(qd);
 
-/****************************
+    /****************************
        compute error metrics
-*****************************/
+    *****************************/
 
-// compute error quaternion
+    // compute error quaternion
     math::Quaternion qc_tilde = q.errorQuaternion(qd);
 
-// compute rotation matrix (attitude deviation matrix?)
+    // compute rotation matrix (attitude deviation matrix?)
     math::Matrix3 RotMatc_tilde;
     qc_tilde.ToRotationMatrix(RotMatc_tilde);
 
-// extract vector portion of qc_tilde
+    // extract vector portion of qc_tilde
     math::Vector3 epsilon_c_tilde(qc_tilde.x, qc_tilde.y, qc_tilde.z);
 
-// compute composite error metrics
+    // compute composite error metrics
     math::Vector3 wr = RotMatc_tilde*wd-(m_rotLambda)*epsilon_c_tilde;
     math::Vector3 shat = w-wr;
 
-// compute angular rate error
+    // compute angular rate error
     math::Vector3 wc_tilde = w-RotMatc_tilde*wd;
 
-// compute derivative of wr
+    // compute derivative of wr
     math::Matrix3 S;//temp skew symmetric matrix
     S.ToSkewSymmetric(epsilon_c_tilde);
 
-    math::Matrix3 Q1;//temp Q1 matrix (subset of Q matrix)	
+    math::Matrix3 Q1; //temp Q1 matrix (subset of Q matrix)	
 	Q1[0][0] = qc_tilde.w + S[0][0];
 	Q1[0][1] = S[0][1];
 	Q1[0][2] = S[0][2];
@@ -142,18 +142,18 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     math::Vector3 dwr = RotMatc_tilde * dwd - (m_rotLambda) * Q1 * wc_tilde;
 
 
-/**********************************
-  compute parameterization matrix
-**********************************/
+    /**********************************
+     compute parameterization matrix
+    **********************************/
 
-// rotation matrix from vehicle quaternion
+    // rotation matrix from vehicle quaternion
     math::Matrix3 Rot;
     q.ToRotationMatrix(Rot);
 
-// the dreaded parameterization matrix
+    // the dreaded parameterization matrix
     math::MatrixN Y(3,12);
 
-// inertia terms
+    // inertia terms
     Y[0][0] = dwr[0];
     Y[0][1] = dwr[1] - w[0]*wr[2];
     Y[0][2] = dwr[2] + w[0]*wr[1];
@@ -164,7 +164,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][1] = w[0]*wr[0] - w[1]*wr[1];
     Y[2][2] = dwr[0] - w[2]*wr[1];
 
-// more inertia terms
+    // more inertia terms
     Y[0][3] = -w[1]*wr[2];
     Y[0][4] = w[1]*wr[1] - w[2]*wr[2];
     Y[0][5] = w[2]*wr[1];
@@ -175,7 +175,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][4] = dwr[1] + w[2]*wr[0];
     Y[2][5] = dwr[2];
 
-// buoyancy terms
+    // buoyancy terms
     Y[0][6] = 0;
     Y[0][7] = -Rot[2][2];
     Y[0][8] = Rot[1][2];
@@ -186,7 +186,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][7] = Rot[0][2];
     Y[2][8] = 0;
 
-// drag terms
+    // drag terms
     Y[0][9]  = -w[0]*fabs(w[0]);
     Y[0][10] = 0;
     Y[0][11] = 0;
@@ -197,14 +197,14 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][10] = 0;
     Y[2][11] = -w[2]*fabs(w[2]);
 
-/**********************************
-  adaptation law
-**********************************/
+    /**********************************
+      adaptation law
+    **********************************/
 
-// use parameter adaptation law
+    // use parameter adaptation law
     math::MatrixN dahat = -(m_rotGamma)*Y.transpose()*shat;
 
-// integrate parameter estimates & store in controllerState
+    // integrate parameter estimates & store in controllerState
     m_params = m_params + dahat*timestep;
 
     /* Implement a dead zone to prevent parameter drift.
@@ -227,9 +227,9 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     clip(m_params[10][0], 0.0, 4.0);
     clip(m_params[11][0], 0.0, 5.0);
 
-/**********************************
-  control law
-**********************************/
+    /**********************************
+             control law
+    **********************************/
 
     math::MatrixN adaptiveTerm = Y*m_params;
 
@@ -266,7 +266,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
                         << output[1] << " "
                         << output[2];
 
-        return math::Vector3(output[0], output[1], output[2]);
+    return math::Vector3(output[0], output[1], output[2]);
 }
 
 void AdaptiveRotationalController::clip(double &var, double min, double max)
