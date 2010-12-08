@@ -130,7 +130,7 @@ class KeyboardController(core.Subsystem):
 
         if self._stop:
             self._controller.holdCurrentPosition()
-            self._controller.holdOrientation()
-            self._controller.holdDepth()
+            self._controller.holdCurrentOrientation()
+            self._controller.holdCurrentDepth()
             
 core.SubsystemMaker.registerSubsystem('KeyboardController', KeyboardController)

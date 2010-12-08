@@ -259,18 +259,18 @@ void ControllerBase::holdCurrentHeading()
 void ControllerBase::holdCurrentOrientation()
 {    
     rotate(m_stateEstimator->getEstimatedOrientation(), 
-           math::Vector3::ZERO);
+           math::Vector3::ZERO, math::Vector3::ZERO);
 }
 
 void ControllerBase::holdCurrentPosition()
 {
     translate(m_stateEstimator->getEstimatedPosition(),
-              math::Vector2::ZERO);
+              math::Vector2::ZERO, math::Vector2::ZERO);
 }
 
 void ControllerBase::holdCurrentDepth()
 {
-    changeDepth(m_stateEstimator->getEstimatedDepth(), 0);
+    changeDepth(m_stateEstimator->getEstimatedDepth(), 0, 0);
 }
 
 

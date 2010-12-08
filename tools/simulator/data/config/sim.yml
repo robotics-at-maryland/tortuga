@@ -41,4 +41,4 @@ Subsystems:
             INCLUDE: tools/simulator/data/config/ai/default_state.yml
 
     # Includes all common subsystems    
-    INCLUDE: tools/simulator/data/config/testbase.yml
+    INCLUDE: tools/simulator/data/config/base.yml

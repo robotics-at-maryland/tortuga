@@ -106,9 +106,10 @@ Vehicle:
         #     depends_on: ["SimulationDevice"]
         #     type: SimDepthSensor
 
+
 StateEstimator:
     type: IdealStateEstimator
-    depends_on: ["Vehicle", "EventHub"]
+    depends_on: ["EventHub", "Vehicle"]
 
 # Exectures Motions
 MotionManager:
@@ -120,11 +121,11 @@ TimerManager:
     type: TimerManager
     depends_on: ["EventHub"]
 
-#RemoteController:
-#    type: RemoteController
-#    depends_on: ["Controller"]
-#    update_interval: -1
-#    yawGain: 50
+# RemoteController:
+#     type: RemoteController
+#     depends_on: ["Controller", "StateEstimator"]
+#     update_interval: -1
+#     yawGain: 50
 
 Logging:
     type: Logging
@@ -137,6 +138,13 @@ Logging:
                 type: Pattern
                 pattern: "%m %r%n"
 
+        ControlLog:
+            type: File
+            fileName: control.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+
         Console:
             type: Console
             Layout:
@@ -145,157 +153,65 @@ Logging:
     Categories:
         Vehicle:
             appenders: ['VehicleLog']
+        Controller:
+            appenders: ['ControlLog']
 
-# EventLogger:
-#     depends_on: ["EventHub"]
-#     type: EventLogger
+#EventLogger:
+#    depends_on: ["EventHub"]
+#    type: EventLogger
 
 Controller:
-    orientationThreshold: 0.1
     depends_on: ["Vehicle", "EventHub", "StateEstimator"]
-    type: BWPDController
+    type: CombineController
+
+    # wait for this amout of time before doing control
+    initializationPause: 2
+
+    # hold our initial depth and heading
     holdCurrentHeading: 1
     holdCurrentDepth: 1
-    #update_interval: 10
-    ##################################
-    ##GAINS SHOULD NEVER BE NEGATIVE##
-    ##################################
-    angularPGain: 10
-    angularDGain: 1
-    speedPGain: 9
-    sidewaysSpeedPGain: 9
-    velocityPGain: 0.5
 
-    #Select type of Rotational Gyro Bias Controller
-    gyroPDType: 0
+    velocityThreshold: 0.1
+    positionThreshold: 0.1
+    depthThreshold: 0.1
+    orientationThreshold: 0.01
 
-    #Select type of Depth Controller
-    # set depthControlType = (1 for P control) 
-    #                        (2 for observer control for a 2d depth state) 
-    #                        (3 for observer control for a 4d depth state)
-    #                        (4 for observer control with scaling for a 4d depth state)
-    #                        (5 for PID control)
-    depthControlType: 5
-    dtMin: .001
-    dtMax: .05
+    TranslationalController:
+        type: TrackingTranslationalController
+        x1kp: 10
+        x1ki: 1
+        x1kd: 3
+        x2kp: 10
+        x2ki: 1
+        x2kd: 3
 
-    #parameters for depth P controller
-    depthPGain: 20
+        #type: OpenLoopTranslationalController
+        #speedPGain: 8
+        #sidewaysSpeedPGain: 8
 
-    #parameters for depth observer controller 
-    depthKx: 34.06
-    depthKy: 40.70
-    depthLx: 43.53
-    depthLy: 461.17
+    DepthController:
+        type: PIDDepthController
+        kp: 70
+        ki: 2
+        kd: 10
+        dtMin: 0.005
+        dtMax: 0.05
 
-    #parameters for depth PID controller
-    # PID 1
-    #depthKp: 10
-    #depthKi: 0.2
-    #depthKd: 4
+    RotationalController:
+        type: NonlinearPDRotationalController
+        kp: 10
+        kd: 6
+        dtMin: 0.005
+        dtMax: 0.05
+        desiredOrientation: [0, 0, 0, 1]
 
-    # PID 2
-    #depthKp: 60
-    #depthKi: 0.5
-    #depthKd: 20
+        # type: AdaptiveRotationalController
+        # dtMin: 0.005
+        # dtMax: 0.05
+        # rotLambda: 10.0   # error metric 'gain'
+        # rotGamma: 1    # parameter adaptation rate
+        # rotK: 1.0        # analagous to kd ?
 
-    # PID 3
-    #depthKp: 80
-    #depthKi: 0.2
-    #depthKd: 30
-
-    # PID 4
-    #depthKp: 30
-    #depthKi: 0.5
-    #depthKd: 10
-
-    # Settings for PID Depth Controller (#5)
-    depthKp: 20.0 #10.0
-    depthKi: 1.0
-    depthKd: 1.0
-
-    depthSumError: 0
-    depthPrevX: 0
-
-    depthA1: 0
-    depthA2: 1
-    depthA3: 0
-    depthA4: -.575
-    depthBx: 0
-    depthBy: 0.05
-    depthCx: 1
-    depthCy: 0
-
-    depthOCGainK: [1, 2]
-    depthOCGainL: [3, 4]
-
-    # Observer Control for 4d depth state (controllers 3 and 4)
-    # low gains:
-    depthOCIA4: [-0.355, -539.9952, -1.6815, 0,
-                  0, -8.4250, 1.0, 0,
-                  0.05, -22.1456, -0.575, 0,
-                  -0.355, -0.5952, -1.6815, 0]
-    depthOCIB4: [539.4, 8.425, 22.1456, 0]
-    depthOCIC4: [0, 0, 0, 1]
-    # K gains: -2  L gains: -15
-    #depthOCIA4: [-6, -70409, -199, 0,
-    #           0, -45, 1.0, 0,
-    #               0, -667, -1, 0,
-    #              -6, -185, -199, 0]
-    #depthOCIB4: [70224, 45, 667, 0]
-    #depthOCIC4: [0, 0, 0, 1]
-    # K gains: -2  L gains: -10
-    #depthOCIA4: [-6, -20242, -240, 0,
-    #              0, -29, 1.0, 0,
-    #              0, -283, -1, 0,
-    #             -6, -244, -248, 0]
-    #depthOCIB4: [19998, 29, 283, 0]
-    #depthOCIC4: [0, 0, 0, 1]
-
-    #parameters for depth observer controller with integrator
-    #depthOCIA4: [-0.355, -539.9952, -1.6815, 0, 
-    #            0, -8.4250, 1.0, 0, 
-    #            0.05, -22.1456, -0.575, 0, 
-    #            -0.355, -0.5952, -1.6815, 0]
-    #depthOCIB4: [539.4, 8.425, 22.1456, 0]
-    #depthOCIC4: [0, 0, 0, 1]
-    # K gains: -2       L gains: -15
-    #depthOCIA4: [-6, -70409, -199, 0, 
-    #            0, -45, 1.0, 0, 
-    #            0, -667, -1, 0, 
-    #            -6, -185, -199, 0]
-    #depthOCIB4: [70224, 45, 667, 0]
-    #depthOCIC4: [0, 0, 0, 1]
-    # K gains: -2       L gains: -10
-    #depthOCIA4: [-6, -20242, -248, 0, 
-    #            0, -29, 1.0, 0, 
-    #            0, -283, -1, 0, 
-    #            -6, -244, -248, 0]
-    #depthOCIB4: [19998, 29, 283, 0]
-    #depthOCIC4: [0, 0, 0, 1]
-
-    #parameters for ***discrete*** depth observer controller with integrator
-    # K gains: -2      L gains: -100
-    #depthOCIA4: [0, 12217, -469, 0, 
-    #            0, 0, 0, 0, 
-    #            0, -9, 0, 0, 
-    #            0, 2932, 49, 1]
-    #depthOCIB4: [-12221, 1, 9, -2937]
-    #depthOCIC4: [0, 0, 0, 1]
-    # K gains: -1      L gains: -100
-    #depthOCIA4: [1, 10884, -494, 0, 
-    #            0, 0, 0, 0, 
-    #            0, -10, 0, 0, 
-    #            0, 1246, 21, 1]
-    #depthOCIB4: [-10884, 1, 10, -1247]
-    #depthOCIC4: [0, 0, 0, 1]
-
-    #parameters for depth LQG controller
-    #parameters for depth LQG controller with integrator
-
-    desiredSpeed: 0
-    desiredDepth: 1
-    desiredQuaternion: [0, 0, 0, 1]
 
 #RemoteController:
 #    type: RemoteController
@@ -325,10 +241,10 @@ Simulation:
         #Main: objectives/target.sml
         #Main: objectives/target2.sml
         #Main: objectives/buoy.sml
-        #Main: objectives/multi_buoy.sml
+        Main: objectives/multi_buoy.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
-        Main: transdec.sml
+        #Main: transdec.sml
         #Main: nxtest.sml
         #Main: gen_course.sml
         #Main: safePing.sml
@@ -399,6 +315,5 @@ Simulation:
             N : STRAFE_LEFT
             M : STRAFE_RIGHT
             S : STOP
-                            # Misc.
+            # Misc.
             CTRL+B : SCREENSHOT
-
