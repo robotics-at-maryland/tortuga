@@ -157,9 +157,9 @@ Logging:
         Vehicle:
             appenders: ['VehicleLog']
 
-EventLogger:
-    depends_on: ["EventHub"]
-    type: EventLogger
+#EventLogger:
+#    depends_on: ["EventHub"]
+#    type: EventLogger
 
 Controller:
     orientationThreshold: 0.1

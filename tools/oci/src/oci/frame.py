@@ -147,18 +147,16 @@ class MainFrame(wx.Frame):
         shellInitFile = config.get('shellInitFile', 
                                        'tools/oci/src/shellinit.py')
         shellinit = os.path.abspath(os.path.join(shellBasePath, shellInitFile))
-        try:
-            pyFile = open(shellinit, 'r')
 
-            introText += '%s' % ("\nRunning python file " + \
-                                     shellInitFile + ".\n")
-        except IOError:
-            pyFile = None
-            introText += '%s' % ("\nWARNING: No file found named " + \
-                                     shellInitFile + ".\n")
+        # Check if the shell init file exists
+        if not os.path.exists(shellinit):
+            introText += "\nWARNING: No file found named %s\n" % shellinit
+            shellinit = None
 
         # Create shell
-        self._shell = ShellPanel(self, locals = locals, introText = introText)
+        redirect = config.get('redirect', True)
+        self._shell = ShellPanel(self, locals = locals, introText = introText,
+                                 startup = shellinit, redirect = redirect)
         
         # This should not be bound, it makes it impossible to edit functions
         # You can rebind this once CTRL+UP/DOWN does what the old up down do
@@ -167,14 +165,6 @@ class MainFrame(wx.Frame):
 
         paneInfo = wx.aui.AuiPaneInfo().Name("Shell")
         paneInfo = paneInfo.Caption("Shell").Center()
-
-        # Run the python file
-        if pyFile is not None:
-            # This runs through every line in the shell init file
-            for line in pyFile.readlines():
-                # This runs the commands in the init file as if they were
-                # entered by the user.
-                self._shell.push(line.rstrip(), silent = True)
 
         self._addSubsystemPanel(paneInfo, self._shell, [])
     

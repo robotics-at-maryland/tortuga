@@ -2,6 +2,7 @@ GUI:
     # In Hz
     updateRate: 30
     guiConfigFile: ramsim.yml
+    redirect: False
 
 # Config for the vehicle
 # Each module is a seperate system that needs to be started up

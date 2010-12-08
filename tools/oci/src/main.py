@@ -43,9 +43,15 @@ def main():
     parser.add_option("-c", "--config", dest = "configPath", 
                       default = defaultConfigPath,
                       help = "The path to the config file")
+    parser.add_option("-r", "--redirect", dest = "redirect",
+                      action="store_true",
+                      help="Turn on stdout redirecting to the pycrust shell")
+    parser.add_option("-n", "--no-redirect", dest = "redirect",
+                      action="store_false",
+                      help="Turn off stdout redirecting to the pycrust shell")
     (options, args) = parser.parse_args()
 
-    application = app.Application(options.configPath)
+    application = app.Application(options.configPath, options.redirect)
     application.MainLoop()
 
 if __name__ == '__main__':
