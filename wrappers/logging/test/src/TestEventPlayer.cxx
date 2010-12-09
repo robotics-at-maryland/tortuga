@@ -22,6 +22,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/python.hpp>
+#include <boost/assign/list_of.hpp>
 #include <boost/filesystem/path.hpp>
 
 // Project Includes
@@ -31,7 +32,13 @@
 #include "logging/include/EventPlayer.h"
 
 namespace py = boost::python;
-using ram::logging::EventPlayer;
+using namespace ram;
+
+static boost::filesystem::path getRefDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "logging" / "test" / "data" / "ref.log";
+}
 
 TEST(LoggingImport)
 {
@@ -43,10 +50,45 @@ TEST(LoggingImport)
     }
 }
 
+static std::string PLAYER_CFG =
+    "{ 'fileName' : '" + getRefDir().string() + "' }";
+
+struct EventPlayerFixture
+{
+    EventPlayerFixture()
+        : eventHub(new core::EventHub())
+        , player(new logging::EventPlayer(
+                     core::ConfigNode::fromString(PLAYER_CFG),
+                     boost::assign::list_of(eventHub)))
+        , main_module(py::import("__main__"))
+        , main_namespace(main_module.attr("__dict__"))
+        , eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
+    {
+        // Import our module and inject the player object
+        main_namespace["logging"] = py::import("ext.logging");
+        main_namespace["player"] = player;
+    }
+
+    core::EventHubPtr eventHub;
+    logging::EventPlayerPtr player;
+
+    py::object main_module;
+    py::object main_namespace;
+    boost::function<py::object (py::str)> eval;
+};
+
+TEST_FIXTURE(EventPlayerFixture, EventPlayer)
+{
+    // Check the duration of the player
+    eval("duration = player.duration()");
+    double duration = py::extract<double>(main_namespace["duration"]);
+    CHECK_EQUAL(0, duration);
+}
+
 int main()
 {
     Py_Initialize();
     // We must register this converter so we can pass a pointer to python
-    py::register_ptr_to_python< boost::shared_ptr<EventPlayer> >();
+    py::register_ptr_to_python< logging::EventPlayerPtr >();
     return UnitTest::RunAllTests();
 }
