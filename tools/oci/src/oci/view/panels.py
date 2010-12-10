@@ -1301,32 +1301,57 @@ class VelocityPosition(BasePanel):
         # Events
         conn = eventHub.subscribeToType(
             ext.estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE,
-            self._onVelocityUpdate)
+            self._onEstimatedVelocityUpdate)
         self._connections.append(conn)
         
         conn = eventHub.subscribeToType(
             ext.estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
-            self._onPositionUpdate)
+            self._onEstimatedPositionUpdate)
+        self._connections.append(conn)
+     
+        conn = eventHub.subscribeToType(ext.control.IController.DESIRED_POSITION_UPDATE, self._onDesiredPositionUpdate)
+        self._connections.append(conn)
+       
+        conn = eventHub.subscribeToType(ext.control.IController.DESIRED_VELOCITY_UPDATE, self._onDesiredVelocityUpdate)
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
     
     def _createDataControls(self):
-        self._createDataControl(controlName = '_xPos', label = 'X Pos: ')
-        self._createDataControl(controlName = '_yPos', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_xVel', label = 'X Vel: ')
-        self._createDataControl(controlName = '_yVel', label = 'Y Vel: ')
-    
-    def _onVelocityUpdate(self, event):
+        self._createDataControl(controlName = '_xEPos', label = 'Estimated X Pos: ')
+        self._createDataControl(controlName = '_yEPos', label = 'Estimated Y Pos: ')
+        self._createDataControl(controlName = '_xEVel', label = 'Estimated X Vel: ')
+        self._createDataControl(controlName = '_yEVel', label = 'Esimated Y Vel: ')
+     
+        self._createDataControl(controlName = '_xDPos', label = 'Desired X Pos:') 
+        self._createDataControl(controlName = '_yDPos', label = 'Desired Y Pos:')
+        self._createDataControl(controlName = '_xDVel', label = 'Desired X Vel:')
+        self._createDataControl(controlName = '_yDVel', label = 'Desired Y Vel:')
+    def _onEstimatedVelocityUpdate(self, event):
         vel = event.vector2
-        self._xVel.Value = "% 4.2f" % vel.x
-        self._yVel.Value = "% 4.2f" % vel.y
+        self._xEVel.Value = "% 4.2f" % vel.x
+        self._yEVel.Value = "% 4.2f" % vel.y
 
-    def _onPositionUpdate(self, event):
+    def _onEstimatedPositionUpdate(self, event):
         pos = event.vector2
-        self._xPos.Value = "% 4.2f" % pos.x
-        self._yPos.Value = "% 4.2f" % pos.y
+        self._xEPos.Value = "% 4.2f" % pos.x
+        self._yEPos.Value = "% 4.2f" % pos.y
+        
+    def _onDesiredVelocityUpdate(self, event):
+        vel = event.vector2
+        self._xDVel.Value = "% 4.2f" % vel.x
+        self._yDVel.Value = "% 4.2f" % vel.y
+        
+    
+    def _onDesiredPositionUpdate(self, event):
+        pos = event.vector2
+        self._xDPos.Value = "% 4.2f" % pos.x
+        self._yDPos.Value = "% 4.2f" % pos.y
 
+    def _onClose(self, event):
+        for conn in self. _connections:
+            conn.disconnect() 
+       
     @staticmethod
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
