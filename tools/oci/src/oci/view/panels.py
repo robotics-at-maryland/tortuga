@@ -1494,20 +1494,45 @@ class RecorderPanel(wx.Panel):
 
         layout = wx.GridBagSizer(10, 10)
 
-        streamLabel = wx.StaticText(self, label = 'Streaming')
+        streamLabel = wx.StaticText(self, label = 'Recording')
         layout.Add(streamLabel, (0, 0), flag = wx.ALIGN_CENTER,
                    span = (1, 2))
-
-        self._fstreamButton = wx.Button(self, label = "Forward On")
+        self._vision = vision
+       
+        self._fstreamButton = wx.ToggleButton(self, label = "Forward On")
         layout.Add(self._fstreamButton, (1, 0), flag = wx.ALIGN_CENTER)
-
-        self._dstreamButton = wx.Button(self, label = "Downward On")
+        self._fstreamButton.Bind(wx.EVT_TOGGLEBUTTON, self._onForwardPressed)
+        self._forwardRecorderName = "None"
+        
+        self._dstreamButton = wx.ToggleButton(self, label = "Downward On")
         layout.Add(self._dstreamButton, (1,1), flag = wx.ALIGN_CENTER)
+        self._dstreamButton.Bind(wx.EVT_TOGGLEBUTTON, self._onDownwardPressed)
+        self._downwardRecorderName = "None"
 
-        layout.AddGrowableRow(0)
-        layout.AddGrowableCol(0)
         self.SetSizerAndFit(layout)
-
+   
+    def _onForwardPressed(self, event):
+        timeStamp = datetime.fromtimestamp(timer.time())
+        name = timeStamp.strftime("%Y%m%d%H%M%S") + "_forward.rmv"
+        if self._fstreamButton.GetValue() == True:
+            self._forwardRecorderName = name
+            self._vision.addForwardRecorder(name, 5)
+            self._fstreamButton.SetLabel(label = "Forward Off")
+        else:
+            self._vision.removeForwardRecorder(self._forwardRecorderName)
+            self._fstreamButton.SetLabel(label = "Forward On")
+    
+    def _onDownwardPressed(self, event):
+        timeStamp = datetime.fromtimestamp(timer.time())
+        name = timeStamp.strftime("%Y%m%d%H%M%S") + "_downward.rmv"
+        if self._dstreamButton.GetValue() == True:
+            self._downwardRecorderName = name
+            self._vision.addDownwardRecorder(name, 5)
+            self._dstreamButton.SetLabel(label = "Downward Off")
+        else:
+            self._vision.removeDownwardRecorder(self._downwardRecorderName)
+            self._dstreamButton.SetLabel(label = "Downward On")
+            
     @staticmethod
     def getPanels(subsystems, parent):
         vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem,
