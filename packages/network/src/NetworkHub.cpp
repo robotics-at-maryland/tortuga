@@ -9,6 +9,7 @@
 
 // STD Includes
 #include <sstream>
+#include <iostream>
 
 // Library Includes
 #include <boost/archive/text_iarchive.hpp>
@@ -58,6 +59,11 @@ NetworkHub::~NetworkHub()
 {
     // Stop background processing thread
     m_active = false;
+
+    // Shutdown socket
+    boost::system::error_code err;
+    // This always seems to receive a transport endpoint is not connected error
+    socket_.shutdown(udp::socket::shutdown_receive, err);
     m_bthread->join();
 
     delete m_bthread;
@@ -85,17 +91,21 @@ void NetworkHub::daemon()
         size_t reply_length = socket_.receive_from(
             boost::asio::buffer(reply, MAX_LENGTH), sender_endpoint);
 
-        // Write message received to archive
-        std::stringstream sstream;
-        sstream.write(reply, reply_length);
-
-        // Deserialize the received event
-        boost::archive::text_iarchive archive(sstream);
-        core::EventPtr event = core::EventPtr();
-        archive >> event;
-
-        // Publish the deserialized event
-        publish(event);
+        // Check if any data was received
+        if (reply_length > 0)
+        {
+            // Write message received to archive
+            std::stringstream sstream;
+            sstream.write(reply, reply_length);
+            
+            // Deserialize the received event
+            boost::archive::text_iarchive archive(sstream);
+            core::EventPtr event = core::EventPtr();
+            archive >> event;
+            
+            // Publish the deserialized event
+            publish(event);
+        }
     }
 }
 

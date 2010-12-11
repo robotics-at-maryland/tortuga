@@ -12,6 +12,7 @@
 
 // Library Includes
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
 // Project Includes
