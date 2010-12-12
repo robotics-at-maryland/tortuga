@@ -326,7 +326,7 @@ class MovementPanel(wx.Panel):
 class AIPanel(wx.Panel):
     implements(IPanelProvider)
     fmt = "MM:SS.mm"
-    def __init__(self, parent, eventHub, stateMachine, *args, **kwargs):
+    def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -499,18 +499,12 @@ class AIPanel(wx.Panel):
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
-        
-        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
-                                                    subsystems)
 
-        if machine is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("AI")
-            paneInfo = paneInfo.Caption("AI").Right()
+        paneInfo = wx.aui.AuiPaneInfo().Name("AI")
+        paneInfo = paneInfo.Caption("AI").Right()
         
-            panel = AIPanel(parent, eventHub, machine)
-            return [(paneInfo, panel, [machine])]
-        
-        return []
+        panel = AIPanel(parent, eventHub)
+        return [(paneInfo, panel, [])]
 
 class EventRatePanel(wx.grid.Grid):
     implements(IPanelProvider)
