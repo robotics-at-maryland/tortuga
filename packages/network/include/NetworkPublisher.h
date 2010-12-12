@@ -21,8 +21,10 @@
 // Project Includes
 #include "core/include/Common.h"
 #include "core/include/Forward.h"
+#include "core/include/ConfigNode.h"
 #include "core/include/Subsystem.h"
 #include "core/include/Updatable.h"
+#include "network/include/Common.h"
 
 namespace boost { class thread; }
 

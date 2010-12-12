@@ -13,19 +13,21 @@ import unittest
 import ext.core as core
 import ext.network
 
-class TestNetworkHub(unittest.TestCase):
+class TestNetworkPublisher(unittest.TestCase):
     def testSubsystemMaker(self):
+        # Must pass an event hub to the network publisher
+        eventHub = core.EventHub()
+        deps = core.SubsystemList()
+        deps.append(eventHub)
+
         cfg = {
-            'type' : 'NetworkHub',
-            'host' : 'localhost'
+            'type' : 'NetworkPublisher'
             }
         cfg = core.ConfigNode.fromString(str(cfg))
-        obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
+        obj = core.SubsystemMaker.newObject(cfg, deps)
 
         # Make sure we have the right methods on the network object
         self.assert_(hasattr(obj, 'subscribe'))
-        self.assert_(hasattr(obj, 'subscribeToType'))
-        self.assert_(hasattr(obj, 'subscribeToAll'))
         self.assert_(hasattr(obj, 'publish'))
 
 if __name__ == '__main__':

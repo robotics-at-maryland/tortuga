@@ -64,10 +64,12 @@ void NetworkPublisher::background(int interval)
 void NetworkPublisher::unbackground(bool join)
 {
     io_service.stop();
-    m_bthread->join();
-
-    delete m_bthread;
-    m_bthread = 0;
+    if (m_bthread) {
+        m_bthread->join();
+        
+        delete m_bthread;
+        m_bthread = 0;
+    }
 }
 
 bool NetworkPublisher::backgrounded()

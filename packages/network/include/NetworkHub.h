@@ -28,8 +28,7 @@ class RAM_EXPORT NetworkHub : public core::EventHub
 {
 public:
     /** Normal constructor */
-    NetworkHub(core::EventHubPtr eventHub,
-               std::string name = "NetworkHub",
+    NetworkHub(std::string name = "NetworkHub",
                std::string host = "localhost",
                uint16_t port = NetworkPublisher::PORT);
 

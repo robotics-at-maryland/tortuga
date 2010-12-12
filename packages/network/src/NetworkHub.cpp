@@ -31,8 +31,7 @@ using namespace boost::asio::ip;
 namespace ram {
 namespace network {
 
-NetworkHub::NetworkHub(core::EventHubPtr eventHub,
-                       std::string name, std::string host, uint16_t port)
+NetworkHub::NetworkHub(std::string name, std::string host, uint16_t port)
     : core::EventHub(name),
       m_host(host),
       m_port(port),
@@ -47,7 +46,9 @@ NetworkHub::NetworkHub(core::EventHubPtr eventHub,
 NetworkHub::NetworkHub(core::ConfigNode config,
                        core::SubsystemList deps)
     : core::EventHub(config, deps),
-      socket_(io_service, udp::endpoint(udp::v4(), NetworkPublisher::PORT)),
+      m_host(config["host"].asString("localhost")),
+      m_port(config["port"].asInt(NetworkPublisher::PORT)),
+      socket_(io_service, udp::endpoint(udp::v4(), 0)),
       m_bthread(0),
       m_active(true)
 {
@@ -63,7 +64,7 @@ NetworkHub::~NetworkHub()
     // Shutdown socket
     boost::system::error_code err;
     // This always seems to receive a transport endpoint is not connected error
-    socket_.shutdown(udp::socket::shutdown_receive, err);
+    socket_.shutdown(udp::socket::shutdown_both, err);
     m_bthread->join();
 
     delete m_bthread;

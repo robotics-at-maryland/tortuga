@@ -14,15 +14,12 @@ def generate(module_builder, local_ns, global_ns):
     local_ns.exclude()
     classes = []
 
+    module_builder.class_('::ram::core::Subsystem').already_exposed = True
+
     # NetworkPublisher
     NetworkPublisher = local_ns.class_('NetworkPublisher')
     NetworkPublisher.include()
     classes.append(NetworkPublisher)
-
-    # NetworkHub
-    NetworkHub = local_ns.class_('NetworkHub')
-    NetworkHub.include()
-    classes.append(NetworkHub)
 
     events = wrap.expose_events(local_ns)
 
@@ -31,11 +28,10 @@ def generate(module_builder, local_ns, global_ns):
         classes += events
 
     wrap.registerSubsystemConverter(NetworkPublisher)
-    wrap.registerSubsystemConverter(NetworkHub)
 
     wrap.add_needed_includes(classes)
 
     include_files = set([cls.location.file_name for cls in classes])
     for cls in classes:
         include_files.update(cls.include_files)
-    return list(include_files)
+    return ['wrappers/network/include/RegisterFunctions.h'] + list(include_files)

@@ -40,7 +40,7 @@ macro(test_wrapper _name _link_libs)
       ARGS "scripts/pytester.py" ${${_name}_PYTESTS}
       COMMAND ${CMAKE_COMMAND} -E touch
       ARGS build_ext/ext/_${_name}Tests.success
-      DEPENDS _${_name} ${WRAPPER_TEST_DEPENDS}
+      DEPENDS _${_name} ${WRAPPER_TEST_DEPENDS} ${${_name}_PYTESTS}
       WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
       )
     add_test(python_${_name}

@@ -3,10 +3,13 @@ file(GLOB SOURCES "src/*.cpp")
 
 set(LINK_LIBS
   ${Boost_SYSTEM_LIBRARY}
-  ${Boost_SERIALIZATION_LIBRARY}
   ram_core
   ram_control
   )
+
+if (RAM_WITH_LOGGING)
+  list(APPEND LINK_LIBS ram_logging)
+endif (RAM_WITH_LOGGING)
 
 if (RAM_WITH_NETWORK)
   add_library(ram_network SHARED ${SOURCES} ${HEADERS})
@@ -17,4 +20,7 @@ if (RAM_WITH_NETWORK)
     LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
+
+  add_executable(EventListener "test/src/EventListener.cpp")
+  target_link_libraries(EventListener ram_network)
 endif (RAM_WITH_NETWORK)

@@ -2,7 +2,6 @@
 if (RAM_WITH_NETWORK)
   set(WRAPPED_HEADERS
     NetworkPublisher.h
-    NetworkHub.h
     )
   gccxml( network "${WRAPPED_HEADERS}" )
   generate_wrappers( network )
