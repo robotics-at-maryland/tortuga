@@ -37,7 +37,7 @@ macro(pypp MODULE)
     OUTPUT ${PYPP_FILE}
     COMMAND ${PYTHON_EXECUTABLE}
     ARGS "scripts/pypp.py" "-t" "${GEN_SOURCES}" "-m" "_${MODULE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py" ${XMLFILES}
-    DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py
+    DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py ${CMAKE_SOURCE_DIR}/buildfiles/wrap.py
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
 endmacro ()
