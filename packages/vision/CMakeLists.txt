@@ -14,7 +14,12 @@ set(LINK_LIBS
   )
 
 if (RAM_WITH_VISION)
-  add_library(ram_vision SHARED ${SOURCES} ${HEADERS})
+  slice( vision )
+  add_library(ram_vision SHARED
+    ${SOURCES} ${HEADERS} ${vision_SLICE_SOURCES})
+  if (ZeroCIce_FOUND)
+    list(APPEND LINK_LIBS ${ZeroCIceCore_LIBRARY} ${ZeroCIceUtil_LIBRARY})
+  endif (ZeroCIce_FOUND)
   target_link_libraries(ram_vision ${LINK_LIBS})
 
   set_target_properties(ram_vision PROPERTIES

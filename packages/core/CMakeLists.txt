@@ -10,6 +10,8 @@ set(LINK_LIBS
   ${Boost_THREAD_LIBRARY}
   ${Log4CPP_LIBRARIES}
   ${PYTHON_LIBRARIES}
+  ${ZeroCIceCore_LIBRARY}
+  ${ZeroCIceUtil_LIBRARY}
   )
 
 if (RAM_WITH_CORE)

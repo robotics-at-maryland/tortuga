@@ -91,3 +91,38 @@ macro(test_module_base _target _link_libs)
       )
   endif (RAM_TESTS)
 endmacro ()
+
+macro(slice _module)
+  if (ZeroCIce_FOUND)
+    file (GLOB SLICE_DEFINITIONS "slice/*.ice")
+    make_directory(slice)
+    
+    set(PYTHON_SLICE)
+    file(GLOB ${_module}_SLICE_SOURCES "slice/*.cpp")
+    foreach (_file ${SLICE_DEFINITIONS})
+      string(REGEX REPLACE ".*/slice/(.*)\\.ice$" "\\1" _base ${_file})
+      add_custom_command(
+        OUTPUT slice/${_base}.cpp slice/${_base}.h
+        COMMAND ${ZeroCIce_slice2cpp_BIN}
+        ARGS ${_file} "--include-dir" "${CMAKE_CURRENT_BINARY_DIR}/slice"
+        ARGS "--output-dir" "slice"
+        COMMENT "Parsing c++ slice definition of ${_file}"
+        DEPENDS ${_file}
+        )
+      add_custom_command(
+        OUTPUT ${CMAKE_SOURCE_DIR}/build_ext/${_base}_ice.py
+        COMMAND ${ZeroCIce_slice2py_BIN}
+        ARGS ${_file} "--output-dir" "${CMAKE_SOURCE_DIR}/build_ext"
+        DEPENDS ${_file}
+        COMMENT "Parsing python slice definition of ${_file}"
+        )
+      list(APPEND PYTHON_SLICE ${CMAKE_SOURCE_DIR}/build_ext/${_base}_ice.py)
+      list(APPEND ${_module}_SLICE_SOURCES
+        ${CMAKE_CURRENT_BINARY_DIR}/slice/${_base}.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/slice/${_base}.h)
+    endforeach ()
+
+    add_custom_target(slice_${_module} ALL DEPENDS
+      ${${_module}_SLICE_SOURCES} ${PYTHON_SLICE})
+  endif (ZeroCIce_FOUND)
+endmacro ()
