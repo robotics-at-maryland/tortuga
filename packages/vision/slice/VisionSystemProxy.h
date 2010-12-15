@@ -1,8 +1,19 @@
+/*
+ * Copyright (C) 2010 Robotics at Maryland
+ * Copyright (C) 2010 Jonathan Sternberg <jsternbe@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Jonathan Sternberg <jsternbe@umd.edu>
+ * File:  packages/vision/include/VisionSystemProxy.h
+ */
 
-#ifndef RAM_VISION_SLICE_VISIONSYSTEM_H
-#define RAM_VISION_SLICE_VISIONSYSTEM_H
+#ifndef RAM_VISION_SLICE_VISIONSYSTEM_H_12_14_2010
+#define RAM_VISION_SLICE_VISIONSYSTEM_H_12_14_2010
 
+// Library Includes
 #include <Ice/Ice.h>
+
+// Project Includes
 #include "vision/slice/vision.h"
 
 namespace ram {

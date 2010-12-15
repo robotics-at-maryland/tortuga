@@ -42,30 +42,30 @@ public:
     
     virtual ~VisionSystem();
     
-    void redLightDetectorOn();
-    void redLightDetectorOff();
-    void buoyDetectorOn();
-    void buoyDetectorOff();
-    void binDetectorOn();
-    void binDetectorOff();
-    void pipeLineDetectorOn();
-    void pipeLineDetectorOff();
-    void ductDetectorOn();
-    void ductDetectorOff();
-    void downwardSafeDetectorOn();
-    void downwardSafeDetectorOff();
-    void gateDetectorOn();
-    void gateDetectorOff();
-    void targetDetectorOn();
-    void targetDetectorOff();
-    void windowDetectorOn();
-    void windowDetectorOff();
-    void barbedWireDetectorOn();
-    void barbedWireDetectorOff();
-    void hedgeDetectorOn();
-    void hedgeDetectorOff();
-    void velocityDetectorOn();
-    void velocityDetectorOff();
+    virtual void redLightDetectorOn();
+    virtual void redLightDetectorOff();
+    virtual void buoyDetectorOn();
+    virtual void buoyDetectorOff();
+    virtual void binDetectorOn();
+    virtual void binDetectorOff();
+    virtual void pipeLineDetectorOn();
+    virtual void pipeLineDetectorOff();
+    virtual void ductDetectorOn();
+    virtual void ductDetectorOff();
+    virtual void downwardSafeDetectorOn();
+    virtual void downwardSafeDetectorOff();
+    virtual void gateDetectorOn();
+    virtual void gateDetectorOff();
+    virtual void targetDetectorOn();
+    virtual void targetDetectorOff();
+    virtual void windowDetectorOn();
+    virtual void windowDetectorOff();
+    virtual void barbedWireDetectorOn();
+    virtual void barbedWireDetectorOff();
+    virtual void hedgeDetectorOn();
+    virtual void hedgeDetectorOff();
+    virtual void velocityDetectorOn();
+    virtual void velocityDetectorOff();
 
     /** Creates a recorder based on the string with the given policy
      *
