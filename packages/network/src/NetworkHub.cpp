@@ -102,7 +102,7 @@ void NetworkHub::daemon()
             using namespace boost::archive;
             try {
                 // Deserialize the received event
-                text_iarchive archive(sstream);
+                text_iarchive archive(sstream, no_tracking);
                 core::EventPtr event = core::EventPtr();
                 archive >> event;
                 

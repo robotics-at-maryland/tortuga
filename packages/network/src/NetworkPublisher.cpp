@@ -116,7 +116,8 @@ void NetworkPublisher::handleEvent(core::EventPtr event)
     bool writeSuccessful = false;
 
     {
-        boost::archive::text_oarchive archive(sstream);
+        boost::archive::text_oarchive archive(sstream,
+                                              boost::archive::no_tracking);
         writeSuccessful = logging::writeEvent(event, archive);
     }
 

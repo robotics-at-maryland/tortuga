@@ -19,7 +19,6 @@
 // Library Includes
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/split_free.hpp>
-#include <boost/serialization/export.hpp>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -70,8 +69,10 @@ bool writeEvent(core::EventPtr event, Archive& archive)
         // Only attempt to convert events we now we can convert
         bool convertable = unconvertableTypes.end() ==
             unconvertableTypes.find(typeName);
-        if (convertable)
-            archive << event;
+        if (convertable) {
+            core::EventPtr clone = event->clone();
+            archive << clone;
+        }
         return convertable;
     }
     catch (boost::archive::archive_exception ex)
@@ -144,7 +145,7 @@ BOOST_SERIALIZATION_SHARED_PTR(ram::core::Event)
 template <class Archive>
 void serialize(Archive &ar, ram::core::StringEvent &t,
                const unsigned int file_version)
-{ 
+{
   ar & boost::serialization::base_object<ram::core::Event>(t);
   ar & t.string;
 }

@@ -95,7 +95,7 @@ endmacro ()
 macro(slice _module)
   if (ZeroCIce_FOUND)
     file (GLOB SLICE_DEFINITIONS "slice/*.ice")
-    make_directory(slice)
+    make_directory(${CMAKE_CURRENT_BINARY_DIR}/slice)
     
     set(PYTHON_SLICE)
     file(GLOB ${_module}_SLICE_SOURCES "slice/*.cpp")
