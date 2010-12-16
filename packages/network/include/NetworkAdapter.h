@@ -7,8 +7,8 @@
  * File:  packages/core/include/NetworkAdapter.h
  */
 
-#ifndef RAM_CORE_NETWORKADAPTER_H_12_12_2010
-#define RAM_CORE_NETWORKADAPTER_H_12_12_2010
+#ifndef RAM_NETWORK_NETWORKADAPTER_H_12_12_2010
+#define RAM_NETWORK_NETWORKADAPTER_H_12_12_2010
 
 // Library Includes
 #include <Ice/Ice.h>
@@ -18,21 +18,17 @@
 #include "core/include/Subsystem.h"
 
 namespace ram {
-namespace core {
+namespace network {
 
 typedef Ice::ObjectPtr ObjectPtr;
 typedef Ice::ObjectPrx ObjectPrx;
 
-class NetworkAdapter : public Subsystem
+class NetworkAdapter : public core::Subsystem
 {
 public:
-    NetworkAdapter(ConfigNode config, SubsystemList deps);
+    NetworkAdapter(core::ConfigNode config, core::SubsystemList deps);
 
     virtual ~NetworkAdapter();
-
-    ObjectPrx add(ObjectPtr object, std::string identity);
-
-    void remove(std::string identity);
 
     /* IUpdatable interface */
     virtual void setPriority(Priority priority) {
@@ -66,7 +62,7 @@ private:
     Ice::ObjectAdapterPtr m_adapter;
 };
 
-} // namespace core
+} // namespace network
 } // namespace ram
 
-#endif // RAM_CORE_NETWORKADAPTER_H_12_12_2010
+#endif // RAM_NETWORK_NETWORKADAPTER_H_12_12_2010

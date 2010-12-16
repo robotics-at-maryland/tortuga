@@ -9,14 +9,17 @@
 
 // Project Includes
 #include "core/include/GILock.h"
-#include "vision/slice/VisionSystemProxy.h"
+#include "network/slice/VisionSystemProxy.h"
 #include "vision/include/VisionSystem.h"
+#include "network/include/AdapterMaker.h"
+
+RAM_NETWORK_REGISTER_PROXY(proxy::vision::VisionSystemProxy, VisionSystem);
 
 namespace proxy {
 namespace vision {
 
-VisionSystemProxy::VisionSystemProxy(ram::vision::VisionSystem *impl)
-    : m_impl(impl)
+VisionSystemProxy::VisionSystemProxy(ram::core::SubsystemPtr impl)
+    : m_impl(boost::dynamic_pointer_cast<ram::vision::VisionSystem>(impl))
 {
 }
 

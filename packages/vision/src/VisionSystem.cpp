@@ -34,12 +34,10 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/VelocityDetector.h"
 #include "vision/include/HedgeDetector.h"
-#include "vision/slice/VisionSystemProxy.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
 #include "core/include/Logging.h"
-#include "core/include/NetworkAdapter.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
@@ -77,8 +75,7 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_windowDetector(DetectorPtr()),
     m_barbedWireDetector(DetectorPtr()),
     m_hedgeDetector(DetectorPtr()),
-    m_velocityDetector(DetectorPtr()),
-    m_networkAdapter(core::Subsystem::getSubsystemOfType<core::NetworkAdapter>(deps))
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -101,8 +98,7 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_windowDetector(DetectorPtr()),
     m_barbedWireDetector(DetectorPtr()),
     m_hedgeDetector(DetectorPtr()),
-    m_velocityDetector(DetectorPtr()),
-    m_networkAdapter(core::Subsystem::getSubsystemOfType<core::NetworkAdapter>(deps))
+    m_velocityDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -184,12 +180,6 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
     m_downwardCamera->background(-1);
-
-    if (m_networkAdapter)
-    {
-        m_networkAdapter->add(new proxy::vision::VisionSystemProxy(this),
-                              "VisionSystem");
-    }
 }
     
 void VisionSystem::createRecordersFromConfig(core::ConfigNode recorderCfg,

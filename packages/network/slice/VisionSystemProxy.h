@@ -11,14 +11,17 @@
 #define RAM_VISION_SLICE_VISIONSYSTEM_H_12_14_2010
 
 // Library Includes
+#include <boost/shared_ptr.hpp>
 #include <Ice/Ice.h>
 
 // Project Includes
-#include "vision/slice/vision.h"
+#include "core/include/Subsystem.h"
+#include "vision.h"
 
 namespace ram {
 namespace vision {
 class VisionSystem;
+typedef boost::shared_ptr<VisionSystem> VisionSystemPtr;
 } // namespace vision
 } // namespace ram
 
@@ -28,7 +31,7 @@ namespace vision {
 class VisionSystemProxy : public VisionSystem
 {
 public:
-    VisionSystemProxy(ram::vision::VisionSystem *impl);
+    VisionSystemProxy(ram::core::SubsystemPtr impl);
 
     virtual ~VisionSystemProxy();
 
@@ -58,7 +61,7 @@ public:
     virtual void velocityDetectorOff(const Ice::Current &);
 
 private:
-    ram::vision::VisionSystem *m_impl;
+    ram::vision::VisionSystemPtr m_impl;
 };
 
 } // namespace vision

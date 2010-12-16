@@ -46,9 +46,6 @@ class PropertySet;
 typedef boost::shared_ptr<PropertySet> PropertySetPtr;
 
 class ConfigNode;
-
-class NetworkAdapter;
-typedef boost::shared_ptr<NetworkAdapter> NetworkAdapterPtr;
     
 } // namespace core
 } // namespace ram

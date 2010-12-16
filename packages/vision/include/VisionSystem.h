@@ -13,9 +13,6 @@
 // STD Includes
 #include <map>
 
-// Library Includes
-#include <Ice/Ice.h>
-
 // Project Includes
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNode.h"
@@ -235,8 +232,6 @@ private:
     static math::Degree s_downVeritcalFieldOfView;
     static int s_downHorizontalPixelResolution;
     static int s_downVerticalPixelResolution;
-
-    core::NetworkAdapterPtr m_networkAdapter;
 
 };
 

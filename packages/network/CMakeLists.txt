@@ -5,6 +5,8 @@ set(LINK_LIBS
   ${Boost_SYSTEM_LIBRARY}
   ram_core
   ram_control
+  ${ZeroCIceCore_LIBRARY}
+  ${ZeroCIceUtil_LIBRARY}
   )
 
 if (RAM_WITH_LOGGING)
@@ -12,7 +14,12 @@ if (RAM_WITH_LOGGING)
 endif (RAM_WITH_LOGGING)
 
 if (RAM_WITH_NETWORK)
-  add_library(ram_network SHARED ${SOURCES} ${HEADERS})
+  # Run slice file generation programs
+  slice( network )
+
+  # Include the generated headers from slice
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/slice)
+  add_library(ram_network SHARED ${SOURCES} ${HEADERS} ${network_SLICE_SOURCES})
   target_link_libraries(ram_network ${LINK_LIBS})
   set_target_properties(ram_network PROPERTIES
     DEFINE_SYMBOL RAM_PKG_NETWORK
