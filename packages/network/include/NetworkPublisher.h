@@ -35,9 +35,12 @@ class RAM_EXPORT NetworkPublisher :
         public core::Subsystem,
         public core::Updatable
 {
-  public:
+public:
     NetworkPublisher(core::ConfigNode config,
                      core::SubsystemList deps = core::SubsystemList());
+
+    NetworkPublisher(core::ConfigNode config,
+                     core::EventHubPtr eventHub);
 
     virtual ~NetworkPublisher();
 
@@ -69,6 +72,8 @@ class RAM_EXPORT NetworkPublisher :
     static const uint16_t PORT;
 
   private:
+    void init();
+
     void startReceive();
 
     void handleReceiveFrom(const boost::system::error_code& err,

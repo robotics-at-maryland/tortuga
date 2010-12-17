@@ -30,4 +30,6 @@ if (RAM_WITH_NETWORK)
 
   add_executable(EventListener "test/src/EventListener.cpp")
   target_link_libraries(EventListener ram_network)
+
+  test_module(network "ram_network")
 endif (RAM_WITH_NETWORK)

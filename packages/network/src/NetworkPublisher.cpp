@@ -42,26 +42,20 @@ NetworkPublisher::NetworkPublisher(core::ConfigNode config,
     socket_(io_service, udp::endpoint(udp::v4(), config["port"].asInt(PORT))),
     m_bthread(0)
 {
-    assert(m_eventHub && "Need an EventHub");
-    m_eventHub->subscribeToAll(boost::bind(&NetworkPublisher::handleEvent, this, _1));
+    init();
+}
+
+NetworkPublisher::NetworkPublisher(core::ConfigNode config,
+                                   core::EventHubPtr eventHub) :
+    core::Subsystem(config["name"].asString("NetworkPublisher"), eventHub),
+    m_eventHub(eventHub),
+    socket_(io_service, udp::endpoint(udp::v4(), config["port"].asInt(PORT))),
+    m_bthread(0)
+{
+    init();
 }
 
 NetworkPublisher::~NetworkPublisher()
-{
-}
-
-void NetworkPublisher::update(double timeSinceLastUpdate)
-{
-}
-
-void NetworkPublisher::background(int interval)
-{
-    startReceive();
-    m_bthread = new boost::thread(
-        boost::bind(&NetworkPublisher::serviceRequests, this));
-}
-
-void NetworkPublisher::unbackground(bool join)
 {
     io_service.stop();
     if (m_bthread) {
@@ -70,6 +64,28 @@ void NetworkPublisher::unbackground(bool join)
         delete m_bthread;
         m_bthread = 0;
     }
+}
+
+void NetworkPublisher::init()
+{
+    assert(m_eventHub && "Need an EventHub");
+    m_eventHub->subscribeToAll(boost::bind(&NetworkPublisher::handleEvent, this, _1));
+
+    startReceive();
+    m_bthread = new boost::thread(
+        boost::bind(&NetworkPublisher::serviceRequests, this));
+}
+
+void NetworkPublisher::update(double timeSinceLastUpdate)
+{
+}
+
+void NetworkPublisher::background(int interval)
+{
+}
+
+void NetworkPublisher::unbackground(bool join)
+{
 }
 
 bool NetworkPublisher::backgrounded()
