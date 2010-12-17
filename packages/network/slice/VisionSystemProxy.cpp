@@ -9,9 +9,9 @@
 
 // Project Includes
 #include "core/include/GILock.h"
-#include "network/slice/VisionSystemProxy.h"
 #include "vision/include/VisionSystem.h"
 #include "network/include/AdapterMaker.h"
+#include "network/slice/VisionSystemProxy.h"
 
 RAM_NETWORK_REGISTER_PROXY(proxy::vision::VisionSystemProxy, VisionSystem);
 

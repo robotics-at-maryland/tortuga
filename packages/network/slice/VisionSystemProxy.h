@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Jonathan Sternberg <jsternbe@umd.edu>
- * File:  packages/vision/include/VisionSystemProxy.h
+ * File:  packages/network/slice/VisionSystemProxy.h
  */
 
-#ifndef RAM_VISION_SLICE_VISIONSYSTEM_H_12_14_2010
-#define RAM_VISION_SLICE_VISIONSYSTEM_H_12_14_2010
+#ifndef RAM_VISION_SLICE_VISIONSYSTEMPROXY_H_12_14_2010
+#define RAM_VISION_SLICE_VISIONSYSTEMPROXY_H_12_14_2010
 
 // Library Includes
 #include <boost/shared_ptr.hpp>
@@ -28,7 +28,7 @@ typedef boost::shared_ptr<VisionSystem> VisionSystemPtr;
 namespace proxy {
 namespace vision {
 
-class VisionSystemProxy : public VisionSystem
+class VisionSystemProxy : virtual public VisionSystem
 {
 public:
     VisionSystemProxy(ram::core::SubsystemPtr impl);
