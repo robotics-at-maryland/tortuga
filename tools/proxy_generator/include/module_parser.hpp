@@ -8,7 +8,7 @@
 
 class module_parser {
 public:
-    module_parser(const char *filename);
+    module_parser(std::string filename);
 
     void add_header(std::string header);
 

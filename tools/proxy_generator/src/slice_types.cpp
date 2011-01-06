@@ -1,5 +1,9 @@
 
+#include <list>
 #include <sstream>
+#include <string>
+#include <utility>
+
 #include <boost/foreach.hpp>
 #include "slice_types.hpp"
 #include "namespace.hpp"
@@ -7,6 +11,9 @@
 
 static tabbing tab;
 static namespace_ ns;
+
+typedef std::pair<std::string, std::string> string_pair;
+static std::list< string_pair > proxies;
 
 std::ostream& operator<<(std::ostream& os, const module_node& obj) {
     os << tab << "namespace " << obj.name << " {\n";
@@ -21,7 +28,7 @@ std::ostream& operator<<(std::ostream& os, const module_node& obj) {
     ns.exit();
     tab.unindent();
     
-    os << tab << "}\n";
+    os << tab << "} // namespace " << obj.name << "\n";
     return os;
 }
 
@@ -39,7 +46,7 @@ std::ostream& operator<<(std::ostream& os, const interface_node& obj) {
 
     // Generate constructor
     os << tab << obj.name << "Proxy(ram::core::SubsystemPtr impl)\n"
-       << tab << "  : m_impl(boost::dynamic_pointer_cast<"
+       << tab << "    : m_impl(boost::dynamic_pointer_cast<"
        << impl.str() << ">(impl))\n"
        << tab << "{\n"
        << tab << "}\n\n";
@@ -55,6 +62,12 @@ std::ostream& operator<<(std::ostream& os, const interface_node& obj) {
     tab.unindent();
 
     os << tab << "};\n";
+
+    // Remember this to register it as a proxy
+    std::stringstream fullname;
+    fullname << ns << obj.name << "Proxy";
+    proxies.push_back(std::make_pair(fullname.str(), obj.name));
+
     return os;
 }
 
@@ -111,5 +124,13 @@ std::ostream& operator<<(std::ostream &os, const program_node& obj) {
     {
         os << n << "\n";
     }
+
+    // Register the proxies
+    BOOST_FOREACH(const string_pair& pair, proxies)
+    {
+        os << "RAM_NETWORK_REGISTER_PROXY(" << pair.first
+           << ", " << pair.second << ");\n";
+    }
+
     return os;
 }

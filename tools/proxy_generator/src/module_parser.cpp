@@ -6,7 +6,7 @@
 #include "module_parser.hpp"
 #include "slice_grammar.hpp"
 
-module_parser::module_parser(const char *filename)
+module_parser::module_parser(std::string filename)
     : _filename(filename)
 {
 }
