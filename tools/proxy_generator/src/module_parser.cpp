@@ -41,6 +41,12 @@ bool module_parser::parse_module()
     iterator end = storage.end();
     bool r = phrase_parse(iter, end, parser, space, main);
 
+    if (r && iter == end) {
+        return true;
+    } else {
+        std::cout << "failed to parse module" << std::endl;
+        std::cout << std::string(iter, iter+30) << std::endl;
+    }
     return r && iter == end;
 }
 

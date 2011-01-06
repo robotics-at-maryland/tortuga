@@ -42,23 +42,25 @@ struct slice_grammar : qi::grammar<Iterator, program_node(), ascii::space_type>
             >> id_[at_c<0>(_val) = _1]
             >> '{'
             >> *stmt[push_back(at_c<1>(_val), _1)]
-            >> "};"
+            >> '}'
+            >> ';'
             ;
         interface_ = "interface"
             >> id_[at_c<0>(_val) = _1]
             >> '{'
             >> *interface_stmt[push_back(at_c<1>(_val), _1)]
-            >> "};"
+            >> '}'
+            >> ';'
             ;
         interface_stmt = function_[_val = _1];
         function_ = type_[at_c<0>(_val) = _1]
             >> id_[at_c<1>(_val) = _1]
             >> '('
-            >> arg_list[at_c<2>(_val) = _1]
+            >> -arg_list[at_c<2>(_val) = _1]
             >> ')'
             >> ';';
         arg_list = arg[push_back(_val,  _1)] % ',';
-        arg = function_type_[at_c<0>(_val) = _1] >> id_[at_c<1>(_val) = _1];
+        arg = function_type_[at_c<0>(_val) = _1] >> -id_[at_c<1>(_val) = _1];
         type_ %= lexeme["void"] | function_type_;
         function_type_ = lexeme["int"][_val = "int"] | lexeme["string"][_val = "std::string"];
     }
