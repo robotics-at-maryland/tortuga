@@ -82,8 +82,14 @@ int main(int argc, char* argv[])
         parser.add_header(h);
     }
 
+    // Default filename
+    if (output == "") {
+        output = boost::filesystem::basename(header) + "_proxy.cpp";
+    }
+
     if (parser.parse_module()) {
-        parser.write_to(std::cout);
+        std::ofstream out(output.c_str(), std::ios_base::out);
+        parser.write_to(out);
         return 0;
     } else {
         std::cout << "failed to parse module" << std::endl;
