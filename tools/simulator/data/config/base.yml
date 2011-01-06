@@ -15,6 +15,15 @@ QueuedEventHub:
     depends_on: ["EventHub"]
     type: QueuedEventHub
 
+NetworkPublisher:
+    depends_on: ["EventHub"]
+    type: NetworkPublisher
+    update_interval: 1
+
+NetworkAdapter:
+    type: NetworkAdapter
+    depends_on: ["VisionSystem", "Controller"]
+
 Vehicle:
     type: Vehicle
     depends_on: ["Simulation", "EventHub", "Logging"]
