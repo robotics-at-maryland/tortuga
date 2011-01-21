@@ -1807,23 +1807,14 @@ class RenderCameraListener(ogre.RenderTargetListener):
         self._camera.capturedImage(self._image)
         
     def _copyImage(self, timeSinceLastUpdate):
-        # Lock all of the texture buffer
-
+        # Blit the data into our buffer
         textureBuffer = self._texture.getBuffer()
-        lockBox = ogre.Box(0, 0, 640, 480)
-        textureBuffer.lock(lockBox, ogre.HardwareBuffer.HBL_NORMAL)
-
-        # Copy the lock portion our image
-        texPb = textureBuffer.getCurrentLock()
-
-        # Convert and copy our pixels
-        ogre.PixelUtil.bulkPixelConversion(ogre.CastInt(texPb.getData()),
-                                           textureBuffer.getFormat(),
-                                           self._bufferAddress,
-                                           ogre.PixelFormat.PF_R8G8B8,
-                                           640 * 480)
-
-        textureBuffer.unlock()
+        pixelBox = ogre.PixelBox(textureBuffer.width, 
+                                 textureBuffer.Height, 
+                                 textureBuffer.Depth, 
+                                 ogre.PixelFormat.PF_R8G8B8, 
+                                 ogre.castAsVoidPtr(self._bufferAddress))
+        textureBuffer.blitToMemory(pixelBox);
 
     def _updateCamera(self, timeSinceLastUpdate):
         self._copyImage(timeSinceLastUpdate)
@@ -1908,9 +1899,9 @@ class SimVision(ext.vision.VisionSystem):
         Saves the current forward camera image to file
         """
         address = ctypes.addressof(self._forwardBuffer)
-        image = ext.vision.Image.loadFromBuffer(address, 640, 480, False)
+        image = ext.vision.Image.loadFromBuffer(address, 640, 480, False,
+                                                ext.vision.Image.PF_RGB_8)
         ext.vision.Image.saveToFile(image, filename)
-
 
 ext.core.SubsystemMaker.registerSubsystem('SimVision', SimVision)
 
