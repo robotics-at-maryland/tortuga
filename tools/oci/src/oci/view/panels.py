@@ -1700,7 +1700,11 @@ class CpuPanel(BasePanel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
                                                      subsystems, nonNone = True)
 
-        if eventHub is not None:
+        cpuMonitor = core.Subsystem.getSubsystemOfType(monitor.CpuMonitor,
+                                                    subsystems)
+
+
+        if (eventHub is not None) and (cpuMonitor is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name('Cpu')
             paneInfo = paneInfo.Caption('Cpu').Left()
 
