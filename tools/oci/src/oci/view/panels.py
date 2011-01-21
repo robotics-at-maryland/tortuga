@@ -1655,7 +1655,10 @@ class MonitorPanel(BasePanel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
 
-        if eventHub is not None:
+        mainMonitor = core.Subsystem.getSubsystemOfType(monitor.Monitor,  
+                                                        subsystems)
+
+        if (eventHub is not None) and (mainMonitor is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Monitor")
             paneInfo = paneInfo.Caption("Monitor").Left()
 
