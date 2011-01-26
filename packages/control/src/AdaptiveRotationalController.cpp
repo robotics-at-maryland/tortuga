@@ -115,9 +115,11 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
 
     // extract vector portion of qc_tilde
     math::Vector3 epsilon_c_tilde(qc_tilde.x, qc_tilde.y, qc_tilde.z);
-
+    
+    double eta_c_tilde = qc_tilde.w;
     // compute composite error metrics
-    math::Vector3 wr = RotMatc_tilde*wd-(m_rotLambda)*epsilon_c_tilde;
+    //these cause the oscillations!!!
+    math::Vector3 wr = RotMatc_tilde*wd-(m_rotLambda)*epsilon_c_tilde*eta_c_tilde;//altered
     math::Vector3 shat = w-wr;
 
     // compute angular rate error
@@ -250,21 +252,24 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
                         << w[0] << " "
                         << w[1] << " "
                         << w[2] << " "
-                        << m_params[0] << " "
-                        << m_params[1] << " "
-                        << m_params[2] << " "
-                        << m_params[3] << " "
-                        << m_params[4] << " "
-                        << m_params[5] << " "
-                        << m_params[6] << " "
-                        << m_params[7] << " "
-                        << m_params[8] << " "
-                        << m_params[9] << " "
-                        << m_params[10] << " "
-                        << m_params[11] << " "
+                        << m_params[0][0] << " "
+                        << m_params[1][0] << " "
+                        << m_params[2][0] << " "
+                        << m_params[3][0] << " "
+                        << m_params[4][0] << " "
+                        << m_params[5][0] << " "
+                        << m_params[6][0] << " "
+                        << m_params[7][0] << " "
+                        << m_params[8][0] << " "
+                        << m_params[9][0] << " "
+                        << m_params[10][0] << " "
+                        << m_params[11][0] << " "
                         << output[0] << " "
                         << output[1] << " "
-                        << output[2];
+                        << output[2]<<" "
+                        <<shat[0]<<" "
+                        <<shat[1]<<" "
+                        <<shat[2];//note, added shat to logger to test a hunch
 
     return math::Vector3(output[0], output[1], output[2]);
 }
