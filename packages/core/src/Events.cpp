@@ -44,5 +44,29 @@ EventPtr IntEvent::clone()
     return event;
 }
 
+EventPtr Plot1DEvent::clone()
+{
+    Plot1DEventPtr event = Plot1DEventPtr(new Plot1DEvent());
+    copyInto(event);
+    event->m_plotName = m_plotName;
+    event->m_data = m_data;
+    event->m_labels = m_labels;
+
+    return event;
+}
+
+EventPtr Plot2DEvent::clone()
+{
+    Plot2DEventPtr event = Plot2DEventPtr(new Plot2DEvent());
+    copyInto(event);
+    event->m_plotName = m_plotName;
+    event->m_xData = m_xData;
+    event->m_yData = m_yData;
+    event->m_xLabels = m_xLabels;
+    event->m_yLabels = m_yLabels;
+
+    return event;
+}
+
 } // namespace core
 } // namespace ram

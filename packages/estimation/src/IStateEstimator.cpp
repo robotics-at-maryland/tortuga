@@ -21,6 +21,8 @@ RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_ANGULARRATE_UPDA
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_FORCES_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_TORQUES_UPDATE);
 
+RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATOR_PLOT);
+
 namespace ram {
 namespace estimation {
 

@@ -15,12 +15,14 @@ RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTHRATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ORIENTATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_VELOCITY_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_POSITION_UPDATE);
+
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_ORIENTATION);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_VELOCITY);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_POSITION);
-RAM_CORE_EVENT_TYPE(ram::control::IController, PARAM_SETUP);
-RAM_CORE_EVENT_TYPE(ram::control::IController, PARAM_UPDATE);
+
+RAM_CORE_EVENT_TYPE(ram::control::IController, CONTROLLER_PLOT);
+
 
 namespace ram {
 namespace control {

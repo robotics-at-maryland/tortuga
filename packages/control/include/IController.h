@@ -175,26 +175,22 @@ public:
 
     static const core::Event::EventType AT_VELOCITY;
 
-    /** When the vehicle reaches the positionx set by the controller
+    /** When the vehicle reaches the position set by the controller
      *
      *  Type is ram::math::Vector2Event
      */
 
     static const core::Event::EventType AT_POSITION;
 
-
-    /** Sent to adjust the display parameter name and count
+    /** Whenever the control code wants to plot something in the OCI
      *
-     *  Type is ram::control::ParamSetupEvent
+     *  Type is ram::core::Plot1DEvent or ram::core::Plot2DEvent
      */
-    static const core::Event::EventType PARAM_SETUP;
 
-    /** Sent to update the value of the displayed parameters
-     *
-     *  Type is ram::control::ParamUpdateEvent
-     */
-    static const core::Event::EventType PARAM_UPDATE;
-    /* @{ */
+    static const core::Event::EventType CONTROLLER_PLOT;
+
+
+
     
 protected:
     IController(std::string name,
