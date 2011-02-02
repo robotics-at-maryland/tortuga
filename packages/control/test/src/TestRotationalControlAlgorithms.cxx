@@ -177,7 +177,7 @@ TEST(TestAdaptiveRotationalController)
         desiredState->setDesiredOrientation(math::Quaternion(0, 0, 0.7071, 0.7071));
         desiredState->setDesiredAngularRate(math::Vector3::ZERO);
         
-        math::Vector3 exp_torques(0, 0, 0.7071);
+        math::Vector3 exp_torques(0, 0, 0.5);
         math::Vector3 act_torques = controllerPtr->rotationalUpdate(
             0.1, estimatorPtr, desiredState);
 
@@ -208,7 +208,7 @@ TEST(TestAdaptiveRotationalController)
         desiredState->setDesiredOrientation(math::Quaternion(0.7071, 0, 0, 0.7071));
         desiredState->setDesiredAngularRate(math::Vector3::ZERO);
         
-        math::Vector3 exp_torques(0.9192, 0, 0);
+        math::Vector3 exp_torques(0.65, 0, 0);
         math::Vector3 act_torques = controllerPtr->rotationalUpdate(
             0.3, estimatorPtr, desiredState);
 
