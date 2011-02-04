@@ -128,52 +128,6 @@ void CombineController::doUpdate(const double& timestep,
 
     LOGGER.infoStream() << translationalForceOut << " "
                         << rotationalTorqueOut;
-
-
-    // Ask the OCI to plot desired and estimated depths in real time
-    std::vector<double> depthPlotData;
-    depthPlotData.push_back(m_desiredState->getDesiredDepth());
-    depthPlotData.push_back(m_stateEstimator->getEstimatedDepth());
-
-    std::vector<std::string> depthPlotLabels;
-    depthPlotLabels.push_back("Desired Depth");
-    depthPlotLabels.push_back("Estimated Depth");
-
-    core::Plot1DEventPtr depthPlot = core::Plot1DEventPtr(
-        new core::Plot1DEvent(
-            "Depth vs. Time",
-            depthPlotData,
-            depthPlotLabels));
-
-    publish(CONTROLLER_PLOT, depthPlot);
-
-    // Ask the OCI to plot the desired and estimated position
-    math::Vector2 desPos = m_desiredState->getDesiredPosition();
-    math::Vector2 estPos = m_stateEstimator->getEstimatedPosition();
-
-    std::vector<double> depthPlotXData;
-    depthPlotXData.push_back(desPos[0]);
-    depthPlotXData.push_back(estPos[0]);
-    
-    std::vector<double> depthPlotYData;
-    depthPlotYData.push_back(desPos[1]);
-    depthPlotYData.push_back(estPos[1]);
-
-    std::vector<std::string> depthPlotXLabels;
-    depthPlotXLabels.push_back("Desired X Position");
-    depthPlotXLabels.push_back("Estimated X Position");
-    
-    std::vector<std::string> depthPlotYLabels;
-    depthPlotYLabels.push_back("Desired Y Position");
-    depthPlotYLabels.push_back("Estimated Y Position");
-
-    core::Plot2DEventPtr positionPlot = core::Plot2DEventPtr(
-        new core::Plot2DEvent(
-            "Position", depthPlotXData, depthPlotYData,
-            depthPlotXLabels, depthPlotYLabels));
-
-    publish(CONTROLLER_PLOT, positionPlot);
-
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
