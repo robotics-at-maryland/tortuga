@@ -66,6 +66,13 @@ public:
     virtual double getEstimatedDepth();
     /** Returns the estimated depth change rate */
     virtual double getEstimatedDepthRate();
+    /** returns the estimated vehicle mass */
+    virtual double getEstimatedMass();
+    /** return the estimated thruster forces */
+    virtual math::Vector3 getEstimatedThrusterForces();
+    /** return the estimated thruster torques */
+    virtual math::Vector3 getEstimatedThrusterTorques();
+
 
     /** Adds an obstacle to the list of course obstacles for tracking
      *
@@ -96,9 +103,6 @@ public:
      *    A double representing the depth of the obstacle.
      */
     virtual double getObstacleDepth(std::string name);
-
-    /** returns the estimated vehicle mass */
-    virtual double getEstimatedMass();
 
     // Does nothing for now as the state estimator is event driven
     virtual void update(double timestep) {

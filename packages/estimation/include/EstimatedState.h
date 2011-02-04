@@ -67,6 +67,7 @@ public:
     void setEstimatedDepth(double depth);
     void setEstimatedDepthRate(double depthRate);
     void setEstimatedThrust(math::Vector3 forces, math::Vector3 torques);
+    void setEstimatedMass(double mass);
 
 
     /* The estimated state will contain all information about obstacles in a

@@ -43,7 +43,6 @@ BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
 void BasicIMUEstimationModule::update(core::EventPtr event,
                                       EstimatedStatePtr estimatedState)
 {
-
     vehicle::RawIMUDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawIMUDataEvent>(event);
 
@@ -60,6 +59,9 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     double timestep = ievent->timestep;
     bool magIsCorrupt = ievent->magIsCorrupt;
     imuList.insert(name);
+
+    if(m_filteredState.find(name) == m_filteredState.end())
+        m_filteredState[name] = FilteredIMUDataPtr(new FilteredIMUData());
 
     /* grab the new state and filter it */
     RawIMUData newState = ievent->rawIMUData;

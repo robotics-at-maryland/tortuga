@@ -29,6 +29,8 @@ EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventH
     m_estOrientation(math::Quaternion::IDENTITY),
     m_estDepth(0),
     m_estDepthRate(0),
+    m_estThrusterForces(math::Vector3::ZERO), 
+    m_estThrusterTorques(math::Vector3::ZERO),
     m_estMass(0)
 {
     
@@ -86,6 +88,12 @@ math::Vector3 EstimatedState::getEstimatedThrusterTorques()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_estThrusterTorques;
+}
+
+double EstimatedState::getEstimatedMass()
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    return m_estMass;
 }
 
 void EstimatedState::setEstimatedPosition(math::Vector2 position)
@@ -157,11 +165,15 @@ void EstimatedState::setEstimatedDepthRate(double depthRate)
 void EstimatedState::setEstimatedThrust(math::Vector3 forces,
                                         math::Vector3 torques)
 {
-    {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        m_estThrusterForces = forces;
-        m_estThrusterTorques = torques;
-    }
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_estThrusterForces = forces;
+    m_estThrusterTorques = torques;
+}
+
+void EstimatedState::setEstimatedMass(double mass)
+{
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_estMass = mass;
 }
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
@@ -177,12 +189,6 @@ math::Vector2 EstimatedState::getObstaclePosition(std::string name)
 double EstimatedState::getObstacleDepth(std::string name)
 {
     return 0;
-}
-
-double EstimatedState::getEstimatedMass()
-{
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    return m_estMass;
 }
 
 void EstimatedState::publishPositionUpdate(const math::Vector2& position)

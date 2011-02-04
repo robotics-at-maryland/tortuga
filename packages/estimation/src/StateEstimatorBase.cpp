@@ -107,6 +107,16 @@ double StateEstimatorBase::getEstimatedMass()
     return estimatedState->getEstimatedMass();
 }
 
+math::Vector3 StateEstimatorBase::getEstimatedThrusterForces()
+{
+    return estimatedState->getEstimatedThrusterForces();
+}
+
+math::Vector3 StateEstimatorBase::getEstimatedThrusterTorques()
+{
+    return estimatedState->getEstimatedThrusterForces();
+}
+
 } // namespace estimation
 } // namespace ram
 
