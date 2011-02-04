@@ -1066,17 +1066,17 @@ int main(void)
 
     barMode = 0;
 
-#ifndef DVL_INSIDE
-    LAT_MRKR1 = ~MRKR_ON;
-    LAT_MRKR2 = ~MRKR_ON;
-
-    TRIS_MRKR1 = TRIS_OUT;
-    TRIS_MRKR2 = TRIS_OUT;
-#else
-    LAT_DVL = ~DVL_ON;
+#ifdef DVL_INSIDE
+    LAT_DVL = !DVL_ON;
     TRIS_DVL = TRIS_OUT;
 
-    LAT_MRKR2 = ~MRKR_ON;
+    LAT_MRKR2 = !MRKR_ON;
+    TRIS_MRKR2 = TRIS_OUT;
+#else
+    LAT_MRKR1 = !MRKR_ON;
+    LAT_MRKR2 = !MRKR_ON;
+
+    TRIS_MRKR1 = TRIS_OUT;
     TRIS_MRKR2 = TRIS_OUT;
 #endif
 

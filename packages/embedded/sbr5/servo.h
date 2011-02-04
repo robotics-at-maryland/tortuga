@@ -65,7 +65,7 @@
 
 // Timer2 period value
 // 22ms Refresh rate
-#define PWM_PERIOD 		        (WORD16)(0.022/(DEV_TCY))
+#define PWM_PERIOD 		        50000
 
 #define PWM_CLICK_TIME			(DEV_TCY)
 
@@ -86,7 +86,7 @@
 // Time when first pulse starts
 #define PWM_PULSE_ORIGIN		(WORD16)(0.001/PWM_CLICK_TIME)
 // Time between pulse starts
-#define PWM_PULSE_DELTA			(WORD16)(SERVO_DELTA_us/PWM_CLICK_TIME)
+#define PWM_PULSE_DELTA			0 //(WORD16)(SERVO_DELTA_us/PWM_CLICK_TIME)
 // Length of pulse at min position
 #define PWM_PULSE_ZERO			(WORD16)(SERVO_MIN_us/PWM_CLICK_TIME)
 // Command pulse at center position
@@ -146,4 +146,3 @@ WORD16 GetServo( BYTE Channel );
 
 
 #endif
-

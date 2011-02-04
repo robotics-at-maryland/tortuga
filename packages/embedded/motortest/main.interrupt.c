@@ -40,9 +40,17 @@ _FWDT ( WDT_OFF );
 #define I2CSTATE_ACK    0x05
 #define I2CSTATE_STOP   0x06
 
+// Here's the definitions of all the errors we can get:
+#define I2CERR_WASIDLE   0x00
+#define I2CERR_NACK      0x01
+#define I2CERR_WRITEFAIL 0x02
+#define I2CERR_NOTIDLE   0x03
+
 /* This is an error state where something isn't ACK'd or some other bad state*/
 #define I2CSTATE_STOPPING_BORKED 0xFD
 #define I2CSTATE_BORKED 0xFE
+
+#define I2C_WASACK (I2CSTATbits.ACKSTAT == I2C_ACK)
 
 /* Here's the buffer and additional variables */
 byte i2cState= I2CSTATE_IDLE;
@@ -69,21 +77,26 @@ unsigned int RestartI2C(void);
 unsigned int StopI2C(void);
 unsigned int WriteI2C(byte);
 unsigned int IdleI2C(void);
-unsigned int WaitAck(void);
-unsigned int wasAckI2C(void);
+
+byte getNumChar(byte num) {
+    if(num < 10)
+        return '0' + num;
+    return 'A' + num;
+}
 
 /* This function does whatever we need to do when we're borked. */
-void BorkedI2C() {
+void BorkedI2C(byte error) {
     writeUart('B');
-    writeUart('0' + i2cState);
+    writeUart(getNumChar(error));
+    writeUart(getNumChar(i2cState));
     LATE= 0x0001;
-    i2cState= I2CSTATE_BORKED;
+    i2cState= I2CSTATE_STOPPING_BORKED;
     I2CCONbits.PEN = 1;        /* Generate the Stop condition */
 }
 
 /* This routine is called everytime that something happens on the i2c bus */
 void _ISR _MI2CInterrupt() {
-    /* No matter what happens, remember to clear the interrupt flag! */
+    // No matter what happens, remember to clear the interrupt flag!
     _MI2CIF= 0;
 
     /* The master i2c interrupt routine is just a big 'ol state machine
@@ -92,8 +105,8 @@ void _ISR _MI2CInterrupt() {
     switch(i2cState) {
         case I2CSTATE_IDLE:
         {
-            /* If we're in this state we shouldn't be in this function! */
-            BorkedI2C();
+            // If we're in this state we shouldn't be in this function!
+            BorkedI2C(I2CERR_WASIDLE);
             break;
         }
 
@@ -103,38 +116,39 @@ void _ISR _MI2CInterrupt() {
                 i2cPtr= 1;
                 i2cState= I2CSTATE_TRANS;
             } else {
-                /* So, this transition is a bit odd, we set the pointer, then
-                 * we have to make sure some slave ACK'd the address, THEN we
-                 * can wait for bytes */
+                // Have the pointer start at the beginning!
                 i2cPtr= 0;
                 i2cState= I2CSTATE_RX_ADR;
             }
 
-            WriteI2C(i2cBuf[0]); /* No matter what happens we want to send the
-                                    address and the R/W bit */
+            // Write the address and R/W bit to the bus!
+            if(WriteI2C(i2cBuf[0])) {
+                BorkedI2C(I2CERR_WRITEFAIL);
+                break;
+            }
+
             break;
         }
 
         case I2CSTATE_TRANS:
         {
-            /* Check to see if the packet was ACK'd or NACK'd */
-            if(!wasAckI2C()) {
-                BorkedI2C(); /* We're fucked! Stop the bus! */
+            // Check to see if the packet was ACK'd or NACK'd
+            if(!I2C_WASACK) {
+                BorkedI2C(I2CERR_NACK); // We're fucked! Stop the bus!
                 break;
             }
 
-            /* Have we finished sending the whole packet? */
+            // Have we finished sending the whole packet?
             if(i2cPtr >= packetSize) {
-                /* Yup! Clean up and wait for more. */
+                // Yup! Clean up and wait for more.
                 StopI2C();
-                i2cState= I2CSTATE_STOP;
                 break;
             }
 
             /* If we've made it here we need to write the next bus to the line
              * and wait for all the nonsense again. */
             if(!IdleI2C()) {
-                BorkedI2C(); /* We're Fucked! Stop the Bus! */
+                BorkedI2C(I2CERR_NOTIDLE); // We're Fucked! Stop the Bus!
                 break;
             }
 
@@ -145,8 +159,8 @@ void _ISR _MI2CInterrupt() {
 
         case I2CSTATE_RX_ADR:
         {
-            if(!wasAckI2C()) {
-                BorkedI2C(); /* We're fucked! Stop the bus! */
+            if(!I2C_WASACK) {
+                BorkedI2C(I2CERR_NACK); /* We're fucked! Stop the bus! */
                 break;
             }
 
@@ -165,9 +179,7 @@ void _ISR _MI2CInterrupt() {
             LATE= 0x0002;
             i2cBuf[i2cPtr++]= I2CRCV;
             I2CSTATbits.I2COV= 0;
-            writeUart('G');
-            writeUart('0' + i2cPtr);
-            writeUart('\n');
+
             if(i2cPtr < packetSize) {
                 I2CCONbits.ACKDT= I2C_ACK;
             } else {
@@ -187,7 +199,6 @@ void _ISR _MI2CInterrupt() {
             LATE= 0x0001;
 
             if(i2cPtr >= packetSize) {
-                i2cState= I2CSTATE_STOP;
                 StopI2C(); /* Stop the bus! We got everything! */
                 break;
             }
@@ -229,10 +240,9 @@ void _ISR _MI2CInterrupt() {
 }
 
 /* The main function sets everything up then loops */
-void main(void)
+int main(void)
 {
     byte i, j, complete_packet, chksum;
-    byte i2c_rw;
     byte buff[BUF_SIZE];
     long timeout;
  
@@ -270,7 +280,9 @@ void main(void)
         while(!complete_packet) {
             uartRXwait();
             buff[0]= i= uartRX();
-            writeUart('0' + i);
+
+            writeUart(getNumChar(i));
+
             j= 0;
             while(j++ < i) {
                 uartRXwait();
@@ -291,6 +303,16 @@ void main(void)
             }
         }
 
+        while(i2cState == I2CSTATE_STOPPING_BORKED)
+            ;
+
+        if(i2cState == I2CSTATE_BORKED) {
+            writeUart('F');
+            writeUart('B');
+            writeUart('\n');
+            i2cState= I2CSTATE_IDLE;
+        }
+
         timeout= 0;
         while(i2cState != I2CSTATE_IDLE)
             if(timeout++ == I2C_TIMEOUT)
@@ -300,7 +322,7 @@ void main(void)
             packetSize= buff[2];
             i2cBuf[0]= buff[1];
             StartI2C();
-            while(i2cState != I2CSTATE_IDLE)
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED)
                 ;
 
             /* Now we've got a packet! Push it out to the Uart */
@@ -463,16 +485,14 @@ unsigned int RestartI2C(void)
 }
 
 /* This function generates the stop condition and reports a timeout */
-unsigned int StopI2C(void)
-{
-
+unsigned int StopI2C(void) {
+    i2cState= I2CSTATE_STOP;
     I2CCONbits.PEN = 1;        /* Generate the Stop condition */
     return 0;
 }
 
 /* This function transmits the byte passed to it over the i2c bus */
-unsigned int WriteI2C(byte b)
-{
+unsigned int WriteI2C(byte b) {
     /* So make sure there's space in the transmit buffer before we stick
      * anything in there */
     if(I2CSTATbits.TBF) {
@@ -485,13 +505,6 @@ unsigned int WriteI2C(byte b)
 }
 
 /* Returns 1 if the bus is idle, 0 otherwise */
-unsigned int IdleI2C(void)
-{
+unsigned int IdleI2C(void) {
     return !(I2CCONbits.SEN || I2CCONbits.PEN || I2CCONbits.RCEN || I2CCONbits.ACKEN || I2CSTATbits.TRSTAT);
-}
-
-/* This byte returns whether the previous byte was ACK'd */
-/* returns 0 if the previous sent byte was NACK'd, non-0 otherwise */
-unsigned int wasAckI2C(void) {
-    return (I2CSTATbits.ACKSTAT == I2C_ACK);
 }
