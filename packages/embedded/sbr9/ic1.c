@@ -954,6 +954,7 @@ void post()
 
 int main(void)
 {
+    long t1, t2;
     long j=0;
     byte i;
     _TRISF0 = TRIS_IN;
@@ -1041,7 +1042,6 @@ int main(void)
         actLight();
         byte c = waitchar(0);   // This returns if USB disappears
 
-
 //        Try this again after optoisolation got put in...
         if(IN_USBDETECT != USB_PRESENT)
         {
@@ -1060,20 +1060,9 @@ int main(void)
 
             showString("USB Restored... ", 0);
             showString("     d^_^b      ", 1);
+
+            continue;
         }
-
-        long t1, t2;
-
-        //TODO:do we have to do anything with TRIS_LED_ACT?
-            // no. it is always an output. -steve
-
-        // Neil's old code, here commented out for now
-/*        if(IN_USBDETECT != USB_PRESENT)//if we dont see the Mini up...
-        {
-	        blink(5);
-	        showString("lost mini...    ", 0);
-	        showString("                ", 1);
-        }*/
 
         switch(c)
         {
@@ -1919,7 +1908,7 @@ int main(void)
 
                 t1 += HOST_CMD_SETSPEED;
 
-                if(rxBuf[12] != (t1 & 0xFF))
+                if(rxBuf[12] != chksum(HOST_CMD_SETSPEED, rxBuf, 12))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
