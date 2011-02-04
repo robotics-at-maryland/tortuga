@@ -123,7 +123,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
             mag[1] = m_filteredState[m_magIMUName]->magY;
             mag[2] = m_filteredState[m_magIMUName]->magZ;
         }
-
+        LOGGER.info("quatFromMagAccel - With MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
     } else if (magIsCorrupt) {
@@ -132,7 +132,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
          * reading is not corrupted, compute the estimated orientation
          * from the mag and accel readings from the single IMU
          */
-
+        LOGGER.info("quatFromMagAccel - Without MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
     } else {
@@ -153,6 +153,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
 
         math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
 
+        LOGGER.info("quatFromRate - No Boom, Mag Corrupted");
         estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
                                                                  omega,
                                                                  timestep);
