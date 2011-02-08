@@ -250,6 +250,103 @@ TEST(ValueInitialization)
 //     CHECK(!estimator->hasObject("blank"));
 // }
 
+TEST_FIXTURE(VehicleFixture, balanceForce)
+{
+    // thrusters at +/- 1 unit from cg
+    // 1 N force, 0 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -1.0);
+        CHECK_CLOSE(0.5, res[0], 0.0001);
+        CHECK_CLOSE(0.5, res[1], 0.0001);
+    }
+
+    // thrusters at +/- 1 unit from cg
+    // -1 N force, 0 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -1.0);
+        CHECK_CLOSE(-0.5, res[0], 0.0001);
+        CHECK_CLOSE(-0.5, res[1], 0.0001);
+    }
+
+    // thrusters at +1, -2 unit from cg
+    // 1 N force, 0 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -2.0);
+        CHECK_CLOSE(2.0/3, res[0], 0.0001);
+        CHECK_CLOSE(1.0/3, res[1], 0.0001);
+    }
+    // thrusters at +1, -2 unit from cg
+    // -1 N force, 0 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -2.0);
+        CHECK_CLOSE(-2.0/3, res[0], 0.0001);
+        CHECK_CLOSE(-1.0/3, res[1], 0.0001);
+    }
+
+
+
+    // thrusters at +/- 1 unit from cg
+    // 0 N force, 1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -1.0);
+        CHECK_CLOSE(0.5, res[0], 0.0001);
+        CHECK_CLOSE(-0.5, res[1], 0.0001);
+    }
+    // thrusters at +/- 1 unit from cg
+    // 0 N force, -1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -1.0);
+        CHECK_CLOSE(-0.5, res[0], 0.0001);
+        CHECK_CLOSE(0.5, res[1], 0.0001);
+    }
+    // thrusters at +1, -2 unit from cg
+    // 0 N force, 1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -2.0);
+        CHECK_CLOSE(1.0/3, res[0], 0.0001);
+        CHECK_CLOSE(-1.0/3, res[1], 0.0001);
+    }
+    // thrusters at -1, +2 unit from cg
+    // 0 N force, -1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -2.0);
+        CHECK_CLOSE(-1.0/3, res[0], 0.0001);
+        CHECK_CLOSE(1.0/3, res[1], 0.0001);
+    }
+
+
+    // thrusters at +/- 1 unit from cg
+    // 1 N force, -1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -1.0);
+        CHECK_CLOSE(0.0, res[0], 0.0001);
+        CHECK_CLOSE(1.0, res[1], 0.0001);
+    }
+
+    // thrusters at +/- 1 unit from cg
+    // -1 N force, 1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -1.0);
+        CHECK_CLOSE(0.0, res[0], 0.0001);
+        CHECK_CLOSE(-1.0, res[1], 0.0001);
+    }
+
+    // thrusters at +1, -2 unit from cg
+    // 1 N force, -1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -2.0);
+        CHECK_CLOSE(1.0/3.0, res[0], 0.0001);
+        CHECK_CLOSE(2.0/3.0, res[1], 0.0001);
+    }
+    // thrusters at +1, -2 unit from cg
+    // -1 N force, 1 N*m torque
+    {
+        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -2.0);
+        CHECK_CLOSE(-1.0/3.0, res[0], 0.0001);
+        CHECK_CLOSE(-2.0/3.0, res[1], 0.0001);
+    }
+}
+
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
     MockDevice* mockDevice = new MockDevice("TestName");
@@ -258,157 +355,6 @@ TEST_FIXTURE(VehicleFixture, _addDevice)
     CHECK_EQUAL(mockDevice, veh->getDevice("TestName").get());
     CHECK_EQUAL("TestName", veh->getDevice("TestName")->getName());
 }
-
-// void orientationHelper(math::Quaternion* result, ram::core::EventPtr event)
-// {
-//     math::OrientationEventPtr oevent =
-//         boost::dynamic_pointer_cast<math::OrientationEvent>(event);
-//     *result = oevent->orientation;
-// }
-
-// TEST_FIXTURE(VehicleFixture, Event_ORIENTATION_UPDATE)
-// {
-//     MockIMU* imu = new MockIMU("IMU");  
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-
-//     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-
-    
-//     math::Quaternion result = math::Quaternion::IDENTITY;
-//     math::Quaternion expected(7,8,9,10);
-//     math::Quaternion expectedPublish(5,8,9,1);
-//     imu->orientation = expected;
-//     estimator->orientation["vehicle"] = expectedPublish;
-    
-//     // Subscribe to the event
-//     core::EventConnectionPtr conn = veh->subscribe(
-//         vehicle::IVehicle::ORIENTATION_UPDATE,
-//         boost::bind(orientationHelper, &result, _1));
-
-//     veh->update(0);
-//     imu->publishUpdate(expected);
-//     CHECK_EQUAL(expectedPublish, result);
-//     CHECK_EQUAL(expected, estimator->updateOrientation);
-
-//     // Check to make sure the time stamp changes
-//     double expectedTimeStamp = 1;
-//     estimator->orientationUpdate(expected, expectedTimeStamp);
-//     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
-    
-//     conn->disconnect();
-// }
-
-// void depthHelper(double* result, ram::core::EventPtr event)
-// {
-//     math::NumericEventPtr nevent =
-//         boost::dynamic_pointer_cast<math::NumericEvent>(event);
-//     *result = nevent->number;
-// }
-
-// TEST_FIXTURE(VehicleFixture, Event_DEPTH_UPDATE)
-// {
-//     MockDepthSensor* depthSensor = new MockDepthSensor("SensorBoard");
-//     MockIMU* imu = new MockIMU("IMU");
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-
-//     veh->_addDevice(vehicle::device::IDevicePtr(depthSensor));
-//     veh->_addDevice(vehicle::device::IDevicePtr(imu));
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-    
-//     double result = 0;
-//     double expected = 5.7;
-//     double expectedPublish = 6.8;
-//     depthSensor->depth = expected;
-//     estimator->depth["vehicle"] = expectedPublish;
-    
-//     // Subscribe to the event
-//     core::EventConnectionPtr conn = veh->subscribe(
-//         vehicle::IVehicle::DEPTH_UPDATE,
-//         boost::bind(depthHelper, &result, _1));
-
-//     veh->update(0);
-//     depthSensor->publishUpdate(expected);
-//     CHECK_EQUAL(expectedPublish, result);
-//     CHECK_EQUAL(expected, estimator->updateDepth);
-    
-//     conn->disconnect();
-// }
-
-// void velocityHelper(math::Vector2* result, ram::core::EventPtr event)
-// {
-//     math::Vector2EventPtr nevent =
-//         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-//     *result = nevent->vector2;
-// }
-
-// void positionHelper(math::Vector2* result, ram::core::EventPtr event)
-// {
-//     math::Vector2EventPtr nevent =
-//         boost::dynamic_pointer_cast<math::Vector2Event>(event);
-//     *result = nevent->vector2;
-// }
-
-// TEST_FIXTURE(VehicleFixture, Event_POSITION_UPDATE)
-// {
-//     MockPositionSensor* positionSensor =
-//         new MockPositionSensor("PositionSensor");
-// //    MockIMU* imu = new MockIMU("IMU");
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-    
-//     veh->_addDevice(vehicle::device::IDevicePtr(positionSensor));
-// //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-    
-//     math::Vector2 result(0, 0);
-//     math::Vector2 expected(5.7, 2);
-//     math::Vector2 expectedPublish(3.2, 7.9);
-//     positionSensor->position = expected;
-//     estimator->position["vehicle"] = expectedPublish;
-    
-//     // Subscribe to the event
-//     core::EventConnectionPtr conn = veh->subscribe(
-//         vehicle::IVehicle::POSITION_UPDATE,
-//         boost::bind(positionHelper, &result, _1));
-
-//     veh->update(0);
-//     positionSensor->publishUpdate(expected);
-//     CHECK_EQUAL(expectedPublish, result);
-//     CHECK_EQUAL(expected, estimator->updatePosition);
-    
-//     conn->disconnect();
-// }
-
-// TEST_FIXTURE(VehicleFixture, Event_VELOCITY_UPDATE)
-// {
-//     MockVelocitySensor* velocitySensor =
-//         new MockVelocitySensor("VelocitySensor");
-// //    MockIMU* imu = new MockIMU("IMU");
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-    
-//     veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
-// //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-    
-//     math::Vector2 result(0, 0);
-//     math::Vector2 expected(5.7, 2);
-//     math::Vector2 expectedPublish(3.2, 7.9);
-//     velocitySensor->velocity = expected;
-//     estimator->velocity["vehicle"] = expectedPublish;
-    
-//     // Subscribe to the event
-//     core::EventConnectionPtr conn = veh->subscribe(
-//         vehicle::IVehicle::VELOCITY_UPDATE,
-//         boost::bind(velocityHelper, &result, _1));
-
-//     veh->update(0);
-//     velocitySensor->publishUpdate(expected);
-//     CHECK_EQUAL(expectedPublish, result);
-//     CHECK_EQUAL(expected, estimator->updateVelocity);
-    
-//     conn->disconnect();
-// }
-
 
 struct ThrusterVehicleFixture
 {
@@ -497,19 +443,19 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosYForce, thrusterForceArray(), 6);
 
-    /// @TODO FIX ME!!!
-    // +Y Torque (THIS IS BROKEN)
-    veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
-                               ram::math::Vector3(0, 6, 0));
-    double expectedForcesPosYTorque[] = {
-        0.0, // Starboard
-        0.0, // Port
-        -3.0, // Fore
-        3.0, // Aft
-        0.0, // Top
-        0.0, // Bottom
-    };
-    CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
+    // /// @TODO FIX ME!!!
+    // // +Y Torque (THIS IS BROKEN)
+    // veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
+    //                            ram::math::Vector3(0, 6, 0));
+    // double expectedForcesPosYTorque[] = {
+    //     0.0, // Starboard
+    //     0.0, // Port
+    //     -3.0, // Fore
+    //     3.0, // Aft
+    //     0.0, // Top
+    //     0.0, // Bottom
+    // };
+//    CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
 
     // +Z Force
     veh->applyForcesAndTorques(ram::math::Vector3(0, 0, 6),

@@ -82,6 +82,15 @@ public:
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
 
+    /** compute vector of forces to apply to thrusters at given offsets
+       so that there is no net torque.  This assumes that the thrusters
+       are applying a torque in opposite directions*/
+
+    math::Vector2 balanceForcesAndTorques(double force,
+                                          double torque,
+                                          double thruster1Offset,
+                                          double thruster2Offset);
+
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();

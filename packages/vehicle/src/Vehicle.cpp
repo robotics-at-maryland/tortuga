@@ -28,6 +28,8 @@
 #include "vehicle/include/device/IThruster.h"
 
 #include "math/include/Events.h"
+#include "math/include/Vector2.h"
+#include "math/include/Matrix2.h"
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
@@ -211,28 +213,63 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
 /* m_topThrusterThrottle was added to tweak the forces in order to compensate
    for rolling during sideways translation.  Make sure it is not greater than 1.0
-Make sure it is positive */
+   Make sure it is positive.  The reasoning behind the topThrusterThrottle is that
+   we need to compensate for the top and bottom thrusters not being centered around
+   the center of mass.  Consequently, when an equal force command is sent to both
+   top and bottom thrusters, the top thruster applies a greater torque about the
+   x_body axis than the bottom thruster does.  The resulting net torque causes the
+   robot to rotate around the x_body axis.  The orientation error causes the
+   rotational controller to fight this torque imbalance, but it is not designed to
+   handle this type of situation so eventually the robot reaches an equilibrium at
+   some non-upright orientation.  By reducing the amount of thrust applied to the
+   top thruster, we can re-balance the torque during sideways translation. A better
+   way of doing this is to measure the thuster offsets from the cg (which we can
+   only estimate) and calculate the torques.  Once these are known, we can 
+   redistribute the forces to the thrusters to have 0 net torque.*/
+
     if(m_topThrusterThrottle > 1)
         m_topThrusterThrottle = 1.0;
     if(m_topThrusterThrottle < 0)
         m_topThrusterThrottle = 0;
 
-    // Calculate indivdual thruster foces
-    double star = translationalForces[0] / 2 +
-        0.5 * rotationalTorques[2] / m_starboardThruster->getOffset();
-    double port = translationalForces[0] / 2 -
-        0.5 * rotationalTorques[2] / m_portThruster->getOffset();
-    double fore = translationalForces[2] / 2 -
-        0.5 * rotationalTorques[1] / m_foreThruster->getOffset();
-    double aft = translationalForces[2]/2 +
-        0.5 * rotationalTorques[1] / m_aftThruster->getOffset();
-    double top = m_topThrusterThrottle * translationalForces[1] / 2 +
-        0.5 * rotationalTorques[0] / m_topThruster->getOffset();
-    double bottom = translationalForces[1]/2 -
-        0.5 * rotationalTorques[0] / m_bottomThruster->getOffset();
+    /****************************************************/
+    /****** Calculate Individual Thruster Forces ********/
+    /****************************************************/
 
+    // foreward (x_body) and yaw (around z_body)
+    math::Vector2 starPortForces = balanceForcesAndTorques(
+        translationalForces[0],
+        rotationalTorques[2],
+        m_starboardThruster->getOffset(),
+        -m_portThruster->getOffset());
 
-    // Set actual thruster forces
+    double star = starPortForces[0];
+    double port = starPortForces[1];
+
+    // down (z_body) and pitch (around y_body)
+    math::Vector2 foreAftForces = balanceForcesAndTorques(
+        translationalForces[2],
+        rotationalTorques[1],
+        m_foreThruster->getOffset(),
+        -m_aftThruster->getOffset());
+
+    double fore = foreAftForces[0];
+    double aft = foreAftForces[1];
+
+    // sideways (y_body) and roll (around x_body)
+    math::Vector2 topBottomForces = balanceForcesAndTorques(
+        translationalForces[1],
+        rotationalTorques[0],
+        m_topThruster->getOffset(),
+        -m_bottomThruster->getOffset());
+
+    double top = topBottomForces[0];
+    double bottom = topBottomForces[1];
+
+    /****************************************************/
+    /****** Set Thruster Forces *************************/
+    /****************************************************/
+
     m_starboardThruster->setForce(star);
     m_portThruster->setForce(port);
     m_foreThruster->setForce(fore);
@@ -409,5 +446,40 @@ bool Vehicle::lookupThrusterDevices()
     return good;
 }
     
+math::Vector2 Vehicle::balanceForcesAndTorques(
+    double force, double torque,
+    double thruster1Offset, double thruster2Offset)
+{
+    // THIS REQUIRES VALID INPUTS
+    // ASK IT A STUPID QUESTION, GET A STUPID ANSWER
+
+    // this should be numerically stable for valid input
+    // but note that if det(A) = 0, this will crash and burn
+
+    // offsets here are signed quantities and should correspond
+    // to the displacement from the center of gravity along
+    // the correct axis
+
+    // This requires solving a simple linear system
+    // F_net = F1 + F2
+    // T_net = F1 * offset1 + F2 * offset2
+
+    // This corresponds to matrix form of
+    // [   1   ,    1   ] [F1] = [F_net]
+    // [offset1, offset2] [F2] = [T_net]
+
+    math::Matrix2 A(1.0, 1.0,
+                    thruster1Offset, thruster2Offset);
+    math::Vector2 b(force, torque);
+
+    // now solve Ax = b by computing A inverse because we
+    // wrote our own stupid Matrix2 class instead of using
+    // a complete linear algebra library from the start.
+    // At least 2x2s are trivial to invert.
+    math::Vector2 x = A.Inverse() * b;
+    return x;
+}
+
+
 } // namespace vehicle
 } // namespace ram

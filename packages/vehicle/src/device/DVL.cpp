@@ -54,9 +54,10 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
 {
     m_rawState = new RawDVLData();
 
+    // construct rotation matrix for m_angOffset
     m_angOffset = config["angularOffset"].asDouble(0);
     double r_cos = cos(m_angOffset), r_sin = sin(m_angOffset);
-    m_bRt = math::Matrix2(r_cos, r_sin, -r_sin, r_cos);
+    m_bRt = math::Matrix2(r_cos, -r_sin, r_sin, r_cos);
 
     // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
@@ -68,9 +69,8 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
         LOGGER.info("Could not connect with DVL");
 
     // TODO: Temporary values until I know what to put in here
-    LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
-                " BottomTrack2 BottomTrack3 Velocity ensembleNum"
-                " year month day hour min sec hundredth TimeStamp");
+    LOGGER.info("Valid BottomTrack0 BottomTrack1"
+                " BottomTrack2 BottomTrack3 Velocity[2] ");
 
     for (int i = 0; i < 5; ++i)
         update(1/50.0);
@@ -104,6 +104,17 @@ void DVL::update(double timestep)
                 *m_rawState = newState;
             }
 
+            /* The transducer head is attached to the robot such that the
+               heads are at roughly a 45 degree angle with respect to the
+               body coordinates.  According to the manufacturer, this is
+               the optimum configuration for getting good bottom track
+               measurements.  Consequently, we need to account for the
+               angular offset of the heads to transform the velocity to
+               body coordinates.  We assume that the DVL is 'level' with
+               respect to the robot body.  Consequently we only consider
+               an offset rotation around the z axis (down).
+            */
+
             /* velocity in the transducer frame */
             double vel_t1 = (newState.bt_velocity[0] + newState.bt_velocity[1]) / 2;
             double vel_t2 = (newState.bt_velocity[2] + newState.bt_velocity[3]) / 2;
@@ -111,13 +122,23 @@ void DVL::update(double timestep)
 
             RawDVLDataEventPtr event = RawDVLDataEventPtr(
                 new RawDVLDataEvent());
+            
+            math::Vector2 vel_b = m_bRt * vel_t;
 
             event->name = getName();
             event->rawDVLData = newState;
-            event->velocity_b = m_bRt * vel_t;
+            event->velocity_b = vel_b;
             event->timestep = timestep;
 
             publish(IVelocitySensor::RAW_UPDATE, event);
+
+            LOGGER.infoStream() << newState.valid << " "
+                                << newState.bt_velocity[0] << " "
+                                << newState.bt_velocity[1] << " "
+                                << newState.bt_velocity[2] << " "
+                                << newState.bt_velocity[3] << " "
+                                << vel_b[0] << " "
+                                << vel_b[1] << " ";
         }
     }
     // We didn't connect, try to reconnect
