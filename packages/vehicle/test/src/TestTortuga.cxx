@@ -250,102 +250,102 @@ TEST(ValueInitialization)
 //     CHECK(!estimator->hasObject("blank"));
 // }
 
-TEST_FIXTURE(VehicleFixture, balanceForce)
-{
-    // thrusters at +/- 1 unit from cg
-    // 1 N force, 0 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -1.0);
-        CHECK_CLOSE(0.5, res[0], 0.0001);
-        CHECK_CLOSE(0.5, res[1], 0.0001);
-    }
+// TEST_FIXTURE(VehicleFixture, balanceForce)
+// {
+//     // thrusters at +/- 1 unit from cg
+//     // 1 N force, 0 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -1.0);
+//         CHECK_CLOSE(0.5, res[0], 0.0001);
+//         CHECK_CLOSE(0.5, res[1], 0.0001);
+//     }
 
-    // thrusters at +/- 1 unit from cg
-    // -1 N force, 0 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -1.0);
-        CHECK_CLOSE(-0.5, res[0], 0.0001);
-        CHECK_CLOSE(-0.5, res[1], 0.0001);
-    }
+//     // thrusters at +/- 1 unit from cg
+//     // -1 N force, 0 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -1.0);
+//         CHECK_CLOSE(-0.5, res[0], 0.0001);
+//         CHECK_CLOSE(-0.5, res[1], 0.0001);
+//     }
 
-    // thrusters at +1, -2 unit from cg
-    // 1 N force, 0 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -2.0);
-        CHECK_CLOSE(2.0/3, res[0], 0.0001);
-        CHECK_CLOSE(1.0/3, res[1], 0.0001);
-    }
-    // thrusters at +1, -2 unit from cg
-    // -1 N force, 0 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -2.0);
-        CHECK_CLOSE(-2.0/3, res[0], 0.0001);
-        CHECK_CLOSE(-1.0/3, res[1], 0.0001);
-    }
-
-
-
-    // thrusters at +/- 1 unit from cg
-    // 0 N force, 1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -1.0);
-        CHECK_CLOSE(0.5, res[0], 0.0001);
-        CHECK_CLOSE(-0.5, res[1], 0.0001);
-    }
-    // thrusters at +/- 1 unit from cg
-    // 0 N force, -1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -1.0);
-        CHECK_CLOSE(-0.5, res[0], 0.0001);
-        CHECK_CLOSE(0.5, res[1], 0.0001);
-    }
-    // thrusters at +1, -2 unit from cg
-    // 0 N force, 1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -2.0);
-        CHECK_CLOSE(1.0/3, res[0], 0.0001);
-        CHECK_CLOSE(-1.0/3, res[1], 0.0001);
-    }
-    // thrusters at -1, +2 unit from cg
-    // 0 N force, -1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -2.0);
-        CHECK_CLOSE(-1.0/3, res[0], 0.0001);
-        CHECK_CLOSE(1.0/3, res[1], 0.0001);
-    }
+//     // thrusters at +1, -2 unit from cg
+//     // 1 N force, 0 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -2.0);
+//         CHECK_CLOSE(2.0/3, res[0], 0.0001);
+//         CHECK_CLOSE(1.0/3, res[1], 0.0001);
+//     }
+//     // thrusters at +1, -2 unit from cg
+//     // -1 N force, 0 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -2.0);
+//         CHECK_CLOSE(-2.0/3, res[0], 0.0001);
+//         CHECK_CLOSE(-1.0/3, res[1], 0.0001);
+//     }
 
 
-    // thrusters at +/- 1 unit from cg
-    // 1 N force, -1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -1.0);
-        CHECK_CLOSE(0.0, res[0], 0.0001);
-        CHECK_CLOSE(1.0, res[1], 0.0001);
-    }
 
-    // thrusters at +/- 1 unit from cg
-    // -1 N force, 1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -1.0);
-        CHECK_CLOSE(0.0, res[0], 0.0001);
-        CHECK_CLOSE(-1.0, res[1], 0.0001);
-    }
+//     // thrusters at +/- 1 unit from cg
+//     // 0 N force, 1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -1.0);
+//         CHECK_CLOSE(0.5, res[0], 0.0001);
+//         CHECK_CLOSE(-0.5, res[1], 0.0001);
+//     }
+//     // thrusters at +/- 1 unit from cg
+//     // 0 N force, -1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -1.0);
+//         CHECK_CLOSE(-0.5, res[0], 0.0001);
+//         CHECK_CLOSE(0.5, res[1], 0.0001);
+//     }
+//     // thrusters at +1, -2 unit from cg
+//     // 0 N force, 1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -2.0);
+//         CHECK_CLOSE(1.0/3, res[0], 0.0001);
+//         CHECK_CLOSE(-1.0/3, res[1], 0.0001);
+//     }
+//     // thrusters at -1, +2 unit from cg
+//     // 0 N force, -1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -2.0);
+//         CHECK_CLOSE(-1.0/3, res[0], 0.0001);
+//         CHECK_CLOSE(1.0/3, res[1], 0.0001);
+//     }
 
-    // thrusters at +1, -2 unit from cg
-    // 1 N force, -1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -2.0);
-        CHECK_CLOSE(1.0/3.0, res[0], 0.0001);
-        CHECK_CLOSE(2.0/3.0, res[1], 0.0001);
-    }
-    // thrusters at +1, -2 unit from cg
-    // -1 N force, 1 N*m torque
-    {
-        math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -2.0);
-        CHECK_CLOSE(-1.0/3.0, res[0], 0.0001);
-        CHECK_CLOSE(-2.0/3.0, res[1], 0.0001);
-    }
-}
+
+//     // thrusters at +/- 1 unit from cg
+//     // 1 N force, -1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -1.0);
+//         CHECK_CLOSE(0.0, res[0], 0.0001);
+//         CHECK_CLOSE(1.0, res[1], 0.0001);
+//     }
+
+//     // thrusters at +/- 1 unit from cg
+//     // -1 N force, 1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -1.0);
+//         CHECK_CLOSE(0.0, res[0], 0.0001);
+//         CHECK_CLOSE(-1.0, res[1], 0.0001);
+//     }
+
+//     // thrusters at +1, -2 unit from cg
+//     // 1 N force, -1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -2.0);
+//         CHECK_CLOSE(1.0/3.0, res[0], 0.0001);
+//         CHECK_CLOSE(2.0/3.0, res[1], 0.0001);
+//     }
+//     // thrusters at +1, -2 unit from cg
+//     // -1 N force, 1 N*m torque
+//     {
+//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -2.0);
+//         CHECK_CLOSE(-1.0/3.0, res[0], 0.0001);
+//         CHECK_CLOSE(-2.0/3.0, res[1], 0.0001);
+//     }
+// }
 
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
@@ -443,19 +443,18 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosYForce, thrusterForceArray(), 6);
 
-    // /// @TODO FIX ME!!!
-    // // +Y Torque (THIS IS BROKEN)
-    // veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
-    //                            ram::math::Vector3(0, 6, 0));
-    // double expectedForcesPosYTorque[] = {
-    //     0.0, // Starboard
-    //     0.0, // Port
-    //     -3.0, // Fore
-    //     3.0, // Aft
-    //     0.0, // Top
-    //     0.0, // Bottom
-    // };
-//    CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
+    // +Y Torque
+    veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
+                               ram::math::Vector3(0, 6, 0));
+    double expectedForcesPosYTorque[] = {
+        0.0, // Starboard
+        0.0, // Port
+        -3.0, // Fore
+        3.0, // Aft
+        0.0, // Top
+        0.0, // Bottom
+    };
+   CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
 
     // +Z Force
     veh->applyForcesAndTorques(ram::math::Vector3(0, 0, 6),
@@ -470,7 +469,7 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosZForce, thrusterForceArray(), 6);
 
-    // +Z Torque (THIS IS BROKEN)
+    // +Z Torque
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
                                ram::math::Vector3(0, 0, 7.5));
     double expectedForcesPosZTorque[] = {

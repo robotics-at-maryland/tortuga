@@ -13,6 +13,9 @@
 // STD Includes
 #include <string>
 
+// Library Includes
+#include "boost/tuple/tuple.hpp"
+
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/EventPublisher.h"
@@ -21,6 +24,11 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
+
+#include "math/include/MatrixN.h"
+#include "math/include/VectorN.h"
+
+typedef boost::tuple<double, double, double, double, double, double> Tuple6D;
 
 namespace ram {
 namespace vehicle {
@@ -86,10 +94,8 @@ public:
        so that there is no net torque.  This assumes that the thrusters
        are applying a torque in opposite directions*/
 
-    math::Vector2 balanceForcesAndTorques(double force,
-                                          double torque,
-                                          double thruster1Offset,
-                                          double thruster2Offset);
+    math::MatrixN createControlSignalToThrusterForcesMatrix(
+        Tuple6D thrusterDistanceFromCG);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
@@ -124,6 +130,10 @@ private:
     std::string m_grabberName;
     vehicle::device::IPayloadSetPtr m_grabber;
 
+    math::MatrixN m_controlSignalToThrusterForces;
+    bool m_controlSignalToThrusterForcesCreated;
+    
+    enum thrusters {STAR = 0, PORT, BOT, TOP, FORE, AFT};
 };
     
 } // namespace vehicle

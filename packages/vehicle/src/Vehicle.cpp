@@ -18,6 +18,7 @@
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 #include <log4cpp/Category.hh>
+#include "boost/tuple/tuple.hpp"
 
 // Project Includes
 #include "vehicle/include/Vehicle.h"
@@ -41,6 +42,7 @@
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vehicle"));
+static log4cpp::Category& TLOGGER(log4cpp::Category::getInstance("Thrusters"));
 
 using namespace ram::vehicle::device;
 
@@ -84,7 +86,9 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_torpedoLauncherName(config["TorpedoLauncherName"].asString("TorpedoLauncher")),
     m_torpedoLauncher(device::IPayloadSetPtr()),
     m_grabberName(config["GrabberName"].asString("Grabber")),
-    m_grabber(device::IPayloadSetPtr())
+    m_grabber(device::IPayloadSetPtr()),
+    m_controlSignalToThrusterForces(0.0, 6, 6),
+    m_controlSignalToThrusterForcesCreated(false)
 {
 
     // Create devices
@@ -119,7 +123,11 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                                     << node["type"].asString();
             }
         }
+        TLOGGER.info("starboard port bottom top fore aft");
     }
+
+
+
 }
 
 Vehicle::~Vehicle()
@@ -211,77 +219,63 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     if (!lookupThrusterDevices())
         return;
 
-/* m_topThrusterThrottle was added to tweak the forces in order to compensate
-   for rolling during sideways translation.  Make sure it is not greater than 1.0
-   Make sure it is positive.  The reasoning behind the topThrusterThrottle is that
-   we need to compensate for the top and bottom thrusters not being centered around
-   the center of mass.  Consequently, when an equal force command is sent to both
-   top and bottom thrusters, the top thruster applies a greater torque about the
-   x_body axis than the bottom thruster does.  The resulting net torque causes the
-   robot to rotate around the x_body axis.  The orientation error causes the
-   rotational controller to fight this torque imbalance, but it is not designed to
-   handle this type of situation so eventually the robot reaches an equilibrium at
-   some non-upright orientation.  By reducing the amount of thrust applied to the
-   top thruster, we can re-balance the torque during sideways translation. A better
-   way of doing this is to measure the thuster offsets from the cg (which we can
-   only estimate) and calculate the torques.  Once these are known, we can 
-   redistribute the forces to the thrusters to have 0 net torque.*/
+    if(!m_controlSignalToThrusterForcesCreated)
+    {
+        Tuple6D thrusterDistanceFromCG = Tuple6D(
+            m_starboardThruster->getOffset(),
+            m_portThruster->getOffset(),
+            m_bottomThruster->getOffset(),
+            m_topThruster->getOffset(),
+            m_foreThruster->getOffset(),
+            m_aftThruster->getOffset());
 
-    if(m_topThrusterThrottle > 1)
-        m_topThrusterThrottle = 1.0;
-    if(m_topThrusterThrottle < 0)
-        m_topThrusterThrottle = 0;
+        m_controlSignalToThrusterForces = 
+            createControlSignalToThrusterForcesMatrix(
+                thrusterDistanceFromCG);
 
-    /****************************************************/
+        m_controlSignalToThrusterForcesCreated = true;
+    }
+
     /****** Calculate Individual Thruster Forces ********/
-    /****************************************************/
+    
+    // Thruster order convention is based on the direction of
+    // the force applied and the offset location
+    // STAR, PORT, TOP, BOT, FORE, AFT
 
-    // foreward (x_body) and yaw (around z_body)
-    math::Vector2 starPortForces = balanceForcesAndTorques(
-        translationalForces[0],
-        rotationalTorques[2],
-        m_starboardThruster->getOffset(),
-        -m_portThruster->getOffset());
+    math::VectorN controlSignal(0.0, 6);
+    controlSignal[0] = translationalForces[0];
+    controlSignal[1] = translationalForces[1];
+    controlSignal[2] = translationalForces[2];
+    controlSignal[3] = rotationalTorques[0];
+    controlSignal[4] = rotationalTorques[1];
+    controlSignal[5] = rotationalTorques[2];
 
-    double star = starPortForces[0];
-    double port = starPortForces[1];
+    math::VectorN thrusterForces = 
+        m_controlSignalToThrusterForces * controlSignal;
 
-    // down (z_body) and pitch (around y_body)
-    math::Vector2 foreAftForces = balanceForcesAndTorques(
-        translationalForces[2],
-        rotationalTorques[1],
-        m_foreThruster->getOffset(),
-        -m_aftThruster->getOffset());
 
-    double fore = foreAftForces[0];
-    double aft = foreAftForces[1];
-
-    // sideways (y_body) and roll (around x_body)
-    math::Vector2 topBottomForces = balanceForcesAndTorques(
-        translationalForces[1],
-        rotationalTorques[0],
-        m_topThruster->getOffset(),
-        -m_bottomThruster->getOffset());
-
-    double top = topBottomForces[0];
-    double bottom = topBottomForces[1];
-
-    /****************************************************/
     /****** Set Thruster Forces *************************/
-    /****************************************************/
 
-    m_starboardThruster->setForce(star);
-    m_portThruster->setForce(port);
-    m_foreThruster->setForce(fore);
-    m_aftThruster->setForce(aft);
-    m_topThruster->setForce(top);
-    m_bottomThruster->setForce(bottom);
+    m_starboardThruster->setForce(thrusterForces[STAR]);
+    m_portThruster->setForce(thrusterForces[PORT]);
+    m_bottomThruster->setForce(thrusterForces[BOT]);
+    m_topThruster->setForce(thrusterForces[TOP]);
+    m_foreThruster->setForce(thrusterForces[FORE]);
+    m_aftThruster->setForce(thrusterForces[AFT]);
+
 
     ThrustUpdateEventPtr event = ThrustUpdateEventPtr(
         new ThrustUpdateEvent());
     event->forces = translationalForces;
     event->torques = rotationalTorques;
     publish(VEHICLE_THRUST_UPDATE ,event);
+
+    TLOGGER.infoStream() << thrusterForces[STAR] << " "
+                         << thrusterForces[PORT] << " "
+                         << thrusterForces[BOT] << " "
+                         << thrusterForces[TOP] << " "
+                         << thrusterForces[FORE] << " "
+                         << thrusterForces[AFT];
 }
     
 int Vehicle::_addDevice(device::IDevicePtr device)
@@ -446,38 +440,23 @@ bool Vehicle::lookupThrusterDevices()
     return good;
 }
     
-math::Vector2 Vehicle::balanceForcesAndTorques(
-    double force, double torque,
-    double thruster1Offset, double thruster2Offset)
+math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
+    Tuple6D thrusterDistanceFromCG)
 {
-    // THIS REQUIRES VALID INPUTS
-    // ASK IT A STUPID QUESTION, GET A STUPID ANSWER
+    Tuple6D td = thrusterDistanceFromCG;
 
-    // this should be numerically stable for valid input
-    // but note that if det(A) = 0, this will crash and burn
+    // make a 6 x 6 matrix that maps thruster forces to output forces and torques
+    math::MatrixN A(0.0, 6, 6);
+    A[0][0] = 1; A[0][1] = 1;
+    A[1][2] = 1; A[1][3] = 1;
+    A[2][4] = 1; A[2][5] = 1;
+    A[3][2] = -td.get<BOT>(); A[3][3] = td.get<TOP>();
+    A[4][4] = -td.get<FORE>(); A[4][5] = td.get<AFT>();
+    A[5][0] = td.get<STAR>(); A[5][1] = -td.get<PORT>();
 
-    // offsets here are signed quantities and should correspond
-    // to the displacement from the center of gravity along
-    // the correct axis
-
-    // This requires solving a simple linear system
-    // F_net = F1 + F2
-    // T_net = F1 * offset1 + F2 * offset2
-
-    // This corresponds to matrix form of
-    // [   1   ,    1   ] [F1] = [F_net]
-    // [offset1, offset2] [F2] = [T_net]
-
-    math::Matrix2 A(1.0, 1.0,
-                    thruster1Offset, thruster2Offset);
-    math::Vector2 b(force, torque);
-
-    // now solve Ax = b by computing A inverse because we
-    // wrote our own stupid Matrix2 class instead of using
-    // a complete linear algebra library from the start.
-    // At least 2x2s are trivial to invert.
-    math::Vector2 x = A.Inverse() * b;
-    return x;
+    // when given control signal vector b, this will allow 
+    // us to efficiently compute x = A_inv * b
+    return A.inverse();
 }
 
 
