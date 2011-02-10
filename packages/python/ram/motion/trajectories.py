@@ -372,3 +372,98 @@ class StepTrajectory(Trajectory):
 
     def getMaxOfDerivative(self, order):
         return float('inf')
+
+
+class SlerpTrajectory(Trajectory):
+    """
+    This trajectory is meant to interpolate between two
+    quaternions
+    """
+
+    def __init__(self, initialQuat, finalQuat,
+                 initialTime, finalTime):
+        self._initialQuat = initialQuat
+        self._finalQuat = finalQuat
+        self._initialTime = initialTime
+        self._finalTime = finalTime
+        self._timeSpan = finalTime - initialTime
+        
+        # slerp is constant angular velocity so lets
+        # calculate it once here
+        rotQuat = initialQuat.errorQuaternion(finalQuat)
+        angle = math.Radian(0)
+        axis = math.Vector3.ZERO
+        rotQuat.ToAxisAngle(angle, axis)
+        self._angularVelocity = angle / self._timeSpan
+
+    def computeValue(self, time):
+        if time > self._initialTime and time < self._finalTime:
+            pctComplete = (time - self._initialTime) / self._timeSpan
+            return math.Quaternion.Slerp(pctComplete, self._initialQuat,
+                                         self._finalQuat, true)
+        else:
+            return self._finalQuat
+        
+
+    def computeDerivative(self, time, order = 1):
+        if time > self._initialTime and time < self._finalTime:
+            if order == 1:
+                return self._angularVelocity
+            else:
+                return 0
+        else:
+            return 0
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._finalTime
+
+    def getMaxOfDerivative(self, order):
+        return self._angularVelocity
+
+class AngularRateTrajectory(Trajectory):
+    """
+    This trajectory just rotates at a constant
+    angular rate between the time interval specified
+    """
+
+    def __init__(self, initialQuat, angularVelocity,
+                 initialTime, finalTime):
+        self._currentQuat = initialQuat
+        self._angularVelocity = angularVelocity
+        self._initialTime = initialTime
+        self._finalTime = finalTime
+
+    def computeValue(self, time):
+        if time > self._initialTime and time < self._finalTime:
+            timestep = time - self._initialTime
+            derivativeQuat = self._currentQuat.derivative(m_angularVelocity)
+            self._currentQuat += timestep * derivativeQuat
+            self._currentQuat.normalise()
+            return self._currentQuat
+        else:
+            return self._currentQuat
+        
+
+    def computeDerivative(self, time, order = 1):
+        if time > self._initialTime and time < self._finalTime:
+            if order == 1:
+                return self._angularVelocity
+            else:
+                return 0
+        else:
+            return 0
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._finalTime
+
+    def getMaxOfDerivative(self, order):
+        if order == 1:
+            return self._angularVelocity
+        else:
+            return 0
