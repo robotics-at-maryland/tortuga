@@ -7,19 +7,13 @@
  * File:  sandbox/image_analyzer/src/image_analyzer.cpp
  */
 
+// system includes
 #include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
-
-// // grab all root stuff
-// #include <TROOT.h>
-// #include <TH1I.h>
-// #include <TH3I.h>
-// #include <TCanvas.h>
-// #include <TFile.h>
-
 #include <string>
+
 // open cv
 #include <cv.h>
 #include <highgui.h>
@@ -28,8 +22,7 @@
 #include "hist_template_matcher.h"
 
 #define NUM_REQUIRED_ARGS 3
-#define ARG_MESSAGE "Usage: hist_template_matcher"
-#define IMAGE_PATH "/home/jwonders/ram_code/trunk/sandbox/histTemplateMatcher/src/0078.png"
+#define ARG_MESSAGE "Usage: hist_template_matcher <path_to_template> <path_to_source_to_analyze>\n"
 
 int main(int argc, char **argv)
 {
@@ -38,6 +31,7 @@ int main(int argc, char **argv)
         fprintf( stderr,  ARG_MESSAGE);
         return 1;
     }
+
     std::string name_template = argv[1];
     std::string name_source = argv[2];
 
@@ -54,19 +48,32 @@ CvSize scaleSize(IplImage *orig, double amount)
 void match(std::string name_template, std::string name_source)
 {
     // Set up some images
-    IplImage *img_original = cvLoadImage(name_source.c_str());
+    IplImage *img_input = cvLoadImage(name_source.c_str());
+    IplImage *img_original = cvCreateImage(
+        scaleSize(img_input, .5), IPL_DEPTH_8U, 3);
+    cvResize(img_input, img_original);
+
     IplImage *img_template = cvLoadImage(name_template.c_str());
     IplImage *img_template_big = cvCreateImage(
-        scaleSize(img_template, 1.25), IPL_DEPTH_8U, 3);
+        scaleSize(img_template, 1), IPL_DEPTH_8U, 3);
     IplImage *img_template_biggest = cvCreateImage(
-        scaleSize(img_template, 1.50), IPL_DEPTH_8U, 3);
-    IplImage *img_template_small = cvCreateImage(
         scaleSize(img_template, .75), IPL_DEPTH_8U, 3);
+    IplImage *img_template_normal = cvCreateImage(
+        scaleSize(img_template, .5), IPL_DEPTH_8U, 3);
+    IplImage *img_template_small = cvCreateImage(
+        scaleSize(img_template, .375), IPL_DEPTH_8U, 3);
     IplImage *img_template_smallest = cvCreateImage(
-        scaleSize(img_template, .50), IPL_DEPTH_8U, 3);
+        scaleSize(img_template, .25), IPL_DEPTH_8U, 3);
+
+    IplImage *img_templates[] = {img_template_smallest,
+                                 img_template_small,
+                                 img_template_normal,
+                                 img_template_big,
+                                 img_template_biggest};
 
     cvResize(img_template, img_template_big);
     cvResize(img_template, img_template_biggest);
+    cvResize(img_template, img_template_normal);
     cvResize(img_template, img_template_small);
     cvResize(img_template, img_template_smallest);
     
@@ -134,55 +141,28 @@ void match(std::string name_template, std::string name_source)
     cvNamedWindow("Equalized H-S Histogram", 1);
     cvShowImage("Equalized H-S Histogram", img_hist);
     
-
     
     assert(img_original != 0);
     assert(img_template != 0);
-    int iwidth[] = {img_original->width - img_template_smallest->width + 1,
-                    img_original->width - img_template_small->width + 1,
-                    img_original->width - img_template->width + 1,
-                    img_original->width - img_template_big->width + 1,
-                    img_original->width - img_template_biggest->width + 1};
-
-    int iheight[] = {img_original->height - img_template_smallest->height + 1,
-                    img_original->height - img_template_small->height + 1,
-                    img_original->height - img_template->height + 1,
-                    img_original->height - img_template_big->height + 1,
-                    img_original->height - img_template_biggest->height + 1};
- 
-    IplImage *match_ccorrNormed[] = {cvCreateImage(cvSize(iwidth[0], iheight[0]), 32, 1),
-                                     cvCreateImage(cvSize(iwidth[1], iheight[1]), 32, 1),
-                                     cvCreateImage(cvSize(iwidth[2], iheight[2]), 32, 1),
-                                     cvCreateImage(cvSize(iwidth[3], iheight[3]), 32, 1),
-                                     cvCreateImage(cvSize(iwidth[4], iheight[4]), 32, 1)};
-
-    IplImage *match_coeff[] = {cvCreateImage(cvSize(iwidth[0], iheight[0]), 32, 1),
-                               cvCreateImage(cvSize(iwidth[1], iheight[1]), 32, 1),
-                               cvCreateImage(cvSize(iwidth[2], iheight[2]), 32, 1),
-                               cvCreateImage(cvSize(iwidth[3], iheight[3]), 32, 1),
-                               cvCreateImage(cvSize(iwidth[4], iheight[4]), 32, 1)};
-
-    cvMatchTemplate(img_original, img_template_smallest, match_ccorrNormed[0], 3);
-    cvMatchTemplate(img_original, img_template_small, match_ccorrNormed[1], 3);
-    cvMatchTemplate(img_original, img_template, match_ccorrNormed[2], 3);
-    cvMatchTemplate(img_original, img_template_big, match_ccorrNormed[3], 3);
-    cvMatchTemplate(img_original, img_template_biggest, match_ccorrNormed[4], 3);
-
-    cvMatchTemplate(img_original, img_template_smallest, match_coeff[0], 4);
-    cvMatchTemplate(img_original, img_template_small, match_coeff[1], 4);
-    cvMatchTemplate(img_original, img_template, match_coeff[2], 4);
-    cvMatchTemplate(img_original, img_template_big, match_coeff[3], 4);
-    cvMatchTemplate(img_original, img_template_biggest, match_coeff[4], 4);
+    int iwidth[5] = {0};
+    int iheight[5] = {0};
+    IplImage *match_ccorrNormed[5];
+    IplImage *match_coeff[5];
 
     for(int i = 0; i < 5; i++)
     {
+        iwidth[i] = img_original->width - img_templates[i]->width + 1;
+        iheight[i] = img_original->height - img_templates[i]->height + 1;
+        match_ccorrNormed[i] = cvCreateImage(cvSize(iwidth[i], iheight[i]), 32, 1);
+        match_coeff[i] = cvCreateImage(cvSize(iwidth[i], iheight[i]), 32, 1);
+
+        cvMatchTemplate(img_original, img_templates[i], match_ccorrNormed[i], 3);
+        cvMatchTemplate(img_original, img_templates[i], match_coeff[i], 4);
+
         cvNormalize(match_ccorrNormed[i], match_ccorrNormed[i], 1, 0, CV_MINMAX);
         cvNormalize(match_coeff[i], match_coeff[i], 1, 0, CV_MINMAX);
 
-
-        // DISPLAY
-        cvNamedWindow("Template", 0);
-        cvShowImage("Template", img_template);
+        // Display the match images.  pause between each template size
         cvNamedWindow("CCORR_NORMED", 0);
         cvShowImage("CCORR_NORMED", match_ccorrNormed[i]);
         cvNamedWindow("COEFF", 0);
@@ -190,9 +170,24 @@ void match(std::string name_template, std::string name_source)
         
         cvWaitKey(0);
     }
+
+
+    for(int i = 1; i < 5; i++)
+    {
+        cvReleaseImage(&match_ccorrNormed[i]);
+        cvReleaseImage(&match_coeff[i]);
+    }
+    cvReleaseImage(&img_input);
     cvReleaseImage(&img_original);
     cvReleaseImage(&img_backprojection);
     cvReleaseImage(&img_hist);
+    cvReleaseImage(&h_plane);
+    cvReleaseImage(&s_plane);
+    cvReleaseImage(&v_plane);
     cvReleaseImage(&img_template);
-
+    cvReleaseImage(&img_template_smallest);
+    cvReleaseImage(&img_template_small);
+    cvReleaseImage(&img_template_normal);
+    cvReleaseImage(&img_template_big);
+    cvReleaseImage(&img_template_biggest);
 }
