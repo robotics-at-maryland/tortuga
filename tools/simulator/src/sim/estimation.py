@@ -106,6 +106,14 @@ class IdealStateEstimator(estimation.IStateEstimator):
     def getEstimatedMass(self):
         return 0
 
+    def getEstimatedThrusterForces(self):
+        print 'IdealStateEstimator: NOT_YET_IMPLEMENTED'
+        return math.Vector3.ZERO
+
+    def getEstimatedThrusterTorques(self):
+        print 'IdealStateEstimator: NOT_YET_IMPLEMENTED'
+        return math.Vector3.ZERO
+
     def addObstacle(self, name, obstacle):
         self._obstacles[name] = obstacle
 
