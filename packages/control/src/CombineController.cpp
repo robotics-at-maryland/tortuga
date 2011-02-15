@@ -126,8 +126,12 @@ void CombineController::doUpdate(const double& timestep,
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
 
-    LOGGER.infoStream() << translationalForceOut << " "
-                        << rotationalTorqueOut;
+    LOGGER.infoStream() << translationalForceOut[0] << " "
+                        << translationalForceOut[1] << " "
+                        << translationalForceOut[2] << " " 
+                        << rotationalTorqueOut[0] << " "
+                        << rotationalTorqueOut[1] << " "
+                        << rotationalTorqueOut[2];
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
