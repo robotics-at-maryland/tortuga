@@ -248,6 +248,11 @@ class MockMotion(object):
         
     def stop(self):
         self.stopped = True
+
+    def _finish(self):
+        event = core.Event()
+        event.motion = self
+        self.publish(motion.basic.Motion.FINISHED, event)
         
 # Provides basic test support
 class MotionTest(unittest.TestCase):
