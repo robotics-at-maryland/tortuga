@@ -15,7 +15,7 @@ import ram.timer as timer
 
 class Trajectory:
     """
-    An abstract class for motion trajctories
+    An abstract class for motion trajectories
     """
 
     def __init__(self):
@@ -352,7 +352,7 @@ class StepTrajectory(Trajectory):
 
     def __init__(self, finalValue, finalRate):
         self._finalValue = finalValue
-        self._finalRate = finalRate
+        self._finalRate = rate
         self._initialTime = timer.time()
 
     def computeValue(self, time):
