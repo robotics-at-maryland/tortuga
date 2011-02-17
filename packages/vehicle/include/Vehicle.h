@@ -13,6 +13,9 @@
 // STD Includes
 #include <string>
 
+// Library Includes
+#include "boost/tuple/tuple.hpp"
+
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "core/include/EventPublisher.h"
@@ -22,6 +25,11 @@
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
 #include "vehicle/include/estimator/IStateEstimator.h"
+
+#include "math/include/MatrixN.h"
+#include "math/include/VectorN.h"
+
+typedef boost::tuple<double, double, double, double, double, double> Tuple6D;
 
 namespace ram {
 namespace vehicle {
@@ -115,6 +123,13 @@ public:
     /** Get the state estimator */
     virtual estimator::IStateEstimatorPtr getStateEstimator();
 
+    /** compute vector of forces to apply to thrusters at given offsets
+       so that there is no net torque.  This assumes that the thrusters
+       are applying a torque in opposite directions*/
+
+    math::MatrixN createControlSignalToThrusterForcesMatrix(
+        Tuple6D thrusterDistanceFromCG);
+
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
@@ -184,8 +199,12 @@ private:
     std::string m_grabberName;
     vehicle::device::IPayloadSetPtr m_grabber;
 
-
     estimator::IStateEstimatorPtr stateEstimator;
+
+    math::MatrixN m_controlSignalToThrusterForces;
+    bool m_controlSignalToThrusterForcesCreated;
+    
+    enum thrusters {STAR = 0, PORT, BOT, TOP, FORE, AFT};
 };
     
 } // namespace vehicle
