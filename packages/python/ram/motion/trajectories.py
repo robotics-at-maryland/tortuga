@@ -65,9 +65,9 @@ class ScalarCubicTrajectory(Trajectory):
     This trajectory will be useful for changing depths.
     """
 
-    # The following slopes were determined by experimentation to give us some
-    # way to control the speed of the dive
-    MAGIC_RATE_SLOPES = [4, 3, 2.5, 2, 1.5]
+    # this is a parameter that relates the max rate to the time
+    # interval in which the trajectory will be defined
+    MAGIC_RATE_SLOPE = 10
 
     def __init__(self, initialValue, finalValue, initialTime,
                  initialRate = 0, finalRate = 0, maxRate = 3):
@@ -181,14 +181,13 @@ class ScalarCubicTrajectory(Trajectory):
             return None
 
     def approximateTimeInterval(self, changeInValue, maxRate):
-        iRate = int(maxRate)
 
-        if(iRate < 1):
-            iRate = 1
-        elif(iRate > 5):
-            iRate = 5
+        if(maxRate < 0):
+            maxRate = 0.1
+        elif(maxRate > 5):
+            maxRate = 5
 
-        slope = self.MAGIC_RATE_SLOPES[iRate-1]
+        slope = self.MAGIC_RATE_SLOPE / maxRate
         return slope * changeInValue
 
 class Vector2CubicTrajectory(Trajectory):
@@ -198,9 +197,9 @@ class Vector2CubicTrajectory(Trajectory):
     the scalar cubic trajectory.
     """
     
-    # The following slopes were determined by experimentation to give us some
-    # way to control the speed of the dive
-    MAGIC_RATE_SLOPES = [4, 3, 2.5, 2, 1.5]
+    # this is a parameter that relates the max rate to the time
+    # interval in which the trajectory will be defined
+    MAGIC_RATE_SLOPE = 10
 
     def __init__(self, initialValue, finalValue, initialTime,
                  initialRate = 0, finalRate = 0, maxRate = 3):
@@ -248,7 +247,7 @@ class Vector2CubicTrajectory(Trajectory):
                              [0, 1, 2 * ti, 3 * ti_p2],
                              [0, 1, 2 * tf, 3 * tf_p2]])
         
-            b = numpy.array([0, self._changeInValueS, initialRateS, finalRateS])
+            b = numpy.array([0, self._changeInValueS, self._initialRateS, self._finalRateS])
 
             # solve for coefficient vector x
             x = numpy.linalg.solve(A,b)
@@ -331,15 +330,16 @@ class Vector2CubicTrajectory(Trajectory):
     def approximateTimeInterval(self, changeInValue, maxRate):
         iRate = int(maxRate)
 
-        if(iRate < 1):
-            iRate = 1
-        elif(iRate > 5):
-            iRate = 5
+        if(maxRate < 0):
+            maxRate = 0.1
+        elif(maxRate > 5):
+            maxRate = 5
 
-        slope = self.MAGIC_RATE_SLOPES[iRate-1]
+        slope = self.MAGIC_RATE_SLOPE / maxRate
         return slope * changeInValue
 
-    def _projectOntoAxes(scalar):
+
+    def _projectOntoAxes(self, scalar):
         xCoord = scalar * self._changeInValueV[0] / self._changeInValueS
         yCoord = scalar * self._changeInValueV[1] / self._changeInValueS
         return math.Vector2(xCoord,yCoord)
