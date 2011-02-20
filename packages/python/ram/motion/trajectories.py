@@ -1,4 +1,4 @@
-# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Robotics @ Maryland
 # Copyright (C) 2010 Jonathan Wonders <jwonders@umd.edu>
 # All rights reserved.
 #
@@ -56,6 +56,13 @@ class Trajectory:
         """
         raise Exception("You must implement this method")
 
+    def isRelative(self):
+        """
+        Returns True if the trajectory evaluates given a relative time
+        or False if the trajectory evaluates given an absolute time
+        """
+        raise Exception("You must implement this method")
+
 
 class ScalarCubicTrajectory(Trajectory):
     """
@@ -69,7 +76,8 @@ class ScalarCubicTrajectory(Trajectory):
     # interval in which the trajectory will be defined
     MAGIC_RATE_SLOPE = 10
 
-    def __init__(self, initialValue, finalValue, initialTime,
+
+    def __init__(self, initialValue, finalValue, initialTime = 0,
                  initialRate = 0, finalRate = 0, maxRate = 3):
 
         # keep track of the arguments
@@ -78,6 +86,9 @@ class ScalarCubicTrajectory(Trajectory):
         self._initialRate = initialRate
         self._finalRate = finalRate
         self._initialTime = initialTime
+
+        if initialTime == 0:
+            self._relative = True
 
         # compute the final time
         self._timeInterval = self.approximateTimeInterval(
@@ -151,7 +162,7 @@ class ScalarCubicTrajectory(Trajectory):
             else:
                 return None
 
-        # hand times during the computed trajector
+        # handle times during the computed trajectory
         c = self._coefficients
         if order < 1 :
             return None
@@ -180,6 +191,9 @@ class ScalarCubicTrajectory(Trajectory):
         else:
             return None
 
+    def isRelative(self):
+        return self._relative
+
     def approximateTimeInterval(self, changeInValue, maxRate):
 
         if(maxRate < 0):
@@ -201,7 +215,7 @@ class Vector2CubicTrajectory(Trajectory):
     # interval in which the trajectory will be defined
     MAGIC_RATE_SLOPE = 10
 
-    def __init__(self, initialValue, finalValue, initialTime,
+    def __init__(self, initialValue, finalValue, initialTime = 0,
                  initialRate = 0, finalRate = 0, maxRate = 3):
 
         # keep track of the arguments V - vector quantity, S - scalar quantity
@@ -211,6 +225,9 @@ class Vector2CubicTrajectory(Trajectory):
         self._finalRateV = finalRate
         self._initialTime = initialTime
         self._changeInValueV = finalValue - initialValue 
+
+        if initialTime == 0:
+            self._relative = True
 
         # turn this into a 1D problem
         self._changeInValueS = self._changeInValueV.length()
@@ -327,6 +344,9 @@ class Vector2CubicTrajectory(Trajectory):
         else:
             return None
 
+    def isRelative(self):
+        return self._relative
+
     def approximateTimeInterval(self, changeInValue, maxRate):
         iRate = int(maxRate)
 
@@ -350,17 +370,34 @@ class StepTrajectory(Trajectory):
     This trajectory is a step input that returns a scalar
     """
 
-    def __init__(self, finalValue, finalRate):
+    def __init__(self, initialValue, finalValue,
+                 initialRate = 0, finalRate = 0,
+                 initialTime = 0):
+
+        self._initialValue = initialValue
         self._finalValue = finalValue
+
+        self._initialRate = initialRate
         self._finalRate = finalRate
-        self._initialTime = timer.time()
+        self._initialTime = initialTime
+        self._finalRate = finalRate
+
+
+        if initialTime == 0:
+            self._relative = True
 
     def computeValue(self, time):
-        return self._finalValue
+        if time > self._initialTime:
+            return self._finalValue
+        else:
+            return self._initialValue
 
     def computeDerivative(self, time, order):
         if order == 1:
-            return self._finalRate
+            if time > self._initialTime:
+                return self._finalRate
+            else:
+                return self._initialRate
         else:
             return None
 
@@ -373,6 +410,8 @@ class StepTrajectory(Trajectory):
     def getMaxOfDerivative(self, order):
         return float('inf')
 
+    def isRelative(self):
+        return self._relative
 
 class SlerpTrajectory(Trajectory):
     """
@@ -381,12 +420,15 @@ class SlerpTrajectory(Trajectory):
     """
 
     def __init__(self, initialQuat, finalQuat,
-                 initialTime, finalTime):
+                 timePeriod, initialTime = 0):
         self._initialQuat = initialQuat
         self._finalQuat = finalQuat
         self._initialTime = initialTime
         self._finalTime = finalTime
         self._timeSpan = finalTime - initialTime
+
+        if initialTime == 0:
+            self._relative = True
         
         # slerp is constant angular velocity so lets
         # calculate it once here
@@ -423,6 +465,9 @@ class SlerpTrajectory(Trajectory):
     def getMaxOfDerivative(self, order):
         return self._angularVelocity
 
+    def isRelative(self):
+        return self._relative
+
 class AngularRateTrajectory(Trajectory):
     """
     This trajectory just rotates at a constant
@@ -430,11 +475,14 @@ class AngularRateTrajectory(Trajectory):
     """
 
     def __init__(self, initialQuat, angularVelocity,
-                 initialTime, finalTime):
+                 timePeriod, initialTime = 0):
         self._currentQuat = initialQuat
         self._angularVelocity = angularVelocity
         self._initialTime = initialTime
         self._finalTime = finalTime
+
+        if initialTime == 0:
+            self._relative = True
 
     def computeValue(self, time):
         if time > self._initialTime and time < self._finalTime:
@@ -467,3 +515,6 @@ class AngularRateTrajectory(Trajectory):
             return self._angularVelocity
         else:
             return 0
+
+    def isRelative(self):
+        return self._relative
