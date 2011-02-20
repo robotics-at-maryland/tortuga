@@ -352,7 +352,7 @@ class StepTrajectory(Trajectory):
 
     def __init__(self, finalValue, finalRate):
         self._finalValue = finalValue
-        self._finalRate = rate
+        self._finalRate = finalRate
         self._initialTime = timer.time()
 
     def computeValue(self, time):

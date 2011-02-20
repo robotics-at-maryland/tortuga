@@ -16,7 +16,7 @@ import ext.core as core
 import ram.motion as motion
 import ram.motion.basic
 import ram.test.motion.support as support
-
+from ram.motion.trajectories import StepTrajectory
 
 class TestMotionManager(support.MotionTest):
     def setUp(self):
@@ -39,12 +39,12 @@ class TestMotionManager(support.MotionTest):
         
     def testMultiMotion(self):
         m = support.MockMotion()
-        mPlane = support.MockMotion(type = motion.basic.Motion.IN_PLANE)
-        mDepth = support.MockMotion(type = motion.basic.Motion.DEPTH)
-        mOrien = support.MockMotion(type = motion.basic.Motion.ORIENTATION)
+        mPlane = support.MockMotion(_type = motion.basic.Motion.IN_PLANE)
+        mDepth = support.MockMotion(_type = motion.basic.Motion.DEPTH)
+        mOrien = support.MockMotion(_type = motion.basic.Motion.ORIENTATION)
         
         _type = motion.basic.Motion.ORIENTATION | motion.basic.Motion.IN_PLANE
-        mPlaneOrien = support.MockMotion(type = _type)
+        mPlaneOrien = support.MockMotion(_type = _type)
         
         # Place an all enclusive motion
         self.motionManager.setMotion(m)
@@ -85,7 +85,7 @@ class TestMotionManager(support.MotionTest):
         
         # Now make sure a single multi motion shows up like that
         self.motionManager.stopCurrentMotion()
-        mPlaneOrien = support.MockMotion(type = _type)
+        mPlaneOrien = support.MockMotion(_type = _type)
         self.motionManager.setMotion(mPlaneOrien)
         self.assertEqual(mPlaneOrien, self.motionManager.currentMotion)
         
@@ -97,8 +97,8 @@ class TestMotionManager(support.MotionTest):
         self.qeventHub.subscribeToType(
             motion.basic.MotionManager.FINISHED, _handler)
 
-        m1 = motion.basic.RateChangeDepth(9, 0.3)
-        m2 = motion.basic.MoveDirection(0, 3)
+        m1 = support.MockMotion(1)
+        m2 = support.MockMotion(2)
         
         self.motionManager.setMotion(m1, m2)
 
@@ -117,21 +117,6 @@ class TestMotionManager(support.MotionTest):
         self.qeventHub.publishEvents()
         self.assertEqual(None, self.motionManager.currentMotion)
         self.assert_(self._finished)
-
-    def testEarlyEndQueuedMotions(self):
-        """
-        This tests that queued motions work correctly when the
-        first and second motion end early
-        """
-        self.estimator.orientation = math.Quaternion(math.Degree(0),
-                                                     math.Vector3.UNIT_Z)
-        m1 = motion.basic.RateChangeHeading(0, 10)
-        m2 = motion.basic.RateChangeHeading(0, 5)
-        m3 = motion.basic.RateChangeDepth(5, (1.0/3.0))
-
-        self.motionManager.setMotion(m1, m2, m3)
-        self.assertEqual(motion.basic.RateChangeDepth,
-                         type(self.motionManager.currentMotion))
 
     def testStopCurrentMotion(self):
         m = support.MockMotion()
@@ -158,27 +143,22 @@ class TestMotionManager(support.MotionTest):
     def testMotionConfig(self):
         mList = {
             '1' : {
-                'type' : 'ram.motion.basic.RateChangeDepth',
-                'desiredDepth' : 5,
-                'speed' : 0.3
+                'type' : 'ram.test.motion.support.MockMotion',
+                '_type' : motion.basic.Motion.IN_PLANE
                 },
             '2' : {
-                'type' : 'ram.motion.basic.MoveDirection',
-                'desiredHeading' : 25,
-                'speed' : 2
+                'type' : 'ram.test.motion.support.MockMotion',
+                '_type' : motion.basic.Motion.ORIENTATION
                 }
             }
 
         # Generate the motion list
         motionList = motion.basic.MotionManager.generateMotionList(mList)
 
-        self.assertEqual(motion.basic.RateChangeDepth, type(motionList[0]))
-        self.assertEqual(5, motionList[0]._desiredDepth)
-        self.assertAlmostEqual(0.3, motionList[0]._speed)
-
-        self.assertEqual(motion.basic.MoveDirection, type(motionList[1]))
-        self.assertEqual(25, motionList[1]._direction.getYaw().valueDegrees())
-        self.assertEqual(2, motionList[1]._speed)
+        self.assert_(all([lambda x: type(x) == motion.basic.test.MockMotion
+                          for x in motionList]))
+        self.assertEqual(motion.basic.Motion.IN_PLANE, motionList[0].type)
+        self.assertEqual(motion.basic.Motion.ORIENTATION, motionList[1].type)
   
 class TestChangeDepth(support.MotionTest):
     def setUp(self):
@@ -189,12 +169,12 @@ class TestChangeDepth(support.MotionTest):
         self.motionFinished = True
         
     def testType(self):
-        m = motion.basic.ChangeDepth(10, 5) 
+        m = motion.basic.ChangeDepth(StepTrajectory(10, 5))
         self.assertEqual(motion.basic.Motion.DEPTH, m.type)
         
     def testDive(self):
         self.estimator.depth = 5
-        m = motion.basic.ChangeDepth(10, 5) 
+        m = motion.basic.ChangeDepth(10, 5)
         self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         

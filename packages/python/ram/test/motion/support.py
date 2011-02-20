@@ -230,29 +230,32 @@ class MockTimer(timer.Timer):
         self._complete()
 
 # Mock Motion
-class MockMotion(object):
-    def __init__(self, type = motion.basic.Motion.NORMAL):
-        self.controller = None
-        self.vehicle = None
-        self.stoped = False
-        self.type = type
+class MockMotion(motion.basic.Motion):
+    def __init__(self, _type = motion.basic.Motion.NORMAL):
+        motion.basic.Motion.__init__(self, _type = _type)
         self.started = False
-    
-    def start(self, controller, vehicle, estimator, eventHub, eventPublisher):
-        assert not self.started
 
-        self.controller = controller
-        self.vehicle = vehicle
-        self.estimator = estimator
+    @property
+    def controller(self):
+        return self._controller
+    @property
+    def vehicle(self):
+        return self._vehicle
+    @property
+    def estimator(self):
+        return self._estimator
+    
+    def _start(self):
+        assert not self.started
         self.started = True
         
     def stop(self):
+        motion.basic.Motion.stop(self)
         self.stopped = True
 
-    def _finish(self):
-        event = core.Event()
-        event.motion = self
-        self.publish(motion.basic.Motion.FINISHED, event)
+    @staticmethod
+    def willComplete():
+        return True
         
 # Provides basic test support
 class MotionTest(unittest.TestCase):
