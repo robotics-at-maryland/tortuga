@@ -22,7 +22,7 @@ class Trajectory:
         """
         Nothing to do here since this is abstract
         """
-    
+        
     def computeValue(self, time):
         """
         Returns the value of the trajectory at given time
@@ -91,7 +91,7 @@ class ScalarCubicTrajectory(Trajectory):
             self._relative = True
 
         # compute the final time
-        self._timeInterval = self.approximateTimeInterval(
+        self._timePeriod = self.approximateTimePeriod(
             pmath.fabs(finalValue - initialValue), maxRate)
 
         # the matrix will be singular if initial and final values are equal
@@ -106,7 +106,7 @@ class ScalarCubicTrajectory(Trajectory):
             # numerical problems that could occur if we use the given
             # initial time.
             ti = 0
-            tf = self._timeInterval
+            tf = self._timePeriod
 
             # compute matrix A and vector b for equation Ax = b
             ti_p2 = ti * ti
@@ -137,7 +137,7 @@ class ScalarCubicTrajectory(Trajectory):
 
         if time < 0:
             return self._initialValue
-        elif time >= self._timeInterval:
+        elif time >= self._timePeriod:
             return self._finalValue
         else:
             c = self._coefficients
@@ -154,7 +154,7 @@ class ScalarCubicTrajectory(Trajectory):
                 return None
 
         # handle t > tf
-        if time >= self._timeInterval:
+        if time >= self._timePeriod:
             if order == 1:
                 return self._finalRate
             elif order > 1:
@@ -179,7 +179,7 @@ class ScalarCubicTrajectory(Trajectory):
         return self._initialTime
 
     def getFinalTime(self):
-        return self._initialTime + self._timeInterval
+        return self._initialTime + self._timePeriod
 
     def getMaxOfDerivative(self, order):
         if order == 1:
@@ -194,13 +194,7 @@ class ScalarCubicTrajectory(Trajectory):
     def isRelative(self):
         return self._relative
 
-    def approximateTimeInterval(self, changeInValue, maxRate):
-
-        if(maxRate < 0):
-            maxRate = 0.1
-        elif(maxRate > 5):
-            maxRate = 5
-
+    def approximateTimePeriod(self, changeInValue, maxRate):
         slope = self.MAGIC_RATE_SLOPE / maxRate
         return slope * changeInValue
 
@@ -235,7 +229,7 @@ class Vector2CubicTrajectory(Trajectory):
         self._finalRateS = finalRate.length()
    
         # compute the final time
-        self._timeInterval = self.approximateTimeInterval(
+        self._timePeriod = self.approximateTimePeriod(
             self._changeInValueS, maxRate)
 
         # the matrix will be singular if initial and final values are equal
@@ -250,7 +244,7 @@ class Vector2CubicTrajectory(Trajectory):
             # numerical problems that could occur if we use the given
             # initial time.
             ti = 0
-            tf = self._timeInterval
+            tf = self._timePeriod
 
             # compute matrix A and vector b for equation Ax = b
             ti_p2 = ti * ti
@@ -264,7 +258,8 @@ class Vector2CubicTrajectory(Trajectory):
                              [0, 1, 2 * ti, 3 * ti_p2],
                              [0, 1, 2 * tf, 3 * tf_p2]])
         
-            b = numpy.array([0, self._changeInValueS, self._initialRateS, self._finalRateS])
+            b = numpy.array([0, self._changeInValueS,
+                             self._initialRateS, self._finalRateS])
 
             # solve for coefficient vector x
             x = numpy.linalg.solve(A,b)
@@ -281,7 +276,7 @@ class Vector2CubicTrajectory(Trajectory):
 
         if time < 0:
             return self._initialValue
-        elif time >= self._timeInterval:
+        elif time >= self._timePeriod:
             return self._finalValue
         else:
             c = self._coefficients
@@ -303,7 +298,7 @@ class Vector2CubicTrajectory(Trajectory):
                 return None
 
         # handle t > tf
-        if time >= self._timeInterval:
+        if time >= self._timePeriod:
             if order == 1:
                 return self._finalRateV
             elif order > 1:
@@ -331,7 +326,7 @@ class Vector2CubicTrajectory(Trajectory):
         return self._initialTime
 
     def getFinalTime(self):
-        return self._initialTime + self._timeInterval
+        return self._initialTime + self._timePeriod
 
     def getMaxOfDerivative(self, order):
         if order == 1:
@@ -347,14 +342,7 @@ class Vector2CubicTrajectory(Trajectory):
     def isRelative(self):
         return self._relative
 
-    def approximateTimeInterval(self, changeInValue, maxRate):
-        iRate = int(maxRate)
-
-        if(maxRate < 0):
-            maxRate = 0.1
-        elif(maxRate > 5):
-            maxRate = 5
-
+    def approximateTimePeriod(self, changeInValue, maxRate):
         slope = self.MAGIC_RATE_SLOPE / maxRate
         return slope * changeInValue
 
@@ -367,21 +355,22 @@ class Vector2CubicTrajectory(Trajectory):
 
 class StepTrajectory(Trajectory):
     """
-    This trajectory is a step input that returns a scalar
+    This trajectory represents a step change.  That is, before the
+    initial time, the output will be the initial value / initial rate
+    and after the initial time, the output will be the final value / final rate.
+    This type of trajectory is type agnostic so you can use anything from a
+    scalar to a quaternion.  This is only really meant to be used for
+    testing to compare other trajectories to this as a performance baseline.
     """
 
     def __init__(self, initialValue, finalValue,
                  initialRate = 0, finalRate = 0,
                  initialTime = 0):
-
         self._initialValue = initialValue
         self._finalValue = finalValue
-
         self._initialRate = initialRate
         self._finalRate = finalRate
         self._initialTime = initialTime
-        self._finalRate = finalRate
-
 
         if initialTime == 0:
             self._relative = True
@@ -415,46 +404,63 @@ class StepTrajectory(Trajectory):
 
 class SlerpTrajectory(Trajectory):
     """
-    This trajectory is meant to interpolate between two
-    quaternions
+    This trajectory interpolates between two quaternions assuming a constant
+    angular rate.  The interpolation will occur over a given time period
+    starting at the given initial time.
     """
 
-    def __init__(self, initialQuat, finalQuat,
+    def __init__(self, initialValue, finalValue,
                  timePeriod, initialTime = 0):
-        self._initialQuat = initialQuat
-        self._finalQuat = finalQuat
+
+        assert isInstance(initialValue, math.Quaternion), \
+            'SlerpTrajectory: initialValue must be a Quaternion'
+        assert isInstance(finalValue, math.Quaternion), \
+            'SlerpTrajectory: finalValue must be a Quaternion'
+
+        self._initialValue = initialValue
+        self._finalValue = finalValue
         self._initialTime = initialTime
-        self._finalTime = finalTime
-        self._timeSpan = finalTime - initialTime
+        self._timePeriod = timePeriod
+        self._finalTime = initialTime + timePeriod
 
         if initialTime == 0:
             self._relative = True
         
         # slerp is constant angular velocity so lets
         # calculate it once here
-        rotQuat = initialQuat.errorQuaternion(finalQuat)
+        rotQuat = initialValue.errorQuaternion(finalValue)
         angle = math.Radian(0)
         axis = math.Vector3.ZERO
         rotQuat.ToAxisAngle(angle, axis)
-        self._angularVelocity = angle / self._timeSpan
+        self._angularVelocity = angle / self._timePeriod
 
     def computeValue(self, time):
-        if time > self._initialTime and time < self._finalTime:
-            pctComplete = (time - self._initialTime) / self._timeSpan
-            return math.Quaternion.Slerp(pctComplete, self._initialQuat,
-                                         self._finalQuat, true)
+        # before the initial time, we need to return the initial value
+        if time < self._initialTime:
+            return self._initialValue     
+   
+        # after the final time, we need to return the final value
+        elif time > self._finalTime:
+            return self._finalValue
+
+        # during the defined time, we calculate the trajectory value
         else:
-            return self._finalQuat
+            pctComplete = (time - self._initialTime) / self._timePeriod
+            return math.Quaternion.Slerp(pctComplete, self._initialValue,
+                                         self._finalValue, true)
         
 
+
     def computeDerivative(self, time, order = 1):
+        # during the defined time, compute the derivative
         if time > self._initialTime and time < self._finalTime:
             if order == 1:
                 return self._angularVelocity
             else:
                 return 0
+        # we dont know the pre, post conditions so return None
         else:
-            return 0
+            return None
 
     def getInitialTime(self):
         return self._initialTime
@@ -474,35 +480,45 @@ class AngularRateTrajectory(Trajectory):
     angular rate between the time interval specified
     """
 
-    def __init__(self, initialQuat, angularVelocity,
+    def __init__(self, initialValue, rate,
                  timePeriod, initialTime = 0):
-        self._currentQuat = initialQuat
-        self._angularVelocity = angularVelocity
+        self._initialValue = initialValue
+        self._rate = rate
         self._initialTime = initialTime
-        self._finalTime = finalTime
+        self._timePeriod = timePeriod
+        self._finalTime = initialTime + timePeriod
 
         if initialTime == 0:
             self._relative = True
 
     def computeValue(self, time):
-        if time > self._initialTime and time < self._finalTime:
+        # before the initial time, we need to return the initial value
+        if time < self._initialTime:
+            return self._initialValue
+        
+        # otherwise compute the difference in time between start and now
+        elif time > self._finalTime:
+            timestep = self._timePeriod
+        elif time > self._initialTime and time < self._finalTime:
             timestep = time - self._initialTime
-            derivativeQuat = self._currentQuat.derivative(m_angularVelocity)
-            self._currentQuat += timestep * derivativeQuat
-            self._currentQuat.normalise()
-            return self._currentQuat
-        else:
-            return self._currentQuat
+
+        # calculate the current value based on the timestep and rate
+        derivativeQuat = self._initialValue.derivative(self._rate)
+        currentValue += timestep * derivativeQuat
+        currentValue.normalise()
+        return currentValue
         
 
     def computeDerivative(self, time, order = 1):
+        # during the defined time, compute the derivative
         if time > self._initialTime and time < self._finalTime:
             if order == 1:
-                return self._angularVelocity
+                return self._rate
             else:
                 return 0
+        # we dont know the pre, post conditions so return None
         else:
-            return 0
+            return None
 
     def getInitialTime(self):
         return self._initialTime
@@ -512,7 +528,7 @@ class AngularRateTrajectory(Trajectory):
 
     def getMaxOfDerivative(self, order):
         if order == 1:
-            return self._angularVelocity
+            return self._rate
         else:
             return 0
 
