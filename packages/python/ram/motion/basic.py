@@ -302,6 +302,7 @@ class Motion(object):
         self._vehicle = None
         self._estimator = None
         self._eventHub = None
+        self._startTime = None
         self._type = _type
     
     def start(self, controller, vehicle, estimator, eventHub, eventPublisher):
@@ -324,7 +325,8 @@ class Motion(object):
         self._estimator = estimator
         self._eventHub = eventHub
         self._eventPublisher = eventPublisher
-        
+        self._startTime = timer.time()
+
         # Set up the publish method to be seemless and easy
         self.publish = self._eventPublisher.publish
         
@@ -382,8 +384,9 @@ class ChangeDepth(Motion):
         self._timer = timer.Timer(self, ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
                                   self._interval, repeat = True)
 
-        self._conn = self._eventHub.subscribeToType(ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
-                                                    self._update)
+        self._conn = self._eventHub.subscribeToType(\
+            ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
+            self._update)
 
         # evaluate the initial state of the trajectory
         initialTime = self._trajectory.getInitialTime()
@@ -396,7 +399,10 @@ class ChangeDepth(Motion):
         self._timer.start()
         
     def _update(self, event):
-        currentTime = timer.time()
+        if self._trajectory.isRelative():
+            currentTime = timer.time() - self._startTime
+        else:
+            currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
         newDepth = self._trajectory.computeValue(currentTime)
@@ -413,19 +419,25 @@ class ChangeDepth(Motion):
         """
         Finishes off the motion, disconnects events, and publishes finish event
         """
-        self._conn.disconnect()
-        self._timer.stop()
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
         Motion._finish(self)
 
     def stop(self):
-        pass
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
 
     @staticmethod
     def willComplete():
         return True
 
 class ChangeOrientation(Motion):
-    ORIENTATION_TRAJECTORY_UPDATE = core.declareEventType('ORIENTATION_TRAJECTORY_UPDATE')
+    ORIENTATION_TRAJECTORY_UPDATE = \
+        core.declareEventType('ORIENTATION_TRAJECTORY_UPDATE')
 
     def __init__(self, trajectory, updateRate = 25):
         """
@@ -462,7 +474,11 @@ class ChangeOrientation(Motion):
         
 
     def _update(self, event):
-        currentTime = timer.time()
+        # figure out at what time to evaluate the trajectory
+        if self._trajectory.isRelative():
+            currentTime = timer.time() - self._startTime
+        else:
+            currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
         newOrientation = self._trajectory.computeValue(currentTime)
@@ -493,7 +509,8 @@ class ChangeOrientation(Motion):
         return True
 
 class Translate(Motion):
-    INPLANE_TRAJECTORY_UPDATE = core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
+    INPLANE_TRAJECTORY_UPDATE = \
+        core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
     def __init__(self, trajectory, updateRate = 25):
         """
@@ -530,7 +547,11 @@ class Translate(Motion):
         self._controller.translate(initialPosition, initialVelocity)
 
     def _update(self, event):
-        currentTime = timer.time()
+        # figure out at what time to evaluate the trajectory
+        if self._trajectory.isRelative():
+            currentTime = timer.time() - self._startTime
+        else:
+            currentTime = timer.time()
 
         # evaluate the trajectory value and 1st derivative
         newPosition = self._trajectory.computeValue(currentTime)
