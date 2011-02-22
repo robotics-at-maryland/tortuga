@@ -17,7 +17,7 @@ import ext.core as core
 import ext.control as control
 import ext.vehicle as vehicle
 import ext.estimation as estimation
-import ext.math
+import ext.math as math
 
 import ram.timer as timer
 import ram.motion as motion
@@ -25,63 +25,129 @@ import ram.motion.basic
 
 # Mock subsystems
 class MockController(control.IController):
-    def __init__(self, eventHub):
+    def __init__(self, eventHub, estimator):
         control.IController.__init__(self, "Controller", eventHub)
-        self.depth = 0
-        self.yawChange = 0
-        self.speed = 0
-        self.sidewaysSpeed = 0
-        self.desiredOrientation = ext.math.Quaternion.IDENTITY
-        self.headingHolds = 0
-        self.depthHolds = 0
-        self.positionHolds = 0
+        self._depth = 0
+        self._depthRate = 0
+        self._depthAccel = 0
+
+        self._position = math.Vector2.ZERO
+        self._velocity = math.Vector2.ZERO
+        self._accel = math.Vector2.ZERO
+
+        self._orientation = math.Quaternion.IDENTITY
+        self._angularRate = math.Vector3.ZERO
+        self._angularAccel = math.Vector3.ZERO
+
+        self._yawChange = 0
+        self._headingHolds = 0
+        self._depthHolds = 0
+        self._positionHolds = 0
+
+        self._estimator = estimator
         
-    def setDepth(self, depth):
-        self.depth = depth
-        
-    def getDepth(self):
-        return self.depth
-        
-    def setSpeed(self, speed):
-        self.speed = speed
-        
-    def setSidewaysSpeed(self, speed):
-        self.sidewaysSpeed = speed
-        
-    def getSpeed(self):
-        return self.speed
+
+
+    def changeDepth(self, depth, depthRate = 0, depthAccel = 0):
+        self._depth = depth
+        self._depthRate = depthRate
+        self._depthAccel = depthAccel
+
+    def translate(self, position, 
+                  velocity = math.Vector2.ZERO,
+                  accel = math.Vector2.ZERO):
+        self._position = position
+        self._velocity = velocity
+        self._accel = accel
     
-    def getSidewaysSpeed(self):
-        return self.sidewaysSpeed
+    def rotate(self, orientation,
+               angularRate = math.Vector3.ZERO,
+               angularAccel = math.Vector3.ZERO):
+        self._orientation = orientation
+        self._angularRate = angularRate
+        self._angularAccel = angularAccel
+        
+
+
+    def getDesiredDepth(self):
+        return self._depth
+        
+    def getDesiredDepthRate(self):
+        return self._depthRate
+
+    def getDesiredDepthAccel(self):
+        return self._depthAccel
+
+
+
+
+    def getDesiredPosition(self):
+        return self._position
+
+    def getDesiredVelocity(self):
+        return self._velocity
+
+    def getDesiredAccel(self):
+        return self._accel
+    
+
+
+    def getDesiredOrientation(self):
+        return self._orientation
+    
+    def getDesiredAngularRate(self):
+        return self._angularRate
+
+    def getDesiredAngularAccel(self):
+        return self._angularAccel
+
+
 
     def holdCurrentDepth(self):
-        self.depthHolds += 1
+        self._depthHolds += 1
 
     def holdCurrentHeading(self):
-        self.headingHolds += 1
+        self._headingHolds += 1
 
     def holdCurrentPosition(self):
-        self.positionHolds += 1
+        self._positionHolds += 1
         
+
     def yawVehicle(self, yawChange):
-        self.yawChange = yawChange
+        self._yawChange = yawChange
         
     def setDesiredOrientation(self, orien):
-        self.desiredOrientation = orien
+        self._desiredOrientation = orien
         
     def getDesiredOrientation(self):
-        return self.desiredOrientation
+        return self._desiredOrientation
+
+
+
+    def atDepth(self):
+        if self._depth == self._estimator.getEstimatedDepth():
+            return True
+        else:
+            return False
         
-    def publishAtDepth(self, vehicleDepth):
-        event = ext.math.NumericEvent()
-        event.number = vehicleDepth
-        self.publish(control.IController.AT_DEPTH, event)
-        
-    def publishAtOrientation(self, vehicleOrientation):
-        event = ext.math.OrientationEvent()
-        event.orientation = vehicleOrientation
-        self.publish(control.IController.AT_ORIENTATION, event)
-        
+    def atPosition(self):
+        print self._position, ' ', self._estimator.getEstimatedPosition()
+        if self._position == self._estimator.getEstimatedPosition():
+            return True
+        else:
+            return False
+
+    def atVelocity(self):
+        if self._velocity == self._estimator.getEstimatedVelocity():
+            return True
+        else:
+            return False
+
+    def atOrientation(self):
+        if self._orientation == self._estimator.getEstimatedOrientation():
+            return True
+        else:
+            return False
         
 class MockVehicle(vehicle.IVehicle):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
@@ -99,8 +165,8 @@ class MockVehicle(vehicle.IVehicle):
         self.torpedosFired = 0
         self.grabberRelease = False
         self.unsafed = True
-        self.force = ext.math.Vector3.ZERO
-        self.torque = ext.math.Vector3.ZERO
+        self.force = math.Vector3.ZERO
+        self.torque = math.Vector3.ZERO
     
     def applyForcesAndTorques(self, force, torque):
         self.force = force
@@ -130,12 +196,12 @@ class MockEstimator(estimation.IStateEstimator):
     def __init__(self, eventHub = core.EventHub(), cfg = None):
         estimation.IStateEstimator.__init__(self, "StateEstimator", eventHub)
 
-        self._position = ext.math.Vector2(0, 0)
-        self._velocity = ext.math.Vector2(0, 0)
-        self._orientation = ext.math.Quaternion.IDENTITY
+        self._position = math.Vector2(0, 0)
+        self._velocity = math.Vector2(0, 0)
+        self._orientation = math.Quaternion.IDENTITY
         self._depth = 0
-        self.linAccel = ext.math.Vector3.ZERO
-        self.angRate = ext.math.Vector3.ZERO
+        self.linAccel = math.Vector3.ZERO
+        self.angRate = math.Vector3.ZERO
 
         self._obstacles = {}
         
@@ -162,23 +228,23 @@ class MockEstimator(estimation.IStateEstimator):
         return 0
 
     def publishOrientationUpdate(self, vehicleOrientation):
-        event = ext.math.OrientationEvent()
+        event = math.OrientationEvent()
         event.orientation = vehicleOrientation
         self.publish(estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
                      event)
 
     def publishVelocityUpdate(self, vehicleVelocity):
-        event = ext.math.Vector2Event()
+        event = math.Vector2Event()
         event.vector2 = vehicleVelocity
         self.publish(estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE, event)
 
     def publishPositionUpdate(self, vehiclePosition):
-        event = ext.math.Vector2Event()
+        event = math.Vector2Event()
         event.vector2 = vehiclePosition
         self.publish(estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE, event)
 
     def publishDepthUpdate(self, vehicleDepth):
-        event = ext.math.NumericEvent()
+        event = math.NumericEvent()
         event.number = vehicleDepth
         self.publish(estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE, event)
 
@@ -266,8 +332,8 @@ class MotionTest(unittest.TestCase):
         # Create the event hub to collect all published events
         self.eventHub = core.EventHub()
         self.vehicle = MockVehicle(self.eventHub)
-        self.controller = MockController(self.eventHub)
         self.estimator = MockEstimator(self.eventHub)
+        self.controller = MockController(self.eventHub, self.estimator)
         
         # The QueuedEventHub lets us queue the events to be released when ready
         self.qeventHub = core.QueuedEventHub(self.eventHub)
