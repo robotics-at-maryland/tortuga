@@ -172,901 +172,146 @@ class TestChangeDepth(support.MotionTest):
         m = motion.basic.ChangeDepth(StepTrajectory(10, 5))
         self.assertEqual(motion.basic.Motion.DEPTH, m.type)
         
-    def testDive(self):
+    def testChangeDepth(self):
+        # this doesnt need to test how we get to the result, it only
+        # tests that we get there without crashing along the way
+        m = motion.basic.ChangeDepth(StepTrajectory(initialValue = 10,
+                                                    finalValue = 5),
+                                     updateRate = 1)
+
+        # set the final position
         self.estimator.depth = 5
-        m = motion.basic.ChangeDepth(10, 5)
+
         self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         
-        # First step
+        # set the motion
         self.motionManager.setMotion(m)
-        
-        for i in xrange(6,11):
-            # Make sure we didn't finish early
-            self.assert_(not self.motionFinished)
-            # Make sure the proper depth was commanded
-            self.assertEqual(i, self.controller.depth)
-            # Say we have reached the depth to keep going
-            self.controller.publishAtDepth(i)
-            self.qeventHub.publishEvents()
-            
-        self.assert_(self.motionFinished)
-            
-    def testSurface(self):
-        self.estimator.depth = 10
-        m = motion.basic.ChangeDepth(5, 5) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                      self.handleFinished)
-        
-        # First step
-        self.motionManager.setMotion(m)
-        
-        for i in reversed(xrange(5,10)):
-            # Make sure we didn't finish early
-            self.assert_(not self.motionFinished)
-            # Make sure the proper depth was commanded
-            self.assertEqual(i, self.controller.depth)
-            # Say we have reached the depth to keep going
-            self.controller.publishAtDepth(i)
-            self.qeventHub.publishEvents()
-            
-        self.assert_(self.motionFinished)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.ChangeDepth',
-            desiredDepth = 5,
-            steps = 10)
-
-        self.assertEqual(m._desiredDepth, 5)
-        self.assertEqual(m._steps, 10)
-
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.ChangeDepth', complete = True,
-            desiredDepth = 5,
-            steps = 10)
-
-        self.assertEqual(m._desiredDepth, 5)
-        self.assertEqual(m._steps, 10)
-
-class TestRateChangeDepth(support.MotionTest):
-    def setUp(self):
-        support.MotionTest.setUp(self)
-        self.motionFinished = False
-
-    def handleFinished(self, event):
-        self.motionFinished = True
-        
-    def testType(self):
-        m = motion.basic.RateChangeDepth(10, 5) 
-        self.assertEqual(motion.basic.Motion.DEPTH, m.type)
-        
-    def testDive(self):
-        self.estimator.depth = 5
-        
-        # Go to ten units, at 1 unit a second, with a 10Hz update rate
-        m = motion.basic.RateChangeDepth(desiredDepth = 11, speed=2, rate = 10) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # Start
-        self.motionManager.setMotion(m)
-
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.RateChangeDepth.NEXT_DEPTH]
-        self.assert_(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 0.1)
-
-        # Check fifty steps
-        expectedDepth = 5
-        for i in xrange(0, 30):
-            expectedDepth += 0.2
-            mockTimer.finish()
-            self.qeventHub.publishEvents()
-            self.assertEqual(expectedDepth, self.controller.depth)
-        self.assertAlmostEqual(11, self.controller.depth, 3)
-
-        # Make sure more events don't let it keep going        
-        mockTimer.finish()
+        print m._timer
+        # publish the event to update
+        timer = support.MockTimer.LOG[
+            motion.basic.ChangeDepth.DEPTH_TRAJECTORY_UPDATE]
+        timer.finish()
         self.qeventHub.publishEvents()
 
-        self.assertAlmostEqual(11, self.controller.depth, 3)
-        self.assertEqual(True, self.motionFinished)
-
-    def testSurface(self):
-        self.estimator.depth = 10
-        
-        # Go to ten units, at 1 unit a second, with a 10Hz update rate
-        m = motion.basic.RateChangeDepth(desiredDepth = 4, speed=2, rate = 10) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # Start
-        self.motionManager.setMotion(m)
-
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.RateChangeDepth.NEXT_DEPTH]
-        self.assert_(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 0.1)
-
-        # Check fifty steps
-        expectedDepth = 10
-        for i in xrange(0, 30):
-            expectedDepth -= 0.2
-            mockTimer.finish()
-            self.qeventHub.publishEvents()
-            self.assertEqual(expectedDepth, self.controller.depth)
-        self.assertAlmostEqual(4, self.controller.depth, 3)
-
-        # Make sure more events don't let it keep going        
-        mockTimer.finish()
-        self.qeventHub.publishEvents()
-
-        self.assertAlmostEqual(4, self.controller.depth, 3)
-        self.assertEqual(True, self.motionFinished)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.RateChangeDepth',
-            desiredDepth = 5,
-            speed = 0.3)
-
-        self.assertEqual(m._desiredDepth, 5)
-        self.assertEqual(m._speed, 0.3)
-
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.RateChangeDepth', complete = True,
-            desiredDepth = 5,
-            speed = 0.3)
-
-        self.assertEqual(m._desiredDepth, 5)
-        self.assertEqual(m._speed, 0.3)
-        
-class TestChangeHeading(support.MotionTest):
-    def setUp(self):
-        support.MotionTest.setUp(self)
-        self.motionFinished = False
-
-    def handleFinished(self, event):
-        self.motionFinished = True
-        
-    def testLeft(self):
-        m = motion.basic.ChangeHeading(30, 5) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # First step
-        self.motionManager.setMotion(m)
-        
-        for i in xrange(6, 36, 6):
-            # Make sure we didn't finish early
-            self.assert_(not self.motionFinished)
-            # Make sure the proper depth was commanded
-            self.assertAlmostEqual(6, self.controller.yawChange, 2)
-            # Say we have reached the depth to keep going
-            self.controller.publishAtOrientation(
-                math.Quaternion(math.Radian(math.Degree(i)),
-                                math.Vector3.UNIT_Z))
-            self.qeventHub.publishEvents()
-            
-        self.assert_(self.motionFinished)            
-            
-    def testRight(self):
-        m = motion.basic.ChangeHeading(-30, 5) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # First step
-        self.motionManager.setMotion(m)
-        
-        for i in xrange(6, 36, 6):
-            # Make sure we didn't finish early
-            self.assert_(not self.motionFinished)
-            # Make sure the proper depth was commanded
-            self.assertAlmostEqual(-6, self.controller.yawChange, 2)
-            # Say we have reached the depth to keep going
-            self.controller.publishAtOrientation(
-                math.Quaternion(math.Radian(math.Degree(-i)),
-                                math.Vector3.UNIT_Z))
-            self.qeventHub.publishEvents()
-            
+        # see if the motion finished
         self.assert_(self.motionFinished)
 
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.ChangeHeading',
-            desiredHeading = 5,
-            steps = 10)
+        # Make sure we have reached the final value
+        self.assert_(self.controller.atDepth())
 
-        self.assertEqual(m._desiredHeading, 5)
-        self.assertEqual(m._steps, 10)
+    # def testGenerator(self):
+    #     # Test the generator for this motion works
+    #     m = motion.basic.MotionManager.generateMotion(
+    #         'ram.motion.basic.ChangeDepth',
+    #         desiredDepth = 5,
+    #         steps = 10)
 
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.ChangeHeading', complete = True,
-            desiredHeading = 5,
-            steps = 10)
+    #     self.assertEqual(m._desiredDepth, 5)
+    #     self.assertEqual(m._steps, 10)
 
-        self.assertEqual(m._desiredHeading, 5)
-        self.assertEqual(m._steps, 10)
-            
-class TestRateChangeHeading(support.MotionTest):
+    #     m = motion.basic.MotionManager.generateMotion(
+    #         'ram.motion.basic.ChangeDepth', complete = True,
+    #         desiredDepth = 5,
+    #         steps = 10)
+
+    #     self.assertEqual(m._desiredDepth, 5)
+    #     self.assertEqual(m._steps, 10)
+
+class TestTranslate(support.MotionTest):
     def setUp(self):
         support.MotionTest.setUp(self)
         self.motionFinished = False
 
     def handleFinished(self, event):
         self.motionFinished = True
-        
-    def _getControllerHeading(self):
-        return self.controller.desiredOrientation.getYaw(True).valueDegrees()
-        
+
     def testType(self):
-        m = motion.basic.RateChangeHeading(50, 5) 
+        m = motion.basic.Translate(
+            StepTrajectory(initialValue = math.Vector2(10, 10),
+                           finalValue = math.Vector2(5, 5)))
+
+        self.assertEqual(motion.basic.Motion.IN_PLANE, m.type)
+
+    def testTranslate(self):
+        # this doesnt need to test how we get to the result, it only
+        # tests that we get there without crashing along the way
+        m = motion.basic.Translate(
+            StepTrajectory(initialValue = math.Vector2(10, 10),
+                           finalValue = math.Vector2(5, 5),
+                           initialRate = math.Vector2(0,0),
+                           finalRate = math.Vector2(0,0)),
+            updateRate = 1)
+        
+        self.estimator.position = math.Vector2(5,5)
+        self.estimator.velocity = math.Vector2(0,0)
+
+        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
+                                       self.handleFinished)
+        
+        # set the motion
+        self.motionManager.setMotion(m)
+
+        # publish the event to update
+        timer = support.MockTimer.LOG[
+            motion.basic.Translate.INPLANE_TRAJECTORY_UPDATE]
+        timer.finish()
+        self.qeventHub.publishEvents()
+
+        # see if the motion finished
+        self.assert_(self.motionFinished)
+
+        # Make sure we have reached the final value
+        self.assert_(self.controller.atPosition())
+
+    # def testGenerator(self):
+
+            
+
+class TestChangeOrientation(support.MotionTest):
+    def setUp(self):
+        support.MotionTest.setUp(self)
+        self.motionFinished = False
+
+    def handleFinished(self, event):
+        self.motionFinished = True
+
+    def testType(self):
+        m = motion.basic.ChangeOrientation(\
+            StepTrajectory(initialValue = math.Quaternion(1,0,0,0),
+                           finalValue = math.Quaternion(0,0,0,1)))
         self.assertEqual(motion.basic.Motion.ORIENTATION, m.type)
+
+    def testChangeOrientation(self):
+        # this doesnt need to test how we get to the result, it only
+        # tests that we get there without crashing along the way
+        m = motion.basic.ChangeOrientation(\
+            StepTrajectory(initialValue = math.Quaternion(1,0,0,0),
+                           finalValue = math.Quaternion(0,0,0,1)),
+            updateRate = 1)
         
-    def testLeft(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(30),
-                                                     math.Vector3.UNIT_Z)
-        
-        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
-        m = motion.basic.RateChangeHeading(desiredHeading = 60, speed = 10, 
-                                           rate = 10) 
+        self.estimator.orientation = math.Quaternion(0,0,0,1)
+
         self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
                                        self.handleFinished)
         
-        # Start
+        # set the motion
         self.motionManager.setMotion(m)
 
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
-        self.assert_(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 0.1)
-
-        # Check thirty steps
-        expectedHeading = 30
-        for i in xrange(0, 30):
-            expectedHeading += 1
-            mockTimer.finish()
-            self.qeventHub.publishEvents()
-            self.assertAlmostEqual(expectedHeading, 
-                                   self._getControllerHeading(), 3)
-        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
-
-        # Make sure more events don't let it keep going        
-        mockTimer.finish()
+        # publish the event to update
+        timer = support.MockTimer.LOG[
+            motion.basic.ChangeOrientation.ORIENTATION_TRAJECTORY_UPDATE]
+        timer.finish()
         self.qeventHub.publishEvents()
 
-        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
-        self.assertEqual(True, self.motionFinished)
+        # see if the motion finished
+        self.assert_(self.motionFinished)
 
-    def testRight(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(10),
-                                                     math.Vector3.UNIT_Z)
-        
-        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
-        m = motion.basic.RateChangeHeading(desiredHeading = -50, speed = 10, 
-                                           rate = 10) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # Start
-        self.motionManager.setMotion(m)
+        # Make sure we have reached the final value
+        self.assert_(self.controller.atOrientation())
 
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
-        self.assert_(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 0.1)
+    # def testGenerator(self):
 
-        # Check thirty steps
-        expectedHeading = 10
-        for i in xrange(0, 60):
-            expectedHeading -= 1
-            mockTimer.finish()
-            self.qeventHub.publishEvents()
-            self.assertAlmostEqual(expectedHeading, 
-                                   self._getControllerHeading(), 3)
-        self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
-
-        # Make sure more events don't let it keep going        
-        mockTimer.finish()
-        self.qeventHub.publishEvents()
-
-        self.assertAlmostEqual(-50, self._getControllerHeading(), 1)
-        self.assertEqual(True, self.motionFinished)
-
-    def testNoTurn(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(10),
-                                                     math.Vector3.UNIT_Z)
-        
-        # Go to 10 degrees, at 10 degrees a second, with a 10Hz update rate
-        m = motion.basic.RateChangeHeading(desiredHeading = 10, speed = 10, 
-                                           rate = 10) 
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # Start
-        self.motionManager.setMotion(m)
-
-        self.qeventHub.publishEvents()
-
-        self.assertAlmostEqual(10, self._getControllerHeading(), 1)
-        self.assertEqual(True, self.motionFinished)
-        
-    def testRelativeTurn(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(30),
-                                                     math.Vector3.UNIT_Z)
-        
-        # Go to 60 degrees, at 10 degrees a second, with a 10Hz update rate
-        m = motion.basic.RateChangeHeading(desiredHeading = 30, speed = 10, 
-                                           rate = 10, absolute = False)
-        self.qeventHub.subscribeToType(motion.basic.Motion.FINISHED, 
-                                       self.handleFinished)
-        
-        # Start
-        self.motionManager.setMotion(m)
-
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.RateChangeHeading.NEXT_HEADING]
-        self.assert_(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 0.1)
-
-        # Check thirty steps
-        expectedHeading = 30
-        for i in xrange(0, 30):
-            expectedHeading += 1
-            mockTimer.finish()
-            self.qeventHub.publishEvents()
-            self.assertAlmostEqual(expectedHeading, 
-                                   self._getControllerHeading(), 3)
-        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
-
-        # Make sure more events don't let it keep going        
-        mockTimer.finish()
-        self.qeventHub.publishEvents()
-
-        self.assertAlmostEqual(60, self._getControllerHeading(), 1)
-        self.assertEqual(True, self.motionFinished)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.RateChangeHeading',
-            desiredHeading = 5,
-            speed = 10)
-
-        self.assertEqual(m._desiredHeading, 5)
-        self.assertEqual(m._speed, 10)
-
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.RateChangeHeading', complete = True,
-            desiredHeading = 5,
-            speed = 10)
-
-        self.assertEqual(m._desiredHeading, 5)
-        self.assertEqual(m._speed, 10)
-
-class TestMoveDirection(support.MotionTest):
-    def makeClass(self, *args, **kwargs):
-        return motion.basic.MoveDirection(*args, **kwargs)
-    
-    def testType(self):
-        m = self.makeClass(desiredHeading = 35, speed = 8)
-        expType = motion.basic.Motion.IN_PLANE
-        self.assertEquals(expType, m.type)
-    
-    def testStraight(self):
-        self.estimator.orientation = math.Quaternion.IDENTITY;
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertEqual(5, self.controller.speed)
-        self.assertEqual(0, self.controller.sidewaysSpeed)
-        
-    def testRight(self):
-        # Vehicle pointed striagh ahead
-        self.estimator.orientation = math.Quaternion.IDENTITY
-        
-        m = self.makeClass(desiredHeading = 90, speed = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 4)
-        self.assertAlmostEqual(-5, self.controller.sidewaysSpeed, 4)
-        
-    def testOffset(self):
-        # Vehicle pointed 30 degrees left
-        self.estimator.orientation = math.Quaternion(math.Degree(30),
-                                                     math.Vector3.UNIT_Z)
-        
-        # Move in a direction 45 degrees left
-        m = self.makeClass(desiredHeading = 75, speed = 5)
-        self.motionManager.setMotion(m)
-        
-        expectedSpeed = pmath.sqrt(2)/2.0 * 5
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 4)
-        self.assertAlmostEqual(-expectedSpeed, self.controller.sidewaysSpeed,4)
-
-    def testOrientationUpdate(self):
-        """Make sure we update when we get an orientation event"""
-        
-        self.estimator.orientation = math.Quaternion.IDENTITY
-        
-        m = self.makeClass(desiredHeading = -90, speed = 6)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
-
-        # Change vehicle orientation
-        orientation = math.Quaternion(math.Degree(-45), math.Vector3.UNIT_Z)
-        self.estimator.publishOrientationUpdate(orientation)
-        self.qeventHub.publishEvents()
-        
-        # Make sure the speeds result from the updated orientation not the
-        # starting one
-        expectedSpeed = pmath.sqrt(2)/2.0 * 6
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
-        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
-        
-        self.motionManager.stopCurrentMotion()
-    
-    def testRelativeDirection(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(60),
-                                                     math.Vector3.UNIT_Z);
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5, absolute = False)
-        self.motionManager.setMotion(m)
-        
-        self.assertEqual(5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        m = self.makeClass(desiredHeading = -180, speed = 5, absolute = False)
-        self.motionManager.setMotion(m)
-
-        self.assertEqual(-5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-        
-    def testDirectionAfterTurn(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(60),
-                                                     math.Vector3.UNIT_Z)
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5, absolute = False)
-        self.motionManager.setMotion(m)
-        
-        self.assertEqual(5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        # Now turn the vehicle 90 degrees and make sure it's still heading
-        # the same direction
-        self.estimator.orientation = math.Quaternion(math.Degree(150),
-                                                     math.Vector3.UNIT_Z)
-        self.estimator.publishOrientationUpdate(self.estimator.orientation)
-        self.qeventHub.publishEvents()
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertEqual(5, self.controller.sidewaysSpeed)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.MoveDirection',
-            desiredHeading = 5,
-            speed = 3)
-
-        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
-                                                       math.Vector3.UNIT_Z))
-        self.assertEqual(m._speed, 3)
-
-        try:
-            m = motion.basic.MotionManager.generateMotion(
-                'ram.motion.basic.MoveDirection', complete = True,
-                desiredHeading = 5,
-                speed = 3)
-            self.assert_(False)
-        except Exception:
-            pass
-
-class TestTimedMoveDirection(TestMoveDirection):
-    def makeClass(self, *args, **kwargs):
-        if not kwargs.has_key('duration'):
-            kwargs['duration'] = 0
-        return motion.basic.TimedMoveDirection(*args, **kwargs)
-    
-    def testTiming(self):
-        self.finished = False
-        def handler(event):
-            self.finished = True
-        self.eventHub.subscribeToType(motion.basic.Motion.FINISHED,
-                                      handler)
-        
-        # Start it up
-        self.estimator.orientation = math.Quaternion.IDENTITY
-        m = self.makeClass(desiredHeading = -45, speed = 3, duration = 5.5)
-        self.motionManager.setMotion(m)
-        self.assertFalse(self.finished)
-        
-        # Ensure speeds our present
-        expectedSpeed = pmath.sqrt(2)/2.0 * 3
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 6)
-        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
-        
-        # Check Timer
-        mockTimer = \
-            support.MockTimer.LOG[motion.basic.TimedMoveDirection.COMPLETE]
-        self.assertFalse(mockTimer.repeat)
-        self.assertEqual(mockTimer.sleepTime, 5.5)
-        
-        # Finish
-        mockTimer.finish()
-        self.qeventHub.publishEvents()
-        
-        self.assertEqual(0, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed)
-        self.assert_(self.finished)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.TimedMoveDirection',
-            desiredHeading = 5,
-            speed = 3,
-            duration = 10)
-
-        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
-                                                       math.Vector3.UNIT_Z))
-        self.assertEqual(m._speed, 3)
-        self.assertEqual(m._duration, 10)
-
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.TimedMoveDirection', complete = True,
-            desiredHeading = 5,
-            speed = 3,
-            duration = 10)
-
-        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
-                                                       math.Vector3.UNIT_Z))
-        self.assertEqual(m._speed, 3)
-        self.assertEqual(m._duration, 10)
-
-class TestMoveDistance(support.MotionTest):
-    def makeClass(self, *args, **kwargs):
-        return motion.basic.MoveDistance(*args, **kwargs)
-    
-    def testType(self):
-        m = self.makeClass(desiredHeading = 35, speed = 8, distance = 5)
-        expType = motion.basic.Motion.IN_PLANE
-        self.assertEquals(expType, m.type)
-    
-    def testStraight(self):
-        self.estimator.orientation = math.Quaternion.IDENTITY;
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5, distance = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(5, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-        
-    def testRight(self):
-        # Vehicle pointed straight ahead
-        self.estimator.orientation = math.Quaternion.IDENTITY
-        
-        m = self.makeClass(desiredHeading = 90, speed = 5, distance = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 4)
-        self.assertAlmostEqual(-5, self.controller.sidewaysSpeed, 4)
-        
-    def testOffset(self):
-        # Vehicle pointed 30 degrees left
-        self.estimator.orientation = math.Quaternion(math.Degree(30),
-                                                     math.Vector3.UNIT_Z)
-        self.estimator.position = math.Vector2(0, 0)
-        
-        # Move in a direction 45 degrees left
-        m = self.makeClass(desiredHeading = 75, speed = 5, distance = 5)
-        self.motionManager.setMotion(m)
-        
-        expectedSpeed = pmath.sqrt(2)/2.0 * 5
-        self.assertAlmostEqual(expectedSpeed, self.controller.speed, 4)
-        self.assertAlmostEqual(-expectedSpeed, self.controller.sidewaysSpeed,4)
-
-    def testPositionUpdate(self):
-        """ Make sure the motion only finishes on an update at the target """
-
-        self.estimator.position = math.Vector2(0, 0)
-        self.estimator.orientation = math.Quaternion.IDENTITY
-        
-        m = self.makeClass(desiredHeading = -90, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
-
-        # Change vehicle position
-        position = math.Vector2(2.5, 2.5)
-        self.estimator.publishPositionUpdate(position)
-        self.qeventHub.publishEvents()
-        
-        # Make sure the speeds result from the updated position not the
-        # starting one
-        expectedSpeed = pmath.sqrt(2)/2.0 * 6
-        self.assertAlmostEqual(-expectedSpeed, self.controller.speed, 6)
-        self.assertAlmostEqual(expectedSpeed, self.controller.sidewaysSpeed, 6)
-        
-        self.motionManager.stopCurrentMotion()
-
-    def testUnitVector(self):
-        # Create an instance of MoveDistance so we can test the function
-        # Parameters don't matter
-        m = self.makeClass(desiredHeading = 0, speed = 6, distance = 5)
-
-        # constants
-        sq3_2 = pmath.sqrt(3)/2.0
-        sq2_2 = pmath.sqrt(2)/2.0
-        # Test all major degrees, degrees based on right hand rule
-
-        # 0 degrees = north
-        vector = m._unitvector(0)
-        expected = math.Vector2(0.0, 1.0)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 30 degrees = NNW
-        vector = m._unitvector(30)
-        expected = math.Vector2(-0.5, sq3_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 45 degrees = NW
-        vector = m._unitvector(45)
-        expected = math.Vector2(-sq2_2, sq2_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 60 degrees = WNW
-        vector = m._unitvector(60)
-        expected = math.Vector2(-sq3_2, 0.5)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 90 degrees = west
-        vector = m._unitvector(90)
-        expected = math.Vector2(-1.0, 0.0)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 120 degrees = WSW
-        vector = m._unitvector(120)
-        expected = math.Vector2(-sq3_2, -0.5)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 135 degrees = SW
-        vector = m._unitvector(135)
-        expected = math.Vector2(-sq2_2, -sq2_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 150 degrees = SSW
-        vector = m._unitvector(150)
-        expected = math.Vector2(-0.5, -sq3_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # 180 degrees = south
-        vector = m._unitvector(180)
-        expected = math.Vector2(0.0, -1.0)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -150 degrees = SSE
-        vector = m._unitvector(-150)
-        expected = math.Vector2(0.5, -sq3_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -135 degrees = SE
-        vector = m._unitvector(-135)
-        expected = math.Vector2(sq2_2, -sq2_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -120 degrees = ESE
-        vector = m._unitvector(-120)
-        expected = math.Vector2(sq3_2, -0.5)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -90 degrees = east
-        vector = m._unitvector(-90)
-        expected = math.Vector2(1.0, 0.0)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -60 degrees = ENE
-        vector = m._unitvector(-60)
-        expected = math.Vector2(sq3_2, 0.5)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -45 degrees = NE
-        vector = m._unitvector(-45)
-        expected = math.Vector2(sq2_2, sq2_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-        # -30 degrees = NNE
-        vector = m._unitvector(-30)
-        expected = math.Vector2(0.5, sq3_2)
-        self.assertAlmostEqual(vector.x, expected.x, 5)
-        self.assertAlmostEqual(vector.y, expected.y, 5)
-
-    def testDirection(self):
-        """
-        Check that the vehicle chooses the correct desired position
-        """
-
-        self.estimator.position = math.Vector2(0, 0)
-        self.estimator.orientation = math.Quaternion(math.Degree(-45),
-                                                     math.Vector3.UNIT_Z)
-
-        # Moving forward
-        m = self.makeClass(desiredHeading = -45, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        root = pmath.sqrt(2)/2.0
-        expectedPosition = math.Vector2(root * 5.0, root * 5.0)
-        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
-        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
-        
-        self.assertAlmostEqual(6, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        m = self.makeClass(desiredHeading = -45, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        root = pmath.sqrt(2)/2.0
-        expectedPosition = math.Vector2(root * 5.0, root * 5.0)
-        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
-        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
-        
-        self.assertAlmostEqual(6, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        # Moving backward
-        m = self.makeClass(desiredHeading = 135, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        expectedPosition = math.Vector2(root * -5.0, root * -5.0)
-        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
-        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
-        
-        self.assertAlmostEqual(-6, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        # Moving left
-        m = self.makeClass(desiredHeading = 45, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        expectedPosition = math.Vector2(root * -5.0, root * 5.0)
-        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
-        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(-6, self.controller.sidewaysSpeed, 5)
-
-        # Moving right
-        m = self.makeClass(desiredHeading = -135, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        expectedPosition = math.Vector2(root * 5.0, root * -5.0)
-        self.assertAlmostEqual(expectedPosition.x, m._desiredPosition.x, 5)
-        self.assertAlmostEqual(expectedPosition.y, m._desiredPosition.y, 5)
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(6, self.controller.sidewaysSpeed, 5)
-
-    def testFinish(self):
-        """ Make sure that reaching the destination finishes the motion """
-
-        self._finished = False
-        # Create a function to be called to ensure the motion was finished
-        def _handler(event):
-            self._finished = True
-
-        # Subscribe to the Motion.FINISHED event
-        self.eventHub.subscribeToType(
-            motion.basic.Motion.FINISHED, _handler)
-
-        self.estimator.position = math.Vector2(0, 0)
-        self.estimator.orientation = math.Quaternion.IDENTITY
-
-        m = self.makeClass(desiredHeading = 0, speed = 6, distance = 5)
-        self.motionManager.setMotion(m)
-
-        # Make sure the motion hasn't already finished
-        self.assert_(not self._finished)
-
-        self.assertAlmostEqual(6, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        # Change the position and publish an update
-        position = math.Vector2(0, 5)
-        self.estimator.publishPositionUpdate(position)
-        self.qeventHub.publishEvents()
-
-        # Check that the vehicle is not moving and the motion is finished
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-        self.assert_(self._finished)
-
-    def testRelativeDirection(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(60),
-                                                     math.Vector3.UNIT_Z)
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5,
-                           distance = 5, absolute = False)
-        self.motionManager.setMotion(m)
-        
-        self.assertEqual(5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        m = self.makeClass(desiredHeading = -180, speed = 5,
-                           distance = 5, absolute = False)
-        self.motionManager.setMotion(m)
-
-        self.assertEqual(-5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-        
-    def testDirectionAfterTurn(self):
-        self.estimator.orientation = math.Quaternion(math.Degree(60),
-                                                     math.Vector3.UNIT_Z)
-        
-        m = self.makeClass(desiredHeading = 0, speed = 5,
-                           distance = 5, absolute = False)
-        self.motionManager.setMotion(m)
-        
-        self.assertEqual(5, self.controller.speed)
-        self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 5)
-
-        # Now turn the vehicle 90 degrees and make sure it's still heading
-        # the same direction
-        self.estimator.orientation = math.Quaternion(math.Degree(150),
-                                                     math.Vector3.UNIT_Z)
-        self.estimator.publishOrientationUpdate(self.estimator.orientation)
-        self.estimator.publishPositionUpdate(self.estimator.position)
-        self.qeventHub.publishEvents()
-        
-        self.assertAlmostEqual(0, self.controller.speed, 5)
-        self.assertEqual(5, self.controller.sidewaysSpeed)
-
-    def testGenerator(self):
-        # Test the generator for this motion works
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.MoveDistance',
-            desiredHeading = 5,
-            distance = 10,
-            speed = 3)
-
-        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
-                                                       math.Vector3.UNIT_Z))
-        self.assertEqual(m._distance, 10)
-        self.assertEqual(m._speed, 3)
-
-        m = motion.basic.MotionManager.generateMotion(
-            'ram.motion.basic.MoveDistance', complete = True,
-            desiredHeading = 5,
-            distance = 10,
-            speed = 3)
-
-        self.assertEqual(m._direction, math.Quaternion(math.Degree(5),
-                                                       math.Vector3.UNIT_Z))
-        
-        self.assertEqual(m._distance, 10)
-        self.assertEqual(m._speed, 3)
             
 if __name__ == '__main__':
     unittest.main()
