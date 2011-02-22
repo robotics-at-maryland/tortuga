@@ -30,6 +30,8 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion = local_ns.class_('Quaternion')
     Matrix2 = local_ns.class_('Matrix2')
     Matrix3 = local_ns.class_('Matrix3')
+    bRn = local_ns.free_function('bRn')
+    nRb = local_ns.free_function('nRb')
 
     # Include them
     Radian.include()
@@ -39,6 +41,8 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion.include()
     Matrix2.include()
     Matrix3.include()
+    bRn.include()
+    nRb.include()
 
     classes.extend([Radian, Degree, Vector2, Vector3, Quaternion, Matrix2,
                     Matrix3])
@@ -90,6 +94,7 @@ def generate(module_builder, local_ns, global_ns):
                                    Matrix3], False)
 
     include_files = set([cls.location.file_name for cls in classes])
+    include_files.add('math/include/Helpers.h')
     for cls in classes:
         include_files.update(cls.include_files)
     return ['math/include/Math.h'] + list(include_files)
