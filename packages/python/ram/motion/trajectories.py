@@ -74,7 +74,7 @@ class ScalarCubicTrajectory(Trajectory):
 
     # this is a parameter that relates the max rate to the time
     # interval in which the trajectory will be defined
-    MAGIC_RATE_SLOPE = 10
+    MAGIC_RATE_SLOPE = 10.0
 
 
     def __init__(self, initialValue, finalValue, initialTime = 0,
@@ -207,7 +207,7 @@ class Vector2CubicTrajectory(Trajectory):
     
     # this is a parameter that relates the max rate to the time
     # interval in which the trajectory will be defined
-    MAGIC_RATE_SLOPE = 10
+    MAGIC_RATE_SLOPE = 10.0
 
     def __init__(self, initialValue, finalValue, initialTime = 0,
                  initialRate = 0, finalRate = 0, maxRate = 3):
@@ -343,7 +343,7 @@ class Vector2CubicTrajectory(Trajectory):
         return self._relative
 
     def approximateTimePeriod(self, changeInValue, maxRate):
-        slope = self.MAGIC_RATE_SLOPE / maxRate
+        slope = Vector2CubicTrajectory.MAGIC_RATE_SLOPE / maxRate
         return slope * changeInValue
 
 
@@ -376,14 +376,14 @@ class StepTrajectory(Trajectory):
             self._relative = True
 
     def computeValue(self, time):
-        if time > self._initialTime:
+        if time >= self._initialTime:
             return self._finalValue
         else:
             return self._initialValue
 
     def computeDerivative(self, time, order):
         if order == 1:
-            if time > self._initialTime:
+            if time >= self._initialTime:
                 return self._finalRate
             else:
                 return self._initialRate
@@ -394,7 +394,7 @@ class StepTrajectory(Trajectory):
         return self._initialTime
 
     def getFinalTime(self):
-        return self._initialTime
+        return self._initialTime + 0.0001
 
     def getMaxOfDerivative(self, order):
         return float('inf')

@@ -43,21 +43,17 @@ class MotionManager(core.Subsystem):
         self._depthMotion = None
         self._orientationMotion = None
         
-        self._controller = core.Subsystem.getSubsystemOfType(control.IController, 
-                                                             deps, 
-                                                             nonNone = True)
+        self._controller = core.Subsystem.getSubsystemOfType(
+            control.IController, deps, nonNone = True)
         
-        self._vehicle = core.Subsystem.getSubsystemOfType(vehicle.IVehicle, 
-                                                          deps, 
-                                                          nonNone = True)
-
-        self._estimator = core.Subsystem.getSubsystemOfType(estimation.IStateEstimator,
-                                                            deps,
-                                                            nonNone = True)
+        self._vehicle = core.Subsystem.getSubsystemOfType(
+            vehicle.IVehicle, deps, nonNone = True)
         
-        self._qeventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub, 
-                                                            deps,
-                                                            nonNone = True)
+        self._estimator = core.Subsystem.getSubsystemOfType(
+            estimation.IStateEstimator, deps, nonNone = True)
+        
+        self._qeventHub = core.Subsystem.getSubsystemOfType(
+            core.QueuedEventHub, deps, nonNone = True)
         
         self._eventHub = core.Subsystem.getSubsystemOfExactType(
             core.EventHub, deps, nonNone = True)
@@ -384,7 +380,7 @@ class ChangeDepth(Motion):
         self._timer = timer.Timer(self, ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
                                   self._interval, repeat = True)
 
-        self._conn = self._eventHub.subscribeToType(\
+        self._conn = self._eventHub.subscribeToType(
             ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
             self._update)
 
@@ -392,7 +388,7 @@ class ChangeDepth(Motion):
         initialTime = self._trajectory.getInitialTime()
         initialDepth = self._trajectory.computeValue(initialTime)
         initialRate = self._trajectory.computeDerivative(initialTime,1)
-        
+
         # send the initial values to the controller
         self._controller.changeDepth(initialDepth, initialRate)
 
@@ -508,11 +504,15 @@ class ChangeOrientation(Motion):
     def willComplete():
         return True
 
+class Frame:
+    GLOBAL = 'GLOBAL'
+    LOCAL = 'LOCAL'
+
 class Translate(Motion):
     INPLANE_TRAJECTORY_UPDATE = \
         core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, updateRate = 25):
+    def __init__(self, trajectory, frame = Frame.GLOBAL, updateRate = 25):
         """
         Initializes the motion to execute a trajectory at the specified rate
         The trajectory must return Vector2 values and derivatives
@@ -525,6 +525,7 @@ class Translate(Motion):
         Motion.__init__(self, _type = Motion.IN_PLANE)
 
         self._trajectory = trajectory
+        self._frame = frame
         self._interval = updateRate
         self._conn = None
         self._timer = None
@@ -542,7 +543,20 @@ class Translate(Motion):
         initialTime = self._trajectory.getInitialTime()
         initialPosition = self._trajectory.computeValue(initialTime)
         initialVelocity = self._trajectory.computeDerivative(initialTime,1)
-        
+
+        # need to get the initial position in global coordinates in case
+        # we are going to do a motion in local coordinates
+        if self._frame is Frame.LOCAL:
+            self._initialGlobalPosition = self._estimator.getEstimatedPosition()
+            # interpret the trajectory output as being in the local coordinate
+            orientation = self._estimator.getEstimatedOrientation()
+            yaw = orientation.getYaw().valueRadians()
+            # rotation matrix from body (local) to inertial (global)
+            nRb = math.nRb(yaw)
+            initialPosition = self._initialGlobalPosition + \
+                (nRb * initialPosition)
+            initialVelocity = nRb * initialVelocity
+
         # send the initial values to the controller
         self._controller.translate(initialPosition, initialVelocity)
 
@@ -557,8 +571,17 @@ class Translate(Motion):
         newPosition = self._trajectory.computeValue(currentTime)
         newVelocity = self._trajectory.computeDerivative(currentTime,1)
 
+        if self._frame is Frame.LOCAL:
+            # interpret the trajectory output as being in the local coordinate
+            orientation = self._estimator.getEstimatedOrientation()
+            yaw = orientation.getYaw().valueRadians()
+            # rotation matrix from body (local) to inertial (global)
+            nRb = math.nRb(yaw)
+            newPosition = self._initialGlobalPosition + (nRb * newPosition)
+            newVelocity = nRb * newVelocity
+
         # send the new values to the controller
-        self._controller.rotate(newPosition, newVelocity)
+        self._controller.translate(newPosition, newVelocity)
 
         if (currentTime >= self._trajectory.getFinalTime() and
             self._controller.atPosition() and self._controller.atVelocity()):
@@ -567,10 +590,10 @@ class Translate(Motion):
     def _finish(self):
         """
         Finishes off the motion, disconnects events, and publishes finish event
-        """
-        Motion._finish(self)
+        """        
         self._conn.disconnect()
         self._timer.stop()
+        Motion._finish(self)
         
     def stop(self):
         pass
