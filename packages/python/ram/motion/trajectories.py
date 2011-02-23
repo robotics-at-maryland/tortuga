@@ -210,7 +210,8 @@ class Vector2CubicTrajectory(Trajectory):
     MAGIC_RATE_SLOPE = 10.0
 
     def __init__(self, initialValue, finalValue, initialTime = 0,
-                 initialRate = 0, finalRate = 0, maxRate = 3):
+                 initialRate = math.Vector2.ZERO,
+                 finalRate = math.Vector2.ZERO, maxRate = 3):
 
         # keep track of the arguments V - vector quantity, S - scalar quantity
         self._initialValue = initialValue
