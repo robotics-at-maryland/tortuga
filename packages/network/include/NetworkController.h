@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/network/include/RemoteController.h
+ * File:  packages/network/include/NetworkController.h
  */
 
-#ifndef RAM_NETWORK_REMOVECONTROLLER_03_04_2008
-#define RAM_NETWORK_REMOVECONTROLLER_03_04_2008
+#ifndef RAM_NETWORK_NETWORKCONTROLLER_03_04_2008
+#define RAM_NETWORK_NETWORKCONTROLLER_03_04_2008
 
 // Library Includes
 #include <boost/cstdint.hpp>
@@ -29,15 +29,15 @@ namespace network {
  *
  *  This <b>DOES NOT</b> implement any fail safe functionality.
  */
-class RAM_EXPORT RemoteController :
+class RAM_EXPORT NetworkController :
         public core::Subsystem,
         public core::Updatable
 {
   public:
-    RemoteController(core::ConfigNode config,
+    NetworkController(core::ConfigNode config,
                      core::SubsystemList deps = core::SubsystemList());
 
-    virtual ~RemoteController();
+    virtual ~NetworkController();
 
     /** Turn on network control inputs */
     void enable();
@@ -85,30 +85,11 @@ class RAM_EXPORT RemoteController :
     /** The port to listen on*/
     int m_port;
 
-    /** The controller to send commands to */
-    control::IControllerPtr m_controller;
-
-    /** The state estimator to get the current state from */
-    estimation::IStateEstimatorPtr m_stateEstimator;
-
-    math::Vector2 m_velocity_b;
-
     /** Message receiver */
     Receiver* m_receiver;
-
-    double m_maxDepth;
-    double m_minDepth;
-    double m_depthEnc;
-    double m_turnEnc;
-    double m_minSpeed;
-    double m_maxSpeed;
-    double m_speedEnc;
-    double m_yawGain;
-    double m_pitchGain;
-    double m_rollGain;
 };
 
 } // namespace network
 } // namespace ram
 
-#endif // RAM_NETWORK_REMOVECONTROLLER_03_04_2008
+#endif // RAM_NETWORK_NETWORKCONTROLLER_03_04_2008

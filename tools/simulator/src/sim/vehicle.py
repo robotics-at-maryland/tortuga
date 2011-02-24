@@ -285,6 +285,9 @@ class SimThruster(SimDevice, device.IThruster):
                 
     def setEnabled(self, state):
         self._enabled = state
+        self.publish({ True : device.IThruster.ENABLED,
+                       False : device.IThruster.DISABLED }[self._enabled],
+                     core.Event())
     
     def isEnabled(self):
         return self._enabled

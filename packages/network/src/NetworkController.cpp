@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/network/src/RemoveController.cpp
+ * File:  packages/network/src/NetworkController.cpp
  */
 
 // Networking includes
@@ -15,7 +15,7 @@
 #include <netdb.h>
 
 // Project Includes
-#include "network/include/RemoteController.h"
+#include "network/include/NetworkController.h"
 #include "network/include/Events.h"
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
@@ -52,13 +52,13 @@
 #define CMD_ANGLEPITCH 12
 #define CMD_ANGLEROLL  13
 
-RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::RemoteController,
-                                  RemoteController);
+RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkController,
+                                  NetworkController);
 
 namespace ram {
 namespace network {
 
-RemoteController::RemoteController(core::ConfigNode config,
+NetworkController::NetworkController(core::ConfigNode config,
                                    core::SubsystemList deps) :
     core::Subsystem(config["name"].asString(),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
@@ -68,20 +68,20 @@ RemoteController::RemoteController(core::ConfigNode config,
     enable();
 }
 
-RemoteController::~RemoteController()
+NetworkController::~NetworkController()
 {
     disable();
 }
 
-void RemoteController::enable()
+void NetworkController::enable()
 {
     /* Safe to call multiple times */
     if (!m_receiver) {
-        m_receiver = new Receiver(m_port, 2, boost::bind(&RemoteController::accept, this, _1));
+        m_receiver = new Receiver(m_port, 2, boost::bind(&NetworkController::accept, this, _1));
     }
 }
 
-void RemoteController::disable()
+void NetworkController::disable()
 {
     /* Safe to call multiple times */
     if (m_receiver) {
@@ -90,24 +90,24 @@ void RemoteController::disable()
     }
 }
 
-void RemoteController::update(double)
+void NetworkController::update(double)
 {
 }
 
-void RemoteController::background(int interval)
+void NetworkController::background(int interval)
 {
 }
 
-void RemoteController::unbackground(bool join)
+void NetworkController::unbackground(bool join)
 {
 }
 
-void RemoteController::accept(const char* msg)
+void NetworkController::accept(const char* msg)
 {
     processMessage(msg[0], msg[1]);
 }
 
-bool RemoteController::processMessage(unsigned char cmd, signed char param)
+bool NetworkController::processMessage(unsigned char cmd, signed char param)
 {
     switch(cmd)
     {
