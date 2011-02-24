@@ -5,7 +5,7 @@ set(LINK_LIBS
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_SERIALIZATION_LIBRARY}
   ram_core
-  ram_control
+  ram_math
   )
 
 if (RAM_WITH_NETWORK)

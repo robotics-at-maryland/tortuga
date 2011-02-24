@@ -35,6 +35,7 @@ if (RAM_WITH_WRAPPERS)
   subdirs(wrappers/estimation)
   subdirs(wrappers/control)
   subdirs(wrappers/vision)
+  subdirs(wrappers/network)
   subdirs(wrappers/logging)
 endif ()
 
