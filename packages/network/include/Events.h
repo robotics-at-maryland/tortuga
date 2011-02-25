@@ -36,6 +36,8 @@ struct EventType
     static const core::Event::EventType ANGLEYAW;
     static const core::Event::EventType ANGLEPITCH;
     static const core::Event::EventType ANGLEROLL;
+    static const core::Event::EventType FIRE_MARKER_DROPPER;
+    static const core::Event::EventType FIRE_TORPEDO_LAUNCHER;
 };
 
 } // namespace network

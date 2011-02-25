@@ -11,7 +11,7 @@
 #define BTN_ASCEND 3
 #define BTN_DESCEND 2
 
-#define BTN_EMERGSTOP -7
+#define BTN_EMERGSTOP 8
 #define BTN_ZEROSPEED -8
 
 #define BTN_ARM_TORPEDO 10

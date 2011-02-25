@@ -27,30 +27,33 @@
 // Should be in a shared header somewhere
 #define MYPORT 9219 /*YOUR PORT HERE*/
 
-#define CMD_NOTHING     0
+#define CMD_NOTHING       0
 
-#define CMD_TURNLEFT    1
-#define CMD_TURNRIGHT   2
+#define CMD_TURNLEFT      1
+#define CMD_TURNRIGHT     2
 
-#define CMD_ASCEND      3
-#define CMD_DESCEND     4
+#define CMD_ASCEND        3
+#define CMD_DESCEND       4
 
-#define CMD_INCSPEED    5
-#define CMD_DECSPEED    6
+#define CMD_INCSPEED      5
+#define CMD_DECSPEED      6
 
-#define CMD_ZEROSPEED   7
-#define CMD_EMERGSTOP   8
+#define CMD_ZEROSPEED     7
+#define CMD_EMERGSTOP     8
 
-#define CMD_SETSPEED    9
-#define CMD_TSETSPEED  11
+#define CMD_SETSPEED      9
+#define CMD_TSETSPEED    11
 
-#define CMD_ANGLEYAW   10
+#define CMD_ANGLEYAW     10
 
-#define CMD_SETSPEED    9
+#define CMD_SETSPEED      9
 
-#define CMD_ANGLEYAW   10
-#define CMD_ANGLEPITCH 12
-#define CMD_ANGLEROLL  13
+#define CMD_ANGLEYAW     10
+#define CMD_ANGLEPITCH   12
+#define CMD_ANGLEROLL    13
+
+#define CMD_FIRE_TORPEDO 14
+#define CMD_DROP_MARKER  15
 
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkController,
                                   NetworkController);
@@ -209,6 +212,18 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
         event->number = param;
         publish(EventType::ANGLEROLL, event);
         break;
+    }
+
+    case CMD_DROP_MARKER:
+    {
+        core::EventPtr event(new core::Event());
+        publish(EventType::FIRE_MARKER_DROPPER, event);
+    }
+
+    case CMD_FIRE_TORPEDO:
+    {
+        core::EventPtr event(new core::Event());
+        publish(EventType::FIRE_TORPEDO_LAUNCHER, event);
     }
 
     default:

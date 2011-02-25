@@ -22,6 +22,8 @@ static ram::core::SpecificEventConverter<ram::core::StringEvent>
 RAM_CORE_STRINGEVENT;
 static ram::core::SpecificEventConverter<ram::core::IntEvent>
 RAM_CORE_INTEVENT;
+static ram::core::SpecificEventConverter<ram::core::BoolEvent>
+RAM_CORE_BOOLEVENT;
    
 #endif // RAM_WITH_WRAPPERS
 
@@ -33,14 +35,6 @@ EventPtr StringEvent::clone()
     StringEventPtr event = StringEventPtr(new StringEvent());
     copyInto(event);
     event->string = string;
-    return event;
-}
-
-EventPtr IntEvent::clone()
-{
-    IntEventPtr event = IntEventPtr(new IntEvent());
-    copyInto(event);
-    event->data = data;
     return event;
 }
 

@@ -28,4 +28,5 @@ RAM_CORE_EVENT_TYPE(ram::network::EventType, TSETSPEED);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, ANGLEYAW);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, ANGLEPITCH);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, ANGLEROLL);
-
+RAM_CORE_EVENT_TYPE(ram::network::EventType, FIRE_MARKER_DROPPER);
+RAM_CORE_EVENT_TYPE(ram::network::EventType, FIRE_TORPEDO_LAUNCHER);

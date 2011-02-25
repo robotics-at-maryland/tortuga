@@ -117,6 +117,7 @@ int lastAxisTSpeed = 0;
 
 void processButtonPress(int fd, int btn)
 {
+    printf("%d\n", btn);
     switch(btn)
     {
     case BTN_INCSPEED:
@@ -513,7 +514,7 @@ void doStartup()
   }
 */
 //This demo only uses at max 4 joys
-    int numSticks = g_InputManager->numJoySticks();
+    int numSticks = g_InputManager->getNumberOfDevices(OIS::OISJoyStick);
     if( numSticks > 4 )numSticks = 4;
 
     std::cout << "Found " << numSticks  << " joysticks" << std::endl;
@@ -566,10 +567,10 @@ void handleNonBufferedMouse()
 void handleNonBufferedJoy( JoyStick* js )
 {
 //Just dump the current joy state
-    const JoyStickState &joy = js->getJoyStickState();
-    std::cout << "\nJoyStick: button bits: " << joy.buttons;
-    for( int i = 0; i < joy.mAxes.size(); ++i )
-        std::cout << "\nAxis " << i << " X: " << joy.mAxes[i].abs;
+    // const JoyStickState &joy = js->getJoyStickState();
+    // std::cout << "\nJoyStick: button bits: " << joy.buttons;
+    // for( int i = 0; i < joy.mAxes.size(); ++i )
+    //     std::cout << "\nAxis " << i << " X: " << joy.mAxes[i].abs;
 }
 
 #if defined OIS_WIN32_PLATFORM
