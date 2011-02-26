@@ -409,13 +409,13 @@ private:
 
 TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
 {
-    // Make all thrusters have the same offset
-    starboard->offset = 1.0;
-    port->offset = 1.0;
-    fore->offset = 1.0;
-    aft->offset = 1.0;
-    top->offset = 1.0;
-    bottom->offset = 1.0;
+    // Make all thrusters have locations unit distance from CM
+    starboard->location = math::Vector3(0.0, 1.0, 0.0);
+    port->location = math::Vector3(0.0, -1.0, 0.0);
+    fore->location = math::Vector3(1.0, 0.0, 0.0);
+    aft->location = math::Vector3(-1.0, 0.0, 0.0);
+    top->location = math::Vector3(0.0, 0.0, -1.0);
+    bottom->location = math::Vector3(0.0, 0.0, 1.0);
 
     // +X Torque
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,

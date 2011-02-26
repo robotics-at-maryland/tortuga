@@ -27,11 +27,13 @@
 
 #include "math/include/MatrixN.h"
 #include "math/include/VectorN.h"
-
-typedef boost::tuple<double, double, double, double, double, double> Tuple6D;
+#include "math/include/Vector3.h"
 
 namespace ram {
 namespace vehicle {
+
+typedef boost::tuple<math::Vector3, math::Vector3, math::Vector3,
+                     math::Vector3, math::Vector3, math::Vector3> Tuple6Vector3;
 
 class Vehicle : public IVehicle, public core::Updatable
 {
@@ -95,7 +97,7 @@ public:
        are applying a torque in opposite directions*/
 
     math::MatrixN createControlSignalToThrusterForcesMatrix(
-        Tuple6D thrusterDistanceFromCG);
+        Tuple6Vector3 thrusterLocations);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */

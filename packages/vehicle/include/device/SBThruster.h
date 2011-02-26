@@ -54,7 +54,7 @@ public:
 
     virtual void setEnabled(bool state);
 
-    virtual double getOffset();
+    virtual math::Vector3 getLocation();
 
     virtual double getCurrent();
     
@@ -120,6 +120,9 @@ private:
 
     /** The offset from axis perpendicular to axis of induced rotation */
     double m_offset;
+
+    /** The location of the thruster with respect to the center of mass */
+    math::Vector3 m_location;
 
     /** Current amperage draw of the thruster */
     double m_current;

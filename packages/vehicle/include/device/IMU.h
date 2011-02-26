@@ -20,7 +20,6 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
-#include "core/include/AveragingFilter.h"
 
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"

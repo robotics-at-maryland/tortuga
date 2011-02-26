@@ -56,7 +56,7 @@ struct null_deleter
     {
     }
 };
-    
+
 Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     IVehicle(config["name"].asString(),
              core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
@@ -221,17 +221,17 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
     if(!m_controlSignalToThrusterForcesCreated)
     {
-        Tuple6D thrusterDistanceFromCG = Tuple6D(
-            m_starboardThruster->getOffset(),
-            m_portThruster->getOffset(),
-            m_bottomThruster->getOffset(),
-            m_topThruster->getOffset(),
-            m_foreThruster->getOffset(),
-            m_aftThruster->getOffset());
+        Tuple6Vector3 thrusterLocations = Tuple6Vector3(
+            m_starboardThruster->getLocation(),
+            m_portThruster->getLocation(),
+            m_bottomThruster->getLocation(),
+            m_topThruster->getLocation(),
+            m_foreThruster->getLocation(),
+            m_aftThruster->getLocation());
 
         m_controlSignalToThrusterForces = 
             createControlSignalToThrusterForcesMatrix(
-                thrusterDistanceFromCG);
+                thrusterLocations);
 
         m_controlSignalToThrusterForcesCreated = true;
     }
@@ -441,18 +441,51 @@ bool Vehicle::lookupThrusterDevices()
 }
     
 math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
-    Tuple6D thrusterDistanceFromCG)
+    Tuple6Vector3 thrusterLocations)
 {
-    Tuple6D td = thrusterDistanceFromCG;
+    Tuple6Vector3 tl = thrusterLocations;
 
-    // make a 6 x 6 matrix that maps thruster forces to output forces and torques
+    // make a 6 x 6 matrix that maps thruster force to output force and torque
     math::MatrixN A(0.0, 6, 6);
+
+    // this is the torque calculated for a unit force in the thruster direction
+    math::Vector3 tB = tl.get<BOT>().crossProduct(math::Vector3::UNIT_Y);
+    math::Vector3 tT = tl.get<TOP>().crossProduct(math::Vector3::UNIT_Y);
+    math::Vector3 tF = tl.get<FORE>().crossProduct(math::Vector3::UNIT_Z);
+    math::Vector3 tA = tl.get<AFT>().crossProduct(math::Vector3::UNIT_Z);
+    math::Vector3 tS = tl.get<STAR>().crossProduct(-math::Vector3::UNIT_X);
+    math::Vector3 tP = tl.get<PORT>().crossProduct(-math::Vector3::UNIT_X);
+
+
     A[0][0] = 1; A[0][1] = 1;
     A[1][2] = 1; A[1][3] = 1;
     A[2][4] = 1; A[2][5] = 1;
-    A[3][2] = -td.get<BOT>(); A[3][3] = td.get<TOP>();
-    A[4][4] = -td.get<FORE>(); A[4][5] = td.get<AFT>();
-    A[5][0] = td.get<STAR>(); A[5][1] = -td.get<PORT>();
+    
+    // these terms multiplied by force component give resultant torque
+    // torque_x
+    A[3][0] = tS[0];
+    A[3][1] = tP[0];
+    A[3][2] = tB[0];
+    A[3][3] = tT[0];
+    A[3][4] = tF[0];
+    A[3][5] = tA[0];
+    
+    // torque_y
+    A[4][0] = tS[1];
+    A[4][1] = tP[1];
+    A[4][2] = tB[1];
+    A[4][3] = tT[1];
+    A[4][4] = tF[1];
+    A[4][5] = tA[1];
+
+    // torque_z
+    A[5][0] = tS[2];
+    A[5][1] = tP[2];
+    A[5][2] = tB[2];
+    A[5][3] = tT[2];
+    A[5][4] = tF[2];
+    A[5][5] = tA[2];
+
 
     // when given control signal vector b, this will allow 
     // us to efficiently compute x = A_inv * b

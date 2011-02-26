@@ -22,7 +22,6 @@
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
-#include "core/include/AveragingFilter.h"
 
 #include "drivers/sensor-r5/include/sensorapi.h"
 
@@ -277,10 +276,6 @@ private:
     // Location of the depth sensor
     math::Vector3 m_location;
 
-    //bool m_calibratedDepth;
-    //core::AveragingFilter<double, 5> m_depthFilter;
-    //double m_depthOffset;
-    
     /** The device file to open the file descriptor from */
     std::string m_deviceFile;
 
