@@ -8,6 +8,7 @@ if (RAM_WITH_MATH)
     Matrix2.h
     Matrix3.h
     Helpers.h
+    SGolaySmoothingFilter.h
     )
   if (RAM_WITH_CORE)
     list(APPEND WRAPPED_HEADERS Events.h)
