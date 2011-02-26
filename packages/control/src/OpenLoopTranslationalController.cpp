@@ -39,11 +39,6 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     control::DesiredStatePtr desiredState)
 {
     math::Quaternion orientation = estimator->getEstimatedOrientation();
-
-    /*  Retrieve velocity as if the robots frame is the inertial frame.  
-        In other words, the robot should always travel at this velocity 
-        relative to itself.  Doing this, the robot's actual velocity in
-        the true inertial frame will change as its orientation changes. */
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
 
     // Compute the base force
