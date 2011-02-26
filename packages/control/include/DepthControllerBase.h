@@ -27,7 +27,8 @@ namespace control {
  *
  *  Makes implementing IDepthControllerImp much easier.
  */
-class RAM_EXPORT DepthControllerBase : public IDepthControllerImp
+class RAM_EXPORT DepthControllerBase : public IDepthControllerImp,
+                                       public core::EventPublisher
 {
   public:
     DepthControllerBase(core::ConfigNode config);

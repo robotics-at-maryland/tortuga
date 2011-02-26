@@ -16,6 +16,7 @@
 #include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventPublisher.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -25,7 +26,8 @@ namespace control {
 
 /** Defines the interface for controler which controls in plane motion */
 class RAM_EXPORT TranslationalControllerBase :
-        public ITranslationalControllerImp
+        public ITranslationalControllerImp,
+        public core::EventPublisher
 {
   public:
 

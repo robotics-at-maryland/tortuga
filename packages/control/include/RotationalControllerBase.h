@@ -16,6 +16,7 @@
 #include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventPublisher.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -27,7 +28,9 @@ namespace control {
  *
  *  Makes implementing IRotationalControllerImp much easier.
  */
-class RAM_EXPORT RotationalControllerBase : public IRotationalControllerImp
+class RAM_EXPORT RotationalControllerBase : 
+        public IRotationalControllerImp, 
+        public core::EventPublisher 
 {
   public:
     RotationalControllerBase(core::ConfigNode config);
