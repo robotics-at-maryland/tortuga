@@ -136,13 +136,13 @@ private:
      *
      *  This will always publish the DESIRED_DEPTH_UPDATE event
      */
-    void newDepthSet(const double& newDepth);
+    void newDesiredDepthSet(const double& newDepth);
 
     /** called whenever a new depth change rate is set, handles events as needed
      *
      *  This will always publish the DESIRED_DEPTHRATE_UPDATE event
      */
-    void newDepthRateSet(const double& newDepthRate);
+    void newDesiredDepthRateSet(const double& newDepthRate);
 
     /** called whenever the desired orientation changes, handles events
      *

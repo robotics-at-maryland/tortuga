@@ -69,6 +69,12 @@ void DesiredState::init(core::ConfigNode config)
         math::Vector3(config["desiredAngularAccel"][0].asDouble(0),
                       config["desiredAngularAccel"][1].asDouble(0),
                       config["desiredAngularAccel"][2].asDouble(0)));
+
+    newDesiredDepthSet(getDesiredDepth());
+    newDesiredDepthRateSet(getDesiredDepthRate());
+    newDesiredOrientationSet(getDesiredOrientation());
+    newDesiredVelocitySet(getDesiredVelocity());
+    newDesiredPositionSet(getDesiredPosition());
 }
 
 
@@ -169,7 +175,7 @@ void DesiredState::setDesiredDepth(double depth)
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_desiredDepth = depth;
     }
-    newDepthSet(depth);
+    newDesiredDepthSet(depth);
 }
 
 void DesiredState::setDesiredDepthRate(double depthRate)
@@ -178,7 +184,7 @@ void DesiredState::setDesiredDepthRate(double depthRate)
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_desiredDepthRate = depthRate;
     }
-    newDepthRateSet(depthRate);
+    newDesiredDepthRateSet(depthRate);
 }
 
 void DesiredState::setDesiredDepthAccel(double depthAccel)
@@ -215,7 +221,7 @@ void DesiredState::setDesiredAngularAccel(math::Vector3 angularAccel)
 
 
 
-void DesiredState::newDepthSet(const double& newDepth)
+void DesiredState::newDesiredDepthSet(const double& newDepth)
 {
     // Publish event indicating new update
     math::NumericEventPtr event(new math::NumericEvent());
@@ -223,7 +229,7 @@ void DesiredState::newDepthSet(const double& newDepth)
     publish(control::IController::DESIRED_DEPTH_UPDATE, event);
 }
 
-void DesiredState::newDepthRateSet(const double& newDepthRate)
+void DesiredState::newDesiredDepthRateSet(const double& newDepthRate)
 {
     // Publish event indicating new update
     math::NumericEventPtr event(new math::NumericEvent());
