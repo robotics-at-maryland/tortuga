@@ -46,6 +46,9 @@ ControllerBase::ControllerBase(core::EventHubPtr eventHub,
                        new control::DesiredState(config["DesiredState"], eventHub))),
     m_stateEstimator(estimator),
     m_vehicle(vehicle),
+    m_initHoldDepth(1),
+    m_initHoldHeading(1),
+    m_initHoldPosition(1),
     conn_desired_atDepth(core::EventConnectionPtr()),
     conn_estimated_atDepth(core::EventConnectionPtr()),
     conn_desired_atPosition(core::EventConnectionPtr()),
@@ -61,10 +64,7 @@ ControllerBase::ControllerBase(core::EventHubPtr eventHub,
     m_depthThreshold(0.05),
     m_orientationThreshold(0.05),
     m_velocityThreshold(0.05),
-    m_positionThreshold(0.05),
-    m_initHoldDepth(1),
-    m_initHoldHeading(1),
-    m_initHoldPosition(1)
+    m_positionThreshold(0.05)
 {   
     init(config, eventHub); 
 }
@@ -79,6 +79,9 @@ ControllerBase::ControllerBase(core::ConfigNode config,
                          core::Subsystem::getSubsystemOfType<core::EventHub>(deps)))),
     m_stateEstimator(core::Subsystem::getSubsystemOfType<estimation::IStateEstimator>(deps)),
     m_vehicle(core::Subsystem::getSubsystemOfType<vehicle::IVehicle>(deps)),  
+    m_initHoldDepth(1),
+    m_initHoldHeading(1),
+    m_initHoldPosition(1),
     conn_desired_atDepth(core::EventConnectionPtr()),
     conn_estimated_atDepth(core::EventConnectionPtr()),
     conn_desired_atPosition(core::EventConnectionPtr()),
@@ -94,10 +97,7 @@ ControllerBase::ControllerBase(core::ConfigNode config,
     m_depthThreshold(0.05),
     m_orientationThreshold(0.05),
     m_velocityThreshold(0.05),
-    m_positionThreshold(0.05),
-    m_initHoldDepth(1),
-    m_initHoldHeading(1),
-    m_initHoldPosition(1)
+    m_positionThreshold(0.05)
 {
     core::EventHubPtr eventHub = 
         core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
@@ -369,13 +369,6 @@ void ControllerBase::init(core::ConfigNode config,
     m_initHoldDepth = config["holdCurrentDepth"].asInt(1);
     m_initHoldHeading = config["holdCurrentHeading"].asInt(1);
     m_initHoldPosition = config["holdCurrentPosition"].asInt(1);
-
-    if(m_initHoldDepth)
-        holdCurrentDepth();
-    if(m_initHoldHeading)
-        holdCurrentHeading();
-    if(m_initHoldPosition)
-        holdCurrentPosition();
 }
                       
 void ControllerBase::publishAtDepth(const double& depth)

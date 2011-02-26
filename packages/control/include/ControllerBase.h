@@ -204,6 +204,11 @@ protected:
     vehicle::IVehiclePtr m_vehicle;
     core::ReadWriteMutex m_mutex;
 
+    /** determine if we initially hold our depth and heading */
+    int m_initHoldDepth;
+    int m_initHoldHeading;
+    int m_initHoldPosition;
+
 private:
     void init(core::ConfigNode config,
               core::EventHubPtr eventHub);
@@ -256,10 +261,6 @@ private:
     double m_velocityThreshold;
     double m_positionThreshold;
     
-    /** determine if we initially hold our depth and heading */
-    int m_initHoldDepth;
-    int m_initHoldHeading;
-    int m_initHoldPosition;
 };
     
 } // namespace control

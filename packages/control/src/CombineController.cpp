@@ -89,7 +89,7 @@ void CombineController::init(core::ConfigNode config)
     node = config["RotationalController"];
     m_rotController = RotationalControllerImpMaker::newObject(node);
 
-    m_initializationPause = config["InitializationPause"].asDouble(0);
+    m_initializationPause = config["initializationPause"].asDouble(0);
 
     LOGGER.infoStream() << "ForceOut TorqueOut";
 }
@@ -103,6 +103,17 @@ void CombineController::doUpdate(const double& timestep,
     if (m_initializationPause > 0)
     {
         m_initializationPause -= timestep;
+
+        // so at the end of the initialization pause we
+        // are steady
+
+        if(m_initHoldDepth)
+            holdCurrentDepth();
+        if(m_initHoldHeading)
+            holdCurrentHeading();
+        if(m_initHoldPosition)
+            holdCurrentPosition();
+
     	return;
     }
 
@@ -132,6 +143,7 @@ void CombineController::doUpdate(const double& timestep,
                         << rotationalTorqueOut[0] << " "
                         << rotationalTorqueOut[1] << " "
                         << rotationalTorqueOut[2];
+
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
