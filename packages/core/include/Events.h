@@ -16,6 +16,7 @@
 
 // Project Includes
 #include "core/include/Event.h"
+#include "math/include/Vector2.h"
 
 namespace ram {
 namespace core {

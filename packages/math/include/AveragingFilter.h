@@ -3,14 +3,22 @@
  * All rights reserved.
  *
  * Author: Daniel Hakim
- * File:  packages/core/include/AveragingFilter.h
+ * File:  packages/math/include/AveragingFilter.h
  */
 
-#ifndef RAM_CORE_AVERAGINGFILTER_H_06_30_2007
-#define RAM_CORE_AVERAGINGFILTER_H_06_30_2007
+#ifndef RAM_MATH_AVERAGINGFILTER_H_06_30_2007
+#define RAM_MATH_AVERAGINGFILTER_H_06_30_2007
+
+// STD Includes
+
+// Library Includes
+#include <boost/shared_ptr.hpp>
+
+// Project Includes
 
 namespace ram {
-namespace core {
+namespace math {
+
 
 /** Computes the running average of the given data
  */
@@ -80,7 +88,7 @@ private:
     T array[SIZE];
 };
 
-} // namespace core
+} // namespace math
 } // namespace ram
 
-#endif // RAM_CORE_AVERAGINGFILTER_H_06_30_2007
+#endif // RAM_MATH_AVERAGINGFILTER_H_06_30_2007
