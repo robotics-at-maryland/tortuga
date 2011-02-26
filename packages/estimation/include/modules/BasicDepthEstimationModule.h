@@ -30,15 +30,17 @@ class BasicDepthEstimationModule : public EstimationModule
 {
 public:
     BasicDepthEstimationModule(core::ConfigNode config,
-                               core::EventHubPtr eventHub,EstimatedStatePtr estState);
+                               core::EventHubPtr eventHub,
+                               EstimatedStatePtr estState);
+
     ~BasicDepthEstimationModule(){};
 
-    /* The Depth Estimation routine goes here.  It should store the new estimated
-       state in estimatedState. */
+    // the Depth Estimation routine goes here.  
+    // it should store the new estimated state in m_estimatedState.
     virtual void update(core::EventPtr event);
 
 private:
-    /* any necessary persistent variables should be declared here */
+    // any necessary persistent variables should be declared here
     std::string m_name;
 };
 

@@ -53,8 +53,9 @@ math::Quaternion Utility::quaternionFromRate(const math::Quaternion& quatOld,
     // trapezoidal integration
     math::Quaternion qNew = qOld + qDot*deltaT;
 
+    qNew.normalise();
     // return the normalized orientaiton estimate
-    return qNew.normalise();
+    return qNew;
 }
     
 } // namespace estimation

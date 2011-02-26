@@ -29,27 +29,27 @@ DepthAveragingModule::DepthAveragingModule(
     EstimationModule(eventHub, "DepthAveragingModule",estState,
                      vehicle::device::IDepthSensor::RAW_UPDATE)
 {
-    /* initialization of estimator from config values should be done here */
+    // initialization of estimator from config values should be done here
     LOGGER.info("% RawDepth Correction EstDepth EstDepthRate");
 }
 
 void DepthAveragingModule::update(
     core::EventPtr event)
 {
-    /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
+    // attempt to cast the event to a RawDepthSensorDataEventPtr
     vehicle::RawDepthSensorDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawDepthSensorDataEvent>(event);
 
-    /* Return if the cast failed and let people know about it. */
+    // return if the cast failed and let people know about it.
     if(!ievent){
         LOGGER.warn("DepthAveragingModule: update: Invalid Event Type");
         return;
     }
 
-    /* This is where the estimation should be done
-       The result should be stored in m_estimatedState */
+    // This is where the estimation should be done
+    // The result should be stored in estimatedState
 
-    // Determine depth correction
+    // determine depth correction
     math::Vector3 location = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
         m_estimatedState->getEstimatedOrientation() * location;
@@ -67,8 +67,8 @@ void DepthAveragingModule::update(
     m_filteredDepth.addValue(depth);
     m_filteredDepthRate.addValue(depthRate);
 
-    /* Return the corrected depth (its addition and not subtraction because
-     * depth is positive down) */
+    // return the corrected depth (its addition and not subtraction because
+    // depth is positive down)
 
     double estDepth = m_filteredDepth.getValue();
     double estDepthRate = m_filteredDepthRate.getValue();

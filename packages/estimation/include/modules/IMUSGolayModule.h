@@ -4,14 +4,14 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/estimation/include/modules/BasicIMUEstimationModule.h
+ * File:  packages/estimation/include/modules/IMUSGolayModule.h
  */
 
 /* This is currently a template for a IMU EstimationModule implementation */
 
 
-#ifndef RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
-#define RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
+#ifndef RAM_ESTIMATION_IMUSGOLAYMODULE_H
+#define RAM_ESTIMATION_IMUSGOLAYMODULE_H
 
 // STD Includes
 #include <map>
@@ -32,7 +32,7 @@
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Events.h"
-#include "math/include/AveragingFilter.h"
+#include "math/include/SGolaySmoothingFilter.h"
 
 namespace ram {
 namespace estimation {
@@ -44,17 +44,16 @@ typedef std::set<std::string> StringSet;
 typedef RawIMUData FilteredIMUData;
 typedef boost::shared_ptr<FilteredIMUData> FilteredIMUDataPtr;
 typedef std::map<std::string, FilteredIMUDataPtr > FilteredStateMap;
-typedef math::AveragingFilter<double, FILTER_SIZE> IMUAveragingFilter;
-typedef std::map<std::string, IMUAveragingFilter > DeviceAveragingMap;
+typedef std::map<std::string, math::SGolaySmoothingFilterPtr > DeviceSGolayMap;
 
-class BasicIMUEstimationModule : public EstimationModule
+class IMUSGolayModule : public EstimationModule
 {
 public:
-    BasicIMUEstimationModule(core::ConfigNode config,
-                             core::EventHubPtr eventHub,
-                             EstimatedStatePtr estState);
+    IMUSGolayModule(core::ConfigNode config,
+                    core::EventHubPtr eventHub,
+                    EstimatedStatePtr estState);
 
-    ~BasicIMUEstimationModule(){};
+    ~IMUSGolayModule(){};
 
 
     // the IMU Estimation routine goes here.  
@@ -71,20 +70,23 @@ private:
     // filterd and rotated IMU data
     FilteredStateMap m_filteredState;
 
+    int m_degree;
+    int m_windowSize;
+
     std::string m_magIMUName;
     std::string m_cgIMUName;
 
-    DeviceAveragingMap m_filteredAccelX; 
-    DeviceAveragingMap m_filteredAccelY;
-    DeviceAveragingMap m_filteredAccelZ; 
+    DeviceSGolayMap m_filteredAccelX; 
+    DeviceSGolayMap m_filteredAccelY;
+    DeviceSGolayMap m_filteredAccelZ; 
 
-    DeviceAveragingMap m_filteredGyroX; 
-    DeviceAveragingMap m_filteredGyroY;
-    DeviceAveragingMap m_filteredGyroZ;
+    DeviceSGolayMap m_filteredGyroX; 
+    DeviceSGolayMap m_filteredGyroY;
+    DeviceSGolayMap m_filteredGyroZ;
 
-    DeviceAveragingMap m_filteredMagX; 
-    DeviceAveragingMap m_filteredMagY;
-    DeviceAveragingMap m_filteredMagZ; 
+    DeviceSGolayMap m_filteredMagX; 
+    DeviceSGolayMap m_filteredMagY;
+    DeviceSGolayMap m_filteredMagZ; 
 
     core::ReadWriteMutex m_stateMutex;
 
@@ -93,4 +95,4 @@ private:
 } // namespace estimation
 } // namespace ram
 
-#endif // RAM_ESTIMATION_BASICIMUESTIMATIONMODULE_H
+#endif // RAM_ESTIMATION_IMUSGOLAYMODULE_H

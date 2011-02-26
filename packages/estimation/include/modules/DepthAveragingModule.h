@@ -23,32 +23,33 @@
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "core/include/AveragingFilter.h"
+#include "math/include/AveragingFilter.h"
 
 namespace ram {
 namespace estimation {
 
-
+static const int DEPTH_FILTER_SIZE = 10;
+typedef math::AveragingFilter<double, DEPTH_FILTER_SIZE>  DepthAveragingFilter;
 
 class DepthAveragingModule : public EstimationModule
 {
 public:
     DepthAveragingModule(core::ConfigNode config,
-                         core::EventHubPtr eventHub,EstimatedStatePtr estState);
+                         core::EventHubPtr eventHub,
+                         EstimatedStatePtr estState);
+
     ~DepthAveragingModule(){};
 
-    /* The Depth Estimation routine goes here.  It should store the new estimated
-       state in m_estimatedState. */
+    // the Depth Estimation routine goes here.  
+    // it should store the new estimated state in estimatedState.
     virtual void update(core::EventPtr event);
 
 private:
-    /* any necessary persistent variables should be declared here */
-    const static int FILTER_SIZE = 10;
     std::string m_name;
     double m_previousDepth;
 
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredDepth;
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredDepthRate;
+    DepthAveragingFilter m_filteredDepth;
+    DepthAveragingFilter m_filteredDepthRate;
 };
 
 } // namespace estimation

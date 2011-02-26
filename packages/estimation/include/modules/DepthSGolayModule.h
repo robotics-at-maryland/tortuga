@@ -23,32 +23,32 @@
 
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
-#include "core/include/SGolaySmoothingFilter.h"
+#include "math/include/SGolaySmoothingFilter.h"
 
 namespace ram {
 namespace estimation {
-
-
 
 class DepthSGolayModule : public EstimationModule
 {
 public:
     DepthSGolayModule(core::ConfigNode config,
-                      core::EventHubPtr eventHub,EstimatedStatePtr estState);
+                      core::EventHubPtr eventHub,
+                      EstimatedStatePtr estState);
+
     ~DepthSGolayModule(){};
 
-    /* The Depth Estimation routine goes here.  It should store the new estimated
-       state in estimatedState. */
+    // the Depth Estimation routine goes here.  
+    // it should store the new estimated state in estimatedState.
     virtual void update(core::EventPtr event);
 
 private:
-    /* any necessary persistent variables should be declared here */
+    // any necessary persistent variables should be declared here
     std::string m_name;
     double m_previousDepth;
-    const static int FILTER_SIZE = 10;
+
     int m_degree;
     int m_window;
-    core::SGolaySmoothingFilter m_filteredDepth;
+    math::SGolaySmoothingFilterPtr m_filteredDepth;
 };
 
 } // namespace estimation

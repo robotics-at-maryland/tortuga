@@ -34,7 +34,8 @@ static math::Vector3 interialAccel(0, 0, 1);
   IM and IA.  Then if you rotate VM, and VA with IR you get back the original
   IM, and IA vectors.
 */
-TEST_UTILITY(quatIMU, (math::Vector3 expVehicleMag, math::Vector3 expVehicleAccel,
+TEST_UTILITY(quatIMU, (math::Vector3 expVehicleMag,
+                       math::Vector3 expVehicleAccel,
                        math::Quaternion magAccelRotation))
 {
     // Now rotate the Mag + Accel into vehicle frame
@@ -76,28 +77,27 @@ TEST_UTILITY(quatIMU, (math::Vector3 expVehicleMag, math::Vector3 expVehicleAcce
 
 TEST(quaternionFromRate)
 {
+    //given an old quaternion value
+    math::Quaternion qOld(0, 0, 0, 1);
+    //an angular rate
+    math::Vector3 w(1, 2, 1);
+    //and a timestep
+    double deltaT = 1.2;
+    //it should look like this
+    math::Quaternion qExp(0.3375, 0.6751, 0.3375, 0.5625);
+    //run the function
+    math::Quaternion qOut = 
+        ram::estimation::Utility::quaternionFromRate(qOld,w,deltaT);
+    //check if close, test case data from MATLAB using 4 sig figs
+    CHECK_ARRAY_CLOSE(qExp,qOut,4,0.001);
 
-    // //given an old quaternion value
-    // math::Quaternion qOld(0, 0, 0, 1);
-    // //an angular rate
-    // math::Vector3 w(1, 2, 1);
-    // //and a timestep
-    // double deltaT = 1.2;
-    // //it should look like this
-    // math::Quaternion qExp(0.3375, 0.6751, 0.3375, 0.5625);
-    // //run the function
-    // math::Quaternion qOut(
-    //     ram::estimation::Utility::quaternionFromRate(qOld,w,deltaT));
-    // //check if close, test case data from MATLAB using 4 sig figs
-    // CHECK_ARRAY_CLOSE(qExp,qOut,4,0.001);
 
-
-    // //another test case with different data
-    // math::Quaternion qOld2(0.4082, 0.8165, 0.4082, 0.0000);
-    // math::Vector3 w2(-2, 3, -1);
-    // double deltaT2  = 0.3;
-    // math::Quaternion qExp2(0.0890, 0.6586, 0.7298, -0.1602);
-    // estimation::Utility::quaternionFromRate(qOld2, w2, deltaT2);
-    // CHECK_ARRAY_CLOSE(qExp2, qOld2, 4, 0.001);
-
+    //another test case with different data
+    math::Quaternion qOld2(0.4082, 0.8165, 0.4082, 0.0000);
+    math::Vector3 w2(-2, 3, -1);
+    double deltaT2  = 0.3;
+    math::Quaternion qExp2(0.0890, 0.6586, 0.7298, -0.1602);
+    math::Quaternion qOut2 = 
+        estimation::Utility::quaternionFromRate(qOld2, w2, deltaT2);
+    CHECK_ARRAY_CLOSE(qExp2, qOut2, 4, 0.001);
 }

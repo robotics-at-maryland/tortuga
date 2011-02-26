@@ -89,8 +89,6 @@ public:
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
     static const core::Event::EventType ESTIMATED_FORCES_UPDATE;
     static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;
-    static const core::Event::EventType ESTIMATOR_PLOT;
-
 
 protected:
     IStateEstimator(std::string name,
