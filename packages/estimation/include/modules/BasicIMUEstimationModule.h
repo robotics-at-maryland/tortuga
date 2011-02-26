@@ -18,7 +18,6 @@
 #include <string>
 
 // Library Includes
-#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "estimation/include/EstimatedState.h"
@@ -38,50 +37,53 @@
 namespace ram {
 namespace estimation {
 
-const static int FILTER_SIZE = 10;
-
 typedef RawIMUData FilteredIMUData;
-typedef boost::shared_ptr<FilteredIMUData> FilteredIMUDataPtr;
-typedef std::map<std::string, FilteredIMUDataPtr > FilteredStateMap;
-typedef core::AveragingFilter<double, FILTER_SIZE > AveragingFilterMap;
-typedef std::map<std::string, AveragingFilterMap > DeviceAveragingMap;
+
 
 class BasicIMUEstimationModule : public EstimationModule
 {
 public:
     BasicIMUEstimationModule(core::ConfigNode config,
-                             core::EventHubPtr eventHub);
+                             core::EventHubPtr eventHub, EstimatedStatePtr estState);
     ~BasicIMUEstimationModule(){};
 
 
     /* The IMU Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event,
-                        EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event);
 
 private:
     /* any helper functions should be prototyped here */
     std::set<std::string> imuList;
-
+    const static int FILTER_SIZE = 10;
     /* any necessary persistent variables should be declared here */
 
     /** Filterd and rotated IMU data */
-    FilteredStateMap m_filteredState;
+    std::map<std::string, FilteredIMUData*> m_filteredState;
 
     std::string m_magIMUName;
     std::string m_cgIMUName;
 
-    DeviceAveragingMap m_filteredAccelX; 
-    DeviceAveragingMap m_filteredAccelY;
-    DeviceAveragingMap m_filteredAccelZ; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelY;
+    std::map<std::string,
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredAccelZ; 
 
-    DeviceAveragingMap m_filteredGyroX; 
-    DeviceAveragingMap m_filteredGyroY;
-    DeviceAveragingMap m_filteredGyroZ;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroY;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredGyroZ;
 
-    DeviceAveragingMap m_filteredMagX; 
-    DeviceAveragingMap m_filteredMagY;
-    DeviceAveragingMap m_filteredMagZ; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagX; 
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagY;
+    std::map<std::string, 
+             core::AveragingFilter<double, FILTER_SIZE> > m_filteredMagZ; 
 
     core::ReadWriteMutex m_stateMutex;
 

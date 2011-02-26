@@ -31,12 +31,12 @@ class BasicDVLEstimationModule : public EstimationModule
 {
 public:
     BasicDVLEstimationModule(core::ConfigNode config,
-                             core::EventHubPtr eventHub);
+                             core::EventHubPtr eventHub,EstimatedStatePtr estState);
     ~BasicDVLEstimationModule(){};
 
     /* The DVL Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event);
 
 private:
     /* any necessary persistent variables should be declared here */

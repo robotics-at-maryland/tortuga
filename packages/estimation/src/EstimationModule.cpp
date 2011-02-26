@@ -15,15 +15,24 @@
 
 // Package Includes
 #include "estimation/include/EstimationModule.h"
-
+#include <boost/bind.hpp>
 
 namespace ram {
 namespace estimation {
 
 EstimationModule::EstimationModule(core::EventHubPtr eventHub,
-                                   std::string name) :
+                                   std::string name, EstimatedStatePtr estState,
+                                   core::Event::EventType type) :
     core::EventPublisher(eventHub, name)
 {
+    m_connection = eventHub->subscribeToType(type,boost::bind(
+                                                 &ram::estimation::EstimationModule::update,
+                                                   this, _1));
+   m_estimatedState=estState;
+}
+EstimationModule::~EstimationModule()
+{
+    m_connection->disconnect();
 }
 
 } // namespace estimation

@@ -178,17 +178,18 @@ void EstimatedState::setEstimatedMass(double mass)
 
 void EstimatedState::addObstacle(std::string name, ObstaclePtr obstacle)
 {
-    throw std::runtime_error("EstimatedState::addObstacle - NOT YET IMPLEMENTED");
+    m_obstacleMap[name]=obstacle;//puts obstacle into the map
+    //throw std::runtime_error("EstimatedState::addObstacle - NOT YET IMPLEMENTED");
 }
 
 math::Vector2 EstimatedState::getObstaclePosition(std::string name)
 {
-    return math::Vector2::ZERO;
+    return m_obstacleMap[name]->getPosition();
 }
 
 double EstimatedState::getObstacleDepth(std::string name)
 {
-    return 0;
+    return m_obstacleMap[name]->getDepth();
 }
 
 void EstimatedState::publishPositionUpdate(const math::Vector2& position)

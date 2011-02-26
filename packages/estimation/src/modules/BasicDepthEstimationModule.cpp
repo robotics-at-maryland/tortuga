@@ -16,6 +16,7 @@
 // Project Includes
 #include "vehicle/include/Events.h"
 #include "estimation/include/modules/BasicDepthEstimationModule.h"
+#include "vehicle/include/device/IDepthSensor.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
@@ -24,16 +25,16 @@ namespace estimation {
 
 BasicDepthEstimationModule::BasicDepthEstimationModule(
     core::ConfigNode config,
-    core::EventHubPtr eventHub) :
-    EstimationModule(eventHub, "BasicDepthEstimationModule")
+    core::EventHubPtr eventHub,EstimatedStatePtr estState) :
+    EstimationModule(eventHub, "BasicDepthEstimationModule",estState,
+                     vehicle::device::IDepthSensor::RAW_UPDATE)
 {
     /* initialization of estimator from config values should be done here */
     LOGGER.info("% Name EstDepth RawDepth Correction");
 }
 
 void BasicDepthEstimationModule::update(
-    core::EventPtr event, 
-    EstimatedStatePtr estimatedState)
+    core::EventPtr event)
 {
     /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
     vehicle::RawDepthSensorDataEventPtr ievent =
@@ -46,12 +47,12 @@ void BasicDepthEstimationModule::update(
     }
 
     /* This is where the estimation should be done
-       The result should be stored in estimatedState */
+       The result should be stored in m_estimatedState */
 
     // Determine depth correction
     math::Vector3 location = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
-        estimatedState->getEstimatedOrientation() * location;
+        m_estimatedState->getEstimatedOrientation() * location;
     math::Vector3 sensorMovement = 
         currentSensorLocation - location;
     double correction = sensorMovement.z;
@@ -62,7 +63,7 @@ void BasicDepthEstimationModule::update(
     /* Return the corrected depth (its addition and not subtraction because
      * depth is positive down) */
 
-    estimatedState->setEstimatedDepth(depth + correction);
+    m_estimatedState->setEstimatedDepth(depth + correction);
 
     LOGGER.infoStream() << m_name << " "
                         << depth + correction << " "

@@ -27,6 +27,8 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
+#include "core/include/EventConnection.h"
+
 
 namespace ram {
 namespace estimation {
@@ -42,12 +44,15 @@ public:
     /* The config node should contain the values necessary for initializing the
        specifig EstimationModule. */
     EstimationModule(core::EventHubPtr eventHub = core::EventHubPtr(),
-                     std::string name = "");
-    virtual ~EstimationModule(){}
+                     std::string name = "",EstimatedStatePtr estState=EstimatedStatePtr(),
+                     core::Event::EventType type=core::Event::EventType());
+    ~EstimationModule();
 
     /* update - the function that will be called to perform the estimation */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState) = 0;
-
+    virtual void update(core::EventPtr event) = 0;
+protected:
+    EstimatedStatePtr m_estimatedState;
+    core::EventConnectionPtr m_connection;
 }; 
 
 } // namespace estimation

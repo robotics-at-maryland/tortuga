@@ -35,13 +35,12 @@ class DepthKalmanModule : public EstimationModule
 {
 public:
     DepthKalmanModule(core::ConfigNode config,
-                      core::EventHubPtr eventHub);
+                      core::EventHubPtr eventHub,EstimatedStatePtr estState);
     ~DepthKalmanModule(){};
 
     /* The Depth Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event,
-                        EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event);
 
 private:
     /* any necessary persistent variables should be declared here */

@@ -41,9 +41,9 @@ TEST(depthUpdate1)
         estimation::EstimationModulePtr(
             new estimation::BasicDepthEstimationModule(
                 core::ConfigNode::fromString("{}"),
-                eventHub));
+                eventHub,estimatedState));
         
-    module->update(event, estimatedState);
+    module->update(event);
     
     CHECK_CLOSE(estimatedState->getEstimatedDepth(), 4.0, 0.0001);
 }
@@ -76,9 +76,9 @@ TEST(depthUpdate2)
         estimation::EstimationModulePtr(
             new estimation::BasicDepthEstimationModule(
                 core::ConfigNode::fromString("{}"),
-                eventHub));
+                eventHub,estimatedState));
         
-    module->update(event, estimatedState);
+    module->update(event);
     
     // We add to the expected depth because the downward pitch moves our sensor
     // to a shallow depth then we are really at

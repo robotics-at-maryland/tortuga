@@ -76,6 +76,7 @@ public:
     void addObstacle(std::string name, ObstaclePtr obstacle);
     math::Vector2 getObstaclePosition(std::string name);
     double getObstacleDepth(std::string name);
+    ObstaclePtr getObstacle(std::string name);
 
 private:
 

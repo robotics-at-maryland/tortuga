@@ -17,3 +17,6 @@
 #include "estimation/include/modules/BasicIMUEstimationModule.h"
 #include "estimation/include/modules/BasicDepthEstimationModule.h"
 #include "estimation/include/modules/DepthKalmanModule.h"
+#include "estimation/include/modules/VisionEstimationModule.h"
+#include "estimation/include/modules/DepthAveragingModule.h"
+#include "estimation/include/modules/DepthSGolayModule.h"

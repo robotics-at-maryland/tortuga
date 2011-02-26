@@ -5,6 +5,7 @@ set(LINK_LIBS
   ram_core
   ram_math
   ram_vehicle
+  ram_vision
   )
 
 if (RAM_WITH_ESTIMATION)

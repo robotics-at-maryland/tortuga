@@ -22,6 +22,7 @@
 #include "math/include/Matrix2.h"
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
+#include "vehicle/include/device/IDepthSensor.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
@@ -29,8 +30,10 @@ namespace ram {
 namespace estimation {
 
 DepthKalmanModule::DepthKalmanModule(core::ConfigNode config, 
-                                     core::EventHubPtr eventHub) :
-    EstimationModule(eventHub, "DepthKalmanModule"),
+                                     core::EventHubPtr eventHub,
+                                     EstimatedStatePtr estState) :
+    EstimationModule(eventHub, "DepthKalmanModule",estState,
+                     vehicle::device::IDepthSensor::RAW_UPDATE),
     m_mass(30),
     m_x0(math::Vector2::ZERO),
     m_P0(math::Matrix2(0.5,0.,0.,0.)),
@@ -41,8 +44,7 @@ DepthKalmanModule::DepthKalmanModule(core::ConfigNode config,
     LOGGER.info("% Name EstDepth");
 }
 
-void DepthKalmanModule::update(core::EventPtr event, 
-                               EstimatedStatePtr estimatedState)
+void DepthKalmanModule::update(core::EventPtr event)
 {
     /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
     vehicle::RawDepthSensorDataEventPtr ievent =
@@ -60,7 +62,7 @@ void DepthKalmanModule::update(core::EventPtr event,
 
     // Determine depth correction
     math::Vector3 currentSensorLocation = math::Vector3::ZERO; 
-//      estimatedState->getEstimatedOrientation() * m_location;
+//      m_estimatedState->getEstimatedOrientation() * m_location;
     math::Vector3 sensorMovement = math::Vector3::ZERO;
 //      currentSensorLocation - m_location;
     double correction = sensorMovement.z;
@@ -102,8 +104,8 @@ void DepthKalmanModule::update(core::EventPtr event,
     m_Ak_prev = Ak;
 
     // Set the estimated depth
-    estimatedState->setEstimatedDepth(x_curr[0]);
-    estimatedState->setEstimatedDepthRate(x_curr[1]);
+    m_estimatedState->setEstimatedDepth(x_curr[0]);
+    m_estimatedState->setEstimatedDepthRate(x_curr[1]);
 
     LOGGER.infoStream() << m_name << " "
                         << depth  << " "

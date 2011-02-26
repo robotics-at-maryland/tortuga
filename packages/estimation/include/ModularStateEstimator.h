@@ -42,19 +42,13 @@ public:
 
 protected:
 
-    /* These functions are bound to certain event types and are called when
-       an event of the correct type is published to the event hub */
-    virtual void rawUpdate_DVL(core::EventPtr event);
-    virtual void rawUpdate_IMU(core::EventPtr event);
-    virtual void rawUpdate_DepthSensor(core::EventPtr event);
-    virtual void update_Vision(core::EventPtr event);
-    virtual void update_Sonar(core::EventPtr event);
 
 private:
     /* These contain estimation routines that are config swappable */
     EstimationModulePtr dvlEstimationModule;
     EstimationModulePtr imuEstimationModule;
     EstimationModulePtr depthEstimationModule;
+    EstimationModulePtr visionEstimationModule;
 };
 
 } // namespace estimation

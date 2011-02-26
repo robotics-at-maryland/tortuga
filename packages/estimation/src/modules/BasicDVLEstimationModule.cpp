@@ -19,6 +19,8 @@
 #include "math/include/Helpers.h"
 #include "math/include/Quaternion.h"
 #include "math/include/Matrix2.h"
+#include "vehicle/include/device/IVelocitySensor.h"
+
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstIMU"));
 
@@ -26,15 +28,16 @@ namespace ram {
 namespace estimation {
 
 BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config,
-                                                   core::EventHubPtr eventHub) :
-    EstimationModule(eventHub, "BasicDVLEstimationModule")
+                                                   core::EventHubPtr eventHub,
+                                                   EstimatedStatePtr estState) :
+    EstimationModule(eventHub, "BasicDVLEstimationModule",estState,
+                     vehicle::device::IVelocitySensor::RAW_UPDATE)
 {
     /* initialization from config values should be done here */
     LOGGER.info("%Vel_b[2] Vel_n[2] Pos_n[2] Timestamp");
 }
 
-void BasicDVLEstimationModule::update(core::EventPtr event, 
-                                      EstimatedStatePtr estimatedState)
+void BasicDVLEstimationModule::update(core::EventPtr event)
 {
 
     vehicle::RawDVLDataEventPtr ievent =
@@ -48,27 +51,27 @@ void BasicDVLEstimationModule::update(core::EventPtr event,
     }
 
     /* This is where the estimation should be done
-       The result should be stored in estimatedState */
+       The result should be stored in m_estimatedState */
 
     RawDVLData state = ievent->rawDVLData;
     double timestep = ievent->timestep;
     math::Vector2 vel_b = ievent->velocity_b;
 
-    double yaw = estimatedState->getEstimatedOrientation().getYaw().valueRadians();
+    double yaw = m_estimatedState->getEstimatedOrientation().getYaw().valueRadians();
 
     /* calculate current velocity in inertial frame */
     math::Vector2 vel_n = math::nRb(yaw)*vel_b;
 
     /* grab the old position estimate */
-    math::Vector2 oldPos = estimatedState->getEstimatedPosition();
-    math::Vector2 oldVel = estimatedState->getEstimatedVelocity();
+    math::Vector2 oldPos = m_estimatedState->getEstimatedPosition();
+    math::Vector2 oldVel = m_estimatedState->getEstimatedVelocity();
     
     /* trapezoidal integration for new position */
     math::Vector2 pos_n = oldPos + timestep * (vel_n + oldVel) / 2;
 
     /* store the new estimates */
-    estimatedState->setEstimatedVelocity(vel_n);
-    estimatedState->setEstimatedPosition(pos_n);
+    m_estimatedState->setEstimatedVelocity(vel_n);
+    m_estimatedState->setEstimatedPosition(pos_n);
 
     /* log the estimates */
     LOGGER.infoStream() << vel_b[0] << " "

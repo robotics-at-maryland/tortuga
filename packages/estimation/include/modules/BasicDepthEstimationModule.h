@@ -20,7 +20,6 @@
 // Project Includes
 #include "estimation/include/EstimatedState.h"
 #include "estimation/include/EstimationModule.h"
-
 #include "core/include/ConfigNode.h"
 #include "core/include/Event.h"
 
@@ -31,12 +30,12 @@ class BasicDepthEstimationModule : public EstimationModule
 {
 public:
     BasicDepthEstimationModule(core::ConfigNode config,
-                               core::EventHubPtr eventHub);
+                               core::EventHubPtr eventHub,EstimatedStatePtr estState);
     ~BasicDepthEstimationModule(){};
 
     /* The Depth Estimation routine goes here.  It should store the new estimated
        state in estimatedState. */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);
+    virtual void update(core::EventPtr event);
 
 private:
     /* any necessary persistent variables should be declared here */

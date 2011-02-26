@@ -16,6 +16,7 @@
 // Project Includes
 #include "vehicle/include/Events.h"
 #include "estimation/include/modules/DepthAveragingModule.h"
+#include "vehicle/include/device/IDepthSensor.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDepth"));
 
@@ -24,16 +25,16 @@ namespace estimation {
 
 DepthAveragingModule::DepthAveragingModule(
     core::ConfigNode config,
-    core::EventHubPtr eventHub) :
-    EstimationModule(eventHub, "DepthAveragingModule")
+    core::EventHubPtr eventHub,EstimatedStatePtr estState) :
+    EstimationModule(eventHub, "DepthAveragingModule",estState,
+                     vehicle::device::IDepthSensor::RAW_UPDATE)
 {
     /* initialization of estimator from config values should be done here */
     LOGGER.info("% RawDepth Correction EstDepth EstDepthRate");
 }
 
 void DepthAveragingModule::update(
-    core::EventPtr event, 
-    EstimatedStatePtr estimatedState)
+    core::EventPtr event)
 {
     /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
     vehicle::RawDepthSensorDataEventPtr ievent =
@@ -46,12 +47,12 @@ void DepthAveragingModule::update(
     }
 
     /* This is where the estimation should be done
-       The result should be stored in estimatedState */
+       The result should be stored in m_estimatedState */
 
     // Determine depth correction
     math::Vector3 location = ievent->sensorLocation;
     math::Vector3 currentSensorLocation = 
-        estimatedState->getEstimatedOrientation() * location;
+        m_estimatedState->getEstimatedOrientation() * location;
     math::Vector3 sensorMovement = currentSensorLocation - location;
     double correction = sensorMovement.z;
 
@@ -72,8 +73,8 @@ void DepthAveragingModule::update(
     double estDepth = m_filteredDepth.getValue();
     double estDepthRate = m_filteredDepthRate.getValue();
 
-    estimatedState->setEstimatedDepth(estDepth);
-    estimatedState->setEstimatedDepthRate(estDepthRate);
+    m_estimatedState->setEstimatedDepth(estDepth);
+    m_estimatedState->setEstimatedDepthRate(estDepthRate);
 
     LOGGER.infoStream() << rawDepth<< " "
                         << correction << " "

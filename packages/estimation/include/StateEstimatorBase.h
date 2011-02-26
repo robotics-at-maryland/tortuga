@@ -134,26 +134,6 @@ public:
 
 protected:
 
-    /* These functions should be bound to events of the correct type.
-    ** Each sensor will publish RAW_UPDATE events when new data is
-    ** received.  Vision detectors will publish similar events when
-    ** they compute the results from single frames.
-    */
-    virtual void rawUpdate_DVL(core::EventPtr event) = 0;
-    virtual void rawUpdate_IMU(core::EventPtr event) = 0;
-    virtual void rawUpdate_DepthSensor(core::EventPtr event) = 0;
-    virtual void update_Vision(core::EventPtr event) = 0;
-    virtual void update_Sonar(core::EventPtr event) = 0;
-
-    /* These keep track of the event subscriptions.
-    ** This class will delete them on deconstruction.
-    */
-    core::EventConnectionPtr updateConnection_IMU;
-    core::EventConnectionPtr updateConnection_DVL;
-    core::EventConnectionPtr updateConnection_DepthSensor;
-    core::EventConnectionPtr updateConnection_Sonar;
-    core::EventConnectionPtr updateConnection_Vision;
-
     // Pointer to access the estimated state for this estimator
     EstimatedStatePtr estimatedState;
 };

@@ -25,6 +25,7 @@
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
 #include "core/include/SubsystemMaker.h"
+#include "vision/include/Events.h"
 
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::estimation::ModularStateEstimator,
@@ -38,30 +39,31 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
     StateEstimatorBase(config,eventHub),
     dvlEstimationModule(EstimationModulePtr()),
     imuEstimationModule(EstimationModulePtr()),
-    depthEstimationModule(EstimationModulePtr())
+    depthEstimationModule(EstimationModulePtr()),
+    visionEstimationModule(EstimationModulePtr())
 {
-    // Connect the event listeners to their respective events
-    if(eventHub != core::EventHubPtr()){
-        updateConnection_IMU = eventHub->subscribeToType(
-            vehicle::device::IIMU::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_IMU,this, _1));
 
-        updateConnection_DepthSensor = eventHub->subscribeToType(
-            vehicle::device::IDepthSensor::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_DepthSensor,this, _1));
-
-        updateConnection_DVL = eventHub->subscribeToType(
-            vehicle::device::IVelocitySensor::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
-    }
 
     // Construct the estimation modules
     dvlEstimationModule = EstimationModulePtr(
-        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub));
+        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub,
+                                     estimatedState));
     imuEstimationModule = EstimationModulePtr(
-        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub));
+        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub,
+                                     estimatedState));
     depthEstimationModule = EstimationModulePtr(
-        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub));
+        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub,
+        estimatedState));
+    
+    //going to need to be more specific by making more modules for each eventType
+    //below is simply an example of the (hopefully) correct format
+    
+    visionEstimationModule = EstimationModulePtr(new VisionEstimationModule
+                                                 < vision::BuoyEvent>
+                                                 ( vision::EventType::BUOY_FOUND,eventHub,
+                                                  config["VisionEstimationModule"],
+                                                  estimatedState));
+     
 }
 
 ModularStateEstimator::ModularStateEstimator(core::ConfigNode config, 
@@ -73,79 +75,64 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
 {
     core::EventHubPtr eventHub = core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
 
-    // Connect the event listeners to their respective events
-    if(eventHub != core::EventHubPtr()){
-        updateConnection_IMU = eventHub->subscribeToType(
-            vehicle::device::IIMU::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_IMU,this, _1));
-            
-        updateConnection_DepthSensor = eventHub->subscribeToType(
-            vehicle::device::IDepthSensor::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_DepthSensor,this, _1));
-            
-        updateConnection_DVL = eventHub->subscribeToType(
-            vehicle::device::IVelocitySensor::RAW_UPDATE,
-            boost::bind(&ModularStateEstimator::rawUpdate_DVL,this, _1));
-    }
+
+        
+        
+
+        /*
+        //these need to be removed due to switch to using templates
+        see the above constructor for where this is actually to be done
+        updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::BUOY_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+        updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::PIPE_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+        updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::GATE_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+        updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::BIN_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+         updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::WINDOW_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+         updateConnection_Vision.push_back(
+            eventHub->subscribeToType(
+                ram::vision::HEDGE_FOUND,boost::bind(
+                    &ModularStateEstimator::rawUpdate_Vision,this, _1));
+
+        */
+
+
+    
         
     // Construct the estimation modules
     dvlEstimationModule = EstimationModulePtr(
-        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub));
+        new BasicDVLEstimationModule(config["DVLEstimationModule"], eventHub,
+                                     estimatedState));
     imuEstimationModule = EstimationModulePtr(
-        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub));
+        new BasicIMUEstimationModule(config["IMUEstimationModule"], eventHub,
+                                     estimatedState));
     depthEstimationModule = EstimationModulePtr(
-        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub));
+        new BasicDepthEstimationModule(config["DepthEstimationModule"], eventHub,
+                                       estimatedState));
+
+    //need to create a BasicVisonEstimationModule class, has to implement the update method to update obstacles in the EstimatedState class, has to use string conversion method in     the color class and other such methods to get the right names for the obstacles(string type)
 
 }
 
 
 ModularStateEstimator::~ModularStateEstimator()
 {
-    /* unbind the update functions */
-    if(updateConnection_IMU)
-        updateConnection_IMU->disconnect();
-
-    if(updateConnection_DVL)
-        updateConnection_DVL->disconnect();
-
-    if(updateConnection_DepthSensor)
-        updateConnection_DepthSensor->disconnect();
-
-    if(updateConnection_Sonar)
-        updateConnection_Sonar->disconnect();
     
-    if(updateConnection_Vision)
-        updateConnection_Vision->disconnect();
 }
 
-
-void ModularStateEstimator::rawUpdate_DVL(core::EventPtr event)
-{
-    /* Update the estimated state by using an estimation module */
-    dvlEstimationModule->update(event, estimatedState);
-}
-
-void ModularStateEstimator::rawUpdate_IMU(core::EventPtr event)
-{
-    /* Update the estimated state by using an estimation module */
-    imuEstimationModule->update(event, estimatedState);
-}
-
-void ModularStateEstimator::rawUpdate_DepthSensor(core::EventPtr event)
-{
-    /* Update the estimated state by using an estimation module */
-    depthEstimationModule->update(event, estimatedState);
-}
-
-void ModularStateEstimator::update_Vision(core::EventPtr event)
-{
-    std::cout << "ModularStateEstimator: rawUpdate_Vision: Placeholder" << std::endl;
-}
-
-void ModularStateEstimator::update_Sonar(core::EventPtr event)
-{
-    std::cout << "ModularStateEstimator: rawUpdate_Sonar: Placeholder" << std::endl;
-}
 
 } // namespace estimation
 } // namespace ram

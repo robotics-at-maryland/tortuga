@@ -28,21 +28,22 @@
 namespace ram {
 namespace estimation {
 
-const static int FILTER_SIZE = 10;
+
 
 class DepthAveragingModule : public EstimationModule
 {
 public:
     DepthAveragingModule(core::ConfigNode config,
-                               core::EventHubPtr eventHub);
+                         core::EventHubPtr eventHub,EstimatedStatePtr estState);
     ~DepthAveragingModule(){};
 
     /* The Depth Estimation routine goes here.  It should store the new estimated
-       state in estimatedState. */
-    virtual void update(core::EventPtr event, EstimatedStatePtr estimatedState);
+       state in m_estimatedState. */
+    virtual void update(core::EventPtr event);
 
 private:
     /* any necessary persistent variables should be declared here */
+    const static int FILTER_SIZE = 10;
     std::string m_name;
     double m_previousDepth;
 

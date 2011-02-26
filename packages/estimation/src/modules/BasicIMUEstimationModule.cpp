@@ -30,8 +30,10 @@ namespace ram {
 namespace estimation {
 
 BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
-                                                   core::EventHubPtr eventHub) :
-    EstimationModule(eventHub,"BasicIMUEstimationModule"),
+                                                   core::EventHubPtr eventHub,
+                                                   EstimatedStatePtr estState) :
+    EstimationModule(eventHub,"BasicIMUEstimationModule",estState,
+                     vehicle::device::IIMU::RAW_UPDATE),
     m_magIMUName(config["magIMUNum"].asString("MagBoom")),
     m_cgIMUName(config["cgIMUNum"].asString("IMU"))
 {
@@ -40,8 +42,7 @@ BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
                 " Gyro-Raw[3] Quat[4] TimeStamp[1]");
 }
 
-void BasicIMUEstimationModule::update(core::EventPtr event,
-                                      EstimatedStatePtr estimatedState)
+void BasicIMUEstimationModule::update(core::EventPtr event)
 {
     vehicle::RawIMUDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawIMUDataEvent>(event);
@@ -53,7 +54,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     }
 
     /* This is where the estimation should be done
-       The result should be stored in estimatedState */
+       The result should be stored in m_estimatedState */
 
     std::string name = ievent->name;
     double timestep = ievent->timestep;
@@ -151,7 +152,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
             omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
         }
 
-        math::Quaternion oldOrientation = estimatedState->getEstimatedOrientation();
+        math::Quaternion oldOrientation = m_estimatedState->getEstimatedOrientation();
 
         LOGGER.info("quatFromRate - No Boom, Mag Corrupted");
         estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
@@ -161,7 +162,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event,
     }
 
     // Update local storage of previous orientation and estimator
-    estimatedState->setEstimatedOrientation(estOrientation);
+    m_estimatedState->setEstimatedOrientation(estOrientation);
 
     // Send Event
     math::OrientationEventPtr oevent(new math::OrientationEvent());
