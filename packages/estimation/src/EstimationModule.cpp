@@ -25,11 +25,13 @@ EstimationModule::EstimationModule(core::EventHubPtr eventHub,
                                    core::Event::EventType type) :
     core::EventPublisher(eventHub, name)
 {
-    m_connection = eventHub->subscribeToType(type,boost::bind(
-                                                 &ram::estimation::EstimationModule::update,
-                                                   this, _1));
-   m_estimatedState=estState;
+    m_connection = eventHub->subscribeToType(
+        type,
+        boost::bind(&ram::estimation::EstimationModule::update, this, _1));
+    
+    m_estimatedState = estState;
 }
+
 EstimationModule::~EstimationModule()
 {
     m_connection->disconnect();

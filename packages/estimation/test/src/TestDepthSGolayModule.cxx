@@ -4,21 +4,21 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/estimation/test/src/TestBasicDepthEstimation.cxx
+ * File:  packages/estimation/test/src/TestDepthSGolayModule.cxx
  */
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-#include "estimation/include/modules/BasicDepthEstimationModule.h"
+#include "estimation/include/modules/DepthSGolayModule.h"
 #include "estimation/include/EstimatedState.h"
 #include "vehicle/include/Events.h"
 #include "core/include/EventHub.h"
 
 using namespace ram;
 
-TEST(depthUpdate1)
+TEST(depthSGolayUpdate1)
 {
     core::EventHubPtr eventHub = core::EventHubPtr(
         new core::EventHub("eventHub"));
@@ -39,16 +39,17 @@ TEST(depthUpdate1)
 
     estimation::EstimationModulePtr module = 
         estimation::EstimationModulePtr(
-            new estimation::BasicDepthEstimationModule(
+            new estimation::DepthSGolayModule(
                 core::ConfigNode::fromString("{}"),
                 eventHub, estimatedState));
-        
-    module->update(event);
+
+    for(int i = 0; i < 25; i++)
+        module->update(event);
     
     CHECK_CLOSE(estimatedState->getEstimatedDepth(), 4.0, 0.0001);
 }
 
-TEST(depthUpdate2)
+TEST(depthSGolayUpdate2)
 {
     core::EventHubPtr eventHub = core::EventHubPtr(
         new core::EventHub("eventHub"));
@@ -74,11 +75,13 @@ TEST(depthUpdate2)
 
     estimation::EstimationModulePtr module = 
         estimation::EstimationModulePtr(
-            new estimation::BasicDepthEstimationModule(
+            new estimation::DepthSGolayModule(
                 core::ConfigNode::fromString("{}"),
                 eventHub,estimatedState));
         
-    module->update(event);
+
+    for(int i = 0; i < 25; i++)
+        module->update(event);
     
     // We add to the expected depth because the downward pitch moves our sensor
     // to a shallow depth then we are really at

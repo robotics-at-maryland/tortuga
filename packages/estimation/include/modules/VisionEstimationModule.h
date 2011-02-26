@@ -6,8 +6,8 @@
  * Author: Eliot Rudnick-Cohen <eliot@marlasrudnick.com>
  * File:  packages/estimation/src/modules/VisionEstimationModule.h
  */
-#ifndef RAM_ESTIMATION_VISIONESTIMATIONMODULE
-#define RAM_ESTIMATION_VISIONESTIMATIONMODULE
+#ifndef RAM_ESTIMATION_VISIONESTIMATIONMODULE_H
+#define RAM_ESTIMATION_VISIONESTIMATIONMODULE_H
 
 #include <boost/pointer_cast.hpp>
 #include "estimation/include/EstimationModule.h"
@@ -20,7 +20,8 @@ template<typename E>
 class VisionEstimationModule: public EstimationModule
 {
 public:
-    VisionEstimationModule<E>(core::Event::EventType type, core::EventHubPtr eventHub,
+    VisionEstimationModule<E>(core::Event::EventType type,
+                              core::EventHubPtr eventHub,
                               core::ConfigNode config,
                               EstimatedStatePtr estState):
     EstimationModule(eventHub,"VisionEstimationModule",estState,type)
@@ -42,40 +43,46 @@ public:
 
     void update(core::EventPtr event)
     {
-        math::Vector3 objectPos(0,0,0);
-        //rest of the code
-        
-        boost::shared_ptr< E> castEvent =boost::dynamic_pointer_cast< E >(event);
-        double dist=castEvent->range;
-        dist=dist;
-        math::Degree azimuth=castEvent->azimuth;
-        math::Degree elevation=castEvent->elevation;
-        //making the z value of the object the actual one for now
-        objectPos[2]=0.0;
-        
-        //code to go from that to vector, the usual method(trig functions)
-        
-        math::Quaternion orientation=m_estimatedState->getEstimatedOrientation();
-        objectPos=orientation.UnitInverse()*objectPos;
-        objectPos[0]=(m_estimatedState->getEstimatedPosition())[0]+objectPos[0];
-        objectPos[1]=(m_estimatedState->getEstimatedPosition())[1]+objectPos[1];
-        //pretend the z value is now correctly assigned since it isn't stored yet
+        boost::shared_ptr<E> castEvent = boost::dynamic_pointer_cast<E>(event);
 
+        // if the cast failed, bail out
+        if(castEvent == 0)
+            return;
 
+        double dist = castEvent->range;
+        dist = dist; // do nothing with this to avoid a warning
+
+        math::Degree azimuth = castEvent->azimuth;
+        math::Degree elevation = castEvent->elevation;
+
+        // object position in the body frame
+        math::Vector3 objectPos_b(0, 0, 0);
+
+        // making the z value of the object the actual one for now
+        
+        // code to go from that to vector, the usual method(trig functions)
+        
+        math::Quaternion orientation = 
+            m_estimatedState->getEstimatedOrientation();
+
+        // express the vector from the camera to the object in the inertial
+        // coordinate frame
+        math::Vector3 objectPos_n = orientation.UnitInverse() * objectPos_b;
+
+        // compute the vector from the origin of the inertial coordinate frame
+        // to the object by adding the robot position in the inertial frame
+        math::Vector2 robotPos = m_estimatedState->getEstimatedPosition();
+        double robotDepth = m_estimatedState->getEstimatedDepth();
+
+        math::Vector3 offset_n(robotPos[0], robotPos[1], robotDepth);
+        objectPos_n += offset_n;
+
+        // pretend the z value is now correctly assigned since it 
+        // isn't stored yet
     }
-
-private:
-   
-
-
-
-
-
 };
 
+} // namespace estimation
+} // namespace ram
 
-
-}//estimation namespace
-
-}//ram namespace
-#endif
+#endif // RAM_ESTIMATION_VISIONESTIMATIONMODULE_H

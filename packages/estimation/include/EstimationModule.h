@@ -44,12 +44,15 @@ public:
     /* The config node should contain the values necessary for initializing the
        specifig EstimationModule. */
     EstimationModule(core::EventHubPtr eventHub = core::EventHubPtr(),
-                     std::string name = "",EstimatedStatePtr estState=EstimatedStatePtr(),
-                     core::Event::EventType type=core::Event::EventType());
+                     std::string name = "",
+                     EstimatedStatePtr estState = EstimatedStatePtr(),
+                     core::Event::EventType type = core::Event::EventType());
+
     ~EstimationModule();
 
     /* update - the function that will be called to perform the estimation */
     virtual void update(core::EventPtr event) = 0;
+
 protected:
     EstimatedStatePtr m_estimatedState;
     core::EventConnectionPtr m_connection;

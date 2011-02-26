@@ -31,9 +31,9 @@ DepthSGolayModule::DepthSGolayModule(
     EstimationModule(eventHub, "DepthSGolayModule",estState,
                      vehicle::device::IDepthSensor::RAW_UPDATE),
     m_degree(config["degree"].asInt(2)),
-    m_window(config["windowSize"].asInt(25)),
+    m_window(config["windowSize"].asInt(5)),
     m_filteredDepth(math::SGolaySmoothingFilterPtr(
-                        new math::SGolaySmoothingFilter(m_degree, m_window)))
+                        new math::SGolaySmoothingFilter(m_window, m_degree)))
 {
     // initialization of estimator from config values should be done here
     LOGGER.info("% RawDepth Correction EstDepth EstDepthRate");
@@ -77,7 +77,7 @@ void DepthSGolayModule::update(core::EventPtr event)
     m_estimatedState->setEstimatedDepth(estDepth);
     m_estimatedState->setEstimatedDepthRate(estDepthRate);
 
-    LOGGER.infoStream() << rawDepth<< " "
+    LOGGER.infoStream() << rawDepth << " "
                         << correction << " "
                         << estDepth << " "
                         << estDepthRate;

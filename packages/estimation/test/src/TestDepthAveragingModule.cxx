@@ -4,21 +4,21 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/estimation/test/src/TestBasicDepthEstimation.cxx
+ * File:  packages/estimation/test/src/TestDepthAveragingModule.cxx
  */
 
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 
 // Project Includes
-#include "estimation/include/modules/BasicDepthEstimationModule.h"
+#include "estimation/include/modules/DepthAveragingModule.h"
 #include "estimation/include/EstimatedState.h"
 #include "vehicle/include/Events.h"
 #include "core/include/EventHub.h"
 
 using namespace ram;
 
-TEST(depthUpdate1)
+TEST(depthAveragingUpdate1)
 {
     core::EventHubPtr eventHub = core::EventHubPtr(
         new core::EventHub("eventHub"));
@@ -39,7 +39,7 @@ TEST(depthUpdate1)
 
     estimation::EstimationModulePtr module = 
         estimation::EstimationModulePtr(
-            new estimation::BasicDepthEstimationModule(
+            new estimation::DepthAveragingModule(
                 core::ConfigNode::fromString("{}"),
                 eventHub, estimatedState));
         
@@ -48,7 +48,7 @@ TEST(depthUpdate1)
     CHECK_CLOSE(estimatedState->getEstimatedDepth(), 4.0, 0.0001);
 }
 
-TEST(depthUpdate2)
+TEST(depthAveragingUpdate2)
 {
     core::EventHubPtr eventHub = core::EventHubPtr(
         new core::EventHub("eventHub"));
@@ -74,7 +74,7 @@ TEST(depthUpdate2)
 
     estimation::EstimationModulePtr module = 
         estimation::EstimationModulePtr(
-            new estimation::BasicDepthEstimationModule(
+            new estimation::DepthAveragingModule(
                 core::ConfigNode::fromString("{}"),
                 eventHub,estimatedState));
         

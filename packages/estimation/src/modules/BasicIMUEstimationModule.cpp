@@ -59,6 +59,13 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
        The result should be stored in m_estimatedState */
 
     std::string name = ievent->name;
+   
+    if(name != m_magIMUName && name != m_cgIMUName)
+    {
+        LOGGER.warn("BasicIMUEstimationModule: update: Invalid IMU Name");
+        return;
+    }
+
     double timestep = ievent->timestep;
     bool magIsCorrupt = ievent->magIsCorrupt;
     imuList.insert(name);
@@ -154,13 +161,13 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
             omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
         }
 
-        math::Quaternion oldOrientation = m_estimatedState->getEstimatedOrientation();
+        math::Quaternion oldOrientation = 
+            m_estimatedState->getEstimatedOrientation();
 
         LOGGER.info("quatFromRate - No Boom, Mag Corrupted");
         estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
                                                                  omega,
                                                                  timestep);
-
     }
 
     // Update local storage of previous orientation and estimator

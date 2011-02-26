@@ -47,62 +47,62 @@ IMUSGolayModule::IMUSGolayModule(core::ConfigNode config,
 
     // initialize accelerometer data filters
     m_filteredAccelX[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredAccelY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredAccelY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredAccelZ[m_magIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredAccelX[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredAccelY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredAccelY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredAccelZ[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
 
     // initialize magnetometer data filters
     m_filteredMagX[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredMagY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredMagY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredMagZ[m_magIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredMagX[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredMagY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredMagY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredMagZ[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
 
     // initialize gyro data filters
     m_filteredGyroX[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredGyroY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredGyroY[m_magIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredGyroZ[m_magIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredGyroX[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
     m_filteredGyroY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 
-    m_filteredGyroY[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_degree, m_windowSize));
+    m_filteredGyroZ[m_cgIMUName] = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
 }
 
 void IMUSGolayModule::update(core::EventPtr event)
@@ -120,6 +120,14 @@ void IMUSGolayModule::update(core::EventPtr event)
        The result should be stored in m_estimatedState */
 
     std::string name = ievent->name;
+
+    if(name != m_magIMUName && name != m_cgIMUName)
+    {
+        std::cout << name << " youre an idiot" << std::endl;
+        LOGGER.warn("BasicIMUEstimationModule: update: Invalid IMU Name");
+        return;
+    }
+
     double timestep = ievent->timestep;
     bool magIsCorrupt = ievent->magIsCorrupt;
     imuList.insert(name);
