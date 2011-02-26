@@ -60,8 +60,10 @@ math::Vector3 PIDDepthTrackingController::depthUpdate(
     double mass = estimator->getEstimatedMass();
 
     // propagate desired state
+    dRate += dAccel * timestep;
     dDepth += dRate * timestep;
-    desiredState->setDesiredDepth(dDepth);
+//    desiredState->setDesiredDepthRate(dRate);
+//    desiredState->setDesiredDepth(dDepth);
     
     // make sure timestep is not to large or small
     if(timestep < m_dtMin)
@@ -76,7 +78,8 @@ math::Vector3 PIDDepthTrackingController::depthUpdate(
     m_iErr = iErr;
 
     double depthControlSignal = 
-        m_kp * pErr + m_kd * dErr + m_ki * iErr + mass * dAccel;
+        m_kp * pErr + m_kd * dErr + m_ki * iErr;
+    // this term causes bad performace due buoyancy and inertia - mass * dAccel;
 
     // we need to return a Vector3
     math::Vector3 controlSignal_n(0, 0, depthControlSignal);
