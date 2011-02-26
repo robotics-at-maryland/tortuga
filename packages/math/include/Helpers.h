@@ -69,6 +69,9 @@ void RAM_EXPORT rotationYaw(double psi, double * pMatrix);
 Matrix2 RAM_EXPORT bRn(double radians);
 Matrix2 RAM_EXPORT nRb(double radians);
 
+// factorial for smallish numbers
+int factorial(int num);
+
 } // namespace math
 } // namespace ram
     

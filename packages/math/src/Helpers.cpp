@@ -722,5 +722,16 @@ Matrix2 nRb(double radians)
     return Matrix2(r_cos,r_sin,-r_sin,r_cos);
 }
 
+int factorial(int num)
+{
+    // dont use this function for big numbers
+    int ans = num;
+
+    while(--num > 1)
+        ans *= num;
+
+    return ans;
+}
+
 } // namespace math
 } // namespace ram
