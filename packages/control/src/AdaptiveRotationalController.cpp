@@ -40,20 +40,21 @@ AdaptiveRotationalController::AdaptiveRotationalController(
     m_rotK(config["rotK"].asDouble(1.0)),
     m_params(math::MatrixN(12,1))
 {
-    m_params[0][0] = config["adaptParams"][0].asDouble(0.5);
-    m_params[1][0] = config["adaptParams"][1].asDouble(0);
-    m_params[2][0] = config["adaptParams"][2].asDouble(-0.1);
-    m_params[3][0] = config["adaptParams"][3].asDouble(1);
+    m_params[0][0] = config["adaptParams"][0].asDouble(2);
+    m_params[1][0] = config["adaptParams"][1].asDouble(1);
+    m_params[2][0] = config["adaptParams"][2].asDouble(-0.5);
+    m_params[3][0] = config["adaptParams"][3].asDouble(0);
     m_params[4][0] = config["adaptParams"][4].asDouble(0);
-    m_params[5][0] = config["adaptParams"][5].asDouble(1);
+    m_params[5][0] = config["adaptParams"][5].asDouble(0);
     m_params[6][0] = config["adaptParams"][6].asDouble(0);
     m_params[7][0] = config["adaptParams"][7].asDouble(0);
     m_params[8][0] = config["adaptParams"][8].asDouble(0);
     m_params[9][0] = config["adaptParams"][9].asDouble(1);
-    m_params[10][0] = config["adaptParams"][10].asDouble(2);
-    m_params[11][0] = config["adaptParams"][11].asDouble(2);
+    m_params[10][0] = config["adaptParams"][10].asDouble(1);
+    m_params[11][0] = config["adaptParams"][11].asDouble(1.95);
 
-    LOGGER.info("dQuat(4) dOmega(3) eQuat(4) eOmega(3) params(12) torque(3)");
+    LOGGER.info("dQuat(4) dOmega(3) eQuat(4) eOmega(3) "
+                "params(12) torque(3) shat(3)");
 }
 
 math::Vector3 AdaptiveRotationalController::rotationalUpdate(
@@ -86,17 +87,17 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     // derivative of angular rate desired
     math::Vector3 dwd(0,0,0);
 
-	// simple numerical integration
-	wd = wd + dwd * timestep;
+    // simple numerical integration
+    wd = wd + dwd * timestep;
 	
-	// integrate desired angular position
-	// compute derivative of quaternion desired
+    // integrate desired angular position
+    // compute derivative of quaternion desired
     math::Quaternion dqd = qd.derivative(wd);
 
-	// simple numerical integration
-	qd = qd + dqd * timestep;
-	// fix numerical drift
-	qd.normalise();
+    // simple numerical integration
+    qd = qd + dqd * timestep;
+    // fix numerical drift
+    qd.normalise();
 
     // update the desired state
     desiredState->setDesiredAngularRate(wd);
@@ -118,8 +119,8 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     
     double eta_c_tilde = qc_tilde.w;
     // compute composite error metrics
-    //these cause the oscillations!!!
-    math::Vector3 wr = RotMatc_tilde*wd-(m_rotLambda)*epsilon_c_tilde*eta_c_tilde;//altered
+    math::Vector3 wr = RotMatc_tilde*wd - 
+        (m_rotLambda)*epsilon_c_tilde*eta_c_tilde;
     math::Vector3 shat = w-wr;
 
     // compute angular rate error
@@ -130,15 +131,15 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     S.ToSkewSymmetric(epsilon_c_tilde);
 
     math::Matrix3 Q1; //temp Q1 matrix (subset of Q matrix)	
-	Q1[0][0] = qc_tilde.w + S[0][0];
-	Q1[0][1] = S[0][1];
-	Q1[0][2] = S[0][2];
-	Q1[1][0] = S[1][0];
-	Q1[1][1] = qc_tilde.w + S[1][1];
-	Q1[1][2] = S[1][2];
-	Q1[2][0] = S[2][0];
-	Q1[2][1] = S[2][1];
-	Q1[2][2] = qc_tilde.w + S[2][2];
+    Q1[0][0] = qc_tilde.w + S[0][0];
+    Q1[0][1] = S[0][1];
+    Q1[0][2] = S[0][2];
+    Q1[1][0] = S[1][0];
+    Q1[1][1] = qc_tilde.w + S[1][1];
+    Q1[1][2] = S[1][2];
+    Q1[2][0] = S[2][0];
+    Q1[2][1] = S[2][1];
+    Q1[2][2] = qc_tilde.w + S[2][2];
 
     S.ToSkewSymmetric(wc_tilde);
     math::Vector3 dwr = RotMatc_tilde * dwd - (m_rotLambda) * Q1 * wc_tilde;
@@ -235,7 +236,10 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
 
     math::MatrixN adaptiveTerm = Y*m_params;
 
-    math::Vector3 output(adaptiveTerm[0][0],adaptiveTerm[1][0],adaptiveTerm[2][0]);
+    math::Vector3 output(adaptiveTerm[0][0],
+                         adaptiveTerm[1][0],
+                         adaptiveTerm[2][0]);
+
     output = output-(m_rotK)*shat;
  
     LOGGER.infoStream() << qd[0] << " "
@@ -266,10 +270,10 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
                         << m_params[11][0] << " "
                         << output[0] << " "
                         << output[1] << " "
-                        << output[2]<<" "
-                        <<shat[0]<<" "
-                        <<shat[1]<<" "
-                        <<shat[2];//note, added shat to logger to test a hunch
+                        << output[2] <<" "
+                        <<shat[0] <<" "
+                        <<shat[1] <<" "
+                        <<shat[2];
 
     return math::Vector3(output[0], output[1], output[2]);
 }
