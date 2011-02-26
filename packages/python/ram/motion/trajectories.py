@@ -167,7 +167,7 @@ class ScalarCubicTrajectory(Trajectory):
         if order < 1 :
             return None
         elif order == 1:
-            return c[1] + time * (2 * c[2] * time + (3 * time * c[3]))
+            return c[1] + time * (2 * c[2]  + time * 3 * c[3])
         elif order == 2:
             return 2 * c[2] + 6 * c[3] * time
         elif order == 3:
@@ -294,7 +294,7 @@ class Vector2CubicTrajectory(Trajectory):
             if order == 1:
                 return self._initialRateV
             elif order > 1:
-                return 0
+                return math.Vector2.ZERO
             else:
                 return None
 
@@ -303,7 +303,7 @@ class Vector2CubicTrajectory(Trajectory):
             if order == 1:
                 return self._finalRateV
             elif order > 1:
-                return 0
+                return math.Vector2.ZERO
             else:
                 return None
 
@@ -312,7 +312,7 @@ class Vector2CubicTrajectory(Trajectory):
         if order < 1 :
             return None
         elif order == 1:
-            scalarRate = c[1] + time * (2 * c[2] * time + (3 * time * c[3]))
+            scalarRate = c[1] + time * (2 * c[2]  + time * 3 * c[3])
             return self._projectOntoAxes(scalarRate)
         elif order == 2:
             scalarRate = 2 * c[2] + 6 * c[3] * time
@@ -336,7 +336,7 @@ class Vector2CubicTrajectory(Trajectory):
             scalarRate = 2 * coefficients[2]
             return self._projectOntoAxes(scalarRate)
         elif order > 2:
-            return 0
+            return math.Vector2.ZERO
         else:
             return None
 

@@ -361,7 +361,7 @@ class Motion(object):
 class ChangeDepth(Motion):
     DEPTH_TRAJECTORY_UPDATE  = core.declareEventType('DEPTH_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, updateRate = 0.04):
+    def __init__(self, trajectory, updateRate = .04):
         """
         @type  Trajectory
         @param trajecotry
@@ -384,14 +384,6 @@ class ChangeDepth(Motion):
             ChangeDepth.DEPTH_TRAJECTORY_UPDATE,
             self._update)
 
-        # evaluate the initial state of the trajectory
-        initialTime = self._trajectory.getInitialTime()
-        initialDepth = self._trajectory.computeValue(initialTime)
-        initialRate = self._trajectory.computeDerivative(initialTime,1)
-
-        # send the initial values to the controller
-        self._controller.changeDepth(initialDepth, initialRate)
-
         self._timer.start()
         
     def _update(self, event):
@@ -403,9 +395,17 @@ class ChangeDepth(Motion):
         # evaluate the trajectory value and 1st derivative
         newDepth = self._trajectory.computeValue(currentTime)
         newDepthRate = self._trajectory.computeDerivative(currentTime,1)
+        newDepthAccel = self._trajectory.computeDerivative(currentTime,2)
 
         # send the new values to the controller
-        self._controller.changeDepth(newDepth, newDepthRate)
+        if newDepthAccel is None:
+            if newDepthRate is None:
+                self._controller.changeDepth(newDepth)
+            else:
+                self._controller.changeDepth(newDepth, newDepthRate)
+        else:
+            self._controller.changeDepth(newDepth, newDepthRate, newDepthAccel)
+
 
         if currentTime >= self._trajectory.getFinalTime() and \
                 self._controller.atDepth():
@@ -435,7 +435,7 @@ class ChangeOrientation(Motion):
     ORIENTATION_TRAJECTORY_UPDATE = \
         core.declareEventType('ORIENTATION_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, updateRate = 25):
+    def __init__(self, trajectory, updateRate = 0.04):
         """
         The trajectory must return Quaternion value and Vector3 derivative
         @type  trajectory: Trajctory
@@ -460,14 +460,7 @@ class ChangeOrientation(Motion):
             ChangeOrientation.ORIENTATION_TRAJECTORY_UPDATE,
             self._update)
 
-        # evaluate the initial state of the trajectory
-        initialTime = self._trajectory.getInitialTime()
-        initialOrientation = self._trajectory.computeValue(initialTime)
-        initialRate = self._trajectory.computeDerivative(initialTime,1)
-        
-        # send the initial values to the controller
-        self._controller.rotate(initialOrientation, initialRate)
-        
+        self._timer.start()
 
     def _update(self, event):
         # figure out at what time to evaluate the trajectory
@@ -512,7 +505,7 @@ class Translate(Motion):
     INPLANE_TRAJECTORY_UPDATE = \
         core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, frame = Frame.GLOBAL, updateRate = 25):
+    def __init__(self, trajectory, frame = Frame.GLOBAL, updateRate = 0.04):
         """
         Initializes the motion to execute a trajectory at the specified rate
         The trajectory must return Vector2 values and derivatives
@@ -539,26 +532,12 @@ class Translate(Motion):
             Translate.INPLANE_TRAJECTORY_UPDATE,
             self._update)
 
-        # evaluate the initial state of the trajectory
-        initialTime = self._trajectory.getInitialTime()
-        initialPosition = self._trajectory.computeValue(initialTime)
-        initialVelocity = self._trajectory.computeDerivative(initialTime,1)
-
         # need to get the initial position in global coordinates in case
         # we are going to do a motion in local coordinates
         if self._frame is Frame.LOCAL:
             self._initialGlobalPosition = self._estimator.getEstimatedPosition()
-            # interpret the trajectory output as being in the local coordinate
-            orientation = self._estimator.getEstimatedOrientation()
-            yaw = orientation.getYaw().valueRadians()
-            # rotation matrix from body (local) to inertial (global)
-            nRb = math.nRb(yaw)
-            initialPosition = self._initialGlobalPosition + \
-                (nRb * initialPosition)
-            initialVelocity = nRb * initialVelocity
-
-        # send the initial values to the controller
-        self._controller.translate(initialPosition, initialVelocity)
+            
+        self._timer.start()
 
     def _update(self, event):
         # figure out at what time to evaluate the trajectory
@@ -570,6 +549,7 @@ class Translate(Motion):
         # evaluate the trajectory value and 1st derivative
         newPosition = self._trajectory.computeValue(currentTime)
         newVelocity = self._trajectory.computeDerivative(currentTime,1)
+        newAccel = self._trajectory.computeDerivative(currentTime, 2)
 
         if self._frame is Frame.LOCAL:
             # interpret the trajectory output as being in the local coordinate
@@ -579,9 +559,20 @@ class Translate(Motion):
             nRb = math.nRb(yaw)
             newPosition = self._initialGlobalPosition + (nRb * newPosition)
             newVelocity = nRb * newVelocity
+            newAccel = nRb * newAccel
 
         # send the new values to the controller
-        self._controller.translate(newPosition, newVelocity)
+        if newAccel is None:
+            if newVelocity is None:
+                print 'translating'
+                self._controller.translate(newPosition)
+            else:
+                print 'translating'
+                self._controller.translate(newPosition, newVelocity)
+        else:
+            print 'translating'
+            self._controller.translate(newPosition, newVelocity, newAccel)
+
 
         if (currentTime >= self._trajectory.getFinalTime() and
             self._controller.atPosition() and self._controller.atVelocity()):
