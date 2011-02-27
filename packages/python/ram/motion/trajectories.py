@@ -232,8 +232,9 @@ class Vector2CubicTrajectory(Trajectory):
 
         # the matrix will be singular if initial and final values are equal
         # this shouldn't happen but 
-        if False and initialValue == finalValue:
+        if initialValue == finalValue:
             tf = 0
+            self._timePeriod = 0
             self._coefficients = None
             self._maxRate = 0
 
@@ -284,8 +285,7 @@ class Vector2CubicTrajectory(Trajectory):
     def computeDerivative(self, time, order):
         # compute the time from the beginning of the trajectory
         # because we have constructed the trajectory starting at time 0
-        time = time - self._initialTime
-        print time, ' ', order, ' ', order == 2, ' ', time >= self._timePeriod
+
         # handle t < ti
         if time < 0:
             if order == 1:
