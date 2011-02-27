@@ -49,7 +49,9 @@ class IdealStateEstimator(estimation.IStateEstimator):
         # For the position
         self.initialPos = math.Vector2(self.robot._main_part._node.position.x,
                                        -self.robot._main_part._node.position.y)
+        self.initialDepth = -3.281 * self.robot._main_part._node.position.z
         self.oldPos = self.initialPos
+        self.oldDepth = self.initialDepth
         self.velocity = math.Vector2(0, 0)
 
     def getEstimatedPosition(self):
@@ -101,10 +103,10 @@ class IdealStateEstimator(estimation.IStateEstimator):
             return 0
 
     def getEstimatedDepthRate(self):
-        return 0
+        return self.depthRate
 
     def getEstimatedMass(self):
-        return 0
+        return 64
 
     def getEstimatedThrusterForces(self):
         print 'IdealStateEstimator: NOT_YET_IMPLEMENTED'
@@ -138,6 +140,9 @@ class IdealStateEstimator(estimation.IStateEstimator):
         """
         currentPos = self.getEstimatedPosition()
         self.velocity = (currentPos - self.oldPos) / time
+        currentDepth = self.getEstimatedDepth()
+        self.depthRate = (currentDepth - self.oldDepth) / time
+        self.oldDepth = currentDepth
         self.oldPos = currentPos
 
         # Package all events

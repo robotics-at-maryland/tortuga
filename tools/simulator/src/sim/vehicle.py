@@ -294,6 +294,10 @@ class SimThruster(SimDevice, device.IThruster):
     
     def getOffset(self):
         return pmath.fabs(getattr(self.relativePosition, self._relAxis))
+
+    def getLocation(self):
+        return self.relativePosition
+
     
 device.IDeviceMaker.registerDevice('SimThruster', SimThruster)
 

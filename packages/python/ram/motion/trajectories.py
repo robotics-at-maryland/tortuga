@@ -204,14 +204,9 @@ class Vector2CubicTrajectory(Trajectory):
     It has two continous derivatives. This is very similar to
     the scalar cubic trajectory.
     """
-    
-    # this is a parameter that relates the max rate to the time
-    # interval in which the trajectory will be defined
-    MAGIC_RATE_SLOPE = 10.0
-
     def __init__(self, initialValue, finalValue, initialTime = 0,
                  initialRate = math.Vector2.ZERO,
-                 finalRate = math.Vector2.ZERO, maxRate = 3):
+                 finalRate = math.Vector2.ZERO, avgRate = 0.01):
 
         # keep track of the arguments V - vector quantity, S - scalar quantity
         self._initialValue = initialValue
@@ -219,7 +214,7 @@ class Vector2CubicTrajectory(Trajectory):
         self._initialRateV = initialRate
         self._finalRateV = finalRate
         self._initialTime = initialTime
-        self._changeInValueV = finalValue - initialValue 
+        self._changeInValueV = finalValue - initialValue
 
         if initialTime == 0:
             self._relative = True
@@ -228,14 +223,16 @@ class Vector2CubicTrajectory(Trajectory):
         self._changeInValueS = self._changeInValueV.length()
         self._initialRateS = initialRate.length()
         self._finalRateS = finalRate.length()
+        self._changeInRateS = self._finalRateS - self._initialRateS
    
         # compute the final time
-        self._timePeriod = self.approximateTimePeriod(
-            self._changeInValueS, maxRate)
+        self._timePeriod = float(self._changeInValueS + \
+                                     1 * self._changeInRateS) \
+                                     / float(avgRate)
 
         # the matrix will be singular if initial and final values are equal
         # this shouldn't happen but 
-        if initialValue == finalValue:
+        if False and initialValue == finalValue:
             tf = 0
             self._coefficients = None
             self._maxRate = 0
@@ -282,13 +279,13 @@ class Vector2CubicTrajectory(Trajectory):
         else:
             c = self._coefficients
             scalarValue = c[0] + time * (c[1] + time * (c[2]  + time * c[3]))
-            return self._initialValue + self._projectOntoAxes(scalarValue)
+            return self._projectOntoAxes(scalarValue)
 
     def computeDerivative(self, time, order):
         # compute the time from the beginning of the trajectory
         # because we have constructed the trajectory starting at time 0
         time = time - self._initialTime
-
+        print time, ' ', order, ' ', order == 2, ' ', time >= self._timePeriod
         # handle t < ti
         if time < 0:
             if order == 1:
@@ -307,6 +304,7 @@ class Vector2CubicTrajectory(Trajectory):
             else:
                 return None
 
+
         # hand times during the computed trajector
         c = self._coefficients
         if order < 1 :
@@ -316,6 +314,7 @@ class Vector2CubicTrajectory(Trajectory):
             return self._projectOntoAxes(scalarRate)
         elif order == 2:
             scalarRate = 2 * c[2] + 6 * c[3] * time
+            print scalarRate
             return self._projectOntoAxes(scalarRate)
         elif order == 3:
             scalarRate = 6 * c[3]
@@ -342,11 +341,6 @@ class Vector2CubicTrajectory(Trajectory):
 
     def isRelative(self):
         return self._relative
-
-    def approximateTimePeriod(self, changeInValue, maxRate):
-        slope = Vector2CubicTrajectory.MAGIC_RATE_SLOPE / maxRate
-        return slope * changeInValue
-
 
     def _projectOntoAxes(self, scalar):
         xCoord = scalar * self._changeInValueV[0] / self._changeInValueS

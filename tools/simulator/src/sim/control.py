@@ -46,7 +46,7 @@ class KeyboardController(core.Subsystem):
             motion.MotionManager, deps)
 
         self._time_since_last_motion = 0
-        self._MOTION_RATE = .1 # seconds in between motions
+        self._MOTION_RATE = 0.1 # seconds in between motions
 
         self._targetVelocity_b = self._stateEstimator.getEstimatedVelocity()
         self._targetDepth = self._stateEstimator.getEstimatedDepth()
@@ -111,7 +111,7 @@ class KeyboardController(core.Subsystem):
         
 
         # increment or decrement the foreward velocity in body coordinates
-        vIncForeward_b = math.Vector2(2 * time_since_last_frame,
+        vIncForeward_b = math.Vector2(0.2 * time_since_last_frame,
                                       0)
         
         if self._forward:
@@ -124,7 +124,7 @@ class KeyboardController(core.Subsystem):
 
         # increment or decrement the sideways velocity in body coordinates
         vIncStarboard_b = math.Vector2(0,
-                                       2 * time_since_last_frame)
+                                       0.2 * time_since_last_frame)
 
         if self._strafe_right:
             self._targetVelocity_b += vIncStarboard_b
@@ -147,12 +147,15 @@ class KeyboardController(core.Subsystem):
         # only update every once in a while so we are not computing 
         # new trajectories at absurd rates.  
         if self._time_since_last_motion > self._MOTION_RATE:
+            
             if self._newVelocity:
                 # calculate the current velocity in body coordinates
                 orientation = self._stateEstimator.getEstimatedOrientation()
                 yaw = orientation.getYaw().valueRadians()
                 estVelocity_n = self._stateEstimator.getEstimatedVelocity()
                 estVelocity_b = math.bRn(yaw) * estVelocity_n
+                desVelocity_n = self._controller.getDesiredVelocity()
+                desVelocity_b = math.bRn(yaw) * desVelocity_n
                 # do the translate motion
 
                 self._motionManager.setMotion(
@@ -170,6 +173,8 @@ class KeyboardController(core.Subsystem):
             if self._newDepth:
                 estDepth = self._stateEstimator.getEstimatedDepth()
                 estDepthRate = self._stateEstimator.getEstimatedDepthRate()
+                desDepth = self._controller.getDesiredDepth()
+                desDepthRate = self._controller.getDesiredDepthRate()
                 # do the depth motion
                 self._motionManager.setMotion(
                     motion.ChangeDepth(trajectories.ScalarCubicTrajectory(

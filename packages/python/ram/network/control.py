@@ -52,22 +52,34 @@ class RemoteController(core.Subsystem):
             self._vehicle.safeThrusters()
 
     def _yaw_left(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, 0, rate))
 
     def _yaw_right(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, 0, rate))
 
     def _pitch_up(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, rate, 0))
 
     def _pitch_down(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, rate, 0))
 
     def _roll_left(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(rate, 0, 0))
 
     def _roll_right(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(rate, 0, 0))
 
     def _forward_movement(self, event):
         pass
@@ -82,12 +94,12 @@ class RemoteController(core.Subsystem):
         pass
 
     def _descend(self, event):
-        depth = self._controller.getDesiredDepth()
-        self._controller.changeDepth(depth + 0.3)
+        depth = self._estimator.getEstimatedDepth()
+        self._controller.changeDepth(depth, 3)
 
     def _ascend(self, event):
-        depth = self._controller.getDesiredDepth()
-        self._controller.changeDepth(depth - 0.3)
+        depth = self._estimator.getEstimatedDepth()
+        self._controller.changeDepth(depth, -3)
 
     def _setspeed(self, event):
         self._speed = event.number
@@ -102,20 +114,25 @@ class RemoteController(core.Subsystem):
         This is a documentation comment.
         """
         pos = self._estimator.getEstimatedPosition()
-        self._controller.translate(math.Vector2(pos.x + self._speed,
-                                                pos.y + self._tspeed))
+        yaw = self._estimator.getEstimatedOrientation().getYaw().valueRadians()
+        nRb = math.nRb(yaw)
+        #self._controller.translate(
+        #    pos, nRb * math.Vector2(self._speed, self._tspeed))
 
     def _angleyaw(self, event):
-        orientation = self._estimator.getEstimatedOrientation()
-        self._controller.rotate(orientation * math.Quaternion(
-                math.Degree(event.number * self._yawChange),
-                math.Vector3.UNIT_Z))
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, 0, rate))
 
     def _anglepitch(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(0, rate, 0))
 
     def _angleroll(self, event):
-        pass
+        ori = self._estimator.getEstimatedOrientation()
+        rate = event.number
+        self._controller.rotate(ori, math.Vector3(rate, 0, 0))
 
     def _fire_marker_dropper(self, event):
         self._vehicle.dropMarker()

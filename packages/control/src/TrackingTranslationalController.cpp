@@ -99,7 +99,7 @@ math::Vector3 TrackingTranslationalController::translationalUpdate(
     double signal_x2 = 
         m_x2kp * pError[1] +
         m_x2kd * dError[1] +
-        m_x2ki * iError[1] -
+        m_x2ki * iError[1] - 
         mass * dAccel[1];
 
     // we need to return a Vector3

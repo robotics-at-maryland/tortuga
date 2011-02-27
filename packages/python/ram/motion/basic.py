@@ -491,7 +491,10 @@ class ChangeOrientation(Motion):
 
 
     def stop(self):
-        pass
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
 
     @staticmethod
     def willComplete():
@@ -505,7 +508,7 @@ class Translate(Motion):
     INPLANE_TRAJECTORY_UPDATE = \
         core.declareEventType('INPLANE_TRAJECTORY_UPDATE')
 
-    def __init__(self, trajectory, frame = Frame.GLOBAL, updateRate = 0.04):
+    def __init__(self, trajectory, frame = Frame.GLOBAL, updateRate = .04):
         """
         Initializes the motion to execute a trajectory at the specified rate
         The trajectory must return Vector2 values and derivatives
@@ -516,7 +519,6 @@ class Translate(Motion):
         @param updateRate: rate to evaluate the trajectory  
         """
         Motion.__init__(self, _type = Motion.IN_PLANE)
-
         self._trajectory = trajectory
         self._frame = frame
         self._interval = updateRate
@@ -557,25 +559,24 @@ class Translate(Motion):
             yaw = orientation.getYaw().valueRadians()
             # rotation matrix from body (local) to inertial (global)
             nRb = math.nRb(yaw)
-            newPosition = self._initialGlobalPosition + (nRb * newPosition)
+            newPosition = self._controller.getDesiredPosition() \
+                + (nRb * newPosition)
             newVelocity = nRb * newVelocity
             newAccel = nRb * newAccel
 
         # send the new values to the controller
         if newAccel is None:
             if newVelocity is None:
-                print 'translating'
                 self._controller.translate(newPosition)
             else:
-                print 'translating'
                 self._controller.translate(newPosition, newVelocity)
         else:
-            print 'translating'
             self._controller.translate(newPosition, newVelocity, newAccel)
 
 
-        if (currentTime >= self._trajectory.getFinalTime() and
-            self._controller.atPosition() and self._controller.atVelocity()):
+        if (currentTime >= self._trajectory.getFinalTime() and \
+                self._controller.atPosition() and \
+                self._controller.atVelocity()):
             self._finish()
 
     def _finish(self):
@@ -587,7 +588,10 @@ class Translate(Motion):
         Motion._finish(self)
         
     def stop(self):
-        pass
+        if self._timer is not None:
+            self._timer.stop()
+        if self._conn is not None:
+            self._conn.disconnect()
 
     @staticmethod
     def willComplete():
