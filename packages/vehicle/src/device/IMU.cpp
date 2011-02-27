@@ -173,7 +173,7 @@ void IMU::update(double timestep)
             rotatedState.gyroY = rotatedGyro[1];
             rotatedState.gyroZ = rotatedGyro[2];
 
-            vehicle::RawIMUDataEventPtr event = RawIMUDataEventPtr(
+            RawIMUDataEventPtr event = RawIMUDataEventPtr(
                 new RawIMUDataEvent());
             event->name = getName();
             event->rawIMUData = rotatedState;
