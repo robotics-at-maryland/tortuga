@@ -88,7 +88,9 @@ class KeyboardController(core.Subsystem):
             self._controller.holdCurrentOrientation()
             self._controller.holdCurrentDepth()
             self._targetDepth = self._controller.getDesiredDepth()
-            self._targetVelocity = self._controller.getDesiredVelocity()
+            self._targetVelocity_b = math.Vector2.ZERO
+            self._newVelocity = True
+            self._newDepth = True
             return 
         
         # Turn (Yaw) Control
@@ -157,14 +159,13 @@ class KeyboardController(core.Subsystem):
                 desVelocity_n = self._controller.getDesiredVelocity()
                 desVelocity_b = math.bRn(yaw) * desVelocity_n
                 # do the translate motion
-
                 self._motionManager.setMotion(
                     motion.Translate(
-                        trajectories.Vector2CubicTrajectory(
+                        trajectories.Vector2ConstAccelTrajectory(
                             initialValue = math.Vector2.ZERO,
-                            finalValue = math.Vector2.ZERO,
                             initialRate = estVelocity_b,
-                            finalRate = self._targetVelocity_b),
+                            finalRate = self._targetVelocity_b,
+                            accel = 0.2),
                         frame = motion.Frame.LOCAL))
                 vEvent = core.Event()
                 vEvent.velocity = math.nRb(yaw) * self._targetVelocity_b

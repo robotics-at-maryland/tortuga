@@ -559,19 +559,19 @@ class Translate(Motion):
             yaw = orientation.getYaw().valueRadians()
             # rotation matrix from body (local) to inertial (global)
             nRb = math.nRb(yaw)
-            newPosition = self._initialGlobalPosition + (nRb * newPosition)
-            newVelocity = nRb * newVelocity
             newAccel = nRb * newAccel
+            newVelocity = nRb * newVelocity
+            newPosition = self._initialGlobalPosition + (nRb * newPosition)
 
         # send the new values to the controller
-        if currentTime <= self._trajectory.getFinalTime():
-            if newAccel is None:
-                if newVelocity is None:
-                    self._controller.translate(newPosition)
-                else:
-                    self._controller.translate(newPosition, newVelocity)
+        #if currentTime <= self._trajectory.getFinalTime():
+        if newAccel is None:
+            if newVelocity is None:
+                self._controller.translate(newPosition)
             else:
-                self._controller.translate(newPosition, newVelocity, newAccel)
+                self._controller.translate(newPosition, newVelocity)
+        else:
+            self._controller.translate(newPosition, newVelocity, newAccel)
 
 
         if (currentTime >= self._trajectory.getFinalTime() and \

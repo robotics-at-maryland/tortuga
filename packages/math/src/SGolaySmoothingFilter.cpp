@@ -73,7 +73,7 @@ double SGolaySmoothingFilter::getValue(int order, double timestep)
         // to taking the derivative of a polynomial
         double tpow = std::pow(timestep, order);
         double dcoeff = math::factorial(order - 1);
-        return tpow * dcoeff * m_values[order];
+        return m_values[order] * dcoeff / tpow;
     }
     
     return 0;

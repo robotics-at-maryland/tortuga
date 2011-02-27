@@ -50,9 +50,23 @@ class IdealStateEstimator(estimation.IStateEstimator):
         self.initialPos = math.Vector2(self.robot._main_part._node.position.x,
                                        -self.robot._main_part._node.position.y)
         self.initialDepth = -3.281 * self.robot._main_part._node.position.z
-        self.oldPos = self.initialPos
-        self.oldDepth = self.initialDepth
+        self.position = self.initialPos
         self.velocity = math.Vector2(0, 0)
+
+        self.depth = -3.281 * self.robot._main_part._node.position.z
+        self.depthRate = 0
+
+        self.depthFilter = math.SGolaySmoothingFilter(51, 2)
+        for n in range(1,51):
+            self.depthFilter.addValue(self.depth)
+
+        self.posXFilter = math.SGolaySmoothingFilter(51,2)
+        for n in range(1,51):
+            self.posXFilter.addValue(self.initialPos[0])
+
+        self.posYFilter = math.SGolaySmoothingFilter(51,2)
+        for n in range(1,51):
+            self.posYFilter.addValue(self.initialPos[1])
 
     def getEstimatedPosition(self):
         """
@@ -60,8 +74,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
         relative to the starting location of the robot.
         """
         if self.robot is not None:
-            return math.Vector2(self.robot._main_part._node.position.x,
-                                -self.robot._main_part._node.position.y)
+            return self.position
         else:
             return math.Vector2.ZERO
 
@@ -98,7 +111,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
     def getEstimatedDepth(self):
         if self.robot is not None:
             # Down is positive for depth
-            return -3.281 * self.robot._main_part._node.position.z
+            return self.depth
         else:
             return 0
 
@@ -138,12 +151,25 @@ class IdealStateEstimator(estimation.IStateEstimator):
         """
         Sends out events using the current estimated values
         """
-        currentPos = self.getEstimatedPosition()
-        self.velocity = (currentPos - self.oldPos) / time
-        currentDepth = self.getEstimatedDepth()
-        self.depthRate = (currentDepth - self.oldDepth) / time
-        self.oldDepth = currentDepth
-        self.oldPos = currentPos
+        self.depthFilter.addValue(
+            -3.281 * self.robot._main_part._node.position.z)
+
+        self.posXFilter.addValue(
+            self.robot._main_part._node.position.x)
+
+        self.posYFilter.addValue(
+            self.robot._main_part._node.position.y)
+        
+        self.position = math.Vector2(
+            self.posXFilter.getValue(),
+            self.posYFilter.getValue())
+
+        self.velocity = math.Vector2(
+            self.posXFilter.getValue(1, time),
+            self.posYFilter.getValue(1, time))
+
+        self.depth = self.depthFilter.getValue()
+        self.depthRate = self.depthFilter.getValue(1, time)
 
         # Package all events
         devent = math.NumericEvent()

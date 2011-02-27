@@ -725,10 +725,12 @@ Matrix2 nRb(double radians)
 int factorial(int num)
 {
     // dont use this function for big numbers
-    int ans = num;
+    int ans = 1;
 
-    while(--num > 1)
+    while(num > 1){
         ans *= num;
+        num--;
+    }
 
     return ans;
 }

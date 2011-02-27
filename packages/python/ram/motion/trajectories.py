@@ -205,17 +205,16 @@ class Vector2CubicTrajectory(Trajectory):
     the scalar cubic trajectory.
     """
     def __init__(self, initialValue, finalValue, initialTime = 0,
-                 initialRate = math.Vector2.ZERO,
-                 finalRate = math.Vector2.ZERO, avgRate = 0.25):
+                 initialRate = math.Vector2.ZERO, avgRate = 0.25):
 
         # keep track of the arguments V - vector quantity, S - scalar quantity
         self._initialValue = initialValue
         self._finalValue = finalValue
         self._initialRateV = initialRate
-        self._finalRateV = finalRate
+        self._finalRateV = math.Vector2.ZERO
         self._initialTime = initialTime
         self._changeInValueV = finalValue - initialValue
-        self._changeInRateV = finalRate - initialRate
+        self._changeInRateV = self._finalRateV - self._initialRateV
 
         if initialTime == 0:
             self._relative = True
@@ -575,7 +574,7 @@ class Vector2ConstAccelTrajectory(Trajectory):
         self._accel = accel
 
         self._changeInRateV = finalRate - initialRate
-        self._changeInRateS = changeInRateS.length()
+        self._changeInRateS = self._changeInRateV.length()
 
         self._timePeriod = self._changeInRateS / accel
         self._finalTime = initialTime + self._timePeriod
@@ -594,7 +593,8 @@ class Vector2ConstAccelTrajectory(Trajectory):
             timestep = time - self._initialTime
 
         # calculate the current value based on the timestep and rate
-        return .5 * self._accel * timestep * timestep
+        scalar = .5 * self._accel * timestep * timestep
+        return self._projectOntoAxes(scalar)
         
 
     def computeDerivative(self, time, order = 1):
@@ -606,17 +606,17 @@ class Vector2ConstAccelTrajectory(Trajectory):
         elif time < self._finalTime:
             timestep = time - self._initialTime
             if order == 1:
-                return self._accel * timestep
+                return self._projectOntoAxes(self._accel * timestep)
             elif order == 2:
-                return self._accel
+                return self._projectOntoAxes(self._accel)
             else:
-                return 0
+                return math.Vector2.ZERO
             
         else:
             if order == 1:
                 return self._finalRate
             else:
-                return 0
+                return math.Vector2.ZERO
             
 
     def getInitialTime(self):
@@ -633,5 +633,10 @@ class Vector2ConstAccelTrajectory(Trajectory):
 
     def isRelative(self):
         return self._relative
+
+    def _projectOntoAxes(self, scalar):
+        xCoord = scalar * self._changeInRateV[0] / self._changeInRateS
+        yCoord = scalar * self._changeInRateV[1] / self._changeInRateS
+        return math.Vector2(xCoord,yCoord)
 
 #class Vector2SigmoidAccelTrajectory(Trajectory):

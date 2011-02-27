@@ -116,12 +116,13 @@ Vehicle:
             address: 1
             # Number determined by testing
             calibration_factor: 25
-            # Number used to flip thruster forces (if thruster is reversed
-                
+            # Number used to flip thruster forces (if thruster is reversed    
             # on the vehicle)
             direction: 1
             # Distance from center of rotation
+            location: [-0.1019, 0.2015, -0.0242]
             offset: 0.19685
+
         PortThruster:
             depends_on: ['SensorBoard']
             # serial: 149
@@ -129,6 +130,7 @@ Vehicle:
             address: 0
             calibration_factor: 25
             direction: 1
+            location: [-0.1019, -0.1998, -0.0242]
             offset: 0.19685
 
         ForeThruster:
@@ -138,6 +140,7 @@ Vehicle:
             address: 3
             calibration_factor: 25
             direction: -1
+            location: [0.1498, 0.0008, -0.0908]
             offset: 0.2413
 
         AftThruster:
@@ -147,6 +150,7 @@ Vehicle:
             address: 5
             calibration_factor: 25
             direction: -1
+            location: [-0.4083, 0.0008, -0.0908]
             offset: 0.381
 
         TopThruster:
@@ -156,6 +160,7 @@ Vehicle:
             address: 2
             calibration_factor: 25
             direction: 1
+            location: [-0.0921, 0.0658, -0.2216]
             offset: 0.19685
 
         BottomThruster:
@@ -164,6 +169,7 @@ Vehicle:
             address: 4
             calibration_factor: 25
             direction: -1
+            location: [-0.0921, -0.0675, 0.1733]
             offset: 0.19685
             
         MagBoom:
@@ -428,21 +434,21 @@ Controller:
     orientationThreshold: 0.01
 
     TranslationalController:
-        type: TrackingTranslationalController
-        x1kp: 10
-        x1ki: 1
-        x1kd: 3
-        x2kp: 10
-        x2ki: 1
-        x2kd: 3
+        # type: TrackingTranslationalController
+        # x1kp: 10
+        # x1ki: 1
+        # x1kd: 3
+        # x2kp: 10
+        # x2ki: 1
+        # x2kd: 3
 
-        #type: OpenLoopTranslationalController
-        #speedPGain: 8
-        #sidewaysSpeedPGain: 8
+        type: OpenLoopTranslationalController
+        speedPGain: 8
+        sidewaysSpeedPGain: 8
 
     DepthController:
         type: PIDDepthController
-        kp: 70
+        kp: 10
         ki: 2
         kd: 10
         dtMin: 0.005
