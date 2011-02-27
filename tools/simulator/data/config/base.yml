@@ -210,11 +210,11 @@ Controller:
     TranslationalController:
         type: TrackingTranslationalController
         x1kp: 20
-        x1ki: 3
-        x1kd: 10
+        x1ki: 2
+        x1kd: 20
         x2kp: 20
-        x2ki: 3
-        x2kd: 10
+        x2ki: 2
+        x2kd: 20
 
         # type: OpenLoopTranslationalController
         # speedPGain: 8

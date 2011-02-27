@@ -206,7 +206,7 @@ class Vector2CubicTrajectory(Trajectory):
     """
     def __init__(self, initialValue, finalValue, initialTime = 0,
                  initialRate = math.Vector2.ZERO,
-                 finalRate = math.Vector2.ZERO, avgRate = 0.5):
+                 finalRate = math.Vector2.ZERO, avgRate = 0.25):
 
         # keep track of the arguments V - vector quantity, S - scalar quantity
         self._initialValue = initialValue
@@ -263,7 +263,7 @@ class Vector2CubicTrajectory(Trajectory):
                           self._initialRateV[0], self._finalRateV[0]])
         
         b1 = numpy.array([self._initialValue[1], self._finalValue[1],
-                          self._initialRateV[0], self._finalRateV[1]])
+                          self._initialRateV[1], self._finalRateV[1]])
         
         # solve for coefficient vector x
         x0 = numpy.linalg.solve(A,b0)
@@ -333,7 +333,7 @@ class Vector2CubicTrajectory(Trajectory):
             return None
         elif order == 1:
             r = math.Vector2(c0[1] + time * (2 * c0[2] + time * 3 * c0[3]),
-                             c1[1] + time * (2 * c1[2] + time * 3 * c0[3]))
+                             c1[1] + time * (2 * c1[2] + time * 3 * c1[3]))
             if self._ignore0:
                 r = math.Vector2(self._initialRateV[0],
                                  c1[1] + time * (2 * c1[2] + time * 3 * c0[3]))
