@@ -106,7 +106,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
         return self.depthRate
 
     def getEstimatedMass(self):
-        return 64
+        return 0
 
     def getEstimatedThrusterForces(self):
         print 'IdealStateEstimator: NOT_YET_IMPLEMENTED'
