@@ -89,8 +89,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
             baseAccel = convertToVector3(math.Vector3,
                                          self.robot._main_part.acceleration)
             
-            # Add in gravity
-            return baseAccel + math.Vector3(0, 0, -9.8)
+            return baseAccel + math.Vector3(0, 0, 0)
         else:
             return math.Vector3.ZERO
 
@@ -158,7 +157,7 @@ class IdealStateEstimator(estimation.IStateEstimator):
             self.robot._main_part._node.position.x)
 
         self.posYFilter.addValue(
-            self.robot._main_part._node.position.y)
+            -self.robot._main_part._node.position.y)
         
         self.position = math.Vector2(
             self.posXFilter.getValue(),
