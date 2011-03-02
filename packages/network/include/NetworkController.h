@@ -68,10 +68,7 @@ class RAM_EXPORT NetworkController :
 
     virtual void unbackground(bool join = false);
 
-    virtual bool backgrounded()
-    {
-        return true;
-    }
+    virtual bool backgrounded();
 
   private:
     void accept(const char* msg);
@@ -87,6 +84,13 @@ class RAM_EXPORT NetworkController :
 
     /** Message receiver */
     Receiver* m_receiver;
+
+    /** Internal speed values from the connection */
+    double m_speed;
+    double m_tspeed;
+    double m_yaw;
+    double m_pitch;
+    double m_roll;
 };
 
 } // namespace network

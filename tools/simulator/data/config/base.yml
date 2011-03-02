@@ -125,9 +125,10 @@ RemoteController:
     type: RemoteController
     depends_on: ["QueuedEventHub", "StateEstimator", "Controller", "Vehicle"]
 
-# NetworkController:
-#     type: NetworkController
-#     depends_on: ["EventHub"]
+NetworkController:
+    type: NetworkController
+    depends_on: ["EventHub"]
+    update_interval: 10
 
 Logging:
     type: Logging

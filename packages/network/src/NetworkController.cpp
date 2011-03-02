@@ -66,7 +66,12 @@ NetworkController::NetworkController(core::ConfigNode config,
     core::Subsystem(config["name"].asString(),
                     core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
     m_port(config["port"].asInt(MYPORT)),
-    m_receiver(0)
+    m_receiver(0),
+    m_speed(0),
+    m_tspeed(0),
+    m_yaw(0),
+    m_pitch(0),
+    m_roll(0)
 {
     enable();
 }
@@ -95,14 +100,40 @@ void NetworkController::disable()
 
 void NetworkController::update(double)
 {
+    math::NumericEventPtr setspeed(new math::NumericEvent());
+    setspeed->number = m_speed;
+    publish(EventType::SETSPEED, setspeed);
+
+    math::NumericEventPtr tsetspeed(new math::NumericEvent());
+    tsetspeed->number = m_tspeed;
+    publish(EventType::TSETSPEED, tsetspeed);
+
+    math::NumericEventPtr angleyaw(new math::NumericEvent());
+    angleyaw->number = m_yaw;
+    publish(EventType::ANGLEYAW, angleyaw);
+
+    math::NumericEventPtr pitch(new math::NumericEvent());
+    pitch->number = m_pitch;
+    publish(EventType::ANGLEPITCH, pitch);
+
+    math::NumericEventPtr roll(new math::NumericEvent());
+    roll->number = m_roll;
+    publish(EventType::ANGLEROLL, roll);
 }
 
 void NetworkController::background(int interval)
 {
+    core::Updatable::background(interval);
 }
 
 void NetworkController::unbackground(bool join)
 {
+    core::Updatable::unbackground(join);
+}
+
+bool NetworkController::backgrounded()
+{
+    return core::Updatable::backgrounded();
 }
 
 void NetworkController::accept(const char* msg)
@@ -171,17 +202,13 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
 
     case CMD_SETSPEED:
     {
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = param;
-        publish(EventType::SETSPEED, event);
+        m_speed = param;
         break;
     }
 
     case CMD_TSETSPEED:
     {
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = param;
-        publish(EventType::TSETSPEED, event);
+        m_tspeed = param;
         break;
     }
     case CMD_NOTHING:
@@ -192,25 +219,19 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
 
     case CMD_ANGLEYAW:
     {
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = param;
-        publish(EventType::ANGLEYAW, event);
+        m_yaw = param;
         break;
     }
 
     case CMD_ANGLEPITCH:
     {
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = param;
-        publish(EventType::ANGLEPITCH, event);
+        m_pitch = param;
         break;
     }
 
     case CMD_ANGLEROLL:
     {
-        math::NumericEventPtr event(new math::NumericEvent());
-        event->number = param;
-        publish(EventType::ANGLEROLL, event);
+        m_roll = param;
         break;
     }
 
