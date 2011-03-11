@@ -109,7 +109,7 @@ DC1394Camera::~DC1394Camera()
 {
     // Stop any background image processing
     cleanup();
-    
+
     LOGGER.infoStream() << m_guid << ": Turning off camera ";
     dc1394_video_set_transmission(m_camera, DC1394_OFF);
     dc1394_capture_stop(m_camera);
@@ -144,7 +144,7 @@ void DC1394Camera::update(double timestep)
 
 
     // Copy image to public side of the interface        
-    Image* newImage = new OpenCVImage(m_newFrame->image, 640, 480, false);
+    Image* newImage = new OpenCVImage(m_newFrame->image, 640, 480, false, Image::PF_BGR_8);
 
     // Flip RGB -> BGR
     unsigned char* data = newImage->getData();
