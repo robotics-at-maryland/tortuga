@@ -440,6 +440,9 @@ int SensorBoard::dropMarker()
 
 int SensorBoard::fireTorpedo()
 {
+#ifdef NO_SERVOS
+    return -1;
+#else // NO_SERVOS
     static int torpedoNum = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
@@ -472,10 +475,14 @@ int SensorBoard::fireTorpedo()
     }
 
     return torpedoFired;
+#endif // NO_SERVOS
 }
 
 int SensorBoard::releaseGrabber()
 {
+#ifdef NO_SERVOS
+    return -1;
+#else // NO_SERVOS
     static int released = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
@@ -495,6 +502,7 @@ int SensorBoard::releaseGrabber()
     } else {
         return -1;
     }
+#endif // NO_SERVOS
 }
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)

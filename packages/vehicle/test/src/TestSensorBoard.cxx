@@ -380,6 +380,7 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
     delete testSb;
 }
 
+#ifndef NO_SERVOS
 TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
 {
     TestSensorBoard* testSb = new TestSensorBoard(
@@ -442,6 +443,7 @@ TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
 
     delete testSb;
 }
+#endif // NO_SERVOS
 
 typedef std::vector<ram::math::NumericEventPtr>
 DepthSensorEventPtrList;
