@@ -67,37 +67,37 @@ BinDetector:
     filtwhiteHMin: 158
     filtwhiteLMax: 255
     filtwhiteLMin: 147
-    weaponMinAspectRatioAxe: 1
-    weaponMaxAspectRatioAxe: 5.125
-    weaponMinSideFillRatioAxe: 1.0
-    weaponMaxSideFillRatioAxe: 5.84
-    weaponMinCornerFillAvgAxe: 0.01
-    weaponMaxCornerFillAvgAxe: 0.37
-    weaponMinMiddleFillAvgAxe: 0.08
-    weaponMaxMiddleFillAvgAxe: 0.69
-    weaponMinAspectRatioMachete: 1.75
-    weaponMaxAspectRatioMachete: 3.87
-    weaponMinSideFillRatioMachete: 1.1
-    weaponMaxSideFillRatioMachete: 5.5
-    weaponMinCornerFillAvgMachete: 0.0
-    weaponMaxCornerFillAvgMachete: 0.47
-    weaponMinMiddleFillAvgMachete: 0.2
-    weaponMaxMiddleFillAvgMachete: 0.44
-    weaponMinAspectRatioClippers: 1.57
-    weaponMaxAspectRatioClippers: 2.81
+    weaponMinAspectRatioAxe: 2.30
+    weaponMaxAspectRatioAxe: 2.625
+    weaponMinSideFillRatioAxe: 1.21
+    weaponMaxSideFillRatioAxe: 1.912
+    weaponMinCornerFillAvgAxe: 0.17
+    weaponMaxCornerFillAvgAxe: 0.375
+    weaponMinMiddleFillAvgAxe: 0.11
+    weaponMaxMiddleFillAvgAxe: 0.17
+    weaponMinAspectRatioMachete: 2.56
+    weaponMaxAspectRatioMachete: 3.76
+    weaponMinSideFillRatioMachete: 2.23
+    weaponMaxSideFillRatioMachete: 3.64
+    weaponMinCornerFillAvgMachete: 0.12
+    weaponMaxCornerFillAvgMachete: 0.35
+    weaponMinMiddleFillAvgMachete: 0.27
+    weaponMaxMiddleFillAvgMachete: 0.39
+    weaponMinAspectRatioClippers: 2.22
+    weaponMaxAspectRatioClippers: 2.58
     weaponMinSideFillRatioClippers: 1.01
-    weaponMaxSideFillRatioClippers: 2.27
-    weaponMinCornerFillAvgClippers: 0.06
-    weaponMaxCornerFillAvgClippers: 0.65
-    weaponMinMiddleFillAvgClippers: 0.19
-    weaponMaxMiddleFillAvgClippers: 0.47
-    weaponMinAspectRatioHammer: 1.5
-    weaponMaxAspectRatioHammer: 3.33
-    weaponMinSideFillRatioHammer: 1.2
-    weaponMaxSideFillRatioHammer: 22.5
-    weaponMinCornerFillAvgHammer: 0.0
-    weaponMaxCornerFillAvgHammer: 0.31
-    weaponMinMiddleFillAvgHammer: 0.09
+    weaponMaxSideFillRatioClippers: 1.21
+    weaponMinCornerFillAvgClippers: 0.08
+    weaponMaxCornerFillAvgClippers: 0.35
+    weaponMinMiddleFillAvgClippers: 0.22
+    weaponMaxMiddleFillAvgClippers: 0.30
+    weaponMinAspectRatioHammer: 2.30
+    weaponMaxAspectRatioHammer: 2.95
+    weaponMinSideFillRatioHammer: 1.27
+    weaponMaxSideFillRatioHammer: 4.79
+    weaponMinCornerFillAvgHammer: 0.038
+    weaponMaxCornerFillAvgHammer: 0.243
+    weaponMinMiddleFillAvgHammer: 0.16
     weaponMaxMiddleFillAvgHammer: 0.24
 DuctDetector:
     minRedOverGreen: 0.5
@@ -161,8 +161,8 @@ BuoyDetector:
     filtRedHMax: 35
     filtRedHMin: 255
     filtRedLMax: 230
-    filtRedLMin: 80 #120
-    filtYellowCMax: 255
+    filtRedLMin: 120
+    filtYellowCMax: 230
     filtYellowCMin: 30
     filtYellowHMax: 87
     filtYellowHMin: 35
@@ -170,10 +170,11 @@ BuoyDetector:
     filtYellowLMin: 80 #120
     maxAspectRatio: 1.5
     minAspectRatio: 0.6
-    minHeight: 30
+    minHeight: 20
     minPixelPercentage: 0.5
     minPixels: 15
     minWidth: 25
+    almostHitPercentage: 0.17
 WindowDetector:
     debug: 0
     dilateIterations: 0
@@ -218,15 +219,17 @@ WindowDetector:
     minPixelPercentage: 0.12
     minWidth: 40
 HedgeDetector:
-    debug: 2
+    debug: 0
+    dilateIterations: 1
     filtCMax: 255
     filtCMin: 35
-    filtHMax: 123
+    filtHMax: 107
     filtHMin: 29
     filtLMax: 255
-    filtLMin: 37
+    filtLMin: 49
     maxAspectRatio: 4
     minAspectRatio: 0.3
-    minHeight: 10
+    minHeight: 40
+    maxPixelPercentage: 0.15
     minPixelPercentage: 0.04
-    minWidth: 40
+    minWidth: 80
