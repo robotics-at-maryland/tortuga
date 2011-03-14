@@ -9,7 +9,7 @@
 
 // STD Includes
 #include <algorithm>
-
+#include <iostream>
 // Library Includes
 #include <UnitTest++/Checks.h>
 
@@ -72,9 +72,17 @@ void LineDetector::init(core::ConfigNode config)
                          "Maximum gap between two lines to be "
                          "considered the same", 0.0, &m_maxGapLength);
 
-    m_rhoGap = 3;
+    propSet->addProperty(config, false, "maxRhoGap",
+			 "Maximum rho difference two lines to endpoints to be"
+			 " considered the same", 3.0, &m_rhoGap);
+
+    propSet->addProperty(config, false, "maxSquareGap",
+			 "Maximum distance between two lines to endpoints to be"
+			 " considered the same", 3, &m_squareGap);
+
+
+    /// TODO: Load this value
     m_thetaGap = math::Radian(0.005);
-    m_squareGap = 3;
 
     data = new vision::OpenCVImage(640, 480, vision::Image::PF_GRAY_8);
 
@@ -102,54 +110,66 @@ void LineDetector::processImage(Image* input, Image* output)
                   LineDetector::LineComparer::compare);
     }
 
-    // Merge lines that are the same (opencv is stupid)
-    for (size_t i=1; i<lineNum; i++) {
-        // Check the next line to see if it's roughly the same line
-        Line expected = m_lines[i-1];
-        Line actual = m_lines[i];
-        bool sameRho = UnitTest::AreClose(expected.rho(), actual.rho(),
-                                          m_rhoGap);
-        bool sameTheta = UnitTest::AreClose(expected.theta(), actual.theta(),
-                                            m_thetaGap);
-        bool samePt1X = UnitTest::AreClose(expected.point1().x,
+    bool changed = true;
+    while (changed) {
+        // Assume no merges will take place
+        changed = false;
+	
+	// Merge lines that are the same (opencv is stupid)
+	lineNum = m_lines.size();
+	for (size_t i=1; i<lineNum; i++) {
+	    // Check the next line to see if it's roughly the same line
+            Line expected = m_lines[i-1];
+	    Line actual = m_lines[i];
+	    bool sameRho = UnitTest::AreClose(expected.rho(), actual.rho(),
+					      m_rhoGap);
+	    bool sameTheta = UnitTest::AreClose(expected.theta(), 
+						actual.theta(),
+						m_thetaGap);
+	    bool samePt1X = UnitTest::AreClose(expected.point1().x,
                                            actual.point1().x,
-                                           m_squareGap);
-        bool samePt1Y = UnitTest::AreClose(expected.point1().y,
-                                           actual.point1().y,
-                                           m_squareGap);
-        bool samePt2X = UnitTest::AreClose(expected.point2().x,
-                                           actual.point2().x,
-                                           m_squareGap);
-        bool samePt2Y = UnitTest::AreClose(expected.point2().y,
-                                           actual.point2().y,
-                                           m_squareGap);
+					       m_squareGap);
+	    bool samePt1Y = UnitTest::AreClose(expected.point1().y,
+					       actual.point1().y,
+					       m_squareGap);
+	    bool samePt2X = UnitTest::AreClose(expected.point2().x,
+					       actual.point2().x,
+					       m_squareGap);
+	    bool samePt2Y = UnitTest::AreClose(expected.point2().y,
+					       actual.point2().y,
+					       m_squareGap);
 
-        // If both are true, merge
-        if (sameRho & sameTheta & samePt1X & samePt1Y & samePt2X & samePt2Y)
-        {
-            CvPoint pt1, pt2;
-            double rho;
-            math::Radian theta;
-            
-            // Remove the two original and average them
-            m_lines.erase(m_lines.begin() + i);
-            m_lines.erase(m_lines.begin() + i - 1);
+	    // If both are true, merge
+	    if (sameRho & sameTheta & samePt1X & samePt1Y & samePt2X & samePt2Y)
+	    {
+                // We are merging lines, so we need another pass
+                changed = true;
 
-            // Find the averages
-            pt1.x = (expected.point1().x + actual.point1().x) / 2;
-            pt1.y = (expected.point1().y + actual.point1().y) / 2;
-            pt2.x = (expected.point2().x + actual.point2().x) / 2;
-            pt2.y = (expected.point2().y + actual.point2().y) / 2;
+                // Rest of the code
+	        CvPoint pt1, pt2;
+		double rho;
+		math::Radian theta;
+		
+		// Remove the two original and average them
+		m_lines.erase(m_lines.begin() + i);
+		m_lines.erase(m_lines.begin() + i - 1);
 
-            rho = (expected.rho() + actual.rho()) / 2;
-            theta = (expected.theta() + actual.theta()) / 2;
-            
-            m_lines.insert(m_lines.begin() + i - 1,
-                           LineDetector::Line(pt1, pt2, theta, rho));
-            // One less line
-            lineNum -= 1;
-        }
-    }
+		// Find the averages
+		pt1.x = (expected.point1().x + actual.point1().x) / 2;
+		pt1.y = (expected.point1().y + actual.point1().y) / 2;
+		pt2.x = (expected.point2().x + actual.point2().x) / 2;
+		pt2.y = (expected.point2().y + actual.point2().y) / 2;
+
+		rho = (expected.rho() + actual.rho()) / 2;
+		theta = (expected.theta() + actual.theta()) / 2;
+		
+		m_lines.insert(m_lines.begin() + i - 1,
+			       LineDetector::Line(pt1, pt2, theta, rho));
+		// One less line
+		lineNum -= 1;
+            } // if (should merge)
+        } // foreach (line in m_lines)
+    } // while(changed)
 
     // Debug stuff
     if (0 != output)

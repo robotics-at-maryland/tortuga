@@ -133,6 +133,12 @@ public:
     /** Returns the minimum number of pixels a blob must to be reported */
     int getMinimumLineSize();
 
+    /** Set the threshold for line endpoint merge distance */
+    void setSquareGap(int pixels) { m_squareGap = pixels; }
+
+    /** Set the threshold for rho difference to merge lines */
+    void setRhoGap(int pixels) { m_rhoGap = pixels; }
+
     /** Returns all blobs bigger then minimum blob size, sorted large->small */
     std::vector<Line> getLines();
 

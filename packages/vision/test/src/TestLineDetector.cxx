@@ -138,4 +138,35 @@ TEST_FIXTURE(LineDetectorFixture, testLineListClear)
     CHECK_EQUAL(2u, detector.getLines().size());
 }
 
+TEST_FIXTURE(LineDetectorFixture, testSolidLine)
+{
+    vision::makeColor(&input, 0, 0, 0);
+
+    // Add a horizontal line to the center of the screen
+    vision::drawLine(&input, 80, 0, 560, 480, 3, CV_RGB(0, 255, 0));
+
+    // Only care about the theta value, range [0, pi)
+    double expectedTheta = 3*CV_PI/4;
+
+    // Color filter the image for white line, black background
+    vision::ColorFilter filter(0, 0, 255, 255, 0, 0);
+    vision::OpenCVImage single(640, 480, vision::Image::PF_GRAY_8);
+    filter.filterImage(&input, &single);
+    
+    // Process it
+    vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
+    detector.processImage(&single, &output);
+
+    // Process it
+    detector.setSquareGap(10);
+    detector.setRhoGap(5);
+    detector.processImage(&single, &output);
+    CHECK_EQUAL(1u, detector.getLines().size());
+
+    BOOST_FOREACH(vision::LineDetector::Line line, detector.getLines())
+    {
+      CHECK_CLOSE(expectedTheta, line.theta().valueRadians(), 0.005);
+    }
+}
+
 } // SUITE(LineDetector)
