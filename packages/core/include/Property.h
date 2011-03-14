@@ -68,6 +68,7 @@ public:
         PT_VECTOR2,
         PT_VECTOR3,
         PT_QUATERNION,
+        PT_ANGLE,
 #endif // RAM_WITH_MATH
         
         PT_END
@@ -169,6 +170,14 @@ public:
         getPropertyImpl(ret, PT_QUATERNION);
         return ret;
     }
+
+    /// Get a named property value as a quaternion
+    virtual math::Radian getAsAngle() const {
+        math::Radian ret; 
+        getPropertyImpl(ret, PT_ANGLE);
+        return ret;
+    }
+
 #endif // RAM_WITH_MATH
     
     /* }@ */
@@ -199,6 +208,14 @@ public:
     /// Set property as a quaternion
     virtual void set(const math::Quaternion& val)
     { setPropertyImpl(val, PT_QUATERNION); }
+
+    /// Set property as a radian
+    virtual void set(const math::Radian& val)
+    { setPropertyImpl(val, PT_ANGLE); }
+
+    /// Set property as a degree
+    virtual void set(const math::Degree& val)
+    { setPropertyImpl(val, PT_ANGLE); }
 #endif // RAM_WITH_MATH    
 
     /* }@ */    
@@ -253,26 +270,34 @@ Property::PropertyType getPropertyType()
 template <>
 Property::PropertyType getPropertyType<int>();
 
-/** Template specialization for int -> PT_DOUBLE */
+/** Template specialization for double -> PT_DOUBLE */
 template <>
 Property::PropertyType getPropertyType<double>();
 
-/** Template specialization for int -> PT_BOOL */    
+/** Template specialization for bool -> PT_BOOL */    
 template <>
 Property::PropertyType getPropertyType<bool>();
 
 #ifdef RAM_WITH_MATH
-/** Template specialization for int -> PT_VECTOR2 */    
+/** Template specialization for math::Vector2 -> PT_VECTOR2 */    
 template <>
 Property::PropertyType getPropertyType<math::Vector2>();
 
-/** Template specialization for int -> PT_VECTOR3 */        
+/** Template specialization for math::Vector3 -> PT_VECTOR3 */        
 template <>
 Property::PropertyType getPropertyType<math::Vector3>();
 
-/** Template specialization for int -> PT_QUATERNION */            
+/** Template specialization for math::Quaternion -> PT_QUATERNION */            
 template <>
 Property::PropertyType getPropertyType<math::Quaternion>();
+
+/** Template specialization for math::Radian -> PT_ANGLE */
+template <>
+Property::PropertyType getPropertyType<math::Radian>();
+
+/** Template specialization for math::Degree -> PT_ANGLE */
+template <>
+Property::PropertyType getPropertyType<math::Degree>();
 #endif // RAM_WITH_MATH
 
     

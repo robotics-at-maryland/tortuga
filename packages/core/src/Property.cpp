@@ -73,31 +73,9 @@ Property::PropertyType getPropertyType<bool>()
 }
 
     
-#ifdef RAM_WITH_MATH
-
-template <>
-Property::PropertyType getPropertyType<math::Vector2>()
-{
-    return Property::PT_VECTOR2;
-}
-
-
-template <>
-Property::PropertyType getPropertyType<math::Vector3>()
-{
-    return Property::PT_VECTOR3;
-}
-
-
-template <>
-Property::PropertyType getPropertyType<math::Quaternion>()
-{
-    return Property::PT_QUATERNION;
-}
-
-    
-#endif // RAM_WITH_MATH
-    
-    
+//#ifdef RAM_WITH_MATH
+// NOTE: See packages/math/src/PropertyImp.cpp for the math specializations
+//#endif // RAM_WITH_MATH
+      
 } // namespace core
 } // namespace ram
