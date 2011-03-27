@@ -19,6 +19,8 @@ from buildit.task import Task
 from buildfiles.common.commands import *
 import buildfiles.variants as variants
 
+python = sys.executable
+
 # Setup basic directory structure
 setup_directories = Task(
     'Setup Directory Structure',
@@ -39,7 +41,7 @@ install_pygccxml = Task(
     namespaces = 'pygccxml',
     targets = '${py_site_packages}/pygccxml',
     workdir = '${deps_dir}/pygccxml',
-    commands = ['python setup.py install'
+    commands = [python + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -49,7 +51,7 @@ install_pyplusplus = Task(
     namespaces = 'pyplusplus',
     targets = '${py_site_packages}/pyplusplus',
     workdir = '${deps_dir}/pyplusplus',
-    commands = ['python setup.py install'
+    commands = [python + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -59,7 +61,7 @@ install_pyyaml = Task(
     namespaces = 'pyyaml',
     targets = '${py_site_packages}/yaml',
     workdir = '${deps_dir}/pyyaml',
-    commands = ['python setup.py install'
+    commands = [python + ' setup.py install'
                 '  --prefix=${ram_prefix}'],
     dependencies = (setup_directories,)
     )
@@ -70,7 +72,7 @@ install_zope_interface = Task(
     namespaces = 'zope_interface',
     targets = '${py_site_packages}/zope',
     workdir = '${deps_dir}/zope_interface',
-    commands = ['python setup.py install'
+    commands = [python + ' setup.py install'
                 '  --prefix=${ram_prefix}',
                 'cd ${py_site_packages} && '
                 '  ln -s zope.interface-3.3.0-py%s.egg/zope zope' % version],
@@ -110,7 +112,7 @@ def execute_like_backticks(command):
 
 def get_wx_prefix():
     if platform.system() == 'Darwin':
-    	cmd = "python -c 'import wx;print(wx.__file__)'"
+    	cmd = python + " -c 'import wx;print(wx.__file__)'"
     	try:
             	wx_imported_path = execute_like_backticks(cmd)
     	except CommandReturnedNonZeroError:
