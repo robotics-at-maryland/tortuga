@@ -50,27 +50,27 @@ public:
 
     ~StateEstimatorBase(){};
  
-    /* Define basic implementations of the functions required by IStateEstimator */
+    // Define basic implementations of the functions required by IStateEstimator
 
-    /** Returns the estimated position */
+    /** returns the estimated position */
     virtual math::Vector2 getEstimatedPosition();
-    /** Returns the estimated velocity */
+    /** returns the estimated velocity */
     virtual math::Vector2 getEstimatedVelocity();
-    /** Returns the estimated linear acceleration */
+    /** returns the estimated linear acceleration */
     virtual math::Vector3 getEstimatedLinearAcceleration();
-    /** Returns the estimated angular rate */
+    /** returns the estimated angular rate */
     virtual math::Vector3 getEstimatedAngularRate();
-    /** Returns the estimated orientation */
+    /** returns the estimated orientation */
     virtual math::Quaternion getEstimatedOrientation();
-    /** Returns the estimated depth */
+    /** returns the estimated depth */
     virtual double getEstimatedDepth();
-    /** Returns the estimated depth change rate */
+    /** returns the estimated depth change rate */
     virtual double getEstimatedDepthRate();
     /** returns the estimated vehicle mass */
     virtual double getEstimatedMass();
-    /** return the estimated thruster forces */
+    /** returns the estimated thruster forces */
     virtual math::Vector3 getEstimatedThrusterForces();
-    /** return the estimated thruster torques */
+    /** returns the estimated thruster torques */
     virtual math::Vector3 getEstimatedThrusterTorques();
 
 
@@ -133,7 +133,6 @@ public:
     }
 
 protected:
-
     // Pointer to access the estimated state for this estimator
     EstimatedStatePtr estimatedState;
 };

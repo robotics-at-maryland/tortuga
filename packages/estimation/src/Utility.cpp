@@ -18,6 +18,8 @@ namespace estimation {
 math::Quaternion Utility::quaternionFromMagAccel(const math::Vector3& mag,
                                                  const math::Vector3& accel)
 {
+    // this is an implementation of the TRIAD algorithm that calculates
+    // the orientation based on magnetometer and accelerometer measurements
     math::Vector3 n3 = accel * -1;
     n3.normalise();
     
@@ -27,16 +29,14 @@ math::Quaternion Utility::quaternionFromMagAccel(const math::Vector3& mag,
     math::Vector3 n1 = n2.crossProduct(n3);
     n1.normalise();
 
-    math::Matrix3 bCn;
+    math::Matrix3 bCn = math::Matrix3::ZERO;
     bCn.SetColumn(0, n1);
     bCn.SetColumn(1, n2);
     bCn.SetColumn(2, n3);
     
     math::Matrix3 nCb = bCn.Transpose();
+    math::Quaternion result = math::Quaternion::fromDirectionCosineMatrix(nCb);
 
-    math::Quaternion result;
-    math::quaternionFromnCb((double (*)[3])(nCb[0]), result.ptr());
-    
     return result;
 }
 
@@ -50,10 +50,10 @@ math::Quaternion Utility::quaternionFromRate(const math::Quaternion& quatOld,
     // find quaternion derivative based off old quaternion and ang rate
     math::Quaternion qDot = qOld.derivative(angRate);
 
-    // trapezoidal integration
-    math::Quaternion qNew = qOld + qDot*deltaT;
-
+    // numerical integration
+    math::Quaternion qNew = qOld + (qDot * deltaT);
     qNew.normalise();
+
     // return the normalized orientaiton estimate
     return qNew;
 }

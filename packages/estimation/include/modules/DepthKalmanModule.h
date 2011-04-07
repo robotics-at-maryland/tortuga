@@ -38,7 +38,7 @@ public:
                       core::EventHubPtr eventHub,
                       EstimatedStatePtr estState);
 
-    ~DepthKalmanModule(){};
+    virtual ~DepthKalmanModule(){};
 
     // the Depth Estimation routine goes here.  
     // it should store the new estimated state in estimatedState.

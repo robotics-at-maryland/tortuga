@@ -21,7 +21,7 @@
 #include "math/include/Matrix2.h"
 #include "vehicle/include/device/IVelocitySensor.h"
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstIMU"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstDVL"));
 
 namespace ram {
 namespace estimation {
@@ -32,7 +32,7 @@ BasicDVLEstimationModule::BasicDVLEstimationModule(core::ConfigNode config,
     EstimationModule(eventHub, "BasicDVLEstimationModule",estState,
                      vehicle::device::IVelocitySensor::RAW_UPDATE)
 {
-    /* initialization from config values should be done here */
+    // initialization from config values should be done here
     LOGGER.info("%Vel_b[2] Vel_n[2] Pos_n[2] Timestamp");
 }
 
@@ -42,23 +42,19 @@ void BasicDVLEstimationModule::update(core::EventPtr event)
     vehicle::RawDVLDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawDVLDataEvent>(event);
 
-    // Return if the cast failed and let people know about it.
+    // return if the cast failed and let people know about it.
     if(!ievent){
-        std::cerr << "BasicDVLEstimationModule: update: Invalid Event Type" 
-                  << std::endl;
+        LOGGER.warn("BasicDVLEstimationModule: update: Invalid Event Type");
         return;
     }
 
-    // This is where the estimation should be done
-    // The result should be stored in estimatedState
-
     RawDVLData state = ievent->rawDVLData;
     double timestep = ievent->timestep;
+
+    // we want to work with a vector3 so we can rotate in 3 dimensions
     math::Vector3 vel3_b(ievent->velocity_b[0], ievent->velocity_b[1], 0);
 
     math::Quaternion orientation = m_estimatedState->getEstimatedOrientation();
-    // make double sure that the orientation is a unit quaternion
-    orientation.normalise();
 
     // rotate the body frame velocity to the inertial frame
     // this is valid for any orientation, dont need to be level

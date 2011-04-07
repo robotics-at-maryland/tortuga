@@ -33,7 +33,6 @@ EstimatedState::EstimatedState(core::ConfigNode config, core::EventHubPtr eventH
     m_estThrusterTorques(math::Vector3::ZERO),
     m_estMass(0)
 {
-    
 }
 
 math::Vector2 EstimatedState::getEstimatedPosition()
@@ -139,6 +138,8 @@ void EstimatedState::setEstimatedOrientation(
 {
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        // make sure we only store and give out unit quaternions
+        orientation.normalise();
         m_estOrientation = orientation;
     }
     publishOrientationUpdate(orientation);
@@ -196,44 +197,52 @@ void EstimatedState::publishPositionUpdate(const math::Vector2& position)
 {
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = position;
-    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE, event);
 }
+
 void EstimatedState::publishVelocityUpdate(const math::Vector2& velocity)
 {
     math::Vector2EventPtr event(new math::Vector2Event());
     event->vector2 = velocity;
     publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
 }
+
 void EstimatedState::publishLinearAccelUpdate(const math::Vector3& linearAccel)
 {
     math::Vector3EventPtr event(new math::Vector3Event());
     event->vector3 = linearAccel;
-    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_LINEARACCELERATION_UPDATE,
+            event);
 }
+
 void EstimatedState::publishAngularRateUpdate(const math::Vector3& angularRate)
 {
     math::Vector3EventPtr event(new math::Vector3Event());
     event->vector3 = angularRate;
-    publish(estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_ANGULARRATE_UPDATE, event);
 }
+
 void EstimatedState::publishOrientationUpdate(const math::Quaternion& orientation)
 {
     math::OrientationEventPtr event(new math::OrientationEvent());
     event->orientation = orientation;
     publish(estimation::IStateEstimator::ESTIMATED_ORIENTATION_UPDATE, event);
 }
+
 void EstimatedState::publishDepthUpdate(const double& depth)
 {
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
     publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
 }
+
 void EstimatedState::publishDepthRateUpdate(const double& depthRate)
 {
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depthRate;
-    publish(estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE, event);
+    publish(estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE, event);
 }
+
 void EstimatedState::publishThrustUpdate(const math::Vector3& forces,
                                          const math::Vector3& torques)
 {

@@ -24,9 +24,8 @@ public:
                               core::EventHubPtr eventHub,
                               core::ConfigNode config,
                               EstimatedStatePtr estState):
-    EstimationModule(eventHub,"VisionEstimationModule",estState,type)
+    EstimationModule(eventHub, "VisionEstimationModule", estState, type)
     {
-
         //will need to add name variable to the event class first(did this)
         //then use that to match up with name of obstacles
         //this will require making it possible to update obstacles in the first place
@@ -39,7 +38,10 @@ public:
     
         //ignore the above can just use templates.
         //also currently the plan is to subscribe to eventtypes in this class
+
     }
+
+    virtual ~VisionEstimationModule<E>(){}
 
     void update(core::EventPtr event)
     {

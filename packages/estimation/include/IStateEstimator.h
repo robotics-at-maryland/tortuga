@@ -85,7 +85,7 @@ public:
     static const core::Event::EventType ESTIMATED_VELOCITY_UPDATE;
     static const core::Event::EventType ESTIMATED_POSITION_UPDATE;
     static const core::Event::EventType ESTIMATED_LINEARACCELERATION_UPDATE;
-    static const core::Event::EventType ESTIMATED_DEPTHDOT_UPDATE;
+    static const core::Event::EventType ESTIMATED_DEPTHRATE_UPDATE;
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
     static const core::Event::EventType ESTIMATED_FORCES_UPDATE;
     static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;

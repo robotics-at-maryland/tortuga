@@ -53,7 +53,7 @@ public:
                     core::EventHubPtr eventHub,
                     EstimatedStatePtr estState);
 
-    ~IMUSGolayModule(){};
+    virtual ~IMUSGolayModule(){};
 
 
     // the IMU Estimation routine goes here.  

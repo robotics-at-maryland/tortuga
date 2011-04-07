@@ -54,7 +54,7 @@ public:
                              core::EventHubPtr eventHub,
                              EstimatedStatePtr estState);
 
-    ~BasicIMUEstimationModule(){};
+    virtual ~BasicIMUEstimationModule(){};
 
 
     // the IMU Estimation routine goes here.  

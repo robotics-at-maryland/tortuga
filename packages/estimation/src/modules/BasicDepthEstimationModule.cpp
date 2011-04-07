@@ -33,8 +33,7 @@ BasicDepthEstimationModule::BasicDepthEstimationModule(
     LOGGER.info("% Name EstDepth RawDepth Correction");
 }
 
-void BasicDepthEstimationModule::update(
-    core::EventPtr event)
+void BasicDepthEstimationModule::update(core::EventPtr event)
 {
     /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
     vehicle::RawDepthSensorDataEventPtr ievent =

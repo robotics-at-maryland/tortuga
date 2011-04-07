@@ -35,7 +35,7 @@ public:
                       core::EventHubPtr eventHub,
                       EstimatedStatePtr estState);
 
-    ~DepthSGolayModule(){};
+    virtual ~DepthSGolayModule(){};
 
     // the Depth Estimation routine goes here.  
     // it should store the new estimated state in estimatedState.

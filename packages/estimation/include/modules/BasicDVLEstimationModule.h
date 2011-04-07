@@ -34,7 +34,7 @@ public:
                              core::EventHubPtr eventHub,
                              EstimatedStatePtr estState);
 
-    ~BasicDVLEstimationModule(){};
+    virtual ~BasicDVLEstimationModule(){};
 
     // the DVL Estimation routine goes here. 
     // it should store the new estimated state in estimatedState.

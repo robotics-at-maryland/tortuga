@@ -48,7 +48,7 @@ public:
                      EstimatedStatePtr estState = EstimatedStatePtr(),
                      core::Event::EventType type = core::Event::EventType());
 
-    ~EstimationModule();
+    virtual ~EstimationModule();
 
     /* update - the function that will be called to perform the estimation */
     virtual void update(core::EventPtr event) = 0;

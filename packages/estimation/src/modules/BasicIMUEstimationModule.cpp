@@ -133,16 +133,17 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
             mag[1] = m_filteredState[m_magIMUName]->magY;
             mag[2] = m_filteredState[m_magIMUName]->magZ;
         }
-        LOGGER.info("quatFromMagAccel - With MagBoom");
+        // LOGGER.info("quatFromMagAccel - With MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
-    } else if (magIsCorrupt) {
+    } else if (!magIsCorrupt) {
 
         /* If we dont have the magboom IMU and the magnetometer
          * reading is not corrupted, compute the estimated orientation
          * from the mag and accel readings from the single IMU
          */
-        LOGGER.info("quatFromMagAccel - Without MagBoom");
+
+        // LOGGER.info("quatFromMagAccel - Without MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
     } else {
@@ -164,7 +165,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
         math::Quaternion oldOrientation = 
             m_estimatedState->getEstimatedOrientation();
 
-        LOGGER.info("quatFromRate - No Boom, Mag Corrupted");
+        // LOGGER.info("quatFromRate - No Boom, Mag Corrupted");
         estOrientation = estimation::Utility::quaternionFromRate(oldOrientation,
                                                                  omega,
                                                                  timestep);
@@ -174,9 +175,9 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     m_estimatedState->setEstimatedOrientation(estOrientation);
 
     // Send Event
-    math::OrientationEventPtr oevent(new math::OrientationEvent());
-    oevent->orientation = estOrientation;
-    publish(vehicle::device::IIMU::UPDATE, oevent);
+    // math::OrientationEventPtr oevent(new math::OrientationEvent());
+    // oevent->orientation = estOrientation;
+    // publish(vehicle::device::IIMU::UPDATE, oevent);
 
     // Log data directly
     LOGGER.infoStream() << name << " "

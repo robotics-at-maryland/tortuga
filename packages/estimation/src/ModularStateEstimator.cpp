@@ -63,11 +63,11 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
     //going to need to be more specific by making more modules for each eventType
     //below is simply an example of the (hopefully) correct format
     
-    // visionEstimationModule = EstimationModulePtr(new VisionEstimationModule
-    //                                              < vision::BuoyEvent>
-    //                                              ( vision::EventType::BUOY_FOUND,eventHub,
-    //                                               config["VisionEstimationModule"],
-    //                                               estimatedState));
+    // visionEstimationModule = EstimationModulePtr(
+    //     new VisionEstimationModule<vision::BuoyEvent>(vision::EventType::BUOY_FOUND,
+    //                                                   eventHub,
+    //                                                   config["VisionEstimationModule"],
+    //                                                   estimatedState));
      
 }
 
