@@ -17,6 +17,7 @@
 #include "core/include/Event.h"
 #include "vehicle/include/device/IDevice.h"
 #include "vehicle/include/device/ICurrentProvider.h"
+#include "math/include/Vector3.h"
 
 // Must Be Included last
 #include "vehicle/include/Export.h"
@@ -65,7 +66,7 @@ public:
      *  The means the port thruster which rotates around Z-axis and is in the
      *  X-Y plane would give report its distance off the X axis.
      */
-    virtual double getOffset() = 0;
+    virtual math::Vector3 getLocation() = 0;
 
 protected:
     IThruster(core::EventHubPtr eventHub = core::EventHubPtr(),

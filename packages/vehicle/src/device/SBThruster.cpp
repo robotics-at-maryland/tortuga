@@ -30,6 +30,7 @@ SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
     m_calibrationFactor(config["calibration_factor"].asDouble()),
     m_direction(config["direction"].asInt(1)),
     m_offset(0),
+    m_location(math::Vector3::ZERO),
     m_current(0.0),
     m_enabled(false),
     m_sensorBoard(SensorBoardPtr())
@@ -37,17 +38,48 @@ SBThruster::SBThruster(core::ConfigNode config, core::EventHubPtr eventHub,
     // A little hack to determine the offset based on thruster type
     std::string name(getName());
     if (std::string::npos != name.find("Starboard"))
+      {
         m_offset = config["offset"].asDouble(0.1905);
+        m_location[0] = config["location"][0].asDouble(-0.1019);
+        m_location[1] = config["location"][1].asDouble(0.2015);
+        m_location[2] = config["location"][2].asDouble(-0.0242);
+      }
     else if (std::string::npos != name.find("Port"))
+      {
         m_offset = config["offset"].asDouble(0.1905);
+        m_location[0] = config["location"][0].asDouble(-0.1019);
+        m_location[1] = config["location"][1].asDouble(-0.1998);
+        m_location[2] = config["location"][2].asDouble(-0.0242);
+      }
     else if (std::string::npos != name.find("Fore"))
+      {
         m_offset = config["offset"].asDouble(0.3366);
+        m_location[0] = config["location"][0].asDouble(0.1498);
+        m_location[1] = config["location"][1].asDouble(0.0008);
+        m_location[2] = config["location"][2].asDouble(-0.0908);
+      }
     else if (std::string::npos != name.find("Aft"))
+      {
         m_offset = config["offset"].asDouble(0.3366);
+        m_location[0] = config["location"][0].asDouble(-0.4083);
+        m_location[1] = config["location"][1].asDouble(0.0008);
+        m_location[2] = config["location"][2].asDouble(-0.0908);
+      }
     else if (std::string::npos != name.find("Top"))
+      {
         m_offset = config["offset"].asDouble(0.193);
+        m_location[0] = config["location"][0].asDouble(-0.0921);
+        m_location[1] = config["location"][1].asDouble(0.0658);
+        m_location[2] = config["location"][2].asDouble(-0.2216);
+
+      }
     else if (std::string::npos != name.find("Bottom"))
+      {
         m_offset = config["offset"].asDouble(0.193);
+	m_location[0] = config["location"][0].asDouble(-0.0921);
+        m_location[1] = config["location"][1].asDouble(-0.0675);
+        m_location[2] = config["location"][2].asDouble(0.1733);
+      }
 
     m_sensorBoard = IDevice::castTo<SensorBoard>(
         vehicle->getDevice("SensorBoard"));
@@ -126,6 +158,11 @@ bool SBThruster::isEnabled()
 void SBThruster::setEnabled(bool state)
 {
     m_sensorBoard->setThrusterEnable(m_address, state);
+}
+
+math::Vector3 SBThruster::getLocation()
+{
+    return m_location;
 }
     
 double SBThruster::getOffset()

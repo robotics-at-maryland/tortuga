@@ -13,6 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IThruster.h"
+#include "math/include/Vector3.h"
 
 class MockThruster : public ram::vehicle::device::IThruster,
                      public ram::vehicle::device::Device
@@ -23,6 +24,7 @@ public:
         Device(name),
         force(0.0),
         offset(0.0),
+	  location(ram::math::Vector3::ZERO),
         enabled(false),
         current(0.0)
         {}
@@ -43,12 +45,13 @@ public:
 
     virtual void setEnabled(bool state) { enabled = state; }
 
-    virtual double getOffset() { return offset; }
+    virtual ram::math::Vector3 getLocation() { return location; }
 
     virtual double getCurrent() { return current; }
     
     double force;
     double offset;
+    ram::math::Vector3 location;
     bool enabled;
     double current;
 

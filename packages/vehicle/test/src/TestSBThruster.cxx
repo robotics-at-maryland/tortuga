@@ -156,50 +156,50 @@ TEST_FIXTURE(Thruster, setEnable)
     delete thruster;
 }
 
-TEST_FIXTURE(Thruster, getOffset)
-{
-    std::string config = TH_CONFIG_BASE + "'name' : 'StarboardThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.1905, thruster->getOffset());
-    delete thruster;
+// TEST_FIXTURE(Thruster, getOffset)
+// {
+//     std::string config = TH_CONFIG_BASE + "'name' : 'StarboardThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.1905, thruster->getOffset());
+//     delete thruster;
 
-    config = TH_CONFIG_BASE + "'name' : 'PortThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.1905, thruster->getOffset());
-    delete thruster;
+//     config = TH_CONFIG_BASE + "'name' : 'PortThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.1905, thruster->getOffset());
+//     delete thruster;
 
-    config = TH_CONFIG_BASE + "'name' : 'ForeThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.3366, thruster->getOffset());
-    delete thruster;
+//     config = TH_CONFIG_BASE + "'name' : 'ForeThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.3366, thruster->getOffset());
+//     delete thruster;
 
-    config = TH_CONFIG_BASE + "'name' : 'AftThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.3366, thruster->getOffset());
-    delete thruster;
+//     config = TH_CONFIG_BASE + "'name' : 'AftThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.3366, thruster->getOffset());
+//     delete thruster;
 
-    config = TH_CONFIG_BASE + "'name' : 'TopThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.193, thruster->getOffset());
-    delete thruster;
+//     config = TH_CONFIG_BASE + "'name' : 'TopThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.193, thruster->getOffset());
+//     delete thruster;
 
-    config = TH_CONFIG_BASE + "'name' : 'BottomThruster'}";
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    CHECK_EQUAL(0.193, thruster->getOffset());
-    delete thruster;
-}
+//     config = TH_CONFIG_BASE + "'name' : 'BottomThruster'}";
+//     thruster = new ram::vehicle::device::SBThruster(
+//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+//         ivehicle);
+//     CHECK_EQUAL(0.193, thruster->getOffset());
+//     delete thruster;
+// }
 
 TEST_FIXTURE(Thruster, getCurrent)
 {
