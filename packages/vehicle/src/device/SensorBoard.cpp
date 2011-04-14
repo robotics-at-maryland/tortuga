@@ -62,6 +62,13 @@ SensorBoard::SensorBoard(int deviceFD,
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
 
+    m_windowSize = config["windowSize"].asDouble(81);
+    m_degree = config["degree"].asDouble(2);
+
+    m_depthFilter = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
+    m_filterInitialized = false;
+
     /* Publish the Depth Sensor calibration values for the estimator */
     DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
         new DepthSensorInitEvent());
@@ -108,6 +115,13 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
+
+    m_windowSize = config["windowSize"].asDouble(81);
+    m_degree = config["degree"].asDouble(2);
+
+    m_depthFilter = math::SGolaySmoothingFilterPtr(
+        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
+    m_filterInitialized = false;
 
     /* Publish the Depth Sensor calibration values for the estimator */
     DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
@@ -178,8 +192,19 @@ void SensorBoard::update(double timestep)
     
         // Now read depth and set its state
         int ret = readDepth();
-        depth = (((double)ret) - m_depthCalibIntercept) / m_depthCalibSlope; 
-        state.depth = depth;
+        depth = (((double)ret) - m_depthCalibIntercept) / m_depthCalibSlope;
+
+        if(m_filterInitialized)
+            m_depthFilter->addValue(depth);
+        else
+        {
+            // fill the filter with the first depth reading
+            for(int i = 0; i < m_depthFilter->getWindowSize(); i++)
+                m_depthFilter->addValue(depth);
+            m_filterInitialized = true;
+        }
+
+        state.depth = m_depthFilter->getValue();
     } // end deviceMutex lock
 
     // Publish depth event

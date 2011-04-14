@@ -24,6 +24,8 @@
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/AveragingFilter.h"
 
+#include "math/include/SGolaySmoothingFilter.h"
+
 #include "drivers/sensor-r5/include/sensorapi.h"
 
 namespace ram {
@@ -277,6 +279,16 @@ private:
 
     // Location of the depth sensor
     math::Vector3 m_location;
+
+    // Window size of the depth filter
+    double m_windowSize;
+    
+    // Polynomial degree of the depth filter
+    double m_degree;
+
+    // Filter for depth measurements
+    math::SGolaySmoothingFilterPtr m_depthFilter;
+    bool m_filterInitialized;
 
     //bool m_calibratedDepth;
     //core::AveragingFilter<double, 5> m_depthFilter;
