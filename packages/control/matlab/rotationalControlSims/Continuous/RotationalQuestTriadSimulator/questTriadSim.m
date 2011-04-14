@@ -47,7 +47,7 @@ q0 = [axis0*sin(angle0/2); cos(angle0/2)];
 q0 = q0/norm(q0);
 
 %Initial angular rate (of B w.r.t. N written in B frame)
-w0=(pi/180)*[0 0 30]';
+w0=(pi/180)*[-20 30 70]';
 
 %initial estimated position
 x0=[q0; w0];
@@ -83,9 +83,9 @@ global rb;
 rb=[0 0 1]';
 
 % Error magnitudes
-acc_mean = [-0.0057 0.0220 -1.0263]';       acc_var = [3.7278e-04 2.2597e-04 3.4584e-04]';
-mag_mean = [-0.390 0.0035 -0.2338]';        mag_var = [1.1013e-04 1.1122e-04 1.1210e-04]';
-vel_mean = [-0.0034 7.3483e-04 -0.0086]';   vel_var = [0.0033 0.0029 0.0036]';
+acc_mean = [0 0 0]';       acc_var = [3.7278e-04 2.2597e-04 3.4584e-04]';
+mag_mean = [0 0 0]';        mag_var = [1.1013e-04 1.1122e-04 1.1210e-04]';
+vel_mean = [0 0 0]';   vel_var = [0.0033 0.0029 0.0036]';
 
 %% For loop or ODE45
  
@@ -114,7 +114,9 @@ for i=2:1:length(time)
     bRn = [n1 n2 n3];
     %save triad
     qtriad_storage(1:4, i) = quaternionFromnCb(bRn');
-           
+    
+    
+    
     %quest(only allowed to access acc, mag, and vel)
     cos_func = dot(mag,acc)*dot(mag_vec_nf,acc_vec_nf) + norm(cross(mag,acc))*norm(cross(mag_vec_nf,acc_vec_nf));
     eig_val_max = sqrt(a1^2 + 2*a1*a2*cos_func + a2^2);
@@ -123,7 +125,7 @@ for i=2:1:length(time)
     Z = a1*cross(mag,mag_vec_nf) + a2*cross(acc,acc_vec_nf);
     sigma2 = 0.5*trace(S);
     delta = det(S);
-    kappa = trace(inv(S)*det(S));       %Note: Assumes S is invertible
+    kappa = trace(inv(S)*det(S));       %Note: Assumes S is invertible%
     alpha = eig_val_max^2 - sigma2^2 + kappa;
     beta = eig_val_max - sigma2;
     gamma = (eig_val_max + sigma2)*alpha - delta;
@@ -132,11 +134,13 @@ for i=2:1:length(time)
     q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma];
     q_quest = q_quest/norm(q_quest);
     %save quest
-    qQuest_storage(1:4, i) = q_quest;
+    %someone had the first term as q(4) here, probably was the problem
+    qQuest_storage(1:4, i) = [q_quest(1) q_quest(2) q_quest(3) q_quest(4)];
 
     %integrate
     [timeDontCare xi] = ode45(@questTriadDynamics,[time(i-1) time(i)],state_storage(:,i-1));
     state_storage(:,i) = xi(end,:)';
+    
 end
 %[time,x] = ode45(@questTriadDynamics,[t0 te],x0);
 
@@ -188,11 +192,21 @@ xlabel('time (s)')
 %q = [eps n]
 %2arcsin(norm(eps))=mag(theta)
 
+
 for j = 1:length(state_storage)
-    triad_err(:,j) = q_mult(q_inv(state_storage(:,j)),qtriad_storage(:,j));
-    triad_err_theta(j) = 2*asin(norm(triad_err(1:3,j)));
-    quest_err(:,j) = q_mult(q_inv(state_storage(:,j)),qQuest_storage(:,j));
-    quest_err_theta(j) = 2*asin(norm(quest_err(1:3,j)));
+    a=state_storage(4,j);
+    state_storage(2:4,j)=state_storage(1:3,j);
+    state_storage(1,j)=a;
+    a=qtriad_storage(4,j);
+    qtriad_storage(2:4,j)=qtriad_storage(1:3,j);
+    qtriad_storage(1,j)=a;
+    a=qQuest_storage(4,j);
+    qQuest_storage(2:4,j)=qQuest_storage(1:3,j);
+    qQuest_storage(1,j)=a;
+    triad_err(:,j) = quatmultiply(quatinv(state_storage(1:4,j)'),qtriad_storage(:,j)');
+    triad_err_theta(j) = 2*asind(norm(triad_err(2:4,j)));
+    quest_err(:,j) = quatmultiply(quatinv(state_storage(1:4,j)'),qQuest_storage(:,j)');
+    quest_err_theta(j) = 2*asind(norm(quest_err(2:4,j)));
 end
 
 figure(2)
@@ -211,7 +225,7 @@ xlabel('time (s)')
 
 subplot(4,1,1)
 hold on
-plot(time(2:end), triad_err(1,2:end), 'b');
+plot(time(2:end), triad_err(2,2:end), 'b');
 plot(time(2:end), quest_err(1,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
@@ -219,7 +233,7 @@ ylabel('q_1')
 
 subplot(4,1,2)
 hold on
-plot(time(2:end), triad_err(2,2:end), 'b');
+plot(time(2:end), triad_err(3,2:end), 'b');
 plot(time(2:end), quest_err(2,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
@@ -227,7 +241,7 @@ ylabel('q_2')
 
 subplot(4,1,3)
 hold on
-plot(time(2:end), triad_err(3,2:end), 'b');
+plot(time(2:end), triad_err(4,2:end), 'b');
 plot(time(2:end), quest_err(3,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
@@ -235,8 +249,81 @@ ylabel('q_3')
 
 subplot(4,1,4)
 hold on
-plot(time(2:end), triad_err(4,2:end), 'b');
+plot(time(2:end), triad_err(1,2:end), 'b');
 plot(time(2:end), quest_err(4,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
 ylabel('q_4')
+
+
+
+%I screwed something up here(maybe), it doesn't work
+%this should display the final estimate orientation vectors
+%now actually displays, but does not appear correct, is defiitely calcs
+%also the actual error in angle is pretty big
+theta_quest=2*acosd(qQuest_storage(1,1:end));
+theta_triad=2*acosd(qtriad_storage(1,1:end));
+theta_actual=2*acosd(state_storage(1,1:end));
+theta_triad_error=theta_triad-theta_actual
+theta_quest_error=theta_quest-theta_actual
+%noticed that quest's error angle seemed to be exceeding 360
+for k=1:length(theta_quest)
+    if theta_quest_error(k)>360
+        theta_quest_error(k)=theta_quest_error(k)-floor(theta_quest_error(k)/360)*360;
+    end
+end
+
+euler(1,:,:)=(qtriad_storage(1:3,1:end)/norm(qtriad_storage(1:4,1:end)));%./sin(theta_triad/2))
+euler(2,:,:)=(qQuest_storage(1:3,1:end)/norm(qQuest_storage(1:4,1:end)));%./sin(theta_quest/2))
+euler(3,:,:)=(state_storage(1:3,1:end)/norm(state_storage(1:4,1:end)))
+%attempting to plot the error in the euler coordinates
+
+triad_err2(1:3,:)=euler(1,1:3,:)-euler(3,1:3,:);
+quest_err2(1:3,:)=euler(2,1:3,:)-euler(3,1:3,:);
+triad_err2(1,2:end)
+figure(5)
+title('Error euler angles between real and estimated euler angles')
+xlabel('time (s)')
+
+subplot(4,1,1)
+hold on
+plot(time(2:end), triad_err2(1,2:end), 'b')
+plot(time(2:end), quest_err2(1,2:end), 'r')
+hold off
+legend('Triad error', 'Quest error')
+ylabel('e_1')
+
+subplot(4,1,2)
+hold on
+plot(time(2:end), triad_err2(2,2:end), 'b');
+plot(time(2:end), quest_err2(2,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('e_2')
+
+subplot(4,1,3)
+hold on
+plot(time(2:end), triad_err2(3,2:end), 'b');
+plot(time(2:end), quest_err2(3,2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('e_3')
+
+subplot(4,1,4)
+hold on
+plot(time(2:end), theta_triad(2:end)-theta_actual(2:end), 'b');
+plot(time(2:end), theta_quest(2:end)-theta_actual(2:end), 'r');
+hold off
+legend('Triad error', 'Quest error')
+ylabel('theta')
+
+figure(4)
+
+hold on
+Quiver3(0,0,0,euler(1,1,end).*theta_triad(end),euler(1,2,end).*theta_triad(end), euler(1,3,end).*theta_triad(end),'-b');
+Quiver3(0,0,0,euler(2,1,end).*theta_quest(end),euler(2,2,end).*theta_quest(end), euler(2,3,end).*theta_quest(end),'-r');
+Quiver3(0,0,0,euler(3,1,end).*theta_actual(end),euler(3,2,end).*theta_actual(end), euler(3,3,end).*theta_actual(end),'-k');
+axis([-1,1,-1,1,-1,1])
+
+
+
