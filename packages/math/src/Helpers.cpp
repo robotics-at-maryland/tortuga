@@ -721,5 +721,66 @@ math::Matrix2 nRb(double radians)
     return math::Matrix2(r_cos,r_sin,-r_sin,r_cos);
 }
 
+
+int factorial(int num)
+{
+    // dont use this function for big numbers
+    int ans = 1;
+
+    while(num > 1){
+        ans *= num;
+        num--;
+    }
+
+    return ans;
+}
+
+
+unsigned char logUInt8(unsigned char val)
+{
+    static unsigned char logLookup[256];
+    static bool lookupCreated = false;
+
+    if(!lookupCreated)
+    {
+        // the values will initially be in the range [0, log(256)]
+        // we want to convert them to the range [0, 255]
+        double normCoeff = 255.0 / log(256.0);
+
+        // create the lookup table
+        for(int i = 0; i < 256; i++)
+        {
+            double l = log(1.0 + i) * normCoeff;
+            logLookup[i] = (unsigned char) l;
+        }
+        lookupCreated = true;
+    }
+
+    return logLookup[val];
+}
+
+unsigned char expUInt8(unsigned char val)
+{
+    static unsigned char expLookup[256];
+    static bool lookupCreated = false;
+
+    if(!lookupCreated)
+    {
+        // the values will initially be in the range [0, e - 1]
+        // we want to convert to the range [0, 255]
+        double normCoeff = 255.0 / (exp(1) - 1);
+
+        // create the lookup table
+        for(int i = 0; i < 256; i++)
+        {
+            double l = (exp(i / 255.0) - 1) * normCoeff;
+            expLookup[i] = (unsigned char) l;
+        }
+        lookupCreated = true;
+    }
+
+    return expLookup[val];
+}
+
 } // namespace math
 } // namespace ram

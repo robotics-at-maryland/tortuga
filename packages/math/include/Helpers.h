@@ -68,6 +68,15 @@ void RAM_EXPORT rotationYaw(double psi, double * pMatrix);
 math::Matrix2 RAM_EXPORT bRn(double radians);
 math::Matrix2 RAM_EXPORT nRb(double radians);
 
+// factorial for smallish numbers
+int factorial(int num);
+
+// compute the natural log of an unsigned 8 bit int via lookup table
+unsigned char logUInt8(unsigned char val);
+
+// compute the exponential of an unsigned 8 bit int via lookup table
+unsigned char expUInt8(unsigned char val);
+
 } // namespace math
 } // namespace ram
     

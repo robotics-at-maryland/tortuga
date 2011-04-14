@@ -85,3 +85,21 @@ TEST(rotationMatrixFromQuaternion)
 
     CHECK_CLOSE(expected, resultHelpers, 0.0001);
 }
+
+TEST(logTable)
+{
+    // make sure the boundarys and one central value are correct
+    // this should sufficiently verify the algorithm
+    CHECK_EQUAL(logUInt8(0), 0);
+    CHECK_EQUAL(logUInt8(128), 223);
+    CHECK_EQUAL(logUInt8(255), 255);
+}
+
+TEST(expTable)
+{
+    // make sure the boundarys and one central value are correct
+    // this should sufficiently verify the algorithm
+    CHECK_EQUAL(expUInt8(0), 0);
+    CHECK_EQUAL(expUInt8(128), 96);
+    CHECK_EQUAL(expUInt8(255), 255);
+}
