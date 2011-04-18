@@ -30,8 +30,7 @@ using namespace boost::asio::ip;
 namespace ram {
 namespace network {
 
-NetworkHub::NetworkHub(core::EventHubPtr eventHub,
-                       std::string name, std::string host, uint16_t port)
+NetworkHub::NetworkHub(std::string name, std::string host, uint16_t port)
     : core::EventHub(name),
       m_host(host),
       m_port(port),
