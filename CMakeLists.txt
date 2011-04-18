@@ -41,3 +41,4 @@ endif ()
 
 subdirs(tools/vision_tool)
 subdirs(tools/vision_viewer)
+subdirs(tools/plot)
