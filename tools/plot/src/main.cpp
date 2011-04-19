@@ -1,30 +1,30 @@
 
-#include <wx/wx.h>
+// #include <wx/wx.h>
 
-#include "core/include/EventHub.h"
-#include "network/include/NetworkHub.h"
+// #include "core/include/EventHub.h"
+// #include "network/include/NetworkHub.h"
 
-using namespace ram;
+// using namespace ram;
 
-class MainApp : public wxApp
-{
-public:
-    virtual bool OnInit();
+// class MainApp : public wxApp
+// {
+// public:
+//     virtual bool OnInit();
 
-private:
-    core::EventHubPtr eventHub;
-};
+// private:
+//     core::EventHubPtr eventHub;
+// };
 
-bool MainApp::OnInit()
-{
-    /* start the network hub */
-    /* note: this is currently using the default constructor */
-    eventHub = core::EventHubPtr(new network::NetworkHub());
+// bool MainApp::OnInit()
+// {
+//     /* start the network hub */
+//     /* note: this is currently using the default constructor */
+//     eventHub = core::EventHubPtr(new network::NetworkHub());
 
-    /* initialize wx frame */
-    // TODO
+//     /* initialize wx frame */
+//     // TODO
 
-    return false;
-}
+//     return false;
+// }
 
-IMPLEMENT_APP(MainApp)
+// IMPLEMENT_APP(MainApp)
