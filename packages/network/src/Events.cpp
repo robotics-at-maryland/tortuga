@@ -23,6 +23,7 @@ RAM_CORE_EVENT_TYPE(ram::network::EventType, LEFT_MOVEMENT);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, RIGHT_MOVEMENT);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, ASCEND);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, DESCEND);
+RAM_CORE_EVENT_TYPE(ram::network::EventType, MAINTAIN_DEPTH);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, SETSPEED);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, TSETSPEED);
 RAM_CORE_EVENT_TYPE(ram::network::EventType, ANGLEYAW);

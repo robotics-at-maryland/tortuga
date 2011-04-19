@@ -249,6 +249,10 @@ void processButtonReleased(int fd, int btn)
         printf("Disarm marker dropper\n");
         armCommand = 0;
         break;
+    case BTN_ASCEND:
+    case BTN_DESCEND:
+        sendCmd(fd, CMD_MAINTAIN_DEPTH, 0);
+        break;
     default:
         break;
     }

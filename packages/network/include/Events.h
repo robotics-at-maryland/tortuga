@@ -31,6 +31,7 @@ struct EventType
     static const core::Event::EventType RIGHT_MOVEMENT;
     static const core::Event::EventType DESCEND;
     static const core::Event::EventType ASCEND;
+    static const core::Event::EventType MAINTAIN_DEPTH;
     static const core::Event::EventType SETSPEED;
     static const core::Event::EventType TSETSPEED;
     static const core::Event::EventType ANGLEYAW;

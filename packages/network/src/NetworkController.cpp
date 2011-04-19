@@ -55,6 +55,8 @@
 #define CMD_FIRE_TORPEDO 14
 #define CMD_DROP_MARKER  15
 
+#define CMD_MAINTAIN_DEPTH 16
+
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkController,
                                   NetworkController);
 
@@ -245,6 +247,12 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
     {
         core::EventPtr event(new core::Event());
         publish(EventType::FIRE_TORPEDO_LAUNCHER, event);
+    }
+
+    case CMD_MAINTAIN_DEPTH:
+    {
+        core::EventPtr event(new core::Event());
+        publish(EventType::MAINTAIN_DEPTH, event);
     }
 
     default:
