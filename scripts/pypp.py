@@ -95,5 +95,10 @@ def main(argv = None):
     files_created = mb.write_module(
         os.path.join(output_dir, module + '.main.cpp'))
 
+    # Touch the output file
+    # This is because pyplusplus won't update the file if nothing has changed,
+    # but the build system always expects this file to be changed.
+    os.utime(os.path.join(output_dir, module + '.main.cpp'), None)
+
 if __name__ == '__main__':
     sys.exit(main())

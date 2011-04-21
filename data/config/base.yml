@@ -110,7 +110,6 @@ Vehicle:
             depends_on: ['SensorBoard']
             # serial: 147
             type: SBThruster
-            update_interval: 100
 
             # String representing the address of the thruster
             address: 1
@@ -420,6 +419,7 @@ StateEstimator:
 Controller:
     depends_on: ["Vehicle", "EventHub", "StateEstimator"]
     type: CombineController
+    update_interval: 25
 
     # wait for this amout of time before doing control
     initializationPause: 2
