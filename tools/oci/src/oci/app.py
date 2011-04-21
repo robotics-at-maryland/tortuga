@@ -79,7 +79,7 @@ class Application(wx.App):
         if self._redirect is not None: # Override default option
             guiCfg['redirect'] = self._redirect
         self._frame = oci.frame.MainFrame(guiCfg, subsystems)
-                                      
+        
         self._frame.Show(True)
         self._frame.Bind(wx.EVT_CLOSE, self._onClose)
         self.SetTopWindow(self._frame)

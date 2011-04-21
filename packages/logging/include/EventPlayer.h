@@ -13,11 +13,13 @@
 // STD Includes
 #include <fstream>
 #include <set>
+#include <vector>
 
 // Library Includes
 #include <boost/archive/text_iarchive.hpp>
 
 // Project Includes
+#include "core/include/Forward.h"
 #include "core/include/Subsystem.h"
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
@@ -36,6 +38,12 @@ public:
     
     /** Sent when ever the player stops replaying events */
     static const core::Event::EventType STOP;
+
+    /** Sent when ever the player updates */
+    static const core::Event::EventType PLAYER_UPDATE;
+
+    /** Sent when the player has completed reading in the events */
+    static const core::Event::EventType PLAYER_SETUP;
     
     EventPlayer(core::ConfigNode config);
     EventPlayer(core::ConfigNode config, core::SubsystemList deps);
@@ -107,12 +115,22 @@ private:
 
     /** How much time the player has been stopped (offsets the start time) */
     double m_stopageTime;
+
+    /** The duration of a set of events. (The timestamp of the last event) */
+    double m_duration;
     
     /** The length of the file we are reading */
     int m_fileLength;
 
     /** Our event hub that is usable */
     core::EventHubPtr m_eventHub;
+
+    /** Events that we have already read from the logfile */
+    std::vector<core::EventPtr> m_pastEvents;
+
+    /** Location of the "present event" in the vector/logfile. Starting at the 
+        vector*/
+    unsigned int m_presentEvent;
 };
 
 } // namespace logging

@@ -48,13 +48,13 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['speed'])
+        return { 'speed': 1.0/3.0 }
     
     def enter(self):
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = self.ai.data['config'].get('gateDepth', 5),
-            speed = self._config.get('speed', 1.0/3.0))
+            speed = self._speed)
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):

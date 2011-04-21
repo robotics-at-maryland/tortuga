@@ -23,7 +23,7 @@
 #include <boost/function.hpp>
 #include <boost/python.hpp>
 #include <boost/assign/list_of.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -33,12 +33,6 @@
 
 namespace py = boost::python;
 using namespace ram;
-
-static boost::filesystem::path getRefDir()
-{
-    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-    return root / "packages" / "logging" / "test" / "data" / "ref.log";
-}
 
 TEST(LoggingImport)
 {
@@ -50,23 +44,52 @@ TEST(LoggingImport)
     }
 }
 
-static std::string PLAYER_CFG =
-    "{ 'fileName' : '" + getRefDir().string() + "' }";
-
 struct EventPlayerFixture
 {
     EventPlayerFixture()
         : eventHub(new core::EventHub())
-        , player(new logging::EventPlayer(
-                     core::ConfigNode::fromString(PLAYER_CFG),
-                     boost::assign::list_of(eventHub)))
         , main_module(py::import("__main__"))
         , main_namespace(main_module.attr("__dict__"))
         , eval(boost::bind(py::exec, _1, main_namespace, main_namespace))
+        , filename("")
+        , config("")
     {
+        // Get the filename directory
+        boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+        filename = root / "packages" / "logging" / "test" / "data" / "EventPlayerWrapperTestLog.log";
+
+        // Create a config
+        std::stringstream ss2;
+        ss2 << "{ 'fileName' : '" << filename.string() << "'}";
+        config = ss2.str();
+        
+        // Create an archive
+        std::ofstream ofs;
+        ofs.open(filename.string().c_str(), std::ios::out | 
+                 std::ios::app |
+                 std::ios::binary);
+        boost::archive::text_oarchive oa(ofs);
+        ofs.close();
+
+
+        player = logging::EventPlayerPtr(
+            new logging::EventPlayer(
+                core::ConfigNode::fromString(config),
+                boost::assign::list_of(eventHub)));
+
         // Import our module and inject the player object
         main_namespace["logging"] = py::import("ext.logging");
         main_namespace["player"] = player;
+    }
+
+
+    ~EventPlayerFixture()
+    {
+        // Remove the archive
+        boost::filesystem::path logFile(filename);
+        if (boost::filesystem::exists(logFile)) {
+            boost::filesystem::remove(logFile);
+        }
     }
 
     core::EventHubPtr eventHub;
@@ -75,6 +98,9 @@ struct EventPlayerFixture
     py::object main_module;
     py::object main_namespace;
     boost::function<py::object (py::str)> eval;
+
+    boost::filesystem::path filename;
+    std::string config;
 };
 
 TEST_FIXTURE(EventPlayerFixture, EventPlayer)

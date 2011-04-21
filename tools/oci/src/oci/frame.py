@@ -50,7 +50,7 @@ class MainFrame(wx.Frame):
         if wx.Platform == '__WXGTK__':
             guiFileName = '.' + guiFileName
         self.guiDataFile = os.path.abspath(os.path.join(guiBasePath, guiFileName))
-        
+
         # Add panels for all the current subsystems
         self._mgr = wx.aui.AuiManager(self)
         self._addShell(config, subsystems)
@@ -135,6 +135,7 @@ class MainFrame(wx.Frame):
         introText = 'Current Subsystems:\n'
         # Build locals
         locals = {}
+
         for subsystem in subsystems:
             # Make first letter lower case
             name = subsystem.getName()
