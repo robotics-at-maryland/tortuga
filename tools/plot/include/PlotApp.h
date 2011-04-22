@@ -22,6 +22,7 @@ using namespace ram;
 class PlotApp : public wxApp
 {
     virtual bool OnInit();
+    core::EventHubPtr m_eventHub;
 };
 
 class PlotFrame : public wxFrame

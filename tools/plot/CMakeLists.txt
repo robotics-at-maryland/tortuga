@@ -8,6 +8,8 @@ if (RAM_WITH_PLOT)
   set(PLOT_LIBS
     ram_core
     ram_network
+    ram_control
+    ram_estimation
     ${wxWidgets_LIBRARIES}
     )
 

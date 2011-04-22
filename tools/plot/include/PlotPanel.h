@@ -10,25 +10,120 @@
 #ifndef RAM_TOOLS_PLOTPANEL
 #define RAM_TOOLS_PLOTPANEL
 
+#include <deque>
+#include <vector>
+#include <map>
+
 #include "../include/mathplot.h"
 #include "wx/wx.h"
 #include "core/include/EventHub.h"
+#include "core/include/EventConnection.h"
 
 using namespace ram;
+
+typedef std::vector<double> PlotData;
+
+typedef std::deque<double> DataSeriesBuffer;
+typedef DataSeriesBuffer::iterator DataSeriesBufferIter;
+
+typedef std::map< std::string, DataSeriesBuffer > DataSeriesBufferMap;
+typedef DataSeriesBufferMap::iterator DataSeriesBufferMapIter;
+
+typedef std::map< std::string, mpFXYVector* > DataSeriesMap;
+typedef DataSeriesMap::iterator DataSeriesMapIter;
 
 class PlotPanel : public wxPanel
 {
 public:
-    PlotPanel(wxWindow* parent,
-              core::EventHubPtr eventHub,
-              wxString name);
+    PlotPanel(wxWindow* parent);
 
     ~PlotPanel() {}
 
+    std::string name();
+    std::string description();
+
+    size_t getBufferSize();
+    void setBufferSize(size_t numPoints);
+
+protected:
+    void addData(std::string name, double x, double y);
+    void addDataSeries(std::string name);
+    void redraw();
+
+    std::string m_name;
+    std::string m_description;
+
 private:
-    
-    
+    size_t m_bufferSize;
+    time_t m_lastUpdate;
+    time_t m_updatePeriod;
+
+    // layer -> data buffer
+    DataSeriesBufferMap m_xBuffers;
+    DataSeriesBufferMap m_yBuffers;
+
+    // layer -> plot for the layer
+    DataSeriesMap m_dataSeries;
+
+    // container for all the plot layers
+    mpWindow *m_plotWindow;
 };
 
+class TestPanel : public PlotPanel
+{
+public:
+    TestPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~TestPanel();
+};
+
+class DepthPanel : public PlotPanel
+{
+public:
+    DepthPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~DepthPanel();
+
+    void update(core::EventPtr event);
+    
+private:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+};
+
+class DepthRatePanel : public PlotPanel
+{
+public:
+    DepthRatePanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~DepthRatePanel();
+
+    void update(core::EventPtr event);
+
+private:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+};
+
+class PositionPanel : public PlotPanel
+{
+public:
+    PositionPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~PositionPanel();
+
+    void update(core::EventPtr event);
+private:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+};
+
+class VelocityPanel : public PlotPanel
+{
+public:
+    VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~VelocityPanel();
+
+    void update(core::EventPtr event);
+private:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+};
 
 #endif // RAM_TOOLS_PLOTPANEL

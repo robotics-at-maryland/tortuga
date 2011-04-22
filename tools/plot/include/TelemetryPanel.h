@@ -25,8 +25,10 @@ public:
     ~TelemetryPanel() {}
 
 private:
-    
-    
+
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+
 };
 
 

@@ -11,15 +11,16 @@
 #include "../include/PlotPanel.h"
 #include "../include/TelemetryPanel.h"
 #include "core/include/EventHub.h"
+#include "network/include/NetworkHub.h"
 
 
 IMPLEMENT_APP(PlotApp)
 
 bool PlotApp::OnInit()
 {
-//     /* start the network hub */
-//     /* note: this is currently using the default constructor */
-//     eventHub = core::EventHubPtr(new network::NetworkHub());
+    /* start the network hub */
+    /* note: this is currently using the default constructor */
+    m_eventHub = core::EventHubPtr(new network::NetworkHub());
 
     // create settings for what the panels can do
     wxAuiPaneInfo defaultInfo = wxAuiPaneInfo();
@@ -35,29 +36,33 @@ bool PlotApp::OnInit()
     PlotFrame *frame = new PlotFrame( wxT("R@M Realtime Plotting"), wxPoint(0, 0), wxSize(1024, 768) );
     frame->SetMinSize(wxSize(480,480));
 
-    ram::core::EventHubPtr eventHub = ram::core::EventHubPtr(new ram::core::EventHub());
     // Set up the inner windows
-    PlotPanel *depthPanel = new PlotPanel(frame, eventHub, wxT("DepthPlot"));
+    PlotPanel *depthPanel = new DepthPanel(frame, m_eventHub);
     wxAuiPaneInfo depthPanelInfo = wxAuiPaneInfo(defaultInfo);
     depthPanelInfo.Caption(wxT("Depth Plot"));
     depthPanelInfo.Left();
 
-    PlotPanel *depthRatePanel = new PlotPanel(frame, eventHub, wxT("Depth Rate Plot"));
+    PlotPanel *depthRatePanel = new DepthRatePanel(frame, m_eventHub);
     wxAuiPaneInfo depthRatePanelInfo = wxAuiPaneInfo(defaultInfo);
     depthRatePanelInfo.Caption(wxT("Depth Rate Plot"));
     depthRatePanelInfo.Left();
 
-    PlotPanel *positionPanel = new PlotPanel(frame, eventHub, wxT("Position Plot"));
+    PlotPanel *positionPanel = new VelocityPanel(frame, m_eventHub);
     wxAuiPaneInfo positionPanelInfo = wxAuiPaneInfo(defaultInfo);
     positionPanelInfo.Caption(wxT("Position Plot"));
     positionPanelInfo.Right();
 
-    PlotPanel *velocityPanel = new PlotPanel(frame, eventHub, wxT("Velocity Plot"));
+    PlotPanel *velocityPanel = new PositionPanel(frame, m_eventHub);
     wxAuiPaneInfo velocityPanelInfo = wxAuiPaneInfo(defaultInfo);
     velocityPanelInfo.Caption(wxT("Velocity Plot"));
     velocityPanelInfo.Right();
 
-    TelemetryPanel *telemetryPanel = new TelemetryPanel(frame, eventHub, wxT("Telemetry Panel"));
+    PlotPanel *testPanel = new TestPanel(frame, m_eventHub);
+    wxAuiPaneInfo testPanelInfo = wxAuiPaneInfo(defaultInfo);
+    testPanelInfo.Caption(wxT("Test Panel (not event based)"));
+    testPanelInfo.Right();
+
+    TelemetryPanel *telemetryPanel = new TelemetryPanel(frame, m_eventHub);
     wxAuiPaneInfo telemetryPanelInfo = wxAuiPaneInfo(defaultInfo);
     telemetryPanelInfo.Center();
 
@@ -66,6 +71,7 @@ bool PlotApp::OnInit()
     frame->addPanel(depthRatePanel, depthRatePanelInfo);
     frame->addPanel(positionPanel, positionPanelInfo);
     frame->addPanel(velocityPanel, velocityPanelInfo);
+    frame->addPanel(testPanel, testPanelInfo);
     frame->addPanel(telemetryPanel, telemetryPanelInfo);
 
     // show it
@@ -102,6 +108,8 @@ PlotFrame::~PlotFrame()
 
 void PlotFrame::onQuit(wxCommandEvent& WXUNUSED(event))
 {
+    m_mgr.UnInit();
+    Destroy();
     Close(true);
 }
 
