@@ -44,11 +44,17 @@ public:
 
     size_t getBufferSize();
     void setBufferSize(size_t numPoints);
+    void onBufferSizeUpdate(wxCommandEvent& event);
+    void onClear(wxCommandEvent& event);
 
 protected:
+    DECLARE_EVENT_TABLE();
+
     void addData(std::string name, double x, double y);
-    void addDataSeries(std::string name);
+    void addDataSeries(std::string name,
+                       wxPen pen = wxPen(wxColour(wxT("BLACK")), 2, wxDOT));
     void redraw();
+    void clear();
 
     std::string m_name;
     std::string m_description;
@@ -67,6 +73,8 @@ private:
 
     // container for all the plot layers
     mpWindow *m_plotWindow;
+
+    wxTextCtrl *m_bufferSizeCtrl;
 };
 
 class TestPanel : public PlotPanel
@@ -100,6 +108,22 @@ public:
 private:
     core::EventHubPtr m_eventHub;
     std::vector< core::EventConnectionPtr > m_connections;
+};
+
+class DepthErrorPanel : public PlotPanel
+{
+public:
+    DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~DepthErrorPanel();
+
+    void update(core::EventPtr event);
+
+private:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+
+    double m_estDepth;
+    double m_desDepth;
 };
 
 class PositionPanel : public PlotPanel

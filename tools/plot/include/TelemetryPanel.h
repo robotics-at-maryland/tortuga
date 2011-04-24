@@ -12,24 +12,45 @@
 
 #include "wx/wx.h"
 #include "core/include/EventHub.h"
+#include "core/include/Event.h"
+#include "core/include/EventConnection.h"
+#include "../include/RotationCtrl.h"
+#include "math/include/Quaternion.h"
 
 using namespace ram;
 
 class TelemetryPanel : public wxPanel
 {
 public:
-    TelemetryPanel(wxWindow* parent,
-                   core::EventHubPtr eventHub,
-                   wxString name = wxT("default_name"));
+    TelemetryPanel(wxWindow* parent, core::EventHubPtr eventHub);
 
     ~TelemetryPanel() {}
 
 private:
-
     core::EventHubPtr m_eventHub;
     std::vector< core::EventConnectionPtr > m_connections;
-
 };
 
+
+class OrientationTelemetryPanel : public wxPanel
+{
+public:
+    OrientationTelemetryPanel(wxWindow *parent, core::EventHubPtr eventHub);
+
+    ~OrientationTelemetryPanel() {}
+
+    void onOrientationUpdate(core::EventPtr event);
+
+private:
+    std::vector< core::EventConnectionPtr > m_connections;
+
+    RotationCtrl *m_roll;
+    RotationCtrl *m_pitch;
+    RotationCtrl *m_yaw;
+
+    math::Quaternion m_desOrientation;
+    math::Quaternion m_estOrientation;
+
+};
 
 #endif // RAM_TOOLS_TELEMETRYPANEL

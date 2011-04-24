@@ -10,6 +10,8 @@
 #ifndef RAM_TOOLS_PLOTAPP
 #define RAM_TOOLS_PLOTAPP
 
+#include <vector>
+
 #include "wx/wx.h"
 #include "wx/laywin.h"
 #include "wx/aui/aui.h"
@@ -32,14 +34,18 @@ public:
     virtual ~PlotFrame();
 
     void onQuit(wxCommandEvent& event);
-    void addPanel(wxWindow *panel, wxAuiPaneInfo& info);
+    void onCheck(wxCommandEvent& event);
+    void addPanel(wxWindow *panel, wxAuiPaneInfo& info, wxString name);
 
 private:
     wxMenuBar *m_menuBar;
     wxMenu *m_menuFile;
+    wxMenu *m_menuPanels;
 
     wxAuiManager m_mgr;
-public:
+    std::vector< wxWindow* > m_panels;
+
+protected:
     DECLARE_EVENT_TABLE()
 };
 
@@ -47,9 +53,5 @@ enum
 {
     ID_Quit = 1,
 };
-
-BEGIN_EVENT_TABLE(PlotFrame, wxFrame)
-    EVT_MENU(ID_Quit,  PlotFrame::onQuit)
-END_EVENT_TABLE()
 
 #endif // RAM_TOOLS_PLOTAPP
