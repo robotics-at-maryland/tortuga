@@ -422,6 +422,7 @@ class ChangeDepth(Motion):
         Motion._finish(self)
 
     def stop(self):
+        self._controller.holdCurrentDepth()
         if self._timer is not None:
             self._timer.stop()
         if self._conn is not None:
@@ -491,6 +492,7 @@ class ChangeOrientation(Motion):
 
 
     def stop(self):
+        self._controller.holdCurrentOrientation()
         if self._timer is not None:
             self._timer.stop()
         if self._conn is not None:
@@ -588,6 +590,7 @@ class Translate(Motion):
         Motion._finish(self)
         
     def stop(self):
+        self._controller.holdCurrentPosition()
         if self._timer is not None:
             self._timer.stop()
         if self._conn is not None:

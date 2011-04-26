@@ -13,7 +13,7 @@ import numpy
 import ext.math as math
 import ram.timer as timer
 
-class Trajectory:
+class Trajectory(object):
     """
     An abstract class for motion trajectories
     """
@@ -72,33 +72,27 @@ class ScalarCubicTrajectory(Trajectory):
     This trajectory will be useful for changing depths.
     """
 
-    # this is a parameter that relates the max rate to the time
-    # interval in which the trajectory will be defined
-    MAGIC_RATE_SLOPE = 10.0
-
-
     def __init__(self, initialValue, finalValue, initialTime = 0,
-                 initialRate = 0, finalRate = 0, maxRate = 3):
+                 initialRate = 0, avgRate = 0.5):
 
         # keep track of the arguments
         self._initialValue = initialValue
         self._finalValue = finalValue
         self._initialRate = initialRate
-        self._finalRate = finalRate
+        self._finalRate = 0
         self._initialTime = initialTime
 
+        # detect relative trajectory
         if initialTime == 0:
             self._relative = True
 
         # compute the final time
-        self._timePeriod = self.approximateTimePeriod(
-            pmath.fabs(finalValue - initialValue), maxRate)
+        self._timePeriod = pmath.fabs(finalValue - initialValue) / avgRate
 
         # the matrix will be singular if initial and final values are equal
         # this shouldn't happen but 
         if initialValue == finalValue:
-            tf = 0
-            self._coefficients = None
+            self._coefficients = numpy.array([0, 0, 0, 0])
             self._maxRate = 0
 
         else:
@@ -109,32 +103,32 @@ class ScalarCubicTrajectory(Trajectory):
             tf = self._timePeriod
 
             # compute matrix A and vector b for equation Ax = b
-            ti_p2 = ti * ti
-            ti_p3 = ti_p2 * ti
+            ti_p2 = ti ** 2
+            ti_p3 = ti ** 3
 
-            tf_p2 = tf * tf
-            tf_p3 = tf_p2 * tf
+            tf_p2 = tf ** 2
+            tf_p3 = tf ** 3
 
-            A = numpy.array([[1, ti, ti_p2, ti_p3],
-                             [1, tf, tf_p2, tf_p3],
-                             [0, 1, 2 * ti, 3 * ti_p2],
-                             [0, 1, 2 * tf, 3 * tf_p2]])
-        
-            b = numpy.array([initialValue, finalValue, initialRate, finalRate])
+            A = numpy.array([[1, ti, ti_p2 , ti_p3    ],
+                             [1, tf, tf_p2 , tf_p3    ],
+                             [0, 1 , 2 * ti, 3 * ti_p2],
+                             [0, 1 , 2 * tf, 3 * tf_p2]])
+            
+            b = numpy.array([initialValue, finalValue,
+                             self._initialRate, self._finalRate])
 
             # solve for coefficient vector x
             x = numpy.linalg.solve(A,b)
 
-            pow = pmath.pow
             self._coefficients = x
-            self._maxRate = x[1] - pow(x[2],2) / (3 * x[3])
-
+            self._maxRate = x[1] - (x[2] ** 2) / (3 * x[3])
 
     def computeValue(self, time):
         # compute the time from the beginning of the trajectory
         # because we have constructed the trajectory starting at time 0
         time = time - self._initialTime
 
+        # take care of boundary conditions for when the polynomial is not valid
         if time < 0:
             return self._initialValue
         elif time >= self._timePeriod:
@@ -194,10 +188,6 @@ class ScalarCubicTrajectory(Trajectory):
     def isRelative(self):
         return self._relative
 
-    def approximateTimePeriod(self, changeInValue, maxRate):
-        slope = self.MAGIC_RATE_SLOPE / maxRate
-        return slope * changeInValue
-
 class Vector2CubicTrajectory(Trajectory):
     """
     This trajectory goes in a straight line between 2D points.
@@ -210,71 +200,52 @@ class Vector2CubicTrajectory(Trajectory):
         # keep track of the arguments V - vector quantity, S - scalar quantity
         self._initialValue = initialValue
         self._finalValue = finalValue
-        self._initialRateV = initialRate
-        self._finalRateV = math.Vector2.ZERO
-        self._initialTime = initialTime
         self._changeInValueV = finalValue - initialValue
-        self._changeInRateV = self._finalRateV - self._initialRateV
+        self._changeInValueS = self._changeInValueV.length()
 
+        self._initialRate = initialRate
+        self._finalRate = math.Vector2.ZERO
+        self._changeInRateV = self._finalRate - self._initialRate
+        self._changeInRateS = self._changeInRateV.length()
+        
+        self._initialTime = initialTime
         if initialTime == 0:
             self._relative = True
 
         # compute the final time
-        self._timePeriod = float(self._changeInValueV.length() + \
-                                     1 * self._changeInRateV.length()) \
-                                     / float(avgRate)
+        self._timePeriod = self._changeInValueV.length() / avgRate
+        self._finalTime = self._initialTime + self._timePeriod
 
-        self._ignore0 = False
-        self._ignore1 = False
+        if initialValue == finalValue:
+            self._maxRate = math.Vector2.ZERO
+            self._coefficients = numpy.array([0, 0, 0, 0, 0])
 
-        # the matrix will be singular if initial and final values are equal
-        # this shouldn't happen but 
-        if initialValue[0] == finalValue[0]:
-            tf = 0
-            self._ignore0 = True
-            self._coefficients0 = numpy.array([0, 0, 0, 0, 0])
-
-        if initialValue[1] == finalValue[1]:
-            tf = 0
-            self._ignore1 = True
-            self._coefficients1 = numpy.array([0, 0, 0, 0, 0])
-
-
-        # we solve for the polynomial starting at time 0 to avoid
-        # numerical problems that could occur if we use the given
-        # initial time.
-        ti = 0
-        tf = self._timePeriod
-        
-        # compute matrix A and vector b for equation Ax = b
-        ti_p2 = ti * ti
-        ti_p3 = ti_p2 * ti
-
-        tf_p2 = tf * tf
-        tf_p3 = tf_p2 * tf
-
-        A = numpy.array([[1, ti, ti_p2, ti_p3],
-                         [1, tf, tf_p2, tf_p3],
-                         [0, 1, 2 * ti, 3 * ti_p2],
-                         [0, 1, 2 * tf, 3 * tf_p2]])
+        else:
+            # we solve for the polynomial starting at time 0 to avoid
+            # numerical problems that could occur if we use the given
+            # initial time.
+            ti = 0
+            tf = self._timePeriod
             
-        b0 = numpy.array([self._initialValue[0], self._finalValue[0],
-                          self._initialRateV[0], self._finalRateV[0]])
-        
-        b1 = numpy.array([self._initialValue[1], self._finalValue[1],
-                          self._initialRateV[1], self._finalRateV[1]])
-        
-        # solve for coefficient vector x
-        x0 = numpy.linalg.solve(A,b0)
-        x1 = numpy.linalg.solve(A,b1)
-        
-        pow = pmath.pow
-        if not self._ignore0:
-            self._coefficients0 = x0
-        if not self._ignore1:
-            self._coefficients1 = x1
+            # compute matrix A and vector b for equation Ax = b
+            ti_p2 = ti ** 2
+            ti_p3 = ti ** 3
+            
+            tf_p2 = tf ** 2
+            tf_p3 = tf ** 3
 
-        self._maxRate = 0 # TODO
+            A = numpy.array([[1, ti, ti_p2,  ti_p3    ],
+                             [1, tf, tf_p2,  tf_p3    ],
+                             [0, 1,  2 * ti, 3 * ti_p2],
+                             [0, 1,  2 * tf, 3 * tf_p2]])
+            
+            b = numpy.array([0, self._changeInValueS, 0, self._changeInRateS])
+            
+            # solve for coefficient vector x
+            x = numpy.linalg.solve(A,b)
+            self._coefficients = x
+            
+            self._maxRate = math.Vector2.ZERO # TODO
 
 
     def computeValue(self, time):
@@ -287,20 +258,12 @@ class Vector2CubicTrajectory(Trajectory):
         elif ts >= self._timePeriod:
             return self._finalValue
         else:
-            c0 = self._coefficients0
-            c1 = self._coefficients1
-            v = math.Vector2(c0[0] + ts * (c0[1] + ts * (c0[2]  + ts * c0[3])),
-                             c1[0] + ts * (c1[1] + ts * (c1[2]  + ts * c1[3])))
-            if self._ignore0:
-                v = math.Vector2(
-                    self._initialValue[0],
-                    c1[0] + ts * (c1[1] + ts * (c1[2]  + ts * c1[3])))
-            if self._ignore1:
-                v = math.Vector2(
-                    c0[0] + ts * (c0[1] + ts * (c0[2]  + ts * c0[3])),
-                    self._initialValue[1])
-            
-            return v
+            c = self._coefficients
+            valueScalar = c[0] + ts * (c[1] + ts * (c[2] + ts * c[3]))
+            v = self._projectOntoAxes(valueScalar)
+            v0 = v[0] + self._initialValue[0]
+            v1 = v[1] + self._initialValue[1]
+            return math.Vector2(v0, v1)
 
     def computeDerivative(self, time, order):
         # compute the time from the beginning of the trajectory
@@ -309,7 +272,7 @@ class Vector2CubicTrajectory(Trajectory):
         # handle t < ti
         if time < 0:
             if order == 1:
-                return self._initialRateV
+                return self._initialRate
             elif order > 1:
                 return math.Vector2.ZERO
             else:
@@ -318,7 +281,7 @@ class Vector2CubicTrajectory(Trajectory):
         # handle t > tf
         if time >= self._timePeriod:
             if order == 1:
-                return self._finalRateV
+                return self._finalRate
             elif order > 1:
                 return math.Vector2.ZERO
             else:
@@ -326,38 +289,23 @@ class Vector2CubicTrajectory(Trajectory):
 
 
         # hand times during the computed trajector
-        c0 = self._coefficients0
-        c1 = self._coefficients1
+        c = self._coefficients
         if order < 1 :
             return None
         elif order == 1:
-            r = math.Vector2(c0[1] + time * (2 * c0[2] + time * 3 * c0[3]),
-                             c1[1] + time * (2 * c1[2] + time * 3 * c1[3]))
-            if self._ignore0:
-                r = math.Vector2(self._initialRateV[0],
-                                 c1[1] + time * (2 * c1[2] + time * 3 * c0[3]))
-            if self._ignore1:
-                r = math.Vector2(c0[1] + time * (2 * c0[2] + time * 3 * c0[3]),
-                                 self._initialRateV[1])
-
-            return r
+            rateScalar = c[1] + time * (2 * c[2] + time * 3 * c[3])
+            v = self._projectOntoAxes(rateScalar)
+            v0 = v[0] + self._initialRate[0]
+            v1 = v[1] + self._initialRate[1]
+            return math.Vector2(v0, v1)
         elif order == 2:
-            r = math.Vector2(2 * c0[2] + 6 * c0[3] * time,
-                             2 * c1[2] + 6 * c1[3] * time)
-
-            if self._ignore0:
-                r = math.Vector2(0, 2 * c1[2] + 6 * c1[3] * time)
-            if self._ignore1:
-                r = math.Vector2(2 * c0[2] + 6 * c0[3] * time, 0)
-
-            return r
+            rateScalar = 2 * c[2] + 6 * c[3] * time
+            v = self._projectOntoAxes(rateScalar)
+            return v
         elif order == 3:
-            r = math.Vector2(6 * c0[3], 6 * c1[3])
-
-            if self._ignore0 or self._ignore1:
-                r = math.Vector2.ZERO
-
-            return r
+            rateScalar = 6 * c[3], 6 * c[3]
+            v = self._projectOntoAxes(rateScalar)
+            return v
         else:
             return math.Vector2.ZERO
 
@@ -365,7 +313,7 @@ class Vector2CubicTrajectory(Trajectory):
         return self._initialTime
 
     def getFinalTime(self):
-        return self._initialTime + self._timePeriod
+        return self._finalTime
 
     def getMaxOfDerivative(self, order):
         return None
@@ -373,6 +321,10 @@ class Vector2CubicTrajectory(Trajectory):
     def isRelative(self):
         return self._relative
 
+    def _projectOntoAxes(self, scalar):
+        xCoord = scalar * self._changeInValueV[0] / self._changeInValueS
+        yCoord = scalar * self._changeInValueV[1] / self._changeInValueS
+        return math.Vector2(xCoord,yCoord)
 
 class StepTrajectory(Trajectory):
     """
@@ -640,3 +592,127 @@ class Vector2ConstAccelTrajectory(Trajectory):
         return math.Vector2(xCoord,yCoord)
 
 #class Vector2SigmoidAccelTrajectory(Trajectory):
+class ScalarSVAJTrajectory(Trajectory):
+    """
+    Defines the creation of a trajectory t
+    """
+
+    def __init__(self, initialValue, finalValue, initialTime = 0,
+                 initialRate = 0, maxRate = 0.7291):
+
+        # keep track of the arguments
+        self._initialValue = initialValue
+        self._finalValue = finalValue
+        self._initialRate = initialRate
+        self._finalRate = 0
+        self._initialTime = initialTime
+
+        # detect relative trajectory
+        if initialTime == 0:
+            self._relative = True
+
+        # compute the final time
+        self._timePeriod = (35.0 / 16.0) * \
+            pmath.fabs(finalValue - initialValue) / maxRate
+        self._maxRate = 0 # TODO
+
+        p = 4.0
+        q = 5.0
+        r = 6.0
+        s = 7.0
+
+        self._cp = q * r * s / ((q - p) * (r - p) * (s - p))
+        self._cq = p * r * s / ((p - q) * (r - q) * (s - q))
+        self._cr = p * q * s / ((p - r) * (q - r) * (s - r))
+        self._cs = p * q * r / ((p - s) * (q - s) * (r - s))
+
+    def computeValue(self, time):
+        # compute the time from the beginning of the trajectory
+        # because we have constructed the trajectory starting at time 0
+        time = time - self._initialTime
+
+        # take care of boundary conditions for when the polynomial is not valid
+        if time < 0:
+            return self._initialValue
+        elif time >= self._timePeriod:
+            return self._finalValue
+        else:
+            [cp, cq, cr, cs] = self._getCoefficients()
+            chg = self._finalValue - self._initialValue
+            rt = time / self._timePeriod
+            iv = self._initialValue
+            val = iv + chg * (cp * rt**4 + cq * rt**5 + cr * rt**6 + cs * rt**7)
+            return val
+            
+    def computeDerivative(self, time, order):
+        # handle t < ti
+        if time < 0:
+            if order == 1:
+                return self._initialRate
+            elif order > 1:
+                return 0
+            else:
+                return None
+
+        # handle t > tf
+        if time >= self._timePeriod:
+            if order == 1:
+                return self._finalRate
+            elif order > 1:
+                return 0
+            else:
+                return None
+
+        # handle times during the computed trajectory
+        [cp, cq, cr, cs] = self._getCoefficients()
+        chg = self._finalValue - self._initialValue
+        rt = time / self._timePeriod # fraction complete
+        it = 1 / self._timePeriod # inverse time
+
+        if order < 1 :
+            return None
+        elif order == 1:
+            r = chg * it * ( \
+                cp * 4 * rt**3 + \
+                    cq * 5 * rt**4 + \
+                    cr * 6 * rt**5 + \
+                    cs * 7 * rt**6)
+            return r
+        elif order == 2:
+            r = chg * it**2 * ( \
+                cp * 12 * rt**2 + \
+                    cq * 20 * rt**3 + \
+                    cr * 30 * rt**4 + \
+                    cs * 42 * rt**5)
+            return r
+        elif order == 3:
+            r = chg * it**3 * ( \
+                cp * 24 * rt + \
+                    cq * 60 * rt**2 + \
+                    cr * 120 * rt**3 + \
+                    cs * 210 * rt**4)
+            return r
+        else:
+            return 0
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._initialTime + self._timePeriod
+
+    def getMaxOfDerivative(self, order):
+        if order == 1:
+            return self._maxRate
+        elif order == 2:
+            return 0
+        elif order > 2:
+            return 0
+        else:
+            return None
+
+    def isRelative(self):
+        return self._relative
+
+    def _getCoefficients(self):
+        return [self._cp, self._cq, self._cr, self._cs]
