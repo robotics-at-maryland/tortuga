@@ -11,6 +11,7 @@
 #define RAM_TOOLS_TELEMENTRYPANEL
 
 #include "wx/wx.h"
+#include "wx/aui/aui.h"
 #include "core/include/EventHub.h"
 #include "core/include/Event.h"
 #include "core/include/EventConnection.h"
@@ -26,9 +27,12 @@ public:
 
     ~TelemetryPanel() {}
 
+    wxAuiPaneInfo& info();
+
 private:
     core::EventHubPtr m_eventHub;
     std::vector< core::EventConnectionPtr > m_connections;
+    wxAuiPaneInfo m_info;
 };
 
 

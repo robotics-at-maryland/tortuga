@@ -16,8 +16,10 @@
 
 #include "../include/mathplot.h"
 #include "wx/wx.h"
+#include "wx/aui/aui.h"
 #include "core/include/EventHub.h"
 #include "core/include/EventConnection.h"
+#include "core/include/Event.h"
 
 using namespace ram;
 
@@ -35,20 +37,21 @@ typedef DataSeriesMap::iterator DataSeriesMapIter;
 class PlotPanel : public wxPanel
 {
 public:
-    PlotPanel(wxWindow* parent);
+    PlotPanel(wxWindow* parent, wxString name = wxT("Unnamed"),
+              wxString caption = wxT("Undescribed"));
 
     ~PlotPanel() {}
 
-    std::string name();
-    std::string description();
+    wxString name();
+    wxString caption();
 
     size_t getBufferSize();
     void setBufferSize(size_t numPoints);
     void onBufferSizeUpdate(wxCommandEvent& event);
     void onClear(wxCommandEvent& event);
+    wxAuiPaneInfo& info();
 
 protected:
-    DECLARE_EVENT_TABLE();
 
     void addData(std::string name, double x, double y);
     void addDataSeries(std::string name,
@@ -56,8 +59,11 @@ protected:
     void redraw();
     void clear();
 
-    std::string m_name;
-    std::string m_description;
+    DECLARE_EVENT_TABLE();
+
+    wxString m_name;
+    wxString m_caption;
+    wxAuiPaneInfo m_info;
 
 private:
     size_t m_bufferSize;
@@ -77,77 +83,84 @@ private:
     wxTextCtrl *m_bufferSizeCtrl;
 };
 
+struct DataSeriesInfo
+{
+    DataSeriesInfo() :
+        name("unnamed"),
+        pen(wxPen(wxColour(wxT("BLACK")))) {}
+
+    DataSeriesInfo(std::string name,
+                         wxPen pen = wxPen(wxColour(wxT("BLACK")))) :
+        name(name),
+        pen(pen) {}
+
+    std::string name;
+    wxPen pen;
+};
+
+class EventBasedPlotPanel : public PlotPanel
+{
+public:
+    EventBasedPlotPanel(wxWindow* parent, core::EventHubPtr eventHub);
+    ~EventBasedPlotPanel();
+
+    virtual void update(core::EventPtr event) = 0;
+
+protected:
+    core::EventHubPtr m_eventHub;
+    std::vector< core::EventConnectionPtr > m_connections;
+
+};
+
 class TestPanel : public PlotPanel
 {
 public:
-    TestPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~TestPanel();
+    TestPanel(wxWindow* parent);
+    ~TestPanel() {}
 };
 
-class DepthPanel : public PlotPanel
-{
-public:
-    DepthPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~DepthPanel();
-
-    void update(core::EventPtr event);
-    
-private:
-    core::EventHubPtr m_eventHub;
-    std::vector< core::EventConnectionPtr > m_connections;
-};
-
-class DepthRatePanel : public PlotPanel
-{
-public:
-    DepthRatePanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~DepthRatePanel();
-
-    void update(core::EventPtr event);
-
-private:
-    core::EventHubPtr m_eventHub;
-    std::vector< core::EventConnectionPtr > m_connections;
-};
-
-class DepthErrorPanel : public PlotPanel
+class DepthErrorPanel : public EventBasedPlotPanel
 {
 public:
     DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~DepthErrorPanel();
-
-    void update(core::EventPtr event);
+    ~DepthErrorPanel() {}
+    virtual void update(core::EventPtr event);
 
 private:
-    core::EventHubPtr m_eventHub;
-    std::vector< core::EventConnectionPtr > m_connections;
-
     double m_estDepth;
     double m_desDepth;
 };
 
-class PositionPanel : public PlotPanel
+class PositionPanel : public EventBasedPlotPanel
 {
 public:
     PositionPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~PositionPanel();
-
-    void update(core::EventPtr event);
-private:
-    core::EventHubPtr m_eventHub;
-    std::vector< core::EventConnectionPtr > m_connections;
+    ~PositionPanel() {}
+    virtual void update(core::EventPtr event);
 };
 
-class VelocityPanel : public PlotPanel
+class VelocityPanel : public EventBasedPlotPanel
 {
 public:
     VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~VelocityPanel();
+    ~VelocityPanel() {}
+    virtual void update(core::EventPtr event);
+};
 
-    void update(core::EventPtr event);
+typedef std::map<core::Event::EventType, DataSeriesInfo> EventSeriesMap;
+class NumericVsTimePlot : public EventBasedPlotPanel
+{
+public:
+    NumericVsTimePlot(wxWindow* parent, core::EventHubPtr eventHub,
+                      EventSeriesMap series, wxString name, 
+                      wxString caption = wxT(""));
+
+    ~NumericVsTimePlot() {}
+
+    virtual void update(core::EventPtr event);
+
 private:
-    core::EventHubPtr m_eventHub;
-    std::vector< core::EventConnectionPtr > m_connections;
+    EventSeriesMap m_series;
 };
 
 #endif // RAM_TOOLS_PLOTPANEL

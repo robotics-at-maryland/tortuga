@@ -22,10 +22,23 @@
 #define ID_CLEAR_BUTTON 4000
 #define ID_BUFFER_SIZE_CTRL 4001
 
-PlotPanel::PlotPanel(wxWindow* parent) :
+PlotPanel::PlotPanel(wxWindow* parent, wxString name, wxString caption) :
     wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
             wxTAB_TRAVERSAL | wxVSCROLL | wxHSCROLL) 
 {
+    // set default wxAuiPaneInfo parameters
+    m_info.Gripper(true);
+    m_info.GripperTop(true);
+    m_info.MinSize(240, 180);
+    m_info.BestSize(512,320);
+    m_info.Movable(true);
+    m_info.Resizable(true);
+    m_info.CaptionVisible(true);
+    m_info.Floatable(true);
+    m_info.DestroyOnClose(true);
+    m_info.CloseButton(false);
+    m_info.Hide();
+
     SetMinSize(wxSize(240, 180));
 
     wxSizer *outerBox = new wxBoxSizer(wxVERTICAL);
@@ -63,6 +76,11 @@ PlotPanel::PlotPanel(wxWindow* parent) :
     SetSizer(outerBox);
 }
 
+wxAuiPaneInfo& PlotPanel::info()
+{
+    return m_info;
+}
+
 void PlotPanel::addData(std::string dataSeriesName, double x, double y)
 {
     DataSeriesBuffer &xBuffer = m_xBuffers[dataSeriesName];
@@ -81,9 +99,9 @@ void PlotPanel::addDataSeries(std::string name, wxPen pen)
 {
     m_xBuffers[name] = DataSeriesBuffer();
     m_yBuffers[name] = DataSeriesBuffer();
-    //mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
-    mpFXYVector* newPlot = new mpFXYVector(wxT(""));
+    mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
     newPlot->SetPen(pen);
+    newPlot->SetContinuity(true);
     m_dataSeries[name] = newPlot;
     m_plotWindow->AddLayer(newPlot);
 }
@@ -92,7 +110,7 @@ void PlotPanel::redraw()
 {
     time_t currTime = std::time(NULL);
     time_t elapsed = std::difftime(currTime, m_lastUpdate);
-
+    elapsed = elapsed;
     if(elapsed > m_updatePeriod)
     {
         for(DataSeriesMapIter it = m_dataSeries.begin(); it != m_dataSeries.end(); it++)
@@ -170,32 +188,47 @@ void PlotPanel::clear()
     redraw();
 }
 
-std::string PlotPanel::name()
+wxString PlotPanel::name()
 {
     return m_name;
 }
 
-std::string PlotPanel::description()
+wxString PlotPanel::caption()
 {
-    return m_description;
+    return m_caption;
 }
 
 BEGIN_EVENT_TABLE(PlotPanel, wxPanel)
 EVT_TEXT_ENTER(ID_BUFFER_SIZE_CTRL, PlotPanel::onBufferSizeUpdate)
 EVT_BUTTON(ID_CLEAR_BUTTON, PlotPanel::onClear)
-END_EVENT_TABLE()
+END_EVENT_TABLE();
 
 
 
+EventBasedPlotPanel::EventBasedPlotPanel(wxWindow* parent,
+                                         core::EventHubPtr eventHub) :
+    PlotPanel(parent),
+    m_eventHub(eventHub)
+{
+}
 
+EventBasedPlotPanel::~EventBasedPlotPanel()
+{
+    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
+    {
+        if(conn->connected())
+            conn->disconnect();
+    }
+}
 
-
-
-TestPanel::TestPanel(wxWindow* parent, core::EventHubPtr eventHub) :
+TestPanel::TestPanel(wxWindow* parent) :
     PlotPanel(parent)
 {
-    m_name = "Test Panel";
-    m_description = "Plotting fake data";
+    m_name = wxT("Test Panel");
+    m_caption = m_name;
+
+    m_info.Name(m_name);
+    m_info.Caption(m_caption);
 
     addDataSeries("Series 1", wxPen(wxColour(wxT("RED")), 5));
     addDataSeries("Series 2", wxPen(wxColour(wxT("DARK GREEN")), 5));
@@ -209,117 +242,11 @@ TestPanel::TestPanel(wxWindow* parent, core::EventHubPtr eventHub) :
     redraw();
 }
 
-TestPanel::~TestPanel()
-{
-}
-
-
-DepthPanel::DepthPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    PlotPanel(parent)
-{
-    m_name = "Depth Plot";
-    m_description = "A plot of depth vs time.";
-    m_eventHub = eventHub;
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE,
-            boost::bind(&DepthPanel::update, this, _1)));
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            control::IController::DESIRED_DEPTH_UPDATE,
-            boost::bind(&DepthPanel::update, this, _1)));
-
-    addDataSeries("Estimated Depth", wxPen(wxColour(wxT("RED")), 5));
-    addDataSeries("Desired Depth", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
- 
-DepthPanel::~DepthPanel()
-{
-    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
-    {
-        conn->disconnect();
-    }
-}
-
-void DepthPanel::update(core::EventPtr event)
-{
-    math::NumericEventPtr nEvent = 
-        boost::dynamic_pointer_cast<math::NumericEvent>(event);
-
-    if(nEvent)
-    {
-        double depth = nEvent->number;
-        double time = nEvent->timeStamp;
-
-        if(event->type == estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE)
-            addData("Estimated Depth", time, depth);
-
-        else if(event->type == control::IController::DESIRED_DEPTH_UPDATE)
-            addData("Desired Depth", time, depth);
-
-        redraw();
-    }
-}
-
-
-
-DepthRatePanel::DepthRatePanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    PlotPanel(parent)
-{
-    m_name = "Depth Rate Plot";
-    m_description = "A plot of the time rate change of depth vs time.";
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE,
-            boost::bind(&DepthRatePanel::update, this, _1)));
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            control::IController::DESIRED_DEPTHRATE_UPDATE,
-            boost::bind(&DepthRatePanel::update, this, _1)));
-
-    addDataSeries("Estimated Depth Rate", wxPen(wxColour(wxT("RED")), 5));
-    addDataSeries("Desired Depth Rate", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
-
-DepthRatePanel::~DepthRatePanel()
-{
-    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
-    {
-        conn->disconnect();
-    }
-}
-
-void DepthRatePanel::update(core::EventPtr event)
-{
-    math::NumericEventPtr nEvent = 
-        boost::dynamic_pointer_cast<math::NumericEvent>(event);
-
-    if(nEvent)
-    {
-        double depthRate = nEvent->number;
-        double time = nEvent->timeStamp;
-
-        if(event->type == estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE)
-            addData("Estimated Depth Rate", time, depthRate);
-
-        else if(event->type == control::IController::DESIRED_DEPTHRATE_UPDATE)
-            addData("Desired Depth Rate", time, depthRate);
-
-        redraw();
-    }
-}
-
-
-
 DepthErrorPanel::DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    PlotPanel(parent)
+    EventBasedPlotPanel(parent, eventHub)
 {
-    m_name = "Depth Errpr Plot";
-    m_description = "A plot of the absolute value of error in depth vs time.";
+    m_name = wxT("Depth Errpr Plot");
+    m_caption = m_name;
 
     m_connections.push_back(
         eventHub->subscribeToType(
@@ -335,14 +262,6 @@ DepthErrorPanel::DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub) :
     m_desDepth = 0;
 
     addDataSeries("Depth Error", wxPen(wxColour(wxT("RED")), 5));
-}
-
-DepthErrorPanel::~DepthErrorPanel()
-{
-    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
-    {
-        conn->disconnect();
-    }
 }
 
 void DepthErrorPanel::update(core::EventPtr event)
@@ -368,16 +287,11 @@ void DepthErrorPanel::update(core::EventPtr event)
     }
 }
 
-
-
-
-
-
 PositionPanel::PositionPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    PlotPanel(parent)
+    EventBasedPlotPanel(parent, eventHub)
 {
-    m_name = "Position Plot";
-    m_description = "A plot of y-position vs x-position.";
+    m_name = wxT("Position Plot");
+    m_caption = m_name;
 
     m_connections.push_back(
         eventHub->subscribeToType(
@@ -391,14 +305,6 @@ PositionPanel::PositionPanel(wxWindow* parent, core::EventHubPtr eventHub) :
 
     addDataSeries("Estimated Position", wxPen(wxColour(wxT("RED")), 5));
     addDataSeries("Desired Position", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
-
-PositionPanel::~PositionPanel()
-{
-    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
-    {
-        conn->disconnect();
-    }
 }
 
 void PositionPanel::update(core::EventPtr event)
@@ -420,14 +326,11 @@ void PositionPanel::update(core::EventPtr event)
     }
 }
 
-
-
-
 VelocityPanel::VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    PlotPanel(parent)
+    EventBasedPlotPanel(parent, eventHub)
 {
-    m_name = "Velocity Plot";
-    m_description = "A plot of y-velocity vs x-velocity";
+    m_name = wxT("Velocity Plot");
+    m_caption = m_name;
 
     m_connections.push_back(
         eventHub->subscribeToType(
@@ -441,14 +344,6 @@ VelocityPanel::VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub) :
 
     addDataSeries("Estimated Velocity", wxPen(wxColour(wxT("RED")), 5));
     addDataSeries("Desired Velocity", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
-
-VelocityPanel::~VelocityPanel()
-{
-    BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
-    {
-        conn->disconnect();
-    }
 }
 
 void VelocityPanel::update(core::EventPtr event)
@@ -465,6 +360,49 @@ void VelocityPanel::update(core::EventPtr event)
 
         else if(event->type == control::IController::DESIRED_VELOCITY_UPDATE)
             addData("Desired Velocity", velocity[0], velocity[1]);
+
+        redraw();
+    }
+}
+
+NumericVsTimePlot::NumericVsTimePlot(wxWindow *parent, core::EventHubPtr eventHub,
+                                     EventSeriesMap series, wxString name,
+                                     wxString caption) :
+    EventBasedPlotPanel(parent, eventHub),
+    m_series(series)
+{
+    m_name = name;
+    m_caption = caption;
+
+    m_info.Name(name);
+    m_info.Caption(caption);
+
+    EventSeriesMap::iterator iter;
+    for(iter = m_series.begin(); iter != m_series.end(); iter++)
+    {
+        core::Event::EventType type = (*iter).first;
+        DataSeriesInfo seriesInfo = (*iter).second;
+
+        m_connections.push_back(
+            eventHub->subscribeToType(
+                type, boost::bind(&NumericVsTimePlot::update, this, _1)));
+
+        addDataSeries(seriesInfo.name, seriesInfo.pen);
+    }
+}
+
+void NumericVsTimePlot::update(core::EventPtr event)
+{
+    math::NumericEventPtr nEvent = 
+        boost::dynamic_pointer_cast<math::NumericEvent>(event);
+
+    if(nEvent)
+    {
+        double number = nEvent->number;
+        double time = nEvent->timeStamp;
+
+        DataSeriesInfo seriesInfo = m_series[event->type];
+        addData(seriesInfo.name, time,  number);
 
         redraw();
     }

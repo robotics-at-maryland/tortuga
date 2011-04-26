@@ -30,21 +30,42 @@ TelemetryPanel::TelemetryPanel(wxWindow* parent, core::EventHubPtr eventHub) :
             wxDefaultSize, wxTAB_TRAVERSAL | wxVSCROLL | wxHSCROLL,
             wxT("Telemetry Panel"))
 {
+    m_info.Gripper(true);
+    m_info.GripperTop(true);
+    m_info.Movable(true);
+    m_info.Resizable(true);
+    m_info.Floatable(true);
+    m_info.DestroyOnClose(true);
+    m_info.CloseButton(false);
+    m_info.Show();
+    m_info.MinSize(240, 240);
+    m_info.BestSize(480, 320);
+    m_info.CaptionVisible(false);
+    m_info.Center();
+    m_info.Layer(0);
+    m_info.Caption(wxT("Telemetry Panel"));
+    m_info.Name(wxT("Telemetry Panel"));
+
     SetMinSize(wxSize(240, 240));
 
     wxSizer *overallBox = new wxBoxSizer(wxVERTICAL);
-    wxSizer *topBox = new wxBoxSizer(wxHORIZONTAL);
-    wxSizer *orientationPanelBox = new wxBoxSizer(wxHORIZONTAL);
+    // wxSizer *topBox = new wxBoxSizer(wxHORIZONTAL);
+    // wxSizer *orientationPanelBox = new wxBoxSizer(wxHORIZONTAL);
 
-    overallBox->Add(topBox, 0, wxEXPAND | wxALL, 2);
-    overallBox->Add(orientationPanelBox, 1, wxEXPAND | wxCENTER | wxALL, 2);
+    // overallBox->Add(topBox, 0, wxEXPAND | wxALL, 2);
+    // overallBox->Add(orientationPanelBox, 1, wxEXPAND | wxCENTER | wxALL, 2);
 
-    OrientationTelemetryPanel *orientationPanel = new OrientationTelemetryPanel(this, eventHub);
-    orientationPanel->Update();
+    // OrientationTelemetryPanel *orientationPanel = new OrientationTelemetryPanel(this, eventHub);
+    // orientationPanel->Update();
 
-    orientationPanelBox->Add(orientationPanel, 1, wxEXPAND | wxCENTER | wxALL, 2);
+    // orientationPanelBox->Add(orientationPanel, 1, wxEXPAND | wxCENTER | wxALL, 2);
 
     SetSizer(overallBox);
+}
+
+wxAuiPaneInfo& TelemetryPanel::info()
+{
+    return m_info;
 }
 
             

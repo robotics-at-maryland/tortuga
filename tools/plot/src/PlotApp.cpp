@@ -16,6 +16,8 @@
 #include "core/include/EventHub.h"
 #include "network/include/NetworkHub.h"
 
+#include "control/include/IController.h"
+#include "estimation/include/IStateEstimator.h"
 
 IMPLEMENT_APP(PlotApp)
 
@@ -28,89 +30,44 @@ bool PlotApp::OnInit()
     PlotFrame *frame = new PlotFrame( wxT("R@M Realtime Plotting"),
                                       wxPoint(0, 0), wxSize(1024, 768));
     
-    // create settings for what the panels can do
-    wxAuiPaneInfo defaultInfo = wxAuiPaneInfo();
-    defaultInfo.Gripper(true);
-    defaultInfo.GripperTop(true);
-    defaultInfo.MinSize(240, 180);
-    defaultInfo.BestSize(512,320);
-    defaultInfo.Movable(true);
-    defaultInfo.Resizable(true);
-    defaultInfo.CaptionVisible(true);
-    defaultInfo.Floatable(true);
-    defaultInfo.DestroyOnClose(true);
-    defaultInfo.CloseButton(false);
-
     // initialize the frame
     frame->SetMinSize(wxSize(640,480));
 
     // Set up the inner windows
-    PlotPanel *depthPanel = new DepthPanel(frame, m_eventHub);
-    wxAuiPaneInfo depthPanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString depthPanelName = wxT("Depth Plot");
-    depthPanelInfo.Caption(depthPanelName);
-    depthPanelInfo.Name(depthPanelName);
-    depthPanelInfo.Left();
-    depthPanelInfo.Layer(2);
+    EventSeriesMap depthSeries;
+    depthSeries[estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE] = 
+        DataSeriesInfo("Estimated Depth", wxPen(wxColour(wxT("RED")), 5));
+    depthSeries[control::IController::DESIRED_DEPTH_UPDATE] = 
+        DataSeriesInfo("Desired Depth", wxPen(wxColour(wxT("DARK GREEN")), 5));
 
-    PlotPanel *depthErrorPanel = new DepthErrorPanel(frame, m_eventHub);
-    wxAuiPaneInfo depthErrorPanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString depthErrorPanelName = wxT("Depth Error Plot");
-    depthErrorPanelInfo.Caption(depthErrorPanelName);
-    depthErrorPanelInfo.Name(depthErrorPanelName);
-    depthErrorPanelInfo.Bottom();
-    depthErrorPanelInfo.Layer(1);
+    PlotPanel *depthPanel = new NumericVsTimePlot(
+        frame, m_eventHub, depthSeries,
+        wxT("Depth Plot"), wxT("Depth Plot"));
 
-    PlotPanel *depthRatePanel = new DepthRatePanel(frame, m_eventHub);
-    wxAuiPaneInfo depthRatePanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString depthRatePanelName = wxT("Depth Rate Plot");
-    depthRatePanelInfo.Caption(depthRatePanelName);
-    depthRatePanelInfo.Name(depthRatePanelName);
-    depthRatePanelInfo.Left();
-    depthRatePanelInfo.Layer(2);
 
-    PlotPanel *positionPanel = new VelocityPanel(frame, m_eventHub);
-    wxAuiPaneInfo positionPanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString positionPanelName = wxT("Position Plot");
-    positionPanelInfo.Caption(positionPanelName);
-    positionPanelInfo.Name(positionPanelName);
-    positionPanelInfo.Right();
-    positionPanelInfo.Layer(2);
+    
+    EventSeriesMap depthRateSeries;
+    depthRateSeries[estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE] = 
+        DataSeriesInfo("Estimated Depth Rate", wxPen(wxColour(wxT("RED")), 5));
+    depthRateSeries[control::IController::DESIRED_DEPTHRATE_UPDATE] = 
+        DataSeriesInfo("Desired Depth Rate", wxPen(wxColour(wxT("DARK GREEN")), 5));
 
-    PlotPanel *velocityPanel = new PositionPanel(frame, m_eventHub);
-    wxAuiPaneInfo velocityPanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString velocityPanelName = wxT("Velocity Plot");
-    velocityPanelInfo.Caption(velocityPanelName);
-    velocityPanelInfo.Name(velocityPanelName);
-    velocityPanelInfo.Right();
-    velocityPanelInfo.Layer(2);
+    PlotPanel *depthRatePanel = new NumericVsTimePlot(
+        frame, m_eventHub, depthRateSeries,
+        wxT("Depth Rate Plot"), wxT("Depth Rate Plot"));
 
-    PlotPanel *testPanel = new TestPanel(frame, m_eventHub);
-    wxAuiPaneInfo testPanelInfo = wxAuiPaneInfo(defaultInfo);
-    wxString testPanelName = wxT("Test Panel");
-    testPanelInfo.Caption(testPanelName);
-    testPanelInfo.Name(testPanelName);
-    testPanelInfo.Top();
-    testPanelInfo.Layer(1);
+
+
+
+    PlotPanel *testPanel = new TestPanel(frame);
 
     TelemetryPanel *telemetryPanel = new TelemetryPanel(frame, m_eventHub);
-    wxAuiPaneInfo telemetryPanelInfo = wxAuiPaneInfo(defaultInfo);
-    telemetryPanelInfo.MinSize(240, 240);
-    telemetryPanelInfo.BestSize(480, 320);
-    telemetryPanelInfo.CaptionVisible(false);
-    telemetryPanelInfo.Center();
-    telemetryPanelInfo.Layer(0);
 
     // add the panels
-    frame->addPanel(telemetryPanel, telemetryPanelInfo, wxString(wxT("Telemetry Panel")));
-
-    frame->addPanel(depthPanel, depthPanelInfo, depthPanelName);
-    frame->addPanel(depthRatePanel, depthRatePanelInfo, depthRatePanelName);
-    frame->addPanel(positionPanel, positionPanelInfo, positionPanelName);
-    frame->addPanel(velocityPanel, velocityPanelInfo, velocityPanelName);
-
-    frame->addPanel(testPanel, testPanelInfo, testPanelName);
-    frame->addPanel(depthErrorPanel, depthErrorPanelInfo, depthErrorPanelName);
+    frame->addPanel(telemetryPanel, telemetryPanel->info(), wxString(wxT("Telemetry Panel")));
+    frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
+    frame->addPanel(depthRatePanel, depthRatePanel->info(), depthRatePanel->name());
+    frame->addPanel(testPanel, testPanel->info(), testPanel->name());
 
     // show it
     SetTopWindow(frame);
@@ -164,7 +121,7 @@ void PlotFrame::addPanel(wxWindow *panel, wxAuiPaneInfo& info, wxString name)
     m_menuPanels->AppendCheckItem(-1, name);
 
     int item = m_menuPanels->FindItem(name);
-    m_menuPanels->Check(item, true);
+    m_menuPanels->Check(item, info.IsShown());
 
     m_mgr.AddPane(panel, info);
     m_mgr.Update();
