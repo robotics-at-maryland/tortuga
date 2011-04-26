@@ -12,17 +12,24 @@
 
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTH_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTHRATE_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_DEPTHACCEL_UPDATE);
+
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ORIENTATION_UPDATE);
-RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_VELOCITY_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ANGULARRATE_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_ANGULARACCEL_UPDATE);
+
 RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_POSITION_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_VELOCITY_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, DESIRED_LINEARACCEL_UPDATE);
 
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_DEPTH);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_ORIENTATION);
-RAM_CORE_EVENT_TYPE(ram::control::IController, AT_VELOCITY);
 RAM_CORE_EVENT_TYPE(ram::control::IController, AT_POSITION);
+RAM_CORE_EVENT_TYPE(ram::control::IController, AT_VELOCITY);
 
-RAM_CORE_EVENT_TYPE(ram::control::IController, CONTROLLER_PLOT);
-
+RAM_CORE_EVENT_TYPE(ram::control::IController, DEPTH_CONTROL_SIGNAL_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, TRANSLATION_CONTROL_SIGNAL_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::control::IController, ORIENTATION_CONTROL_SIGNAL_UPDATE);
 
 namespace ram {
 namespace control {

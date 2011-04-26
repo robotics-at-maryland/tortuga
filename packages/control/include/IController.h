@@ -147,14 +147,29 @@ public:
     /** When the desired depth rate changese */
     static const core::Event::EventType DESIRED_DEPTHRATE_UPDATE;
 
-    /** When the desired orientation changes (ram::math::OrientationEvent) */
+    /** When the desired depth accel changese */
+    static const core::Event::EventType DESIRED_DEPTHACCEL_UPDATE;
+
+
+    /** When the desired orientation changes */
     static const core::Event::EventType DESIRED_ORIENTATION_UPDATE;
+
+    /** When the desired angular rate changes */
+    static const core::Event::EventType DESIRED_ANGULARRATE_UPDATE;
+
+    /** When the desired angular acceleration changes */
+    static const core::Event::EventType DESIRED_ANGULARACCEL_UPDATE;
+
+
+    /** When the desired position changes */
+    static const core::Event::EventType DESIRED_POSITION_UPDATE;
 
     /** When the desired velocity changes */
     static const core::Event::EventType DESIRED_VELOCITY_UPDATE;
 
-    /** When the desired position changes */
-    static const core::Event::EventType DESIRED_POSITION_UPDATE;
+    /** When the desired linear acceleration changes */
+    static const core::Event::EventType DESIRED_LINEARACCEL_UPDATE;
+
 
     /** When the vehicle reaches the depth set by the controller
      *
@@ -168,13 +183,6 @@ public:
      */
     static const core::Event::EventType AT_ORIENTATION;
 
-    /** When the vehicle reaches the velocity set by the controller
-     *
-     *  Type is ram::math::Vector2Event
-     */
-
-    static const core::Event::EventType AT_VELOCITY;
-
     /** When the vehicle reaches the position set by the controller
      *
      *  Type is ram::math::Vector2Event
@@ -182,16 +190,18 @@ public:
 
     static const core::Event::EventType AT_POSITION;
 
-    /** Whenever the control code wants to plot something in the OCI
+    /** When the vehicle reaches the velocity set by the controller
      *
-     *  Type is ram::core::Plot1DEvent or ram::core::Plot2DEvent
+     *  Type is ram::math::Vector2Event
      */
 
-    static const core::Event::EventType CONTROLLER_PLOT;
+    static const core::Event::EventType AT_VELOCITY;
 
+ 
+    static const core::Event::EventType DEPTH_CONTROL_SIGNAL_UPDATE;
+    static const core::Event::EventType TRANSLATION_CONTROL_SIGNAL_UPDATE;
+    static const core::Event::EventType ORIENTATION_CONTROL_SIGNAL_UPDATE;
 
-
-    
 protected:
     IController(std::string name,
                 core::EventHubPtr eventHub = core::EventHubPtr());

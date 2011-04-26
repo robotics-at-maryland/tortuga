@@ -49,9 +49,7 @@ void DesiredState::init(core::ConfigNode config)
                                   config["desiredAccel"][1].asDouble(0)));
 
     setDesiredDepth(config["desiredDepth"].asDouble(0));
-
     setDesiredDepthRate(config["desiredDepthRate"].asDouble(0));
-
     setDesiredDepthAccel(config["desiredDepthAccel"].asDouble(0));
 
     setDesiredOrientation(
@@ -72,9 +70,15 @@ void DesiredState::init(core::ConfigNode config)
 
     newDesiredDepthSet(getDesiredDepth());
     newDesiredDepthRateSet(getDesiredDepthRate());
+    newDesiredDepthAccelSet(getDesiredDepthAccel());
+
     newDesiredOrientationSet(getDesiredOrientation());
-    newDesiredVelocitySet(getDesiredVelocity());
+    newDesiredAngularRateSet(getDesiredAngularRate());
+    newDesiredAngularAccelSet(getDesiredAngularAccel());
+    
     newDesiredPositionSet(getDesiredPosition());
+    newDesiredVelocitySet(getDesiredVelocity());
+    newDesiredLinearAccelSet(getDesiredAccel());
 }
 
 
@@ -163,8 +167,11 @@ void DesiredState::setDesiredVelocity(math::Vector2 velocity)
 
 void DesiredState::setDesiredAccel(math::Vector2 accel)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredAccel = accel;
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredAccel = accel;
+    }
+    newDesiredLinearAccelSet(accel);
 }
 
 
@@ -189,8 +196,11 @@ void DesiredState::setDesiredDepthRate(double depthRate)
 
 void DesiredState::setDesiredDepthAccel(double depthAccel)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredDepthAccel = depthAccel;
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredDepthAccel = depthAccel;
+    }
+    newDesiredDepthAccelSet(depthAccel);
 }
 
 
@@ -208,14 +218,20 @@ void DesiredState::setDesiredOrientation(math::Quaternion orientation)
 
 void DesiredState::setDesiredAngularRate(math::Vector3 angularRate)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredAngularRate = angularRate;
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredAngularRate = angularRate;
+    }
+    newDesiredAngularRateSet(angularRate);
 }
 
 void DesiredState::setDesiredAngularAccel(math::Vector3 angularAccel)
 {
-    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-    m_desiredAngularAccel = angularAccel;
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_desiredAngularAccel = angularAccel;
+    }
+    newDesiredAngularAccelSet(angularAccel);
 }
 
 
@@ -237,6 +253,17 @@ void DesiredState::newDesiredDepthRateSet(const double& newDepthRate)
     publish(control::IController::DESIRED_DEPTHRATE_UPDATE, event);
 }
 
+void DesiredState::newDesiredDepthAccelSet(const double& newDepthAccel)
+{
+    // Publish event indicating new update
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = newDepthAccel;
+    publish(control::IController::DESIRED_DEPTHACCEL_UPDATE, event);
+}
+
+
+
+
 void DesiredState::newDesiredOrientationSet(
     const math::Quaternion& newOrientation)
 {
@@ -244,6 +271,25 @@ void DesiredState::newDesiredOrientationSet(
     event->orientation = newOrientation;
     publish(control::IController::DESIRED_ORIENTATION_UPDATE, event);
 }
+
+void DesiredState::newDesiredAngularRateSet(
+    const math::Vector3& newAngularRate)
+{
+    math::Vector3EventPtr event(new math::Vector3Event());
+    event->vector3 = newAngularRate;
+    publish(control::IController::DESIRED_ANGULARRATE_UPDATE, event);
+}
+
+void DesiredState::newDesiredAngularAccelSet(
+    const math::Vector3& newAngularAccel)
+{
+    math::Vector3EventPtr event(new math::Vector3Event());
+    event->vector3 = newAngularAccel;
+    publish(control::IController::DESIRED_ANGULARACCEL_UPDATE, event);
+}
+
+
+
 
 void DesiredState::newDesiredVelocitySet(const math::Vector2& newVelocity)
 {
@@ -259,6 +305,12 @@ void DesiredState::newDesiredPositionSet(const math::Vector2& newPosition)
     publish(control::IController::DESIRED_POSITION_UPDATE, event);
 }
 
+void DesiredState::newDesiredLinearAccelSet(const math::Vector2& newLinearAccel)
+{
+    math::Vector2EventPtr event(new math::Vector2Event());
+    event->vector2 = newLinearAccel;
+    publish(control::IController::DESIRED_LINEARACCEL_UPDATE, event);
+}
+
 } //namespace control
 } //namespace ram
-

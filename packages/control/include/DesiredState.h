@@ -132,6 +132,9 @@ public:
 private:
     void init(core::ConfigNode config);
 
+
+
+
     /** called whenever a new depth is set, handles events as needed
      *
      *  This will always publish the DESIRED_DEPTH_UPDATE event
@@ -144,17 +147,35 @@ private:
      */
     void newDesiredDepthRateSet(const double& newDepthRate);
 
+    /** called whenever a new depth change rate is set, handles events as needed
+     *
+     *  This will always publish the DESIRED_DEPTHACCEL_UPDATE event
+     */
+    void newDesiredDepthAccelSet(const double& newDepthAccel);
+
+
+
+
     /** called whenever the desired orientation changes, handles events
      *
      *  This will always publish the DESIRED_ORIENTATION_UPDATE event
      */
     void newDesiredOrientationSet(const math::Quaternion& newOrientation);
-   
-    /** called whenever the desired velocity changes, handles events
+
+    /** called whenever the desired orientation changes, handles events
      *
-     * This publishes the DESIRED_VELOCITY_UPDATE event
+     *  This will always publish the DESIRED_ANGULARVELOCITY_UPDATE event
      */
-    void newDesiredVelocitySet(const math::Vector2& newVelocity);
+    void newDesiredAngularRateSet(const math::Vector3& newAngularRate);
+
+    /** called whenever the desired orientation changes, handles events
+     *
+     *  This will always publish the DESIRED_ANGULARACCEL_UPDATE event
+     */
+    void newDesiredAngularAccelSet(const math::Vector3& newAngularAccel);
+
+
+
 
     /** called whenever the desired position changes, handles events
      *
@@ -162,9 +183,24 @@ private:
      */
     void newDesiredPositionSet(const math::Vector2& newPosition);
 
+    /** called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_VELOCITY_UPDATE event
+     */
+    void newDesiredVelocitySet(const math::Vector2& newVelocity);
+
+    /** called whenever the desired velocity changes, handles events
+     *
+     * This publishes the DESIRED_LINEARACCEL_UPDATE event
+     */
+    void newDesiredLinearAccelSet(const math::Vector2& newAccel);
+
+
+
+   
     math::Vector2 m_desiredVelocity; // stored in inertial frame
     math::Vector2 m_desiredPosition; // stored in inertial frame
-    math::Vector2 m_desiredAccel; // stored in inertial frame
+    math::Vector2 m_desiredAccel;    // stored in inertial frame
       
     double m_desiredDepth;
     double m_desiredDepthRate;
