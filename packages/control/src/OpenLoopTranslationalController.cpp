@@ -29,8 +29,8 @@ OpenLoopTranslationalController::OpenLoopTranslationalController(
     m_sidewaysSpeedPGain(0)
 {
     // Load things from the configuration file
-    m_speedPGain = config["speedPGain"].asInt(1);
-    m_sidewaysSpeedPGain = config["sidewaysSpeedPGain"].asInt(1);
+    m_speedPGain = config["speedPGain"].asDouble(1);
+    m_sidewaysSpeedPGain = config["sidewaysSpeedPGain"].asDouble(1);
 }
     
 math::Vector3 OpenLoopTranslationalController::translationalUpdate(
