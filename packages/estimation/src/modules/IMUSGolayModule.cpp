@@ -196,7 +196,8 @@ void IMUSGolayModule::update(core::EventPtr event)
             mag[2] = m_filteredState[m_magIMUName]->magZ;
         }
         // LOGGER.info("quatFromMagAccel - With MagBoom");
-        estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
+        //currently using quest for estimation
+        estOrientation = estimation::Utility::questQuaternionFromMagAccel(mag,accel,.5,.5);
 
     } else if (!magIsCorrupt) {
 

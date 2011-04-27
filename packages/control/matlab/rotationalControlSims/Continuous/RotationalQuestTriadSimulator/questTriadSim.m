@@ -47,7 +47,7 @@ q0 = [axis0*sin(angle0/2); cos(angle0/2)];
 q0 = q0/norm(q0);
 
 %Initial angular rate (of B w.r.t. N written in B frame)
-w0=(pi/180)*[-20 30 70]';
+w0=(pi/180)*[0 5 30]';
 
 %initial estimated position
 x0=[q0; w0];
@@ -56,13 +56,13 @@ state_storage(:,1)=x0;
         
 %Constants:
 %global mag_vec_nf;
-mag_vec_nf = [cos(60*pi/180) 0 sin(-60*pi/180)]'; %Note: the declination angle may be incorrect
+mag_vec_nf = [1 0 0]'; %Note: the declination angle may be incorrect
 %global acc_vec_nf;
 acc_vec_nf = [0 0 -1]';
 %global a1;
-a1 = 0.5;           %Weight of magnetic sensor
+a1 = 0.9;           %Weight of magnetic sensor
 %global a2;
-a2 = 0.5;           %Weight of acceleration sensor
+a2 = 0.1;           %Weight of acceleration sensor
     
 %System Inertia (Inertia Matrix)
 global H;
@@ -132,7 +132,7 @@ for i=2:1:length(time)
     X = (alpha*eye(3) + beta*S + S*S)*Z;
     %Ensuring that q_opt is normalized
     q_quest = 1/sqrt(gamma^2 + norm(X)^2)*[X; gamma];
-    q_quest = q_quest/norm(q_quest);
+    %q_quest = q_quest/norm(q_quest);
     %save quest
     %someone had the first term as q(4) here, probably was the problem
     qQuest_storage(1:4, i) = [q_quest(1) q_quest(2) q_quest(3) q_quest(4)];
@@ -150,9 +150,9 @@ figure(1)
 
 subplot(4,1,1)
 hold on
-plot(time(2:end), state_storage(1,2:end), 'b')
-plot(time(2:end), qtriad_storage(1,2:end), 'g')
-plot(time(2:end), qQuest_storage(1,2:end), 'r')
+plot(time(2:end), state_storage(2,2:end), 'b')
+plot(time(2:end), qtriad_storage(2,2:end), 'g')
+plot(time(2:end), qQuest_storage(2,2:end), 'r')
 title('Rotation Quaternion')
 ylabel('q_1')
 legend('Actual','Triad','Quest')
@@ -160,27 +160,27 @@ hold off
 
 subplot(4,1,2)
 hold on
-plot(time(2:end), state_storage(2,2:end), 'b')
-plot(time(2:end), qtriad_storage(2,2:end), 'g')
-plot(time(2:end), qQuest_storage(2,2:end), 'r')
+plot(time(2:end), state_storage(3,2:end), 'b')
+plot(time(2:end), qtriad_storage(3,2:end), 'g')
+plot(time(2:end), qQuest_storage(3,2:end), 'r')
 ylabel('q_2')
 legend('Actual','Triad','Quest')
 hold off
 
 subplot(4,1,3)
 hold on
-plot(time(2:end), state_storage(3,2:end), 'b')
-plot(time(2:end), qtriad_storage(3,2:end), 'g')
-plot(time(2:end), qQuest_storage(3,2:end), 'r')
+plot(time(2:end), state_storage(4,2:end), 'b')
+plot(time(2:end), qtriad_storage(4,2:end), 'g')
+plot(time(2:end), qQuest_storage(4,2:end), 'r')
 ylabel('q_3')
 legend('Actual','Triad','Quest')
 hold off
 
 subplot(4,1,4)
 hold on
-plot(time(2:end), state_storage(4,2:end), 'b')
-plot(time(2:end), qtriad_storage(4,2:end), 'g')
-plot(time(2:end), qQuest_storage(4,2:end), 'r')
+plot(time(2:end), state_storage(1,2:end), 'b')
+plot(time(2:end), qtriad_storage(1,2:end), 'g')
+plot(time(2:end), qQuest_storage(1,2:end), 'r')
 ylabel('q_4')
 legend('Actual','Triad','Quest')
 hold off
@@ -226,7 +226,7 @@ xlabel('time (s)')
 subplot(4,1,1)
 hold on
 plot(time(2:end), triad_err(2,2:end), 'b');
-plot(time(2:end), quest_err(1,2:end), 'r');
+plot(time(2:end), quest_err(2,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
 ylabel('q_1')
@@ -234,7 +234,7 @@ ylabel('q_1')
 subplot(4,1,2)
 hold on
 plot(time(2:end), triad_err(3,2:end), 'b');
-plot(time(2:end), quest_err(2,2:end), 'r');
+plot(time(2:end), quest_err(3,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
 ylabel('q_2')
@@ -242,7 +242,7 @@ ylabel('q_2')
 subplot(4,1,3)
 hold on
 plot(time(2:end), triad_err(4,2:end), 'b');
-plot(time(2:end), quest_err(3,2:end), 'r');
+plot(time(2:end), quest_err(4,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
 ylabel('q_3')
@@ -250,7 +250,7 @@ ylabel('q_3')
 subplot(4,1,4)
 hold on
 plot(time(2:end), triad_err(1,2:end), 'b');
-plot(time(2:end), quest_err(4,2:end), 'r');
+plot(time(2:end), quest_err(1,2:end), 'r');
 hold off
 legend('Triad error', 'Quest error')
 ylabel('q_4')

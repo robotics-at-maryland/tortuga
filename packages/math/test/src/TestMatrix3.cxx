@@ -28,5 +28,15 @@ TEST(skewSymmetricMatrix)
     
     CHECK_CLOSE(expected, result, 0.001);
 }
+TEST(fromOuterProduct)
+{
+    Vector3 a(1,2,3);
+    Vector3 b(4,5,6);
+    Matrix3 test=Matrix3::fromOuterProduct(a,b);        
+    Matrix3 expected(4,5,6,8,10,12,12,15,18);
+    CHECK_CLOSE(expected, test, 0.001);
+
+    
+}
 
 } // SUITE(TestMatrix2) 
