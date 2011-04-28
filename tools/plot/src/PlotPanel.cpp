@@ -12,7 +12,7 @@
 
 #include <ctime>
 #include "wx/wx.h"
-#include "../include/PlotPanel.h"
+#include "PlotPanel.h"
 
 #include "control/include/IController.h"
 #include "estimation/include/IStateEstimator.h"
@@ -83,6 +83,18 @@ wxAuiPaneInfo& PlotPanel::info()
 
 void PlotPanel::addData(std::string dataSeriesName, double x, double y)
 {
+    DataSeriesBufferMap::iterator iter;
+    for(iter = m_yBuffers.begin(); iter != m_yBuffers.end(); iter++)
+    {
+        std::string name = (*iter).first;
+        DataSeriesBuffer &yBuffer = m_yBuffers[name];
+        if(yBuffer.empty())
+        {
+            m_xBuffers[name].push_back(x);
+            yBuffer.push_back(0);
+        }
+    }
+    
     DataSeriesBuffer &xBuffer = m_xBuffers[dataSeriesName];
     DataSeriesBuffer &yBuffer = m_yBuffers[dataSeriesName];
 
@@ -99,7 +111,8 @@ void PlotPanel::addDataSeries(std::string name, wxPen pen)
 {
     m_xBuffers[name] = DataSeriesBuffer();
     m_yBuffers[name] = DataSeriesBuffer();
-    mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
+    //mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
+    mpFXYVector* newPlot = new mpFXYVector(wxT(""));
     newPlot->SetPen(pen);
     newPlot->SetContinuity(true);
     m_dataSeries[name] = newPlot;
@@ -205,14 +218,12 @@ END_EVENT_TABLE();
 
 
 
-EventBasedPlotPanel::EventBasedPlotPanel(wxWindow* parent,
-                                         core::EventHubPtr eventHub) :
-    PlotPanel(parent),
+EventBased::EventBased(core::EventHubPtr eventHub) :
     m_eventHub(eventHub)
 {
 }
 
-EventBasedPlotPanel::~EventBasedPlotPanel()
+EventBased::~EventBased()
 {
     BOOST_FOREACH(core::EventConnectionPtr conn, m_connections)
     {
@@ -243,7 +254,8 @@ TestPanel::TestPanel(wxWindow* parent) :
 }
 
 DepthErrorPanel::DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    EventBasedPlotPanel(parent, eventHub)
+    EventBased(eventHub),
+    PlotPanel(parent)
 {
     m_name = wxT("Depth Errpr Plot");
     m_caption = m_name;
@@ -287,88 +299,11 @@ void DepthErrorPanel::update(core::EventPtr event)
     }
 }
 
-PositionPanel::PositionPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    EventBasedPlotPanel(parent, eventHub)
-{
-    m_name = wxT("Position Plot");
-    m_caption = m_name;
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE,
-            boost::bind(&PositionPanel::update, this, _1)));
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            control::IController::DESIRED_POSITION_UPDATE,
-            boost::bind(&PositionPanel::update, this, _1)));
-
-    addDataSeries("Estimated Position", wxPen(wxColour(wxT("RED")), 5));
-    addDataSeries("Desired Position", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
-
-void PositionPanel::update(core::EventPtr event)
-{
-    math::Vector2EventPtr vEvent = 
-        boost::dynamic_pointer_cast<math::Vector2Event>(event);
-
-    if(vEvent)
-    {
-        math::Vector2 position = vEvent->vector2;
-        
-        if(event->type == estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE)
-            addData("Estimated Position", position[0], position[1]);
-
-        else if(event->type == control::IController::DESIRED_POSITION_UPDATE)
-            addData("Desired Position", position[0], position[1]);
-
-        redraw();
-    }
-}
-
-VelocityPanel::VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub) :
-    EventBasedPlotPanel(parent, eventHub)
-{
-    m_name = wxT("Velocity Plot");
-    m_caption = m_name;
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE,
-            boost::bind(&VelocityPanel::update, this, _1)));
-
-    m_connections.push_back(
-        eventHub->subscribeToType(
-            control::IController::DESIRED_VELOCITY_UPDATE,
-            boost::bind(&VelocityPanel::update, this, _1)));
-
-    addDataSeries("Estimated Velocity", wxPen(wxColour(wxT("RED")), 5));
-    addDataSeries("Desired Velocity", wxPen(wxColour(wxT("DARK GREEN")), 5));
-}
-
-void VelocityPanel::update(core::EventPtr event)
-{
-    math::Vector2EventPtr vEvent = 
-        boost::dynamic_pointer_cast<math::Vector2Event>(event);
-
-    if(vEvent)
-    {
-        math::Vector2 velocity = vEvent->vector2;
-        
-        if(event->type == estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE)
-            addData("Estimated Velocity", velocity[0], velocity[1]);
-
-        else if(event->type == control::IController::DESIRED_VELOCITY_UPDATE)
-            addData("Desired Velocity", velocity[0], velocity[1]);
-
-        redraw();
-    }
-}
-
 NumericVsTimePlot::NumericVsTimePlot(wxWindow *parent, core::EventHubPtr eventHub,
                                      EventSeriesMap series, wxString name,
                                      wxString caption) :
-    EventBasedPlotPanel(parent, eventHub),
+    EventBased(eventHub),
+    PlotPanel(parent),
     m_series(series)
 {
     m_name = name;
@@ -403,6 +338,49 @@ void NumericVsTimePlot::update(core::EventPtr event)
 
         DataSeriesInfo seriesInfo = m_series[event->type];
         addData(seriesInfo.name, time,  number);
+
+        redraw();
+    }
+}
+
+Vector2PhasePlot::Vector2PhasePlot(wxWindow *parent, core::EventHubPtr eventHub,
+                                   EventSeriesMap series, wxString name,
+                                   wxString caption) :
+    EventBased(eventHub),
+    PlotPanel(parent),
+    m_series(series)
+{
+    m_name = name;
+    m_caption = caption;
+
+    m_info.Name(name);
+    m_info.Caption(caption);
+
+    EventSeriesMap::iterator iter;
+    for(iter = m_series.begin(); iter != m_series.end(); iter++)
+    {
+        core::Event::EventType type = (*iter).first;
+        DataSeriesInfo seriesInfo = (*iter).second;
+
+        m_connections.push_back(
+            eventHub->subscribeToType(
+                type, boost::bind(&Vector2PhasePlot::update, this, _1)));
+
+        addDataSeries(seriesInfo.name, seriesInfo.pen);
+    }
+}
+
+void Vector2PhasePlot::update(core::EventPtr event)
+{
+    math::Vector2EventPtr vEvent = 
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    if(vEvent)
+    {
+        math::Vector2 vector2 = vEvent->vector2;
+
+        DataSeriesInfo seriesInfo = m_series[event->type];
+        addData(seriesInfo.name, vector2[0],  vector2[1]);
 
         redraw();
     }

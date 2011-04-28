@@ -4,12 +4,14 @@ if (RAM_WITH_PLOT)
   find_package(wxWidgets COMPONENTS core base aui REQUIRED)
 
   include( ${wxWidgets_USE_FILE} )
+  include_directories("include")
 
   set(PLOT_LIBS
     ram_core
     ram_network
     ram_control
     ram_estimation
+    ram_vehicle
     ${wxWidgets_LIBRARIES}
     )
 

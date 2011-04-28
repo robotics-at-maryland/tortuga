@@ -51,13 +51,14 @@ public:
     void onClear(wxCommandEvent& event);
     wxAuiPaneInfo& info();
 
-protected:
-
     void addData(std::string name, double x, double y);
     void addDataSeries(std::string name,
                        wxPen pen = wxPen(wxColour(wxT("BLACK")), 2, wxDOT));
+
     void redraw();
     void clear();
+
+protected:
 
     DECLARE_EVENT_TABLE();
 
@@ -90,7 +91,7 @@ struct DataSeriesInfo
         pen(wxPen(wxColour(wxT("BLACK")))) {}
 
     DataSeriesInfo(std::string name,
-                         wxPen pen = wxPen(wxColour(wxT("BLACK")))) :
+                   wxPen pen = wxPen(wxColour(wxT("BLACK")))) :
         name(name),
         pen(pen) {}
 
@@ -98,13 +99,11 @@ struct DataSeriesInfo
     wxPen pen;
 };
 
-class EventBasedPlotPanel : public PlotPanel
+class EventBased
 {
 public:
-    EventBasedPlotPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~EventBasedPlotPanel();
-
-    virtual void update(core::EventPtr event) = 0;
+    EventBased(core::EventHubPtr eventHub);
+    ~EventBased();
 
 protected:
     core::EventHubPtr m_eventHub;
@@ -119,7 +118,7 @@ public:
     ~TestPanel() {}
 };
 
-class DepthErrorPanel : public EventBasedPlotPanel
+class DepthErrorPanel : public EventBased, public PlotPanel
 {
 public:
     DepthErrorPanel(wxWindow* parent, core::EventHubPtr eventHub);
@@ -131,24 +130,10 @@ private:
     double m_desDepth;
 };
 
-class PositionPanel : public EventBasedPlotPanel
-{
-public:
-    PositionPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~PositionPanel() {}
-    virtual void update(core::EventPtr event);
-};
-
-class VelocityPanel : public EventBasedPlotPanel
-{
-public:
-    VelocityPanel(wxWindow* parent, core::EventHubPtr eventHub);
-    ~VelocityPanel() {}
-    virtual void update(core::EventPtr event);
-};
 
 typedef std::map<core::Event::EventType, DataSeriesInfo> EventSeriesMap;
-class NumericVsTimePlot : public EventBasedPlotPanel
+
+class NumericVsTimePlot : public EventBased, public PlotPanel
 {
 public:
     NumericVsTimePlot(wxWindow* parent, core::EventHubPtr eventHub,
@@ -156,6 +141,21 @@ public:
                       wxString caption = wxT(""));
 
     ~NumericVsTimePlot() {}
+
+    virtual void update(core::EventPtr event);
+
+private:
+    EventSeriesMap m_series;
+};
+
+class Vector2PhasePlot : public EventBased, public PlotPanel
+{
+public:
+    Vector2PhasePlot(wxWindow* parent, core::EventHubPtr eventHub,
+                      EventSeriesMap series, wxString name, 
+                      wxString caption = wxT(""));
+
+    ~Vector2PhasePlot() {}
 
     virtual void update(core::EventPtr event);
 

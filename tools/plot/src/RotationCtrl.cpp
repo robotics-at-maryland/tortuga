@@ -15,7 +15,7 @@
 #include "wx/wx.h"
 
 // Project Includes
-#include "../include/RotationCtrl.h"
+#include "RotationCtrl.h"
 #include "math/include/Math.h"
 
 using namespace ram;

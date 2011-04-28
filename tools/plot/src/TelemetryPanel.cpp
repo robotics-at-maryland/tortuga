@@ -8,6 +8,7 @@
  */
 
 // STD Includes
+#include <ctime>
 
 // Library Includes
 #include <boost/bind.hpp>
@@ -16,8 +17,8 @@
 #include "wx/sizer.h"
 
 // Project Includes
-#include "../include/TelemetryPanel.h"
-#include "../include/RotationCtrl.h"
+#include "TelemetryPanel.h"
+#include "RotationCtrl.h"
 #include "estimation/include/IStateEstimator.h"
 #include "control/include/IController.h"
 #include "math/include/Quaternion.h"
@@ -49,16 +50,20 @@ TelemetryPanel::TelemetryPanel(wxWindow* parent, core::EventHubPtr eventHub) :
     SetMinSize(wxSize(240, 240));
 
     wxSizer *overallBox = new wxBoxSizer(wxVERTICAL);
-    // wxSizer *topBox = new wxBoxSizer(wxHORIZONTAL);
-    // wxSizer *orientationPanelBox = new wxBoxSizer(wxHORIZONTAL);
+    wxSizer *topBox = new wxBoxSizer(wxHORIZONTAL);
+    wxSizer *orientationPanelBox = new wxBoxSizer(wxHORIZONTAL);
 
-    // overallBox->Add(topBox, 0, wxEXPAND | wxALL, 2);
-    // overallBox->Add(orientationPanelBox, 1, wxEXPAND | wxCENTER | wxALL, 2);
+    overallBox->Add(topBox, 2, wxEXPAND | wxALL, 2);
+    overallBox->Add(orientationPanelBox, 1, wxEXPAND | wxCENTER | wxALL, 2);
 
-    // OrientationTelemetryPanel *orientationPanel = new OrientationTelemetryPanel(this, eventHub);
-    // orientationPanel->Update();
+    OrientationTelemetryPanel *orientationPanel = new OrientationTelemetryPanel(this, eventHub);
+    orientationPanel->Update();
+    orientationPanelBox->Add(orientationPanel, 1, wxEXPAND | wxCENTER | wxALL, 2);
 
-    // orientationPanelBox->Add(orientationPanel, 1, wxEXPAND | wxCENTER | wxALL, 2);
+    EventRatePanel *eventRatePanel = new EventRatePanel(this, eventHub);
+    topBox->Add(eventRatePanel, 1, wxEXPAND | wxCENTER | wxALL, 2);
+    
+    math::NumericEventPtr event = math::NumericEventPtr(new math::NumericEvent);
 
     SetSizer(overallBox);
 }
@@ -150,3 +155,91 @@ void OrientationTelemetryPanel::onOrientationUpdate(core::EventPtr event)
 }
 
 
+EventRatePanel::EventRatePanel(wxWindow *parent, core::EventHubPtr eventHub) : 
+    wxGrid(parent, wxID_ANY),
+    m_eventHub(eventHub)
+{
+    CreateGrid(0,2);
+    SetColLabelSize(0);
+    SetRowLabelSize(0);
+
+    m_connection =
+        eventHub->subscribeToAll(
+            boost::bind(&EventRatePanel::handler, this, _1));
+
+    m_lastUpdate = static_cast<time_t>(0.0);
+    m_updatePeriod = static_cast<time_t>(1.0/30);
+}
+
+EventRatePanel::~EventRatePanel()
+{
+    if(m_connection->connected())
+        m_connection->disconnect();
+}
+
+
+void EventRatePanel::handler(core::EventPtr event)
+{
+    core::Event::EventType type = event->type;
+
+    if(m_eventRateTable.find(type) != m_eventRateTable.end())
+    {
+        EventData& data = m_eventRateTable[type];
+        
+        if(data.active)
+            data.filter.addValue(event->timeStamp - data.timeStamp);
+
+        data.timeStamp = event->timeStamp;
+        data.active = true;
+        data.timesInactive = 0;
+    }
+    else
+    {
+        assert(AppendRows() && "Row couldn't be added");
+        int row = GetNumberRows() - 1;
+
+        EventData data;
+        data.name = wxString(type.c_str(), wxConvUTF8);
+        data.row = row;
+        data.timeStamp = event->timeStamp;
+        data.active = true;
+        data.timesInactive = 0;
+
+        m_eventRateTable[type] = data;
+        SetCellValue(row, 0, data.name);
+        SetReadOnly(row, 0, true);
+        SetReadOnly(row, 1, true);
+    }
+
+
+    AutoSizeColumn(0);
+    AutoSizeColumn(1);
+
+    redraw();
+}
+
+void EventRatePanel::redraw()
+{
+    time_t currTime = std::time(NULL);
+    time_t elapsed = std::difftime(currTime, m_lastUpdate);
+    elapsed = elapsed;
+    if(elapsed > m_updatePeriod)
+    {
+        std::map<core::Event::EventType, EventData>::iterator iter;
+        for(iter = m_eventRateTable.begin(); iter != m_eventRateTable.end(); iter++)
+        {
+            EventData& data = (*iter).second;
+        
+            double rate = 0;
+            double average = data.filter.getValue();
+            if(average != 0)
+                rate = 1.0 / average;
+
+            SetCellValue(data.row, 1, wxString::Format(wxT("%f"), rate));
+        }
+
+        AutoSizeColumn(0);
+        AutoSizeColumn(1);
+        m_lastUpdate = currTime;
+    }
+}
