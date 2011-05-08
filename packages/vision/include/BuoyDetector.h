@@ -35,31 +35,26 @@ class RAM_EXPORT BuoyDetector : public Detector
 {
   public:
     BuoyDetector(core::ConfigNode config,
-                     core::EventHubPtr eventHub = core::EventHubPtr());
+                 core::EventHubPtr eventHub = core::EventHubPtr());
     BuoyDetector(Camera* camera);
     ~BuoyDetector();
 
     void update();
     void processImage(Image* input, Image* output = 0);
 
-    void show(char* window);
     IplImage* getAnalyzedImage();
 
   private:
     void init(core::ConfigNode config);
 
-    bool inrange(int min, int max, int value);
-
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output, ColorFilter& filter,
                       BlobDetector::Blob& outBlob);
-
-    /** Counts the number of white pixels in the sub area of the image */
-    int countWhitePixels(Image* source,
-                         int upperLeftX, int upperLeftY,
-                         int lowerRightX, int lowerRightY);
-
     
+    void drawBuoyDebug(Image* debugImage, BlobDetector::Blob &blob,
+                       unsigned char red, unsigned char green,
+                       unsigned char blue);
+
     // Process current state, and publishes LIGHT_FOUND event
     void publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color);
     void publishLostEvent(Color::ColorType color);
@@ -93,17 +88,16 @@ class RAM_EXPORT BuoyDetector : public Detector
     double m_maxTotalBlackCheckSize;
 
     /** Percentage of the image to remove from the top */
-    double m_topRemovePercentage;
+    double m_topIgnorePercentage;
 
     /** Percentage of the image to remove from the bottom */
-    double m_bottomRemovePercentage;
+    double m_bottomIgnorePercentage;
 
     /** Percentage of the image to remove from the left */
-    double m_leftRemovePercentage;
+    double m_leftIgnorePercentage;
 
     /** Percentage of the image to remove from the right */
-    double m_rightRemovePercentage;
-
+    double m_rightIgnorePercentage;
 
     /** Working Images */
     Image *frame;
@@ -124,8 +118,6 @@ class RAM_EXPORT BuoyDetector : public Detector
     double m_maxDistance;
 
     int m_debug;
-
-
 };
 	
 } // namespace vision

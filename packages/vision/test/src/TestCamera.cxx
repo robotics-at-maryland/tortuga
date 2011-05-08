@@ -100,23 +100,18 @@ struct CameraFixture
     Image* capturedImage;
 };
 
-TEST_FIXTURE(CameraFixture, event_RAW_IMAGE_CAPTURED_and_IMAGE_CAPTURED)
+TEST_FIXTURE(CameraFixture, event_IMAGE_CAPTURED)
 {
-    Image* expectedRaw = new OpenCVImage((getImagesDir() / "A.jpg").string());
     Image* expectedCap = new OpenCVImage((getImagesDir() / "B.jpg").string());
     
-    MockCamera camera(expectedRaw, expectedCap);
-    camera.subscribe(ram::vision::Camera::RAW_IMAGE_CAPTURED,
-                     boost::bind(&CameraFixture::rawCaptureHandler, this, _1));
+    MockCamera camera(expectedCap);
     camera.subscribe(ram::vision::Camera::IMAGE_CAPTURED,
                      boost::bind(&CameraFixture::captureHandler, this, _1));
 
     // Fire off events, then change handlers
     camera.update(0);
-    CHECK_CLOSE(*expectedRaw, *rawImage, 0);
     CHECK_CLOSE(*expectedCap, *capturedImage, 0);
 
-    delete expectedRaw;
     delete expectedCap;
 }
 

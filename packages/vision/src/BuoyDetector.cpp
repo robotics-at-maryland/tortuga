@@ -29,8 +29,9 @@
 #include "vision/include/Events.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/SegmentationFilter.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/RegionOfInterest.h"
+#include "vision/include/Utility.h"
 
 namespace ram {
 namespace vision {
@@ -123,21 +124,21 @@ void BuoyDetector::init(core::ConfigNode config)
                          0.1, &m_maxTotalBlackCheckSize, 0.0, 1.0);
 
 
-    propSet->addProperty(config, false, "topRemovePercentage",
+    propSet->addProperty(config, false, "topIgnorePercentage",
         "% of the screen from the top to be blacked out",
-        0.0, &m_topRemovePercentage);
+        0.0, &m_topIgnorePercentage);
 
-    propSet->addProperty(config, false, "bottomRemovePercentage",
+    propSet->addProperty(config, false, "bottomIgnorePercentage",
         "% of the screen from the bottom to be blacked out",
-        0.0, &m_bottomRemovePercentage);
+        0.0, &m_bottomIgnorePercentage);
 
-    propSet->addProperty(config, false, "leftRemovePercentage",
+    propSet->addProperty(config, false, "leftIgnorePercentage",
         "% of the screen from the left to be blacked out",
-        0.0, &m_leftRemovePercentage);
+        0.0, &m_leftIgnorePercentage);
 
-    propSet->addProperty(config, false, "rightRemovePercentage",
+    propSet->addProperty(config, false, "rightIgnorePercentage",
         "% of the screen from the right to be blacked out",
-        0.0, &m_rightRemovePercentage);
+        0.0, &m_rightIgnorePercentage);
     
 
 
@@ -203,6 +204,10 @@ bool BuoyDetector::processColor(Image* input, Image* output,
                                 ColorFilter& filter,
                                 BlobDetector::Blob& outBlob)
 {
+    const int imgWidth = input->getWidth();
+    const int imgHeight = input->getHeight();
+    const int imgPixels = imgWidth * imgHeight;
+
     output->copyFrom(input);
     output->setPixelFormat(Image::PF_RGB_8);
     output->setPixelFormat(Image::PF_LCHUV_8);
@@ -235,13 +240,13 @@ bool BuoyDetector::processColor(Image* input, Image* output,
                 double totalSize = blob.getHeight() * blob.getWidth();
         
                 // Only check this when the buoy should be far away
-                if ((totalSize / (640.0*480.0)) < m_maxTotalBlackCheckSize )
+                if ((totalSize / imgPixels) < m_maxTotalBlackCheckSize )
                 {
-                    double blackCount = countWhitePixels(blackFrame,         
-                                                         blob.getMinX(), 
-                                                         blob.getMinY() + height,
-                                                         blob.getMaxX(), 
-                                                         blob.getMaxY() + height);
+                    double blackCount = Utility::countWhitePixels(blackFrame,
+                                                                  blob.getMinX(), 
+                                                                  blob.getMinY() + height,
+                                                                  blob.getMaxX(), 
+                                                                  blob.getMaxY() + height);
             
                     double blackPercentage = blackCount / totalSize;
                     if (blackPercentage < m_minBlackPercentage)
@@ -262,46 +267,25 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     return foundBlob;
 }
 
-int BuoyDetector::countWhitePixels(Image* source,
-                                   int upperLeftX, int upperLeftY,
-                                   int lowerRightX, int lowerRightY)
-{
-    unsigned char* sourceBuffer = source->getData();
-    unsigned char* srcPtr = sourceBuffer;
-
-    int width = lowerRightX - upperLeftX; //+ 1;
-    int height = lowerRightY - upperLeftY; //+ 1;
-
-    int yStart = upperLeftY;
-    int yEnd = yStart + height;
-
-    int whiteCount = 0;
-
-    for (int y = yStart; y < yEnd; ++y)
-    {
-        // Get us to right row and column to start
-        int offset = (y * source->asIplImage()->widthStep) + (upperLeftX * 3);
-        srcPtr = sourceBuffer + offset;
-        
-        for (int x = 0; x < (width * 3); ++x)
-        {
-            // If white increment (note this is for subpixels)
-            if (*srcPtr)
-                whiteCount++;
-
-            ++srcPtr;
-        }
-    }
-
-    return whiteCount / 3;
-}
-
-
 void BuoyDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
+    int topRowsToIgnore = (int)(m_topIgnorePercentage * frame->getHeight());
+    int bottomRowsToIgnore = (int)(m_bottomIgnorePercentage * frame->getHeight());
+    int leftColsToIgnore = (int)(m_leftIgnorePercentage * frame->getWidth());
+    int rightColsToIgnore = (int)(m_rightIgnorePercentage * frame->getWidth());
 
+    int initialMinX = leftColsToIgnore;
+    int initialMaxX = frame->getWidth() - rightColsToIgnore;
+    int initialMinY = topRowsToIgnore;
+    int initialMaxY = frame->getHeight() - bottomRowsToIgnore;
+
+    RegionOfInterest initialROI = RegionOfInterest(initialMinX, initialMaxX,
+                                                   initialMinY, initialMaxY);
+
+    int framePixels = initialROI.area();
+    int almostHitPixels = framePixels * m_almostHitPercentage;
     // Filter for black if needed
     if (m_checkBlack)
     {
@@ -312,66 +296,16 @@ void BuoyDetector::processImage(Image* input, Image* output)
         m_blackFilter->filterImage(blackFrame);
     }
 
-    int totRowsRemoved = 0;
-    int totColRemoved = 0;
-
-    // Remove top chunk if desired
-    if (m_topRemovePercentage != 0)
+    BlobDetector::Blob redBlob;
+    bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
+    if (redFound)
     {
-        int linesToRemove = (int)(m_topRemovePercentage * frame->getHeight());
-        totRowsRemoved += linesToRemove;
-        size_t bytesToBlack = linesToRemove * frame->getWidth() * 3;
-        memset(frame->getData(), 0, bytesToBlack);
-    }
-    
-
-    if (m_bottomRemovePercentage != 0)
-    {
-//        printf("Removing \n");
-        int linesToRemove = (int)(m_bottomRemovePercentage * frame->getHeight());
-        totRowsRemoved += linesToRemove;
-        size_t bytesToBlack = linesToRemove * frame->getWidth() * 3;
-        memset(&(frame->getData()[frame->getWidth() * frame->getHeight()
-                                  * 3 - bytesToBlack]), 0, bytesToBlack);
-    }
-
-    if (m_rightRemovePercentage != 0)
-    {
-        size_t lineSize = frame->getWidth() * 3;
-        size_t bytesToBlack = (int)(m_rightRemovePercentage * lineSize);
-        totColRemoved += bytesToBlack / 3;
-        for (unsigned int i = 0; i < frame->getHeight(); ++i)
-        {
-            size_t offset = i * lineSize - bytesToBlack;
-            memset(frame->getData() + offset, 0, bytesToBlack);
-        }
-    }
-
-    if (m_leftRemovePercentage != 0)
-    {
-        size_t lineSize = frame->getWidth() * 3;
-        size_t bytesToBlack = (int)(m_leftRemovePercentage * lineSize);
-        totColRemoved += bytesToBlack / 3;
-        for (unsigned int i = 0; i < frame->getHeight(); ++i)
-        {
-            size_t offset = i * lineSize;
-            memset(frame->getData() + offset, 0, bytesToBlack);
-        }
-    }
-
-    BlobDetector::Blob redBlob, greenBlob, yellowBlob;
-    bool redFound = false, greenFound = false,
-        yellowFound = false;
-
-    int imPixels = (frame->getHeight() - totRowsRemoved) *
-        (frame->getWidth() - totColRemoved);
-
-    if ((redFound = processColor(frame, redFrame, *m_redFilter, redBlob))) {
         publishFoundEvent(redBlob, Color::RED);
         int blobPixels = redBlob.getSize();
-        if(blobPixels > imPixels * m_almostHitPercentage)
-            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
 
+        if(blobPixels > almostHitPixels)
+            publish(EventType::BUOY_ALMOST_HIT,
+                    core::EventPtr(new core::Event()));
     } else {
         // Publish lost event if this was found previously
         if (m_redFound) {
@@ -380,13 +314,16 @@ void BuoyDetector::processImage(Image* input, Image* output)
     }
     m_redFound = redFound;
 
-    if ((greenFound = processColor(frame, greenFrame,
-                                   *m_greenFilter, greenBlob))) {
+    BlobDetector::Blob greenBlob;
+    bool greenFound = processColor(frame, greenFrame, *m_greenFilter, greenBlob);
+    if (greenFound)
+    {
         publishFoundEvent(greenBlob, Color::GREEN);
         int blobPixels = greenBlob.getSize();
-        if(blobPixels > imPixels * m_almostHitPercentage)
-            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
 
+        if(blobPixels > almostHitPixels)
+            publish(EventType::BUOY_ALMOST_HIT,
+                    core::EventPtr(new core::Event()));
     } else {
         // Publish lost event if this was found previously
         if (m_greenFound) {
@@ -395,13 +332,16 @@ void BuoyDetector::processImage(Image* input, Image* output)
     }
     m_greenFound = greenFound;
 
-    if ((yellowFound = processColor(frame, yellowFrame,
-                                    *m_yellowFilter, yellowBlob))) {
-        publishFoundEvent(yellowBlob,  Color::YELLOW);
+    BlobDetector::Blob yellowBlob;
+    bool yellowFound = processColor(frame, yellowFrame, *m_yellowFilter, yellowBlob);
+    if (yellowFound)
+    {
+        publishFoundEvent(yellowBlob, Color::YELLOW);
         int blobPixels = yellowBlob.getSize();
-        if(blobPixels > imPixels * m_almostHitPercentage)
-            publish(EventType::BUOY_ALMOST_HIT, core::EventPtr(new core::Event()));
 
+        if(blobPixels > almostHitPixels)
+            publish(EventType::BUOY_ALMOST_HIT,
+                    core::EventPtr(new core::Event()));
     } else {
         // Publish lost event if this was found previously
         if (m_yellowFound) {
@@ -412,113 +352,25 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
     if(output)
     {
-        if (m_debug == 0) {
+        output->copyFrom(frame);
+        if (m_debug >= 1) {
             output->copyFrom(frame);
-        } else {
-            output->copyFrom(frame);
 
-            // Color in the targets (as we find them)
-            unsigned char* data = output->getData();
-            unsigned char* redPtr = redFrame->getData();
-            unsigned char* greenPtr = greenFrame->getData();
-            unsigned char* yellowPtr = yellowFrame->getData();
-            unsigned char* blackPtr = blackFrame->getData();
+            Image::blitImage(redFrame, output, output, 255, 0, 0);
+            Image::blitImage(greenFrame, output, output, 0, 255, 0);
+            Image::blitImage(yellowFrame, output, output, 255, 255, 0);
+            Image::blitImage(blackFrame, output, output, 147, 20, 255);
+        }
 
-            unsigned char* end = output->getData() +
-                (output->getWidth() * output->getHeight() * 3);
-            
-            for (; data != end; data += 3) {
-                if (*redPtr) {
-                    data[0] = 0;
-                    data[1] = 0;
-                    data[2] = 255;
-                } else if (*greenPtr) {
-                    data[0] = 0;
-                    data[1] = 255;
-                    data[2] = 0;
-                } else if (*yellowPtr) {
-                    data[0] = 0;
-                    data[1] = 255;
-                    data[2] = 255;
-                } else if (*blackPtr) {
-                    data[0] = 255;
-                    data[1] = 20;
-                    data[2] = 147;
-                }
-
-                // Advance all of the pointers
-                redPtr += 3;
-                greenPtr += 3;
-                yellowPtr += 3;
-                blackPtr += 3;
-            }
-            if (m_debug == 2) {
-                if (redFound) {
-                    CvPoint center;
-                    center.x = redBlob.getCenterX();
-                    center.y = redBlob.getCenterY();
-
-                    redBlob.drawStats(output);
-                    redBlob.draw(output);
-                    // Red
-                    cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 0, 255), -1);
-                }
-
-                if (greenFound) {
-                    CvPoint center;
-                    center.x = greenBlob.getCenterX();
-                    center.y = greenBlob.getCenterY();
-
-                    greenBlob.drawStats(output);
-                    greenBlob.draw(output);
-                    // Green
-                    cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 255, 0), -1);
-                }
-
-                if (yellowFound) {
-                    CvPoint center;
-                    center.x = yellowBlob.getCenterX();
-                    center.y = yellowBlob.getCenterY();
-
-                    yellowBlob.drawStats(output);
-                    yellowBlob.draw(output);
-                    // Yellow (Red + Green)
-                    cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 255, 255), -1);
-                }
-            }
+        if (m_debug == 2) {
+            if (redFound)
+                drawBuoyDebug(output, redBlob, 255, 0, 0);
+            if (greenFound)
+                drawBuoyDebug(output, greenBlob, 0, 255, 0);
+            if (yellowFound)
+                drawBuoyDebug(output, yellowBlob, 255, 255, 0);
         }
     }
-}
-
-
-bool BuoyDetector::inrange(int min, int max, int value)
-{
-    if (min <= max) {
-        return min <= value && value <= max;
-    } else {
-        return min <= value || value <= max;
-    }
-}
-
-void BuoyDetector::show(char* window)
-{
-    Image *debug = new OpenCVImage(640, 480);
-
-    // Reprocess the last frame with debug on
-    // (We may be recalculating everything, but speed isn't an issue)
-    processImage(frame, debug);
-
-    cvNamedWindow(window);
-    cvShowImage(window, debug->asIplImage());
-
-    cvWaitKey(0);
-
-    cvDestroyWindow(window);
-
-    delete debug;
 }
 
 void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color)
@@ -553,6 +405,21 @@ void BuoyDetector::publishLostEvent(Color::ColorType color)
     event->color = color;
     
     publish(EventType::BUOY_LOST, event);
+}
+
+void BuoyDetector::drawBuoyDebug(Image* debugImage, BlobDetector::Blob &blob,
+                   unsigned char red, unsigned char green,
+                   unsigned char blue)
+{
+    CvPoint center;
+    center.x = blob.getCenterX();
+    center.y = blob.getCenterY();
+    
+    blob.drawStats(debugImage);
+    blob.draw(debugImage);
+
+    cvCircle(debugImage->asIplImage(), center, 3,
+             cvScalar(blue, green, red), -1);
 }
 
 } // namespace vision

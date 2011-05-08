@@ -16,6 +16,7 @@
 
 // Project Includes
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/Image.h"
 
 #include "math/include/Matrix3.h"
 
@@ -23,6 +24,34 @@ static const char* DEBUG_WINDOW = "Debug Image (close w/ESC Key)";
 
 namespace ram {
 namespace vision {
+
+const size_t Image::formatDepthLookup[11] = {
+    8, // PF_START
+    8, // PF_RGB_8
+    8, // PF_BGR_8
+    8, // PF_YUV444_8
+    8, // PF_GRAY_8
+    8, // PF_HSV_8
+    8, // PF_LUV_8
+    8, // PF_LCHUV_8
+    8, // PF_LAB_8
+    8, // PF_LCHAB_8
+    8  // PF_END
+};
+
+const size_t Image::formatChannelsLookup[11] = {
+    3, // PF_START
+    3, // PF_RGB_8
+    3, // PF_BGR_8
+    3, // PF_YUV444_8
+    1, // PF_GRAY_8
+    3, // PF_HSV_8
+    3, // PF_LUV_8
+    3, // PF_LCHUV_8
+    3, // PF_LAB_8
+    3, // PF_LCHAB_8
+    3  // PF_END
+};
 
 Image* Image::loadFromFile(std::string fileName)
 {
@@ -103,6 +132,24 @@ Image* Image::extractSubImage(Image* source, unsigned char* buffer,
 
     return loadFromBuffer(buffer, width, height, false, fmt);
 }
+
+Image* Image::extractSubImage(Image* source,
+                              int centerX, int centerY,
+                              int width, int height,
+                              unsigned char* buffer)
+{
+    int upperLeftX = centerX - (width - 1) / 2;
+    int upperLeftY = centerY + (height - 1) / 2;
+    int lowerRightX = centerX + (width + 1) / 2;
+    int lowerRightY = centerY - (height + 1) / 2;
+
+    return extractSubImage(source, buffer,
+                           upperLeftX, upperLeftY,
+                           lowerRightX, lowerRightY);
+}
+
+
+
 
 int Image::countWhitePixels(Image* source,
 			    int upperLeftX, int upperLeftY,
@@ -324,6 +371,22 @@ bool Image::sameSize(Image* imageA, Image* imageB)
 {
   return ((imageA->getWidth() == imageB->getWidth()) && 
 	  (imageB->getHeight() == imageB->getHeight()));
+}
+
+size_t Image::getFormatDepth(PixelFormat fmt)
+{
+    assert(fmt <= PF_END && "Invalid Pixel Format");
+    assert(fmt >= PF_START && "Invalid Pixel Format");
+
+    return formatDepthLookup[fmt];
+}
+
+size_t Image::getFormatNumChannels(PixelFormat fmt)
+{
+    assert(fmt <= PF_END && "Invalid Pixel Format");
+    assert(fmt >= PF_START && "Invalid Pixel Format");
+
+    return formatChannelsLookup[fmt];
 }
 
 

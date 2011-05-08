@@ -120,14 +120,14 @@ class RAM_EXPORT Recorder : public core::Updatable
     /** Weather or not we have a new frame */
     bool m_newFrame;
     
-    /** Holds the next frame to record */
-    Image* m_nextFrame;
-
-    /** The current frame we are recording */
-    Image* m_currentFrame;
-
     /** The camera we are recording from */
     Camera* m_camera;
+
+    /** The frame we get from the camera */
+    Image* m_frameFromCamera;
+
+    /** The current frame we are recording */
+    Image* m_frameResized;
 
     /** Current time in seconds */
     double m_currentTime;

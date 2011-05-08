@@ -52,7 +52,7 @@ class RAM_EXPORT BlobDetector  : public Detector
         int getSize() const { return m_size; }
 
         // These do not return the center coordinates.  
-        // They returns the average coordinate over all blob pixels
+        // They returns the average coordinate over all blob pixels (centroid)
         int getCenterX() const { return m_centerX; }
         int getCenterY() const { return m_centerY; }
 

@@ -87,15 +87,10 @@ public:
     virtual operator IplImage*();
     
     virtual IplImage* asIplImage() const;
-    
-    
+
 private:
-    /** Gets the parameters needed for cvCreateImage from the lookup table */
-    void getFormatParameters(const Image::PixelFormat& fmt,
-                             int& depth, int& channels);
-    
     bool m_own;
-    unsigned char* m_data;
+    unsigned char *m_data;
     IplImage* m_img;
     Image::PixelFormat m_fmt;
 };

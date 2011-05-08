@@ -32,7 +32,7 @@ FileRecorder::FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
            "Invalid recording policy");
     
     // Determine video FPS (default to 30)
-    int fps = (int)(camera->fps());
+    int fps = static_cast<int>(camera->fps());
     if (0 == fps)
         fps = 30;
 
@@ -43,9 +43,8 @@ FileRecorder::FileRecorder(Camera* camera, Recorder::RecordingPolicy policy,
     // the file before attempting the next step, creating a video writer on a
     // file that may not exist before the close finishes
     fclose(video),
-	m_writer=cvCreateVideoWriter(filename.c_str(),
-                                     CV_FOURCC('D','I','V','X'),
-                                     fps, size, 1);
+	m_writer=cvCreateVideoWriter(
+        filename.c_str(), CV_FOURCC('D','I','V','X'), fps, size, 1);
 
     // Run update as fast as possible
     background(-1);
