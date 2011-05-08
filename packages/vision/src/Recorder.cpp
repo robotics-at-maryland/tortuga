@@ -49,7 +49,7 @@ Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
     m_height(recordHeight),
     m_newFrame(false),
     m_camera(camera),
-    m_frameFromCamera(new OpenCVImage(camera->width(), camera->height()),
+    m_frameFromCamera(new OpenCVImage(camera->width(), camera->height())),
     m_frameResized(new OpenCVImage(recordWidth, recordHeight)),
     m_currentTime(0),
     m_nextRecordTime(0)
