@@ -2,7 +2,7 @@
 %log files
 %currently requires python program to perform some of the analysis
 
-clear
+clear all
 clc
 close all
 
