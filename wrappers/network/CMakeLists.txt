@@ -9,4 +9,4 @@ if (RAM_WITH_NETWORK)
   python_files( network )
 
   # test_wrapper( network "ram_network" )
-endif (RAM_WITH_NETWORk)
+endif (RAM_WITH_NETWORK)
