@@ -56,8 +56,8 @@ class IdealStateEstimator(estimation.IStateEstimator):
         self.depth = -3.281 * self.robot._main_part._node.position.z
         self.depthRate = 0
 
-        self.depthFilter = math.SGolaySmoothingFilter(51, 2)
-        for n in range(1,51):
+        self.depthFilter = math.SGolaySmoothingFilter(101, 3)
+        for n in range(1,101):
             self.depthFilter.addValue(self.depth)
 
         self.posXFilter = math.SGolaySmoothingFilter(51,2)
@@ -173,6 +173,9 @@ class IdealStateEstimator(estimation.IStateEstimator):
         # Package all events
         devent = math.NumericEvent()
         devent.number = self.getEstimatedDepth()
+        
+        drevent = math.NumericEvent()
+        drevent.number = self.getEstimatedDepthRate()
 
         pevent = math.Vector2Event()
         pevent.vector2 = self.getEstimatedPosition()
@@ -185,6 +188,8 @@ class IdealStateEstimator(estimation.IStateEstimator):
 
         # Send all events at the same time
         self.publish(estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE, devent)
+        self.publish(estimation.IStateEstimator.ESTIMATED_DEPTHRATE_UPDATE,
+                     drevent)
         self.publish(estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
                      pevent)
         self.publish(estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE,
