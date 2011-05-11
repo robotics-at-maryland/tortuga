@@ -1396,7 +1396,6 @@ class EventPlayerPanel(wx.Panel):
 
         # Bind the slider events
         self._slider.Bind(wx.EVT_SCROLL, self._onScrollChanged)
-
         self.SetSizer(self._sizer)
 
     def _onNewImage(self, event):
@@ -1414,7 +1413,7 @@ class EventPlayerPanel(wx.Panel):
         self._updateTimeDisplay()
         self._sizer.RecalcSizes()
         self._sizer.Layout()
-
+        
     def _onPlay(self, event):
         self._eventPlayer.start()
 

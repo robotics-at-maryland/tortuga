@@ -41,7 +41,7 @@
 using namespace ram::math;
 using namespace ram;
 
-namespace bf = boost::filesystem;
+/*namespace bf = boost::filesystem;
 
 // static boost::filesystem::path getRefrencesDir()
 // {
@@ -61,7 +61,7 @@ public:
         unbackgroundCount(0)
     {
         //m_startTime = startTime;
-        startingTime = m_startTime;
+        startingTime = core::TimeVal::timeOfDay().get_double();
         timeOfDay = startingTime;
     }
     
@@ -471,3 +471,5 @@ TEST_FIXTURE(Fixture, TimeSeeking)
 // }
 
 } // SUITE(EventLogger)
+
+*/
