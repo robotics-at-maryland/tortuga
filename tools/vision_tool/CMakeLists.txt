@@ -14,6 +14,7 @@ if (RAM_WITH_VISION_TOOLS)
     ram_vision
     ${wxWidgets_LIBRARIES}
     ${OpenCV_LIBS}
+    ${OPENGL_LIBRARIES}
     )
   set_target_properties(VisionTool PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${BINDIR}"

@@ -2,7 +2,8 @@ file(GLOB HEADERS "include/*.h")
 file(GLOB SOURCES "src/*.cpp")
 
 set(LINK_LIBS
-  ${Boost_SYSTEM_LIBRARY}
+  pthread
+  ${Boost_THREAD_LIBRARY}
   ram_core
   ram_control
   ${ZeroCIceCore_LIBRARY}
