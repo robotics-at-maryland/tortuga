@@ -41,7 +41,7 @@ class RemoteController(core.Subsystem):
                             'DOWNWARD_MOVEMENT', 'LEFT_MOVEMENT',
                             'RIGHT_MOVEMENT', 'DESCEND', 'ASCEND',
                             'SETSPEED', 'TSETSPEED', 'ANGLEYAW',
-                            'ANGLEPITCH', 'ANGLEROLL',
+                            'ANGLEPITCH', 'ANGLEROLL', 'MAINTAIN_DEPTH',
                             'FIRE_MARKER_DROPPER', 'FIRE_TORPEDO_LAUNCHER']
                             
         for type_ in registrationInfo:
@@ -227,5 +227,8 @@ class RemoteController(core.Subsystem):
 
     def _fire_torpedo_launcher(self, event):
         self._vehicle.fireTorpedo()
+
+    def _maintain_depth(self, event):
+        pass
 
 core.SubsystemMaker.registerSubsystem('RemoteController', RemoteController)
