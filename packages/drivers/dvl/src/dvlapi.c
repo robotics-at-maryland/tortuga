@@ -13,6 +13,7 @@
 
 // STD Includes
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -93,7 +94,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     unsigned char dvlData[512];
 
     int len, i, tempsize, offset;
-    unsigned char checksum;
+    uint16_t checksum;
     CompleteDVLPacket *dbgpkt = NULL;
 
     if(dvl_waitSync(fd))
@@ -411,18 +412,19 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     offset= tempsize;
 
-    /* Now we need to grab the TDRI and the checksum!*/
-    tempsize+= 1;
+    /* Now grab the checksum! */
+    tempsize+= 2;
 
     while(len < tempsize)
-        len += read(fd, dvlData + len, tempsize - len);
+        len+= read(fd, dvlData + len, tempsize - len);
 
-    dbgpkt->checksum= dvlData[offset];
+    dbgpkt->checksum= dvl_convert16(dvlData[offset + 1],
+                                    dvlData[offset]);
 
     checksum= 0;
 
     /* Calculate the checksum */
-    for(i= 0;i < tempsize - 1;i++)
+    for(i= 0;i < tempsize - 2;i++)
         checksum+= dvlData[i];
 
     if(checksum != dbgpkt->checksum) {

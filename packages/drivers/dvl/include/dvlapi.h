@@ -15,6 +15,8 @@
 extern "C" {
 #endif // __cplusplus
 
+#include <stdint.h>
+
 /* We should abort trying to sync if it takes more than a
    couple packets worth of bytes, or more than 1 second. */
 #define SYNC_FAIL_BYTECOUNT 2000
@@ -212,7 +214,7 @@ typedef struct _CompleteDVLPacket
     DVLVariableLeaderData variableleader;
     DVLBottomTrackData btdata;
 
-    unsigned short checksum;
+    uint16_t checksum;
 } CompleteDVLPacket;
 
 /* This is the info that will actually get passed to and from
