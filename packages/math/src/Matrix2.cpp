@@ -1048,5 +1048,17 @@ Matrix2 Matrix2::bRn(Radian angle)
   }*/
 //-----------------------------------------------------------------------
 
+
+Matrix2 Matrix2::fromOuterProduct(Vector2 lhs, Vector2 rhs)
+{
+    Matrix2 m;
+    m[0][0] = lhs[0] * rhs[0];
+    m[0][1] = lhs[0] * rhs[1];
+    m[1][0] = lhs[1] * rhs[0];
+    m[1][1] = lhs[1] * rhs[1];
+
+    return m;
+}
+
 } // namespace math
 } // namespace ram

@@ -158,6 +158,7 @@ class RAM_EXPORT Matrix2
 
     static Matrix2 nRb(Radian angle);
     static Matrix2 bRn(Radian angle);
+    static Matrix2 fromOuterProduct(Vector2 lhs, Vector2 rhs);
 
 /*
 // singular value decomposition
