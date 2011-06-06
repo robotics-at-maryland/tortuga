@@ -98,7 +98,7 @@ void DepthKalmanModule::update(core::EventPtr event)
 
     // get the best estimates from the filter
     double estDepth = m_filteredDepth->getValue();
-    double estDepthRate = m_filteredDepth->getValue(1, dt);
+    double estDepthRate = m_filteredDepth->getValue();
 
     // Set the estimated depth
     m_estimatedState->setEstimatedDepth(estDepth);
