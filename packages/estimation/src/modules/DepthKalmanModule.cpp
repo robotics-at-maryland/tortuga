@@ -32,86 +32,86 @@ namespace estimation {
 DepthKalmanModule::DepthKalmanModule(core::ConfigNode config, 
                                      core::EventHubPtr eventHub,
                                      EstimatedStatePtr estState) :
-    EstimationModule(eventHub, "DepthKalmanModule",estState,
+    EstimationModule(eventHub, "DepthKalmanModule", estState,
                      vehicle::device::IDepthSensor::RAW_UPDATE),
-    m_mass(30),
-    m_x0(math::Vector2::ZERO),
-    m_P0(math::Matrix2(0.5,0.,0.,0.)),
-    m_uPrev(0)
+    m_xHat(math::Vector2::ZERO),
+    m_Pk(math::Matrix2(2, 0, 0, 1)),
+    m_filteredDepth(math::SGolaySmoothingFilterPtr(
+                        new math::SGolaySmoothingFilter(51, 2))),
+    m_filteredDepthDot(math::SGolaySmoothingFilterPtr(
+                           new math::SGolaySmoothingFilter(51, 2)))
 {
-    /* initialization from config values should be done here */
-
-    LOGGER.info("% Name EstDepth");
+    LOGGER.info("% Name depth correction zk xHat xHatDot");
 }
 
 void DepthKalmanModule::update(core::EventPtr event)
 {
-    /* Attempt to cast the event to a RawDepthSensorDataEventPtr */
+    // attempt to cast the event to a RawDepthSensorDataEventPtr
     vehicle::RawDepthSensorDataEventPtr ievent =
         boost::dynamic_pointer_cast<vehicle::RawDepthSensorDataEvent>(event);
 
-    /* Return if the cast failed and let people know about it. */
+    // return if the cast failed and let people know about it.
     if(!ievent){
-        std::cerr << "DepthKalmanModule: update: Invalid Event Type" 
-                  << std::endl;
+        LOGGER.warn("Invalid Event Type");
         return;
     }
 
-    /* This is where the estimation should be done
-       The result should be stored in estimatedState */
-
-    // Determine depth correction
-    math::Vector3 currentSensorLocation = math::Vector3::ZERO; 
-//      m_estimatedState->getEstimatedOrientation() * m_location;
-    math::Vector3 sensorMovement = math::Vector3::ZERO;
-//      currentSensorLocation - m_location;
+    // determine depth correction
+    math::Vector3 location = ievent->sensorLocation;
+    math::Vector3 currentSensorLocation = 
+        m_estimatedState->getEstimatedOrientation() * location;
+    math::Vector3 sensorMovement = currentSensorLocation - location;
     double correction = sensorMovement.z;
-    
-    // Grab the depth
-    double depth = ievent->rawDepth;
-    // Add since depth is positive
-    double x_meas = depth + correction;
 
+    // grab the depth and calculate the depth rate
+    double rawDepth = ievent->rawDepth;
+
+    // correction is added because positive depth is down
+    double zk = rawDepth + correction;
     double dt = ievent->timestep;
-    double dt_sq = dt * dt;
 
+    math::Matrix2 Ak(1, dt, 0, 1);       // state transition model
+    math::Vector2 Hk(1, 0);              // observation model
+    math::Matrix2 Qk(0.05, 0, 0, 0.02);  // process covariance
+    double Rk = 0.1;                     // measurement covariance
 
-    // State Transition Model
-    math::Matrix2 Ak(1, dt,
-                     0, 1 - (m_drag * dt_sq) / (2 * m_mass));
+    // prediction step
+    math::Vector2 xHat = Ak * m_xHat;
+    math::Matrix2 Pk = Ak * m_Pk * Ak.Transpose() + Qk;
 
-    // Control Input Model - F_thrusters * Bk = x change from control
-    math::Vector2 Bk(dt_sq /(2*m_mass), dt / m_mass);
+    // update step
+    double yk = zk - Hk.dotProduct(xHat);
+    double Sk = Hk.dotProduct(Pk * Hk) + Rk;
+    math::Vector2 K = Pk * Hk * (1 / Sk);
+    xHat = xHat + K * yk;
 
-    // Observation Model
-    math::Vector2 Hk(1, 0);
+    math::Matrix2 KHk = math::Matrix2::fromOuterProduct(K, Hk);
+    Pk = (math::Matrix2::IDENTITY - KHk) * Pk;
 
-    math::Matrix2 Q(math::Matrix2::ZERO);
-    math::Vector2 Rn(math::Vector2::ZERO);
+    // store values
+    m_Pk = Pk;
+    m_xHat = xHat;
 
-    // Update the predicted state
-    math::Vector2 x_pred = Ak * m_xPrev + Bk * m_uPrev + Bk * (-m_buoyancy);
-    math::Matrix2 P_pred = m_Ak_prev * m_PPrev * m_Ak_prev.Transpose() + Q;
+    // put the depth into the averaging filter
+    m_filteredDepth->addValue(xHat[0]);
+    m_filteredDepthDot->addValue(xHat[1]);
 
-    // Update the estimated state
-    // Hk is automatically treated as a row vector for Hk*P_pred
-    math::Vector2 K = P_pred*Hk*/*inverse*/(Hk*P_pred*Hk + Rn);
-    m_PPrev = (1 - K.dotProduct(Hk))*P_pred;
-    math::Vector2 x_curr = x_pred + K*(x_meas - Hk.dotProduct(x_pred));
-
-    // Update stored quantities
-    m_xPrev = x_curr;
-    m_Ak_prev = Ak;
+    // get the best estimates from the filter
+    double estDepth = m_filteredDepth->getValue();
+    double estDepthRate = m_filteredDepth->getValue(1, dt);
 
     // Set the estimated depth
-    m_estimatedState->setEstimatedDepth(x_curr[0]);
-    m_estimatedState->setEstimatedDepthRate(x_curr[1]);
+    m_estimatedState->setEstimatedDepth(estDepth);
+    m_estimatedState->setEstimatedDepthRate(estDepthRate);
 
     LOGGER.infoStream() << m_name << " "
-                        << depth  << " "
+                        << rawDepth  << " "
                         << correction << " "
-                        << x_curr[0] << " "
-                        << x_curr[1] << " ";
+                        << zk << " "
+                        << xHat[0] << " "
+                        << xHat[1] << " "
+                        << estDepth << " "
+                        << estDepthRate << " ";
 }
 
 } // namespace estimation

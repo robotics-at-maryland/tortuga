@@ -54,6 +54,7 @@ public:
     virtual void update(core::EventPtr event) = 0;
 
 protected:
+    std::string m_name;
     EstimatedStatePtr m_estimatedState;
     core::EventConnectionPtr m_connection;
 }; 

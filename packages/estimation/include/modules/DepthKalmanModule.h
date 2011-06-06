@@ -28,6 +28,8 @@
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
 
+#include "math/include/SGolaySmoothingFilter.h"
+
 namespace ram {
 namespace estimation {
 
@@ -40,43 +42,15 @@ public:
 
     virtual ~DepthKalmanModule(){};
 
-    // the Depth Estimation routine goes here.  
-    // it should store the new estimated state in estimatedState.
     virtual void update(core::EventPtr event);
 
 private:
-    // any necessary persistent variables should be declared here
-    std::string m_name;
+    // Kalman filter variables
+    math::Vector2 m_xHat;  // previous state estimate
+    math::Matrix2 m_Pk;    // process covariance
 
-    // Kalman Filter Variables
-
-    // vehicle mass
-    double m_mass;
-
-    // vehicle drag coefficient
-    double m_drag;
-
-    // vehicle buoyancy
-    double m_buoyancy;
-
-    // initial estimate [depth, depth_dot]'
-    math::Vector2 m_x0;
-
-    // initial estimate error covariance
-    math::Matrix2 m_P0;
-
-    // previous state estimate
-    math::Vector2 m_xPrev;
-
-    // previous control input
-    double m_uPrev;
-    
-    // previous state transition model
-    math::Matrix2 m_Ak_prev;
-
-    // previous estimate covariance
-    math::Matrix2 m_PPrev;
-
+    math::SGolaySmoothingFilterPtr m_filteredDepth;
+    math::SGolaySmoothingFilterPtr m_filteredDepthDot;
 };
 
 } // namespace estimation

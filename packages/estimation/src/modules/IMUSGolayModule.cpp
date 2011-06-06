@@ -31,6 +31,8 @@ static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstIMU"));
 namespace ram {
 namespace estimation {
 
+const int IMUSGolayModule::FILTER_SIZE = 10;
+
 IMUSGolayModule::IMUSGolayModule(core::ConfigNode config,
                                  core::EventHubPtr eventHub,
                                  EstimatedStatePtr estState) :

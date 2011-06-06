@@ -51,12 +51,12 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
                                      estimatedState));
 
     imuEstimationModule = EstimationModulePtr(
-        new BasicIMUEstimationModule(config["IMUEstimationModule"],
+        new IMUSGolayModule(config["IMUEstimationModule"],
                                      eventHub,
                                      estimatedState));
 
     depthEstimationModule = EstimationModulePtr(
-        new BasicDepthEstimationModule(config["DepthEstimationModule"],
+        new DepthKalmanModule(config["DepthEstimationModule"],
                                        eventHub,
                                        estimatedState));
     

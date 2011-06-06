@@ -37,7 +37,6 @@
 namespace ram {
 namespace estimation {
 
-const static int FILTER_SIZE = 10;
 
 typedef std::set<std::string> StringSet;
 
@@ -61,10 +60,8 @@ public:
     virtual void update(core::EventPtr event);
 
 private:
-    // any helper functions should be prototyped here
+    const static int FILTER_SIZE;
 
-
-    // any necessary persistent variables should be declared here
     StringSet imuList;
 
     // filterd and rotated IMU data

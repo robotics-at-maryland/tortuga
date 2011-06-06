@@ -20,3 +20,4 @@
 #include "estimation/include/modules/VisionEstimationModule.h"
 #include "estimation/include/modules/DepthAveragingModule.h"
 #include "estimation/include/modules/DepthSGolayModule.h"
+#include "estimation/include/modules/IMUSGolayModule.h"
