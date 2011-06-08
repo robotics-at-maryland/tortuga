@@ -26,22 +26,25 @@ class ShellPanel(wx.py.shell.Shell):
     A python interpreter with code completion and history support.
     """
     
-    def __init__(self, parent, introText, locals):
+    def __init__(self, parent, introText, locals,
+                 startup = None, redirect = True):
         wx.py.shell.Shell.__init__(self, parent, locals = locals,
-                                   introText = introText, 
+                                   introText = introText,
+                                   startupScript = startup,
                                    InterpClass = Intrepreter)
 
-        self.redirectStdout()
-        self.redirectStdout()
+        if redirect:
+            self.redirectStdout()
+            self.redirectStderr()
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
         
     def _onClose(self, closeEvent):
         # Make the rest of the output go the console
         self.redirectStdout(False)
-        self.redirectStdout(False)
+        self.redirectStderr(False)
         
-        # Remove intrepter references
+        # Remove interpreter references
         if hasattr(self, 'interp'):
             del self.interp
         

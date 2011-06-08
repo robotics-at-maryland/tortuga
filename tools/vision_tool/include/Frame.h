@@ -12,6 +12,7 @@
 
 // Library Includes
 #include <wx/frame.h>
+#include <wx/window.h>
 
 // Project Includes
 #include "Forward.h"
@@ -56,7 +57,7 @@ private:
     void onSetConfigPath(wxCommandEvent& event);
 
     MediaControlPanel* m_mediaControlPanel;
-    GLMovie* m_movie;
+    wxWindow* m_movie;
     Model* m_model;
     wxFrame* m_detectorFrame;
     wxTextCtrl* m_configText;

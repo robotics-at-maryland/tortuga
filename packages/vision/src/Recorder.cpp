@@ -30,7 +30,6 @@
 #include "vision/include/FileRecorder.h"
 #include "vision/include/RawFileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
-#include "vision/include/FFMPEGNetworkRecorder.h"
 
 #include "core/include/TimeVal.h"
 #include "core/include/EventConnection.h"
@@ -48,9 +47,9 @@ Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
     m_width(recordWidth),
     m_height(recordHeight),
     m_newFrame(false),
-    m_nextFrame(new OpenCVImage(recordWidth, recordHeight)),
-    m_currentFrame(new OpenCVImage(recordWidth, recordHeight)),
     m_camera(camera),
+    m_frameFromCamera(new OpenCVImage(camera->width(), camera->height())),
+    m_frameResized(new OpenCVImage(recordWidth, recordHeight)),
     m_currentTime(0),
     m_nextRecordTime(0)
 {
@@ -58,21 +57,19 @@ Recorder::Recorder(Camera* camera, Recorder::RecordingPolicy policy,
            "Invalid recording policy");
     
     // Subscribe to camera event
-    m_connection = camera->subscribe(Camera::IMAGE_CAPTURED,
-                                     boost::bind(&Recorder::newImageCapture,
-                                                 this,
-                                                 _1));
+    m_connection = camera->subscribe(
+        Camera::IMAGE_CAPTURED,
+        boost::bind(&Recorder::newImageCapture, this, _1));
 }
 
 Recorder::~Recorder()
 {
     // Stop the background thread and events
-    assert(!backgrounded() && "Recorder::cleanUp() not called by subclass");
-    assert(!m_connection->connected() &&
+    assert(!backgrounded() && !m_connection->connected() &&
            "Recorder::cleanUp() not called by subclass");
     
-    delete m_nextFrame;
-    delete m_currentFrame;
+    delete m_frameResized;
+    delete m_frameFromCamera;
 }
 
 void Recorder::update(double timeSinceLastUpdate)
@@ -81,12 +78,7 @@ void Recorder::update(double timeSinceLastUpdate)
     
     switch(m_policy)
     {
-        case RP_START:
-            assert(false && "Invalid recording policy");
-            break;
-
         case MAX_RATE:
-        {
             // Don't record if not enough time has passed
             if (m_currentTime < m_nextRecordTime)
             {
@@ -95,31 +87,35 @@ void Recorder::update(double timeSinceLastUpdate)
             else
             {
                 // Calculate the next time to record
-                m_nextRecordTime += (1 / (double)m_policyArg);
+                m_nextRecordTime += (1 / static_cast<double>(m_policyArg));
             }
-        }
         
         // FALL THROUGH - based on current time
             
         case NEXT_FRAME:
-        {
-            bool frameToRecord = false;
-            
+            // Check to see if we have a new frame waiting
+            if (m_newFrame)
             {
-                boost::mutex::scoped_lock lock(m_mutex);
-                // Check to see if we have a new frame waiting
-                if (m_newFrame)
+                // Get a working copy of new frame from the camera
+                m_camera->getImage(m_frameFromCamera);
+
+                if(m_frameFromCamera->getWidth() != m_width ||
+                   m_frameFromCamera->getHeight() != m_height)
                 {
-                    // If we have a new frame waiting, swap it for the current
-                    frameToRecord = true;
-                    std::swap(m_nextFrame, m_currentFrame);
+                    cvResize(m_frameFromCamera->asIplImage(),
+                             m_frameResized->asIplImage());
+                    
+                    recordFrame(m_frameResized);
+                }
+                else
+                {
+                    recordFrame(m_frameFromCamera);
+                }
+
+                {
+                    boost::mutex::scoped_lock lock(m_mutex);
                     m_newFrame = false;
                 }
-            }
-
-            if (frameToRecord)
-            {
-                recordFrame(m_currentFrame);
             }
             else
             {
@@ -130,10 +126,9 @@ void Recorder::update(double timeSinceLastUpdate)
                 else if (backgrounded())
                     core::TimeVal::sleep(1.0/30.0);
             }
-        }
-        break;
+            break;
 
-        case RP_END:
+        default:
             assert(false && "Invalid recording policy");
             break;
     }
@@ -211,14 +206,12 @@ Recorder* Recorder::createRecorderFromString(const std::string& str,
     {
         ss << "Recording to host : '" << boost::lexical_cast<int>(typeStr)
            << "'";
+
         boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(typeStr);
-//#ifdef RAM_POSIX
-//        signal(SIGPIPE, brokenPipeHandler);
-//#endif
+
         recorder =
-//            new vision::NetworkRecorder(camera, vision::Recorder::NEXT_FRAME, portNum);
-            new vision::FFMPEGNetworkRecorder(camera, policy, portNum,
-                                              policyArg, width, height);
+            new vision::NetworkRecorder(camera, policy, portNum,
+                                        policyArg, width, height);
     }
 
     if (!recorder)
@@ -259,17 +252,10 @@ void Recorder::waitForImage(Camera* camera)
     
 void Recorder::newImageCapture(core::EventPtr event)
 {
+    // Do as little as possible here.  Let the recorder know a
+    // new frame is available.
     boost::mutex::scoped_lock lock(m_mutex);
-
-    // Copy new image to our local buffer
     m_newFrame = true;
-
-    // Resize to new size if needed
-    Image* newImage = boost::dynamic_pointer_cast<ImageEvent>(event)->image;
-    if (Image::sameSize(m_nextFrame, newImage))
-        m_nextFrame->copyFrom(newImage);
-    else
-        cvResize(newImage->asIplImage(), m_nextFrame->asIplImage());
 }
 
 } // namespace vision

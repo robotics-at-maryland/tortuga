@@ -23,6 +23,8 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
 
+#include "math/include/SGolaySmoothingFilter.h"
+
 #include "drivers/sensor-r5/include/sensorapi.h"
 
 namespace ram {

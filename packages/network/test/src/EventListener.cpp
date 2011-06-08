@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
     }
 
     network::NetworkHubPtr eventHub(
-        new network::NetworkHub(core::EventHubPtr(), "NetworkHub", argv[1],
+        new network::NetworkHub("NetworkHub", argv[1],
                                 boost::lexical_cast<uint16_t>(argv[2])));
     eventHub->subscribeToAll(boost::bind(&handleEvent, _1));
 

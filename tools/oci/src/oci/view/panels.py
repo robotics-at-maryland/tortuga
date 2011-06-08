@@ -29,6 +29,7 @@ import ext.vehicle.device
 import ext.control
 import ext.vision
 import ext.core as core
+import ext.logging as logging
 
 from ram.logloader import resolve
 import ram.ai.state
@@ -328,7 +329,7 @@ class MovementPanel(wx.Panel):
 class AIPanel(wx.Panel):
     implements(IPanelProvider)
     fmt = "MM:SS.mm"
-    def __init__(self, parent, eventHub, stateMachine, *args, **kwargs):
+    def __init__(self, parent, eventHub, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -501,18 +502,12 @@ class AIPanel(wx.Panel):
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
-        
-        machine = core.Subsystem.getSubsystemOfType(ram.ai.state.Machine,
-                                                    subsystems)
 
-        if machine is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("AI")
-            paneInfo = paneInfo.Caption("AI").Right()
+        paneInfo = wx.aui.AuiPaneInfo().Name("AI")
+        paneInfo = paneInfo.Caption("AI").Right()
         
-            panel = AIPanel(parent, eventHub, machine)
-            return [(paneInfo, panel, [machine])]
-        
-        return []
+        panel = AIPanel(parent, eventHub)
+        return [(paneInfo, panel, [])]
 
 class EventRatePanel(wx.grid.Grid):
     implements(IPanelProvider)
@@ -1311,14 +1306,12 @@ class EventPlayerPanel(wx.Panel):
     FORMAT_SECONDS = 3
     FPS = 30
 
-    def __init__(self, parent, eventPlayer, *args, **kwargs):
+    def __init__(self, parent, eventPlayer, eventHub, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
-
         # TODO: Figure out how to properly do this
         self._eventPlayer = eventPlayer
         self._format = EventPlayerPanel.FORMAT_SECONDS
         self._sliderDown = False
-
         self._play = wx.Button(self, label = "Play")
         self._stop = wx.Button(self, label = "Stop")
         self._slider = wx.Slider(self, 0, 0, 100)
@@ -1338,16 +1331,25 @@ class EventPlayerPanel(wx.Panel):
                         flag = wx.ALIGN_CENTER | wx.ALL, border = 3)
         self._sizer.SetSizeHints(self)
 
+        self._connections = []
+
         # Subscribe to eventPlayer events
-        # ???
+        conn = eventHub.subscribeToType(
+            ext.logging.EventPlayer.PLAYER_UPDATE,
+            self._onNewImage)
+        self._connections.append(conn)
+
+        conn = eventHub.subscribeToType(
+            ext.logging.EventPlayer.PLAYER_SETUP,
+            self._onImageSourceChanged)
+        self._connections.append(conn)
 
         # Bind the play/stop buttons
         self._play.Bind(wx.EVT_BUTTON, self._onPlay)
         self._stop.Bind(wx.EVT_BUTTON, self._onStop)
 
         # Bind the slider events
-        #self._slider.Bind(wx.EVT_SCROLL, self._onScroll)
-
+        self._slider.Bind(wx.EVT_SCROLL, self._onScrollChanged)
         self.SetSizer(self._sizer)
 
     def _onNewImage(self, event):
@@ -1359,13 +1361,13 @@ class EventPlayerPanel(wx.Panel):
     def _onImageSourceChanged(self, event):
         if not self._sliderDown:
             self._slider.Enable()
-            self._slider.SetRange(0, (EventPlayerPanel.FPS*duration))
+            self._slider.SetRange(0, (EventPlayerPanel.FPS*self._eventPlayer.duration()))
 
         self._determineTimeFormat()
         self._updateTimeDisplay()
         self._sizer.RecalcSizes()
         self._sizer.Layout()
-
+        
     def _onPlay(self, event):
         self._eventPlayer.start()
 
@@ -1388,21 +1390,20 @@ class EventPlayerPanel(wx.Panel):
         self._updateTimeDisplay()
 
     def _updateTimeDisplay(self):
-        time = breakUpTime(self._eventPlayer.currentTime())
-        totalTime = breakUpTime(self._eventPlayer.duration())
+        time = self._breakUpTime(self._eventPlayer.currentTime())
+        totalTime = self._breakUpTime(self._eventPlayer.duration())
 
-        if self._format == MediaControlPanel.FORMAT_HOURS:
+        if self._format == EventPlayerPanel.FORMAT_HOURS:
             label = '%02d:%02d:%4.2f / %02d:%02d:%4.2f' % \
-                (time[0], time[1], time[2], totalTime[0], totalTime[1],
+                (time[0], time[1], time[2], totalTime[0], totalTime[1], \
                  totalTime[2])
-        elif self._format == MediaControlPanel.FORMAT_MINUTES:
+        elif self._format == EventPlayerPanel.FORMAT_MINUTES:
             label = '%02d:%4.2f / %02d:%4.2f' % \
                 (time[1], time[2], totalTime[1], totalTime[2])
-        elif self._format == MediaControlPanel.FORMAT_SECONDS:
-            label = '%4.2f / 4.2f' % (time[2], totalTime[2])
+        elif self._format == EventPlayerPanel.FORMAT_SECONDS:
+            label = '%4.5f / %4.5f' % (time[2], totalTime[2])
         else:
             label = 'ERROR'
-
         self._text.SetLabel(label)
 
     def _determineTimeFormat(self):
@@ -1410,11 +1411,11 @@ class EventPlayerPanel(wx.Panel):
         time = self._breakUpTime(duration)
 
         if 0 != time[0]:
-            self._format = FORMAT_HOURS
+            self._format = EventPlayerPanel.FORMAT_HOURS
         elif 0 != time[1]:
-            self._format = FORMAT_MINUTES
+            self._format = EventPlayerPanel.FORMAT_MINUTES
         else:
-            self._format = FORMAT_SECONDS
+            self._format = EventPlayerPanel.FORMAT_SECONDS
 
     def _breakUpTime(self, seconds):
         outHours = math.floor(seconds/3600)
@@ -1429,13 +1430,18 @@ class EventPlayerPanel(wx.Panel):
     @staticmethod
     def getPanels(subsystems, parent):
         eventPlayer = core.Subsystem.getSubsystemOfType(
-            subsystemMod.DemoEventPlayer, subsystems)
+            logging.EventPlayer, subsystems)
 
+        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
+                                                     subsystems, 
+                                                     nonNone = True)
+        
         if eventPlayer is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Demo Event Player")
-            paneInfo = paneInfo.Caption("Demo Event Player").Left()
+            paneInfo = wx.aui.AuiPaneInfo().Name("Event Player")
+            paneInfo = paneInfo.Caption("Event Player").Left()
 
-            return [(paneInfo, EventPlayerPanel(parent, eventPlayer),
+            return [(paneInfo, EventPlayerPanel(parent, eventPlayer, 
+                                                eventHub),
                      [eventPlayer])]
 
         return []
@@ -1448,20 +1454,45 @@ class RecorderPanel(wx.Panel):
 
         layout = wx.GridBagSizer(10, 10)
 
-        streamLabel = wx.StaticText(self, label = 'Streaming')
+        streamLabel = wx.StaticText(self, label = 'Recording')
         layout.Add(streamLabel, (0, 0), flag = wx.ALIGN_CENTER,
                    span = (1, 2))
-
-        self._fstreamButton = wx.Button(self, label = "Forward On")
+        self._vision = vision
+       
+        self._fstreamButton = wx.ToggleButton(self, label = "Forward On")
         layout.Add(self._fstreamButton, (1, 0), flag = wx.ALIGN_CENTER)
-
-        self._dstreamButton = wx.Button(self, label = "Downward On")
+        self._fstreamButton.Bind(wx.EVT_TOGGLEBUTTON, self._onForwardPressed)
+        self._forwardRecorderName = "None"
+        
+        self._dstreamButton = wx.ToggleButton(self, label = "Downward On")
         layout.Add(self._dstreamButton, (1,1), flag = wx.ALIGN_CENTER)
+        self._dstreamButton.Bind(wx.EVT_TOGGLEBUTTON, self._onDownwardPressed)
+        self._downwardRecorderName = "None"
 
-        layout.AddGrowableRow(0)
-        layout.AddGrowableCol(0)
         self.SetSizerAndFit(layout)
-
+   
+    def _onForwardPressed(self, event):
+        timeStamp = datetime.fromtimestamp(timer.time())
+        name = timeStamp.strftime("%Y%m%d%H%M%S") + "_forward.rmv"
+        if self._fstreamButton.GetValue() == True:
+            self._forwardRecorderName = name
+            self._vision.addForwardRecorder(name, 5)
+            self._fstreamButton.SetLabel(label = "Forward Off")
+        else:
+            self._vision.removeForwardRecorder(self._forwardRecorderName)
+            self._fstreamButton.SetLabel(label = "Forward On")
+    
+    def _onDownwardPressed(self, event):
+        timeStamp = datetime.fromtimestamp(timer.time())
+        name = timeStamp.strftime("%Y%m%d%H%M%S") + "_downward.rmv"
+        if self._dstreamButton.GetValue() == True:
+            self._downwardRecorderName = name
+            self._vision.addDownwardRecorder(name, 5)
+            self._dstreamButton.SetLabel(label = "Downward Off")
+        else:
+            self._vision.removeDownwardRecorder(self._downwardRecorderName)
+            self._dstreamButton.SetLabel(label = "Downward On")
+            
     @staticmethod
     def getPanels(subsystems, parent):
         vision = ext.core.Subsystem.getSubsystemOfType(ext.vision.VisionSystem,
@@ -1590,7 +1621,10 @@ class MonitorPanel(BasePanel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
 
-        if eventHub is not None:
+        mainMonitor = core.Subsystem.getSubsystemOfType(monitor.Monitor,  
+                                                        subsystems)
+
+        if (eventHub is not None) and (mainMonitor is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Monitor")
             paneInfo = paneInfo.Caption("Monitor").Left()
 
@@ -1635,7 +1669,11 @@ class CpuPanel(BasePanel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,
                                                      subsystems, nonNone = True)
 
-        if eventHub is not None:
+        cpuMonitor = core.Subsystem.getSubsystemOfType(monitor.CpuMonitor,
+                                                    subsystems)
+
+
+        if (eventHub is not None) and (cpuMonitor is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name('Cpu')
             paneInfo = paneInfo.Caption('Cpu').Left()
 

@@ -10,7 +10,7 @@ set(ENV{PYTHONPATH} ${CMAKE_SOURCE_DIR} $ENV{PYTHONPATH})
 macro(gccxml MODULE HEADERS)
   set(DIRECTORY "${CMAKE_SOURCE_DIR}/packages/${MODULE}/include")
   set (XMLFILES "")
-  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I${PYTHON_INCLUDE_PATH}" "-I${RAM_ROOT_DIR}/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
+  set (GCCXML_FLAGS "-I${CMAKE_SOURCE_DIR}/packages" "-I${CMAKE_BINARY_DIR}/packages" "-I${CMAKE_SOURCE_DIR}" "-I${PYTHON_INCLUDE_PATH}" "-I${RAM_ROOT_DIR}/include" "-I${CMAKE_SOURCE_DIR}/packages/${MODULE}" "-DRAM_POSIX" "-DRAM_LINUX" "-DBOOST_PYTHON_NO_PY_SIGNATURES")
 
   foreach (HEADER ${HEADERS})
     string (REGEX REPLACE "\\.h$" ".xml" XMLNAME ${HEADER})
@@ -37,7 +37,7 @@ macro(pypp MODULE)
     OUTPUT ${PYPP_FILE}
     COMMAND ${PYTHON_EXECUTABLE}
     ARGS "scripts/pypp.py" "-t" "${GEN_SOURCES}" "-m" "_${MODULE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py" ${XMLFILES}
-    DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py
+    DEPENDS ${XMLFILES} ${CMAKE_CURRENT_SOURCE_DIR}/gen_${MODULE}.py ${CMAKE_SOURCE_DIR}/buildfiles/wrap.py
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
 endmacro ()
@@ -75,6 +75,11 @@ macro(generate_wrappers MODULE)
     ${Boost_PYTHON_LIBRARY}
     ${PYTHON_LIBRARIES}
     )
+  if (RAM_WITH_LOGGING) # Serialization if logging feature is available
+    target_link_libraries(_${MODULE}
+      ${Boost_SERIALIZATION_LIBRARY}
+      )
+  endif (RAM_WITH_LOGGING)
   set_target_properties(_${MODULE} PROPERTIES
     PREFIX ""
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build_ext/ext

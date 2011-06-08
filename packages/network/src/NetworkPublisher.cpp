@@ -12,6 +12,7 @@
 
 // Library Includes
 #include <boost/bind.hpp>
+#include <boost/thread.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
 // Project Includes
@@ -41,12 +42,38 @@ NetworkPublisher::NetworkPublisher(core::ConfigNode config,
     socket_(io_service, udp::endpoint(udp::v4(), config["port"].asInt(PORT))),
     m_bthread(0)
 {
-    assert(m_eventHub && "Need an EventHub");
-    m_eventHub->subscribeToAll(boost::bind(&NetworkPublisher::handleEvent, this, _1));
+    init();
+}
+
+NetworkPublisher::NetworkPublisher(core::ConfigNode config,
+                                   core::EventHubPtr eventHub) :
+    core::Subsystem(config["name"].asString("NetworkPublisher"), eventHub),
+    m_eventHub(eventHub),
+    socket_(io_service, udp::endpoint(udp::v4(), config["port"].asInt(PORT))),
+    m_bthread(0)
+{
+    init();
 }
 
 NetworkPublisher::~NetworkPublisher()
 {
+    io_service.stop();
+    if (m_bthread) {
+        m_bthread->join();
+        
+        delete m_bthread;
+        m_bthread = 0;
+    }
+}
+
+void NetworkPublisher::init()
+{
+    assert(m_eventHub && "Need an EventHub");
+    m_eventHub->subscribeToAll(boost::bind(&NetworkPublisher::handleEvent, this, _1));
+
+    startReceive();
+    m_bthread = new boost::thread(
+        boost::bind(&NetworkPublisher::serviceRequests, this));
 }
 
 void NetworkPublisher::update(double timeSinceLastUpdate)
@@ -55,18 +82,10 @@ void NetworkPublisher::update(double timeSinceLastUpdate)
 
 void NetworkPublisher::background(int interval)
 {
-    startReceive();
-    m_bthread = new boost::thread(
-        boost::bind(&NetworkPublisher::serviceRequests, this));
 }
 
 void NetworkPublisher::unbackground(bool join)
 {
-    io_service.stop();
-    m_bthread->join();
-
-    delete m_bthread;
-    m_bthread = 0;
 }
 
 bool NetworkPublisher::backgrounded()
@@ -113,7 +132,8 @@ void NetworkPublisher::handleEvent(core::EventPtr event)
     bool writeSuccessful = false;
 
     {
-        boost::archive::text_oarchive archive(sstream);
+        boost::archive::text_oarchive archive(sstream,
+                                              boost::archive::no_tracking);
         writeSuccessful = logging::writeEvent(event, archive);
     }
 

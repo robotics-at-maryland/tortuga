@@ -384,5 +384,6 @@ def sendPingDirection(angle, pingerID = 0):
 
 del vars
 del error_function
+print # Pads a newline for the OCI
 
 # End of file (REQUIRED! DO NOT DELETE!)

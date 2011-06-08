@@ -26,6 +26,7 @@
 #include "core/include/Logging.h"
 #include "core/include/EventHub.h"
 #include "core/include/Events.h"
+
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::logging::EventLogger, EventLogger);
 
@@ -58,6 +59,7 @@ EventLogger::~EventLogger()
 
     // Close the log file
     m_logFile.close();
+    delete m_archive;
 }
 
 void EventLogger::update(double)
@@ -110,10 +112,12 @@ void EventLogger::init(core::ConfigNode config, core::SubsystemList deps)
     std::string fileName = config["fileName"].asString("event.log");
     std::string filePath = (core::Logging::getLogDir() / fileName).string();
     m_logFile.open(filePath.c_str(), 
-  		   std::ios::out | std::ios::app | std::ios::binary);
+                   std::ios::out | std::ios::app | std::ios::binary);
+
 
     // Create our archive
-    m_archive = new boost::archive::text_oarchive(m_logFile);
+    m_archive = new boost::archive::text_oarchive(m_logFile,
+                                                  boost::archive::no_tracking);
 
     // Get our subsystem
     core::EventHubPtr eventHub =

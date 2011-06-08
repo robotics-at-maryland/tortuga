@@ -29,6 +29,7 @@
 // Project Includes
 #include "Frame.h"
 #include "GLMovie.h"
+#include "IPLMovie.h"
 #include "MediaControlPanel.h"
 #include "DetectorControlPanel.h"
 #include "Model.h"
@@ -78,17 +79,17 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
 
     // Create out controls
     m_mediaControlPanel = new MediaControlPanel(m_model, this);
-    m_movie=new GLMovie(this, m_model);
+    m_movie=new IPLMovie(this, m_model);
 
     wxButton* config = new wxButton(this, wxID_ANY, wxT("Config File"));
     wxString defaultPath;
     wxGetEnv(_T("RAM_SVN_DIR"), &defaultPath);
     m_configText = new wxTextCtrl(this, wxID_ANY, defaultPath, 
-				  wxDefaultPosition, wxDefaultSize, 
-				  wxTE_READONLY);
+                                  wxDefaultPosition, wxDefaultSize, 
+                                  wxTE_READONLY);
     wxButton* detectorHide = new wxButton(this, wxID_ANY, 
-					  wxT("Show/Hide Detector"));
-					  
+                                          wxT("Show/Hide Detector"));
+
     // Place controls in the sizer
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -111,13 +112,13 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxSize frameSize(GetSize().GetWidth()/2, GetSize().GetHeight());
 
     m_detectorFrame = 
-      new wxFrame(this, wxID_ANY, _T("Detector Control"), framePosition, 
-		  frameSize);
+      new wxFrame(this, wxID_ANY, _T("Detector Control"),
+                  framePosition, frameSize);
 
     // Add a sizer and the detector control panel to it
     sizer = new wxBoxSizer(wxVERTICAL);
-    wxPanel* detectorControlPanel = new DetectorControlPanel(m_model, 
-							     m_detectorFrame);
+    wxPanel* detectorControlPanel = new DetectorControlPanel(
+        m_model, m_detectorFrame);
     sizer->Add(detectorControlPanel, 1, wxEXPAND, 0);
 
     m_detectorFrame->SetSizer(sizer);

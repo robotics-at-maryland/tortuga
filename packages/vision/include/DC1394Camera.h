@@ -76,9 +76,6 @@ private:
     void setWhiteBalance(uint32_t uValue, uint32_t vValue,
                          bool makeAuto = false);
 
-    /** Balance the white values */
-    void balanceWhite();
-    
     /** Initializes libdc1394 if needed
      *
      *  Initializes libdc1394 if this is the first DC1394 camera created.
@@ -90,6 +87,15 @@ private:
      *  Only shutsdown libdc1394 if this is the last 1394 library.
      */
     static void shutdownLibDC1394();
+    
+    /** Handle for the library */
+    static dc1394_t* s_libHandle;
+    
+    /** The number of cameras around, a reference count for s_libHandle */
+    static size_t s_camCount;
+   
+    /** This makes sure that the DC1394 initializtion is done atomically */
+    static core::ReadWriteMutex s_initMutex;
 
     /** GUID of this camera */
     uint64_t m_guid;
@@ -106,32 +112,9 @@ private:
     /** libdc1394 camera structure */
     dc1394camera_t* m_camera;
 
-    /** Lastest image grabbed from the camera */
-    dc1394video_frame_t* m_newFrame;
-    
-    /** Handle for the library */
-    static dc1394_t* s_libHandle;
-    
-    /** The number of cameras around, a reference count for s_libHandle */
-    static size_t s_camCount;
+    /** index of the captured frame */
+    size_t m_frameNum;
 
-    /** Use own custom white balance */
-    bool m_customWhiteBalance;
-    
-    /** Whether or not the whitebalance is supported by the camera */
-    bool m_hasWhiteBalance;
-
-    /** Maximum white balance value */
-    unsigned int m_whiteMax;
-
-    /** Minimum white balance value */
-    unsigned int m_whiteMin;
-
-    /** U or Blue value of the white balance*/
-    unsigned int m_uValue;
-
-    /** V or Red value of the white balance */
-    unsigned int m_vValue;
 };
 
 } // namespace vision

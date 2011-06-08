@@ -3,7 +3,7 @@
 # All rights reserved.
 #
 # Author: Joseph Lisee <jlisee@umd.edu>
-# File:  tools/simulator/src/sim/view.py
+# File:  tools/simulator/src/oci/view/vision.py
 
 # Library Imports
 import wx
@@ -30,32 +30,28 @@ class MasterVisionPanel(BasePanel):
         self.Bind(wx.EVT_CLOSE, self._onClose)
         
         self._sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        if vision is not None:
-            #redLightPanel = RedLightPanel(self, self._childChangedSize, eventHub, vision)
-            #self._sizer.Add(redLightPanel)
+                
+        buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, machine)
+        self._sizer.Add(buoyPanel)
+            
+        pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
+        self._sizer.Add(pipePanel)
+            
+        binPanel = BinPanel(self, self._childChangedSize, eventHub, vision, ai = ai)
+        self._sizer.Add(binPanel)
+            
+        targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
+        self._sizer.Add(targetPanel)
 
-            buoyPanel = BuoyPanel(self, self._childChangedSize, eventHub, vision, machine)
-            self._sizer.Add(buoyPanel)
-            
-            pipePanel = OrangePipePanel(self, self._childChangedSize, eventHub, vision)
-            self._sizer.Add(pipePanel)
-            
-            binPanel = BinPanel(self, self._childChangedSize, eventHub, vision, ai = ai)
-            self._sizer.Add(binPanel)
-            
-            targetPanel = TargetPanel(self, self._childChangedSize, eventHub, vision)
-            self._sizer.Add(targetPanel)
-
-            windowPanel = WindowPanel(self, self._childChangedSize, eventHub, vision, machine = machine)
-            self._sizer.Add(windowPanel)
+        windowPanel = WindowPanel(self, self._childChangedSize, eventHub, vision, machine = machine)
+        self._sizer.Add(windowPanel)
 
             #barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
             #self._sizer.Add(barbedWirePanel)
 
-            hedgePanel = HedgePanel(self, self._childChangedSize, eventHub,
+        hedgePanel = HedgePanel(self, self._childChangedSize, eventHub,
                                     vision)
-            self._sizer.Add(hedgePanel)
+        self._sizer.Add(hedgePanel)
             
         self.SetSizerAndFit(self._sizer)
         
@@ -76,19 +72,14 @@ class MasterVisionPanel(BasePanel):
         machine = ext.core.Subsystem.getSubsystemOfType(
             ram.ai.state.Machine, subsystems)
 
-        if vision is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Vision")
-            paneInfo = paneInfo.Caption("Vision").Right()
         
-            panel = MasterVisionPanel(parent, eventHub, vision, ai, machine)
-            return [(paneInfo, panel, [vision])]
+        paneInfo = wx.aui.AuiPaneInfo().Name("Vision")
+        paneInfo = paneInfo.Caption("Vision").Right()
         
-        return []
-        
-        
+        panel = MasterVisionPanel(parent, eventHub, vision, ai, machine)
+        return [(paneInfo, panel, [vision])]        
 
 class BaseVisionPanel(BasePanel):
-    
     def __init__(self, parent, buttonHandler, *args, **kwargs):
         BasePanel.__init__(self, parent, *args, **kwargs)
         self._controlsShowing = True
@@ -273,7 +264,8 @@ class RedLightPanel(BaseVisionPanel):
         if self._detector:
             self._vision.redLightDetectorOff()
         else:
-            self._vision.redLightDetectorOn()
+          if self._vision is not None:
+              self._vision.redLightDetectorOn()
 
     def _onBouyFound(self, event):
         if self._detector:
@@ -353,7 +345,8 @@ class BuoyPanel(BaseVisionPanel):
         if self._detector:
             self._vision.buoyDetectorOff()
         else:
-            self._vision.buoyDetectorOn()
+            if self._vision is not None:
+                self._vision.buoyDetectorOn()
 
     def _findClosest(self):
         assert len(self._events) > 0, 'Buoy list empty'
@@ -449,7 +442,8 @@ class OrangePipePanel(BaseVisionPanel):
         if self._detector:
             self._vision.pipeLineDetectorOff()
         else:
-            self._vision.pipeLineDetectorOn()
+            if self._vision is not None:
+                self._vision.pipeLineDetectorOn()
         
     def _onPipeFound(self, event):
         if self._detector:
@@ -571,7 +565,8 @@ class BinPanel(BaseVisionPanel):
         if self._detector:
             self._vision.binDetectorOff()
         else:
-            self._vision.binDetectorOn()
+            if self._vision is not None:
+                self._vision.binDetectorOn()
         
     def _onMultiBinAngle(self, event):
         if self._detector:
@@ -736,7 +731,8 @@ class TargetPanel(BaseVisionPanel):
         if self._detector:
             self._vision.targetDetectorOff()
         else:
-            self._vision.targetDetectorOn()
+            if self._vision is not None:
+                self._vision.targetDetectorOn()
 
     def _onTargetFound(self, event):
         if self._detector:
@@ -808,7 +804,8 @@ class WindowPanel(BaseVisionPanel):
         if self._detector:
             self._vision.windowDetectorOff()
         else:
-            self._vision.windowDetectorOn()
+            if self._vision is not None:
+                self._vision.windowDetectorOn()
 
     def _findClosest(self):
         assert len(self._events) > 0, 'Window list empty'
@@ -915,7 +912,8 @@ class BarbedWirePanel(BaseVisionPanel):
         if self._detector:
             self._vision.barbedWireDetectorOff()
         else:
-            self._vision.barbedWireDetectorOn()
+            if self._vision is not None:
+                self._vision.barbedWireDetectorOn()
 
     def _onBarbedWireFound(self, event):
         if self._detector:
@@ -987,7 +985,8 @@ class HedgePanel(BaseVisionPanel):
         if self._detector:
             self._vision.hedgeDetectorOff()
         else:
-            self._vision.hedgeDetectorOn()
+            if self._vision is not None:
+                self._vision.hedgeDetectorOn()
 
     def _onHedgeFound(self, event):
         if self._detector:

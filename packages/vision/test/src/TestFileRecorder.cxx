@@ -50,8 +50,8 @@ struct RecorderFixture
     {
         // Remove movie file
         bf::path movieFile(filename);
-	if (bf::exists(movieFile))
-	    bf::remove(movieFile);
+        if (bf::exists(movieFile))
+            bf::remove(movieFile);
             
         delete camera;
     }
@@ -76,7 +76,8 @@ TEST_FIXTURE(RecorderFixture, Update)
     std::vector<vision::Image*> images;
     for (int i = 0; i < IMAGE_COUNT; ++i)
     {
-        vision::Image* image = new vision::OpenCVImage(640,480);
+        vision::Image* image = new vision::OpenCVImage(640,480,
+                                                       vision::Image::PF_BGR_8);
         vision::makeColor(image, i * 20, 0, 0);
         images.push_back(image);
     }
@@ -102,7 +103,7 @@ TEST_FIXTURE(RecorderFixture, Update)
         movieCamera.update(0);
         movieCamera.getImage(actual);
 
-        CHECK_CLOSE(*expectedImage, *actual, 1.5);
+        CHECK_CLOSE(*expectedImage, *actual, 2.0);
     }    
     delete actual;
 

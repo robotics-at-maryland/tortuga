@@ -78,66 +78,9 @@ void PropertySet::loadValueFromNode<bool>(core::ConfigNode config,
     prop->set((bool)(valueNode.asInt(intDef) == 1));
 }
 
-#ifdef RAM_WITH_MATH
-
-template <>
-void PropertySet::loadValueFromNode<math::Vector2>(core::ConfigNode config,
-                                                   core::ConfigNode valueNode,
-                                                   core::PropertyPtr prop)
-{
-    math::Vector2 defaultValue =
-        boost::any_cast<math::Vector2>(prop->getDefaultValue());
-    assert(prop->getType() == Property::PT_VECTOR2 && "Invalid type");
-
-    if (config.exists(prop->getName()))
-    {
-        assert(valueNode.size() == 2 &&
-               "Improper size for Vector2 config");
-        prop->set(math::Vector2(valueNode[0].asDouble(),
-                                valueNode[1].asDouble()));
-    }
-}
-
-template <>
-void PropertySet::loadValueFromNode<math::Vector3>(core::ConfigNode config,
-                                                   core::ConfigNode valueNode,
-                                                   core::PropertyPtr prop)
-{
-    math::Vector3 defaultValue =
-        boost::any_cast<math::Vector3>(prop->getDefaultValue());
-    assert(prop->getType() == Property::PT_VECTOR3 && "Invalid type");
-
-    if (config.exists(prop->getName()))
-    {
-        assert(valueNode.size() == 3 &&
-               "Improper size for Vector3 config");
-        prop->set(math::Vector3(valueNode[0].asDouble(),
-                                valueNode[1].asDouble(),
-                                valueNode[2].asDouble()));
-    }
-}
-
-template <>
-void PropertySet::loadValueFromNode<math::Quaternion>(core::ConfigNode config,
-                                                   core::ConfigNode valueNode,
-                                                   core::PropertyPtr prop)
-{
-    math::Quaternion defaultValue =
-        boost::any_cast<math::Quaternion>(prop->getDefaultValue());
-    assert(prop->getType() == Property::PT_QUATERNION && "Invalid type");
-
-    if (config.exists(prop->getName()))
-    {
-        assert(valueNode.size() == 4 &&
-               "Improper size for Quaternion config");
-        prop->set(math::Quaternion(valueNode[0].asDouble(),
-                                   valueNode[1].asDouble(),
-                                   valueNode[2].asDouble(),
-                                   valueNode[3].asDouble()));
-    }
-}
-    
-#endif // RAM_WITH_MATH
+//#ifdef RAM_WITH_MATH
+// NOTE: See packages/math/src/PropertySetImp.cpp for the math specializations
+//#endif // RAM_WITH_MATH
 
 // ------------------------------------------------------------------------- //
 //                    C L A S S   D E F I N I T I O N                        //

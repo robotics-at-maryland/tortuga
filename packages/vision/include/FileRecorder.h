@@ -10,6 +10,9 @@
 #ifndef RAM_FILERECORDER_H_02_24_2008
 #define RAM_FILERECORDER_H_02_24_2008
 
+// Library Includes
+#include <highgui.h>
+
 // Project Includes
 #include "vision/include/Recorder.h"
 
@@ -34,7 +37,7 @@ class RAM_EXPORT FileRecorder : public Recorder
     
   private:
     /** OpenCV handle to video writer structure */
-    CvVideoWriter* m_writer;
+    cv::VideoWriter m_writer;
 };
     
 } // namespace vision

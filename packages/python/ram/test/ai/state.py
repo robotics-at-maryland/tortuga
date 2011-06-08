@@ -402,11 +402,8 @@ class TestStateMachine(unittest.TestCase):
 
         # Test default config value loading
         machine.stop()
-        try:
-            machine.start(ConfigState)
-            self.assert_(False)
-        except KeyError, e:
-            self.assertEqual(str(e), "'No config value for required field: four'")
+        self.assertRaises(KeyError, machine.start, ConfigState)
+
         cfg = { 
             'param' : 5,
             'States' : {

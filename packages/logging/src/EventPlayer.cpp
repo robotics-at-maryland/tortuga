@@ -14,6 +14,7 @@
 // STD Includes
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 // Library Includes
 #include <boost/bind.hpp>
@@ -32,87 +33,197 @@
 // Register controller in subsystem maker system
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::logging::EventPlayer, EventPlayer);
 
+
 RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, START);
 RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, STOP);
+RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, PLAYER_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::logging::EventPlayer, PLAYER_SETUP);
 
 namespace ram {
 namespace logging {
 
 EventPlayer::EventPlayer(core::ConfigNode config) :
-    Subsystem(config["name"].asString("EventPlayer")),
-    m_startTime(core::TimeVal::timeOfDay().get_double()),
-    m_archive(0), //m_logFile)
-    m_firstEventTime(-1),
-    m_currentTime(-1),
-    m_stoppedTime(-1),
-    m_stopageTime(0),
-    m_fileLength(-1)
+    Subsystem(config["name"].asString("EventPlayer"))
 {
-    init(config, core::SubsystemList());
+    m_playerThread = new PlayerThread::PlayerThread(config, this);
 }
-    
+
 EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
-    Subsystem(config["name"].asString("EventPlayer"), deps),
-    m_startTime(core::TimeVal::timeOfDay().get_double()),
-    m_archive(0), //m_logFile)
-    m_firstEventTime(-1),
-    m_currentTime(-1),
-    m_stoppedTime(-1),
-    m_stopageTime(0),
-    m_fileLength(-1)
+    Subsystem(config["name"].asString("EventPlayer"), deps)
 {
-    init(config, deps);
+    m_playerThread = new PlayerThread::PlayerThread(config, deps, this);
 }
 
 EventPlayer::~EventPlayer()
+{
+
+}
+
+void EventPlayer::start()
+{
+    m_playerThread->start();
+}
+
+void EventPlayer::stop()
+{
+    m_playerThread->stop();
+}
+
+double EventPlayer::currentTime()
+{
+    return m_playerThread->currentTime();
+}
+
+double EventPlayer::duration()
+{
+    return m_playerThread->duration();
+}
+
+void EventPlayer::seekToTime(double seconds)
+{
+    m_playerThread->seekToTime(seconds);
+}
+
+void EventPlayer::background(int interval)
+{
+
+}
+
+void EventPlayer::unbackground(bool join)
+{
+    
+}
+
+bool EventPlayer::backgrounded()
+{
+    return true;
+}
+
+void EventPlayer::setPriority(core::IUpdatable::Priority priority)
+{
+}
+    
+core::IUpdatable::Priority EventPlayer::getPriority()
+{
+    return IUpdatable::NORMAL_PRIORITY;
+}
+
+void EventPlayer::setAffinity(size_t)
+{
+}
+    
+int EventPlayer::getAffinity()
+{
+    return -1;
+}
+
+void EventPlayer::update(double)
+{
+
+}
+
+
+void EventPlayer::publishStart()
+{
+    publish(START, core::EventPtr(new core::Event()));
+}
+
+void EventPlayer::publishStop()
+{
+    publish(STOP, core::EventPtr(new core::Event()));
+}
+
+void EventPlayer::publishSetup()
+{
+    publish(PLAYER_SETUP, core::EventPtr(new core::Event()));
+}
+
+void EventPlayer::publishUpdate()
+{
+    publish(PLAYER_UPDATE, core::EventPtr(new core::Event()));
+}
+    
+
+PlayerThread::PlayerThread(core::ConfigNode config, EventPlayer *player) :
+    m_startTime(core::TimeVal::timeOfDay().get_double()),
+    m_archive(0), //m_logFile)
+    m_firstEventTime(-1),
+    m_currentTime(-1),
+    m_stoppedTime(-1),
+    m_stopageTime(0),
+    m_fileLength(-1),
+    m_presentEvent(0)
+{
+    m_player = player;
+    init(config, core::SubsystemList());
+}
+    
+PlayerThread::PlayerThread(core::ConfigNode config, core::SubsystemList deps, EventPlayer *player) :
+    m_startTime(core::TimeVal::timeOfDay().get_double()),
+    m_archive(0), //m_logFile)
+    m_firstEventTime(-1),
+    m_currentTime(-1),
+    m_stoppedTime(-1),
+    m_stopageTime(0),
+    m_fileLength(-1),
+    m_presentEvent(0)
+{
+    m_player = player;
+    init(config, deps);
+}
+
+PlayerThread::~PlayerThread()
 {
     // Close the log file
     m_logFile.close();
 }
 
-double EventPlayer::duration()
+double PlayerThread::duration()
 {
-    return 0;
+    return m_duration;
 }
 
-void EventPlayer::seekToTime(double seconds)
+void PlayerThread::seekToTime(double seconds)
 {
-    // TODO
     {
         core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
-
-        // Round the down to the nearest second
-        
-        // Seek to that time by reading out lots of events
-
-        // Move forward through file until we are at the proper time
+        m_stopageTime += m_currentTime - seconds;
+        m_currentTime = seconds;
+        for(int i=0; i < (int) m_pastEvents.size(); i++){
+            if((m_pastEvents.at(i)->timeStamp) >= seconds){
+                m_presentEvent = i;
+                return;
+            }
+        }
     }
 }
 
-double EventPlayer::currentTime()
+double PlayerThread::currentTime()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
     return m_currentTime;
 }
 
-void EventPlayer::start()
+void PlayerThread::start()
 {
     {
         // Determine how much time we have been stopped
         core::ReadWriteMutex::ScopedReadLock lock(m_mutex);
-        double timeStopped = getTimeOfDay() - m_stoppedTime;
-
-        // Add that to our stopage time so playback still works
-        m_stopageTime += timeStopped;
+        if(m_stoppedTime != -1) {
+            double timeStopped = getTimeOfDay() - m_stoppedTime;
+        
+            // Add that to our stopage time so playback still works
+            m_stopageTime += timeStopped;
+        }
 
         // Now start backup the background thread
         background(-1);
     }
 
-    publish(START, core::EventPtr(new core::Event()));
+    m_player->publishStart();
 }
 
-void EventPlayer::stop()
+void PlayerThread::stop()
 {
     // Stop the background thread
     unbackground(true);;
@@ -123,44 +234,32 @@ void EventPlayer::stop()
         m_stoppedTime = getTimeOfDay();
     }
 
-    publish(STOP, core::EventPtr(new core::Event()));
+    m_player->publishStop();
 }
 
     
-void EventPlayer::update(double)
+void PlayerThread::update(double)
 {
-    // While there are still events left in the log
-    if (m_logFile.tellg() < m_fileLength)
-    {
-        ram::core::EventPtr event = ram::core::EventPtr();
-        double sendTime = 0;
-        {
-            core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
-            
-            // Grab event from the log
-            (*m_archive) >> event;
+    // If the "current event" is in the pastEvents vector
+    if(m_pastEvents.size() > m_presentEvent){
 
-            // Grab our first event time if needed
-            if (-1 == m_firstEventTime)
-            {
-                m_firstEventTime = event->timeStamp;
-            }
+        ram::core::EventPtr event = m_pastEvents.at(m_presentEvent);
 
-            // Grab essentially the place we are in the log file
-            double delta = event->timeStamp - m_firstEventTime;
-            m_currentTime = delta;
-            sendTime = m_startTime + delta + m_stopageTime;
-        }
+        // Grab essentially the place we are in the log file
+        double delta = event->timeStamp;
+        m_currentTime = delta;
+        double sendTime = m_startTime + delta + m_stopageTime;
 
         // If in the "past" send the event, other wise sleep until it must
         // be sent out
         double now = getTimeOfDay();
-        while (now < sendTime)
+        now -= m_stopageTime;
+        while (now < (m_currentTime + m_startTime))
         {
             // Compute the time needed to sleep in seconds
-            double sleepTime = sendTime - now;
+            double sleepTime = m_currentTime + m_startTime - now;
             eventSleep(sleepTime);
-            now = getTimeOfDay();
+            now = getTimeOfDay() - m_stopageTime;
         }
         
         // Clone the event to send
@@ -177,57 +276,59 @@ void EventPlayer::update(double)
             // Republish just to the event hub
             m_eventHub->publish(eventToSend);
         }
-    } // If we aren't at the end of the log file
+        m_player->publishUpdate();
+        m_presentEvent++;
+    }
 }
 
-void EventPlayer::setPriority(core::IUpdatable::Priority priority)
+void PlayerThread::setPriority(core::IUpdatable::Priority priority)
 {
     Updatable::setPriority(priority);
 }
     
-core::IUpdatable::Priority EventPlayer::getPriority()
+core::IUpdatable::Priority PlayerThread::getPriority()
 {
     return Updatable::getPriority();
 }
 
-void EventPlayer::setAffinity(size_t affinity)
+void PlayerThread::setAffinity(size_t affinity)
 {
     Updatable::setAffinity(affinity);
 }
     
-int EventPlayer::getAffinity()
+int PlayerThread::getAffinity()
 {
     return Updatable::getAffinity();
 }
     
-void EventPlayer::background(int interval)
+void PlayerThread::background(int interval)
 {
     Updatable::background(interval);
 }
     
-void EventPlayer::unbackground(bool join)
+void PlayerThread::unbackground(bool join)
 {
     Updatable::unbackground(join);
 }
 
-bool EventPlayer::backgrounded()
+bool PlayerThread::backgrounded()
 {
     return Updatable::backgrounded();
 }
 
-double EventPlayer::getTimeOfDay()
+double PlayerThread::getTimeOfDay()
 {
     return core::TimeVal::timeOfDay().get_double();
 }
     
-void EventPlayer::eventSleep(double seconds)
+void PlayerThread::eventSleep(double seconds)
 {
     // Sleep (note the time is converted to microseconds
     waitForUpdate((long)(seconds * 1000000));
 }
 
 
-void EventPlayer::init(core::ConfigNode config, core::SubsystemList deps)
+void PlayerThread::init(core::ConfigNode config, core::SubsystemList deps)
 {
     // Open our log file
     std::string fileName = config["fileName"].asString("event.log");
@@ -245,6 +346,37 @@ void EventPlayer::init(core::ConfigNode config, core::SubsystemList deps)
     
     // Get our subsystem
     m_eventHub = core::Subsystem::getSubsystemOfType<core::EventHub>(deps);
+
+    // Add all of the events in the file to a Vector
+    while(m_logFile.tellg() < m_fileLength) {
+        ram::core::EventPtr event = ram::core::EventPtr();
+        double sendTime = 0;
+        {
+            core::ReadWriteMutex::ScopedWriteLock lock(m_mutex);
+            
+            // Grab event from the log
+            (*m_archive) >> event;
+
+            // Grab our first event time if needed
+            if (-1 == m_firstEventTime)
+            {
+                m_firstEventTime = event->timeStamp;
+            }
+            // Grab essentially the place we are in the log file
+            double delta = event->timeStamp - m_firstEventTime;
+            //sendTime = m_startTime + delta;
+            sendTime = delta;
+        }
+        core::EventPtr eventToAdd(event->clone());
+        eventToAdd->timeStamp = sendTime;
+        m_pastEvents.push_back(eventToAdd);
+    }
+    // If there are events in the file, duration is last timstamp
+    m_duration = 0;
+    if(m_pastEvents.size()){
+        m_duration = m_pastEvents.at(m_pastEvents.size() - 1)->timeStamp;
+    }
+    m_player->publishSetup();
 }
     
 } // namespace logging

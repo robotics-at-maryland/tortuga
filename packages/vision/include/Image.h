@@ -53,6 +53,9 @@ public:
         PF_END,       /** Sentinal Value */
     };
 
+    static const size_t formatDepthLookup[11];
+    static const size_t formatChannelsLookup[11];
+
     /* Open image from given file, returns 0 on error */
     static Image* loadFromFile(std::string fileName);
 
@@ -112,7 +115,34 @@ public:
     static Image* extractSubImage(Image* source, unsigned char* buffer,
                                   int upperLeftX, int upperLeftY,
                                   int lowerRightX, int lowerRightY);
-						
+
+    /** Gives you an image that is a sub of the current one
+     *
+     *  @param source
+     *      The image to do the extract from
+     *  @param border
+     *      The border around the blob you want
+     *  @param centerX
+     *      X coordinate of center of rectangle to extract
+     *  @param centerY
+     *      Y coordinate of center of rectangle to extract
+     *  @param width
+     *      Width of the sub image. For even width, the 'center' will be
+     *      the left pixel of the middle two.
+     *  @param height
+     *      Height of the sub image. For even height, the 'center' will be
+     *      the upper pixel of the middle two.
+     *
+     *  @return
+     *      An image class using (but not owning) your buffer, you must delete
+     *      the image.
+     */
+	static Image* extractSubImage(Image* source,
+                                  int centerX, int centerY,
+                                  int width, int height,
+                                  unsigned char* buffer);
+
+
     /** Count white pixels in the sub part of the given image */
     static int countWhitePixels(Image* source,
 				int upperLeftX, int upperLeftY,
@@ -167,6 +197,12 @@ public:
     
     /** Returns true if both images are the same size */
     static bool sameSize(Image* imageA, Image* imageB);
+
+    /** Get the depth associated with given pixel format */
+    static size_t getFormatDepth(PixelFormat fmt);
+
+    /** Get the number of channels for the given pixel format */
+    static size_t getFormatNumChannels(PixelFormat fmt);
 
     /** Makes the current image an exact copy of the source */
     virtual void copyFrom (const Image* src) = 0;

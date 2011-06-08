@@ -67,9 +67,9 @@ ram.ai.buoy.Searching:
 ram.ai.buoy.CorrectDepth:
     boxHeight: 2.0
 ram.ai.buoy.Align:
-    desiredRange: 5
+    desiredRange: 4
     depthGain: 0
-    dDepthGain: 0.2
+    dDepthGain: 0.0
     iDepthGain: 0.0
     maxDepthDt: 0.3
     planeThreshold: 0.15
@@ -78,10 +78,14 @@ ram.ai.buoy.Align:
     iTranslateGain: 0.1
     dTranslateGain: 0.2
     maxYaw: 2
+ram.ai.buoy.Seek:
+    maxYaw: 1
 ram.ai.buoy.Hit:
     duration: 1
 ram.ai.buoy.Reposition:
     duration: 6
+ram.ai.buoy.Continue:
+    forwardDuration: 6
 
 # Target Task
 ram.ai.target.SeekingToCentered:
@@ -162,23 +166,28 @@ ram.ai.hedge.SeekingToCentered:
     translateGain: 10
     iTranslateGain: 1
     dTranslateGain: 4
+    desiredRange: 0.60
 ram.ai.hedge.SeekingToRange:
     depthGain: 0
+    desiredRange: 0.60
 ram.ai.hedge.SeekingToAligned:
     depthGain: 0
     alignGain: 0.6
     yawGain: 0.6
-    maxYaw: 2
+    maxYaw: 1
     checkDelay: 2
-    minSquareNess: 1.8
+    minSquareNess: 1.82
+    desiredRange: 0.60
 ram.ai.hedge.Aligning:
     settleTime: 5
     depthGain: 0
     yawGain: 0.4
     alignGain: 0.4
     maxYaw: 1
+    desiredRange: 0.60
 ram.ai.hedge.Through:
     depthOffset: 0.8
+    duration: 10
 
 # Bin Sub task
 ram.ai.bin.Seeking:
@@ -233,24 +242,40 @@ ram.ai.window.Start:
 ram.ai.window.SeekingToCentered:
     depthGain: 0
     desiredRange: 0.6
-    translateGain: 2.5
+    translateGain: 15.0
+    iTranslateGain: 1.0
+    dTranslateGain: 5.0
 ram.ai.window.SeekingToRange:
     desiredRange: 0.55
     depthGain: 0
 ram.ai.window.SeekingToAligned:
-    checkDelay: 1.5
+    checkDelay: 3
     depthGain: 0
     alignGain: 10
-    minSquareNess: 0.95
+    yawGain: 2.0
+    maxYaw: 1.0
+    minSquareNess: 0.98
     desiredRange: 0.5
+    alignSign: -1
 ram.ai.window.FireTorpedos:
     depthGain: 0
-    desiredRange: 0.40
+    desiredRange: 0.35
 ram.ai.window.CorrectHeight:
     offset: 1.1
 ram.ai.window.Approach:
     depthGain: 0
-    desiredRange: 0.7
+    desiredRange: 0.65
+    translateGain: 10.0
+    iTranslateGain: 1.0
+    dTranslateGain: 2.0
+ram.ai.window.ApproachAligning:
+    depthGain: 0
+    desiredRange: 0.55
+    minSquareNess: 0.95
+    maxYaw: 2.0
+    yawGain: 5.0
+    alignGain: 10
+    alignSign: -1
 ram.ai.window.Reposition:
     speed: 2
     duration: 3

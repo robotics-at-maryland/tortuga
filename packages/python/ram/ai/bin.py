@@ -59,10 +59,10 @@ class HoveringState(state.State):
 
     @staticmethod
     def getattr():
-        return set(['filterLimit', 'sidewaysSpeedGain', 'speedGain',
-                    'yawGain', 'maxSpeed', 'maxSidewaysSpeed',
-                    'iSpeedGain', 'iSidewaysSpeedGain', 'dSpeedGain',
-                    'dSidewaysSpeedGain'])
+        return {'filterLimit' : 75, 'sidewaysSpeedGain' : 3, 'speedGain' : 5,
+                    'yawGain' : 0, 'maxSpeed' : 5, 'maxSidewaysSpeed' : 3,
+                    'iSpeedGain' : 0, 'iSidewaysSpeedGain' : 0,
+                    'dSpeedGain' : 0, 'dSidewaysSpeedGain' : 0}
     
     def _currentBin(self, event):
         return self.ai.data['binData'].get('currentID', 0) == event.id
@@ -186,33 +186,26 @@ class HoveringState(state.State):
         self._useMultiAngle = useMultiAngle
         self._multiAngle = math.Degree(0)
         self._first = True
-        self._filterLimit = self._config.get('filterLimit', 75)
         
         self._bin = ram.motion.pipe.Pipe(0,0,0,timeStamp = None)
-        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',3)
-        speedGain = self._config.get('speedGain', 5)
-        if shouldRotate:
-            yawGain = self._config.get('yawGain', 1)
-        else:
-            yawGain = 0
-        maxSpeed = self._config.get('maxSpeed', 5)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
-        
-        iSpeedGain = self._config.get('iSpeedGain', 0)
-        iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0)
-        dSpeedGain = self._config.get('dSpeedGain', 0)
-        dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0)
+
+        if not shouldRotate:
+            self._yawGain = 0
         
         motion = ram.motion.pipe.Hover(pipe = self._bin,
-                                       maxSpeed = maxSpeed,
-                                       maxSidewaysSpeed = maxSidewaysSpeed,
-                                       sidewaysSpeedGain = sidewaysSpeedGain,
-                                       speedGain = speedGain,
-                                       yawGain = yawGain,
-                                       iSpeedGain = iSpeedGain,
-                                       iSidewaysSpeedGain = iSidewaysSpeedGain,
-                                       dSpeedGain = dSpeedGain,
-                                       dSidewaysSpeedGain = dSidewaysSpeedGain)
+                                       maxSpeed = self._maxSpeed,
+                                       maxSidewaysSpeed = \
+                                           self._maxSidewaysSpeed,
+                                       sidewaysSpeedGain = \
+                                           self._sidewaysSpeedGain,
+                                       speedGain = self._speedGain,
+                                       yawGain = self._yawGain,
+                                       iSpeedGain = self._iSpeedGain,
+                                       iSidewaysSpeedGain = \
+                                           self._iSidewaysSpeedGain,
+                                       dSpeedGain = self._dSpeedGain,
+                                       dSidewaysSpeedGain = \
+                                           self._dSidewaysSpeedGain)
         self.motionManager.setMotion(motion)
 
     def exit(self):
@@ -225,7 +218,7 @@ class SettlingState(HoveringState):
     """
     @staticmethod
     def getattr():
-        return set(['planeThreshold', 'angleThreshold']).union(
+        return {'planeThreshold' : 0.1, 'angleThreshold' : 5}.union(
             HoveringState.getattr())
 
     def _compareChange(self, pvalues, dvalues):
@@ -256,8 +249,6 @@ class SettlingState(HoveringState):
         self._eventType = eventType
         self._kp = self._config.get('kp', 1.0)
         self._kd = self._config.get('kd', 1.0)
-        self._planeThreshold = self._config.get('planeThreshold', 0.1)
-        self._angleThreshold = self._config.get('angleThreshold', 5)
         self._earlyTimeout = self.ai.data['config'].get('Bin', {}).get(
             'earlyTimeout', False)
 
@@ -283,7 +274,7 @@ class BinSortingState(HoveringState):
     
     @staticmethod
     def getattr():
-        return set(['centeredRange']).union(HoveringState.getattr())
+        return {'centeredRange' : 0.2}.union(HoveringState.getattr())
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -301,8 +292,6 @@ class BinSortingState(HoveringState):
         if (direction != BinSortingState.LEFT) and (direction != BinSortingState.RIGHT):
             raise Exception("ERROR Wrong Direction")
         self._direction = direction
-        
-        self._centeredRange = self._config.get('centeredRange', 0.2)
         
         HoveringState.enter(self, useMultiAngle = useMultiAngle,
                             shouldRotate = shouldRotate)
@@ -419,7 +408,7 @@ class Recover(state.FindAttempt):
 
     @staticmethod
     def getattr():
-        return set(['timeout', 'speed']).union(state.FindAttempt.getattr())
+        return {'timeout' : 4, 'speed' : 0.5}.union(state.FindAttempt.getattr())
         
     def BIN_FOUND(self, event):
         if event.symbol != vision.Symbol.UNKNOWN:
@@ -479,7 +468,6 @@ class Recover(state.FindAttempt):
         ahead = math.Vector3(x, y, 0)
         quat = math.Vector3.UNIT_Y.getRotationTo(ahead)
         self._direction = quat.getYaw(True)
-        self._speed = self._config.get('speed', 0.5)
         self._delay = None
 
         searchMotion = motion.basic.MoveDirection(self._direction, self._speed)
@@ -504,7 +492,7 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['timeout', 'recoverThreshold']).union(
+        return {'timeout' : 3, 'recoverThreshold' : 0.2}.union(
             HoveringState.getattr()).union(state.FindAttempt.getattr())
     
     def BIN_FOUND(self, event):
@@ -538,8 +526,7 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
         
     def enter(self):
         HoveringState.enter(self)
-        state.FindAttempt.enter(self, timeout = self._config.get('timeout', 3))
-        self._recoverThreshold = self._config.get('recoverThreshold', 0.2)
+        state.FindAttempt.enter(self, timeout = self._timeout)
         
         self._currentIds = self.ai.data['binData']['currentIds']
     
@@ -553,7 +540,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return set(['speed', 'offset'])
+        return {'speed' : 1.0/3.0, 'offset' : 5}
     
     def enter(self):
         # Store the initial direction
@@ -565,12 +552,11 @@ class Start(state.State):
         orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['binStartOrientation'] = \
             orientation.getYaw().valueDegrees()
-
-        offset = self._config.get('offset', 5)
+        
         desiredDepth = self.ai.data['config'].get('binDepth', 12)
 
         # Set a minimumDepth
-        desiredDepth -= offset
+        desiredDepth -= self._offset
         minimumDepth = self._config.get('minimumDepth', 0.5)
         if desiredDepth < minimumDepth:
             desiredDepth = minimumDepth
@@ -578,7 +564,7 @@ class Start(state.State):
         # Go to 5 feet in 5 increments
         diveMotion = motion.basic.RateChangeDepth(
             desiredDepth = desiredDepth,
-            speed = self._config.get('speed', 1.0/3.0))
+            speed = self._speed)
         self.motionManager.setMotion(diveMotion)
         
         self.ai.data['firstSearching'] = True
@@ -594,7 +580,7 @@ class Searching(state.State):
 
     @staticmethod
     def getattr():
-        return set(['legTime', 'sweepAngle', 'speed'])
+        return {'legTime' : 5, 'sweepAngle' : 45, 'speed' : 2.5}
 
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
@@ -632,9 +618,9 @@ class Searching(state.State):
 
         # Create zig zag search to 
         self._zigZag = motion.search.ForwardZigZag(
-            legTime = self._config.get('legTime', 5),
-            sweepAngle = self._config.get('sweepAngle', 45),
-            speed = self._config.get('speed', 2.5),
+            legTime = self._legtime,
+            sweepAngle = self._sweep,
+            speed = self._speed,
             direction = direction)
 
         if self.ai.data.get('firstSearching', True) and self._duration > 0:
@@ -660,7 +646,7 @@ class Seeking(HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['centeredLimit']).union(HoveringState.getattr())
+        return {'centeredLimit' : 0.2}.union(HoveringState.getattr())
  
     def BIN_FOUND(self, event):
         eventDistance = math.Vector2(event.x, event.y).length()
@@ -685,7 +671,6 @@ class Seeking(HoveringState):
         
     def enter(self):
         HoveringState.enter(self, shouldRotate = False)
-        self._centeredLimit = self._config.get('centeredLimit', 0.2)
 
 class RecoverSeeking(Recover):
     @staticmethod

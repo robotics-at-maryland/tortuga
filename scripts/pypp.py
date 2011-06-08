@@ -14,7 +14,7 @@ import logging
 
 # pyplusplus pickles some objects that require a higher recursion limit
 # than normal. This is only sometimes needed, but always included to be safe.
-sys.setrecursionlimit(1500)
+sys.setrecursionlimit(2000)
 
 # Library Imports
 import pygccxml
@@ -92,8 +92,7 @@ def main(argv = None):
     (output_dir, name) = os.path.split(target)
     dir_path = 'generated' + '-'.join(module.strip("_").split('::')[1:])
     output_dir = os.path.join(output_dir, dir_path)
-    files_created = mb.write_module(
-        os.path.join(output_dir, module + '.main.cpp'))
+    mb.write_module(os.path.join(output_dir, module + '.main.cpp'))
 
     # Touch the output file
     # This is because pyplusplus won't update the file if nothing has changed,

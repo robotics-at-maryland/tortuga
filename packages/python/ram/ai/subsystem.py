@@ -176,8 +176,6 @@ class AI(core.Subsystem):
         core.Subsystem.unbackground(self, join)
         for conn in self._connections:
             conn.disconnect()
-    def backgrounded(self):
-        return True
 
     # Properties
     @property

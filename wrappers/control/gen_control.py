@@ -36,15 +36,11 @@ def generate(module_builder, local_ns, global_ns):
     classes.append(DesiredState)
 
     # Wrap Events
-    eventsFound = False
-    for cls in local_ns.classes(function= lambda x: x.name.endswith('Event'),
-                                allow_empty = True):
-        eventsFound = True
-        cls.include()
-        classes.append(cls)
+    events = wrap.expose_events(local_ns)
 
-    if eventsFound:
+    if events:
         wrap.make_already_exposed(global_ns, 'ram::core', ['Event'])
+        classes += events
 
     # Add a castTo
     wrap.registerSubsystemConverter(IController)

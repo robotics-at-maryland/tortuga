@@ -160,12 +160,12 @@ void SBThruster::setEnabled(bool state)
 {
     m_sensorBoard->setThrusterEnable(m_address, state);
 }
-    
+
 math::Vector3 SBThruster::getLocation()
 {
     return m_location;
 }
-
+    
 double SBThruster::getCurrent()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);

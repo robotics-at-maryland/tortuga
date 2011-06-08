@@ -11,10 +11,12 @@ set(LINK_LIBS
   ${DC1394_LIBRARIES}
   ${FANN_LIBRARIES}
   ${FFTW_LIBRARY}
+  ${FFMPEG_LIBRARIES}
   )
 
 if (RAM_WITH_VISION)
-  add_library(ram_vision SHARED ${SOURCES} ${HEADERS})
+  add_library(ram_vision SHARED
+    ${SOURCES} ${HEADERS} ${vision_SLICE_SOURCES})
   target_link_libraries(ram_vision ${LINK_LIBS})
 
   set_target_properties(ram_vision PROPERTIES
@@ -22,11 +24,6 @@ if (RAM_WITH_VISION)
     ARCHIVE_OUTPUT_DIRECTORY "${LIBDIR}"
     LIBRARY_OUTPUT_DIRECTORY "${LIBDIR}"
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
-    )
-
-  add_executable(OpticalFlowTest "test/src/OpticalFlow.cpp")
-  target_link_libraries(OpticalFlowTest
-    ${OpenCV_LIBS}
     )
 
   add_executable(ImageAnalyzer "test/src/ImageAnalysisTest.cpp")

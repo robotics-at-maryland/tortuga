@@ -35,13 +35,14 @@ class Application(wx.App):
     @ivar _heartBeat: updated every timer update
     """
     
-    def __init__(self, configPath = ''):
+    def __init__(self, configPath = '', redirect = None):
         """
         @type  configPath: str 
         @param configPath: The path to configuration file containing the 
                            subsystems to start. 
         """
         self._configPath = configPath
+        self._redirect = redirect
         
         # Now call parent class
         wx.App.__init__(self, 0)
@@ -75,8 +76,10 @@ class Application(wx.App):
         # Create the Main Frame
         guiCfg = config.get('GUI', {})
         self._numSubsystems = guiCfg.get('numSubsystems', -1)
+        if self._redirect is not None: # Override default option
+            guiCfg['redirect'] = self._redirect
         self._frame = oci.frame.MainFrame(guiCfg, subsystems)
-                                      
+        
         self._frame.Show(True)
         self._frame.Bind(wx.EVT_CLOSE, self._onClose)
         self.SetTopWindow(self._frame)

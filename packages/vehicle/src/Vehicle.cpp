@@ -492,6 +492,6 @@ math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
     return A.inverse();
 }
 
-
+    
 } // namespace vehicle
 } // namespace ram

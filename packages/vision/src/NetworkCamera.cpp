@@ -8,186 +8,113 @@
  */
 
 // STD Includes
-#include <cassert>
-#include <cstdlib>
-#include <cerrno>
-#include <cstdio>
-//#include <iostream>
+#include <iostream>
 
-// System Includes
-#ifdef RAM_POSIX
-	#include <sys/socket.h>
-	#include <arpa/inet.h>
-	#include <netdb.h> // gethostbyname
-	#include <netinet/in.h>
-#else
-	#include <winsock2.h>
-#endif
+// Library Includes
+#include <boost/asio.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <highgui.h>
 
 // Project includes
 #include "vision/include/NetworkCamera.h"
 #include "vision/include/NetworkRecorder.h"
 #include "vision/include/OpenCVImage.h"
 
-#define RAM_NETWORK_COMPRESSION
-
-#ifdef RAM_NETWORK_COMPRESSION
-#include "vision/include/quicklz.h"
-#endif
-
-#ifdef RAM_WINDOWS
-#define close closesocket
-#endif
-
 namespace ram {
 namespace vision {
 
-NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port) :
-    m_addr(0),
-    m_sockfd(0),
-    m_compressedBuffer(0),
-    m_imageBuffer(0),
-    m_bufferSize(0),
-    m_width(0),
-    m_height(0),
-    m_fps(0)
+NetworkCamera::NetworkCamera(std::string hostname, boost::uint16_t port)
+    : m_hostname(hostname)
+    , m_port(boost::lexical_cast<std::string>(port))
+    , m_width(320)
+    , m_height(240)
 {
-    // Setup address
-    struct hostent* he = gethostbyname(hostname.c_str());
-    if (!he)
-    {  
-        perror("gethostbyname");
-        assert(false && "gethostbyname");
-    }
-
-    m_addr = (struct sockaddr_in*)calloc(1, sizeof(*m_addr));
-    m_addr->sin_family = AF_INET;    // host byte order
-    m_addr->sin_port = htons(port);  // short, network byte order
-    m_addr->sin_addr = *((struct in_addr *)he->h_addr);
-
-#ifdef RAM_WINDOWS
-	WSADATA wsaData;
-	WORD version;
-	int error;
-	version = MAKEWORD( 2, 0 );
-	error = WSAStartup( version, &wsaData );
-#endif
-
-    // Create socket
-    m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (m_sockfd < 0)
-    {
-        perror("socket");
-        assert(false && "socket");
-    }
-
-    int ret = connect(m_sockfd, (struct sockaddr*)m_addr,
-                      sizeof(struct sockaddr));
-    if (ret < 0)
-    {
-        perror("connect");
-        assert(false && "connect");
-    }
-
-//    std::cout << "Reading header" << std::endl;
-    // Read first no data packet to get width and height
-    ImagePacketHeader header = {0, 0, 0};
-    readPacketHeader(&header);
-    m_width = header.width;
-    m_height = header.height;
-    m_fps = 30;
-//    std::cout << "Got Header" << std::endl;
 }
 
 NetworkCamera::~NetworkCamera()
 {
     // Have to stop background capture before we release the capture!
     cleanup();
-
-	close(m_sockfd);
-#ifdef RAM_WINDOWS
-    WSACleanup();
-#endif
-
-    free(m_addr);
-    free(m_compressedBuffer);
-    free(m_imageBuffer);
 }
 
 void NetworkCamera::update(double timestep)
 {
-//    std::cout << "UPDATE" << std::endl;
-    // Read header
-    ImagePacketHeader header;
-    readPacketHeader(&header);
-    
-    // TODO: Don't ignore this return value
-    {                                                                       
-        boost::mutex::scoped_lock lock(m_specsMutex);                     
-        m_width = header.width;                                             
-        m_height = header.height;                                           
-        m_fps = 30;                                                         
+    using namespace boost::asio::ip;
+
+    tcp::socket socket(io_service);
+
+    tcp::endpoint none;
+    if (m_endpoint == none) {
+        // New connection
+        tcp::resolver resolver(io_service);
+        tcp::resolver::query query(m_hostname, m_port);
+
+        tcp::resolver::iterator iter = resolver.resolve(query);
+        tcp::resolver::iterator end;
+        boost::system::error_code error = boost::asio::error::host_not_found;
+        do {
+            socket.close();
+            socket.connect(*iter, error);
+        } while (error && ++iter != end);
+
+        if (error)
+            return; // could not connect to host
+        else {
+            // Save endpoint for next time
+            m_endpoint = *iter;
+        }
+    } else {
+        boost::system::error_code error;
+        socket.connect(m_endpoint, error);
+
+        if (error) {
+            // host has succeeded in the past, but now fails. reset.
+            m_endpoint = none;
+            return;
+        }
     }
 
-    // Make buffer fit incomming image size
-    size_t dataSize = m_width * m_height * 3; 
-    if (header.dataSize > dataSize)
-        dataSize = header.dataSize;
+    // read in the image data
+    try {
+        size_t packetSize;
+        boost::asio::read(socket, boost::asio::buffer(
+                              &packetSize, sizeof(size_t)));
 
-    if (dataSize && (dataSize != m_bufferSize))
-    {
-        m_bufferSize = dataSize;
-        if (m_compressedBuffer)
-        {
-            m_compressedBuffer = (unsigned char*)realloc(m_compressedBuffer,
-                                                         m_bufferSize);
-            m_imageBuffer = (unsigned char*)realloc(m_imageBuffer,
-                                                    m_bufferSize);
+        std::vector<unsigned char> buf(packetSize);
+        size_t len = boost::asio::read(
+            socket, boost::asio::buffer(buf), boost::asio::transfer_all());
+        if (len != packetSize) {
+            std::cout << "incorrect number of bytes received!" << std::endl;
+            return;
         }
-        else
-        {
-            m_compressedBuffer = (unsigned char*)malloc(m_bufferSize);
-            m_imageBuffer = (unsigned char*)malloc(m_bufferSize);
-        }
-    }
 
-    // Read image off the wire
-    assert(m_bufferSize >= header.dataSize && "Buffer to small");
-    recieve(m_compressedBuffer, header.dataSize);
-
-    // Create a temp image which doens't own the buffer, and then call capture
-    // with it
-    if (header.dataSize)
-    {
-#ifdef RAM_NETWORK_COMPRESSION
-        decompress(m_compressedBuffer, header.dataSize, m_imageBuffer);
-        OpenCVImage newImage(m_imageBuffer, header.width, header.height,
-                             false);
-#else
-        OpenCVImage newImage(m_compressedBuffer, header.width, header.height,
-                             false);
-#endif
+        cv::Mat mat = cv::imdecode(cv::Mat(buf), 1);
+        IplImage img = (IplImage) mat;
+        OpenCVImage newImage(&img, false);
 
         capturedImage(&newImage);
+    } catch (boost::system::system_error &error) {
+        // bad error (don't want to crash though, so don't rethrow)
+        std::cout << error.what() << std::endl;
     }
 }
 
 size_t NetworkCamera::width()
 {
-    boost::mutex::scoped_lock lock(m_specsMutex);
+    boost::mutex::scoped_lock lock(m_diagLock);
     return m_width;
 }
 
 size_t NetworkCamera::height()
 {
-    boost::mutex::scoped_lock lock(m_specsMutex);
+    boost::mutex::scoped_lock lock(m_diagLock);
     return m_height;
 }
 
 double NetworkCamera::fps()
 {
-    boost::mutex::scoped_lock lock(m_specsMutex);
-    return m_fps;
+    return 0;
 }
 
 double NetworkCamera::duration()
@@ -204,49 +131,5 @@ double NetworkCamera::currentTime()
     return 0;
 }
 
-void NetworkCamera::decompress(unsigned char* compressedBuffer,
-                               size_t compressedSize,
-                               unsigned char* outputBuffer)
-{
-//    std::cout << "Norm decompress" << std::endl;
-    char scratch[QLZ_SCRATCH_DECOMPRESS] = {0};
-    memset(scratch, 0, QLZ_SCRATCH_DECOMPRESS);
-    /*size_t newSize = */qlz_decompress((char*)compressedBuffer,
-                                        (void*)outputBuffer, scratch);
-}
-    
-void NetworkCamera::readPacketHeader(ImagePacketHeader* packetHeader)
-{
-    recieve(packetHeader, sizeof(ImagePacketHeader));
-    
-    // Transform to local order
-    packetHeader->width = ntohs(packetHeader->width);
-    packetHeader->height = ntohs(packetHeader->height);
-    packetHeader->dataSize = ntohl(packetHeader->dataSize);
-}
-
-void NetworkCamera::recieve(void* buf, size_t len)
-{
-    // Clear the error flag and read the bytes
-    errno = 0;
-
-    // Loop until we have all the data off the socket
-    while ((errno == 0) && (len != 0u))
-    {
-        size_t bytes = recv(m_sockfd, (char*)buf, len, 0);
-
-        if ((((size_t)-1) == bytes) || (errno != 0))
-        {
-            perror("recv");
-            assert(false && "recv");
-        }
-
-        // Decrement current number of bytes to read
-        len -= bytes;
-        // Remember to move forward are data pointer
-        buf = ((char*)buf) + bytes;
-    }
-}
-    
 } // namespace vision
 } // namespace ram

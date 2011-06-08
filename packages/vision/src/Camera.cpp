@@ -22,7 +22,6 @@
 #include "vision/include/CameraMaker.h"
 #include "vision/include/VisionSystem.h"
 
-RAM_CORE_EVENT_TYPE(ram::vision::Camera, RAW_IMAGE_CAPTURED);
 RAM_CORE_EVENT_TYPE(ram::vision::Camera, IMAGE_CAPTURED);
 
 namespace ram {
@@ -41,7 +40,7 @@ Camera::Camera() :
 Camera::~Camera()
 {
     assert(m_cleanedUp && "You must call Camera::cleanup before you destruct"
-                          "anything");
+           "anything");
     assert(!backgrounded() &&
            "Camera must not be backgrounded for destruction");
     delete m_publicImage;
@@ -180,19 +179,23 @@ void Camera::capturedImage(Image* newImage)
 
         // Copy over the image data to the public image
         // (Silently ignore a new image if the new image is null.)
-	if (newImage)
+        if (newImage)
         {
-            // Before processing
-            publish(Camera::RAW_IMAGE_CAPTURED,
-                    ImageEventPtr(new ImageEvent(newImage)) );
-                    
             copyToPublic(newImage, m_publicImage);
-
-            // After processing
-            publish(Camera::IMAGE_CAPTURED,
-                    ImageEventPtr(new ImageEvent(m_publicImage)) );
         }
     }
+
+    // no need to hold the mutex after the image is copied
+    // it would be nice if we could publish this somewhere else
+    // after the image is copied because this blocks the capture loop
+    // alternatively, we could require everyone to use waitForImage
+    // in order to get images upon copy or getImage if dropped or
+    // duplicate frames are not problematic
+    // we could add a timestamp or index for the image in order to
+    // let other modules figure out if they are getting duplicate
+    // frames or dropping frames
+    publish(Camera::IMAGE_CAPTURED,
+            ImageEventPtr(new ImageEvent(m_publicImage)));
     
     // Now release all waiting threads
     m_imageLatch.countDown();

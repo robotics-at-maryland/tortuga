@@ -13,23 +13,23 @@ des_depth = input('Please inpute the desired depth: ');
 
 vel_max = .7291;
 
-[s v] = SVAJ_generator(deltat,act_depth,des_depth,vel_max);
+[s v a j] = SVAJ_generator(deltat,act_depth,des_depth,vel_max);
 hold on;
 s;
 %v(150) 
 
 
 
-  subplot(2,1,1); plot(s,'.');
+  subplot(4,1,1); plot(s,'.');
 set(gca,'YDir','reverse')
 xlabel('step'); ylabel('position');
-  subplot(2,1,2); plot(v,'.');
+subplot(4,1,2); plot(v,'.');
 xlabel('step'); ylabel('velocity');
 set(gca,'YDir','reverse')
-%   subplot(4,1,3); plot(time,a);
-%xlabel('time'); ylabel('acceleration');
-%   subplot(4,1,4); plot(time,j);
-%xlabel('time'); ylabel('jerk');
+subplot(4,1,3); plot(a, '.');
+xlabel('time'); ylabel('acceleration');
+subplot(4,1,4); plot(j, '.');
+xlabel('time'); ylabel('jerk');
 hold off;
 
 %   s(count) = -1*h*   (35*                   (time/beta)^4  -84*                   (time/beta)^5  +70*                      (time/beta)^6 -20*                   (time/beta)^7);

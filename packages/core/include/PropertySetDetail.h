@@ -125,6 +125,16 @@ void PropertySet::loadValueFromNode<bool>(core::ConfigNode config,
                                           core::PropertyPtr prop);
 
 #ifdef RAM_WITH_MATH
+
+template <>
+void PropertySet::loadValueFromNode<math::Radian>(core::ConfigNode config,
+                                                   core::ConfigNode valueNode,
+                                                   core::PropertyPtr prop);
+
+template <>
+void PropertySet::loadValueFromNode<math::Degree>(core::ConfigNode config,
+						  core::ConfigNode valueNode,
+						  core::PropertyPtr prop);
     
 template <>
 void PropertySet::loadValueFromNode<math::Vector2>(core::ConfigNode config,

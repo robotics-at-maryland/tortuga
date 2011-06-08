@@ -13,6 +13,7 @@
 // Project Includes
 #include "vehicle/include/device/Device.h"
 #include "vehicle/include/device/IThruster.h"
+#include "math/include/Vector3.h"
 
 class MockThruster : public ram::vehicle::device::IThruster,
                      public ram::vehicle::device::Device
@@ -44,8 +45,7 @@ public:
 
     virtual void setEnabled(bool state) { enabled = state; }
 
-    virtual ram::math::Vector3 getLocation() 
-    { return location; }
+    virtual ram::math::Vector3 getLocation() { return location; }
 
     virtual double getCurrent() { return current; }
 

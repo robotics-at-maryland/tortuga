@@ -27,6 +27,9 @@ typedef boost::shared_ptr<NetworkPublisher> NetworkPublisherPtr;
 class NetworkHub;
 typedef boost::shared_ptr<NetworkHub> NetworkHubPtr;
 
+class NetworkAdapter;
+typedef boost::shared_ptr<NetworkAdapter> NetworkAdapterPtr;
+
 } // namespace network
 } // namespace ram
 

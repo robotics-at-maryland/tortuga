@@ -19,7 +19,6 @@
 // Library Includes
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/split_free.hpp>
-#include <boost/serialization/export.hpp>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -70,8 +69,10 @@ bool writeEvent(core::EventPtr event, Archive& archive)
         // Only attempt to convert events we now we can convert
         bool convertable = unconvertableTypes.end() ==
             unconvertableTypes.find(typeName);
-        if (convertable)
-            archive << event;
+        if (convertable) {
+            core::EventPtr clone = event->clone();
+            archive << clone;
+        }
         return convertable;
     }
     catch (boost::archive::archive_exception ex)
@@ -144,12 +145,20 @@ BOOST_SERIALIZATION_SHARED_PTR(ram::core::Event)
 template <class Archive>
 void serialize(Archive &ar, ram::core::StringEvent &t,
                const unsigned int file_version)
-{ 
+{
   ar & boost::serialization::base_object<ram::core::Event>(t);
   ar & t.string;
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::core::StringEvent)
+
+template <class Archive>
+void serialize(Archive &ar, ram::core::IntEvent& t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.data;
+}
 
 
 // ------------------------------------------------------------------------- //
@@ -167,6 +176,13 @@ void serialize(Archive &ar, ram::math::Vector3 &t,
   ar & t.z;
 }
 
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector2 &t,
+               const unsigned int file_version)
+{
+    ar & t.x;
+    ar & t.y;
+}
 
 template <class Archive>
 void serialize(Archive &ar, ram::math::Quaternion &t,
@@ -199,6 +215,17 @@ void serialize(Archive &ar, ram::math::Vector3Event &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector3Event)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::math::Vector2Event &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.vector2;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::math::Vector2Event)
 
 
 template <class Archive>
@@ -260,6 +287,24 @@ void serialize(Archive &ar, ram::vision::RedLightEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::RedLightEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vision::BuoyEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.y;
+    ar & (*((double*)(&t.azimuth)));
+    ar & (*((double*)(&t.elevation)));
+    ar & t.range;
+    ar & t.x;
+    ar & t.y;
+    ar & t.id;
+    ar & t.color;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BuoyEvent)
 
 
 template <class Archive>
@@ -348,6 +393,22 @@ void serialize(Archive &ar, ram::vision::BarbedWireEvent &t,
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BarbedWireEvent)
 
+
+template <class Archive>
+void serialize(Archive &ar, ram::vision::HedgeEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.leftX;
+    ar & t.leftY;
+    ar & t.rightX;
+    ar & t.rightY;
+    ar & t.squareNess;
+    ar & t.range;
+    ar & t.haveLeft;
+    ar & t.haveRight;
+}
+
 #endif // RAM_WITH_VISION
 
 // ------------------------------------------------------------------------- //
@@ -410,6 +471,45 @@ void serialize(Archive &ar, ram::vehicle::SonarEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::SonarEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawIMUDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    // TODO: Serialize raw IMU data
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawIMUDataEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawDVLDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    // TODO: Serialize raw DVL data
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawDVLDataEvent)
+
+
+template <class Archive>
+void serialize(Archive &ar, ram::vehicle::RawDepthSensorDataEvent &t,
+               const unsigned int file_version)
+{
+    ar & boost::serialization::base_object<ram::core::Event>(t);
+    ar & t.name;
+    ar & t.rawDepth;
+    ar & t.timestep;
+}
+
+BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawDepthSensorDataEvent)
 
 #endif // RAM_WITH_VEHICLE
 

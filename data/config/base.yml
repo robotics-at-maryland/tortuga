@@ -198,9 +198,13 @@ Vehicle:
             #                        [ 0.9995, -0.0253, 0.0161 ],
             #                        [ 0.0155, -0.0226, -0.9996 ]]
             #from 2010-07-13
-            imuToVehicleRotMatrix: [[ 0.3740, 0.9274, -0.0035 ],
-                                    [ 0.9271, -0.3738, 0.0288 ],
-                                    [ 0.0254, -0.0140, -0.9996 ]]
+            #imuToVehicleRotMatrix: [[ 0.3740, 0.9274, -0.0035 ],
+            #                        [ 0.9271, -0.3738, 0.0288 ],
+            #                        [ 0.0254, -0.0140, -0.9996 ]]
+            #from 2010-10-12
+            imuToVehicleRotMatrix: [[-0.1557, -0.9866, -0.0488],
+                                    [-0.9878, 0.1555, 0.0095],
+                                    [-0.0018, 0.0497, -0.998]]
             #magXBias: -0.0702
             #magYBias:  0.0056
             #magZBias:  0.0124
@@ -216,9 +220,13 @@ Vehicle:
             #magYBias: -0.0217
             #magZBias: -0.0909
             # Tortuga 3  from 2010-07-14
-            magXBias: 0.0177
-            magYBias: -0.0670
-            magZBias: -0.0815
+            #magXBias: 0.0177
+            #magYBias: -0.0670
+            #magZBias: -0.0815
+            # Tortuga 3  from 2010-10-12
+            magXBias: -0.0334
+            magYBias: 0.0321
+            magZBias: -0.0610
 
             #gyroXBias: 0.0013
             #gyroYBias: 0.0499
@@ -233,9 +241,13 @@ Vehicle:
             #gyroYBias: -0.0027
             #gyroZBias: 0.0015
             # Tortuga 3  from 2010-07-14
-            gyroXBias: -0.0051
-            gyroYBias: 0.0021
-            gyroZBias: 0.0040
+            #gyroXBias: -0.0051
+            #gyroYBias: 0.0021
+            #gyroZBias: 0.0040
+            # Tortuga 3  from 2010-10-12
+            gyroXBias: -0.0044
+            gyroYBias: 0.0005
+            gyroZBias: 0.0035
 
             localMagneticPitch: 60
 
@@ -282,9 +294,13 @@ Vehicle:
             #magYBias: -0.0529
             #magZBias: 0.5463
             # Tortuga 3  from 2010-07-14
-            magXBias: 0.1631
-            magYBias: -0.0391
-            magZBias: 0.5789
+            #magXBias: 0.1631
+            #magYBias: -0.0391
+            #magZBias: 0.5789
+            # Tortuga 3  from 2010-10-12
+            magXBias: 0.1086
+            magYBias: -0.1885
+            magZBias: 0.5033
 
             # Tortuga 2.5
             #gyroXBias: 0.0216
@@ -299,9 +315,13 @@ Vehicle:
             #gyroYBias: -0.0223
             #gyroZBias: -0.0336
             # Tortuga 3  from 2010-07-14
-            gyroXBias: 0.0123
-            gyroYBias: -0.0269
-            gyroZBias: -0.0359
+            #gyroXBias: 0.0123
+            #gyroYBias: -0.0269
+            #gyroZBias: -0.0359
+            # Tortuga 3  from 2010-10-12
+            gyroXBias: 0.0193
+            gyroYBias: -0.0261
+            gyroZBias: -0.0365
 
             # Tortuga 2.5
             #imuToVehicleRotMatrix: [[-0.8794, 0.0060, -0.4761],
@@ -320,9 +340,13 @@ Vehicle:
             #                        [ 0.9864, 0.0183, -0.1635],
             #                        [ -0.0227, 0.9994, -0.0250]]
             # Tortuga 3  from 2010-07-14
-            imuToVehicleRotMatrix: [[ 0.2608, 0.0058, 0.9654],
-                                    [ 0.9642, -0.0519, -0.2601],
-                                    [ 0.0486, 0.9986, -0.0192]]
+            #imuToVehicleRotMatrix: [[ 0.2608, 0.0058, 0.9654],
+            #                        [ 0.9642, -0.0519, -0.2601],
+            #                        [ 0.0486, 0.9986, -0.0192]]
+            # Tortuga 3  from 2010-10-12
+            imuToVehicleRotMatrix: [[ 0.1536, 0.0306, 0.9877],
+                                    [ 0.9880, -0.0196, -0.1530],
+                                    [ 0.0147, 0.9993, -0.0333]]
             
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0

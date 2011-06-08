@@ -30,17 +30,20 @@ class State(object):
                 raise ValueError, "Subsystem cannot be named 'config'"
             setattr(self, name, subsystem)
 
-        if type(self.getattr())==type({}):
+        try:
             for name, default in self.getattr().iteritems():
-                attribs = self.getattr()
-                try:
-                    value = self._config[name]
-                except KeyError, e:
-                    if default == State.REQUIRED:
-                        raise KeyError, "No config value for required field: " + name
-                    else:
-                        value = default
-                setattr(self, "_" + name, value)
+                if default == State.REQUIRED or self._config.has_key(name):
+                    try:
+                        value = self._config[name]
+                    except KeyError:
+                        # Rethrow exception with a more useful error message
+                        raise KeyError("No config value for required field '%s'" % name)
+                else:
+                    value = default
+                setattr(self, "_%s" % name, value)
+        except AttributeError:
+            # Use old attribute style
+            pass
             
     @staticmethod
     def transitions():

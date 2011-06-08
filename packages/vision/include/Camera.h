@@ -35,14 +35,6 @@ class RAM_EXPORT Camera : public core::Updatable,
                           public core::EventPublisher
 {
 public:
-    /** The image sent to capturedImage, before any processing
-     *
-     *  <b>DO NOT</b> do a lot of work in these event handlers.  It will block
-     *  the camera capture thread.  The best usage is just to copy the given
-     *  image to an internal buffer or queue.
-     */
-    static const core::Event::EventType RAW_IMAGE_CAPTURED;
-    
     /** The image available through getImage
      *
      *  <b>DO NOT</b> do a lot of work in these event handlers.  It will block

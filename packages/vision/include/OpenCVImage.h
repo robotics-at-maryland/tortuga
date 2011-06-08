@@ -34,6 +34,9 @@ namespace vision {
 class RAM_EXPORT OpenCVImage : public Image
 {
 public:
+    /** Default constructor */
+    OpenCVImage();
+
     /** Allocate an image of the desired width and height */
     OpenCVImage(int width, int height, Image::PixelFormat fmt = PF_START);
     
@@ -49,7 +52,7 @@ public:
     OpenCVImage(std::string fileName, Image::PixelFormat fmt = PF_START);
     
     /** Release the underlying OpenCV image if it has ownership */
-    ~OpenCVImage();
+    virtual ~OpenCVImage();
 
     virtual void copyFrom (const Image* src);
     
@@ -87,15 +90,10 @@ public:
     virtual operator IplImage*();
     
     virtual IplImage* asIplImage() const;
-    
-    
+
 private:
-    /** Gets the parameters needed for cvCreateImage from the lookup table */
-    void getFormatParameters(const Image::PixelFormat& fmt,
-                             int& depth, int& channels);
-    
     bool m_own;
-    unsigned char* m_data;
+    unsigned char *m_data;
     IplImage* m_img;
     Image::PixelFormat m_fmt;
 };

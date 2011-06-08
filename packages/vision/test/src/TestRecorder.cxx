@@ -17,7 +17,7 @@
 #include "vision/test/include/MockRecorder.h"
 #include "vision/test/include/MockCamera.h"
 #include "vision/include/OpenCVImage.h"
-#include "vision/include/FFMPEGNetworkRecorder.h"
+#include "vision/include/NetworkRecorder.h"
 
 #include "vision/test/include/MockCamera.h"
 #include "vision/test/include/UnitTestChecks.h"
@@ -120,7 +120,7 @@ TEST_FIXTURE(RecorderFixture, createFromString)
 
     CHECK_EQUAL(320u, recorder->getRecordingWidth());
     CHECK_EQUAL(240u, recorder->getRecordingHeight());
-    CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
+    CHECK(dynamic_cast<vision::NetworkRecorder*>(recorder));
     
     delete recorder;
 
@@ -129,7 +129,7 @@ TEST_FIXTURE(RecorderFixture, createFromString)
 
     CHECK_EQUAL(640u, recorder->getRecordingWidth());
     CHECK_EQUAL(480u, recorder->getRecordingHeight());
-    CHECK(dynamic_cast<vision::FFMPEGNetworkRecorder*>(recorder));
+    CHECK(dynamic_cast<vision::NetworkRecorder*>(recorder));
 
     delete recorder;
 }

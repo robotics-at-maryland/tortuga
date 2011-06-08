@@ -16,14 +16,17 @@
 
 // Library Includes
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 
 // Project Includes
+#include "core/include/Common.h"
+#include "core/include/Forward.h"
+#include "core/include/ConfigNode.h"
 #include "core/include/Subsystem.h"
 #include "core/include/Updatable.h"
-#include "core/include/ConfigNode.h"
-#include "core/include/Event.h"
-#include "core/include/EventHub.h"
+#include "network/include/Common.h"
+
+namespace boost { class thread; }
 
 namespace ram {
 namespace network {
@@ -32,9 +35,12 @@ class RAM_EXPORT NetworkPublisher :
         public core::Subsystem,
         public core::Updatable
 {
-  public:
+public:
     NetworkPublisher(core::ConfigNode config,
                      core::SubsystemList deps = core::SubsystemList());
+
+    NetworkPublisher(core::ConfigNode config,
+                     core::EventHubPtr eventHub);
 
     virtual ~NetworkPublisher();
 
@@ -66,6 +72,8 @@ class RAM_EXPORT NetworkPublisher :
     static const uint16_t PORT;
 
   private:
+    void init();
+
     void startReceive();
 
     void handleReceiveFrom(const boost::system::error_code& err,

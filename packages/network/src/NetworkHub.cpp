@@ -20,7 +20,7 @@
 #include "network/include/NetworkHub.h"
 #include "logging/include/Serialize.h"
 
-#define MAX_LENGTH 256
+#define MAX_LENGTH 512
 
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::network::NetworkHub,
                                   NetworkHub);
@@ -45,7 +45,9 @@ NetworkHub::NetworkHub(std::string name, std::string host, uint16_t port)
 NetworkHub::NetworkHub(core::ConfigNode config,
                        core::SubsystemList deps)
     : core::EventHub(config, deps),
-      socket_(io_service, udp::endpoint(udp::v4(), NetworkPublisher::PORT)),
+      m_host(config["host"].asString("localhost")),
+      m_port(config["port"].asInt(NetworkPublisher::PORT)),
+      socket_(io_service, udp::endpoint(udp::v4(), 0)),
       m_bthread(0),
       m_active(true)
 {
@@ -57,6 +59,11 @@ NetworkHub::~NetworkHub()
 {
     // Stop background processing thread
     m_active = false;
+
+    // Shutdown socket
+    boost::system::error_code err;
+    // This always seems to receive a transport endpoint is not connected error
+    socket_.shutdown(udp::socket::shutdown_both, err);
     m_bthread->join();
 
     delete m_bthread;
@@ -84,17 +91,33 @@ void NetworkHub::daemon()
         size_t reply_length = socket_.receive_from(
             boost::asio::buffer(reply, MAX_LENGTH), sender_endpoint);
 
-        // Write message received to archive
-        std::stringstream sstream;
-        sstream.write(reply, reply_length);
+        // Check if any data was received
+        if (reply_length > 0)
+        {
+            // Write message received to archive
+            std::stringstream sstream;
+            sstream.write(reply, reply_length);
 
-        // Deserialize the received event
-        boost::archive::text_iarchive archive(sstream);
-        core::EventPtr event = core::EventPtr();
-        archive >> event;
-
-        // Publish the deserialized event
-        publish(event);
+            using namespace boost::archive;
+            try {
+                // Deserialize the received event
+                text_iarchive archive(sstream, no_tracking);
+                core::EventPtr event = core::EventPtr();
+                archive >> event;
+                
+                // Publish the deserialized event
+                publish(event);
+            } catch (archive_exception& ex) {
+                // Ignore stream errors and discard the event
+                if (ex.code == archive_exception::input_stream_error)
+                {
+                    std::cout << "input stream error: "
+                              << reply_length << std::endl;
+                } else {
+                    throw ex;
+                }
+            }
+        }
     }
 }
 

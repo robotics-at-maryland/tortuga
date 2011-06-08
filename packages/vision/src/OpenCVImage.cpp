@@ -39,6 +39,14 @@ int cvErrorHandler(int status, char const* func_name,
 namespace ram {
 namespace vision {
 
+OpenCVImage::OpenCVImage() :
+    m_own(true),
+    m_data(0),
+    m_img(0),
+    m_fmt(PF_START)
+{
+}
+
 OpenCVImage::OpenCVImage(int width, int height, Image::PixelFormat fmt) :
     m_own(true),
     m_data(0),
@@ -57,10 +65,10 @@ OpenCVImage::OpenCVImage(int width, int height, Image::PixelFormat fmt) :
     }
 #endif
     
-    int depth, channels;
-    getFormatParameters(fmt, depth, channels);
-    m_img = cvCreateImage(cvSize(width, height), depth, channels);
+    int depth = getFormatDepth(fmt);
+    int channels = getFormatNumChannels(fmt);
 
+    m_img = cvCreateImage(cvSize(width, height), depth, channels);
     assert(m_img && "Error creating OpenCV Image");
 }
     
@@ -73,8 +81,9 @@ OpenCVImage::OpenCVImage(IplImage* image, bool ownership,
 {
     // If a pixel format is given, sanity check it
     if (fmt != PF_START) {
-        int depth, channels;
-        getFormatParameters(fmt, depth, channels);
+        int depth = getFormatDepth(fmt);
+        int channels = getFormatNumChannels(fmt);
+
         assert(image->nChannels == channels &&
                "The given image has a different number of channels"
                " than the specified format");
@@ -102,10 +111,11 @@ OpenCVImage::OpenCVImage(unsigned char* data, int width, int height,
     assert(width >= 1 && "Image can't have a negative or 0 width");
     assert(height >= 1 && "Image can't have a negative or 0 height");
 
-    int depth, channels;
-    getFormatParameters(fmt, depth, channels);
+    int depth = getFormatDepth(fmt);
+    int channels = getFormatNumChannels(fmt);
+
     m_img = cvCreateImageHeader(cvSize(width, height), depth, channels);
-    cvSetData(m_img, data, width * channels);
+    cvSetData(m_img, data, width * channels); // assumes 8 bits per channel
 }
     
 OpenCVImage::OpenCVImage(std::string fileName, Image::PixelFormat fmt) :
@@ -116,79 +126,46 @@ OpenCVImage::OpenCVImage(std::string fileName, Image::PixelFormat fmt) :
 {
     assert(m_img && "Image could not be loaded from file");
 }
-
-void OpenCVImage::getFormatParameters(const Image::PixelFormat& fmt,
-                                      int& depth, int &channels)
-{
-    static const std::pair<int, int> lookupTable[11] = {
-        std::make_pair(8, 3), // PF_START
-        std::make_pair(8, 3), // PF_RGB_8
-        std::make_pair(8, 3), // PF_BGR_8
-        std::make_pair(8, 3), // PF_YUV444_8
-        std::make_pair(8, 1), // PF_GRAY_8
-        std::make_pair(8, 3), // PF_HSV_8
-        std::make_pair(8, 3), // PF_LUV_8
-        std::make_pair(8, 3), // PF_LCHUV_8
-        std::make_pair(8, 3), // PF_LAB_8
-        std::make_pair(8, 3), // PF_LCHAB_8
-        std::make_pair(8, 3)  // PF_END
-    };
-
-    depth = lookupTable[fmt].first;
-    channels = lookupTable[fmt].second;
-}
     
-void OpenCVImage::copyFrom (const Image* src)
+void OpenCVImage::copyFrom(const Image* src)
 {
     // Handle self copy
     if (this == src)
         return;
     
-    PixelFormat src_fmt = src->getPixelFormat();
-    // Create temporaty OpenCV image to smooth the copy process
-    int depth, channels;
-    getFormatParameters(src_fmt, depth, channels);
-    IplImage* tmp_img = cvCreateImageHeader(cvSize(src->getWidth(),
-                                                   src->getHeight()),
-                                            depth, channels);
-    cvSetData(tmp_img, src->getData(), src->getWidth() * channels);
-
-    // Resize this image to match the source needed (also copy)
-    if ((getWidth() != src->getWidth()) ||
+    // Resize this image to match the source needed
+    if (!m_img ||
+        (getWidth() != src->getWidth()) ||
         (getHeight() != src->getHeight()) ||
         (getNumChannels() != src->getNumChannels()) ||
         (getDepth() != src->getDepth()))
     {
-        assert(m_own && "Cannot perform resize unless I own the image");
-        cvReleaseImage(&m_img);
+        if (m_img)
+        {
+            assert(m_own && "Cannot perform resize unless I own the image");
+            cvReleaseImage(&m_img);
+        }
         m_img = cvCreateImage(cvSize(src->getWidth(), src->getHeight()),
-                              depth, channels);
+                              src->getDepth(), src->getNumChannels());
     }
-    // Copy the internal image data over
-    cvCopy(tmp_img, m_img);
 
-    cvReleaseImageHeader(&tmp_img);
+    // Copy the internal image data over
+    cvCopy(src->asIplImage(), m_img);
 
     // Set the pixel format
-    m_fmt = src_fmt;
-    
-    // Copy Other members
-    //m_own = src->getOwnership();
-    // copying this makes no sense, we now have a totally new copy, so we own it
-    //m_own = true;
+    m_fmt = src->getPixelFormat();
 }
-    
+
 OpenCVImage::~OpenCVImage()
 {
     if (m_own)
     {
-        assert(m_img && "Error can't free empty OpenCV image");
         if (m_data)
         {
             cvReleaseImageHeader(&m_img);
             delete[] m_data;
         }
-        else
+        else if (m_img)
         {
             cvReleaseImage(&m_img);
         }
@@ -207,22 +184,22 @@ unsigned char* OpenCVImage::getData() const
     
 size_t OpenCVImage::getWidth() const
 {
-    return cvGetSize(m_img).width;
+    return m_img ? cvGetSize(m_img).width : 0;
 }
 
 size_t OpenCVImage::getHeight() const
 {
-    return cvGetSize(m_img).height;
+    return m_img ? cvGetSize(m_img).height : 0;
 }
 
 size_t OpenCVImage::getDepth() const
 {
-    return m_img->depth;
+    return m_img ? getFormatDepth(m_fmt) : 0;
 }
 
 size_t OpenCVImage::getNumChannels() const
 {
-    return m_img->nChannels;
+    return m_img ? getFormatNumChannels(m_fmt) : 0;
 }
 
 Image::PixelFormat OpenCVImage::getPixelFormat() const
@@ -240,8 +217,9 @@ unsigned char* OpenCVImage::setData(unsigned char* data, bool ownership)
 {
     m_own = ownership;
     unsigned char* tmp = getData();
-    int depth, channels;
-    getFormatParameters(m_fmt, depth, channels);
+
+    int channels = getNumChannels();
+
     cvSetImageData(m_img, data, cvGetSize(m_img).width * channels);
     return tmp;
 }
@@ -249,7 +227,8 @@ unsigned char* OpenCVImage::setData(unsigned char* data, bool ownership)
 void  OpenCVImage::setSize(int width, int height)
 {
     // Leave early if we really aren't changing the image size
-    if ((cvGetSize(m_img).width == width) && (cvGetSize(m_img).height == height))
+    if ((cvGetSize(m_img).width == width) && 
+        (cvGetSize(m_img).height == height))
         return;
 
     assert(m_own && "Can't change size of an image we don't own");
@@ -258,11 +237,10 @@ void  OpenCVImage::setSize(int width, int height)
     
     IplImage* old = m_img;
     
-    int depth, channels;
-    getFormatParameters(m_fmt, depth, channels);
+    int depth = getDepth();
+    int channels = getNumChannels();
+
     m_img = cvCreateImage(cvSize(width, height), depth, channels);
-    //cvCopy(old, m_img);
-    // this doesn't work, so let's use the right function instead
     cvResize (old, m_img);
     
     cvReleaseImage(&old);
@@ -302,11 +280,11 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
         /* CIELCh_uv */
         {-1,         -1,         -1,-1,         -1,        -1,        -1,        -2, -1, -1, -1},
         /* CIELAB */
-        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -1, -1, -1},
+        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -2, -1, -1},
         /* CIELCh_ab */
-        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -1, -1, -1},
+        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -1, -2, -1},
         /* Sentinal value */
-        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -1, -1, -1}
+        {-1,         -1,         -1,-1,         -1,        -1,        -1,        -1, -1, -1, -2}
     };
 
     int code = lookupTable[m_fmt][format];
@@ -317,10 +295,11 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
         throw ImageConversionException(m_fmt, format);
     } else if (code != -2) {
         // If the number of channels or depth change, we need a new image
-        int depth, channels;
-        getFormatParameters(m_fmt, depth, channels);
-        int newDepth, newChannels;
-        getFormatParameters(format, newDepth, newChannels);
+        int depth = getDepth();
+        int channels = getNumChannels();
+
+        int newDepth = getFormatDepth(format);
+        int newChannels = getFormatNumChannels(format);
 
         if (depth != newDepth || channels != newChannels) {
             // Create a new image with the new depth/channels
