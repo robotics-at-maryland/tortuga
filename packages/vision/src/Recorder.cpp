@@ -30,7 +30,6 @@
 #include "vision/include/FileRecorder.h"
 #include "vision/include/RawFileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
-#include "vision/include/FFMPEGNetworkRecorder.h"
 
 #include "core/include/TimeVal.h"
 #include "core/include/EventConnection.h"
@@ -211,8 +210,8 @@ Recorder* Recorder::createRecorderFromString(const std::string& str,
         boost::uint16_t portNum = boost::lexical_cast<boost::uint16_t>(typeStr);
 
         recorder =
-            new vision::FFMPEGNetworkRecorder(camera, policy, portNum,
-                                              policyArg, width, height);
+            new vision::NetworkRecorder(camera, policy, portNum,
+                                        policyArg, width, height);
     }
 
     if (!recorder)

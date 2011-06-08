@@ -78,11 +78,11 @@ TEST_FIXTURE(LineDetectorFixture, testHorizontalLine)
         CHECK_CLOSE(expectedTheta, line.theta().valueRadians(), 0.005);
         CHECK_CLOSE(expectedRho, line.rho(), 3);
 
-        CHECK_CLOSE(expectedPt1.x, line.point1().x, 2);
-        CHECK_CLOSE(expectedPt1.y, line.point1().y, 2);
+        CHECK_CLOSE(expectedPt1.x, line.point1().x, 3);
+        CHECK_CLOSE(expectedPt1.y, line.point1().y, 3);
 
-        CHECK_CLOSE(expectedPt2.x, line.point2().x, 2);
-        CHECK_CLOSE(expectedPt2.y, line.point2().y, 2);
+        CHECK_CLOSE(expectedPt2.x, line.point2().x, 3);
+        CHECK_CLOSE(expectedPt2.y, line.point2().y, 3);
 
         CHECK_CLOSE(expectedLength, line.length(), 5);
     }
@@ -107,7 +107,7 @@ TEST_FIXTURE(LineDetectorFixture, testDiagonalLine)
     vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
     detector.processImage(&single, &output);
 
-    CHECK_EQUAL(2u, detector.getLines().size());
+    CHECK_EQUAL(3u, detector.getLines().size());
 
     BOOST_FOREACH(vision::LineDetector::Line line, detector.getLines())
     {
@@ -131,11 +131,11 @@ TEST_FIXTURE(LineDetectorFixture, testLineListClear)
     vision::OpenCVImage output(640, 480, vision::Image::PF_GRAY_8);
     detector.processImage(&single, &output);
 
-    CHECK_EQUAL(2u, detector.getLines().size());
+    CHECK_EQUAL(3u, detector.getLines().size());
 
     // Now process again
     detector.processImage(&single, &output);
-    CHECK_EQUAL(2u, detector.getLines().size());
+    CHECK_EQUAL(3u, detector.getLines().size());
 }
 
 TEST_FIXTURE(LineDetectorFixture, testSolidLine)

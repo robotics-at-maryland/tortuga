@@ -23,10 +23,7 @@
 
 #include "vision/include/ImageCamera.h"
 #include "vision/include/NetworkCamera.h"
-#include "vision/include/FFMPEGNetworkCamera.h"
 #include "vision/include/OpenCVCamera.h"
-#include "vision/include/FFMPEGCamera.h"
-#include "vision/include/RawFileCamera.h"
 #include "vision/include/DC1394Camera.h"
 
 namespace bfs = boost::filesystem;
@@ -61,37 +58,6 @@ CameraPtr CameraMakerTemplate<ImageCamera>::makeObject(
     
 static CameraMakerTemplate<ImageCamera>
 registerImageCamera("ImageCamera");
-
-
-// ------------------------------------------------------------------------- //
-//               F F M P E G   N E T W O R K   C A M E R A                   //
-// ------------------------------------------------------------------------- //
-    
-template <>
-CameraPtr CameraMakerTemplate<FFMPEGNetworkCamera>::makeObject(
-    CameraMakerParamType params)
-{
-    boost::smatch what;
-    bool result = boost::regex_match(params.get<0>(), what, HOSTNAME_PORT);
-    assert(result && "Invalid input string");
-
-    // Extract hostname & port out of the string
-    std::string hostname = what.str(1);
-    boost::uint16_t port =
-        boost::lexical_cast<boost::uint16_t>(what.str(2));
-
-    // Form message string
-    std::stringstream ss;
-    ss << "Streaming images from host: \"" << hostname
-       << "\" on port " << port;
-    params.get<2>() = ss.str();
-
-    // Return our new camear
-    return CameraPtr(new vision::FFMPEGNetworkCamera(hostname, port));
-}
-    
-static CameraMakerTemplate<FFMPEGNetworkCamera>
-registerFFMPEGNetworkCamera("FFMPEGNetworkCamera");
 
 
 // ------------------------------------------------------------------------- //
@@ -147,7 +113,7 @@ CameraPtr CameraMakerTemplate<OpenCVCamera>::makeObject(
         ss << "OpenCV Camera num:" << camnum;
         params.get<2>() = ss.str();
     
-        return CameraPtr(new vision::OpenCVCamera(camnum, true));
+        return CameraPtr(new vision::OpenCVCamera(camnum));
     }
     else
     {
@@ -161,39 +127,32 @@ static CameraMakerTemplate<OpenCVCamera>
 registerOpenCVCamera("OpenCVCamera");
 
 
-// ------------------------------------------------------------------------- //
-//                      R A W   F I L E   C A M E R A                        //
-// ------------------------------------------------------------------------- //
-    
 template <>
-CameraPtr CameraMakerTemplate<RawFileCamera>::makeObject(
+CameraPtr CameraMakerTemplate<NetworkCamera>::makeObject(
     CameraMakerParamType params)
 {
-    return CameraPtr(new vision::RawFileCamera(params.get<0>()));
+    boost::smatch what;
+    bool result = boost::regex_match(params.get<0>(), what, HOSTNAME_PORT);
+    assert(result && "Invalid input string");
+
+    // Extract hostname & port out of the string
+    std::string hostname = what.str(1);
+    boost::uint16_t port =
+        boost::lexical_cast<boost::uint16_t>(what.str(2));
+
+    // Form message string
+    std::stringstream ss;
+    ss << "Streaming images from host: \"" << hostname
+       << "\" on port " << port;
+    params.get<2>() = ss.str();
+
+    // Return our new camear
+    return CameraPtr(new vision::NetworkCamera(hostname, port));
 }
 
-static CameraMakerTemplate<RawFileCamera>
-registerRawFileCamera("RawFileCamera");
+static CameraMakerTemplate<NetworkCamera>
+registerNetworkCamera("NetworkCamera");
 
-
-// ------------------------------------------------------------------------- //
-//                       F F M P E G   C A M E R A                           //
-// ------------------------------------------------------------------------- //
-    
-template <>
-CameraPtr CameraMakerTemplate<FFMPEGCamera>::makeObject(
-    CameraMakerParamType params)
-{
-    return CameraPtr(new vision::FFMPEGCamera(params.get<0>()));
-}
-
-static CameraMakerTemplate<FFMPEGCamera>
-registerFFMPEGCamera("FFMPEGCamera");
-
-    
-// ------------------------------------------------------------------------- //
-//                       F F M P E G   C A M E R A                           //
-// ------------------------------------------------------------------------- // 
 
 std::string CameraKeyExtractor::extractKey(CameraMakerParamType& params)
 {
@@ -214,7 +173,7 @@ std::string CameraKeyExtractor::extractKey(CameraMakerParamType& params)
     boost::smatch what;
     if (boost::regex_match(input, what, HOSTNAME_PORT))
     {
-        return "FFMPEGNetworkCamera";
+        return "NetworkCamera";
     }
 	
     if (boost::regex_match(input, IMAGE))
@@ -229,10 +188,7 @@ std::string CameraKeyExtractor::extractKey(CameraMakerParamType& params)
     
     std::string extension = bfs::path(input).extension();
 
-    if (".rmv" == extension)
-        return "RawFileCamera";
-    else
-        return "FFMPEGCamera";
+    return "OpenCVCamera";
 }
     
 } // namespace vision

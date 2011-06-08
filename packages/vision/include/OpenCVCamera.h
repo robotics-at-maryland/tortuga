@@ -11,6 +11,10 @@
 #define RAM_VISION_OPENCVCAMERA_H_06_06_2007
 #include <string>
 
+// Library Includes
+#include <cv.h>
+#include <highgui.h>
+
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Camera.h"
@@ -25,21 +29,17 @@ namespace vision {
 class RAM_EXPORT OpenCVCamera : public Camera
 {
 public:
-    /** Opens Default Camera */
-    OpenCVCamera();
-    
     /** Open specific camera */
-    OpenCVCamera(int camNum, bool forward);
+    OpenCVCamera(int camNum = 0);
 
     /** Open a specific movie */
     OpenCVCamera(std::string movieName);
-
     
-    ~OpenCVCamera();
+    virtual ~OpenCVCamera();
 
     /** This grabs the new image, and then stores it for Camera::getImage */
     virtual void update(double timestep);
-	
+
     virtual size_t width();
     
     virtual size_t height();
@@ -51,28 +51,14 @@ public:
     virtual void seekToTime(double seconds);
 
     virtual double currentTime();
-
-protected:
-    /** Preforms a calbration during the copy if possible
-     *  
-     *  If m_calibration is non 0, it will perform the calibration and copy in
-     *  one operation.  If not, it will use the standard camera copy.
-     */
-    virtual void copyToPublic(Image* newImage, Image* publicImage);
     
-private:
-    /** Retrieves the latest image from camera and undistorts
-     *
-     *	@param undistorted
-     *      The image to place the undistorted results into
-     */
-    void getCalibratedImage(Image* undistorted);
-    
-    /** A Calibration with parameters that can be set for this camera */
-    Calibration* m_calibration;
-    
+private:    
     /** OpenCV Capture handle */
-    CvCapture* m_camCapture;
+    cv::VideoCapture* m_camCapture;
+    cv::Mat m_mat;
+    IplImage m_buffer;
+
+    bool m_live;
 };
 
 } // namespace vision

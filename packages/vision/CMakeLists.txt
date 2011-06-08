@@ -26,11 +26,6 @@ if (RAM_WITH_VISION)
     RUNTIME_OUTPUT_DIRECTORY "${LIBDIR}"
     )
 
-  add_executable(OpticalFlowTest "test/src/OpticalFlow.cpp")
-  target_link_libraries(OpticalFlowTest
-    ${OpenCV_LIBS}
-    )
-
   add_executable(ImageAnalyzer "test/src/ImageAnalysisTest.cpp")
   target_link_libraries(ImageAnalyzer
     ram_vision

@@ -18,8 +18,6 @@
 #include "vision/include/DC1394Camera.h"
 #include "vision/include/FileRecorder.h"
 #include "vision/include/NetworkRecorder.h"
-#include "vision/include/FFMPEGRecorder.h"
-#include "vision/include/FFMPEGNetworkRecorder.h"
 #include "vision/include/LCHConverter.h"
 
 #include "vision/include/RedLightDetector.h"

@@ -28,7 +28,6 @@
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/OpenCVCamera.h"
-#include "vision/include/FFMPEGCamera.h"
 #include "vision/include/RawFileCamera.h"
 #include "vision/include/Detector.h"
 #include "vision/include/DetectorMaker.h"
@@ -94,7 +93,7 @@ void Model::openFile(std::string filename)
     if (".rmv" == extension)
         m_camera = new vision::RawFileCamera(filename);
     else
-        m_camera = new vision::FFMPEGCamera(filename);
+        m_camera = new vision::OpenCVCamera(filename);
     
     sendImageSourceChanged();
     sendNewImage();
@@ -108,7 +107,7 @@ void Model::openCamera(int num)
     if (-1 == num)
         m_camera = new vision::OpenCVCamera();
     else
-        m_camera = new vision::OpenCVCamera(num, true);
+        m_camera = new vision::OpenCVCamera(num);
     
     sendImageSourceChanged();
     sendNewImage();

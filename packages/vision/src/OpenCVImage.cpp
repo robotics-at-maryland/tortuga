@@ -39,6 +39,14 @@ int cvErrorHandler(int status, char const* func_name,
 namespace ram {
 namespace vision {
 
+OpenCVImage::OpenCVImage() :
+    m_own(true),
+    m_data(0),
+    m_img(0),
+    m_fmt(PF_START)
+{
+}
+
 OpenCVImage::OpenCVImage(int width, int height, Image::PixelFormat fmt) :
     m_own(true),
     m_data(0),
@@ -126,13 +134,17 @@ void OpenCVImage::copyFrom(const Image* src)
         return;
     
     // Resize this image to match the source needed
-    if ((getWidth() != src->getWidth()) ||
+    if (!m_img ||
+        (getWidth() != src->getWidth()) ||
         (getHeight() != src->getHeight()) ||
         (getNumChannels() != src->getNumChannels()) ||
         (getDepth() != src->getDepth()))
     {
-        assert(m_own && "Cannot perform resize unless I own the image");
-        cvReleaseImage(&m_img);
+        if (m_img)
+        {
+            assert(m_own && "Cannot perform resize unless I own the image");
+            cvReleaseImage(&m_img);
+        }
         m_img = cvCreateImage(cvSize(src->getWidth(), src->getHeight()),
                               src->getDepth(), src->getNumChannels());
     }
@@ -148,13 +160,12 @@ OpenCVImage::~OpenCVImage()
 {
     if (m_own)
     {
-        assert(m_img && "Error can't free empty OpenCV image");
         if (m_data)
         {
             cvReleaseImageHeader(&m_img);
             delete[] m_data;
         }
-        else
+        else if (m_img)
         {
             cvReleaseImage(&m_img);
         }
@@ -173,22 +184,22 @@ unsigned char* OpenCVImage::getData() const
     
 size_t OpenCVImage::getWidth() const
 {
-    return cvGetSize(m_img).width;
+    return m_img ? cvGetSize(m_img).width : 0;
 }
 
 size_t OpenCVImage::getHeight() const
 {
-    return cvGetSize(m_img).height;
+    return m_img ? cvGetSize(m_img).height : 0;
 }
 
 size_t OpenCVImage::getDepth() const
 {
-    return getFormatDepth(m_fmt);
+    return m_img ? getFormatDepth(m_fmt) : 0;
 }
 
 size_t OpenCVImage::getNumChannels() const
 {
-    return getFormatNumChannels(m_fmt);
+    return m_img ? getFormatNumChannels(m_fmt) : 0;
 }
 
 Image::PixelFormat OpenCVImage::getPixelFormat() const

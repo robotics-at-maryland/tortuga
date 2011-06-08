@@ -29,7 +29,7 @@ class IPLMovie : public wxPanel, vision::Image
 {
 public:
     IPLMovie(wxWindow *parent, Model* model);
-    ~IPLMovie();
+    virtual ~IPLMovie();
 
     // Image methods TODO: Integrate me a different way
     virtual void copyFrom(const Image* src);
