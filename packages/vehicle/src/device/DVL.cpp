@@ -68,12 +68,17 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     else
         LOGGER.info("Could not connect with DVL");
 
-    // TODO: Temporary values until I know what to put in here
     LOGGER.info("Valid BottomTrack0 BottomTrack1"
                 " BottomTrack2 BottomTrack3 Velocity[2] ");
 
-    for (int i = 0; i < 5; ++i)
-        update(1/50.0);
+    if (m_serialFD >= 0)
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            LOGGER.infoStream() << "Initial Update " << i << " ";
+            update(1/50.0);
+        }
+    }
 }
 
 DVL::~DVL()
@@ -95,6 +100,7 @@ void DVL::update(double timestep)
     if (m_serialFD >= 0)
     {
         RawDVLData newState;
+        LOGGER.info("Reading Data");
         if (readDVLData(m_serialFD, &newState))
         {
 
@@ -103,6 +109,7 @@ void DVL::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
+            LOGGER.info("Data Read");
 
             /* The transducer head is attached to the robot such that the
                heads are at roughly a 45 degree angle with respect to the
@@ -116,8 +123,12 @@ void DVL::update(double timestep)
             */
 
             /* velocity in the transducer frame */
-            double vel_t1 = (newState.bt_velocity[0] + newState.bt_velocity[1]) / 2;
-            double vel_t2 = (newState.bt_velocity[2] + newState.bt_velocity[3]) / 2;
+            double vel_t1 = (newState.bt_velocity[0] + 
+                             newState.bt_velocity[1]) / 2;
+
+            double vel_t2 = (newState.bt_velocity[2] + 
+                             newState.bt_velocity[3]) / 2;
+
             math::Vector2 vel_t(vel_t1, vel_t2);
 
             RawDVLDataEventPtr event = RawDVLDataEventPtr(
