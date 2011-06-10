@@ -45,13 +45,13 @@ namespace logging {
 EventPlayer::EventPlayer(core::ConfigNode config) :
     Subsystem(config["name"].asString("EventPlayer"))
 {
-    m_playerThread = new PlayerThread::PlayerThread(config, this);
+    m_playerThread = new PlayerThread(config, this);
 }
 
 EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
     Subsystem(config["name"].asString("EventPlayer"), deps)
 {
-    m_playerThread = new PlayerThread::PlayerThread(config, deps, this);
+    m_playerThread = new PlayerThread(config, deps, this);
 }
 
 EventPlayer::~EventPlayer()

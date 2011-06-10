@@ -45,10 +45,5 @@ Subsystems:
     #     type: EventLogger
     #     depends_on: ["QueuedEventHub","EventHub"]
 
-    EventPlayer:
-        fileName: /home/gary/ram_code/logs/2011-02-22T19:18:46/event.log
-        type: EventPlayer
-        depends_on: ["QueuedEventHub","EventHub"]
-
     # Includes all common subsystems    
     INCLUDE: tools/simulator/data/config/base.yml
