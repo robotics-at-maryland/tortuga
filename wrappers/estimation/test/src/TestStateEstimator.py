@@ -63,15 +63,11 @@ class TestIStateEstimator(unittest.TestCase):
         obstacle = estimation.Obstacle()
         desiredPos = math.Vector2(5, -5)
         obstacle.setPosition(desiredPos)
-        estimator.addObstacle('buoy', obstacle)
+        estimator.addObstacle(estimation.Obstacle.RED_BUOY, obstacle)
 
-        self.assertEquals(desiredPos, estimator.getObstaclePosition('buoy'))
-        try:
-            # This call should fail
-            depth = estimator.getObstacleDepth('buoy')
-            self.assert_(False)
-        except RuntimeError:
-            pass
+        self.assertEquals(desiredPos, estimator.getObstaclePosition(estimation.Obstacle.RED_BUOY))
+
+        depth = estimator.getObstacleDepth(estimation.Obstacle.RED_BUOY)
 
 if __name__ == '__main__':
     unittest.main()
