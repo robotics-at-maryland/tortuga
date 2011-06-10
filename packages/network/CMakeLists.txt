@@ -1,13 +1,17 @@
 file(GLOB HEADERS "include/*.h")
 file(GLOB SOURCES "src/*.cpp")
+list(REMOVE_ITEM SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkAdapter.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/AdapterMaker.cpp"
+  )
 
 set(LINK_LIBS
   pthread
   ${Boost_THREAD_LIBRARY}
   ram_core
   ram_control
-  ${ZeroCIceCore_LIBRARY}
-  ${ZeroCIceUtil_LIBRARY}
+  #${ZeroCIceCore_LIBRARY}
+  #${ZeroCIceUtil_LIBRARY}
   )
 
 if (RAM_WITH_LOGGING)
@@ -16,7 +20,7 @@ endif (RAM_WITH_LOGGING)
 
 if (RAM_WITH_NETWORK)
   # Run slice file generation programs
-  slice( network )
+  #slice( network )
 
   # Include the generated headers from slice
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/slice)

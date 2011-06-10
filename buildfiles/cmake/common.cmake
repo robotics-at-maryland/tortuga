@@ -15,8 +15,8 @@ include(${RAM_CMAKE_DIR}/package-fftw.cmake)
 include(${RAM_CMAKE_DIR}/package-dc1394.cmake)
 include(${RAM_CMAKE_DIR}/package-fann.cmake)
 include(${RAM_CMAKE_DIR}/package-segment.cmake)
-include(${RAM_CMAKE_DIR}/package-ice.cmake)
-include(${RAM_CMAKE_DIR}/package-ffmpeg.cmake)
+#include(${RAM_CMAKE_DIR}/package-ice.cmake)
+#include(${RAM_CMAKE_DIR}/package-ffmpeg.cmake)
 include(${RAM_CMAKE_DIR}/package-opengl.cmake)
 
 include_directories(
