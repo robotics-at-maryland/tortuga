@@ -71,14 +71,17 @@ public:
     /** return the estimated thruster forces */
     virtual math::Vector3 getEstimatedThrusterForces() = 0;
 
-    /** return the estimated thruster torques */
+    /** return t
+
+
+he estimated thruster torques */
     virtual math::Vector3 getEstimatedThrusterTorques() = 0;
     
     /* Implementations of IStateEstimator should store the information about course
        obstacles.  These functions allow interaction with each obstacle. */
-    virtual void addObstacle(std::string name, ObstaclePtr obstacle) = 0;
-    virtual math::Vector2 getObstaclePosition(std::string name) = 0;
-    virtual double getObstacleDepth(std::string name) = 0;
+    virtual void addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle) = 0;
+    virtual math::Vector2 getObstaclePosition(Obstacle::ObstacleType name) = 0;
+    virtual double getObstacleDepth(Obstacle::ObstacleType name) = 0;
 
     static const core::Event::EventType ESTIMATED_DEPTH_UPDATE;
     static const core::Event::EventType ESTIMATED_ORIENTATION_UPDATE;

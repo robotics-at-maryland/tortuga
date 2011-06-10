@@ -77,17 +77,17 @@ double StateEstimatorBase::getEstimatedDepthRate()
     return estimatedState->getEstimatedDepthRate();
 }
 
-void StateEstimatorBase::addObstacle(std::string name, ObstaclePtr obstacle)
+void StateEstimatorBase::addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle)
 {
     estimatedState->addObstacle(name,obstacle);
 }
 
-math::Vector2 StateEstimatorBase::getObstaclePosition(std::string name)
+math::Vector2 StateEstimatorBase::getObstaclePosition(Obstacle::ObstacleType name)
 {
     return estimatedState->getObstaclePosition(name);
 }
 
-double StateEstimatorBase::getObstacleDepth(std::string name)
+double StateEstimatorBase::getObstacleDepth(Obstacle::ObstacleType  name)
 {
     return estimatedState->getObstacleDepth(name);
 }
@@ -95,6 +95,10 @@ double StateEstimatorBase::getObstacleDepth(std::string name)
 double StateEstimatorBase::getEstimatedMass()
 {
     return estimatedState->getEstimatedMass();
+}
+ObstaclePtr StateEstimatorBase::getObstacle(Obstacle::ObstacleType name)
+{
+    return estimatedState->getObstacle(name);
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedThrusterForces()

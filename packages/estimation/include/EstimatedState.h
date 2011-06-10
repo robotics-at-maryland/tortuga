@@ -73,10 +73,10 @@ public:
     /* The estimated state will contain all information about obstacles in a
        mapping from obstacle name to a pointer to that obstacle.  These functions
        allow access to that information */
-    void addObstacle(std::string name, ObstaclePtr obstacle);
-    math::Vector2 getObstaclePosition(std::string name);
-    double getObstacleDepth(std::string name);
-    ObstaclePtr getObstacle(std::string name);
+    void addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle);
+    math::Vector2 getObstaclePosition(Obstacle::ObstacleType name);
+    double getObstacleDepth(Obstacle::ObstacleType name);
+    ObstaclePtr getObstacle(Obstacle::ObstacleType name);
 
 private:
 
@@ -103,7 +103,7 @@ private:
     math::Vector3 m_estThrusterTorques;
     double m_estMass;
 
-    std::map<std::string, ObstaclePtr> m_obstacleMap;
+    std::map<Obstacle::ObstacleType, ObstaclePtr> m_obstacleMap;
 
 
 };

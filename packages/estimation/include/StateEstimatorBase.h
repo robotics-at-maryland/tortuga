@@ -82,7 +82,7 @@ public:
      * @param obstacle
      *    A smart pointer to the obstacle that is to be added.
      */
-    virtual void addObstacle(std::string name, ObstaclePtr obstacle);
+    virtual void addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle);
 
     /** Returns the position of an obstacle
      *
@@ -92,7 +92,7 @@ public:
      * @return 
      *    A Vector2 object representing the position of the obstacle.
      */
-    virtual math::Vector2 getObstaclePosition(std::string name);
+    virtual math::Vector2 getObstaclePosition(Obstacle::ObstacleType name);
 
     /** Returns the depth of an obstacle
      *
@@ -102,7 +102,9 @@ public:
      * @return 
      *    A double representing the depth of the obstacle.
      */
-    virtual double getObstacleDepth(std::string name);
+    virtual double getObstacleDepth(Obstacle::ObstacleType name);
+
+    virtual ObstaclePtr getObstacle(Obstacle::ObstacleType name);
 
     // Does nothing for now as the state estimator is event driven
     virtual void update(double timestep) {
