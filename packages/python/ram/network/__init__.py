@@ -6,5 +6,4 @@
 # File:  packages/python/ram/network/__init__.py
 
 # Subsystem Maker imports
-import vision as _vision
 import control as _control
