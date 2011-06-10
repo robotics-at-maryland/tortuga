@@ -92,7 +92,7 @@ def download_precompiled():
     # find the correct url
     arch = 'x86' if re.search(r'i\d86', platform.machine()) else 'x86_64'
     if arch == 'x86_64':
-        print 'warning: x86_64 architecture is not supported'
+        print 'warning: x86_64 architecture is not fully supported'
 
     distro = platform.linux_distribution()
     if distro[0] != 'Ubuntu':
@@ -100,21 +100,23 @@ def download_precompiled():
         return
     distro = distro[0].lower() + '_' + distro[1].replace('.', '')
 
-    url = 'https://ram.umd.edu/software/%s/%s' % (arch, distro)
-    print 'authentication for %s' % url
-    username = raw_input('username: ')
-    password = getpass.getpass('password: ')
-
     file_exists, join_path = os.path.exists, os.path.join
-    for dep in (x for x in archives):
-        dest = join_path('/opt/ram/local', dep)
-        if not file_exists(dest):
+    needed = [x for x in archives
+              if not file_exists(join_path('/opt/ram/local', x))]
+    if needed:
+        url = 'https://ram.umd.edu/software/%s/%s' % (arch, distro)
+        print 'authentication for %s' % url
+        username = raw_input('username: ')
+        password = getpass.getpass('password: ')
+
+        for dep in needed:
+            dest = join_path('/opt/ram/local', dep)
             subprocess.call(['wget', '--user', username,
                              '--password', password, '--no-check-certificate',
                              '%s/%s' % (url, dep)], cwd = '/opt/ram/local')
             subprocess.call(['7zr', 'x', dest], cwd = '/opt/ram/local')
 
-    print 'success: all archives downloaded'
+    print 'success: all archives installed'
     
 def main(argv=None):
     # Parse Arguments
@@ -125,15 +127,12 @@ def main(argv=None):
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
                              ' [default: %default]')
-    parser.add_option('--download', action='store_true', dest='download',
-                      help = 'download precompiled dependencies')
     (options, args) = parser.parse_args()
 
     site_package_dir = os.path.join(options.prefix, PYTHON_SITE_PACKAGE_SUFFIX)
 
     setup_dependencies()
-    if options.download:
-        download_precompiled()
+    download_precompiled()
 
     # Buildit imports
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
