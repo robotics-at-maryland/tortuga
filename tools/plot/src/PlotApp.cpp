@@ -58,6 +58,18 @@ bool PlotApp::OnInit()
         frame, m_eventHub, depthRateSeries,
         wxT("Depth Rate Plot"), wxT("Depth Rate Plot"));
 
+
+    EventSeriesMap velocitySeries;
+    depthRateSeries[estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE] = 
+      DataSeriesInfo("Estimated Velocity", wxPen(wxColour(wxT("RED")), 5));
+    depthRateSeries[control::IController::DESIRED_VELOCITY_UPDATE] = 
+      DataSeriesInfo("Desired Velocity", wxPen(wxColour(wxT("DARK GREEN")), 5));
+
+    PlotPanel *velocityPanel = new Vector2PhasePlot(frame, m_eventHub,
+						    velocitySeries,
+						    wxT("Velocity Phase Plot"),
+						    wxT("Velocity Phase Plot"));
+
     TelemetryPanel *telemetryPanel = new TelemetryPanel(frame, m_eventHub);
 
     depthPanel->info().Show().Left();
@@ -67,6 +79,7 @@ bool PlotApp::OnInit()
     frame->addPanel(telemetryPanel, telemetryPanel->info(), wxString(wxT("Telemetry Panel")));
     frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
     frame->addPanel(depthRatePanel, depthRatePanel->info(), depthRatePanel->name());
+    frame->addPanel(velocityPanel, velocityPanel->info(), velocityPanel->name());
 
     // show it
     SetTopWindow(frame);
