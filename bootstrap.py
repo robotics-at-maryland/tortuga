@@ -7,6 +7,7 @@
 
 import os
 import sys
+import subprocess, re, getpass, platform
 from buildfiles.common import util
 from optparse import OptionParser
 
@@ -20,6 +21,102 @@ DEFULT_TASKS = ['setup_directories',
 
 DEFAULT_PREFIX = util.ram_prefix()
 PYTHON_SITE_PACKAGE_SUFFIX = util.site_packages_suffix()
+
+archives = ('boost-1.45.7z', 'fann-2.1.0.7z', 'gccxml-0.9.0.7z',
+            'log4cpp-1.0.0.7z', 'python-ogre-1.6.4.7z', 'segment-1.0.7z',
+            'unittestpp-1.3.7z')
+
+class dependency(object):
+    def __init__(self, name, packages):
+        self._name = name
+        if isinstance(packages, str):
+            packages = packages.split(' ')
+        self.depends = packages
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def install_targets(self):
+        return self.depends[:]
+
+def setup_dependencies():
+    # run dpkg and only continue if there's no error
+    re_install = re.compile(r'([^\s]+)\s+([^\s]+)')
+    dpkg = subprocess.Popen(['dpkg', '--get-selections'],
+                            stdout = subprocess.PIPE)
+    if dpkg.wait():
+        return
+
+    # setup dependency information
+    deps = []
+    deps.append(dependency('essential', 'build-essential p7zip'))
+    deps.append(dependency('cmake', 'cmake'))
+    deps.append(dependency('python', 'python-dev python-numpy'))
+    deps.append(dependency('opencv', 'libcv-dev libhighgui-dev libcvaux-dev'))
+    deps.append(dependency('dc1394', 'libdc1394-22-dev'))
+    deps.append(dependency('opengl', 'mesa-common-dev libglu1-mesa-dev'))
+    deps.append(dependency('libusb', 'libusb-dev'))
+    deps.append(dependency('wx', 'python-wxgtk2.8 libwxgtk2.8-dev'))
+    # uncomment when fann is fixed in ubuntu
+    #deps.append(dependency('fann', 'libfann-dev'))
+    deps.append(dependency('fftw', 'libfftw3-dev'))
+
+    # find all packages we're interested in
+    interesting_packages = set()
+    for d in deps:
+        interesting_packages.update(d.install_targets)
+
+    depends = {}
+    for name, status in (x.groups()
+                         for x in (re_install.search(y)
+                                   for y in dpkg.communicate()[0].split('\n'))
+                         if x):
+        if name in interesting_packages:
+            depends[name] = status
+
+    # find what packages we actually need to install
+    to_install = [x for x in interesting_packages
+                  if not depends.has_key(x) or depends[x] != 'install']
+
+    # execute command to install needed packages (requires root)
+    if to_install:
+        cmd = ['apt-get', 'install']
+        cmd.extend(to_install)
+        if os.geteuid() != 0: # insert sudo to get root privelages
+            cmd.insert(0, 'sudo')
+        subprocess.call(cmd)
+
+def download_precompiled():
+    # find the correct url
+    arch = 'x86' if re.search(r'i\d86', platform.machine()) else 'x86_64'
+    if arch == 'x86_64':
+        print 'warning: x86_64 architecture is not fully supported'
+
+    distro = platform.linux_distribution()
+    if distro[0] != 'Ubuntu':
+        print 'error: download feature is not supported for anything other than Ubuntu'
+        return
+    distro = distro[0].lower() + '_' + distro[1].replace('.', '')
+
+    file_exists, join_path = os.path.exists, os.path.join
+    needed = [x for x in archives
+              if not file_exists(join_path('/opt/ram/local', x))]
+    if needed:
+        url = 'https://ram.umd.edu/software/%s/%s' % (arch, distro)
+        print 'authentication for %s' % url
+        username = raw_input('username: ')
+        password = getpass.getpass('password: ')
+
+        for dep in needed:
+            dest = join_path('/opt/ram/local', dep)
+            subprocess.call(['wget', '--user', username,
+                             '--password', password, '--no-check-certificate',
+                             '%s/%s' % (url, dep)], cwd = '/opt/ram/local')
+            subprocess.call(['7zr', 'x', dest], cwd = '/opt/ram/local')
+
+    print 'success: all archives installed'
     
 def main(argv=None):
     # Parse Arguments
@@ -33,6 +130,9 @@ def main(argv=None):
     (options, args) = parser.parse_args()
 
     site_package_dir = os.path.join(options.prefix, PYTHON_SITE_PACKAGE_SUFFIX)
+
+    setup_dependencies()
+    download_precompiled()
 
     # Buildit imports
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)

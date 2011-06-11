@@ -1,7 +1,6 @@
 
 if (RAM_WITH_PLOT)
-  set(wxWidgets_ROOT_DIR /opt/ram/local)
-  find_package(wxWidgets COMPONENTS core base aui REQUIRED)
+  #find_package(wxWidgets REQUIRED COMPONENTS std aui)
 
   include( ${wxWidgets_USE_FILE} )
   include_directories("include")
