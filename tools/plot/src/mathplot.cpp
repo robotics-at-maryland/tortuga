@@ -49,6 +49,7 @@
 #include <cmath>
 #include <cstdio> // used only for debug
 #include <ctime> // used for representation of x axes involving date
+#include <algorithm>
 
 // #include "pixel.xpm"
 
@@ -491,10 +492,9 @@ void mpFY::Plot(wxDC & dc, mpWindow & w)
 
 IMPLEMENT_ABSTRACT_CLASS(mpFXY, mpLayer)
 
-mpFXY::mpFXY(wxString name, int flags)
+mpFXY::mpFXY(wxString name, int flags) : m_flags(flags)
 {
     SetName(name);
-    m_flags = flags;
     m_type = mpLAYER_PLOT;
 }
 
@@ -2428,29 +2428,21 @@ void mpFXYVector::SetData( const std::vector<double> &xs,const std::vector<doubl
 
 
     // Update internal variables for the bounding box.
-    if (xs.size()>0)
+    if (xs.size() > 0)
     {
-        m_minX  = xs[0];
-        m_maxX  = xs[0];
-        m_minY  = ys[0];
-        m_maxY  = ys[0];
+        m_minX = *std::min_element(m_xs.begin(), m_xs.end());
+        m_maxX = *std::max_element(m_xs.begin(), m_xs.end());
 
-        std::vector<double>::const_iterator  it;
+        m_minY = *std::min_element(m_ys.begin(), m_ys.end());
+        m_maxY = *std::max_element(m_ys.begin(), m_ys.end());
 
-        for (it=xs.begin();it!=xs.end();it++)
-        {
-            if (*it<m_minX) m_minX=*it;
-            if (*it>m_maxX) m_maxX=*it;
-        }
-        for (it=ys.begin();it!=ys.end();it++)
-        {
-            if (*it<m_minY) m_minY=*it;
-            if (*it>m_maxY) m_maxY=*it;
-        }
-        m_minX-=0.5f;
-        m_minY-=0.5f;
-        m_maxX+=0.5f;
-        m_maxY+=0.5f;
+        double xRange = m_maxX - m_minX;
+        double yRange = m_maxY - m_minY;
+
+        m_minX -= 0.05f * xRange;
+        m_minY -= 0.05f * yRange;
+        m_maxX += 0.05f * xRange;
+        m_maxY += 0.05f * yRange;
     }
     else
     {
@@ -2460,6 +2452,88 @@ void mpFXYVector::SetData( const std::vector<double> &xs,const std::vector<doubl
         m_maxY  = 1;
     }
 }
+
+//-----------------------------------------------------------------------------
+// mpFXYDeque implementation - by Jonathan Wonders
+//-----------------------------------------------------------------------------
+
+
+IMPLEMENT_DYNAMIC_CLASS(mpFXYDeque, mpFXY)
+
+// Constructor
+mpFXYDeque::mpFXYDeque(wxString name, size_t bufferSize,
+                       int flags ) : mpFXY(name,flags),
+    m_bufferSize(bufferSize),
+    m_index(0),
+    m_minX(-1),
+    m_maxX(1),
+    m_minY(-1),
+    m_maxY(1)
+{
+    m_type = mpLAYER_PLOT;
+}
+
+void mpFXYDeque::Rewind()
+{
+    m_index = 0;
+}
+
+bool mpFXYDeque::GetNextXY(double & x, double & y)
+{
+    if (m_index >= m_xData.size())
+        return FALSE;
+    else
+    {
+        x = m_xData[m_index];
+        y = m_yData[m_index++];
+        return m_index<=m_xData.size();
+    }
+}
+
+void mpFXYDeque::Clear()
+{
+    m_xData.clear();
+    m_yData.clear();
+}
+
+void mpFXYDeque::AddData(double xVal, double yVal)
+{
+    m_xData.push_back(xVal);
+    m_yData.push_back(yVal);
+
+    while(m_xData.size() > m_bufferSize)
+        m_xData.pop_front();
+    
+    while(m_yData.size() > m_bufferSize)
+        m_yData.pop_front();
+
+    // Update internal variables for the bounding box.
+    if (m_xData.size() > 0)
+    {
+        m_minX = *std::min_element(m_xData.begin(), m_xData.end());
+        m_maxX = *std::max_element(m_xData.begin(), m_xData.end());
+
+        m_minY = *std::min_element(m_yData.begin(), m_yData.end());
+        m_maxY = *std::max_element(m_yData.begin(), m_yData.end());
+
+        double xRange = m_maxX - m_minX;
+        double yRange = m_maxY - m_minY;
+
+        m_minX -= 0.05f * xRange;
+        m_minY -= 0.05f * yRange;
+        m_maxX += 0.05f * xRange;
+        m_maxY += 0.05f * yRange;
+    }
+    else
+    {
+        m_minX  = -1;
+        m_maxX  = 1;
+        m_minY  = -1;
+        m_maxY  = 1;
+    }
+}
+
+
 
 //-----------------------------------------------------------------------------
 // mpText - provided by Val Greene

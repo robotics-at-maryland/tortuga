@@ -39,7 +39,7 @@ bool PlotApp::OnInit()
     depthSeries[estimation::IStateEstimator::ESTIMATED_DEPTH_UPDATE] = 
         DataSeriesInfo("Estimated Depth", wxPen(wxColour(wxT("RED")), 5));
     depthSeries[control::IController::DESIRED_DEPTH_UPDATE] = 
-        DataSeriesInfo("Desired Depth", wxPen(wxColour(wxT("DARK GREEN")), 5));
+        DataSeriesInfo("Desired Depth", wxPen(wxColour(wxT("DARK GREEN")), 5), true);
     depthSeries[vehicle::device::IDepthSensor::UPDATE] = 
         DataSeriesInfo("Measured Depth", wxPen(wxColour(150, 150, 150, 100), 3));
 
@@ -52,7 +52,7 @@ bool PlotApp::OnInit()
     depthRateSeries[estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE] = 
         DataSeriesInfo("Estimated Depth Rate", wxPen(wxColour(wxT("RED")), 5));
     depthRateSeries[control::IController::DESIRED_DEPTHRATE_UPDATE] = 
-        DataSeriesInfo("Desired Depth Rate", wxPen(wxColour(wxT("DARK GREEN")), 5));
+        DataSeriesInfo("Desired Depth Rate", wxPen(wxColour(wxT("DARK GREEN")), 5), true);
 
     PlotPanel *depthRatePanel = new NumericVsTimePlot(
         frame, m_eventHub, depthRateSeries,
@@ -60,26 +60,39 @@ bool PlotApp::OnInit()
 
 
     EventSeriesMap velocitySeries;
-    depthRateSeries[estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE] = 
-      DataSeriesInfo("Estimated Velocity", wxPen(wxColour(wxT("RED")), 5));
-    depthRateSeries[control::IController::DESIRED_VELOCITY_UPDATE] = 
-      DataSeriesInfo("Desired Velocity", wxPen(wxColour(wxT("DARK GREEN")), 5));
+    velocitySeries[estimation::IStateEstimator::ESTIMATED_VELOCITY_UPDATE] = 
+      DataSeriesInfo("Estimated Velocity", wxPen(wxColour(wxT("RED")), 3));
+    velocitySeries[control::IController::DESIRED_VELOCITY_UPDATE] = 
+      DataSeriesInfo("Desired Velocity", wxPen(wxColour(wxT("DARK GREEN")), 3));
 
-    PlotPanel *velocityPanel = new Vector2PhasePlot(frame, m_eventHub,
-						    velocitySeries,
-						    wxT("Velocity Phase Plot"),
-						    wxT("Velocity Phase Plot"));
+    PlotPanel *velocityPanel = new Vector2PhasePlot(
+        frame, m_eventHub,velocitySeries,
+        wxT("Velocity Phase Plot"), wxT("Velocity Phase Plot"));
+    velocityPanel->setBufferSize(2000);
 
-    TelemetryPanel *telemetryPanel = new TelemetryPanel(frame, m_eventHub);
+    EventSeriesMap positionSeries;
+    positionSeries[estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE] =
+        DataSeriesInfo("Estimated Position", wxPen(wxColour(wxT("RED")), 3));
+    positionSeries[control::IController::DESIRED_POSITION_UPDATE] =
+        DataSeriesInfo("Desired Position", wxPen(wxColour(wxT("DARK GREEN")), 3));
+    
+    PlotPanel *positionPanel = new Vector2PhasePlot(
+        frame, m_eventHub, positionSeries,
+        wxT("Position Phase Plot"), wxT("Position Phase Plot"));
+    positionPanel->setBufferSize(2000);
+
 
     depthPanel->info().Show().Left();
-    depthRatePanel->info().Show().Right();
+    depthRatePanel->info().Show().Left();
+    velocityPanel->info().Show().Right();
+    positionPanel->info().Show().Right();
+
 
     // add the panels
-    frame->addPanel(telemetryPanel, telemetryPanel->info(), wxString(wxT("Telemetry Panel")));
     frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
     frame->addPanel(depthRatePanel, depthRatePanel->info(), depthRatePanel->name());
     frame->addPanel(velocityPanel, velocityPanel->info(), velocityPanel->name());
+    frame->addPanel(positionPanel, positionPanel->info(), positionPanel->name());
 
     // show it
     SetTopWindow(frame);

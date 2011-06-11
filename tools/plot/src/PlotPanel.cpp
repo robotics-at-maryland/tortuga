@@ -114,7 +114,7 @@ void PlotPanel::addDataSeries(std::string name, wxPen pen)
     //mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
     mpFXYVector* newPlot = new mpFXYVector(wxT(""));
     newPlot->SetPen(pen);
-    newPlot->SetContinuity(true);
+    newPlot->SetContinuity(false);
     m_dataSeries[name] = newPlot;
     m_plotWindow->AddLayer(newPlot);
 }
@@ -338,6 +338,22 @@ void NumericVsTimePlot::update(core::EventPtr event)
 
         DataSeriesInfo seriesInfo = m_series[event->type];
         addData(seriesInfo.name, time,  number);
+        m_prevData[event->type] = number;
+
+        std::map<core::Event::EventType, double>::iterator iter;
+        for(iter = m_prevData.begin(); iter != m_prevData.end(); iter++)
+        {
+            core::Event::EventType type = (*iter).first;
+            double val = (*iter).second;
+            if(type != event->type)
+            {
+                DataSeriesInfo info = m_series[type];
+                if(info.repeat)
+                {
+                    addData(info.name, time, val);
+                }
+            }
+        }
 
         redraw();
     }

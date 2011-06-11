@@ -34,6 +34,27 @@ typedef DataSeriesBufferMap::iterator DataSeriesBufferMapIter;
 typedef std::map< std::string, mpFXYVector* > DataSeriesMap;
 typedef DataSeriesMap::iterator DataSeriesMapIter;
 
+struct DataSeriesInfo
+{
+    DataSeriesInfo() :
+        name("unnamed"),
+        pen(wxPen(wxColour(wxT("BLACK")))),
+        repeat(false) {}
+
+    DataSeriesInfo(std::string name,
+                   wxPen pen = wxPen(wxColour(wxT("BLACK"))),
+                   bool repeat = false) :
+        name(name),
+        pen(pen),
+        repeat(repeat) {}
+
+    std::string name;
+    wxPen pen;
+    bool repeat;
+};
+
+typedef std::map<core::Event::EventType, DataSeriesInfo> EventSeriesMap;
+
 class PlotPanel : public wxPanel
 {
 public:
@@ -84,21 +105,6 @@ private:
     wxTextCtrl *m_bufferSizeCtrl;
 };
 
-struct DataSeriesInfo
-{
-    DataSeriesInfo() :
-        name("unnamed"),
-        pen(wxPen(wxColour(wxT("BLACK")))) {}
-
-    DataSeriesInfo(std::string name,
-                   wxPen pen = wxPen(wxColour(wxT("BLACK")))) :
-        name(name),
-        pen(pen) {}
-
-    std::string name;
-    wxPen pen;
-};
-
 class EventBased
 {
 public:
@@ -130,9 +136,6 @@ private:
     double m_desDepth;
 };
 
-
-typedef std::map<core::Event::EventType, DataSeriesInfo> EventSeriesMap;
-
 class NumericVsTimePlot : public EventBased, public PlotPanel
 {
 public:
@@ -146,6 +149,7 @@ public:
 
 private:
     EventSeriesMap m_series;
+    std::map<core::Event::EventType, double> m_prevData;
 };
 
 class Vector2PhasePlot : public EventBased, public PlotPanel

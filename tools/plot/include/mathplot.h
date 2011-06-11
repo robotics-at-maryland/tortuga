@@ -102,6 +102,7 @@ class WXDLLIMPEXP_MATHPLOT mpFX;
 class WXDLLIMPEXP_MATHPLOT mpFY;
 class WXDLLIMPEXP_MATHPLOT mpFXY;
 class WXDLLIMPEXP_MATHPLOT mpFXYVector;
+class WXDLLIMPEXP_MATHPLOT mpFXYDeque;
 class WXDLLIMPEXP_MATHPLOT mpScaleX;
 class WXDLLIMPEXP_MATHPLOT mpScaleY;
 class WXDLLIMPEXP_MATHPLOT mpWindow;
@@ -1320,6 +1321,73 @@ protected:
     double GetMaxY() { return m_maxY; }
 
     int     m_flags; //!< Holds label alignment
+
+    DECLARE_DYNAMIC_CLASS(mpFXYVector)
+};
+
+class WXDLLIMPEXP_MATHPLOT mpFXYDeque : public mpFXY
+{
+public:
+    /** @param name  Label
+        @param flags Label alignment, pass one of #mpALIGN_NE, #mpALIGN_NW, #mpALIGN_SW, #mpALIGN_SE.
+    */
+    mpFXYDeque(wxString name = wxEmptyString,
+               size_t bufferSize = 1000,
+               int flags = mpALIGN_NE);
+
+    /** adds the data point given to the plot */
+    void AddData(double xVal, double yVal);
+
+    /** Clears all the data, leaving the layer empty.
+      * @sa SetData
+      */
+    void Clear();
+
+protected:
+    // internal copy of the set of data to draw
+    std::deque<double> m_xData;
+    std::deque<double> m_yData;
+
+    size_t m_bufferSize;
+
+    // internal counter for the "GetNextXY" interface
+    size_t m_index;
+
+    // hold the plot bounds
+    double m_minX;
+    double m_maxX; 
+    double m_minY;
+    double m_maxY;
+
+    /** Rewind value enumeration with mpFXY::GetNextXY.
+        Overridden in this implementation.
+    */
+    void Rewind();
+
+    /** Get locus value for next N.
+        Overridden in this implementation.
+        @param x Returns X value
+        @param y Returns Y value
+    */
+    bool GetNextXY(double & x, double & y);
+
+    /** Returns the actual minimum X data (loaded in SetData).
+      */
+    double GetMinX() { return m_minX; }
+
+    /** Returns the actual minimum Y data (loaded in SetData).
+      */
+    double GetMinY() { return m_minY; }
+
+    /** Returns the actual maximum X data (loaded in SetData).
+      */
+    double GetMaxX() { return m_maxX; }
+
+    /** Returns the actual maximum Y data (loaded in SetData).
+      */
+    double GetMaxY() { return m_maxY; }
+
+    int m_flags; //!< Holds label alignment
 
     DECLARE_DYNAMIC_CLASS(mpFXYVector)
 };
