@@ -112,6 +112,7 @@ core::EventPtr RawDVLDataEvent::clone()
     event->name = name;
     event->rawDVLData = rawDVLData;
     event->velocity_b = velocity_b;
+    event->angularOffset = angularOffset;
     event->timestep = timestep;
 
     return event;

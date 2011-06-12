@@ -70,15 +70,6 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
 
     LOGGER.info("Valid BottomTrack0 BottomTrack1"
                 " BottomTrack2 BottomTrack3 Velocity[2] ");
-
-    if (m_serialFD >= 0)
-    {
-        for (int i = 0; i < 5; ++i)
-        {
-            LOGGER.infoStream() << "Initial Update " << i << " ";
-            update(1/50.0);
-        }
-    }
 }
 
 DVL::~DVL()
@@ -139,6 +130,7 @@ void DVL::update(double timestep)
             event->name = getName();
             event->rawDVLData = newState;
             event->velocity_b = vel_b;
+            event->angularOffset = m_angOffset;
             event->timestep = timestep;
 
             publish(IVelocitySensor::RAW_UPDATE, event);
