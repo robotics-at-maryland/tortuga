@@ -45,10 +45,6 @@
 #define CMD_TSETSPEED    11
 
 #define CMD_ANGLEYAW     10
-
-#define CMD_SETSPEED      9
-
-#define CMD_ANGLEYAW     10
 #define CMD_ANGLEPITCH   12
 #define CMD_ANGLEROLL    13
 
@@ -87,7 +83,8 @@ void NetworkController::enable()
 {
     /* Safe to call multiple times */
     if (!m_receiver) {
-        m_receiver = new Receiver(m_port, 2, boost::bind(&NetworkController::accept, this, _1));
+        m_receiver = new Receiver(
+            m_port, 2, boost::bind(&NetworkController::accept, this, _1));
     }
 }
 
@@ -102,6 +99,7 @@ void NetworkController::disable()
 
 void NetworkController::update(double)
 {
+    std::cout << "Sending Network Control Commands" << std::endl;
     math::NumericEventPtr setspeed(new math::NumericEvent());
     setspeed->number = m_speed;
     publish(EventType::SETSPEED, setspeed);
@@ -114,13 +112,13 @@ void NetworkController::update(double)
     angleyaw->number = m_yaw;
     publish(EventType::ANGLEYAW, angleyaw);
 
-    math::NumericEventPtr pitch(new math::NumericEvent());
-    pitch->number = m_pitch;
-    publish(EventType::ANGLEPITCH, pitch);
+    // math::NumericEventPtr pitch(new math::NumericEvent());
+    // pitch->number = m_pitch;
+    // publish(EventType::ANGLEPITCH, pitch);
 
-    math::NumericEventPtr roll(new math::NumericEvent());
-    roll->number = m_roll;
-    publish(EventType::ANGLEROLL, roll);
+    // math::NumericEventPtr roll(new math::NumericEvent());
+    // roll->number = m_roll;
+    // publish(EventType::ANGLEROLL, roll);
 }
 
 void NetworkController::background(int interval)

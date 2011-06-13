@@ -15,9 +15,9 @@ import math as pmath
 import ext.core as core
 import ext.math as math
 import ext.control as control
-import ext.estimation as estimation
 import ext.network as network
 import ext.vehicle as vehicle
+import ext.estimation as estimation
 
 import ram.sim.input as input
 import ram.motion.basic as motion
@@ -182,8 +182,7 @@ class KeyboardController(core.Subsystem):
                             initialValue = estDepth,
                             finalValue = self._targetDepth,
                             initialRate = estDepthRate,
-                            finalRate = 0,
-                            maxRate = 2))) 
+                            avgRate = 0.2))) 
                 dEvent = core.Event()
                 dEvent.depth = self._targetDepth
                 self.publish(KeyboardController.TARGET_DEPTH_UPDATE, dEvent)
