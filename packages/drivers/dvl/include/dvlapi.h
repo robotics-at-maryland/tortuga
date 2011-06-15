@@ -228,6 +228,7 @@ typedef struct _RawDVLData
     /* vvvvv PUT DATA HERE vvvvv */
 
     signed int bt_velocity[4];
+    signed int bt_percentgood[4];
 
     unsigned int ensemblenum;
     

@@ -95,7 +95,7 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     int len, i, tempsize, offset;
     uint16_t checksum;
-    CompleteDVLPacket *dbgpkt = NULL;
+    static CompleteDVLPacket *dbgpkt = NULL;
 
     if(dvl_waitSync(fd))
         return ERR_NOSYNC;
@@ -103,15 +103,13 @@ int readDVLData(int fd, RawDVLData* dvl)
     dvl->valid= 0;
 
     /* This checks that we have the debugging packet setup! */
-    if(dvl->privDbgInf == NULL) {
+    if(dbgpkt == NULL) {
         printf("WARNING! Debug info reallocated!\n");
-        dbgpkt= dvl->privDbgInf = malloc(sizeof(CompleteDVLPacket));
+        dbgpkt= malloc(sizeof(CompleteDVLPacket));
 
         /* We'll need to set up some parts of the packet... */
         dbgpkt->fixedleaderset= 0;
         dbgpkt->header.offsets= NULL;
-    } else {
-        dbgpkt= dvl->privDbgInf;
     }
 
     /* We got these in the dvl_waitSync() call */
@@ -429,10 +427,12 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     if(checksum != dbgpkt->checksum) {
         printf("WARNING! Bad checksum.\n");
-        printf("Expected 0x%02x but got 0x%02x\n", checksum, dbgpkt->checksum);
+        printf("Expected 0x%04x but got 0x%04x\n", checksum, dbgpkt->checksum);
         dvl->valid= ERR_CHKSUM;
         return ERR_CHKSUM;
     }
+
+    dvl->valid= 1;
 
     dvl->ensemblenum= (dbgpkt->variableleader.ensemblenum | (dbgpkt->variableleader.ensemble_num_msb << 16));
 
@@ -444,8 +444,12 @@ int readDVLData(int fd, RawDVLData* dvl)
     dvl->sec= dbgpkt->variableleader.RTC_second;
     dvl->hundredth= dbgpkt->variableleader.RTC_hundredths;
 
-    for(i= 0;i < 4;i++)
+    for(i= 0;i < 4;i++) {
         dvl->bt_velocity[i]= dbgpkt->btdata.bt_vel[i];
+        dvl->bt_percentgood[i]= dbgpkt->btdata.bt_prcnt_good[i];
+    }
+
+    dvl->privDbgInf= dbgpkt;
 
     return 0;
 }
