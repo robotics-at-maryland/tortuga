@@ -36,6 +36,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+const int DVL::BAD_VELOCITY = -32768;
+
 using namespace ram::math;
     
 DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
@@ -68,8 +70,7 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     else
         LOGGER.info("Could not connect with DVL");
 
-    LOGGER.info("Valid BottomTrack0 BottomTrack1"
-                " BottomTrack2 BottomTrack3 Velocity[2] ");
+    LOGGER.info("Velocity[0] Velocity[1]");
 }
 
 DVL::~DVL()
@@ -91,7 +92,6 @@ void DVL::update(double timestep)
     if (m_serialFD >= 0)
     {
         RawDVLData newState;
-        LOGGER.info("Reading Data");
         if (readDVLData(m_serialFD, &newState))
         {
 
@@ -100,48 +100,29 @@ void DVL::update(double timestep)
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
                 *m_rawState = newState;
             }
-            LOGGER.info("Data Read");
 
-            /* The transducer head is attached to the robot such that the
-               heads are at roughly a 45 degree angle with respect to the
-               body coordinates.  According to the manufacturer, this is
-               the optimum configuration for getting good bottom track
-               measurements.  Consequently, we need to account for the
-               angular offset of the heads to transform the velocity to
-               body coordinates.  We assume that the DVL is 'level' with
-               respect to the robot body.  Consequently we only consider
-               an offset rotation around the z axis (down).
-            */
+            int xVel = newState.xvel_btm;
+            int yVel = newState.yvel_btm;
 
-            /* velocity in the transducer frame */
-            double vel_t1 = (newState.bt_velocity[0] + 
-                             newState.bt_velocity[1]) / 2;
-
-            double vel_t2 = (newState.bt_velocity[2] + 
-                             newState.bt_velocity[3]) / 2;
-
-            math::Vector2 vel_t(vel_t1, vel_t2);
-
-            RawDVLDataEventPtr event = RawDVLDataEventPtr(
-                new RawDVLDataEvent());
+            if(xVel != BAD_VELOCITY && yVel != BAD_VELOCITY)
+            {
+                // velocity in the body frame
+                math::Vector2 velocity(newState.yvel_btm, newState.xvel_btm);
             
-            math::Vector2 vel_b = m_bRt * vel_t;
+                RawDVLDataEventPtr event = RawDVLDataEventPtr(
+                    new RawDVLDataEvent());
+            
+                event->name = getName();
+                event->rawDVLData = newState;
+                event->velocity_b = velocity;
+                event->angularOffset = m_angOffset;
+                event->timestep = timestep;
 
-            event->name = getName();
-            event->rawDVLData = newState;
-            event->velocity_b = vel_b;
-            event->angularOffset = m_angOffset;
-            event->timestep = timestep;
+                publish(IVelocitySensor::RAW_UPDATE, event);
 
-            publish(IVelocitySensor::RAW_UPDATE, event);
-
-            LOGGER.infoStream() << newState.valid << " "
-                                << newState.bt_velocity[0] << " "
-                                << newState.bt_velocity[1] << " "
-                                << newState.bt_velocity[2] << " "
-                                << newState.bt_velocity[3] << " "
-                                << vel_b[0] << " "
-                                << vel_b[1] << " ";
+                LOGGER.infoStream() << velocity[0] << " "
+                                    << velocity[1];
+            }
         }
     }
     // We didn't connect, try to reconnect
