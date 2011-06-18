@@ -20,18 +20,13 @@
 #include "core/include/EventHub.h"
 #include "core/include/EventConnection.h"
 #include "core/include/Event.h"
+#include "math/include/Vector2.h"
+#include "math/include/Vector3.h"
+#include "math/include/Quaternion.h"
 
 using namespace ram;
 
-typedef std::vector<double> PlotData;
-
-typedef std::deque<double> DataSeriesBuffer;
-typedef DataSeriesBuffer::iterator DataSeriesBufferIter;
-
-typedef std::map< std::string, DataSeriesBuffer > DataSeriesBufferMap;
-typedef DataSeriesBufferMap::iterator DataSeriesBufferMapIter;
-
-typedef std::map< std::string, mpFXYVector* > DataSeriesMap;
+typedef std::map< std::string, mpFXYDeque* > DataSeriesMap;
 typedef DataSeriesMap::iterator DataSeriesMapIter;
 
 struct DataSeriesInfo
@@ -70,6 +65,7 @@ public:
     void setBufferSize(size_t numPoints);
     void onBufferSizeUpdate(wxCommandEvent& event);
     void onClear(wxCommandEvent& event);
+    void onPaint(wxPaintEvent& event);
     wxAuiPaneInfo& info();
 
     void addData(std::string name, double x, double y);
@@ -80,7 +76,6 @@ public:
     void clear();
 
 protected:
-
     DECLARE_EVENT_TABLE();
 
     wxString m_name;
@@ -91,10 +86,6 @@ private:
     size_t m_bufferSize;
     time_t m_lastUpdate;
     time_t m_updatePeriod;
-
-    // layer -> data buffer
-    DataSeriesBufferMap m_xBuffers;
-    DataSeriesBufferMap m_yBuffers;
 
     // layer -> plot for the layer
     DataSeriesMap m_dataSeries;
@@ -165,6 +156,41 @@ public:
 
 private:
     EventSeriesMap m_series;
+};
+
+class Vector2ComponentPlot : public EventBased, public PlotPanel
+{
+public:
+    Vector2ComponentPlot(wxWindow* parent, core::EventHubPtr eventHub,
+                         EventSeriesMap series, unsigned int component,
+                         wxString name, wxString caption = wxT(""));
+
+    ~Vector2ComponentPlot() {}
+
+    virtual void update(core::EventPtr event);
+
+private:
+    EventSeriesMap m_series;
+    unsigned int m_component;
+    std::map<core::Event::EventType, double> m_prevData;
+};
+
+
+class Vector3ComponentPlot : public EventBased, public PlotPanel
+{
+public:
+    Vector3ComponentPlot(wxWindow* parent, core::EventHubPtr eventHub,
+                         EventSeriesMap series, unsigned int component,
+                         wxString name, wxString caption = wxT(""));
+
+    ~Vector3ComponentPlot() {}
+
+    virtual void update(core::EventPtr event);
+
+private:
+    EventSeriesMap m_series;
+    unsigned int m_component;
+    std::map<core::Event::EventType, double> m_prevData;
 };
 
 #endif // RAM_TOOLS_PLOTPANEL

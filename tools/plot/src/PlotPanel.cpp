@@ -57,9 +57,10 @@ PlotPanel::PlotPanel(wxWindow* parent, wxString name, wxString caption) :
     m_plotWindow->Fit();
     m_plotWindow->EnableMousePanZoom(false);
     m_plotWindow->UpdateAll();
+
     m_bufferSize = 2000;
     m_lastUpdate = static_cast<time_t>(0.0);
-    m_updatePeriod = static_cast<time_t>(1.0/30);
+    m_updatePeriod = static_cast<time_t>(1.0/10);
 
     wxStaticText *bufferSizeLabel = new wxStaticText(this, -1, wxT("Buffer Size"));
     m_bufferSizeCtrl = new wxTextCtrl(this, ID_BUFFER_SIZE_CTRL, wxT("2000"),
@@ -83,72 +84,31 @@ wxAuiPaneInfo& PlotPanel::info()
 
 void PlotPanel::addData(std::string dataSeriesName, double x, double y)
 {
-    DataSeriesBufferMap::iterator iter;
-    for(iter = m_yBuffers.begin(); iter != m_yBuffers.end(); iter++)
-    {
-        std::string name = (*iter).first;
-        DataSeriesBuffer &yBuffer = m_yBuffers[name];
-        if(yBuffer.empty())
-        {
-            m_xBuffers[name].push_back(x);
-            yBuffer.push_back(0);
-        }
-    }
-    
-    DataSeriesBuffer &xBuffer = m_xBuffers[dataSeriesName];
-    DataSeriesBuffer &yBuffer = m_yBuffers[dataSeriesName];
-
-    xBuffer.push_back(x);
-    yBuffer.push_back(y);
-
-    if(xBuffer.size() > m_bufferSize)
-        xBuffer.pop_front();
-    if(yBuffer.size() > m_bufferSize)
-        yBuffer.pop_front();
+    mpFXYDeque *plot = m_dataSeries[dataSeriesName];
+    plot->AddData(x, y);
 }
 
 void PlotPanel::addDataSeries(std::string name, wxPen pen)
 {
-    m_xBuffers[name] = DataSeriesBuffer();
-    m_yBuffers[name] = DataSeriesBuffer();
-    //mpFXYVector* newPlot = new mpFXYVector(wxString(name.c_str(), wxConvUTF8));
-    mpFXYVector* newPlot = new mpFXYVector(wxT(""));
+    mpFXYDeque* newPlot = new mpFXYDeque(wxEmptyString, m_bufferSize);
     newPlot->SetPen(pen);
     newPlot->SetContinuity(false);
+
     m_dataSeries[name] = newPlot;
     m_plotWindow->AddLayer(newPlot);
 }
 
 void PlotPanel::redraw()
 {
-    time_t currTime = std::time(NULL);
-    time_t elapsed = std::difftime(currTime, m_lastUpdate);
-    elapsed = elapsed;
-    if(elapsed > m_updatePeriod)
-    {
-        for(DataSeriesMapIter it = m_dataSeries.begin(); it != m_dataSeries.end(); it++)
-        {
-            std::string dataSeriesName = (*it).first;
-            mpFXYVector *plot = (*it).second;
-
-            DataSeriesBuffer &xBuffer = m_xBuffers[dataSeriesName];
-            DataSeriesBuffer &yBuffer = m_yBuffers[dataSeriesName];
-
-            // need to put the data into vectors for the plot
-            PlotData xData(xBuffer.size());
-            PlotData yData(yBuffer.size());
-    
-            xData.assign(xBuffer.begin(), xBuffer.end());
-            yData.assign(yBuffer.begin(), yBuffer.end());
-
-            plot->SetData(xData, yData);
-        }
-
-        // recalculate bounds and force a redraw
-        m_plotWindow->Fit();
-        m_plotWindow->UpdateAll();
-        m_lastUpdate = currTime;
-    }
+    // time_t currTime = std::time(NULL);
+    // time_t elapsed = std::difftime(currTime, m_lastUpdate);
+    // elapsed = elapsed;
+    // if(elapsed > m_updatePeriod)
+    // {
+    //     recalculate bounds and force a redraw
+    //     m_plotWindow->Fit();
+    //     m_plotWindow->UpdateNow();
+    // }
 }
 
 size_t PlotPanel::getBufferSize()
@@ -160,21 +120,16 @@ void PlotPanel::setBufferSize(size_t numPoints)
 {
     m_bufferSize = numPoints;
 
-    for(DataSeriesMapIter it = m_dataSeries.begin(); it != m_dataSeries.end(); it++)
+    DataSeriesMapIter it;
+    for(it = m_dataSeries.begin(); it != m_dataSeries.end(); it++)
     {
-        std::string dataSeriesName = (*it).first;
-        DataSeriesBuffer &xBuffer = m_xBuffers[dataSeriesName];
-        DataSeriesBuffer &yBuffer = m_yBuffers[dataSeriesName];
-
-        while(xBuffer.size() > m_bufferSize)
-            xBuffer.pop_front();
-        while(yBuffer.size() > m_bufferSize)
-            yBuffer.pop_front();
+        mpFXYDeque *plot = (*it).second;
+        plot->SetBufferSize(numPoints);
     }
 
     wxString bufSizeStr = wxString::Format(wxT("%i"), numPoints);
     m_bufferSizeCtrl->SetValue(bufSizeStr);
-    redraw();
+    m_plotWindow->UpdateAll();
 }
 
 void PlotPanel::onBufferSizeUpdate(wxCommandEvent& event)
@@ -194,11 +149,20 @@ void PlotPanel::onClear(wxCommandEvent& WXUNUSED(event))
     clear();
 }
 
+void PlotPanel::onPaint(wxPaintEvent& WXUNUSED(event))
+{
+    m_plotWindow->Fit();
+}
+
 void PlotPanel::clear()
 {
-    m_xBuffers.clear();
-    m_yBuffers.clear();
-    redraw();
+    DataSeriesMapIter it;
+    for(it = m_dataSeries.begin(); it != m_dataSeries.end(); it++)
+    {
+        mpFXYDeque *plot = (*it).second;
+        plot->Clear();
+    }
+    m_plotWindow->UpdateAll();
 }
 
 wxString PlotPanel::name()
@@ -214,6 +178,7 @@ wxString PlotPanel::caption()
 BEGIN_EVENT_TABLE(PlotPanel, wxPanel)
 EVT_TEXT_ENTER(ID_BUFFER_SIZE_CTRL, PlotPanel::onBufferSizeUpdate)
 EVT_BUTTON(ID_CLEAR_BUTTON, PlotPanel::onClear)
+EVT_PAINT(PlotPanel::onPaint)
 END_EVENT_TABLE();
 
 
@@ -244,7 +209,7 @@ TestPanel::TestPanel(wxWindow* parent) :
     addDataSeries("Series 1", wxPen(wxColour(wxT("RED")), 5));
     addDataSeries("Series 2", wxPen(wxColour(wxT("DARK GREEN")), 5));
 
-    for(int n = 0; n < 20; n++)
+    for(int n = 0; n < 5000; n++)
     {
         addData("Series 1", n, n*n);
         addData("Series 2", n, 3*n);
@@ -398,6 +363,138 @@ void Vector2PhasePlot::update(core::EventPtr event)
         DataSeriesInfo seriesInfo = m_series[event->type];
         addData(seriesInfo.name, vector2[0],  vector2[1]);
 
+        redraw();
+    }
+}
+
+
+
+Vector2ComponentPlot::Vector2ComponentPlot(wxWindow *parent, core::EventHubPtr eventHub,
+                                           EventSeriesMap series, unsigned int component,
+                                           wxString name, wxString caption) :
+    EventBased(eventHub),
+    PlotPanel(parent),
+    m_series(series),
+    m_component(component)
+{
+    assert((m_component == 0 || m_component == 1) &&
+           "Component must be either 0 or 1");
+
+    m_name = name;
+    m_caption = caption;
+
+    m_info.Name(name);
+    m_info.Caption(caption);
+
+    EventSeriesMap::iterator iter;
+    for(iter = m_series.begin(); iter != m_series.end(); iter++)
+    {
+        core::Event::EventType type = (*iter).first;
+        DataSeriesInfo seriesInfo = (*iter).second;
+
+        m_connections.push_back(
+            eventHub->subscribeToType(
+                type, boost::bind(&Vector2ComponentPlot::update, this, _1)));
+
+        addDataSeries(seriesInfo.name, seriesInfo.pen);
+    }
+}
+
+void Vector2ComponentPlot::update(core::EventPtr event)
+{
+    math::Vector2EventPtr vEvent = 
+        boost::dynamic_pointer_cast<math::Vector2Event>(event);
+
+    if(vEvent)
+    {
+        math::Vector2 vector2 = vEvent->vector2;
+        double val = vector2[m_component];
+        double time = vEvent->timeStamp;
+
+        DataSeriesInfo seriesInfo = m_series[event->type];
+        addData(seriesInfo.name, time, val);
+        m_prevData[event->type] = val;
+
+        std::map<core::Event::EventType, double>::iterator iter;
+        for(iter = m_prevData.begin(); iter != m_prevData.end(); iter++)
+        {
+            core::Event::EventType type = (*iter).first;
+            double repeatVal = (*iter).second;
+            if(type != event->type)
+            {
+                DataSeriesInfo info = m_series[type];
+                if(info.repeat)
+                {
+                    addData(info.name, time, repeatVal);
+                }
+            }
+        }
+        redraw();
+    }
+}
+
+
+
+Vector3ComponentPlot::Vector3ComponentPlot(wxWindow *parent, core::EventHubPtr eventHub,
+                                           EventSeriesMap series, unsigned int component,
+                                           wxString name, wxString caption) :
+    EventBased(eventHub),
+    PlotPanel(parent),
+    m_series(series),
+    m_component(component)
+{
+    assert((m_component >= 0 || m_component <= 2) &&
+           "Component must be either 0, 1, or 2");
+
+    m_name = name;
+    m_caption = caption;
+
+    m_info.Name(name);
+    m_info.Caption(caption);
+
+    EventSeriesMap::iterator iter;
+    for(iter = m_series.begin(); iter != m_series.end(); iter++)
+    {
+        core::Event::EventType type = (*iter).first;
+        DataSeriesInfo seriesInfo = (*iter).second;
+
+        m_connections.push_back(
+            eventHub->subscribeToType(
+                type, boost::bind(&Vector3ComponentPlot::update, this, _1)));
+
+        addDataSeries(seriesInfo.name, seriesInfo.pen);
+    }
+}
+
+void Vector3ComponentPlot::update(core::EventPtr event)
+{
+    math::Vector3EventPtr vEvent = 
+        boost::dynamic_pointer_cast<math::Vector3Event>(event);
+
+    if(vEvent)
+    {
+        math::Vector3 vector3 = vEvent->vector3;
+        double val = vector3[m_component];
+        double time = vEvent->timeStamp;
+
+        DataSeriesInfo seriesInfo = m_series[event->type];
+        addData(seriesInfo.name, time, val);
+        m_prevData[event->type] = val;
+
+        std::map<core::Event::EventType, double>::iterator iter;
+        for(iter = m_prevData.begin(); iter != m_prevData.end(); iter++)
+        {
+            core::Event::EventType type = (*iter).first;
+            double repeatVal = (*iter).second;
+            if(type != event->type)
+            {
+                DataSeriesInfo info = m_series[type];
+                if(info.repeat)
+                {
+                    addData(info.name, time, repeatVal);
+                }
+            }
+        }
         redraw();
     }
 }

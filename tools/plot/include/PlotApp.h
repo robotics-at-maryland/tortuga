@@ -15,11 +15,17 @@
 #include "wx/wx.h"
 #include "wx/laywin.h"
 #include "wx/aui/aui.h"
+#include <wx/timer.h>
 
 #include "core/include/EventHub.h"
 #include "network/include/NetworkHub.h"
 
 using namespace ram;
+
+class PlotApp;
+class PlotFrame;
+class RenderTimer;
+
 
 class PlotApp : public wxApp
 {
@@ -42,6 +48,8 @@ private:
     wxMenu *m_menuFile;
     wxMenu *m_menuPanels;
 
+    RenderTimer* timer;
+
     wxAuiManager m_mgr;
     std::vector< wxWindow* > m_panels;
 
@@ -52,6 +60,16 @@ protected:
 enum
 {
     ID_Quit = 1,
+};
+
+class RenderTimer : public wxTimer
+{
+private:
+    PlotFrame* pane;
+public:
+    RenderTimer(PlotFrame* pane);
+    void Notify();
+    void start();
 };
 
 #endif // RAM_TOOLS_PLOTAPP
