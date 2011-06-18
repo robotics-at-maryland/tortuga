@@ -60,7 +60,7 @@ class HoveringState(state.State):
     @staticmethod
     def getattr():
         return {'filterLimit' : 75, 'sidewaysSpeedGain' : 3, 'speedGain' : 5,
-                    'yawGain' : 0, 'maxSpeed' : 5, 'maxSidewaysSpeed' : 3,
+                    'yawGain' : 1, 'maxSpeed' : 5, 'maxSidewaysSpeed' : 3,
                     'iSpeedGain' : 0, 'iSidewaysSpeedGain' : 0,
                     'dSpeedGain' : 0, 'dSidewaysSpeedGain' : 0}
     
@@ -218,8 +218,10 @@ class SettlingState(HoveringState):
     """
     @staticmethod
     def getattr():
-        return {'planeThreshold' : 0.1, 'angleThreshold' : 5}.union(
-            HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'planeThreshold' : 0.1, 'angleThreshold' : 5})
+        return attrs
 
     def _compareChange(self, pvalues, dvalues):
         # Get the error adjustments
@@ -274,7 +276,10 @@ class BinSortingState(HoveringState):
     
     @staticmethod
     def getattr():
-        return {'centeredRange' : 0.2}.union(HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'centeredRange' : 0.2})
+        return attrs
 
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -408,7 +413,11 @@ class Recover(state.FindAttempt):
 
     @staticmethod
     def getattr():
-        return {'timeout' : 4, 'speed' : 0.5}.union(state.FindAttempt.getattr())
+        attrs = {}
+        attrs.update(state.FindAttempt.getattr())
+        attrs.update({'timeout' : 4, 'speed' : 0.5})
+        return attrs
+        #return {'timeout' : 4, 'speed' : 0.5}.union(state.FindAttempt.getattr())
         
     def BIN_FOUND(self, event):
         if event.symbol != vision.Symbol.UNKNOWN:
@@ -492,8 +501,11 @@ class LostCurrentBin(state.FindAttempt, HoveringState):
 
     @staticmethod
     def getattr():
-        return {'timeout' : 3, 'recoverThreshold' : 0.2}.union(
-            HoveringState.getattr()).union(state.FindAttempt.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update(state.FindAttempt.getattr())
+        attrs.update({'timeout' : 3, 'recoverThreshold' : 0.2})
+        return attrs
     
     def BIN_FOUND(self, event):
         HoveringState.BIN_FOUND(self, event)
@@ -618,8 +630,8 @@ class Searching(state.State):
 
         # Create zig zag search to 
         self._zigZag = motion.search.ForwardZigZag(
-            legTime = self._legtime,
-            sweepAngle = self._sweep,
+            legTime = self._legTime,
+            sweepAngle = self._sweepAngle,
             speed = self._speed,
             direction = direction)
 
@@ -646,7 +658,10 @@ class Seeking(HoveringState):
 
     @staticmethod
     def getattr():
-        return {'centeredLimit' : 0.2}.union(HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'centeredLimit' : 0.2})
+        return attrs
  
     def BIN_FOUND(self, event):
         eventDistance = math.Vector2(event.x, event.y).length()
@@ -679,27 +694,24 @@ class RecoverSeeking(Recover):
 
     @staticmethod
     def getattr():
-        return set(['speedGain', 'sidewaysSpeedGain', 'yawGain',
-                    'maxSpeed', 'maxSidewaysSpeed']).union(
-            HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update(Recover.getattr())
+        attrs.update({'speedGain' : 5, 'sidewaysSpeedGain' : 5, 'yawGain' : 1,
+                      'maxSpeed' : 1.5, 'maxSidewaysSpeed' : 1.5})
+        return attrs
 
     def enter(self, timeout = 4):
         Recover.enter(self, timeout)
         
         self._bin = ram.motion.common.Target(self.ai.data["lastBinX"],
                                              self.ai.data["lastBinY"])
-
-        speedGain = self._config.get('speedGain', 5)
-        sidewaysSpeedGain = self._config.get('sidewaysSpeedGain',5)
-        #yawGain = self._config.get('yawGain', 1)
-        maxSpeed = self._config.get('maxSpeed', 1.5)
-        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 1.5)
         
         motion = ram.motion.common.Hover(target = self._bin,
-                                         maxSpeed = maxSpeed,
-                                         maxSidewaysSpeed = maxSidewaysSpeed,
-                                         sidewaysSpeedGain = sidewaysSpeedGain,
-                                         speedGain = speedGain)
+                                         maxSpeed = self._maxSpeed,
+                                         maxSidewaysSpeed = self._maxSidewaysSpeed,
+                                         sidewaysSpeedGain = self._sidewaysSpeedGain,
+                                         speedGain = self._speedGain)
         self.motionManager.setMotion(motion)
          
 
@@ -777,7 +789,10 @@ class SeekEnd(BinSortingState):
 
     @staticmethod
     def getattr():
-        return set(['timeout']).union(BinSortingState.getattr())
+        attrs = {}
+        attrs.update(BinSortingState.getattr())
+        attrs.update({'timeout' : 5})
+        return attrs
     
     def BIN_FOUND(self, event):
         # Cancel out angle commands (we don't want to control orientation)
@@ -874,7 +889,10 @@ class Dive(HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['offset', 'diveSpeed']).union(HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'offset' : 1.5, 'diveSpeed' : 0.3})
+        return attrs
 
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -898,7 +916,10 @@ class Dive(HoveringState):
 
         # While keeping center, dive down
         binDepth = self.ai.data['config'].get('binDepth', 11)
-        offset_ = self._config.get('offset', offset)
+
+        if offset == 1.5:
+            offset = self._offset
+        offset_ = offset
         offset_ = offset_ + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
 
@@ -910,7 +931,7 @@ class Dive(HoveringState):
         
         diveMotion = motion.basic.RateChangeDepth(    
             desiredDepth = binDepth,
-            speed = self._config.get('diveSpeed', 0.3))
+            speed = self._diveSpeed)
         
         self.motionManager.setMotion(diveMotion)
         
@@ -924,13 +945,16 @@ class RecoverDive(Recover):
 
     @staticmethod
     def getattr():
-        return set(['timeout', 'increase', 'maxIncrease', 'diveSpeed']).union(
-            HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update(Recover.getattr())
+        attrs.update({'timeout' : 4, 'increase' :  0.25, 'maxIncrease' : 1,
+                      'diveSpeed' : 0.3})
+        return attrs
 
     def enter(self):
-        Recover.enter(self, timeout = self._config.get('timeout', 4))
-        self._increase = self._config.get('increase', 0.25)
-        self._maxIncrease = self._config.get('maxIncrease', 1)
+        timeout = self._timeout
+        Recover.enter(self, timeout = timeout)
         self.ai.data['dive_offsetTheOffset'] = \
             self.ai.data.get('dive_offsetTheOffset', 0) + self._increase
             
@@ -941,7 +965,7 @@ class RecoverDive(Recover):
             offset = self.ai.data['dive_offsetTheOffset']
             diveMotion = motion.basic.RateChangeDepth(
                                 desiredDepth = depth - offset,
-                                speed = self._config.get('diveSpeed', 0.3))
+                                speed = self._diveSpeed)
             self.motionManager.setMotion(diveMotion)
             
 class LostCurrentBinDive(LostCurrentBin):
@@ -996,8 +1020,10 @@ class Examine(HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['minimumHits', 'timeout', 'foundLimit']).union(
-            HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'minimumHits' : 40, 'timeout' : 2, 'foundLimit' : 0.7})
+        return attrs
 
     def BIN_FOUND(self, event):
         
@@ -1084,15 +1110,12 @@ class Examine(HoveringState):
             HoveringState.enter(self)
         else:
             HoveringState.enter(self, shouldRotate = False)
-
-        self._minimumHits = self._config.get('minimumHits', 40)
-
-        self._timeout = self._config.get('timeout', timeout)
-
-        self._foundLimit = self._config.get('foundLimit', 0.7)
         
         # Load needed symbols
         self._loadSymbolConfig()
+        
+        if timeout != 2:
+            self._timeout = timeout
 
         if self._timeout >= 0:
             self._timer = self.timerManager.newTimer(Examine.TIMEOUT,
@@ -1164,12 +1187,15 @@ class CloserLook(Dive):
 
     @staticmethod
     def getattr():
-        return set(['offset']).union(Dive.getattr())
+        attrs = {}
+        attrs.update(Dive.getattr())
+        attrs.update({'offset' : 1.0})
+        return attrs
         
     def enter(self):
         # Standard dive
         Dive.enter(self, useMultiAngle = False,
-                   offset = self._config.get('offset', 1.0))
+                   offset = self._offset)
         
 class RecoverCloserLook(Recover):
     @staticmethod
@@ -1181,13 +1207,15 @@ class RecoverCloserLook(Recover):
 
     @staticmethod
     def getattr():
-        return set(['timeout', 'increase', 'maxIncrease', 'diveSpeed']).union(
-            Recover.getattr())
+        attrs = {}
+        attrs.update(Recover.getattr())
+        attrs.update({'timeout' : 4, 'increase' : 0.25, 'maxIncrease' : 1,
+                      'diveSpeed' : 0.3})
+        return attrs
 
     def enter(self):
-        Recover.enter(self, timeout = self._config.get('timeout', 4))
-        self._increase = self._config.get('increase', 0.25)
-        self._maxIncrease = self._config.get('maxIncrease', 1)
+        timeout = self._timeout
+        Recover.enter(self, timeout = timeout)
         self.ai.data['closerlook_offsetTheOffset'] = \
             self.ai.data.get('closerlook_offsetTheOffset', 0) + self._increase
             
@@ -1198,7 +1226,7 @@ class RecoverCloserLook(Recover):
             offset = self.ai.data['closerlook_offsetTheOffset']
             diveMotion = motion.basic.RateChangeDepth(
                                 desiredDepth = depth - offset,
-                                speed = self._config.get('diveSpeed', 0.3))
+                                speed = self._diveSpeed)
             self.motionManager.setMotion(diveMotion)
             
 class LostCurrentBinCloserLook(LostCurrentBin):
@@ -1219,7 +1247,10 @@ class PostDiveExamine(Examine):
 
     @staticmethod
     def getattr():
-        return set(['minimumHitsOnTimeout']).union(Examine.getattr())
+        attrs = {}
+        attrs.update(Examine.getattr())
+        attrs.update({'minimumHitsOnTimeout' : attrs['minimumHits']/2})
+        return attrs
 
     def TIMEOUT(self, event):
         histogram = self.ai.data['binData']['histogram']
@@ -1242,8 +1273,6 @@ class PostDiveExamine(Examine):
 
     def enter(self):
         Examine.enter(self, timeout = 3)
-        self._minimumHitsOnTimeout = self._config.get('minimumHitsOnTimeout',
-                                                      self._minimumHits/2)
     
 class LostCurrentBinPostDiveExamine(LostCurrentBin):
     @staticmethod
@@ -1267,7 +1296,10 @@ class SurfaceToMove(HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['offset', 'surfaceSpeed']).union(HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'offset' : 2, 'surfaceSpeed' : 1.0/3.0})
+        return attrs
         
     def BIN_FOUND(self, event):
         # Disable angle tracking
@@ -1286,9 +1318,8 @@ class SurfaceToMove(HoveringState):
         
         # Also surface
         binDepth = self.ai.data['config'].get('binDepth', 11)
-        offset = self._config.get('offset', 2)
         
-        offset = offset + self.ai.data.get('dive_offsetTheOffset', 0) + \
+        offset = self._offset + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
 
         # Set a minimumDepth
@@ -1299,7 +1330,7 @@ class SurfaceToMove(HoveringState):
         
         surfaceMotion = motion.basic.RateChangeDepth(
             desiredDepth = binDepth,
-            speed = self._config.get('surfaceSpeed', 1.0/3.0))
+            speed = self._surfaceSpeed)
         
         self.motionManager.setMotion(surfaceMotion)
         
@@ -1457,7 +1488,10 @@ class CheckDropped(HoveringState):
 
     @staticmethod
     def getattr():
-        return set(['maximumScans']).union(HoveringState.getattr())
+        attrs = {}
+        attrs.update(HoveringState.getattr())
+        attrs.update({'maximumScans' : 2})
+        return attrs
 
     def BIN_FOUND(self, event):
         event.angle = math.Degree(0)
@@ -1466,7 +1500,6 @@ class CheckDropped(HoveringState):
     def enter(self):
         HoveringState.enter(self, shouldRotate = False)
 
-        self._maximumScans = self._config.get('maximumScans', 2)
         data = self.ai.data
         
         if data.get('markersDropped', 0) < 2:
@@ -1501,13 +1534,13 @@ class SurfaceToCruise(state.State):
 
     @staticmethod
     def getattr():
-        return set(['surfaceSpeed'])
+        return {'surfaceSpeed' : 1.0/3.0}
         
     def enter(self):
         # Surface
         surfaceMotion = motion.basic.RateChangeDepth(
             desiredDepth = self.ai.data['preBinCruiseDepth'],
-            speed = self._config.get('surfaceSpeed', 1.0/3.0))
+            speed = self._surfaceSpeed)
         
         self.motionManager.setMotion(surfaceMotion)
 
