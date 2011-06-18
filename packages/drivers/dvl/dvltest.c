@@ -11,11 +11,6 @@
 
 #include "include/dvlapi.h"
 
-void printHeader(CompleteDVLPacket* pkt);
-void printFixedLeader(CompleteDVLPacket* pkt);
-void printVariableLeader(CompleteDVLPacket* pkt);
-void printBTData(CompleteDVLPacket* pkt);
-
 void translateError(int errornum);
 
 int main(int argc, char **argv)
@@ -68,6 +63,18 @@ int main(int argc, char **argv)
             goto bail;
         }
     }
+
+    printf("X-velocity: %d\n", dvl.xvel_btm);
+    printf("Y-velocity: %d\n", dvl.yvel_btm);
+    printf("Z-velocity: %d\n", dvl.zvel_btm);
+    printf("E-velocity: %d\n", dvl.evel_btm);
+
+    printf("beam1-range: %u\n", dvl.beam1_range);
+    printf("beam2-range: %u\n", dvl.beam2_range);
+    printf("beam3-range: %u\n", dvl.beam3_range);
+    printf("beam4-range: %u\n", dvl.beam4_range);
+
+    printf("TOFP: %d\n", dvl.TOFP_hundreths);
 
 bail:
     close(fd);

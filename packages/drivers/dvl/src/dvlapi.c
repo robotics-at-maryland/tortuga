@@ -61,7 +61,7 @@ int dvl_waitSync(int fd)
     int syncLen= 0;
 
     while(syncLen < SYNC_FAIL_BYTECOUNT) {
-        if(dvl_waitByte(fd) == 0x7F) {
+        if(dvl_waitByte(fd) == 0x7D) {
             if(dvl_waitByte(fd) == 0x00)
                 break;
          }
@@ -108,6 +108,8 @@ int readDVLData(int fd, RawDVLData* dvl)
         len+= read(fd, dvlData + len, 6 - len);
 
     tempsize= dvl_convert16(dvlData[3], dvlData[2]);
+
+    fprintf(stderr, "Got size of %u\n.", (uint32_t) tempsize);
     
     while(len < tempsize)
         len+= read(fd, dvlData + len, tempsize - len);
@@ -120,7 +122,7 @@ int readDVLData(int fd, RawDVLData* dvl)
     while(len < tempsize)
         len+= read(fd, dvlData + len, tempsize - len);
 
-    dbgpkt.checksum= dvl_convert16(dvlData[47], dvlData[46]);
+    dbgpkt.checksum= dvl_convert16(dvlData[46], dvlData[45]);
 
     if(checksum != dbgpkt.checksum) {
         fprintf(stderr, "WARNING! Bad checksum.\n");
@@ -128,6 +130,26 @@ int readDVLData(int fd, RawDVLData* dvl)
         dvl->valid= ERR_CHKSUM;
         return ERR_CHKSUM;
     }
+
+    dvl->valid= 1;
+
+    dvl->xvel_btm= dvl_convert16(dvlData[6], dvlData[5]);
+    dvl->yvel_btm= dvl_convert16(dvlData[8], dvlData[7]);
+    dvl->zvel_btm= dvl_convert16(dvlData[10], dvlData[9]);
+    dvl->evel_btm= dvl_convert16(dvlData[12], dvlData[11]);
+
+    dvl->beam1_range= dvl_convert16(dvlData[14], dvlData[13]);
+    dvl->beam2_range= dvl_convert16(dvlData[16], dvlData[15]);
+    dvl->beam3_range= dvl_convert16(dvlData[18], dvlData[17]);
+    dvl->beam4_range= dvl_convert16(dvlData[20], dvlData[19]);
+
+    dvl->TOFP_hundreths= dvlData[35];
+    dvl->TOFP_hundreths*= 60;
+    dvl->TOFP_hundreths+= dvlData[36];
+    dvl->TOFP_hundreths*= 60;
+    dvl->TOFP_hundreths+= dvlData[37];
+    dvl->TOFP_hundreths*= 100;
+    dvl->TOFP_hundreths+= dvlData[38];
 
     return 0;
 }

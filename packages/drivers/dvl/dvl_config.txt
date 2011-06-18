@@ -30,7 +30,7 @@ BX00150
 ; Set Heading Alignment to 0 degrees
 ; NOTE. If the ExplorerDVL is rotated +45 degrees starboard
 ; (recommended alignment), set EA to EA+45000
-EA+45000
+EA+4500
 ; Set manual transducer depth in case depth sensor fails
 ED0020
 ; Set Salinity to freshwater
