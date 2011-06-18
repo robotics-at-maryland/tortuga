@@ -100,7 +100,7 @@ class FindAttempt(State):
 
     @staticmethod
     def getattr():
-        return set(['holdDepth', 'timeout'])
+        return {'holdDepth' : False, 'timeout' : 2}
 
     def enter(self, timeout = 2):
         # Turn off all motions, hold the current heading
