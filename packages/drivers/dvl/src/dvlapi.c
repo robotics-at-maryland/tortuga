@@ -38,9 +38,9 @@
 #include "dvlapi.h"
 
 /* Takes two bytes and pops out a short */
-short dvl_convert16(unsigned char msb, unsigned char lsb)
+uint16_t dvl_convert16(unsigned char msb, unsigned char lsb)
 {
-    return ((signed short) ((msb << 8) | lsb));
+    return ((((uint16_t) msb) << 8) | lsb);
 }
 
 /* This receives a single byte */
@@ -86,8 +86,8 @@ int readDVLData(int fd, RawDVLData* dvl)
        */
     unsigned char dvlData[512];
 
-    int len, i, tempsize, offset;
-    unsigned char checksum;
+    int len, i, tempsize;
+    uint16_t checksum;
     static CompleteDVLPacket dbgpkt;
 
     if(dvl_waitSync(fd))
@@ -103,45 +103,31 @@ int readDVLData(int fd, RawDVLData* dvl)
     /* Set length based on the 0x7D00 we recieved */
     len= 2;
 
-    /* Get the header */
+    /* Get the packet size */
     while(len < 4)
         len+= read(fd, dvlData + len, 6 - len);
 
-    dbgpkt->
-
-    offset= tempsize;
-
-    /* Now we need to grab the TDRI and the checksum!*/
-    tempsize+= 1;
-
+    tempsize= dvl_convert16(dvlData[3], dvlData[2]);
+    
     while(len < tempsize)
-        len += read(fd, dvlData + len, tempsize - len);
+        len+= read(fd, dvlData + len, tempsize - len);
 
     checksum= 0;
-
-    /* Calculate the checksum */
-    for(i= 0;i < tempsize - 1;i++)
+    for(i= 0;i < len;i++)
         checksum+= dvlData[i];
 
-    if(checksum != dbgpkt->checksum) {
-        printf("WARNING! Bad checksum.\n");
-        printf("Expected 0x%02x but got 0x%02x\n", checksum, dbgpkt->checksum);
+    tempsize+= 2;
+    while(len < tempsize)
+        len+= read(fd, dvlData + len, tempsize - len);
+
+    dbgpkt.checksum= dvl_convert16(dvlData[47], dvlData[46]);
+
+    if(checksum != dbgpkt.checksum) {
+        fprintf(stderr, "WARNING! Bad checksum.\n");
+        fprintf(stderr, "Expected 0x%02x but got 0x%02x\n", checksum, dbgpkt.checksum);
         dvl->valid= ERR_CHKSUM;
         return ERR_CHKSUM;
     }
-
-    dvl->ensemblenum= (dbgpkt->variableleader.ensemblenum | (dbgpkt->variableleader.ensemble_num_msb << 16));
-
-    dvl->year= dbgpkt->variableleader.RTC_year;
-    dvl->month= dbgpkt->variableleader.RTC_month;
-    dvl->day= dbgpkt->variableleader.RTC_day;
-    dvl->hour= dbgpkt->variableleader.RTC_hour;
-    dvl->min= dbgpkt->variableleader.RTC_minute;
-    dvl->sec= dbgpkt->variableleader.RTC_second;
-    dvl->hundredth= dbgpkt->variableleader.RTC_hundredths;
-
-    for(i= 0;i < 4;i++)
-        dvl->bt_velocity[i]= dbgpkt->btdata.bt_vel[i];
 
     return 0;
 }

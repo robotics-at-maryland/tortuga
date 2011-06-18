@@ -1,0 +1,98 @@
+;--------------------------------------------------------------------------
+; ExplorerDVL type:    600 kHz ExplorerDVL
+; Setup name:          dvl_config.txt
+; Setup type:          PD4 velocity tracking
+;
+; NOTE: Any line beginning with a semicolon in the first column is
+;        treated as a comment and is ignored by the software.
+; Modified Last: 18 June 2011
+;-------------------------------------------------------------------------
+; **************************************
+; ExplorerDVL Basic Setup Commands
+; **************************************
+; Restore factory default settings in the ExplorerDVL
+CR1
+; set the data collection baud rate to 115200 bps,
+; no parity, one stop bit, 8 data bits
+CB811
+; Flow Control – set to default
+CF11110
+; **************************************
+; ExplorerDVL Bottom Track Setup Commands
+; **************************************
+; Enable single-ping bottom track,
+BP001
+; Set maximum bottom search depth to 20 meters (65 feet)
+BX00150
+; **************************************
+; ExplorerDVL Environment Setup Commands
+; **************************************
+; Set Heading Alignment to 0 degrees
+; NOTE. If the ExplorerDVL is rotated +45 degrees starboard
+; (recommended alignment), set EA to EA+45000
+EA+45000
+; Set manual transducer depth in case depth sensor fails
+ED0020
+; Set Salinity to freshwater
+ES00
+; Output earth coordinates, use tilts, allow 3 beam
+; solutions and bin mapping
+EX10010
+; Set to use external sensors
+EZ00000000
+; **************************************
+; ExplorerDVL Timing Setup Commands
+; **************************************
+; Set Time between Ensembles to zero (ExplorerDVL will ping as fast as possible)
+TE00000000
+; Set Time between Pings to zero (ExplorerDVL will ping as fast as possible)
+TP00:00.00
+; **************************************
+; ExplorerDVL Water Profiling Setup Commands
+; **************************************
+; Note: By default, water profiling is turned off.
+;        To use water profiling, set the WP command >0
+WP0
+; Bin size set to 200 cm
+WS0200
+; Number of bins set to 30
+WN030
+;
+; **************************************
+; ExplorerDVL Expert Command Section
+; **************************************
+;
+; CAUTION - Editing or adding expert commands to the command file will allow
+;            you to set items that if set incorrectly can cause your data to
+;            be the wrong format, bad, and/or uncorrectable even in post
+;            processing.
+;
+; Disable Water-Mass Layer Mode (default)
+#BK0
+; Set Water-Mass Layer parameters to minimum 2 meters,
+; near 8 meters, far 16 meters (600kHz default).
+#BL20,80,160
+; Turnkey mode on (default) - ExplorerDVL will ping when power turned on.
+#CT1
+; Environmental Data Output – sets specialized attitude data types
+; Piston transducer default, for Phased Array transducer use #EE0000111
+#EE0000101
+; Set Heading Bias to 0 degrees
+; NOTE. Set #EV = [(local magnetic declaration)*100] + (-4500)
+; to compensate for the transducer misalignment (if used).
+#EV00000
+; Select type of external sensor to use
+#EY 0 0 0 0 0 0 0 0
+; Set output data format to #PD4
+#PD4
+; **************************************
+; ExplorerDVL Sensor Setup Commands
+; **************************************
+; See the ExplorerDVL Operation Manual for details on the sensor commands.
+; If needed, add the commands here.
+;
+;-------------------------------------------------------------------------
+; Save this setup to non-volatile memory in the ExplorerDVL
+CK
+; Start pinging
+CS
