@@ -32,10 +32,6 @@ extern "C" {
 /* It should NOT be passed every time the sensor is polled */
 typedef struct _CompleteDVLPacket
 {
-    uint8_t data_id;
-    uint8_t data_struct;
-    uint16_t num_bytes;
-
     uint8_t sysconf;
 
     int16_t xvel_btm;
