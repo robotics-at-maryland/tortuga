@@ -98,20 +98,8 @@ void Recorder::update(double timeSinceLastUpdate)
             {
                 // Get a working copy of new frame from the camera
                 m_camera->getImage(m_frameFromCamera);
-
-                if(m_frameFromCamera->getWidth() != m_width ||
-                   m_frameFromCamera->getHeight() != m_height)
-                {
-                    cvResize(m_frameFromCamera->asIplImage(),
-                             m_frameResized->asIplImage());
-                    
-                    recordFrame(m_frameResized);
-                }
-                else
-                {
-                    recordFrame(m_frameFromCamera);
-                }
-
+                m_frameFromCamera->setSize(m_width, m_height);
+                recordFrame(m_frameFromCamera);
                 {
                     boost::mutex::scoped_lock lock(m_mutex);
                     m_newFrame = false;
