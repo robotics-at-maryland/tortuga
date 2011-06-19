@@ -30,7 +30,10 @@ public:
 private:
     double m_iErr; // Integrated error
     double m_kp, m_kd, m_ki; // PID gains
+    double m_drag; // linear drag coefficient
+    double m_buoy; // constant buoyant force
     double m_dtMin, m_dtMax; // Timestep limits
+
 };
 
 } // namespace control

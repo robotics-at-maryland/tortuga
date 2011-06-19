@@ -34,12 +34,14 @@ PIDDepthTrackingController::PIDDepthTrackingController(
     m_kp(config["kp"].asDouble(0)),
     m_kd(config["kd"].asDouble(0)),
     m_ki(config["ki"].asDouble(0)),
+    m_drag(config["drag"].asDouble(0)),
+    m_buoy(config["buoy"].asDouble(0)),
     m_dtMin(config["dtMin"].asDouble(0.02)),
     m_dtMax(config["dtMax"].asDouble(0.5))
 {
     // logging header
     LOGGER.info("PIDTracking dDepth dRate dAccel eDepth eRate eQuat(4) "
-                "mass timestep pSig dSig iSig accelSig "
+                "mass timestep pSig dSig iSig accelSig dragSig"
                 "force_n(3) force_b(3)");
 }
 
@@ -75,11 +77,12 @@ math::Vector3 PIDDepthTrackingController::depthUpdate(
     double pErr = eDepth - dDepth;
     double dErr = eRate - dRate;
     double iErr = m_iErr + pErr * timestep;
-    m_iErr = iErr;
+
+    m_iErr = iErr;    
 
     double depthControlSignal = 
-        m_kp * pErr + m_kd * dErr + m_ki * iErr;
-    // this term causes bad performace due buoyancy and inertia - mass * dAccel;
+        m_kp * pErr + m_kd * dErr + m_ki * iErr -
+        mass * dAccel - m_drag * dRate - m_buoy;
 
     // we need to return a Vector3
     math::Vector3 controlSignal_n(0, 0, depthControlSignal);
@@ -102,6 +105,7 @@ math::Vector3 PIDDepthTrackingController::depthUpdate(
                         << m_kd * dErr << " "
                         << m_ki * iErr << " "
                         << mass * dAccel << " "
+                        << m_drag * dRate << " "
                         << controlSignal_n[0] << " "
                         << controlSignal_n[1] << " "
                         << controlSignal_n[2] << " "

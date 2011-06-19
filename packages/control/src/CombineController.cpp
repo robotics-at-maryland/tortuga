@@ -119,19 +119,16 @@ void CombineController::doUpdate(const double& timestep,
 
     // Update controllers
     math::Vector3 inPlaneControlForce(
-        m_transController->translationalUpdate(timestep,
-                                               m_stateEstimator,
-                                               m_desiredState));
+        m_transController->translationalUpdate(
+            timestep, m_stateEstimator, m_desiredState));
 
     math::Vector3 depthControlForce(
-        m_depthController->depthUpdate(timestep,
-                                       m_stateEstimator,
-                                       m_desiredState));
+        m_depthController->depthUpdate(
+            timestep, m_stateEstimator, m_desiredState));
 
     math::Vector3 rotControlTorque(
-        m_rotController->rotationalUpdate(timestep,
-                                          m_stateEstimator,
-                                          m_desiredState));
+        m_rotController->rotationalUpdate(
+            timestep, m_stateEstimator, m_desiredState));
     
     // Combine into desired rotational control and torque
     translationalForceOut = inPlaneControlForce + depthControlForce;
@@ -144,6 +141,19 @@ void CombineController::doUpdate(const double& timestep,
                         << rotationalTorqueOut[1] << " "
                         << rotationalTorqueOut[2];
 
+    // publish the individual control signals
+    math::Vector3EventPtr dEvent = math::Vector3EventPtr(new math::Vector3Event());
+    dEvent->vector3 = depthControlForce;
+
+    math::Vector3EventPtr tEvent = math::Vector3EventPtr(new math::Vector3Event());
+    tEvent->vector3 = inPlaneControlForce;
+    
+    math::Vector3EventPtr oEvent = math::Vector3EventPtr(new math::Vector3Event());
+    oEvent->vector3 = rotControlTorque;
+
+    publish(IController::DEPTH_CONTROL_SIGNAL_UPDATE, dEvent);
+    publish(IController::TRANSLATION_CONTROL_SIGNAL_UPDATE, tEvent);
+    publish(IController::ORIENTATION_CONTROL_SIGNAL_UPDATE, oEvent);
 }
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
