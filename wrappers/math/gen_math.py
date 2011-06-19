@@ -31,8 +31,6 @@ def generate(module_builder, local_ns, global_ns):
     Matrix2 = local_ns.class_('Matrix2')
     Matrix3 = local_ns.class_('Matrix3')
     SGolaySmoothingFilter = local_ns.class_('SGolaySmoothingFilter')
-    bRn = local_ns.free_function('bRn')
-    nRb = local_ns.free_function('nRb')
 
     # Include them
     Radian.include()
@@ -43,8 +41,6 @@ def generate(module_builder, local_ns, global_ns):
     Matrix2.include()
     Matrix3.include()
     SGolaySmoothingFilter.include()
-    bRn.include()
-    nRb.include()
 
     classes.extend([Radian, Degree, Vector2, Vector3, Quaternion, Matrix2,
                     Matrix3, SGolaySmoothingFilter])
