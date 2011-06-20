@@ -38,6 +38,8 @@ namespace ram {
 namespace vehicle {
 namespace device {
 
+const int DVL::BAD_VELOCITY = -32768;
+
 using namespace ram::math;
     
 DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
@@ -96,77 +98,26 @@ void DVL::update(double timestep)
     // Only grab data on valid fd
     if (m_serialFD >= 0)
     {
-	RawDVLData newState;
-	if (readDVLData(m_serialFD, &newState))
-	{
-	    {
-            // Thread safe copy of good dvl data
-            core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-            *m_rawState = newState;
-	    }
-
-        math::Vector2 oldVelocity;
+        RawDVLData newState;
+        if (readDVLData(m_serialFD, &newState) == 0)
         {
-            core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
-            oldVelocity = m_velocity;
+            {
+                // Thread safe copy of good dvl data
+                core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+                *m_rawState = newState;
+            }
+
+            int xVel = newState.xvel_btm;
+            int yVel = newState.yvel_btm;
+            math::Vector2 velocity(yVel / 1000.0, xVel / 1000.0);
+            LOGGER.infoStream() << velocity[0] << " "
+                                << velocity[1];
         }
-
-        // rotation matrix from transducer frame to body frame
-        math::Matrix2 bRt(math::Matrix2::IDENTITY);
-
-        // heads 1 and 2 are opposite, heads 3 and 4 are opposite
-        // head 1 --> bt_velocity[0]
-        // head 2 --> bt_velocity[1]
-        // head 3 --> bt_velocity[2]
-        // head 4 --> bt_velocity[3]
-
-        // average the opposite velocities to get an estimate in the transducer frame
-        double vel_t1 = (newState.bt_velocity[0] + newState.bt_velocity[1]) / 2;
-        double vel_t2 = (newState.bt_velocity[2] + newState.bt_velocity[3]) / 2;
-
-        // velocity in transducer frame
-        math::Vector2 vel_t(vel_t1, vel_t2);
-
-        // velocity in body frame
-        math::Vector2 vel_b = bRt*vel_t;
-
-        double yaw = m_vehicle->getOrientation().getYaw().valueRadians();
-        
-        math::Vector2 vel_n = math::nRb(yaw)*vel_b;
-
-        {
-            core::ReadWriteMutex::ScopedWriteLock lock(m_velocityMutex);
-            m_velocity = vel_n;
-//            m_position += (vel_n + oldVelocity)/2 * timestep;
-        }
-
-            LOGGER.infoStream() << newState.valid << " "
-                                << newState.bt_velocity[0] << " "
-                                << newState.bt_velocity[1] << " "
-                                << newState.bt_velocity[2] << " "
-                                << newState.bt_velocity[3] << " "
-                                << vel_t << " "
-                                << vel_b << " "
-                                << newState.ensemblenum << " "
-                                << newState.year << " "
-                                << newState.month << " "
-                                << newState.day << " "
-                                << newState.hour << " "
-                                << newState.min << " "
-                                << newState.sec << " "
-                                << newState.hundredth;
-
-	    // Now publish the new velocity
-	    math::Vector2EventPtr vevent(new math::Vector2Event());
-	    // TODO: Insert whatever the local variable for velocity is
-	    vevent->vector2 = vel_n;
-	    publish(IVelocitySensor::UPDATE, vevent);
-	}
     }
     // We didn't connect, try to reconnect
     else
     {	
-	//m_serialFD = openDVL(m_devfile.c_str());
+        //m_serialFD = openDVL(m_devfile.c_str());
     }
 }
 

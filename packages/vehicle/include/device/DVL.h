@@ -119,6 +119,8 @@ private:
     core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
+
+    static const int BAD_VELOCITY;
 };
     
 } // namespace device
