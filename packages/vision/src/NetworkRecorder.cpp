@@ -105,6 +105,7 @@ NetworkRecorder::Connection::create(ba::io_service& io)
 void NetworkRecorder::Connection::sendImage(Image *img)
 {
     std::vector<unsigned char> buf;
+    img->setPixelFormat(Image::PF_BGR_8);
     cv::imencode(".jpg", cv::Mat(img->asIplImage()), buf);
 
     // send compressed data

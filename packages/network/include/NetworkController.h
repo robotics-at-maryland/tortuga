@@ -91,6 +91,8 @@ class RAM_EXPORT NetworkController :
     double m_yaw;
     double m_pitch;
     double m_roll;
+    bool m_descending;
+    bool m_ascending;
 };
 
 } // namespace network

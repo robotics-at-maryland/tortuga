@@ -60,84 +60,74 @@ class RemoteController(core.Subsystem):
         self._connections.append(conn)
 
     def _emergency_stop(self, event):
-        print 'receiving emergency_stop'
         # Safe the thrusters (if vehicle is available)
         if self._vehicle is not None:
             self._vehicle.safeThrusters()
 
     def _yaw_left(self, event):
-        print 'receiving yaw_left'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(0, 0, rate))
 
     def _yaw_right(self, event):
-        print 'receiving yaw_right'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(0, 0, rate))
 
     def _pitch_up(self, event):
-        print 'receiving pitch_up'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(0, rate, 0))
 
     def _pitch_down(self, event):
-        print 'receiving pitch_down'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(0, rate, 0))
 
     def _roll_left(self, event):
-        print 'receiving roll_left'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(rate, 0, 0))
 
     def _roll_right(self, event):
-        print 'receiving roll_right'
         ori = self._estimator.getEstimatedOrientation()
         rate = event.number
         self._controller.rotate(ori, math.Vector3(rate, 0, 0))
 
     def _forward_movement(self, event):
-        print 'receiving forward_movement'
         self._speed = event.number
         self._setvelocity()
 
     def _downward_movement(self, event):
-        print 'receiving downward_movement'
         self._controller.translate(pos, vel)
 
     def _left_movement(self, event):
-        print 'receiving left_movement'
         self._tspeed = event.number
         self._setvelocity()
 
     def _right_movement(self, event):
-        print 'receiving right_movement'
         self._tspeed = event.number
         self._setvelocity()
 
+# Descent and Ascent currently do not work because the putton press
+# event is only being sent once however the button release event is
+# properly being sent.
 
     def _descend(self, event):
         """
         When we want to descend, we send a positive downward 
         speed to the controller.
         """
-        print 'receiving descend'
         depth = self._estimator.getEstimatedDepth()
-        self._controller.changeDepth(depth, 5)
+        self._controller.changeDepth(depth + 0.5)
 
     def _ascend(self, event):
         """
         When we want to ascend, we send a negative downward
         speed to the controller.
         """
-        print 'receiving ascend'
         depth = self._estimator.getEstimatedDepth()
-        self._controller.changeDepth(depth, -5)
+        self._controller.changeDepth(depth - 0.5)
 
     def _setspeed(self, event):
         """
@@ -146,8 +136,7 @@ class RemoteController(core.Subsystem):
         we only send it ONCE because sending it repeatedly would prevent
         the AI from controlling the robot
         """
-        print 'receiving setspeed'
-        self._speed = event.number / 3.0
+        self._speed = event.number
         if self._speed == 0 and self._lastSpeedCommand == 0:
             # avoid sending repeated speed = 0 commands
             # note that we do want to send commands repeatedly if
@@ -164,8 +153,7 @@ class RemoteController(core.Subsystem):
         we only send it ONCE because sending it repeatedly would prevent
         the AI from controlling the robot
         """
-        print 'receiving tsetspeed'
-        self._tspeed = event.number / 3.0
+        self._tspeed = event.number
         if self._tspeed == 0 and self._lastTSpeedCommand == 0:
             # avoid sending repeated sideways speed = 0 commands
             # note that we do want to send commands repeatedly if
@@ -181,10 +169,9 @@ class RemoteController(core.Subsystem):
         frame velocity should be and send the appropriate command to
         the controller.
         """
-        print 'SETTING VELOCITY'
         pos = self._estimator.getEstimatedPosition()
-        yaw = self._estimator.getEstimatedOrientation().getYaw().valueRadians()
-        nRb = math.nRb(yaw)
+        yaw = self._estimator.getEstimatedOrientation().getYaw()
+        nRb = math.Matrix2.nRb(yaw)
         self._controller.translate(
             pos, nRb * math.Vector2(self._speed, self._tspeed))
 
@@ -195,17 +182,16 @@ class RemoteController(core.Subsystem):
         event command.  When we receive a zero rate command, we should
         only pass along the command to the controller ONCE.
         """
-        print 'receiving angleyaw'
-        rate = event.number
-        if rate == 0 and self._lastYawCommand == 0:
+        change = event.number
+        if change == 0 and self._lastYawCommand == 0:
             # dont sent ZERO command twice
             # note that we do want to send commands repeatedly if
             # the speed is not zero
             pass
         else:
             ori = self._estimator.getEstimatedOrientation()
-            self._controller.rotate(ori, math.Vector3(0, 0, rate))
-            self._lastYawCommand = rate
+            self._controller.rotate(ori * math.Quaternion(math.Degree(change), math.Vector3.UNIT_Z))
+            self._lastYawCommand = change
 
     def _anglepitch(self, event):
         """
@@ -214,7 +200,6 @@ class RemoteController(core.Subsystem):
         event command.  When we receive a zero rate command, we should
         only pass along the command to the controller ONCE.
         """
-        print 'receiving anglepitch'
         rate = event.number
         if rate == 0 and self._lastPitchCommand == 0:
             # dont sent ZERO command twice
@@ -233,7 +218,6 @@ class RemoteController(core.Subsystem):
         event command.  When we receive a zero rate command, we should
         only pass along the command to the controller ONCE.
         """
-        print 'receiving angleroll'
         rate = event.number
         if rate == 0 and self._lastRollCommand == 0:
             # dont sent ZERO command twice
@@ -246,15 +230,12 @@ class RemoteController(core.Subsystem):
             self._lastRollCommand = rate
 
     def _fire_marker_dropper(self, event):
-        print 'receiving fire_marker_dropper'
         self._vehicle.dropMarker()
 
     def _fire_torpedo_launcher(self, event):
-        print 'receiving fire_torpedo_launcher'
         self._vehicle.fireTorpedo()
 
     def _maintain_depth(self, event):
-        print 'receiving maintain depth'
-        self._controller.holdDepth()
+        self._controller.holdCurrentDepth()
 
 core.SubsystemMaker.registerSubsystem('RemoteController', RemoteController)

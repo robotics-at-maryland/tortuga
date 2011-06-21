@@ -2130,7 +2130,8 @@ mpFXYDeque::mpFXYDeque(wxString name, size_t bufferSize,
     m_minX(-1),
     m_maxX(1),
     m_minY(-1),
-    m_maxY(1)
+    m_maxY(1),
+    m_mutex()
 {
     m_type = mpLAYER_PLOT;
 }
@@ -2146,31 +2147,38 @@ bool mpFXYDeque::GetNextXY(double & x, double & y)
         return FALSE;
     else
     {
+        m_mutex.Lock();
         x = m_xData[m_index];
         y = m_yData[m_index++];
+        m_mutex.Unlock();
         return m_index <= m_xData.size();
     }
 }
 
 void mpFXYDeque::Clear()
 {
+    m_mutex.Lock();
     m_xData.clear();
     m_yData.clear();
+    m_mutex.Unlock();
 }
 
 void mpFXYDeque::SetBufferSize(size_t bufferSize)
 {
     m_bufferSize = bufferSize;
 
+    m_mutex.Lock();
     while(m_xData.size() > m_bufferSize)
         m_xData.pop_front();
     
     while(m_yData.size() > m_bufferSize)
         m_yData.pop_front();
+    m_mutex.Unlock();
 }
 
 void mpFXYDeque::AddData(double xVal, double yVal)
 {
+    m_mutex.Lock();
     m_xData.push_back(xVal);
     m_yData.push_back(yVal);
 
@@ -2180,8 +2188,9 @@ void mpFXYDeque::AddData(double xVal, double yVal)
     while(m_yData.size() > m_bufferSize)
         m_yData.pop_front();
 
+    int size = m_xData.size();
     // Update internal variables for the bounding box.
-    if (m_xData.size() > 0)
+    if (size > 0)
     {
         m_minX = *std::min_element(m_xData.begin(), m_xData.end());
         m_maxX = *std::max_element(m_xData.begin(), m_xData.end());
@@ -2204,10 +2213,12 @@ void mpFXYDeque::AddData(double xVal, double yVal)
         m_minY  = -1;
         m_maxY  = 1;
     }
+    m_mutex.Unlock();
 }
 
 void mpFXYDeque::Plot(wxDC & dc, mpWindow & w)
 {
+    m_mutex.Lock();
 	if (m_visible) {
 		dc.SetPen(m_pen);
 
@@ -2335,6 +2346,7 @@ void mpFXYDeque::Plot(wxDC & dc, mpWindow & w)
             }
         }
     }
+    m_mutex.Unlock();
 }
 
 

@@ -75,6 +75,7 @@
 #include <wx/string.h>
 #include <wx/print.h>
 #include <wx/image.h>
+#include <wx/thread.h>
 
 
 #include <deque>
@@ -1374,6 +1375,9 @@ class WXDLLIMPEXP_MATHPLOT mpFXYDeque : public mpFXY
     double m_maxX; 
     double m_minY;
     double m_maxY;
+
+    // mutex for sycnronization of access to the data
+    wxMutex m_mutex;
 
     /** Rewind value enumeration with mpFXY::GetNextXY.
         Overridden in this implementation.

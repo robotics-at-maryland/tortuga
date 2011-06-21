@@ -69,7 +69,9 @@ NetworkController::NetworkController(core::ConfigNode config,
     m_tspeed(0),
     m_yaw(0),
     m_pitch(0),
-    m_roll(0)
+    m_roll(0),
+    m_descending(false),
+    m_ascending(false)
 {
     enable();
 }
@@ -99,7 +101,6 @@ void NetworkController::disable()
 
 void NetworkController::update(double)
 {
-    std::cout << "Sending Network Control Commands" << std::endl;
     math::NumericEventPtr setspeed(new math::NumericEvent());
     setspeed->number = m_speed;
     publish(EventType::SETSPEED, setspeed);
@@ -111,6 +112,18 @@ void NetworkController::update(double)
     math::NumericEventPtr angleyaw(new math::NumericEvent());
     angleyaw->number = m_yaw;
     publish(EventType::ANGLEYAW, angleyaw);
+
+    if(m_descending && !m_ascending)
+    {
+        core::EventPtr event(new core::Event());
+        publish(EventType::DESCEND, event);
+    }
+
+    if(m_ascending && !m_descending)
+    {
+        core::EventPtr event(new core::Event());
+        publish(EventType::ASCEND, event);
+    }
 
     // math::NumericEventPtr pitch(new math::NumericEvent());
     // pitch->number = m_pitch;
@@ -182,6 +195,7 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
 
     case CMD_DESCEND:
     {
+        m_descending = true;
         core::EventPtr event(new core::Event());
         publish(EventType::DESCEND, event);
         break;
@@ -189,6 +203,7 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
 
     case CMD_ASCEND:
     {
+        m_ascending = true;
         core::EventPtr event(new core::Event());
         publish(EventType::ASCEND, event);
         break;
@@ -239,18 +254,23 @@ bool NetworkController::processMessage(unsigned char cmd, signed char param)
     {
         core::EventPtr event(new core::Event());
         publish(EventType::FIRE_MARKER_DROPPER, event);
+        break;
     }
 
     case CMD_FIRE_TORPEDO:
     {
         core::EventPtr event(new core::Event());
         publish(EventType::FIRE_TORPEDO_LAUNCHER, event);
+        break;
     }
 
     case CMD_MAINTAIN_DEPTH:
     {
+        m_descending = false;
+        m_ascending = false;
         core::EventPtr event(new core::Event());
         publish(EventType::MAINTAIN_DEPTH, event);
+        break;
     }
 
     default:

@@ -22,7 +22,7 @@
 #define AXIS_TSPEED 0
 #define AXIS_SPEED 1
 #define AXIS_YAW 2
-#define AXIS_THROTTLE 3
+#define AXIS_THROTTLE -1
 
 int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
 {
@@ -41,10 +41,11 @@ int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
     return val;
 }
 
+// Joystick Specific Range Calibration Values
 #define SCALE_SPEED(val)                                \
     scaleAxis(val, -14000, -15000, 6811, SPEED_RANGE)
 #define SCALE_YAW(val)                              \
-    scaleAxis(val, 18504, 18504, 4498, YAW_RANGE)
+    scaleAxis(val, 19275, 19532, 5269, YAW_RANGE)
 #define SCALE_TSPEED(val)                       \
     scaleAxis(val, 15934, 17476, 10152, TSPEED_RANGE)
 #define SCALE_THROTTLE(val)                     \
