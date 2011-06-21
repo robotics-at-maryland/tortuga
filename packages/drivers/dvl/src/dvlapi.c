@@ -109,8 +109,6 @@ int readDVLData(int fd, RawDVLData* dvl)
 
     tempsize= dvl_convert16(dvlData[3], dvlData[2]);
 
-    fprintf(stderr, "Got size of %u\n.", (uint32_t) tempsize);
-    
     while(len < tempsize)
         len+= read(fd, dvlData + len, tempsize - len);
 
