@@ -24,10 +24,14 @@
 #define AXIS_YAW 2
 #define AXIS_THROTTLE -1
 
-int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
+int scaleAxis(int val, int negRange, int posRange,
+              int deadNeg, int deadPos,
+              int offset, int outRange)
 {
     val += offset;
-    if(val < 0) /* Forward, range up to 15677 */
+    if(val > deadNeg && val < deadPos)
+        val = 0;
+    else if(val < 0) /* Forward, range up to 15677 */
         val = outRange * val / negRange;
     else
         val = outRange * val / posRange;
@@ -43,13 +47,13 @@ int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
 
 // Joystick Specific Range Calibration Values
 #define SCALE_SPEED(val)                                \
-    scaleAxis(val, -14000, -15000, 6811, SPEED_RANGE)
+    scaleAxis(val, -14000, -15000, -3000, 3000, 6811, SPEED_RANGE)
 #define SCALE_YAW(val)                              \
-    scaleAxis(val, 19275, 19532, 5269, YAW_RANGE)
+    scaleAxis(val, 19275, 19532, -4000, 4000, 5269, YAW_RANGE)
 #define SCALE_TSPEED(val)                       \
-    scaleAxis(val, 15934, 17476, 10152, TSPEED_RANGE)
+    scaleAxis(val, 15934, 17476, -3000, 3000, 10152, TSPEED_RANGE)
 #define SCALE_THROTTLE(val)                     \
-    scaleAxis(val, -19789, -19789, 8867, SPEED_RANGE)
+    scaleAxis(val, -19789, -19789, -3000, 3000, 8867, SPEED_RANGE)
 
 #include "joystick.h"
 

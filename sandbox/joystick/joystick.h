@@ -20,10 +20,16 @@ void processAxis(int fd, int axis, int val)
     case AXIS_YAW:
     {
         val = SCALE_YAW(val);
-
         if(val == 1 || val == -1)
             val = 0;
         yawCmd = -val;
+
+        if(val != lastAxisYaw)
+        {
+            printf("New Yaw: %d\n", val);
+            lastAxisYaw = val;
+        }
+
         break;
     }
 
