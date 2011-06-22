@@ -25,6 +25,10 @@ class RemoteController(core.Subsystem):
 
 
         self._yawChange = config.get('yawChange', 10)
+        
+        self._speedGain = config.get('speedGain', 3)
+        self._tSpeedGain = config.get('tSpeedGain', 3)
+        self._angleYawGain = config.get('yawGain', 10)
 
         self._speed = 0
         self._tspeed = 0
@@ -136,7 +140,7 @@ class RemoteController(core.Subsystem):
         we only send it ONCE because sending it repeatedly would prevent
         the AI from controlling the robot
         """
-        self._speed = event.number
+        self._speed = (event.number / 100.0) * self._speedGain
         if self._speed == 0 and self._lastSpeedCommand == 0:
             # avoid sending repeated speed = 0 commands
             # note that we do want to send commands repeatedly if
@@ -153,7 +157,7 @@ class RemoteController(core.Subsystem):
         we only send it ONCE because sending it repeatedly would prevent
         the AI from controlling the robot
         """
-        self._tspeed = event.number
+        self._tspeed = (event.number / 100.0) * self._tSpeedGain
         if self._tspeed == 0 and self._lastTSpeedCommand == 0:
             # avoid sending repeated sideways speed = 0 commands
             # note that we do want to send commands repeatedly if
@@ -182,7 +186,7 @@ class RemoteController(core.Subsystem):
         event command.  When we receive a zero rate command, we should
         only pass along the command to the controller ONCE.
         """
-        change = event.number
+        change = (event.number / 100.0) * self._angleYawGain
         if change == 0 and self._lastYawCommand == 0:
             # dont sent ZERO command twice
             # note that we do want to send commands repeatedly if
@@ -190,7 +194,8 @@ class RemoteController(core.Subsystem):
             pass
         else:
             ori = self._estimator.getEstimatedOrientation()
-            self._controller.rotate(ori * math.Quaternion(math.Degree(change), math.Vector3.UNIT_Z))
+            self._controller.rotate(ori * math.Quaternion(
+                    math.Degree(change), math.Vector3.UNIT_Z))
             self._lastYawCommand = change
 
     def _anglepitch(self, event):
