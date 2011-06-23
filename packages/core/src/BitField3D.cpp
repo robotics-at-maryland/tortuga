@@ -33,22 +33,22 @@ std::vector<bool>::reference BitField3D::operator() (
     return m_bitfield[m_length*m_width*z+m_length*y+x];
 }
 
-size_t BitField3D::length() const
+size_t BitField3D::length()
 {
     return m_length;
 }
 
-size_t BitField3D::width() const
+size_t BitField3D::width()
 {
     return m_width;
 }
 
-size_t BitField3D::height() const
+size_t BitField3D::height()
 {
     return m_height;
 }
 
-size_t BitField3D::size() const
+size_t BitField3D::size()
 {
     return m_bitfield.size();
 }

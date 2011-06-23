@@ -13,6 +13,9 @@
 // STD Includes
 #include <vector>
 
+// Libary Includes
+#include <boost/serialization/vector.hpp>
+
 namespace ram {
 namespace core {
 
@@ -23,16 +26,26 @@ public:
 
     std::vector<bool>::reference operator() (size_t x, size_t y, size_t z);
 
-    size_t length() const;
-    size_t width() const;
-    size_t height() const;
-    size_t size() const;
+    size_t length();
+    size_t width();
+    size_t height();
+    size_t size();
 
 private:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version)
+    {
+        ar & m_bitfield;
+        ar & m_length;
+        ar & m_width;
+        ar & m_height;
+    }
+
     std::vector<bool> m_bitfield;
-    const size_t m_length;
-    const size_t m_width;
-    const size_t m_height;
+    size_t m_length;
+    size_t m_width;
+    size_t m_height;
 };
 
 } // namespace core

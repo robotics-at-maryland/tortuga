@@ -7,6 +7,7 @@ set(LINK_LIBS
   ram_math
   ${OpenCV_LIBS}
   ${Boost_THREAD_LIBRARY}
+  ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_REGEX_LIBRARY}
   ${DC1394_LIBRARIES}
   ${FANN_LIBRARIES}

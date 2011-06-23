@@ -19,6 +19,7 @@
 #include "core/include/Forward.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/PropertySet.h"
+#include "core/include/BitField3D.h"
 
 // Must be incldued last
 #include "vision/include/Export.h"
@@ -29,7 +30,7 @@ namespace vision {
 class RAM_EXPORT TableColorFilter : public ImageFilter
 {
 public:
-    TableColorFilter(core::ConfigNode config);
+    TableColorFilter(std::string filepath);
     virtual ~TableColorFilter() {}
 
     /** Run the Filter on the input image, debug results to output Image
@@ -41,14 +42,14 @@ public:
     virtual void inverseFilterImage(Image* input, Image* output = 0);
     
 private:
-    void init(core::ConfigNode config);
-    bool loadLookupTable(std::string filePath, bool relativePath = true);
-    bool saveLookupTable(std::string filePath, bool relativePath = true);
-    void createLookupTable();
+    bool loadLookupTable();
+    static void saveLookupTable(std::string filepath, core::BitField3D filterTable);
+    static void createLookupTable(std::string filepath);
 
     // property set and properties
+    core::BitField3D m_filterTable;
     core::PropertySetPtr m_propertySet;
-    std::string m_filePath;
+    std::string m_filepath;
 };
     
 } // namespace vision
