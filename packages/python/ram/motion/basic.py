@@ -516,7 +516,10 @@ class Translate(Motion):
         The trajectory must return Vector2 values and derivatives
         @type  trajectory: Trajectory
         @param trajectory: Heading you wish to sub to be at
-        
+
+        @type frame: Frame
+        @param frame: the coordinate frame the trajectory is defined in
+
         @type  updateRate: int
         @param updateRate: rate to evaluate the trajectory  
         """
@@ -560,7 +563,7 @@ class Translate(Motion):
             orientation = self._estimator.getEstimatedOrientation()
             yaw = orientation.getYaw().valueRadians()
             # rotation matrix from body (local) to inertial (global)
-            nRb = math.nRb(yaw)
+            nRb = math.Vector2.nRb(yaw)
             newAccel = nRb * newAccel
             newVelocity = nRb * newVelocity
             newPosition = self._initialGlobalPosition + (nRb * newPosition)
