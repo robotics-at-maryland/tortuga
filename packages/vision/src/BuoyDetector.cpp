@@ -15,6 +15,7 @@
 // Library Includes
 #include "cv.h"
 #include "highgui.h"
+#include <log4cpp/Category.hh>
 
 #include <boost/foreach.hpp>
 
@@ -35,6 +36,8 @@
 
 namespace ram {
 namespace vision {
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
 BuoyDetector::BuoyDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
@@ -181,6 +184,13 @@ void BuoyDetector::init(core::ConfigNode config)
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     blackFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
+    LOGGER.info("foundRed redX redY redRange redWidth "
+                "redHeight redNumPixels redPixelPct" 
+                "foundGreen greenX greenY greenRange greenWidth "
+                "greenHeight greenNumPixels greenPixelPct"
+                "foundYellow yellowX yellowY yellowRange yellowWidth "
+                "yellowHeight yellowNumPixel yellowPixelPct");
 }
 
 BuoyDetector::~BuoyDetector()
@@ -271,7 +281,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
-    int topRowsToIgnore = (int)(m_topIgnorePercentage * frame->getHeight());
+    int topRowsToIgnore = static_cast<int>(m_topIgnorePercentage * frame->getHeight());
     int bottomRowsToIgnore = (int)(m_bottomIgnorePercentage * frame->getHeight());
     int leftColsToIgnore = (int)(m_leftIgnorePercentage * frame->getWidth());
     int rightColsToIgnore = (int)(m_rightIgnorePercentage * frame->getWidth());
@@ -306,13 +316,35 @@ void BuoyDetector::processImage(Image* input, Image* output)
         if(blobPixels > almostHitPixels)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
-    } else {
+
+        double range = 0;
+        int width = redBlob.getWidth();
+        int height = redBlob.getHeight();
+
+        LOGGER.infoStream() << "1" << " "
+                            << redBlob.getCenterX() << " "
+                            << redBlob.getCenterY() << " "
+                            << range << " "
+                            << width << " "
+                            << height << " "
+                            << blobPixels << " "
+                            << blobPixels / (width * height);
+    } 
+    else 
+    {
         // Publish lost event if this was found previously
-        if (m_redFound) {
+        if (m_redFound) 
             publishLostEvent(Color::RED);
-        }
+
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+        
     }
     m_redFound = redFound;
+
+
+
+
 
     BlobDetector::Blob greenBlob;
     bool greenFound = processColor(frame, greenFrame, *m_greenFilter, greenBlob);
@@ -324,11 +356,30 @@ void BuoyDetector::processImage(Image* input, Image* output)
         if(blobPixels > almostHitPixels)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
-    } else {
+
+        double range = 0;
+        int width = greenBlob.getWidth();
+        int height = greenBlob.getHeight();
+        
+        LOGGER.infoStream() << "1" << " "
+                            << greenBlob.getCenterX() << " "
+                            << greenBlob.getCenterY() << " "
+                            << range << " "
+                            << width << " "
+                            << height << " "
+                            << blobPixels << " "
+                            << blobPixels / (width * height);
+
+    }
+    else
+    {
         // Publish lost event if this was found previously
-        if (m_greenFound) {
+        if (m_greenFound)
             publishLostEvent(Color::GREEN);
-        }
+
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+        
     }
     m_greenFound = greenFound;
 
@@ -342,11 +393,30 @@ void BuoyDetector::processImage(Image* input, Image* output)
         if(blobPixels > almostHitPixels)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
-    } else {
+
+        double range = 0;
+        int width = greenBlob.getWidth();
+        int height = greenBlob.getHeight();
+
+        LOGGER.infoStream() << "1" << " "
+                            << greenBlob.getCenterX() << " "
+                            << greenBlob.getCenterY() << " "
+                            << range << " "
+                            << width << " "
+                            << height << " "
+                            << blobPixels << " "
+                            << blobPixels / (width * height);
+
+    } 
+    else
+    {
         // Publish lost event if this was found previously
-        if (m_yellowFound) {
+        if (m_yellowFound)
             publishLostEvent(Color::YELLOW);
-        }
+
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+        
     }
     m_yellowFound = yellowFound;
 

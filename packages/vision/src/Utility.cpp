@@ -8,6 +8,7 @@
  */
 
 // STD Includes
+#include <cmath>
 
 // Library Includes
 #include "cv.h"
@@ -62,6 +63,17 @@ int Utility::countWhitePixels(Image* source, RegionOfInterest roi)
     return countWhitePixels(source, roi.minX(), roi.minY(),
                             roi.maxX(), roi.maxY());
 }
+
+double distanceToObjective(double actualWidth, double pixelWidth,
+                           double fieldOfView, double imageWidth)
+{
+    double theta = fieldOfView * pixelWidth / imageWidth;
+    double distance = actualWidth / (2 * std::tan(theta/2));
+
+    return distance;
+}
+
+
 
 // void DC1394Camera::balanceWhite()
 // {
