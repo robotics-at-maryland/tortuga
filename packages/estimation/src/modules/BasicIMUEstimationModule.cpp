@@ -119,7 +119,8 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
 
     math::Quaternion estOrientation = math::Quaternion::IDENTITY;
     
-    if(imuList.find(m_magIMUName) != imuList.end()) {
+    if(imuList.find(m_magIMUName) != imuList.end())
+    {
 
         /* If we have the magboom IMU, compute the quaternion from the
          * magnetometer reading from the magboom IMU and the linear
@@ -136,7 +137,9 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
         // LOGGER.info("quatFromMagAccel - With MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
-    } else if (!magIsCorrupt) {
+    } 
+    else if (!magIsCorrupt)
+    {
 
         /* If we dont have the magboom IMU and the magnetometer
          * reading is not corrupted, compute the estimated orientation
@@ -146,7 +149,9 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
         // LOGGER.info("quatFromMagAccel - Without MagBoom");
         estOrientation = estimation::Utility::quaternionFromMagAccel(mag,accel);
 
-    } else {
+    } 
+    else
+    {
 
         /* If we dont have the magboom IMU and the magnetometer
          * reading is corrupted, compute the estimated orientation from
@@ -171,13 +176,18 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
                                                                  timestep);
     }
 
+    math::Vector3 estLinearAccel(m_filteredState[m_cgIMUName]->accelX,
+                                 m_filteredState[m_cgIMUName]->accelY,
+                                 m_filteredState[m_cgIMUName]->accelZ);
+    
+    math::Vector3 estAngularRate(m_filteredState[m_cgIMUName]->gyroX,
+                                 m_filteredState[m_cgIMUName]->gyroY,
+                                 m_filteredState[m_cgIMUName]->gyroZ);
+
     // Update local storage of previous orientation and estimator
     m_estimatedState->setEstimatedOrientation(estOrientation);
-
-    // Send Event
-    // math::OrientationEventPtr oevent(new math::OrientationEvent());
-    // oevent->orientation = estOrientation;
-    // publish(vehicle::device::IIMU::UPDATE, oevent);
+    m_estimatedState->setEstimatedLinearAccel(estLinearAccel);
+    m_estimatedState->setEstimatedAngularRate(estAngularRate);
 
     // Log data directly
     LOGGER.infoStream() << name << " "
