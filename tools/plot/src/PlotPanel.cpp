@@ -84,8 +84,11 @@ wxAuiPaneInfo& PlotPanel::info()
 
 void PlotPanel::addData(std::string dataSeriesName, double x, double y)
 {
-    mpFXYDeque *plot = m_dataSeries[dataSeriesName];
-    plot->AddData(x, y);
+    if(IsShownOnScreen())
+    {
+        mpFXYDeque *plot = m_dataSeries[dataSeriesName];
+        plot->AddData(x, y);
+    }
 }
 
 void PlotPanel::addDataSeries(std::string name, wxPen pen)
@@ -100,15 +103,6 @@ void PlotPanel::addDataSeries(std::string name, wxPen pen)
 
 void PlotPanel::redraw()
 {
-    // time_t currTime = std::time(NULL);
-    // time_t elapsed = std::difftime(currTime, m_lastUpdate);
-    // elapsed = elapsed;
-    // if(elapsed > m_updatePeriod)
-    // {
-    //     recalculate bounds and force a redraw
-    //     m_plotWindow->Fit();
-    //     m_plotWindow->UpdateNow();
-    // }
 }
 
 size_t PlotPanel::getBufferSize()
@@ -151,7 +145,8 @@ void PlotPanel::onClear(wxCommandEvent& WXUNUSED(event))
 
 void PlotPanel::onPaint(wxPaintEvent& WXUNUSED(event))
 {
-    m_plotWindow->Fit();
+    if(IsShownOnScreen())
+        m_plotWindow->Fit();
 }
 
 void PlotPanel::clear()

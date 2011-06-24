@@ -85,7 +85,6 @@ bool PlotApp::OnInit()
 
 
 
-
     EventSeriesMap positionSeries;
     positionSeries[estimation::IStateEstimator::ESTIMATED_POSITION_UPDATE] =
         DataSeriesInfo("Estimated Position", wxPen(wxColour(wxT("RED")), 3));
@@ -108,35 +107,77 @@ bool PlotApp::OnInit()
     positionYComponentPanel->setBufferSize(1000);
 
 
-    depthPanel = depthPanel;
-    depthRatePanel = depthRatePanel;
-    velocityPhasePanel = velocityPhasePanel;
-    positionPhasePanel = positionPhasePanel;
-    velocityXComponentPanel = velocityXComponentPanel;
-    velocityYComponentPanel = velocityYComponentPanel;
-    positionXComponentPanel = positionXComponentPanel;
-    positionYComponentPanel = positionYComponentPanel;
-        
+
+    
+    EventSeriesMap linearAccelSeries;
+    linearAccelSeries[estimation::IStateEstimator::ESTIMATED_LINEARACCELERATION_UPDATE] =
+        DataSeriesInfo("Estimated Linear Accel", wxPen(wxColour(wxT("RED")), 3));
+    
+    PlotPanel *linearAccelXComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, linearAccelSeries, 0,
+        wxT("Linear Accel X-Component"), wxT("Linear Accel X-Component"));
+
+    PlotPanel *linearAccelYComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, linearAccelSeries, 1,
+        wxT("Linear Accel Y-Component"), wxT("Linear Accel Y-Component"));
+
+    PlotPanel *linearAccelZComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, linearAccelSeries, 2,
+        wxT("Linear Accel Z-Component"), wxT("Linear Accel Z-Component"));
+
+
+
+
+    EventSeriesMap angularRateSeries;
+    angularRateSeries[estimation::IStateEstimator::ESTIMATED_ANGULARRATE_UPDATE] =
+        DataSeriesInfo("Estimated Angular Rate", wxPen(wxColour(wxT("RED")), 3));
+
+    PlotPanel *angularRateXComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, angularRateSeries, 0,
+        wxT("Angular Rate X-Component"), wxT("Angular Rate X-Component"));
+
+    PlotPanel *angularRateYComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, angularRateSeries, 1,
+        wxT("Angular Rate Y-Component"), wxT("Angular Rate Y-Component"));
+
+    PlotPanel *angularRateZComponentPanel = new Vector3ComponentPlot(
+        frame, m_eventHub, angularRateSeries, 2,
+        wxT("Angular Rate Z-Component"), wxT("Angular Rate Z-Component"));
+    
     velocityXComponentPanel->info().Show().Left();
     velocityYComponentPanel->info().Show().Left();
     positionXComponentPanel->info().Show().Right();
     positionYComponentPanel->info().Show().Right();
-
+    
     // add the panels
-    // frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
-    // frame->addPanel(depthRatePanel, depthRatePanel->info(), depthRatePanel->name());
+    frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
+    frame->addPanel(depthRatePanel, depthRatePanel->info(), depthRatePanel->name());
 
-    // frame->addPanel(velocityPhasePanel, velocityPhasePanel->info(), velocityPhasePanel->name());
+    frame->addPanel(velocityPhasePanel, velocityPhasePanel->info(), velocityPhasePanel->name());
     frame->addPanel(velocityXComponentPanel, velocityXComponentPanel->info(),
                     velocityXComponentPanel->name());
     frame->addPanel(velocityYComponentPanel, velocityYComponentPanel->info(),
                     velocityYComponentPanel->name());
 
-    // frame->addPanel(positionPhasePanel, positionPhasePanel->info(), positionPhasePanel->name());
+    frame->addPanel(positionPhasePanel, positionPhasePanel->info(), positionPhasePanel->name());
     frame->addPanel(positionXComponentPanel, positionXComponentPanel->info(),
                     positionXComponentPanel->name());
     frame->addPanel(positionYComponentPanel, positionYComponentPanel->info(),
                     positionYComponentPanel->name());
+    
+    frame->addPanel(linearAccelXComponentPanel, linearAccelXComponentPanel->info(),
+                    linearAccelXComponentPanel->name());
+    frame->addPanel(linearAccelYComponentPanel, linearAccelYComponentPanel->info(),
+                    linearAccelYComponentPanel->name());
+    frame->addPanel(linearAccelZComponentPanel, linearAccelZComponentPanel->info(),
+                    linearAccelZComponentPanel->name());
+
+    frame->addPanel(angularRateXComponentPanel, angularRateXComponentPanel->info(),
+                    angularRateXComponentPanel->name());
+    frame->addPanel(angularRateYComponentPanel, angularRateYComponentPanel->info(),
+                    angularRateYComponentPanel->name());
+    frame->addPanel(angularRateZComponentPanel, angularRateZComponentPanel->info(),
+                    angularRateZComponentPanel->name());
 
 
     // show it
@@ -227,7 +268,7 @@ void RenderTimer::Notify()
  
 void RenderTimer::start()
 {
-    wxTimer::Start(40);
+    wxTimer::Start(50);
 }
 
 
