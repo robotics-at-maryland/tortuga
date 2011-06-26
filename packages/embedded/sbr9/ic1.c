@@ -580,7 +580,7 @@ void showBootDiag(int mode)
     unsigned char tmp[20];
     if(mode == 1)
     {
-        sprintf(tmp, "DIST  BALN  SONR");
+        sprintf(tmp, "BALN  DIST  SONR"); //Keith: Changed from "DIST  BALN  SONR" to "BALN  DIST..." (2-17-2011)
         showString(tmp, 0);
         sprintf(tmp, "                ");
 
@@ -809,7 +809,7 @@ void simpleCmd(byte cmdCode, byte replyCode, byte slaveId, byte busCmd)
         return;
     }
 
-    /* Read thruster state from distro board */
+    /* Send command to appropriate slave */
     if(busWriteByte(busCmd, slaveId) != 0)
     {
         sendByte(HOST_REPLY_FAILURE);
@@ -849,7 +849,7 @@ void checkFailsafe()
 
         busWriteByte(SLAVE_MM3_WRITE_CMD, SLAVE_ID_MM3);
         busWriteByte(0, SLAVE_ID_MM3);
-        busWriteByte(rxBuf[5], SLAVE_ID_MM3);
+        busWriteByte(0, SLAVE_ID_MM3); //Keith: Changed 1st arg from rxBuf[5] to 0 (2-17-2011)
 
         busWriteByte(SLAVE_MM4_WRITE_CMD, SLAVE_ID_MM4);
         busWriteByte(0, SLAVE_ID_MM4);
@@ -1075,8 +1075,8 @@ int main(void)
 
             case HOST_CMD_PING:
             {
-                t1 = waitchar(1);
-                if(t1 == HOST_CMD_PING)
+                t1 = waitchar(1); /* Wait for identical checksum. This method is repeated below for 1-byte commands */
+                if(t1 == HOST_CMD_PING) 
                     sendByte(HOST_REPLY_SUCCESS);
                 else
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1088,8 +1088,8 @@ int main(void)
             case HOST_CMD_SYSCHECK:
             {
                 byte err=0;
-                t1 = waitchar(1);
 
+                t1 = waitchar(1);
                 if(t1 != HOST_CMD_SYSCHECK)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1163,8 +1163,7 @@ int main(void)
                 sendByte(HOST_REPLY_DEPTH);
                 sendByte(rxBuf[0]);
                 sendByte(rxBuf[1]);
-                byte cs = HOST_REPLY_DEPTH+rxBuf[0]+rxBuf[1];
-                sendByte(cs);
+                sendByte(chksum(rxBuf, 2, HOST_REPLY_DEPTH));
                 break;
             }
 
@@ -1197,7 +1196,6 @@ int main(void)
             case HOST_CMD_READ_OVRLIMIT:
             {
                 t1 = waitchar(1);
-
                 if(t1 != HOST_CMD_READ_OVRLIMIT)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1222,7 +1220,7 @@ int main(void)
                     break;
                 }
 
-                t1 = rxBuf[0];
+                t1 = rxBuf[0]; //allow for more reading
 
                 if(busWriteByte(BUS_CMD_READ_REG, SLAVE_ID_THRUSTERS) != 0)
                 {
@@ -1242,23 +1240,24 @@ int main(void)
                     break;
                 }
 
+                /* Added by Keith for consistent chksum usage 3/3/2011 */
+                rxBuf[1]= t1;
+
                 sendByte(HOST_REPLY_OVRLIMIT);
-                sendByte(t1);
+                sendByte(rxBuf[1]);
                 sendByte(rxBuf[0]);
-                sendByte(rxBuf[0] + t1 + HOST_REPLY_OVRLIMIT);
+                sendByte(chksum(rxBuf, 2, HOST_REPLY_OVRLIMIT));
 
                 break;
             }
 
             case HOST_CMD_SET_OVRLIMIT:
             {
-                byte t3;
-                t1 = waitchar(1);
-                t2 = waitchar(1);
-                t3 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
+                rxBuf[2] = waitchar(1);
 
-
-                if(((t1+t2+HOST_CMD_SET_OVRLIMIT) & 0xFF) != t3)
+                if(chksum(rxBuf, 2, HOST_CMD_SET_OVRLIMIT) != rxBuf[2])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1276,7 +1275,7 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(t1, SLAVE_ID_THRUSTERS) != 0)
+                if(busWriteByte(rxBuf[0], SLAVE_ID_THRUSTERS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1294,7 +1293,7 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(t2, SLAVE_ID_THRUSTERS) != 0)
+                if(busWriteByte(rxBuf[1], SLAVE_ID_THRUSTERS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1307,16 +1306,17 @@ int main(void)
             // 0=internal, 1=external
             case HOST_CMD_SWITCHPOWER:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_SWITCHPOWER) & 0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1) || (chksum(rxBuf, 1, HOST_CMD_SWITCHPOWER) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(t1 == 0)
+                if(rxBuf[0] == 0)
                     t1 = busWriteByte(BUS_CMD_INTPOWER, SLAVE_ID_BATTSTAT);
                 else
                     t1 = busWriteByte(BUS_CMD_EXTPOWER, SLAVE_ID_BATTSTAT);
@@ -1334,7 +1334,7 @@ int main(void)
             case HOST_CMD_BOARDSTATUS:
             {
                 t1 = waitchar(1);
-                if(t1 != HOST_CMD_BOARDSTATUS)
+                if(t1 != HOST_CMD_BOARDSTATUS) // checksum
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1356,7 +1356,7 @@ int main(void)
 
                 /* Now that all the formailities are done, we get the byte from the */
                 /* Balancer Board, store it in the first byte of the message. */
-                t1 = rxBuf[0];
+                t1 = rxBuf[0]; //prepare for more reading
 //#endif
 
 
@@ -1376,7 +1376,7 @@ int main(void)
                 /* t2 is the second reply byte
                  * If you modify what bit this is stored in, be sure to mark
                  * the change in sensorapi.h status bits for kill switch */
-                t2= rxBuf[0] & 0x01;
+                t2= rxBuf[0] & 0x01; //store in bit 1
 
                 /* This was pre the 2 byte status reply
                 if(rxBuf[0] & 0x01)
@@ -1398,17 +1398,21 @@ int main(void)
                 }
 
                 /* Check the byte, and or it in to bit 2 in packet t2 */
-                t2 |= (rxBuf[0] & 0x01) << 1;
+                t2 |= (rxBuf[0] & 0x01) << 1; //store in bit 2 without changing the rest
 
                 /* This was the pre-2 byte status reply
                 if(rxBuf[0] & 0x01)
                     t1 |= 0x80;
                 */
 
+                /* Prepare for use of chksum. Added by Keith 3/3/2011 */
+                rxBuf[0]= t2;
+                rxBuf[1]= t1;
+
                 sendByte(HOST_REPLY_BOARDSTATUS);
-                sendByte(t2);
-                sendByte(t1);
-                sendByte(HOST_REPLY_BOARDSTATUS+t1+t2);
+                sendByte(rxBuf[0]); /* Changed from t2&t1 to rxBufs by Keith 3/3/2011 */
+                sendByte(rxBuf[1]);
+                sendByte(chksum(rxBuf, 2, HOST_REPLY_BOARDSTATUS));
 
                 break;
             }
@@ -1433,8 +1437,7 @@ int main(void)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
-                } else
-                {
+                } else {
                     if(busWriteByte(BUS_CMD_HARDKILL, SLAVE_ID_HARDKILL) != 0)
                     {
                         sendByte(HOST_REPLY_FAILURE);
@@ -1448,16 +1451,17 @@ int main(void)
 
             case HOST_CMD_MARKER:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_MARKER)&0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1) || (chksum(rxBuf, 1, HOST_CMD_MARKER) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(t1==0 ? BUS_CMD_MARKER1 : BUS_CMD_MARKER2, SLAVE_ID_MARKERS) != 0)
+                if(busWriteByte(rxBuf[0] == 0 ? BUS_CMD_MARKER1 : BUS_CMD_MARKER2, SLAVE_ID_MARKERS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1470,19 +1474,20 @@ int main(void)
 
             case HOST_CMD_BACKLIGHT:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
                 const static unsigned char blCommands[]=
-                        {BUS_CMD_LCD_LIGHT_OFF, BUS_CMD_LCD_LIGHT_ON, BUS_CMD_LCD_LIGHT_FLASH};
+                    {BUS_CMD_LCD_LIGHT_OFF, BUS_CMD_LCD_LIGHT_ON, BUS_CMD_LCD_LIGHT_FLASH}; /* Move this to top header thing? -Keith */
 
-                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BACKLIGHT)&0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1 && rxBuf[0] != 2) || (chksum(rxBuf, 1, HOST_CMD_BACKLIGHT) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(blCommands[t1], SLAVE_ID_LCD) != 0)
+                if(busWriteByte(blCommands[rxBuf[0]], SLAVE_ID_LCD) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1495,19 +1500,20 @@ int main(void)
 
             case HOST_CMD_BFIN_STATE:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
                 const static unsigned char bfCommands[]=
-                        {BUS_CMD_BFIN_STOP, BUS_CMD_BFIN_START};
+                    {BUS_CMD_BFIN_STOP, BUS_CMD_BFIN_START}; /* Move to top header thingy? -Keith */
 
-                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_BFIN_STATE)&0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1) || (chksum(rxBuf, 1, HOST_CMD_BFIN_STATE) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(bfCommands[t1], SLAVE_ID_SONAR) != 0)
+                if(busWriteByte(bfCommands[rxBuf[0]], SLAVE_ID_SONAR) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1520,10 +1526,11 @@ int main(void)
 
             case HOST_CMD_BARANIMATION:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if((t1 != 0 && t1 != 1 && t1 != 2) || (((t1+HOST_CMD_BARANIMATION)&0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1 && rxBuf[0] != 2) || (chksum(rxBuf, 1, HOST_CMD_BARANIMATION) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1535,7 +1542,7 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                if(busWriteByte(rxBuf[0], SLAVE_ID_BARS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1549,10 +1556,10 @@ int main(void)
 
             case HOST_CMD_SET_BARS:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if(((t1+HOST_CMD_SET_BARS)&0xFF) != t2)
+                if(chksum(rxBuf, 1, HOST_CMD_SET_BARS) != rxBuf[1])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1564,7 +1571,7 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(t1, SLAVE_ID_BARS) != 0)
+                if(busWriteByte(rxBuf[0], SLAVE_ID_BARS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1581,21 +1588,18 @@ int main(void)
                 for(i=0; i<5; i++)
                     rxBuf[i] = waitchar(1);
 
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                /* Separate for clarity -- these actually matter, 0-4 are safety */
+                rxBuf[5] = waitchar(1); //command
+                rxBuf[6] = waitchar(1); //chksum byte
 
                 byte cflag=0;
-                byte cs=0;
 
                 // Check the special sequence
                 for(i=0; i<5; i++)
                 {
-                    cs += rxBuf[i];
                     if(rxBuf[i] != tkSafety[i])
                         cflag=1;
                 }
-
-                cs += t1 + HOST_CMD_THRUSTERS;
 
 
                 /* If you mess with these arrays, please remember to update */
@@ -1611,13 +1615,13 @@ int main(void)
                     BUS_CMD_THRUSTER5_ON, BUS_CMD_THRUSTER6_ON
                 };
 
-                if(cflag == 1 || t1 > 11 || (t2 != cs))
+                /* Check checksum, check if command is valid, check safety comparison */
+                if(cflag == 1 || rxBuf[5] > 11 || (chksum(rxBuf,6,0) != rxBuf[6]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
-                } else
-                {
-                    if(busWriteByte(tkCommands[t1], SLAVE_ID_THRUSTERS) != 0)
+                } else {
+                    if (busWriteByte(tkCommands[rxBuf[5]], SLAVE_ID_THRUSTERS) != 0)
                     {
                         sendByte(HOST_REPLY_FAILURE);
                         break;
@@ -1630,10 +1634,11 @@ int main(void)
 
             case HOST_CMD_BARS:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if(((t1 + HOST_CMD_BARS)&0xFF) != t2 || t1 > 15)
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] > 15) || (chksum(rxBuf, 1, HOST_CMD_BARS) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1655,7 +1660,7 @@ int main(void)
                     BUS_CMD_BAR7_ON, BUS_CMD_BAR8_ON,
                 };
 
-                if(busWriteByte(barCommands[t1], SLAVE_ID_BARS) != 0)
+                if(busWriteByte(barCommands[rxBuf[0]], SLAVE_ID_BARS) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1667,10 +1672,11 @@ int main(void)
 
             case HOST_CMD_BATTCTL:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if(((t1 + HOST_CMD_BATTCTL)&0xFF) != t2 || t1 > 9)
+                /* Check checksum and check if command is valid */
+                if((t1 > 9) || (chksum(rxBuf, 1, HOST_CMD_BATTCTL) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1690,7 +1696,7 @@ int main(void)
                     BUS_CMD_BATT5_ON, BUS_CMD_BATT6_ON
                 };
 
-                if(busWriteByte(battCommands[t1], SLAVE_ID_BATTSTAT) != 0)
+                if(busWriteByte(battCommands[rxBuf[0]], SLAVE_ID_BATTSTAT) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -1710,6 +1716,7 @@ int main(void)
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
+
                 int len = 0;
 
                 if(busWriteByte(BUS_CMD_TEMP, IRQ_DISTRO) != 0)
@@ -1725,7 +1732,7 @@ int main(void)
                     break;
                 }
 
-                t1 = rxBuf[0];
+                t1 = rxBuf[0]; //allow for more reading
 
 
                 if(busWriteByte(BUS_CMD_TEMP, IRQ_BALANCER) != 0)
@@ -1733,6 +1740,7 @@ int main(void)
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
+
                 len = readDataBlock(IRQ_BALANCER);
                 if(len != 1)
                 {
@@ -1740,7 +1748,7 @@ int main(void)
                     break;
                 }
 
-                t2 = rxBuf[0];
+                t2 = rxBuf[0]; //allow for more reading
 
 
                 if(busWriteByte(BUS_CMD_TEMP, SLAVE_ID_TEMP) != 0)
@@ -1750,45 +1758,38 @@ int main(void)
                 }
 
                 len = readDataBlock(SLAVE_ID_TEMP);
-
                 if(len != 5)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
 
+                /* Prepare for chksum usage--compile all bytes */
+                rxBuf[5]= t1; // Distro board temperature
+                rxBuf[6]= t2; // Balancer board temperature
+
                 sendByte(HOST_REPLY_TEMPERATURE);
-
-                byte cs=0;
-
 // sb x x x x distro balancer
-                for(i=0; i<5; i++)
+                for(i=0; i<7; i++)
                 {
-                    cs += rxBuf[i];
                     sendByte(rxBuf[i]);
-                }
-
-                sendByte(t1);   // Distro board temperature
-                sendByte(t2);   // Balancer board temperature
-
-                sendByte(cs + t1 + t2 + HOST_REPLY_TEMPERATURE);
+                } 
+                sendByte(chksum(rxBuf, 7, HOST_REPLY_TEMPERATURE);
                 break;
             }
 
 
             case HOST_CMD_PRINTTEXT:
             {
-                t1 = waitchar(1);
-                byte cs=HOST_CMD_PRINTTEXT+t1;
-
+                rxBuf[16] = waitchar(1);
                 for(i=0; i<16; i++)
                 {
                     rxBuf[i] = waitchar(1);
-                    cs += rxBuf[i];
                 }
-                t2 = waitchar(1);
+                rxBuf[17] = waitchar(1);
 
-                if(t2 != cs || t1 > 1)
+                /* Check checksum and check if command is valid */
+                if((rxBuf[16] > 1) || (chksum(rxBuf, 17, HOST_CMD_PRINTTEXT) != rxBuf[17]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1799,7 +1800,7 @@ int main(void)
                 for(i=0; i<16 && err==0; i++)
                 {
                     err+=busWriteByte(BUS_CMD_LCD_WRITE, SLAVE_ID_LCD);
-                    err+=busWriteByte(t1*16+i, SLAVE_ID_LCD);
+                    err+=busWriteByte(rxBuf[16]*16+i, SLAVE_ID_LCD);
                     err+=busWriteByte(rxBuf[i], SLAVE_ID_LCD);
                 }
 
@@ -1817,45 +1818,39 @@ int main(void)
             case HOST_CMD_SONAR:
             {
                 t1 = waitchar(1);
-
                 if(t1 != HOST_CMD_SONAR)
-		        {
-			        sendByte(HOST_REPLY_BADCHKSUM);
-			        break;
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
                 }
 
-		        if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
-		        {
-			        sendByte(HOST_REPLY_FAILURE);
-        			break;
+                if(busWriteByte(BUS_CMD_SONAR, SLAVE_ID_SONAR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
                 }
 
 
                 int len = readDataBlock(SLAVE_ID_SONAR);
                 if(len != SONAR_PACKET_LEN)
-		        {
-			        sendByte(HOST_REPLY_FAILURE);
-			        break;
-		        }
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
 
-		        sendByte(HOST_REPLY_SONAR);
-
-		        byte cs=0;
+                sendByte(HOST_REPLY_SONAR);
                 for(i=0; i<SONAR_PACKET_LEN; i++)
                 {
-                    cs += rxBuf[i];
-	                sendByte(rxBuf[i]);
-		        }
-
-		        sendByte(cs + HOST_REPLY_SONAR);
-		        break;
+                    sendByte(rxBuf[i]);
+                }
+                sendByte(chksum(rxBuf, SONAR_PACKET_LEN, HOST_REPLY_SONAR));
+                break;
             }
 
             /* May vastly change */
             case HOST_CMD_BFRESET:
             {
                 t1 = waitchar(1);
-
                 if(t1 != HOST_CMD_BFRESET)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1875,18 +1870,19 @@ int main(void)
 
             case HOST_CMD_RUNTIMEDIAG:
             {
-                t1 = waitchar(1);
-                t2 = waitchar(1);
+                rxBuf[0] = waitchar(1);
+                rxBuf[1] = waitchar(1);
 
-                if((t1 != 0 && t1 != 1) || (((t1+HOST_CMD_RUNTIMEDIAG)&0xFF) != t2))
+                /* Check checksum and check if command is valid */
+                if((rxBuf[0] != 0 && rxBuf[0] != 1) || (chksum(rxBuf, 1, HOST_CMD_RUNTIMEDIAG) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                diagMsg=t1;
+                diagMsg= rxBuf[0];
 
-                if(t1==0)
+                if(diagMsg == 0)
                     showString("Runtime Diag Off", 1);
                 else
                     showString("Runtime Diag On ", 1);
@@ -1897,18 +1893,14 @@ int main(void)
 
             case HOST_CMD_SETSPEED:
             {
-                t1 = 0; /* Error counter */
                 setMotorFailsafe();
                 /* 12 bytes of speed, plus checksum */
                 for(i=0; i<13; i++)
+                {
                     rxBuf[i] = waitchar(1);
+                }
 
-                for(i=0; i<12; i++)
-                    t1 += rxBuf[i];
-
-                t1 += HOST_CMD_SETSPEED;
-
-                if(rxBuf[12] != chksum(HOST_CMD_SETSPEED, rxBuf, 12))
+                if(chksum(rxBuf, 12, HOST_CMD_SETSPEED) != rxBuf[12])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -1943,26 +1935,31 @@ int main(void)
 #else
                 busWriteByte(BUS_CMD_SET_MOT_SPEEDS, SLAVE_ID_MOTOR);
 
-                for(i= 0;(i >> 1) < 6;i+= 2) {
+                for(i= 0;(i >> 1) < 6;i+= 2) //Send 2 at a time, 6 times.
+                {
                     if(busWriteByte(convertSpeed(rxBuf[i], rxBuf[i+1]), SLAVE_ID_MOTOR))
+                    {
                         t1++;
+                    }
                 }
 #endif
 
+                int speed;
+                
                 /* Inform distro board of new speeds */
                 if(busWriteByte(BUS_CMD_MOTRSPEEDS, SLAVE_ID_THRUSTERS) == 0)
                 {
                     for(i=0; i<6; i++)
                     {
-                        int speed;
                         speed = (rxBuf[2*i] << 8) | (rxBuf[2*i+1]);
                         if(speed < 0)
-                            speed = -speed;
+                            speed = -speed; //Wha?
 
                         if(busWriteByte((speed >> 1), SLAVE_ID_THRUSTERS) != 0) t1++;
                     }
-                } else
+                } else {
                     t1++;
+                }
 
                 if(t1 == 0)
                     sendByte(HOST_REPLY_SUCCESS);
@@ -1974,16 +1971,15 @@ int main(void)
            case HOST_CMD_MOTOR_READ:
            {
                 unsigned char resp[6];
+
                 t1 = waitchar(1);
-
-
                 if(t1 != HOST_CMD_MOTOR_READ)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                t1 = 0;
+                t1 = 0; //error flag
 
                 if(busWriteByte(SLAVE_MM1_READ_CMD, SLAVE_ID_MM1) != 0) t1++;
                 if(readDataBlock(SLAVE_ID_MM1) != 1) t1++;
@@ -2016,19 +2012,19 @@ int main(void)
                 }
 
                 sendByte(HOST_CMD_MOTOR_REPLY);
-
                 for(i=0; i<6; i++)
+                {
                     sendByte(resp[i]);
-
-                sendByte(HOST_CMD_MOTOR_REPLY + resp[0] + resp[1] + resp[2] + resp[3] + resp[4] + resp[5]);
+                }
+                sendByte(chksum(resp, 6, HOST_CMD_MOTOR_REPLY)); //note this one uses resp, not rxBuf!
 
                 break;
             }
 
             case HOST_CMD_IMOTOR:
             {
-                t1 = waitchar(1);
-                if(t1 != HOST_CMD_IMOTOR)
+                rxBuf[0] = waitchar(1);
+                if(rxBuf[0] != HOST_CMD_IMOTOR)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -2049,16 +2045,12 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_IMOTOR);
-
-                byte cs=0;
-
                 for(i=0; i<16; i++)
                 {
-                    cs += rxBuf[i];
                     sendByte(rxBuf[i]);
                 }
+                sendByte(chksum(rxBuf, 16, HOST_REPLY_IMOTOR));
 
-                sendByte(cs + HOST_REPLY_IMOTOR);
                 break;
             }
 
@@ -2086,16 +2078,12 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_VLOW);
-
-                byte cs=0;
-
                 for(i=0; i<10; i++)
                 {
-                    cs += rxBuf[i];
                     sendByte(rxBuf[i]);
                 }
+                sendByte(chksum(rxBuf, 10, HOST_REPLY_VLOW));
 
-                sendByte(cs + HOST_REPLY_VLOW);
                 break;
             }
 
@@ -2123,16 +2111,12 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_BATTVOLTAGE);
-
-                byte cs=0;
-
                 for(i=0; i<14; i++)
                 {
-                    cs += rxBuf[i];
                     sendByte(rxBuf[i]);
                 }
+                sendByte(chksum(rxBuf, 14, HOST_REPLY_BATTVOLTAGE));
 
-                sendByte(cs + HOST_REPLY_BATTVOLTAGE);
                 break;
             }
 
@@ -2161,23 +2145,18 @@ int main(void)
                 }
 
                 sendByte(HOST_REPLY_BATTCURRENT);
-
-                byte cs=0;
-
                 for(i=0; i<12; i++)
                 {
-                    cs += rxBuf[i];
                     sendByte(rxBuf[i]);
                 }
+                sendByte(chksum(rxBuf, 12, HOST_REPLY_BATTCURRENT));
 
-                sendByte(cs + HOST_REPLY_BATTCURRENT);
                 break;
             }
 
             case HOST_CMD_DVL_ON:
             {
                 t1= waitchar(1);
-
                 if(t1 != HOST_CMD_DVL_ON)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -2198,7 +2177,6 @@ int main(void)
             case HOST_CMD_DVL_OFF:
             {
                 t1= waitchar(1);
-
                 if(t1 != HOST_CMD_DVL_OFF)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -2222,11 +2200,7 @@ int main(void)
                 for(i= 0;i < 2;i++)
                     rxBuf[i]= waitchar(1);
 
-                t1= 0;
-                t1+= rxBuf[0];
-                t1+= HOST_CMD_SERVO_ENABLE;
-
-                if(rxBuf[1] != (t1 & 0xFF))
+                if(chksum(rxBuf, 1, HOST_CMD_SERVO_ENABLE) != rxBuf[1])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -2255,14 +2229,7 @@ int main(void)
                 for(i= 0;i < 4;i++)
                     rxBuf[i]= waitchar(1);
 
-                t1= 0;
-
-                for(i=0; i<3; i++)
-                    t1 += rxBuf[i];
-
-                t1 += HOST_CMD_SET_SERVO_POS;
-
-                if(rxBuf[3] != (t1 & 0xFF))
+                if(chksum(rxBuf, 3, HOST_CMD_SET_SERVO_POS) != rxBuf[3]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
@@ -2278,14 +2245,14 @@ int main(void)
                     if(busWriteByte(rxBuf[i], SLAVE_ID_SERVOS) != 0)
                     {
                         sendByte(HOST_REPLY_FAILURE);
-                        i= 0xFF;
-                        break;
+                        i= 0xFF;  //get ready to break the case too
+                        break;  //break for loop
                     }
                 }
-
-                if(i == 0xFF)
+                
+                if(i == 0xFF)  //break case
                     break;
-
+                
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
