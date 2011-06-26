@@ -371,7 +371,7 @@ void _ISR _CNInterrupt(void)
 }
 
 
-int depthArray[100];
+int depthArray[2];
 int dp=0;
 
 void _ISR _ADCInterrupt(void)
@@ -383,14 +383,14 @@ void _ISR _ADCInterrupt(void)
 
 
     depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
+    if(dp >= 2)
         dp=0;
 
     ad = 0;
-    for(i=0; i<100; i++)
+    for(i=0; i<2; i++)
         ad+= depthArray[i];
 
-    ad /= 100;
+    ad /= 2;
 
 
     /*
@@ -417,24 +417,37 @@ void initADC()
 
     ADCON1 = 0x0000;
     ADCON1bits.SSRC = 7;    /* Conversion starts when sampling ends */
-    ADCON1bits.ASAM = 1;    /* Automatic sampling enabled */
+    ADCON1bits.ASAM = 0;    /* Automatic sampling disabled */
 
     ADCON1bits.FORM = 0;    /* Plain format */
 
     ADCHS = 0x0001;         /* Convert pin AN1 */
     ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
+    ADCON3bits.SAMC=0x0F;   /* Sample time = 15Tad */
 
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
-    ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
+    //ADCON3bits.ADCS = 4;     /* ADC needs so much time to convert at 30 MIPS */
+    ADCON3bits.ADCS= 0;      /* not it we're only grabbing one piece of data */  
+    //ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
+    ADCON2bits.SMPI= 0x00;   /* because you're sampling too fast */
+
           //Clear the A/D interrupt flag bit
     IFS0bits.ADIF = 0;
+
+          //now set up timer 2
+    T2CON= 0x0030;   /* bits 5-4: 3->x64 prescaler */
+    TMR2= 0x0000;    /* Clear timer */
+    PR2= 144;        /* Load period register (0x7075 = 28789 = 1s with x64 prescaler in theory)
+                         However, this was not the case empirically, about 7200 was 1sec.
+                         7200/50 = 720/5 = 1440/10 = 144 = 20ms.*/
+    _T2IF= 0;        /* Clear interrupt flag */
+    _T2IE= 1;        /* Enable timer 2 interrupts */
 
         //Set the A/D interrupt enable bit
     IEC0bits.ADIE = 1;
 
     ADCON1bits.ADON = 1;
     ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+    T2CONbits.TON= 1;       /* Start timer */
 }
 
 void main()
@@ -448,5 +461,15 @@ void main()
     initADC();
     initInterruptUarts();
 
-    while(1);
+    while(1)
+    {
+        if (ADCON1bits.DONE && _T2IF)
+        {
+            _T2IF=0;
+            ADCON1bits.SAMP= 1;
+        }
+
+
+        //any more main loop code here
+    }
 }

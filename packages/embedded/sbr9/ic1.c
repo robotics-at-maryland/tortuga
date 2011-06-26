@@ -17,6 +17,8 @@
 #include <p30fxxxx.h>
 #include "buscodes.h"
 #include <stdio.h>
+#include "common.h"
+#include <string.h>
 
 #define SENSORBOARD_IC1
 #include "uart.c"
@@ -256,7 +258,7 @@ void checkFailsafe();
 /* Timeout is not implemented... but in two years it seems this has been fine */
 signed int waitchar(byte timeout)
 {
-    long waitTime=0, j;
+    //long waitTime=0, j;
     byte x;
 
     U1STAbits.OERR = 0;
@@ -1774,7 +1776,7 @@ int main(void)
                 {
                     sendByte(rxBuf[i]);
                 } 
-                sendByte(chksum(rxBuf, 7, HOST_REPLY_TEMPERATURE);
+                sendByte(chksum(rxBuf, 7, HOST_REPLY_TEMPERATURE));
                 break;
             }
 
@@ -2229,7 +2231,7 @@ int main(void)
                 for(i= 0;i < 4;i++)
                     rxBuf[i]= waitchar(1);
 
-                if(chksum(rxBuf, 3, HOST_CMD_SET_SERVO_POS) != rxBuf[3]))
+                if(chksum(rxBuf, 3, HOST_CMD_SET_SERVO_POS) != rxBuf[3])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
