@@ -43,17 +43,19 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 namespace ram {
 namespace vision {
 
+static math::Degree FUJINON_TF28DA8_HFOV(89 + 8.0 / 60);
+static math::Degree FUJINON_TF28DA8_VFOV(69 + 20.0 / 60);
 static math::Degree FISHEYE_HFO(107);
 static math::Degree FISHEYE_VFO(78);
 static math::Degree WIDE_HFO(150);
 static math::Degree WIDE_VFO(81);
     
-math::Degree VisionSystem::s_frontHorizontalFieldOfView = FISHEYE_HFO;
-math::Degree VisionSystem::s_frontVeritcalFieldOfView = FISHEYE_VFO;
+math::Degree VisionSystem::s_frontHorizontalFieldOfView = FUJINON_TF28DA8_HFOV;
+math::Degree VisionSystem::s_frontVeritcalFieldOfView = FUJINON_TF28DA8_VFOV;
 int VisionSystem::s_frontHorizontalPixelResolution = 640;
 int VisionSystem::s_frontVerticalPixelResolution = 480;
-math::Degree VisionSystem::s_downHorizontalFieldOfView = WIDE_HFO;
-math::Degree VisionSystem::s_downVeritcalFieldOfView = WIDE_VFO;
+math::Degree VisionSystem::s_downHorizontalFieldOfView = FUJINON_TF28DA8_HFOV
+math::Degree VisionSystem::s_downVeritcalFieldOfView = FUJINON_TF28DA8_VFOV;
 int VisionSystem::s_downHorizontalPixelResolution = 640;
 int VisionSystem::s_downVerticalPixelResolution = 480;
     

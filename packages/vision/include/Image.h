@@ -156,6 +156,11 @@ public:
                           unsigned char B = 255,
                           int xOffset = 0, int yOffset = 0);
 
+    static void fillMask(Image* src, Image* mask,
+                         unsigned char R = 255,
+                         unsigned char G = 255,
+                         unsigned char B = 255);
+
     /** Gives you an image that is a sub of the current one
      *
      *  @param source

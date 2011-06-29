@@ -426,10 +426,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
         if (m_debug >= 1) {
             output->copyFrom(frame);
 
-            Image::blitImage(redFrame, output, output, 255, 0, 0);
-            Image::blitImage(greenFrame, output, output, 0, 255, 0);
-            Image::blitImage(yellowFrame, output, output, 255, 255, 0);
-            Image::blitImage(blackFrame, output, output, 147, 20, 255);
+            Image::fillMask(output, redFrame, 255, 0, 0);
+            Image::fillMask(output, greenFrame, 0, 255, 0);
+            Image::fillMask(output, yellowFrame, 255, 255, 0);
+            Image::fillMask(output, blackFrame, 147, 20, 255);
         }
 
         if (m_debug == 2) {

@@ -334,41 +334,45 @@ void WindowDetector::processImage(Image* input, Image* output)
             output->copyFrom(frame);
         } else {
             output->copyFrom(frame);
-
-            // Color in the targets (as we find them)
-            unsigned char* data = output->getData();
-            unsigned char* redPtr = redFrame->getData();
-            unsigned char* greenPtr = greenFrame->getData();
-            unsigned char* yellowPtr = yellowFrame->getData();
-            unsigned char* bluePtr = blueFrame->getData();
-            unsigned char* end = output->getData() +
-                (output->getWidth() * output->getHeight() * 3);
             
-            for (; data != end; data += 3) {
-                if (*redPtr) {
-                    data[0] = 0;
-                    data[1] = 0;
-                    data[2] = 255;
-                } else if (*greenPtr) {
-                    data[0] = 0;
-                    data[1] = 255;
-                    data[2] = 0;
-                } else if (*yellowPtr) {
-                    data[0] = 0;
-                    data[1] = 255;
-                    data[2] = 255;
-                } else if (*bluePtr) {
-                    data[0] = 255;
-                    data[1] = 0;
-                    data[2] = 0;
-                }
+            Image::fillMask(output, redFrame, 255, 0, 0);
+            Image::fillMask(output, greenFrame, 0, 255, 0);
+            Image::fillMask(output, yellowFrame, 255, 255, 0);
+            Image::fillMask(output, blueFrame, 0, 0, 255);
+            // // Color in the targets (as we find them)
+            // unsigned char* data = output->getData();
+            // unsigned char* redPtr = redFrame->getData();
+            // unsigned char* greenPtr = greenFrame->getData();
+            // unsigned char* yellowPtr = yellowFrame->getData();
+            // unsigned char* bluePtr = blueFrame->getData();
+            // unsigned char* end = output->getData() +
+            //     (output->getWidth() * output->getHeight() * 3);
+            
+            // for (; data != end; data += 3) {
+            //     if (*redPtr) {
+            //         data[0] = 0;
+            //         data[1] = 0;
+            //         data[2] = 255;
+            //     } else if (*greenPtr) {
+            //         data[0] = 0;
+            //         data[1] = 255;
+            //         data[2] = 0;
+            //     } else if (*yellowPtr) {
+            //         data[0] = 0;
+            //         data[1] = 255;
+            //         data[2] = 255;
+            //     } else if (*bluePtr) {
+            //         data[0] = 255;
+            //         data[1] = 0;
+            //         data[2] = 0;
+            //     }
 
-                // Advance all of the pointers
-                redPtr += 3;
-                greenPtr += 3;
-                yellowPtr += 3;
-                bluePtr += 3;
-            }
+            //     // Advance all of the pointers
+            //     redPtr += 3;
+            //     greenPtr += 3;
+            //     yellowPtr += 3;
+            //     bluePtr += 3;
+            // }
             
             if (m_debug == 2) {
                 if (redFound) {

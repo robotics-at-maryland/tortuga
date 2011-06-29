@@ -238,6 +238,36 @@ void Image::blitImage(Image* toBlit, Image* src, Image* dest,
     }
 }
 
+void Image::fillMask(Image* src, Image* mask,
+                     unsigned char R, unsigned char G, unsigned char B)
+{
+    assert(sameSize(src, mask) && "Images are not the same size");
+
+    unsigned char *srcData = src->getData();
+    unsigned char *maskData = mask->getData();
+    
+    int width = src->getWidth();
+    int height = src->getHeight();
+    int nChannels = src->getNumChannels();
+
+    assert(nChannels == 3 && "only supports 3 channel images");
+
+    for(int x = 0; x < width; x++)
+    {
+        for(int y = 0; y < height; y++)
+        {
+            if(*maskData)
+            {
+                *srcData = B;
+                *(srcData + 1) = G;
+                *(srcData + 2) = R;
+            }
+            srcData += 3;
+            maskData += 3;
+        }
+    }
+}
+
 void Image::getAveragePixelValues(Image* source,
                                   int upperLeftX, int upperLeftY,
                                   int lowerRightX, int lowerRightY,
