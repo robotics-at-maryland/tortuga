@@ -41,17 +41,19 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     math::Quaternion orientation = estimator->getEstimatedOrientation();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
 
+    // math::Quaternion quatPitch(math::Degree(orientation.getPitch()),
+    //                            math::Vector3::UNIT_Y);
+
     // Compute the base force
     math::Vector3 foreAftComponent(
         m_speedPGain * desiredVelocity[0],
         m_sidewaysSpeedPGain * desiredVelocity[1],
         0);
 
-    // Rotate it to the body frame
-    math::Vector3 result = orientation * foreAftComponent;
+    //math::Vector3 bodyFrameForeAftComponent = quatPitch * foreAftComponent;
 
     // Return the results
-    return result;
+    return foreAftComponent;
 }
 
 } // namespace control
