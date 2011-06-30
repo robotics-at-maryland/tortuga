@@ -199,6 +199,9 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         assert(m_camera && "Couldn't initialize camera");
     }
 
+    // Attempt to clean up the old shit which is left
+    dc1394_iso_release_all(m_camera);
+
     // Determines settings and frame size
     dc1394error_t err = DC1394_FAILURE;
     dc1394video_mode_t videoMode = DC1394_VIDEO_MODE_640x480_RGB8;
@@ -223,30 +226,12 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
     // Actually set the values if the user wants to
     if (config.exists("uValue") && config.exists("vValue"))
     {
-        bool uAuto =
-            boost::to_lower_copy(config["uValue"].asString("auto")) == "auto";
-        bool vAuto =
-            boost::to_lower_copy(config["vValue"].asString("auto")) == "auto";
-        bool autoVal = uAuto && vAuto;
+        // Read in config values
+        uint32_t u_b_value = static_cast<uint32_t>(config["uValue"].asInt());
+        uint32_t v_r_value = static_cast<uint32_t>(config["vValue"].asInt());
 
-        if ((uAuto || vAuto) && !autoVal)
-        {
-            assert(false && "Both Whitebalance values must either be auto or manual");
-        }
-
-        if (autoVal)
-        {
-            setWhiteBalance(0, 0, true);
-        }
-        else
-        {
-            // Read in config values
-            uint32_t u_b_value = static_cast<uint32_t>(config["uValue"].asInt());
-            uint32_t v_r_value = static_cast<uint32_t>(config["vValue"].asInt());
-
-            // Set values
-            setWhiteBalance(u_b_value, v_r_value);
-        }
+        // Set values
+        setWhiteBalance(u_b_value, v_r_value);
     }
     else if (config.exists("uValue") || config.exists("vValue"))
     {
@@ -258,38 +243,52 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
                         << ": Set U: " << uValue 
                         << " V: " << vValue;
 
-
-    
     if (config.exists("brightness"))
     {
-        // Read in and set values
-        if (boost::to_lower_copy(config["brightness"].asString("auto")) == "auto")
-        {
-            setBrightness(0, true);
-        }
-        else
-        {
-            uint32_t value = static_cast<uint32_t>(config["brightness"].asInt());
-            setBrightness(value);
-        }
+        uint32_t value = static_cast<uint32_t>(config["brightness"].asInt());
+        setBrightness(value);
     }
 
     if (config.exists("exposure"))
     {
-        // Read in and set values
-        if (boost::to_lower_copy(config["exposure"].asString("auto")) == "auto")
-        {
-            setExposure(0, true);
-        }
-        else
-        {
-            uint32_t value = static_cast<uint32_t>(config["exposure"].asInt());
+        int ival = config["exposure"].asInt();
+        uint32_t value = static_cast<uint32_t>(ival);
+        if(ival > 0)
             setExposure(value);
-        }
+        else
+            setExposure(value, true);
     }
 
+    if (config.exists("shutter"))
+    {
+        int ival = config["shutter"].asInt();
+        uint32_t value = static_cast<uint32_t>(ival);
+        if(ival > 0)
+            setShutter(value);
+        else
+            setShutter(value, true);
+    }
 
+    if (config.exists("gamma"))
+    {
+        int ival = config["gamma"].asInt();
+        uint32_t value = static_cast<uint32_t>(ival);
+        if(ival > 0)
+            setGamma(value);
+        else
+            setGamma(value, true);
+    }
     
+    if (config.exists("gain"))
+    {
+        int ival = config["gain"].asInt();
+        uint32_t value = static_cast<uint32_t>(ival);
+        if(ival > 0)
+            setGain(value);
+        else
+            setGain(value, true);
+    }
+
     // Grab image size
     err = dc1394_get_image_size_from_video_mode(m_camera, videoMode,
                                                 &m_width, &m_height);
@@ -417,7 +416,174 @@ void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
 
     LOGGER.infoStream() << m_guid << ": Successfully set exposure";
 }
+
+void DC1394Camera::setShutter(uint32_t value, bool makeAuto)
+{
+    dc1394feature_info_t shutter;
+    shutter.id = DC1394_FEATURE_SHUTTER;
+
+    if(makeAuto)
+    {
+        LOGGER.infoStream() << m_guid << ": setting shutter automatically";
+    }
+    else
+    {
+        LOGGER.infoStream() << m_guid << ": Setting shutter to "
+                            << "Shutter Value: " << value;
+    }
+
+    dc1394error_t err = dc1394_feature_get(m_camera, &shutter);
+    assert(DC1394_SUCCESS == err && "Could not get shutter feature info");
     
+    // Make sure its available
+    assert((shutter.available == DC1394_TRUE) &&
+           "Shutter not supported by camera");
+
+    uint32_t shutterMin = shutter.min;
+    uint32_t shutterMax = shutter.max;
+
+    if (makeAuto)
+    {
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_SHUTTER,
+                                      DC1394_FEATURE_MODE_AUTO);
+        assert(DC1394_SUCCESS == err && "Could not set shutter to auto");
+    }
+    else
+    {
+        // Set manual mode
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_SHUTTER,
+                                      DC1394_FEATURE_MODE_MANUAL);
+        assert(DC1394_SUCCESS == err && "Could not set shutter to manual");
+
+        // Error on out of bounds values
+        if (value > shutterMax || value < shutterMin)
+        {
+            fprintf(stderr, "ERROR: Shutter out of bounds: (%u, %u)\n",
+                    shutterMin, shutterMax);
+            assert(false && "White balance out of bounds");
+        }
+        
+        // Set values
+        err = dc1394_feature_set_value(m_camera, DC1394_FEATURE_SHUTTER,
+                                       value);
+        assert(DC1394_SUCCESS == err && "Could not set shutter");
+    }
+
+    LOGGER.infoStream() << m_guid << ": Successfully set shutter";
+}
+    
+void DC1394Camera::setGamma(uint32_t value, bool makeAuto)
+{
+    dc1394feature_info_t gamma;
+    gamma.id = DC1394_FEATURE_GAMMA;
+
+    if(makeAuto)
+    {
+        LOGGER.infoStream() << m_guid << ": setting gamma automatically";
+    }
+    else
+    {
+        LOGGER.infoStream() << m_guid << ": Setting gamma to "
+                            << "Gamma Value: " << value;
+    }
+
+    dc1394error_t err = dc1394_feature_get(m_camera, &gamma);
+    assert(DC1394_SUCCESS == err && "Could not get gamma feature info");
+    
+    // Make sure its available
+    assert((gamma.available == DC1394_TRUE) &&
+           "Gamma not supported by camera");
+
+    uint32_t gammaMin = gamma.min;
+    uint32_t gammaMax = gamma.max;
+
+    if (makeAuto)
+    {
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_GAMMA,
+                                      DC1394_FEATURE_MODE_AUTO);
+        assert(DC1394_SUCCESS == err && "Could not set gamma to auto");
+    }
+    else
+    {
+        // Set manual mode
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_GAMMA,
+                                      DC1394_FEATURE_MODE_MANUAL);
+        assert(DC1394_SUCCESS == err && "Could not set gamma to manual");
+
+        // Error on out of bounds values
+        if (value > gammaMax || value < gammaMin)
+        {
+            fprintf(stderr, "ERROR: Gamma out of bounds: (%u, %u)\n",
+                    gammaMin, gammaMax);
+            assert(false && "White balance out of bounds");
+        }
+        
+        // Set values
+        err = dc1394_feature_set_value(m_camera, DC1394_FEATURE_GAMMA,
+                                       value);
+        assert(DC1394_SUCCESS == err && "Could not set gamma");
+    }
+
+    LOGGER.infoStream() << m_guid << ": Successfully set gamma";
+}
+
+
+void DC1394Camera::setGain(uint32_t value, bool makeAuto)
+{
+    dc1394feature_info_t gain;
+    gain.id = DC1394_FEATURE_GAIN;
+
+    if(makeAuto)
+    {
+        LOGGER.infoStream() << m_guid << ": setting gain automatically";
+    }
+    else
+    {
+        LOGGER.infoStream() << m_guid << ": Setting gain to "
+                            << "Gain Value: " << value;
+    }
+
+    dc1394error_t err = dc1394_feature_get(m_camera, &gain);
+    assert(DC1394_SUCCESS == err && "Could not get gain feature info");
+    
+    // Make sure its available
+    assert((gain.available == DC1394_TRUE) &&
+           "Gain not supported by camera");
+
+    uint32_t gainMin = gain.min;
+    uint32_t gainMax = gain.max;
+
+    if (makeAuto)
+    {
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_GAIN,
+                                      DC1394_FEATURE_MODE_AUTO);
+        assert(DC1394_SUCCESS == err && "Could not set gain to auto");
+    }
+    else
+    {
+        // Set manual mode
+        err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_GAIN,
+                                      DC1394_FEATURE_MODE_MANUAL);
+        assert(DC1394_SUCCESS == err && "Could not set gain to manual");
+
+        // Error on out of bounds values
+        if (value > gainMax || value < gainMin)
+        {
+            fprintf(stderr, "ERROR: Gain out of bounds: (%u, %u)\n",
+                    gainMin, gainMax);
+            assert(false && "White balance out of bounds");
+        }
+        
+        // Set values
+        err = dc1394_feature_set_value(m_camera, DC1394_FEATURE_GAIN,
+                                       value);
+        assert(DC1394_SUCCESS == err && "Could not set gain");
+    }
+
+    LOGGER.infoStream() << m_guid << ": Successfully set gain";
+}
+
+
 void DC1394Camera::setWhiteBalance(uint32_t uValue, uint32_t vValue,
                                    bool makeAuto)
 {

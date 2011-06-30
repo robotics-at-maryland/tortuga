@@ -79,7 +79,8 @@ void NetworkRecorder::handle_accept(Connection::pointer new_connection,
             {
                 boost::mutex::scoped_lock lock(m_lock);
                 image.copyFrom(m_buffer);
-                image.setSize(160, 120);
+                image.setSize(getRecordingWidth(),
+			      getRecordingHeight());
             }
 
             new_connection->sendImage(&image);
