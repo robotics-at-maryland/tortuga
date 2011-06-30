@@ -561,9 +561,9 @@ class Translate(Motion):
         if self._frame is Frame.LOCAL:
             # interpret the trajectory output as being in the local coordinate
             orientation = self._estimator.getEstimatedOrientation()
-            yaw = orientation.getYaw().valueRadians()
+            yaw = orientation.getYaw()
             # rotation matrix from body (local) to inertial (global)
-            nRb = math.Vector2.nRb(yaw)
+            nRb = math.Matrix2.nRb(yaw)
             newAccel = nRb * newAccel
             newVelocity = nRb * newVelocity
             newPosition = self._initialGlobalPosition + (nRb * newPosition)

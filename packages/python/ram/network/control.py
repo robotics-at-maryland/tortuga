@@ -59,6 +59,9 @@ class RemoteController(core.Subsystem):
         for conn in self._connections:
             conn.disconnect()
 
+    def backgrounded(self):
+        return True
+
     def _registerForEvent(self, type_, callback):
         conn = self._eventHub.subscribeToType(type_, callback)
         self._connections.append(conn)
@@ -123,7 +126,7 @@ class RemoteController(core.Subsystem):
         speed to the controller.
         """
         depth = self._estimator.getEstimatedDepth()
-        self._controller.changeDepth(depth + 0.5)
+        self._controller.changeDepth(depth + 0.8)
 
     def _ascend(self, event):
         """
@@ -131,7 +134,7 @@ class RemoteController(core.Subsystem):
         speed to the controller.
         """
         depth = self._estimator.getEstimatedDepth()
-        self._controller.changeDepth(depth - 0.5)
+        self._controller.changeDepth(depth - 0.8)
 
     def _setspeed(self, event):
         """
