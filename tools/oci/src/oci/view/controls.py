@@ -70,8 +70,16 @@ class MultiBar(wx.PyControl):
         
     def setVal(self,val):
         if val <= self.maxValue and val >= self.minValue:
-            self.barValue=val
+            self.barValue = val
             self.Refresh() #Refresh the display
+        elif val > self.maxValue:
+            #print 'val too big'
+            self.barValue = self.maxValue
+            self.Refresh()
+        elif val < self.minValue:
+            #print 'val too small'
+            self.barValue = self.minValue
+            self.Refresh()
         else:
             # return None if we could not process setVal due to constraints
             return None

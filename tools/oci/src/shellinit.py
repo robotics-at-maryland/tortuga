@@ -45,6 +45,7 @@ import ram.ai.hedge as hedge
 import ram.ai.course as course
 import ram.ai.gen2.course as course2
 import ram.motion as motion
+import ram.motion.trajectories as traj
 import ram.motion.basic as basic
 import ram.motion.search as search
 import ram.timer as timer
@@ -72,8 +73,8 @@ class requires(object):
         return f
 
 # Helper methods
-@requires('motionManager')
-def diveTo(depth, speed = 0.3):
+@requires('motionManager','stateEstimator')
+def diveTo(depth, rate = 0.25):
     """
     Dive to the specified depth.
 
@@ -81,32 +82,24 @@ def diveTo(depth, speed = 0.3):
     @param speed Speed of the dive
     @requires motionManager
     """
-    motionManager.setMotion(basic.RateChangeDepth(depth, speed))
+    t = traj.ScalarCubicTrajectory(stateEstimator.getEstimatedDepth(), depth, avgRate = rate)
+    m = basic.ChangeDepth(t)
+    motionManager.setMotion(m)
+
+@requires('motionManager')
+def translate(relativePosition, rate = 0.25):
+    """
+    Translate to a relative position in the body frame
+    
+    @param relativePosition - a Vector2 of the change in position in body frame
+    @requires motionManager
+    """
+    t = traj.Vector2CubicTrajectory(math.Vector2.ZERO, relativePosition, avgRate = rate)
+    m = basic.Translate(t, frame = basic.Frame.LOCAL)
+    motionManager.setMotion(m)
 
 # dive and diveTo are the same function.
 dive = diveTo
-
-@requires('vehicle', 'motionManager')
-def up(depthChange, speed = 0.3):
-    """
-    Move the vehicle upward by the specified value.
-
-    @param depthChange Distance upwards to move.
-    @param speed Speed of the dive
-    @requires vehicle, motionManager
-    """
-    diveTo(vehicle.getDepth() - depthChange, speed = speed)
-
-@requires('vehicle', 'motionManager')
-def down(depthChange, speed = 0.3):
-    """
-    Move the vehicle downward by the specified value.
-
-    @param depthChange Distance downwards to move.
-    @param speed Speed of the dive
-    @requires vehicle, motionManager
-    """
-    diveTo(vehicle.getDepth() + depthChange, speed = speed)
 
 # Surface depth to 0.3 because 0.0 causes the vehicle to always try and get
 # above the water

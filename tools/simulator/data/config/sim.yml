@@ -1,5 +1,5 @@
 GUI:
-    # In Hz
+    # In milliseconds
     updateRate: 30
     guiConfigFile: ramsim.yml
     redirect: False
