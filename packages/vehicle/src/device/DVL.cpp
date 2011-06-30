@@ -50,16 +50,9 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_serialFD(-1),
     m_dvlNum(config["num"].asInt(0)),
     m_location(0, 0, 0),
-    m_angOffset(0),
-    m_bRt(math::Matrix2::IDENTITY),
     m_rawState(0)
 {
     m_rawState = new RawDVLData();
-
-    // construct rotation matrix for m_angOffset
-    m_angOffset = config["angularOffset"].asDouble(0);
-    double r_cos = cos(m_angOffset), r_sin = sin(m_angOffset);
-    m_bRt = math::Matrix2(r_cos, -r_sin, r_sin, r_cos);
 
     // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
@@ -92,9 +85,8 @@ void DVL::update(double timestep)
     if (m_serialFD >= 0)
     {
         RawDVLData newState;
-        if (readDVLData(m_serialFD, &newState))
+        if (readDVLData(m_serialFD, &newState) == 0)
         {
-
             {
                 // Thread safe copy of good dvl data
                 core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
@@ -103,26 +95,20 @@ void DVL::update(double timestep)
 
             int xVel = newState.xvel_btm;
             int yVel = newState.yvel_btm;
+            math::Vector2 velocity(yVel / 1000.0, xVel / 1000.0);
 
             if(xVel != BAD_VELOCITY && yVel != BAD_VELOCITY)
             {
-                // velocity in the body frame
-                math::Vector2 velocity(newState.yvel_btm, newState.xvel_btm);
-            
                 RawDVLDataEventPtr event = RawDVLDataEventPtr(
                     new RawDVLDataEvent());
-            
-                event->name = getName();
-                event->rawDVLData = newState;
+
                 event->velocity_b = velocity;
-                event->angularOffset = m_angOffset;
                 event->timestep = timestep;
-
+            
                 publish(IVelocitySensor::RAW_UPDATE, event);
-
-                LOGGER.infoStream() << velocity[0] << " "
-                                    << velocity[1];
             }
+            LOGGER.infoStream() << velocity[0] << " "
+                                << velocity[1];
         }
     }
     // We didn't connect, try to reconnect

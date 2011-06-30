@@ -135,7 +135,8 @@ private:
     math::MatrixN m_controlSignalToThrusterForces;
     bool m_controlSignalToThrusterForcesCreated;
     
-    enum thrusters {STAR = 0, PORT, BOT, TOP, FORE, AFT};
+    enum thrusters {PORT = 0, STAR, TOP, FORE, BOT, AFT};
+    enum forceAndThrustIndices {FX = 0, FY, FZ, TX, TY, TZ};
 };
     
 } // namespace vehicle

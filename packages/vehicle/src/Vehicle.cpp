@@ -42,7 +42,7 @@
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vehicle"));
-static log4cpp::Category& TLOGGER(log4cpp::Category::getInstance("Thrusters"));
+static log4cpp::Category& TLOGGER(log4cpp::Category::getInstance("ThrusterSig"));
 
 using namespace ram::vehicle::device;
 
@@ -123,7 +123,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                                     << node["type"].asString();
             }
         }
-        TLOGGER.info("starboard port bottom top fore aft");
+        TLOGGER.warn("starboard port bottom top fore aft");
     }
 
 
@@ -217,16 +217,18 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 {
     // Bail out if we don't currently have all thruster devices
     if (!lookupThrusterDevices())
+    {
         return;
+    }
 
     if(!m_controlSignalToThrusterForcesCreated)
     {
         Tuple6Vector3 thrusterLocations = Tuple6Vector3(
-            m_starboardThruster->getLocation(),
             m_portThruster->getLocation(),
-            m_bottomThruster->getLocation(),
+            m_starboardThruster->getLocation(),
             m_topThruster->getLocation(),
             m_foreThruster->getLocation(),
+            m_bottomThruster->getLocation(),
             m_aftThruster->getLocation());
 
         m_controlSignalToThrusterForces = 
@@ -240,7 +242,7 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     
     // Thruster order convention is based on the direction of
     // the force applied and the offset location
-    // STAR, PORT, TOP, BOT, FORE, AFT
+    // PORT, STAR, TOP, FORE, BOT, AFT
 
     math::VectorN controlSignal(0.0, 6);
     controlSignal[0] = translationalForces[0];
@@ -255,7 +257,6 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
 
     /****** Set Thruster Forces *************************/
-
     m_starboardThruster->setForce(thrusterForces[STAR]);
     m_portThruster->setForce(thrusterForces[PORT]);
     m_bottomThruster->setForce(thrusterForces[BOT]);
@@ -457,39 +458,42 @@ math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
     math::Vector3 tP = tl.get<PORT>().crossProduct(-math::Vector3::UNIT_X);
 
 
-    A[0][0] = 1; A[0][1] = 1;
-    A[1][2] = 1; A[1][3] = 1;
-    A[2][4] = 1; A[2][5] = 1;
+    A[FX][PORT] = 1; 
+    A[FX][STAR] = 1;
+    A[FY][TOP]  = 1; 
+    A[FZ][FORE] = 1;
+    A[FY][BOT]  = 1; 
+    A[FZ][AFT]  = 1;
     
     // these terms multiplied by force component give resultant torque
     // torque_x
-    A[3][0] = tS[0];
-    A[3][1] = tP[0];
-    A[3][2] = tB[0];
-    A[3][3] = tT[0];
-    A[3][4] = tF[0];
-    A[3][5] = tA[0];
+    A[TX][PORT] = tP[0];
+    A[TX][STAR] = tS[0];
+    A[TX][TOP]  = tT[0];
+    A[TX][FORE] = tF[0];
+    A[TX][BOT]  = tB[0];
+    A[TX][AFT]  = tA[0];
     
     // torque_y
-    A[4][0] = tS[1];
-    A[4][1] = tP[1];
-    A[4][2] = tB[1];
-    A[4][3] = tT[1];
-    A[4][4] = tF[1];
-    A[4][5] = tA[1];
+    A[TY][PORT] = tP[1];
+    A[TY][STAR] = tS[1];
+    A[TY][TOP]  = tT[1];
+    A[TY][FORE] = tF[1];
+    A[TY][BOT]  = tB[1];
+    A[TY][AFT]  = tA[1];
 
     // torque_z
-    A[5][0] = tS[2];
-    A[5][1] = tP[2];
-    A[5][2] = tB[2];
-    A[5][3] = tT[2];
-    A[5][4] = tF[2];
-    A[5][5] = tA[2];
-
+    A[TZ][PORT] = tP[2];
+    A[TZ][STAR] = tS[2];
+    A[TZ][TOP]  = tT[2];
+    A[TZ][FORE] = tF[2];
+    A[TZ][BOT]  = tB[2];
+    A[TZ][AFT]  = tA[2];
 
     // when given control signal vector b, this will allow 
     // us to efficiently compute x = A_inv * b
-    return A.inverse();
+    math::MatrixN Ainv = A.inverse();
+    return Ainv;
 }
 
     

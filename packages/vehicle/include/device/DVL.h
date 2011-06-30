@@ -24,6 +24,7 @@
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
+#include "math/include/Math.h"
 
 // Forward declare structure from dvlapi.h
 struct _RawDVLData;
@@ -101,12 +102,6 @@ private:
     
     /** sensor location **/
     math::Vector3 m_location;
-
-    /** angular offset of dvl */
-    double m_angOffset;
-
-    /** rotation matrix from transducer frame to body frame */
-    math::Matrix2 m_bRt;
 
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
