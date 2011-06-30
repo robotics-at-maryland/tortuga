@@ -22,8 +22,6 @@ static ram::core::SpecificEventConverter<ram::core::StringEvent>
 RAM_CORE_STRINGEVENT;
 static ram::core::SpecificEventConverter<ram::core::IntEvent>
 RAM_CORE_INTEVENT;
-static ram::core::SpecificEventConverter<ram::core::BoolEvent>
-RAM_CORE_BOOLEVENT;
    
 #endif // RAM_WITH_WRAPPERS
 

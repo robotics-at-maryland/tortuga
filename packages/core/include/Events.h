@@ -30,30 +30,25 @@ struct StringEvent : public core::Event
 
 typedef boost::shared_ptr<StringEvent> StringEventPtr;
 
-template <typename DataType>
-struct DataEvent : public core::Event
+struct IntEvent : public core::Event
 {
-    DataEvent() : data(0) {}
+    IntEvent() : data(0) {}
 
-    DataEvent(int data_) : data(data_) {}
+    IntEvent(int data_) : data(data_) {}
 
     virtual EventPtr clone()
     {
-        boost::shared_ptr< DataEvent<DataType> > event =
-            boost::shared_ptr< DataEvent<DataType> >(new DataEvent<DataType>());
+        boost::shared_ptr< IntEvent > event =
+            boost::shared_ptr< IntEvent >(new IntEvent());
         copyInto(event);
         event->data = data;
         return event;
     }
 
-    DataType data;
+    int data;
 };
 
-typedef DataEvent<int> IntEvent;
 typedef boost::shared_ptr< IntEvent > IntEventPtr;
-
-typedef DataEvent<bool> BoolEvent;
-typedef boost::shared_ptr< BoolEvent > BoolEventPtr;
 
 } // namespace core
 } // namespace ram
