@@ -37,11 +37,11 @@ DepthKalmanModule::DepthKalmanModule(core::ConfigNode config,
     m_xHat(math::Vector2::ZERO),
     m_Pk(math::Matrix2(2, 0, 0, 1)),
     m_filteredDepth(math::SGolaySmoothingFilterPtr(
-                        new math::SGolaySmoothingFilter(51, 2))),
+                        new math::SGolaySmoothingFilter(5, 2))),
     m_filteredDepthDot(math::SGolaySmoothingFilterPtr(
-                           new math::SGolaySmoothingFilter(51, 2)))
+                           new math::SGolaySmoothingFilter(5, 2)))
 {
-    LOGGER.info("% Name depth correction zk xHat xHatDot");
+    LOGGER.info("% DepthKalmanModule depth correction zk xHat xHatDot");
 }
 
 void DepthKalmanModule::update(core::EventPtr event)
@@ -72,7 +72,7 @@ void DepthKalmanModule::update(core::EventPtr event)
 
     math::Matrix2 Ak(1, dt, 0, 1);       // state transition model
     math::Vector2 Hk(1, 0);              // observation model
-    math::Matrix2 Qk(0.05, 0, 0, 0.02);  // process covariance
+    math::Matrix2 Qk(0.005, 0, 0, 0.002);  // process covariance
     double Rk = 0.1;                     // measurement covariance
 
     // prediction step
@@ -104,8 +104,7 @@ void DepthKalmanModule::update(core::EventPtr event)
     m_estimatedState->setEstimatedDepth(estDepth);
     m_estimatedState->setEstimatedDepthRate(estDepthRate);
 
-    LOGGER.infoStream() << m_name << " "
-                        << rawDepth  << " "
+    LOGGER.infoStream() << rawDepth  << " "
                         << correction << " "
                         << zk << " "
                         << xHat[0] << " "

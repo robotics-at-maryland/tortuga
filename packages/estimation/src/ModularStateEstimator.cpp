@@ -56,7 +56,7 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
                                      estimatedState));
 
     depthEstimationModule = EstimationModulePtr(
-        new DepthKalmanModule(config["DepthEstimationModule"],
+        new DepthSGolayModule(config["DepthEstimationModule"],
                                        eventHub,
                                        estimatedState));
     
@@ -93,7 +93,7 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
                                      estimatedState));
 
     depthEstimationModule = EstimationModulePtr(
-        new BasicDepthEstimationModule(config["DepthEstimationModule"],
+        new DepthKalmanModule(config["DepthEstimationModule"],
                                        eventHub,
                                        estimatedState));
 
