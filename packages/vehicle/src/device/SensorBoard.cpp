@@ -431,20 +431,20 @@ int SensorBoard::fireTorpedo()
         if (torpedoNum == 0)
         {
             // Hacky because the command doesn't always work
-            for (int i=0; i < 10; i++)
+            /*for (int i=0; i < 10; i++)
             {
                 setServoPosition(SERVO_1, m_servo1FirePosition);
                 setServoEnable(SERVO_ENABLE_1);
-            }
+            }*/
         }
         else if (torpedoNum == 1)
         {
             // Hacky because the command doesn't always work
-            for (int i=0; i < 10; i++)
+            /*for (int i=0; i < 10; i++)
             {
                 setServoPosition(SERVO_2, m_servo2FirePosition);
                 setServoEnable(SERVO_ENABLE_2);
-            }
+            }*/
         }
         
         torpedoFired = torpedoNum;
@@ -574,6 +574,7 @@ bool SensorBoard::handleReturn(int ret)
 {
     if (ret < 0)
     {
+        std::cout << "some kind of error.  reestablishing connection." << std::endl;
         close(m_deviceFD);
         m_deviceFD = -1;
         establishConnection();
