@@ -1,12 +1,20 @@
 ForwardCamera:
-    brightness: auto # 275
-    uValue: 72 # 80 (NBRF sun) # 100
-    vValue: 114 # 90 (NBRF sun) # 100
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 0  # 0 to 15
+    shutter: -1  # 0 to 7
+    gamma: 0     # 0 to 0
+    gain: 0      # 0 to 46
 
 DownwardCamera:
-    brightness: auto # 275
-    uValue: 72 # 80 (NBRF sun) # 100
-    vValue: 114 # 90 (NBRF sun) # 100
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 2
+    shutter: -1
+    gamma: 0
+    gain: 0
 
 AdaptiveThresher:
     foobared: true
