@@ -381,40 +381,40 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
 }
 
 #ifndef NO_SERVOS
-TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
-{
-    TestSensorBoard* testSb = new TestSensorBoard(
-        ram::core::ConfigNode::fromString(BASE_CONFIG +
-            "'servo1FirePosition' : 8000,"
-            "'servo2FirePosition' : 7000}"));
-    ram::vehicle::device::SensorBoard* sb =
-        (ram::vehicle::device::SensorBoard*)testSb;
+// TEST_FIXTURE(SensorBoardFixture, fireTorpedo)
+// {
+//     TestSensorBoard* testSb = new TestSensorBoard(
+//         ram::core::ConfigNode::fromString(BASE_CONFIG +
+//             "'servo1FirePosition' : 8000,"
+//             "'servo2FirePosition' : 7000}"));
+//     ram::vehicle::device::SensorBoard* sb =
+//         (ram::vehicle::device::SensorBoard*)testSb;
 
-    // Fire first torpedo
-    CHECK_EQUAL(0, sb->fireTorpedo());
-    CHECK_EQUAL(10, (int) testSb->servosUsed.size());
-    CHECK_EQUAL(SERVO_1, testSb->servosUsed[0]);
-    CHECK_EQUAL(10, (int) testSb->servoPositions.size());
-    CHECK_EQUAL(8000, testSb->servoPositions[0]);
-    CHECK_EQUAL(SERVO_ENABLE_1, testSb->servoEnable);
-    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
-    // Fire second torpedo
-    CHECK_EQUAL(1, sb->fireTorpedo());
-    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
-    CHECK_EQUAL(SERVO_2, testSb->servosUsed[10]);
-    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
-    CHECK_EQUAL(7000, testSb->servoPositions[10]);
-    CHECK_EQUAL(SERVO_ENABLE_2, testSb->servoEnable);
-    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
+//     // Fire first torpedo
+//     CHECK_EQUAL(0, sb->fireTorpedo());
+//     CHECK_EQUAL(10, (int) testSb->servosUsed.size());
+//     CHECK_EQUAL(SERVO_1, testSb->servosUsed[0]);
+//     CHECK_EQUAL(10, (int) testSb->servoPositions.size());
+//     CHECK_EQUAL(8000, testSb->servoPositions[0]);
+//     CHECK_EQUAL(SERVO_ENABLE_1, testSb->servoEnable);
+//     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
+//     // Fire second torpedo
+//     CHECK_EQUAL(1, sb->fireTorpedo());
+//     CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+//     CHECK_EQUAL(SERVO_2, testSb->servosUsed[10]);
+//     CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+//     CHECK_EQUAL(7000, testSb->servoPositions[10]);
+//     CHECK_EQUAL(SERVO_ENABLE_2, testSb->servoEnable);
+//     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
 
     
-    // Fire non-existent torpedo
-    CHECK_EQUAL(-1, sb->fireTorpedo());
-    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
-    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+//     // Fire non-existent torpedo
+//     CHECK_EQUAL(-1, sb->fireTorpedo());
+//     CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+//     CHECK_EQUAL(20, (int) testSb->servoPositions.size());
 
-    delete testSb;
-}
+//     delete testSb;
+// }
 
 TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
 {

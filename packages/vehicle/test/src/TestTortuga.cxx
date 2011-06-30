@@ -138,215 +138,6 @@ TEST(ValueInitialization)
     CHECK(veh != 0);
 }
 
-// TEST_FIXTURE(VehicleFixture, getVelocity)
-// {
-//     // Create mock velocity sensor and IMU
-//     MockVelocitySensor* velocitySensor =
-//         new MockVelocitySensor("VelocitySensor");
-// //    MockIMU* imu = new MockIMU("IMU");
-// //    imu->orientation = math::Quaternion::IDENTITY;
-
-//     // Add the mock devices to our vehicle
-//     veh->_addDevice(vehicle::device::IDevicePtr(velocitySensor));
-// //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-//     // Check the velocity
-//     math::Vector2 expectedVelocity = math::Vector2(2,5);
-//     velocitySensor->publishUpdate(expectedVelocity);
-//     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.0001);
-
-//     // Now check velocity correction for orientation
-
-//     // The sensor is in the back, left, and upper corner of the vehicle
-//     //velocitySensor->location = math::Vector3(-1, -0.2, 0.2);
-//     // We are pitched forward down by 15 degrees
-//     //math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
-//     //imu->orientation = orientation;
-//     // We add to the expected velocity because the downward pitch moves our sensor
-//     // to a shallow velocity then we are really at
-//     //math::Vector2 expectedVelocity = velocity + 0.252;
-//     //CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
-
-//     // Now check for usage of the state estimator
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-//     estimator->timeStamp = 0;
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-
-//     expectedVelocity = math::Vector2(6.7, 3.4);
-//     estimator->velocity["vehicle"] = expectedVelocity;
-//     CHECK_CLOSE(expectedVelocity, veh->getVelocity(), 0.00001);
-
-//     // Check the extra object in the state estimator
-//     expectedVelocity = math::Vector2(4.3, 5.1);
-//     estimator->velocity["buoy"] = expectedVelocity;
-//     CHECK_CLOSE(expectedVelocity, veh->getVelocity("buoy"), 0.00001);
-    
-//     // Check to make sure the time stamp changes
-//     double expectedTimeStamp = 1;
-//     estimator->velocityUpdate(expectedVelocity, expectedTimeStamp);
-//     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
-// }
-
-// TEST_FIXTURE(VehicleFixture, getPosition)
-// {
-//     // Create mock position sensor and IMU
-//     MockPositionSensor* positionSensor =
-//         new MockPositionSensor("PositionSensor");
-// //    MockIMU* imu = new MockIMU("IMU");
-// //    imu->orientation = math::Quaternion::IDENTITY;
-
-//     // Add the mock devices to our vehicle
-//     veh->_addDevice(vehicle::device::IDevicePtr(positionSensor));
-// //    veh->_addDevice(vehicle::device::IDevicePtr(imu));
-
-//     // Check the position
-//     math::Vector2 expectedPosition = math::Vector2(2, 5);
-//     positionSensor->publishUpdate(expectedPosition);
-//     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.0001);
-
-//     // Now check position correction for orientation
-
-//     // The sensor is in the back, left, and upper corner of the vehicle
-//     //positionSensor->location = math::Vector3(-1, -0.2, 0.2);
-//     // We are pitched forward down by 15 degrees
-//     //math::Quaternion orientation(math::Degree(15), math::Vector3::UNIT_Y);
-//     //imu->orientation = orientation;
-//     // We add to the expected position because the downward pitch moves our sensor
-//     // to a shallow position then we are really at
-//     //math::Vector2 expectedPosition = position + 0.252;
-//     //CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.00001);
-    
-//     // Now check for usage of the state estimator
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-
-//     expectedPosition = math::Vector2(6.7, 3.4);
-//     estimator->position["vehicle"] = expectedPosition;
-//     CHECK_CLOSE(expectedPosition, veh->getPosition(), 0.00001);
-
-//     // Check the extra object in the state estimator
-//     expectedPosition = math::Vector2(4.3, 5.1);
-//     estimator->position["buoy"] = expectedPosition;
-//     CHECK_CLOSE(expectedPosition, veh->getPosition("buoy"), 0.00001);
-
-//     // Check to make sure the time stamp changes
-//     double expectedTimeStamp = 1;
-//     estimator->positionUpdate(expectedPosition, expectedTimeStamp);
-//     CHECK_EQUAL(estimator->timeStamp, expectedTimeStamp);
-// }
-
-// TEST_FIXTURE(VehicleFixture, hasObject)
-// {
-//     MockStateEstimator* estimator = new MockStateEstimator("StateEstimator");
-//     veh->_addDevice(vehicle::device::IDevicePtr(estimator));
-
-//     // Check that it has the object vehicle
-//     CHECK(estimator->hasObject("vehicle"));
-    
-//     // Check that it has the buoy
-//     CHECK(estimator->hasObject("buoy"));
-
-//     // Check that a wrong value returns false
-//     CHECK(!estimator->hasObject("blank"));
-// }
-
-// TEST_FIXTURE(VehicleFixture, balanceForce)
-// {
-//     // thrusters at +/- 1 unit from cg
-//     // 1 N force, 0 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -1.0);
-//         CHECK_CLOSE(0.5, res[0], 0.0001);
-//         CHECK_CLOSE(0.5, res[1], 0.0001);
-//     }
-
-//     // thrusters at +/- 1 unit from cg
-//     // -1 N force, 0 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -1.0);
-//         CHECK_CLOSE(-0.5, res[0], 0.0001);
-//         CHECK_CLOSE(-0.5, res[1], 0.0001);
-//     }
-
-//     // thrusters at +1, -2 unit from cg
-//     // 1 N force, 0 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, 0, 1.0, -2.0);
-//         CHECK_CLOSE(2.0/3, res[0], 0.0001);
-//         CHECK_CLOSE(1.0/3, res[1], 0.0001);
-//     }
-//     // thrusters at +1, -2 unit from cg
-//     // -1 N force, 0 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 0, 1.0, -2.0);
-//         CHECK_CLOSE(-2.0/3, res[0], 0.0001);
-//         CHECK_CLOSE(-1.0/3, res[1], 0.0001);
-//     }
-
-
-
-//     // thrusters at +/- 1 unit from cg
-//     // 0 N force, 1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -1.0);
-//         CHECK_CLOSE(0.5, res[0], 0.0001);
-//         CHECK_CLOSE(-0.5, res[1], 0.0001);
-//     }
-//     // thrusters at +/- 1 unit from cg
-//     // 0 N force, -1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -1.0);
-//         CHECK_CLOSE(-0.5, res[0], 0.0001);
-//         CHECK_CLOSE(0.5, res[1], 0.0001);
-//     }
-//     // thrusters at +1, -2 unit from cg
-//     // 0 N force, 1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(0, 1.0, 1.0, -2.0);
-//         CHECK_CLOSE(1.0/3, res[0], 0.0001);
-//         CHECK_CLOSE(-1.0/3, res[1], 0.0001);
-//     }
-//     // thrusters at -1, +2 unit from cg
-//     // 0 N force, -1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(0, -1.0, 1.0, -2.0);
-//         CHECK_CLOSE(-1.0/3, res[0], 0.0001);
-//         CHECK_CLOSE(1.0/3, res[1], 0.0001);
-//     }
-
-
-//     // thrusters at +/- 1 unit from cg
-//     // 1 N force, -1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -1.0);
-//         CHECK_CLOSE(0.0, res[0], 0.0001);
-//         CHECK_CLOSE(1.0, res[1], 0.0001);
-//     }
-
-//     // thrusters at +/- 1 unit from cg
-//     // -1 N force, 1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -1.0);
-//         CHECK_CLOSE(0.0, res[0], 0.0001);
-//         CHECK_CLOSE(-1.0, res[1], 0.0001);
-//     }
-
-//     // thrusters at +1, -2 unit from cg
-//     // 1 N force, -1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(1.0, -1.0, 1.0, -2.0);
-//         CHECK_CLOSE(1.0/3.0, res[0], 0.0001);
-//         CHECK_CLOSE(2.0/3.0, res[1], 0.0001);
-//     }
-//     // thrusters at +1, -2 unit from cg
-//     // -1 N force, 1 N*m torque
-//     {
-//         math::Vector2 res = veh->balanceForcesAndTorques(-1.0, 1.0, 1.0, -2.0);
-//         CHECK_CLOSE(-1.0/3.0, res[0], 0.0001);
-//         CHECK_CLOSE(-2.0/3.0, res[1], 0.0001);
-//     }
-// }
-
 TEST_FIXTURE(VehicleFixture, _addDevice)
 {
     MockDevice* mockDevice = new MockDevice("TestName");
@@ -386,12 +177,12 @@ struct ThrusterVehicleFixture
 
     double* thrusterForceArray()
     {
-        forceArray[0] = starboard->force;
-        forceArray[1] = port->force;
-        forceArray[2] = fore->force;
-        forceArray[3] = aft->force;
-        forceArray[4] = top->force;
-        forceArray[5] = bottom->force;
+        forceArray[0] = port->force;
+        forceArray[1] = starboard->force;
+        forceArray[2] = top->force;
+        forceArray[3] = fore->force;
+        forceArray[4] = bottom->force;
+        forceArray[5] = aft->force;
         return forceArray;
     }
     
@@ -421,12 +212,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
                                ram::math::Vector3(5, 0, 0));
     double expectedForcesPosXTorque[] = {
-        0.0, // Starboard
         0.0, // Port
-        0.0, // Fore
-        0.0, // Aft
+        0.0, // Starboard
         2.5, // Top
+        0.0, // Fore
         -2.5, // Bottom
+        0.0, // Aft
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosXTorque, thrusterForceArray(), 6);
 
@@ -434,12 +225,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3(0, 5, 0),
                                ram::math::Vector3::ZERO);
     double expectedForcesPosYForce[] = {
-        0.0, // Starboard
         0.0, // Port
-        0.0, // Fore
-        0.0, // Aft
+        0.0, // Starboard
         2.5, // Top
+        0.0, // Fore
         2.5, // Bottom
+        0.0, // Aft
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosYForce, thrusterForceArray(), 6);
 
@@ -447,12 +238,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
                                ram::math::Vector3(0, 6, 0));
     double expectedForcesPosYTorque[] = {
-        0.0, // Starboard
         0.0, // Port
-        -3.0, // Fore
-        3.0, // Aft
+        0.0, // Starboard
         0.0, // Top
+        -3.0, // Fore
         0.0, // Bottom
+        3.0, // Aft
     };
    CHECK_ARRAY_EQUAL(expectedForcesPosYTorque, thrusterForceArray(), 6);
 
@@ -460,12 +251,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3(0, 0, 6),
                                ram::math::Vector3::ZERO);
     double expectedForcesPosZForce[] = {
-        0.0, // Starboard
         0.0, // Port
-        3.0, // Fore
-        3.0, // Aft
+        0.0, // Starboard
         0.0, // Top
+        3.0, // Fore
         0.0, // Bottom
+        3.0, // Aft
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosZForce, thrusterForceArray(), 6);
 
@@ -473,12 +264,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,
                                ram::math::Vector3(0, 0, 7.5));
     double expectedForcesPosZTorque[] = {
-        3.75,  // Starboard
         -3.75, // Port
-        0.0, // Fore
-        0.0, // Aft
+        3.75,  // Starboard
         0.0, // Top
+        0.0, // Fore
         0.0, // Bottom
+        0.0, // Aft
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosZTorque, thrusterForceArray(), 6);
 
@@ -486,12 +277,12 @@ TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
     veh->applyForcesAndTorques(ram::math::Vector3(7.5, 0, 0),
                                ram::math::Vector3::ZERO);
     double expectedForcesPosXForce[] = {
-        3.75, // Starboard
         3.75, // Port
-        0.0, // Fore
-        0.0, // Aft
+        3.75, // Starboard
         0.0, // Top
+        0.0, // Fore
         0.0, // Bottom
+        0.0, // Aft
     };
     CHECK_ARRAY_EQUAL(expectedForcesPosXForce, thrusterForceArray(), 6);
 }
