@@ -208,19 +208,19 @@ Controller:
     holdCurrentDepth: 1
     holdCurrentPosition: 1
 
-    velocityThreshold: 0.1
-    positionThreshold: 0.1
-    depthThreshold: 0.1
-    orientationThreshold: 0.01
+    velocityThreshold: 0.3
+    positionThreshold: 0.3
+    depthThreshold: 0.2
+    orientationThreshold: 0.3
 
     TranslationalController:
         type: TrackingTranslationalController
-        x1kp: 20
-        x1ki: 2
-        x1kd: 20
-        x2kp: 20
-        x2ki: 2
-        x2kd: 20
+        x1kp: 25
+        x1ki: 1
+        x1kd: 12
+        x2kp: 25
+        x2ki: 1
+        x2kd: 12
 
         # type: OpenLoopTranslationalController
         # speedPGain: 8
@@ -228,26 +228,26 @@ Controller:
 
     DepthController:
         type: PIDDepthTrackingController
-        kp: 30
-        ki: 5
-        kd: 10
+        kp: 20
+        ki: 1
+        kd: 3
         dtMin: 0.005
-        dtMax: 0.5
+        dtMax: 0.1
 
     RotationalController:
-        # type: NonlinearPDRotationalController
-        # kp: 10
-        # kd: 6
-        # dtMin: 0.005
-        # dtMax: 0.05
-        # desiredOrientation: [0, 0, 0, 1]
-
-        type: AdaptiveRotationalController
+        type: NonlinearPDRotationalController
+        kp: 15
+        kd: 5
         dtMin: 0.005
-        dtMax: 0.5
-        rotLambda: 10.0   # error metric 'gain'
-        rotGamma: 1    # parameter adaptation rate
-        rotK: 1.0        # analagous to kd ?
+        dtMax: 0.1
+        desiredOrientation: [0, 0, 0, 1]
+
+        # type: AdaptiveRotationalController
+        # dtMin: 0.005
+        # dtMax: 0.5
+        # rotLambda: 10.0   # error metric 'gain'
+        # rotGamma: 1    # parameter adaptation rate
+        # rotK: 1.0        # analagous to kd ?
 
 
 #RemoteController:
@@ -278,10 +278,10 @@ Simulation:
         #Main: objectives/target.sml
         #Main: objectives/target2.sml
         #Main: objectives/buoy.sml
-        Main: objectives/multi_buoy.sml
+        #Main: objectives/multi_buoy.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
-        #Main: transdec.sml
+        Main: transdec.sml
         #Main: nxtest.sml
         #Main: gen_course.sml
         #Main: safePing.sml
