@@ -707,12 +707,11 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0,
-                                         (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);;
+        //Keith: Changing these to what I think should be correct for diag. Checked balancer code.
+        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0,
-                                         (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);;
+        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);
         showString(tmp, 1);
     }
 
@@ -732,12 +731,10 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0,
-                                         (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);;
+        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[12] << 8 | rxBuf[13]) / 1000.0,
-                                         (rxBuf[14] << 8 | rxBuf[15]) / 1000.0);;
+        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);
         showString(tmp, 1);
     }
 
@@ -757,12 +754,10 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[16] << 8 | rxBuf[17]) / 1000.0,
-                                         (rxBuf[18] << 8 | rxBuf[19]) / 1000.0);;
+        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[20] << 8 | rxBuf[21]) / 1000.0,
-                                         (rxBuf[22] << 8 | rxBuf[23]) / 1000.0);;
+        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);
         showString(tmp, 1);
     }
 }
