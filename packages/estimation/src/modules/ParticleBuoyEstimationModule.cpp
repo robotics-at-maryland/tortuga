@@ -120,7 +120,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     math::Quaternion estOrientation = m_estimatedState->getEstimatedOrientation();
 
     // calculate the expected image coordinates
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         particle.imgCoords = world2img(
             particle.location,
@@ -136,7 +136,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
 
     // compute a measure of the number of particles with non-negligible weights
     double sumLhSq = 0;
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         sumLhSq += particle.likelihood * particle.likelihood;
     }
@@ -239,7 +239,7 @@ math::Vector3 ParticleBuoyEstimationModule::getBestEstimate()
     double sumXW = 0, sumYW = 0, sumZW = 0, sumW = 0;
     
     // compute the weighted average for each coordinate
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         float lh = particle.likelihood;
         sumXW += particle.location[0] * lh;
@@ -253,15 +253,14 @@ math::Vector3 ParticleBuoyEstimationModule::getBestEstimate()
 void ParticleBuoyEstimationModule::normalizeWeights()
 {
     double sumL = 0;
-    
     // get the sum of all likelihoods
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         sumL += particle.likelihood;
     }
 
     // divide the likelihood of each particle by the sum
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         particle.likelihood /= sumL;
     }
@@ -275,7 +274,7 @@ math::Matrix3 ParticleBuoyEstimationModule::getCovariance()
     double sumyy = 0, sumyz = 0;
     double sumzz = 0;
 
-    BOOST_FOREACH(Particle3D particle, m_particles)
+    BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         double x = particle.location[0];
         double y = particle.location[1];
