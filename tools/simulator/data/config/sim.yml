@@ -36,7 +36,8 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
-                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem",
+                     "StateEstimator"]
         States:
             # Includes all the state specific NBRF settings
             INCLUDE: tools/simulator/data/config/ai/default_state.yml

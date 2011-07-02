@@ -33,7 +33,8 @@ class TestGate(support.AITestCase):
             'StateMachine' : {
                 'States' : {
                     'ram.ai.gate.Start' : {
-                        'speed' : 2,
+
+                        'distance' : 2,
                     },
                 }
             }
@@ -61,7 +62,8 @@ class TestGate(support.AITestCase):
         self.machine.start(gate.Forward)
         
         # Check config settings
-        self.assertEqual(5, self.controller.speed)
+        print(self.controller.getDesiredPosition())
+        self.assertEqual(5, self.controller.getDesiredVelocity().length())
         self.assertEqual(15, MockTimer.LOG[gate.Forward.DONE]._sleepTime)
         
         
@@ -84,6 +86,9 @@ class TestGate(support.AITestCase):
             
         # Make sure we get the final event
         self.machine.start(gate.Forward)
-        self.releaseTimer(gate.Forward.DONE)
+        self.injectEvent(motion.basic.MotionManager.FINISHED)
         self.qeventHub.publishEvents()
         self.assert_(self._complete)
+
+if __name__ == '__main__':
+    unittest.main()

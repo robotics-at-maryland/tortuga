@@ -46,8 +46,8 @@ def setup_dependencies():
     re_install = re.compile(r'([^\s]+)\s+([^\s]+)')
     dpkg = subprocess.Popen(['dpkg', '--get-selections'],
                             stdout = subprocess.PIPE)
-    if dpkg.wait():
-        return
+    #if dpkg.wait():
+    #    return
 
     # setup dependency information
     deps = []

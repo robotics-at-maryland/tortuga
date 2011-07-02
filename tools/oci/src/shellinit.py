@@ -155,8 +155,8 @@ def allStop():
     """
     stateMachine.stop()
     motionManager.stopCurrentMotion()
-    controller.setSpeed(0)
-    controller.setSidewaysSpeed(0)
+    controller.holdCurrentPosition()
+    controller.holdCurrentOrientation()
     controller.holdCurrentDepth()
     controller.holdCurrentHeading()
 

@@ -153,9 +153,11 @@ class AITestCase(unittest.TestCase):
         self.eventHub = core.EventHub()
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
-        self.controller = MockController(self.eventHub)
-        self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
         self.estimator = MockEstimator(cfg = cfg.get('StateEstimator', {}))
+        self.controller = MockController(
+            eventHub = self.eventHub,
+            estimator = self.estimator)
+        self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
         self.visionSystem = MockVisionSystem()
         
         aCfg = cfg.get('Ai', {})
@@ -218,6 +220,8 @@ class AITestCase(unittest.TestCase):
         self.qeventHub.publishEvents()
      
     def releaseTimer(self, eventType):
+        print MockTimer.LOG
+        print eventType
         timer = MockTimer.LOG[eventType]
 
         # Make sure the timer has actual been started

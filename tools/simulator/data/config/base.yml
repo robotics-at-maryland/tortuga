@@ -278,10 +278,10 @@ Simulation:
         #Main: objectives/target.sml
         #Main: objectives/target2.sml
         #Main: objectives/buoy.sml
-        #Main: objectives/multi_buoy.sml
+        Main: objectives/multi_buoy.sml
         #Main: objectives/pinger.sml
         #Main: objectives/safe.sml
-        Main: transdec.sml
+        #Main: transdec.sml
         #Main: nxtest.sml
         #Main: gen_course.sml
         #Main: safePing.sml
