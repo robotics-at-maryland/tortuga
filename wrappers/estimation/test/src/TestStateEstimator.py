@@ -40,10 +40,10 @@ class MockStateEstimator(estimation.IStateEstimator):
             'Only obstacles can be added to a state estimator'
         assert not self._obstacles.has_key(name), 'Duplicate entry'
         self._obstacles[name] = obstacle
-    def getObstaclePosition(self, name):
-        return self._obstacles[name].getPosition()
-    def getObstacleDepth(self, name):
-        return self._obstacles[name].getDepth()
+    def getObstacleLocation(self, name):
+        return self._obstacles[name].getLocation()
+    def getObstacleAttackOrientation(self, name):
+        return self._obstacles[name].getAttackOrientation()
 
 core.SubsystemMaker.registerSubsystem('MockStateEstimator', MockStateEstimator)
 
@@ -61,13 +61,11 @@ class TestIStateEstimator(unittest.TestCase):
     def testObstacle(self):
         estimator = MockStateEstimator({})
         obstacle = estimation.Obstacle()
-        desiredPos = math.Vector2(5, -5)
-        obstacle.setPosition(desiredPos)
+        desiredLoc = math.Vector3(5, -5, 2)
+        obstacle.setLocation(desiredLoc)
         estimator.addObstacle(estimation.Obstacle.RED_BUOY, obstacle)
 
-        self.assertEquals(desiredPos, estimator.getObstaclePosition(estimation.Obstacle.RED_BUOY))
-
-        depth = estimator.getObstacleDepth(estimation.Obstacle.RED_BUOY)
+        self.assertEquals(desiredLoc, estimator.getObstacleLocation(estimation.Obstacle.RED_BUOY))
 
 if __name__ == '__main__':
     unittest.main()

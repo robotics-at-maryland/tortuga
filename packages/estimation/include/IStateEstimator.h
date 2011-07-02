@@ -71,17 +71,16 @@ public:
     /** return the estimated thruster forces */
     virtual math::Vector3 getEstimatedThrusterForces() = 0;
 
-    /** return t
-
-
-he estimated thruster torques */
+    /** return the estimated thruster torques */
     virtual math::Vector3 getEstimatedThrusterTorques() = 0;
     
     /* Implementations of IStateEstimator should store the information about course
        obstacles.  These functions allow interaction with each obstacle. */
     virtual void addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle) = 0;
-    virtual math::Vector2 getObstaclePosition(Obstacle::ObstacleType name) = 0;
-    virtual double getObstacleDepth(Obstacle::ObstacleType name) = 0;
+    virtual math::Vector3 getObstacleLocation(Obstacle::ObstacleType name) = 0;
+    virtual math::Matrix3 getObstacleLocationCovariance(Obstacle::ObstacleType name) = 0;
+    virtual math::Quaternion getObstacleAttackOrientation(Obstacle::ObstacleType name) = 0;
+
 
     static const core::Event::EventType ESTIMATED_DEPTH_UPDATE;
     static const core::Event::EventType ESTIMATED_ORIENTATION_UPDATE;
@@ -92,6 +91,15 @@ he estimated thruster torques */
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
     static const core::Event::EventType ESTIMATED_FORCES_UPDATE;
     static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;
+    static const core::Event::EventType ESTIMATED_OBSTACLE_UPDATE;
+
+    // static const core::Event::EventType ESTIMATED_GREEN_BUOY_UPDATE;
+    // static const core::Event::EventType ESTIMATED_RED_BUOY_UPDATE;
+    // static const core::Event::EventType ESTIMATED_YELLOW_BUOY_UPDATE;
+    // static const core::Event::EventType ESTIMATED_WINDOW_UPDATE;
+    // static const core::Event::EventType ESTIMATED_LOVERSLANE_UPDATE;
+    // static const core::Event::EventType ESTIMATED_PIPE_UPDATE;
+    // static const core::Event::EventType ESTIMATED_SONARPIPE_UPDATE;
 
 protected:
     IStateEstimator(std::string name,

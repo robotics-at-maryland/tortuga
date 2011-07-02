@@ -32,6 +32,8 @@
 
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix2.h"
+#include "math/include/Matrix3.h"
 #include "math/include/Quaternion.h"
 
 namespace ram {
@@ -74,8 +76,12 @@ public:
        mapping from obstacle name to a pointer to that obstacle.  These functions
        allow access to that information */
     void addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle);
-    math::Vector2 getObstaclePosition(Obstacle::ObstacleType name);
-    double getObstacleDepth(Obstacle::ObstacleType name);
+    math::Vector3 getObstacleLocation(Obstacle::ObstacleType name);
+    math::Matrix3 getObstacleLocationCovariance(Obstacle::ObstacleType name);
+    math::Quaternion getObstacleAttackOrientation(Obstacle::ObstacleType name);
+    void setObstacleLocation(Obstacle::ObstacleType name, math::Vector3 location);
+    void setObstacleLocationCovariance(Obstacle::ObstacleType name, math::Matrix3 covariance);
+    void setObstacleAttackOrientation(Obstacle::ObstacleType name, math::Quaternion orientation);
     ObstaclePtr getObstacle(Obstacle::ObstacleType name);
 
 private:

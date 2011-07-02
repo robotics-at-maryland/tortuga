@@ -29,6 +29,9 @@ namespace ram {
 namespace vision {
 
 class VisionRunner;
+class VisionSystem;
+
+typedef boost::shared_ptr<VisionSystem> VisionSystemPtr;
 
 class RAM_EXPORT VisionSystem : public core::Subsystem
 {
@@ -179,7 +182,7 @@ public:
     /** Attempts to find the vision system configuration section */
     static core::ConfigNode findVisionSystemConfig(core::ConfigNode cfg,
                                                    std::string& nodeUsed);
-    
+
 private:
     /** Initializes all internal members */
     void init(core::ConfigNode config, core::EventHubPtr eventHub);

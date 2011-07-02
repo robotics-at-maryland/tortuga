@@ -20,7 +20,8 @@ namespace ram {
 namespace estimation {
 
 Obstacle::Obstacle()
-    : m_position(math::Vector3::ZERO),
+    : m_location(math::Vector3::ZERO),
+      m_locationCovariance(math::Matrix3::IDENTITY),
       m_attackOrientation(math::Quaternion::IDENTITY)
 {
 }
@@ -29,34 +30,40 @@ Obstacle::~Obstacle()
 {
 }
 
-double Obstacle::getDepth()
+math::Vector3 Obstacle::getLocation()
 {
-    return m_position.z;
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_location;
 }
 
-math::Vector2 Obstacle::getPosition()
+math::Matrix3 Obstacle::getLocationCovariance()
 {
-    return math::Vector2(m_position.x, m_position.y);
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_locationCovariance;
 }
 
 math::Quaternion Obstacle::getAttackOrientation()
 {
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
     return m_attackOrientation;
 }
 
-void Obstacle::setDepth(double depth)
+ 
+void Obstacle::setLocation(math::Vector3 location)
 {
-    m_position.z = depth;
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_location = location;
 }
 
-void Obstacle::setPosition(math::Vector2 position)
+void Obstacle::setLocationCovariance(math::Matrix3 covariance)
 {
-    m_position.x = position.x;
-    m_position.y = position.y;
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+    m_locationCovariance = covariance;
 }
 
 void Obstacle::setAttackOrientation(math::Quaternion orientation)
 {
+    core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
     m_attackOrientation = orientation;
 }
 

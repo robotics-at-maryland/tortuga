@@ -40,7 +40,7 @@ static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
 RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 
 static ram::core::SpecificEventConverter<ram::vehicle::ThrustUpdateEvent>
-RAM_VEHICLE_THRUST_UPDATE_EVENT;
+RAM_VEHICLE_THRUSTUPDATE_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
 

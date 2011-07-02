@@ -20,7 +20,11 @@
 // Project Includes
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
+#include "math/include/Matrix2.h"
+#include "math/include/Matrix3.h"
 #include "math/include/Quaternion.h"
+
+#include "core/include/ReadWriteMutex.h"
 
 namespace ram {
 namespace estimation {
@@ -34,29 +38,37 @@ class Obstacle
 public:
 
     enum ObstacleType {
-        RED_BUOY, YELLOW_BUOY, GREEN_BUOY, LOVERS_LANE,RED_TARGET,GREEN_TARGET,
-        BIN1, BIN2, BIN3, BIN4
+        RED_BUOY, 
+        YELLOW_BUOY, 
+        GREEN_BUOY, 
+        LOVERS_LANE,
+        LARGE_HEART,
+        SMALL_HEART,
+        LARGE_X,
+        SMALL_X,
+        LARGE_O,
+        SMALL_O
     };
 
     Obstacle();
     virtual ~Obstacle();
 
-    double getDepth();
-    math::Vector2 getPosition();
+    math::Vector3 getLocation();
+    math::Matrix3 getLocationCovariance();
     math::Quaternion getAttackOrientation();
     
-    void setDepth(double depth);
-    void setPosition(math::Vector2 position);
+    void setLocation(math::Vector3 location);
+    void setLocationCovariance(math::Matrix3 covariance);
     void setAttackOrientation(math::Quaternion orientation);
 
 
 
 private:
-    /* Includes depth and position */
-    math::Vector3 m_position;
+    math::Vector3 m_location;
+    math::Matrix3 m_locationCovariance;
     math::Quaternion m_attackOrientation;
 
-    // possibly also store color or other properties that might need accessed
+    core::ReadWriteMutex m_stateMutex;
 };
 
 

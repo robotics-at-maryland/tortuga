@@ -90,19 +90,16 @@ public:
      *    The name of the obstacle for which to retrieve the position.
      *
      * @return 
-     *    A Vector2 object representing the position of the obstacle.
+     *    A Vector3 object representing the location of the obstacle 
+     *    in the inertial coordinate frame.
      */
-    virtual math::Vector2 getObstaclePosition(Obstacle::ObstacleType name);
+    virtual math::Vector3 getObstacleLocation(Obstacle::ObstacleType name);
 
-    /** Returns the depth of an obstacle
-     *
-     * @param name
-     *    The name of the obstacle for which to retrieve the depth.
-     *
-     * @return 
-     *    A double representing the depth of the obstacle.
-     */
-    virtual double getObstacleDepth(Obstacle::ObstacleType name);
+    virtual math::Matrix3 getObstacleLocationCovariance(
+        Obstacle::ObstacleType name);
+
+    virtual math::Quaternion getObstacleAttackOrientation(
+        Obstacle::ObstacleType name);
 
     virtual ObstaclePtr getObstacle(Obstacle::ObstacleType name);
 
@@ -136,7 +133,7 @@ public:
 
 protected:
     // Pointer to access the estimated state for this estimator
-    EstimatedStatePtr estimatedState;
+    EstimatedStatePtr m_estimatedState;
 };
 
 

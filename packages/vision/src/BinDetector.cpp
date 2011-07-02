@@ -232,7 +232,7 @@ void BinDetector::processImage(Image* input, Image* out)
         // Anybody left we didn't find this iteration, so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)
         {
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
@@ -259,8 +259,8 @@ void BinDetector::processImage(Image* input, Image* out)
             if(!m_centered)
             {
                 m_centered = true;
-                BinEventPtr event(new BinEvent(getX(), getY(), getSymbol(),
-                                               getAngle()));
+                BinEventPtr event(new BinEvent(getX(), getY(), 0,
+                                               getSymbol(), getAngle()));
                 publish(EventType::BIN_CENTERED, event);
             }
         }
@@ -278,7 +278,7 @@ void BinDetector::processImage(Image* input, Image* out)
                 bin.draw(out);
 
             // Send out the bin event
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_FOUND, event);
@@ -295,7 +295,7 @@ void BinDetector::processImage(Image* input, Image* out)
         // Anybody left has run out of lost frames so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)
         {
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);

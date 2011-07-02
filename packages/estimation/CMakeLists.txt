@@ -2,6 +2,8 @@ file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 set(LINK_LIBS
+  ${Boost_MATH_LIBRARY}
+  ${Boost_RANDOM_LIBRARY}
   ram_core
   ram_math
   ram_vehicle

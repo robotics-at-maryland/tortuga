@@ -21,7 +21,6 @@
 #include "core/include/Event.h"
 #include "core/include/EventPublisher.h"
 
-
 #ifndef RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
 #define RAM_ESTIMATION_MODULARSTATEESTIMATOR_H
 
@@ -38,17 +37,16 @@ public:
     ModularStateEstimator(core::ConfigNode config,
                           core::SubsystemList deps = core::SubsystemList());
     
-    virtual ~ModularStateEstimator();
-
-protected:
-
+    void init(core::ConfigNode config, core::EventHubPtr eventHub);
+    
+    virtual ~ModularStateEstimator() {}
 
 private:
+    void addObstacle(core::ConfigNode obstacleNode,
+                     Obstacle::ObstacleType type);
+    
     /* These contain estimation routines that are config swappable */
-    EstimationModulePtr dvlEstimationModule;
-    EstimationModulePtr imuEstimationModule;
-    EstimationModulePtr depthEstimationModule;
-    EstimationModulePtr visionEstimationModule;
+    std::vector<EstimationModulePtr> modules;
 };
 
 } // namespace estimation

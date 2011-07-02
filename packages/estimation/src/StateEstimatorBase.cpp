@@ -21,7 +21,7 @@ namespace estimation {
 StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     IStateEstimator(config["name"].asString(), eventHub),
-    estimatedState(EstimatedStatePtr(new EstimatedState(
+    m_estimatedState(EstimatedStatePtr(new EstimatedState(
                                          config["EstimatedState"],
                                          eventHub)))
 {
@@ -33,7 +33,7 @@ StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
                                        core::SubsystemList deps) :
     IStateEstimator(config["name"].asString(),
         core::Subsystem::getSubsystemOfType<core::EventHub>(deps)),
-    estimatedState(EstimatedStatePtr(
+    m_estimatedState(EstimatedStatePtr(
                        new EstimatedState(
                            config["EstimatedState"],
                            core::Subsystem::getSubsystemOfType<core::EventHub>(deps))))
@@ -44,71 +44,80 @@ StateEstimatorBase::StateEstimatorBase(core::ConfigNode config,
 
 math::Vector2 StateEstimatorBase::getEstimatedPosition()
 {
-    return estimatedState->getEstimatedPosition();
+    return m_estimatedState->getEstimatedPosition();
 }
 
 math::Vector2 StateEstimatorBase::getEstimatedVelocity()
 {
-    return estimatedState->getEstimatedVelocity();
+    return m_estimatedState->getEstimatedVelocity();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedLinearAcceleration()
 {
-    return estimatedState->getEstimatedLinearAccel();
+    return m_estimatedState->getEstimatedLinearAccel();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedAngularRate()
 {
-    return estimatedState->getEstimatedAngularRate();
+    return m_estimatedState->getEstimatedAngularRate();
 }
 
 math::Quaternion StateEstimatorBase::getEstimatedOrientation()
 {
-    return estimatedState->getEstimatedOrientation();
+    return m_estimatedState->getEstimatedOrientation();
 }
 
 double StateEstimatorBase::getEstimatedDepth()
 {
-    return estimatedState->getEstimatedDepth();
+    return m_estimatedState->getEstimatedDepth();
 }
 
 double StateEstimatorBase::getEstimatedDepthRate()
 {
-    return estimatedState->getEstimatedDepthRate();
+    return m_estimatedState->getEstimatedDepthRate();
 }
 
-void StateEstimatorBase::addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle)
+void StateEstimatorBase::addObstacle(Obstacle::ObstacleType name,
+                                     ObstaclePtr obstacle)
 {
-    estimatedState->addObstacle(name,obstacle);
+    m_estimatedState->addObstacle(name,obstacle);
 }
 
-math::Vector2 StateEstimatorBase::getObstaclePosition(Obstacle::ObstacleType name)
+math::Vector3 StateEstimatorBase::getObstacleLocation(
+    Obstacle::ObstacleType name)
 {
-    return estimatedState->getObstaclePosition(name);
+    return m_estimatedState->getObstacleLocation(name);
 }
 
-double StateEstimatorBase::getObstacleDepth(Obstacle::ObstacleType  name)
+math::Matrix3 StateEstimatorBase::getObstacleLocationCovariance(
+    Obstacle::ObstacleType name)
 {
-    return estimatedState->getObstacleDepth(name);
+    return m_estimatedState->getObstacleLocationCovariance(name);
+}
+
+math::Quaternion StateEstimatorBase::getObstacleAttackOrientation(
+    Obstacle::ObstacleType name)
+{
+    return m_estimatedState->getObstacleAttackOrientation(name);
 }
 
 double StateEstimatorBase::getEstimatedMass()
 {
-    return estimatedState->getEstimatedMass();
+    return m_estimatedState->getEstimatedMass();
 }
 ObstaclePtr StateEstimatorBase::getObstacle(Obstacle::ObstacleType name)
 {
-    return estimatedState->getObstacle(name);
+    return m_estimatedState->getObstacle(name);
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedThrusterForces()
 {
-    return estimatedState->getEstimatedThrusterForces();
+    return m_estimatedState->getEstimatedThrusterForces();
 }
 
 math::Vector3 StateEstimatorBase::getEstimatedThrusterTorques()
 {
-    return estimatedState->getEstimatedThrusterForces();
+    return m_estimatedState->getEstimatedThrusterForces();
 }
 
 } // namespace estimation

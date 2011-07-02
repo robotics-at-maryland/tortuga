@@ -21,3 +21,5 @@
 #include "estimation/include/modules/DepthAveragingModule.h"
 #include "estimation/include/modules/DepthSGolayModule.h"
 #include "estimation/include/modules/IMUSGolayModule.h"
+#include "estimation/include/modules/ParticleVisionEstimationModule.h"
+#include "estimation/include/modules/ParticleBuoyEstimationModule.h"

@@ -14,12 +14,12 @@ RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_DEPTH_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_ORIENTATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_VELOCITY_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_POSITION_UPDATE);
-
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_LINEARACCELERATION_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_DEPTHRATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_ANGULARRATE_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_FORCES_UPDATE);
 RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_TORQUES_UPDATE);
+RAM_CORE_EVENT_TYPE(ram::estimation::IStateEstimator, ESTIMATED_OBSTACLE_UPDATE);
 
 namespace ram {
 namespace estimation {

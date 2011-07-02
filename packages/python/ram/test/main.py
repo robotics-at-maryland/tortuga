@@ -59,6 +59,7 @@ def main(argv = None):
 
         # Remove __init__ files
         pathes = [p for p in pathes if 0 == p.count('__init__')]
+        pathes = filter(lambda x: 'trajectories.py' in x, pathes)
 
         for path in pathes:
             name = path.replace(testDir,'')

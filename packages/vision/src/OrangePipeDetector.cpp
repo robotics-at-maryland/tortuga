@@ -201,7 +201,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out lost events for all the pipes we lost
     BOOST_FOREACH(int id, lostIds)
     {
-        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = id;
         publish(EventType::PIPE_DROPPED, event);
     }
@@ -209,7 +209,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out found events for all the pipes we currently see
     BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
     {
-        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = pipe.getId();
         event->x = pipe.getX();
         event->y = pipe.getY();
@@ -244,7 +244,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         {
             if(!m_centered)
             {
-                PipeEventPtr event(new PipeEvent(0, 0, 0));
+                PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
                 event->x = pipes[0].getX();
                 event->y = pipes[0].getY();
                 event->angle = pipes[0].getAngle();

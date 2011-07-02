@@ -179,24 +179,77 @@ void EstimatedState::setEstimatedMass(double mass)
 
 void EstimatedState::addObstacle(Obstacle::ObstacleType name, ObstaclePtr obstacle)
 {
-    m_obstacleMap[name]=obstacle;//puts obstacle into the map
-    //throw std::runtime_error("EstimatedState::addObstacle - NOT YET IMPLEMENTED");
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        m_obstacleMap[name] = obstacle;
+    else
+        assert(false && "obstacle already created");
 }
 
-math::Vector2 EstimatedState::getObstaclePosition(Obstacle::ObstacleType name)
+math::Vector3 EstimatedState::getObstacleLocation(
+    Obstacle::ObstacleType name)
 {
-    return m_obstacleMap[name]->getPosition();
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        return m_obstacleMap[name]->getLocation();
+}
+
+math::Matrix3 EstimatedState::getObstacleLocationCovariance(
+    Obstacle::ObstacleType name)
+{
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        return m_obstacleMap[name]->getLocationCovariance();
+}
+
+math::Quaternion EstimatedState::getObstacleAttackOrientation(
+    Obstacle::ObstacleType name)
+{
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        return m_obstacleMap[name]->getAttackOrientation();
+}
+
+void EstimatedState::setObstacleLocation(Obstacle::ObstacleType name,
+                                         math::Vector3 location)
+{
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        m_obstacleMap[name]->setLocation(location);
+}
+
+void EstimatedState::setObstacleLocationCovariance(Obstacle::ObstacleType name,
+                                                   math::Matrix3 covariance)
+{
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        m_obstacleMap[name]->setLocationCovariance(covariance);
+}
+
+void EstimatedState::setObstacleAttackOrientation(Obstacle::ObstacleType name,
+                                                  math::Quaternion orientation)
+{
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        m_obstacleMap[name]->setAttackOrientation(orientation);
 }
 
 ObstaclePtr EstimatedState::getObstacle(Obstacle::ObstacleType name)
 {
-    return m_obstacleMap[name];
+    if(m_obstacleMap.find(name) == m_obstacleMap.end())
+        assert(false && "obstacle not created yet");
+    else
+        return m_obstacleMap[name];
 }
 
-double EstimatedState::getObstacleDepth(Obstacle::ObstacleType name)
-{
-    return m_obstacleMap[name]->getDepth();
-}
+
+
+
 
 void EstimatedState::publishPositionUpdate(const math::Vector2& position)
 {
