@@ -12,6 +12,9 @@
 // Library Includes
 #include <UnitTest++/UnitTest++.h>
 #include <boost/foreach.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/variate_generator.hpp>
 
 // Project Includes
 #define private public

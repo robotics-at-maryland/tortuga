@@ -83,12 +83,12 @@ private:
     // we can move to a full covarinace matrix in the future
     math::Matrix3 m_initialUncertainty;
 
-    // simplified model of uncertainty for the camera
-    // assumes that these uncertainties are decoupled
-    // this assumption should result in faster likelihood computation
-    double m_imgXUncertainty;
-    double m_imgYUncertainty;
-    double m_distanceUncertainty;
+    // // simplified model of uncertainty for the camera
+    // // assumes that these uncertainties are decoupled
+    // // this assumption should result in faster likelihood computation
+    // double m_imgXUncertainty;
+    // double m_imgYUncertainty;
+    // double m_distanceUncertainty;
     
     // camera parameters for pinhole camera model
     math::Radian m_xFOV, m_yFOV;

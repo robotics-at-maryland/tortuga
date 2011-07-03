@@ -17,6 +17,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "estimation/include/modules/ParticleBuoyEstimationModule.h"
@@ -24,6 +25,8 @@
 #include "vision/include/Events.h"
 #include "math/include/Helpers.h"
 #include "math/include/Events.h"
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstBuoy"));
 
 namespace ram {
 namespace estimation {
@@ -39,9 +42,6 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
     m_obstacle(obstacle),
     m_initialGuess(estState->getObstacleLocation(obstacle)),
     m_initialUncertainty(estState->getObstacleLocationCovariance(obstacle)),
-    m_imgXUncertainty(40),
-    m_imgYUncertainty(40),
-    m_distanceUncertainty(4),
     m_intrinsicParameters(math::Matrix3::IDENTITY),
     m_numParticles(200),
     m_prevEffectiveParticles(200)
