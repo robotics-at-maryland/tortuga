@@ -114,6 +114,7 @@ void NetworkHub::daemon()
                     std::cout << "input stream error: "
                               << reply_length << std::endl;
                 } else {
+                    std::cerr << "archive exception: " << ex.what() << std::endl;
                     throw ex;
                 }
             }
