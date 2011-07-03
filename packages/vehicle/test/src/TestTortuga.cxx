@@ -201,12 +201,20 @@ private:
 TEST_FIXTURE(ThrusterVehicleFixture, applyForcesAndTorque)
 {
     // Make all thrusters have locations unit distance from CM
-    starboard->location = math::Vector3(0.0, 1.0, 0.0);
-    port->location = math::Vector3(0.0, -1.0, 0.0);
-    fore->location = math::Vector3(1.0, 0.0, 0.0);
-    aft->location = math::Vector3(-1.0, 0.0, 0.0);
-    top->location = math::Vector3(0.0, 0.0, -1.0);
-    bottom->location = math::Vector3(0.0, 0.0, 1.0);
+    starboard->location = math::Vector3::UNIT_Y;
+    port->location = math::Vector3::NEGATIVE_UNIT_Y;
+    fore->location = math::Vector3::UNIT_X;
+    aft->location = math::Vector3::NEGATIVE_UNIT_X;
+    top->location = math::Vector3::NEGATIVE_UNIT_Z;
+    bottom->location = math::Vector3::UNIT_Z;
+
+    starboard->direction = math::Vector3::NEGATIVE_UNIT_X;
+    port->direction = math::Vector3::NEGATIVE_UNIT_X;
+    fore->direction = math::Vector3::UNIT_Z;
+    aft->direction = math::Vector3::UNIT_Z;
+    top->direction = math::Vector3::UNIT_Y;
+    bottom->direction = math::Vector3::UNIT_Y;
+    
 
     // +X Torque
     veh->applyForcesAndTorques(ram::math::Vector3::ZERO,

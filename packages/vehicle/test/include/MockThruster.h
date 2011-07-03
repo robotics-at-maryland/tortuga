@@ -23,8 +23,8 @@ public:
         IThruster(ram::core::EventHubPtr()),
         Device(name),
         force(0.0),
-        offset(0.0),
         location(ram::math::Vector3::ZERO),
+        direction(ram::math::Vector3::ZERO),
         enabled(false),
         current(0.0)
         {}
@@ -46,13 +46,15 @@ public:
     virtual void setEnabled(bool state) { enabled = state; }
 
     virtual ram::math::Vector3 getLocation() { return location; }
+    
+    virtual ram::math::Vector3 getDirection() { return direction; }
 
     virtual double getCurrent() { return current; }
 
     
     double force;
-    double offset;
     ram::math::Vector3 location;
+    ram::math::Vector3 direction;
     bool enabled;
     double current;
 

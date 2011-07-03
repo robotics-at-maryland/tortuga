@@ -227,7 +227,7 @@ Controller:
         # sidewaysSpeedPGain: 8
 
     DepthController:
-        type: PIDDepthTrackingController
+        type: PIDDepthController
         kp: 20
         ki: 1
         kd: 3
@@ -237,7 +237,7 @@ Controller:
     RotationalController:
         type: NonlinearPDRotationalController
         kp: 15
-        kd: 5
+        kd: 3
         dtMin: 0.005
         dtMax: 0.1
         desiredOrientation: [0, 0, 0, 1]

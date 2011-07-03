@@ -253,7 +253,6 @@ class SimThruster(SimDevice, device.IThruster):
         simDevice = vehicle.getDevice('SimulationDevice')
         robot = simDevice.robot        
         self._simThruster = getattr(robot.parts, config['simName'])
-        self._relAxis = config['relAxis']
         self._enabled = True
                 
     @property
@@ -291,12 +290,13 @@ class SimThruster(SimDevice, device.IThruster):
     
     def isEnabled(self):
         return self._enabled
-    
-    def getOffset(self):
-        return pmath.fabs(getattr(self.relativePosition, self._relAxis))
 
     def getLocation(self):
         return self.relativePosition
+
+    def getDirection(self):
+        print self._name, ': ', self.forceDirection
+        return self.forceDirection
 
     
 device.IDeviceMaker.registerDevice('SimThruster', SimThruster)

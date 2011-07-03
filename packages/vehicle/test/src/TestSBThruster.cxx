@@ -56,7 +56,7 @@ TEST_FIXTURE(Thruster, setForce)
     std::string config = TH_CONFIG_BASE +
         "'name' : 'StarboardThruster',"
         "'address' : 5,"
-        "'direction' : 1}";
+        "'direction' : [1, 0, 0]}";
 
     thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
@@ -67,28 +67,6 @@ TEST_FIXTURE(Thruster, setForce)
     thruster->setForce(2.5);
     int thrustValue = sensorBoard->thrusterValues[5];
     CHECK(thrustValue > 0);
-
-    // Double the voltage, and check to make sure the output is halved
-    //    sensorBoard->mainBusVoltage = 2.0;
-    //    thruster->setForce(2.5);
-    //    CHECK_CLOSE(thrustValue/2, sensorBoard->thrusterValues[5], 2);
-
-    delete thruster;
-    
-    // Now with reverse direction
-    config = TH_CONFIG_BASE +
-        "'name' : 'StarboardThruster',"
-        "'address' : 0,"
-        "'direction' : -1}";
-
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    
-    CHECK_EQUAL(0, sensorBoard->thrusterValues[0]);
-    thruster->setForce(2.5);
-    CHECK(sensorBoard->thrusterValues[0] < 0);
-    delete thruster;
 }
     
 TEST_FIXTURE(Thruster, getForce)

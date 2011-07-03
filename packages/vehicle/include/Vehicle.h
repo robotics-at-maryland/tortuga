@@ -97,7 +97,7 @@ public:
        are applying a torque in opposite directions*/
 
     math::MatrixN createControlSignalToThrusterForcesMatrix(
-        Tuple6Vector3 thrusterLocations);
+        Tuple6Vector3 thrusterLocations, Tuple6Vector3 thrusterDirections);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
@@ -135,7 +135,7 @@ private:
     math::MatrixN m_controlSignalToThrusterForces;
     bool m_controlSignalToThrusterForcesCreated;
     
-    enum thrusters {PORT = 0, STAR, TOP, FORE, BOT, AFT};
+    enum thrusters {PRT = 0, STR, TOP, FOR, BOT, AFT};
     enum forceAndThrustIndices {FX = 0, FY, FZ, TX, TY, TZ};
 };
     

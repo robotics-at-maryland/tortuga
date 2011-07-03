@@ -66,6 +66,11 @@ public:
      *  This is meant to replace the getOffset() function
      */
     virtual math::Vector3 getLocation() = 0;
+    
+    /** Returns the direction of the thruster force vector in body
+        coordinates. Same convention as getLocation
+    */
+    virtual math::Vector3 getDirection() = 0;
 
 protected:
     IThruster(core::EventHubPtr eventHub = core::EventHubPtr(),
