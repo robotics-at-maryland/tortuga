@@ -33,13 +33,13 @@ class ImplicitSurface
 {
 public:
     ImplicitSurface(std::vector<IPrimitive3DPtr> primitives,
-                    double blendingFactor) :
+                    float blendingFactor) :
         m_primitives(primitives),
         m_blendingFactor(blendingFactor) {}
 
-    virtual double implicitFunctionValue(Vector3 p)
+    virtual inline float implicitFunctionValue(Vector3 p)
     {
-        double invSum = 0;
+        float invSum = 0;
         if(m_blendingFactor - 1.0  < 0.0001)
         {
             // we need to blend all of the primitives
@@ -64,7 +64,7 @@ public:
 
 private:
     std::vector<IPrimitive3DPtr> m_primitives;
-    double m_blendingFactor;
+    float m_blendingFactor;
 };
 
 } // namespace math

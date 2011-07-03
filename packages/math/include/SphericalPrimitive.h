@@ -23,7 +23,7 @@ namespace math {
 class SphericalPrimitive : public IPrimitive3D
 {
 public:
-    SphericalPrimitive(Vector3 center, double radius) :
+    SphericalPrimitive(Vector3 center, float radius) :
         IPrimitive3D(),
         m_center(center),
         m_radius(radius),
@@ -31,18 +31,19 @@ public:
 
     virtual ~SphericalPrimitive() {}
 
-    virtual double implicitFunctionValue(Vector3 p)
+    virtual inline float implicitFunctionValue(Vector3 p)
     {
-        return m_center.squaredDistance(p) / m_radiusSquared;
+        return static_cast<float>(m_center.squaredDistance(p)) / 
+            m_radiusSquared;
     }
 
     Vector3 center() {return m_center;}
-    double radius() {return m_radius;}
+    float radius() {return m_radius;}
 
 private:
     Vector3 m_center;
-    double m_radius;
-    double m_radiusSquared;
+    float m_radius;
+    float m_radiusSquared;
 };
 
 } // namespace math
