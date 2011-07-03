@@ -41,10 +41,11 @@ public:
     virtual void filterImage(Image* input, Image* output = 0);
     virtual void inverseFilterImage(Image* input, Image* output = 0);
     
-private:
-    bool loadLookupTable();
     static void saveLookupTable(std::string filepath, core::BitField3D filterTable);
     static void createLookupTable(std::string filepath);
+
+private:
+    bool loadLookupTable();
 
     // property set and properties
     core::BitField3D m_filterTable;

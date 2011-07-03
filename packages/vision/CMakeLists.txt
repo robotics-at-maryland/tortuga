@@ -83,6 +83,13 @@ if (RAM_WITH_VISION)
     ram_vision
     )
 
+  add_executable(GenColorFilterLookup "test/src/GenColorFilterLookup.cpp")
+  target_link_libraries(GenColorFilterLookup
+    ram_vision
+    ram_core
+    ${OpenCV_LIBS}
+    )
+
   set(vision_EXCLUDE_LIST "test/src/TestConvert.cxx")
   test_module(vision "ram_vision")
 endif (RAM_WITH_VISION)

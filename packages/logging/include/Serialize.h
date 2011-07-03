@@ -66,7 +66,7 @@ bool writeEvent(core::EventPtr event, Archive& archive)
     boost::mutex::scoped_lock lock(writeMutex);
     try
     {
-        // Only attempt to convert events we now we can convert
+        // Only attempt to convert events we know we can convert
         bool convertable = unconvertableTypes.end() ==
             unconvertableTypes.find(typeName);
         if (convertable) {
