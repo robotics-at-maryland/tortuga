@@ -199,7 +199,23 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         assert(m_camera && "Couldn't initialize camera");
     }
 
-    // Attempt to clean up the old shit which is left
+    dc1394switch_t isoOn;
+    // Get the current iso status
+    if(dc1394_video_get_transmission(m_camera, &isoOn) != DC1394_SUCCESS)
+    {
+        assert(false && "Could not get ISO status");
+    }
+
+    // If the ISO status is currently on, we want to stop it.
+    if(isoOn == DC1394_ON)
+    {
+        if (dc1394_video_set_transmission(m_camera, DC1394_OFF) != DC1394_SUCCESS)
+        {
+            assert(false && "Could not stop ISO transmission");
+        }
+    }
+
+    // Release all of the iso bandwith and memory from previous failure
     dc1394_iso_release_all(m_camera);
 
     // Determines settings and frame size
@@ -249,16 +265,6 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         setBrightness(value);
     }
 
-    if (config.exists("exposure"))
-    {
-        int ival = config["exposure"].asInt();
-        uint32_t value = static_cast<uint32_t>(ival);
-        if(ival > 0)
-            setExposure(value);
-        else
-            setExposure(value, true);
-    }
-
     if (config.exists("shutter"))
     {
         int ival = config["shutter"].asInt();
@@ -267,6 +273,16 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
             setShutter(value);
         else
             setShutter(value, true);
+    }
+
+    if (config.exists("exposure"))
+    {
+        int ival = config["exposure"].asInt();
+        uint32_t value = static_cast<uint32_t>(ival);
+        if(ival > 0)
+            setExposure(value);
+        else
+            setExposure(value, true);
     }
 
     if (config.exists("gamma"))
