@@ -321,9 +321,9 @@ class PipeFollowingState(PipeTrackingState):
             initialValue = currentOrientation,
             finalValue = yawVehicleHelper(currentOrientation, currentOrientation.getYaw().valueDegrees() + self._pipe.getAngle()),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = yawGain)
+            finalRate = ext.math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
+            initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(self._pipe.getX() * sidewaysSpeedGain,
                                           self._pipe.getY() * speedGain),
             initialRate = self.stateEstimator.getEstimatedVelocity())
@@ -404,9 +404,9 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
                 finalValue = yawVehicleHelper(currentOrientation, 
                                                       self._direction),
                 initialRate = self.stateEstimator.getEstimatedAngularRate(),
-                finalRate = 0.3)
+                finalRate = ext.math.Vector3.ZERO)
             translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-                initialValue = self.stateEstimator.getEstimatedPosition(),
+                initialValue = ext.math.Vector2.ZERO,
                 finalValue = ext.math.Vector2(5,0),
                 initialRate = self.stateEstimator.getEstimatedVelocity())
 
@@ -447,16 +447,15 @@ class Searching(PipeTrackingState):
         direction = self.ai.data.setdefault('pipeStartOrientation',
                                             orientation.getYaw().valueDegrees())
 
-
         #TODO: Change this back into a ZigZag motion
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
             finalValue = yawVehicleHelper(currentOrientation, self.ai.data.setdefault('pipeStartOrientation',orientation.getYaw().valueDegrees())),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = 0.3)
+            finalRate = ext.math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
+            initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(5,0),
             initialRate = self.stateEstimator.getEstimatedVelocity())
         
@@ -587,7 +586,7 @@ class AlongPipe(PipeFollowingState):
         
         # Create our new motion to follow the pipe straight forward
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
+            initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(15,0),
             initialRate = self.stateEstimator.getEstimatedVelocity())
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
