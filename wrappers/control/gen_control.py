@@ -6,7 +6,8 @@
 # File:  wrappers/estimation/gen_control.py
 
 import os
-
+from pyplusplus.module_builder import call_policies
+from pygccxml import declarations
 import buildfiles.wrap as wrap
 
 def generate(module_builder, local_ns, global_ns):
@@ -35,6 +36,14 @@ def generate(module_builder, local_ns, global_ns):
                                      '/packages/control/include/DesiredState.h')
     classes.append(DesiredState)
 
+    yawVehicleHelper = local_ns.free_function('yawVehicleHelper')
+    pitchVehicleHelper = local_ns.free_function('pitchVehicleHelper')
+    rollVehicleHelper = local_ns.free_function('rollVehicleHelper')
+
+    yawVehicleHelper.include()
+    pitchVehicleHelper.include()
+    rollVehicleHelper.include()
+
     # Wrap Events
     events = wrap.expose_events(local_ns)
 
@@ -50,6 +59,7 @@ def generate(module_builder, local_ns, global_ns):
     module_builder.add_registration_code("registerIControllerPtrs();")
 
     include_files = set([cls.location.file_name for cls in classes])
+    include_files.add('packages/control/include/Helpers.h')
     for cls in classes:
         include_files.update(cls.include_files)
     return ['wrappers/control/include/RegisterFunctions.h'] + list(include_files)
