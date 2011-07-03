@@ -33,6 +33,7 @@
 #include "vision/include/ColorFilter.h"
 #include "vision/include/RegionOfInterest.h"
 #include "vision/include/Utility.h"
+#include "vision/include/VisionSystem.h"
 
 namespace ram {
 namespace vision {
@@ -52,7 +53,8 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
     m_blobDetector(config, eventHub),
     m_checkBlack(false),
     m_minBlackPercentage(0),
-    m_maxTotalBlackCheckSize(0)
+    m_maxTotalBlackCheckSize(0),
+    m_physicalWidthMeters(0.23)
 {
     init(config);
 }
@@ -67,7 +69,8 @@ BuoyDetector::BuoyDetector(Camera* camera) :
     m_yellowFilter(0),
     m_checkBlack(false),
     m_minBlackPercentage(0),
-    m_maxTotalBlackCheckSize(0)
+    m_maxTotalBlackCheckSize(0),
+    m_physicalWidthMeters(0.23)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -279,12 +282,13 @@ bool BuoyDetector::processColor(Image* input, Image* output,
 
 void BuoyDetector::processImage(Image* input, Image* output)
 {
+    
     frame->copyFrom(input);
 
     int topRowsToIgnore = static_cast<int>(m_topIgnorePercentage * frame->getHeight());
-    int bottomRowsToIgnore = (int)(m_bottomIgnorePercentage * frame->getHeight());
-    int leftColsToIgnore = (int)(m_leftIgnorePercentage * frame->getWidth());
-    int rightColsToIgnore = (int)(m_rightIgnorePercentage * frame->getWidth());
+    int bottomRowsToIgnore = static_cast<int>(m_bottomIgnorePercentage * frame->getHeight());
+    int leftColsToIgnore = static_cast<int>(m_leftIgnorePercentage * frame->getWidth());
+    int rightColsToIgnore = static_cast<int>(m_rightIgnorePercentage * frame->getWidth());
 
     int initialMinX = leftColsToIgnore;
     int initialMaxX = frame->getWidth() - rightColsToIgnore;
@@ -306,6 +310,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
         m_blackFilter->filterImage(blackFrame);
     }
 
+    math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+
     BlobDetector::Blob redBlob;
     bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
     if (redFound)
@@ -317,7 +325,8 @@ void BuoyDetector::processImage(Image* input, Image* output)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
 
-        double range = 0;
+        double fracWidth = static_cast<double>(redBlob.getWidth()) / xPixelWidth;
+        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
         int width = redBlob.getWidth();
         int height = redBlob.getHeight();
 
@@ -357,7 +366,8 @@ void BuoyDetector::processImage(Image* input, Image* output)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
 
-        double range = 0;
+        double fracWidth = static_cast<double>(greenBlob.getWidth()) / xPixelWidth;
+        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
         int width = greenBlob.getWidth();
         int height = greenBlob.getHeight();
         
@@ -394,7 +404,8 @@ void BuoyDetector::processImage(Image* input, Image* output)
             publish(EventType::BUOY_ALMOST_HIT,
                     core::EventPtr(new core::Event()));
 
-        double range = 0;
+        double fracWidth = static_cast<double>(yellowBlob.getWidth()) / xPixelWidth;
+        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
         int width = greenBlob.getWidth();
         int height = greenBlob.getHeight();
 
@@ -450,22 +461,20 @@ void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType 
     double centerX, centerY;
     Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
                                    centerX, centerY);
+    math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
+    double fracWidth = static_cast<double>(blob.getWidth()) / xPixelWidth;
+    double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        
     event->x = centerX;
     event->y = centerY;
+    event->range = range;
+    event->azimuth = math::Degree((xFOV / 2) * centerX);
+    event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
 
-    event->azimuth = math::Degree(
-        (78.0 / 2) * centerX * -1.0 *
-        (double)frame->getHeight()/frame->getWidth());
-    event->elevation = math::Degree((105.0 / 2) * centerY * 1);
-
-    // Compute range (assume a sphere)
-    double lightPixelRadius = sqrt((double)blob.getSize()/M_PI);
-    double lightRadius = 0.25; // feet
-    event->range = (lightRadius * frame->getHeight()) /
-        (lightPixelRadius * tan(78.0/2 * (M_PI/180)));
-        
     publish(EventType::BUOY_FOUND, event);
 }
 
