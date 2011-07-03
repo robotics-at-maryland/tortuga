@@ -79,13 +79,14 @@ class Forward(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 5 }
+        return { 'distance' : 5 , 'avgRate' : 0.2}
 
     def enter(self):
         forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self._distance,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._avgRate)
 
         forwardMotion = motion.basic.Translate(
             trajectory = forwardTrajectory,

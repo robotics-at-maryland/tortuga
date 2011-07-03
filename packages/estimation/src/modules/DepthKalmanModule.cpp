@@ -70,10 +70,10 @@ void DepthKalmanModule::update(core::EventPtr event)
     double zk = rawDepth + correction;
     double dt = ievent->timestep;
 
-    math::Matrix2 Ak(1, dt, 0, 1);       // state transition model
-    math::Vector2 Hk(1, 0);              // observation model
+    math::Matrix2 Ak(1, dt, 0, 1);         // state transition model
+    math::Vector2 Hk(1, 0);                // observation model
     math::Matrix2 Qk(0.005, 0, 0, 0.002);  // process covariance
-    double Rk = 0.1;                     // measurement covariance
+    double Rk = 0.001;                     // measurement covariance
 
     // prediction step
     math::Vector2 xHat = Ak * m_xHat;
@@ -92,25 +92,23 @@ void DepthKalmanModule::update(core::EventPtr event)
     m_Pk = Pk;
     m_xHat = xHat;
 
-    // put the depth into the averaging filter
-    m_filteredDepth->addValue(xHat[0]);
-    m_filteredDepthDot->addValue(xHat[1]);
+    // // put the depth into the averaging filter
+    // m_filteredDepth->addValue(xHat[0]);
+    // m_filteredDepthDot->addValue(xHat[1]);
 
-    // get the best estimates from the filter
-    double estDepth = m_filteredDepth->getValue();
-    double estDepthRate = m_filteredDepth->getValue();
+    // // get the best estimates from the filter
+    // double estDepth = m_filteredDepth->getValue();
+    // double estDepthRate = m_filteredDepth->getValue();
 
     // Set the estimated depth
-    m_estimatedState->setEstimatedDepth(estDepth);
-    m_estimatedState->setEstimatedDepthRate(estDepthRate);
+    m_estimatedState->setEstimatedDepth(xHat[0]);
+    m_estimatedState->setEstimatedDepthRate(xHat[1]);
 
     LOGGER.infoStream() << rawDepth  << " "
                         << correction << " "
                         << zk << " "
                         << xHat[0] << " "
-                        << xHat[1] << " "
-                        << estDepth << " "
-                        << estDepthRate << " ";
+                        << xHat[1] << " ";
 }
 
 } // namespace estimation

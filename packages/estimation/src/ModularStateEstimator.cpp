@@ -69,7 +69,7 @@ void ModularStateEstimator::init(core::ConfigNode config,
                               m_estimatedState)));
 
     modules.push_back(EstimationModulePtr(
-                          new IMUSGolayModule(
+                          new BasicIMUEstimationModule(
                               config["IMUEstimationModule"],
                               eventHub,
                               m_estimatedState)));
