@@ -83,6 +83,8 @@ RawFileRecorder::~RawFileRecorder()
 
 void RawFileRecorder::recordFrame(Image* image)
 {
+    image->setPixelFormat(Image::PF_BGR_8);
+
     // Pack up the header
     Packet packet;
     packet.magicNumber = MAGIC_NUMBER;

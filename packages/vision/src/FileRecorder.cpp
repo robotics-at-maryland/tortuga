@@ -45,6 +45,7 @@ FileRecorder::~FileRecorder()
 
 void FileRecorder::recordFrame(Image* image)
 {
+    image->setPixelFormat(Image::PF_BGR_8);
     m_writer << image->asIplImage();
 }
 
