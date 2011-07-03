@@ -153,11 +153,11 @@ class KeyboardController(core.Subsystem):
             if self._newVelocity:
                 # calculate the current velocity in body coordinates
                 orientation = self._stateEstimator.getEstimatedOrientation()
-                yaw = orientation.getYaw().valueRadians()
+                yaw = orientation.getYaw()
                 estVelocity_n = self._stateEstimator.getEstimatedVelocity()
-                estVelocity_b = math.bRn(yaw) * estVelocity_n
+                estVelocity_b = math.Matrix2.bRn(yaw) * estVelocity_n
                 desVelocity_n = self._controller.getDesiredVelocity()
-                desVelocity_b = math.bRn(yaw) * desVelocity_n
+                desVelocity_b = math.Matrix2.bRn(yaw) * desVelocity_n
                 # do the translate motion
                 self._motionManager.setMotion(
                     motion.Translate(
@@ -168,7 +168,7 @@ class KeyboardController(core.Subsystem):
                             accel = 0.2),
                         frame = motion.Frame.LOCAL))
                 vEvent = core.Event()
-                vEvent.velocity = math.nRb(yaw) * self._targetVelocity_b
+                vEvent.velocity = math.Matrix2.bRn(yaw) * self._targetVelocity_b
                 self.publish(KeyboardController.TARGET_VELOCITY_UPDATE, vEvent)
                 
             if self._newDepth:

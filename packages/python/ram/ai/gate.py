@@ -83,8 +83,8 @@ class Forward(state.State):
 
     def enter(self):
         forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(0,self._distance),
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(self._distance,0),
             initialRate = self.stateEstimator.getEstimatedVelocity())
 
         forwardMotion = motion.basic.Translate(

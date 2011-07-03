@@ -528,3 +528,6 @@ class TestBetweenPipes(PipeTest):
         self.machine.start(pipe.BetweenPipes)
         self.publishQueuedPipeFound()
         self.assertCurrentState(pipe.Seeking)
+
+if __name__ == '__main__':
+    unittest.main()

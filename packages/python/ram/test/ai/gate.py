@@ -62,7 +62,6 @@ class TestGate(support.AITestCase):
         self.machine.start(gate.Forward)
         
         # Check config settings
-        print(self.controller.getDesiredPosition())
         self.assertEqual(5, self.controller.getDesiredVelocity().length())
         self.assertEqual(15, MockTimer.LOG[gate.Forward.DONE]._sleepTime)
         
