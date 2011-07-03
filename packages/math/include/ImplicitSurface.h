@@ -40,14 +40,26 @@ public:
     virtual double implicitFunctionValue(Vector3 p)
     {
         double invSum = 0;
-        // we need to blend all of the primitives
-        BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+        if(m_blendingFactor - 1.0  < 0.0001)
         {
-            invSum += 1 / pow(it->implicitFunctionValue(p),
-                              m_blendingFactor);
+            // we need to blend all of the primitives
+            BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+            {
+                invSum += 1 / it->implicitFunctionValue(p);
+            }
+            return 1 / invSum;
         }
+        else
+        {
+            // we need to blend all of the primitives
+            BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+            {
+                invSum += 1 / pow(it->implicitFunctionValue(p),
+                                  m_blendingFactor);
+            }
         
-        return pow(invSum, (-1.0 / m_blendingFactor));
+            return pow(invSum, (-1.0 / m_blendingFactor));
+        }
     }
 
 private:
