@@ -17,6 +17,8 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
 #include "vision/test/include/Utility.h"
+#include "vision/include/Image.h"
+#include "vision/include/VisionSystem.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/TimeVal.h"
@@ -32,6 +34,26 @@ void drawRedCircle(vision::Image* image, int x, int y, int radius = 50);
 
 static const std::string CONFIG = "{"
     "'testing' : 1,"
+    "'BuoyDetector' : {"
+    "    'filtRedLMin' : 135,"
+    "    'filtRedLMax' : 135,"
+    "    'filtRedCMin' : 179,"
+    "    'filtRedCMin' : 179,"
+    "    'filtRedHMin' : 8,"
+    "    'filtRedHMin' : 8,"
+    "    'filtGreenLMin' : 223,"
+    "    'filtGreenLMax' : 223,"
+    "    'filtGreenCMin' : 135,"
+    "    'filtGreenCMin' : 135,"
+    "    'filtGreenHMax' : 90,"
+    "    'filtGreenHMin' : 90,"
+    "    'filtYellowLMin' : 247,"
+    "    'filtYellowLMax' : 247,"
+    "    'filtYellowCMin' : 107,"
+    "    'filtYellowCMin' : 107,"
+    "    'filtYellowHMax' : 60,"
+    "    'filtYellowHMin' : 60,"
+    "},"
     "'WindowDetector' : {"
     "    'filtRedLMin' : 135,"
     "    'filtRedLMax' : 135,"
@@ -66,8 +88,8 @@ static const std::string CONFIG = "{"
 struct VisionSystemFixture
 {
     VisionSystemFixture() :
-        redFound(false),
-        redEvent(vision::RedLightEventPtr()),
+        buoyFound(false),
+        buoyEvent(vision::BuoyEventPtr()),
         
         pipeFound(false),
         pipeEvent(vision::PipeEventPtr()),
@@ -75,14 +97,11 @@ struct VisionSystemFixture
         binFound(false),
         binEvent(vision::BinEventPtr()),
         
-        targetFound(false),
-        targetEvent(vision::TargetEventPtr()),
+        cupidFound(false),
+        cupidEvent(vision::CupidEventPtr()),
 
-        windowFound(false),
-        windowEvent(vision::WindowEventPtr()),
-
-        barbedWireFound(false),
-        barbedWireEvent(vision::BarbedWireEventPtr()),
+        loversLaneFound(false),
+        loversLaneEvent(vision::LoversLaneEventPtr()),
         
         forwardImage(640, 480, vision::Image::PF_BGR_8),
         forwardCamera(new MockCamera(&forwardImage)),
@@ -96,20 +115,16 @@ struct VisionSystemFixture
                core::ConfigNode::fromString(CONFIG),
                boost::assign::list_of(eventHub))
     {
-        eventHub->subscribeToType(vision::EventType::LIGHT_FOUND,
-            boost::bind(&VisionSystemFixture::redFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::BUOY_FOUND,
+            boost::bind(&VisionSystemFixture::buoyFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::PIPE_FOUND,
             boost::bind(&VisionSystemFixture::pipeFoundHandler, this, _1));
         eventHub->subscribeToType(vision::EventType::BIN_FOUND,
             boost::bind(&VisionSystemFixture::binFoundHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::TARGET_FOUND,
-            boost::bind(&VisionSystemFixture::targetFoundHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::WINDOW_FOUND,
-            boost::bind(&VisionSystemFixture::windowFoundHandler, this, _1));
-        eventHub->subscribeToType(vision::EventType::BARBED_WIRE_FOUND,
-            boost::bind(&VisionSystemFixture::barbedWireFoundHandler,this,_1));
-        eventHub->subscribeToType(vision::EventType::VELOCITY_UPDATE,
-            boost::bind(&VisionSystemFixture::velocityUpdateHandler,this,_1));
+        eventHub->subscribeToType(vision::EventType::CUPID_FOUND,
+            boost::bind(&VisionSystemFixture::cupidFoundHandler, this, _1));
+        eventHub->subscribeToType(vision::EventType::LOVERSLANE_FOUND,
+            boost::bind(&VisionSystemFixture::loversLaneFoundHandler, this, _1));
     }
 
     void runDetectorForward()
@@ -130,10 +145,10 @@ struct VisionSystemFixture
         vision.update(0);
     }
     
-    void redFoundHandler(core::EventPtr event_)
+    void buoyFoundHandler(core::EventPtr event_)
     {
-        redFound = true;
-        redEvent = boost::dynamic_pointer_cast<vision::RedLightEvent>(event_);
+        buoyFound = true;
+        buoyEvent = boost::dynamic_pointer_cast<vision::BuoyEvent>(event_);
     }
 
     void pipeFoundHandler(core::EventPtr event_)
@@ -148,34 +163,22 @@ struct VisionSystemFixture
         binEvent = boost::dynamic_pointer_cast<vision::BinEvent>(event_);
     }
 
-    void windowFoundHandler(core::EventPtr event_)
+    void cupidFoundHandler(core::EventPtr event_)
     {
-        windowFound = true;
-        windowEvent = boost::dynamic_pointer_cast<vision::WindowEvent>(event_);
+        cupidFound = true;
+        cupidEvent = boost::dynamic_pointer_cast<vision::CupidEvent>(event_);
     }
 
-    void targetFoundHandler(core::EventPtr event_)
+    void loversLaneFoundHandler(core::EventPtr event_)
     {
-        targetFound = true;
-        targetEvent = boost::dynamic_pointer_cast<vision::TargetEvent>(event_);
-    }
-
-    void barbedWireFoundHandler(core::EventPtr event_)
-    {
-        barbedWireFound = true;
-        barbedWireEvent =
-            boost::dynamic_pointer_cast<vision::BarbedWireEvent>(event_);
-    }
-
-    void velocityUpdateHandler(core::EventPtr event_)
-    {
-        velocityEvent =
-    	    boost::dynamic_pointer_cast<math::Vector2Event>(event_);
+        loversLaneFound = true;
+        loversLaneEvent =
+            boost::dynamic_pointer_cast<vision::LoversLaneEvent>(event_);
     }
  
     
-    bool redFound;
-    vision::RedLightEventPtr redEvent;
+    bool buoyFound;
+    vision::BuoyEventPtr buoyEvent;
 
     bool pipeFound;
     vision::PipeEventPtr pipeEvent;
@@ -183,16 +186,11 @@ struct VisionSystemFixture
     bool binFound;
     vision::BinEventPtr binEvent;
 
-    bool targetFound;
-    vision::TargetEventPtr targetEvent;
+    bool cupidFound;
+    vision::CupidEventPtr cupidEvent;
 
-    bool windowFound;
-    vision::WindowEventPtr windowEvent;
-
-    bool barbedWireFound;
-    vision::BarbedWireEventPtr barbedWireEvent;
-
-    math::Vector2EventPtr velocityEvent;
+    bool loversLaneFound;
+    vision::LoversLaneEventPtr loversLaneEvent;
     
     vision::OpenCVImage forwardImage;
     MockCamera* forwardCamera;
@@ -216,26 +214,31 @@ TEST(CreateDestroy)
                                 core::SubsystemList());
 }
 
-TEST_FIXTURE(VisionSystemFixture, RedLightDetector)
+TEST_FIXTURE(VisionSystemFixture, BuoyDetector)
 {
     // Blue Image with red circle in upper left
     makeColor(&forwardImage, 0, 0, 255);
     drawRedCircle(&forwardImage, 640/4, 480/4);
 
+    //vision::Image::showImage(&forwardImage);
+
     // Start dectector and unbackground it
-    vision.redLightDetectorOn();
+    vision.buoyDetectorOn();
     runDetectorForward();
-    vision.redLightDetectorOff();
+    vision.buoyDetectorOff();
     forwardCamera->unbackground(true);
     
+    math::Degree xFOV = vision::VisionSystem::getFrontHorizontalFieldOfView();
+    math::Degree yFOV = vision::VisionSystem::getFrontVerticalFieldOfView();
+
     // Check the events
-    CHECK(redFound);
-    CHECK(redEvent);
-    CHECK_CLOSE(-0.5 * 4.0/3.0, redEvent->x, 0.005);
-    CHECK_CLOSE(0.5, redEvent->y, 0.005);
-    CHECK_CLOSE(3, redEvent->range, 0.1);
-    CHECK_CLOSE(math::Degree(78.0/4), redEvent->azimuth, math::Degree(0.4));
-    CHECK_CLOSE(math::Degree(105.0/4), redEvent->elevation, math::Degree(0.4));
+    CHECK(buoyFound);
+    CHECK(buoyEvent);
+    CHECK_CLOSE(-0.5, buoyEvent->x, 0.005);
+    CHECK_CLOSE(0.5, buoyEvent->y, 0.005);
+    CHECK_CLOSE(0.932, buoyEvent->range, 0.1);
+    CHECK_CLOSE(math::Degree(xFOV/4), buoyEvent->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(yFOV/4), buoyEvent->elevation, math::Degree(0.4));
 
     forwardCamera->unbackground(true);
 }
@@ -256,7 +259,7 @@ TEST_FIXTURE(VisionSystemFixture, PipeDetector)
     // Check Events
     CHECK(pipeFound);
     CHECK(pipeEvent);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, pipeEvent->x, 0.05);
+    CHECK_CLOSE(-0.5, pipeEvent->x, 0.05);
     CHECK_CLOSE(0.431, pipeEvent->y, 0.1);
     CHECK_CLOSE(math::Degree(25), pipeEvent->angle, math::Degree(2));
     /// TODO: Add back hough angle detection to the pipe detector
@@ -280,69 +283,39 @@ TEST_FIXTURE(VisionSystemFixture, BinDetector)
     CHECK(binEvent);
     if (binEvent)
     {
-        CHECK_CLOSE(-0.5 * 640.0/480.0, binEvent->x, 0.05);
+        CHECK_CLOSE(-0.5, binEvent->x, 0.05);
         CHECK_CLOSE(0.5, binEvent->y, 0.1);
     }
 }
 
-TEST_FIXTURE(VisionSystemFixture, TargetDetector)
+TEST_FIXTURE(VisionSystemFixture, CupidDetector)
 {
-    // Blue Image with green target in the center
-    vision::makeColor(&forwardImage, 120, 120, 255);
-    drawTarget(&forwardImage, 640/2, 240, 200, 100);
+    // Blue Image with green cupid in the center
+    vision::makeColor(&forwardImage, 0, 0, 255);
+    drawTarget(&forwardImage, 640/2, 255, 0, 0);
 
     // Start dectector and unbackground it
-    vision.targetDetectorOn();
+    vision.cupidDetectorOn();
     runDetectorForward();
-    vision.targetDetectorOff();
+    vision.cupidDetectorOff();
     forwardCamera->unbackground(true);
     
     // Process the current camera image
     vision.update(0);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
-    double expectedRange = 1.0 - 200.0/480;
-    double expectedSquareness = 0.5;
+    double expectedRange = 0.310;
 
     // Check the events
-    CHECK(targetFound);
-    CHECK(targetEvent);
-    CHECK_CLOSE(expectedX, targetEvent->x, 0.005);
-    CHECK_CLOSE(expectedY, targetEvent->y, 0.005);
-    CHECK_CLOSE(expectedRange, targetEvent->range, 0.005);
-    CHECK_CLOSE(expectedSquareness, targetEvent->squareNess, 0.005);
+    CHECK(cupidFound);
+    CHECK(cupidEvent);
+    CHECK_CLOSE(expectedX, cupidEvent->x, 0.005);
+    CHECK_CLOSE(expectedY, cupidEvent->y, 0.005);
+    CHECK_CLOSE(expectedRange, cupidEvent->range, 0.005);
 }
 
-TEST_FIXTURE(VisionSystemFixture, WindowDetector)
-{
-    // Make a blue/green background with a yellow target in the center
-    makeColor(&forwardImage, 0, 255, 255);
-    drawSquare(&forwardImage, 640/2, 480/2, 100, 100, 0, cvScalar(0, 255, 255));
-    drawSquare(&forwardImage, 640/2, 480/2, 70, 70, 0, cvScalar(255, 255, 0));
-
-    // Process it
-    vision.windowDetectorOn();
-    runDetectorForward();
-    vision.windowDetectorOff();
-    forwardCamera->unbackground(true);
-
-    int expectedX = 0.0;
-    int expectedY = 0.0;
-    double expectedSquareNess = 1.0;
-    double expectedRange = 1.0 - (100.0/480.0);
-    vision::Color::ColorType expectedColor = vision::Color::YELLOW;
-
-    CHECK(windowFound);
-    CHECK(windowEvent);
-    CHECK_EQUAL(expectedX, windowEvent->x);
-    CHECK_EQUAL(expectedY, windowEvent->y);
-    CHECK_CLOSE(expectedSquareNess, windowEvent->squareNess, 0.005);
-    CHECK_CLOSE(expectedRange, windowEvent->range, 0.005);
-    CHECK_EQUAL(expectedColor, windowEvent->color);
-}
-
-TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)
+TEST_FIXTURE(VisionSystemFixture, LoversLaneDetector)
 {
     // Blue Image with green pipe in the center (horizontal)
     makeColor(&forwardImage, 120, 120, 255);
@@ -350,54 +323,14 @@ TEST_FIXTURE(VisionSystemFixture, BarbedWireDetector)
     drawSquare(&forwardImage, 320, 480/4*3, 200, 200/31, 0, CV_RGB(0, 255, 0));
 
     // Process it
-    vision.barbedWireDetectorOn();
+    vision.loversLaneDetectorOn();
     runDetectorForward();
-    vision.barbedWireDetectorOff();
+    vision.loversLaneDetectorOff();
     forwardCamera->unbackground(true);
 
-    double expectedTopX = 0;
-    double expectedTopY = 0;
-    double expectedTopWidth = 401.0/640.0;
-
-    double expectedBottomX = 0;
-    double expectedBottomY = -0.5;
-    double expectedBottomWidth = 201.0/640.0;
-    
     // Check the events
-    CHECK(barbedWireFound);
-    CHECK(barbedWireEvent);
-    CHECK_CLOSE(expectedTopX, barbedWireEvent->topX, 0.005);
-    CHECK_CLOSE(expectedTopY, barbedWireEvent->topY, 0.005);
-    CHECK_CLOSE(expectedTopWidth, barbedWireEvent->topWidth, 0.005);
-    CHECK_CLOSE(expectedBottomX, barbedWireEvent->bottomX, 0.000001);
-    CHECK_CLOSE(expectedBottomY, barbedWireEvent->bottomY, 0.000001);
-    CHECK_CLOSE(expectedBottomWidth, barbedWireEvent->bottomWidth, 0.000001);
-}
-
-TEST_FIXTURE(VisionSystemFixture, VelocityDetector)
-{
-    vision.velocityDetectorOn();
-
-    // First image square in center
-    vision::makeColor(&downwardImage, 0, 0, 0);
-    drawSquare(&downwardImage, 320, 240, 100, 100, 0, CV_RGB(255,255,255));
-    runDetectorForward();
-
-    // Second image upper left -25 on x, -50 on y
-    vision::makeColor(&downwardImage, 0, 0, 0);
-    drawSquare(&downwardImage, 320 - 25, 240 - 50, 100, 100, 0, 
-	       CV_RGB(255,255,255));
-    runDetectorForward();
-
-    vision.velocityDetectorOff();
-    forwardCamera->unbackground(true);
-    
-    // Check the result
-    math::Vector2 expectedVelocity(25, -50);
-
-    CHECK(velocityEvent);
-    if (velocityEvent)
-        CHECK_CLOSE(expectedVelocity, velocityEvent->vector2, 1.0);
+    // CHECK(loversLaneFound);
+    // CHECK(loversLaneEvent);
 }
 
 } // SUITE(RedLightDetector)

@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vision/src/HeartWindowDetector.cpp
+ * File:  packages/vision/src/CupidDetector.cpp
  */
 
 // STD Includes
@@ -29,15 +29,15 @@
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/ColorFilter.h"
-#include "vision/include/HeartWindowDetector.h"
+#include "vision/include/CupidDetector.h"
 #include "vision/include/VisionSystem.h"
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("HeartWindowDetectorLog"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CupidDetectorLog"));
 
 namespace ram {
 namespace vision {
 
-HeartWindowDetector::HeartWindowDetector(core::ConfigNode config,
+CupidDetector::CupidDetector(core::ConfigNode config,
                                          core::EventHubPtr eventHub) :
     Detector(eventHub),
     cam(0),
@@ -49,7 +49,7 @@ HeartWindowDetector::HeartWindowDetector(core::ConfigNode config,
     init(config);
 }
 
-HeartWindowDetector::HeartWindowDetector(Camera* camera) :
+CupidDetector::CupidDetector(Camera* camera) :
     cam(camera),
     m_redFilter(0),
     m_blueFilter(0),
@@ -58,7 +58,7 @@ HeartWindowDetector::HeartWindowDetector(Camera* camera) :
     init(core::ConfigNode::fromString("{}"));
 }
 
-HeartWindowDetector::~HeartWindowDetector()
+CupidDetector::~CupidDetector()
 {
     delete m_redFilter;
     delete m_blueFilter;
@@ -69,7 +69,7 @@ HeartWindowDetector::~HeartWindowDetector()
     delete processingFrame;
 }
 
-void HeartWindowDetector::init(core::ConfigNode config)
+void CupidDetector::init(core::ConfigNode config)
 {
     // Detection variables
     // NOTE: The property set automatically loads the value from the given
@@ -135,13 +135,13 @@ void HeartWindowDetector::init(core::ConfigNode config)
     processingFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 }
 
-void HeartWindowDetector::update()
+void CupidDetector::update()
 {
     cam->getImage(frame);
     processImage(frame);
 }
 
-void HeartWindowDetector::processImage(Image* input, Image* output)
+void CupidDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
@@ -235,7 +235,7 @@ void HeartWindowDetector::processImage(Image* input, Image* output)
     } // output
 }
 
-bool HeartWindowDetector::processColor(Image* input, Image* output,
+bool CupidDetector::processColor(Image* input, Image* output,
                                        ColorFilter& filter,
                                        BlobDetector::Blob& outputBlob)
 {
@@ -281,12 +281,12 @@ bool HeartWindowDetector::processColor(Image* input, Image* output,
     return false;
 }
 
-void HeartWindowDetector::show(char* window)
+void CupidDetector::show(char* window)
 {
-    vision::Image::showImage(frame, "HeartWindowDetector");
+    vision::Image::showImage(frame, "CupidDetector");
 }
 
-void HeartWindowDetector::drawDebugCircle(BlobDetector::Blob blob,
+void CupidDetector::drawDebugCircle(BlobDetector::Blob blob,
                                           Image* output)
 {
     CvPoint center;
@@ -298,19 +298,19 @@ void HeartWindowDetector::drawDebugCircle(BlobDetector::Blob blob,
     cvCircle(output->asIplImage(), center, 3, cvScalar(150, 0, 0), -1);
 }
 
-IplImage* HeartWindowDetector::getAnalyzedImage()
+IplImage* CupidDetector::getAnalyzedImage()
 {
     return frame->asIplImage();
 }
 
-void HeartWindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
+void CupidDetector::publishFoundEvent(const BlobDetector::Blob& blob,
                                             Color::ColorType color)
 {
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
-    WindowEventPtr event(new WindowEvent());
+    CupidEventPtr event(new CupidEvent());
 
     double centerX, centerY;
     Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
@@ -325,14 +325,12 @@ void HeartWindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
     event->range = range;
     event->color = color;
 
-    // Determine the squareness
-    event->squareNess = blob.getAspectRatio();
-
+    publish(EventType::CUPID_FOUND, event);
     publish(EventType::CUPID_SMALL_FOUND, event);
     publish(EventType::CUPID_LARGE_FOUND, event);
 }
 
-void HeartWindowDetector::publishLostEvent(Color::ColorType color)
+void CupidDetector::publishLostEvent(Color::ColorType color)
 {
     WindowEventPtr event(new WindowEvent());
     event->color = color;

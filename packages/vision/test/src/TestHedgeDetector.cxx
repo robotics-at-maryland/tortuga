@@ -127,10 +127,10 @@ TEST_FIXTURE(HedgeDetectorFixture, Center)
     // Process it
     processImage(&input);
 
-    double expectedLeftX = -0.1625 * 640.0/480.0;
-    double expectedLeftY = 0 * 640.0/480.0;
-    double expectedRightX = 0.1625 * 640.0/480.0;
-    double expectedRightY = 0 * 640.0/480.0;
+    double expectedLeftX = -0.1625;
+    double expectedLeftY = 0;
+    double expectedRightX = 0.1625;
+    double expectedRightY = 0;
     double expectedRange = 1.0 - ((height + 11)/480.0);
     double expectedSquareNess = width / (double) height;
     
@@ -155,9 +155,9 @@ TEST_FIXTURE(HedgeDetectorFixture, Left)
     // Process it
     processImage(&input);
 
-    double expectedLeftX = -0.4125 * 640.0/480.0;
+    double expectedLeftX = -0.4125;
     double expectedLeftY = 0;
-    double expectedRightX = -0.0875 * 640.0/480.0;
+    double expectedRightX = -0.0875;
     double expectedRightY = 0;
     double expectedRange = 1.0 - ((height + 11)/480.0);
     double expectedSquareNess = width / (double) height;

@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/vision/include/HeartWindowDetector.h
+ * File:  packages/vision/include/CupidDetector.h
  */
 
 #ifndef RAM_HEART_WINDOW_DETECTOR_H
@@ -30,13 +30,13 @@
 namespace ram {
 namespace vision {
 
-class RAM_EXPORT HeartWindowDetector : public Detector
+class RAM_EXPORT CupidDetector : public Detector
 {
   public:
-    HeartWindowDetector(core::ConfigNode config,
+    CupidDetector(core::ConfigNode config,
                    core::EventHubPtr eventHub = core::EventHubPtr());
-    HeartWindowDetector(Camera* camera);
-    ~HeartWindowDetector();
+    CupidDetector(Camera* camera);
+    ~CupidDetector();
 
     void update();
     void processImage(Image* input, Image* output = 0);

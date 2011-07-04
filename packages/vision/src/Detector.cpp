@@ -7,6 +7,7 @@
  * File:  packages/vision/src/Detector.cpp
  */
 
+#include <iostream>
 
 // Project Includes
 #include "vision/include/Detector.h"
@@ -32,17 +33,12 @@ void Detector::imageToAICoordinates(const Image* image,
                                     const int& imageX, const int& imageY,
                                     double& outX, double& outY)
 {
+    double halfImgWidth = (1/2.0) * image->getWidth();
+    double halfImgHeight = (1/2.0) * image->getHeight();
+
     // Shift origin to the center
-    outX = -1 * ((image->getWidth() / 2.0) - (double)imageX);
-    outY = (image->getHeight() / 2.0) - (double)imageY;
-    
-    // Normalize (-1 to 1)
-    outX = outX / ((double)(image->getWidth())) * 2.0;
-    outY = outY / ((double)(image->getHeight())) * 2.0;
-    
-    // Account for the aspect ratio difference
-    // 640/480
-    outX *= (double)image->getWidth() / image->getHeight();
+    outX = (imageX - halfImgWidth) / halfImgWidth;
+    outY = - (imageY - halfImgHeight) / halfImgHeight;;
 }
   
 } // namespace vision

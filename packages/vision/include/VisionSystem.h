@@ -42,30 +42,20 @@ public:
     
     virtual ~VisionSystem();
     
-    virtual void redLightDetectorOn();
-    virtual void redLightDetectorOff();
     virtual void buoyDetectorOn();
     virtual void buoyDetectorOff();
     virtual void binDetectorOn();
     virtual void binDetectorOff();
     virtual void pipeLineDetectorOn();
     virtual void pipeLineDetectorOff();
-    virtual void ductDetectorOn();
-    virtual void ductDetectorOff();
     virtual void downwardSafeDetectorOn();
     virtual void downwardSafeDetectorOff();
     virtual void gateDetectorOn();
     virtual void gateDetectorOff();
-    virtual void targetDetectorOn();
-    virtual void targetDetectorOff();
-    virtual void windowDetectorOn();
-    virtual void windowDetectorOff();
-    virtual void barbedWireDetectorOn();
-    virtual void barbedWireDetectorOff();
-    virtual void hedgeDetectorOn();
-    virtual void hedgeDetectorOff();
-    virtual void velocityDetectorOn();
-    virtual void velocityDetectorOff();
+    virtual void cupidDetectorOn();
+    virtual void cupidDetectorOff();
+    virtual void loversLaneDetectorOn();
+    virtual void loversLaneDetectorOff();
 
     /** Creates a recorder based on the string with the given policy
      *
@@ -211,18 +201,13 @@ private:
     VisionRunner* m_forward;
     VisionRunner* m_downward;
 
-    DetectorPtr m_redLightDetector;
     DetectorPtr m_buoyDetector;
     DetectorPtr m_binDetector;
     DetectorPtr m_pipelineDetector;
-    DetectorPtr m_ductDetector;
     DetectorPtr m_downwardSafeDetector;
     DetectorPtr m_gateDetector;
-    DetectorPtr m_targetDetector;
-    DetectorPtr m_windowDetector;
-    DetectorPtr m_barbedWireDetector;
-    DetectorPtr m_hedgeDetector;
-    DetectorPtr m_velocityDetector;
+    DetectorPtr m_cupidDetector;
+    DetectorPtr m_loversLaneDetector;
 
     /** Flag which when true enables use of back/unback and update */
     bool m_testing;

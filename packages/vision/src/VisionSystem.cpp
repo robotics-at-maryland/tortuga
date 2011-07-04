@@ -27,11 +27,13 @@
 #include "vision/include/DuctDetector.h"
 #include "vision/include/TargetDetector.h"
 #include "vision/include/WindowDetector.h"
+#include "vision/include/CupidDetector.h"
 #include "vision/include/BarbedWireDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/GateDetector.h"
 #include "vision/include/VelocityDetector.h"
 #include "vision/include/HedgeDetector.h"
+#include "vision/include/LoversLaneDetector.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
@@ -66,16 +68,12 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_downwardCamera(CameraPtr()),
     m_forward(0),
     m_downward(0),
-    m_redLightDetector(DetectorPtr()),
     m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
-    m_targetDetector(DetectorPtr()),
-    m_windowDetector(DetectorPtr()),
-    m_barbedWireDetector(DetectorPtr()),
-    m_hedgeDetector(DetectorPtr()),
-    m_velocityDetector(DetectorPtr())
+    m_cupidDetector(DetectorPtr()),
+    m_loversLaneDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -87,18 +85,12 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_downwardCamera(downward),
     m_forward(0),
     m_downward(0),
-    m_redLightDetector(DetectorPtr()),
     m_buoyDetector(DetectorPtr()),
     m_binDetector(DetectorPtr()),
     m_pipelineDetector(DetectorPtr()),
-    m_ductDetector(DetectorPtr()),
-    m_downwardSafeDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
-    m_targetDetector(DetectorPtr()),
-    m_windowDetector(DetectorPtr()),
-    m_barbedWireDetector(DetectorPtr()),
-    m_hedgeDetector(DetectorPtr()),
-    m_velocityDetector(DetectorPtr())
+    m_cupidDetector(DetectorPtr()),
+    m_loversLaneDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -148,8 +140,6 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_downward = new VisionRunner(m_downwardCamera.get(), Recorder::NEXT_FRAME);
 
     // Detectors
-    m_redLightDetector = DetectorPtr(
-        new RedLightDetector(getConfig(config, "RedLightDetector"), eventHub));
     m_buoyDetector = DetectorPtr(
         new BuoyDetector(getConfig(config, "BuoyDetector"), eventHub));
     m_binDetector = DetectorPtr(
@@ -157,26 +147,15 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_pipelineDetector = DetectorPtr(
         new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
                                          eventHub));
-    m_ductDetector = DetectorPtr(
-        new DuctDetector(getConfig(config, "DuctDetector"), eventHub));
     m_downwardSafeDetector = DetectorPtr(
         new SafeDetector(getConfig(config, "SafeDetector"), eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(getConfig(config, "GateDetector"), eventHub));
-    m_targetDetector = DetectorPtr(
-        new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
-    m_windowDetector = DetectorPtr(
-        new WindowDetector(getConfig(config, "WindowDetector"), eventHub));
-    m_barbedWireDetector = DetectorPtr(
-        new BarbedWireDetector(getConfig(config, "BarbedWireDetector"),
-                               eventHub));
-    m_hedgeDetector = DetectorPtr(
-        new HedgeDetector(getConfig(config, "HedgeDetector"),
-                          eventHub));
-    m_velocityDetector = DetectorPtr(
-        new VelocityDetector(getConfig(config, "VelocityDetector"),
-                             eventHub));
-    
+    m_cupidDetector = DetectorPtr(
+        new CupidDetector(getConfig(config, "CupidDetector"), eventHub));
+    m_loversLaneDetector = DetectorPtr(
+        new LoversLaneDetector(getConfig(config, "LoversLaneDetector"), eventHub));
+
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
     m_downwardCamera->background(-1);
@@ -284,20 +263,6 @@ void VisionSystem::pipeLineDetectorOff()
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::ductDetectorOn()
-{
-    addForwardDetector(m_ductDetector);
-    publish(EventType::DUCT_DETECTOR_ON,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::ductDetectorOff()
-{
-    m_forward->removeDetector(m_ductDetector);
-    publish(EventType::DUCT_DETECTOR_OFF,
-            core::EventPtr(new core::Event()));
-}
-
 void VisionSystem::downwardSafeDetectorOn()
 {
     addDownwardDetector(m_downwardSafeDetector);
@@ -326,20 +291,6 @@ void VisionSystem::gateDetectorOff()
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::redLightDetectorOn()
-{
-    addForwardDetector(m_redLightDetector);
-    publish(EventType::RED_LIGHT_DETECTOR_ON,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::redLightDetectorOff()
-{
-    m_forward->removeDetector(m_redLightDetector);
-    publish(EventType::RED_LIGHT_DETECTOR_OFF,
-            core::EventPtr(new core::Event()));
-}
-
 void VisionSystem::buoyDetectorOn()
 {
     addForwardDetector(m_buoyDetector);
@@ -354,72 +305,33 @@ void VisionSystem::buoyDetectorOff()
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::targetDetectorOn()
+void VisionSystem::cupidDetectorOn()
 {
-    addForwardDetector(m_targetDetector);
-    publish(EventType::TARGET_DETECTOR_ON,
+    addForwardDetector(m_cupidDetector);
+    publish(EventType::CUPID_DETECTOR_ON,
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::targetDetectorOff()
+void VisionSystem::cupidDetectorOff()
 {
-    m_forward->removeDetector(m_targetDetector);
-    publish(EventType::TARGET_DETECTOR_OFF,
+    m_forward->removeDetector(m_cupidDetector);
+    publish(EventType::CUPID_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::windowDetectorOn()
+void VisionSystem::loversLaneDetectorOn()
 {
-    addForwardDetector(m_windowDetector);
-    publish(EventType::WINDOW_DETECTOR_ON,
+    addForwardDetector(m_loversLaneDetector);
+    publish(EventType::LOVERSLANE_DETECTOR_ON,
             core::EventPtr(new core::Event()));
 }
 
-void VisionSystem::windowDetectorOff()
+void VisionSystem::loversLaneDetectorOff()
 {
-    m_forward->removeDetector(m_windowDetector);
-    publish(EventType::WINDOW_DETECTOR_OFF,
+    m_forward->removeDetector(m_loversLaneDetector);
+    publish(EventType::LOVERSLANE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
-
-void VisionSystem::barbedWireDetectorOn()
-{
-    addForwardDetector(m_barbedWireDetector);
-    publish(EventType::BARBED_WIRE_DETECTOR_ON,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::barbedWireDetectorOff()
-{
-    m_forward->removeDetector(m_barbedWireDetector);
-    publish(EventType::BARBED_WIRE_DETECTOR_OFF,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::hedgeDetectorOn()
-{
-    addForwardDetector(m_hedgeDetector);
-    publish(EventType::HEDGE_DETECTOR_ON,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::hedgeDetectorOff()
-{
-    m_forward->removeDetector(m_hedgeDetector);
-    publish(EventType::HEDGE_DETECTOR_OFF,
-            core::EventPtr(new core::Event()));
-}
-
-void VisionSystem::velocityDetectorOn()
-{
-    addDownwardDetector(m_velocityDetector);
-}
-    
-void VisionSystem::velocityDetectorOff()
-{
-    m_downward->removeDetector(m_velocityDetector);
-}
-
 
 void VisionSystem::addForwardRecorder(std::string recorderString, int frameRate,
                                       bool debugPrint)

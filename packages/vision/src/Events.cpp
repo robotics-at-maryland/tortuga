@@ -39,12 +39,18 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, MULTI_BIN_ANGLE);
 
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_DETECTOR_OFF);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_SMALL_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_SMALL_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_LARGE_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_LARGE_LOST);
 
-
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, LOVERSLANE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, LOVERSLANE_DROPPED);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, LOVERSLANE_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, LOVERSLANE_DETECTOR_ON);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, LOVERSLANE_DETECTOR_OFF);
 
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, DUCT_FOUND);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, DUCT_LOST);
@@ -189,7 +195,20 @@ core::EventPtr BinEvent::clone()
     return event;
 }
 
-
+core::EventPtr LoversLaneEvent::clone()
+{
+    LoversLaneEventPtr event = LoversLaneEventPtr(new LoversLaneEvent());
+    copyInto(event);
+    event->leftX = leftX;
+    event->leftY = leftY;
+    event->rightX = rightX;
+    event->rightY = rightY;
+    event->squareNess = squareNess;
+    event->range = range;
+    event->haveLeft = haveLeft;
+    event->haveRight = haveRight;
+    return event;
+}
 
 
 

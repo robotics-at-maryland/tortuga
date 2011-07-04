@@ -53,8 +53,16 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType BIN_DETECTOR_OFF;
     static const core::Event::EventType MULTI_BIN_ANGLE;
 
+    static const core::Event::EventType LOVERSLANE_FOUND;
+    static const core::Event::EventType LOVERSLANE_DROPPED;
+    static const core::Event::EventType LOVERSLANE_LOST;
+    static const core::Event::EventType LOVERSLANE_DETECTOR_ON;
+    static const core::Event::EventType LOVERSLANE_DETECTOR_OFF;
+
     static const core::Event::EventType CUPID_DETECTOR_ON;
     static const core::Event::EventType CUPID_DETECTOR_OFF;
+    static const core::Event::EventType CUPID_FOUND;
+    static const core::Event::EventType CUPID_LOST;
     static const core::Event::EventType CUPID_SMALL_FOUND;
     static const core::Event::EventType CUPID_SMALL_LOST;
     static const core::Event::EventType CUPID_LARGE_FOUND;
@@ -133,15 +141,15 @@ class RAM_EXPORT BuoyEvent : public VisionEvent
 public:
     BuoyEvent() : VisionEvent(), color(Color::UNKNOWN) {};
     BuoyEvent(double x_, double y_, double range_, 
-              math::Radian azimuth_, math::Radian elevation_,
+              math::Degree azimuth_, math::Degree elevation_,
               Color::ColorType color_) :
         VisionEvent(x_, y_, range_),
         azimuth(azimuth_),
         elevation(elevation_),
         color(color_) {}
 
-    math::Radian azimuth;
-    math::Radian elevation;
+    math::Degree azimuth;
+    math::Degree elevation;
     Color::ColorType color;
 
     virtual core::EventPtr clone();
@@ -154,15 +162,15 @@ class RAM_EXPORT CupidEvent : public VisionEvent
 public:
     CupidEvent() : VisionEvent(), color(Color::UNKNOWN) {};
     CupidEvent(double x_, double y_, double range_, 
-              math::Radian azimuth_, math::Radian elevation_,
+              math::Degree azimuth_, math::Degree elevation_,
               Color::ColorType color_) :
         VisionEvent(x_, y_, range_),
         azimuth(azimuth_),
         elevation(elevation_),
         color(color_) {}
 
-    math::Radian azimuth;
-    math::Radian elevation;
+    math::Degree azimuth;
+    math::Degree elevation;
     Color::ColorType color;
 
     virtual core::EventPtr clone();
@@ -209,6 +217,52 @@ public:
 typedef boost::shared_ptr<BinEvent> BinEventPtr;
 
 
+class RAM_EXPORT LoversLaneEvent : public core::Event
+{
+  public:
+    LoversLaneEvent(double leftX_, double leftY_, double rightX_, double rightY_,
+               double width_, double range_,
+               bool haveLeft_, bool haveRight_) :
+        leftX(leftX_),
+        leftY(leftY_),
+        rightX(rightX_),
+        rightY(rightY_),
+        squareNess(width_),
+        range(range_),
+        haveLeft(haveLeft_),
+        haveRight(haveRight_)
+    {
+    }
+
+    LoversLaneEvent() :
+        leftX(0),
+        leftY(0),
+        rightX(0),
+        rightY(0),
+        squareNess(0),
+        range(0),
+        haveLeft(false),
+        haveRight(false)
+    {
+    }
+
+    double leftX;
+    double leftY;
+    double rightX;
+    double rightY;
+
+    // Calculated on width / height
+    double squareNess;
+    double range;
+
+    bool haveLeft;
+    bool haveRight;
+
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<LoversLaneEvent> LoversLaneEventPtr;
 
 
 

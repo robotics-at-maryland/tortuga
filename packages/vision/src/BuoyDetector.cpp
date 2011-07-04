@@ -460,22 +460,23 @@ void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType 
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
-    BuoyEventPtr event(new BuoyEvent());
-
-    double centerX, centerY;
+    BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
+    
+    double centerX = 0, centerY = 0;
     Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
                                    centerX, centerY);
 
-    double fracWidth = static_cast<double>(blob.getWidth()) / xPixelWidth;
+    double blobWidth = blob.getWidth();
+    double fracWidth = blobWidth / xPixelWidth;
     double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
-        
+
     event->x = centerX;
     event->y = centerY;
     event->range = range;
-    event->azimuth = math::Degree((xFOV / 2) * centerX);
+    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
     event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
-
+    
     publish(EventType::BUOY_FOUND, event);
 }
 

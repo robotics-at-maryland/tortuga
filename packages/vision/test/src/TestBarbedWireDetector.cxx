@@ -119,7 +119,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, DoublePipe)
     double expectedTopY = 0;
     double expectedTopWidth = 401.0/640.0;
 
-    double expectedBottomX = (-120.0/320.0) * 640.0/480.0;
+    double expectedBottomX = (-120.0/320.0);
     double expectedBottomY = -0.5;
     double expectedBottomWidth = 201.0/640.0;
     
@@ -145,7 +145,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, OddAngle)
     detector.getPropertySet()->getProperty("minAngle")->set(70.0);
     processImage(&input);
 
-    double expectedTopX = 1.0/3.0;
+    double expectedTopX = 1.0/4.0;
     double expectedTopY = -0.5;
     double expectedTopWidth = 301.0/640.0;
 
@@ -229,7 +229,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, Events_BARBED_WIRE_LOST)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, event->topX, 0.005);
+    CHECK_CLOSE(-0.5, event->topX, 0.005);
     CHECK_CLOSE(0.5, event->topY, 0.005);
     CHECK_CLOSE(300.0/640.0, event->topWidth, 0.005);
     
@@ -255,7 +255,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveTop)
     // Check with a non top removed detector
     processImage(&input);
 
-    double expectedTopX = 0 * 640.0/480.0;
+    double expectedTopX = 0;
     double expectedTopY = 0.808;
     double expectedTopWidth = 301.0/640.0;
 
@@ -290,7 +290,7 @@ TEST_FIXTURE(BarbedWireDetectorFixture, RemoveBottom)
     // Check with a non top removed detector
     processImage(&input);
 
-    double expectedTopX = 0 * 640.0/480.0;
+    double expectedTopX = 0;
     double expectedTopY = -0.808;
     double expectedTopWidth = 501.0/640.0;
 

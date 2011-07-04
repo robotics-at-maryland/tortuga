@@ -119,7 +119,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, TestLUV)
     detector.setUseLUVFilter(true);
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -140,7 +140,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, TestNoLUV)
     detector.setUseLUVFilter(false);
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -162,7 +162,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeft)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -193,7 +193,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Left)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0; 
+    double expectedX = -0.5;
     double expectedY = 0;
     math::Degree expectedAngle(0);
     
@@ -225,7 +225,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, LowerRight)
     // Process it
     processImage(&input);
     
-    double expectedX = 0.5 * 640.0/480.0; 
+    double expectedX = 0.5;
     double expectedY = -0.5;
     math::Degree expectedAngle(-25);
     
@@ -257,7 +257,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterUp)
     processImage(&input);
 
     double expectedX = 0;
-    double expectedY = 0 * 640.0/480.0; 
+    double expectedY = 0;
     math::Degree expectedAngle(0);
     
     CHECK(detector.found());
@@ -288,7 +288,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, CenterSideways)
     processImage(&input);
     
     double expectedX = 0;
-    double expectedY = 0 * 640.0/480.0; 
+    double expectedY = 0;
     math::Degree expectedAngle(-90);
     
     CHECK(detector.found());
@@ -317,7 +317,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, UpperLeftNoHough)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -351,7 +351,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_LOST)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
+    CHECK_CLOSE(0.5, event->x, 0.05);
     CHECK_CLOSE(-0.5, event->y, 0.05);
 
     // Now we lost the light
@@ -375,7 +375,7 @@ TEST_FIXTURE(OrangePipeDetectorFixture, Events_PIPE_CENTERED)
     CHECK(found);
     CHECK(event);
     CHECK(!centered);
-    CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
+    CHECK_CLOSE(0.5, event->x, 0.05);
     CHECK_CLOSE(-0.5, event->y, 0.05);    
 
     // Now pipe is dead center

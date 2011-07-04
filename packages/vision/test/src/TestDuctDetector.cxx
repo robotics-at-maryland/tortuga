@@ -210,7 +210,7 @@ TEST_FIXTURE(DuctDetectorFixture, downTest2)
     CHECK(found);
     if (event)
     {
-        CHECK_CLOSE(-.66, event->x, 0.2);
+        CHECK_CLOSE(-.5, event->x, 0.2);
         CHECK_CLOSE(.5, event->y, 0.2);
     }
     
@@ -444,7 +444,7 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeft)
     drawSideDuct(&image, 640/4, 480/4);
 
     detector.processImage(&image, &output);
-    double expectedX = -0.5 * 640.0/480.0;;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     
     CHECK(!detector.getAligned());
@@ -461,7 +461,7 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRight)
     drawSideDuct(&image, 640 - 640/4, 480/4 * 3);
 
     detector.processImage(&image, &output);
-    double expectedX = 0.5 * 640.0/480.0;;
+    double expectedX = 0.5;
     double expectedY = -0.5;
     
     //CHECK(!detector.getAligned());
@@ -478,7 +478,7 @@ TEST_FIXTURE(DuctDetectorFixture, UpperLeftFront)
     drawFrontDuct(&image, 640/4, 480/4);
 
     detector.processImage(&image, &output);
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     
     //CHECK(detector.getAligned());
@@ -495,7 +495,7 @@ TEST_FIXTURE(DuctDetectorFixture, LowerRightFront)
     drawFrontDuct(&image, 640 - 640/4, 480/4 * 3);
 
     detector.processImage(&image, &output);
-    double expectedX = 0.5 * 640.0/480.0;
+    double expectedX = 0.5;
     double expectedY = -0.5;
     
     //CHECK(detector.getAligned());
