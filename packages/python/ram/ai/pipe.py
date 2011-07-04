@@ -170,8 +170,7 @@ class PipeFollowingState(PipeTrackingState):
             trans = {}
         trans.update({vision.EventType.PIPE_LOST : FindAttempt,
                       vision.EventType.PIPE_DROPPED : myState,
-                      vision.EventType.PIPE_FOUND: myState,
-                      motion.basic.MotionManager.FINISHED : myState})
+                      vision.EventType.PIPE_FOUND: myState})
         
         return PipeTrackingState.transitions(myState, trans)
 
@@ -180,7 +179,8 @@ class PipeFollowingState(PipeTrackingState):
         return set(['speedGain', 'dSpeedGain', 'iSpeedGain',
                     'sidewaysSpeedGain', 'iSidewaysSpeedGain',
                     'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed',
-                    'maxSidewaysSpeed', 'sidewaysRate', 'forwardRate'])
+                    'maxSidewaysSpeed', 'sidewaysRate', 'forwardRate',
+                    'motionRange'])
 
     def PIPE_LOST(self, event):
         """
@@ -242,7 +242,7 @@ class PipeFollowingState(PipeTrackingState):
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
         print('following found')
-        if not self._ignoreEvents:
+        if self._ignoreEvents:
             return
         pipeData = self.ai.data['pipeData']
         angle = event.angle
@@ -318,11 +318,6 @@ class PipeFollowingState(PipeTrackingState):
             else: # Otherwise continue normally
                 self._pipe.setState(event.x, event.y, self._pipe.getAngle())
                 self.changedPipe()
-
-    def FINISHED(self, event):
-        print('FINISHED')
-        self._ignoreEvents = False
-
     def enter(self):
         self._ignoreEvents = False
         PipeTrackingState.enter(self)
@@ -341,33 +336,15 @@ class PipeFollowingState(PipeTrackingState):
         maxSpeed = self._config.get('forwardSpeed', 5)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         
-        self._forwardRate = self._config.get('forwardRate', 100)
-        self._sidewaysRate = self._config.get('sidewaysRate', 100)
+        self._forwardRate = self._config.get('forwardRate', 1)
+        self._sidewaysRate = self._config.get('sidewaysRate', 1)
         
-        currentOrientation = self.stateEstimator.getEstimatedOrientation()
-        yawTrajectory = motion.trajectories.StepTrajectory(
-            initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, currentOrientation.getYaw().valueDegrees() + self._pipe.getAngle()),
-            initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = ext.math.Vector3.ZERO)
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = ext.math.Vector2.ZERO,
-            finalValue = ext.math.Vector2(self._pipe.getY() * self._forwardRate,
-                                          self._pipe.getX() * self._sidewaysRate),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+        self._motionRange = self._config.get('motionRange', .1)
 
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.LOCAL)
-
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
-
-    def changedPipe(self):
-        # A stupid solution. Stop current motion and restart it when
-        # PipeInfo is changed
-        self._ignoreEvents = True
-        self.motionManager.stopCurrentMotion()
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * \
+                                                       self._forwardRate,
+                                                   self._pipe.getX() * \
+                                                       self._sidewaysRate)
         
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
@@ -377,11 +354,40 @@ class PipeFollowingState(PipeTrackingState):
             finalRate = ext.math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
-            finalValue = ext.math.Vector2(self._pipe.getY(),
-                                          self._pipe.getX()),
-            initialRate = ext.math.Vector2.ZERO)
+            finalValue = self._currentDesiredPos,
+            initialRate = self.stateEstimator.getEstimatedVelocity())
 
-        print(self._pipe.getX(),self._pipe.getY())
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(yawMotion, translateMotion)
+
+    def changedPipe(self):
+        # A stupid solution. Stop current motion and restart it when
+        # PipeInfo is changed
+
+        if not self._changeMotion(self._currentDesiredPos, ext.math.Vector2( \
+                self._pipe.getY(), self._pipe.getX())):
+            return
+            
+            
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * \
+                                                       self._forwardRate, 
+                                                   self._pipe.getX() * \
+                                                       self._sidewaysRate)
+        self.motionManager.stopCurrentMotion()
+
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, self._pipe.getAngle()),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = ext.math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = self._currentDesiredPos,
+            initialRate = ext.math.Vector2.ZERO)
         
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -389,9 +395,19 @@ class PipeFollowingState(PipeTrackingState):
         
         print('starting new motions')
         
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
-        
+        self.motionManager.setMotion(yawMotion, translateMotion)
+
+
+    def _changeMotion(self, vector1, vector2):
+        # Another messy solution, compares two vectors to see if there
+        # is much of a difference between them. Returns True if there is
+        # is significant difference
+        if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + \
+                             (vector2.y - vector1.y) * \
+                             (vector2.y - vector1.y)) < self._motionRange:
+            return False
+        return True
+
 class Start(state.State):
     @staticmethod
     def transitions():
@@ -649,6 +665,7 @@ class AlongPipe(PipeFollowingState):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         self.motionManager.setMotion(translateMotion)
+        self._ignoreEvents = True
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -690,7 +707,6 @@ class BetweenPipes(PipeTrackingState):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         self.motionManager.setMotion(translateMotion)
-        self.controller.setSpeed()
         
     def exit(self):
         PipeTrackingState.exit(self)
