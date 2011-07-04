@@ -65,7 +65,7 @@ SensorBoard::SensorBoard(int deviceFD,
     m_windowSize = config["windowSize"].asDouble(81);
     m_degree = config["degree"].asDouble(2);
 
-    m_depthFilter = math::SGolaySmoothingFilterPtr(
+    m_depthFilter = SGolaySmoothingFilterPtr(
         new math::SGolaySmoothingFilter(m_windowSize, m_degree));
     m_filterInitialized = false;
 
@@ -119,7 +119,7 @@ SensorBoard::SensorBoard(core::ConfigNode config,
     m_windowSize = config["windowSize"].asDouble(81);
     m_degree = config["degree"].asDouble(2);
 
-    m_depthFilter = math::SGolaySmoothingFilterPtr(
+    m_depthFilter = SGolaySmoothingFilterPtr(
         new math::SGolaySmoothingFilter(m_windowSize, m_degree));
     m_filterInitialized = false;
 

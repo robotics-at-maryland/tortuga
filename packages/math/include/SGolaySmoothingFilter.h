@@ -10,20 +10,12 @@
 #ifndef RAM_MATH_SGOLAYSMOOTHINGFILTER_H
 #define RAM_MATH_SGOLAYSMOOTHINGFILTER_H
 
-// STD Includesh
-
-// Library Includes
-#include <boost/shared_ptr.hpp>
-
 // Project Includes
 #include "math/include/MatrixN.h"
 #include "math/include/VectorN.h"
 
 namespace ram {
 namespace math {
-
-class SGolaySmoothingFilter;
-typedef boost::shared_ptr<SGolaySmoothingFilter> SGolaySmoothingFilterPtr;
 
 class SGolaySmoothingFilter
 {

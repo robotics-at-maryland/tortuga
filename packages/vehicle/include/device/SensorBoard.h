@@ -287,7 +287,8 @@ private:
     double m_degree;
 
     // Filter for depth measurements
-    math::SGolaySmoothingFilterPtr m_depthFilter;
+    typedef boost::shared_ptr<math::SGolaySmoothingFilter> SGolaySmoothingFilterPtr;
+    SGolaySmoothingFilterPtr m_depthFilter;
     bool m_filterInitialized;
 
     //bool m_calibratedDepth;

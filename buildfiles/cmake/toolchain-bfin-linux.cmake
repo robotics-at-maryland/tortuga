@@ -7,6 +7,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 # We are using linux and compiling for the blackfin
 SET(CMAKE_SYSTEM_NAME Linux)
 SET(BLACKFIN TRUE)
+ADD_DEFINITIONS(-DBLACKFIN)
 
 # Specify the cross compiler
 SET(CMAKE_C_COMPILER /opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc)
