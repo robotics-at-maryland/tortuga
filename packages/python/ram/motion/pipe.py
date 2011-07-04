@@ -25,6 +25,18 @@ class Pipe(common.Target):
         common.Target.__init__(self, x, y, timeStamp, kp, kd)
         self.prevRelativeAngle = None
         self.relativeAngle = relativeAngle
+        self.x = x
+        self.y = y
+        self.angle = relativeAngle
+        
+    def getAngle(self):
+        return self.angle
+    
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y
 
     def setState(self, x, y, relativeAngle, timeStamp, publish = True):
         common.Target.setState(self, x, y, timeStamp, False)

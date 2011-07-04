@@ -1736,3 +1736,7 @@ class TestSurface(BinTestCase):
                 'dive_offsetTheOffset'))
         self.assertFalse(self.ai.data.has_key(
                 'closerlook_offsetTheOffset'))
+
+
+if __name__ == '__main__':
+    unittest.main()
