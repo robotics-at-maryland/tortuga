@@ -24,6 +24,8 @@ image and corresponding mask must have same name
 #include "math/include/ImplicitSurface.h"
 #include "core/include/BitField3D.h"
 #include "vision/include/TableColorFilter.h"
+//#include "vision/include/Image.h"
+#include "vision/include/OpenCVImage.h"
 
 int findElement(std::string ele, std::vector<std::string> list)
 {
@@ -150,14 +152,12 @@ int main(int argc, char* argv[])
     cv::Mat trainingSet = buildTrainingSet(images, masks, 
                                            imageNames, maskNames);
  
-    std::cout << "Check1" << std::endl;
     // Initializing variables for kmeans
     cv::Mat labels;// = cvCreateMat(trainingSet.rows, 1, CV_8UC1); 
     cv::Mat center(50, 3, CV_32FC3);// = cvCreateMat(50, 3, CV_8UC3);
-    cv::kmeans(trainingSet, 50, labels, cv::TermCriteria(CV_TERMCRIT_ITER, 500, 1), 
+    cv::kmeans(trainingSet, 50, labels, cv::TermCriteria(CV_TERMCRIT_ITER, 5000, 1), 
                5, cv::KMEANS_RANDOM_CENTERS, &center);
     
-    std::cout << "Check2" << std::endl;
     // Solving for radius
     double radius[center.rows];
     solveRadius(labels, center, trainingSet, radius);
@@ -179,7 +179,6 @@ int main(int argc, char* argv[])
         // sp.push_back(math::SphericalPrimitive(cent, radius.at(i))); //not needed?        
     }
 
-    std::cout << "Check3" << std::endl;
     // Form ImplicitSurface
     double blendingFactor = 1.0; // Whats a blending factor?
     
@@ -192,10 +191,9 @@ int main(int argc, char* argv[])
     ram::core::BitField3D lookupTable = ram::core::BitField3D(256, 256, 256); 
 
     
-    std::cout << "check4" << std::endl;
     double c;
     for(int c1 = 0; c1 < 256; c1++) {
-        std::cout << "check5" << std::endl;
+        std::cout << c1 << std::endl;
         for(int c2 = 0; c2 < 256; c2++) {
             for(int c3 = 0; c3 < 256; c3++) {
                 //std::cout << "check6" << std::endl;
@@ -208,12 +206,34 @@ int main(int argc, char* argv[])
             }
         }
     }
-    std::cout << "Check7" << std::endl;
 
     // Saving Lookup Table
-    ram::vision::TableColorFilter tcf = ram::vision::TableColorFilter("a");
-    std::cout << "Check8" << std::endl;
-    tcf.saveLookupTable("/home/steven/stuff/testsave.serial", lookupTable);
+    ram::vision::TableColorFilter tcf = 
+        ram::vision::TableColorFilter("/home/steven/stuff/testsave.serial");
+    tcf.saveLookupTable("/home/steven/stuff/testimage.serial", lookupTable);
+ 
+    
+    // Testing Code
+
+    ram::vision::Image *input = new ram::vision::OpenCVImage("/home/steven/vehicle_refactor/images/buoy1.png",
+                ram::vision::Image::PF_BGR_8);
+      //  ram::vision::OpenCVImage();
+     //   ram::vision::OpenCVImage("/home/steven/vehicle_refactor/images/buoy1.png",
+       //         ram::vision::Image::PF_BGR_8);
+    
+    ram::vision::Image *output = new ram::vision::OpenCVImage();
+    output->copyFrom(input);
+
+    tcf.filterImage(input, output);
+    
+    IplImage *img = output->asIplImage();
+
+    cvNamedWindow("mainWin", CV_WINDOW_AUTOSIZE); 
+    cvMoveWindow("mainWin", 100, 100);
+    cvShowImage("mainWin", img);
+    cvWaitKey(0);
+    
+    
     return 0;
 }
 

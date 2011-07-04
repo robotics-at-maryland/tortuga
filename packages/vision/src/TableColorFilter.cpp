@@ -28,8 +28,8 @@ TableColorFilter::TableColorFilter(std::string filepath) :
     m_propertySet(core::PropertySetPtr()),
     m_filepath(filepath)
 {
-    //if(!loadLookupTable())
-    //    assert(false && "lookup table could not be loaded");
+    if(!loadLookupTable())
+        assert(false && "lookup table could not be loaded");
 }
 
 
