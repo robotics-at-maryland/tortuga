@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 # --------------------------------------------------------------------------- #
 #              T O O L C H A I N   C O N F I G U R A T I O N                  #
@@ -12,6 +12,10 @@ ADD_DEFINITIONS(-DBLACKFIN)
 # Specify the cross compiler
 SET(CMAKE_C_COMPILER /opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-gcc)
 SET(CMAKE_CXX_COMPILER /opt/uClinux/bfin-linux-uclibc/bin/bfin-linux-uclibc-g++)
+
+# Output directory for the blackfin
+SET(LIBDIR "${CMAKE_BINARY_DIR}/bfin")
+SET(BINDIR "${CMAKE_BINARY_DIR}/bfin")
 
 # Force tests off
 SET(RAM_TESTS OFF CACHE BOOL "Build and run unittests" FORCE)

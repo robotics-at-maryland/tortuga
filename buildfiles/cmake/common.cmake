@@ -24,9 +24,15 @@ include_directories(
   ${CMAKE_BINARY_DIR}/packages # For generated files
   )
 
-set(LIBDIR ${CMAKE_BINARY_DIR}/lib)
+if (NOT LIBDIR)
+  set(LIBDIR ${CMAKE_BINARY_DIR}/lib)
+endif (NOT LIBDIR)
+
+if (NOT BINDIR)
+  set(BINDIR ${CMAKE_BINARY_DIR}/bin)
+endif (NOT BINDIR)
+
 set(TESTDIR ${CMAKE_BINARY_DIR}/tests)
-set(BINDIR ${CMAKE_BINARY_DIR}/bin)
 
 if (UNIX)
   add_definitions(-Wall -Werror -DRAM_POSIX -DRAM_LINUX)
