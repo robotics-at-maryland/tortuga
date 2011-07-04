@@ -108,8 +108,8 @@ class FindAttempt(State):
         self.controller.holdCurrentHeading()
         if self._config.get('holdDepth', False):
             self.controller.holdCurrentDepth()
-        self.controller.setSpeed(0)
-        self.controller.setSidewaysSpeed(0)
+        self.controller.holdCurrentOrientation()
+        self.controller.holdCurrentPosition()
 
         # Create a timer event
         self._timeout = self._config.get('timeout', timeout)
@@ -334,7 +334,6 @@ class Machine(core.Subsystem):
         
         if not self._started:
             raise Exception("Machine must be started")
-        
         transitionTable = self._currentState.transitions()
         nextState = transitionTable.get(event.type, None)
         if nextState is not None:
@@ -487,13 +486,14 @@ class Machine(core.Subsystem):
 
     def _getTransitionFunc(self, etype, obj):
         """
-        Determines which funtion during a transistaion between states
+        Determines which function during a transistaion between states
         
         This uses the event type of the event which caused the transition to
         determine which member funtion of the self._currentState to call.
         """
         # Trim etype of namespace stuff
         etype = etype.split(' ')[-1]
+        etype = etype.split(':')[-1]
         
         # Grab all member functions
         members = inspect.getmembers(obj, inspect.ismethod)
