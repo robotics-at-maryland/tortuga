@@ -58,6 +58,9 @@ class RAM_EXPORT HeartWindowDetector : public Detector
 
     void publishLostEvent(Color::ColorType color);
 
+    void drawDebugCircle(BlobDetector::Blob blob,
+                         Image* output);
+
     Camera *cam;
     
     /** Stores the various color filters */
@@ -95,6 +98,8 @@ class RAM_EXPORT HeartWindowDetector : public Detector
 
     int m_erodeIterations;
     int m_dilateIterations;
+
+    double m_physicalWidthMeters;
 
     int m_debug;
 };

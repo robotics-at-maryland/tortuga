@@ -35,10 +35,10 @@
 #include "vision/include/Utility.h"
 #include "vision/include/VisionSystem.h"
 
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetectorLog"));
+
 namespace ram {
 namespace vision {
-
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
 BuoyDetector::BuoyDetector(core::ConfigNode config,
                            core::EventHubPtr eventHub) :
@@ -310,9 +310,9 @@ void BuoyDetector::processImage(Image* input, Image* output)
         m_blackFilter->filterImage(blackFrame);
     }
 
-    math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
-    math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
-    double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
     BlobDetector::Blob redBlob;
     bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
@@ -456,14 +456,15 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
 void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color)
 {
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+
     BuoyEventPtr event(new BuoyEvent());
 
     double centerX, centerY;
     Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
                                    centerX, centerY);
-    math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
-    math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
-    double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
     double fracWidth = static_cast<double>(blob.getWidth()) / xPixelWidth;
     double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));

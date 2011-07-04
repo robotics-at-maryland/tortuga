@@ -16,6 +16,7 @@
 // Library Includes
 #include <boost/foreach.hpp>
 #include "cv.h"
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -29,17 +30,21 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/ColorFilter.h"
 #include "vision/include/HeartWindowDetector.h"
+#include "vision/include/VisionSystem.h"
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("HeartWindowDetectorLog"));
 
 namespace ram {
 namespace vision {
 
 HeartWindowDetector::HeartWindowDetector(core::ConfigNode config,
-                               core::EventHubPtr eventHub) :
+                                         core::EventHubPtr eventHub) :
     Detector(eventHub),
     cam(0),
     m_redFilter(0),
     m_blueFilter(0),
-    m_blobDetector(config, eventHub)
+    m_blobDetector(config, eventHub),
+    m_physicalWidthMeters(0.61)
 {
     init(config);
 }
@@ -47,7 +52,8 @@ HeartWindowDetector::HeartWindowDetector(core::ConfigNode config,
 HeartWindowDetector::HeartWindowDetector(Camera* camera) :
     cam(camera),
     m_redFilter(0),
-    m_blueFilter(0)
+    m_blueFilter(0),
+    m_physicalWidthMeters(0.61)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -89,10 +95,6 @@ void HeartWindowDetector::init(core::ConfigNode config)
                          "Minimum height for a blob",
                          50, &m_minHeight);
 
-    propSet->addProperty(config, false, "maxCenterYDisagreement",
-                        "Maximum distance between the window and background centers",
-                        1000, &m_centerYDisagreement);
-
     propSet->addProperty(config, false, "minPixelPercentage",
                          "Minimum percentage of pixels / area",
                          0.1, &m_minPixelPercentage, 0.0, 1.0);
@@ -100,10 +102,6 @@ void HeartWindowDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "maxPixelPercentage",
                          "Maximum percentage of pixels / area",
                          1.0, &m_maxPixelPercentage, 0.0, 1.0);
-
-    propSet->addProperty(config, false, "innerMinPixelPercentage",
-                         "Minimum percentage for inner background",
-                         0.1, &m_innerMinPixelPercentage, 0.0, 1.0);
 
     propSet->addProperty(config, false, "erodeIterations",
                          "Number of times to erode the binary image",
@@ -147,107 +145,99 @@ void HeartWindowDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
 
-    BlobDetector::Blob redBlob, blueBlob;
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
+    BlobDetector::Blob redBlob, blueBlob;
 
     // process the image to find the red square
     bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
     if(redFound)
+    {
         publishFoundEvent(redBlob, Color::RED);
+
+        int blobPixels = redBlob.getSize();
+        double fracWidth = static_cast<double>(redBlob.getWidth()) / xPixelWidth;
+        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        int width = redBlob.getWidth();
+        int height = redBlob.getHeight();
+
+        LOGGER.infoStream() << "1" << " "
+                            << redBlob.getCenterX() << " "
+                            << redBlob.getCenterY() << " "
+                            << range << " "
+                            << width << " "
+                            << height << " "
+                            << blobPixels << " "
+                            << blobPixels / (width * height);
+    }
     else if(m_redFound)
+    {
         publishLostEvent(Color::RED);
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+    }
     m_redFound = redFound;
 
 
     // process the image to find the blue square
     bool blueFound = processColor(frame, blueFrame, *m_blueFilter, blueBlob);
     if(blueFound)
+    {
         publishFoundEvent(blueBlob, Color::BLUE);
+
+        int blobPixels = blueBlob.getSize();
+        double fracWidth = static_cast<double>(blueBlob.getWidth()) / xPixelWidth;
+        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        int width = blueBlob.getWidth();
+        int height = blueBlob.getHeight();
+
+        LOGGER.infoStream() << "1" << " "
+                            << blueBlob.getCenterX() << " "
+                            << blueBlob.getCenterY() << " "
+                            << range << " "
+                            << width << " "
+                            << height << " "
+                            << blobPixels << " "
+                            << blobPixels / (width * height);
+    }
     else if(m_blueFound)
-            publishLostEvent(Color::BLUE);
+    {
+        publishLostEvent(Color::BLUE);
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+    }
     m_blueFound = blueFound;
 
 
     // provide debugging output
     if(output)
     {
-        if(m_debug == 0)
-            output->copyFrom(frame);
-        else
+        output->copyFrom(frame);
+        if(m_debug > 0)
         {
             output->copyFrom(frame);
 
-            // Color in the targets (as we find them)
-            unsigned char* data = output->getData();
-            unsigned char* redPtr = redFrame->getData();
-            unsigned char* bluePtr = blueFrame->getData();
-            unsigned char* end = output->getData() +
-                (output->getWidth() * output->getHeight() * 3);
-            
-            for (; data != end; data += 3) {
-
-                if(*redPtr)
-                {
-                    data[0] = 0;
-                    data[1] = 0;
-                    data[2] = 255;
-                } 
-                
-                if(*bluePtr) 
-                {
-                    data[0] = 255;
-                    data[1] = 0;
-                    data[2] = 0;
-                }
-                
-                if(*redPtr && *bluePtr)
-                {
-                    data[0] = 255;
-                    data[1] = 0;
-                    data[2] = 255;
-                }
-
-                // Advance all of the pointers
-                redPtr += 3;
-                bluePtr += 3;
-            }
+            Image::fillMask(output, redFrame, 255, 0, 0);
+            Image::fillMask(output, blueFrame, 0, 0, 255);
             
             if(m_debug == 2)
             {
                 if(redFound)
-                {
-                    CvPoint center;
-                    center.x = redBlob.getCenterX();
-                    center.y = redBlob.getCenterY();
-
-                    redBlob.drawStats(output);
-
-                    cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(0, 0, 150), -1);
-
-                }
+                    drawDebugCircle(redBlob, output);
 
                 if(blueFound)
-                {
-                    CvPoint center;
-                    center.x = blueBlob.getCenterX();
-                    center.y = blueBlob.getCenterY();
-
-                    blueBlob.drawStats(output);
-
-                    cvCircle(output->asIplImage(), center, 3,
-                             cvScalar(150, 0, 0), -1);
-                }
+                    drawDebugCircle(blueBlob, output);
 
             } // debug == 2
-        } // debug != 0
+        } // debug > 0
     } // output
 }
 
-
 bool HeartWindowDetector::processColor(Image* input, Image* output,
-                                  ColorFilter& filter,
-                                  BlobDetector::Blob& outputBlob)
+                                       ColorFilter& filter,
+                                       BlobDetector::Blob& outputBlob)
 {
     // Set the pixel format for processing
     processingFrame->copyFrom(input);
@@ -296,30 +286,50 @@ void HeartWindowDetector::show(char* window)
     vision::Image::showImage(frame, "HeartWindowDetector");
 }
 
+void HeartWindowDetector::drawDebugCircle(BlobDetector::Blob blob,
+                                          Image* output)
+{
+    CvPoint center;
+    center.x = blob.getCenterX();
+    center.y = blob.getCenterY();
+    
+    blob.drawStats(output);
+
+    cvCircle(output->asIplImage(), center, 3, cvScalar(150, 0, 0), -1);
+}
+
 IplImage* HeartWindowDetector::getAnalyzedImage()
 {
     return frame->asIplImage();
 }
 
 void HeartWindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
-                                       Color::ColorType color)
+                                            Color::ColorType color)
 {
-    WindowEventPtr event(new WindowEvent());
-    event->color = color;
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
-    Detector::imageToAICoordinates(frame,
-                                   blob.getCenterX(),
-                                   blob.getCenterY(),
-                                   event->x,
-                                   event->y);
+    WindowEventPtr event(new WindowEvent());
+
+    double centerX, centerY;
+    Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
+                                   centerX, centerY);
+    
+    double fracWidth = static_cast<double>(blob.getWidth()) / xPixelWidth;
+    double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
 
     // Determine range
-    event->range = 1.0;
+    event->x = centerX;
+    event->y = centerY;
+    event->range = range;
+    event->color = color;
 
     // Determine the squareness
     event->squareNess = blob.getAspectRatio();
 
-    publish(EventType::WINDOW_FOUND, event);
+    publish(EventType::CUPID_SMALL_FOUND, event);
+    publish(EventType::CUPID_LARGE_FOUND, event);
 }
 
 void HeartWindowDetector::publishLostEvent(Color::ColorType color)
