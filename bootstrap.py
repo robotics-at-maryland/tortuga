@@ -44,9 +44,11 @@ class dependency(object):
 def setup_dependencies():
     # run dpkg and only continue if there's no error
     re_install = re.compile(r'([^\s]+)\s+([^\s]+)')
-    dpkg = subprocess.Popen(['dpkg', '--get-selections'],
-                            stdout = subprocess.PIPE)
-    if dpkg.wait():
+    try:
+        dpkg = subprocess.Popen(['dpkg', '--get-selections'],
+                                stdout = subprocess.PIPE)
+    except OSError:
+        # dpkg doesn't exist
         return
 
     # setup dependency information
