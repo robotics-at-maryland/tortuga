@@ -7,6 +7,9 @@
  * File:  packages/vision/src/ImageCamera.cpp
  */
 
+// STD Includes
+#include <iostream>
+
 // Project Includes
 #include "vision/include/ImageCamera.h"
 #include "vision/include/OpenCVImage.h"
@@ -30,9 +33,8 @@ ImageCamera::~ImageCamera()
 void ImageCamera::newImage(ram::vision::Image* image)
 {
 	OpenCVImage sizedImage(m_width, m_height);
-	IplImage* img = image->asIplImage();
-	IplImage* dest = sizedImage.asIplImage();
-	cvResize(img,dest);
+    sizedImage.copyFrom(image);
+    sizedImage.setSize(m_width, m_height);
     capturedImage(&sizedImage);
 }
 
