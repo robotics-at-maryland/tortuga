@@ -2,10 +2,10 @@ ForwardCamera:
     uValue: 106
     vValue: 221
     brightness: 64
-    exposure: 0  # 0 to 15
+    exposure: 2  # 0 to 15
     shutter: -1  # 0 to 7
-    gamma: 0     # 0 to 0
-    gain: 0      # 0 to 46
+    gamma: -1     # 0 to 0
+    gain: -1      # 0 to 46
 
 DownwardCamera:
     uValue: 106
@@ -13,8 +13,8 @@ DownwardCamera:
     brightness: 64
     exposure: 2
     shutter: -1
-    gamma: 0
-    gain: 0
+    gamma: -1
+    gain: -1
 
 AdaptiveThresher:
     foobared: true
@@ -41,11 +41,18 @@ OrangePipeDetector:
     rOverGMin: 1.05 #0.75 (NEW# 0.88)
     rOverGMax: 2.41 #1.5 (NEW# 2.16)
     bOverRMax: 0.75  #(NEW# 2.25)
+    filtLMax: 255
+    filtLMin: 0
+    filtUMax: 191
+    filtUMin: 95
+    filtVMax: 210
+    filtVMin: 116
     centeredLimitt: 0.4
     minBrightness: 100
     minPixels: 3000
     minPixelsFound: 1500
     erodeIterations: 1
+    useLUVFilter: true
 BinDetector:
     symbolDetector: BasicWeaponDetector
     logSymbolImages: false
