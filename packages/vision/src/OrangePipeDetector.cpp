@@ -120,6 +120,7 @@ void OrangePipeDetector::filterForOrangeOld(Image* image)
 void OrangePipeDetector::filterForOrangeNew(Image* image)
 {
     // Filter the image so all green is white, and everything else is black
+    image->setPixelFormat(Image::PF_LUV_8);    
     m_filter->filterImage(image);
 }
     
@@ -211,6 +212,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out found events for all the pipes we currently see
     BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
     {
+        std::cout << "Found Pipe" <<  pipe.getId() << std::endl;
         PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = pipe.getId();
         event->x = pipe.getX();
