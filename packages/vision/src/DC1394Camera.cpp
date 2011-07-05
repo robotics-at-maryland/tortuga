@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
+#include <limits>
 
 // Library Includes
 #include <dc1394/video.h>
@@ -225,9 +226,27 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         }
     }
 
-    // Release all of the iso bandwith and memory from previous failure
-    std::cout << "Releasing old resources" << std::endl;
-    dc1394_iso_release_all(m_camera);
+    // clean up the bandwidth from previous failures
+    if(s_camCount == 1) // only do this for the first camera
+    {
+        uint32_t maxBandwidth = std::numeric_limits<uint32_t>::max();
+        if(dc1394_iso_release_bandwidth(m_camera, maxBandwidth) != DC1394_SUCCESS)
+        {
+            assert(false && "could not release previously allocated bandwidth");
+        }
+    }
+
+    // clean up the iso channel allocation from previous failures
+    uint32_t isoChannel;
+    if(dc1394_video_get_iso_channel(m_camera, &isoChannel) != DC1394_SUCCESS)
+    {
+        assert(false && "could not get iso channel");
+    }
+
+    if(dc1394_iso_release_channel(m_camera, isoChannel) != DC1394_SUCCESS)
+    {
+        assert(false && "could not release previous ISO channel");
+    }
 
     // Determines settings and frame size
     dc1394error_t err = DC1394_FAILURE;
