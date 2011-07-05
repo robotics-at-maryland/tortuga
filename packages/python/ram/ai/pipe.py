@@ -86,7 +86,6 @@ class PipeTrackingState(state.State):
         Check if the found pipe should be tracked. If it shouldn't, ignore it.
         This only does something if a threshold has been set.
         """
-        print('tracking found')
         pipeData = self.ai.data['pipeData']
         angle = event.angle
         
@@ -96,10 +95,6 @@ class PipeTrackingState(state.State):
 
         # Determine the absolute pipe direction
         absPipeDirection = ext.math.Degree(vehicleDirection + angle)
-        
-        print(event.id)
-
-        print(pipeData)
 
         # Store the absolute pipe direction in the itemData
         pipeData.setdefault('absoluteDirection', {})[event.id] = \
@@ -241,7 +236,6 @@ class PipeFollowingState(PipeTrackingState):
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
-        print('following found')
         if self._ignoreEvents:
             return
         pipeData = self.ai.data['pipeData']
@@ -269,10 +263,8 @@ class PipeFollowingState(PipeTrackingState):
 
         # Only do work if we are biasing the direction
         if self._biasDirection is not None:
-            print 1
             # If the pipe event is not the currently followed pipe
             if not self._currentPipe(event):
-                print 2
                 # If the new pipe is closer to the biasDirection, switch
                 currentPipeDifference = \
                     ext.math.Degree(self._biasDirection) - \
@@ -282,18 +274,15 @@ class PipeFollowingState(PipeTrackingState):
 
                 if math.fabs(newPipeDifference.valueDegrees()) < \
                         math.fabs(currentPipeDifference.valueDegrees()):
-                    print 3
                     pipeData['currentID'] = event.id
                     self._pipe.setState(event.x, event.y, angle.valueDegrees())
                     self.changedPipe()
             else: # Otherwise continue normally
-                print 4
                 # Check difference between actual and "biasDirection"
                 difference = self._biasDirection - \
                     pipeData['absoluteDirection'][event.id]
                     
                 if math.fabs(difference.valueDegrees()) > 90:
-                    print 5
                     # We are pointing the wrong direction, so lets switch
                     # it around
                     if angle.valueDegrees() < 0:
@@ -304,7 +293,6 @@ class PipeFollowingState(PipeTrackingState):
                 self.changedPipe()
         
         else: # If we are not biasing the direction
-            print 6
             # If the pipe event is not the currently followed pipe
             # And if the new pipe is closer to our current direction
             if not self._currentPipe(event):
@@ -341,11 +329,11 @@ class PipeFollowingState(PipeTrackingState):
         
         self._motionRange = self._config.get('motionRange', .1)
 
-        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * \
-                                                       self._forwardRate,
-                                                   self._pipe.getX() * \
-                                                       self._sidewaysRate)
-        
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * 
+                                                   self._forwardRate,
+                                                   self._pipe.getX() * 
+                                                   self._sidewaysRate)
+                                                   
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
@@ -367,15 +355,15 @@ class PipeFollowingState(PipeTrackingState):
         # A stupid solution. Stop current motion and restart it when
         # PipeInfo is changed
 
-        if not self._changeMotion(self._currentDesiredPos, ext.math.Vector2( \
+        if not self._changeMotion(self._currentDesiredPos, ext.math.Vector2( 
                 self._pipe.getY(), self._pipe.getX())):
             return
-            
-            
-        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * \
-                                                       self._forwardRate, 
-                                                   self._pipe.getX() * \
-                                                       self._sidewaysRate)
+        
+        
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * 
+                                                   self._forwardRate, 
+                                                   self._pipe.getX() * 
+                                                   self._sidewaysRate)
         self.motionManager.stopCurrentMotion()
 
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
@@ -393,8 +381,6 @@ class PipeFollowingState(PipeTrackingState):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         
-        print('starting new motions')
-        
         self.motionManager.setMotion(yawMotion, translateMotion)
 
 
@@ -402,9 +388,9 @@ class PipeFollowingState(PipeTrackingState):
         # Another messy solution, compares two vectors to see if there
         # is much of a difference between them. Returns True if there is
         # is significant difference
-        if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + \
-                             (vector2.y - vector1.y) * \
-                             (vector2.y - vector1.y)) < self._motionRange:
+        if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + 
+                     (vector2.y - vector1.y) * 
+                     (vector2.y - vector1.y)) < self._motionRange:
             return False
         return True
 
@@ -421,7 +407,7 @@ class Start(state.State):
         orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['pipeStartOrientation'] = \
             orientation.getYaw().valueDegrees()
-
+        
         offset = self._config.get('offset', 0)
         desiredDepth = self.ai.data['config'].get('pipeDepth', 6)
 

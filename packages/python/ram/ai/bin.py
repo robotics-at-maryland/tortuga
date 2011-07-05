@@ -65,7 +65,8 @@ class HoveringState(state.State):
                     'yawGain' : 1, 'maxSpeed' : 5, 'maxSidewaysSpeed' : 3,
                     'iSpeedGain' : 0, 'iSidewaysSpeedGain' : 0,
                     'dSpeedGain' : 0, 'dSidewaysSpeedGain' : 0,
-                    'sidewaysRate' : 0.2, 'forwardRate' : 0.2}
+                    'sidewaysRate' : 1, 'forwardRate' : 1,
+                    'motionRange' : 0.1}
     
     def _currentBin(self, event):
         return self.ai.data['binData'].get('currentID', 0) == event.id
@@ -109,6 +110,7 @@ class HoveringState(state.State):
         # Only listen to the current bin ID
         if self._currentBin(event):
             self._bin.setState(event.x, event.y, event.angle, event.timeStamp)
+            self.changedBin()
             
             self.ai.data["lastBinX"] = event.x
             self.ai.data["lastBinY"] = event.y
@@ -186,35 +188,90 @@ class HoveringState(state.State):
         # Make sure we are tracking
         ensureBinTracking(self.queuedEventHub, self.ai)
         
+        self._shouldRotate = shouldRotate
         self._useMultiAngle = useMultiAngle
         self._multiAngle = math.Degree(0)
         self._first = True
         
         self._bin = ram.motion.pipe.Pipe(0,0,0,timeStamp = None)
         
+        self._currentDesiredPos = math.Vector2(self._bin.getY() * 
+                                               self._forwardRate,
+                                               self._bin.getX() * 
+                                               self._sidewaysRate)
+        self._currentDesiredOrientation = None
+        
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, currentOrientation.getYaw().valueDegrees() + self._bin.getAngle()),
+            finalValue = yawVehicleHelper(currentOrientation, 
+                                          self._bin.getAngle()),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
-            finalValue = math.Vector2(self._bin.getY() * self._forwardRate,
-                                          self._bin.getX() * \
-                                              self._sidewaysRate),
+            finalValue = self._currentDesiredPos,
             initialRate = self.stateEstimator.getEstimatedVelocity())
 
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
-        if shouldRotate:
+        if self._shouldRotate:
             self.motionManager.setMotion(yawMotion)
         
         self.motionManager.setMotion(translateMotion)
     def exit(self):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
+        
+    def changedBin(self):
+        # A stupid solution. Stop current motion and restart it when
+        # PipeInfo is changed
+
+        if not self._changeMotion(self._currentDesiredPos, math.Vector2( 
+                self._bin.getY(), self._bin.getX())):
+            return
+            
+            
+        self._currentDesiredPos = math.Vector2(self._bin.getY() * 
+                                               self._forwardRate, 
+                                               self._bin.getX() * 
+                                               self._sidewaysRate)
+        self.motionManager.stopCurrentMotion()
+            
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+
+        orientation = self._currentDesiredOrientation
+        if orientation is None:
+            orientation = yawVehicleHelper(currentOrientation, self._bin.getAngle())
+
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = orientation,
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = self._currentDesiredPos,
+            initialRate = math.Vector2.ZERO)
+        
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+        if self._shouldRotate or self._currentDesiredOrientation is not None:
+            self.motionManager.setMotion(yawMotion)
+        self.motionManager.setMotion(translateMotion)
+
+
+    def _changeMotion(self, vector1, vector2):
+        # Another messy solution, compares two vectors to see if there
+        # is much of a difference between them. Returns True if there is
+        # is significant difference
+        if pmath.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + 
+                     (vector2.y - vector1.y) * 
+                     (vector2.y - vector1.y)) < self._motionRange:
+            return False
+        return True
 
 class SettlingState(HoveringState):
     """
@@ -419,7 +476,7 @@ class Recover(state.FindAttempt):
     def getattr():
         attrs = {}
         attrs.update(state.FindAttempt.getattr())
-        attrs.update({'timeout' : 4, 'speed' : 0.5})
+        attrs.update({'timeout' : 4, 'distance' : 5})
         return attrs
         #return {'timeout' : 4, 'speed' : 0.5}.union(state.FindAttempt.getattr())
         
@@ -483,9 +540,22 @@ class Recover(state.FindAttempt):
         self._direction = quat.getYaw(True)
         self._delay = None
 
-        searchMotion = motion.basic.MoveDirection(self._direction, self._speed)
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, self._direction),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(self._distance,0),
+            initialRate = self.stateEstimator.getEstimatedVelocity())
 
-        self.motionManager.setMotion(searchMotion)
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(yawMotion, translateMotion)
         
 class LostCurrentBin(state.FindAttempt, HoveringState):
     """
@@ -623,7 +693,7 @@ class Searching(state.State):
         self.visionSystem.binDetectorOn()
 
         # Save cruising depth for later surface
-        self.ai.data['preBinCruiseDepth'] = self.controller.getDepth()
+        self.ai.data['preBinCruiseDepth'] = self.stateEstimator.getEstimatedDepth()
 
 
         #TODO: Change this back into a ZigZag motion. LOOK AT THE OLD VERSION
@@ -643,30 +713,6 @@ class Searching(state.State):
                                                      frame = Frame.LOCAL)
         
         self.motionManager.setMotion(yawMotion, translateMotion)
-
-        # Create the forward motion
-        self._duration = self.ai.data['config'].get('Bin', {}).get(
-            'forwardDuration', 2)
-        self._forwardSpeed = self.ai.data['config'].get('Bin', {}).get(
-            'forwardSpeed', 3)
-        self._forwardMotion = motion.basic.TimedMoveDirection(
-            desiredHeading = 0,
-            speed = self._forwardSpeed,
-            duration = self._duration,
-            absolute = False)
-
-        # Create zig zag search to 
-        self._zigZag = motion.search.ForwardZigZag(
-            legTime = self._legTime,
-            sweepAngle = self._sweepAngle,
-            speed = self._speed,
-            direction = direction)
-
-        if self.ai.data.get('firstSearching', True) and self._duration > 0:
-            self.motionManager.setMotion(self._forwardMotion,
-                                         self._zigZag)
-        else:
-            self.motionManager.setMotion(self._zigZag)
 
         self.ai.data['firstSearching'] = False
 
@@ -793,18 +839,22 @@ class Centering(SettlingState):
         else:
             SettlingState.enter(self, Centering.SETTLED, 5,
                                 useMultiAngle = True, shouldRotate = False)
-            
+        
+        self._currentDesiredOrientation = math.Quaternion(
+            math.Degree(self._binDirection), math.Vector3.UNIT_Z)
+    
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, 
-                                          self._binDirection),
+            # possible screw-up point, use local, not absolute
+            finalValue = self._currentDesiredOrientation,
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
         
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
 
         self.motionManager.setMotion(yawMotion)
+        
         
 class RecoverCentering(Recover):
     @staticmethod
@@ -875,10 +925,13 @@ class SeekEnd(BinSortingState):
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
+            self._currentDesiredOrientation = math.Quaternion(
+                self.ai.data['binArrayOrientation'].getYaw(),
+                math.Vector3.UNIT_Z)
             currentOrientation = self.stateEstimator.getEstimatedOrientation()
             yawTrajectory = motion.trajectories.StepTrajectory(
                 initialValue = currentOrientation,
-                finalValue = yawVehicleHelper(currentOrientation, self.ai.data['binArrayOrientation']),
+                finalValue = self._currentDesiredOrientation,
                 initialRate = self.stateEstimator.getEstimatedAngularRate(),
                 finalRate = math.Vector3.ZERO)
             
@@ -958,10 +1011,13 @@ class Dive(HoveringState):
         
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
+            self._currentDesiredOrientation = math.Quaternion(
+                self.ai.data['binArrayOrientation'].getYaw(),
+                math.Vector3.UNIT_Z)
             currentOrientation = self.stateEstimator.getEstimatedOrientation()
             yawTrajectory = motion.trajectories.StepTrajectory(
                 initialValue = currentOrientation,
-                finalValue = yawVehicleHelper(currentOrientation, self.ai.data['binArrayOrientation']),
+                finalValue = self._currentDesiredOrientation,
                 initialRate = self.stateEstimator.getEstimatedAngularRate(),
                 finalRate = math.Vector3.ZERO)
             
@@ -977,7 +1033,7 @@ class Dive(HoveringState):
         offset_ = offset
         offset_ = offset_ + self.ai.data.get('dive_offsetTheOffset', 0) + \
             self.ai.data.get('closerlook_offsetTheOffset', 0)
-
+        
         # Set a minimumDepth
         binDepth -= offset_
         minimumDepth = self._config.get('minimumDepth', 0.5)
@@ -1583,7 +1639,7 @@ class CheckDropped(HoveringState):
                 data['startSide'] = BinSortingState.LEFT
             
             if data['numOfScans'] == -1 or \
-	    	data['numOfScans'] < self._maximumScans:
+                    data['numOfScans'] < self._maximumScans:
                 self.publish(CheckDropped.RESTART, core.Event())
             else:
                 if not data['doICare']:

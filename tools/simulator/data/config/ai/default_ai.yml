@@ -17,7 +17,8 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
-            'ram.ai.course.Travel1', 'ram.ai.course.Window']
+            'ram.ai.course.Travel1', 'ram.ai.course.Window',
+            'ram.ai.course.Bin']
 
 failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 
@@ -32,8 +33,8 @@ config:
     buoyDepth: 6.5
     targetBuoys: ['red', 'green']
     hedgeDepth: 9.8
-    binDepth: 13
-    targetSymbols: ['Aircraft', 'Ship']
+    binDepth: 12
+    targetSymbols: ['Machete', 'Axe']
     sonarDepth: 8
     safeDepth: 15
     safeOffset: -0.35
@@ -70,12 +71,20 @@ config:
                 speed: 3
                 duration: 4
                 absolute: False
+    Bin:
+        duration: 60
+        forwardDuration: 30
+        heading: 20 # -45
+        absolute: True
+        binDirection: 45
+        adjustAngle: False
     #PipeGate:
     #    biasDirection: 0
     #    threshold: 0
-    #Pipe:
-    #    biasDirection: 10
-    #    threshold: 30
+    Pipe:
+        taskTimeout: 180
+        biasDirection: 45
+        threshold: 30
     #Pipe1:
     #    biasDirection: 5
     #    threshold: 20
