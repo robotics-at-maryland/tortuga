@@ -34,18 +34,30 @@
 #include "vision/include/HedgeDetector.h"
 #include "vision/include/WindowDetector.h"
 #include "vision/include/VelocityDetector.h"
+#include "vision/include/CupidDetector.h"
+#include "vision/include/BasicLetterDetector.h"
+#include "vision/include/LoversLaneDetector.h"
 
 namespace ram {
 namespace vision {
 
-static DetectorMakerTemplate<RedLightDetector>
-registerRedLightDetector("RedLightDetector");
+// static DetectorMakerTemplate<RedLightDetector>
+// registerRedLightDetector("RedLightDetector");
 
 static DetectorMakerTemplate<BuoyDetector>
 registerBuoyDetector("BuoyDetector");
 
 static DetectorMakerTemplate<BinDetector>
 registerBinDetector("BinDetector");
+
+static DetectorMakerTemplate<CupidDetector>
+registerCupidDetector("CupidDetector");
+
+static DetectorMakerTemplate<LoversLaneDetector>
+registerLoversLaneDetector("LoversLaneDetector");
+
+static DetectorMakerTemplate<BasicLetterDetector>
+registerBasicLetterDetector("BasicLetterDetector");
 
 static DetectorMakerTemplate<OrangePipeDetector>
 registerOrangePipeDetector("OrangePipeDetector");
@@ -56,14 +68,14 @@ registerGateDetector("GateDetector");
 static DetectorMakerTemplate<FeatureDetector>
 registerFeatureDetector("FeatureDetector");
 
-static DetectorMakerTemplate<SuitDetector>
-registerSuitDetector("SuitDetector");
+// static DetectorMakerTemplate<SuitDetector>
+// registerSuitDetector("SuitDetector");
 
 static DetectorMakerTemplate<BasicWW2Detector>
 registerBasicWW2Detector("BasicWW2Detector");
     
-static DetectorMakerTemplate<FANNSuitDetector>
-registerFANNSuitDetector("FANNSuitDetector");
+// static DetectorMakerTemplate<FANNSuitDetector>
+// registerFANNSuitDetector("FANNSuitDetector");
 
 static DetectorMakerTemplate<FANNWW2Detector>
 registerFANNWW2Detector("FANNWW2Detector");
@@ -74,23 +86,23 @@ registerBasicWeaponDetector("BasicWeaponDetector");
 static DetectorMakerTemplate<FANNWeaponDetector>
 registerFANNWeaponDetector("FANNWeaponDetector");
     
-static DetectorMakerTemplate<DuctDetector>
-registerDuctDetector("DuctDetector");
+// static DetectorMakerTemplate<DuctDetector>
+// registerDuctDetector("DuctDetector");
 
-static DetectorMakerTemplate<DownwardDuctDetector>
-registerDownwardDuctDetector("DownwardDuctDetector");
+// static DetectorMakerTemplate<DownwardDuctDetector>
+// registerDownwardDuctDetector("DownwardDuctDetector");
 
 static DetectorMakerTemplate<SafeDetector>
 registerSafeDetector("SafeDetector");
 
-static DetectorMakerTemplate<AdaptiveThresher>
-registerAdaptiveThresherDetector("AdaptiveThresher");
+// static DetectorMakerTemplate<AdaptiveThresher>
+// registerAdaptiveThresherDetector("AdaptiveThresher");
 
 static DetectorMakerTemplate<TargetDetector>
 registerTargetDetector("TargetDetector");
 
-static DetectorMakerTemplate<BarbedWireDetector>
-registerBarbedWireDetector("BarbedWireDetector");
+// static DetectorMakerTemplate<BarbedWireDetector>
+// registerBarbedWireDetector("BarbedWireDetector");
 
 static DetectorMakerTemplate<HedgeDetector>
 registerHedgeDetector("HedgeDetector");
@@ -98,8 +110,8 @@ registerHedgeDetector("HedgeDetector");
 static DetectorMakerTemplate<WindowDetector>
 registerWindowDetector("WindowDetector");
 
-static DetectorMakerTemplate<VelocityDetector>
-registerVelocityDetector("VelocityDetector");
+// static DetectorMakerTemplate<VelocityDetector>
+// registerVelocityDetector("VelocityDetector");
     
 } // namespace vision
 } // namespace ram
