@@ -111,6 +111,19 @@ struct RawDVLDataEvent : public core::Event
 
 typedef boost::shared_ptr<RawDVLDataEvent> RawDVLDataEventPtr;
 
+struct RawBottomRangeEvent : public core::Event
+{
+    std::string name;
+    double rangeBeam1;
+    double rangeBeam2;
+    double rangeBeam3;
+    double rangeBeam4;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<RawBottomRangeEvent> RawBottomRangeEventPtr;
+
 struct RawDepthSensorDataEvent : public core::Event
 {
     std::string name;

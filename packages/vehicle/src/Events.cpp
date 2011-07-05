@@ -36,6 +36,9 @@ RAM_VEHICLE_RAWIMUDATA_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::RawDVLDataEvent>
 RAM_VEHICLE_RAWDVLDATA_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::RawBottomRangeEvent>
+RAM_VEHICLE_RAWBOTTOMRANGE_EVENT;
+
 static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
 RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 
@@ -114,6 +117,21 @@ core::EventPtr RawDVLDataEvent::clone()
     event->velocity_b = velocity_b;
     event->angularOffset = angularOffset;
     event->timestep = timestep;
+
+    return event;
+}
+
+core::EventPtr RawBottomRangeEvent::clone()
+{
+    RawBottomRangeEventPtr event = RawBottomRangeEventPtr(
+        new RawBottomRangeEvent());
+    copyInto(event);
+
+    event->name = name;
+    event->rangeBeam1 = rangeBeam1;
+    event->rangeBeam2 = rangeBeam2;
+    event->rangeBeam3 = rangeBeam3;
+    event->rangeBeam4 = rangeBeam4;
 
     return event;
 }

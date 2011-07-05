@@ -34,7 +34,8 @@ public:
     static const core::Event::EventType UPDATE;
     static const core::Event::EventType RAW_UPDATE;
     static const core::Event::EventType INIT;
-    
+    static const core::Event::EventType RAW_RANGE_UPDATE;
+
     virtual ~IVelocitySensor();
 
     /** The location of the velocity sensor on the vehicle */

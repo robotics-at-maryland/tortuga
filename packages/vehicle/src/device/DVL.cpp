@@ -95,17 +95,34 @@ void DVL::update(double timestep)
 
             int xVel = newState.xvel_btm;
             int yVel = newState.yvel_btm;
-            math::Vector2 velocity(yVel / 1000.0, xVel / 1000.0);
+            double mmToMeters = 1.0 / 1000;
+            math::Vector2 velocity(yVel * mmToMeters, xVel * mmToMeters);
+
+            double cmToMeters = 1.0 / 100;
+            double beam1Range = newState.beam1_range * cmToMeters;
+            double beam2Range = newState.beam2_range * cmToMeters;
+            double beam3Range = newState.beam3_range * cmToMeters;
+            double beam4Range = newState.beam4_range * cmToMeters;
 
             if(xVel != BAD_VELOCITY && yVel != BAD_VELOCITY)
             {
-                RawDVLDataEventPtr event = RawDVLDataEventPtr(
+                RawDVLDataEventPtr velEvent = RawDVLDataEventPtr(
                     new RawDVLDataEvent());
 
-                event->velocity_b = velocity;
-                event->timestep = timestep;
+                velEvent->velocity_b = velocity;
+                velEvent->timestep = timestep;
             
-                publish(IVelocitySensor::RAW_UPDATE, event);
+                publish(IVelocitySensor::RAW_UPDATE, velEvent);
+
+                RawBottomRangeEventPtr rangeEvent = RawBottomRangeEventPtr(
+                    new RawBottomRangeEvent());
+                
+                rangeEvent->rangeBeam1 = beam1Range;
+                rangeEvent->rangeBeam2 = beam2Range;
+                rangeEvent->rangeBeam3 = beam3Range;
+                rangeEvent->rangeBeam4 = beam4Range;
+
+                publish(IVelocitySensor::RAW_RANGE_UPDATE, rangeEvent);
             }
             LOGGER.infoStream() << velocity[0] << " "
                                 << velocity[1];
