@@ -209,19 +209,30 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
     // If the ISO status is currently on, we want to stop it.
     if(isoOn == DC1394_ON)
     {
+        std::cout << "ISO Transmission ON" << std::endl;
         if (dc1394_video_set_transmission(m_camera, DC1394_OFF) != DC1394_SUCCESS)
         {
             assert(false && "Could not stop ISO transmission");
         }
+        else
+        {
+            if(dc1394_video_get_transmission(m_camera, &isoOn) != DC1394_SUCCESS)
+            {
+                assert(false && "Could not get ISO status");
+            }
+            if(isoOn == DC1394_OFF)
+                std::cout << "ISO Transmission turned off successfully" << std::endl;
+        }
     }
 
     // Release all of the iso bandwith and memory from previous failure
+    std::cout << "Releasing old resources" << std::endl;
     dc1394_iso_release_all(m_camera);
 
     // Determines settings and frame size
     dc1394error_t err = DC1394_FAILURE;
     dc1394video_mode_t videoMode = DC1394_VIDEO_MODE_640x480_RGB8;
-    dc1394framerate_t frameRate = DC1394_FRAMERATE_15;
+    dc1394framerate_t frameRate = DC1394_FRAMERATE_7_5;
 
     // Check for the whitebalance feature
     dc1394feature_info_t whiteBalance;
@@ -390,12 +401,6 @@ void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
     dc1394feature_info_t exposure;
     exposure.id = DC1394_FEATURE_EXPOSURE;
 
-    if (makeAuto) {
-        LOGGER.infoStream() << m_guid << ": Setting exposure automatically";
-    } else {
-        LOGGER.infoStream() << m_guid << ": Setting exposure to " << value;
-    }
-
     dc1394error_t err = dc1394_feature_get(m_camera, &exposure);
     assert(DC1394_SUCCESS == err && "Could not get exposure feature info");
     
@@ -405,12 +410,14 @@ void DC1394Camera::setExposure(uint32_t value, bool makeAuto)
 
     if (makeAuto)
     {
+        LOGGER.infoStream() << m_guid << ": Setting exposure automatically";
         err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_EXPOSURE,
                                       DC1394_FEATURE_MODE_AUTO);
         assert(DC1394_SUCCESS == err && "Could not set exposure to auto");
     }
     else
     {
+        LOGGER.infoStream() << m_guid << ": Setting exposure to " << value;
         // Set manual mode
         err = dc1394_feature_set_mode(m_camera, DC1394_FEATURE_EXPOSURE,
                                       DC1394_FEATURE_MODE_MANUAL);
@@ -454,6 +461,39 @@ void DC1394Camera::setShutter(uint32_t value, bool makeAuto)
     // Make sure its available
     assert((shutter.available == DC1394_TRUE) &&
            "Shutter not supported by camera");
+
+    // Turn it on if its off and switchable
+    dc1394bool_t isSwitchable;
+    if(dc1394_feature_is_switchable(m_camera, shutter.id, &isSwitchable) != 
+       DC1394_SUCCESS)
+    {
+        assert(false && "could not determine if shutter is switchable");
+    }
+    else
+    {
+        if(isSwitchable == DC1394_TRUE)
+        {
+            dc1394switch_t isPowered;
+            if(dc1394_feature_get_power(m_camera, shutter.id, &isPowered) !=
+               DC1394_SUCCESS)
+            {
+                assert(false && "could not determine if shutter is powered");
+            }
+            else
+            {
+                if(dc1394_feature_set_power(m_camera, shutter.id, DC1394_ON) !=
+                   DC1394_SUCCESS)
+                {
+                    assert(false && "could not set shutter power");
+                }
+                else
+                {
+                    LOGGER.infoStream() << m_guid << 
+                        ": Successfully set shutter power";
+                }
+            }
+        }
+    }
 
     uint32_t shutterMin = shutter.min;
     uint32_t shutterMax = shutter.max;
@@ -664,6 +704,11 @@ void DC1394Camera::initLibDC1394()
 
     if (s_camCount == 1)
     {
+//        int channel = 0;
+        // ioctl(open("/dev/video1394/0", VIDEO1394_IOC_UNLISTEN_CHANNEL, &channel));
+        // channel = 1;
+        // ioctl(open("/dev/video1394/0", VIDEO1394_IOC_UNLISTEN_CHANNEL, &channel));
+              
         // Create library handle
         LOGGER.infoStream() << "Creating dc1394 library handle";
         s_libHandle = dc1394_new();

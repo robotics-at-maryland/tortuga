@@ -19,6 +19,7 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -82,7 +83,9 @@ void Recorder::update(double timeSinceLastUpdate)
             // Don't record if not enough time has passed
             if (m_currentTime < m_nextRecordTime)
             {
-                break;
+                boost::this_thread::sleep(
+                    boost::posix_time::seconds(
+                        m_nextRecordTime - m_currentTime));
             }
             else
             {

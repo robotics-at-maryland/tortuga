@@ -35,7 +35,7 @@
 #include "vision/include/Utility.h"
 #include "vision/include/VisionSystem.h"
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetectorLog"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
 namespace ram {
 namespace vision {
@@ -77,6 +77,7 @@ BuoyDetector::BuoyDetector(Camera* camera) :
 
 void BuoyDetector::init(core::ConfigNode config)
 {
+    LOGGER.info("Initializing Buoy Detector");
     // Detection variables
     // NOTE: The property set automatically loads the value from the given
     //       config if its present, if not it uses the default value presented.
