@@ -66,6 +66,8 @@ public:
     virtual double getEstimatedDepth();
     /** returns the estimated depth change rate */
     virtual double getEstimatedDepthRate();
+    /** returns the estimated distance from the bottom in meters */
+    virtual double getEstimatedBottomRange();
     /** returns the estimated vehicle mass */
     virtual double getEstimatedMass();
     /** returns the estimated thruster forces */

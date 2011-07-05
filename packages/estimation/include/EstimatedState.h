@@ -57,6 +57,7 @@ public:
     math::Quaternion getEstimatedOrientation();
     double getEstimatedDepth();
     double getEstimatedDepthRate();
+    double getEstimatedBottomRange();
     math::Vector3 getEstimatedThrusterForces();
     math::Vector3 getEstimatedThrusterTorques();
     double getEstimatedMass();
@@ -68,6 +69,7 @@ public:
     void setEstimatedOrientation(math::Quaternion orientation);
     void setEstimatedDepth(double depth);
     void setEstimatedDepthRate(double depthRate);
+    void setEstimatedBottomRange(double bottomRange);
     void setEstimatedThrust(math::Vector3 forces, math::Vector3 torques);
     void setEstimatedMass(double mass);
 
@@ -93,6 +95,7 @@ private:
     void publishOrientationUpdate(const math::Quaternion& orientation);
     void publishDepthUpdate(const double& depth);
     void publishDepthRateUpdate(const double& depthRate);
+    void publishBottomRangeUpdate(const double& bottomRange);
     void publishThrustUpdate(const math::Vector3& forces,
                              const math::Vector3& torques);
 
@@ -105,6 +108,7 @@ private:
     math::Quaternion m_estOrientation;
     double m_estDepth;
     double m_estDepthRate;
+    double m_estBottomRange;
     math::Vector3 m_estThrusterForces;
     math::Vector3 m_estThrusterTorques;
     double m_estMass;

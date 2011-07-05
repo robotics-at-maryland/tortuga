@@ -77,6 +77,11 @@ double StateEstimatorBase::getEstimatedDepthRate()
     return m_estimatedState->getEstimatedDepthRate();
 }
 
+double StateEstimatorBase::getEstimatedBottomRange()
+{
+    return m_estimatedState->getEstimatedBottomRange();
+}
+
 void StateEstimatorBase::addObstacle(Obstacle::ObstacleType name,
                                      ObstaclePtr obstacle)
 {

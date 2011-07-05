@@ -65,6 +65,9 @@ public:
     /** returns the estiamted depth change rate */
     virtual double getEstimatedDepthRate() = 0;
 
+    /** returns the estimated distance from the bottom in meters */
+    virtual double getEstimatedBottomRange() = 0;
+
     /** return the estimated vehicle mass */
     virtual double getEstimatedMass() = 0;
 
@@ -88,6 +91,7 @@ public:
     static const core::Event::EventType ESTIMATED_POSITION_UPDATE;
     static const core::Event::EventType ESTIMATED_LINEARACCELERATION_UPDATE;
     static const core::Event::EventType ESTIMATED_DEPTHRATE_UPDATE;
+    static const core::Event::EventType ESTIMATED_BOTTOMRANGE_UPDATE;
     static const core::Event::EventType ESTIMATED_ANGULARRATE_UPDATE;
     static const core::Event::EventType ESTIMATED_FORCES_UPDATE;
     static const core::Event::EventType ESTIMATED_TORQUES_UPDATE;

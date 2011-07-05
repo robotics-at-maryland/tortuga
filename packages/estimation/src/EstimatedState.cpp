@@ -77,6 +77,12 @@ double EstimatedState::getEstimatedDepthRate()
     return m_estDepthRate;
 }
 
+double EstimatedState::getEstimatedBottomRange()
+{
+    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
+    return m_estBottomRange;
+}
+
 math::Vector3 EstimatedState::getEstimatedThrusterForces()
 {
     core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
@@ -161,6 +167,15 @@ void EstimatedState::setEstimatedDepthRate(double depthRate)
         m_estDepthRate = depthRate;
     }
     publishDepthRateUpdate(depthRate);
+}
+
+void EstimatedState::setEstimatedBottomRange(double bottomRange)
+{
+    {
+        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
+        m_estBottomRange = bottomRange;
+    }
+    publishBottomRangeUpdate(bottomRange);
 }
 
 void EstimatedState::setEstimatedThrust(math::Vector3 forces,
@@ -299,6 +314,13 @@ void EstimatedState::publishDepthRateUpdate(const double& depthRate)
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depthRate;
     publish(estimation::IStateEstimator::ESTIMATED_DEPTHRATE_UPDATE, event);
+}
+
+void EstimatedState::publishBottomRangeUpdate(const double& bottomRange)
+{
+    math::NumericEventPtr event(new math::NumericEvent());
+    event->number = bottomRange;
+    publish(estimation::IStateEstimator::ESTIMATED_BOTTOMRANGE_UPDATE, event);
 }
 
 void EstimatedState::publishThrustUpdate(const math::Vector3& forces,
