@@ -163,6 +163,8 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     
     // Mask orange takes frame, then alter image, then strictness (true=more
 
+    input->setPixelFormat(Image::PF_BGR_8);
+    
     // Filter the image for the proper color
     if (m_useLUVFilter)
         filterForOrangeNew(input);

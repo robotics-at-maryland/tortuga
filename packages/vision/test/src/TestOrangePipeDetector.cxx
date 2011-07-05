@@ -28,7 +28,7 @@ struct OrangePipeDetectorFixture
         found(false),
         centered(false),
         event(vision::PipeEventPtr()),
-        input(640, 480),
+        input(640, 480, vision::Image::PF_BGR_8),
         eventHub(new core::EventHub()),
         detector(core::ConfigNode::fromString("{}"), eventHub)
     {
