@@ -15,6 +15,7 @@
 // Library Includes
 #include "highgui.h"
 #include <boost/foreach.hpp>
+#include <log4cpp/Category.hh>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -24,8 +25,10 @@
 #include "vision/include/LoversLaneDetector.h"
 #include "vision/include/Events.h"
 #include "vision/include/ColorFilter.h"
-
+#include "vision/include/VisionSystem.h"
 #include "core/include/PropertySet.h"
+
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("LoversLaneDetector"));
 
 namespace ram {
 namespace vision {
@@ -39,7 +42,9 @@ LoversLaneDetector::LoversLaneDetector(core::ConfigNode config,
     m_lBlobDetector(config, eventHub),
     m_rBlobDetector(config, eventHub),
     frame(0),
-    greenFrame(0)
+    greenFrame(0),
+    m_physicalHeightMeters(1.2)
+
     
 {
     init(config);
@@ -47,13 +52,15 @@ LoversLaneDetector::LoversLaneDetector(core::ConfigNode config,
 
 LoversLaneDetector::LoversLaneDetector(Camera* camera) :
     cam(0),
-    m_colorFilter(0)
+    m_colorFilter(0),
+    m_physicalHeightMeters(1.2)
 {
     init(core::ConfigNode::fromString("{}"));
 }
 
 void LoversLaneDetector::init(core::ConfigNode config)
 {
+    LOGGER.info("Not IMPLEMENTED YET");
     core::PropertySetPtr propSet(getPropertySet());
 
 
@@ -339,13 +346,11 @@ void LoversLaneDetector::publishFoundEvent(BlobDetector::Blob& blob,
 
     int imFullY = (blob.getMaxY() - blob.getMinY()) / 2 
         + blob.getMinY();
- 
 
     int imLeftX = blob.getMinX() + (leftBlob.getMaxX() - leftBlob.getMinX()) / 2 
         + leftBlob.getMinX();
     int imLeftY = blob.getMinY() + (leftBlob.getMaxY() - leftBlob.getMinY()) / 2 
         + leftBlob.getMinY();
-
 
     int imRightX = blob.getMinX() + blob.getWidth() / 2 + 
         (rightBlob.getMaxX() - rightBlob.getMinX()) / 2 
@@ -369,6 +374,15 @@ void LoversLaneDetector::publishFoundEvent(BlobDetector::Blob& blob,
 
     Detector::imageToAICoordinates(frame, imRightX, imRightY, rightX, rightY);
 
+//    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+
+    double blobHeight = blob.getHeight();
+    double fracHeight = blobHeight / yPixelHeight;
+    double range = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+
     event->leftX = leftX;
     event->leftY = leftY;
     event->rightX = rightX;
@@ -376,10 +390,8 @@ void LoversLaneDetector::publishFoundEvent(BlobDetector::Blob& blob,
     event->haveLeft = haveLeft;
     event->haveRight = haveRight;
     event->squareNess = 1.0 / blob.getTrueAspectRatio();
-    event->range = 1.0 - (((double)blob.getHeight()) /
-                          ((double)frame->getHeight()));
+    event->range = range;
 
-    std::cout << "publishing a found lovers lane event" << std::endl;
     publish(EventType::LOVERSLANE_FOUND, event);
 
 }

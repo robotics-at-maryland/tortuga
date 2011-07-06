@@ -32,7 +32,7 @@
 #include "vision/include/CupidDetector.h"
 #include "vision/include/VisionSystem.h"
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CupidDetectorLog"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CupidDetector"));
 
 namespace ram {
 namespace vision {
