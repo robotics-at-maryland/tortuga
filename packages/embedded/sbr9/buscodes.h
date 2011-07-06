@@ -130,11 +130,21 @@
 #define BUS_CMD_KILL_MOTORS     0x54
 #define BUS_CMD_SET_MOT_N       0x55
 
+/* Servo power is now depreciated, but to avoid breaking
+   working code I'm going to keep them around.  "Magnet"
+   power is what is replacing it, which is for the magnetic
+   droppers.
+ */
 #define BUS_CMD_SERVO_POWER_ON  0x56
+#define BUS_CMD_MAG_PWR_ON      0x56
 #define BUS_CMD_SERVO_POWER_OFF 0x57
+#define BUS_CMD_MAG_PWR_OFF     0x57
+
+/* These are both depreciated */
 #define BUS_CMD_SERVO_ENABLE    0x58
 #define BUS_CMD_SET_SERVO_POS   0x59
 
+/* Motor board reset was never implemented */
 #define BUS_CMD_MTR_RST         0x5A
 
 #define BUS_CMD_DVL_ON          0x5B
@@ -235,11 +245,19 @@
 
 #define HOST_CMD_BFIN_STATE         0x2C
 
+/* These two servo commands are depreciated */
 #define HOST_CMD_SERVO_ENABLE       0x2D
 #define HOST_CMD_SET_SERVO_POS      0x2E
-#define HOST_CMD_SERVO_POWER_ON     0x2F
-#define HOST_CMD_SERVO_POWER_OFF    0x30
 
+/* Servo power is gone, replaced by magnetic dropper
+   power
+ */
+#define HOST_CMD_SERVO_POWER_ON     0x2F
+#define HOST_CMD_MAG_PWR_ON         0x2F
+#define HOST_CMD_SERVO_POWER_OFF    0x30
+#define HOST_CMD_MAG_PWR_OFF        0x30
+
+/* This command was never implemented on the motor board */
 #define HOST_CMD_MTR_RST            0x31
 
 #define HOST_CMD_DVL_ON              0x32

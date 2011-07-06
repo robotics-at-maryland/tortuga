@@ -19,6 +19,9 @@ _FWDT ( WDT_OFF );
 /* Turn on/off excess dumb code */
 //#define DEBUG_ON
 
+/* Turn on where the servos are */
+#define HYDRO_SERVO_BOOM
+
 /* Some defines which will help keep us sane. */
 #define TRIS_OUT 0
 #define TRIS_IN  1
@@ -116,8 +119,8 @@ byte ping_val;
 #define WAH_ON             1
 #define WAH_OFF            0
 
-#define TRIS_SERVO_WAH_INH _TRISA10
-#define LAT_SERVO_WAH_INH  _LATA10
+#define TRIS_WAH_INH _TRISA10
+#define LAT_WAH_INH  _LATA10
 
 #define SERVO_ENABLED      0
 #define SERVO_DISABLED     1
@@ -161,6 +164,7 @@ unsigned int rxPtr= 0;
 unsigned int txPtr= 0;
 
 unsigned int tmp_servo_speed;
+unsigned int sent_start;
 
 /**********************************************/
 /* These are the prototypes for the functions */
@@ -181,6 +185,7 @@ unsigned int getI2C(void);
 void StartI2C(void);
 unsigned int RestartI2C(void);
 unsigned int StopI2C(void);
+unsigned int StopI2C_BORKED(void);
 unsigned int WriteI2C(byte);
 unsigned int IdleI2C(void);
 unsigned int WaitAck(void);
@@ -214,8 +219,7 @@ void kill_motors() {
 
 /* This function does whatever we need to do when we're borked. */
 void BorkedI2C() {
-    i2cState= I2CSTATE_STOPPING_BORKED;
-    StopI2C();        /* Generate the Stop condition */
+    StopI2C_BORKED();        /* Generate the Stop condition */
 }
 
 /* This routine is called everytime that something happens on the i2c bus */
@@ -256,7 +260,6 @@ void _ISR _MI2CInterrupt() {
             if(i2cPtr >= packetSize) {
                 /* Yup! Clean up and wait for more. */
                 StopI2C();
-                i2cState= I2CSTATE_STOP;
                 break;
             }
 
@@ -314,17 +317,17 @@ void _ISR _MI2CInterrupt() {
             break;
         }
 
+        case I2CSTATE_STOPPING_BORKED:
+        {
+            i2cState= I2CSTATE_BORKED;
+            break;
+        }
+
         case I2CSTATE_STOP:
         {
             /* This is the end of the stop state. If we're here, in theory 
              * we got what we needed and we're done.  We're idle again! */
             i2cState= I2CSTATE_IDLE;
-            break;
-        }
-
-        case I2CSTATE_STOPPING_BORKED:
-        {
-            i2cState= I2CSTATE_BORKED;
             break;
         }
 
@@ -382,7 +385,7 @@ void checkBus() {
             ;
 
         /* Let go of the ACK pin */
-        TRIS_AKN= 1;
+        TRIS_AKN= TRIS_IN;
 
         /* Process the data we got from the master*/
         processData(data);
@@ -412,7 +415,9 @@ void processData(byte data)
     unsigned int i;
     txPtr = 0;
 
+#ifdef DEBUG_ON
     writeUart(busState);
+#endif
 
     switch(busState)
     {
@@ -453,34 +458,27 @@ void processData(byte data)
                     break;
                 }
 
-                case BUS_CMD_SERVO_POWER_ON:
+                case BUS_CMD_MAG_PWR_ON:
                 {
-                    LAT_SERVO_WAH_INH= WAH_ON;
+                    LAT_WAH_INH= WAH_ON;
                     break;
                 }
 
-                case BUS_CMD_SERVO_POWER_OFF:
+                case BUS_CMD_MAG_PWR_OFF:
                 {
-                    LAT_SERVO_WAH_INH= WAH_OFF;
+                    LAT_WAH_INH= WAH_OFF;
                     break;
                 }
 
-                case BUS_CMD_SERVO_ENABLE:
+                case BUS_CMD_MARKER1:
                 {
-                    busState= STATE_SERVO_ENABLE;
-                    break;
-                }
 
-                case BUS_CMD_SET_SERVO_POS:
-                {
-                    nParam= 0;
-                    busState= STATE_SET_SERVO_POS;
-                    break;
                 }
 
                 case BUS_CMD_MTR_RST:
                 {
-                    asm("reset");
+                    //asm("reset");
+                    break;
                 }
             }
 
@@ -492,15 +490,30 @@ void processData(byte data)
             rxBuf[nParam++]= data;
 
             if(nParam == 3) {
+
+#ifdef HYDRO_SERVO_BOOM
+                if(!sent_start) {
+                    sent_start= !sent_start;
+                    writeUart(0xDE);
+                    writeUart(0xAF);
+                    writeUart(0xBE);
+                    writeUart(0xEF);
+                }
+                writeUart(rxBuf[0]);
+                writeUart(rxBuf[1]);
+                writeUart(rxBuf[2]);
+                writeUart( (rxBuf[0] + rxBuf[1] + rxBuf[2]) & 0xFF );
+#else
+/*
 #ifdef DEBUG_ON
                 writeUart(rxBuf[1]);
                 writeUart(rxBuf[2]);
 #endif
-                /* Consolidate the two speed bytes into one short */
+                //Consolidate the two speed bytes into one short
                 tmp_servo_speed= rxBuf[1];
                 tmp_servo_speed= (tmp_servo_speed << 8) | rxBuf[2];
 
-                /* Actually hand the data to the interrupts */
+                //Actually hand the data to the interrupts
                 SetServo(rxBuf[0], tmp_servo_speed);
 
 #ifdef DEBUG_ON
@@ -509,6 +522,8 @@ void processData(byte data)
                 writeUart(OC1RS >> 8);
                 writeUart(OC1RS);
 #endif
+*/
+#endif // END HYDRO_SERVO_BOOM IF
 
                 /* We're done! Go back to the beginning! */
                 busState= STATE_TOP_LEVEL;
@@ -519,6 +534,19 @@ void processData(byte data)
 
         case STATE_SERVO_ENABLE:
         {
+#ifdef HYDRO_SERVO_BOOM
+            if(!sent_start) {
+                sent_start= !sent_start;
+                writeUart(0xDE);
+                writeUart(0xAF);
+                writeUart(0xBE);
+                writeUart(0xEF);
+            }
+            writeUart('E');
+            writeUart('N');
+            writeUart(data);
+            writeUart( ('E' + 'N' + data) & 0xFF );
+#else
             /* Servo stuff for 0 and 1 */
             if((data & 0x01)) {
                 LAT_SERVO_0_EN= SERVO_ENABLED;
@@ -539,7 +567,6 @@ void processData(byte data)
             }
 
             /* Servo stuff for 2 and 3 */
-
             if((data & 0x04)) {
                 LAT_SERVO_2_EN= SERVO_ENABLED;
                 EnableServo(0x02);
@@ -559,7 +586,6 @@ void processData(byte data)
             }
 
             /* Servo stuff for 4 and 5 */
-
             if((data & 0x10)) {
                 LAT_SERVO_4_EN= SERVO_ENABLED;
                 EnableServo(0x04);
@@ -579,7 +605,6 @@ void processData(byte data)
             }
 
             /* Servo stuff for 6 and 7 */
-
             if((data & 0x40)) {
                 LAT_SERVO_6_EN= SERVO_ENABLED;
                 EnableServo(0x06);
@@ -597,6 +622,7 @@ void processData(byte data)
             if(!(data & 0x40) && !(data & 0x80)) {
                 LAT_SERVO_67_EN= SERVO_DISABLED;
             }
+#endif
 
             busState= STATE_TOP_LEVEL;
 
@@ -640,7 +666,7 @@ void processData(byte data)
                 /* Did we get a bad state? */
                 if(rxBuf[1] > 0xE6 || rxBuf[1] < 0x19 || rxBuf[0] > 5) {
                     kill_motors(); 
-                    break;
+                    break; //might be wrong. exits case without state change -Keith
                 }
 
                 /* Set motor N to the speed defined */
@@ -670,10 +696,14 @@ void _ISR _INT3Interrupt() {
 /* The main function sets everything up then loops */
 int main()
 {
+#ifdef DEBUG_ON
     byte heartBeat= 0;
+#endif
     unsigned int i, temp;
     unsigned long timeout, err_reset;
     byte activeSpeed[6];
+
+    sent_start= 0;
 
     /* Set up the Oscillator */
     initOSC();
@@ -696,7 +726,9 @@ int main()
     initUART(0x0F);
 
     /* Initialize the servo junk */
+#ifndef HYDRO_SERVO_BOOM
     InitServos();
+#endif
     
     /* Initialize timeout timer */
     // Timer runs continuously
@@ -717,8 +749,8 @@ int main()
     TRISD= 0xFF00;
 
     /* Set up all the extra servo enable and disable stuff */
-    LAT_SERVO_WAH_INH= WAH_OFF;
-    TRIS_SERVO_WAH_INH= TRIS_OUT;
+    LAT_WAH_INH= WAH_OFF;
+    TRIS_WAH_INH= TRIS_OUT;
 
     LAT_SERVO_01_EN= SERVO_DISABLED;
     LAT_SERVO_23_EN= SERVO_DISABLED;
@@ -762,8 +794,9 @@ int main()
         REQ_INT_BIT= 0;
         for(i= 0;i < 6;i++) {
             activeSpeed[i]= motorSpeed[i];
-            /* Debug */
+#ifdef DEBUG_ON
             writeUart(activeSpeed[i]);
+#endif
         }
         REQ_INT_BIT= 1;
 
@@ -811,8 +844,11 @@ int main()
             TMR1 = 0;
             _T1IF = 0;
 
-            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !_T1IF)
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !_T1IF) {
+#ifdef DEBUG_ON
                 writeUart('E');
+#endif
+            }
 
             if(_T1IF) {
                 resetI2C_registers();
@@ -849,7 +885,9 @@ int main()
             i2cState= I2CSTATE_IDLE;
             resetI2C_registers();
 
+#ifdef DEBUG_ON
             writeUart(heartBeat++);
+#endif
 
 #ifdef DEBUG_ON
              if(uartRXCheck())
@@ -942,11 +980,11 @@ byte uartRX() {
 
 /* This function *safely* writes a packet to the Uart1 output */
 void writeUart(byte packet) {
-    /* Wait for space to be available */
+    // Wait for space to be available
     while(U1STAbits.UTXBF)
         ;
 
-    /* Send the packet! */
+    // Send the packet!
     U1TXREG= packet;
 }
 
@@ -1012,6 +1050,15 @@ unsigned int RestartI2C(void)
 /* This function generates the stop condition */
 unsigned int StopI2C(void)
 {
+    i2cState= I2CSTATE_STOP;
+    I2CCONbits.PEN = 1;        /* Generate the Stop condition */
+    return 0;
+}
+
+/* This function generates the stop condition but ends in the borked state */
+unsigned int StopI2C_BORKED(void)
+{
+    i2cState= I2CSTATE_STOPPING_BORKED;
     I2CCONbits.PEN = 1;        /* Generate the Stop condition */
     return 0;
 }
