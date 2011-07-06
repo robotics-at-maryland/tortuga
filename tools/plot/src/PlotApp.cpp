@@ -26,7 +26,7 @@ bool PlotApp::OnInit()
 {
     /* start the network hub */
     /* note: this is currently using the default constructor */
-    m_eventHub = core::EventHubPtr(new network::NetworkHub());
+    m_eventHub = core::EventHubPtr(new network::NetworkHub("plotNetworkHub", "192.168.10.12", 51346));
 
     PlotFrame *frame = new PlotFrame(wxT("R@M Realtime Plotting"),
                                      wxPoint(0, 0), wxSize(1024, 768));

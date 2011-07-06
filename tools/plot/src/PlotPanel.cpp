@@ -18,6 +18,7 @@
 #include "estimation/include/IStateEstimator.h"
 #include "math/include/Events.h"
 #include "math/include/Vector2.h"
+#include "estimation/include/Events.h"
 
 #define ID_CLEAR_BUTTON 4000
 #define ID_BUFFER_SIZE_CTRL 4001
@@ -487,6 +488,68 @@ void Vector3ComponentPlot::update(core::EventPtr event)
                 if(info.repeat)
                 {
                     addData(info.name, time, repeatVal);
+                }
+            }
+        }
+        redraw();
+    }
+}
+
+ObstacleLocationPlot::ObstacleLocationPlot(wxWindow *parent, core::EventHubPtr eventHub,
+                                           EventSeriesMap series, unsigned int component,
+                                           wxString name, wxString caption) :
+    EventBased(eventHub),
+    PlotPanel(parent),
+    m_series(series),
+    m_component(component)
+{
+    assert((m_component >= 0 || m_component <= 2) &&
+           "Component must be either 0, 1, or 2");
+
+    m_name = name;
+    m_caption = caption;
+
+    m_info.Name(name);
+    m_info.Caption(caption);
+
+    EventSeriesMap::iterator iter;
+    for(iter = m_series.begin(); iter != m_series.end(); iter++)
+    {
+        core::Event::EventType type = (*iter).first;
+        DataSeriesInfo seriesInfo = (*iter).second;
+
+        m_connections.push_back(
+            eventHub->subscribeToType(
+                type, boost::bind(&ObstacleLocationPlot::update, this, _1)));
+
+        addDataSeries(seriesInfo.name, seriesInfo.pen);
+    }
+}
+
+void ObstacleLocationPlot::update(core::EventPtr event)
+{
+    estimation::ObstacleEventPtr oEvent = 
+        boost::dynamic_pointer_cast<estimation::ObstacleEvent>(event);
+
+    if(oEvent)
+    {
+        math::Vector3 location = oEvent->location;
+
+        DataSeriesInfo seriesInfo = m_series[event->type];
+        addData(seriesInfo.name, location[0], location[1]);
+        m_prevData[event->type] = location;
+
+        std::map<core::Event::EventType, math::Vector3>::iterator iter;
+        for(iter = m_prevData.begin(); iter != m_prevData.end(); iter++)
+        {
+            core::Event::EventType type = (*iter).first;
+            math::Vector3 repeatLocation = (*iter).second;
+            if(type != event->type)
+            {
+                DataSeriesInfo info = m_series[type];
+                if(info.repeat)
+                {
+                    addData(info.name, repeatLocation[0], repeatLocation[1]);
                 }
             }
         }

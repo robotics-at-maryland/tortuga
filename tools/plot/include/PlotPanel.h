@@ -193,4 +193,21 @@ private:
     std::map<core::Event::EventType, double> m_prevData;
 };
 
+class ObstacleLocationPlot : public EventBased, public PlotPanel
+{
+public:
+    ObstacleLocationPlot(wxWindow* parent, core::EventHubPtr eventHub,
+                         EventSeriesMap series, unsigned int component,
+                         wxString name, wxString caption = wxT(""));
+
+    ~ObstacleLocationPlot() {}
+
+    virtual void update(core::EventPtr event);
+
+private:
+    EventSeriesMap m_series;
+    unsigned int m_component;
+    std::map<core::Event::EventType, math::Vector3> m_prevData;
+};
+
 #endif // RAM_TOOLS_PLOTPANEL
