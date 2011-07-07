@@ -210,8 +210,8 @@ int main(int argc, char* argv[])
     std::vector<math::IPrimitive3DPtr> primitives;
     for(int i=0; i < center.rows; i++)
     {
-        math::Vector3 cent = math::Vector3(center.at<cv::Vec3f>(i,0)[1],
-                                           center.at<cv::Vec3f>(i,0)[0],
+        math::Vector3 cent = math::Vector3(center.at<cv::Vec3f>(i,0)[0],
+                                           center.at<cv::Vec3f>(i,0)[1],
                                            center.at<cv::Vec3f>(i,0)[2]);
         primitives.push_back(
             math::IPrimitive3DPtr(
@@ -246,8 +246,11 @@ int main(int argc, char* argv[])
     IplImage *img = output->asIplImage();
 
     // Displaying and Saving filtered test image
+    cvNamedWindow("input", CV_WINDOW_AUTOSIZE); 
+    cvShowImage("input", input->asIplImage());
+
     cvNamedWindow("myWindow", CV_WINDOW_AUTOSIZE); 
-    cvMoveWindow("myWindow", 100, 100);
+    cvMoveWindow("myWindow", 300, 100);
     cvSaveImage(argv[5], img);
     cvShowImage("myWindow", img);
     

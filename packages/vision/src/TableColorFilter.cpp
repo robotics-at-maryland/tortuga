@@ -84,6 +84,8 @@ void TableColorFilter::createLookupTable(std::string filepath,
             }
         }
     }
+    bfStream.close();
+    surfStream.close();
     
     saveLookupTable(filepath, bf);
 }
@@ -94,6 +96,25 @@ void TableColorFilter::filterImage(Image* input, Image* output)
     int nChannels = 0;
     unsigned char *inputData = input->getData();
     unsigned char *outputData = NULL;
+
+    std::ofstream bfStream;
+    bfStream.open("bitFieldFilter");
+
+    for(int c1 = 0; c1 < 256; c1++) 
+    {
+        for(int c2 = 0; c2 < 256; c2++) 
+        {
+            for(int c3 = 0; c3 < 256; c3++) 
+            {
+                if(m_filterTable(c1, c2, c3))
+                {
+                    bfStream << c1 << ", " << c2 << ", " << c3 << "\n";
+                }
+            }
+        }
+    }
+    bfStream.close();
+
     if(output)
     {
         outputData = output->getData();
@@ -108,7 +129,7 @@ void TableColorFilter::filterImage(Image* input, Image* output)
     for(int i = 0; i < numPixels; ++i)
     {
         unsigned char result = m_filterTable(
-            *inputData, *inputData + 1, *inputData + 2);
+            *inputData, *(inputData + 1), *(inputData + 2));
 
         for(int k = 0; k < nChannels; k++, outputData++)
         {
@@ -142,7 +163,7 @@ void TableColorFilter::inverseFilterImage(Image* input, Image* output)
     for(int i = 0; i < numPixels; ++i)
     {
         unsigned char result = !m_filterTable(
-            *inputData, *inputData + 1, *inputData + 2);
+            *inputData, *(inputData + 1), *(inputData + 2));
 
         for(int k = 0; k < nChannels; k++, outputData++)
         {
