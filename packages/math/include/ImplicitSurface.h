@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <vector>
+#include <cmath>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -40,7 +41,7 @@ public:
     virtual inline float implicitFunctionValue(Vector3 p)
     {
         float invSum = 0;
-        if(m_blendingFactor - 1.0  < 0.0001)
+        if(fabs(m_blendingFactor - 1.0)  < 0.0001)
         {
             // we need to blend all of the primitives
             BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)

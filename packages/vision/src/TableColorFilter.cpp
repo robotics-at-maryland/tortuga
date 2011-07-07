@@ -60,15 +60,27 @@ void TableColorFilter::createLookupTable(std::string filepath,
     static core::BitField3D bf(256u, 256u, 256u);
     double c;
     
+    std::ofstream surfStream;
+    surfStream.open("implicitSurface");
+
+    std::ofstream bfStream;
+    bfStream.open("bitField");
+
     for(int c1 = 0; c1 < 256; c1++) {
-        std::cout << c1 << std::endl;
+        //std::cout << c1 << std::endl;
         for(int c2 = 0; c2 < 256; c2++) {
             for(int c3 = 0; c3 < 256; c3++) {
                 c = iSurface.implicitFunctionValue(math::Vector3(c1, c2, c3));
+                surfStream << c1 << ", " << c2 << ", " << c3 << ", " << c << "\n";
                 if ( c < 1)
+                {
                     bf(c1, c2, c3) = true;
+                    bfStream << c1 << ", " << c2 << ", " << c3 << "\n";
+                }
                 else
+                {
                     bf(c1, c2, c3) = false;
+                }
             }
         }
     }
@@ -99,7 +111,12 @@ void TableColorFilter::filterImage(Image* input, Image* output)
             *inputData, *inputData + 1, *inputData + 2);
 
         for(int k = 0; k < nChannels; k++, outputData++)
-            *outputData = 255 * result;
+        {
+            if(result)
+                *outputData = 255;
+            else
+                *outputData = 0;
+        }
 
         inputData += 3;
     }
@@ -128,7 +145,12 @@ void TableColorFilter::inverseFilterImage(Image* input, Image* output)
             *inputData, *inputData + 1, *inputData + 2);
 
         for(int k = 0; k < nChannels; k++, outputData++)
-            *outputData = 255 * result;
+        {
+            if(result)
+                *outputData = 0;
+            else
+                *outputData = 255;
+        }
 
         inputData += 3;
     }
