@@ -7,6 +7,9 @@
  * File:  packages/vision/src/FANNLetterDetector.cpp
  */
 
+// Library Includes
+#include <cv.h>
+
 // Project Includes
 #include "vision/include/FANNLetterDetector.h"
 #include "vision/include/Image.h"
@@ -17,7 +20,7 @@
 #define SYMBOL_SMALL_O 0x08
 #define SYMBOL_COUNT 4
 
-#define FEATURE_COUNT 4
+#define FEATURE_COUNT 10
 
 namespace ram {
 namespace vision {
@@ -54,18 +57,31 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
 {
     // True if the image is wider then it is tall
     bool wide = true;
-    int width = inputImage->getWidth();
-    int height = inputImage->getHeight();
-
+    double width = inputImage->getWidth();
+    double height = inputImage->getHeight();
+    int featureNum = 0;
     // Determine aspect ratio (ensure the ratio is always > 1)
-    double trueAspectRatio = ((double)width) / ((double)height);
-    double aspectRatio = trueAspectRatio;
+    double trueAspectRatio = width / height;
+    float aspectRatio = trueAspectRatio;
     if (aspectRatio < 1)
     {
         wide = false;
         aspectRatio = 1.0 / aspectRatio;
     }
-    features[0] = (float)aspectRatio;
+    features[featureNum++] = aspectRatio;
+
+    CvMoments moments;
+    cvMoments(inputImage->asIplImage(), &moments, true);
+
+    CvHuMoments huMoments;
+    cvGetHuMoments(&moments, &huMoments);
+
+    features[featureNum++] = static_cast<float>(huMoments.hu1);
+    features[featureNum++] = static_cast<float>(huMoments.hu2);
+    features[featureNum++] = static_cast<float>(huMoments.hu3);
+    features[featureNum++] = static_cast<float>(huMoments.hu4);
+    features[featureNum++] = static_cast<float>(huMoments.hu5);
+    features[featureNum++] = static_cast<float>(huMoments.hu6);
 
     // Determine amount of red on each "long" half of the image and return the
     // ratio of the two together
@@ -104,7 +120,7 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         ratio = average1/average2;
     if (ratio < 1)
         ratio = 1.0 / ratio;
-    features[1] = (float)ratio;
+    features[featureNum++] = (float)ratio;
     
     // Determine the ammount of red in all the corners of the image
 
@@ -144,7 +160,7 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
                                  average4, dummy2, dummy3);
 
     double averageCorner = (average1 + average2 + average3 + average4) / 4;
-    features[2] = (float)averageCorner / 255.0f;
+    features[featureNum++] = (float)averageCorner / 255.0f;
 
     // Find the fill percent of the central region
     if (wide)
@@ -168,7 +184,7 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
                                      average1, dummy2, dummy3);
     }
 
-    features[3] = (float)average1 / 255.0f;
+    features[featureNum++] = static_cast<float>(average1 / 255.0f);
 }
 
 } // namespace vision
