@@ -24,7 +24,8 @@ std::vector<std::string> Symbol::getSymbolNames()
         ("HEART")("HEARTR90")("HEARTR180")("HEARTR270")
         ("DIAMOND")("DIAMONDR90")("DIAMONDR180")("DIAMONDR270")
         ("SHIP")("AIRCRAFT")("TANK")("FACTORY")
-        ("AXE")("CLIPPERS")("HAMMER")("MACHETE")
+        ("AXE")("CLIPPERS")("HAMMER")("MACHETE")("LARGE_X")("LARGE_O")
+        ("SMALL_X")("SMALL_O")
         ("UNKNOWN")("NONEFOUND");
     return symbolNames;
 }
