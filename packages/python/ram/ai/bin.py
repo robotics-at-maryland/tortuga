@@ -698,21 +698,15 @@ class Searching(state.State):
 
         #TODO: Change this back into a ZigZag motion. LOOK AT THE OLD VERSION
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
-        yawTrajectory = motion.trajectories.StepTrajectory(
-            initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, direction),
-            initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self._distance,0),
             initialRate = self.stateEstimator.getEstimatedVelocity())
         
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         
-        self.motionManager.setMotion(yawMotion, translateMotion)
+        self.motionManager.setMotion(translateMotion)
 
         self.ai.data['firstSearching'] = False
 
@@ -1201,13 +1195,16 @@ class Examine(HoveringState):
                             'targetSymbols', ['Club', 'Diamond'])
         
         possibleTargetSymbols = set()
+        symbolNames = []
         for symbol in targetSymbols:
             symbolName = symbol.upper()
             if hasattr(vision.Symbol, symbolName):
                 possibleTargetSymbols.add(getattr(vision.Symbol, symbolName))
+                symbolNames.append(symbolName)
 
         droppedSymbols = self.ai.data.get('droppedSymbols', set())
         self._targetSymbols = possibleTargetSymbols.difference(droppedSymbols)
+        self.ai.data.setdefault('targetSymbols', symbolNames)
 
     def _checkSymbol(self, symbol):
         """
@@ -1566,13 +1563,24 @@ class DropMarker(SettlingState):
         # Increment marker dropped count
         markerNum = self.ai.data.get('markersDropped',0)
         self.ai.data['markersDropped'] = markerNum + 1
+        
+        droppingSymbol = self.ai.data['droppingSymbol']
+        targetSymbols = self.ai.data['targetSymbols']
+        
+        # Hackish solution
+        value = 0
+        for symbol in targetSymbols:
+            if symbol == droppingSymbol:
+                print('found')
+                break
+            else:
+                value = value + 1
 
         # Release the marker
-        self.vehicle.dropMarker()
+        self.vehicle.dropMarkerIndex(value)
 
         if self.ai.data['doICare']:
             # Mark that we dropped the symbol
-            droppingSymbol = self.ai.data['droppingSymbol']
             self.ai.data.setdefault('droppedSymbols', set()).add(droppingSymbol)
 
         markerNum = self.ai.data['markersDropped']

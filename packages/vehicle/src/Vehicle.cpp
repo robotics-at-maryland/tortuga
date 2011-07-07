@@ -207,14 +207,14 @@ void Vehicle::fireTorpedo()
     m_torpedoLauncher->releaseObject();
 }
 
-void Vehicle::dropMarker(int index)
+void Vehicle::dropMarkerIndex(int index)
 {
-    m_markerDropper->releaseObject(index);
+    m_markerDropper->releaseObjectIndex(index);
 }
 
-void Vehicle::fireTorpedo(int index)
+void Vehicle::fireTorpedoIndex(int index)
 {
-    m_torpedoLauncher->releaseObject(index);
+    m_torpedoLauncher->releaseObjectIndex(index);
 }
 
 void Vehicle::releaseGrabber()

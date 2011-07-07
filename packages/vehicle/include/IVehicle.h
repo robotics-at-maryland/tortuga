@@ -95,10 +95,10 @@ public:
     virtual void fireTorpedo() = 0;
 
     /** Drop a marker from the bottom of the vehicle */
-    virtual void dropMarker(int index) = 0;
+    virtual void dropMarkerIndex(int index) = 0;
 
     /** Fire torpedo from the front of the vehicle */
-    virtual void fireTorpedo(int index) = 0;
+    virtual void fireTorpedoIndex(int index) = 0;
 
     /** Drop the PVC cube */
     virtual void releaseGrabber() = 0;

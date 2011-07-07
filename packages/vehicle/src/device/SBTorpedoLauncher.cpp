@@ -47,7 +47,7 @@ void SBTorpedoLauncher::releaseObject()
     }
 }
 
-void SBTorpedoLauncher::releaseObject(int index)
+void SBTorpedoLauncher::releaseObjectIndex(int index)
 {
     m_sensorBoard->fireTorpedo(index);
     publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));

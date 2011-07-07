@@ -339,6 +339,26 @@ class SimPayloadSet(SimDevice, device.IPayloadSet):
                 self._spawnCube()
             
             self._count -= 1
+
+    def releaseObjectIndex(self, index):
+        if self._count != 0:
+            
+            event = core.Event()
+            self.publish(device.IPayloadSet.OBJECT_RELEASED, event)
+            
+            # Bail out early if there is no scene
+            if self._scene is None:
+                self._count -= 1
+                return
+            
+            if self._payload == 'marker':
+                self._spawnMarker()
+            elif self._payload == 'torpedo':
+                self._spawnTorpedo()
+            elif self._payload == 'grabber':
+                self._spawnCube()
+            
+            self._count -= 1
             
     def _spawnMarker(self):
         # Now lets spawn an object

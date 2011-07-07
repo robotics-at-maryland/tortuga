@@ -47,7 +47,7 @@ void SBGrabber::releaseObject()
     }
 }
 
-void SBGrabber::releaseObject(int index)
+void SBGrabber::releaseObjectIndex(int index)
 {
     if (-1 != m_sensorBoard->releaseGrabber())
     {
