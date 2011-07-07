@@ -47,6 +47,15 @@ void SBGrabber::releaseObject()
     }
 }
 
+void SBGrabber::releaseObject(int index)
+{
+    if (-1 != m_sensorBoard->releaseGrabber())
+    {
+        m_released = 1;
+        publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));
+    }
+}
+
 int SBGrabber::objectCount()
 {
     // 0 = not released, -1 = released

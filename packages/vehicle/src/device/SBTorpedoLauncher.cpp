@@ -47,6 +47,12 @@ void SBTorpedoLauncher::releaseObject()
     }
 }
 
+void SBTorpedoLauncher::releaseObject(int index)
+{
+    m_sensorBoard->fireTorpedo(index);
+    publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));
+}
+
 int SBTorpedoLauncher::objectCount()
 {
     return SensorBoard::NUMBER_OF_TORPEDOS - m_torpedosFired;

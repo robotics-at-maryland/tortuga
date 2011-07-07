@@ -415,6 +415,18 @@ int SensorBoard::dropMarker()
     return markerDropped;
 }
 
+int SensorBoard::dropMarkerIndex(int index)
+{
+    int markerDropped = -1;
+    if (index < NUMBER_OF_MARKERS)
+    {
+        dropMarker(index);
+        markerDropped = index;
+    }
+
+    return markerDropped;
+}
+
 int SensorBoard::fireTorpedo()
 {
 #ifdef NO_SERVOS
@@ -455,6 +467,11 @@ int SensorBoard::fireTorpedo()
 #endif // NO_SERVOS
 }
 
+int SensorBoard::fireTorpedo(int index)
+{
+    // To be implemented
+    return -1;
+}
 int SensorBoard::releaseGrabber()
 {
 #ifdef NO_SERVOS

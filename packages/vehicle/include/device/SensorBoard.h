@@ -154,12 +154,32 @@ public:
      */
     virtual int dropMarker();
 
+    /** Drops a specified marker
+     *
+     *  @param index
+     *      The number of the marker to be dropped
+     * 
+     *  @return
+     *      The number of the marker dropped, -1 if all markers are used.
+     */
+    virtual int dropMarkerIndex(int index);
+
     /** Fire a torpedo (works only NUMBER_TORPEDOS times)
      *
      *  @return
      *      The number of the torpedo fired, -1 if all torpedos are used.
      */
     virtual int fireTorpedo();
+
+    /** Fire a specifed torpedo
+     *
+     *  @param index
+     *      The number of the torpedo we want to launch
+     * 
+     *  @return
+     *      The number of the torpedo fired, -1 if all torpedos are used.
+     */
+    virtual int fireTorpedo(int index);
 
     /** Releases the object in the treasure grabber. Only works once.
      *

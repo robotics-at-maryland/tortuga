@@ -47,6 +47,12 @@ void SBMarkerDropper::releaseObject()
     }
 }
 
+void SBMarkerDropper::releaseObject(int index)
+{
+    m_sensorBoard->dropMarkerIndex(index);
+    publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));
+}
+
 int SBMarkerDropper::objectCount()
 {
     return SensorBoard::NUMBER_OF_MARKERS - m_markersDropped;

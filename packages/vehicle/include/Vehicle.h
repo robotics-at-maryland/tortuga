@@ -56,6 +56,10 @@ public:
 
     virtual void fireTorpedo();
 
+    virtual void dropMarker(int index);
+
+    virtual void fireTorpedo(int index);
+
     virtual void releaseGrabber();
     
     virtual void applyForcesAndTorques(const math::Vector3& force,

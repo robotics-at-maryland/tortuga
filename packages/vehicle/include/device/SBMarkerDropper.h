@@ -10,7 +10,7 @@
 #ifndef RAM_VEHICLE_DEVICE_SBMARKERDROPPER_07_21_2008
 #define RAM_VEHICLE_DEVICE_SBMARKERDROPPER_07_21_2008
 
-// STD Includesb
+// STD Includes
 #include <string>
 
 // Project Includes
@@ -43,6 +43,7 @@ public:
 
     // IPayloadSet methods
     virtual void releaseObject();
+    virtual void releaseObject(int index);
     virtual int objectCount();
     virtual int initialObjectCount();
 
