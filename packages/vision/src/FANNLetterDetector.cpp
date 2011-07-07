@@ -55,6 +55,7 @@ Symbol::SymbolType FANNLetterDetector::getSymbol()
 
 void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
 {
+    inputImage->setPixelFormat(Image::PF_GRAY_8);
     // True if the image is wider then it is tall
     bool wide = true;
     double width = inputImage->getWidth();
