@@ -130,21 +130,10 @@ def yaw(yawChange, speed = 30, absolute = False):
                     degrees to yaw.
     @requires motionManager
     """
-    motionManager.setMotion(basic.RateChangeHeading(yawChange, speed, absolute = absolute))
-
-@requires('motionManager')
-def yawTo(angle, speed = 30):
-    """
-    This yaws the vehicle to the specified absolute angle.
-
-    @param angle Angle to yaw to in degrees
-    @param speed Speed to yaw the vehicle
-    @see yaw
-    @requires motionManager
-    """
-    yaw(yawChange, speed, absolute = True)
-
-yaw2 = yawTo
+    if(absolute):
+        controller.rotate(math.Quaternion(math.Vector3.UNIT_Z, yawChange))
+    else:
+        controller.yawVehicle(yawChange)
 
 @requires('motionManager', 'controller', 'stateMachine')
 def allStop():
@@ -156,7 +145,6 @@ def allStop():
     stateMachine.stop()
     motionManager.stopCurrentMotion()
     controller.holdCurrentPosition()
-    controller.holdCurrentOrientation()
     controller.holdCurrentDepth()
     controller.holdCurrentHeading()
 

@@ -176,19 +176,19 @@ void ControllerBase::rotate(math::Quaternion orientation,
     m_desiredState->setDesiredAngularAccel(angularAccel);
 }
 
-void ControllerBase::yawVehicle(double degrees, double rate)
+void ControllerBase::yawVehicle(double degrees, double rate = 0)
 {
     rotate(yawVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
            math::Vector3::UNIT_Z * rate);
 }
 
-void ControllerBase::pitchVehicle(double degrees, double rate)
+void ControllerBase::pitchVehicle(double degrees, double rate = 0)
 {
     rotate(pitchVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
            math::Vector3::UNIT_Y * rate);
 }
 
-void ControllerBase::rollVehicle(double degrees, double rate)
+void ControllerBase::rollVehicle(double degrees, double rate = 0)
 {
     rotate(rollVehicleHelper(m_desiredState->getDesiredOrientation(),degrees),
            math::Vector3::UNIT_X * rate);
