@@ -33,7 +33,7 @@ TableColorFilter::TableColorFilter(std::string filepath) :
 }
 
 
-void TableColorFilter::saveLookupTable(std::string filepath, core::BitField3D filterTable)
+void TableColorFilter::saveLookupTable(std::string filepath, core::BitField3D &filterTable)
 {
     std::ofstream ofs(filepath.c_str());
     
@@ -54,9 +54,26 @@ bool TableColorFilter::loadLookupTable()
     return true;
 }
 
-void TableColorFilter::createLookupTable(std::string filepath)
+void TableColorFilter::createLookupTable(std::string filepath, 
+                                         math::ImplicitSurface &iSurface)
 {
-
+    static core::BitField3D bf(256u, 256u, 256u);
+    double c;
+    
+    for(int c1 = 0; c1 < 256; c1++) {
+        std::cout << c1 << std::endl;
+        for(int c2 = 0; c2 < 256; c2++) {
+            for(int c3 = 0; c3 < 256; c3++) {
+                c = iSurface.implicitFunctionValue(math::Vector3(c1, c2, c3));
+                if ( c < 1)
+                    bf(c1, c2, c3) = true;
+                else
+                    bf(c1, c2, c3) = false;
+            }
+        }
+    }
+    
+    saveLookupTable(filepath, bf);
 }
 
 void TableColorFilter::filterImage(Image* input, Image* output)
@@ -116,7 +133,6 @@ void TableColorFilter::inverseFilterImage(Image* input, Image* output)
         inputData += 3;
     }
 }
-
 
 } // namespace vision
 } // namespace ram

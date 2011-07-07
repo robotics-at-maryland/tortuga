@@ -3,7 +3,9 @@ Steven Friedman
 
 arg1 is image folder
 arg2 is mask folder
-
+arg3 is serial data path
+arg4 is input image path
+arg5 is save image path
 image and corresponding mask must have same name
  */
 
@@ -24,7 +26,6 @@ image and corresponding mask must have same name
 #include "math/include/ImplicitSurface.h"
 #include "core/include/BitField3D.h"
 #include "vision/include/TableColorFilter.h"
-//#include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 
 int findElement(std::string ele, std::vector<std::string> list)
@@ -53,29 +54,34 @@ cv::Mat buildTrainingSet(std::vector<cv::Mat> &images,
         
         cv::Mat img = images.at(i);
         cv::Mat mask = masks.at(maskLoc);
-
-
+        
+        //IplImage m = mask;
+        //cvNamedWindow("Window", CV_WINDOW_AUTOSIZE); 
+        //cvMoveWindow("Window", 100, 100);
+        //cvShowImage("Window", &mask);
+        //cvWaitKey(0);
+        cv::Vec3b temp;
         for(int i=0; i<img.rows; i++)
         {
             for(int j=0; j<img.cols; j++)
             {
-                cv::Vec3b temp = mask.at<cv::Vec3b>(i,j);
-                if ( mask.at<cv::Vec3b>(i,j)[0] < 250 ) { // 255 means mask is on?
+                temp = mask.at<cv::Vec3b>(i,j);
+                if ( temp[0] > 250 && temp[1] > 250 && temp[2] > 250 ) { // 255 means mask is on
                     trainingSet.push_back(img.at<cv::Vec3b>(i,j));                                
                 }
             }
         }
     }
-    cv::Mat ts = cvCreateMat(trainingSet.size(), 3, CV_32FC3); // 3 channel, 8 bit unsigned
-    
-    for ( unsigned int i=0; i<trainingSet.size(); i+=3)
+    cv::Mat ts = cvCreateMat(trainingSet.size(), 3, CV_32FC3); 
+    cv::Vec3b temp;
+    for ( unsigned int i=0; i<trainingSet.size()*3; i+=3)
     {
-        cv::Vec3b temp = trainingSet.at(i); 
+        temp = trainingSet.at(i); 
         ts.data[i] = temp[0];
         ts.data[i+1] = temp[1];
         ts.data[i+2] = temp[2];
+    
     }
-
     return ts;
 }
 
@@ -140,6 +146,20 @@ void solveRadius(cv::Mat &labels, cv::Mat &center,
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        std::cout << "Try -h for help" << std::endl;;
+        return 0;
+    } else if (strcmp(argv[1], "-h") == 0) {
+        std::cout << "arg1 is image folder" << std::endl;
+        std::cout << "arg2 is mask folder" <<  std::endl;
+        std::cout << "arg3 is serial data path" << std::endl;
+        std::cout << "arg4 is input image path" << std::endl;
+        std::cout << "arg5 is save image path" << std::endl;
+        std::cout << "please specify full path for everything" << std::endl;
+        std::cout << "image and corresponding mask must have same name" << std::endl;
+        return 0;
+    }
+
     // Initialize and load images
     std::vector<cv::Mat> images(10);
     std::vector<cv::Mat> masks(10);
@@ -153,8 +173,8 @@ int main(int argc, char* argv[])
                                            imageNames, maskNames);
  
     // Initializing variables for kmeans
-    cv::Mat labels;// = cvCreateMat(trainingSet.rows, 1, CV_8UC1); 
-    cv::Mat center(50, 3, CV_32FC3);// = cvCreateMat(50, 3, CV_8UC3);
+    cv::Mat labels;
+    cv::Mat center(50, 3, CV_32FC3);
     cv::kmeans(trainingSet, 50, labels, cv::TermCriteria(CV_TERMCRIT_ITER, 5000, 1), 
                5, cv::KMEANS_RANDOM_CENTERS, &center);
     
@@ -172,54 +192,28 @@ int main(int argc, char* argv[])
                                            center.data[i+1],
                                            center.data[i+2]);
 
-
         primitives.push_back(
             math::IPrimitive3DPtr(
                 new math::SphericalPrimitive( cent, radius[i] ) ) );
-        // sp.push_back(math::SphericalPrimitive(cent, radius.at(i))); //not needed?        
     }
 
     // Form ImplicitSurface
-    double blendingFactor = 1.0; // Whats a blending factor?
+    double blendingFactor = 1.0; 
     
     math::ImplicitSurface iSurface = 
         math::ImplicitSurface(primitives, blendingFactor);
 
+    // Creating and Saving lookup table
+    ram::vision::TableColorFilter::
+        createLookupTable(argv[3], iSurface);
 
-
-    // Generate Lookup Table
-    ram::core::BitField3D lookupTable = ram::core::BitField3D(256, 256, 256); 
-
-    
-    double c;
-    for(int c1 = 0; c1 < 256; c1++) {
-        std::cout << c1 << std::endl;
-        for(int c2 = 0; c2 < 256; c2++) {
-            for(int c3 = 0; c3 < 256; c3++) {
-                //std::cout << "check6" << std::endl;
-                c = iSurface.implicitFunctionValue(math::Vector3(c1, c2, c3));
-                if ( c < 1)
-                    lookupTable(c1, c2, c3) = true;
-                else
-                    lookupTable(c1, c2, c3) = false;
-                //std::cout << "check6" << std::endl;
-            }
-        }
-    }
-
-    // Saving Lookup Table
+    // Loading Lookup table for testing
     ram::vision::TableColorFilter tcf = 
-        ram::vision::TableColorFilter("/home/steven/stuff/testsave.serial");
-    tcf.saveLookupTable("/home/steven/stuff/testimage.serial", lookupTable);
- 
+        ram::vision::TableColorFilter(argv[3]);
     
-    // Testing Code
-
-    ram::vision::Image *input = new ram::vision::OpenCVImage("/home/steven/vehicle_refactor/images/buoy1.png",
-                ram::vision::Image::PF_BGR_8);
-      //  ram::vision::OpenCVImage();
-     //   ram::vision::OpenCVImage("/home/steven/vehicle_refactor/images/buoy1.png",
-       //         ram::vision::Image::PF_BGR_8);
+    ram::vision::Image *input = 
+        new ram::vision::OpenCVImage(argv[4],
+            ram::vision::Image::PF_BGR_8);
     
     ram::vision::Image *output = new ram::vision::OpenCVImage();
     output->copyFrom(input);
@@ -228,9 +222,12 @@ int main(int argc, char* argv[])
     
     IplImage *img = output->asIplImage();
 
-    cvNamedWindow("mainWin", CV_WINDOW_AUTOSIZE); 
-    cvMoveWindow("mainWin", 100, 100);
-    cvShowImage("mainWin", img);
+    // Displaying and Saving filtered test image
+    cvNamedWindow("myWindow", CV_WINDOW_AUTOSIZE); 
+    cvMoveWindow("myWindow", 100, 100);
+    cvSaveImage(argv[5], img);
+    cvShowImage("myWindow", img);
+    
     cvWaitKey(0);
     
     

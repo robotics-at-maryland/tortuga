@@ -20,6 +20,7 @@
 #include "core/include/ConfigNode.h"
 #include "core/include/PropertySet.h"
 #include "core/include/BitField3D.h"
+#include "math/include/ImplicitSurface.h"
 
 // Must be incldued last
 #include "vision/include/Export.h"
@@ -41,8 +42,10 @@ public:
     virtual void filterImage(Image* input, Image* output = 0);
     virtual void inverseFilterImage(Image* input, Image* output = 0);
     
-    static void saveLookupTable(std::string filepath, core::BitField3D filterTable);
-    static void createLookupTable(std::string filepath);
+    static void saveLookupTable(std::string filepath, 
+                                core::BitField3D &filterTable);
+    static void createLookupTable(std::string filepath, 
+                                  math::ImplicitSurface &iSurface);
 
 private:
     bool loadLookupTable();
