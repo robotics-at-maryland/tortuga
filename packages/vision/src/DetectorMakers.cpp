@@ -36,6 +36,7 @@
 #include "vision/include/VelocityDetector.h"
 #include "vision/include/CupidDetector.h"
 #include "vision/include/BasicLetterDetector.h"
+#include "vision/include/FANNLetterDetector.h"
 #include "vision/include/LoversLaneDetector.h"
 
 namespace ram {
@@ -67,6 +68,9 @@ registerGateDetector("GateDetector");
 
 static DetectorMakerTemplate<FeatureDetector>
 registerFeatureDetector("FeatureDetector");
+
+static DetectorMakerTemplate<FANNLetterDetector>
+registerFANNLetterDetector("FANNLetterDetector");
 
 // static DetectorMakerTemplate<SuitDetector>
 // registerSuitDetector("SuitDetector");
