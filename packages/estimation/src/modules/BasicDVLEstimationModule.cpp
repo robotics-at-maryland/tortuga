@@ -81,7 +81,7 @@ void BasicDVLEstimationModule::update(core::EventPtr event)
                         << orientation[3] << " "
                         << vel3_b[0] << " "
                         << vel3_b[1] << " "
-                        << vel3_b[2]
+                        << vel3_b[2] << " "
                         << vel3_n[0] << " "
                         << vel3_n[1] << " "
                         << vel3_n[2] << " "
