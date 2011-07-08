@@ -91,6 +91,45 @@ TEST(normalizeWeights)
     }
 
     CHECK_CLOSE(1.0, sum, 0.0001);
+}
+
+TEST(update)
+{
+    EventHubPtr eventHub = EventHubPtr(new EventHub());
+    EstimatedStatePtr estState = EstimatedStatePtr(new EstimatedState(core::ConfigNode::fromString("{}"),
+                                                                      eventHub));
+
+    ObstaclePtr obstacle = ObstaclePtr(new Obstacle());
+    estState->addObstacle(Obstacle::RED_BUOY, obstacle);
+    ParticleBuoyEstimationModule mod = ParticleBuoyEstimationModule(core::ConfigNode::fromString(
+                                                                        "{"
+                                                                        "'RedBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'GreenBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'YellowBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    }"
+                                                                        "}"),
+                                                                    eventHub,
+                                                                    estState,
+                                                                    Obstacle::RED_BUOY,
+                                                                    vision::EventType::BUOY_FOUND);
+
 
     ram::vision::BuoyEventPtr buoyEvent = ram::vision::BuoyEventPtr(new ram::vision::BuoyEvent());
 
@@ -98,15 +137,7 @@ TEST(normalizeWeights)
     mod.update(buoyEvent);
     mod.update(buoyEvent);
     mod.update(buoyEvent);
-    mod.update(buoyEvent);
-    mod.update(buoyEvent);
-    mod.update(buoyEvent);
-    mod.update(buoyEvent);
-    mod.update(buoyEvent);
-    mod.update(buoyEvent);
 }
-
-
 TEST(particleComparator)
 {
     Particle3D p1 = Particle3D();
@@ -134,7 +165,29 @@ TEST(getBestEstimate)
 
     ObstaclePtr obstacle = ObstaclePtr(new Obstacle());
     estState->addObstacle(Obstacle::RED_BUOY, obstacle);
-    ParticleBuoyEstimationModule mod = ParticleBuoyEstimationModule(core::ConfigNode::fromString("{}"),
+    ParticleBuoyEstimationModule mod = ParticleBuoyEstimationModule(core::ConfigNode::fromString("{"
+                                                                        "'RedBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'GreenBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'YellowBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    }"
+                                                                        "} "),
                                                                     eventHub,
                                                                     estState,
                                                                     Obstacle::RED_BUOY,
