@@ -50,7 +50,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return { 'rate': 1.0/3.0 }
+        return { 'rate': 0.2 }
     
     def enter(self):
         # Go to 5 feet down
@@ -79,7 +79,7 @@ class Forward(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 5 , 'avgRate' : 0.2}
+        return { 'distance' : 5 , 'avgRate' : 0.15}
 
     def enter(self):
         forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(

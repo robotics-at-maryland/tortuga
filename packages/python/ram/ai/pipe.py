@@ -321,7 +321,7 @@ class PipeFollowingState(PipeTrackingState):
         dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.5)
         
         yawGain = self._config.get('yawGain', 0.3)
-        maxSpeed = self._config.get('forwardSpeed', 5)
+        self._forwardSpeed = self._config.get('forwardSpeed', 0.15)
         maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         
         self._forwardRate = self._config.get('forwardRate', 1)
@@ -343,7 +343,8 @@ class PipeFollowingState(PipeTrackingState):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = self._currentDesiredPos,
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
 
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -375,7 +376,8 @@ class PipeFollowingState(PipeTrackingState):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = self._currentDesiredPos,
-            initialRate = ext.math.Vector2.ZERO)
+            initialRate = ext.math.Vector2.ZERO,
+            avgRate = self._forwardSpeed)
         
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -422,7 +424,7 @@ class Start(state.State):
             initialValue = self.stateEstimator.getEstimatedDepth(),
             finalValue = desiredDepth,
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._config.get('speed', 1.0/3.0))
+            avgRate = self._config.get('speed', 0.2))
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
@@ -455,7 +457,7 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             ahead = ext.math.Vector3(event.x, event.y, 0)
             quat = ext.math.Vector3.UNIT_Y.getRotationTo(ahead)
             self._direction = quat.getYaw(True)
-            self._speed = self._config.get('speed', 0.5)
+            self._speed = self._config.get('speed', 0.15)
 
             currentOrientation = self.stateEstimator.getEstimatedOrientation()
             yawTrajectory = motion.trajectories.StepTrajectory(
@@ -467,7 +469,8 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
                 initialValue = ext.math.Vector2.ZERO,
                 finalValue = ext.math.Vector2(5,0),
-                initialRate = self.stateEstimator.getEstimatedVelocity())
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = self._speed)
 
             yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
             translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -488,7 +491,7 @@ class Searching(PipeTrackingState):
 
     @staticmethod
     def getattr():
-        return set(['forwardSpeed'])
+        return {'forwardSpeed' : 0.15}
 
     def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -502,27 +505,20 @@ class Searching(PipeTrackingState):
         self.visionSystem.pipeLineDetectorOn()
 
         # Set the start orientation if it isn't already set
-        orientation = self.stateEstimator.getEstimatedOrientation()
-        direction = self.ai.data.setdefault('pipeStartOrientation',
-                                            orientation.getYaw().valueDegrees())
+        #orientation = self.stateEstimator.getEstimatedOrientation()
+        #direction = self.ai.data.setdefault('pipeStartOrientation',
+        #                                    orientation.getYaw())
 
         #TODO: Change this back into a ZigZag motion
-        currentOrientation = self.stateEstimator.getEstimatedOrientation()
-        yawTrajectory = motion.trajectories.StepTrajectory(
-            initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, self.ai.data.setdefault('pipeStartOrientation',orientation.getYaw().valueDegrees())),
-            initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = ext.math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(5,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
         
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         
-        self.motionManager.setMotion(yawMotion)
         self.motionManager.setMotion(translateMotion)
 
 class Seeking(PipeFollowingState):
@@ -641,13 +637,14 @@ class AlongPipe(PipeFollowingState):
         # Load our configuration settings
         self._lastPipeLoc = None
         self._angleDistance = self._config.get('angleDistance', 0.5)
-        maxSpeed = self._config.get('forwardSpeed', 5)
+        forwardSpeed = self._config.get('forwardSpeed', 0.15)
         
         # Create our new motion to follow the pipe straight forward
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(10,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = forwardSpeed)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         self.motionManager.setMotion(translateMotion)
@@ -670,7 +667,7 @@ class BetweenPipes(PipeTrackingState):
 
     @staticmethod
     def getattr():
-        return set(['forwardTime', 'distance'])
+        return set(['forwardTime', 'distance', 'forwardSpeed'])
     
     def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -682,6 +679,7 @@ class BetweenPipes(PipeTrackingState):
         PipeTrackingState.enter(self)
         
         forwardTime = self._config.get('forwardTime', 15)
+        forwardSpeed = self._config.get('forwardSpeed', 0.15)
         self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 
                                                 forwardTime)
         self.timer.start()
@@ -689,7 +687,8 @@ class BetweenPipes(PipeTrackingState):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = ext.math.Vector2(self._config.get('distance', 5),0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = forwardSpeed)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         self.motionManager.setMotion(translateMotion)

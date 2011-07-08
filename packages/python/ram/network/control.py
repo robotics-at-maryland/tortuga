@@ -197,7 +197,7 @@ class RemoteController(core.Subsystem):
             pass
         else:
             ori = self._estimator.getEstimatedOrientation()
-            qHeading = self._controller.holdCurrentHeadingHelper(ori)
+            qHeading = control.holdCurrentHeadingHelper(ori)
             self._controller.rotate(qHeading * math.Quaternion(
                     math.Degree(change), math.Vector3.UNIT_Z))
             self._lastYawCommand = change
