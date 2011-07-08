@@ -143,11 +143,20 @@ bool PlotApp::OnInit()
     PlotPanel *angularRateZComponentPanel = new Vector3ComponentPlot(
         frame, m_eventHub, angularRateSeries, 2,
         wxT("Angular Rate Z-Component"), wxT("Angular Rate Z-Component"));
+
+
+    EventSeriesMap obstacleEventSeries;
+    obstacleEventSeries[estimation::IStateEstimator::ESTIMATED_OBSTACLE_UPDATE] =
+        DataSeriesInfo("Obstacles", wxPen(wxColour(wxT("RED"))), 3);
+
+    PlotPanel *obstaclePanel = new ObstacleLocationPlot(
+        frame, m_eventHub, obstacleEventSeries,
+        wxT("Obstacle Location"), wxT("Obstacle Location"));
     
-    velocityXComponentPanel->info().Show().Left();
-    velocityYComponentPanel->info().Show().Left();
     positionXComponentPanel->info().Show().Right();
     positionYComponentPanel->info().Show().Right();
+    depthPanel->info().Show().Left();
+    obstaclePanel->info().Show().Left();
     
     // add the panels
     frame->addPanel(depthPanel, depthPanel->info(), depthPanel->name());
@@ -179,6 +188,7 @@ bool PlotApp::OnInit()
     frame->addPanel(angularRateZComponentPanel, angularRateZComponentPanel->info(),
                     angularRateZComponentPanel->name());
 
+    frame->addPanel(obstaclePanel, obstaclePanel->info(), obstaclePanel->name());
 
     // show it
     SetTopWindow(frame);

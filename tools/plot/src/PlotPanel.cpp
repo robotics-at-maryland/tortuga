@@ -496,16 +496,12 @@ void Vector3ComponentPlot::update(core::EventPtr event)
 }
 
 ObstacleLocationPlot::ObstacleLocationPlot(wxWindow *parent, core::EventHubPtr eventHub,
-                                           EventSeriesMap series, unsigned int component,
+                                           EventSeriesMap series,
                                            wxString name, wxString caption) :
     EventBased(eventHub),
     PlotPanel(parent),
-    m_series(series),
-    m_component(component)
+    m_series(series)
 {
-    assert((m_component >= 0 || m_component <= 2) &&
-           "Component must be either 0, 1, or 2");
-
     m_name = name;
     m_caption = caption;
 

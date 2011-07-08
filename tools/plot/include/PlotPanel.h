@@ -197,7 +197,7 @@ class ObstacleLocationPlot : public EventBased, public PlotPanel
 {
 public:
     ObstacleLocationPlot(wxWindow* parent, core::EventHubPtr eventHub,
-                         EventSeriesMap series, unsigned int component,
+                         EventSeriesMap series,
                          wxString name, wxString caption = wxT(""));
 
     ~ObstacleLocationPlot() {}
@@ -206,7 +206,6 @@ public:
 
 private:
     EventSeriesMap m_series;
-    unsigned int m_component;
     std::map<core::Event::EventType, math::Vector3> m_prevData;
 };
 
