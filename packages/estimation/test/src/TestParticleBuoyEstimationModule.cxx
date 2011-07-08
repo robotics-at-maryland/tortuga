@@ -38,7 +38,30 @@ TEST(normalizeWeights)
 
     ObstaclePtr obstacle = ObstaclePtr(new Obstacle());
     estState->addObstacle(Obstacle::RED_BUOY, obstacle);
-    ParticleBuoyEstimationModule mod = ParticleBuoyEstimationModule(core::ConfigNode::fromString("{}"),
+    ParticleBuoyEstimationModule mod = ParticleBuoyEstimationModule(core::ConfigNode::fromString(
+                                                                        "{"
+                                                                        "'RedBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'GreenBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    },"
+                                                                        "'YellowBuoy' : {"
+                                                                        "    'location' : [0, 0, 0],"
+                                                                        "    'covariance' : [[1, 0, 0],"
+                                                                        "                    [0, 1, 0],"
+                                                                        "                    [0, 0, 1]],"
+                                                                        "    'attackHeading' : 0"
+                                                                        "    }"
+                                                                        "}"),
                                                                     eventHub,
                                                                     estState,
                                                                     Obstacle::RED_BUOY,
@@ -71,6 +94,15 @@ TEST(normalizeWeights)
 
     ram::vision::BuoyEventPtr buoyEvent = ram::vision::BuoyEventPtr(new ram::vision::BuoyEvent());
 
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
+    mod.update(buoyEvent);
     mod.update(buoyEvent);
 }
 

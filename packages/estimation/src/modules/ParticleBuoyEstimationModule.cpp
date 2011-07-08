@@ -48,6 +48,7 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
 {
     m_numParticles = config["numParticles"].asInt(200);
 
+    std::cout << m_initialUncertainty << std::endl;
     // generate the initial particles
     boost::normal_distribution<float>
         initialX(static_cast<float>(m_initialGuess[0]),
@@ -93,6 +94,8 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
     m_invIntrinsicParameters = math::Matrix3(cameraFocalX, 0, 0,
                                              0, cameraFocalY, 0,
                                              0, 0, 1);
+
+    std::cout << "Constructor Succeeded" << std::endl;
 }
 
 void ParticleBuoyEstimationModule::update(core::EventPtr event)
@@ -123,6 +126,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     math::Quaternion estOrientation = m_estimatedState->getEstimatedOrientation();
 
     // calculate the expected image coordinates
+    std::cout << "Calculating image coordinates" << std::endl;
     BOOST_FOREACH(Particle3D &particle, m_particles)
     {
         particle.imgCoords = world2img(
@@ -137,6 +141,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     }
     normalizeWeights();
 
+    std::cout << "Calculating need for rejuvination" << std::endl;
     // compute a measure of the number of particles with non-negligible weights
     double sumLhSq = 0;
     BOOST_FOREACH(Particle3D &particle, m_particles)
@@ -148,9 +153,12 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     // always keep at least 10 particles
     if(numEffective < 10)
         numEffective = 10;
+
+    std::cout << numEffective << " particles left" << std::endl;
     
     math::Vector3 bestEstimate = getBestEstimate();
-    math::Matrix3 spread = getCovariance();
+    math::Matrix3 spread = math::Matrix3(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5);//getCovariance();
+    std::cout << "Spread: " << spread << std::endl;
     
     // particle rejuvination
     if(numEffective < m_numParticles / 3)
@@ -165,11 +173,15 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         m_placeholder.assign(m_particles.begin(), m_particles.begin() + numEffective);
         m_particles.swap(m_placeholder);
 
+        std::cout << "generating new particles" << std::endl;
         // generate new particles
         boost::normal_distribution<float>
-            resampleXDist(bestEstimate[0], spread[0][0]),
-            resampleYDist(bestEstimate[1], spread[1][1]),
-            resampleZDist(bestEstimate[2], spread[2][2]);
+            resampleXDist(static_cast<float>(bestEstimate[0]),
+                          static_cast<float>(spread[0][0])),
+            resampleYDist(static_cast<float>(bestEstimate[1]),
+                          static_cast<float>(spread[1][1])),
+            resampleZDist(static_cast<float>(bestEstimate[2]),
+                          static_cast<float>(spread[2][2]));
 
         boost::mt19937 rng;
         boost::variate_generator<boost::mt19937&, boost::normal_distribution<float> > 
@@ -177,6 +189,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
             resampleYGen(rng, resampleYDist),
             resampleZGen(rng, resampleZDist);
 
+        std::cout << "made generators" << std::endl;
         int particlesToGenerate = m_numParticles - m_particles.size();
         for(int i = 0; i < particlesToGenerate; i++)
         {
@@ -192,6 +205,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         normalizeWeights();
     }
 
+    std::cout << "setting state" << std::endl;
     m_estimatedState->setObstacleLocation(m_obstacle, bestEstimate);
     m_estimatedState->setObstacleLocationCovariance(m_obstacle, spread);
 
