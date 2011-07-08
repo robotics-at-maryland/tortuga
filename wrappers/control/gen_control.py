@@ -20,7 +20,6 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion.already_exposed = True
     Quaternion.constructors().allow_implicit_conversion = False
 
-
     # Include controller classes
     IController = local_ns.class_('IController')
     IController.include()

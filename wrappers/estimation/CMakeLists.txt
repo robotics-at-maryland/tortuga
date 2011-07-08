@@ -2,6 +2,7 @@
 if (RAM_WITH_ESTIMATION)
   set(WRAPPED_HEADERS
     IStateEstimator.h
+    Events.h
     )
 
   gccxml( estimation "${WRAPPED_HEADERS}" )
