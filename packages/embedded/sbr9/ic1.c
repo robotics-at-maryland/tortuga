@@ -757,6 +757,76 @@ void showBootDiag(int mode)
         sprintf(tmp, "B5: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0);
         showString(tmp, 0);
 
+        /* 12 and 13 are the 26V rail btw. We don't check them in diag */
+        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);
+        showString(tmp, 1);
+    }
+
+    if(mode == 7)
+    {
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        {
+            showString("BATTI READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 12)
+        {
+            showString("BATTI LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0);
+        showString(tmp, 0);
+
+        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);
+        showString(tmp, 1);
+    }
+
+    if(mode == 8)
+    {
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        {
+            showString("BATTI READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 12)
+        {
+            showString("BATTI LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0);
+        showString(tmp, 0);
+
+        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);
+        showString(tmp, 1);
+    }
+
+    if(mode == 9)
+    {
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        {
+            showString("BATTI READ FAIL ", 0);
+            return;
+        }
+
+        int len = readDataBlock(SLAVE_ID_BATTSTAT);
+
+        if(len != 12)
+        {
+            showString("BATTI LEN FAIL  ", 0);
+            return;
+        }
+
+        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0);
+        showString(tmp, 0);
+
         sprintf(tmp, "B6: %2.3fV    ", (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);
         showString(tmp, 1);
     }
@@ -775,7 +845,7 @@ void diagBootMode()
         if(pollStartSw())
         {
             mode++;
-            if(mode == 7)
+            if(mode == 10)
             {
                 showString("Diagnostic Mode ", 0);
                 mode = 0;

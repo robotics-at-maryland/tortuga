@@ -153,18 +153,15 @@ _FWDT ( WDT_OFF );
 
 /* ADC Inputs */
 
+#define ADC_B1V     0x0B
+#define ADC_B2V     0x09
+#define ADC_B3V     0x07
+#define ADC_B4V     0x03
+
 #ifdef BBR3
-    #define ADC_B1V     0x0B
-    #define ADC_B2V     0x09
-    #define ADC_B3V     0x07
-    #define ADC_B4V     0x03
     #define ADC_B5V     0x05
-    #define ADC_B6V     0x0F
+    #define ADC_B6V     0x0F  /* External Power */
 #else
-    #define ADC_B1V     0x0B
-    #define ADC_B2V     0x09
-    #define ADC_B3V     0x07
-    #define ADC_B4V     0x03
     #define ADC_B5V     0x0F /* This is a dummy (There is not 6 battery slots on BBR2) */
     #define ADC_B6V     0x05
 #endif
@@ -406,7 +403,7 @@ void processData(byte data)
                     byte i;
 
                     /* Battery voltages. Big-endian. */
-                    for(i=0; i < 7; i++)
+                    for(i=0; i < BATT_COUNT+1; i++)
                     {
                         unsigned int t = vBatt[i];
                         txBuf[2*i+1] = t >> 8;
@@ -964,7 +961,7 @@ void main()
         static const byte vADCs[]={ADC_B1V, ADC_B2V, ADC_B3V, ADC_B4V, ADC_B5V, ADC_B6V, ADC_26V};
 
         /* Measure battery voltages */
-        for(i=0; i < 7; i++) {
+        for(i=0; i < BATT_COUNT+1; i++) {
 #ifdef BBR2
             /* There is no fifth battery in BBR2, so skip it */
             if(i == 4) { vBatt[4]= 0; continue; }
