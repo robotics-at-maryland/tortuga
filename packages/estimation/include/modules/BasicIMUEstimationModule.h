@@ -37,7 +37,7 @@
 namespace ram {
 namespace estimation {
 
-const static int FILTER_SIZE = 10;
+const static int FILTER_SIZE = 30;
 
 typedef std::set<std::string> StringSet;
 
