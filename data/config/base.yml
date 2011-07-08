@@ -125,7 +125,7 @@ Vehicle:
             # on the vehicle)
             direction: 1
             # Vector in body coordinate system from center of mass
-            location: [0.00, 0.20, -0.02]
+            location: [0.00, 0.20, 0.00]
 
         PortThruster:
             depends_on: ['SensorBoard']
@@ -134,7 +134,7 @@ Vehicle:
             address: 0
             calibration_factor: 25
             direction: 1
-            location: [0.00, -0.20, -0.02]
+            location: [0.00, -0.20, 0.00]
 
         ForeThruster:
             depends_on: ['SensorBoard']
@@ -143,7 +143,7 @@ Vehicle:
             address: 3
             calibration_factor: 25
             direction: -1
-            location: [0.365, 0.00, -0.08]
+            location: [0.4, 0.00, 0.00]
 
         AftThruster:
             depends_on: ['SensorBoard']
@@ -152,7 +152,7 @@ Vehicle:
             address: 5
             calibration_factor: 25
             direction: -1
-            location: [-0.50, 0.00, -0.08]
+            location: [-0.40, 0.00, 0.00]
 
         TopThruster:
             depends_on: ['SensorBoard']
@@ -161,7 +161,7 @@ Vehicle:
             address: 2
             calibration_factor: 25
             direction: 1
-            location: [0.08, -0.08, -0.12]
+            location: [0.09, -0.0, -0.13]
 
         BottomThruster:
             depends_on: ['SensorBoard']
@@ -169,7 +169,7 @@ Vehicle:
             address: 4
             calibration_factor: 25
             direction: -1
-            location: [0.08, 0.08, 0.12]
+            location: [0.09, 0.0, 0.10]
             
         MagBoom:
             type: IMU
@@ -233,8 +233,8 @@ RemoteController:
     type: RemoteController
     depends_on: ["QueuedEventHub", "Vehicle", "StateEstimator", "Controller"]
     yawGain: 30
-    speedGain: 3
-    tSpeedGain: 3
+    speedGain: 2
+    tSpeedGain: 2
 
 NetworkController:
     type: NetworkController
@@ -305,6 +305,36 @@ Logging:
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
+        BuoyDetectorLog:
+            type: File
+            filename: buoyDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        LoversLaneDetectorLog:
+            type: File
+            filename: loversLaneDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        CupidDetectorLog:
+            type: File
+            filename: cupidDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        BinsDetectorLog:
+            type: File
+            filename: binsDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        PipeDetectorLog:
+            type: File
+            filename: pipeDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
         CameraLog:
             type: File
             fileName: camera.log
@@ -336,6 +366,16 @@ Logging:
             appenders: ['StEstDepthLog']
         StEstIMU:
             appenders: ['StEstIMULog']
+        BuoyDetector:
+            appenders: ['BuoyDetectorLog']
+        LoversLaneDetector:
+            appenders: ['LoversLaneDetectorLog']
+        BinsDetector:
+            appenders: ['BinsDetectorLog']
+        CupidDetector:
+            appenders: ['CupidDetectorLog']
+        PipeDetector:
+            appenders: ['PipeDetectorLog']
         Vehicle:
             appenders: ['VehicleLog']
         Camera:
@@ -346,8 +386,26 @@ StateEstimator:
     type: ModularStateEstimator
     depends_on: ["EventHub", "Vehicle"]
     DepthEstimationModule:
-        degree: 2
+        degree: 3
         windowSize: 81
+    # GreenBuoy:
+    #     location: [0, 0, 8]
+    #     covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    #     attackHeading: 0
+    # GreenBuoyEstimationModule:
+    #     numParticles: 200
+    # YellowBuoy:
+    #     location: [0, 0, 8]
+    #     covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    #     attackHeading: 0
+    # YellowBuoyEstimationModule:
+    #     numParticles: 200
+    RedBuoy:
+        location: [0, 0, 8]
+        covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+        attackHeading: 0
+    RedBuoyEstimationModule:
+        numParticles: 200
 
 Controller:
     depends_on: ["Vehicle", "EventHub", "StateEstimator"]
@@ -370,10 +428,10 @@ Controller:
         type: TrackingTranslationalController
         x1kp: 25
         x1ki: 1
-        x1kd: 12
+        x1kd: 20
         x2kp: 25
         x2ki: 1
-        x2kd: 12
+        x2kd: 20
 
         # type: OpenLoopTranslationalController
         # speedPGain: 8
@@ -389,8 +447,8 @@ Controller:
 
     RotationalController:
         type: NonlinearPDRotationalController
-        kp: 15
-        kd: 5
+        kp: 22.5
+        kd: 2
         dtMin: 0.005
         dtMax: 0.1
         desiredOrientation: [0, 0, 0, 1]

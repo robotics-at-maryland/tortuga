@@ -42,7 +42,7 @@ OrangePipeDetector:
     rOverGMax: 2.41 #1.5 (NEW# 2.16)
     bOverRMax: 0.75  #(NEW# 2.25)
     filtLMax: 255
-    filtLMin: 0
+    filtLMin: 152
     filtUMax: 191
     filtUMin: 95
     filtVMax: 210
@@ -52,7 +52,6 @@ OrangePipeDetector:
     minPixels: 3000
     minPixelsFound: 1500
     erodeIterations: 1
-    useLUVFilter: true
 BinDetector:
     symbolDetector: BasicWeaponDetector
     logSymbolImages: false
@@ -165,30 +164,30 @@ VelocityDetector:
 
 BuoyDetector:
     debug: 0
-    filtGreenCMax: 223
-    filtGreenCMin: 33
-    filtGreenHMax: 115
-    filtGreenHMin: 70
-    filtGreenLMax: 255
-    filtGreenLMin: 80 #120
+    filtGreenCMax: 255
+    filtGreenCMin: 0
+    filtGreenHMax: 152
+    filtGreenHMin: 92
+    filtGreenLMax: 200
+    filtGreenLMin: 0 #120
     filtRedCMax: 255
-    filtRedCMin: 28
-    filtRedHMax: 35
-    filtRedHMin: 255
-    filtRedLMax: 230
-    filtRedLMin: 120
-    filtYellowCMax: 230
-    filtYellowCMin: 30
-    filtYellowHMax: 87
-    filtYellowHMin: 35
-    filtYellowLMax: 240
-    filtYellowLMin: 80 #120
+    filtRedCMin: 0
+    filtRedHMax: 6
+    filtRedHMin: 201
+    filtRedLMax: 197
+    filtRedLMin: 0
+    filtYellowCMax: 255
+    filtYellowCMin: 0
+    filtYellowHMax: 112
+    filtYellowHMin: 36
+    filtYellowLMax: 204
+    filtYellowLMin: 0 #120
     maxAspectRatio: 1.5
     minAspectRatio: 0.6
-    minHeight: 20
+    minHeight: 15
     minPixelPercentage: 0.5
     minPixels: 15
-    minWidth: 25
+    minWidth: 20
     almostHitPercentage: 0.17
 WindowDetector:
     debug: 0
