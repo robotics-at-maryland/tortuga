@@ -152,7 +152,8 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         numEffective = 10;
 
     math::Vector3 bestEstimate = getBestEstimate();
-    math::Matrix3 spread = math::Matrix3(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5);//getCovariance();
+    math::Matrix3 spread = getCovariance();
+    std::cout << spread << std::endl;
 
     // particle rejuvination
     if(numEffective < m_numParticles / 3)
@@ -286,53 +287,28 @@ void ParticleBuoyEstimationModule::normalizeWeights()
 math::Matrix3 ParticleBuoyEstimationModule::getCovariance()
 {
     size_t n = m_particles.size();
-    double sumx = 0, sumy = 0, sumz = 0;
-    double sumxx = 0, sumxy = 0, sumxz = 0;
-    double sumyy = 0, sumyz = 0;
-    double sumzz = 0;
 
+    math::Vector3 expValues = math::Vector3::ZERO;
     BOOST_FOREACH(Particle3D &particle, m_particles)
     {
-        double x = particle.location[0];
-        double y = particle.location[1];
-        double z = particle.location[2];
-
-        sumx += x;
-        sumy += y;
-        sumz += z;
-
-        sumxx = x * x;
-        sumxy = x * y;
-        sumxz = x * z;
-        
-        sumyy = y * y;
-        sumyz = y * z;
-        
-        sumzz = z * z;
+        expValues += particle.location;
     }
-
-    double ex = sumx / n;
-    double ey = sumy / n;
-    double ez = sumz / n;
-
-    double exx = sumxx / n;
-    double exy = sumxy / n;
-    double exz = sumxz / n;
-    double eyy = sumyy / n;
-    double eyz = sumyz / n;
-    double ezz = sumzz / n;
-
-    double covxx = exx - ex * ex;
-    double covyy = eyy - ey * ey;
-    double covzz = ezz - ez * ez;
+    expValues /= n;
     
-    double covxy = exy - ex * ey;
-    double covxz = exz - ex * ez;
-    double covyz = eyz - ey * ez;
-
-    return math::Matrix3(covxx, covxy, covxz,
-                         covxy, covyy, covyz,
-                         covxz, covyz, covzz);
+    math::Matrix3 covariance(math::Matrix3::ZERO);
+    BOOST_FOREACH(Particle3D &particle, m_particles)
+    {
+        for(int x = 0; x < 3; x++)
+        {
+            for(int y = 0; y < 3; y++)
+            {
+                double xval = particle.location[x] - expValues[x];
+                double yval = particle.location[y] - expValues[y];
+                covariance[x][y] += (xval * yval / n);
+            }
+        }
+    }
+    return covariance;
 }
 
 } // namespace estimation
