@@ -1051,8 +1051,6 @@ class Dive(HoveringState):
         minimumDepth = self._config.get('minimumDepth', 0.5)
         if binDepth < minimumDepth:
             binDepth = minimumDepth
-
-        print binDepth
         
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
@@ -1062,7 +1060,6 @@ class Dive(HoveringState):
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
             
-        print 'starting dive'
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
@@ -1597,7 +1594,6 @@ class DropMarker(SettlingState):
         value = 0
         for symbol in targetSymbols:
             if symbol == droppingSymbol:
-                print('found')
                 break
             else:
                 value = value + 1

@@ -225,15 +225,11 @@ class TranslationSeeking(PingerState):
         #self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
     
     def FINISHED(self, event):
-        print 'RECALCULATE'
         self._recalculate = True
         
     def UPDATE(self, event):
-        print('tseek')
         PingerState.UPDATE(self, event)
-        print('omgfuck')
         if self._isNewPing(event):
-            print('dix')
             # Converting from the vehicle reference frame, to the image space
             # reference frame used by the pipe motion
             self._pipe.setState(-event.direction.y, event.direction.x, 
@@ -246,9 +242,6 @@ class TranslationSeeking(PingerState):
                                                        self._distance)) or self._recalculate:
                 self._recalculate = False
                 return
-
-            print(self._pipe.getY())
-            print(self._pipe.getX())
             
             self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() *
                                                        self._distance, 
