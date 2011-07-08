@@ -54,13 +54,13 @@ public:
     virtual void update(core::EventPtr event);
         
 private:
-    float likelihood2D(math::Vector2 mean, math::Matrix2 covariance,
+    double likelihood2D(math::Vector2 mean, math::Matrix2 covariance,
                        math::Vector2 location);
 
-    float likelihood3D(math::Vector3 mean, math::Matrix3 covariance,
+    double likelihood3D(math::Vector3 mean, math::Matrix3 covariance,
                        math::Vector3 location);
 
-    float gaussian1DLikelihood(float mean, float stdDev, float location);
+    double gaussian1DLikelihood(double mean, double stdDev, double location);
 
     math::Vector3 getBestEstimate();
     math::Matrix3 getCovariance();
@@ -104,9 +104,9 @@ private:
     std::vector<Particle3D> m_particles;
     std::vector<Particle3D> m_placeholder;
 
-    // using float to reduce computation precision
+    // using double to reduce computation precision
     // we should not need the double precision to get good results
-    // boost::math::normal_distribution<float> m_stdNormal;
+    // boost::math::normal_distribution<double> m_stdNormal;
 };
 } // namespace estimation
 } // namespace ram

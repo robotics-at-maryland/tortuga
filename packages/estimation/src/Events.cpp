@@ -12,16 +12,16 @@
 // Library Includes
 
 // Project Includes
+#include "core/include/Feature.h"
 #include "estimation/include/Events.h"
 
 #if defined(RAM_WITH_WRAPPERS)
 #include "core/include/EventConverter.h"
 
 static ram::core::SpecificEventConverter<ram::estimation::ObstacleEvent>
-RAM_ESTIMATION_OBSTACLEEVENT;
+RAM_ESTIMATION_OBSTACLE_EVENT;
 
 #endif //RAM_WITH_WRAPPERS
-
 
 namespace ram {
 namespace estimation {

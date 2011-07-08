@@ -49,16 +49,13 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
     m_numParticles = config["numParticles"].asInt(200);
 
     // generate the initial particles
-    boost::normal_distribution<float>
-        initialX(static_cast<float>(m_initialGuess[0]),
-                 static_cast<float>(m_initialUncertainty[0][0])),
-        initialY(static_cast<float>(m_initialGuess[1]),
-                 static_cast<float>(m_initialUncertainty[1][1])),
-        initialZ(static_cast<float>(m_initialGuess[2]),
-                 static_cast<float>(m_initialUncertainty[2][2]));
+    boost::normal_distribution<double>
+        initialX(m_initialGuess[0], m_initialUncertainty[0][0]),
+        initialY(m_initialGuess[1], m_initialUncertainty[1][1]),
+        initialZ(m_initialGuess[2], m_initialUncertainty[2][2]);
 
     boost::mt19937 rng;
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<float> > 
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> > 
         initialXGen(rng, initialX),
         initialYGen(rng, initialY),
         initialZGen(rng, initialZ);
@@ -132,7 +129,8 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
             estCameraLocation,
             estOrientation,
             m_intrinsicParameters);
-
+        
+        
         particle.likelihood *= likelihood2D(objImageCoords,
                                             objImageCoordsUncertainty,
                                             particle.imgCoords);
@@ -151,9 +149,8 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     if(numEffective < 10)
         numEffective = 10;
 
-    math::Vector3 bestEstimate = getBestEstimate();
-    math::Matrix3 spread = getCovariance();
-    std::cout << spread << std::endl;
+    math::Vector3 bestEstimate(math::Vector3::ZERO);
+    math::Matrix3 spread(math::Matrix3::ZERO);
 
     // particle rejuvination
     if(numEffective < m_numParticles / 3)
@@ -168,26 +165,31 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         m_placeholder.assign(m_particles.begin(), m_particles.begin() + numEffective);
         m_particles.swap(m_placeholder);
 
-        // BOOST_FOREACH(Particle3D particle, m_particles)
-        // {
-        //     // std::cout << particle.location.x << " " 
-        //     //           << particle.location.y << " " 
-        //     //           << particle.location.z << " " 
-        //     //           << particle.likelihood << std::endl;
-        // }
+        bestEstimate = getBestEstimate();
+        spread = getCovariance();
+
+        std::cout << "Best Estimate: ";
+        std::cout << bestEstimate << std::endl;
+        std::cout << spread << std::endl;
+    
+        std::cout << "Particles Left" << std::endl;
+        BOOST_FOREACH(Particle3D particle, m_particles)
+        {
+            std::cout << particle.location.x << " " 
+                      << particle.location.y << " " 
+                      << particle.location.z << " " 
+                      << particle.likelihood << std::endl;
+        }
         
         // std::cout << "generating new particles" << std::endl;
         // generate new particles
-        boost::normal_distribution<float>
-            resampleXDist(static_cast<float>(bestEstimate[0]),
-                          static_cast<float>(spread[0][0])),
-            resampleYDist(static_cast<float>(bestEstimate[1]),
-                          static_cast<float>(spread[1][1])),
-            resampleZDist(static_cast<float>(bestEstimate[2]),
-                          static_cast<float>(spread[2][2]));
+        boost::normal_distribution<double>
+            resampleXDist(bestEstimate[0], spread[0][0]),
+            resampleYDist(bestEstimate[1], spread[1][1]),
+            resampleZDist(bestEstimate[2], spread[2][2]);
 
         boost::mt19937 rng;
-        boost::variate_generator<boost::mt19937&, boost::normal_distribution<float> > 
+        boost::variate_generator<boost::mt19937&, boost::normal_distribution<double> > 
             resampleXGen(rng, resampleXDist),
             resampleYGen(rng, resampleYDist),
             resampleZGen(rng, resampleZDist);
@@ -218,36 +220,42 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     publish(IStateEstimator::ESTIMATED_OBSTACLE_UPDATE, obstacleEvent);
 }
 
-float ParticleBuoyEstimationModule::likelihood2D(
+double ParticleBuoyEstimationModule::likelihood2D(
     math::Vector2 mean, math::Matrix2 covariance,
     math::Vector2 location)
 {
-    float xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
-    float yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
+    std::cout << "2D \n" << mean << "\n" << covariance << "\n" << location << std::endl;
+    double xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
+    double yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
 
     return xL * yL;
 }
 
 
-float ParticleBuoyEstimationModule::likelihood3D(
+double ParticleBuoyEstimationModule::likelihood3D(
     math::Vector3 mean, math::Matrix3 covariance,
     math::Vector3 location)
 {
-    float xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
-    float yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
-    float zL = gaussian1DLikelihood(mean[2], covariance[2][2], location[2]);
+    std::cout << "3D \n" << mean << "\n" << covariance << "\n" << location << std::endl;
+    double xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
+    double yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
+    double zL = gaussian1DLikelihood(mean[2], covariance[2][2], location[2]);
 
     return xL * yL * zL;
 }
 
 
-float ParticleBuoyEstimationModule::gaussian1DLikelihood(
-    float mean, float stdDev, float location)
+double ParticleBuoyEstimationModule::gaussian1DLikelihood(
+    double mean, double stdDev, double location)
 {
-    float exponent = location - mean;
+    assert(!isnan(mean) && "mean is nan");
+    assert(!isnan(stdDev) && "stdDev is nan");
+    assert(!isnan(location) && "location is nan");
+
+    double exponent = location - mean;
     exponent *= -exponent;
     exponent /= (2 * stdDev * stdDev);
-    float result = std::exp(exponent);
+    double result = std::exp(exponent);
     result /= (stdDev * std::sqrt(2 * M_PI));
     return result;
 }
@@ -259,12 +267,13 @@ math::Vector3 ParticleBuoyEstimationModule::getBestEstimate()
     // compute the weighted average for each coordinate
     BOOST_FOREACH(Particle3D &particle, m_particles)
     {
-        float lh = particle.likelihood;
+        double lh = particle.likelihood;
         sumXW += particle.location[0] * lh;
         sumYW += particle.location[1] * lh;
         sumZW += particle.location[2] * lh;
         sumW += lh;
     }
+    assert(sumW != 0 && "trying to divide by zero");
     return math::Vector3(sumXW / sumW, sumYW / sumW, sumZW / sumW);
 }
 
@@ -276,7 +285,7 @@ void ParticleBuoyEstimationModule::normalizeWeights()
     {
         sumL += particle.likelihood;
     }
-
+    assert(sumL != 0 && "likelihoods sum to 0");
     // divide the likelihood of each particle by the sum
     BOOST_FOREACH(Particle3D &particle, m_particles)
     {
