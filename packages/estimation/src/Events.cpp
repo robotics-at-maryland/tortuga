@@ -17,6 +17,14 @@
 namespace ram {
 namespace estimation {
 
+#if defined(RAM_WITH_WRAPPERS)
+#include "core/include/EventConverter.h"
+
+static ram::core::SpecificEventConverter<ram::estimation::ObstacleEvent>
+RAM_ESTIMATION_OBSTACLEEVENT;
+
+#endif //RAM_WITH_WRAPPERS
+
 core::EventPtr ObstacleEvent::clone()
 {
     ObstacleEventPtr event = ObstacleEventPtr(new ObstacleEvent());

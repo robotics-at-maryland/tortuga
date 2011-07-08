@@ -37,6 +37,12 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion.already_exposed = True
     Quaternion.constructors().allow_implicit_conversion = False
 
+    # Wrap Events
+    events = wrap.expose_events(local_ns)
+    if events:
+        module_builder.class_('::ram::core::Event').already_exposed = True
+        classes += events
+
     # Include obstacle class
     Obstacle = local_ns.class_('Obstacle')
     Obstacle.include()
