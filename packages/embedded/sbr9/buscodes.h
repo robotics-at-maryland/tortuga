@@ -130,26 +130,48 @@
 #define BUS_CMD_KILL_MOTORS     0x54
 #define BUS_CMD_SET_MOT_N       0x55
 
+/* Servo power is now depreciated, but to avoid breaking
+   working code I'm going to keep them around.  "Magnet"
+   power is what is replacing it, which is for the magnetic
+   droppers.
+ */
 #define BUS_CMD_SERVO_POWER_ON  0x56
+#define BUS_CMD_MAG_PWR_ON      0x56
 #define BUS_CMD_SERVO_POWER_OFF 0x57
+#define BUS_CMD_MAG_PWR_OFF     0x57
+
+/* These are both depreciated */
 #define BUS_CMD_SERVO_ENABLE    0x58
 #define BUS_CMD_SET_SERVO_POS   0x59
 
-#define BUS_CMD_MTR_RST         0x5A
+/* Motor board reset was never implemented, and has been removed */
+// 0x5A is open
 
 #define BUS_CMD_DVL_ON          0x5B
 #define BUS_CMD_DVL_OFF         0x5C
-/* Next free is 0x5D */
+
+#define BUS_CMD_FIRE_TORP_1     0x5D
+#define BUS_CMD_FIRE_TORP_2     0x5E
+#define BUS_CMD_VOID_TORP_1     0x5F
+#define BUS_CMD_VOID_TORP_2     0x60
+#define BUS_CMD_ARM_TORP_1      0x61
+#define BUS_CMD_ARM_TORP_2      0x62
+
+#define BUS_CMD_EXT_GRABBER     0x63
+#define BUS_CMD_RET_GRABBER     0x64
+#define BUS_CMD_VOID_GRABBER    0x65
+
+#define BUS_CMD_VOID_PNEU       0x66
+/* Next free is 0x67 */
 
 
 /* I wanted a more Unique response to a ping.
  * Ideally, the response would be 0xBEEF or 0xDEAD or 0xABADBABE
- * Perhaps 0xFEEF1F0 like FEE FI FO FUM or 0xAC like the start of ACK
+ * Perhaps 0xFEEF1F0 like FEE F1 F0 FUM or 0xAC like the start of ACK
  *
  * For now, I think the response will have to be 0xA5 which is 10100101
  * which, while not as fun, is symmetric, and hard to have happen randomly. */
 #define BUS_CMD_PING_RESP 0xA5;
-
 
 
 /* Host commands are commands which the computron sends to senior ic1.
@@ -235,16 +257,35 @@
 
 #define HOST_CMD_BFIN_STATE         0x2C
 
+/* These two servo commands are depreciated */
 #define HOST_CMD_SERVO_ENABLE       0x2D
 #define HOST_CMD_SET_SERVO_POS      0x2E
+
+/* Servo power is gone, replaced by magnetic dropper
+   power */
 #define HOST_CMD_SERVO_POWER_ON     0x2F
+#define HOST_CMD_MAG_PWR_ON         0x2F
 #define HOST_CMD_SERVO_POWER_OFF    0x30
+#define HOST_CMD_MAG_PWR_OFF        0x30
 
-#define HOST_CMD_MTR_RST            0x31
+/* The hole here comes from the never implemented motor reset command */
+// 0x31 is open
 
-#define HOST_CMD_DVL_ON              0x32
-#define HOST_CMD_DVL_OFF             0x33
+#define HOST_CMD_DVL_ON             0x32
+#define HOST_CMD_DVL_OFF            0x33
 
+#define HOST_CMD_FIRE_TORP_1        0x34
+#define HOST_CMD_FIRE_TORP_2        0x35
+#define HOST_CMD_VOID_TORP_1        0x36
+#define HOST_CMD_VOID_TORP_2        0x37
+#define HOST_CMD_ARM_TORP_1         0x38
+#define HOST_CMD_ARM_TORP_2         0x39
+
+#define HOST_CMD_EXT_GRABBER        0x3A
+#define HOST_CMD_RET_GRABBER        0x3B
+#define HOST_CMD_VOID_GRABBER       0x3C
+
+#define HOST_CMD_VOID_PNEU          0x3D
 
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.
