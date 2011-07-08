@@ -14,6 +14,7 @@ import ext.vehicle as vehicle
 import ext.vehicle.device
 import ext.math
 from ext.control import yawVehicleHelper
+from ext.control import holdCurrentHeadingHelper
 
 import ram.ai.state as state
 import ram.motion as motion
@@ -176,7 +177,7 @@ class Searching(state.State):
             
             yawTrajectory = motion.trajectories.StepTrajectory(
                 initialValue = currentOrientation,
-                finalValue = pingerOrientation,
+                finalValue = holdCurrentHeadingHelper(pingerOrientation),
                 initialRate = self.stateEstimator.getEstimatedAngularRate(),
                 finalRate = ext.math.Vector3.ZERO)
             
