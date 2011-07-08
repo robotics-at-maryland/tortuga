@@ -25,6 +25,7 @@
 // Project includes
 #include "vision/include/DC1394Camera.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/kernel-video1394.h"
 
 // Initialize static variables
 dc1394_t* ram::vision::DC1394Camera::s_libHandle = 0;
@@ -36,7 +37,7 @@ static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Camera"));
 namespace ram {
 namespace vision {
 
-static const int DMA_BUFFER_SIZE = 15;    
+static const int DMA_BUFFER_SIZE = 10;    
 
 DC1394Camera::DC1394Camera(core::ConfigNode config) :
     m_width(0),
@@ -83,6 +84,7 @@ DC1394Camera::DC1394Camera(core::ConfigNode config, size_t num) :
     assert(list->num > 0 && "No cameras found");
     assert(num < list->num && "Num too large");
 
+    std::cout << "GUID: " << list->ids[num].guid << std::endl;
     // Create with the first camera 
     init(config, list->ids[num].guid);
 
@@ -110,7 +112,6 @@ DC1394Camera::~DC1394Camera()
     // Stop any background image processing
     cleanup();
 
-    LOGGER.infoStream() << m_guid << ": Turning off camera ";
     dc1394_video_set_transmission(m_camera, DC1394_OFF);
     dc1394_capture_stop(m_camera);
 
@@ -199,28 +200,39 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
             "Failed to initialize camera with guid: " << guid;
         assert(m_camera && "Couldn't initialize camera");
     }
+    dc1394error_t err = DC1394_FAILURE;
+
+    // clean up the iso channel allocation from previous failures
+    uint32_t isoChannel;
+    err = dc1394_video_get_iso_channel(m_camera, &isoChannel);
+    if(err != DC1394_SUCCESS)
+        std::cout << "Warning: could not get iso channel";
+
+    ioctl(open("/dev/video1394/0", O_RDONLY),
+          VIDEO1394_IOC_UNLISTEN_CHANNEL, &isoChannel);
 
     dc1394switch_t isoOn;
     // Get the current iso status
-    if(dc1394_video_get_transmission(m_camera, &isoOn) != DC1394_SUCCESS)
-    {
-        assert(false && "Could not get ISO status");
-    }
+    err = dc1394_video_get_transmission(m_camera, &isoOn);
+    if(err != DC1394_SUCCESS)
+        std::cout << "Warning: could not get ISO status" << std::endl;
 
     // If the ISO status is currently on, we want to stop it.
     if(isoOn == DC1394_ON)
     {
+        err = dc1394_iso_release_channel(m_camera, isoChannel);
+        if(err != DC1394_SUCCESS)
+            std::cout << "Warning: could not release previous ISO channel";
+
+        err = dc1394_video_set_transmission(m_camera, DC1394_OFF);
         std::cout << "ISO Transmission ON" << std::endl;
-        if (dc1394_video_set_transmission(m_camera, DC1394_OFF) != DC1394_SUCCESS)
-        {
-            assert(false && "Could not stop ISO transmission");
-        }
+        if(err != DC1394_SUCCESS)
+            std::cout << "Warning: could not stop ISO transmission";
         else
         {
-            if(dc1394_video_get_transmission(m_camera, &isoOn) != DC1394_SUCCESS)
-            {
-                assert(false && "Could not get ISO status");
-            }
+            err = dc1394_video_get_transmission(m_camera, &isoOn);
+            if(err != DC1394_SUCCESS)
+                std::cout << "Warning: could not get ISO status";
             if(isoOn == DC1394_OFF)
                 std::cout << "ISO Transmission turned off successfully" << std::endl;
         }
@@ -236,20 +248,10 @@ void DC1394Camera::init(core::ConfigNode config, uint64_t guid)
         }
     }
 
-    // clean up the iso channel allocation from previous failures
-    uint32_t isoChannel;
-    if(dc1394_video_get_iso_channel(m_camera, &isoChannel) != DC1394_SUCCESS)
-    {
-        assert(false && "could not get iso channel");
-    }
 
-    if(dc1394_iso_release_channel(m_camera, isoChannel) != DC1394_SUCCESS)
-    {
-        assert(false && "could not release previous ISO channel");
-    }
 
     // Determines settings and frame size
-    dc1394error_t err = DC1394_FAILURE;
+
     dc1394video_mode_t videoMode = DC1394_VIDEO_MODE_640x480_RGB8;
     dc1394framerate_t frameRate = DC1394_FRAMERATE_7_5;
 
