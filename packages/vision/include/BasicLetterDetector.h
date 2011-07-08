@@ -19,7 +19,7 @@
 namespace ram {
 namespace vision {
 
-#define FEATURE_COUNT 4
+#define BASIC_FEATURE_COUNT 10
 
 /** Implements the SymbolDetector to find the 2010 symbols.
  *
@@ -57,29 +57,29 @@ class RAM_EXPORT BasicLetterDetector : public SymbolDetector
     /** Our current symbol */
     Symbol::SymbolType m_symbol;
 
-    double m_largeXFeaturesMin[FEATURE_COUNT];
-    double m_largeXFeaturesMax[FEATURE_COUNT];
+    double m_largeXFeaturesMin[BASIC_FEATURE_COUNT];
+    double m_largeXFeaturesMax[BASIC_FEATURE_COUNT];
 
-    double m_smallXFeaturesMin[FEATURE_COUNT];
-    double m_smallXFeaturesMax[FEATURE_COUNT];
+    double m_smallXFeaturesMin[BASIC_FEATURE_COUNT];
+    double m_smallXFeaturesMax[BASIC_FEATURE_COUNT];
 
-    double m_largeOFeaturesMin[FEATURE_COUNT];
-    double m_largeOFeaturesMax[FEATURE_COUNT];
+    double m_largeOFeaturesMin[BASIC_FEATURE_COUNT];
+    double m_largeOFeaturesMax[BASIC_FEATURE_COUNT];
 
-    double m_smallOFeaturesMin[FEATURE_COUNT];
-    double m_smallOFeaturesMax[FEATURE_COUNT];
+    double m_smallOFeaturesMin[BASIC_FEATURE_COUNT];
+    double m_smallOFeaturesMax[BASIC_FEATURE_COUNT];
 
-    static double LARGE_X_DEFAULTS_MIN[FEATURE_COUNT];
-    static double LARGE_X_DEFAULTS_MAX[FEATURE_COUNT];
+    static double LARGE_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
+    static double LARGE_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
 
-    static double SMALL_X_DEFAULTS_MIN[FEATURE_COUNT];
-    static double SMALL_X_DEFAULTS_MAX[FEATURE_COUNT];
+    static double SMALL_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
+    static double SMALL_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
 
-    static double LARGE_O_DEFAULTS_MIN[FEATURE_COUNT];
-    static double LARGE_O_DEFAULTS_MAX[FEATURE_COUNT];
+    static double LARGE_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
+    static double LARGE_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
 
-    static double SMALL_O_DEFAULTS_MIN[FEATURE_COUNT];
-    static double SMALL_O_DEFAULTS_MAX[FEATURE_COUNT];
+    static double SMALL_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
+    static double SMALL_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
 };
 
 } // namespace vision

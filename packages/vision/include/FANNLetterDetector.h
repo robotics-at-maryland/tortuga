@@ -12,7 +12,7 @@
 
 // Project Includes
 #include "vision/include/FANNSymbolDetector.h"
-
+#include "vision/include/BlobDetector.h"
 // Must be included last
 #include "vision/include/Export.h"
 
@@ -37,6 +37,7 @@ class RAM_EXPORT FANNLetterDetector : public FANNSymbolDetector
 
   private:
     Image* m_resizedImage;
+    BlobDetector m_blobDetector;
 };
 
 } // namespace vision

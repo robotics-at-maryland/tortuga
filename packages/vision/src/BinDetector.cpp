@@ -113,6 +113,7 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_extractBuffer(0),
     m_scratchBuffer1(0),
     m_scratchBuffer2(0),
+    m_scratchBuffer3(0),
     m_whiteMaskMinimumPercent(0),
     m_whiteMaskMinimumIntensity(0),
     m_blackMaskMinimumPercent(0),
@@ -368,7 +369,7 @@ void BinDetector::setSymbolImageLogging(bool value)
 void BinDetector::init(core::ConfigNode config)
 {
     // Look up type for the symbol detector and validate it
-    std::string symbolDetectorType = "BasicWW2Detector";
+    std::string symbolDetectorType = "BasicLetterDetector";
     if (config.exists("symbolDetector"))
         symbolDetectorType = config["symbolDetector"].asString();
     assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
@@ -523,15 +524,16 @@ void BinDetector::init(core::ConfigNode config)
 void BinDetector::allocateImages(int width, int height)
 {
     m_percents = new OpenCVImage(width, height);
-    m_whiteMaskedFrame = new OpenCVImage(width, height);
-    m_blackMaskedFrame = new OpenCVImage(width, height);
-    m_redMaskedFrame = new OpenCVImage(width, height);
+    m_whiteMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
+    m_blackMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
+    m_redMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
     
     int extra = BIN_EXTRACT_BORDER * 2;
     size_t size = (width + extra) * (height + extra) * 3;
     m_extractBuffer = new unsigned char[size];
     m_scratchBuffer1 = new unsigned char[size];
     m_scratchBuffer2 = new unsigned char[size];
+    m_scratchBuffer3 = new unsigned char[size];
 }
 
 void BinDetector::deleteImages()
@@ -543,6 +545,7 @@ void BinDetector::deleteImages()
     delete [] m_extractBuffer;
     delete [] m_scratchBuffer1;
     delete [] m_scratchBuffer2;
+    delete [] m_scratchBuffer3;
 }
     
 void BinDetector::filterForWhite(Image* input, Image* output)
@@ -572,7 +575,6 @@ void BinDetector::filterForBlack(Image* input, Image* output)
 
 void BinDetector::filterForRed(Image* input, Image* output)
 {
-
     m_redFilter->filterImage(input, output);
 
     if (m_redErodeIterations)
@@ -960,16 +962,18 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
             vision::Image::loadFromBuffer(m_scratchBuffer1,
                                           redBinImage->getWidth(),
                                           redBinImage->getHeight(),
-                                          false);
+                                          false,
+                                          m_redMaskedFrame->getPixelFormat());
         vision::Image::transform(redBinImage, rotatedBinImage, binAngle);
-        delete redBinImage; // m_scratchBuffer2 free to use
         
         // Crop down Image to square around bin symbol
-        Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer2);
+        Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer3);
+
         delete rotatedBinImage; // m_scratchBuffer1 free to use
+
         if (cropped)
         {
-            symbol = determineSymbol(cropped, m_scratchBuffer1, output);
+            symbol = determineSymbol(redBinImage, m_scratchBuffer1, output);
 
             if (output && (binNum < 4))
             {
@@ -978,17 +982,18 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
                     Image::loadFromBuffer(m_scratchBuffer1, 128, 128, false);
                 cvResize(cropped->asIplImage(), scaledBin->asIplImage(),
                          CV_INTER_LINEAR);
-                Image::drawImage(scaledBin, binNum * 128, 0, output, output);
+                Image::drawImage(redBinImage, binNum * 128, 0, output, output);
                 
                 delete scaledBin; // m_scratchBuffer1 free to use
             }
 
             // Log the images if desired
             if (m_logSymbolImages)
-                logSymbolImage(cropped, symbol);
+                logSymbolImage(redBinImage, symbol);
             
             delete cropped;// m_scratchBuffer2 free to use
         }
+        delete redBinImage;
     }
     
     // Report our results
@@ -1267,6 +1272,13 @@ Symbol::SymbolType BinDetector::determineSymbol(Image* input,
              symbolFound == Symbol::CLIPPERS ||
              symbolFound == Symbol::HAMMER ||
              symbolFound == Symbol::MACHETE)
+    {
+        symbol = symbolFound;
+    }
+    else if (symbolFound == Symbol::LARGE_X ||
+             symbolFound == Symbol::SMALL_X ||
+             symbolFound == Symbol::LARGE_O ||
+             symbolFound == Symbol::SMALL_O)
     {
         symbol = symbolFound;
     }

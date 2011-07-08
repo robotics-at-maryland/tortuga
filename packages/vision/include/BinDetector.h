@@ -249,6 +249,11 @@ class RAM_EXPORT BinDetector : public Detector
      *  @note Its always just a bit bigger then the raw image
      */
     unsigned char* m_scratchBuffer2;
+
+    /** Buffer we use during image processing
+     *  @note Its always just a bit bigger then the raw image
+     */
+    unsigned char* m_scratchBuffer3;
     
     /** Minimum percent for the white mask */
     int m_whiteMaskMinimumPercent;

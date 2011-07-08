@@ -7,12 +7,16 @@
  * File:  packages/vision/src/FANNLetterDetector.cpp
  */
 
+// STD Includes
+#include <iostream>
+
 // Library Includes
 #include <cv.h>
 
 // Project Includes
 #include "vision/include/FANNLetterDetector.h"
 #include "vision/include/Image.h"
+#include "vision/include/OpenCVImage.h"
 
 #define SYMBOL_LARGE_X 0x01
 #define SYMBOL_SMALL_X 0x02
@@ -27,7 +31,9 @@ namespace vision {
 
 FANNLetterDetector::FANNLetterDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
-    FANNSymbolDetector(FEATURE_COUNT, SYMBOL_COUNT, config, eventHub)
+    FANNSymbolDetector(FEATURE_COUNT, SYMBOL_COUNT, config, eventHub),
+    m_resizedImage(new OpenCVImage(640, 480, Image::PF_BGR_8)),
+    m_blobDetector()
 {
 }
 
@@ -55,13 +61,21 @@ Symbol::SymbolType FANNLetterDetector::getSymbol()
 
 void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
 {
-    inputImage->setPixelFormat(Image::PF_GRAY_8);
+    m_resizedImage->copyFrom(inputImage);
+    m_resizedImage->setPixelFormat(Image::PF_GRAY_8);
+    m_blobDetector.processImage(m_resizedImage);
+
+    std::vector<BlobDetector::Blob> blobs = m_blobDetector.getBlobs();
+    BlobDetector::Blob symbolBlob;
+    
+    // get the largest blob found
+    if(blobs.size() > 0)
+        symbolBlob = blobs[0];
+
     // True if the image is wider then it is tall
     bool wide = true;
-    double width = inputImage->getWidth();
-    double height = inputImage->getHeight();
-    int featureNum = 0;
-    // Determine aspect ratio (ensure the ratio is always > 1)
+    double width = m_resizedImage->getWidth();
+    double height = m_resizedImage->getHeight();
     double trueAspectRatio = width / height;
     float aspectRatio = trueAspectRatio;
     if (aspectRatio < 1)
@@ -69,20 +83,19 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         wide = false;
         aspectRatio = 1.0 / aspectRatio;
     }
-    features[featureNum++] = aspectRatio;
 
+    double widthPct = symbolBlob.getWidth() / width;
+    double heightPct = symbolBlob.getHeight() / height;
     CvMoments moments;
-    cvMoments(inputImage->asIplImage(), &moments, true);
-
+    cvMoments(m_resizedImage->asIplImage(), &moments, true);
     CvHuMoments huMoments;
     cvGetHuMoments(&moments, &huMoments);
 
-    features[featureNum++] = static_cast<float>(huMoments.hu1);
-    features[featureNum++] = static_cast<float>(huMoments.hu2);
-    features[featureNum++] = static_cast<float>(huMoments.hu3);
-    features[featureNum++] = static_cast<float>(huMoments.hu4);
-    features[featureNum++] = static_cast<float>(huMoments.hu5);
-    features[featureNum++] = static_cast<float>(huMoments.hu6);
+    int featureNum = 0;
+
+    features[featureNum++] = widthPct;
+    features[featureNum++] = heightPct;
+    features[featureNum++] = huMoments.hu6;
 
     // Determine amount of red on each "long" half of the image and return the
     // ratio of the two together
@@ -92,11 +105,11 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         // Wider then we are tall (ie. the image is wide)
 
         // Get the top half
-        Image::getAveragePixelValues(inputImage, 0, 0, width - 1, height/2 - 1,
+        Image::getAveragePixelValues(m_resizedImage, 0, 0, width - 1, height/2 - 1,
                                      average1, dummy2, dummy3);
 
         // Get the bottom half
-        Image::getAveragePixelValues(inputImage, 0, height/2,
+        Image::getAveragePixelValues(m_resizedImage, 0, height/2,
                                      width - 1, height - 1,
                                      average2, dummy2, dummy3);
     }
@@ -105,12 +118,12 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         // Taller then we are wide (ie. the image is skinny)
 
         // Get the left side
-        Image::getAveragePixelValues(inputImage, 0, 0,
+        Image::getAveragePixelValues(m_resizedImage, 0, 0,
                                      width/2 - 1, height - 1,
                                      average1, dummy2, dummy3);
 
         // Get the right side
-        Image::getAveragePixelValues(inputImage, width/2, 0,
+        Image::getAveragePixelValues(m_resizedImage, width/2, 0,
                                      width - 1, height- 1,
                                      average2, dummy2, dummy3);
     }
@@ -140,22 +153,22 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
     double average3, average4;
 
     // Upper Left
-    Image::getAveragePixelValues(inputImage, 0, 0,
+    Image::getAveragePixelValues(m_resizedImage, 0, 0,
                                  cornerSize, cornerSize,
                                  average1, dummy2, dummy3);
     
     // Upper right
-    Image::getAveragePixelValues(inputImage, width - cornerSize, 0,
+    Image::getAveragePixelValues(m_resizedImage, width - cornerSize, 0,
                                  width - 1, cornerSize,
                                  average2, dummy2, dummy3);
 
     // Lower Left
-    Image::getAveragePixelValues(inputImage, 0, height - cornerSize,
+    Image::getAveragePixelValues(m_resizedImage, 0, height - cornerSize,
                                  cornerSize, height - 1,
                                  average3, dummy2, dummy3);
 
     // Lower Right
-    Image::getAveragePixelValues(inputImage, width - cornerSize,
+    Image::getAveragePixelValues(m_resizedImage, width - cornerSize,
                                  height - cornerSize,
                                  width - 1, height - 1,
                                  average4, dummy2, dummy3);
@@ -169,7 +182,7 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         // Wider then we are tall (ie. the image is wide)
         int middle = width/2;
 
-        Image::getAveragePixelValues(inputImage,
+        Image::getAveragePixelValues(m_resizedImage,
                                      middle - cornerSize, 0,
                                      middle + cornerSize, height - 1,
                                      average1, dummy2, dummy3);
@@ -179,7 +192,7 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         // Taller then we are wide (ie. the image is skinny)
         int middle = height/2;
 
-        Image::getAveragePixelValues(inputImage,
+        Image::getAveragePixelValues(m_resizedImage,
                                      0, middle - cornerSize,
                                      width - 1, middle + cornerSize,
                                      average1, dummy2, dummy3);
