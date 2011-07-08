@@ -85,7 +85,7 @@ class Pinger(Visual):
         event.pingerID = self._pingerID
 
         self._sonarSys.publish(Pinger.PING, event)
-    
+        
 class SimSonar(ext.core.Subsystem):
     def __init__(self, config, deps):
         ext.core.Subsystem.__init__(self, config.get('name', 'Simulation'), 

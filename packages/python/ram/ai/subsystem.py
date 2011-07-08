@@ -94,7 +94,8 @@ class AI(core.Subsystem):
                              'absolute', 'taskTimeout', 'motionTimeout',
                              'motions'])
         taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
-        buoyOptions = taskOptions.union(set(['lostTimeout', 'searchTimeout']))
+        buoyOptions = taskOptions.union(set(['lostTimeout', 'searchTimeout', 
+                                             'orientation', 'buoyOrder']))
         moveOptions = set(['depth', 'heading', 'speed', 'duration',
                            'turnSpeed', 'depthSpeed'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',

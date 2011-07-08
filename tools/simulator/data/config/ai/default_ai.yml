@@ -12,7 +12,7 @@
 
 # Demo course with everything
 taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.Buoy', 'ram.ai.course.Pipe1',
             'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
             'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
@@ -60,6 +60,9 @@ config:
                 speed: 5
                 duration: 5
                 absolute: False
+    Buoy:
+        orientation: 30
+        buoyOrder: ['yellow', 'red', 'green']
     Window:
         angle: 45
     Travel1:

@@ -13,11 +13,13 @@ import ext.core as core
 import ext.vehicle as vehicle
 import ext.vehicle.device
 import ext.math
+from ext.control import yawVehicleHelper
 
 import ram.ai.state as state
 import ram.motion as motion
 #import ram.motion.search
 import ram.motion.pipe
+from ram.motion.basic import Frame
 
 COMPLETE = core.declareEventType('COMPLETE')
 
@@ -43,7 +45,8 @@ class PingerState(state.State):
     @staticmethod
     def getattr():
         return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout',
-                    'maxSidewaysSpeed', 'sidewaysSpeedGain'])
+                    'maxSidewaysSpeed', 'sidewaysSpeedGain', 'forwardSpeed',
+                    'motionRange', 'distance'])
 
     def UPDATE(self, event):
         if self._timeout > 0:
@@ -53,10 +56,10 @@ class PingerState(state.State):
             self._pingChecker.start()
     
     def _isNewPing(self, event):
-        if self._lastTime != event.pingTimeUSec:
-            self._lastTime = event.pingTimeUSec
-            return True
-        return False
+        #if self._lastTime != event.pingTimeUSec:
+        #    self._lastTime = event.pingTimeUSec
+        return True
+        #return False
     
     def _pingerAngle(self, event):
         pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
@@ -70,20 +73,40 @@ class PingerState(state.State):
         self._maxSpeed = self._config.get('maxSpeed', 1)
         self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
         self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
+        self._forwardSpeed = self._config.get('forwardSpeed', 0.15)
+        self._motionRange = self._config.get('motionRange', .02)
+        self._distance = self._config.get('distance', 1)
      
     def enter(self, timeout = 2.5):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
         self._lastTime = 0
+        self._recalculate = False
 
         self._loadSettings()
 
-        motion = ram.motion.pipe.Hover(pipe = self._pipe, 
-                                       maxSpeed = self._maxSpeed, 
-                                       maxSidewaysSpeed = self._maxSidewaysSpeed, 
-                                       sidewaysSpeedGain = self._sidewaysSpeedGain, 
-                                       speedGain = self._speedGain, 
-                                       yawGain = self._yawGain)
-        self.motionManager.setMotion(motion)
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY(), 
+                                              self._pipe.getX())
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        
+        orientation = yawVehicleHelper(currentOrientation, 
+                                       self._pipe.getAngle())
+        
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = orientation,
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = ext.math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = self._currentDesiredPos,
+            initialRate = ext.math.Vector2.ZERO,
+            avgRate = self._forwardSpeed)
+            
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+        self.motionManager.setMotion(yawMotion)
+        self.motionManager.setMotion(translateMotion)
 
         # Set up the ping timer
         self._pingChecker = None
@@ -120,10 +143,13 @@ class Start(state.State):
         if desiredDepth < minimumDepth:
             desiredDepth = minimumDepth
 
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = desiredDepth,
-            speed = self._config.get('diveSpeed', 0.4))
-        
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = desiredDepth,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('diveSpeed', 0.2))
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
@@ -140,17 +166,29 @@ class Searching(state.State):
     @staticmethod
     def transitions():
         return { vehicle.device.ISonar.UPDATE : Searching,
-	             Searching.CHANGE : FarSeeking }
+                 Searching.CHANGE : FarSeeking }
         
     def UPDATE(self, event):
         if self._first:
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
-	   
-	    self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
-	    self.timer.start()
-	    self._first = False
+            currentOrientation = self.stateEstimator.getEstimatedOrientation()
+            
+            yawTrajectory = motion.trajectories.StepTrajectory(
+                initialValue = currentOrientation,
+                finalValue = pingerOrientation,
+                initialRate = self.stateEstimator.getEstimatedAngularRate(),
+                finalRate = ext.math.Vector3.ZERO)
+            
+            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+
+            self.motionManager.setMotion(yawMotion)
+
+            # self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
+            
+            self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
+            self.timer.start()
+            self._first = False
 
     def enter(self):
         self._first = True
@@ -166,22 +204,92 @@ class TranslationSeeking(PingerState):
     toward the pinger.
     """
     CLOSE = core.declareEventType('CLOSE')
+
+    @staticmethod
+    def transitions(myState, timeoutState = None, trans = None):
+        if myState is None:
+            myState = TranslationSeeking
+        if timeoutState is None:
+            timeoutState = PingerLost
+        if trans is None:
+            trans = {}
+        trans.update({vehicle.device.ISonar.UPDATE : myState,
+                      PingerState.TIMEOUT : timeoutState,
+                      motion.basic.MotionManager.FINISHED : myState})
+        return trans
     
     def _loadSettings(self):
         PingerState._loadSettings(self)
         #self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
         #self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
-
+    
+    def FINISHED(self, event):
+        print 'RECALCULATE'
+        self._recalculate = True
+        
     def UPDATE(self, event):
+        print('tseek')
         PingerState.UPDATE(self, event)
+        print('omgfuck')
         if self._isNewPing(event):
+            print('dix')
             # Converting from the vehicle reference frame, to the image space
             # reference frame used by the pipe motion
             self._pipe.setState(-event.direction.y, event.direction.x, 
-                                ext.math.Degree(0), event.timeStamp)
+                                 ext.math.Degree(0), event.timeStamp)
             
+            if not self._changeMotion(self._currentDesiredPos, 
+                                      ext.math.Vector2(self._pipe.getY() *
+                                                       self._distance,
+                                                       self._pipe.getX() *
+                                                       self._distance)) or self._recalculate:
+                self._recalculate = False
+                return
+
+            print(self._pipe.getY())
+            print(self._pipe.getX())
+            
+            self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() *
+                                                       self._distance, 
+                                                       self._pipe.getX() * 
+                                                       self._distance)
+            self.motionManager.stopCurrentMotion()
+            
+            currentOrientation = self.stateEstimator.getEstimatedOrientation()
+            
+            orientation = yawVehicleHelper(currentOrientation, 
+                                           self._pipe.getAngle())
+            
+            yawTrajectory = motion.trajectories.StepTrajectory(
+                initialValue = currentOrientation,
+                finalValue = orientation,
+                initialRate = self.stateEstimator.getEstimatedAngularRate(),
+                finalRate = ext.math.Vector3.ZERO)
+            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = ext.math.Vector2.ZERO,
+                finalValue = self._currentDesiredPos,
+                initialRate = ext.math.Vector2.ZERO,
+                avgRate = 0.15)
+            
+            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+            translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                         frame = Frame.LOCAL)
+            self.motionManager.setMotion(yawMotion)
+            self.motionManager.setMotion(translateMotion)
+
             if math.fabs(event.direction.z) > math.fabs(self._closeZ):
                  self.publish(TranslationSeeking.CLOSE, core.Event())
+
+    def _changeMotion(self, vector1, vector2):
+        # Another messy solution, compares two vectors to see if there
+        # is much of a difference between them. Returns True if there is
+        # is significant difference
+        if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + 
+                     (vector2.y - vector1.y) * 
+                     (vector2.y - vector1.y)) < self._motionRange:
+            return False
+        return True
+            
 
 # 0.65
 class FarSeeking(TranslationSeeking):
@@ -197,11 +305,13 @@ class FarSeeking(TranslationSeeking):
 
     @staticmethod
     def getattr():
-        return set(['midRangeZ']).union(TranslationSeeking.getattr())
+        return set(['midRangeZ', 'distance', 'motionRange']).union(TranslationSeeking.getattr())
                  
     def _loadSettings(self):
         TranslationSeeking._loadSettings(self)
         self._closeZ = self._config.get('midRangeZ', 0.65)
+        self._distance = self._config.get('distance', 10)
+        self._motionRange = self._config.get('motionRange', .6)
                  
 class CloseSeeking(TranslationSeeking):
     """
@@ -215,11 +325,13 @@ class CloseSeeking(TranslationSeeking):
 
     @staticmethod
     def getattr():
-        return set(['closeZ']).union(TranslationSeeking.getattr())
+        return set(['closeZ', 'distance', 'motionRange']).union(TranslationSeeking.getattr())
 
     def _loadSettings(self):
         TranslationSeeking._loadSettings(self)
         self._closeZ = self._config.get('closeZ', 0.8)
+        self._distance = self._config.get('distance', 2)
+        self._motionRange = self._config.get('motionRange', .05)
     
 class Hovering(TranslationSeeking):
     """

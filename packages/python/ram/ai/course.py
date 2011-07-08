@@ -530,7 +530,6 @@ class Buoy(task.Task):
     @staticmethod
     def _transitions():
         return { buoy.COMPLETE : task.Next,
-                 buoy.Searching.BUOY_SEARCHING : Buoy,
                  vision.EventType.BUOY_FOUND : Buoy,
                  task.TIMEOUT : task.Next,
                  'GO' : state.Branch(buoy.Start) }
@@ -567,6 +566,26 @@ class Buoy(task.Task):
             'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
 
+        # get the list of buoys we want to hit
+        self.ai.data['buoyList'] = \
+            self.ai.data['config'].get('targetBuoys', [])
+        if len(self.ai.data['buoyList']) == 0:
+            raise LookupError, "No buoys specified"
+
+        self._className = type(self).__name__
+        self.ai.data['buoyOrientation'] = self.ai.data['config'].get(self._className, {}).get('orientation', None)
+
+        if self.ai.data['buoyOrientation'] is None:
+            raise LookupError, "No orientation specified"
+
+        # ex. ['yellow', 'red', 'green']
+        self.ai.data['buoyOrder'] = self.ai.data['config'].get(self._className, {}).get('buoyOrder', None)
+
+        if self.ai.data['buoyOrder'] is None:
+            raise LookupError, "No order of buoys specified"
+        
+
+
         self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
             'lostTimeout', 5)
         self._lostTimeout = None
@@ -579,6 +598,9 @@ class Buoy(task.Task):
 
     def exit(self):
         task.Task.exit(self)
+
+        del self.ai.data['buoyList']
+        del self.ai.data['buoyOrientation']
 
         self.stateMachine.stopBranch(buoy.Start)
         self.visionSystem.buoyDetectorOff()

@@ -66,7 +66,7 @@ class HoveringState(state.State):
                     'iSpeedGain' : 0, 'iSidewaysSpeedGain' : 0,
                     'dSpeedGain' : 0, 'dSidewaysSpeedGain' : 0,
                     'sidewaysRate' : 1, 'forwardRate' : 1,
-                    'motionRange' : 0.1}
+                    'motionRange' : 0.1, 'forwardSpeed' : 0.15}
     
     def _currentBin(self, event):
         return self.ai.data['binData'].get('currentID', 0) == event.id
@@ -211,11 +211,17 @@ class HoveringState(state.State):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = self._currentDesiredPos,
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
 
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
+        
+        # If this is ever false then the motions are never recalculated
+        # for this state
+        self._recalculate = True
+
         if self._shouldRotate:
             self.motionManager.setMotion(yawMotion)
         
@@ -229,9 +235,8 @@ class HoveringState(state.State):
         # PipeInfo is changed
 
         if not self._changeMotion(self._currentDesiredPos, math.Vector2( 
-                self._bin.getY(), self._bin.getX())):
+                self._bin.getY(), self._bin.getX())) or not self._recalculate:
             return
-            
             
         self._currentDesiredPos = math.Vector2(self._bin.getY() * 
                                                self._forwardRate, 
@@ -253,7 +258,8 @@ class HoveringState(state.State):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = self._currentDesiredPos,
-            initialRate = math.Vector2.ZERO)
+            initialRate = math.Vector2.ZERO,
+            avgRate = self._forwardSpeed)
         
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -476,7 +482,7 @@ class Recover(state.FindAttempt):
     def getattr():
         attrs = {}
         attrs.update(state.FindAttempt.getattr())
-        attrs.update({'timeout' : 4, 'distance' : 5})
+        attrs.update({'timeout' : 4, 'distance' : 5, 'forwardSpeed' : 0.15})
         return attrs
         #return {'timeout' : 4, 'speed' : 0.5}.union(state.FindAttempt.getattr())
         
@@ -549,7 +555,8 @@ class Recover(state.FindAttempt):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self._distance,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
 
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -670,7 +677,8 @@ class Searching(state.State):
 
     @staticmethod
     def getattr():
-        return {'legTime' : 5, 'sweepAngle' : 45, 'speed' : 2.5, 'distance' : 5}
+        return {'legTime' : 5, 'sweepAngle' : 45, 'speed' : 2.5, 'distance' : 5,
+                'forwardSpeed' : 0.15}
 
     def BIN_FOUND(self, event):
         self.ai.data['binData']['currentID'] = event.id
@@ -701,7 +709,8 @@ class Searching(state.State):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self._distance,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
         
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
@@ -765,7 +774,8 @@ class RecoverSeeking(Recover):
         attrs.update(HoveringState.getattr())
         attrs.update(Recover.getattr())
         attrs.update({'speedGain' : 5, 'sidewaysSpeedGain' : 5, 'yawGain' : 1,
-                      'maxSpeed' : 1.5, 'maxSidewaysSpeed' : 1.5})
+                      'maxSpeed' : 1.5, 'maxSidewaysSpeed' : 1.5, 
+                      'forwardSpeed' : 0.15})
         return attrs
 
     def enter(self, timeout = 4):
@@ -775,7 +785,8 @@ class RecoverSeeking(Recover):
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self.ai.data["lastBinY"],
                                           self.ai.data["lastBinX"]),
-            initialRate = self.stateEstimator.getEstimatedVelocity())
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
 
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
@@ -975,11 +986,13 @@ class Dive(HoveringState):
     Gets us down to the depth we can check the symbols out at
     """
     
+    COMPLETE = core.declareEventType('COMPLETE')
+    
     @staticmethod
     def transitions():
         return SettlingState.transitions(Dive,
         lostState = RecoverDive, recoveryState = LostCurrentBinDive,
-        trans = { motion.basic.MotionManager.FINISHED : Aligning })
+        trans = { Dive.COMPLETE : Aligning })
 
     @staticmethod
     def getattr():
@@ -994,6 +1007,9 @@ class Dive(HoveringState):
         HoveringState.BIN_FOUND(self, event)
         
     def enter(self, useMultiAngle = False, offset = 1.5):
+
+        self._timer = self.timerManager.newTimer(Dive.COMPLETE, 10)
+        self._timer.start()
         self._binDirection = self.ai.data['config'].get('Bin', {}).get(
             'binDirection', None)
 
@@ -1002,7 +1018,9 @@ class Dive(HoveringState):
             HoveringState.enter(self, useMultiAngle)
         else:
             HoveringState.enter(self, useMultiAngle, shouldRotate = False)
-        
+            
+        self._recalculate = False
+
         # Set orientation to match the initial orientation
         if self.ai.data.has_key('binArrayOrientation'):
             self._currentDesiredOrientation = math.Quaternion(
@@ -1016,7 +1034,7 @@ class Dive(HoveringState):
                 finalRate = math.Vector3.ZERO)
             
             yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
-
+            
             self.motionManager.setMotion(yawMotion)
 
         # While keeping center, dive down
@@ -1033,6 +1051,8 @@ class Dive(HoveringState):
         minimumDepth = self._config.get('minimumDepth', 0.5)
         if binDepth < minimumDepth:
             binDepth = minimumDepth
+
+        print binDepth
         
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
@@ -1041,8 +1061,14 @@ class Dive(HoveringState):
             avgRate = 0.3)
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        
+            
+        print 'starting dive'
         self.motionManager.setMotion(diveMotion)
+        
+    def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
+
         
 class RecoverDive(Recover):
     @staticmethod
@@ -1300,7 +1326,7 @@ class CloserLook(Dive):
     def transitions():
         return SettlingState.transitions(CloserLook,
         lostState = RecoverCloserLook, recoveryState = LostCurrentBinCloserLook,
-        trans = { motion.basic.MotionManager.FINISHED : PostDiveExamine })
+        trans = { Dive.COMPLETE : PostDiveExamine })
 
     @staticmethod
     def getattr():
