@@ -100,6 +100,7 @@ class RAM_EXPORT CupidDetector : public Detector
     int m_dilateIterations;
 
     double m_physicalWidthMeters;
+    double m_physicalHeightMeters;
 
     int m_debug;
 };

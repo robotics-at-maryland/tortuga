@@ -44,7 +44,8 @@ CupidDetector::CupidDetector(core::ConfigNode config,
     m_redFilter(0),
     m_blueFilter(0),
     m_blobDetector(config, eventHub),
-    m_physicalWidthMeters(0.61)
+    m_physicalWidthMeters(0.61),
+    m_physicalHeightMeters(0.61)
 {
     init(config);
 }
@@ -53,7 +54,8 @@ CupidDetector::CupidDetector(Camera* camera) :
     cam(camera),
     m_redFilter(0),
     m_blueFilter(0),
-    m_physicalWidthMeters(0.61)
+    m_physicalWidthMeters(0.61),
+    m_physicalHeightMeters(0.61)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -133,6 +135,8 @@ void CupidDetector::init(core::ConfigNode config)
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     blueFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     processingFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
+    LOGGER.info("Found CentroidX CentroidY RangeW RangeH Range Width Height blobPixels PixelPercentage");
 }
 
 void CupidDetector::update()
@@ -148,6 +152,7 @@ void CupidDetector::processImage(Image* input, Image* output)
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
     BlobDetector::Blob redBlob, blueBlob;
 
@@ -158,14 +163,22 @@ void CupidDetector::processImage(Image* input, Image* output)
         publishFoundEvent(redBlob, Color::RED);
 
         int blobPixels = redBlob.getSize();
+
         double fracWidth = static_cast<double>(redBlob.getWidth()) / xPixelWidth;
-        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        double fracHeight = static_cast<double>(redBlob.getHeight()) / yPixelHeight;
+
+        double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+        double range = (rangeW + rangeH) / 2;
+
         int width = redBlob.getWidth();
         int height = redBlob.getHeight();
 
         LOGGER.infoStream() << "1" << " "
                             << redBlob.getCenterX() << " "
                             << redBlob.getCenterY() << " "
+                            << rangeW << " "
+                            << rangeH << " "
                             << range << " "
                             << width << " "
                             << height << " "
@@ -188,8 +201,14 @@ void CupidDetector::processImage(Image* input, Image* output)
         publishFoundEvent(blueBlob, Color::BLUE);
 
         int blobPixels = blueBlob.getSize();
+
         double fracWidth = static_cast<double>(blueBlob.getWidth()) / xPixelWidth;
-        double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        double fracHeight = static_cast<double>(blueBlob.getHeight()) / yPixelHeight;
+
+        double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+        double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+        double range = (rangeW + rangeH) / 2;
+
         int width = blueBlob.getWidth();
         int height = blueBlob.getHeight();
 
