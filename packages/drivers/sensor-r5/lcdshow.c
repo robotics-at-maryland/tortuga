@@ -18,8 +18,10 @@
 
 void thrusterCmd(int fd, int cmd)
 {
-    if(setThrusterSafety(fd, cmd) != SB_OK)
-        printf("Error safing thruster\n");
+    int ret;
+
+    if((ret= setThrusterSafety(fd, cmd)) != SB_OK)
+        printf("Error: %s\n", sbErrorToText(ret));
 }
 
 void barCmd(int fd, int cmd)
