@@ -130,17 +130,17 @@ void ModularStateEstimator::addObstacle(core::ConfigNode obstacleNode,
     location[2] = obstacleNode["location"][2].asDouble();
 
     math::Matrix3 covariance;
-    covariance[0][0] = obstacleNode["covariance"][0][0].asDouble();
-    covariance[0][1] = obstacleNode["covariance"][0][1].asDouble();
-    covariance[0][2] = obstacleNode["covariance"][0][2].asDouble();
-    covariance[1][0] = obstacleNode["covariance"][1][0].asDouble();
-    covariance[1][1] = obstacleNode["covariance"][1][1].asDouble();
-    covariance[1][2] = obstacleNode["covariance"][1][2].asDouble();
-    covariance[2][0] = obstacleNode["covariance"][2][0].asDouble();
-    covariance[2][1] = obstacleNode["covariance"][2][1].asDouble();
-    covariance[2][2] = obstacleNode["covariance"][2][2].asDouble();
+    covariance[0][0] = obstacleNode["covariance"][0][0].asDouble(5);
+    covariance[0][1] = obstacleNode["covariance"][0][1].asDouble(0);
+    covariance[0][2] = obstacleNode["covariance"][0][2].asDouble(0);
+    covariance[1][0] = obstacleNode["covariance"][1][0].asDouble(0);
+    covariance[1][1] = obstacleNode["covariance"][1][1].asDouble(5);
+    covariance[1][2] = obstacleNode["covariance"][1][2].asDouble(0);
+    covariance[2][0] = obstacleNode["covariance"][2][0].asDouble(0);
+    covariance[2][1] = obstacleNode["covariance"][2][1].asDouble(0);
+    covariance[2][2] = obstacleNode["covariance"][2][2].asDouble(1);
 
-    double heading = obstacleNode["attackHeading"].asDouble();
+    double heading = obstacleNode["attackHeading"].asDouble(0);
     math::Quaternion attackOrientation = math::Quaternion(math::Degree(heading), math::Vector3::UNIT_Z);
 
     obstacle->setLocation(location);

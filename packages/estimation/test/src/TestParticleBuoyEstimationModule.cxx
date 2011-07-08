@@ -44,6 +44,7 @@ TEST(normalizeWeights)
                                                                     Obstacle::RED_BUOY,
                                                                     vision::EventType::BUOY_FOUND);
 
+
     Particle3D p1 = Particle3D();
     p1.likelihood = 3.5;
 
@@ -67,6 +68,10 @@ TEST(normalizeWeights)
     }
 
     CHECK_CLOSE(1.0, sum, 0.0001);
+
+    ram::vision::BuoyEventPtr buoyEvent = ram::vision::BuoyEventPtr(new ram::vision::BuoyEvent());
+
+    mod.update(buoyEvent);
 }
 
 

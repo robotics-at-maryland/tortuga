@@ -50,9 +50,12 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
 
     // generate the initial particles
     boost::normal_distribution<float>
-        initialX(m_initialGuess[0], m_initialUncertainty[0][0]),
-        initialY(m_initialGuess[1], m_initialUncertainty[1][1]),
-        initialZ(m_initialGuess[2], m_initialUncertainty[2][2]);
+        initialX(static_cast<float>(m_initialGuess[0]),
+                 static_cast<float>(m_initialUncertainty[0][0])),
+        initialY(static_cast<float>(m_initialGuess[1]),
+                 static_cast<float>(m_initialUncertainty[1][1])),
+        initialZ(static_cast<float>(m_initialGuess[2]),
+                 static_cast<float>(m_initialUncertainty[2][2]));
 
     boost::mt19937 rng;
     boost::variate_generator<boost::mt19937&, boost::normal_distribution<float> > 
