@@ -103,6 +103,11 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         return;
     }
     
+    // if the buoy is touching the edge the distance estimate will be dangerous
+    // we want to avoid this situation even if it means ignoring a found event
+    if(buoyEvent->touchingEdge)
+        return;
+
     unsigned int xPixelCoord = buoyEvent->x * m_camWidth;
     unsigned int yPixelCoord = buoyEvent->y * m_camHeight;
 

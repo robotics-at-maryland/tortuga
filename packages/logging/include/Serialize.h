@@ -302,6 +302,7 @@ void serialize(Archive &ar, ram::vision::BuoyEvent &t,
     ar & t.y;
     ar & t.id;
     ar & t.color;
+    ar & t.touchingEdge;
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BuoyEvent)
