@@ -43,11 +43,9 @@ ParticleBuoyEstimationModule::ParticleBuoyEstimationModule(
     m_initialGuess(estState->getObstacleLocation(obstacle)),
     m_initialUncertainty(estState->getObstacleLocationCovariance(obstacle)),
     m_intrinsicParameters(math::Matrix3::IDENTITY),
-    m_numParticles(100),
-    m_prevEffectiveParticles(100)
+    m_numParticles(config["numParticles"].asInt(200)),
+    m_prevEffectiveParticles(config["numParticles"].asInt(200))
 {
-    m_numParticles = config["numParticles"].asInt(200);
-
     // generate the initial particles
     boost::normal_distribution<double>
         initialX(m_initialGuess[0], m_initialUncertainty[0][0]),
@@ -105,9 +103,6 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
         return;
     }
     
-    vision::Color::ColorType color = buoyEvent->color;
-    color = color;
-
     unsigned int xPixelCoord = buoyEvent->x * m_camWidth;
     unsigned int yPixelCoord = buoyEvent->y * m_camHeight;
 
@@ -121,9 +116,13 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     math::Vector3 estCameraLocation(estPosition[0], estPosition[1], estDepth);
     math::Quaternion estOrientation = m_estimatedState->getEstimatedOrientation();
 
+    // store a copy of the particles before updating likelihoods
+    m_placeholder = m_particles;
+
     // calculate the expected image coordinates
     BOOST_FOREACH(Particle3D &particle, m_particles)
     {
+        // calculate the expected image coordinates
         particle.imgCoords = world2img(
             particle.location,
             estCameraLocation,
@@ -131,9 +130,24 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
             m_intrinsicParameters);
         
         
+        // update the likelihood of each particle
         particle.likelihood *= likelihood2D(objImageCoords,
                                             objImageCoordsUncertainty,
                                             particle.imgCoords);
+    }
+    
+    // figure out if all particles have 0 likelihood
+    double sumL = 0;
+    BOOST_FOREACH(Particle3D &particle, m_particles)
+    {
+        sumL += particle.likelihood;
+    }
+    
+    // all particles having likelihood of 0 is BAD and will cause problems
+    if(sumL == 0)
+    {
+        // get back the original particles so they have nonzero likelihood
+        m_particles = m_placeholder;
     }
     normalizeWeights();
 
@@ -167,21 +181,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
 
         bestEstimate = getBestEstimate();
         spread = getCovariance();
-
-        std::cout << "Best Estimate: ";
-        std::cout << bestEstimate << std::endl;
-        std::cout << spread << std::endl;
-    
-        std::cout << "Particles Left" << std::endl;
-        BOOST_FOREACH(Particle3D particle, m_particles)
-        {
-            std::cout << particle.location.x << " " 
-                      << particle.location.y << " " 
-                      << particle.location.z << " " 
-                      << particle.likelihood << std::endl;
-        }
         
-        // std::cout << "generating new particles" << std::endl;
         // generate new particles
         boost::normal_distribution<double>
             resampleXDist(bestEstimate[0], spread[0][0]),
@@ -224,7 +224,6 @@ double ParticleBuoyEstimationModule::likelihood2D(
     math::Vector2 mean, math::Matrix2 covariance,
     math::Vector2 location)
 {
-    std::cout << "2D \n" << mean << "\n" << covariance << "\n" << location << std::endl;
     double xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
     double yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
 
@@ -236,7 +235,6 @@ double ParticleBuoyEstimationModule::likelihood3D(
     math::Vector3 mean, math::Matrix3 covariance,
     math::Vector3 location)
 {
-    std::cout << "3D \n" << mean << "\n" << covariance << "\n" << location << std::endl;
     double xL = gaussian1DLikelihood(mean[0], covariance[0][0], location[0]);
     double yL = gaussian1DLikelihood(mean[1], covariance[1][1], location[1]);
     double zL = gaussian1DLikelihood(mean[2], covariance[2][2], location[2]);
