@@ -51,6 +51,12 @@ class RAM_EXPORT CupidDetector : public Detector
     bool processColor(Image* input, Image* output,
                       ColorFilter& filter,
                       BlobDetector::Blob& outputBlob);
+
+    bool findHearts(Image* input,
+                    ColorFilter& filter,
+                    BlobDetector::Blob& windowBlob,
+                    BlobDetector::Blob& smallHeart,
+                    BlobDetector::Blob& largeHeart);
     
     /* Process current state, and publishes TARGET_FOUND event */
     void publishFoundEvent(const BlobDetector::Blob& blob,
@@ -59,7 +65,10 @@ class RAM_EXPORT CupidDetector : public Detector
     void publishLostEvent(Color::ColorType color);
 
     void drawDebugCircle(BlobDetector::Blob blob,
-                         Image* output);
+                         Image* output,
+                         unsigned char R,
+                         unsigned char G,
+                         unsigned char B);
 
     Camera *cam;
     
@@ -70,10 +79,11 @@ class RAM_EXPORT CupidDetector : public Detector
     /** Blob detector */
     BlobDetector m_blobDetector;
 
-    Image *frame;
-    Image *redFrame;
-    Image *blueFrame;
-    Image *processingFrame;
+    Image *m_frame;
+    Image *m_redFrame;
+    Image *m_blueFrame;
+    Image *m_processingFrame;
+    Image *m_heartsFrame;
 
     bool m_redFound;
     bool m_blueFound;

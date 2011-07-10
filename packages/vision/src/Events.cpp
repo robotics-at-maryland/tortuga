@@ -156,6 +156,7 @@ core::EventPtr BuoyEvent::clone()
     event->y = y;
     event->range = range;
     event->color = color;
+    event->touchingEdge = touchingEdge;
     return event;
 }
 

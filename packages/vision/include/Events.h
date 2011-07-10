@@ -142,15 +142,17 @@ public:
     BuoyEvent() : VisionEvent(), color(Color::UNKNOWN) {};
     BuoyEvent(double x_, double y_, double range_, 
               math::Degree azimuth_, math::Degree elevation_,
-              Color::ColorType color_) :
+              Color::ColorType color_, bool touchingEdge_) :
         VisionEvent(x_, y_, range_),
         azimuth(azimuth_),
         elevation(elevation_),
-        color(color_) {}
+        color(color_),
+        touchingEdge(touchingEdge_) {}
 
     math::Degree azimuth;
     math::Degree elevation;
     Color::ColorType color;
+    bool touchingEdge;
 
     virtual core::EventPtr clone();
 };
@@ -162,16 +164,18 @@ class RAM_EXPORT CupidEvent : public VisionEvent
 public:
     CupidEvent() : VisionEvent(), color(Color::UNKNOWN) {};
     CupidEvent(double x_, double y_, double range_, 
-              math::Degree azimuth_, math::Degree elevation_,
-              Color::ColorType color_) :
+               math::Degree azimuth_, math::Degree elevation_,
+               Color::ColorType color_, bool touchingEdge_) :
         VisionEvent(x_, y_, range_),
         azimuth(azimuth_),
         elevation(elevation_),
-        color(color_) {}
+        color(color_),
+        touchingEdge(touchingEdge_) {}
 
     math::Degree azimuth;
     math::Degree elevation;
     Color::ColorType color;
+    bool touchingEdge;
 
     virtual core::EventPtr clone();
 };

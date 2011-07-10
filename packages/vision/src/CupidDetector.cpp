@@ -65,10 +65,10 @@ CupidDetector::~CupidDetector()
     delete m_redFilter;
     delete m_blueFilter;
 
-    delete frame;
-    delete redFrame;
-    delete blueFrame;
-    delete processingFrame;
+    delete m_frame;
+    delete m_redFrame;
+    delete m_blueFrame;
+    delete m_processingFrame;
 }
 
 void CupidDetector::init(core::ConfigNode config)
@@ -131,59 +131,69 @@ void CupidDetector::init(core::ConfigNode config)
     propSet->verifyConfig(config, true);
     
     // Working images
-    frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    blueFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-    processingFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    m_redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    m_blueFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    m_processingFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    m_heartsFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 
     LOGGER.info("Found CentroidX CentroidY RangeW RangeH Range Width Height blobPixels PixelPercentage");
 }
 
 void CupidDetector::update()
 {
-    cam->getImage(frame);
-    processImage(frame);
+    cam->getImage(m_frame);
+    processImage(m_frame);
 }
 
 void CupidDetector::processImage(Image* input, Image* output)
 {
-    frame->copyFrom(input);
+    input->setPixelFormat(Image::PF_BGR_8);
+    m_frame->copyFrom(input);
 
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
     static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
-    BlobDetector::Blob redBlob, blueBlob;
+    BlobDetector::Blob redBlob, blueBlob, smallHeartBlob, largeHeartBlob;
 
     // process the image to find the red square
-    bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
+    bool redFound = processColor(m_frame, m_redFrame, *m_redFilter, redBlob);
+    bool heartsFound = false;
     if(redFound)
     {
-        publishFoundEvent(redBlob, Color::RED);
+        findHearts(m_frame, *m_redFilter, redBlob,
+                   smallHeartBlob, largeHeartBlob);
+        if(heartsFound)
+        {
+            publishFoundEvent(redBlob, Color::RED);
 
-        int blobPixels = redBlob.getSize();
+            int blobPixels = redBlob.getSize();
+            double blobWidth = redBlob.getWidth();
+            double blobHeight = redBlob.getHeight();
 
-        double fracWidth = static_cast<double>(redBlob.getWidth()) / xPixelWidth;
-        double fracHeight = static_cast<double>(redBlob.getHeight()) / yPixelHeight;
+            double fracWidth = blobWidth / xPixelWidth;
+            double fracHeight = blobHeight / yPixelHeight;
 
-        double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
-        double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
-        double range = (rangeW + rangeH) / 2;
+            double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+            double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+            double range = (rangeW + rangeH) / 2;
 
-        int width = redBlob.getWidth();
-        int height = redBlob.getHeight();
+            int width = redBlob.getWidth();
+            int height = redBlob.getHeight();
 
-        LOGGER.infoStream() << "1" << " "
-                            << redBlob.getCenterX() << " "
-                            << redBlob.getCenterY() << " "
-                            << rangeW << " "
-                            << rangeH << " "
-                            << range << " "
-                            << width << " "
-                            << height << " "
-                            << blobPixels << " "
-                            << blobPixels / (width * height);
+            LOGGER.infoStream() << "1" << " "
+                                << redBlob.getTrueCenterX() << " "
+                                << redBlob.getTrueCenterY() << " "
+                                << rangeW << " "
+                                << rangeH << " "
+                                << range << " "
+                                << width << " "
+                                << height << " "
+                                << blobPixels << " "
+                                << blobPixels / (width * height);
+        }
     }
     else if(m_redFound)
     {
@@ -193,87 +203,140 @@ void CupidDetector::processImage(Image* input, Image* output)
     }
     m_redFound = redFound;
 
-
-    // process the image to find the blue square
-    bool blueFound = processColor(frame, blueFrame, *m_blueFilter, blueBlob);
-    if(blueFound)
+    bool blueFound = false;
+    if(!redFound)
     {
-        publishFoundEvent(blueBlob, Color::BLUE);
+        // process the image to find the blue square
+        blueFound = processColor(m_frame, m_blueFrame, *m_blueFilter, blueBlob);
+        if(blueFound)
+        {
+            heartsFound = findHearts(m_frame, *m_blueFilter, blueBlob,
+                                     smallHeartBlob, largeHeartBlob);
+            if(heartsFound)
+            {
+                publishFoundEvent(blueBlob, Color::BLUE);
 
-        int blobPixels = blueBlob.getSize();
+                int blobPixels = blueBlob.getSize();
+                double blobWidth = blueBlob.getWidth();
+                double blobHeight = blueBlob.getHeight();
 
-        double fracWidth = static_cast<double>(blueBlob.getWidth()) / xPixelWidth;
-        double fracHeight = static_cast<double>(blueBlob.getHeight()) / yPixelHeight;
+                double fracWidth = blobWidth / xPixelWidth;
+                double fracHeight = blobHeight / yPixelHeight;
 
-        double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
-        double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
-        double range = (rangeW + rangeH) / 2;
+                double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+                double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+                double range = (rangeW + rangeH) / 2;
 
-        int width = blueBlob.getWidth();
-        int height = blueBlob.getHeight();
+                int width = blueBlob.getWidth();
+                int height = blueBlob.getHeight();
 
-        LOGGER.infoStream() << "1" << " "
-                            << blueBlob.getCenterX() << " "
-                            << blueBlob.getCenterY() << " "
-                            << range << " "
-                            << width << " "
-                            << height << " "
-                            << blobPixels << " "
-                            << blobPixels / (width * height);
+                LOGGER.infoStream() << "1" << " "
+                                    << blueBlob.getTrueCenterX() << " "
+                                    << blueBlob.getTrueCenterY() << " "
+                                    << range << " "
+                                    << width << " "
+                                    << height << " "
+                                    << blobPixels << " "
+                                    << blobPixels / (width * height);
+            }
+        }
+        else if(m_blueFound)
+        {
+            publishLostEvent(Color::BLUE);
+            LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                                << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+        }
+        m_blueFound = blueFound;
     }
-    else if(m_blueFound)
-    {
-        publishLostEvent(Color::BLUE);
-        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
-                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
-    }
-    m_blueFound = blueFound;
 
 
     // provide debugging output
     if(output)
     {
-        output->copyFrom(frame);
+        output->copyFrom(m_frame);
         if(m_debug > 0)
         {
-            output->copyFrom(frame);
-
-            Image::fillMask(output, redFrame, 255, 0, 0);
-            Image::fillMask(output, blueFrame, 0, 0, 255);
+            Image::fillMask(output, m_redFrame, 200, 0, 0);
+            Image::fillMask(output, m_blueFrame, 0, 0, 200);
             
             if(m_debug == 2)
             {
                 if(redFound)
-                    drawDebugCircle(redBlob, output);
+                    drawDebugCircle(redBlob, output, 200, 0, 0);
 
                 if(blueFound)
-                    drawDebugCircle(blueBlob, output);
+                    drawDebugCircle(blueBlob, output, 0, 0, 200);
+                
+                if(heartsFound)
+                {
+                    BlobDetector::Blob debugBlob;
+                    if(blueFound)
+                        debugBlob = blueBlob;
+                    else
+                        debugBlob = redBlob;
 
+                    CvPoint smallP1;
+                    smallP1.x = debugBlob.getMinX() + smallHeartBlob.getMinX();
+                    smallP1.y = debugBlob.getMinY() + smallHeartBlob.getMinY();
+
+                    CvPoint smallP2;
+                    smallP2.x = debugBlob.getMinX() + smallHeartBlob.getMaxX();
+                    smallP2.y = debugBlob.getMinY() + smallHeartBlob.getMaxY();
+
+                    CvPoint smallCenter;
+                    smallCenter.x = (smallP1.x + smallP2.x) / 2;
+                    smallCenter.y = (smallP1.y + smallP2.y) / 2;
+
+                    cvRectangle(output->asIplImage(), smallP1, smallP2,
+                                cvScalar(100,100,100),3);
+                    cvCircle(output->asIplImage(), smallCenter, 3,
+                             cvScalar(255, 255, 255));
+
+                    CvPoint largeP1;
+                    largeP1.x = debugBlob.getMinX() + largeHeartBlob.getMinX();
+                    largeP1.y = debugBlob.getMinY() + largeHeartBlob.getMinY();
+
+                    CvPoint largeP2;
+                    largeP2.x = debugBlob.getMinX() + largeHeartBlob.getMaxX();
+                    largeP2.y = debugBlob.getMinY() + largeHeartBlob.getMaxY();
+
+                    CvPoint largeCenter;
+                    largeCenter.x = (largeP1.x + largeP2.x) / 2;
+                    largeCenter.y = (largeP1.y + largeP2.y) / 2;
+
+                    cvRectangle(output->asIplImage(), largeP1, largeP2,
+                                cvScalar(100,100,100),3);
+                    cvCircle(output->asIplImage(), largeCenter, 3,
+                             cvScalar(255, 255, 255));
+                }
             } // debug == 2
         } // debug > 0
     } // output
 }
 
 bool CupidDetector::processColor(Image* input, Image* output,
-                                       ColorFilter& filter,
-                                       BlobDetector::Blob& outputBlob)
+                                 ColorFilter& filter,
+                                 BlobDetector::Blob& outputBlob)
 {
     // Set the pixel format for processing
-    processingFrame->copyFrom(input);
-    processingFrame->setPixelFormat(Image::PF_RGB_8);
-    processingFrame->setPixelFormat(Image::PF_LCHUV_8);
+    m_processingFrame->copyFrom(input);
+    m_processingFrame->setPixelFormat(Image::PF_RGB_8);
+    m_processingFrame->setPixelFormat(Image::PF_LCHUV_8);
 
-    filter.filterImage(processingFrame, output);
+    filter.filterImage(m_processingFrame, output);
 
-    // Erode the image (only if necessary)
+
     IplImage* img = output->asIplImage();
-    if (m_erodeIterations > 0) {
-        cvErode(img, img, NULL, m_erodeIterations);
+    // Dilate the image (only if necessary)
+    if (m_dilateIterations > 0) 
+    {
+        cvDilate(img, img, NULL, m_dilateIterations);
     }
 
-    // Dilate the image (only if necessary)
-    if (m_dilateIterations > 0) {
-        cvDilate(img, img, NULL, m_dilateIterations);
+    // Erode the image (only if necessary)
+    if (m_erodeIterations > 0) 
+    {
+        cvErode(img, img, NULL, m_erodeIterations);
     }
     
     m_blobDetector.processImage(output);
@@ -299,27 +362,73 @@ bool CupidDetector::processColor(Image* input, Image* output,
 
     return false;
 }
+    
+bool CupidDetector::findHearts(Image *input,
+                               ColorFilter& filter,
+                               BlobDetector::Blob& windowBlob,
+                               BlobDetector::Blob& smallHeart,
+                               BlobDetector::Blob& largeHeart)
+{
+    m_heartsFrame->copyFrom(input);
+    m_heartsFrame->setPixelFormat(Image::PF_RGB_8);
+    m_heartsFrame->setPixelFormat(Image::PF_LCHUV_8);
+
+    unsigned char *buffer = new unsigned char[windowBlob.getWidth()*windowBlob.getHeight()*3];
+    Image *innerFrame = Image::extractSubImage(
+        m_heartsFrame, buffer,
+        windowBlob.getMinX(), windowBlob.getMinY(),
+        windowBlob.getMaxX(), windowBlob.getMaxY());
+
+    filter.inverseFilterImage(innerFrame);
+
+    m_blobDetector.processImage(innerFrame);
+    delete innerFrame;
+    delete [] buffer;
+
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
+    
+    // for now assume the largest blob is the big heart and the
+    // second largest blob is the small heart.  if this is not
+    // the case we probably are screwed anyway.  if we don't have
+    // two blobs, we arent looking at the cupid so we should return
+    // false.
+    bool foundHearts = true;
+    if(blobs.size() >= 2)
+    {
+        largeHeart = blobs[0];
+        smallHeart = blobs[1];
+    }
+    else
+    {
+        foundHearts = false;
+    }
+    return foundHearts;
+}
+
 
 void CupidDetector::show(char* window)
 {
-    vision::Image::showImage(frame, "CupidDetector");
+    vision::Image::showImage(m_frame, "CupidDetector");
 }
 
 void CupidDetector::drawDebugCircle(BlobDetector::Blob blob,
-                                          Image* output)
+                                    Image* output,
+                                    unsigned char R,
+                                    unsigned char G,
+                                    unsigned char B)
 {
     CvPoint center;
-    center.x = blob.getCenterX();
-    center.y = blob.getCenterY();
+    center.x = blob.getTrueCenterX();
+    center.y = blob.getTrueCenterY();
     
     blob.drawStats(output);
 
-    cvCircle(output->asIplImage(), center, 3, cvScalar(150, 0, 0), -1);
+    cvCircle(output->asIplImage(), center, 6, cvScalar(B, G, R), -1);
 }
 
 IplImage* CupidDetector::getAnalyzedImage()
 {
-    return frame->asIplImage();
+    return m_frame->asIplImage();
 }
 
 void CupidDetector::publishFoundEvent(const BlobDetector::Blob& blob,
@@ -328,21 +437,36 @@ void CupidDetector::publishFoundEvent(const BlobDetector::Blob& blob,
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
     CupidEventPtr event(new CupidEvent());
 
     double centerX, centerY;
-    Detector::imageToAICoordinates(frame, blob.getCenterX(), blob.getCenterY(),
+    Detector::imageToAICoordinates(m_frame, blob.getTrueCenterX(), blob.getTrueCenterY(),
                                    centerX, centerY);
     
     double fracWidth = static_cast<double>(blob.getWidth()) / xPixelWidth;
-    double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+    double fracHeight = static_cast<double>(blob.getHeight()) / yPixelHeight;
+
+    double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+    double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+    double range = (rangeW + rangeH) / 2;
+
+    int minX = blob.getMinX();
+    int maxX = blob.getMaxX();
+    int minY = blob.getMinY();
+    int maxY = blob.getMaxY();
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
 
     // Determine range
     event->x = centerX;
     event->y = centerY;
     event->range = range;
     event->color = color;
+    event->touchingEdge = touchingEdge;
 
     publish(EventType::CUPID_FOUND, event);
     publish(EventType::CUPID_SMALL_FOUND, event);

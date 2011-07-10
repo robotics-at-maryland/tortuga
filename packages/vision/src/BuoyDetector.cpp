@@ -54,7 +54,7 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
     m_checkBlack(false),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
-    m_physicalWidthMeters(0.23)
+    m_physicalWidthMeters(0.26)
 {
     init(config);
 }
@@ -70,7 +70,7 @@ BuoyDetector::BuoyDetector(Camera* camera) :
     m_checkBlack(false),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
-    m_physicalWidthMeters(0.23)
+    m_physicalWidthMeters(0.26)
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -301,6 +301,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
     int framePixels = initialROI.area();
     int almostHitPixels = framePixels * m_almostHitPercentage;
+
     // Filter for black if needed
     if (m_checkBlack)
     {
@@ -460,6 +461,7 @@ void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType 
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
     BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
     
@@ -471,13 +473,23 @@ void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType 
     double fracWidth = blobWidth / xPixelWidth;
     double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
 
+    int minX = blob.getMinX();
+    int maxX = blob.getMaxX();
+    int minY = blob.getMinY();
+    int maxY = blob.getMaxY();
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
+
     event->x = centerX;
     event->y = centerY;
     event->range = range;
     event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
     event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
-    
+    event->touchingEdge = touchingEdge;
+
     publish(EventType::BUOY_FOUND, event);
 }
 
