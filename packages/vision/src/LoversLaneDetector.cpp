@@ -16,6 +16,7 @@
 #include "highgui.h"
 #include <boost/foreach.hpp>
 #include <log4cpp/Category.hh>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -25,8 +26,10 @@
 #include "vision/include/LoversLaneDetector.h"
 #include "vision/include/Events.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/ImageFilter.h"
 #include "vision/include/VisionSystem.h"
 #include "core/include/PropertySet.h"
+
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("LoversLaneDetector"));
 
@@ -43,8 +46,9 @@ LoversLaneDetector::LoversLaneDetector(core::ConfigNode config,
     m_rBlobDetector(config, eventHub),
     frame(0),
     greenFrame(0),
-    m_physicalHeightMeters(1.2)
-
+    m_physicalHeightMeters(1.2),
+    m_colorFilterLookupTable(false),
+    m_lookupTablePath("")
     
 {
     init(config);
@@ -53,7 +57,9 @@ LoversLaneDetector::LoversLaneDetector(core::ConfigNode config,
 LoversLaneDetector::LoversLaneDetector(Camera* camera) :
     cam(0),
     m_colorFilter(0),
-    m_physicalHeightMeters(1.2)
+    m_physicalHeightMeters(1.2),
+    m_colorFilterLookupTable(false),
+    m_lookupTablePath("")
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -104,6 +110,11 @@ void LoversLaneDetector::init(core::ConfigNode config)
                          "Percentage relative to full center height.",
                          0.0, &m_poleThreshold, 0.0, 1.0);
 
+    propSet->addProperty(config, false, "ColorFilterLookupTable",
+                         "True uses color filter lookup table", false,
+                         boost::bind(&LoversLaneDetector::getLookupTable, this),
+                         boost::bind(&LoversLaneDetector::setLookupTable, this, _1));
+    
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
                                     "L", "Luminance",
@@ -111,6 +122,7 @@ void LoversLaneDetector::init(core::ConfigNode config)
                                     "H", "Hue",
                                     0, 255, 0, 255, 0, 255);
 
+    
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
 
@@ -123,6 +135,9 @@ LoversLaneDetector::~LoversLaneDetector()
 {
     delete frame;
     delete greenFrame;
+
+    if ( m_colorFilterLookupTable ) 
+        delete m_tableColorFilter;
 
     delete m_colorFilter;
 }
@@ -138,9 +153,27 @@ void LoversLaneDetector::update()
     processImage(frame, 0);
 }
 
+bool LoversLaneDetector::getLookupTable()
+{
+    return m_colorFilterLookupTable;
+}
+
+void LoversLaneDetector::setLookupTable(bool lookupTable)
+{
+    if ( lookupTable ) {
+        m_colorFilterLookupTable = true;
+
+        m_lookupTablePath = // CHANGE THIS TO LOVERS LANE DEFAULT
+            "/home/steven/ImageFilter/LookupTables/doubleGreenBuoyBlend1.5.serial";
+        m_tableColorFilter = new TableColorFilter(m_lookupTablePath);
+        
+    } else {
+        m_colorFilterLookupTable = false;
+    }
+}
 
 bool LoversLaneDetector::processColor(Image* input, Image* output,
-                                 ColorFilter& filter,
+                                 ImageFilter& filter,
                                  BlobDetector::Blob& leftBlob,
                                  BlobDetector::Blob& rightBlob,
                                  BlobDetector::Blob& outBlob)
@@ -149,7 +182,10 @@ bool LoversLaneDetector::processColor(Image* input, Image* output,
     output->setPixelFormat(Image::PF_RGB_8);
     output->setPixelFormat(Image::PF_LCHUV_8);
 
-    filter.filterImage(output);
+    if ( m_colorFilterLookupTable )
+        filter.filterImage(input, output);
+    else
+        filter.filterImage(output);
 
     // Erode and dilate the image (only if necessary)
     if (m_erodeIterations > 0) {
@@ -235,11 +271,17 @@ void LoversLaneDetector::processImage(Image* input, Image* output)
     
     BlobDetector::Blob loversLaneBlob, leftBlob, rightBlob;
     bool found = false;
+    
+    if ( m_colorFilterLookupTable ) {
+        found = processColor(frame, greenFrame, *m_tableColorFilter,
+                             leftBlob, rightBlob, loversLaneBlob);
+    } else {
+        found = processColor(frame, greenFrame, *m_colorFilter,
+                             leftBlob, rightBlob, loversLaneBlob);
+    }
 
-    if((found = processColor(frame, greenFrame, *m_colorFilter,
-                             leftBlob, rightBlob, loversLaneBlob))) {
+    if(found) {
         publishFoundEvent(loversLaneBlob, leftBlob, rightBlob);
-
     } else {
         // Publish lost event if this was found previously
         if(m_found) {

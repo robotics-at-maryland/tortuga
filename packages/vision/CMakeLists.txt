@@ -90,6 +90,12 @@ if (RAM_WITH_VISION)
     ${OpenCV_LIBS}
     )
 
+  add_executable(TestColorFilterLookup "test/src/TestColorFilterLookup.cpp")
+  target_link_libraries(TestColorFilterLookup
+    ram_vision
+    ${OpenCV_LIBS}
+    )
+
   set(vision_EXCLUDE_LIST "test/src/TestConvert.cxx")
   test_module(vision "ram_vision")
 endif (RAM_WITH_VISION)

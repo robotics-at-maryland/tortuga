@@ -13,6 +13,7 @@
 // STD Includes
 #include <set>
 #include <vector>
+#include <string>
 
 // Library Includes
 #include "cv.h"
@@ -22,10 +23,10 @@
 #include "vision/include/Color.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
-
+#include "vision/include/TableColorFilter.h"
 #include "core/include/ConfigNode.h"
 
-// Must be incldued last
+// Must be included last
 #include "vision/include/Export.h"
 
 namespace ram {
@@ -41,14 +42,18 @@ class RAM_EXPORT BuoyDetector : public Detector
 
     void update();
     void processImage(Image* input, Image* output = 0);
-
+    
     IplImage* getAnalyzedImage();
+
+    // Setter and Getter for lookup table color filter
+    bool getLookupTable();
+    void setLookupTable(bool lookupTable); 
 
   private:
     void init(core::ConfigNode config);
 
     /* Normal processing to find one blob/color */
-    bool processColor(Image* input, Image* output, ColorFilter& filter,
+    bool processColor(Image* input, Image* output, ImageFilter& filter,
                       BlobDetector::Blob& outBlob);
     
     void drawBuoyDebug(Image* debugImage, BlobDetector::Blob &blob,
@@ -72,6 +77,11 @@ class RAM_EXPORT BuoyDetector : public Detector
     ColorFilter *m_yellowFilter;
     ColorFilter *m_blackFilter;
 
+    /** Color Filter Lookup Table */
+    TableColorFilter *m_redTableColorFilter;
+    TableColorFilter *m_yellowTableColorFilter;
+    TableColorFilter *m_greenTableColorFilter;
+    
     /** Blob Detector */
     BlobDetector m_blobDetector;
     
@@ -120,6 +130,12 @@ class RAM_EXPORT BuoyDetector : public Detector
     double m_physicalWidthMeters;
 
     int m_debug;
+
+    bool m_colorFilterLookupTable;
+
+    std::string m_redLookupTablePath;
+    std::string m_yellowLookupTablePath;
+    std::string m_greenLookupTablePath;
 };
 	
 } // namespace vision

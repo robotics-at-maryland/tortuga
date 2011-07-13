@@ -17,6 +17,7 @@
 #include <boost/foreach.hpp>
 #include "cv.h"
 #include <log4cpp/Category.hh>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -29,8 +30,10 @@
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/ImageFilter.h"
 #include "vision/include/CupidDetector.h"
 #include "vision/include/VisionSystem.h"
+#include "vision/include/TableColorFilter.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("CupidDetector"));
 
@@ -45,7 +48,10 @@ CupidDetector::CupidDetector(core::ConfigNode config,
     m_blueFilter(0),
     m_blobDetector(config, eventHub),
     m_physicalWidthMeters(0.61),
-    m_physicalHeightMeters(0.61)
+    m_physicalHeightMeters(0.61),
+    m_colorFilterLookupTable(false),
+    m_redLookupTablePath(""),
+    m_blueLookupTablePath("")
 {
     init(config);
 }
@@ -65,6 +71,11 @@ CupidDetector::~CupidDetector()
     delete m_redFilter;
     delete m_blueFilter;
 
+    if ( m_colorFilterLookupTable )
+    {
+        delete m_redTableColorFilter;
+        delete m_blueTableColorFilter;
+    }
     delete m_frame;
     delete m_redFrame;
     delete m_blueFrame;
@@ -113,6 +124,11 @@ void CupidDetector::init(core::ConfigNode config)
                          "Number of times to dilate the binary image",
                          0, &m_dilateIterations);
 
+    propSet->addProperty(config, false, "ColorFilterLookupTable",
+                         "True uses color filter lookup table", false,
+                         boost::bind(&CupidDetector::getLookupTable, this),
+                         boost::bind(&CupidDetector::setLookupTable, this, _1));
+    
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedL", "Red Luminance",
@@ -146,6 +162,29 @@ void CupidDetector::update()
     processImage(m_frame);
 }
 
+bool CupidDetector::getLookupTable()
+{
+    return m_colorFilterLookupTable;
+}
+
+void CupidDetector::setLookupTable(bool lookupTable)
+{
+    if ( lookupTable ) {
+        m_colorFilterLookupTable = true;
+
+        // Initializing ColorFilterTable
+        m_redLookupTablePath = 
+            "/home/steven/ImageFilter/LookupTables/doubleRedBuoyBlend1.5.serial";
+        m_redTableColorFilter = new TableColorFilter(m_redLookupTablePath);
+
+        m_blueLookupTablePath = 
+            "/home/steven/ImageFilter/LookupTables/doubleYellowBuoyBlend1.5.serial";
+        m_blueTableColorFilter = new TableColorFilter(m_blueLookupTablePath);
+    } else {
+        m_colorFilterLookupTable = false;
+    }
+}
+
 void CupidDetector::processImage(Image* input, Image* output)
 {
     input->setPixelFormat(Image::PF_BGR_8);
@@ -159,7 +198,12 @@ void CupidDetector::processImage(Image* input, Image* output)
     BlobDetector::Blob redBlob, blueBlob, smallHeartBlob, largeHeartBlob;
 
     // process the image to find the red square
-    bool redFound = processColor(m_frame, m_redFrame, *m_redFilter, redBlob);
+    bool redFound;
+    if ( m_colorFilterLookupTable )
+        redFound = processColor(m_frame, m_redFrame, *m_redTableColorFilter, redBlob);
+    else
+        redFound = processColor(m_frame, m_redFrame, *m_redFilter, redBlob);
+
     bool heartsFound = false;
     if(redFound)
     {
@@ -203,7 +247,15 @@ void CupidDetector::processImage(Image* input, Image* output)
     }
     m_redFound = redFound;
 
+    // process the image to find the blue square
     bool blueFound = false;
+    if ( m_colorFilterLookupTable ) {
+        blueFound = processColor(m_frame, m_blueFrame, 
+                                 *m_blueTableColorFilter, blueBlob);
+    } else {
+        blueFound = processColor(m_frame, m_blueFrame, *m_blueFilter, blueBlob);
+    }
+
     if(!redFound)
     {
         // process the image to find the blue square
@@ -315,16 +367,18 @@ void CupidDetector::processImage(Image* input, Image* output)
 }
 
 bool CupidDetector::processColor(Image* input, Image* output,
-                                 ColorFilter& filter,
-                                 BlobDetector::Blob& outputBlob)
+                                       ImageFilter& filter,
+                                       BlobDetector::Blob& outputBlob)
 {
     // Set the pixel format for processing
     m_processingFrame->copyFrom(input);
     m_processingFrame->setPixelFormat(Image::PF_RGB_8);
     m_processingFrame->setPixelFormat(Image::PF_LCHUV_8);
 
-    filter.filterImage(m_processingFrame, output);
-
+    if ( m_colorFilterLookupTable )
+        filter.filterImage(input, output);
+    else 
+        filter.filterImage(m_processingFrame, output);
 
     IplImage* img = output->asIplImage();
     // Dilate the image (only if necessary)

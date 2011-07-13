@@ -12,12 +12,14 @@
 
 // STD Includes
 #include <set>
+#include <string>
 
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/PipeDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
+#include "vision/include/TableColorFilter.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -47,6 +49,10 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Set whether or not to use the LUV filter */
     void setUseLUVFilter(bool value);
     
+    // Setter and Getter for lookup table color filter
+    bool getLookupTable();
+    void setLookupTable(bool lookupTable);
+  
   private:
     void init(core::ConfigNode config);
 
@@ -76,6 +82,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Filters for orange */
     ColorFilter* m_filter;
 
+    /** table color filter */
+    TableColorFilter *m_tableColorFilter;
+
     /** Whether or not to use the newer LUV color filter */
     bool m_useLUVFilter;
     
@@ -93,6 +102,10 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 
     /** The set of IDs of the pipes that were present in the last frame */
     std::set<int> m_lastPipeIds;
+
+    bool m_colorFilterLookupTable;
+    
+    std::string m_lookupTablePath;
 };
     
 } // namespace vision

@@ -96,25 +96,7 @@ void TableColorFilter::filterImage(Image* input, Image* output)
     int nChannels = 0;
     unsigned char *inputData = input->getData();
     unsigned char *outputData = NULL;
-
-    std::ofstream bfStream;
-    bfStream.open("bitFieldFilter");
-
-    for(int c1 = 0; c1 < 256; c1++) 
-    {
-        for(int c2 = 0; c2 < 256; c2++) 
-        {
-            for(int c3 = 0; c3 < 256; c3++) 
-            {
-                if(m_filterTable(c1, c2, c3))
-                {
-                    bfStream << c1 << ", " << c2 << ", " << c3 << "\n";
-                }
-            }
-        }
-    }
-    bfStream.close();
-
+ 
     if(output)
     {
         outputData = output->getData();

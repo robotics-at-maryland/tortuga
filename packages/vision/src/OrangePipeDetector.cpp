@@ -10,6 +10,7 @@
 // STD Includes
 #include <iostream>
 #include <algorithm>
+#include <string>
 
 // Library Includes
 #include "cv.h"
@@ -17,6 +18,7 @@
 #include "highgui.h"
 
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -24,7 +26,9 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
+#include "vision/include/ImageFilter.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/TableColorFilter.h"
 
 #include "math/include/Vector2.h"
 
@@ -43,7 +47,9 @@ static bool pipeToCenterComparer(PipeDetector::Pipe b1, PipeDetector::Pipe b2)
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     PipeDetector(config, eventHub),
-    m_centered(false)
+    m_centered(false),
+    m_colorFilterLookupTable(false),
+    m_lookupTablePath("")
 {
     init(config);
 }
@@ -86,6 +92,11 @@ void OrangePipeDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "useLUVFilter",
         "Use LUV based color filter",  true, &m_useLUVFilter);
     
+    propSet->addProperty(config, false, "ColorFilterLookupTable",
+        "True uses color filter lookup table", false,
+        boost::bind(&OrangePipeDetector::getLookupTable, this),
+        boost::bind(&OrangePipeDetector::setLookupTable, this, _1));
+
     m_filter->addPropertiesToSet(propSet, &config,
                                  "L", "L*",
                                  "U", "Blue Chrominance",
@@ -97,6 +108,25 @@ void OrangePipeDetector::init(core::ConfigNode config)
     
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
+}
+
+bool OrangePipeDetector::getLookupTable()
+{
+    return m_colorFilterLookupTable;
+}
+
+void OrangePipeDetector::setLookupTable(bool lookupTable)
+{
+    if ( lookupTable ) {
+        m_colorFilterLookupTable = true;
+
+        // Initializing ColorFilterTable
+        m_lookupTablePath =
+            "/home/steven/ImageFilter/LookupTables/doubleRedBuoyBlend1.25.serial";
+        m_tableColorFilter = new TableColorFilter(m_lookupTablePath);
+    } else {
+        m_colorFilterLookupTable = false;
+    }
 }
 
 void OrangePipeDetector::filterForOrangeOld(Image* image)
@@ -119,9 +149,12 @@ void OrangePipeDetector::filterForOrangeOld(Image* image)
 
 void OrangePipeDetector::filterForOrangeNew(Image* image)
 {
-    // Filter the image so all green is white, and everything else is black
-    image->setPixelFormat(Image::PF_LUV_8);    
-    m_filter->filterImage(image);
+    // Filter the image so all orange is white, and everything else is black
+    image->setPixelFormat(Image::PF_LUV_8);
+    if ( m_colorFilterLookupTable )
+        m_tableColorFilter->filterImage(image);
+    else
+        m_filter->filterImage(image);
 }
     
 bool OrangePipeDetector::found()
@@ -151,6 +184,10 @@ void OrangePipeDetector::setUseLUVFilter(bool value)
 
 OrangePipeDetector::~OrangePipeDetector()
 {
+    delete m_filter;
+
+    if ( m_colorFilterLookupTable )
+        delete m_tableColorFilter;
 }
 
 void OrangePipeDetector::processImage(Image* input, Image* output)

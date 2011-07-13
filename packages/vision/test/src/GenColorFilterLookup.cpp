@@ -1,12 +1,10 @@
 /*
-Steven Friedman
-
-arg1 is image folder
-arg2 is mask folder
-arg3 is serial data path
-arg4 is input image path
-arg5 is save image path
-image and corresponding mask must have same name
+ * Copyright (C) 2011 Robotics at Maryland
+ * Copyright (C) 2011 Steven Friedman <sfriedm1@umd.edu>
+ * All rights reserved.
+ *
+ * Author: Steven Friedman <sfriedm1@umd.edu>>
+ * File:  packages/vision/test/src/GenColorFilterLookup.cpp
  */
 
 // STD Includes
@@ -147,8 +145,7 @@ int main(int argc, char* argv[])
         std::cout << "arg1 is image folder" << std::endl;
         std::cout << "arg2 is mask folder" <<  std::endl;
         std::cout << "arg3 is serial data path" << std::endl;
-        std::cout << "arg4 is input image path" << std::endl;
-        std::cout << "arg5 is save image path" << std::endl;
+        std::cout << "arg4 is blending factor (double)" << std::endl;
         std::cout << "please specify full path for everything" << std::endl;
         std::cout << "image and corresponding mask must have same name" << std::endl;
         return 0;
@@ -219,7 +216,7 @@ int main(int argc, char* argv[])
     }
 
     // Form ImplicitSurface
-    double blendingFactor = 1.0; 
+    double blendingFactor = atof(argv[4]); 
     
     std::cout << "Generating Implicit Surface" << std::endl;
     math::ImplicitSurface iSurface = 
@@ -228,7 +225,7 @@ int main(int argc, char* argv[])
     // Creating and Saving lookup table
     ram::vision::TableColorFilter::
         createLookupTable(argv[3], iSurface);
-
+/*
     std::cout << "Testing" << std::endl;
     // Loading Lookup table for testing
     ram::vision::TableColorFilter tcf = 
@@ -256,7 +253,7 @@ int main(int argc, char* argv[])
     
     cvWaitKey(0);
     
-    
+  */  
     return 0;
 }
 

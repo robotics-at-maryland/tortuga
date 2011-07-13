@@ -11,12 +11,13 @@
 #include <math.h>
 #include <algorithm>
 #include <iostream>
+#include <string>
 
 // Library Includes
 #include "cv.h"
 #include "highgui.h"
 #include <log4cpp/Category.hh>
-
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 
 // Project Includes
@@ -30,10 +31,12 @@
 #include "vision/include/Events.h"
 #include "vision/include/Image.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/ImageFilter.h"
 #include "vision/include/ColorFilter.h"
 #include "vision/include/RegionOfInterest.h"
 #include "vision/include/Utility.h"
 #include "vision/include/VisionSystem.h"
+#include "vision/include/TableColorFilter.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
@@ -54,7 +57,12 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
     m_checkBlack(false),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
-    m_physicalWidthMeters(0.26)
+    m_physicalWidthMeters(0.26),
+    m_colorFilterLookupTable(false),
+    m_redLookupTablePath(""),
+    m_yellowLookupTablePath(""),
+    m_greenLookupTablePath("")
+
 {
     init(config);
 }
@@ -70,7 +78,11 @@ BuoyDetector::BuoyDetector(Camera* camera) :
     m_checkBlack(false),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
-    m_physicalWidthMeters(0.26)
+    m_physicalWidthMeters(0.26),
+    m_colorFilterLookupTable(false),
+    m_redLookupTablePath(""),
+    m_yellowLookupTablePath(""),
+    m_greenLookupTablePath("")
 {
     init(core::ConfigNode::fromString("{}"));
 }
@@ -147,8 +159,10 @@ void BuoyDetector::init(core::ConfigNode config)
         "% of the screen from the right to be blacked out",
         0.0, &m_rightIgnorePercentage);
     
-
-
+    propSet->addProperty(config, false, "ColorFilterLookupTable",
+        "True uses color filter lookup table", false, 
+        boost::bind(&BuoyDetector::getLookupTable, this),
+        boost::bind(&BuoyDetector::setLookupTable, this, _1));
 
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
@@ -158,43 +172,44 @@ void BuoyDetector::init(core::ConfigNode config)
                                     0, 255, 0, 255, 0, 255);
     m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_greenFilter->addPropertiesToSet(propSet, &config,
-                                      "GreenL", "Green Luminance",
-                                      "GreenC", "Green Chrominance",
-                                      "GreenH", "Green Hue",
-                                      0, 255, 0, 255, 0, 255);
+                                    "GreenL", "Green Luminance",
+                                    "GreenC", "Green Chrominance",
+                                    "GreenH", "Green Hue",
+                                    0, 255, 0, 255, 0, 255);
     m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_yellowFilter->addPropertiesToSet(propSet, &config,
-                                       "YellowL", "Yellow Luminance",
-                                       "YellowC", "Yellow Chrominance",
-                                       "YellowH", "Yellow Hue",
-                                       0, 255, 0, 255, 0, 255);
+                                    "YellowL", "Yellow Luminance",
+                                    "YellowC", "Yellow Chrominance",
+                                    "YellowH", "Yellow Hue",
+                                    0, 255, 0, 255, 0, 255);
 
     m_blackFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_blackFilter->addPropertiesToSet(propSet, &config,
-                                      "BlackL", "Black Luminance",
-                                      "BlackC", "Black Chrominance",
-                                      "BlackH", "Black Hue",
-                                      0, 255, 0, 255, 0, 255);
-
-
-
+                                    "BlackL", "Black Luminance",
+                                    "BlackC", "Black Chrominance",
+                                    "BlackH", "Black Hue",
+                                    0, 255, 0, 255, 0, 255);
+        
+    
     // Make sure the configuration is valid
     propSet->verifyConfig(config, true);
-    
+        
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-
+    
     redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     blackFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
-
-    LOGGER.info("foundRed redX redY redRange redWidth "
+    
+   LOGGER.info("foundRed redX redY redRange redWidth "
                 "redHeight redNumPixels redPixelPct" 
                 "foundGreen greenX greenY greenRange greenWidth "
                 "greenHeight greenNumPixels greenPixelPct"
                 "foundYellow yellowX yellowY yellowRange yellowWidth "
                 "yellowHeight yellowNumPixel yellowPixelPct");
+    
+        
 }
 
 BuoyDetector::~BuoyDetector()
@@ -202,10 +217,20 @@ BuoyDetector::~BuoyDetector()
     delete m_redFilter;
     delete m_greenFilter;
     delete m_yellowFilter;
+    
+    if ( m_colorFilterLookupTable ) {
+        delete m_redTableColorFilter;
+        delete m_yellowTableColorFilter;
+        delete m_greenTableColorFilter;
+    }
 
     delete frame;
     delete redFrame;
     delete greenFrame;
+    delete yellowFrame;
+    delete blackFrame;
+
+
 }
 
 void BuoyDetector::update()
@@ -214,8 +239,37 @@ void BuoyDetector::update()
     processImage(frame);
 }
 
+bool BuoyDetector::getLookupTable()
+{
+    return m_colorFilterLookupTable;
+}
+
+void BuoyDetector::setLookupTable(bool lookupTable)
+{
+    if ( lookupTable) {
+        m_colorFilterLookupTable = true;
+
+        // Initializing ColorFilterTable
+        m_redLookupTablePath = 
+            "/home/steven/ImageFilter/LookupTables/doubleRedBuoyBlend2.serial";
+        m_redTableColorFilter = new TableColorFilter(m_redLookupTablePath);
+    
+        m_yellowLookupTablePath = 
+            "/home/steven/ImageFilter/LookupTables/doubleYellowBuoyBlend1.5.serial";
+        m_yellowTableColorFilter = new TableColorFilter(m_yellowLookupTablePath);
+        
+        m_greenLookupTablePath = 
+            "/home/steven/ImageFilter/LookupTables/doubleGreenBuoyBlend1.5.serial";
+        m_greenTableColorFilter = new TableColorFilter(m_greenLookupTablePath);
+    
+    } else {
+        m_colorFilterLookupTable = false;
+    }
+        
+}
+
 bool BuoyDetector::processColor(Image* input, Image* output,
-                                ColorFilter& filter,
+                                ImageFilter& filter,
                                 BlobDetector::Blob& outBlob)
 {
     const int imgWidth = input->getWidth();
@@ -226,8 +280,11 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     output->setPixelFormat(Image::PF_RGB_8);
     output->setPixelFormat(Image::PF_LCHUV_8);
 
-    filter.filterImage(output);
-
+    if ( m_colorFilterLookupTable ) 
+        filter.filterImage(input, output);
+    else 
+        filter.filterImage(output);
+ 
     m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
@@ -317,7 +374,15 @@ void BuoyDetector::processImage(Image* input, Image* output)
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
     BlobDetector::Blob redBlob;
-    bool redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
+
+    bool redFound;
+
+    if ( m_colorFilterLookupTable ) {
+        redFound = processColor(frame, redFrame, *m_redTableColorFilter, redBlob);
+    } else {
+        redFound = processColor(frame, redFrame, *m_redFilter, redBlob);
+    }
+ 
     if (redFound)
     {
         publishFoundEvent(redBlob, Color::RED);
@@ -358,7 +423,12 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
 
     BlobDetector::Blob greenBlob;
-    bool greenFound = processColor(frame, greenFrame, *m_greenFilter, greenBlob);
+    bool greenFound;
+    if ( m_colorFilterLookupTable ) {
+        greenFound = processColor(frame, greenFrame, *m_greenTableColorFilter, greenBlob);
+    } else {
+        greenFound = processColor(frame, greenFrame, *m_greenFilter, greenBlob);
+    }
     if (greenFound)
     {
         publishFoundEvent(greenBlob, Color::GREEN);
@@ -396,7 +466,12 @@ void BuoyDetector::processImage(Image* input, Image* output)
     m_greenFound = greenFound;
 
     BlobDetector::Blob yellowBlob;
-    bool yellowFound = processColor(frame, yellowFrame, *m_yellowFilter, yellowBlob);
+    bool yellowFound;
+    if ( m_colorFilterLookupTable ) {
+        yellowFound = processColor(frame, yellowFrame, *m_yellowTableColorFilter, yellowBlob);
+    } else {
+        yellowFound = processColor(frame, yellowFrame, *m_yellowFilter, yellowBlob);
+    }
     if (yellowFound)
     {
         publishFoundEvent(yellowBlob, Color::YELLOW);
@@ -511,7 +586,7 @@ void BuoyDetector::drawBuoyDebug(Image* debugImage, BlobDetector::Blob &blob,
     
     blob.drawStats(debugImage);
     blob.draw(debugImage);
-
+    
     cvCircle(debugImage->asIplImage(), center, 3,
              cvScalar(blue, green, red), -1);
 }

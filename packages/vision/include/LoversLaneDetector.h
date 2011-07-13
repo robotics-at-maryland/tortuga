@@ -23,6 +23,8 @@
 #include "vision/include/LineDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
+#include "vision/include/ImageFilter.h"
+#include "vision/include/TableColorFilter.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -47,12 +49,16 @@ class RAM_EXPORT LoversLaneDetector : public Detector
 
     IplImage* getAnalyzedImage();
 
+    // Setter and Getter for lookup table color filter
+    bool getLookupTable();
+    void setLookupTable(bool LookupTable);
+
   private:
     void init(core::ConfigNode config);
 
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output,
-                      ColorFilter& filter,
+                      ImageFilter& filter,
                       BlobDetector::Blob& leftBlob,
                       BlobDetector::Blob& rightBlob,
                       BlobDetector::Blob& outBlob);
@@ -73,6 +79,9 @@ class RAM_EXPORT LoversLaneDetector : public Detector
 
     /** Stores the various color filters */
     ColorFilter *m_colorFilter;
+
+    /** Color Filter Lookup Table */
+    TableColorFilter *m_tableColorFilter;
 
     /** Blob detector */
     BlobDetector m_blobDetector;
@@ -99,6 +108,10 @@ class RAM_EXPORT LoversLaneDetector : public Detector
 
     double m_physicalHeightMeters;
     int m_debug;
+
+    bool m_colorFilterLookupTable;
+
+    std::string m_lookupTablePath;
 };
 
 } // namespace vision
