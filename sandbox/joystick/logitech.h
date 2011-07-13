@@ -31,7 +31,7 @@ int scaleAxis(int val, int negRange, int posRange,
     if(val > deadNeg && val < deadPos)
         val = 0;
     else if(val < 0) /* Forward, range up to 15677 */
-        val = outRange * val / negRange;
+        val = -outRange * val / negRange;
     else
         val = outRange * val / posRange;
 
@@ -45,13 +45,13 @@ int scaleAxis(int val, int negRange, int posRange,
 }
 
 #define SCALE_SPEED(val)                        \
-    val = scaleAxis(val, 32767, -32767, -3000, 3000, 0, SPEED_RANGE)
+    val = scaleAxis(val, 32767, -32767, -4000, 4000, 0, SPEED_RANGE)
 #define SCALE_YAW(val)                          \
-    val = scaleAxis(val, -32767, 32767, -3000, 3000, 0, YAW_RANGE)
+    val = scaleAxis(val, -32767, 32767, -8000, 8000, 0, YAW_RANGE)
 #define SCALE_TSPEED(val)                       \
-    val = scaleAxis(val, -32767, 32767, -3000, 3000, 0, TSPEED_RANGE)
+    val = scaleAxis(val, -32767, 32767, -4000, 4000, 0, TSPEED_RANGE)
 #define SCALE_THROTTLE(val)                     \
-    val = scaleAxis(val, 32767, -32767, -3000, 3000, 0, SPEED_RANGE)
+    val = scaleAxis(val, 32767, -32767, -4000, 4000, 0, SPEED_RANGE)
 
 #include "joystick.h"
 
