@@ -14,24 +14,15 @@ ram.ai.gate.Forward:
 
 # Pipe task
 ram.ai.pipe.Seeking:
-    speedGain: 3
-    forwardSpeed: 4
-    sidewaysSpeedGain: 7
-    maxSidewaysSpeed: 4
-    iSidewaysSpeedGain: 1
-    dSidewaysSpeedGain: 2
-    yawGain: 0.25
+    forwardSpeed: 0.15
 ram.ai.pipe.Centering:
-    speedGain: 3
-    forwardSpeed: 4
-    yawGain: 0.25
+    forwardSpeed: 0.15
     planeThreshold: 0.1
     angleThreshold: 3
     planeChange: 0.05
     angleChange: 1
 ram.ai.pipe.AlongPipe:
     angleDistance: 0.1
-    yawGain: 0.25
 
 # Light/Bouy sub task
 ram.ai.light.Searching:
