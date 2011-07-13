@@ -298,8 +298,7 @@ class PipeFollowingState(PipeTrackingState):
             if not self._currentPipe(event):
                     # If the new pipe is closer to our current direction, switch
                     if math.fabs(angle.valueDegrees()) < \
-                            math.fabs(pipeData['itemData'][pipeData['currentID']]
-                                      .angle.valueDegrees()):
+                            math.fabs(pipeData['itemData'][pipeData['currentID']].angle.valueDegrees()):
                         pipeData['currentID'] = event.id
                         self._pipe.setState(event.x, event.y, angle.valueDegrees())
                         self.changedPipe()
@@ -357,7 +356,8 @@ class PipeFollowingState(PipeTrackingState):
         # PipeInfo is changed
 
         if not self._changeMotion(self._currentDesiredPos, ext.math.Vector2( 
-                self._pipe.getY(), self._pipe.getX())):
+                self._pipe.getY() * self._forwardRate, 
+                self._pipe.getX() * self._sidewaysRate)):
             return
         
         
@@ -463,7 +463,7 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             yawTrajectory = motion.trajectories.StepTrajectory(
                 initialValue = currentOrientation,
                 finalValue = yawVehicleHelper(currentOrientation, 
-                                                      self._direction.valueDegrees()),
+                                              self._direction.valueDegrees()),
                 initialRate = self.stateEstimator.getEstimatedAngularRate(),
                 finalRate = ext.math.Vector3.ZERO)
             translateTrajectory = motion.trajectories.Vector2CubicTrajectory(

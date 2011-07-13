@@ -86,8 +86,9 @@ class AI(core.Subsystem):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                        'targetDepth', 'binDepth', 'targetSymbols',
                        'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth',
-                       'buoyDepth', 'targetBuoys', 'windowDepth',
-                       'targetWindows', 'windowOffset'])
+                       'buoyDepth', 'buoyX', 'buoyY', 'targetBuoys', 
+                       'windowDepth', 'windowX', 'windowY', 'heartSize',
+                       'windowOrienation', 'targetWindows', 'windowOffset'])
         pipeOptions = set(['biasDirection', 'threshold', 'taskTimeout'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
@@ -157,6 +158,11 @@ class AI(core.Subsystem):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'SafeSonar':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in set(['taskTimeout']):
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Vase':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in set(['taskTimeout']):
                         raise Exception("'%s' is not a valid config "

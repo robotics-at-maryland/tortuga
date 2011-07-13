@@ -18,7 +18,7 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
             'ram.ai.course.Travel1', 'ram.ai.course.Window',
-            'ram.ai.course.Bin']
+            'ram.ai.course.Bin', 'ram.ai.course.Vase']
 
 failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 

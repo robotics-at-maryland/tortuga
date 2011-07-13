@@ -34,6 +34,7 @@ import ram.ai.bin as bin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
+import ram.ai.vase as vase
 
 import ram.motion as motion
 import ram.motion.basic
@@ -798,6 +799,24 @@ class Pinger(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.stateMachine.stopBranch(sonar.Start)
+        
+class Pinger2(task.Task):
+    """
+    Move until we are over the pinger
+    """
+    @staticmethod
+    def _transitions():
+        return {  sonar.COMPLETE : task.Next,
+                 'GO' : state.Branch(sonar.Start) }
+    
+    def enter(self):
+        task.Task.enter(self)
+        # Branch off state machine for finding the sonar
+        self.stateMachine.start(state.Branch(sonar.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(sonar.Start)
 
 class SafeDive(task.Task):
     """
@@ -877,6 +896,28 @@ class SafeSonar(task.Task):
         task.Task.exit(self)
         self.stateMachine.stopBranch(sonarSafe.Settling)
 
+class Vase(task.Task):
+    """
+    Dives to the depth of the Vase, grabs it and surfaces to a predefined
+    depth
+    """
+
+    @staticmethod
+    def _transitions():
+        return { vase.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+    
+    def enter(self, defaultTimeout = 500):
+        timeout = self.ai.data['config'].get('Vase', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        self.stateMachine.start(state.Branch(vase.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(vase.Start)
+
 class Octagon(task.Task):
     """
     Surface in the octagon with or without the treasure, but with the sonar on
@@ -917,10 +958,15 @@ class Octagon(task.Task):
         self._release = self._config.get('release', True)
 
         # Start our dive
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 0),
-            speed = self._config.get('diveSpeed', 0.3))
-        
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self._config.get('depth', 0),
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('diveSpeed', 0.2))
+
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
+
         self.motionManager.setMotion(diveMotion)
 
     def exit(self):
