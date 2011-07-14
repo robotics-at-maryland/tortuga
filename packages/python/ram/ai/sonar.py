@@ -47,7 +47,7 @@ class PingerState(state.State):
     def getattr():
         return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout',
                     'maxSidewaysSpeed', 'sidewaysSpeedGain', 'forwardSpeed',
-                    'motionRange', 'distance'])
+                    'motionRange', 'distance', 'sonarError'])
 
     def UPDATE(self, event):
         if self._timeout > 0:
@@ -77,6 +77,7 @@ class PingerState(state.State):
         self._forwardSpeed = self._config.get('forwardSpeed', 0.15)
         self._motionRange = self._config.get('motionRange', .02)
         self._distance = self._config.get('distance', 1)
+        self.ai.data['minSonarError'] = self._config.get('sonarError', 1)
      
     def enter(self, timeout = 2.5):
         self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
@@ -85,8 +86,10 @@ class PingerState(state.State):
 
         self._loadSettings()
 
-        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY(), 
-                                              self._pipe.getX())
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() *
+                                                   self._distance, 
+                                                   self._pipe.getX() *
+                                                   self._distance)
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         
         orientation = yawVehicleHelper(currentOrientation, 
@@ -100,7 +103,7 @@ class PingerState(state.State):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = ext.math.Vector2.ZERO,
             finalValue = self._currentDesiredPos,
-            initialRate = ext.math.Vector2.ZERO,
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._forwardSpeed)
             
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
@@ -247,7 +250,6 @@ class TranslationSeeking(PingerState):
                                                        self._distance, 
                                                        self._pipe.getX() * 
                                                        self._distance)
-            self.motionManager.stopCurrentMotion()
             
             currentOrientation = self.stateEstimator.getEstimatedOrientation()
             
@@ -262,8 +264,10 @@ class TranslationSeeking(PingerState):
             translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
                 initialValue = ext.math.Vector2.ZERO,
                 finalValue = self._currentDesiredPos,
-                initialRate = ext.math.Vector2.ZERO,
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
                 avgRate = 0.15)
+
+            #self.motionManager.stopCurrentMotion()
             
             yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
             translateMotion = ram.motion.basic.Translate(translateTrajectory,
@@ -278,9 +282,18 @@ class TranslationSeeking(PingerState):
         # Another messy solution, compares two vectors to see if there
         # is much of a difference between them. Returns True if there is
         # is significant difference
+
+        position = self.stateEstimator.getEstimatedPosition()
+        depth = self.stateEstimator.getEstimatedDepth()
+        obstacle = ext.math.Vector3(vector2.x, vector2.y, depth)
+        real = ext.math.Vector3(position.x, position.y, depth)
+        error = real - obstacle
+
         if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + 
                      (vector2.y - vector1.y) * 
                      (vector2.y - vector1.y)) < self._motionRange:
+            return False
+        elif error.length() < self.ai.data['minSonarError']:
             return False
         return True
             

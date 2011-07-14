@@ -36,6 +36,9 @@ import ram.motion.pipe
 import ram.timer
 from ram.motion.basic import Frame
 
+# Denotes when this state machine finishes
+COMPLETE = core.declareEventType('COMPLETE')
+
 def ensurePipeTracking(qeventHub, ai):        
     tracking.ensureItemTracking(qeventHub, ai, 'pipeData',
                                 vision.EventType.PIPE_FOUND,
@@ -703,4 +706,5 @@ class BetweenPipes(PipeTrackingState):
 class End(state.State):
     def enter(self):
         self.visionSystem.pipeLineDetectorOff()
+        self.publish(COMPLETE, core.Event())
         #print '"Pipe Follow"'
