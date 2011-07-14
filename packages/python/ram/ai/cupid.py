@@ -87,9 +87,7 @@ class Start(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, yawMotion, translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -140,8 +138,7 @@ class Aim(state.State)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -264,8 +261,7 @@ class SwitchWindow(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(yawMotion, translateMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -316,8 +312,7 @@ class Aim2(state.State)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()

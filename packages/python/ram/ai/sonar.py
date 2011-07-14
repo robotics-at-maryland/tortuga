@@ -109,8 +109,7 @@ class PingerState(state.State):
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(yawMotion, translateMotion)
 
         # Set up the ping timer
         self._pingChecker = None
@@ -272,8 +271,7 @@ class TranslationSeeking(PingerState):
             yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
             translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                          frame = Frame.LOCAL)
-            self.motionManager.setMotion(yawMotion)
-            self.motionManager.setMotion(translateMotion)
+            self.motionManager.setMotion(yawMotion, translateMotion)
 
             if math.fabs(event.direction.z) > math.fabs(self._closeZ):
                  self.publish(TranslationSeeking.CLOSE, core.Event())

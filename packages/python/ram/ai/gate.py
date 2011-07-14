@@ -23,6 +23,7 @@ Requires the following subsystems:
 # Project Imports
 import ext.core as core
 import ext.math as math
+from ext.control import yawVehicleHelper
 
 import ram.ai.state as state
 import ram.motion as motion
@@ -79,21 +80,28 @@ class Forward(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 5 , 'avgRate' : 0.15}
+        return { 'distance' : 5 , 'avgRate' : 0.15, 'angle' : 0}
 
     def enter(self):
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, self._angle),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
         forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(self._distance,0),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._avgRate)
 
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         forwardMotion = motion.basic.Translate(
             trajectory = forwardTrajectory,
             frame = Frame.LOCAL)
 
         # Full speed ahead!!
-        self.motionManager.setMotion(forwardMotion)
+        self.motionManager.setMotion(yawMotion, forwardMotion)
     
     def exit(self):
         self.motionManager.stopCurrentMotion()

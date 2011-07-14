@@ -479,8 +479,8 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
             
-            self.motionManager.setMotion(yawMotion)
-            self.motionManager.setMotion(translateMotion)
+            self.motionManager.setMotion(yawMotion, translateMotion)
+            #self.motionManager.setMotion(translateMotion)
         else:
             self.motionManager.stopCurrentMotion()
 
@@ -654,8 +654,9 @@ class AlongPipe(PipeFollowingState):
         self._ignoreEvents = True
 
     def exit(self):
-        self.motionManager.stopCurrentMotion()
-       
+        #self.motionManager.stopCurrentMotion()
+        print 'leaving AlongPipe'
+
 class BetweenPipes(PipeTrackingState):
     """
     When the vehicle is between two pipes, and can't see either.
@@ -692,6 +693,9 @@ class BetweenPipes(PipeTrackingState):
             finalValue = ext.math.Vector2(self._config.get('distance', 5),0),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = forwardSpeed)
+
+        self.motionManager.stopCurrentMotion()
+
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         self.motionManager.setMotion(translateMotion)

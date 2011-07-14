@@ -86,9 +86,7 @@ class Start(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, yawMotion, translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -140,8 +138,7 @@ class Identification(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -193,8 +190,7 @@ class Identification2(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -246,8 +242,7 @@ class Approach(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -305,8 +300,7 @@ class Hit(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion)
-        self.motionManager.setMotion(translateMotion)
+        self.motionManager.setMotion(diveMotion, translateMotion)
 
     def FINISHED(self, event):
         if len(self.ai.data['buoyList']) > 0:
