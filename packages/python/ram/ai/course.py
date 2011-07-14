@@ -19,6 +19,8 @@ Requires the following subsystems:
 import ext.core as core
 import ext.vision as vision
 import ext.control as control
+from ext.control import yawVehicleHelper
+import ext.math as math
 
 import ram.ai.task as task
 import ram.ai.state as state
@@ -38,6 +40,7 @@ import ram.ai.vase as vase
 
 import ram.motion as motion
 import ram.motion.basic
+from ram.motion.basic import Frame
 
 class Gate(task.Task):
     """
@@ -1021,6 +1024,41 @@ class Travel2(Travel):
 
 class Travel3(Travel):
     pass
+
+class TravelPoint(task.Task):
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next}
+
+    def enter(self):
+        self._className = type(self).__name__
+
+        taskTimeout = self.ai.data['config'].get(self._className, {}).get(
+            'taskTimeout', 30)
+        Xpos = self.ai.data['config'].get(self._className, {}).get(
+            'X', 0)
+        Ypos = self.ai.data['config'].get(self._className, {}).get(
+            'Y', 0)
+        yaw = self.ai.data['config'].get(self._className, {}).get(
+            'orientation', 0)
+
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, yaw),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(Ypos,Xpos),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = 0.15)
+
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(yawMotion, translateMotion)
 
 class TimedTravel(task.Task):
     """

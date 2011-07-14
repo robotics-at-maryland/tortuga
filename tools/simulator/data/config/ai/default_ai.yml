@@ -18,7 +18,8 @@ taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
             'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
             'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
             'ram.ai.course.Travel1', 'ram.ai.course.Window',
-            'ram.ai.course.Bin', 'ram.ai.course.Vase']
+            'ram.ai.course.Bin', 'ram.ai.course.Vase',
+            'ram.ai.course.TravelPoint']
 
 failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 
@@ -35,7 +36,7 @@ config:
     hedgeDepth: 9.8
     binDepth: 12
     targetSymbols: ['Machete', 'Axe']
-    sonarDepth: 8
+    sonarDepth: 3
     safeDepth: 15
     safeOffset: -0.35
     Gate:
@@ -74,6 +75,11 @@ config:
                 speed: 3
                 duration: 4
                 absolute: False
+    TravelPoint:
+        taskTimeout: 60
+        X: 2
+        Y: 4
+        orientation: 20
     Bin:
         duration: 60
         forwardDuration: 30
