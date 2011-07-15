@@ -204,6 +204,8 @@ core::EventPtr LoversLaneEvent::clone()
     event->leftY = leftY;
     event->rightX = rightX;
     event->rightY = rightY;
+    event->centerX = centerX;
+    event->centerY = centerY;
     event->squareNess = squareNess;
     event->range = range;
     event->haveLeft = haveLeft;

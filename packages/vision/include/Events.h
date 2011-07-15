@@ -225,12 +225,15 @@ class RAM_EXPORT LoversLaneEvent : public core::Event
 {
   public:
     LoversLaneEvent(double leftX_, double leftY_, double rightX_, double rightY_,
-               double width_, double range_,
-               bool haveLeft_, bool haveRight_) :
+                    double centerX_, double centerY_,
+                    double width_, double range_,
+                    bool haveLeft_, bool haveRight_) :
         leftX(leftX_),
         leftY(leftY_),
         rightX(rightX_),
         rightY(rightY_),
+        centerX(centerX_),
+        centerY(centerY_),
         squareNess(width_),
         range(range_),
         haveLeft(haveLeft_),
@@ -243,6 +246,8 @@ class RAM_EXPORT LoversLaneEvent : public core::Event
         leftY(0),
         rightX(0),
         rightY(0),
+        centerX(0),
+        centerY(0),
         squareNess(0),
         range(0),
         haveLeft(false),
@@ -254,6 +259,8 @@ class RAM_EXPORT LoversLaneEvent : public core::Event
     double leftY;
     double rightX;
     double rightY;
+    double centerX;
+    double centerY;
 
     // Calculated on width / height
     double squareNess;

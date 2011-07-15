@@ -37,7 +37,7 @@ namespace ram {
 namespace vision {
 
 LoversLaneDetector::LoversLaneDetector(core::ConfigNode config,
-                             core::EventHubPtr eventHub) :
+                                       core::EventHubPtr eventHub) :
     Detector(eventHub),
     cam(0),
     m_colorFilter(0),
@@ -125,10 +125,10 @@ void LoversLaneDetector::init(core::ConfigNode config)
     
     m_colorFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_colorFilter->addPropertiesToSet(propSet, &config,
-                                    "L", "Luminance",
-                                    "C", "Chrominance",
-                                    "H", "Hue",
-                                    0, 255, 0, 255, 0, 255);
+                                      "L", "Luminance",
+                                      "C", "Chrominance",
+                                      "H", "Hue",
+                                      0, 255, 0, 255, 0, 255);
 
     
     // Make sure the configuration is valid
@@ -181,10 +181,10 @@ void LoversLaneDetector::setLookupTable(bool lookupTable)
 }
 
 bool LoversLaneDetector::processColor(Image* input, Image* output,
-                                 ImageFilter& filter,
-                                 BlobDetector::Blob& leftBlob,
-                                 BlobDetector::Blob& rightBlob,
-                                 BlobDetector::Blob& outBlob)
+                                      ImageFilter& filter,
+                                      BlobDetector::Blob& leftBlob,
+                                      BlobDetector::Blob& rightBlob,
+                                      BlobDetector::Blob& outBlob)
 {
     output->copyFrom(input);
     output->setPixelFormat(Image::PF_RGB_8);
@@ -223,7 +223,7 @@ bool LoversLaneDetector::processColor(Image* input, Image* output,
     }
 
     OpenCVImage debug(output->getWidth(), output->getHeight(),
-                              Image::PF_BGR_8);
+                      Image::PF_BGR_8);
     m_blobDetector.processImage(output, &debug);
     //Image::showImage(&debug);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
@@ -250,9 +250,9 @@ bool LoversLaneDetector::processColor(Image* input, Image* output,
 }
 
 bool LoversLaneDetector::processSides(Image* input, 
-                                 BlobDetector::Blob& fullBlob,
-                                 BlobDetector::Blob& leftBlob,
-                                 BlobDetector::Blob& rightBlob)
+                                      BlobDetector::Blob& fullBlob,
+                                      BlobDetector::Blob& leftBlob,
+                                      BlobDetector::Blob& rightBlob)
 {
     int width = fullBlob.getWidth();
     int height = fullBlob.getHeight();
@@ -405,13 +405,15 @@ void LoversLaneDetector::processImage(Image* input, Image* output)
 }
 
 void LoversLaneDetector::publishFoundEvent(BlobDetector::Blob& blob,
-                                      BlobDetector::Blob& leftBlob,
-                                      BlobDetector::Blob& rightBlob)
+                                           BlobDetector::Blob& leftBlob,
+                                           BlobDetector::Blob& rightBlob)
 {
     LoversLaneEventPtr event(new LoversLaneEvent());
 
     int imFullY = (blob.getMaxY() - blob.getMinY()) / 2 
         + blob.getMinY();
+    int imFullX = (blob.getMaxX() - blob.getMinX()) / 2 + blob.getMinX();
+    
 
     int imLeftX = blob.getMinX() + (leftBlob.getMaxX() - leftBlob.getMinX()) / 2 
         + leftBlob.getMinX();
@@ -453,6 +455,8 @@ void LoversLaneDetector::publishFoundEvent(BlobDetector::Blob& blob,
     event->leftY = leftY;
     event->rightX = rightX;
     event->rightY = rightY;
+    event->centerX = imFullX;
+    event->centerY = imFullY;
     event->haveLeft = haveLeft;
     event->haveRight = haveRight;
     event->squareNess = 1.0 / blob.getTrueAspectRatio();
