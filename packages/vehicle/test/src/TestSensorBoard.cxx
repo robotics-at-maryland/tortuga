@@ -368,14 +368,14 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
         (ram::vehicle::device::SensorBoard*)testSb;
 
     // Drop first marker
-    CHECK_EQUAL(0, sb->dropMarker());
-    CHECK_EQUAL(0, testSb->markerDropped);
-    // Drop second marker
     CHECK_EQUAL(1, sb->dropMarker());
     CHECK_EQUAL(1, testSb->markerDropped);
+    // Drop second marker
+    CHECK_EQUAL(2, sb->dropMarker());
+    CHECK_EQUAL(2, testSb->markerDropped);
     // Drop non-existent marker
     CHECK_EQUAL(-1, sb->dropMarker());
-    CHECK_EQUAL(1, testSb->markerDropped);
+    CHECK_EQUAL(2, testSb->markerDropped);
 
     delete testSb;
 }

@@ -46,6 +46,8 @@ public:
 
     virtual void releaseObjectIndex(int index) = 0;
 
+    virtual void closeObject() { return; }
+
     /** The numbers of objects left in the payload set */
     virtual int objectCount() = 0;
 

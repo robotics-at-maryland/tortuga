@@ -61,6 +61,8 @@ public:
     virtual void fireTorpedoIndex(int index);
 
     virtual void releaseGrabber();
+
+    virtual void closeGrabber();
     
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);

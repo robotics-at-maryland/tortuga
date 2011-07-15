@@ -83,6 +83,7 @@ public:
     virtual void fireTorpedoIndex(int index) {assert(false && "Method not implemented");}
 
     virtual void releaseGrabber() {assert(false && "Method not implemented");}
+    virtual void closeGrabber() {assert(false && "Method not implemented");}
 
     virtual int startStatus()
     {
