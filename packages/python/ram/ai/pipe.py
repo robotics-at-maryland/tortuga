@@ -667,6 +667,7 @@ class BetweenPipes(PipeTrackingState):
     def transitions():
         return PipeTrackingState.transitions(BetweenPipes,
                                              {vision.EventType.PIPE_FOUND : Seeking,
+                                              motion.basic.MotionManager.FINISHED : End,
                                               BetweenPipes.LOST_PATH : End })
 
     @staticmethod
@@ -682,7 +683,7 @@ class BetweenPipes(PipeTrackingState):
         """We have driving off the 'end' of the pipe set a timeout"""
         PipeTrackingState.enter(self)
         
-        forwardTime = self._config.get('forwardTime', 15)
+        forwardTime = self._config.get('forwardTime', 10)
         forwardSpeed = self._config.get('forwardSpeed', 0.15)
         self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 
                                                 forwardTime)

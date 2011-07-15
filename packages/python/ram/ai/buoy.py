@@ -75,7 +75,7 @@ class Start(state.State):
             finalRate = math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(buoyY,buoyX),
+            finalValue = math.Vector2(buoyX,buoyY),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
 
@@ -134,7 +134,6 @@ class Identification(state.State):
         # Dive and translate
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
@@ -186,7 +185,6 @@ class Identification2(state.State):
         # Dive and translate
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
@@ -238,7 +236,6 @@ class Approach(state.State):
         # Dive and translate
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
@@ -296,7 +293,6 @@ class Hit(state.State):
         # Dive and translate
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
