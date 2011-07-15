@@ -25,6 +25,8 @@ class RAM_EXPORT FANNLetterDetector : public FANNSymbolDetector
     FANNLetterDetector(core::ConfigNode config,
                        core::EventHubPtr eventHub = core::EventHubPtr());
 
+    virtual ~FANNLetterDetector();
+
     // Detector Methods
     void processImage(Image* input, Image* output = 0);
 
@@ -36,8 +38,12 @@ class RAM_EXPORT FANNLetterDetector : public FANNSymbolDetector
     virtual void getImageFeatures(Image* inputImage, float* features);
 
   private:
-    Image* m_resizedImage;
+    Image* m_frame;
+    Image* m_croppedFrame;
+    unsigned char *m_scratchBuffer;
     BlobDetector m_blobDetector;
+
+    Image* cropBinImage(Image* binImage, unsigned char* buffer);
 };
 
 } // namespace vision

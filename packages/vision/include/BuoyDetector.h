@@ -91,6 +91,12 @@ class RAM_EXPORT BuoyDetector : public Detector
     /** Whether or not to check for black below the buoy */
     bool m_checkBlack;
 
+    /** Number of dilate iterations */
+    int m_dilateIterations;
+
+    /** Number of erode iterations */
+    int m_erodeIterations;
+
     /** The precentage of the subwindow that must be black */
     double m_minBlackPercentage;
 

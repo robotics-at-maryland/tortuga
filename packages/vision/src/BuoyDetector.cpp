@@ -55,6 +55,9 @@ BuoyDetector::BuoyDetector(core::ConfigNode config,
     m_yellowFilter(0),
     m_blobDetector(config, eventHub),
     m_checkBlack(false),
+
+    m_dilateIterations(0),
+    m_erodeIterations(0),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
     m_physicalWidthMeters(0.26),
@@ -75,7 +78,8 @@ BuoyDetector::BuoyDetector(Camera* camera) :
     m_redFilter(0),
     m_greenFilter(0),
     m_yellowFilter(0),
-    m_checkBlack(false),
+    m_dilateIterations(0),
+    m_erodeIterations(0),
     m_minBlackPercentage(0),
     m_maxTotalBlackCheckSize(0),
     m_physicalWidthMeters(0.26),
@@ -133,6 +137,14 @@ void BuoyDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "checkBlack",
                          "Whether or not to look for black beneath the buoy",
                          false, &m_checkBlack);
+
+    propSet->addProperty(config, false, "dilateIterations",
+                         "Number of dilate iterations to perform",
+                         0, &m_dilateIterations);
+
+    propSet->addProperty(config, false, "erodeIterations",
+                         "Number of erode iterations to perform",
+                         0, &m_erodeIterations);
 
     propSet->addProperty(config, false, "minBlackPercentage",
                          "The precentage of the subwindow that must be black",
@@ -285,6 +297,20 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     else 
         filter.filterImage(output);
  
+    // Dilate the image (only if necessary)
+    if (m_dilateIterations > 0) 
+    {
+        cvDilate(output->asIplImage(), output->asIplImage(),
+                 NULL, m_dilateIterations);
+    }
+
+    // Erode the image (only if necessary)
+    if (m_erodeIterations > 0) 
+    {
+        cvErode(output->asIplImage(), output->asIplImage(),
+                NULL, m_erodeIterations);
+    }
+
     m_blobDetector.processImage(output);
     BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
@@ -343,10 +369,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
     
     frame->copyFrom(input);
 
-    int topRowsToIgnore = static_cast<int>(m_topIgnorePercentage * frame->getHeight());
-    int bottomRowsToIgnore = static_cast<int>(m_bottomIgnorePercentage * frame->getHeight());
-    int leftColsToIgnore = static_cast<int>(m_leftIgnorePercentage * frame->getWidth());
-    int rightColsToIgnore = static_cast<int>(m_rightIgnorePercentage * frame->getWidth());
+    int topRowsToIgnore = m_topIgnorePercentage * frame->getHeight();
+    int bottomRowsToIgnore = m_bottomIgnorePercentage * frame->getHeight();
+    int leftColsToIgnore = m_leftIgnorePercentage * frame->getWidth();
+    int rightColsToIgnore = m_rightIgnorePercentage * frame->getWidth();
 
     int initialMinX = leftColsToIgnore;
     int initialMaxX = frame->getWidth() - rightColsToIgnore;
@@ -513,6 +539,32 @@ void BuoyDetector::processImage(Image* input, Image* output)
         output->copyFrom(frame);
         if (m_debug >= 1) {
             output->copyFrom(frame);
+
+            unsigned char *data = output->getData();
+            int width = output->getWidth();
+            int height = output->getHeight();
+            int nch = output->getNumChannels();
+
+            int topRowsToIgnore = height * m_topIgnorePercentage;
+            int bottomRowsToIgnore = height * m_bottomIgnorePercentage;
+
+            int valuesPerRow = width * output->getNumChannels();
+            for(int r = 0; r < topRowsToIgnore; r++)
+            {
+                for(int c = 0; c < valuesPerRow; c++)
+                {
+                    *(data + r * width * nch + c) = 0;
+                }
+            }
+
+            for(int r = height - bottomRowsToIgnore - 1; r < height - 1; r++)
+            {
+                for(int c = 0; c < valuesPerRow; c++)
+                {
+                    *(data + r * width * nch + c) = 0;
+                }
+            }
+            
 
             Image::fillMask(output, redFrame, 255, 0, 0);
             Image::fillMask(output, greenFrame, 0, 255, 0);

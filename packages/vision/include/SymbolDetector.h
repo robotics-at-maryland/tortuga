@@ -28,7 +28,7 @@ public:
 
     /** Whether or not the detector needs the image cropped to a square */
     virtual bool needSquareCropped() = 0;
-    
+
 protected:
     SymbolDetector(core::EventHubPtr eventHub = core::EventHubPtr());
 };

@@ -19,7 +19,8 @@
 namespace ram {
 namespace vision {
 
-#define BASIC_FEATURE_COUNT 10
+#define BASIC_SYMBOL_COUNT 4
+#define BASIC_FEATURE_COUNT 4
 
 /** Implements the SymbolDetector to find the 2010 symbols.
  *
@@ -41,45 +42,42 @@ class RAM_EXPORT BasicLetterDetector : public SymbolDetector
     virtual bool needSquareCropped() { return false; }
 
   private:
-    bool checkSym(float* incomingFeatures, double* minFeatures,
-                  double* maxFeatures);
+    void addProps(std::string featureName, double* mean, double* stdev,
+                  double *defaultMean, double* defaultStDev,
+                  core::ConfigNode config);
 
-    void addMinMaxProps(std::string name, double* minFeatures,
-                        double* maxFeatures, double* minDefaults,
-                        double* maxDefaults, core::ConfigNode config);
+    void getLikelihoodOfSymbol(float* features, double* resultLikelihood);
 
-    void addFeatureProp(std::string prefix, std::string suffix,
-                        std::string name, double* features, double* defaults,
-                        core::ConfigNode config);
+    double gaussian1DLikelihood(double x, double mean, double stdev);
 
     FANNSymbolDetectorPtr m_fannDetector;
 
     /** Our current symbol */
     Symbol::SymbolType m_symbol;
 
-    double m_largeXFeaturesMin[BASIC_FEATURE_COUNT];
-    double m_largeXFeaturesMax[BASIC_FEATURE_COUNT];
+    double m_relativeSymbolWidthMean[BASIC_SYMBOL_COUNT];
+    double m_relativeSymbolWidthStDev[BASIC_SYMBOL_COUNT];
+    
+    double m_relativeSymbolHeightMean[BASIC_SYMBOL_COUNT];
+    double m_relativeSymbolHeightStDev[BASIC_SYMBOL_COUNT];
 
-    double m_smallXFeaturesMin[BASIC_FEATURE_COUNT];
-    double m_smallXFeaturesMax[BASIC_FEATURE_COUNT];
+    double m_pixelPercentageMean[BASIC_SYMBOL_COUNT];
+    double m_pixelPercentageStDev[BASIC_SYMBOL_COUNT];
+        
+    double m_centerPixelPercentageMean[BASIC_SYMBOL_COUNT];
+    double m_centerPixelPercentageStDev[BASIC_SYMBOL_COUNT];
 
-    double m_largeOFeaturesMin[BASIC_FEATURE_COUNT];
-    double m_largeOFeaturesMax[BASIC_FEATURE_COUNT];
+    static double RELATIVE_SYMBOL_WIDTH_MEAN[BASIC_SYMBOL_COUNT];
+    static double RELATIVE_SYMBOL_WIDTH_STDEV[BASIC_SYMBOL_COUNT];
 
-    double m_smallOFeaturesMin[BASIC_FEATURE_COUNT];
-    double m_smallOFeaturesMax[BASIC_FEATURE_COUNT];
+    static double RELATIVE_SYMBOL_HEIGHT_MEAN[BASIC_SYMBOL_COUNT];
+    static double RELATIVE_SYMBOL_HEIGHT_STDEV[BASIC_SYMBOL_COUNT];
 
-    static double LARGE_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
-    static double LARGE_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
-
-    static double SMALL_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
-    static double SMALL_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
-
-    static double LARGE_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
-    static double LARGE_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
-
-    static double SMALL_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT];
-    static double SMALL_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT];
+    static double PIXEL_PERCENTAGE_MEAN[BASIC_SYMBOL_COUNT];
+    static double PIXEL_PERCENTAGE_STDEV[BASIC_SYMBOL_COUNT];
+    
+    static double CENTER_PIXEL_PERCENTAGE_MEAN[BASIC_SYMBOL_COUNT];
+    static double CENTER_PIXEL_PERCENTAGE_STDEV[BASIC_SYMBOL_COUNT];
 };
 
 } // namespace vision

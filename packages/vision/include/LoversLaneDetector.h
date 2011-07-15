@@ -105,6 +105,8 @@ class RAM_EXPORT LoversLaneDetector : public Detector
 
     int m_erodeIterations;
     int m_dilateIterations;
+    int m_openIterations;
+    int m_closeIterations;
 
     double m_physicalHeightMeters;
     int m_debug;

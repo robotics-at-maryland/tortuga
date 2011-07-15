@@ -47,6 +47,12 @@ CupidDetector::CupidDetector(core::ConfigNode config,
     m_redFilter(0),
     m_blueFilter(0),
     m_blobDetector(config, eventHub),
+    m_frame(0),
+    m_redFrame(0),
+    m_blueFrame(0),
+    m_processingFrame(0),
+    m_redFound(0),
+    m_blueFound(0),
     m_physicalWidthMeters(0.61),
     m_physicalHeightMeters(0.61),
     m_colorFilterLookupTable(false),
@@ -60,6 +66,13 @@ CupidDetector::CupidDetector(Camera* camera) :
     cam(camera),
     m_redFilter(0),
     m_blueFilter(0),
+    m_blobDetector(),
+    m_frame(0),
+    m_redFrame(0),
+    m_blueFrame(0),
+    m_processingFrame(0),
+    m_redFound(0),
+    m_blueFound(0),
     m_physicalWidthMeters(0.61),
     m_physicalHeightMeters(0.61)
 {
@@ -99,6 +112,34 @@ void CupidDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "minAspectRatio",
                          "Minimum aspect ratio (width/height)",
                          0.25, &m_minAspectRatio);
+
+    propSet->addProperty(config, false, "minHeartAspectRatio",
+                         "Minimum aspect ratio for the hearts",
+                         0.8, &m_minHeartAspectRatio);
+
+    propSet->addProperty(config, false, "maxHeartAspectRatio",
+                         "Maximum aspect ratio for the hearts",
+                         1.2, &m_maxHeartAspectRatio);
+
+    // propSet->addProperty(config, false, "minLargeHeartRelativeWidth",
+    //                      "Minimum fraction of window width for large heart",
+    //                      0.5, &m_minLargeHeartReltativeWidth);
+
+    // propSet->addProperty(config, false, "maxLargeHeartRelativeWidth",
+    //                      "Maximum fraction of window width for large heart",
+    //                      0.7, &m_maxLargeHeartReltativeWidth);
+
+    // propSet->addProperty(config, false, "minSmallHeartRelativeWidth",
+    //                      "Minimum fraction of window width for small heart",
+    //                      0.5, &m_minSmallHeartReltativeWidth);
+
+    // propSet->addProperty(config, false, "maxSmallHeartRelativeWidth",
+    //                      "Maximum fraction of window width for small heart",
+    //                      0.7, &m_maxSmallHeartReltativeWidth);
+
+    propSet->addProperty(config, false, "minHeartPixelPct",
+                         "Minimum pixel percentage of heart",
+                         0.4, &m_minHeartPixelPct);
 
     propSet->addProperty(config, false, "minWidth",
                          "Minimum width for a blob",
@@ -196,20 +237,22 @@ void CupidDetector::processImage(Image* input, Image* output)
     static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
     BlobDetector::Blob redBlob, blueBlob, smallHeartBlob, largeHeartBlob;
+    m_blobDetector.setMinimumBlobSize(100);
 
     // process the image to find the red square
     bool redFound;
+    bool redHeartsFound = false;
+
     if ( m_colorFilterLookupTable )
         redFound = processColor(m_frame, m_redFrame, *m_redTableColorFilter, redBlob);
     else
         redFound = processColor(m_frame, m_redFrame, *m_redFilter, redBlob);
 
-    bool heartsFound = false;
     if(redFound)
     {
-        findHearts(m_frame, *m_redFilter, redBlob,
-                   smallHeartBlob, largeHeartBlob);
-        if(heartsFound)
+        redHeartsFound = findHearts(m_frame, *m_redFilter, redBlob,
+                                    smallHeartBlob, largeHeartBlob);
+        if(redHeartsFound)
         {
             publishFoundEvent(redBlob, Color::RED);
 
@@ -249,6 +292,8 @@ void CupidDetector::processImage(Image* input, Image* output)
 
     // process the image to find the blue square
     bool blueFound = false;
+    bool blueHeartsFound = false;
+
     if ( m_colorFilterLookupTable ) {
         blueFound = processColor(m_frame, m_blueFrame, 
                                  *m_blueTableColorFilter, blueBlob);
@@ -256,51 +301,47 @@ void CupidDetector::processImage(Image* input, Image* output)
         blueFound = processColor(m_frame, m_blueFrame, *m_blueFilter, blueBlob);
     }
 
-    if(!redFound)
+    // process the image to find the blue square
+    blueFound = processColor(m_frame, m_blueFrame, *m_blueFilter, blueBlob);
+    if(blueFound)
     {
-        // process the image to find the blue square
-        blueFound = processColor(m_frame, m_blueFrame, *m_blueFilter, blueBlob);
-        if(blueFound)
-        {
-            heartsFound = findHearts(m_frame, *m_blueFilter, blueBlob,
+        blueHeartsFound = findHearts(m_frame, *m_blueFilter, blueBlob,
                                      smallHeartBlob, largeHeartBlob);
-            if(heartsFound)
-            {
-                publishFoundEvent(blueBlob, Color::BLUE);
-
-                int blobPixels = blueBlob.getSize();
-                double blobWidth = blueBlob.getWidth();
-                double blobHeight = blueBlob.getHeight();
-
-                double fracWidth = blobWidth / xPixelWidth;
-                double fracHeight = blobHeight / yPixelHeight;
-
-                double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
-                double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
-                double range = (rangeW + rangeH) / 2;
-
-                int width = blueBlob.getWidth();
-                int height = blueBlob.getHeight();
-
-                LOGGER.infoStream() << "1" << " "
-                                    << blueBlob.getTrueCenterX() << " "
-                                    << blueBlob.getTrueCenterY() << " "
-                                    << range << " "
-                                    << width << " "
-                                    << height << " "
-                                    << blobPixels << " "
-                                    << blobPixels / (width * height);
-            }
-        }
-        else if(m_blueFound)
+        if(blueHeartsFound)
         {
-            publishLostEvent(Color::BLUE);
-            LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
-                                << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
-        }
-        m_blueFound = blueFound;
-    }
+            publishFoundEvent(blueBlob, Color::BLUE);
 
+            int blobPixels = blueBlob.getSize();
+            double blobWidth = blueBlob.getWidth();
+            double blobHeight = blueBlob.getHeight();
+
+            double fracWidth = blobWidth / xPixelWidth;
+            double fracHeight = blobHeight / yPixelHeight;
+
+            double rangeW = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+            double rangeH = m_physicalHeightMeters / (2 * std::tan(yFOV.valueRadians() * fracHeight / 2));
+            double range = (rangeW + rangeH) / 2;
+
+            int width = blueBlob.getWidth();
+            int height = blueBlob.getHeight();
+
+            LOGGER.infoStream() << "1" << " "
+                                << blueBlob.getTrueCenterX() << " "
+                                << blueBlob.getTrueCenterY() << " "
+                                << range << " "
+                                << width << " "
+                                << height << " "
+                                << blobPixels << " "
+                                << blobPixels / (width * height);
+        }
+    }
+    else if(m_blueFound)
+    {
+        publishLostEvent(Color::BLUE);
+        LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+    }
+    m_blueFound = blueFound;
 
     // provide debugging output
     if(output)
@@ -319,21 +360,17 @@ void CupidDetector::processImage(Image* input, Image* output)
                 if(blueFound)
                     drawDebugCircle(blueBlob, output, 0, 0, 200);
                 
-                if(heartsFound)
+                if(blueFound && blueHeartsFound)
                 {
                     BlobDetector::Blob debugBlob;
-                    if(blueFound)
-                        debugBlob = blueBlob;
-                    else
-                        debugBlob = redBlob;
 
                     CvPoint smallP1;
-                    smallP1.x = debugBlob.getMinX() + smallHeartBlob.getMinX();
-                    smallP1.y = debugBlob.getMinY() + smallHeartBlob.getMinY();
+                    smallP1.x = blueBlob.getMinX() + smallHeartBlob.getMinX();
+                    smallP1.y = blueBlob.getMinY() + smallHeartBlob.getMinY();
 
                     CvPoint smallP2;
-                    smallP2.x = debugBlob.getMinX() + smallHeartBlob.getMaxX();
-                    smallP2.y = debugBlob.getMinY() + smallHeartBlob.getMaxY();
+                    smallP2.x = blueBlob.getMinX() + smallHeartBlob.getMaxX();
+                    smallP2.y = blueBlob.getMinY() + smallHeartBlob.getMaxY();
 
                     CvPoint smallCenter;
                     smallCenter.x = (smallP1.x + smallP2.x) / 2;
@@ -345,12 +382,48 @@ void CupidDetector::processImage(Image* input, Image* output)
                              cvScalar(255, 255, 255));
 
                     CvPoint largeP1;
-                    largeP1.x = debugBlob.getMinX() + largeHeartBlob.getMinX();
-                    largeP1.y = debugBlob.getMinY() + largeHeartBlob.getMinY();
+                    largeP1.x = blueBlob.getMinX() + largeHeartBlob.getMinX();
+                    largeP1.y = blueBlob.getMinY() + largeHeartBlob.getMinY();
 
                     CvPoint largeP2;
-                    largeP2.x = debugBlob.getMinX() + largeHeartBlob.getMaxX();
-                    largeP2.y = debugBlob.getMinY() + largeHeartBlob.getMaxY();
+                    largeP2.x = blueBlob.getMinX() + largeHeartBlob.getMaxX();
+                    largeP2.y = blueBlob.getMinY() + largeHeartBlob.getMaxY();
+
+                    CvPoint largeCenter;
+                    largeCenter.x = (largeP1.x + largeP2.x) / 2;
+                    largeCenter.y = (largeP1.y + largeP2.y) / 2;
+
+                    cvRectangle(output->asIplImage(), largeP1, largeP2,
+                                cvScalar(100,100,100),3);
+                    cvCircle(output->asIplImage(), largeCenter, 3,
+                             cvScalar(255, 255, 255));
+                }
+                if(redFound && redHeartsFound)
+                {
+                    CvPoint smallP1;
+                    smallP1.x = redBlob.getMinX() + smallHeartBlob.getMinX();
+                    smallP1.y = redBlob.getMinY() + smallHeartBlob.getMinY();
+
+                    CvPoint smallP2;
+                    smallP2.x = redBlob.getMinX() + smallHeartBlob.getMaxX();
+                    smallP2.y = redBlob.getMinY() + smallHeartBlob.getMaxY();
+
+                    CvPoint smallCenter;
+                    smallCenter.x = (smallP1.x + smallP2.x) / 2;
+                    smallCenter.y = (smallP1.y + smallP2.y) / 2;
+
+                    cvRectangle(output->asIplImage(), smallP1, smallP2,
+                                cvScalar(100,100,100),3);
+                    cvCircle(output->asIplImage(), smallCenter, 3,
+                             cvScalar(255, 255, 255));
+
+                    CvPoint largeP1;
+                    largeP1.x = redBlob.getMinX() + largeHeartBlob.getMinX();
+                    largeP1.y = redBlob.getMinY() + largeHeartBlob.getMinY();
+
+                    CvPoint largeP2;
+                    largeP2.x = redBlob.getMinX() + largeHeartBlob.getMaxX();
+                    largeP2.y = redBlob.getMinY() + largeHeartBlob.getMaxY();
 
                     CvPoint largeCenter;
                     largeCenter.x = (largeP1.x + largeP2.x) / 2;
@@ -446,16 +519,39 @@ bool CupidDetector::findHearts(Image *input,
     // the case we probably are screwed anyway.  if we don't have
     // two blobs, we arent looking at the cupid so we should return
     // false.
-    bool foundHearts = true;
-    if(blobs.size() >= 2)
+    bool foundHearts = false;
+    bool foundLarge = false;
+
+    BOOST_FOREACH(BlobDetector::Blob blob, blobs)
     {
-        largeHeart = blobs[0];
-        smallHeart = blobs[1];
+        if(!foundHearts)
+        {
+            // figure out if the blob could be a heart
+            double aspect = blob.getAspectRatio();
+            double pixelPct = blob.getFillPercentage();
+
+            if(aspect > m_minHeartAspectRatio &&
+               aspect < m_maxHeartAspectRatio &&
+               pixelPct > m_minHeartPixelPct)
+            {
+                // we have found a blob so if it is the first
+                // one, assign it to the large heart
+                if(!foundLarge)
+                {
+                    largeHeart = blob;
+                    foundLarge = true;
+                }
+                // if we have already found the large heart,
+                // it must be the small heart
+                else
+                {
+                    smallHeart = blob;
+                    foundHearts = true;
+                }
+            }
+        }
     }
-    else
-    {
-        foundHearts = false;
-    }
+
     return foundHearts;
 }
 

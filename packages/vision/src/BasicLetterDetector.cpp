@@ -13,30 +13,33 @@
 // Project Includes
 #include "vision/include/BasicLetterDetector.h"
 #include "vision/include/FANNLetterDetector.h"
+#include "vision/include/Symbol.h"
 #include "core/include/PropertySet.h"
+#include "vision/include/Image.h"
 
 namespace ram {
 namespace vision {
 
-double BasicLetterDetector::LARGE_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT] =
-{1.28, 0.29, 0.008, 5.8e-5, 9.7e-7, -4.3e-8, -1.5e-5, 1.02, 0, 0.24};
-double BasicLetterDetector::LARGE_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT] =
-{1.99, 0.33, 0.016, 0.0015, 0.00028, 2.5e-8, 6.0e-6, 1.73, 0.0106, 0.34};
 
-double BasicLetterDetector::SMALL_X_DEFAULTS_MIN[BASIC_FEATURE_COUNT] =
-{1.63, 0.25, 0.0028, 1.99e-5, 7.5e-7, -1.85e-9, -4.3e-6, 1.0, 0, 0.24};
-double BasicLetterDetector::SMALL_X_DEFAULTS_MAX[BASIC_FEATURE_COUNT] =
-{2.23, 0.27, 0.0053, 0.00082, 0.00015, 7.3e-9, 1.4e-6, 1.9, 0.003, 0.36};
-    
-double BasicLetterDetector::LARGE_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT] =
-{1.38, 0.32, 0.0002, 2.6e-6, 1.28e-6, -2.15e-7, -3.1e-5, 1, 0, 0.22};
-double BasicLetterDetector::LARGE_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT] =
-{2.1, 0.39, 0.0077, 0.0011, 0.00059, 5.1e-9, 8.0e-7, 1.3, 0.0025, 0.32};
+double BasicLetterDetector::RELATIVE_SYMBOL_WIDTH_MEAN[BASIC_SYMBOL_COUNT] =
+{0.651, 0.566, 0.656, 0.514};
+double BasicLetterDetector::RELATIVE_SYMBOL_WIDTH_STDEV[BASIC_SYMBOL_COUNT] = 
+{0.078, 0.085, 0.059, 0.067};
 
-double BasicLetterDetector::SMALL_O_DEFAULTS_MIN[BASIC_FEATURE_COUNT] =
-{1.29, 0.25, 4.9e-6, 8.7e-7, 2.25e-6, -1.3e-9, -8.0e-7, 1., 0, 0.26};
-double BasicLetterDetector::SMALL_O_DEFAULTS_MAX[BASIC_FEATURE_COUNT] =
-{2, 0.29, 0.0011, 0.00034, 0.00017, 7.22e-9, 4.6e-7, 1.8, 0.0015, 0.36};
+double BasicLetterDetector::RELATIVE_SYMBOL_HEIGHT_MEAN[BASIC_SYMBOL_COUNT] = 
+{0.447, 0.301, 0.411, 0.307};
+double BasicLetterDetector::RELATIVE_SYMBOL_HEIGHT_STDEV[BASIC_SYMBOL_COUNT] = 
+{0.054, 0.013, 0.013, 0.035};
+
+double BasicLetterDetector::PIXEL_PERCENTAGE_MEAN[BASIC_SYMBOL_COUNT] = 
+{0.122, 0.090, 0.1348, 0.0935};
+double BasicLetterDetector::PIXEL_PERCENTAGE_STDEV[BASIC_SYMBOL_COUNT] = 
+{0.018, 0.014, 0.0145, 0.0145};
+
+double BasicLetterDetector::CENTER_PIXEL_PERCENTAGE_MEAN[BASIC_SYMBOL_COUNT] =
+{240, 245, 0, 4.7};
+double BasicLetterDetector::CENTER_PIXEL_PERCENTAGE_STDEV[BASIC_SYMBOL_COUNT] =
+{51, 42, 10, 29};
 
 BasicLetterDetector::BasicLetterDetector(core::ConfigNode config,
                                          core::EventHubPtr eventHub) :
@@ -46,20 +49,23 @@ BasicLetterDetector::BasicLetterDetector(core::ConfigNode config,
         new FANNLetterDetector(core::ConfigNode::fromString("{'training':1}")));
     assert(BASIC_FEATURE_COUNT == m_fannDetector->getNumberFeatures());
 
-    // General properties
-    addMinMaxProps("LargeX", m_largeXFeaturesMin, m_largeXFeaturesMax,
-                   LARGE_X_DEFAULTS_MIN, LARGE_X_DEFAULTS_MAX, config); 
-    addMinMaxProps("SmallX", m_smallXFeaturesMin, m_smallXFeaturesMax,
-                   SMALL_X_DEFAULTS_MIN, SMALL_X_DEFAULTS_MAX, config);
-    addMinMaxProps("LargeO", m_largeOFeaturesMin, m_largeOFeaturesMax,
-                   LARGE_O_DEFAULTS_MIN, LARGE_O_DEFAULTS_MAX, config);
-    addMinMaxProps("SmallO", m_smallOFeaturesMin, m_smallOFeaturesMax,
-                   SMALL_O_DEFAULTS_MIN, SMALL_O_DEFAULTS_MAX, config);
+
+    addProps("RelativeWidth", m_relativeSymbolWidthMean, m_relativeSymbolWidthStDev,
+             RELATIVE_SYMBOL_WIDTH_MEAN, RELATIVE_SYMBOL_WIDTH_STDEV, config);
+
+    addProps("RelativeHeight", m_relativeSymbolHeightMean, m_relativeSymbolHeightStDev,
+             RELATIVE_SYMBOL_HEIGHT_MEAN, RELATIVE_SYMBOL_HEIGHT_STDEV, config);
+
+    addProps("PixelPercentage", m_pixelPercentageMean, m_pixelPercentageStDev,
+             PIXEL_PERCENTAGE_MEAN, PIXEL_PERCENTAGE_STDEV, config);
+
+    addProps("CenterPixelPercentage", m_centerPixelPercentageMean,
+             m_centerPixelPercentageStDev, CENTER_PIXEL_PERCENTAGE_MEAN,
+             CENTER_PIXEL_PERCENTAGE_STDEV, config);
 }
 
 void BasicLetterDetector::processImage(Image *input, Image *output)
 {
-    std::cout << "Processing the image" << std::endl;
     // Assume we don't know what it is
     m_symbol = Symbol::NONEFOUND;
     
@@ -67,113 +73,145 @@ void BasicLetterDetector::processImage(Image *input, Image *output)
     float features[BASIC_FEATURE_COUNT];
     m_fannDetector->getImageFeatures(input, features);
 
-    // Check for the large X
-    if (checkSym(features, m_largeXFeaturesMin, m_largeXFeaturesMax))
-        m_symbol = Symbol::LARGE_X;
-    
-    // Now for the small X
-    if (checkSym(features, m_smallXFeaturesMin, m_smallXFeaturesMax))
+    double symbolLikelihood[BASIC_SYMBOL_COUNT] = {1};
+    getLikelihoodOfSymbol(features, symbolLikelihood);
+
+    // std::cout << "P(X) = " << symbolLikelihood[0] << std::endl;
+    // std::cout << "P(x) = " << symbolLikelihood[1] << std::endl;
+    // std::cout << "P(O) = " << symbolLikelihood[2] << std::endl;
+    // std::cout << "P(o) = " << symbolLikelihood[3] << std::endl;
+
+    double maxLikelihood = symbolLikelihood[0];
+    m_symbol = Symbol::LARGE_X;
+
+    if(symbolLikelihood[1] > maxLikelihood)
     {
-        if (m_symbol == Symbol::NONEFOUND)
-            m_symbol = Symbol::SMALL_X;
-        else
-            m_symbol = Symbol::UNKNOWN;
-    }
-    
-    // Now for the large O
-    if (checkSym(features, m_largeOFeaturesMin, m_largeOFeaturesMax)
-        && (m_symbol != Symbol::UNKNOWN))
-    {
-        if (m_symbol == Symbol::NONEFOUND)
-            m_symbol = Symbol::LARGE_O;
-        else
-            m_symbol = Symbol::UNKNOWN;
-    }
-    
-    // Now for the small O
-    if (checkSym(features, m_smallOFeaturesMin, m_smallOFeaturesMax)
-        && (m_symbol != Symbol::UNKNOWN))
-    {
-        if (m_symbol == Symbol::NONEFOUND)
-            m_symbol = Symbol::SMALL_O;
-        else
-            m_symbol = Symbol::UNKNOWN;
+        maxLikelihood = symbolLikelihood[1];
+        m_symbol = Symbol::SMALL_X;
     }
 
+    if(symbolLikelihood[2] > maxLikelihood)
+    {
+        maxLikelihood = symbolLikelihood[2];
+        m_symbol = Symbol::LARGE_O;
+    }
+
+    if(symbolLikelihood[3] > maxLikelihood)
+    {
+        maxLikelihood = symbolLikelihood[3];
+        m_symbol = Symbol::SMALL_O;
+    }
     
-    // If we didn't find anything its unknown
-    if (m_symbol == Symbol::NONEFOUND)
+    if(maxLikelihood < 0.01)
         m_symbol = Symbol::UNKNOWN;
-
-    std::cout << std::endl;
 }
 
-bool BasicLetterDetector::checkSym(float* incomingFeatures, double* minFeatures,
-                                   double* maxFeatures)
+void BasicLetterDetector::getLikelihoodOfSymbol(float* features, double* resultLikelihood)
 {
-    int numMisses = 0;
-    // Break out of the values: [aspectRatio, sideFillRatio, cornerFillAvg]
-    for (int i = 0; i < BASIC_FEATURE_COUNT; ++i)
+    double likelihood[BASIC_SYMBOL_COUNT][BASIC_FEATURE_COUNT] = {{0}};
+
+    for(int symIdx = 0; symIdx < BASIC_SYMBOL_COUNT; symIdx++)
     {
-        double value = incomingFeatures[i];
-        if ((value < minFeatures[i]) || (value > maxFeatures[i]))
-            numMisses++;
+        likelihood[symIdx][0] = gaussian1DLikelihood(features[0],
+                                                     m_relativeSymbolWidthMean[symIdx],
+                                                     m_relativeSymbolWidthStDev[symIdx]);
+
+        likelihood[symIdx][1] = gaussian1DLikelihood(features[1], 
+                                                     m_relativeSymbolHeightMean[symIdx],
+                                                     m_relativeSymbolHeightStDev[symIdx]);
+
+        likelihood[symIdx][2] = gaussian1DLikelihood(features[2], 
+                                                     m_pixelPercentageMean[symIdx],
+                                                     m_pixelPercentageStDev[symIdx]);
+
+        likelihood[symIdx][3] = gaussian1DLikelihood(features[3], 
+                                                     m_centerPixelPercentageMean[symIdx],
+                                                     m_centerPixelPercentageStDev[symIdx]);
+    }
+
+    double totalFeatureLikelihood[BASIC_FEATURE_COUNT] = {0};
+    
+    for(int f = 0; f < BASIC_FEATURE_COUNT; f++)
+    {
+        for(int s = 0; s < BASIC_SYMBOL_COUNT; s++)
+        {
+            totalFeatureLikelihood[f] += likelihood[s][f];
+        }
+    }
+
+    for(int s = 0; s < BASIC_SYMBOL_COUNT; s++)
+    {
+        resultLikelihood[s] = 1;
     }
     
-    std::cout << " Num Misses: " << numMisses;
-    if(numMisses < 5)
-        return true;
-    else
-        return false;
+    for(int f = 0; f < BASIC_FEATURE_COUNT; f++)
+    {
+        for(int s = 0; s < BASIC_SYMBOL_COUNT; s++)
+        {
+            likelihood[s][f] /= totalFeatureLikelihood[f];
+            resultLikelihood[s] *= likelihood[s][f];
+        }
+    }
 }
 
-void BasicLetterDetector::addMinMaxProps(std::string name, double* minFeatures,
-                                         double* maxFeatures,
-                                         double* minDefaults,
-                                         double* maxDefaults,
-                                         core::ConfigNode config)
+double BasicLetterDetector::gaussian1DLikelihood(double x, double mean, double stdev)
 {
-    addFeatureProp("min", name, "Min", minFeatures, minDefaults, config);
-    addFeatureProp("max", name, "Max", maxFeatures, maxDefaults, config);
+    double exponent = x - mean;
+    exponent *= -exponent;
+    exponent /= (2 * stdev * stdev);
+    
+    double result = std::exp(exponent);
+    result /= (stdev * std::sqrt(2 * M_PI));
+    return result;
 }
 
-void BasicLetterDetector::addFeatureProp(std::string prefix, std::string suffix,
-                                         std::string name,
-                                         double* features, double* defaults,
-                                         core::ConfigNode config)
+void BasicLetterDetector::addProps(std::string featureName,
+                                   double* mean, double* stdev,
+                                   double* defaultMean, double* defaultStDev,
+                                   core::ConfigNode config)
 {
     core::PropertySetPtr propSet(getPropertySet());
-   
-    propSet->addProperty(config, false, "letter" + name + "AspectRatio" + suffix,
-                         prefix + " aspect ratio for symbol to be a " + name,
-                         defaults[0], features, 1.0, 2.0);
-    propSet->addProperty(config, false, "letter" + name + "SideFillRatio" + suffix,
-                         prefix + " side Fill ratio for symbol to be a " + name,
-                         defaults[1], features + 1, 1.0, 10.0);
-    propSet->addProperty(config, false, "letter" + name + "Hu1" + suffix,
-                         prefix + "Hu1" + name,
-                         defaults[2], features + 2, 0.0, 1.0/*0.0, 0.01*/);
-    propSet->addProperty(config, false, "letter" + name + "Hu2" + suffix,
-                         prefix + "Hu2" + name,
-                         defaults[3], features + 3, 0.0, 1.0/* 0.0, 0.02*/);
-    propSet->addProperty(config, false, "letter" + name + "Hu3" + suffix,
-                         prefix + "Hu3" + name,
-                         defaults[4], features + 4, 0.0, 1.0/*0.0, 0.01*/);
-    propSet->addProperty(config, false, "letter" + name + "Hu4" + suffix,
-                         prefix + "Hu4" + name,
-                         defaults[5], features + 5, -1.0, 1.0/*-4e-6, 4e-6*/);
-    propSet->addProperty(config, false, "letter" + name + "Hu5" + suffix,
-                         prefix + "Hu5" + name,
-                         defaults[6], features + 6, -1.0, 1.0/*-5e-4, 5e-4*/);
-    propSet->addProperty(config, false, "letter" + name + "Hu6" + suffix,
-                         prefix + "Hu6" + name,
-                         defaults[7], features + 7, 0.0, 5.0/*0.5, 3.0*/);
-    propSet->addProperty(config, false, "letter" + name + "CornerFillAvg" + suffix,
-                         prefix + " corner fill aevrage ratio for symbol to be a " + name,
-                         defaults[9], features + 8, 0.0, 1.0);
-    propSet->addProperty(config, false, "letter" + name + "MiddleFillAvg" + suffix,
-                         prefix + " middle fill average ratio for symbol to be a " + name,
-                         defaults[10], features + 9, 0.0, 1.0);
+
+    propSet->addProperty(config, false, "largeX" + featureName + "Mean",
+                         "mean relative width of symbol with respect to bin inside",
+                         defaultMean[0], mean,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "smallX" + featureName + "Mean",
+                         "mean relative width of symbol with respect to bin inside",
+                         defaultMean[1], mean + 1,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "largeO" + featureName + "Mean",
+                         "mean relative width of symbol with respect to bin inside",
+                         defaultMean[2], mean + 2,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "smallO" + featureName + "Mean",
+                         "mean relative width of symbol with respect to bin inside",
+                         defaultMean[3], mean + 3,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "largeX" + featureName + "StDev",
+                         "stdev relative width of symbol with respect to bin inside",
+                         defaultStDev[0], stdev,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "smallX" + featureName + "StDev",
+                         "stdev relative width of symbol with respect to bin inside",
+                         defaultStDev[1], stdev + 1,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "largeO" + featureName + "StDev",
+                         "stdev relative width of symbol with respect to bin inside",
+                         defaultStDev[2], stdev + 2,
+                         0.0, 1.0);
+
+    propSet->addProperty(config, false, "smallO" + featureName + "StDev",
+                         "stdev relative width of symbol with respect to bin inside",
+                         defaultStDev[3], stdev + 3,
+                         0.0, 1.0);
+
 }
 
 } // namespace vision

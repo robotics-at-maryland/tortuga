@@ -277,8 +277,8 @@ void Image::getAveragePixelValues(Image* source,
     unsigned char* sourceBuffer = source->getData();
     unsigned char* srcPtr = sourceBuffer;
 
-    int width = lowerRightX - upperLeftX; //+ 1;
-    int height = lowerRightY - upperLeftY; //+ 1;
+    int width = lowerRightX - upperLeftX + 1;
+    int height = lowerRightY - upperLeftY + 1;
 
     int yStart = upperLeftY;
     int yEnd = yStart + height;

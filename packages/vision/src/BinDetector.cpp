@@ -120,6 +120,8 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_blackMaskMaxTotalIntensity(0),
     m_redErodeIterations(0),
     m_redDilateIterations(0),
+    m_redOpenIterations(0),
+    m_redCloseIterations(0),
     m_redMinPercent(0),
     m_redMinRValue(0),
     m_redMaxGValue(0),
@@ -221,8 +223,9 @@ void BinDetector::processImage(Image* input, Image* out)
         int binNumber = 0;
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            newBins.push_back(processBin(binBlob, m_runSymbolDetector,
-                                         binNumber, out));
+            Bin newBin = processBin(binBlob, m_runSymbolDetector,
+                                    binNumber, out);
+            newBins.push_back(newBin);
             binNumber++;
         }
 
@@ -443,7 +446,12 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
          0, &m_redDilateIterations, 0, 10);
-    
+    propSet->addProperty(config, false, "redOpenIterations",
+        "Opening iterations on the red filtered image",
+         0, &m_redOpenIterations, 0, 10);
+    propSet->addProperty(config, false, "redCloseIterations",
+        "Closing iterations on the red filtered image",
+         0, &m_redCloseIterations, 0, 10);
 
     // Blob detector properties
     propSet->addProperty(config, false, "blobMinBlackPixels",
@@ -576,6 +584,22 @@ void BinDetector::filterForBlack(Image* input, Image* output)
 void BinDetector::filterForRed(Image* input, Image* output)
 {
     m_redFilter->filterImage(input, output);
+
+    cvSmooth(output->asIplImage(), output->asIplImage(), CV_MEDIAN, 5);
+
+    if (m_redOpenIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvErode(img, img, NULL, m_redOpenIterations);
+        cvDilate(img, img, NULL, m_redOpenIterations);
+    }
+
+    if (m_redCloseIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvDilate(img, img, NULL, m_redCloseIterations);
+        cvErode(img, img, NULL, m_redCloseIterations);
+    }
 
     if (m_redErodeIterations)
     {
@@ -964,12 +988,11 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
                                           redBinImage->getHeight(),
                                           false,
                                           m_redMaskedFrame->getPixelFormat());
+        
         vision::Image::transform(redBinImage, rotatedBinImage, binAngle);
         
         // Crop down Image to square around bin symbol
         Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer3);
-
-        delete rotatedBinImage; // m_scratchBuffer1 free to use
 
         if (cropped)
         {
@@ -982,7 +1005,7 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
                     Image::loadFromBuffer(m_scratchBuffer1, 128, 128, false);
                 cvResize(cropped->asIplImage(), scaledBin->asIplImage(),
                          CV_INTER_LINEAR);
-                Image::drawImage(redBinImage, binNum * 128, 0, output, output);
+                Image::drawImage(scaledBin, binNum * 128, 0, output, output);
                 
                 delete scaledBin; // m_scratchBuffer1 free to use
             }
@@ -993,6 +1016,7 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
             
             delete cropped;// m_scratchBuffer2 free to use
         }
+        delete rotatedBinImage; // m_scratchBuffer1 free to use
         delete redBinImage;
     }
     
@@ -1230,60 +1254,9 @@ Symbol::SymbolType BinDetector::determineSymbol(Image* input,
                                                 Image* output)
 {
     m_symbolDetector->processImage(input, output);
-    
     // Filter symbol type
     Symbol::SymbolType symbolFound = m_symbolDetector->getSymbol(); 
-    Symbol::SymbolType symbol = Symbol::UNKNOWN;
-
-    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 ||
-        symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
-    {
-        symbol = Symbol::CLUB;
-    }
-    else if (symbolFound == Symbol::SPADE ||
-             symbolFound == Symbol::SPADER90 ||
-             symbolFound == Symbol::SPADER180 ||
-             symbolFound == Symbol::SPADER270)
-    {
-        symbol = Symbol::SPADE;
-    }
-    else if (symbolFound == Symbol::HEART ||
-             symbolFound == Symbol::HEARTR90 ||
-             symbolFound == Symbol::HEARTR180 ||
-             symbolFound == Symbol::HEARTR270)
-    {
-        symbol = Symbol::HEART;
-    }
-    else if (symbolFound == Symbol::DIAMOND ||
-             symbolFound == Symbol::DIAMONDR90 ||
-             symbolFound == Symbol::DIAMONDR180 ||
-             symbolFound == Symbol::DIAMONDR270)
-    {
-        symbol = Symbol::DIAMOND;
-    }
-    else if (symbolFound == Symbol::SHIP ||
-             symbolFound == Symbol::AIRCRAFT ||
-             symbolFound == Symbol::TANK ||
-             symbolFound == Symbol::FACTORY)
-    {
-        symbol = symbolFound;
-    }
-    else if (symbolFound == Symbol::AXE ||
-             symbolFound == Symbol::CLIPPERS ||
-             symbolFound == Symbol::HAMMER ||
-             symbolFound == Symbol::MACHETE)
-    {
-        symbol = symbolFound;
-    }
-    else if (symbolFound == Symbol::LARGE_X ||
-             symbolFound == Symbol::SMALL_X ||
-             symbolFound == Symbol::LARGE_O ||
-             symbolFound == Symbol::SMALL_O)
-    {
-        symbol = symbolFound;
-    }
-    
-    return symbol;
+    return symbolFound;
 }
 
 void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)

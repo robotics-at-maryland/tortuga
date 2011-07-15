@@ -105,6 +105,14 @@ void LoversLaneDetector::init(core::ConfigNode config)
                          "Number of times to dilate the binary image",
                          0, &m_dilateIterations);
 
+    propSet->addProperty(config, false, "openIterations",
+                         "Number of times to apply the open morphological operation",
+                         0, &m_openIterations);
+
+    propSet->addProperty(config, false, "closeIterations",
+                         "Number of times to apply the close morphological operation",
+                         0, &m_closeIterations);
+
     propSet->addProperty(config, false, "lostPoleThreshold",
                          "Threshold for deciding we cannot see one of the poles."
                          "Percentage relative to full center height.",
@@ -187,15 +195,31 @@ bool LoversLaneDetector::processColor(Image* input, Image* output,
     else
         filter.filterImage(output);
 
-    // Erode and dilate the image (only if necessary)
-    if (m_erodeIterations > 0) {
-        IplImage* img = output->asIplImage();
-        cvErode(img, img, NULL, m_erodeIterations);
+    // Open the image if requested
+    if (m_openIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvErode(img, img, NULL, m_openIterations);
+        cvDilate(img, img, NULL, m_openIterations);
     }
 
+    // Close the image if requested
+    if (m_closeIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvDilate(img, img, NULL, m_closeIterations);
+        cvErode(img, img, NULL, m_closeIterations);
+    }
+
+    // Erode and dilate the image (only if necessary)
     if (m_dilateIterations > 0) {
         IplImage* img = output->asIplImage();
         cvDilate(img, img, NULL, m_dilateIterations);
+    }
+
+    if (m_erodeIterations > 0) {
+        IplImage* img = output->asIplImage();
+        cvErode(img, img, NULL, m_erodeIterations);
     }
 
     OpenCVImage debug(output->getWidth(), output->getHeight(),

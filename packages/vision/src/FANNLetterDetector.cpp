@@ -9,7 +9,7 @@
 
 // STD Includes
 #include <iostream>
-
+#include <cmath>
 // Library Includes
 #include <cv.h>
 
@@ -23,8 +23,7 @@
 #define SYMBOL_LARGE_O 0x04
 #define SYMBOL_SMALL_O 0x08
 #define SYMBOL_COUNT 4
-
-#define FEATURE_COUNT 10
+#define FEATURE_COUNT 4
 
 namespace ram {
 namespace vision {
@@ -32,9 +31,18 @@ namespace vision {
 FANNLetterDetector::FANNLetterDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     FANNSymbolDetector(FEATURE_COUNT, SYMBOL_COUNT, config, eventHub),
-    m_resizedImage(new OpenCVImage(640, 480, Image::PF_BGR_8)),
+    m_frame(new OpenCVImage(640, 480, Image::PF_BGR_8)),
+    m_croppedFrame(new OpenCVImage(640, 480, Image::PF_BGR_8)),
+    m_scratchBuffer(new unsigned char[640 * 480 * 3]),
     m_blobDetector()
 {
+}
+
+FANNLetterDetector::~FANNLetterDetector()
+{
+    delete m_frame;
+    delete m_croppedFrame;
+    delete[] m_scratchBuffer;
 }
 
 void FANNLetterDetector::processImage(Image* input, Image* output)
@@ -61,22 +69,45 @@ Symbol::SymbolType FANNLetterDetector::getSymbol()
 
 void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
 {
-    m_resizedImage->copyFrom(inputImage);
-    m_resizedImage->setPixelFormat(Image::PF_GRAY_8);
-    m_blobDetector.processImage(m_resizedImage);
-
-    std::vector<BlobDetector::Blob> blobs = m_blobDetector.getBlobs();
+    m_frame->copyFrom(inputImage);
+    m_frame->setPixelFormat(Image::PF_BGR_8);
+    double imgWidth = m_frame->getWidth();
+    double imgHeight = m_frame->getHeight();
+    // look for a big blob inside the frame
+    m_blobDetector.setMinimumBlobSize(100);
+    m_blobDetector.processImage(m_frame);
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
     BlobDetector::Blob symbolBlob;
-    
+
     // get the largest blob found
-    if(blobs.size() > 0)
-        symbolBlob = blobs[0];
+    // if we see a crappy blob its not a problem because the features 
+    // will just be garbage and be ignored
+    if(m_blobDetector.found())
+        symbolBlob = blobs.front();
+    else // otherwise we cant really do anything if we dont see a blob
+        return;
+
+    Image *processingFrame;
+    processingFrame = cropBinImage(m_frame, m_scratchBuffer);
+    if(!processingFrame)
+        assert(false && "error croping the image");
+    m_croppedFrame->copyFrom(processingFrame);
+
+    delete processingFrame;
+
+    // get some information from the blob to help us compute features later
+    double symbolWidth = symbolBlob.getWidth();
+    double symbolHeight = symbolBlob.getHeight();
+    // double symbolMinX = symbolBlob.getMinX();
+    // double symbolMaxX = symbolBlob.getMaxX();
+    // double symbolMinY = symbolBlob.getMinY();
+    // double symbolMaxY = symbolBlob.getMaxY();
 
     // True if the image is wider then it is tall
     bool wide = true;
-    double width = m_resizedImage->getWidth();
-    double height = m_resizedImage->getHeight();
-    double trueAspectRatio = width / height;
+    double trueAspectRatio = symbolWidth / symbolHeight;
+    // because the image may be rotated, we choose to make the aspect 
+    // ratio greater than 1
     float aspectRatio = trueAspectRatio;
     if (aspectRatio < 1)
     {
@@ -84,121 +115,58 @@ void FANNLetterDetector::getImageFeatures(Image* inputImage, float *features)
         aspectRatio = 1.0 / aspectRatio;
     }
 
-    double widthPct = symbolBlob.getWidth() / width;
-    double heightPct = symbolBlob.getHeight() / height;
+    double relativeSymbolWidth = symbolWidth / imgWidth;
+    double relativeSymbolHeight = symbolHeight / imgHeight;
+    
+    // pixel percentage of symbol relative to the entire image of the inside of the bin
+    double pixelPercentage = symbolBlob.getSize() / (imgWidth * imgHeight);
+
+    // these will all end up as the same value since this is a 'binary' image
+    double pixelAverageCh1, pixelAverageCh2, pixelAverageCh3;
+    int hstep = m_croppedFrame->getWidth() / 5;
+    int vstep = m_croppedFrame->getHeight() / 5;
+    int upperLeftX = 2 * hstep;
+    int upperLeftY = 2 * vstep;
+    int lowerRightX = m_croppedFrame->getWidth() - 2 * hstep;
+    int lowerRightY = m_croppedFrame->getHeight() - 2 * vstep;
+
+    Image::getAveragePixelValues(m_croppedFrame, upperLeftX, upperLeftY,
+                                 lowerRightX, lowerRightY, pixelAverageCh1,
+                                 pixelAverageCh2, pixelAverageCh3);
+
+    m_croppedFrame->setPixelFormat(Image::PF_GRAY_8);
     CvMoments moments;
-    cvMoments(m_resizedImage->asIplImage(), &moments, true);
+    cvMoments(m_croppedFrame->asIplImage(), &moments, true);
     CvHuMoments huMoments;
     cvGetHuMoments(&moments, &huMoments);
 
-    int featureNum = 0;
+    features[0] = relativeSymbolWidth;
+    features[1] = relativeSymbolHeight;
+    features[2] = pixelPercentage;
+    features[3] = pixelAverageCh1;
+}
 
-    features[featureNum++] = widthPct;
-    features[featureNum++] = heightPct;
-    features[featureNum++] = huMoments.hu6;
+Image* FANNLetterDetector::cropBinImage(Image* binImage, unsigned char *buffer)
+{   
+    m_blobDetector.setMinimumBlobSize(100);
+    m_blobDetector.processImage(binImage);
+    if (!m_blobDetector.found())
+        return 0;
+        
+    BlobDetector::BlobList blobs = m_blobDetector.getBlobs();
 
-    // Determine amount of red on each "long" half of the image and return the
-    // ratio of the two together
-    double average1, average2, dummy2, dummy3;
-    if (wide)
-    {
-        // Wider then we are tall (ie. the image is wide)
-
-        // Get the top half
-        Image::getAveragePixelValues(m_resizedImage, 0, 0, width - 1, height/2 - 1,
-                                     average1, dummy2, dummy3);
-
-        // Get the bottom half
-        Image::getAveragePixelValues(m_resizedImage, 0, height/2,
-                                     width - 1, height - 1,
-                                     average2, dummy2, dummy3);
-    }
-    else
-    {
-        // Taller then we are wide (ie. the image is skinny)
-
-        // Get the left side
-        Image::getAveragePixelValues(m_resizedImage, 0, 0,
-                                     width/2 - 1, height - 1,
-                                     average1, dummy2, dummy3);
-
-        // Get the right side
-        Image::getAveragePixelValues(m_resizedImage, width/2, 0,
-                                     width - 1, height- 1,
-                                     average2, dummy2, dummy3);
-    }
+    // blobs are ordered largest to smallest so take the largest
+    BlobDetector::Blob biggestBlob = blobs[0];
+    int upperLeftX = biggestBlob.getMinX();
+    int upperLeftY = biggestBlob.getMinY();
+    int lowerRightX = biggestBlob.getMaxX();
+    int lowerRightY = biggestBlob.getMaxY();
     
-    // Make sure the ratio is always positive
-    double ratio = 0;
-    if (average2 != 0)
-        ratio = average1/average2;
-    if (ratio < 1)
-        ratio = 1.0 / ratio;
-    features[featureNum++] = (float)ratio;
-    
-    // Determine the ammount of red in all the corners of the image
+    Image* croppedImage = Image::extractSubImage(
+        binImage, buffer, upperLeftX, upperLeftY,
+        lowerRightX, lowerRightY);
 
-    // Corner size
-    int cornerSize = 0;
-    if (wide)
-        cornerSize = height / 8;
-    else
-        cornerSize = width / 8;
-
-    // If everything is too small 
-    if (cornerSize == 0)
-        cornerSize = 1;
-
-    // Find the average in all the corners
-    double average3, average4;
-
-    // Upper Left
-    Image::getAveragePixelValues(m_resizedImage, 0, 0,
-                                 cornerSize, cornerSize,
-                                 average1, dummy2, dummy3);
-    
-    // Upper right
-    Image::getAveragePixelValues(m_resizedImage, width - cornerSize, 0,
-                                 width - 1, cornerSize,
-                                 average2, dummy2, dummy3);
-
-    // Lower Left
-    Image::getAveragePixelValues(m_resizedImage, 0, height - cornerSize,
-                                 cornerSize, height - 1,
-                                 average3, dummy2, dummy3);
-
-    // Lower Right
-    Image::getAveragePixelValues(m_resizedImage, width - cornerSize,
-                                 height - cornerSize,
-                                 width - 1, height - 1,
-                                 average4, dummy2, dummy3);
-
-    double averageCorner = (average1 + average2 + average3 + average4) / 4;
-    features[featureNum++] = (float)averageCorner / 255.0f;
-
-    // Find the fill percent of the central region
-    if (wide)
-    {
-        // Wider then we are tall (ie. the image is wide)
-        int middle = width/2;
-
-        Image::getAveragePixelValues(m_resizedImage,
-                                     middle - cornerSize, 0,
-                                     middle + cornerSize, height - 1,
-                                     average1, dummy2, dummy3);
-    }
-    else
-    {
-        // Taller then we are wide (ie. the image is skinny)
-        int middle = height/2;
-
-        Image::getAveragePixelValues(m_resizedImage,
-                                     0, middle - cornerSize,
-                                     width - 1, middle + cornerSize,
-                                     average1, dummy2, dummy3);
-    }
-
-    features[featureNum++] = static_cast<float>(average1 / 255.0f);
+    return croppedImage;
 }
 
 } // namespace vision

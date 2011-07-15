@@ -101,19 +101,22 @@ class RAM_EXPORT CupidDetector : public Detector
     double m_maxAspectRatio;
     double m_minAspectRatio;
 
+    double m_minHeartAspectRatio;
+    double m_maxHeartAspectRatio;
+
+    // double m_minLargeHeartRelativeWidth;
+    // double m_maxLargeHeartRelativeWidth;
+
+    // double m_minSmallHeartRelativeWidth;
+    // double m_maxSmallHeartRelativeWidth;
+
+    double m_minHeartPixelPct;
+
     int m_minWidth;
     int m_minHeight;
 
-    double m_minRelInnerWidth;
-    double m_minRelInnerHeight;
-
-    int m_centerXDisagreement;
-    int m_centerYDisagreement;
-
     double m_minPixelPercentage;
     double m_maxPixelPercentage;
-
-    double m_innerMinPixelPercentage;
 
     int m_erodeIterations;
     int m_dilateIterations;
