@@ -210,40 +210,38 @@ class FastDive(state.State):
     
     @staticmethod
     def transitions():
-        return { FastDive.IN_RANGE : ReAlign,
-                 motion.basic.MotionManager.FINISHED : FastDive }
+        return { motion.basic.MotionManager.FINISHED : ReAlign }
 
     @staticmethod
     def getattr():
         return {'distanceFromBottom' : 6.5, 'intervals' : 1, 
-                'depthRate' : 0.2}
+                'depthRate' : 0.2, 'depth' : 8}
 
     def enter(self):
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = self.stateEstimator.getEstimatedDepth() + \
-                self._intervals,
+            finalValue = self._depth,
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._depthRate)
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
 
-    def FINISHED(self, event):
-        depth = self.stateEstimator.getEstimatedDepth()
-        bottomRange = self.stateEstimator.getEstimatedBottomRange()
+    # def FINISHED(self, event):
+    #     depth = self.stateEstimator.getEstimatedDepth()
+    #     bottomRange = self.stateEstimator.getEstimatedBottomRange()
         
-        if self._distanceFromBottom <= depth:
-            self.publish(FastDive.IN_RANGE, core.Event())
-        else:            
-            diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-                initialValue = depth,
-                finalValue = depth + self._intervals,
-                initialRate = self.stateEstimator.getEstimatedDepthRate(),
-                avgRate = self._depthRate)
-            diveMotion = motion.basic.ChangeDepth(
-                trajectory = diveTrajectory)
-            self.motionManager.setMotion(diveMotion)
+    #     if self._distanceFromBottom <= depth:
+    #         self.publish(FastDive.IN_RANGE, core.Event())
+    #     else:            
+    #         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+    #             initialValue = depth,
+    #             finalValue = depth + self._intervals,
+    #             initialRate = self.stateEstimator.getEstimatedDepthRate(),
+    #             avgRate = self._depthRate)
+    #         diveMotion = motion.basic.ChangeDepth(
+    #             trajectory = diveTrajectory)
+    #         self.motionManager.setMotion(diveMotion)
 
             
     def exit(self):
@@ -283,42 +281,39 @@ class SlowDive(state.State):
     
     @staticmethod
     def transitions():
-        return VaseTrackingState.transitions(SlowDive,
-            { SlowDive.IN_RANGE : SlowDive,
-              motion.basic.MotionManager.FINISHED : FastDive })
+        return { motion.basic.MotionManager.FINISHED : Grabbing }
 
     @staticmethod
     def getattr():
         return {'distanceFromBottom' : 4.5, 'intervals' : .25, 
-                'depthRate' : 0.2}
+                'depthRate' : 0.2, 'depth' : 10}
 
     def enter(self):
 
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = self.stateEstimator.getEstimatedDepth() + \
-                self._intervals,
+            finalValue = self._depth,
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._depthRate)
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
 
-    def FINISHED(self, event):
-        depth = self.stateEstimator.getEstimatedDepth()
-        bottomRange = self.stateEstimator.getEstimatedBottomRange()
+    # def FINISHED(self, event):
+    #     depth = self.stateEstimator.getEstimatedDepth()
+    #     bottomRange = self.stateEstimator.getEstimatedBottomRange()
         
-        if self._distanceFromBottom <= depth:
-            self.publish(SlowDive.IN_RANGE, core.Event())
-        else:            
-            diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-                initialValue = depth,
-                finalValue = depth + self._intervals,
-                initialRate = self.stateEstimator.getEstimatedDepthRate(),
-                avgRate = self._depthRate)
-            diveMotion = motion.basic.ChangeDepth(
-                trajectory = diveTrajectory)
-            self.motionManager.setMotion(diveMotion)
+    #     if self._distanceFromBottom <= depth:
+    #         self.publish(SlowDive.IN_RANGE, core.Event())
+    #     else:            
+    #         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+    #             initialValue = depth,
+    #             finalValue = depth + self._intervals,
+    #             initialRate = self.stateEstimator.getEstimatedDepthRate(),
+    #             avgRate = self._depthRate)
+    #         diveMotion = motion.basic.ChangeDepth(
+    #             trajectory = diveTrajectory)
+    #         self.motionManager.setMotion(diveMotion)
 
             
     def exit(self):
@@ -341,7 +336,7 @@ class Grabbing(state.State):
                                                 self._delay)
         self.timer.start()
 
-        #TODO: ACTIVATE GRABBER
+        self.vehicle.closeGrabber()
 
     def exit(self):
         self.timer.stop()

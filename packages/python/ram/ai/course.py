@@ -957,7 +957,7 @@ class Octagon(task.Task):
     def enter(self):
         task.Task.enter(self)
 
-        self._delay = self._config.get('delay', 5)
+        self._delay = self._config.get('delay', 7)
         self._release = self._config.get('release', True)
 
         # Start our dive

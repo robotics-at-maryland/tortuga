@@ -223,9 +223,10 @@ class HoveringState(state.State):
         self._recalculate = True
 
         if self._shouldRotate:
-            self.motionManager.setMotion(yawMotion)
-        
-        self.motionManager.setMotion(translateMotion)
+            self.motionManager.setMotion(yawMotion, translateMotion)
+        else:
+            self.motionManager.setMotion(translateMotion)
+
     def exit(self):
         #print '"Exiting Seek, going to follow"'
         self.motionManager.stopCurrentMotion()
@@ -265,8 +266,9 @@ class HoveringState(state.State):
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
         if self._shouldRotate or self._currentDesiredOrientation is not None:
-            self.motionManager.setMotion(yawMotion)
-        self.motionManager.setMotion(translateMotion)
+            self.motionManager.setMotion(yawMotion, translateMotion)
+        else:
+            self.motionManager.setMotion(translateMotion)
 
 
     def _changeMotion(self, vector1, vector2):
@@ -790,7 +792,6 @@ class RecoverSeeking(Recover):
 
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
-        self.motionManager.setMotion(translateMotion)
         
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
@@ -799,7 +800,7 @@ class RecoverSeeking(Recover):
             avgRate = 0.3)
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        self.motionManager.setMotion(diveMotion)
+        self.motionManager.setMotion(translateMotion, diveMotion)
 
     def exit(self):
         Recover.exit(self)
@@ -1591,7 +1592,7 @@ class DropMarker(SettlingState):
         targetSymbols = self.ai.data['targetSymbols']
         
         # Hackish solution
-        value = 0
+        value = 1
         for symbol in targetSymbols:
             if symbol == droppingSymbol:
                 break
