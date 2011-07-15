@@ -416,33 +416,33 @@ TEST_FIXTURE(SensorBoardFixture, dropMarker)
 //     delete testSb;
 // }
 
-TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
-{
-    TestSensorBoard* testSb = new TestSensorBoard(
-        ram::core::ConfigNode::fromString(BASE_CONFIG +
-            "'servo3FirePosition' : 6000,"
-            "'servo4FirePosition' : 5000}"));
-    ram::vehicle::device::SensorBoard* sb =
-        (ram::vehicle::device::SensorBoard*)testSb;
+// TEST_FIXTURE(SensorBoardFixture, releaseGrabber)
+// {
+//     TestSensorBoard* testSb = new TestSensorBoard(
+//         ram::core::ConfigNode::fromString(BASE_CONFIG +
+//             "'servo3FirePosition' : 6000,"
+//             "'servo4FirePosition' : 5000}"));
+//     ram::vehicle::device::SensorBoard* sb =
+//         (ram::vehicle::device::SensorBoard*)testSb;
 
-    // Release Grabber
-    CHECK_EQUAL(0, sb->releaseGrabber());
-    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
-    CHECK_EQUAL(SERVO_3, testSb->servosUsed[0]);
-    CHECK_EQUAL(SERVO_4, testSb->servosUsed[1]);
-    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
-    CHECK_EQUAL(6000, testSb->servoPositions[0]);
-    CHECK_EQUAL(5000, testSb->servoPositions[1]);
-    CHECK_EQUAL(SERVO_ENABLE_3_4, testSb->servoEnable);
-    CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
+//     // Release Grabber
+//     CHECK_EQUAL(0, sb->releaseGrabber());
+//     CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+//     CHECK_EQUAL(SERVO_3, testSb->servosUsed[0]);
+//     CHECK_EQUAL(SERVO_4, testSb->servosUsed[1]);
+//     CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+//     CHECK_EQUAL(6000, testSb->servoPositions[0]);
+//     CHECK_EQUAL(5000, testSb->servoPositions[1]);
+//     CHECK_EQUAL(SERVO_ENABLE_3_4, testSb->servoEnable);
+//     CHECK_EQUAL(SERVO_POWER_ON, testSb->servoPower);
     
-    // Fire non-existent grabber
-    CHECK_EQUAL(-1, sb->releaseGrabber());
-    CHECK_EQUAL(20, (int) testSb->servosUsed.size());
-    CHECK_EQUAL(20, (int) testSb->servoPositions.size());
+//     // Fire non-existent grabber
+//     CHECK_EQUAL(-1, sb->releaseGrabber());
+//     CHECK_EQUAL(20, (int) testSb->servosUsed.size());
+//     CHECK_EQUAL(20, (int) testSb->servoPositions.size());
 
-    delete testSb;
-}
+//     delete testSb;
+// }
 #endif // NO_SERVOS
 
 typedef std::vector<ram::math::NumericEventPtr>

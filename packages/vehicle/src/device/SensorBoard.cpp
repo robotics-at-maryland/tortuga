@@ -438,27 +438,7 @@ int SensorBoard::fireTorpedo()
     int torpedoFired = -1;
     if (torpedoNum < NUMBER_OF_TORPEDOS)
     {
-        // Yes this code looks weird, but MotorBoard r3 has some bugs that we
-        // need to code around
-        if (torpedoNum == 0)
-        {
-            // Hacky because the command doesn't always work
-            /*for (int i=0; i < 10; i++)
-            {
-                setServoPosition(SERVO_1, m_servo1FirePosition);
-                setServoEnable(SERVO_ENABLE_1);
-            }*/
-        }
-        else if (torpedoNum == 1)
-        {
-            // Hacky because the command doesn't always work
-            /*for (int i=0; i < 10; i++)
-            {
-                setServoPosition(SERVO_2, m_servo2FirePosition);
-                setServoEnable(SERVO_ENABLE_2);
-            }*/
-        }
-        
+        handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
         torpedoFired = torpedoNum;
         torpedoNum++;
     }
@@ -469,34 +449,30 @@ int SensorBoard::fireTorpedo()
 
 int SensorBoard::fireTorpedo(int index)
 {
-    // To be implemented
-    return -1;
-}
-int SensorBoard::releaseGrabber()
-{
-#ifdef NO_SERVOS
-    return -1;
-#else // NO_SERVOS
-    static int released = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    if (!released)
+    int torpedoFired = -1;
+    if (index < NUMBER_OF_TORPEDOS)
     {
-        // Hacky because the command doesn't always work
-        for (int i=0; i < 10; i++)
-        {
-            setServoPosition(SERVO_3, m_servo3FirePosition);
-            setServoPosition(SERVO_4, m_servo4FirePosition);
-
-            setServoEnable(SERVO_ENABLE_3_4);
-        }
-
-        released = -1;
-        return 0;
-    } else {
-        return -1;
+        handleReturn(::fireTorpedo(m_deviceFD, index));
+        torpedoFired = index;
     }
-#endif // NO_SERVOS
+    return torpedoFired;
+}
+int SensorBoard::extendGrabber()
+{
+    // Closes Grabber
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    handleReturn(::extendGrabber(m_deviceFD));
+    return 1;
+
+}
+int SensorBoard::retractGrabber()
+{
+    // Opens Grabber
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    handleReturn(::retractGrabber(m_deviceFD));
+    return 1;
 }
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)

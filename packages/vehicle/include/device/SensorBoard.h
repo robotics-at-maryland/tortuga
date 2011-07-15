@@ -181,13 +181,21 @@ public:
      */
     virtual int fireTorpedo(int index);
 
-    /** Releases the object in the treasure grabber. Only works once.
+    /** Closes the grabber.
      *
      *  @return
      *      0 if the grabber successfully released the object. -1 if
      *      the object was already released.
      */
-    virtual int releaseGrabber();
+    virtual int extendGrabber();
+
+    /** Opens the grabber
+     *
+     *  @return
+     *      0 if the grabber successfully released the object. -1 if
+     *      the object was already released.
+     */
+    virtual int retractGrabber();
     
    /** Returns true if the vehicle can draw power from the power source
      *
