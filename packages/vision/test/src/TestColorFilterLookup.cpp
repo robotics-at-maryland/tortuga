@@ -58,6 +58,8 @@ int main(int argc, char* argv[])
                 new ram::vision::OpenCVImage(dir_itr->string().c_str(),
                     ram::vision::Image::PF_BGR_8);
     
+	    // input->setPixelFormat(ram::vision::Image::PF_RGB_8);
+	    // input->setPixelFormat(ram::vision::Image::PF_LCHUV_8);
             ram::vision::Image *output = new ram::vision::OpenCVImage();
             output->copyFrom(input);
     

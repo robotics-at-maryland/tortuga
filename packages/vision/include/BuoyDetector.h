@@ -46,15 +46,21 @@ class RAM_EXPORT BuoyDetector : public Detector
     IplImage* getAnalyzedImage();
 
     // Setter and Getter for lookup table color filter
-    bool getLookupTable();
-    void setLookupTable(bool lookupTable); 
+    bool getRedLookupTable();
+    void setRedLookupTable(bool lookupTable); 
 
+    bool getYellowLookupTable();
+    void setYellowLookupTable(bool lookupTable); 
+    
+    bool getGreenLookupTable();
+    void setGreenLookupTable(bool lookupTable); 
+  
   private:
     void init(core::ConfigNode config);
 
     /* Normal processing to find one blob/color */
     bool processColor(Image* input, Image* output, ImageFilter& filter,
-                      BlobDetector::Blob& outBlob);
+                      bool useLookupTable, BlobDetector::Blob& outBlob);
     
     void drawBuoyDebug(Image* debugImage, BlobDetector::Blob &blob,
                        unsigned char red, unsigned char green,
@@ -137,7 +143,9 @@ class RAM_EXPORT BuoyDetector : public Detector
 
     int m_debug;
 
-    bool m_colorFilterLookupTable;
+    bool m_useRedFilterLookup;
+    bool m_useYellowFilterLookup;
+    bool m_useGreenFilterLookup;
 
     std::string m_redLookupTablePath;
     std::string m_yellowLookupTablePath;

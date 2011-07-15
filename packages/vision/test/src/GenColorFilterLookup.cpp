@@ -27,6 +27,7 @@
 #include "core/include/BitField3D.h"
 #include "vision/include/TableColorFilter.h"
 #include "vision/include/OpenCVImage.h"
+#include "vision/include/Image.h"
 
 int findElement(std::string ele, std::vector<std::string> list)
 {
@@ -51,10 +52,12 @@ cv::Mat buildTrainingSet(std::vector<cv::Mat> &images,
         int maskLoc = findElement(imgName, maskNames);
         if (maskLoc == -1)
             std::cout << "Error - No Matching Mask Name" << std::endl;
-        
+
+	std::cout << "making headers" << std::endl;
         cv::Mat img = images[i];
         cv::Mat mask = masks[maskLoc];
-        
+	std::cout << "made headers" << std::endl;
+
         cv::Vec3b temp;
         for(int i = 0; i < img.rows; i++)
         {
@@ -82,7 +85,7 @@ cv::Mat buildTrainingSet(std::vector<cv::Mat> &images,
 
 
 void loadImages(char* imgPath, std::vector<cv::Mat> &images, 
-                std::vector<std::string> &imageNames)
+                std::vector<std::string> &imageNames, bool isMask = false)
 {
     namespace fs = boost::filesystem;
     fs::path full_path(fs::initial_path<fs::path>() );
@@ -101,7 +104,25 @@ void loadImages(char* imgPath, std::vector<cv::Mat> &images,
             if ( fs::is_regular_file( dir_itr->status() ) ) {
                 imageNames.push_back( dir_itr->path().filename() );
                 std::cout << "Reading: " << dir_itr->string() << std::endl;
-                cv::Mat img = cv::imread( dir_itr->string(), 1);
+		ram::vision::OpenCVImage *loadedImage = 
+		  new ram::vision::OpenCVImage(dir_itr->string(),
+					   ram::vision::Image::PF_BGR_8);
+		if(!isMask)
+		  {
+		    // loadedImage->setPixelFormat(ram::vision::Image::PF_RGB_8);
+		    // loadedImage->setPixelFormat(ram::vision::Image::PF_LCHUV_8);
+		  }
+
+		// IplImage *ipl = loadedImage->asIplImage();
+		// std::cout << "w: " << ipl->width << "\n"
+		// 	  << "h: " << ipl->height << std::endl;
+		  
+		cv::Mat img(loadedImage->asIplImage(), true);
+		// std::cout << "matw: " << img.size().width << "\n"
+		// 	  << "math: " << img.size().height << std::endl;
+
+		delete loadedImage;
+		
                 images.push_back(img);
             }
         }
@@ -159,7 +180,7 @@ int main(int argc, char* argv[])
 
     std::cout << "Loading Images" << std::endl;
     loadImages(argv[1], images, imageNames);
-    loadImages(argv[2], masks, maskNames);
+    loadImages(argv[2], masks, maskNames, true);
     
     std::cout << "Building Training Set" << std::endl;
     cv::Mat trainingSet = buildTrainingSet(images, masks, 
