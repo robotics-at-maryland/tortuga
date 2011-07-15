@@ -76,7 +76,7 @@ class Start(state.State):
             finalRate = math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(windowY,windowX),
+            finalValue = math.Vector2(windowX,windowY),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
 
