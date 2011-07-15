@@ -37,6 +37,7 @@ import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
 import ram.ai.vase as vase
+import ram.ai.lane as lane
 
 import ram.motion as motion
 import ram.motion.basic
@@ -157,6 +158,51 @@ class Pipe(task.Task):
     @property
     def pipesToFind(self):
         return self._pipesToFind
+    
+class LoversLane(task.Task):
+    """
+    Finds and goes through the Lovers Lane
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { lane.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next,
+                'GO' : state.Branch(pipe.Start) }
+        
+    
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        self._pipesToFind = self._config.get('pipesToFind', 1)
+        self._pipeCount = 0
+        self.ai.data['laneOrientation'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'orientation', 0)
+        self.ai.data['laneDepth'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'depth', 5)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(lane.Start))
+        
+    def exit(self):
+        del self.ai.data['laneDepth']
+        del self.ai.data['laneOrientation']
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(lane.Start)
+    
+class LoversLane1(LoversLane):
+    pass
+    
+class LoversLane2(LoversLane):
+    pass
+    
+class LoversLane3(LoversLane):
+    pass
     
 class PipeGate(task.Task):
     """

@@ -170,10 +170,11 @@ class AI(core.Subsystem):
                     if innerItem not in set(['taskTimeout']):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
-            elif item == 'LoversLane':
+            elif item == 'LoversLane' or item == 'LoversLane1' or \
+                    item == 'LoversLane2' or item == 'LoversLane3':
                 for innerItem in cfg[item].iterkeys():
-                    if innerItem not in set(['taskTimeout', 'laneDepth', 
-                                             'laneOrientation']):
+                    if innerItem not in set(['taskTimeout', 'depth', 
+                                             'orientation']):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:
