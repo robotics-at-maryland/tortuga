@@ -1060,6 +1060,15 @@ class TravelPoint(task.Task):
 
         self.motionManager.setMotion(yawMotion, translateMotion)
 
+class TravelPoint1(TravelPoint):
+    pass
+
+class TravelPoint2(TravelPoint):
+    pass
+
+class TravelPoint3(TravelPoint):
+    pass
+
 class TimedTravel(task.Task):
     """
     A pre-determined move that changes depth, changes heading, then moves
