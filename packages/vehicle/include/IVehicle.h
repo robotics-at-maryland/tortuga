@@ -103,6 +103,9 @@ public:
     /** Drop the PVC cube */
     virtual void releaseGrabber() = 0;
 
+    /** Grab the PVC */
+    virtual void closeGrabber() = 0;
+
     /** This event should be published when thrusts are updated */
     static const core::Event::EventType VEHICLE_THRUST_UPDATE;
     

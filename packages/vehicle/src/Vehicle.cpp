@@ -221,7 +221,12 @@ void Vehicle::releaseGrabber()
 {
     m_grabber->releaseObject();
 }
-    
+
+void Vehicle::closeGrabber()
+{
+    m_grabber->closeObject();
+}
+
 void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
                                     const math::Vector3& rotationalTorques)
 {

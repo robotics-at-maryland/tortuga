@@ -401,11 +401,11 @@ double SensorBoard::getMainBusVoltage()
 
 int SensorBoard::dropMarker()
 {
-    static int markerNum = 0;
+    static int markerNum = 1;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
     int markerDropped = -1;
-    if (markerNum < NUMBER_OF_MARKERS)
+    if (markerNum <= NUMBER_OF_MARKERS)
     {
         dropMarker(markerNum);
         markerDropped = markerNum;
@@ -418,7 +418,7 @@ int SensorBoard::dropMarker()
 int SensorBoard::dropMarkerIndex(int index)
 {
     int markerDropped = -1;
-    if (index < NUMBER_OF_MARKERS)
+    if (index <= NUMBER_OF_MARKERS)
     {
         dropMarker(index);
         markerDropped = index;
