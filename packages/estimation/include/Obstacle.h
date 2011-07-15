@@ -47,7 +47,8 @@ public:
         LARGE_X,
         SMALL_X,
         LARGE_O,
-        SMALL_O
+        SMALL_O,
+        PINGER
     };
 
     Obstacle();

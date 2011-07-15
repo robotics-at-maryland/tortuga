@@ -112,8 +112,8 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
     unsigned int yPixelCoord = buoyEvent->y * m_camHeight;
 
     math::Vector2 objImageCoords(xPixelCoord, yPixelCoord);
-    math::Matrix2 objImageCoordsUncertainty(10, 0,
-                                            0, 10);
+    math::Matrix2 objImageCoordsUncertainty(250, 0,
+                                            0, 250);
 
     // get the current estimated state
     math::Vector2 estPosition = m_estimatedState->getEstimatedPosition();

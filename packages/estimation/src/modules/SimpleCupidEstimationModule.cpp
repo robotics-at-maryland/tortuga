@@ -75,6 +75,11 @@ void SimpleCupidEstimationModule::update(core::EventPtr event)
         std::cerr << "Invalid Event Type" << std::endl;
         return;
     }
+
+    // if the cupid is touching the edge the distance estimate will be dangerous
+    // we want to avoid this situation even if it means ignoring a found event
+    if(cupidEvent->touchingEdge)
+        return;
     
     // get the info out of the event
     double xPixelCoord = cupidEvent->x * m_camWidth;
@@ -89,10 +94,10 @@ void SimpleCupidEstimationModule::update(core::EventPtr event)
     math::Quaternion estOrientation = m_estimatedState->getEstimatedOrientation();
 
     math::Vector3 cupidLocation = img2world(objImageCoords,
-                                           distance,
-                                           estCameraLocation,
-                                           estOrientation,
-                                           m_intrinsicParameters);
+                                            distance,
+                                            estCameraLocation,
+                                            estOrientation,
+                                            m_intrinsicParameters);
 
     m_cupidMeasurements.push_back(cupidLocation);
 

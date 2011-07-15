@@ -75,6 +75,11 @@ void SimpleBuoyEstimationModule::update(core::EventPtr event)
         std::cerr << "Invalid Event Type" << std::endl;
         return;
     }
+
+    // if the buoy is touching the edge the distance estimate will be dangerous
+    // we want to avoid this situation even if it means ignoring a found event
+    if(buoyEvent->touchingEdge)
+        return;
     
     // get the info out of the event
     double xPixelCoord = buoyEvent->x * m_camWidth;
