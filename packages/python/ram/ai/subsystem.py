@@ -102,7 +102,8 @@ class AI(core.Subsystem):
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
                           'forwardSpeed', 'adjustAngle', 'binDirection',
                           'duration', 'travelSpeed', 'taskTimeout'])
-        travelOptions = set(['taskTimeout', 'motions', 'X', 'Y', 'orientation'])
+        travelOptions = set(['taskTimeout', 'motions', 'X', 'Y', 'orientation',
+                             'speed'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \

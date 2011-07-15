@@ -1041,6 +1041,8 @@ class TravelPoint(task.Task):
             'Y', 0)
         yaw = self.ai.data['config'].get(self._className, {}).get(
             'orientation', 0)
+        speed = self.ai.data['config'].get(self._className, {}).get(
+            'speed', 0.2)
 
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
@@ -1052,7 +1054,7 @@ class TravelPoint(task.Task):
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(Ypos,Xpos),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = 0.15)
+            avgRate = speed)
 
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
