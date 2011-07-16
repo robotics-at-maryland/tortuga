@@ -39,13 +39,16 @@ class Start(state.State):
     Calculates and moves to a starting position and orientation
     specified by configuration values, and starts the detector.
     """
+    
+    GOOD_VISION = core.declareEventType('GOOD_VISION')
+
     @staticmethod
     def transitions(foundState = None, lostState = None):
-        return { motion.basic.MotionManager.FINISHED : Identification }
+        return { Start.GOOD_VISION : Identification }
 
     @staticmethod
     def getattr():
-        return {'diveRate' : 0.3, 'speed' : 0.15}
+        return {'diveRate' : 0.3, 'speed' : 0.15, 'delay' : 15}
 
     def enter(self):
         self.visionSystem.buoyDetectorOn()
@@ -59,6 +62,9 @@ class Start(state.State):
 
         self._orientation = self.ai.data['buoyOrientation']
 
+
+        self._timer = self.timerManager.newTimer(Start.GOOD_VISION, self._delay)
+        self._timer.start()
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -89,6 +95,8 @@ class Start(state.State):
         self.motionManager.setMotion(diveMotion, yawMotion, translateMotion)
 
     def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
         self.motionManager.stopCurrentMotion()
 
 class Identification(state.State):
@@ -120,24 +128,25 @@ class Identification(state.State):
         yDesired = buoyLocation.y + yOffset
 
         # Compute trajectories
-        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
-            initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._diveRate)
+        #diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+        #    initialValue = self.stateEstimator.getEstimatedDepth(),
+        #    finalValue = buoyLocation.z,
+        #    initialRate = self.stateEstimator.getEstimatedDepthRate(),
+        #    avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(yDesired, xDesired),
+            initialValue = math.Vector2.ZERO, #self.stateEstimator.getEstimatedPosition(),
+            finalValue = math.Vector2(0,-1),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
 
         # Dive and translate
-        diveMotion = motion.basic.ChangeDepth(
-            trajectory = diveTrajectory)
+        #diveMotion = motion.basic.ChangeDepth(
+        #    trajectory = diveTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.GLOBAL)
+                                                     frame = Frame.LOCAL)
         
-        self.motionManager.setMotion(diveMotion, translateMotion)
+        #self.motionManager.setMotion(diveMotion, translateMotion)
+        self.motionManager.setMotion(translateMotion)
         
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -171,24 +180,25 @@ class Identification2(state.State):
         yDesired = buoyLocation.y + yOffset
 
         # Compute trajectories
-        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
-            initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._diveRate)
+        #diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+        #    initialValue = self.stateEstimator.getEstimatedDepth(),
+        #    finalValue = buoyLocation.z,
+        #    initialRate = self.stateEstimator.getEstimatedDepthRate(),
+        #    avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(yDesired, xDesired),
+            initialValue = math.Vector2.ZERO, #self.stateEstimator.getEstimatedPosition(),
+            finalValue = math.Vector2(0, 2),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
 
         # Dive and translate
-        diveMotion = motion.basic.ChangeDepth(
-            trajectory = diveTrajectory)
+        #diveMotion = motion.basic.ChangeDepth(
+        #    trajectory = diveTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.GLOBAL)
+                                                     frame = Frame.LOCAL)
         
-        self.motionManager.setMotion(diveMotion, translateMotion)
+        #self.motionManager.setMotion(diveMotion, translateMotion)
+        self.motionManager.setMotion(translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -222,24 +232,25 @@ class Approach(state.State):
         yDesired = buoyLocation.y + yOffset
 
         # Compute trajectories
-        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
-            initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._diveRate)
+        # diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+        #     initialValue = self.stateEstimator.getEstimatedDepth(),
+        #     finalValue = buoyLocation.z,
+        #     initialRate = self.stateEstimator.getEstimatedDepthRate(),
+        #     avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(yDesired, xDesired),
+            finalValue = math.Vector2(xDesired, yDesired),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
 
         # Dive and translate
-        diveMotion = motion.basic.ChangeDepth(
-            trajectory = diveTrajectory)
+        # diveMotion = motion.basic.ChangeDepth(
+        #     trajectory = diveTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion, translateMotion)
+        #self.motionManager.setMotion(diveMotion, translateMotion)
+        self.motionManager.setMotion(translateMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -265,18 +276,11 @@ class Hit(state.State):
     def enter(self):
         self._orientation = self.ai.data['buoyOrientation']
 
-        # Compute where we want to be
-        xOffset = -self._distance * pmath.sin(self._orientation)
-        yOffset = self._distance * pmath.cos(self._orientation)
-        
         buoy = self.ai.data['buoyList'].pop(0)
 
         buoyObstacle = getObstacleType(buoy)
         
         buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
-
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -346,7 +350,7 @@ class Leave(state.State):
             avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(yDesired, xDesired),
+            finalValue = math.Vector2(xDesired, yDesired),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
         self._orientation = self.ai.data['buoyOrientation']

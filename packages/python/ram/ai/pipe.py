@@ -418,7 +418,7 @@ class Start(state.State):
 
         # Calculate the real depth and check to that it's lower than the minimum
         desiredDepth -= offset
-        minimumDepth = self._config.get('minimumDepth', 0.5)
+        minimumDepth = self._config.get('minimumDepth', 2)
         if desiredDepth < minimumDepth:
             desiredDepth = minimumDepth
 

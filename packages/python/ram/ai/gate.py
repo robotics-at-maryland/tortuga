@@ -80,13 +80,14 @@ class Forward(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 5 , 'avgRate' : 0.15, 'angle' : 0}
+        return { 'distance' : 5 , 'avgRate' : 0.15}
 
     def enter(self):
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, self._angle),
+            finalValue = math.Quaternion(
+                math.Degree(self.ai.data['gateOrientation']), math.Vector3.UNIT_Z),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
         forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -95,13 +96,15 @@ class Forward(state.State):
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._avgRate)
 
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         forwardMotion = motion.basic.Translate(
             trajectory = forwardTrajectory,
             frame = Frame.LOCAL)
 
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+
         # Full speed ahead!!
         self.motionManager.setMotion(yawMotion, forwardMotion)
+        #self.motionManager.setMotion(forwardMotion)
     
     def exit(self):
         self.motionManager.stopCurrentMotion()

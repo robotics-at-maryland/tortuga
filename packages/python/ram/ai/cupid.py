@@ -92,7 +92,7 @@ class Start(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Aim(state.State)
+class Aim(state.State):
     """
     Moves in front of the window.
     """
@@ -162,16 +162,16 @@ class Fire(state.State):
     def CUPID_FOUND(self, event):
         # grab the color, fire the appropriate torpedo
         if event.color == vision.Color.ColorType.BLUE:
-            self.vehicle.fireTorpedo(0)
+            self.vehicle.fireTorpedo(1)
             self.publish(Fire.FIRED, core.Event())
         elif event.color == vision.Color.ColorType.RED:
-            self.vehicle.fireTorpedo(1)
+            self.vehicle.fireTorpedo(2)
             self.publish(Fire.FIRED, core.Event())
         # Ignore other colors 
 
     def NONE_FOUND(self,event):
         # We didn't find a window in time, just fire and move on.
-        self.vehicle.fireTorpedo(0)
+        self.vehicle.fireTorpedo(1)
         self.publish(Fire.FIRED, core.Event())
 
     def enter(self):
@@ -266,7 +266,7 @@ class SwitchWindow(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-class Aim2(state.State)
+class Aim2(state.State):
     """
     Moves in front of the window.
     """
@@ -336,16 +336,16 @@ class Fire2(state.State):
     def CUPID_FOUND(self, event):
         # grab the color, fire the appropriate torpedo
         if event.color == vision.Color.ColorType.BLUE:
-            self.vehicle.fireTorpedo(0)
+            self.vehicle.fireTorpedo(1)
             self.publish(Fire2.FIRED, core.Event())
         elif event.color == vision.Color.ColorType.RED:
-            self.vehicle.fireTorpedo(1)
+            self.vehicle.fireTorpedo(2)
             self.publish(Fire2.FIRED, core.Event())
         # Ignore other colors 
 
     def NONE_FOUND(self,event):
         # We didn't find a window in time, just fire and move on.
-        self.vehicle.fireTorpedo(1)
+        self.vehicle.fireTorpedo(2)
         self.publish(Fire2.FIRED, core.Event())
 
     def enter(self):

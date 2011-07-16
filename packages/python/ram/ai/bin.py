@@ -551,7 +551,8 @@ class Recover(state.FindAttempt):
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
-            finalValue = yawVehicleHelper(currentOrientation, self._direction),
+            finalValue = yawVehicleHelper(currentOrientation, 
+                                          self._direction.valueDegrees()),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -652,7 +653,7 @@ class Start(state.State):
 
         # Set a minimumDepth
         desiredDepth -= self._offset
-        minimumDepth = self._config.get('minimumDepth', 0.5)
+        minimumDepth = self._config.get('minimumDepth', 2)
         if desiredDepth < minimumDepth:
             desiredDepth = minimumDepth
 
@@ -1049,7 +1050,7 @@ class Dive(HoveringState):
         
         # Set a minimumDepth
         binDepth -= offset_
-        minimumDepth = self._config.get('minimumDepth', 0.5)
+        minimumDepth = self._config.get('minimumDepth', 2)
         if binDepth < minimumDepth:
             binDepth = minimumDepth
         
@@ -1469,7 +1470,7 @@ class SurfaceToMove(HoveringState):
 
         # Set a minimumDepth
         binDepth -= offset
-        minimumDepth = self._config.get('minimumDepth', 0.5)
+        minimumDepth = self._config.get('minimumDepth', 2)
         if binDepth < minimumDepth:
             binDepth = minimumDepth
 
@@ -1592,12 +1593,15 @@ class DropMarker(SettlingState):
         targetSymbols = self.ai.data['targetSymbols']
         
         # Hackish solution
-        value = 1
+        value = 0
         for symbol in targetSymbols:
             if symbol == droppingSymbol:
                 break
             else:
                 value = value + 1
+
+        if value == len(targetSymbols):
+            value = 0
 
         # Release the marker
         self.vehicle.dropMarkerIndex(value)

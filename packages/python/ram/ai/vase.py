@@ -281,12 +281,13 @@ class SlowDive(state.State):
     
     @staticmethod
     def transitions():
-        return { motion.basic.MotionManager.FINISHED : Grabbing }
+        return { motion.basic.MotionManager.FINISHED : Grabbing,
+                 SlowDive.IN_RANGE : Grabbing }
 
     @staticmethod
     def getattr():
         return {'distanceFromBottom' : 4.5, 'intervals' : .25, 
-                'depthRate' : 0.2, 'depth' : 10}
+                'depthRate' : 0.2, 'depth' : 10, 'delay' : 15}
 
     def enter(self):
 
@@ -298,6 +299,8 @@ class SlowDive(state.State):
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
+        self._timer = self.timerManager.newTimer(SlowDive.IN_RANGE, self._delay)
+        self._timer.start()
 
     # def FINISHED(self, event):
     #     depth = self.stateEstimator.getEstimatedDepth()
@@ -317,6 +320,8 @@ class SlowDive(state.State):
 
             
     def exit(self):
+        if self._timer is not None:
+            self._timer.stop()
         self.motionManager.stopCurrentMotion()
 
 class Grabbing(state.State):

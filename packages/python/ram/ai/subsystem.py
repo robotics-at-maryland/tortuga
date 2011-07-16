@@ -104,6 +104,8 @@ class AI(core.Subsystem):
                           'duration', 'travelSpeed', 'taskTimeout'])
         travelOptions = set(['taskTimeout', 'motions', 'X', 'Y', 'orientation',
                              'speed'])
+        cupidOptions = set(['taskTimeout', 'windowX', 'windowY', 'windowDepth',
+                             'windowOrientation'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
@@ -155,7 +157,7 @@ class AI(core.Subsystem):
             elif item == 'Travel' or item == 'Travel1' \
                     or item == 'Travel2' or item == 'Travel3' or \
                     item == 'TravelPoint' or item == 'TravelPoint1' or \
-                    item == 'TravelPoint3':
+                    item == 'TravelPoint2'or item == 'TravelPoint3':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in travelOptions:
                         raise Exception("'%s' is not a valid config "
@@ -175,6 +177,11 @@ class AI(core.Subsystem):
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in set(['taskTimeout', 'depth', 
                                              'orientation']):
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Cupid':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in cupidOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:

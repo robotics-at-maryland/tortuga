@@ -38,6 +38,7 @@ import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
 import ram.ai.vase as vase
 import ram.ai.lane as lane
+import ram.ai.cupid as cupid
 
 import ram.motion as motion
 import ram.motion.basic
@@ -61,7 +62,7 @@ class Gate(task.Task):
 
     @staticmethod
     def getattr():
-        return set(['pipeDelay']).union(task.Task.getattr())
+        return set(['pipeDelay', 'gateOrientation']).union(task.Task.getattr())
 
     def PIPE_FOUND(self, event):
         self.ai.data['foundPipeEarly'] = True
@@ -78,16 +79,57 @@ class Gate(task.Task):
         
         # Branch of state machine for gate
         self.stateMachine.start(state.Branch(gate.Start))
-        
-        # Save current heading
+
         self.ai.data['gateOrientation'] = \
-            self.controller.getDesiredOrientation()
+            self._config.get('gateOrientation', 0)
+        
+        if self.ai.data['gateOrientation'] == 0:
+            # Save current heading
+            self.ai.data['gateOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
         
         # Setup timer to trigger pipe detector after a certain delay
         delay = self._config.get('pipeDelay', 30)
         self.timer = self.timerManager.newTimer(Gate.PIPE_ON, delay)
         self.timer.start()
         
+    def exit(self):
+        task.Task.exit(self)
+        
+        self.exited = True
+        if (self.stateMachine.branches.has_key(gate.Start)):
+            self.stateMachine.stopBranch(gate.Start)
+    
+class FakeGate(task.Task):
+    """
+    A secondary gate task for if we need to easily dive and go in a direction
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { gate.COMPLETE : task.Next,
+                 'GO' : state.Branch(gate.Start) }
+
+    @staticmethod
+    def getattr():
+        return set(['pipeDelay', 'gateOrientation']).union(task.Task.getattr())
+
+    def enter(self):
+        task.Task.enter(self)
+        
+        self.exited = False
+        
+        # Branch of state machine for gate
+        self.stateMachine.start(state.Branch(gate.Start))
+
+        self.ai.data['gateOrientation'] = \
+            self._config.get('gateOrientation', 0)
+        
+        if self.ai.data['gateOrientation'] == 0:
+            # Save current heading
+            self.ai.data['gateOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+
     def exit(self):
         task.Task.exit(self)
         
@@ -158,7 +200,31 @@ class Pipe(task.Task):
     @property
     def pipesToFind(self):
         return self._pipesToFind
+
+class Cupid(task.Task):
+    """
+    Finds and fires through through the Cupid
+    """
     
+    @staticmethod
+    def _transitions():
+        return { lane.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(cupid.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(cupid.Start)
+    
+
 class LoversLane(task.Task):
     """
     Finds and goes through the Lovers Lane
@@ -167,8 +233,7 @@ class LoversLane(task.Task):
     @staticmethod
     def _transitions():
         return { lane.COMPLETE : task.Next,
-                 task.TIMEOUT : task.Next,
-                'GO' : state.Branch(pipe.Start) }
+                 task.TIMEOUT : task.Next }
         
     
     def enter(self, defaultTimeout = 60):
@@ -177,8 +242,6 @@ class LoversLane(task.Task):
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
         
-        self._pipesToFind = self._config.get('pipesToFind', 1)
-        self._pipeCount = 0
         self.ai.data['laneOrientation'] = \
             self.ai.data['config'].get(self._className, {}).get(
                     'orientation', 0)
