@@ -255,7 +255,7 @@ class ReAlign(VaseTrackingState):
     @staticmethod
     def transitions():
         return VaseTrackingState.transitions(ReAlign,
-            { ReAlign.CENTERED : FastDive })
+            { ReAlign.CENTERED : SlowDive })
 
     @staticmethod
     def getattr():
