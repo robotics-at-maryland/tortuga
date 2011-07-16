@@ -295,28 +295,85 @@ class TranslationSeeking(PingerState):
             return False
         return True
             
+class FarSeeking(state.State):
 
-# 0.65
-class FarSeeking(TranslationSeeking):
-    """
-    Approaches the pinger from a far away range, it moves quicker, and can 
-    possibly lose pings.  If this is used close to a pinger, it can and *will*
-    overshoot.
-    """
+    CLOSE = core.declareEventType('CLOSE')
+
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(FarSeeking, PingerLost,
-            { TranslationSeeking.CLOSE : CloseSeeking } ) 
-
+        return { vehicle.device.ISonar.UPDATE : FarSeeking,
+          FarSeeking.CLOSE : CloseSeeking }
+    
     @staticmethod
     def getattr():
-        return set(['midRangeZ', 'distance', 'motionRange']).union(TranslationSeeking.getattr())
-                 
+        return set(['closeZ', 'speedGain', 'yawGain', 'maxSpeed', 'timeout',
+                    'maxSidewaysSpeed', 'sidewaysSpeedGain', 'forwardSpeed',
+                    'motionRange', 'distance', 'sonarError'])
+
+    def UPDATE(self, event):
+        if math.fabs(event.direction.z) > math.fabs(self._closeZ):
+            self.publish(FarSeeking.CLOSE, core.Event())
+            return
+
+        #if not self._first:
+        #    return
+            
+        direction = event.direction
+        
+        direction.normalise()
+
+        translateTrajectory = motion.trajectories.Vector2VelocityTrajectory(
+            velocity = ext.math.Vector2(direction.x * 0.5, direction.y * 0.5),
+            initialPosition = ext.math.Vector2.ZERO,
+            maxDistance = 10)
+
+        translateMotion = motion.basic.Translate(translateTrajectory,
+                                           frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+        self._first = False
+        
+
     def _loadSettings(self):
-        TranslationSeeking._loadSettings(self)
-        self._closeZ = self._config.get('midRangeZ', 0.65)
-        self._distance = self._config.get('distance', 10)
-        self._motionRange = self._config.get('motionRange', .6)
+        self._closeZ = self._config.get('closeZ', 0.85)
+        self._speedGain = self._config.get('speedGain', 5)
+        self._yawGain = self._config.get('yawGain', 1)
+        self._maxSpeed = self._config.get('maxSpeed', 1)
+        self._maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 2)
+        self._sidewaysSpeedGain = self._config.get('sidewaysSpeedGain', 2)
+        self._forwardSpeed = self._config.get('forwardSpeed', 0.15)
+        self._motionRange = self._config.get('motionRange', .02)
+        self._distance = self._config.get('distance', 1)
+        self.ai.data['minSonarError'] = self._config.get('sonarError', 1)
+
+    def enter(self):
+        self._loadSettings()
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+        
+
+# # 0.65
+# class FarSeeking(TranslationSeeking):
+#     """
+#     Approaches the pinger from a far away range, it moves quicker, and can 
+#     possibly lose pings.  If this is used close to a pinger, it can and *will*
+#     overshoot.
+#     """
+#     @staticmethod
+#     def transitions():
+#         return TranslationSeeking.transitions(FarSeeking, PingerLost,
+#             { TranslationSeeking.CLOSE : CloseSeeking } ) 
+
+#     @staticmethod
+#     def getattr():
+#         return set(['midRangeZ', 'distance', 'motionRange']).union(TranslationSeeking.getattr())
+                 
+#     def _loadSettings(self):
+#         TranslationSeeking._loadSettings(self)
+#         self._closeZ = self._config.get('midRangeZ', 0.65)
+#         self._distance = self._config.get('distance', 10)
+#         self._motionRange = self._config.get('motionRange', .5)
                  
 class CloseSeeking(TranslationSeeking):
     """
