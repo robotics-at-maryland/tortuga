@@ -326,6 +326,59 @@ class Vector2CubicTrajectory(Trajectory):
         yCoord = scalar * self._changeInValueV[1] / self._changeInValueS
         return math.Vector2(xCoord,yCoord)
 
+class Vector2VelocityTrajectory(Trajectory):
+    """
+    Defines a constant velocity 2D trajectory
+    """
+
+    def __init__(self, velocity, initialPosition = math.Vector2.ZERO, maxDistance = 0, initialTime = 0):
+        self._initialValue = initialPosition
+        self._velocity = velocity
+        timeFromDistance = maxDistance / velocity.length();
+        self._maxTime = timeFromDistance
+        self._initialTime = initialTime
+        self._finalTime = self._initialTime + self._maxTime
+
+        if(initialTime == 0):
+            self._relative = True
+    
+        self._finalValue = self._initialValue + math.Vector2(self._maxTime * velocity[0], self._maxTime * velocity[1])
+        
+    def computeValue(self, time):
+        if time <= self._initialTime:
+            return self._initialValue
+        elif time >= self._finalTime:
+            return self._finalValue
+        else:
+            return self._initialValue + self._velocity * (time - self._initialTime)
+
+    def computeDerivative(self, time, order):
+        if order == 1:
+            if time <= self._initialTime:
+                return math.Vector2.ZERO
+            elif time >= self._finalTime:
+                return math.Vector2.ZERO
+            else:
+                return self._velocity
+        else:
+            return math.Vector2.ZERO
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._finalTime
+
+    def getMaxOfDerivative(self, order):
+        if order == 1:
+            return self._velocity
+        else:
+            return math.Vector2.ZERO
+
+    def isRelative(self):
+        return self._relative
+    
+
 class StepTrajectory(Trajectory):
     """
     This trajectory represents a step change.  That is, before the
