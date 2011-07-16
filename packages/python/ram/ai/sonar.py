@@ -175,7 +175,7 @@ class Searching(state.State):
         if self._first:
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
+            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees(),0)
             
             self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
             self.timer.start()
@@ -311,7 +311,7 @@ class FarSeeking(state.State):
         direction.normalise()
 
         translateTrajectory = motion.trajectories.Vector2VelocityTrajectory(
-            velocity = ext.math.Vector2(direction.x * 0.15, - direction.y * 0.15),
+            velocity = ext.math.Vector2(direction.x * 0.3, - direction.y * 0.3),
             initialPosition = ext.math.Vector2.ZERO,
             maxDistance = 2)
 
