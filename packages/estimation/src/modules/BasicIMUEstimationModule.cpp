@@ -71,7 +71,11 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     imuList.insert(name);
 
     if(m_filteredState.find(name) == m_filteredState.end())
-        m_filteredState[name] = FilteredIMUDataPtr(new FilteredIMUData());
+    {
+        FilteredIMUDataPtr filteredData = FilteredIMUDataPtr(
+            new FilteredIMUData());
+        m_filteredState[name] = filteredData;
+    }
 
     /* grab the new state and filter it */
     RawIMUData newState = ievent->rawIMUData;
@@ -88,21 +92,65 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     m_filteredGyroY[name].addValue(newState.gyroY);
     m_filteredGyroZ[name].addValue(newState.gyroZ);
 
-    m_filteredState[name]->accelX = m_filteredAccelX[name].getValue();
-    m_filteredState[name]->accelY = m_filteredAccelY[name].getValue();
-    m_filteredState[name]->accelZ = m_filteredAccelZ[name].getValue();
- 
-    m_filteredState[name]->magX = m_filteredMagX[name].getValue();
-    m_filteredState[name]->magY = m_filteredMagY[name].getValue();
-    m_filteredState[name]->magZ = m_filteredMagZ[name].getValue();
+    if(m_filteredState.find(name) == m_filteredState.end())
+    {
+        LOGGER.warn("IMU filtered state has not been created yet.");
+        return;
+    }
 
-    m_filteredState[name]->gyroX = m_filteredGyroX[name].getValue();
-    m_filteredState[name]->gyroY = m_filteredGyroY[name].getValue();
-    m_filteredState[name]->gyroZ = m_filteredGyroZ[name].getValue();
+    FilteredIMUDataPtr filteredState = m_filteredState[name];
+
+    if(!filteredState)
+    {
+        LOGGER.warn("IMU filtered state smart pointer is empty.");
+        return;
+    }
+
+    filteredState->accelX = m_filteredAccelX[name].getValue();
+    filteredState->accelY = m_filteredAccelY[name].getValue();
+    filteredState->accelZ = m_filteredAccelZ[name].getValue();
+ 
+    filteredState->magX = m_filteredMagX[name].getValue();
+    filteredState->magY = m_filteredMagY[name].getValue();
+    filteredState->magZ = m_filteredMagZ[name].getValue();
+    
+    filteredState->gyroX = m_filteredGyroX[name].getValue();
+    filteredState->gyroY = m_filteredGyroY[name].getValue();
+    filteredState->gyroZ = m_filteredGyroZ[name].getValue();
 
     /* Pull the averaged values from the averaging filter and put them
      * into OGRE format for the following calculations
      */
+
+    if(m_filteredState.find(m_cgIMUName) == m_filteredState.end())
+    {
+        LOGGER.warn("CG IMU not yet created");
+        return;
+    }
+
+    if(m_filteredState.find(m_magIMUName) == m_filteredState.end())
+    {
+        LOGGER.warn("MAGBOOM IMU not yet created");
+        return;
+    }
+
+    if(!(m_filteredState[m_cgIMUName]))
+    {
+        LOGGER.warn("CG IMU is empty.");
+        return;
+    }
+
+    if(!(m_filteredState[m_magIMUName]))
+    {
+        LOGGER.warn("MAGBOOM IMU is empty");
+        return;
+    }
+        
+    if(imuList.find(m_cgIMUName) == imuList.end())
+    {
+        LOGGER.warn("CG IMU not created yet so we cannot estimate anything");
+        return;
+    }
 
     math::Vector3 mag, accel;
     {
