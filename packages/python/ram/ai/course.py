@@ -1087,10 +1087,22 @@ class Vase(task.Task):
         return { vase.COMPLETE : task.Next,
                  task.TIMEOUT : task.Next }
     
+    @staticmethod
+    def getattr():
+        return set(['vaseOrientation']).union(task.Task.getattr())
+
     def enter(self, defaultTimeout = 500):
         timeout = self.ai.data['config'].get('Vase', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
+
+        self.ai.data['vaseOrientation'] = \
+            self._config.get('vaseOrientation', 0)
+        
+        if self.ai.data['vaseOrientation'] == 0:
+            # Save current heading
+            self.ai.data['vaseOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
         
         self.stateMachine.start(state.Branch(vase.Start))
     

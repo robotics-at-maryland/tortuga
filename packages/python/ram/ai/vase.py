@@ -364,7 +364,16 @@ class Start(state.State):
             avgRate = self._depthRate)
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
-        self.motionManager.setMotion(diveMotion)
+        
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = math.Quaternion(
+                math.Degree(self.ai.data['vaseOrientation']), math.Vector3.UNIT_Z),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        self.motionManager.setMotion(yawMotion, diveMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -501,7 +510,7 @@ class ReAlign(TranslationSeeking):
     """
     @staticmethod
     def transitions():
-        return TranslationSeeking.transitions(CloseSeeking, SlowDive,
+        return TranslationSeeking.transitions(ReAlign, SlowDive,
             { TranslationSeeking.CLOSE : SlowDive } ) 
 
     @staticmethod
