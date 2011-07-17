@@ -80,6 +80,11 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "How many times to erode the filtered image",
         1, &m_erodeIterations);
 
+    propSet->addProperty(config, false, "openIterations",
+                         "How many times to perform the open morphological operation",
+                         0, &m_openIterations);
+                         
+
     propSet->addProperty(config, false, "rOverGMin",
        "Red/Green minimum ratio", 1.0, &m_rOverGMin, 0.0, 5.0);
     propSet->addProperty(config, false, "rOverGMax",
@@ -212,6 +217,12 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // 3 x 3 default erosion element, default 3 iterations.
     cvErode(input->asIplImage(), input->asIplImage(), 0, m_erodeIterations);
 
+    if(m_openIterations > 0)
+    {
+        cvErode(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
+        cvDilate(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
+    }
+
     // Debug display
     if (output)
         output->copyFrom(input);
@@ -249,7 +260,6 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out found events for all the pipes we currently see
     BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
     {
-        std::cout << "Found Pipe" <<  pipe.getId() << std::endl;
         PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = pipe.getId();
         event->x = pipe.getX();
