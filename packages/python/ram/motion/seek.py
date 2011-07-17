@@ -199,7 +199,7 @@ class SeekPoint(Motion):
             
             currentDepth = self._estimator.getEstimatedDepth()
             newDepth = currentDepth + dtDepth
-            self._controller.setDepth(newDepth)
+            self._controller.changeDepth(newDepth)
     
         # Do pointing control
         if not self._translate:
@@ -214,7 +214,7 @@ class SeekPoint(Motion):
             yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
             if self._maxYaw is not None and abs(yawCommand) > self._maxYaw:
                 yawCommand = self._maxYaw * (yawCommand / abs(yawCommand))
-            self._controller.yawVehicle(yawCommand)
+            self._controller.yawVehicle(yawCommand,0)
         else:
             sidewaysSpeed, self._sumX, self._oldX = common.PIDLoop(
                 x = self._target.x,
@@ -232,7 +232,7 @@ class SeekPoint(Motion):
 
         # Drive toward light
         if self._maxSpeed != 0:
-            self._controller.setSpeed(self._speedScale() * self._maxSpeed)
+            self._controller.translate(ext.math.Vector2(1, 0), ext.math.Vector2(0.1,0))
         
         if self._alignment() <= self._alignmentThreshold and not self._first:
             self.publish(SeekPoint.POINT_ALIGNED, ext.core.Event())
@@ -275,9 +275,7 @@ class SeekPoint(Motion):
         Finishes off the motion, disconnects events, and putlishes finish event
         """
         self._running = False
-        self._controller.setSpeed(0)
-        if self._translate:
-            self._controller.setSidewaysSpeed(0)
+        self._controller.holdCurrentPosition()
         self._conn.disconnect()
 
     @staticmethod

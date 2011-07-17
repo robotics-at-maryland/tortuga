@@ -39,6 +39,7 @@ import ram.ai.sonar as sonar
 import ram.ai.vase as vase
 import ram.ai.lane as lane
 import ram.ai.cupid as cupid
+import ram.ai.OldBuoy as oldBuoy
 
 import ram.motion as motion
 import ram.motion.basic
@@ -635,6 +636,73 @@ class LightStaged(Light):
         # Set time to none
         self.doTimer = None
 
+class OldBuoy(task.Task):
+    """
+    Task for completion of the Buoy objective within a certain time limit.
+    """
+
+    @staticmethod
+    def _transitions():
+        return { oldBuoy.COMPLETE : task.Next,
+                 oldBuoy.Searching.BUOY_SEARCHING : OldBuoy,
+                 vision.EventType.BUOY_FOUND : OldBuoy,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(oldBuoy.Start) }
+
+    def BUOY_SEARCHING(self, event):
+        # This is defensive, it should never happen
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._searchTimeout is None:
+            self._searchTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._searchDelay)
+            self._searchTimeout.start()
+
+        if self._buoyFound:
+            # We should not continue searching for too long
+            self._lostTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._lostDelay)
+            self._lostTimeout.start()
+
+    def BUOY_FOUND(self, event):
+        # Stop the lost timeout if we find a buoy
+        # Set it so we are in the vicinity of the buoys
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
+
+        self._buoyFound = True
+
+    def enter(self, defaultTimeout = 90):
+        timeout = self.ai.data['config'].get('Buoy', {}).get(
+            'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'lostTimeout', 5)
+        self._lostTimeout = None
+        self._searchDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'searchTimeout', 10)
+        self._searchTimeout = None
+        self._buoyFound = False
+
+        self.stateMachine.start(state.Branch(oldBuoy.Start))
+
+    def exit(self):
+        task.Task.exit(self)
+
+        self.stateMachine.stopBranch(oldBuoy.Start)
+        self.visionSystem.buoyDetectorOff()
+        self.motionManager.stopCurrentMotion()
+
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
+    
 class Buoy(task.Task):
     """
     Task for completion of the Buoy objective within a certain time limit.
@@ -1038,36 +1106,30 @@ class Octagon(task.Task):
 
     @staticmethod
     def _transitions():
-        return { motion.basic.MotionManager.FINISHED : Octagon,
-                 Octagon.SURFACED : task.Next }
+        return { Octagon.SURFACED : task.Next }
 
     @staticmethod
     def getattr():
         return set(['depth', 'diveSpeed', 'delay', 'release']).union(
             task.Task.getattr())
 
-    def FINISHED(self, event):
-        """
-        Waits for the vehicle to balance out on the top of the water
-        before releasing the grabber.
-        """
-        # Safe the thrusters (that way we float to the absolute top)
-        #self.vehicle.safeThrusters()
-        self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
-        self._timer.start()
-
     def SURFACED_(self, event):
         """
         Releases the grabber.
         """
         if self._release:
+            print 'releasing'
             self.vehicle.releaseGrabber()
 
     def enter(self):
         task.Task.enter(self)
 
-        self._delay = self._config.get('delay', 7)
+        self._delay = self._config.get('delay', 70)
         self._release = self._config.get('release', True)
+
+
+        self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
+        self._timer.start()
 
         # Start our dive
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
