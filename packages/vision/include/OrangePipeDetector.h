@@ -100,6 +100,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Number of times to erode the masked image before the hough */
     int m_erodeIterations;
 
+    /** Number of times to perform the open morphological operation */
+    int m_openIterations;
+
     /** The set of IDs of the pipes that were present in the last frame */
     std::set<int> m_lastPipeIds;
 
