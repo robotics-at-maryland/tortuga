@@ -676,7 +676,8 @@ class Searching(state.State):
     """When the vehicle is looking for a bin"""
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_FOUND : Seeking }
+        return { vision.EventType.BIN_FOUND : Seeking,
+                 motion.basic.MotionManager.FINISHED : End }
 
     @staticmethod
     def getattr():
@@ -1095,7 +1096,7 @@ class RecoverDive(Recover):
         if self.ai.data['dive_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
-            depth = self.vehicle.getDepth()
+            depth = self.stateEstimator.getEstimatedDepth()
             offset = self.ai.data['dive_offsetTheOffset']
 
             diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -1364,7 +1365,7 @@ class RecoverCloserLook(Recover):
         if self.ai.data['closerlook_offsetTheOffset'] > self._maxIncrease:
             self.publish(Recover.MOVE_ON, core.Event())
         else:
-            depth = self.vehicle.getDepth()
+            depth = self.stateEstimator.getEstimatedDepth()
             offset = self.ai.data['closerlook_offsetTheOffset']
             diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
                 initialValue = self.stateEstimator.getEstimatedDepth(),

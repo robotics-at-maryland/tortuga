@@ -520,7 +520,7 @@ class ReAlign(TranslationSeeking):
     def _loadSettings(self):
         TranslationSeeking._loadSettings(self)
         self._closeZ = self._config.get('closeZ', 0.8)
-        self._distance = self._config.get('distance', 2)
+        self._distance = self._config.get('distance', 1)
         self._motionRange = self._config.get('motionRange', .05)
 
 class SlowDive(state.State):

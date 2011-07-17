@@ -51,7 +51,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return { 'rate': 0.2 }
+        return { 'rate': 0.3 }
     
     def enter(self):
         # Go to 5 feet down
