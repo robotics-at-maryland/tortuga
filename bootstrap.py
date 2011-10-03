@@ -144,8 +144,8 @@ def main(argv=None):
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
                              ' [default: %default]')
-    parser.add_option('--no-download', action='store_false', dest='download',
-                      default=True, help = 'Turn off automatic downloading of dependencies')
+    parser.add_option('--download', action='store_true', dest='download',
+                      help = 'Turn on automatic downloading of dependencies')
     parser.add_option('-q', '--quiet', action='store_true')
     (options, args) = parser.parse_args()
 
