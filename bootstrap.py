@@ -151,8 +151,9 @@ def main(argv=None):
 
     site_package_dir = os.path.join(options.prefix, PYTHON_SITE_PACKAGE_SUFFIX)
 
-    setup_dependencies()
-    download_precompiled(options.quiet)
+    if options.download:
+        setup_dependencies()
+        download_precompiled(options.quiet)
 
     # Buildit imports
     util.ensure_buildit_installed(ROOT_DIR, site_package_dir, options.prefix)
