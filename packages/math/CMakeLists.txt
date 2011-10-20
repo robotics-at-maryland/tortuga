@@ -1,6 +1,13 @@
 file(GLOB HEADERS "include/*.h")
 file(GLOB SOURCES "src/*.cpp")
 
+if (BLACKFIN)
+  list(REMOVE_ITEM SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/PropertyImp.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/PropertySetImp.cpp"
+    )
+endif (BLACKFIN)
+
 if (RAM_WITH_MATH)
   add_library(ram_math SHARED ${SOURCES} ${HEADERS})
   if (RAM_WITH_CORE)

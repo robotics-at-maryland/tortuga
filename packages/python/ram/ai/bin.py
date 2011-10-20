@@ -794,7 +794,6 @@ class RecoverSeeking(Recover):
 
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.LOCAL)
-        
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
             finalValue = self.ai.data.get("preBinCruiseDepth", 7),

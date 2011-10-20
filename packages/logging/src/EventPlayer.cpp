@@ -56,7 +56,6 @@ EventPlayer::EventPlayer(core::ConfigNode config, core::SubsystemList deps) :
 
 EventPlayer::~EventPlayer()
 {
-
 }
 
 void EventPlayer::start()

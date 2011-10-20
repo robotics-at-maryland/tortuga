@@ -1,4 +1,5 @@
 #include <p30fxxxx.h>
+#include <stdio.h>
 #include <string.h>
 #include "buscodes.h"
 
@@ -370,28 +371,86 @@ void _ISR _CNInterrupt(void)
         checkBus();
 }
 
+#define NUM_SAMPLES 128
 
-int depthArray[100];
-int dp=0;
+int depthArray[NUM_SAMPLES];
+int dp= 0;
 
 void _ISR _ADCInterrupt(void)
 {
-    IFS0bits.ADIF = 0;
-    byte i=0;
+    IFS0bits.ADIF= 0;
+    byte i= 0;
+    long long ad= 0;
 
-    long ad=0;
+    depthArray[dp++]= ADCBUF0;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
 
+    depthArray[dp++]= ADCBUF1;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
 
-    depthArray[dp++] = ADCBUF0;
-    if(dp >= 100)
-        dp=0;
+    depthArray[dp++]= ADCBUF2;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
 
-    ad = 0;
-    for(i=0; i<100; i++)
+    depthArray[dp++]= ADCBUF3;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF4;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF5;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF6;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF7;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF8;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUF9;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFA;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFB;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFC;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFD;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFE;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    depthArray[dp++]= ADCBUFF;
+    if(dp >= NUM_SAMPLES)
+        dp= 0;
+
+    ad= 0;
+    for(i= 0; i < NUM_SAMPLES;i++)
         ad+= depthArray[i];
 
-    ad /= 100;
-
+    ad= (ad / NUM_SAMPLES);
 
     /*
      * Why does disabling and re-enabling the CN interrupts muck up the data transfers?
@@ -423,21 +482,35 @@ void initADC()
 
     ADCHS = 0x0001;         /* Convert pin AN1 */
     ADCSSL = 0;
-    ADCON3bits.SAMC=0x1F;
+    ADCON3bits.SAMC=0x1F;   /* Sample time = 15Tad */
 
-    ADCON3bits.ADCS = 4;        /* ADC needs so much time to convert at 30 MIPS */
+    ADCON3bits.ADCS= 0x3F;   /* Max out the ADC sampling time */
     ADCON2bits.SMPI = 0x0F;  /* Interrupt every 16 samples - why not? */
-          //Clear the A/D interrupt flag bit
+    //ADCON2bits.SMPI= 0x00;   /* because you're sampling too fast */
+
+    //Clear the A/D interrupt flag bit
     IFS0bits.ADIF = 0;
+
+    T2CONbits.TON= 0; // Turn off the timer
+    //now set up timer 2
+    T2CON= 0x0020;   /* bits 5-4: 2->x64 prescaler */
+    TMR2= 0x0000;    /* Clear timer */
+    PR2= 390;        /* 10MHz/(4) = 2.5MHz = Fcy
+                        Fcy/64 = 39,062.5 Hz = Freq-post-prescalar = Fpps
+                        10ms * Fpps = 390.625 = PR2
+                      */
+    _T2IF= 0;        /* Clear interrupt flag */
+    T2CONbits.TON= 1;
 
         //Set the A/D interrupt enable bit
     IEC0bits.ADIE = 1;
 
     ADCON1bits.ADON = 1;
     ADCON1bits.SAMP = 1;    /* Start auto-sampling */
+    T2CONbits.TON= 1;       /* Start timer */
 }
 
-void main()
+int main()
 {
     byte i;
     initBus();
@@ -448,5 +521,17 @@ void main()
     initADC();
     initInterruptUarts();
 
-    while(1);
+    while(1)
+    {
+        if (ADCON1bits.DONE && _T2IF)
+        {
+            _T2IF=0;
+            ADCON1bits.SAMP= 1;
+        }
+
+
+        //any more main loop code here
+    }
+
+    return 0;
 }

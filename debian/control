@@ -1,0 +1,11 @@
+Package: robotics-at-maryland
+Version: 1.0.0-1
+Section: devel
+Priority: optional
+Installed-Size: 501064
+Architecture: i386
+Depends: build-essential, p7zip, cmake, python-dev, python-numpy, libcv-dev, libhighgui-dev, libcvaux-dev, libdc1394-22-dev, mesa-common-dev, libglu1-mesa-dev, libusb-dev, python-wxgtk2.8, libwxgtk2.8-dev, libfftw3-dev
+Suggests: cmake-curses-gui
+Maintainer: Jonathan Sternberg <jonathansternberg@gmail.com>
+Description: Pre-compiled dependencies for Robotics @ Maryland.
+

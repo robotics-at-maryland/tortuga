@@ -32,4 +32,29 @@ if (RAM_WITH_SONAR)
 
   add_executable(testPingDetect "test/src/TestPingDetect.cxx")
   target_link_libraries(testPingDetect ram_sonar)
+
+  # Blackfin programs
+  if (BLACKFIN)
+    # sonar daemon program
+    set(SONARD
+      src/sonard/main.cpp
+      src/sonard/trigger.c
+      src/sonard/trigger.h
+      )
+    add_executable(sonard ${SONARD})
+    target_link_libraries(sonard ram_sonar)
+    set_target_properties(sonard PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${BINDIR}")
+
+    # rtspectrogram
+    add_executable(rtspectrogram src/tools/rtspectrogram.cpp)
+    target_link_libraries(rtspectrogram ram_sonar)
+    set_target_properties(rtspectrogram PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${BINDIR}")
+
+    add_executable(chop src/tools/chop.cpp)
+    target_link_libraries(chop ram_sonar)
+    set_target_properties(chop PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${BINDIR}")
+  endif (BLACKFIN)
 endif (RAM_WITH_SONAR)

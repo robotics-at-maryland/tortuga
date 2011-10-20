@@ -277,8 +277,8 @@ void Image::getAveragePixelValues(Image* source,
     unsigned char* sourceBuffer = source->getData();
     unsigned char* srcPtr = sourceBuffer;
 
-    int width = lowerRightX - upperLeftX + 1;
-    int height = lowerRightY - upperLeftY + 1;
+    int width = lowerRightX - upperLeftX;
+    int height = lowerRightY - upperLeftY;
 
     int yStart = upperLeftY;
     int yEnd = yStart + height;
@@ -288,9 +288,10 @@ void Image::getAveragePixelValues(Image* source,
     int channel3Total = 0;
     int pixelCount = width * height;
 
-    assert(yStart < (int)source->getHeight() && "Too much height");
-    assert(yEnd < (int)source->getHeight() && "Too much height");
-    assert((upperLeftX + width) < (int)source->getWidth() && "Too much width");
+    assert(yStart < static_cast<int>(source->getHeight()) && "Too much height");
+    assert(yEnd < static_cast<int>(source->getHeight()) && "Too much height");
+    assert((upperLeftX + width) < static_cast<int>(source->getWidth()) 
+           && "Too much width");
     
     for (int y = yStart; y < yEnd; ++y)
     {
@@ -309,11 +310,14 @@ void Image::getAveragePixelValues(Image* source,
     }
 
     // Computer averages
-    channel1 = ((double)channel1Total) / ((double)pixelCount);
-    channel2 = ((double)channel2Total) / ((double)pixelCount);
-    channel3 = ((double)channel3Total) / ((double)pixelCount);
+    channel1 = static_cast<double>(channel1Total) / 
+        static_cast<double>(pixelCount);
+    channel2 = static_cast<double>(channel2Total) / 
+        static_cast<double>(pixelCount);
+    channel3 = static_cast<double>(channel3Total) / 
+        static_cast<double>(pixelCount);
 }
-    
+
     
 void Image::drawImage(Image* toWrite, int x, int y, Image* src, Image* dest)
 {
