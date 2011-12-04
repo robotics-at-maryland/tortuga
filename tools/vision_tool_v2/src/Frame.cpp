@@ -22,6 +22,7 @@
 #include <wx/textctrl.h>
 #include <wx/utils.h>
 #include <wx/filename.h>
+#include <wx/stattext.h>
 
 // For cvSaveImage
 #include "highgui.h"
@@ -32,16 +33,19 @@
 #include "MediaControlPanel.h"
 #include "DetectorControlPanel.h"
 #include "Model.h"
+#include "vision/include/Image.h"
 
 namespace ram {
 namespace tools {
-namespace visionvwr {
+namespace visiontool {
 
 BEGIN_EVENT_TABLE(Frame, wxFrame)
     EVT_MENU(ID_Quit, Frame::onQuit)
     EVT_MENU(ID_About, Frame::onAbout)
     EVT_MENU(ID_OpenFile, Frame::onOpenFile)
     EVT_MENU(ID_OpenCamera, Frame::onOpenCamera)
+    EVT_MENU(ID_OpenForwardCamera, Frame::onOpenForwardCamera)
+    EVT_MENU(ID_OpenDownwardCamera, Frame::onOpenDownwardCamera)
     EVT_MENU(ID_SetDir, Frame::onSetDirectory)
     EVT_MENU(ID_SaveImage, Frame::onSaveImage)
     EVT_MENU(ID_SaveAsImage, Frame::onSaveAsImage)
@@ -51,14 +55,17 @@ END_EVENT_TABLE()
 Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     wxFrame((wxFrame *)NULL, -1, title, pos, size),
     m_mediaControlPanel(0),
-    m_movie(0),
+    m_rawMovie(0),
+    m_detectorMovie(0),
     m_model(new Model),
     m_idNum(1)
 {
     // File Menu
     wxMenu *menuFile = new wxMenu;
     menuFile->Append(ID_OpenFile, _T("Open Video &File"));
-    menuFile->Append(ID_OpenCamera, _T("Open CV &Camera"));
+    menuFile->Append(ID_OpenCamera, _T("Open Local CV &Camera"));
+    menuFile->Append(ID_OpenForwardCamera, _T("Open tortuga4:50000"));
+    menuFile->Append(ID_OpenDownwardCamera, _T("Open tortuga4:50001"));
     menuFile->Append(ID_About, _T("&About..."));
     menuFile->AppendSeparator();
     menuFile->Append(ID_Quit, _T("E&xit\tCtrl+Q"));
@@ -76,14 +83,30 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     
     SetMenuBar( menuBar );
 
-    // Create out controls
+    // Create our controls
     m_mediaControlPanel = new MediaControlPanel(m_model, this);
-    m_movie=new IPLMovie(this, m_model);
+    m_rawMovie = new IPLMovie(this, m_model, Model::NEW_RAW_IMAGE);
+    m_detectorMovie = new IPLMovie(this, m_model, Model::NEW_PROCESSED_IMAGE);
+    m_ch1Movie = new IPLMovie(this, m_model, Model::NEW_CH1_IMAGE, wxSize(320, 240));
+    m_ch2Movie = new IPLMovie(this, m_model, Model::NEW_CH2_IMAGE, wxSize(320, 240));
+    m_ch3Movie = new IPLMovie(this, m_model, Model::NEW_CH3_IMAGE, wxSize(320, 240));
+    m_ch1HistMovie = new IPLMovie(this, m_model, Model::NEW_CH1_HIST_IMAGE,
+                                  wxSize(160, 120));
+    m_ch2HistMovie = new IPLMovie(this, m_model, Model::NEW_CH2_HIST_IMAGE,
+                                  wxSize(160, 120));
+    m_ch3HistMovie = new IPLMovie(this, m_model, Model::NEW_CH3_HIST_IMAGE,
+                                  wxSize(120, 120));
+    m_ch12HistMovie = new IPLMovie(this, m_model, Model::NEW_CH12_HIST_IMAGE,
+                                   wxSize(120, 120));
+    m_ch23HistMovie = new IPLMovie(this, m_model, Model::NEW_CH23_HIST_IMAGE,
+                                   wxSize(120, 120));
+    m_ch13HistMovie = new IPLMovie(this, m_model, Model::NEW_CH13_HIST_IMAGE,
+                                   wxSize(120, 120));
 
     wxButton* config = new wxButton(this, wxID_ANY, wxT("Config File"));
     wxString defaultPath;
     wxGetEnv(_T("RAM_SVN_DIR"), &defaultPath);
-    m_configText = new wxTextCtrl(this, wxID_ANY, defaultPath, 
+    m_configText = new wxTextCtrl(this, wxID_ANY, defaultPath,
                                   wxDefaultPosition, wxDefaultSize, 
                                   wxTE_READONLY);
     wxButton* detectorHide = new wxButton(this, wxID_ANY, 
@@ -100,15 +123,45 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     row->Add(detectorHide, 0, wxALL, 3);
     sizer->Add(row, 0, wxEXPAND, 0);
 
-    sizer->Add(m_movie, 1, wxEXPAND, 0);
+    wxBoxSizer* movieTitleSizer = new wxBoxSizer(wxHORIZONTAL);
+    movieTitleSizer->Add(
+        new wxStaticText(this, wxID_ANY, _T("Raw Image"), wxDefaultPosition,
+                         wxDefaultSize, wxALIGN_CENTRE),
+                         1, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    movieTitleSizer->Add(
+        new wxStaticText(this, wxID_ANY, _T("Detector Debug Output"),
+                         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE),
+                         1, wxEXPAND | wxLEFT | wxRIGHT, 5);
 
+    wxBoxSizer* movieSizer = new wxBoxSizer(wxHORIZONTAL);
+    movieSizer->Add(m_rawMovie, 1, wxSHAPED | wxALL, 5);
+    movieSizer->Add(m_detectorMovie, 1, wxSHAPED | wxALL, 5);
+
+    sizer->Add(movieTitleSizer, 0, wxEXPAND | wxALL, 2);
+    sizer->Add(movieSizer, 4, wxEXPAND | wxALL, 3);
+
+    wxGridSizer *histImgMovieSizer = new wxGridSizer(2, 3, 3, 3);
+    histImgMovieSizer->Add(m_ch1HistMovie, 1, wxSHAPED | wxALL, 2);
+    histImgMovieSizer->Add(m_ch2HistMovie, 1, wxSHAPED | wxALL, 2);
+    histImgMovieSizer->Add(m_ch3HistMovie, 1, wxSHAPED | wxALL, 2);
+    histImgMovieSizer->Add(m_ch12HistMovie, 1, wxSHAPED | wxALL, 2);
+    histImgMovieSizer->Add(m_ch23HistMovie, 1, wxSHAPED | wxALL, 2);
+    histImgMovieSizer->Add(m_ch13HistMovie, 1, wxSHAPED | wxALL, 2);
+
+    wxBoxSizer *smallMovieSizer = new wxBoxSizer(wxHORIZONTAL);
+    smallMovieSizer->Add(m_ch1Movie, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(m_ch2Movie, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(m_ch3Movie, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(histImgMovieSizer);
+
+    sizer->Add(smallMovieSizer, 2, wxEXPAND | wxRIGHT | wxLEFT | wxBOTTOM, 3);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
     // Create the seperate frame for the detector panel
     wxPoint framePosition = GetPosition();
     framePosition.x += GetSize().GetWidth();
-    wxSize frameSize(GetSize().GetWidth()/2, GetSize().GetHeight());
+    wxSize frameSize(GetSize().GetWidth()/3, GetSize().GetHeight());
 
     m_detectorFrame = 
       new wxFrame(this, wxID_ANY, _T("Detector Control"),
@@ -174,6 +227,16 @@ void Frame::onOpenCamera(wxCommandEvent& event)
     m_model->openCamera();
 }
 
+void Frame::onOpenForwardCamera(wxCommandEvent& event)
+{
+    m_model->openNetworkCamera("tortuga4", 50000);
+}
+
+void Frame::onOpenDownwardCamera(wxCommandEvent& event)
+{
+    m_model->openNetworkCamera("tortuga4", 50001);
+}
+
 void Frame::onSetDirectory(wxCommandEvent& event)
 {
     wxDirDialog chooser(this);
@@ -187,7 +250,7 @@ void Frame::onSetDirectory(wxCommandEvent& event)
 bool Frame::saveImage(wxString pathname, bool suppressError)
 {
     vision::Image* image = m_model->getLatestImage();
-    
+    image->setPixelFormat(ram::vision::Image::PF_BGR_8);
     // Check that there is an image to save
     if (image == NULL) {
         // Don't create the message dialog if we suppress the window
@@ -204,6 +267,7 @@ bool Frame::saveImage(wxString pathname, bool suppressError)
     }
 
     // No error, save the image
+    image->setPixelFormat(ram::vision::Image::PF_BGR_8);
     cvSaveImage(pathname.mb_str(wxConvUTF8),
 		image->asIplImage());
     return true;
@@ -278,10 +342,10 @@ void Frame::onSetConfigPath(wxCommandEvent& event)
     if ( !filename.empty() )
     {
         m_configText->SetValue(filename);
-	m_model->setConfigPath(std::string(filename.mb_str()));
+        m_model->setConfigPath(std::string(filename.mb_str()));
     }
 }
 
-} // namespace visionvwr
+} // namespace visiontool
 } // namespace tools
 } // namespace ram

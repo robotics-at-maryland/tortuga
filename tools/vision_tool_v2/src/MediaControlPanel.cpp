@@ -28,7 +28,7 @@
 
 namespace ram {
 namespace tools {
-namespace visionvwr {
+namespace visiontool {
 
 BEGIN_EVENT_TABLE(MediaControlPanel, wxPanel)
 END_EVENT_TABLE()
@@ -62,7 +62,7 @@ MediaControlPanel::MediaControlPanel(Model* model,
         Model::IMAGE_SOURCE_CHANGED,
         boost::bind(&MediaControlPanel::onImageSourceChanged, this, _1));
     m_model->subscribe(
-        Model::NEW_IMAGE,
+        Model::NEW_RAW_IMAGE,
         boost::bind(&MediaControlPanel::onNewImage, this, _1));
     
     // Connect button event
@@ -165,7 +165,7 @@ void MediaControlPanel::updateTimeDisplay()
     
     if (FORMAT_LIVE == m_format)
     {
-        label =  wxString::Format(wxT("Live (%02d fps)"), (int)m_model->fps());
+        label =  wxString::Format(wxT("Live (%02d fps)"), m_model->fps());
     }
     else
     {
@@ -250,6 +250,6 @@ void MediaControlPanel::breakUpTime(const double inSeconds, int& outHours,
 }
 
     
-} // namespace visionvwr
+} // namespace visiontool
 } // namespace tools
 } // namespace ram

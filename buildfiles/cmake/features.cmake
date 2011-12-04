@@ -110,6 +110,6 @@ feature(wrappers DEPENDS core)
 feature(sonar BFIN DEPENDS math)
 feature(vision_tools DEPENDS vision)
 feature(vision_viewer DEPENDS vision)
-feature(plot DEPENDS core network)
+feature(plot DEPENDS core network control estimation vehicle vision)
 
 check_features()
