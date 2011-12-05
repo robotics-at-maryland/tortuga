@@ -91,9 +91,9 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
     m_ch2Movie = new IPLMovie(this, m_model, Model::NEW_CH2_IMAGE, wxSize(320, 240));
     m_ch3Movie = new IPLMovie(this, m_model, Model::NEW_CH3_IMAGE, wxSize(320, 240));
     m_ch1HistMovie = new IPLMovie(this, m_model, Model::NEW_CH1_HIST_IMAGE,
-                                  wxSize(160, 120));
+                                  wxSize(120, 120));
     m_ch2HistMovie = new IPLMovie(this, m_model, Model::NEW_CH2_HIST_IMAGE,
-                                  wxSize(160, 120));
+                                  wxSize(120, 120));
     m_ch3HistMovie = new IPLMovie(this, m_model, Model::NEW_CH3_HIST_IMAGE,
                                   wxSize(120, 120));
     m_ch12HistMovie = new IPLMovie(this, m_model, Model::NEW_CH12_HIST_IMAGE,
@@ -114,7 +114,6 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
 
     // Place controls in the sizer
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
     sizer->Add(m_mediaControlPanel, 0, wxEXPAND, 0);
 
     wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
@@ -125,36 +124,92 @@ Frame::Frame(const wxString& title, const wxPoint& pos, const wxSize& size) :
 
     wxBoxSizer* movieTitleSizer = new wxBoxSizer(wxHORIZONTAL);
     movieTitleSizer->Add(
-        new wxStaticText(this, wxID_ANY, _T("Raw Image"), wxDefaultPosition,
-                         wxDefaultSize, wxALIGN_CENTRE),
-                         1, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        new wxStaticText(this, wxID_ANY, _T("Raw Image")),
+        1, wxEXPAND | wxALL, 2);
     movieTitleSizer->Add(
-        new wxStaticText(this, wxID_ANY, _T("Detector Debug Output"),
-                         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE),
-                         1, wxEXPAND | wxLEFT | wxRIGHT, 5);
+        new wxStaticText(this, wxID_ANY, _T("Detector Debug Output")),
+        1, wxEXPAND | wxALL, 2);
 
+    m_rawMovie->SetWindowStyle(wxBORDER_RAISED);
+    m_detectorMovie->SetWindowStyle(wxBORDER_RAISED);
     wxBoxSizer* movieSizer = new wxBoxSizer(wxHORIZONTAL);
-    movieSizer->Add(m_rawMovie, 1, wxSHAPED | wxALL, 5);
-    movieSizer->Add(m_detectorMovie, 1, wxSHAPED | wxALL, 5);
+    movieSizer->Add(m_rawMovie, 1, wxSHAPED | wxALL, 2);
+    movieSizer->Add(m_detectorMovie, 1, wxSHAPED | wxALL, 2);
 
-    sizer->Add(movieTitleSizer, 0, wxEXPAND | wxALL, 2);
-    sizer->Add(movieSizer, 4, wxEXPAND | wxALL, 3);
 
-    wxGridSizer *histImgMovieSizer = new wxGridSizer(2, 3, 3, 3);
-    histImgMovieSizer->Add(m_ch1HistMovie, 1, wxSHAPED | wxALL, 2);
-    histImgMovieSizer->Add(m_ch2HistMovie, 1, wxSHAPED | wxALL, 2);
-    histImgMovieSizer->Add(m_ch3HistMovie, 1, wxSHAPED | wxALL, 2);
-    histImgMovieSizer->Add(m_ch12HistMovie, 1, wxSHAPED | wxALL, 2);
-    histImgMovieSizer->Add(m_ch23HistMovie, 1, wxSHAPED | wxALL, 2);
-    histImgMovieSizer->Add(m_ch13HistMovie, 1, wxSHAPED | wxALL, 2);
+    sizer->Add(movieTitleSizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    sizer->Add(movieSizer, 4, wxEXPAND | wxLEFT | wxRIGHT, 5);
 
+    // Single Channel Histogram Sizers
+    wxBoxSizer *ch1HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch1HistText = new wxStaticText(this, wxID_ANY, _T("Ch1 Hist"));
+    ch1HistSizer->Add(ch1HistText, 0, wxEXPAND | wxALL, 1);
+    ch1HistSizer->Add(m_ch1HistMovie, 1, wxSHAPED);
+
+    wxBoxSizer *ch2HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch2HistText = new wxStaticText(this, wxID_ANY, _T("Ch2 Hist"));
+    ch2HistSizer->Add(ch2HistText, 0, wxEXPAND | wxALL, 1);
+    ch2HistSizer->Add(m_ch2HistMovie, 1, wxSHAPED);
+
+    wxBoxSizer *ch3HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch3HistText = new wxStaticText(this, wxID_ANY, _T("Ch3 Hist"));
+    ch3HistSizer->Add(ch3HistText, 0, wxEXPAND | wxALL, 1);
+    ch3HistSizer->Add(m_ch3HistMovie, 1, wxSHAPED);
+
+    // 2D Histogram Sizers
+    wxBoxSizer *ch12HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch12HistText = new wxStaticText(this, wxID_ANY, _T("Ch1 vs. Ch2 Hist"));
+    ch12HistSizer->Add(ch12HistText, 0, wxEXPAND | wxALL, 1);
+    ch12HistSizer->Add(m_ch12HistMovie, 1, wxSHAPED);
+
+    wxBoxSizer *ch23HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch23HistText = new wxStaticText(this, wxID_ANY, _T("Ch2 vs. Ch3 Hist"));
+    ch23HistSizer->Add(ch23HistText, 0, wxEXPAND | wxALL, 1);
+    ch23HistSizer->Add(m_ch23HistMovie, 1, wxSHAPED);
+
+    wxBoxSizer *ch13HistSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *ch13HistText = new wxStaticText(this, wxID_ANY, _T("Ch1 vs. Ch3 Hist"));
+    ch13HistSizer->Add(ch13HistText, 0, wxEXPAND | wxALL, 1);
+    ch13HistSizer->Add(m_ch13HistMovie, 1, wxSHAPED);
+
+    // Overall Sizer for Histograms
+    wxFlexGridSizer *histImgMovieSizer = new wxFlexGridSizer(2, 3, 0, 0);
+    histImgMovieSizer->Add(ch1HistSizer, 1, wxEXPAND | wxALL, 1);
+    histImgMovieSizer->Add(ch2HistSizer, 1, wxEXPAND | wxALL, 1);
+    histImgMovieSizer->Add(ch3HistSizer, 1, wxEXPAND | wxALL, 1);
+    histImgMovieSizer->Add(ch12HistSizer, 1, wxEXPAND | wxALL, 1);
+    histImgMovieSizer->Add(ch23HistSizer, 1, wxEXPAND | wxALL, 1);
+    histImgMovieSizer->Add(ch13HistSizer, 1, wxEXPAND | wxALL, 1);
+
+    // Individual Channel Image Sizers
+    wxBoxSizer *ch1Sizer = new wxBoxSizer(wxVERTICAL);
+    ch1Sizer->Add(
+        new wxStaticText(this, wxID_ANY, _T("Channel 1"), wxDefaultPosition,
+                         wxDefaultSize, wxALIGN_LEFT),
+        0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    ch1Sizer->Add(m_ch1Movie, 1, wxSHAPED);
+
+    wxBoxSizer *ch2Sizer = new wxBoxSizer(wxVERTICAL);
+    ch2Sizer->Add(
+        new wxStaticText(this, wxID_ANY, _T("Channel 2"), wxDefaultPosition,
+                         wxDefaultSize, wxALIGN_LEFT),
+        0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    ch2Sizer->Add(m_ch2Movie, 1, wxSHAPED);
+
+    wxBoxSizer *ch3Sizer = new wxBoxSizer(wxVERTICAL);
+    ch3Sizer->Add(
+        new wxStaticText(this, wxID_ANY, _T("Channel 3"), wxDefaultPosition,
+                         wxDefaultSize, wxALIGN_LEFT),
+        0, wxEXPAND | wxLEFT | wxRIGHT, 5);
+    ch3Sizer->Add(m_ch3Movie, 1, wxSHAPED);
+        
     wxBoxSizer *smallMovieSizer = new wxBoxSizer(wxHORIZONTAL);
-    smallMovieSizer->Add(m_ch1Movie, 1, wxSHAPED | wxALL, 2);
-    smallMovieSizer->Add(m_ch2Movie, 1, wxSHAPED | wxALL, 2);
-    smallMovieSizer->Add(m_ch3Movie, 1, wxSHAPED | wxALL, 2);
-    smallMovieSizer->Add(histImgMovieSizer);
+    smallMovieSizer->Add(ch1Sizer, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(ch2Sizer, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(ch3Sizer, 1, wxSHAPED | wxALL, 2);
+    smallMovieSizer->Add(histImgMovieSizer, 1, wxEXPAND | wxALL, 2);
 
-    sizer->Add(smallMovieSizer, 2, wxEXPAND | wxRIGHT | wxLEFT | wxBOTTOM, 3);
+    sizer->Add(smallMovieSizer, 2, wxEXPAND | wxRIGHT | wxLEFT | wxBOTTOM, 5);
     sizer->SetSizeHints(this);
     SetSizer(sizer);
 
