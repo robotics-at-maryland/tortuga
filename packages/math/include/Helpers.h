@@ -29,13 +29,12 @@ int sign(double variable);
 int factorial(int num);
 
 
-math::Vector2 world2img(math::Vector3 worldCoordinates,
+math::Vector3 world2img(math::Vector3 coords_w,
                         math::Vector3 cameraPosition,
                         math::Quaternion cameraOrientation,
                         math::Matrix3 intrinsicParameters);
 
-math::Vector3 img2world(math::Vector2 imgCoordinates,
-                        double distance,
+math::Vector3 img2world(math::Vector3 coords_i,
                         math::Vector3 cameraPosition,
                         math::Quaternion cameraOrientation,
                         math::Matrix3 invIntrinsicParameters);
