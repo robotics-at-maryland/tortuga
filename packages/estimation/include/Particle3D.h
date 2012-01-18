@@ -18,9 +18,8 @@ namespace estimation {
 
 struct Particle3D
 {
-    math::Vector3 location;
-    math::Vector2 imgCoords;
-    double distance;
+    math::Vector3 coords_w;
+    math::Vector3 coords_i;
     double likelihood;
 };
 

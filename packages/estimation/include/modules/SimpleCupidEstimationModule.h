@@ -56,29 +56,6 @@ public:
 
 private:
     
-    math::Vector3 getBestEstimate();
-    
-    math::Matrix3 getCovariance();
-        
-    // the obstacle name so we can access its data
-    Obstacle::ObstacleType m_obstacle;
-
-    // the initial guess of where the obstacle is
-    math::Vector3 m_initialGuess;
-
-    // a simplified model of uncertainty.  
-    // we can move to a full covarinace matrix in the future
-    math::Matrix3 m_initialUncertainty;
-
-    // camera parameters for pinhole camera model
-    math::Radian m_xFOV, m_yFOV;
-    double m_camWidth, m_camHeight;
-    math::Matrix3 m_intrinsicParameters;
-    math::Matrix3 m_invIntrinsicParameters;
-
-    size_t m_numMeasurements;
-    // use a deque so we can iterate over it and have pop front and push back
-    std::deque<math::Vector3> m_cupidMeasurements;
 };
 
 

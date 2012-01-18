@@ -82,21 +82,22 @@ void SimpleBuoyEstimationModule::update(core::EventPtr event)
         return;
     
     // get the info out of the event
-    double xPixelCoord = buoyEvent->x * m_camWidth;
-    double yPixelCoord = buoyEvent->y * m_camHeight;
-    double distance = buoyEvent->range;
-    math::Vector2 objImageCoords(xPixelCoord, yPixelCoord);
+    math::Vector3 measurement_i(buoyEvent->x * m_camWidth,
+                                buoyEvent->y * m_camHeight,
+                                buoyEvent->range);
 
     // get the current estimated state
-    math::Vector2 estPosition = m_estimatedState->getEstimatedPosition();
-    double estDepth = m_estimatedState->getEstimatedDepth();
-    math::Vector3 estCameraLocation(estPosition[0], estPosition[1], estDepth);
-    math::Quaternion estOrientation = m_estimatedState->getEstimatedOrientation();
+    math::Vector2 robotPosition = m_estimatedState->getEstimatedPosition();
+    double robotDepth = m_estimatedState->getEstimatedDepth();
 
-    math::Vector3 buoyLocation = img2world(objImageCoords,
-                                           distance,
-                                           estCameraLocation,
-                                           estOrientation,
+    // TODO: need to get offsets for how far camera is from cg
+    // should be config values
+    math::Vector3 cameraLocation(robotPosition[0], robotPosition[1], robotDepth);
+    math::Quaternion cameraOrientation = m_estimatedState->getEstimatedOrientation();
+
+    math::Vector3 buoyLocation = img2world(measurement_i,
+                                           cameraLocation,
+                                           cameraOrientation,
                                            m_intrinsicParameters);
 
     m_buoyMeasurements.push_back(buoyLocation);
@@ -124,7 +125,7 @@ math::Vector3 SimpleBuoyEstimationModule::getBestEstimate()
     double sumX = 0, sumY = 0, sumZ = 0;
     int n = m_buoyMeasurements.size();
 
-    // compute the weighted average for each coordinate
+    // compute the average for each coordinate
     BOOST_FOREACH(math::Vector3 measurement, m_buoyMeasurements)
     {
         sumX += measurement[0];
