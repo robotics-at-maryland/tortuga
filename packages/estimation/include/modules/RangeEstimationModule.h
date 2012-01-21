@@ -9,8 +9,10 @@
 
 #ifndef RAM_ESTIMATION_RANGEMODULE
 #define RAM_ESTIMATION_RANGEMODULE
+
 // STD Includes
 #include <iostream>
+
 // Library Includes
 #include <log4cpp/Category.hh>
 
@@ -24,12 +26,11 @@
 namespace ram {
 namespace estimation {
 
-
 class RangeModule : public EstimationModule
 {
 public:
     RangeModule(core::ConfigNode config,core::EventHubPtr eventHub,
-                         EstimatedStatePtr estimatedState);
+                EstimatedStatePtr estimatedState);
 
     virtual ~RangeModule(){};
     
@@ -37,9 +38,7 @@ public:
 
 };
 
+} // namespace estimation
+} // namespace ram
 
-}// end of namespace estimation
-
-}// end of namespace ram
-
-#endif
+#endif // RAM_ESTIMATION_RANGEMODULE

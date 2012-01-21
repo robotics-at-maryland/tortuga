@@ -23,3 +23,5 @@
 #include "estimation/include/modules/IMUSGolayModule.h"
 #include "estimation/include/modules/ParticleVisionEstimationModule.h"
 #include "estimation/include/modules/ParticleBuoyEstimationModule.h"
+#include "estimation/include/modules/SimpleBuoyEstimationModule.h"
+#include "estimation/include/modules/SimpleCupidEstimationModule.h"

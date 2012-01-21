@@ -9,14 +9,14 @@
 
 // STD Includes
 #include <iostream>
+
 // Library Includes
 #include <log4cpp/Category.hh>
 
-//Project Includes
+// Project Includes
 #include "vehicle/include/Events.h"
 #include "estimation/include/modules/RangeEstimationModule.h"
 #include "vehicle/include/device/DVL.h"
-
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstRange"));
 
@@ -31,33 +31,35 @@ RangeModule::RangeModule(core::ConfigNode config,core::EventHubPtr eventHub,
     LOGGER.info("% Name range1 range2 range3 range4 average");
 }
 
-    
 void RangeModule::update(core::EventPtr event)
 {
     vehicle::RawBottomRangeEventPtr rangeEvent = 
         boost::dynamic_pointer_cast<vehicle::RawBottomRangeEvent>(event);
+
     if(!rangeEvent)
     {
         LOGGER.warn("Invalid Event Type");
         return;
     }
-    //currently this only does an average
-    double avg = rangeEvent->rangeBeam1 + rangeEvent->rangeBeam2 
-        + rangeEvent->rangeBeam3 + rangeEvent->rangeBeam4;
-    avg = avg / 4;
-       
-    LOGGER.infoStream() << m_name << " " << rangeEvent->rangeBeam1 <<
-        " " << rangeEvent->rangeBeam2 << " " << rangeEvent->rangeBeam3 << " " << 
-        rangeEvent->rangeBeam4 << " "<< avg << " ";
+
+    // currently this only does an average
+    double total = rangeEvent->rangeBeam1 + 
+        rangeEvent->rangeBeam2 + 
+        rangeEvent->rangeBeam3 + 
+        rangeEvent->rangeBeam4;
+
+    double avg = total / 4;
             
     m_estimatedState->setEstimatedBottomRange(avg);
-        
+
+    LOGGER.infoStream() << m_name << " " 
+                        << rangeEvent->rangeBeam1 << " " 
+                        << rangeEvent->rangeBeam2 << " " 
+                        << rangeEvent->rangeBeam3 << " " 
+                        << rangeEvent->rangeBeam4 << " "
+                        << avg << " ";
 
 }
 
-
-
-
-}
-
-}
+} // namespace estimation
+} // namespace ram

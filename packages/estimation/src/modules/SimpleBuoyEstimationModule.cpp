@@ -20,11 +20,11 @@
 #include "estimation/include/modules/SimpleBuoyEstimationModule.h"
 #include "estimation/include/Events.h"
 #include "vision/include/Events.h"
+#include "vision/include/Color.h"
 #include "math/include/Helpers.h"
 #include "math/include/Events.h"
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("StEstBuoy"));
-
 
 namespace ram {
 namespace estimation {
@@ -76,6 +76,20 @@ void SimpleBuoyEstimationModule::update(core::EventPtr event)
         return;
     }
 
+    // this is ugly, but its the easiest way of dealing with having the same
+    // buoy found event type for all colors
+    if(buoyEvent->color == vision::Color::YELLOW && 
+       m_obstacle != Obstacle::YELLOW_BUOY)
+        return;
+
+    if(buoyEvent->color == vision::Color::GREEN && 
+       m_obstacle != Obstacle::GREEN_BUOY)
+        return;
+
+    if(buoyEvent->color == vision::Color::RED && 
+       m_obstacle != Obstacle::RED_BUOY)
+        return;
+
     // if the buoy is touching the edge the distance estimate will be dangerous
     // we want to avoid this situation even if it means ignoring a found event
     if(buoyEvent->touchingEdge)
@@ -95,12 +109,12 @@ void SimpleBuoyEstimationModule::update(core::EventPtr event)
     math::Vector3 cameraLocation(robotPosition[0], robotPosition[1], robotDepth);
     math::Quaternion cameraOrientation = m_estimatedState->getEstimatedOrientation();
 
-    math::Vector3 buoyLocation = img2world(measurement_i,
-                                           cameraLocation,
-                                           cameraOrientation,
-                                           m_intrinsicParameters);
+    math::Vector3 measurement_w = img2world(measurement_i,
+                                            cameraLocation,
+                                            cameraOrientation,
+                                            m_intrinsicParameters);
 
-    m_buoyMeasurements.push_back(buoyLocation);
+    m_buoyMeasurements.push_back(measurement_w);
 
     while(m_buoyMeasurements.size() > m_numMeasurements)
         m_buoyMeasurements.pop_front();
@@ -116,8 +130,18 @@ void SimpleBuoyEstimationModule::update(core::EventPtr event)
     obstacleEvent->obstacle = m_obstacle;
     obstacleEvent->location = bestEstimate;
     obstacleEvent->covariance = covariance;
-
+    
     publish(IStateEstimator::ESTIMATED_OBSTACLE_UPDATE, obstacleEvent);
+
+    LOGGER.infoStream() << measurement_i[0] << " "
+                        << measurement_i[1] << " "
+                        << measurement_i[2] << " "
+                        << measurement_w[0] << " "
+                        << measurement_w[1] << " "
+                        << measurement_w[2] << " "
+                        << bestEstimate[0] << " "
+                        << bestEstimate[1] << " "
+                        << bestEstimate[2];
 }
 
 math::Vector3 SimpleBuoyEstimationModule::getBestEstimate()

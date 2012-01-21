@@ -85,7 +85,7 @@ void ModularStateEstimator::init(core::ConfigNode config,
     {
         addObstacle(config["GreenBuoy"], Obstacle::GREEN_BUOY);
         modules.push_back(
-            EstimationModulePtr(new ParticleBuoyEstimationModule(
+            EstimationModulePtr(new SimpleBuoyEstimationModule(
                                     config["GreenBuoyEstimationModule"],
                                     eventHub,
                                     m_estimatedState,
@@ -97,7 +97,7 @@ void ModularStateEstimator::init(core::ConfigNode config,
     {
         addObstacle(config["RedBuoy"], Obstacle::RED_BUOY);
         modules.push_back(
-            EstimationModulePtr(new ParticleBuoyEstimationModule(
+            EstimationModulePtr(new SimpleBuoyEstimationModule(
                                     config["RedBuoyEstimationModule"],
                                     eventHub, 
                                     m_estimatedState,
@@ -109,7 +109,7 @@ void ModularStateEstimator::init(core::ConfigNode config,
     {
         addObstacle(config["YellowBuoy"], Obstacle::YELLOW_BUOY);
         modules.push_back(
-            EstimationModulePtr(new ParticleBuoyEstimationModule(
+            EstimationModulePtr(new SimpleBuoyEstimationModule(
                                     config["YellowBuoyEstimationModule"],
                                     eventHub, 
                                     m_estimatedState,
