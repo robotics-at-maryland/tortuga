@@ -68,12 +68,29 @@ class BasePanel(wx.Panel):
         
         self.SetSizerAndFit(topSizer)
 
+    def _createControls2(self, name, rowSize, colSize, startEnable = False):
+        # Create box around controls
+        box = wx.StaticBox(parent = self, label = name)
+        topSizer = wx.StaticBoxSizer(box)
+        
+        self.sizer = wx.FlexGridSizer(rowSize, colSize, 10, 10)
+        topSizer.Add(self.sizer, 1, wx.EXPAND)
+        
+        # Create controls
+        self._createDataControls()
+        
+        # Start off greyed out if desired
+        for control in self._generatedControls:
+            control.Enable(startEnable)
+            
+        self.SetSizerAndFit(topSizer)
+
     def _createDataControls(self):
         pass
 
     def _getTextSize(self):
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
-        return wx.Size(textWidth, wx.DefaultSize.height)         
+        return wx.Size(textWidth + 1, wx.DefaultSize.height)         
         
     def _createDataControl(self, controlName, label):
         textSize = self._getTextSize()
@@ -86,7 +103,8 @@ class BasePanel(wx.Panel):
         setattr(self, controlName, control)
         self._generatedControls.append(control)
         self.sizer.Add(control, proportion = 1 , flag = wx.ALIGN_CENTER)
-
+        
+   
 class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
     
@@ -1220,8 +1238,8 @@ class VelocityPosition(BasePanel):
         self.estimator = estimator
 
         # Controls
-        self._createControls("Pos & Vel", startEnable = True)
-
+        self._createControls2("Pos & Vel", startEnable = True)
+     
         # Only update the velocity and position at the timer (so we can read it)
         #self._timer = wx.Timer()
         #self._timer.Bind(wx.EVT_TIMER, self._update)
@@ -1245,17 +1263,60 @@ class VelocityPosition(BasePanel):
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
-    
-    def _createDataControls(self):
-        self._createDataControl(controlName = '_xEPos', label = 'Estimated X Pos: ')
-        self._createDataControl(controlName = '_yEPos', label = 'Estimated Y Pos: ')
-        self._createDataControl(controlName = '_xEVel', label = 'Estimated X Vel: ')
-        self._createDataControl(controlName = '_yEVel', label = 'Esimated Y Vel: ')
-     
-        self._createDataControl(controlName = '_xDPos', label = 'Desired X Pos:') 
-        self._createDataControl(controlName = '_yDPos', label = 'Desired Y Pos:')
-        self._createDataControl(controlName = '_xDVel', label = 'Desired X Vel:')
-        self._createDataControl(controlName = '_yDVel', label = 'Desired Y Vel:')
+        
+
+    def _createControls2(self, name, startEnable = False):
+        self._layout = wx.BoxSizer(wx.VERTICAL)
+
+        positionLabel = wx.StaticText(self, label = "Position")
+        velocityLabel = wx.StaticText(self, label = "Velocity")
+        xLabel = wx.StaticText(self, label = "x")
+        yLabel = wx.StaticText(self, label = "y")
+      
+        titleSizer = wx.BoxSizer(wx.HORIZONTAL)
+        titleSizer.Add(positionLabel, proportion = 1, flag = wx.EXPAND)
+        titleSizer.Add(xLabel, proportion = 1, flag = wx.EXPAND | wx.ALIGN_CENTER)
+        titleSizer.Add(yLabel, proportion = 1, flag = wx.EXPAND | wx.ALIGN_CENTER)
+      
+        self._layout.Add(titleSizer, proportion = 1, flag = wx.EXPAND)
+              
+        self._createDataControl2(controlName1 = '_xEPos', controlName2 = '_yEPos',
+                                 label = 'Estimated: ')
+        self._createDataControl2(controlName1 = '_xDPos', controlName2 = '_yDPos',
+                                 label = 'Desired:   ') 
+        self._layout.Add(wx.StaticLine(self), proportion = 1, flag = wx.EXPAND)
+        self._layout.Add(velocityLabel, proportion = 1, flag = wx.EXPAND)
+        self._createDataControl2(controlName1 = '_xEVel', controlName2 = '_yEVel',
+                                 label = 'Estimated: ')
+      
+        self._createDataControl2(controlName1 = '_xDVel', controlName2 = '_yDVel',
+                                 label = 'Desired:   ')
+                      
+        # Start off greyed out if desired
+        for control in self._generatedControls:
+            control.Enable(startEnable)
+
+        self.SetSizerAndFit(self._layout)
+        
+    def _createDataControl2(self, controlName1, controlName2,  label):
+        textSize = self._getTextSize()
+        textStyle = wx.TE_CENTER | wx.TE_READONLY | wx.EXPAND
+        boxSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        desiredLabel = wx.StaticText(self, label = label)
+        boxSizer.Add(desiredLabel, proportion = 1, flag = wx.EXPAND)
+
+        control1 = wx.TextCtrl(self, size = wx.Size(50, -1), style = textStyle)
+        setattr(self, controlName1, control1)
+        self._generatedControls.append(control1)
+        boxSizer.Add(control1, proportion = 1 , flag = wx.EXPAND)
+
+        control2 = wx.TextCtrl(self, size = wx.Size(50, -1), style = textStyle)
+        setattr(self, controlName2, control2)
+        self._generatedControls.append(control2)
+        boxSizer.Add(control2, proportion = 1 , flag = wx.EXPAND)
+        self._layout.Add(boxSizer, proportion = 1, flag = wx.EXPAND)
+        
     def _onEstimatedVelocityUpdate(self, event):
         vel = event.vector2
         self._xEVel.Value = "% 4.2f" % vel.x
