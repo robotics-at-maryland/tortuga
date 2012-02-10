@@ -322,13 +322,13 @@ class Hedge(ram.sim.object.Object):
             })
         
         # Create Left Pipe
-        position = basePos + (sideOffset * 1)
-        cfg = {'name' : baseName + 'HedgeLeftPipe', 
-               'position' : position, 
-               'orientation' : [0, 1, 0, 90],
-               'Graphical' : gfxNode}
-        self._hedge = Visual()
-        self._hedge.load((scene, parent, cfg))
+        #position = basePos + (sideOffset * 1)
+        #cfg = {'name' : baseName + 'HedgeLeftPipe', 
+        #       'position' : position, 
+        #       'orientation' : [0, 1, 0, 90],
+        #       'Graphical' : gfxNode}
+        #self._hedge = Visual()
+        #self._hedge.load((scene, parent, cfg))
 
         # Create Right Pipe
         position = basePos + (sideOffset * -1)
