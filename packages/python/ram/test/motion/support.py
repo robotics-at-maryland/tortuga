@@ -202,6 +202,7 @@ class MockEstimator(estimation.IStateEstimator):
         self._depth = 0
         self.linAccel = math.Vector3.ZERO
         self.angRate = math.Vector3.ZERO
+        self.depthRate = 0
 
         self._obstacles = {}
         
@@ -217,6 +218,8 @@ class MockEstimator(estimation.IStateEstimator):
         return self._orientation
     def getEstimatedDepth(self):
         return self._depth
+    def getEstimatedDepthRate(self):
+        return self.depthRate
     def getEstimatedDepthDot(self):
         return 0
     def addObstacle(self, name, obstacle):
