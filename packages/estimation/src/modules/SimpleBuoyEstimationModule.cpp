@@ -56,11 +56,7 @@ SimpleBuoyEstimationModule::SimpleBuoyEstimationModule(
     m_intrinsicParameters = math::Matrix3(cameraFocalX, 0, 0,
                                           0, cameraFocalY, 0,
                                           0, 0, 1);
-
-    m_invIntrinsicParameters = math::Matrix3(cameraFocalX, 0, 0,
-                                             0, cameraFocalY, 0,
-                                             0, 0, 1);
-
+ 
     m_buoyMeasurements.push_back(m_initialGuess);
 }
 

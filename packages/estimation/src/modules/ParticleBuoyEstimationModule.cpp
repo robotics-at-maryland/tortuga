@@ -141,9 +141,7 @@ void ParticleBuoyEstimationModule::update(core::EventPtr event)
                                              m_invIntrinsicParameters);
 
             // calculate the likelihood based on the measurement likelihood model
-            newParticle.likelihood = likelihood3D(measurement_i,
-                                                  m_measurementLikelihood_i,
-                                                  newParticle.coords_i);
+            newParticle.likelihood = (1 / m_numParticles);
 
             m_particles.push_back(newParticle);
         }
