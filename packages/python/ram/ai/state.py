@@ -11,7 +11,10 @@ import types
 
 # Project Imports
 import ram.motion as motion
+import ext.math as math
 import ext.core as core
+
+from ram.motion.basic import Frame
 from ram.logloader import resolve
 
 class State(object):
@@ -142,6 +145,130 @@ class End(State):
     """
     def __init__(self, config = None, **kwargs):
         State.__init__(self, config, **kwargs)
+
+class ZigZag(State):
+    """
+    Base class for a Zig Zag search.
+    """
+
+    DONE = core.declareEventType('DONE')
+
+    @staticmethod
+    def transitions(myState = None):
+        
+        if myState is None :
+            myState = ZigZag
+        
+        return { motion.basic.MotionManager.FINISHED : myState}
+
+    #moves the robot forward a set distance as defined in the getattr() function
+    def Forward(self):
+        
+        #Defines the forward movement
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = math.Vector2.ZERO,
+                finalValue = math.Vector2(self._distanceForward,0),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+               avgRate = self._avgRate)
+
+        forwardMotion = motion.basic.Translate(
+            trajectory = forwardTrajectory,
+            frame = Frame.LOCAL)
+
+        #updates the total distance traveled
+        self._tdt = self._tdt + self._distanceForward
+
+        self.motionManager.setMotion(forwardMotion)
+
+    #strafes the robot a set distance as defined in the getattr() function
+    def Strafe(self, strafeDirection, firstMove):
+        
+        #Defines the strafe movement
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = math.Vector2.ZERO,
+                finalValue = math.Vector2(0,(strafeDirection*self._boundingWidth)/firstMove),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = self._avgRate)
+
+        forwardMotion = motion.basic.Translate(
+            trajectory = forwardTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(forwardMotion);
+
+
+    @staticmethod
+    def getattr():
+
+        #strafeDirection: -1 = start by strafing right, 1 = start by strafing left
+        #stateOfMovement: 0 = start by strafing, 1 = start by moving forward
+        #tdt = total distance traveled forward
+        #distanceForward = distance the robot moves forward on each strafe
+        #firstMovement: 0 = false, 1 = true
+        
+        return { 'distanceForward' : 1 , 'avgRate' : 0.15 , 'stateOfMovement' : 0,
+                 'boundingWidth' : 2, 'boundingHeight' : 4, 'strafeDirection' : -1,
+                 'tdt' : 0, 'firstMovement' : 1}
+    
+
+    def FINISHED(self, event):
+        
+        #Changes whether the robot strafes or moves forward
+        if (self._stateOfMovement >= 1):
+            self._stateOfMovement = 0
+        else:
+            self._stateOfMovement = self._stateOfMovement + 1
+
+        #Making sure the robot doesn't go past the height bounding box
+        if(self._tdt < self._boundingHeight):
+
+            if(self._stateOfMovement == 0):
+                self.Forward()
+
+            else:
+                
+                #Switch the direction of the strafe
+                if(self._strafeDirection == 1):
+                    self._strafeDirection = -1
+                else:
+                    self._strafeDirection = 1
+
+                if(self._firstMovement == 1): #Will only happen once
+                    self._firstMovement = 5
+                    self.Strafe(self._strafeDirection, 2)
+                else:
+                    self.Strafe(self._strafeDirection, 1)
+
+        #end the program
+        else:
+            self.publish(ZigZag.DONE, core.Event())
+
+
+    def enter(self):
+
+        #could reassign values from the getattr()  method here
+
+        #Do nothing, basically this is just here so that this function can
+        #immediately invoke the FINISHED state
+        """currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        forwardTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = math.Vector2.ZERO,
+                finalValue = math.Vector2.ZERO,
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = 1)
+        forwardMotion = motion.basic.Translate(
+                trajectory = forwardTrajectory,
+                frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(forwardMotion)"""
+        
+        self.FINISHED(core.Event())
+
+
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
 class Branch(object):
     """

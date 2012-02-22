@@ -484,17 +484,21 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
         else:
             self.motionManager.stopCurrentMotion()
 
-class Searching(PipeTrackingState):
+class Searching(PipeTrackingState, state.ZigZag):
     """When the vehicle is looking for a pipe"""
     
     @staticmethod
     def transitions():
-        return PipeTrackingState.transitions(Searching,
+        
+        trans = PipeTrackingState.transitions(Searching,
             { vision.EventType.PIPE_FOUND : Seeking })
+        trans.update(state.ZigZag.transitions(Searching))
+        
+        return trans;
 
     @staticmethod
     def getattr():
-        return {'forwardSpeed' : 0.15}
+        return state.ZigZag.getattr()
 
     def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -506,23 +510,8 @@ class Searching(PipeTrackingState):
         
         # Turn on the vision system
         self.visionSystem.pipeLineDetectorOn()
-
-        # Set the start orientation if it isn't already set
-        #orientation = self.stateEstimator.getEstimatedOrientation()
-        #direction = self.ai.data.setdefault('pipeStartOrientation',
-        #                                    orientation.getYaw())
-
-        #TODO: Change this back into a ZigZag motion
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = ext.math.Vector2.ZERO,
-            finalValue = ext.math.Vector2(5,0),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._forwardSpeed)
         
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.LOCAL)
-        
-        self.motionManager.setMotion(translateMotion)
+        state.ZigZag.enter(self)
 
 class Seeking(PipeFollowingState):
     """When the vehicle is moving over the found pipe"""
