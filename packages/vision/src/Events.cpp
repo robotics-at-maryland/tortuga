@@ -37,6 +37,15 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, BIN_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, MULTI_BIN_ANGLE);
 
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_DETECTOR_ON);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_DETECTOR_OFF);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_SMALL_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_SMALL_LOST);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_LARGE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, CAESAR_LARGE_LOST);
+
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_DETECTOR_OFF);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, CUPID_FOUND);

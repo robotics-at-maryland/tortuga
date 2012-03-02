@@ -59,6 +59,17 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType LOVERSLANE_DETECTOR_ON;
     static const core::Event::EventType LOVERSLANE_DETECTOR_OFF;
 
+    static const core::Event::EventType CAESAR_DETECTOR_ON;
+    static const core::Event::EventType CAESAR_DETECTOR_OFF;
+    static const core::Event::EventType CAESAR_FOUND;
+    static const core::Event::EventType CAESAR_LOST;
+    static const core::Event::EventType CAESAR_SMALL_FOUND;
+    static const core::Event::EventType CAESAR_SMALL_LOST;
+    static const core::Event::EventType CAESAR_LARGE_FOUND;
+    static const core::Event::EventType CAESAR_LARGE_LOST;
+
+
+    //----- OLD EVENTS - REMOVING WILL BREAK CODE ------------
     static const core::Event::EventType CUPID_DETECTOR_ON;
     static const core::Event::EventType CUPID_DETECTOR_OFF;
     static const core::Event::EventType CUPID_FOUND;
@@ -68,7 +79,6 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType CUPID_LARGE_FOUND;
     static const core::Event::EventType CUPID_LARGE_LOST;
 
-    //----- OLD EVENTS - REMOVING WILL BREAK CODE ------------
     static const core::Event::EventType TARGET_FOUND;
     static const core::Event::EventType TARGET_LOST;
     static const core::Event::EventType TARGET_DETECTOR_ON;
