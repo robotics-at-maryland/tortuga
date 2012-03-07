@@ -121,6 +121,92 @@ class Pipe(Visual):
         
     def save(self, data_object):
         raise "Not yet implemented"
+
+class Caesar(Visual):
+    core.implements(ram.sim.object.IObject)
+    
+    SEPERATION = 1
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._visible = False
+        self.id = 0
+        
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basePos, orientation = parse_position_orientation(node)
+        basePos = ram.sim.OgreVector3(basePos)
+        baseOffset = orientation * ogre.Vector3(0, Caesar.SEPERATION, 0)
+        baseName = node['name']
+
+        gfxNode = {'mesh' : 'box.mesh',
+                   'material' : 'Simple/Blue',
+                   'scale': [1, 0.05, 1]}
+        gfxNode.update(node.get('Graphical', {}))
+
+        gfxNode2 = {'mesh' : 'box.mesh',
+                   'material' : 'Simple/Red',
+                   'scale' : [1, 0.05, 1]}
+        gfxNode2.update(node.get('Graphical', {}))
+        
+        gfxNode3 = {'mesh' : 'wheel.mesh',
+                    'material' : 'Simple/White',
+                    'scale' : [0.25, 0.25, 0.13]}
+        gfxNode3.update(node.get('Graphical', {}))
+
+        gfxNode4 = {'mesh' : 'wheel.mesh',
+                    'material' : 'Simple/White',
+                    'scale' : [0.15, 0.15, 0.13]}
+        gfxNode4.update(node.get('Graphical', {}))
+        
+        # Create front panel
+        position = basePos + (baseOffset * -1.5)
+        cfg = {'name' : baseName + 'Front', 
+               'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+        
+        # Create back panel
+        position = basePos + (baseOffset * -1.55)
+        cfg = {'name' : baseName + 'Back', 'position' : position, 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode2}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+        
+        # Create big circle
+        position = basePos + (baseOffset * -1.525)
+        cfg = {'name' : baseName + 'BigCircle',
+               'position' : [position.x, position.y-0.2, position.z],
+               'orientation' : [1, 1, 1, 90],
+               'Graphical' : gfxNode3}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create small circle
+        position = basePos + (baseOffset * -1.525)
+        cfg = {'name' : baseName + 'SmallCircle',
+               'position' : [position.x, position.y+0.3, position.z],
+               'orientation' : [1, 1, 1, 90],
+               'Graphical' : gfxNode4}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+    def save(self, data_object):
+        raise "Not yet implemented"
+        
     
 class BarbedWire(ram.sim.object.Object):
     core.implements(ram.sim.object.IObject, IBarbedWire)
