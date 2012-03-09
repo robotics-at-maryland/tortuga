@@ -161,7 +161,7 @@ class Caesar(Visual):
         
         gfxNode3 = {'mesh' : 'wheel.mesh',
                     'material' : 'Simple/White',
-                    'scale' : [0.25, 0.25, 0.13]}
+                    'scale' : [0.33, 0.33, 0.13]}
         gfxNode3.update(node.get('Graphical', {}))
 
         gfxNode4 = {'mesh' : 'wheel.mesh',
@@ -189,7 +189,7 @@ class Caesar(Visual):
         # Create big circle
         position = basePos + (baseOffset * -1.525)
         cfg = {'name' : baseName + 'BigCircle',
-               'position' : [position.x, position.y-0.2, position.z],
+               'position' : [position.x, position.y-0.12, position.z-0.15],
                'orientation' : [1, 1, 1, 90],
                'Graphical' : gfxNode3}
         panel = Visual()
@@ -198,9 +198,160 @@ class Caesar(Visual):
         # Create small circle
         position = basePos + (baseOffset * -1.525)
         cfg = {'name' : baseName + 'SmallCircle',
-               'position' : [position.x, position.y+0.3, position.z],
+               'position' : [position.x, position.y+0.3, position.z+0.3],
                'orientation' : [1, 1, 1, 90],
                'Graphical' : gfxNode4}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+    def save(self, data_object):
+        raise "Not yet implemented"
+
+class EmperorGrapes(Visual):
+    core.implements(ram.sim.object.IObject)
+    
+    SEPERATION = 1
+    
+    @two_step_init
+    def __init__(self):
+        ram.sim.object.Object.__init__(self)
+        self._visible = False
+        self.id = 0
+        
+    def _toAxisAngleArray(self, orientation):
+        angle = ogre.Degree(0)
+        vector = ogre.Vector3()
+        orientation.ToAngleAxis(angle, vector)
+        return [vector.x, vector.y, vector.z, angle.valueDegrees()]
+
+    def load(self, data_object):
+        scene, parent, node = data_object
+        ram.sim.object.Object.load(self, (parent, node))
+        
+        # Parse config information
+        basePos, orientation = parse_position_orientation(node)
+        basePos = ram.sim.OgreVector3(basePos)
+        baseOffset = orientation * ogre.Vector3(0, Caesar.SEPERATION, 0)
+        baseName = node['name']
+
+        gfxNode = {'mesh' : 'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale': [1, 0.1, 0.1]}
+        gfxNode.update(node.get('Graphical', {}))
+
+        gfxNode2 = {'mesh' :'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [1, 0.1, 0.05]}
+        gfxNode2.update(node.get('Graphical', {}))
+
+        gfxNode3 = {'mesh' : 'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [0.1, 0.1, 0.85]}
+        gfxNode3.update(node.get('Graphical', {}))
+        
+        gfxNode4 = {'mesh' :'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [0.05, 0.1, 0.85]}
+        gfxNode4.update(node.get('Graphical', {}))
+
+        gfxNode5 = {'mesh' :'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [0.4, 0.1, 0.4]}
+        gfxNode5.update(node.get('Graphical', {}))
+
+        gfxNode6 = {'mesh' :'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [0.45, 0.1, 0.2]}
+        gfxNode6.update(node.get('Graphical', {}))
+
+        gfxNode7 = {'mesh' :'box.mesh',
+                   'material' : 'Simple/Yellow',
+                   'scale' : [0.65, 0.1, 0.45]}
+        gfxNode7.update(node.get('Graphical', {}))
+
+        gfxNode8 = {'mesh' :'cylinder.mesh',
+                   'material' : 'Simple/Red',
+                   'scale' : [0.225, 0.05, 0.05]}
+        gfxNode8.update(node.get('Graphical', {}))
+
+        # Create top piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'Top', 
+               'position' : [position.x, position.y, position.z+0.45], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create bottom piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'Bottom', 
+               'position' : [position.x, position.y, position.z-0.475], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode2}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create left piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'Left', 
+               'position' : [position.x, position.y+0.45, position.z-0.025], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode3}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create right piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'Right', 
+               'position' : [position.x, position.y-0.475, position.z-0.025], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode4}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create top left piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'TopLeft', 
+               'position' : [position.x, position.y+0.2, position.z+0.2], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode5}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create top right piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'TopRight', 
+               'position' : [position.x, position.y-0.225, position.z+0.1], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode6}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create bottom right piece
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'BottomRight', 
+               'position' : [position.x, position.y-0.125, position.z-0.225], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode7}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+        
+        # Create horizontal grape
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'HorizontalGrape', 
+               'position' : [position.x, position.y-0.1125, position.z+0.3], 
+               'orientation' : self._toAxisAngleArray(orientation),
+               'Graphical' : gfxNode8}
+        panel = Visual()
+        panel.load((scene, parent, cfg))
+
+        # Create vertical grape
+        position = basePos + (baseOffset)
+        cfg = {'name' : baseName + 'VerticalGrape', 
+               'position' : [position.x, position.y+0.3, position.z-0.3375], 
+               'orientation' : [1, 1, 1, 270],
+               'Graphical' : gfxNode8}
         panel = Visual()
         panel.load((scene, parent, cfg))
 
