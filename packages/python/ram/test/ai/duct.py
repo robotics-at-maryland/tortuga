@@ -24,7 +24,7 @@ class TestSearching(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
         self.machine.start(ram.ai.duct.Searching)
-    
+
     def tearDown(self):
         support.AITestCase.tearDown(self)
     
@@ -224,3 +224,6 @@ class Through(support.AITestCase):
         
         # Make sure hit the end state
         self.assert_(self.machine.complete)
+
+if __name__ == '__main__':
+    unittest.main()

@@ -561,3 +561,6 @@ class TestThrough(support.AITestCase):
         self.motionManager.currentMotion._finish()
         self.assert_(self.controller.speed > 0)
         self.assertCurrentMotion(motion.basic.MoveDistance)
+
+if __name__ == '__main__':
+    unittest.main()
