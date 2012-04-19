@@ -45,7 +45,7 @@ class TestStart(support.AITestCase):
     def testStart(self):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.redLightDetector)
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentMotion(motion.basic.changeDepth)
         self.assertAIDataValue('lightStartOrientation', 0)
         
     def testConfig(self):
@@ -502,7 +502,7 @@ class TestHit(support.AITestCase):
         self.releaseTimer(light.Hit.FORWARD_DONE)
         
         # Make sure we get the final event
-        self.qeventHub.publishEvents()
+        self.qeventHub.publishEvengts()
         self.assert_(self._lightHit)
         
         # Make sure it goes to Continue
@@ -533,7 +533,7 @@ class TestContinue(support.AITestCase):
         self.qeventHub.publishEvents()
         
         self.assertCurrentState(light.Continue)
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentMotion(motion.basic.ChangeDepth)
         
         # Forward motion
         cstate._upward._finish()
@@ -551,3 +551,7 @@ class TestContinue(support.AITestCase):
         # Make sure hit the end state
         self.assert_(self.machine.complete)
         self.assertCurrentMotion(type(None))
+
+if __name__ == '__main__':
+    unittest.main()
+

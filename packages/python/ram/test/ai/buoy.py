@@ -5,6 +5,9 @@
 # Author: Jonathan Sternberg <jsternbe@umd.edu>
 # File:  packages/python/ram/test/ai/buoy.py
 
+#Python Imports
+import unittest
+
 import ext.vision as vision
 import ext.math as math
 
@@ -30,7 +33,8 @@ class BuoyTrackingTest(object):
                 'Ai' : {
                     'config' : {
                         'buoyDepth' : 5,
-                        'targetBuoys' : ['yellow', 'green']
+                        'targetBuoys' : ['yellow', 'green'],
+                        'CorrectDepth' : 1
                         }
                     }
                 }
@@ -250,7 +254,7 @@ class TestSearching(support.AITestCase, BuoyTrackingTest):
 
 class TestAlign(support.AITestCase, BuoyTrackingTest):
     def setUp(self):
-        BuoyTrackingTest.setUp(self, buoy.Align, buoy.Align, buoy.FindAttempt)
+        BuoyTrackingtest.setUp(self, buoy.Align, buoy.Align, buoy.FindAttempt)
     
     def testStart(self):
         self.assertCurrentMotion(motion.seek.SeekPointToRange)
@@ -649,3 +653,6 @@ class TestRecover(support.AITestCase, BuoyTrackingTest):
                          0, 0, vision.Color.YELLOW)
         self.qeventHub.publishEvents()
         self.assertCurrentState(buoy.Align)
+
+if __name__ == '__main__':
+    unittest.main()

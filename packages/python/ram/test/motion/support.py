@@ -33,13 +33,15 @@ class MockController(control.IController):
 
         self._position = math.Vector2.ZERO
         self._velocity = math.Vector2.ZERO
+        self.speed = 0
+        self.sidewaysSpeed = 0
         self._accel = math.Vector2.ZERO
 
         self._orientation = math.Quaternion.IDENTITY
         self._angularRate = math.Vector3.ZERO
         self._angularAccel = math.Vector3.ZERO
 
-        self._yawChange = 0
+        self.yawChange = 0
         self._headingHolds = 0
         self._depthHolds = 0
         self._positionHolds = 0
@@ -108,6 +110,15 @@ class MockController(control.IController):
 
     def holdCurrentHeading(self):
         self._headingHolds += 1
+    
+    def holdCurrentOrientation(self):
+        self._depthRate = 0
+        self._depthAccel = 0
+        self._position = math.Vector2.ZERO
+        self._velocity = math.Vector2.ZERO
+        self._accel = math.Vector2.ZERO
+        self._angularRate = math.Vector3.ZERO
+        self._angularAccel = math.Vector3.ZERO
 
     def holdCurrentPosition(self):
         self._positionHolds += 1
