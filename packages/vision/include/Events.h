@@ -192,6 +192,29 @@ public:
 
 typedef boost::shared_ptr<CupidEvent> CupidEventPtr;
 
+class RAM_EXPORT CaesarEvent : public VisionEvent
+{
+public:
+    CaesarEvent() : VisionEvent(), color(Color::UNKNOWN) {};
+    CaesarEvent(double x_, double y_, double range_, 
+               math::Degree azimuth_, math::Degree elevation_,
+               Color::ColorType color_, bool touchingEdge_) :
+        VisionEvent(x_, y_, range_),
+        azimuth(azimuth_),
+        elevation(elevation_),
+        color(color_),
+        touchingEdge(touchingEdge_) {}
+
+    math::Degree azimuth;
+    math::Degree elevation;
+    Color::ColorType color;
+    bool touchingEdge;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<CaesarEvent> CaesarEventPtr;
+
 class RAM_EXPORT PipeEvent : public VisionEvent
 {
 public:

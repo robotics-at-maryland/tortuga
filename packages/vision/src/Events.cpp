@@ -110,6 +110,9 @@ RAM_VISION_BUOYEVENT;
 static ram::core::SpecificEventConverter<ram::vision::CupidEvent>
 RAM_VISION_CUPIDEVENT;
 
+static ram::core::SpecificEventConverter<ram::vision::CaesarEvent>
+RAM_VISION_CAESAREVENT;
+
 static ram::core::SpecificEventConverter<ram::vision::PipeEvent>
 RAM_VISION_PIPEEVENT;
 
@@ -181,6 +184,20 @@ core::EventPtr CupidEvent::clone()
     event->color = color;
     return event;
 }
+
+core::EventPtr CaesarEvent::clone()
+{
+    CaesarEventPtr event = CaesarEventPtr(new CaesarEvent());
+    copyInto(event);
+    event->azimuth = azimuth;
+    event->elevation = elevation;
+    event->x = x;
+    event->y = y;
+    event->range = range;
+    event->color = color;
+    return event;
+}
+
 
 core::EventPtr PipeEvent::clone()
 {
