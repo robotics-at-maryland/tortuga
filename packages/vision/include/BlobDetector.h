@@ -70,7 +70,7 @@ class RAM_EXPORT BlobDetector  : public Detector
         int getWidth() const { return getMaxX() - getMinX() + 1; }
 
         /** Percentage of the area within the bounding box that is the blob */
-        double getFillPercentage() { 
+        double getFillPercentage() const { 
             return ((double)getSize()) / ((double)(getHeight() * getWidth())); } 
 
         /** Draws the bounds, and optionally the center of the blob */
@@ -93,7 +93,7 @@ class RAM_EXPORT BlobDetector  : public Detector
         /** Retuns an aspect ratio all ways greater then one */
         double getAspectRatio() const {
             double aspectRatio = getTrueAspectRatio();
-            // Ensure its always positive
+            // Ensure its always greater than 1
             if (aspectRatio < 1)
                 aspectRatio = 1 / aspectRatio;
             return aspectRatio;
