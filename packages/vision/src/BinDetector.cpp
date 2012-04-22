@@ -39,6 +39,7 @@
 
 //static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
+// extra boarder pixels to include when extracting sub-image of the bin
 static const int BIN_EXTRACT_BORDER = 16;
 
 namespace ram {
@@ -65,32 +66,49 @@ BinDetector::Bin::Bin(BlobDetector::Blob blob, Image* source,
 void BinDetector::Bin::draw(Image* image, Image* redImage)
 {
     IplImage* out = image->asIplImage();
+
     // Draw green rectangle around the blob
-    CvPoint tl,tr,bl,br;
-    tl.x = bl.x = getMinX();
-    tr.x = br.x = getMaxX();
-    tl.y = tr.y = getMinY();
-    bl.y = br.y = getMaxY();
+    CvPoint tl; // top left
+    CvPoint tr; // top right
+    CvPoint bl; // bottom left
+    CvPoint br; // bottom right
+    int minX, maxX, minY, maxY;
+
+    tl.x = bl.x = minX = getMinX();
+    tr.x = br.x = maxX = getMaxX();
+    tl.y = tr.y = minY = getMinY();
+    bl.y = br.y = maxY = getMaxY();
+
     cvLine(out, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0);
 
     // Now draw my id
-    std::stringstream ss;
-    ss << getId();
-    Image::writeText(image, ss.str(), tl.x, tl.y);
+    std::stringstream ssId;
+    ssId << getId();
+    Image::writeText(image, ssId.str(), minX, maxY);
 
+    // Draw the fill percentage
     if (redImage)
     {
-        std::stringstream ss3;
-        ss3 << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
-        Image::writeText(image, ss3.str(), br.x-30, tl.y);
+        std::stringstream ssFillPct;
+        ssFillPct << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
+        int fillPctXOffset = -30;
+        int fillPctYOffset = 0;
+        Image::writeText(image, ssFillPct.str(),
+                         maxX + fillPctXOffset,
+                         minY + fillPctYOffset);
     }
 
-    std::stringstream ss2;
-    ss2 << std::setprecision(1) << getAngle().valueDegrees();
-    Image::writeText(image, ss2.str(), br.x-30, br.y-15);
+    // Draw the angle
+    std::stringstream ssAngle;
+    ssAngle << std::setprecision(1) << getAngle().valueDegrees();
+    int angleXOffset = -30;
+    int angleYOffset = -15;
+    Image::writeText(image, ssAngle.str(),
+                     maxX + angleXOffset,
+                     minY + angleYOffset);
 
     // Now do the symbol
     Image::writeText(image, Symbol::symbolToText(m_symbol), bl.x, bl.y - 15);

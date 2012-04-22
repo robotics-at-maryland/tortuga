@@ -41,7 +41,6 @@ class RAM_EXPORT BinDetector : public Detector
 
         /** Draws the bounds of the bin in green, and its ID */
         void draw(Image* image, Image* red = 0);
-        
 
     private:
         Symbol::SymbolType m_symbol;
