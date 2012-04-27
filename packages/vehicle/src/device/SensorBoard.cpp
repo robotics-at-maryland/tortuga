@@ -27,6 +27,10 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 int ram::vehicle::device::SensorBoard::NUMBER_OF_MARKERS = 2;
 int ram::vehicle::device::SensorBoard::NUMBER_OF_TORPEDOS = 2;
 
+//Make sure the size of these arrays matches the number of markers/torpedos.
+bool markersDropped[2] = {0};
+bool torpedosFired[2] = {0};
+
 static log4cpp::Category& s_thrusterLog
 (log4cpp::Category::getInstance("Thruster"));
 static log4cpp::Category& s_powerLog
@@ -401,30 +405,31 @@ double SensorBoard::getMainBusVoltage()
 
 int SensorBoard::dropMarker()
 {
-    static int markerNum = 1;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    int markerDropped = -1;
-    if (markerNum <= NUMBER_OF_MARKERS)
+    int markerNum;
+    for (markerNum = 0; markerNum < NUMBER_OF_MARKERS; markerNum++)
     {
-        dropMarker(markerNum);
-        markerDropped = markerNum;
-        markerNum++;
+        if(markersDropped[markerNum] == false){
+            dropMarker(markerNum + 1);
+            markersDropped[markerNum] = true;
+            return (markerNum + 1);
+        }
     }
 
-    return markerDropped;
+    return -1;
 }
 
 int SensorBoard::dropMarkerIndex(int index)
 {
-    int markerDropped = -1;
     if (index <= NUMBER_OF_MARKERS)
     {
         dropMarker(index);
-        markerDropped = index;
+        markersDropped[index - 1] = true;
+        return index;
     }
 
-    return markerDropped;
+    return -1;
 }
 
 int SensorBoard::fireTorpedo()
@@ -432,18 +437,19 @@ int SensorBoard::fireTorpedo()
 #ifdef NO_SERVOS
     return -1;
 #else // NO_SERVOS
-    static int torpedoNum = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    int torpedoFired = -1;
-    if (torpedoNum < NUMBER_OF_TORPEDOS)
+    int torpedoNum;
+    for (torpedoNum = 0; torpedoNum < NUMBER_OF_TORPEDOS; torpedoNum++)
     {
-        handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
-        torpedoFired = torpedoNum;
-        torpedoNum++;
+        if(torpedosFired[torpedoNum] == false){
+            handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
+            torpedosFired[torpedoNum] = true;
+            return torpedoNum;
+        }
     }
 
-    return torpedoFired;
+    return -1;
 #endif // NO_SERVOS
 }
 
@@ -451,13 +457,13 @@ int SensorBoard::fireTorpedo(int index)
 {
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    int torpedoFired = -1;
     if (index < NUMBER_OF_TORPEDOS)
     {
         handleReturn(::fireTorpedo(m_deviceFD, index));
-        torpedoFired = index;
+        torpedosFired[index] = true;
+        return index;
     }
-    return torpedoFired;
+    return -1;
 }
 int SensorBoard::extendGrabber()
 {
