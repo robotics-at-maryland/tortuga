@@ -60,7 +60,6 @@ class Start(state.State):
                 self._orientation == -1:
             raise LookupError, "windowX, windowY, windowDepth or windowOrientation not specified"
 
-
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
@@ -105,25 +104,25 @@ class Aim(state.State):
         return {'distance' : 2, 'diveRate' : 0.3, 'speed' : 0.15}
 
     def enter(self):
-        self._orientation = self.ai.data['windowOrientation']
+        self._orientation = self.ai.data['config'].get('windowDepth', -1)
 
         # Compute where we want to be
         xOffset = -self._distance * pmath.sin(self._orientation)
         yOffset = self._distance * pmath.cos(self._orientation)
         
-        heartSize = self.ai.data['heartSize']
+        heartSize = self.ai.data['config'].get('heartSize', 'large')
 
         windowObstacle = getObstacleType(heartSize)
         
         windowLocation = self.stateEstimator.getObstacleLocation(windowObstacle)
 
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
+        xDesired = windowLocation.x + xOffset
+        yDesired = windowLocation.y + yOffset
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
+            finalValue = self.ai.data['config'].get('windowDepth', -1),
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -143,21 +142,22 @@ class Aim(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
+NONE_FOUND = core.declareEventType('NONE_FOUND')
+
 class Fire(state.State):
     """
     Launch a torpedo
     """
     FIRED = core.declareEventType('FIRED')
-    NONE_FOUND = core.declareEventType('NONE_FOUND')
 
     @staticmethod
-    def _transitions():
+    def transitions():
         return { Fire.FIRED : Rise,
-                 Fire.NONE_FOUND : Fire}
+                 NONE_FOUND : Fire}
 
     @staticmethod
     def getattr():
-        return {'timout': 20}
+        return {'timeout': 20}
 
     def CUPID_FOUND(self, event):
         # grab the color, fire the appropriate torpedo
@@ -175,7 +175,7 @@ class Fire(state.State):
         self.publish(Fire.FIRED, core.Event())
 
     def enter(self):
-        self._timer = self.timerManager.newTimer(Fire.NONE_FOUND, self._timeout)
+        self._timer = self.timerManager.newTimer(NONE_FOUND, self._timeout)
         self._timer.start()
         
     def exit(self):
@@ -221,7 +221,7 @@ class SwitchWindow(state.State):
 
     def enter(self):
         self.ai.data['windowOrientation']  = \
-            self.ai.data['windowOrientation'] + 180
+            self.ai.data['config'].get('windowOrientation', -1) + 180
 
         if self.ai.data['windowOrientation'] > 180:
             self.ai.data['windowOrientation'] = -180 + \
@@ -233,14 +233,14 @@ class SwitchWindow(state.State):
         xOffset = -self._distance * pmath.sin(self._orientation)
         yOffset = self._distance * pmath.cos(self._orientation)
         
-        heartSize = self.ai.data['heartSize']
+        heartSize = self.ai.data['config'].get('heartSize', 'large')
 
         windowObstacle = getObstacleType(heartSize)
         
         windowLocation = self.stateEstimator.getObstacleLocation(windowObstacle)
 
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
+        xDesired = windowLocation.x + xOffset
+        yDesired = windowLocation.y + yOffset
 
         # Compute trajectories
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -271,7 +271,7 @@ class Aim2(state.State):
     Moves in front of the window.
     """
     @staticmethod
-    def transitions(foundState = None, lostState = None):
+    def transitions():
         return { motion.basic.MotionManager.FINISHED : Fire2 }
 
     @staticmethod
@@ -279,25 +279,25 @@ class Aim2(state.State):
         return {'distance' : 2, 'diveRate' : 0.3, 'speed' : 0.15}
 
     def enter(self):
-        self._orientation = self.ai.data['windowOrientation']
+        self._orientation = self.ai.data['config'].get('windowOrientation', -1)
 
         # Compute where we want to be
         xOffset = -self._distance * pmath.sin(self._orientation)
         yOffset = self._distance * pmath.cos(self._orientation)
         
-        heartSize = self.ai.data['heartSize']
+        heartSize = self.ai.data['config'].get('heartSize', 'large')
 
         windowObstacle = getObstacleType(heartSize)
         
         windowLocation = self.stateEstimator.getObstacleLocation(windowObstacle)
 
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
+        xDesired = windowLocation.x + xOffset
+        yDesired = windowLocation.y + yOffset
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
+            finalValue = self.ai.data['config'].get('windowDepth', -1),
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._diveRate)
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -322,16 +322,15 @@ class Fire2(state.State):
     Launch a torpedo
     """
     FIRED = core.declareEventType('FIRED')
-    NONE_FOUND = core.declareEventType('NONE_FOUND')
 
     @staticmethod
-    def _transitions():
+    def transitions():
         return { Fire2.FIRED : Rise2,
-                 Fire2.NONE_FOUND : Fire2}
+                 NONE_FOUND : Fire2 }
 
     @staticmethod
     def getattr():
-        return {'timout': 20}
+        return {'timeout': 20}
 
     def CUPID_FOUND(self, event):
         # grab the color, fire the appropriate torpedo
@@ -349,7 +348,7 @@ class Fire2(state.State):
         self.publish(Fire2.FIRED, core.Event())
 
     def enter(self):
-        self._timer = self.timerManager.newTimer(Fire2.NONE_FOUND, self._timeout)
+        self._timer = self.timerManager.newTimer(NONE_FOUND, self._timeout)
         self._timer.start()
         
     def exit(self):

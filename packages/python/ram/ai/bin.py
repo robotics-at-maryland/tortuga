@@ -839,7 +839,7 @@ class Centering(SettlingState):
     
     def enter(self):
         self._binDirection = self.ai.data['config'].get('Bin', {}).get(
-            'binDirection', None)
+            'binDirection', 0)
         if self._binDirection is None:
             SettlingState.enter(self, Centering.SETTLED, 5,
                                 useMultiAngle = True)
@@ -1100,7 +1100,7 @@ class RecoverDive(Recover):
 
             diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
                 initialValue = self.stateEstimator.getEstimatedDepth(),
-                finalValue = binDepth - offset,
+                finalValue = self.ai.data['config'].get('binDepth', 12) - offset,
                 initialRate = self.stateEstimator.getEstimatedDepthRate(),
                 avgRate = self._diveSpeed)
             diveMotion = motion.basic.ChangeDepth(

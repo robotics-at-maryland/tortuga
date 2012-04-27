@@ -175,7 +175,7 @@ class Searching(state.State):
         if self._first:
             pingerOrientation = ext.math.Vector3.UNIT_X.getRotationTo(
                 event.direction)
-            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees(),0)
+            self.controller.yawVehicle(pingerOrientation.getYaw(True).valueDegrees())
             
             self.timer = self.timerManager.newTimer(Searching.CHANGE, 4)
             self.timer.start()
