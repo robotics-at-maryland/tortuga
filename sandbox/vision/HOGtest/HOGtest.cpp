@@ -32,143 +32,126 @@
 
 int main(int argc, char *argv[])
 {
-    //Load all images from the args
-    IplImage *image = cvLoadImage(argv[1]);
-    srand ( time(NULL) );
+    //Load the image from the args
+    cv::Mat image = cv::imread(argv[1]);
 
-    int width = image->width;
-    int height = image->height;
+    int width = image.cols;
+    int height = image.rows;
     
+    cv::Mat dx_channels(height, width, CV_16SC3);
+    cv::Mat dy_channels(height, width, CV_16SC3);
     
-    uchar *dx_y = new uchar[height * width];
-    uchar *dy_y = new uchar[height * width];
-    uchar *dx_u = new uchar[height * width];
-    uchar *dy_u = new uchar[height * width];
-    uchar *dx_v = new uchar[height * width];
-    uchar *dy_v = new uchar[height * width];
-    
-    uchar *y_data = new uchar[height * width];
-    uchar *u_data = new uchar[height * width];
-    uchar *v_data = new uchar[height * width];
-    
-    int *magnitude = new int[height * width];
-    float *angle = new float[height * width];
+    cv::Mat dx(height, width, CV_16SC2);
 
-    uchar *dx = new uchar[height * width];
-    uchar *dy = new uchar[height * width];
+    cv::Mat channel_mag(height, width, CV_32FC3);
+    cv::Mat channel_ang(height, width, CV_32FC3);
 
-    for(int i=0; i< height * width * 3; i+=3){
-        y_data[i] = image->imageData[i];
-        u_data[i] = image->imageData[i+1];
-        v_data[i] = image->imageData[i+2];
-    }
-    
-    
-    for(int i=0; i< height; i++){
-        for(int p=0; p< width; p++){
-            //calculate dx's
-            if((p == 0) || (p == (width-1))){
-                dx_y[i*width+p] = 0;
-                dx_u[i*width+p] = 0;
-                dx_v[i*width+p] = 0;
-            }
-            else{
-                dx_y[i*width+p] = y_data[i*width+p+1] - 
-                    y_data[i*width+p-1];
-                dx_u[i*width+p] = u_data[i*width+p+1] - 
-                    u_data[i*width+p-1];
-                dx_v[i*width+p] = v_data[i*width+p+1] - 
-                    v_data[i*width+p-1];
-            }
-            
-            //calculate dy's
-            if((i == 0) || (i == (height-1))){
-                dy_y[i*width+p] = 0;
-                dy_u[i*width+p] = 0;
-                dy_v[i*width+p] = 0;
-            }
-            else{
-                dy_y[i*width+p] = y_data[(i+1)*width+p] - 
-                    y_data[(i-1)*width+p];
-                dy_u[i*width+p] = u_data[(i+1)*width+p] - 
-                    u_data[(i-1)*width+p];
-                dy_v[i*width+p] = v_data[(i+1)*width+p] - 
-                    v_data[(i-1)*width+p];
-            }
-            
-            //calculate angles and magnitudes per pixel
-            if((i == 0) || (i == (height-1))
-               || (p == 0) || (p == (width-1))){
-                magnitude[i*width + p] = 0;
-                angle[i*width + p] = 0;
-            }
-            else{
-                int ymag = sqrt(dx_y[i*width+p] * 
-                                dx_y[i*width+p] + 
-                                dy_y[i*width+p] * 
-                                dy_y[i*width+p]);
-                int umag = sqrt(dx_u[i*width+p] * 
-                                dx_u[i*width+p] + 
-                                dy_u[i*width+p] * 
-                                dy_u[i*width+p]);
-                int vmag = sqrt(dx_v[i*width+p] * 
-                                dx_v[i*width+p] + 
-                                dy_v[i*width+p] * 
-                                dy_v[i*width+p]);
-                if(ymag > umag){
-                    if(ymag > vmag){
-                        magnitude[i*width+p] = ymag;
-                        angle[i*width+p] = (!dx_y[i*width+p] 
-                                                   ? 0 : atan(
-                                                       dy_y[i*width+p] / 
-                                                       dx_y[i*width+p]));
+    cv::Mat mag_ang(height, width, CV_32FC2);
 
-                        dx[i*width+p] = dx_y[i*width+p];
-                        dy[i*width+p] = dy_y[i*width+p];
-                    }
-                    else{
-                        magnitude[i*width+p] = vmag;
-                        angle[i*width+p] = (!dx_v[i*width+p] 
-                                                   ? 0 : atan(
-                                                       dy_v[i*width+p] / 
-                                                       dx_v[i*width+p]));
+    for(int row = 0; row < image.rows; row++)
+    {
+        // get a pointer to the first pixel in the current row
+        unsigned char* rowPtr = image.ptr<unsigned char>(row);
+        short* dxRowPtr = dx_channels.ptr<short>(row);
+        short* dyRowPtr = dy_channels.ptr<short>(row);
 
-                        dx[i*width+p] = dx_v[i*width+p];
-                        dy[i*width+p] = dy_v[i*width+p];
-                    }
-                }
-                else if(umag>vmag){
-                    magnitude[i*width+p] = umag;
-                    angle[i*width+p] = (!dx_u[i*width+p] 
-                                                   ? 0 : atan(
-                                                       dy_u[i*width+p] / 
-                                                       dx_u[i*width+p]));
+        unsigned char* rowPtrM = NULL;
+        unsigned char* rowPtrP = NULL;
+        if(row != 0){
+            rowPtrM = image.ptr<unsigned char>(row-1);
+        }
+        if(row != image.rows-1){
+            rowPtrP = image.ptr<unsigned char>(row+1);
+        }
 
-                        dx[i*width+p] = dx_u[i*width+p];
-                        dy[i*width+p] = dy_u[i*width+p];
+        float* magRowPtr = channel_mag.ptr<float>(row);
+        float* angRowPtr = channel_ang.ptr<float>(row);
+
+        float* mag_angRowPtr = mag_ang.ptr<float>(row);
+
+        short* derivRowPtr = dx.ptr<short>(row);
+        
+        
+        for(int col = 0; col < image.cols; col++)
+        {
+            float maxMag = 0;
+            float maxAng = 0;
+            int maxDx = 0;
+            int maxDy = 0;
+            for(int ch = 0; ch < image.channels(); ch++)
+            {
+                // calculate dx's per pixel and channel
+                if((col == 0) || (col == image.cols-1)){
+                    dxRowPtr[col * image.channels() + ch] = 0;
                 }
                 else{
-                    magnitude[i*width+p] = vmag;
-                    angle[i*width+p] = (!dx_v[i*width+p] 
-                                                   ? 0 : atan(
-                                                       dy_v[i*width+p] / 
-                                                       dx_v[i*width+p]));
+                    dxRowPtr[col * image.channels() + ch] = 
+                        rowPtr[(col + 1) * image.channels() + ch] - 
+                        rowPtr[(col - 1) * image.channels() + ch];
+                }
 
-                        dx[i*width+p] = dx_v[i*width+p];
-                        dy[i*width+p] = dy_v[i*width+p];
+                // calculate dy's per pixel and channel
+                if((row == 0) || (row == image.rows-1)){
+                    dyRowPtr[col * image.channels() + ch] = 0;
+                }
+                else{
+                    dyRowPtr[col * image.channels() + ch] = 
+                        rowPtrP[(col) * image.channels() + ch] - 
+                        rowPtrM[(col) * image.channels() + ch];
+
+                }
+
+                // calculate magnitudes and angles
+                if((col == 0) || (col == image.cols-1) ||
+                   (row == 0) || (row == image.rows-1)){
+                    magRowPtr[col * image.channels() + ch] = 0;
+                    angRowPtr[col * image.channels() + ch] = 0;
+                }
+                else{
+                    magRowPtr[col * image.channels() + ch] =
+                        sqrt(dxRowPtr[col * image.channels() + ch] * 
+                             dxRowPtr[col * image.channels() + ch] + 
+                             dyRowPtr[col * image.channels() + ch] * 
+                             dyRowPtr[col * image.channels() + ch]);
+
+                    angRowPtr[col * image.channels() + ch] =
+                        (!dxRowPtr[col * image.channels() + ch] ? 0 :
+                         atan(dyRowPtr[col * image.channels() + ch] /
+                              dxRowPtr[col * image.channels() + ch])
+                            );
+                }
+                if(magRowPtr[col * image.channels() + ch] > maxMag){
+                    maxMag = magRowPtr[col * image.channels() + ch];
+                    maxAng = angRowPtr[col * image.channels() + ch];
+                    maxDx = dxRowPtr[col * image.channels() + ch];
+                    maxDy = dyRowPtr[col * image.channels() + ch];
                 }
             }
+
+            //insert max magnitude, angle, and derivatives
+            mag_angRowPtr[col * 2] = maxMag;
+            mag_angRowPtr[col * 2 + 1] = maxAng;
+
+            derivRowPtr[col * 2] = maxDx;
+            derivRowPtr[col * 2 + 1] = maxDy;
         }
     }
-
+    
 
     // Part 2: Partitioning pixels into bins
 
-    unsigned char *bins = new unsigned char[height * width];
-    for(int i=0; i< height; i++){
-        for(int p=0; p< width; p++){
-            int x = dx[i*width + p];
-            int y = dy[i*width + p];
+    cv::Mat bins(height, width, CV_8UC1);
+
+    for(int row = 0; row < image.rows; row++)
+    {
+        unsigned char* rowPtr = bins.ptr<unsigned char>(row);
+        
+        short* dxRowPtr = dx.ptr<short>(row);
+
+        for(int col = 0; col < image.cols; col++)
+        {
+            int x = dxRowPtr[col * 2];
+            int y = dxRowPtr[col * 2 + 1];
             float ratio = 0;
             if(x == 0 && y > 0){
                 ratio = 100;
@@ -186,37 +169,37 @@ int main(int argc, char *argv[])
                 if(y>=0){
                     //Quadrant 1
                     if(ratio < BOUNDARY0){
-                        bins[i*width + p] = 0;
+                        rowPtr[col] = 0;
                     }
                     else if(ratio < BOUNDARY17){
-                        bins[i*width + p] = 17;
+                        rowPtr[col] = 17;
                     }
                     else if(ratio < BOUNDARY16){
-                        bins[i*width + p] = 16;
+                        rowPtr[col] = 16;
                     }
                     else if(ratio < BOUNDARY15){
-                        bins[i*width + p] = 15;
+                        rowPtr[col] = 15;
                     }
                     else{
-                        bins[i*width + p] = 14;
+                        rowPtr[col] = 14;
                     }
                 }
                 else{
                     //Quadrant 4
                     if(ratio > BOUNDARY1){
-                        bins[i*width + p] = 0;
+                        rowPtr[col] = 0;
                     }
                     else if(ratio > BOUNDARY2){
-                        bins[i*width + p] = 1;
+                        rowPtr[col] = 1;
                     }
                     else if(ratio > BOUNDARY3){
-                        bins[i*width + p] = 2;
+                        rowPtr[col] = 2;
                     }
                     else if(ratio > BOUNDARY4){
-                        bins[i*width + p] = 3;
+                        rowPtr[col] = 3;
                     }
                     else{
-                        bins[i*width + p] = 4;
+                        rowPtr[col] = 4;
                     }
                 }
             }
@@ -224,44 +207,43 @@ int main(int argc, char *argv[])
                 if(y>=0){
                     //Quadrant 2
                     if(ratio > BOUNDARY10){
-                        bins[i*width + p] = 9;
+                        rowPtr[col] = 9;
                     }
                     else if(ratio > BOUNDARY11){
-                        bins[i*width + p] = 10;
+                        rowPtr[col] = 10;
                     }
                     else if(ratio > BOUNDARY12){
-                        bins[i*width + p] = 11;
+                        rowPtr[col] = 11;
                     }
                     else if(ratio > BOUNDARY13){
-                        bins[i*width + p] = 12;
+                        rowPtr[col] = 12;
                     }
                     else{
-                        bins[i*width + p] = 13;
+                        rowPtr[col] = 13;
                     }
                 }
                 else{
                     //Quadrant 3
                     if(ratio < BOUNDARY9){
-                        bins[i*width + p] = 9;
+                        rowPtr[col] = 9;
                     }
                     else if(ratio < BOUNDARY8){
-                        bins[i*width + p] = 8;
+                        rowPtr[col] = 8;
                     }
                     else if(ratio < BOUNDARY7){
-                        bins[i*width + p] = 7;
+                        rowPtr[col] = 7;
                     }
                     else if(ratio < BOUNDARY6){
-                        bins[i*width + p] = 6;
+                        rowPtr[col] = 6;
                     }
                     else{
-                        bins[i*width + p] = 5;
+                        rowPtr[col] = 5;
                     }
 
                 }
             }
         }
-    }    
-
+    }
 
     //We're done calculations, now lets visualize it.
     
@@ -270,7 +252,7 @@ int main(int argc, char *argv[])
     
     for(int i=0; i<height; i++){
         for(int p=0; p<width; p++){
-            switch(bins[i*width + p]){
+            switch(bins.at<unsigned char>(i,p)){
             case 0:
                 out->imageData[(i*width+p)*3 + 0] = 0;
                 out->imageData[(i*width+p)*3 + 1] = 0;
