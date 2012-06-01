@@ -245,6 +245,83 @@ int main(int argc, char *argv[])
         }
     }
 
+
+    // Part 3: Spatial Aggregation
+    
+    int bin_size = 8;
+    
+    float cellWidthF = width / ((float) bin_size);
+    float cellHeightF = height / ((float) bin_size);
+
+    int cellWidth = (int) std::floor(cellWidthF + 0.5);
+    int cellHeight = (int) std::floor(cellHeightF + 0.5);
+
+    cv::Mat cells = cv::Mat(cellHeight, cellWidth, cv::DataType< 
+                            cv::Vec<double, 32> >::type);
+
+    //INSERT FOR LOOP HERE
+    for(int row = 0; row < image.rows; row++)
+    {
+        unsigned char* binPtr = bins.ptr<unsigned char>(row);
+        
+        float* magPtr = mag_ang.ptr<float>(row);
+
+        for(int col = 0; col < image.cols; col++)
+        {
+    
+            // calculate the location of where the pixel falls in cell space
+            double xCellCoord = (col + 0.5) / bin_size - 0.5;
+            double yCellCoord = (row + 0.5) / bin_size - 0.5;
+            
+            // calculate the index of the lower index cell (closest to (0,0)) that the pixel contributes to
+            int xCellIdx = (int) std::floor(xCellCoord);
+            int yCellIdx = (int) std::floor(yCellCoord);
+
+            if(xCellIdx < 0){
+                xCellIdx = 0;
+            }
+            if(yCellIdx < 0){
+                yCellIdx = 0;
+            }
+            
+            
+            // calculate the fractions that this pixel contributes to each cell
+            double fracLowerX = xCellCoord - xCellIdx;
+            double fracLowerY = yCellCoord - yCellIdx;
+            double fracUpperX = 1.0 - fracLowerX;
+            double fracUpperY = 1.0 - fracLowerY;
+            
+            float magnitude = magPtr[col * 2];
+
+            int orientationBin = binPtr[col];
+
+            // add the contributions of this pixel to the lower cell
+            if((xCellIdx  <= cellHeight) && (yCellIdx <= cellWidth)){
+                cells.at< cv::Vec<double, 32> >(xCellIdx + 0, 
+                                                yCellIdx + 0)[orientationBin] +=
+                    fracLowerX * fracLowerY * magnitude;
+            }
+                
+            if((xCellIdx + 1 <= cellHeight) && (yCellIdx <= cellWidth)){
+                cells.at< cv::Vec<double, 32> >(xCellIdx + 1, 
+                                                yCellIdx + 0)[orientationBin] 
+                    += fracUpperX * fracLowerY * magnitude;
+            }
+            if((xCellIdx <= cellHeight) && (yCellIdx + 1 <= cellWidth)){
+                cells.at< cv::Vec<double, 32> >(xCellIdx + 0, 
+                                                yCellIdx + 1)[orientationBin] 
+                    += fracLowerX * fracUpperY * magnitude;
+            }
+            if((xCellIdx + 1 <= cellHeight) && (yCellIdx + 1 <= cellWidth)){
+                cells.at< cv::Vec<double, 32> >(xCellIdx + 1, 
+                                                yCellIdx + 1)[orientationBin] 
+                    += fracUpperX * fracUpperY * magnitude;
+            }
+            
+        }
+    }
+    
+
     //We're done calculations, now lets visualize it.
     
     IplImage *out = cvCreateImage(cvSize(width, height), 
