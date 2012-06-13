@@ -41,7 +41,7 @@
     } @catch (NSException* ex) {
         NSRunCriticalAlertPanel([ex name],
                                 [ex reason] , @"Quit", nil, nil);
-        [NSApp terminate];
+        [NSApp terminate: self];
     }
 }
 
