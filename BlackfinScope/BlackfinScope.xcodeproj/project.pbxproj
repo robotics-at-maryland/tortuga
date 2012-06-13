@@ -152,7 +152,11 @@
 			isa = PBXProject;
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "BlackfinScope" */;
 			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* BlackfinScope */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -211,7 +215,6 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -228,7 +231,6 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -242,36 +244,23 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_C_LANGUAGE_STANDARD = c99;
+				ADDITIONAL_SDKS = "$(LOCAL_DEVELOPER_DIR)/IceTouch-1.2/SDKs/ObjC/$(PLATFORM_NAME).sdk";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "/opt/IceTouch-1.0/include";
-				LIBRARY_SEARCH_PATHS = "/opt/IceTouch-1.0/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = "-lIceObjC";
-				PREBINDING = NO;
-				SDKROOT = macosx10.5;
-				SLICE_ICE_HOME = "/opt/IceTouch-1.0";
-				SLICE_INCLUDE_PATH = "";
+				SDKROOT = macosx10.6;
 			};
 			name = Debug;
 		};
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "/opt/IceTouch-1.0/include";
-				LIBRARY_SEARCH_PATHS = "/opt/IceTouch-1.0/lib";
-				OTHER_LDFLAGS = "-lIceObjC";
-				PREBINDING = NO;
-				SDKROOT = macosx10.5;
-				SLICE_ICE_HOME = "/opt/IceTouch-1.0";
-				SLICE_INCLUDE_PATH = "";
+				ADDITIONAL_SDKS = "$(LOCAL_DEVELOPER_DIR)/IceTouch-1.2/SDKs/ObjC/$(PLATFORM_NAME).sdk";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = macosx10.6;
 			};
 			name = Release;
 		};
