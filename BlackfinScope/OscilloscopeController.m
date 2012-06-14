@@ -97,7 +97,7 @@
         // Look up the host name that the user picked.
         NSString* remoteHostName = [[[NSUserDefaultsController sharedUserDefaultsController] defaults] stringForKey:@"remoteHostName"];
         // Create a proxy object for the host picked by the user.
-        NSString* prxString = [NSString stringWithFormat:@"osc:tcp -h %@ -p 10000 -t 1", remoteHostName];
+        NSString* prxString = [NSString stringWithFormat:@"osc:tcp -h %@ -p 10000 -t 1000", remoteHostName];
         
         // Tell the DAQ about us, or present a new 'open connection' sheet
         // if that fails.
