@@ -53,6 +53,7 @@
 
     // Register default preference key-value pairs.
     NSDictionary* defaultPreferences = [NSDictionary dictionaryWithObject:@"192.168.10.19" forKey:@"remoteHostName"];
+    [[[NSUserDefaultsController sharedUserDefaultsController] defaults] registerDefaults:defaultPreferences];
 }
 
 - (void)didEndConnectionFailedSheet:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
