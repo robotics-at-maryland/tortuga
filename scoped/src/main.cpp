@@ -337,7 +337,7 @@ protected:
 #endif
                             } catch (const Ice::Exception& ex) {
                                 cerr << "Exception while calling NotifyCapture:" << endl;
-                                cerr << ex << endl;
+                                cerr << ex.what() << endl;
                             }
                         }
                     }
@@ -415,7 +415,7 @@ int main(int argc, char* argv[])
     try {
         
         Ice::ObjectAdapterPtr adapter = ic->createObjectAdapterWithEndpoints(
-            "scoped", "default -p 10000");
+            "scoped", "tcp -p 10000");
         
         IceUtil::Handle<OscilloscopeImpl> osc = new OscilloscopeImpl;
         adapter->add(osc, ic->stringToIdentity("osc"));
@@ -424,7 +424,7 @@ int main(int argc, char* argv[])
         ic->waitForShutdown();
         
     } catch (const Ice::Exception& e) {
-        cerr << e << endl;
+        cerr << e.what() << endl;
         status = 1;
     } catch (const std::string& msg) {
         cerr << msg << endl;

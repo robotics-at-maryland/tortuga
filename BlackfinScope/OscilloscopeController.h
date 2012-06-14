@@ -11,17 +11,30 @@
 #import "OscilloscopeView.h"
 
 
-@interface OscilloscopeController : ramsonarscopeViewer <ramsonarscopeViewer> {
+@interface OscilloscopeController : ramsonarscopeViewer <ramsonarscopeViewer, NSApplicationDelegate> {
 
     id<ICECommunicator> communicator;
     id<ICEObjectAdapter> adapter;
     id<ramsonarscopeOscilloscopePrx> oscPrx;
+    id<ramsonarscopeViewerPrx> selfPrx;
     
     IBOutlet NSSegmentedControl* triggerModeControl;
     IBOutlet NSProgressIndicator* triggerProgressIndicator;
     IBOutlet OscilloscopeView* view;
+    IBOutlet NSWindow* window;
+    IBOutlet NSWindow* connectWindow;
     
 }
+
+- (void)crashWithException:(NSException *)ex;
+- (void)didEndCrashSheet:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
+
+- (void)beginConnectionSheet;
+- (void)didEndConnectionFailedSheet:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
+- (IBAction)openConnection: (id)sender;
+- (IBAction)cancelConnection: (id)sender;
+- (void)didEndConnectSheet:(NSWindow *)sheet returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo;
+
 - (void) NotifyCapture:(ICECurrent *)current;
 - (IBAction)scopeModeChanged: (id)sender;
 - (IBAction)triggerLevelChanged: (id)sender;
