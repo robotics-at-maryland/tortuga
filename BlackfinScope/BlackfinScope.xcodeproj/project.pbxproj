@@ -11,6 +11,7 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		A4476179158A5BF8006318AF /* app.icns in Resources */ = {isa = PBXBuildFile; fileRef = A4476178158A5BF8006318AF /* app.icns */; };
 		A452237F101E0FDE006EAAC8 /* scope.ice in Sources */ = {isa = PBXBuildFile; fileRef = A452237E101E0FDE006EAAC8 /* scope.ice */; };
 		A4F23162101E32F100A64BF1 /* OscilloscopeView.m in Sources */ = {isa = PBXBuildFile; fileRef = A4F23161101E32F100A64BF1 /* OscilloscopeView.m */; };
 		A4F2318C101E3D4200A64BF1 /* OscilloscopeController.m in Sources */ = {isa = PBXBuildFile; fileRef = A4F2318B101E3D4200A64BF1 /* OscilloscopeController.m */; };
@@ -27,6 +28,7 @@
 		32CA4F630368D1EE00C91783 /* BlackfinScope_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlackfinScope_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* BlackfinScope.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BlackfinScope.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4476178158A5BF8006318AF /* app.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = app.icns; sourceTree = "<group>"; };
 		A452237E101E0FDE006EAAC8 /* scope.ice */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.slice; path = scope.ice; sourceTree = "<group>"; };
 		A4F23160101E32F100A64BF1 /* OscilloscopeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscilloscopeView.h; sourceTree = "<group>"; };
 		A4F23161101E32F100A64BF1 /* OscilloscopeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OscilloscopeView.m; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A4476178158A5BF8006318AF /* app.icns */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
@@ -173,6 +176,7 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
+				A4476179158A5BF8006318AF /* app.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
