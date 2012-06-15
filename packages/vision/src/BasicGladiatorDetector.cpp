@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2010 Robotics at Maryland
- * Copyright (C) 2010 Jonathan Sternberg
+ * Copyright (C) 2012 Robotics at Maryland
+ * Copyright (C) 2012 Gary Sullivan
  * All rights reserved.
  *
- * Author: Jonathan Sternberg <jsternbe@umd.edu>
+ * Author: Gary Sullivan <gsulliva@umd.edu>
  * File:  packages/vision/src/BasicGladiatorDetector.cpp
  */
 
@@ -22,34 +22,34 @@ namespace vision {
 
 
 double BasicGladiatorDetector::RELATIVE_SYMBOL_WIDTH_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] =
-{0.651, 0.566, 0.656, 0.514};
+{0.615, 0.621, 0.626, 0.441};
 double BasicGladiatorDetector::RELATIVE_SYMBOL_WIDTH_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.078, 0.085, 0.059, 0.067};
+{0.049, 0.033, 0.035, 0.099};
 
 double BasicGladiatorDetector::RELATIVE_SYMBOL_HEIGHT_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.447, 0.301, 0.411, 0.307};
+{0.598, 0.579, 0.665, 0.581};
 double BasicGladiatorDetector::RELATIVE_SYMBOL_HEIGHT_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.054, 0.013, 0.013, 0.035};
+{0.054, 0.015, 0.039, 0.117};
 
 double BasicGladiatorDetector::PIXEL_PERCENTAGE_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.122, 0.090, 0.1348, 0.0935};
+{0.235, 0.293, 0.0831, 0.0515};
 double BasicGladiatorDetector::PIXEL_PERCENTAGE_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.018, 0.014, 0.0145, 0.0145};
+{0.054, 0.025, 0.0077, 0.0124};
 
 double BasicGladiatorDetector::CENTER_PIXEL_PERCENTAGE_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] =
-{240, 245, 0, 4.7};
+{211, 212, 199, 90};
 double BasicGladiatorDetector::CENTER_PIXEL_PERCENTAGE_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] =
-{51, 42, 10, 29};
+{30, 12, 10, 40};
 
 double BasicGladiatorDetector::UPPER_DIAGONAL_PIXEL_PERCENTAGE_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.122, 0.090, 0.1348, 0.0935};
+{176, 228, 98, 35};
 double BasicGladiatorDetector::UPPER_DIAGONAL_PIXEL_PERCENTAGE_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.018, 0.014, 0.0145, 0.0145};
+{23, 5, 6, 19};
 
 double BasicGladiatorDetector::LOWER_DIAGONAL_PIXEL_PERCENTAGE_MEAN[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.122, 0.090, 0.1348, 0.0935};
+{164, 208, 8, 76};
 double BasicGladiatorDetector::LOWER_DIAGONAL_PIXEL_PERCENTAGE_STDEV[GLADIATOR_BASIC_SYMBOL_COUNT] = 
-{0.018, 0.014, 0.0145, 0.0145};
+{27, 17, 2, 11};
 
 BasicGladiatorDetector::BasicGladiatorDetector(core::ConfigNode config,
                                          core::EventHubPtr eventHub) :

@@ -245,8 +245,9 @@ int main(int argc, char *argv[])
         }
     }
 
-
+    
     // Part 3: Spatial Aggregation
+
     
     int bin_size = 8;
     
@@ -259,7 +260,6 @@ int main(int argc, char *argv[])
     cv::Mat cells = cv::Mat(cellHeight, cellWidth, cv::DataType< 
                             cv::Vec<double, 32> >::type);
 
-    //INSERT FOR LOOP HERE
     for(int row = 0; row < image.rows; row++)
     {
         unsigned char* binPtr = bins.ptr<unsigned char>(row);
@@ -323,6 +323,8 @@ int main(int argc, char *argv[])
     
 
     //We're done calculations, now lets visualize it.
+    // NOTE: This is only for part 2, I can't think of a good way to 
+    //       visualize part 3 yet
     
     IplImage *out = cvCreateImage(cvSize(width, height), 
                                   IPL_DEPTH_8U, 3);

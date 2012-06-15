@@ -31,7 +31,7 @@ class Start(state.State):
 
     @staticmethod
     def getattr():
-        return { 'diveRate' : 1 , 'speed' : 1 }
+        return { 'diveRate' : 0.3 , 'speed' : 0.3 }
 
     def enter(self):
         self.visionSystem.buoyDetectorOn()
@@ -103,7 +103,7 @@ class Strafe(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 2 , 'speed' : 1 }
+        return { 'distance' : 2 , 'speed' : 0.3 }
 
     def enter(self):
         self.STEPNUM = 0
@@ -159,41 +159,41 @@ class Align(state.State):
 
     @staticmethod
     def getattr():
-        return { 'speed' : 1 }
+        return { 'speed' : 0.3 }
 
     def enter(self):
         if( len(self.ai.data['buoyList']) == 0 ):
             print('All buoys hit')
             self.publish(Align.NONE_LEFT, core.Event())
+            return
         
-        else:
-            color = self.ai.data['buoyList'].pop(0).lower()
-            #print('Aligning with ' + color + ' buoy')
-            self.ai.data['buoyColor'] = color;
-            count = 0
-            x_total = 0
-            y_total = 0
-            for pos in self.ai.data['buoyData'][color]:
-                count += 1
-                x_total += pos.x
-                y_total += pos.y
+        color = self.ai.data['buoyList'].pop(0).lower()
+        #print('Aligning with ' + color + ' buoy')
+        self.ai.data['buoyColor'] = color;
+        count = 0
+        x_total = 0
+        y_total = 0
+        for pos in self.ai.data['buoyData'][color]:
+            count += 1
+            x_total += pos.x
+            y_total += pos.y
+            
+        x_avg = x_total / count;
+        y_avg = y_total / count;
+            
+        #print(str(count) + ' entries in data')
+        #print('X Average: ' + str(x_avg))
+        #print('Y Average: ' + str(y_avg))
 
-            x_avg = x_total / count;
-            y_avg = y_total / count;
-
-            #print(str(count) + ' entries in data')
-            #print('X Average: ' + str(x_avg))
-            #print('Y Average: ' + str(y_avg))
-
-            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-                initialValue = self.stateEstimator.getEstimatedPosition(),
-                finalValue = math.Vector2(x_avg, y_avg),
-                initialRate = self.stateEstimator.getEstimatedVelocity(),
-                avgRate = self._speed)
-            translateMotion = motion.basic.Translate(
-                trajectory = translateTrajectory,
-                frame = Frame.GLOBAL)
-
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedPosition(),
+            finalValue = math.Vector2(x_avg, y_avg),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.GLOBAL)
+        
         self.motionManager.setMotion(translateMotion)
 
 
@@ -216,7 +216,7 @@ class Center(state.State):
 
     @staticmethod
     def getattr():
-        return { 'speed' : 0.5 , 'diveRate' : 0.25 , 'distance' : 10 ,
+        return { 'speed' : 0.2 , 'diveRate' : 0.2 , 'distance' : 10 ,
                  'xmin' : -0.05 , 'xmax' : 0.05 , 
                  'ymin' : -0.05 , 'ymax' : 0.05 }
 
@@ -273,7 +273,7 @@ class Center(state.State):
             print("Buoy Y: " + str(event.y))
             if(event.y <= self._ymin):
                 print("Moving down to compensate")
-                self.dive(self.distance)
+                self.dive(self._distance)
             elif(event.y >= self._ymax):
                 print("Moving up to compensate")
                 self.dive(-self._distance)
@@ -299,7 +299,7 @@ class Attack(state.State):
         
     @staticmethod
     def getattr():
-        return { 'speed' : 1 , 'distance' : 1 , 
+        return { 'speed' : 0.3 , 'distance' : 1 , 
                  'correct_factor' : 2 , 'update_delay' : 2}
 
     def enter(self):
@@ -310,7 +310,6 @@ class Attack(state.State):
 
     def update(self):
         
-        print('Its update time!')
         print('Buoy X: ' + str(self.X))
         print('Buoy Y: ' + str(self.Y))
         print('Range: ' + str(self.RANGE))
@@ -359,12 +358,12 @@ class Hit(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 0.5 , 'speed' : 1 }
+        return { 'distance' : 2 , 'speed' : 0.3 }
 
     def enter(self):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
-            finalValue = math.Vector2(self._distance, 0),
+            finalValue = math.Vector2(-self._distance, 0),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
         translateMotion = motion.basic.Translate(

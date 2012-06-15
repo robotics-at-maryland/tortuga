@@ -136,8 +136,8 @@ void FANNGladiatorDetector::getImageFeatures(Image* inputImage, float *features)
 
     double centerAvg = pixelAverageCh1;
 
-    int croppedWidth = m_croppedFrame->getWidth();
-    int croppedHeight = m_croppedFrame->getHeight();
+    int croppedWidth = m_croppedFrame->getWidth()-1;
+    int croppedHeight = m_croppedFrame->getHeight()-1;
 
     Image::getAveragePixelValues(m_croppedFrame, 0, 0, croppedWidth/2, 
                                  croppedHeight/2, pixelAverageCh1,
