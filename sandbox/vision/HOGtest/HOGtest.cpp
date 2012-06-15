@@ -150,8 +150,8 @@ int main(int argc, char *argv[])
 
         for(int col = 0; col < image.cols; col++)
         {
-            int x = dxRowPtr[col * 2];
-            int y = dxRowPtr[col * 2 + 1];
+            float x = dxRowPtr[col * 2];
+            float y = dxRowPtr[col * 2 + 1];
             float ratio = 0;
             if(x == 0 && y > 0){
                 ratio = 100;
@@ -172,16 +172,16 @@ int main(int argc, char *argv[])
                         rowPtr[col] = 0;
                     }
                     else if(ratio < BOUNDARY17){
-                        rowPtr[col] = 17;
+                        rowPtr[col] = 1;
                     }
                     else if(ratio < BOUNDARY16){
-                        rowPtr[col] = 16;
+                        rowPtr[col] = 2;
                     }
                     else if(ratio < BOUNDARY15){
-                        rowPtr[col] = 15;
+                        rowPtr[col] = 3;
                     }
                     else{
-                        rowPtr[col] = 14;
+                        rowPtr[col] = 4;
                     }
                 }
                 else{
@@ -190,16 +190,16 @@ int main(int argc, char *argv[])
                         rowPtr[col] = 0;
                     }
                     else if(ratio > BOUNDARY2){
-                        rowPtr[col] = 1;
+                        rowPtr[col] = 17;
                     }
                     else if(ratio > BOUNDARY3){
-                        rowPtr[col] = 2;
+                        rowPtr[col] = 16;
                     }
                     else if(ratio > BOUNDARY4){
-                        rowPtr[col] = 3;
+                        rowPtr[col] = 15;
                     }
                     else{
-                        rowPtr[col] = 4;
+                        rowPtr[col] = 14;
                     }
                 }
             }
@@ -207,37 +207,37 @@ int main(int argc, char *argv[])
                 if(y>=0){
                     //Quadrant 2
                     if(ratio > BOUNDARY10){
-                        rowPtr[col] = 9;
+                        rowPtr[col] = 5;
                     }
                     else if(ratio > BOUNDARY11){
-                        rowPtr[col] = 10;
+                        rowPtr[col] = 6;
                     }
                     else if(ratio > BOUNDARY12){
-                        rowPtr[col] = 11;
+                        rowPtr[col] = 7;
                     }
                     else if(ratio > BOUNDARY13){
-                        rowPtr[col] = 12;
+                        rowPtr[col] = 8;
                     }
                     else{
-                        rowPtr[col] = 13;
+                        rowPtr[col] = 9;
                     }
                 }
                 else{
                     //Quadrant 3
                     if(ratio < BOUNDARY9){
-                        rowPtr[col] = 9;
+                        rowPtr[col] = 10;
                     }
                     else if(ratio < BOUNDARY8){
-                        rowPtr[col] = 8;
+                        rowPtr[col] = 11;
                     }
                     else if(ratio < BOUNDARY7){
-                        rowPtr[col] = 7;
+                        rowPtr[col] = 12;
                     }
                     else if(ratio < BOUNDARY6){
-                        rowPtr[col] = 6;
+                        rowPtr[col] = 13;
                     }
                     else{
-                        rowPtr[col] = 5;
+                        rowPtr[col] = 14;
                     }
 
                 }
@@ -260,14 +260,12 @@ int main(int argc, char *argv[])
     cv::Mat cells = cv::Mat(cellHeight, cellWidth, cv::DataType< 
                             cv::Vec<double, 32> >::type);
 
-    for(int row = 0; row < image.rows; row++)
-    {
+    for(int row = 0; row < image.rows; row++) {
         unsigned char* binPtr = bins.ptr<unsigned char>(row);
         
         float* magPtr = mag_ang.ptr<float>(row);
 
-        for(int col = 0; col < image.cols; col++)
-        {
+        for(int col = 0; col < image.cols; col++){
     
             // calculate the location of where the pixel falls in cell space
             double xCellCoord = (col + 0.5) / bin_size - 0.5;
@@ -321,124 +319,101 @@ int main(int argc, char *argv[])
         }
     }
     
+    
+    // // Part 4
 
+    // cv::Mat cellEnergy(cellHeight, cellWidth, CV_32SC1);
+    
+    // for(int row = 0; row < cellHeight; row++) {
+        
+    //     int* cellEnergyPtr = cellEnergy.ptr<int>(row);
+        
+    //     for(int col = 0; col < cellWidth; col++) {
+            
+    //         cv::Vec<double, 32> &thisCell = 
+    //             cells.at< cv::Vec<double, 32> >(col, row);
+
+    //         // Compute undirected magnitudes
+    //         thisCell[18] = thisCell[0] + thisCell[9];
+    //         thisCell[19] = thisCell[1] + thisCell[10];
+    //         thisCell[20] = thisCell[2] + thisCell[11];
+    //         thisCell[21] = thisCell[3] + thisCell[12];
+    //         thisCell[22] = thisCell[4] + thisCell[13];
+    //         thisCell[23] = thisCell[5] + thisCell[14];
+    //         thisCell[24] = thisCell[6] + thisCell[15];
+    //         thisCell[25] = thisCell[7] + thisCell[16];
+    //         thisCell[26] = thisCell[8] + thisCell[17];
+    //         thisCell[27] = 0;
+    //         thisCell[28] = 0;
+    //         thisCell[29] = 0;
+    //         thisCell[30] = 0;
+    //         thisCell[31] = 0;
+
+    //         // Compute energy of each cell
+    //         cellEnergyPtr[col] = thisCell[18] * thisCell[18] + 
+    //             thisCell[19] * thisCell[19] + thisCell[20] * thisCell[20] +
+    //             thisCell[21] * thisCell[21] + thisCell[22] * thisCell[22] +
+    //             thisCell[23] * thisCell[23] + thisCell[24] * thisCell[24] +
+    //             thisCell[25] * thisCell[25] + thisCell[26] * thisCell[26];
+                
+            
+    //     }
+    // }    
+
+    // cv::Mat blockEnergy(cellHeight-1, cellWidth-1, CV_32SC1);
+
+    // for(int row = 0; row < cellHeight-1; row++) {
+        
+    //     int* cellEnergyPtr = cellEnergy.ptr<int>(row);
+    //     int* cellEnergyP1Ptr = cellEnergy.ptr<int>(row+1);
+
+    //     int* blockEnergyPtr = blockEnergy.ptr<int>(row);
+        
+    //     for(int col = 0; col < cellWidth-1; col++) {
+
+    //         // Compute block energy
+    //         blockEnergyPtr[col] = cellEnergyPtr[col] + cellEnergyPtr[col+1] +
+    //             cellEnergyP1Ptr[col] + cellEnergyP1Ptr[col+1];
+    //     }
+    // }
+
+    // //Compute a normalized feature vector
+    // cv::Mat featureVector = cv::Mat(cellHeight, cellWidth, cv::DataType< 
+    //                         cv::Vec<double, 32> >::type);
+
+    // for(int row = 0; row < cellHeight; row++) {
+       
+    //     if(row != 0 && row != cellHeight-1){
+    //         int* cellEnergyPtr = cellEnergy.ptr<int>(row);
+    //         int* cellEnergyP1Ptr = cellEnergy.ptr<int>(row+1);
+            
+    //         int* blockEnergyPtr = blockEnergy.ptr<int>(row);
+    //         int* blockEnergyM1Ptr = blockEnergy.ptr<int>(row-1);
+
+            
+    //         for(int col = 0; col < cellWidth; col++) {
+    //             if(col != 0 && col != cellWidth-1){
+    //                 int norm3 = blockEnergyM1Ptr[col - 1];
+    //                 int norm1 = blockEnergyM1Ptr[col];
+    //                 int norm2 = blockEnergyPtr[x - 1];
+    //                 int norm0 = blockEnergyPtr[x];
+
+    //                 cv::Vec<double, 32> &thisCell = 
+    //                     cells.at< cv::Vec<double, 32> >(col, row);
+
+    //             }
+    //         }
+    //     }
+    // }
+            
     //We're done calculations, now lets visualize it.
     // NOTE: This is only for part 2, I can't think of a good way to 
     //       visualize part 3 yet
-    
-    IplImage *out = cvCreateImage(cvSize(width, height), 
-                                  IPL_DEPTH_8U, 3);
-    
-    for(int i=0; i<height; i++){
-        for(int p=0; p<width; p++){
-            switch(bins.at<unsigned char>(i,p)){
-            case 0:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 1:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 2:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 3:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 4:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 5:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 6:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 7:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 8:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            case 9:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 255;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 10:
-                out->imageData[(i*width+p)*3 + 0] = 127;
-                out->imageData[(i*width+p)*3 + 1] = 255;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            case 11:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 12:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 127;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            case 13:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 255;
-                out->imageData[(i*width+p)*3 + 2] = 127;
-                break;
-            case 14:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 255;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            case 15:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            case 16:
-                out->imageData[(i*width+p)*3 + 0] = 0;
-                out->imageData[(i*width+p)*3 + 1] = 255;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 17:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 0;
-                break;
-            case 18:
-                out->imageData[(i*width+p)*3 + 0] = 255;
-                out->imageData[(i*width+p)*3 + 1] = 0;
-                out->imageData[(i*width+p)*3 + 2] = 255;
-                break;
-            }
-        }
-    }
+
+    bins = bins * 15;
+
     // show the window
-    cvNamedWindow("output", CV_WINDOW_AUTOSIZE);
-    cvShowImage("output", out);
-    //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
-    //cvShowImage("image", image);
-    cvWaitKey(0);
-    cvDestroyWindow("output");
-    cvReleaseImage(&out);
-    //cvDestroyWindow("image");
-    //cvReleaseImage(&image);
+    cv::imshow("output", bins);
+    cv::waitKey(0);
     
 }
