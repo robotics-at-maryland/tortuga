@@ -1,8 +1,8 @@
-# Copyright (C) 2011 Maryland Robotics Club
-# Copyright (C) 2011 Gary Sullivan <gsulliva@umd.edu>
+# Copyright (C) 2012 Maryland Robotics Club
+# Copyright (C) 2012 Stephen Christian <schrist2@umd.edu>
 # All rights reserved.
 #
-# Author: Gary Sullivan <gsulliva@umd.edu>
+# Author: Stephen Christian <schrist2@terpmail.umd.edu>
 # File:  packages/python/ram/ai/buoy.py
 
 # Standard imports
@@ -23,32 +23,15 @@ from ram.motion.basic import Frame
 
 COMPLETE = core.declareEventType('COMPLETE')
 
-def getObstacleType(buoy):
-    buoy = pstring.lower(buoy)
-    if buoy == 'red':
-        return estimation.Obstacle.ObstacleType.RED_BUOY
-    elif buoy == 'yellow':
-        return estimation.Obstacle.ObstacleType.YELLOW_BUOY
-    elif buoy == 'green':
-        return estimation.Obstacle.ObstacleType.GREEN_BUOY
-    else:
-        raise LookupError("buoy name '%s' is not a recognized Obtacle type %" % buoy)
-
 class Start(state.State):
-    """
-    Calculates and moves to a starting position and orientation
-    specified by configuration values, and starts the detector.
-    """
-    
-    GOOD_VISION = core.declareEventType('GOOD_VISION')
 
     @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { Start.GOOD_VISION : Identification }
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Search }
 
     @staticmethod
     def getattr():
-        return {'diveRate' : 0.3, 'speed' : 0.15, 'delay' : 15}
+        return { 'diveRate' : 1 , 'speed' : 1 }
 
     def enter(self):
         self.visionSystem.buoyDetectorOn()
@@ -61,10 +44,10 @@ class Start(state.State):
             raise LookupError, "buoyX, buoyY or buoyDepth not specified"
 
         self._orientation = self.ai.data['buoyOrientation']
-
-
-        self._timer = self.timerManager.newTimer(Start.GOOD_VISION, self._delay)
-        self._timer.start()
+        self.ai.data['buoyData'] = {}
+        self.ai.data['buoyData']['red'] = []
+        self.ai.data['buoyData']['yellow'] = []
+        self.ai.data['buoyData']['green'] = []
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -72,6 +55,7 @@ class Start(state.State):
             finalValue = buoyDepth,
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._diveRate)
+        
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
@@ -79,6 +63,7 @@ class Start(state.State):
                 math.Degree(self._orientation), math.Vector3.UNIT_Z),
             initialRate = self.stateEstimator.getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
+
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = self.stateEstimator.getEstimatedPosition(),
             finalValue = math.Vector2(buoyX,buoyY),
@@ -86,8 +71,7 @@ class Start(state.State):
             avgRate = self._speed)
 
         # Dive yaw and translate
-        diveMotion = motion.basic.ChangeDepth(
-            trajectory = diveTrajectory)
+        diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
         yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         translateMotion = ram.motion.basic.Translate(translateTrajectory,
                                                      frame = Frame.GLOBAL)
@@ -95,274 +79,301 @@ class Start(state.State):
         self.motionManager.setMotion(diveMotion, yawMotion, translateMotion)
 
     def exit(self):
-        if self._timer is not None:
-            self._timer.stop()
         self.motionManager.stopCurrentMotion()
 
-class Identification(state.State):
-    """
-    Moves in front of the leftmost Buoy. Holds orientation.
-    """
-    @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { motion.basic.MotionManager.FINISHED : Identification2 }
+
+class Search(state.ZigZag):
 
     @staticmethod
-    def getattr():
-        return {'distance' : 3, 'diveRate' : 0.3, 'speed' : 0.15}
+    def transitions():
+        return { vision.EventType.BUOY_FOUND : Strafe , 
+                 state.ZigZag.DONE : End }
 
-    def enter(self):
-        self._orientation = self.ai.data['buoyOrientation']
 
-        # Compute where we want to be
-        xOffset = -self._distance * pmath.sin(self._orientation)
-        yOffset = self._distance * pmath.cos(self._orientation)
-        
-        leftmostBuoy = self.ai.data['buoyOrder'][0]
+class Strafe(state.State):
 
-        buoyObstacle = getObstacleType(leftmostBuoy)
-        
-        buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
-
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
-
-        # Compute trajectories
-        #diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-        #    initialValue = self.stateEstimator.getEstimatedDepth(),
-        #    finalValue = buoyLocation.z,
-        #    initialRate = self.stateEstimator.getEstimatedDepthRate(),
-        #    avgRate = self._diveRate)
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = math.Vector2.ZERO, #self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(0,-1),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._speed)
-
-        # Dive and translate
-        #diveMotion = motion.basic.ChangeDepth(
-        #    trajectory = diveTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.LOCAL)
-        
-        #self.motionManager.setMotion(diveMotion, translateMotion)
-        self.motionManager.setMotion(translateMotion)
-        
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
-
-class Identification2(state.State):
-    """
-    Moves in front of the rightmost Buoy. Holds orientation.
-    """
-    @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { motion.basic.MotionManager.FINISHED : Approach }
-
-    @staticmethod
-    def getattr():
-        return {'distance' : 3, 'diveRate' : 0.3, 'speed' : 0.15}
-
-    def enter(self):
-        self._orientation = self.ai.data['buoyOrientation']
-
-        # Compute where we want to be
-        xOffset = -self._distance * pmath.sin(self._orientation)
-        yOffset = self._distance * pmath.cos(self._orientation)
-        
-        rightmostBuoy = self.ai.data['buoyOrder'][-1]
-
-        buoyObstacle = getObstacleType(rightmostBuoy)
-        
-        buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
-
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
-
-        # Compute trajectories
-        #diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-        #    initialValue = self.stateEstimator.getEstimatedDepth(),
-        #    finalValue = buoyLocation.z,
-        #    initialRate = self.stateEstimator.getEstimatedDepthRate(),
-        #    avgRate = self._diveRate)
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = math.Vector2.ZERO, #self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(0, 2),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._speed)
-
-        # Dive and translate
-        #diveMotion = motion.basic.ChangeDepth(
-        #    trajectory = diveTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.LOCAL)
-        
-        #self.motionManager.setMotion(diveMotion, translateMotion)
-        self.motionManager.setMotion(translateMotion)
-
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
-
-class Approach(state.State):
-    """
-    Moves in front of the Buoy we want to hit, to a close position.
-    """
-    @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { motion.basic.MotionManager.FINISHED : Hit }
-
-    @staticmethod
-    def getattr():
-        return {'distance' : 2, 'diveRate' : 0.3, 'speed' : 0.15}
-
-    def enter(self):
-        self._orientation = self.ai.data['buoyOrientation']
-
-        # Compute where we want to be
-        xOffset = -self._distance * pmath.sin(self._orientation)
-        yOffset = self._distance * pmath.cos(self._orientation)
-        
-        buoy = self.ai.data['buoyList'][0]
-
-        buoyObstacle = getObstacleType(buoy)
-        
-        buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
-
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
-
-        # Compute trajectories
-        # diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-        #     initialValue = self.stateEstimator.getEstimatedDepth(),
-        #     finalValue = buoyLocation.z,
-        #     initialRate = self.stateEstimator.getEstimatedDepthRate(),
-        #     avgRate = self._diveRate)
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(xDesired, yDesired),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._speed)
-
-        # Dive and translate
-        # diveMotion = motion.basic.ChangeDepth(
-        #     trajectory = diveTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.GLOBAL)
-        
-        #self.motionManager.setMotion(diveMotion, translateMotion)
-        self.motionManager.setMotion(translateMotion)
-
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
-
-class Hit(state.State):
-    """
-    Moves in front of the Buoy we want to hit, to a close position.
-    """
-    
     DONE = core.declareEventType('DONE')
-    NOT_DONE = core.declareEventType('NOT_DONE')
+    STEPNUM = 0
 
     @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { Hit.DONE : End,
-                 Hit.NOT_DONE : Approach,
-                 motion.basic.MotionManager.FINISHED : Hit }
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Strafe ,
+                 vision.EventType.BUOY_FOUND : Strafe ,
+                 Strafe.DONE : Align }
 
     @staticmethod
     def getattr():
-        return {'diveRate' : 0.3, 'speed' : 0.15}
+        return { 'distance' : 2 , 'speed' : 1 }
 
     def enter(self):
-        self._orientation = self.ai.data['buoyOrientation']
+        self.STEPNUM = 0
+        self.nextStep()
 
-        buoy = self.ai.data['buoyList'].pop(0)
-
-        buoyObstacle = getObstacleType(buoy)
-        
-        buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
-
-        # Compute trajectories
-        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = buoyLocation.z,
-            initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._diveRate)
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(buoyLocation.y, buoyLocation.x),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._speed)
-
-        # Dive and translate
-        diveMotion = motion.basic.ChangeDepth(
-            trajectory = diveTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.GLOBAL)
-        
-        self.motionManager.setMotion(diveMotion, translateMotion)
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
 
     def FINISHED(self, event):
-        if len(self.ai.data['buoyList']) > 0:
-            self.publish(Hit.NOT_DONE, core.Event())
-        else:
-            self.publish(Hit.DONE, core.Event())
+        self.nextStep()
 
-    def exit(self):
-        self.motionManager.stopCurrentMotion()
+    def BUOY_FOUND(self, event):
+        color = str(event.color).lower()
+        self.ai.data['buoyData'][color].append(
+            self.stateEstimator.getEstimatedPosition())
 
-class Leave(state.State):
-    """
-    Backs away and moves upward
-    """
+    def move(self, distance):
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(0, distance),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+
+    def nextStep(self):
+        #print("Step #: " + str(self.STEPNUM))
+        if ( self.STEPNUM == 0 or self.STEPNUM == 2 ):
+            self.move(self._distance)
+
+        elif ( self.STEPNUM == 1 ):
+            self.move(-2 * self._distance)
+
+        else: 
+            self.publish(Strafe.DONE, core.Event())
+
+        self.STEPNUM += 1
+        
+        
+class Align(state.State):
+
+    NONE_LEFT = core.declareEventType('NONE_LEFT')
+    ALIGNED = core.declareEventType('ALIGNED')
+
     @staticmethod
-    def transitions(foundState = None, lostState = None):
-        return { Hit.DONE : End,
-                 Hit.NOT_DONE : Approach,
-                 motion.basic.MotionManager.FINISHED : Hit }
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Align ,
+                 Align.NONE_LEFT : End , 
+                 Align.ALIGNED : Center} 
 
     @staticmethod
     def getattr():
-        return {'distance' : 2, 'diveRate' : 0.3, 'depth' : 6, 
-                'speed' : 0.15}
+        return { 'speed' : 1 }
 
     def enter(self):
-        self._orientation = self.ai.data['buoyOrientation']
-
-        # Compute where we want to be
-        xOffset = -self._distance * pmath.sin(self._orientation)
-        yOffset = self._distance * pmath.cos(self._orientation)
+        if( len(self.ai.data['buoyList']) == 0 ):
+            print('All buoys hit')
+            self.publish(Align.NONE_LEFT, core.Event())
         
-        centerBuoy = self.ai.data['buoyList'][1]
+        else:
+            color = self.ai.data['buoyList'].pop(0).lower()
+            #print('Aligning with ' + color + ' buoy')
+            self.ai.data['buoyColor'] = color;
+            count = 0
+            x_total = 0
+            y_total = 0
+            for pos in self.ai.data['buoyData'][color]:
+                count += 1
+                x_total += pos.x
+                y_total += pos.y
 
-        buoyObstacle = getObstacleType(centerBuoy)
-        
-        buoyLocation = self.stateEstimator.getObstacleLocation(buoyObstacle)
+            x_avg = x_total / count;
+            y_avg = y_total / count;
 
-        xDesired = buoyLocation.x + xOffset
-        yDesired = buoyLocation.y + yOffset
+            #print(str(count) + ' entries in data')
+            #print('X Average: ' + str(x_avg))
+            #print('Y Average: ' + str(y_avg))
 
-        # Compute trajectories
-        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedDepth(),
-            finalValue = self._depth,
-            initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._diveRate)
+            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = self.stateEstimator.getEstimatedPosition(),
+                finalValue = math.Vector2(x_avg, y_avg),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = self._speed)
+            translateMotion = motion.basic.Translate(
+                trajectory = translateTrajectory,
+                frame = Frame.GLOBAL)
+
+        self.motionManager.setMotion(translateMotion)
+
+
+    def FINISHED(self, event):
+        self.publish(Align.ALIGNED, core.Event())
+
+
+class Center(state.State):
+    
+    CENTERED = core.declareEventType('CENTERED')
+    TIMEOUT = core.declareEventType('TIMEOUT')
+
+    STEPNUM = 0
+
+    @staticmethod
+    def transitions():
+        return { vision.EventType.BUOY_FOUND : Center ,
+                 Center.CENTERED : Attack , 
+                 Center.TIMEOUT : Hit }
+
+    @staticmethod
+    def getattr():
+        return { 'speed' : 0.5 , 'diveRate' : 0.25 , 'distance' : 10 ,
+                 'xmin' : -0.05 , 'xmax' : 0.05 , 
+                 'ymin' : -0.05 , 'ymax' : 0.05 }
+
+    def move(self, distance):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(xDesired, yDesired),
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(0, distance),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
-        self._orientation = self.ai.data['buoyOrientation']
-        centerBuoy = self.ai.data['buoyOrder'][1]
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
 
-        buoyObstacle = getObstacleType(centerBuoy)
+        self.motionManager.setMotion(translateMotion)
+
+    def dive(self, distance):
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self.stateEstimator.getEstimatedDepth() + distance,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._diveRate)
+        diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
+
+        self.motionManager.setMotion(diveMotion)
+
+    def enter(self):
+        self.STEPNUM = 0
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+    def BUOY_FOUND(self, event):
+        if(str(event.color).lower() != self.ai.data['buoyColor']):
+            return
+
+        if(self.STEPNUM == 0):
+            print("Buoy X: " + str(event.x))
+            if(event.x <= self._xmin):
+                print("Moving left to compensate")
+                self.move(-self._distance)
+            elif(event.x >= self._xmax):
+                print("Moving right to compensate")
+                self.move(self._distance)
+
+            self.STEPNUM += 1
+        
+        elif(self.STEPNUM == 1):
+            if(event.x > self._xmin and event.x < self._xmax):
+                print("X Axis Aligned")
+                self.motionManager.stopCurrentMotion()
+                self.STEPNUM += 1
+
+        elif(self.STEPNUM == 2):
+            print("Buoy Y: " + str(event.y))
+            if(event.y <= self._ymin):
+                print("Moving down to compensate")
+                self.dive(self.distance)
+            elif(event.y >= self._ymax):
+                print("Moving up to compensate")
+                self.dive(-self._distance)
+
+            self.STEPNUM += 1
+
+        elif(self.STEPNUM == 3):
+            if(event.y > self._ymin and event.y < self._ymax):
+                print("Y Axis Aligned, All Done")
+                self.motionManager.stopCurrentMotion()
+                self.publish(Center.CENTERED, core.Event())
+
+
+class Attack(state.State):
+
+    DONE = core.declareEventType('DONE')
+
+    @staticmethod
+    def transitions():
+        return { Attack.DONE : Hit ,
+                 vision.EventType.BUOY_FOUND : Attack ,
+                 motion.basic.MotionManager.FINISHED : Attack }
+        
+    @staticmethod
+    def getattr():
+        return { 'speed' : 1 , 'distance' : 1 , 
+                 'correct_factor' : 2 , 'update_delay' : 2}
+
+    def enter(self):
+        self.X = 0
+        self.Y = 0
+        self.RANGE = -1
+        self.PREV_RANGE = -1
+
+    def update(self):
+        
+        print('Its update time!')
+        print('Buoy X: ' + str(self.X))
+        print('Buoy Y: ' + str(self.Y))
+        print('Range: ' + str(self.RANGE))
+        print('Previous Range: ' + str(self.PREV_RANGE))
+
+        if(self.PREV_RANGE == self.RANGE):
+            self.publish(Attack.DONE, core.Event())
+
+        else:
+            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = math.Vector2.ZERO,
+                finalValue = math.Vector2(self._distance, 
+                                          self._correct_factor * self.X),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = self._speed)
+            translateMotion = motion.basic.Translate(
+                trajectory = translateTrajectory,
+                frame = Frame.LOCAL)
+            
+            self.motionManager.setMotion(translateMotion)
+
+            self.PREV_RANGE = self.RANGE
+        
+
+    def BUOY_FOUND(self, event):
+        if(str(event.color).lower() != self.ai.data['buoyColor']):
+            return
+
+        temp = self.RANGE
+
+        self.X = event.x
+        self.Y = event.y
+        self.RANGE = event.range
+
+        if(temp == -1):
+            self.update()
+        
+    def FINISHED(self, event):
+        self.update()
+
+class Hit(state.State):
+
+    @staticmethod
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Align }
+
+    @staticmethod
+    def getattr():
+        return { 'distance' : 0.5 , 'speed' : 1 }
+
+    def enter(self):
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(self._distance, 0),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+
 
 class End(state.State):
     def enter(self):
-        self.visionSystem.buoyDetectorOff()
-        self.motionManager.stopCurrentMotion()
         self.publish(COMPLETE, core.Event())

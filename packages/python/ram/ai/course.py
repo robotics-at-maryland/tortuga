@@ -778,15 +778,7 @@ class Buoy(task.Task):
 
         if self.ai.data['buoyOrientation'] is None:
             raise LookupError, "No orientation specified"
-
-        # ex. ['yellow', 'red', 'green']
-        self.ai.data['buoyOrder'] = self.ai.data['config'].get(self._className, {}).get('buoyOrder', None)
-
-        if self.ai.data['buoyOrder'] is None:
-            raise LookupError, "No order of buoys specified"
         
-
-
         self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
             'lostTimeout', 5)
         self._lostTimeout = None
