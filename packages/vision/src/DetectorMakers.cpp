@@ -68,8 +68,11 @@ registerGateDetector("GateDetector");
 static DetectorMakerTemplate<FeatureDetector>
 registerFeatureDetector("FeatureDetector");
 
-static DetectorMakerTemplate<FANNLetterDetector>
-registerFANNLetterDetector("FANNLetterDetector");
+// static DetectorMakerTemplate<FANNLetterDetector>
+// registerFANNLetterDetector("FANNLetterDetector");
+
+static DetectorMakerTemplate<FANNGladiatorDetector>
+registerFANNLetterDetector("FANNGladiatorDetector");
 
 // static DetectorMakerTemplate<DuctDetector>
 // registerDuctDetector("DuctDetector");
