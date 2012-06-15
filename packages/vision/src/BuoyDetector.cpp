@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <unistd.h>
+
 
 // Library Includes
 #include "cv.h"
@@ -19,6 +21,8 @@
 #include <log4cpp/Category.hh>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/math/distributions/students_t.hpp>
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -37,6 +41,12 @@
 #include "vision/include/Utility.h"
 #include "vision/include/VisionSystem.h"
 #include "vision/include/TableColorFilter.h"
+
+static boost::filesystem::path getImagesDir()
+{
+    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+    return root / "packages" / "vision" / "test" / "data" / "references";
+}
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
@@ -228,7 +238,19 @@ void BuoyDetector::init(core::ConfigNode config)
     yellowFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     blackFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     
-   LOGGER.info("foundRed redX redY redRange redWidth "
+    //buoy detection algorithm constants
+    //starts from the build folder?
+    //  initProcessBuoys(cv::imread(
+    //          "/home/eliot/Python Tests/finalTemplates/ArtificialTemplateA3.png",0),
+    //      cv::imread(
+    //          "/home/eliot/Python Tests/finalTemplates/ArtificialTemplateB4.png",0));
+    initProcessBuoys(cv::imread(
+                         (getImagesDir() / "ArtificialTemplateA3.png").string(),0),
+            cv::imread(
+                (getImagesDir() / "ArtificialTemplateB4.png").string(),0));
+
+
+    LOGGER.info("foundRed redX redY redRange redWidth "
                 "redHeight redNumPixels redPixelPct" 
                 "foundGreen greenX greenY greenRange greenWidth "
                 "greenHeight greenNumPixels greenPixelPct"
@@ -630,6 +652,429 @@ void BuoyDetector::processImage(Image* input, Image* output)
         }
     }
 }
+
+
+
+
+
+
+
+void BuoyDetector::initProcessBuoys(cv::Mat temp1, cv::Mat temp2)
+{
+    //this is temporary until these are added to the config values
+    //haven't done this currently because algorithm needs testing at
+    //this step
+    //cv::imshow("debug",temp1);
+    temp1.copyTo(m_template1);
+    temp2.copyTo(m_template2);
+    m_rMin = 20;
+    m_rMax = 100;
+    m_gMin = 20;
+    m_gMax = 100;
+    m_bMin = 20;
+    m_bMax = 130;
+    m_vMin = 20;
+    m_vMax = 75;
+    m_YCMin = 20;
+    m_YCMax = 75;
+    //tempImage.create(640,480,CV_8UC(3));
+    //combImage.create(640,480,CV_8UC(1));
+    //cspMat.create(640,480,CV_8UC(3));
+    //cannyMat =  cv::Mat::zeros(640,480,CV_8UC(1));
+    //firstTemp.create(640 - m_template1.rows+1, 480 - m_template1.cols+1,CV_32FC(1));
+    //secondTemp.create(firstTemp.rows - m_template2.rows+1, firstTemp.cols - 
+    //                m_template2.cols+1, CV_32FC(1));
+    //cutoffBuoys.create(firstTemp.rows - m_template2.rows+1, firstTemp.cols - 
+    //                m_template2.cols+1, CV_8UC(1));
+    m_cutoffLength = 5;
+    m_cutoffZero = 10;
+    //channels = std::vector<cv::Mat>(3);
+    //for(int i = 0; i<4; i++)
+    //{
+    //  channels.push_back(cv::Mat::zeros(640,480, CV_8UC(1)));
+    //}
+    stDevFactor = .4;
+    
+    
+}
+
+void BuoyDetector::processBuoys(Image* input, Image* output)
+{
+    std::cout<<"starting"<<std::endl;
+    tempImage = input->asIplImage();
+
+    /* RGB channels
+       order is BGR*/
+    cv::split(tempImage, channels);
+    cv::Canny(channels[0], combImage, m_bMin, m_bMax);
+    combImage.copyTo(cannyMat);
+    cv::Canny(channels[1], combImage, m_gMin, m_gMax);
+    cannyMat = combImage | cannyMat;
+    cv::Canny(channels[2], combImage, m_rMin, m_rMax);
+    cannyMat = combImage | cannyMat;
+
+    //next obtain the value component of HSV
+    cv::cvtColor(tempImage, cspMat, CV_BGR2HSV);
+    cv::split(cspMat, channels);
+
+
+    cv::Canny(channels[2], combImage, m_vMin, m_vMax);
+    cannyMat = combImage | cannyMat;
+
+    //finally obtain the 1rst component of YCrCb
+    cv::cvtColor(tempImage, cspMat, CV_BGR2YCrCb);
+    cv::split(cspMat, channels);
+
+    cv::Canny(channels[0], combImage, m_YCMin, m_YCMax);
+    cannyMat = combImage | cannyMat;
+
+    //next up is the first template match
+    m_template1.convertTo(firstTempCast, CV_8UC(1), 1.0, 0);
+    cv::matchTemplate(cannyMat, m_template1, firstTemp, CV_TM_CCORR);
+    /*type of m_template1 has to be changed because the templates
+      have to be 8 bit images, which forces a change in type*/
+
+    m_template2.convertTo(m_template2, CV_32FC(1), 1.0, 0);
+    cv::matchTemplate(firstTemp, m_template2, secondTemp, CV_TM_SQDIFF);
+
+    //data needs to be scaled because the results end up being
+    //way too large
+    secondTemp = secondTemp > (std::pow(2,64)*(2.5/10000));
+    
+
+    cutoffBuoys = cv::Mat::zeros(secondTemp.rows,secondTemp.cols,CV_8UC(1));
+    
+
+    //next a cutoff is applied to the images
+    //searches for a blob
+    int remove;
+    int start;
+    int maxWidth;
+    for(int j = 0; j < secondTemp.cols; j=j+1)
+    {
+        for(int i = 0; i < secondTemp.rows; i=i+1)
+        {
+            //above loop conditions should be correct
+            remove = 0;//whether to remove rows or not
+            start = 0;//current line width
+            maxWidth = -1;//max line width
+            int x;
+            int y;
+            //if a blob is found
+            if((secondTemp.at<unsigned char>(i,j) > m_cutoffZero) && (start == 0))
+            {
+                x = i;
+                y = j;
+                //begin finding the width of rows
+                int a;
+                while((secondTemp.at<unsigned char>(x,y) > m_cutoffZero) 
+                      && ((x+1) < secondTemp.rows))
+                {
+                    //move to leftmost part of this row
+                    a = 0;
+                    while(a == 0)
+                    {
+                        if((y-1) < 0)
+                        {
+                            a = 1;
+                        }
+                        else
+                        {
+                            if(secondTemp.at<unsigned char>(x,y-1) < m_cutoffZero)
+                            {
+                                a = 1;
+                            }
+                            else 
+                            {
+                                y--;
+                            }
+                        }
+                    }
+                    j = y;
+                    start = 0;
+                    int temp;
+                    temp = 0;
+                    //begin counting the line length
+                    while(y < secondTemp.cols)
+                    {
+                        start++;
+                        //if not removing, copy over the value
+                        if(remove == 0)
+                        {
+                            cutoffBuoys.at<unsigned char>(x,y) = 255;
+                        }
+                        else
+                        {
+                            cutoffBuoys.at<unsigned char>(x,y) = 0;
+                        }
+                        if(secondTemp.at<unsigned char>(x,y) <= m_cutoffZero)
+                        {
+                            secondTemp.at<unsigned char>(x,y) = 0;
+                            temp = y;
+                            y = secondTemp.cols;
+                        }
+                        else
+                        {
+                            secondTemp.at<unsigned char>(x,y) = 0;
+                        }
+                        y++;
+                    }
+                    x++;    
+                    y = (j+temp)/2;
+                    //update max width if needed
+                    if(start > maxWidth)
+                    {
+                        maxWidth = start;
+                    }
+                    //switch to removing if cutoff length
+                    //difference is passed
+                    if((maxWidth - start) > m_cutoffLength)
+                    {
+                        remove = 1;
+                    }
+                }
+            }
+        }
+    }
+    //tempImage.copyTo(finalBuoys); 
+    finalBuoys = cv::Mat::zeros(tempImage.rows,tempImage.cols,CV_8UC(3));
+    for(int l = 0; l < cutoffBuoys.cols; l++)
+    {
+        for(int k = 0; k < cutoffBuoys.rows; k++)
+        {
+            
+            if(cutoffBuoys.at<unsigned char>(k,l) == 255)
+            {
+                 finalBuoys.at<cv::Vec3b>(k+((finalBuoys.rows-cutoffBuoys.rows)/2+1)
+                                         ,l+((finalBuoys.cols-cutoffBuoys.cols)
+                                             /2+1)) = tempImage.at<cv::Vec3b>
+                    (k+((finalBuoys.rows-cutoffBuoys.rows)/2+1)
+                     ,l+((finalBuoys.cols-cutoffBuoys.cols)/2+1));
+            }
+            
+        }
+    }
+       
+    
+  
+    //std::cout<<"finished cutoff"<<std::endl;
+    //std::cout<<"image shown"<<std::endl;
+    //*((IplImage*) *output) = (IplImage)finalBuoys;
+    output->setData(finalBuoys.data,false);
+    //std::cout<<"swordfish"<<std::endl;
+}
+
+
+void BuoyDetector::processBuoysImage(Image* input, Image* output)
+{
+    vision::OpenCVImage out(640, 480, vision::Image::PF_BGR_8);
+    processBuoys(input,&out);
+    if(output != 0)
+    {
+        processImage(&out,output);
+    }
+    else
+    {
+        processImage(&out);
+    }
+
+}
+
+
+
+
+void BuoyDetector::processBuoysMask(cv::Mat* mask, Image* img, Image* output)
+{
+    mask = &finalBuoys;
+    tempImage = img->asIplImage();
+    double mean[3] = {0, 0, 0};
+    double stDev[3] = {0, 0, 0};
+    int n = 0;
+    double delta;//a temp variable user to avoid overly complicated calculations
+    //first compute mean and standard deviation
+    //stDev stores the sum of squares and is made
+    //into standard deviation at the end of this
+    cv::split(tempImage, channels);
+    for(int i = 0; i < 3; i++)
+    {
+        n = 0;
+        for(int j = 0; j < tempImage.cols; j++)
+        {
+            for(int k = 0; k < tempImage.rows; k++)
+            {
+                n++;
+                delta = (double)(channels[i].at<unsigned char>(k,j)) - mean[i];
+                mean[i] = mean[i] + delta / n;
+                stDev[i] = stDev[i] + delta * ((double)(channels[i].at<unsigned char>(k,j))
+                                               - mean[i]);
+            }
+        }
+        stDev[i] = sqrt(stDev[i] / (n - 1));
+        stDev[i] = stDev[i] * stDevFactor;
+    }
+    //runs a hypothesis test on the elements denoted by the mask
+    //the value of an element is set to 0 if it does not pass all tests
+    //and is set to 254 if it passes all tests
+    //95% confidence is used here
+    boost::math::students_t dist(n-1);
+    double t_value = -boost::math::quantile(dist,.025);
+    //t-value obtained for sample size
+    for(int p=0; p<3; p++)
+        {std::cout<<mean[p]<<" "<<stDev[p]<<" "<<t_value<<std::endl;}
+    //run tests on pixels in the mask
+    std::cout<<"swordfish"<<std::endl;
+    cv::imshow("initial mask",*mask);
+    std::cout<<"fdsaf"<<std::endl;
+    for(int j = 0; j < tempImage.cols; j=j+1)
+    {
+        for(int i = 0; i < tempImage.rows; i=i+1)
+        {
+            int x;
+            int y;
+            //if a blob is found
+            if(mask->at<unsigned char>(i,j) == 255)
+            {
+                x = i;
+                y = j;
+                int a;
+                while(mask->at<unsigned char>(x,y) == 255 && ((x+1) < tempImage.rows))
+                {
+                    //move to leftmost part of this row
+                    a = 0;
+                    while(a == 0)
+                    {
+                        if((y-1) < 0)
+                        {
+                            a = 1;
+                        }
+                        else
+                        {
+                            if(mask->at<unsigned char>(x,y) == 255)
+                            {
+                                a = 1;
+                            }
+                            else 
+                            {
+                                y--;
+                            }
+                        }
+                    }
+                    j = y;
+                    int temp;
+                    temp = 0;
+                    //begin counting the line length
+                    while(y < tempImage.cols)
+                    {
+                        //process pixels
+                        if(mask->at<unsigned char>(x,y) == 255)
+                        {
+                            int val = 3;
+                            for(int i = 0; i < 3; i++)
+                            {
+                                //the mean and standard deviation are not modified
+                                //becuase the magnitude of the change at absoulte maximum
+                                //is miniscule and can thus be ignored
+                                double bound = t_value*stDev[i]*sqrt(1+(1/(n-1)));
+                                if(abs(mean[i] - channels[i].at<unsigned char>(x,y))
+                                   > bound)
+                                {
+                                    val--;
+                                }
+                            }
+                            if(val == 0)
+                            {
+                                mask->at<unsigned char>(x,y) = 254;
+                            }
+                            else
+                            {
+                                mask->at<unsigned char>(x,y) = 0;
+                            }
+                        }
+                        else
+                        {
+                            y = tempImage.cols;
+                        }
+                        y++;
+                    }
+                    x++;    
+                    y = (j+temp)/2;
+                    //end of processing line
+                }
+            }
+        }
+    }
+    //loops finished
+    //testing finished
+    cv::imshow("test mask", *mask);
+    cv::waitKey();
+
+
+#if 0
+    //currently this is just a skeleton of the loop to iterate through the points
+    for(int j = 0; j < secondTemp.cols; j=j+1)
+    {
+        for(int i = 0; i < secondTemp.rows; i=i+1)
+        {
+            int x;
+            int y;
+            //if a blob is found
+            if(/*pixel condition*/ && (start == 0))
+            {
+                x = i;
+                y = j;
+                int a;
+                while(/*pixel condition*/ && ((x+1) < secondTemp.rows))
+                {
+                    //move to leftmost part of this row
+                    a = 0;
+                    while(a == 0)
+                    {
+                        if((y-1) < 0)
+                        {
+                            a = 1;
+                        }
+                        else
+                        {
+                            if(/*pixel condition*/)
+                            {
+                                a = 1;
+                            }
+                            else 
+                            {
+                                y--;
+                            }
+                        }
+                    }
+                    j = y;
+                    start = 0;
+                    int temp;
+                    temp = 0;
+                    //begin counting the line length
+                    while(y < secondTemp.cols)
+                    {
+                        start++;
+                        //process pixels
+                        y++;
+                    }
+                    x++;    
+                    y = (j+temp)/2;
+                    //end of processing line
+                }
+            }
+        }
+    }
+    //loops finished
+#endif
+
+}
+
+
+
+
+
+
+
+
 
 void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color)
 {
