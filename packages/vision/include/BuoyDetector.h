@@ -42,6 +42,10 @@ class RAM_EXPORT BuoyDetector : public Detector
 
     void update();
     void processImage(Image* input, Image* output = 0);
+    void processBuoys(Image* input, Image* output = 0);
+    void processBuoysImage(Image* input, Image* output = 0);
+    void processBuoysMask(cv::Mat* mask, Image* img, Image* output);
+    void initProcessBuoys(cv::Mat temp1, cv::Mat temp2);
     
     IplImage* getAnalyzedImage();
 
@@ -128,6 +132,20 @@ class RAM_EXPORT BuoyDetector : public Detector
     Image *yellowFrame;
     Image *blackFrame;
 
+    /**Working images for detection algorithm*/
+    cv::Mat tempImage;
+    cv::Mat combImage;
+    /*Channels*/
+    std::vector<cv::Mat> channels;
+    /*temporary image for colorspaces*/
+    cv::Mat cspMat;
+    /*temporary images for templates*/
+    cv::Mat cannyMat;
+    cv::Mat firstTemp;
+    cv::Mat firstTempCast;
+    cv::Mat secondTempCast;
+    cv::Mat secondTemp;
+
     /* Configuration variables */
     double m_maxAspectRatio;
     double m_minAspectRatio;
@@ -150,6 +168,33 @@ class RAM_EXPORT BuoyDetector : public Detector
     std::string m_redLookupTablePath;
     std::string m_yellowLookupTablePath;
     std::string m_greenLookupTablePath;
+
+    /*first and second templates for the template match*/
+    cv::Mat m_template1;
+    cv::Mat m_template2;
+    //cutoff of the image
+    cv::Mat cutoffBuoys;
+    //final image
+    cv::Mat finalBuoys;
+    /*values for canny algorithm*/
+    /*red, green, blue, value and 1rst component
+      of the YCrCb colorspace*/
+    double m_rMin;
+    double m_rMax;
+    double m_gMin;
+    double m_gMax;
+    double m_bMax;
+    double m_bMin;
+    double m_vMin;
+    double m_vMax;
+    double m_YCMax;
+    double m_YCMin;
+    /*cutoffs for the cutoff algorithm*/
+    double m_cutoffZero;
+    double m_cutoffLength;
+    /*scaling factor for overlall image standard deviation*/
+    double stDevFactor;
+    
 };
 	
 } // namespace vision
