@@ -40,7 +40,6 @@ import ram.ai.vase as vase
 import ram.ai.lane as lane
 import ram.ai.cupid as cupid
 import ram.ai.OldBuoy as oldBuoy
-import ram.ai.cube as cube
 
 import ram.motion as motion
 import ram.motion.basic
@@ -202,25 +201,6 @@ class Pipe(task.Task):
     @property
     def pipesToFind(self):
         return self._pipesToFind
-
-class Cube(task.Task):
-    """
-    Moves the robot in a cube.
-    """
-    
-    @staticmethod
-    def _transitions():
-        return { cube.COMPLETE : task.Next }
-
-    def enter(self):
-        self._className = type(self).__name__
-        task.Task.enter(self)
-        
-        self.stateMachine.start(state.Branch(cube.Start))
-        
-    def exit(self):
-        task.Task.exit(self)
-        self.stateMachine.stopBranch(cube.Start)
 
 class Cupid(task.Task):
     """
