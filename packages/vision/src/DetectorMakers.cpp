@@ -31,6 +31,8 @@
 #include "vision/include/CupidDetector.h"
 #include "vision/include/BasicLetterDetector.h"
 #include "vision/include/FANNLetterDetector.h"
+#include "vision/include/BasicGladiatorDetector.h"
+#include "vision/include/FANNGladiatorDetector.h"
 #include "vision/include/LoversLaneDetector.h"
 
 namespace ram {
@@ -51,8 +53,11 @@ registerCupidDetector("CupidDetector");
 static DetectorMakerTemplate<LoversLaneDetector>
 registerLoversLaneDetector("LoversLaneDetector");
 
-static DetectorMakerTemplate<BasicLetterDetector>
-registerBasicLetterDetector("BasicLetterDetector");
+// static DetectorMakerTemplate<BasicLetterDetector>
+// registerBasicLetterDetector("BasicLetterDetector");
+
+static DetectorMakerTemplate<BasicGladiatorDetector>
+registerBasicLetterDetector("BasicGladiatorDetector");
 
 static DetectorMakerTemplate<OrangePipeDetector>
 registerOrangePipeDetector("OrangePipeDetector");

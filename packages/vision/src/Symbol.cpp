@@ -26,6 +26,7 @@ std::vector<std::string> Symbol::getSymbolNames()
         ("SHIP")("AIRCRAFT")("TANK")("FACTORY")
         ("AXE")("CLIPPERS")("HAMMER")("MACHETE")("LARGE_X")("SMALL_X")
         ("LARGE_O")("SMALL_O")
+        ("NET")("SHIELD")("SWORD")("TRIDENT")
         ("UNKNOWN")("NONEFOUND");
     return symbolNames;
 }

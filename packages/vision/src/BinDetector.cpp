@@ -390,7 +390,7 @@ void BinDetector::setSymbolImageLogging(bool value)
 void BinDetector::init(core::ConfigNode config)
 {
     // Look up type for the symbol detector and validate it
-    std::string symbolDetectorType = "BasicLetterDetector";
+    std::string symbolDetectorType = "BasicGladiatorDetector";
     if (config.exists("symbolDetector"))
         symbolDetectorType = config["symbolDetector"].asString();
     assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
