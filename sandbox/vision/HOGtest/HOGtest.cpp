@@ -208,19 +208,19 @@ cv::Mat HOGFeatures(cv::Mat &image){
                 if(y>=0){
                     //Quadrant 2
                     if(ratio > BOUNDARY10){
-                        rowPtr[col] = 5;
+                        rowPtr[col] = 9;
                     }
                     else if(ratio > BOUNDARY11){
-                        rowPtr[col] = 6;
+                        rowPtr[col] = 8;
                     }
                     else if(ratio > BOUNDARY12){
                         rowPtr[col] = 7;
                     }
                     else if(ratio > BOUNDARY13){
-                        rowPtr[col] = 8;
+                        rowPtr[col] = 6;
                     }
                     else{
-                        rowPtr[col] = 9;
+                        rowPtr[col] = 5;
                     }
                 }
                 else{
@@ -306,12 +306,12 @@ cv::Mat HOGFeatures(cv::Mat &image){
             if((xCellIdx < cellWidth) && (yCellIdx + 1 < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
                                                 xCellIdx + 0)[orientationBin] 
-                    += fracUpperX * fracLowerY * magnitude;
+                    += fracUpperY * fracLowerX * magnitude;
             }
             if((xCellIdx + 1 < cellWidth) && (yCellIdx < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 0, 
                                                 xCellIdx + 1)[orientationBin] 
-                    += fracLowerX * fracUpperY * magnitude;
+                    += fracLowerY * fracUpperX * magnitude;
             }
             if((xCellIdx + 1 < cellWidth) && (yCellIdx + 1 < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
