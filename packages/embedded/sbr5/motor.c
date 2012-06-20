@@ -20,7 +20,7 @@ _FWDT ( WDT_OFF );
 //#define DEBUG_ON
 
 /* Turn on where the servos are */
-#define HYDRO_SERVO_BOOM
+//#define HYDRO_SERVO_BOOM
 
 /* Some defines which will help keep us sane. */
 #define TRIS_OUT 0

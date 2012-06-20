@@ -10,7 +10,7 @@
 /******************************************************************/
 /* The marker droppers will not work unless you remove this line! */
 /******************************************************************/
-// #define DVL_INSIDE
+#define DVL_INSIDE
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
