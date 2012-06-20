@@ -7,14 +7,12 @@
 unsigned char chksum(unsigned const char *buffer, unsigned int length, 
                      unsigned char extra)
 {
-    unsigned int sum= 0;
+    unsigned char sum= 0;
     unsigned int i;
     for (i= 0; i < length; i++)
-    {
-        sum+= buffer;
-    }
+        sum+= buffer[i];
     sum+= extra;
     sum= sum & 0xFF;
-    unsigned char result= (unsigned char)sum;
-    return result;
+
+    return sum;
 }

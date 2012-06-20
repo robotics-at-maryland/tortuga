@@ -15,10 +15,10 @@
 #define MOTORBOARD
 
 #include <p30fxxxx.h>
-#include "buscodes.h"
 #include <stdio.h>
-#include "common.h"
 #include <string.h>
+#include "common.h"
+#include "buscodes.h"
 
 #define SENSORBOARD_IC1
 #include "uart.c"
@@ -106,7 +106,7 @@ _FWDT ( WDT_OFF );
 
 #define SLAVE_ID_DEPTH      IRQ_IC4
 #define SLAVE_ID_THRUSTERS  IRQ_DISTRO
-#define SLAVE_ID_MARKERS    IRQ_DISTRO
+#define SLAVE_ID_MARKERS    IRQ_MOTOR
 #define SLAVE_ID_TEMP       IRQ_IC3
 #define SLAVE_ID_LCD        IRQ_IC2
 #define SLAVE_ID_HARDKILL   IRQ_BALANCER
@@ -119,7 +119,8 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_VLOW       IRQ_DISTRO
 #define SLAVE_ID_DVL        IRQ_DISTRO
 #define SLAVE_ID_MOTOR      IRQ_MOTOR
-#define SLAVE_ID_SERVOS     IRQ_MOTOR
+#define SLAVE_ID_TORPEDO    IRQ_MOTOR
+#define SLAVE_ID_GRABBER    IRQ_MOTOR
 
 #define SLAVE_ID_MM1        IRQ_IC2
 #define SLAVE_ID_MM2        IRQ_IC2
@@ -764,7 +765,7 @@ void showBootDiag(int mode)
 
     if(mode == 7)
     {
-        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTAT) != 0)
         {
             showString("BATTI READ FAIL ", 0);
             return;
@@ -778,16 +779,16 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B1: %2.3fV    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0);
+        sprintf(tmp, "B1: %2.3fA    ", (rxBuf[0] << 8 | rxBuf[1]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B2: %2.3fV    ", (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);
+        sprintf(tmp, "B2: %2.3fA    ", (rxBuf[2] << 8 | rxBuf[3]) / 1000.0);
         showString(tmp, 1);
     }
 
     if(mode == 8)
     {
-        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTAT) != 0)
         {
             showString("BATTI READ FAIL ", 0);
             return;
@@ -801,16 +802,16 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B3: %2.3fV    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0);
+        sprintf(tmp, "B3: %2.3fA    ", (rxBuf[4] << 8 | rxBuf[5]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B4: %2.3fV    ", (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);
+        sprintf(tmp, "B4: %2.3fA    ", (rxBuf[6] << 8 | rxBuf[7]) / 1000.0);
         showString(tmp, 1);
     }
 
     if(mode == 9)
     {
-        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTATT) != 0)
+        if(busWriteByte(BUS_CMD_BATTCURRENT, SLAVE_ID_BATTSTAT) != 0)
         {
             showString("BATTI READ FAIL ", 0);
             return;
@@ -824,10 +825,10 @@ void showBootDiag(int mode)
             return;
         }
 
-        sprintf(tmp, "B5: %2.3fV    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0);
+        sprintf(tmp, "B5: %2.3fA    ", (rxBuf[8] << 8 | rxBuf[9]) / 1000.0);
         showString(tmp, 0);
 
-        sprintf(tmp, "B6: %2.3fV    ", (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);
+        sprintf(tmp, "B6: %2.3fA    ", (rxBuf[10] << 8 | rxBuf[11]) / 1000.0);
         showString(tmp, 1);
     }
 }
@@ -1426,7 +1427,6 @@ int main(void)
                 t1 = rxBuf[0]; //prepare for more reading
 //#endif
 
-
                 /* Read kill switch from another chip......... */
                 if(busWriteByte(BUS_CMD_BOARDSTATUS, SLAVE_ID_KILLSW) != 0)
                 {
@@ -1649,24 +1649,26 @@ int main(void)
             }
 
 
-
             case HOST_CMD_THRUSTERS:
             {
                 for(i=0; i<5; i++)
                     rxBuf[i] = waitchar(1);
 
-                /* Separate for clarity -- these actually matter, 0-4 are safety */
-                rxBuf[5] = waitchar(1); //command
-                rxBuf[6] = waitchar(1); //chksum byte
+                t1 = waitchar(1);
+                t2 = waitchar(1);
 
                 byte cflag=0;
+                byte cs=0;
 
                 // Check the special sequence
                 for(i=0; i<5; i++)
                 {
+                    cs += rxBuf[i];
                     if(rxBuf[i] != tkSafety[i])
                         cflag=1;
                 }
+
+                cs += t1 + HOST_CMD_THRUSTERS;
 
 
                 /* If you mess with these arrays, please remember to update */
@@ -1682,13 +1684,13 @@ int main(void)
                     BUS_CMD_THRUSTER5_ON, BUS_CMD_THRUSTER6_ON
                 };
 
-                /* Check checksum, check if command is valid, check safety comparison */
-                if(cflag == 1 || rxBuf[5] > 11 || (chksum(rxBuf,6,0) != rxBuf[6]))
+                if(cflag == 1 || t1 > 11 || (t2 != cs))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
-                } else {
-                    if (busWriteByte(tkCommands[rxBuf[5]], SLAVE_ID_THRUSTERS) != 0)
+                } else
+                {
+                    if(busWriteByte(tkCommands[t1], SLAVE_ID_THRUSTERS) != 0)
                     {
                         sendByte(HOST_REPLY_FAILURE);
                         break;
@@ -1697,7 +1699,6 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
-
 
             case HOST_CMD_BARS:
             {
@@ -2261,77 +2262,14 @@ int main(void)
                 break;
             }
 
-            case HOST_CMD_SERVO_ENABLE:
+            case HOST_CMD_MAG_PWR_ON:
             {
-                /* Get the mask and the checksum */
-                for(i= 0;i < 2;i++)
-                    rxBuf[i]= waitchar(1);
-
-                if(chksum(rxBuf, 1, HOST_CMD_SERVO_ENABLE) != rxBuf[1])
-                {
+                if(waitchar(1) != HOST_CMD_MAG_PWR_ON) {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(BUS_CMD_SERVO_ENABLE, SLAVE_ID_SERVOS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                if(busWriteByte(rxBuf[0], SLAVE_ID_SERVOS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                sendByte(HOST_REPLY_SUCCESS);
-
-                break;
-            }
-
-            case HOST_CMD_SET_SERVO_POS:
-            {
-                /* Get the servonum, and the two bytes of position, and the checksum */
-                for(i= 0;i < 4;i++)
-                    rxBuf[i]= waitchar(1);
-
-                if(chksum(rxBuf, 3, HOST_CMD_SET_SERVO_POS) != rxBuf[3])
-                {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                if(busWriteByte(BUS_CMD_SET_SERVO_POS, SLAVE_ID_SERVOS) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                for(i= 0;i < 3;i++) {
-                    if(busWriteByte(rxBuf[i], SLAVE_ID_SERVOS) != 0)
-                    {
-                        sendByte(HOST_REPLY_FAILURE);
-                        i= 0xFF;  //get ready to break the case too
-                        break;  //break for loop
-                    }
-                }
-                
-                if(i == 0xFF)  //break case
-                    break;
-                
-                sendByte(HOST_REPLY_SUCCESS);
-                break;
-            }
-
-            case HOST_CMD_SERVO_POWER_ON:
-            {
-                if(waitchar(1) != HOST_CMD_SERVO_POWER_ON) {
-                    sendByte(HOST_REPLY_BADCHKSUM);
-                    break;
-                }
-
-                if(busWriteByte(BUS_CMD_SERVO_POWER_ON, SLAVE_ID_SERVOS) != 0) {
+                if(busWriteByte(BUS_CMD_MAG_PWR_ON, SLAVE_ID_MARKERS) != 0) {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
@@ -2340,14 +2278,14 @@ int main(void)
                 break;
             }
 
-            case HOST_CMD_SERVO_POWER_OFF:
+            case HOST_CMD_MAG_PWR_OFF:
             {
-                if(waitchar(1) != HOST_CMD_SERVO_POWER_OFF) {
+                if(waitchar(1) != HOST_CMD_MAG_PWR_OFF) {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(BUS_CMD_SERVO_POWER_OFF, SLAVE_ID_SERVOS) != 0) {
+                if(busWriteByte(BUS_CMD_MAG_PWR_OFF, SLAVE_ID_MARKERS) != 0) {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
@@ -2356,14 +2294,158 @@ int main(void)
                 break;
             }
 
-            case HOST_CMD_MTR_RST:
+            case HOST_CMD_FIRE_TORP_1:
             {
-                if(waitchar(1) != HOST_CMD_MTR_RST) {
+                if(waitchar(1) != HOST_CMD_FIRE_TORP_1) {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(busWriteByte(BUS_CMD_MTR_RST, SLAVE_ID_SERVOS) != 0) {
+                if(busWriteByte(BUS_CMD_FIRE_TORP_1, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_FIRE_TORP_2:
+            {
+                if(waitchar(1) != HOST_CMD_FIRE_TORP_2) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_FIRE_TORP_2, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_ARM_TORP_1:
+            {
+                if(waitchar(1) != HOST_CMD_ARM_TORP_1) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_ARM_TORP_1, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_ARM_TORP_2:
+            {
+                if(waitchar(1) != HOST_CMD_ARM_TORP_2) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_ARM_TORP_2, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_VOID_TORP_1:
+            {
+                if(waitchar(1) != HOST_CMD_VOID_TORP_1) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_VOID_TORP_1, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_VOID_TORP_2:
+            {
+                if(waitchar(1) != HOST_CMD_VOID_TORP_2) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_VOID_TORP_2, SLAVE_ID_TORPEDO) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_EXT_GRABBER:
+            {
+                if(waitchar(1) != HOST_CMD_EXT_GRABBER) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_EXT_GRABBER, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_RET_GRABBER:
+            {
+                if(waitchar(1) != HOST_CMD_RET_GRABBER) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_RET_GRABBER, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_VOID_GRABBER:
+            {
+                if(waitchar(1) != HOST_CMD_VOID_GRABBER) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_VOID_GRABBER, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_VOID_PNEU:
+            {
+                if(waitchar(1) != HOST_CMD_VOID_PNEU) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_VOID_PNEU, SLAVE_ID_GRABBER) != 0) {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }

@@ -1,5 +1,5 @@
 
-TCPATH=/path/where/you/untarred/toolchain
+TCPATH=/home/kickmyassman/robotics-toolchain/
 
 PATH = $(TCPATH)/usr/bin:/bin:/usr/kde/3.5/bin
 
@@ -20,45 +20,38 @@ LIBS = $(TCPATH)/c30/lib/libp30F4011-elf.a
 
 all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex bfin.hex debug.hex motor.hex
 
-distro.o : distro.c buscodes.h uart.c i2c.c
+distro.o : distro.c buscodes.h common.c
 	$(CC) -mcpu=30F6014A $(CFLAGS) -Wunused-function -c $< -o $@
 
-balancer.o : balancer.c buscodes.h uart.c i2c.c
+balancer.o : balancer.c buscodes.h common.c
 	$(CC) -mcpu=30F6014A $(CFLAGS) -Wunused-function -c $< -o $@
 
-motor.o : motor.c buscodes.h typedef.h servo.h servo.c
+motor.o : motor.c buscodes.h
 	$(CC) -mcpu=30F6010A $(CFLAGS) -Wunused-function -c $< -o $@
 
-motor.dumber.o : motor.dumber.c buscodes.h typedef.h servo.h servo.c
-	$(CC) -mcpu=30F6010A $(CFLAGS) -Wunused-function -c $< -o $@
-
-ic4.o : ic4.c buscodes.h uart.c i2c.c
+ic4.o : ic4.c buscodes.h common.c
 	$(CC) -mcpu=30F4013 $(CFLAGS) -Wunused-function -c $< -o $@
 
-distro.elf : distro.o uart.c i2c.c
-	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $(TCPATH)/c30/lib/libp30F6014A-elf.a $< -o $@
+distro.elf : distro.o common.c
+	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $^ $(TCPATH)/c30/lib/libp30F6014A-elf.a -o $@
 
-balancer.elf : balancer.o uart.c i2c.c
-	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $(TCPATH)/c30/lib/libp30F6014A-elf.a $< -o $@
+balancer.elf : balancer.o common.c
+	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $^ $(TCPATH)/c30/lib/libp30F6014A-elf.a -o $@
 
-motor.elf : motor.o
-	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6010A.gld,--heap=0,-lp30F6010A-elf,--report-mem $< $(TCPATH)/c30/lib/libp30F6010A-elf.a -o $@
+motor.elf : motor.o common.c
+	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6010A.gld,--heap=0,-lp30F6010A-elf,--report-mem $^ $(TCPATH)/c30/lib/libp30F6010A-elf.a -o $@
 
-motor.dumber.elf : motor.dumber.o
-	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6010A.gld,--heap=0,-lp30F6010A-elf,--report-mem $< $(TCPATH)/c30/lib/libp30F6010A-elf.a -o $@
-
-ic4.elf : ic4.o uart.c i2c.c
-	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f4013.gld,--heap=0,-lp30F4013-elf,--report-mem $(TCPATH)/c30/lib/libp30F4013-elf.a $< -o $@
-
+ic4.elf : ic4.o common.c
+	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f4013.gld,--heap=0,-lp30F4013-elf,--report-mem $^ $(TCPATH)/c30/lib/libp30F4013-elf.a -o $@
 
 
 %.hex : %.elf
 	$(BIN2HEX) $<
 
-%.elf : %.o uart.c i2c.c
-	$(CC) $(LDFLAGS) $(LIBS) $< -o $@
+%.elf : %.o common.c
+	$(CC) $(LDFLAGS) $^ $(LIBS) -o $@
 
-%.o : %.c buscodes.h uart.c i2c.c
+%.o : %.c buscodes.h common.c
 	$(CC) -mcpu=30F4011 $(CFLAGS) -Wunused-function -c $< -o $@
 
 run:

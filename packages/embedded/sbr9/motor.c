@@ -4,7 +4,6 @@
 #include <outcompare.h>
 #include <timer.h>
 #include "buscodes.h"
-#include "servo.c"
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -19,20 +18,12 @@ _FWDT ( WDT_OFF );
 /* Turn on/off excess dumb code */
 //#define DEBUG_ON
 
-/* Turn on where the servos are */
-#define HYDRO_SERVO_BOOM
-
 /* Some defines which will help keep us sane. */
 #define TRIS_OUT 0
 #define TRIS_IN  1
 #define byte unsigned char
 #define BYTE byte
 #define BUF_SIZE 256
-
-/* Debug! FUCK EVERYTHIGN! */
-#define PING_FUCKED 0x25
-#define PING_NORMAL 0x00
-byte ping_val;
 
 /* This defines how long we should hold off on starting up to let the motors
  * get completely started, preventing premature i2c errors. */
@@ -76,13 +67,9 @@ byte ping_val;
 #define STATE_SET_MOT_SPEEDS 0x01
 #define STATE_SET_MOT_N      0x02
 
-#define STATE_SERVO_ENABLE   0x03
-#define STATE_SET_SERVO_POS  0x04
-
 /* Timeout value */
 // Specifies number of Tcy to wait for I2C ack before borking
 #define BORK_TIMEOUT_PERIOD	2000
-
 
 /*
  * Bus = D8-D15
@@ -115,38 +102,71 @@ byte ping_val;
 #define TRIS_ACT    _TRISB7
 #define LAT_ACT     _LATB7
 
-/* Servo Pin definitions */
+/* Power converter pins */
 #define WAH_ON             1
 #define WAH_OFF            0
 
 #define TRIS_WAH_INH _TRISA10
 #define LAT_WAH_INH  _LATA10
 
-#define SERVO_ENABLED      0
-#define SERVO_DISABLED     1
+/* Defines for the power FETs */
+#define TRIS_01_EN   _TRISF1
+#define LAT_01_EN    _LATF1
+#define TRIS_23_EN   _TRISF0
+#define LAT_23_EN    _LATF0
+#define TRIS_45_EN   _TRISG1
+#define LAT_45_EN    _LATG1
+#define TRIS_67_EN   _TRISG0
+#define LAT_67_EN    _LATG0
 
-#define TRIS_SERVO_01_EN   _TRISF1
-#define LAT_SERVO_01_EN    _LATF1
-#define TRIS_SERVO_23_EN   _TRISF0
-#define LAT_SERVO_23_EN    _LATF0
-#define TRIS_SERVO_45_EN   _TRISG1
-#define LAT_SERVO_45_EN    _LATG1
-#define TRIS_SERVO_67_EN   _TRISG0
-#define LAT_SERVO_67_EN    _LATG0
+#define LAT_0_EN     LAT_01_EN
+#define LAT_1_EN     LAT_01_EN
+#define LAT_2_EN     LAT_23_EN
+#define LAT_3_EN     LAT_23_EN
+#define LAT_4_EN     LAT_45_EN
+#define LAT_5_EN     LAT_45_EN
+#define LAT_6_EN     LAT_67_EN
+#define LAT_7_EN     LAT_67_EN
 
-#define LAT_SERVO_0_EN     LAT_SERVO_01_EN
-#define LAT_SERVO_1_EN     LAT_SERVO_01_EN
-#define LAT_SERVO_2_EN     LAT_SERVO_23_EN
-#define LAT_SERVO_3_EN     LAT_SERVO_23_EN
-#define LAT_SERVO_4_EN     LAT_SERVO_45_EN
-#define LAT_SERVO_5_EN     LAT_SERVO_45_EN
-#define LAT_SERVO_6_EN     LAT_SERVO_67_EN
-#define LAT_SERVO_7_EN     LAT_SERVO_67_EN
+/* What should be in "LAT_X_EN" */
+#define FET_ON  0
+#define FET_OFF 1
 
+#define MRKR_ON     0
+#define MRKR_OFF    1
+
+#define TRIS_MRKR1  _TRISG0
+#define LAT_MRKR1   _LATG0
+#define TRIS_MRKR2  _TRISG1
+#define LAT_MRKR2   _LATG1
+
+/* Some stuff to watch our timings */
+#define TIMER_IDLE   0
+#define TIMER_ACTIVE 1
+
+/* Some stuff to keep track of the pistons */
+#define PISTSTATE_OFF  0
+#define PISTSTATE_VOID 1
+#define PISTSTATE_FILL 2
+
+/* What matched inside of the pneumatics housing */
+#define PIST0_EXT_PAIR 1
+#define PIST0_RET_PAIR 0
+
+#define PIST1_RET_PAIR 2
+#define PIST1_EXT_PAIR 4
+
+#define PIST2_RET_PAIR 3
+#define PIST2_EXT_PAIR 5
 
 /* Here are some motor board variables */
 byte motorSpeed[6];
-unsigned int servoSpeed[8];
+
+/* Pneumatics tracking stuff */
+byte uartBuf[64];
+unsigned int sent_start;
+unsigned int uartBufSize;
+unsigned int uartBufPos;
 
 /* Here's the buffer for i2c and additional variables */
 byte i2cState= I2CSTATE_IDLE;
@@ -162,9 +182,6 @@ byte rxBuf[BUF_SIZE];
 byte txBuf[BUF_SIZE];
 unsigned int rxPtr= 0;
 unsigned int txPtr= 0;
-
-unsigned int tmp_servo_speed;
-unsigned int sent_start;
 
 /**********************************************/
 /* These are the prototypes for the functions */
@@ -198,6 +215,17 @@ void freeBus(void);
 byte readBus(void);
 void writeBus(byte);
 void processData(byte);
+
+/* Extending and retracting pistons */
+void retractPiston(unsigned char pist, unsigned char *buf);
+void extendPiston(unsigned char pist, unsigned char *buf);
+void offPair(unsigned char pair, unsigned char *buf);
+void voidPair(unsigned char pair, unsigned char *buf);
+void fillPair(unsigned char pair, unsigned char *buf);
+void voidAll(unsigned char *buf);
+
+/* Marker Dropper */
+void dropMarker(byte id);
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -425,13 +453,6 @@ void processData(byte data)
         {
             switch(data)
             {
-                case BUS_CMD_PING:
-                {
-                    txBuf[0]= ping_val;
-                    ping_val= PING_FUCKED;
-                    break;
-                }
-
                 case BUS_CMD_ID:
                 {
                     txBuf[0] = sprintf(txBuf+1, "MTR SRV TSN");
@@ -470,161 +491,84 @@ void processData(byte data)
                     break;
                 }
 
-                case BUS_CMD_MARKER1:
+                case BUS_CMD_VOID_PNEU:
                 {
-
+                    voidAll(uartBuf + uartBufSize);
+                    break;
                 }
 
-                case BUS_CMD_MTR_RST:
+                case BUS_CMD_FIRE_TORP_1:
                 {
-                    //asm("reset");
+                    extendPiston(1, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_FIRE_TORP_2:
+                {
+                    extendPiston(2, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_VOID_TORP_1:
+                {
+                    voidPair(PIST1_RET_PAIR, uartBuf + uartBufSize);
+                    voidPair(PIST1_EXT_PAIR, uartBuf + uartBufSize);
+
+                    break;
+                }
+
+                case BUS_CMD_VOID_TORP_2:
+                {
+                    voidPair(PIST2_RET_PAIR, uartBuf + uartBufSize);
+                    voidPair(PIST2_EXT_PAIR, uartBuf + uartBufSize);
+
+                    break;
+                }
+
+                case BUS_CMD_ARM_TORP_1:
+                {
+                    retractPiston(1, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_ARM_TORP_2:
+                {
+                    retractPiston(2, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_EXT_GRABBER:
+                {
+                    extendPiston(0, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_RET_GRABBER:
+                {
+                    retractPiston(0, uartBuf + uartBufSize);
+                    break;
+                }
+
+                case BUS_CMD_VOID_GRABBER:
+                {
+                    voidPair(PIST0_RET_PAIR, uartBuf + uartBufSize);
+                    voidPair(PIST0_EXT_PAIR, uartBuf + uartBufSize);
+
+                    break;
+                }
+
+                case BUS_CMD_MARKER1:
+                {
+                    dropMarker(0);
+                    break;
+                }
+
+                case BUS_CMD_MARKER2:
+                {
+                    dropMarker(1);
                     break;
                 }
             }
-
-            break;
-        }
-
-        case STATE_SET_SERVO_POS:
-        {
-            rxBuf[nParam++]= data;
-
-            if(nParam == 3) {
-
-#ifdef HYDRO_SERVO_BOOM
-                if(!sent_start) {
-                    sent_start= !sent_start;
-                    writeUart(0xDE);
-                    writeUart(0xAF);
-                    writeUart(0xBE);
-                    writeUart(0xEF);
-                }
-                writeUart(rxBuf[0]);
-                writeUart(rxBuf[1]);
-                writeUart(rxBuf[2]);
-                writeUart( (rxBuf[0] + rxBuf[1] + rxBuf[2]) & 0xFF );
-#else
-/*
-#ifdef DEBUG_ON
-                writeUart(rxBuf[1]);
-                writeUart(rxBuf[2]);
-#endif
-                //Consolidate the two speed bytes into one short
-                tmp_servo_speed= rxBuf[1];
-                tmp_servo_speed= (tmp_servo_speed << 8) | rxBuf[2];
-
-                //Actually hand the data to the interrupts
-                SetServo(rxBuf[0], tmp_servo_speed);
-
-#ifdef DEBUG_ON
-                writeUart(OC1R >> 8);
-                writeUart(OC1R);
-                writeUart(OC1RS >> 8);
-                writeUart(OC1RS);
-#endif
-*/
-#endif // END HYDRO_SERVO_BOOM IF
-
-                /* We're done! Go back to the beginning! */
-                busState= STATE_TOP_LEVEL;
-            }
-
-            break;
-        }
-
-        case STATE_SERVO_ENABLE:
-        {
-#ifdef HYDRO_SERVO_BOOM
-            if(!sent_start) {
-                sent_start= !sent_start;
-                writeUart(0xDE);
-                writeUart(0xAF);
-                writeUart(0xBE);
-                writeUart(0xEF);
-            }
-            writeUart('E');
-            writeUart('N');
-            writeUart(data);
-            writeUart( ('E' + 'N' + data) & 0xFF );
-#else
-            /* Servo stuff for 0 and 1 */
-            if((data & 0x01)) {
-                LAT_SERVO_0_EN= SERVO_ENABLED;
-                EnableServo(0x00);
-            } else {
-                DisableServo(0x00);
-            }
-
-            if((data & 0x02)) {
-                LAT_SERVO_1_EN= SERVO_ENABLED;
-                EnableServo(0x01);
-            } else {
-                DisableServo(0x01);
-            }
-
-            if(!(data & 0x01) && !(data & 0x02)) {
-                LAT_SERVO_01_EN= SERVO_DISABLED;
-            }
-
-            /* Servo stuff for 2 and 3 */
-            if((data & 0x04)) {
-                LAT_SERVO_2_EN= SERVO_ENABLED;
-                EnableServo(0x02);
-            } else {
-                DisableServo(0x02);
-            }
-
-            if((data & 0x08)) {
-                LAT_SERVO_3_EN= SERVO_ENABLED;
-                EnableServo(0x03);
-            } else {
-                DisableServo(0x03);
-            }
-
-            if(!(data & 0x04) && !(data & 0x08)) {
-                LAT_SERVO_23_EN= SERVO_DISABLED;
-            }
-
-            /* Servo stuff for 4 and 5 */
-            if((data & 0x10)) {
-                LAT_SERVO_4_EN= SERVO_ENABLED;
-                EnableServo(0x04);
-            } else {
-                DisableServo(0x04);
-            }
-
-            if((data & 0x20)) {
-                LAT_SERVO_5_EN= SERVO_ENABLED;
-                EnableServo(0x05);
-            } else {
-                DisableServo(0x05);
-            }
-
-            if(!(data & 0x10) && !(data & 0x20)) {
-                LAT_SERVO_45_EN= SERVO_DISABLED;
-            }
-
-            /* Servo stuff for 6 and 7 */
-            if((data & 0x40)) {
-                LAT_SERVO_6_EN= SERVO_ENABLED;
-                EnableServo(0x06);
-            } else {
-                DisableServo(0x06);
-            }
-
-            if((data & 0x80)) {
-                LAT_SERVO_7_EN= SERVO_ENABLED;
-                EnableServo(0x07);
-            } else {
-                DisableServo(0x07);
-            }
-
-            if(!(data & 0x40) && !(data & 0x80)) {
-                LAT_SERVO_67_EN= SERVO_DISABLED;
-            }
-#endif
-
-            busState= STATE_TOP_LEVEL;
 
             break;
         }
@@ -696,13 +640,11 @@ void _ISR _INT3Interrupt() {
 /* The main function sets everything up then loops */
 int main()
 {
-#ifdef DEBUG_ON
-    byte heartBeat= 0;
-#endif
     unsigned int i, temp;
     unsigned long timeout, err_reset;
     byte activeSpeed[6];
 
+    uartBufSize= uartBufPos= 0;
     sent_start= 0;
 
     /* Set up the Oscillator */
@@ -710,8 +652,6 @@ int main()
 
     for(i= 0;i < 6;i++)
         motorSpeed[i]= 0x80;
-
-    ping_val= PING_NORMAL;
 
     /* Set up the ADCs*/
     initADC();
@@ -725,21 +665,20 @@ int main()
     /* We set the baud to 9600 */
     initUART(0x0F);
 
-    /* Initialize the servo junk */
-#ifndef HYDRO_SERVO_BOOM
-    InitServos();
-#endif
-    
     /* Initialize timeout timer */
     // Timer runs continuously
     // We may want to disable the sleep mode "ON" feature
-	OpenTimer1( T1_ON & 
+    OpenTimer1(T1_ON & 
             T1_IDLE_CON &
             T1_GATE_OFF &
             T1_PS_1_1 &
             T1_SOURCE_INT,
             BORK_TIMEOUT_PERIOD);
 
+    /* Set up timer3  */
+    T3CONbits.TON= 0; /* Turn off the timer */
+    /* now set up timer 3 */
+    T3CON= 0x0030;    /* bits 5-4: 3->x256 prescaler */
 
     /* Set up the bus stuff for its initial stuff */
     TRIS_REQ= TRIS_RW= TRIS_IN;
@@ -752,16 +691,6 @@ int main()
     LAT_WAH_INH= WAH_OFF;
     TRIS_WAH_INH= TRIS_OUT;
 
-    LAT_SERVO_01_EN= SERVO_DISABLED;
-    LAT_SERVO_23_EN= SERVO_DISABLED;
-    LAT_SERVO_45_EN= SERVO_DISABLED;
-    LAT_SERVO_67_EN= SERVO_DISABLED;
-
-    TRIS_SERVO_01_EN= TRIS_OUT;
-    TRIS_SERVO_23_EN= TRIS_OUT;
-    TRIS_SERVO_45_EN= TRIS_OUT;
-    TRIS_SERVO_67_EN= TRIS_OUT;
-
     /* Turn on the Bus interrupt */
     _INT3IF= 0;
     REQ_INT_BIT= 1;
@@ -770,6 +699,12 @@ int main()
     TRIS_ERR= TRIS_STA= TRIS_ACT= TRIS_OUT;
     LAT_ERR= LAT_ACT= LED_OFF;
     LAT_STA= LED_ON;
+
+    LAT_MRKR1= MRKR_OFF;
+    LAT_MRKR2= MRKR_OFF;
+
+    TRIS_MRKR1= TRIS_OUT;
+    TRIS_MRKR2= TRIS_OUT;
 
     /* Wait for everything to settle down. */
     LAT_ACT= LED_ON;
@@ -794,13 +729,37 @@ int main()
         REQ_INT_BIT= 0;
         for(i= 0;i < 6;i++) {
             activeSpeed[i]= motorSpeed[i];
-#ifdef DEBUG_ON
-            writeUart(activeSpeed[i]);
-#endif
         }
         REQ_INT_BIT= 1;
 
-        ping_val= PING_NORMAL;
+        if(!U1STAbits.UTXBF && uartBufPos < uartBufSize) {
+            if(!sent_start) {
+                writeUart(0xDE);
+                writeUart(0xAF);
+                writeUart(0xBE);
+                writeUart(0xEF);
+                sent_start= 1;
+            }
+
+            writeUart(uartBuf[uartBufPos++]);
+
+            if(uartBufPos == uartBufSize) {
+                uartBufPos= 0;
+                uartBufSize= 0;
+            }
+
+            LAT_ACT= LED_ON;
+        } else {
+            LAT_ACT= LED_OFF;
+        }
+
+        if (_T3IF == 1) {
+            T3CONbits.TON= 0;    /* Stop Timer */
+            _T3IF= 0;            /* Clear interrupt flag */
+            LAT_MRKR1= MRKR_OFF; /* Turn off marker release */
+            LAT_MRKR2= MRKR_OFF;
+            LAT_WAH_INH= WAH_OFF;
+        }
 
         for(i= 0;i < 6;i++) {
             /*temp= LATF & 0xFE3F;
@@ -844,11 +803,8 @@ int main()
             TMR1 = 0;
             _T1IF = 0;
 
-            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !_T1IF) {
-#ifdef DEBUG_ON
-                writeUart('E');
-#endif
-            }
+            while(i2cState != I2CSTATE_IDLE && i2cState != I2CSTATE_BORKED && !_T1IF)
+                ;
 
             if(_T1IF) {
                 resetI2C_registers();
@@ -884,10 +840,6 @@ int main()
 
             i2cState= I2CSTATE_IDLE;
             resetI2C_registers();
-
-#ifdef DEBUG_ON
-            writeUart(heartBeat++);
-#endif
 
 #ifdef DEBUG_ON
              if(uartRXCheck())
@@ -1096,4 +1048,99 @@ void resetI2C_registers(void) {
     I2CCONbits.I2CEN= 0;
     I2CSTAT= 0x0000; /* Wipe out I2CSTAT */
     I2CCONbits.I2CEN= 1;
+}
+
+void extendPiston(unsigned char pist, unsigned char *buf) {
+    unsigned char fillp, voidp;
+
+    if(pist == 0) {
+        voidp= PIST0_RET_PAIR;
+        fillp= PIST0_EXT_PAIR;
+    } else if(pist == 1) {
+        voidp= PIST1_RET_PAIR;
+        fillp= PIST1_EXT_PAIR;
+    } else if(pist == 2) {
+        voidp= PIST2_RET_PAIR;
+        fillp= PIST2_EXT_PAIR;
+    } else {
+        return;
+    }
+
+    voidPair(voidp, buf);
+    fillPair(fillp, buf + 4);
+}
+
+void retractPiston(unsigned char pist, unsigned char *buf) {
+    unsigned char fillp, voidp;
+    if(pist == 0) {
+        voidp= PIST0_EXT_PAIR;
+        fillp= PIST0_RET_PAIR;
+    } else if(pist == 1) {
+        voidp= PIST1_EXT_PAIR;
+        fillp= PIST1_RET_PAIR;
+    } else if(pist == 2) {
+        voidp= PIST2_EXT_PAIR;
+        fillp= PIST2_RET_PAIR;
+    } else {
+        return;
+    }
+
+    voidPair(voidp, buf);
+    fillPair(fillp, buf + 4);
+}
+
+void fillPair(unsigned char pair, unsigned char *buf) {
+    buf[0]= 'F';
+    buf[1]= 'L';
+    buf[2]= pair;
+    buf[3]= buf[0] + buf[1] + buf[2];
+
+    uartBufSize+= 4;
+}
+
+void voidPair(unsigned char pair, unsigned char *buf) {
+    buf[0]= 'V';
+    buf[1]= 'O';
+    buf[2]= pair;
+    buf[3]= buf[0] + buf[1] + buf[2];
+
+    uartBufSize+= 4;
+}
+
+void offPair(unsigned char pair, unsigned char *buf) {
+    buf[0]= 'O';
+    buf[1]= 'F';
+    buf[2]= pair;
+    buf[3]= buf[0] + buf[1] + buf[2];
+
+    uartBufSize+= 4;
+}
+
+void voidAll(unsigned char *buf) {
+    buf[0]= 'V';
+    buf[1]= 'A';
+    buf[2]= '!';
+    buf[3]= buf[0] + buf[1] + buf[2];
+
+    uartBufSize+= 4;
+}
+
+void dropMarker(byte id)
+{
+    /* Set appropriate output to 1 */
+    if(id == 0) {
+        LAT_WAH_INH= WAH_ON;
+        LAT_MRKR1= MRKR_ON;
+    } else if(id == 1) {
+        LAT_WAH_INH= WAH_ON;
+        LAT_MRKR2= MRKR_ON;
+    } else {
+        return;
+    }
+
+    T3CONbits.TON = 0;      /* Stop Timer */
+    PR3 = 29297;            /* Period: 3 seconds with 10MHz XT osc and x256 prescaler */
+    TMR3 = 0;               /* Reset timer */
+    _T3IF = 0;              /* Clear interrupt flag */
+    T3CONbits.TON = 1;      /* Start Timer */
 }
