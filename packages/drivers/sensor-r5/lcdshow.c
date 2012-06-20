@@ -67,12 +67,6 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -bfstop (stops the Blackfin processor)\n");
         printf("\tlcdshow -bfreset (reboots the Blackfin processor)\n");
         printf("\tlcdshow -sonar (retrieve latest sonar telemetry)\n");
-
-        printf("\nServo commands:\n");
-        printf("\tlcdshow -srvpwron (turns on the servo power supply)\n");
-        printf("\tlcdshow -srvpwroff (turns off the servo power supply)\n");
-        printf("\tlcdshow -srvenable (sends servo enable mask)\n");
-        printf("\tlcdshow -srvsetpos (sets the servo position)\n");
         
         printf("\nOther commands:\n");
         printf("\tlcdshow -check (crude system check)\n");
@@ -87,16 +81,26 @@ int main(int argc, char ** argv)
         printf("\tlcdshow -noblink (stop animation)\n");
         printf("\tlcdshow -redgreen (start red/green animation)\n");
         printf("\tlcdshow -redblue (start red/blue animation)\n");
-        printf("\tlcdshow -mtrreset (power cycles the motor board)\n");
+        printf("\tlcdshow -magpwron (turn on the 5V WAH on motor)\n");
+        printf("\tlcdshow -magpwroff (turn off the 5V WAH on motor)\n");
 
         printf("\nDVL commands:\n");
         printf("\tlcdshow -dvlon (enable dvl)\n");
         printf("\tlcdshow -dvloff (disable dvl)\n");
-        
-	    return -1;
+
+        printf("\nPneumatics Commands:\n");
+        printf("\tlcdshow -firetorp # (fire torpedo number #)\n");
+        printf("\tlcdshow -armtorp # (arm torpedo number #)\n");
+        printf("\tlcdshow -voidtorp # (void torpedo number #)\n");
+        printf("\tlcdshow -extgrabber (close the grabber)\n");
+        printf("\tlcdshow -retgrabber (open the grabber)\n");
+        printf("\tlcdshow -voidgrabber (void the grabber)\n");
+        printf("\tlcdshow -voidall (void all pneumatics)\n");
+
+        return -1;
     }
 
-    int fd = openSensorBoard("/dev/sensor");
+    int fd = openSensorBoard("/dev/ttyUSB0");
 
     if(fd == -1)
     {
@@ -167,82 +171,35 @@ int main(int argc, char ** argv)
 //         printf("reply was 0x%02x\n", resetBlackfin(fd));
     }
 
-    else if(strcmp(argv[1], "-srvpwron") == 0)
+    else if(strcmp(argv[1], "-magpwron") == 0)
     {
         int ret;
-        if((ret = setServoPower(fd, 1)) != SB_OK)
+        if((ret = setMagPower(fd, 1)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
-    else if(strcmp(argv[1], "-srvpwroff") == 0)
+    else if(strcmp(argv[1], "-magpwroff") == 0)
     {
         int ret;
-        if((ret = setServoPower(fd, 0)) != SB_OK)
+        if((ret = setMagPower(fd, 0)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
-
-    else if(strcmp(argv[1], "-srvenable") == 0)
+    else if(strcmp(argv[1], "-setspeed") == 0)
     {
-        // Read in commands
-        if(argc != 3)
+        if(argc != 8)
         {
-            printf("Bad number of arguments expected 2\n");
-            close(fd);
-            exit(1);
+                printf("Bad number of arguments\n");
+                close(fd);
+                exit(1);
         }
-        int servoMask = atoi(argv[2]);
-        
-        // Send the command
-        int ret;
-        if((ret = setServoEnable(fd, servoMask)) != SB_OK)
-            printf("Error: %s\n", sbErrorToText(ret));
-    }
 
-    else if(strcmp(argv[1], "-srvsetpos") == 0)
-    {
-        // Read in commands
-        if(argc != 4)
+        printf("Ctrl-C to quit.\n");
+        while(1)
         {
-            printf("Bad number of arguments expected 3\n");
-            close(fd);
-            exit(1);
+            setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+            usleep(50000);
         }
-        int servoNum = atoi(argv[2]);
-        int servoPosition = atoi(argv[3]);
-        
-        // Send the command
-        int ret;
-        if((ret = setServoPosition(fd, servoNum, servoPosition)) != SB_OK)
-            printf("Error: %s\n", sbErrorToText(ret));
     }
-
-    else if(strcmp(argv[1], "-mtrreset") == 0)
-    {
-        int ret;
-        if((ret = resetMotorBoard(fd)) != SB_OK)
-            printf("Error: %s\n", sbErrorToText(ret));
-    }
-
-    
-    
-
-	else if(strcmp(argv[1], "-setspeed") == 0)
-	{
-		if(argc != 8)
-		{
-			printf("Bad number of arguments\n");
-			close(fd);
-			exit(1);
-		}
-
-		printf("Ctrl-C to quit.\n");
-		while(1)
-		{
-			setSpeeds(fd, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
-			usleep(50000);
-		}
-	}
-
     else if(strcmp(argv[1], "-status") == 0)
     {
         int ret;
@@ -848,6 +805,78 @@ int main(int argc, char ** argv)
     {
         int ret;
         if((ret = DVLOn(fd, 0)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-magpwron") == 0)
+    {
+        int ret;
+        if((ret = setMagPower(fd, 1)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-magpwroff") == 0)
+    {
+        int ret;
+        if((ret = setMagPower(fd, 0)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-firetorp") == 0)
+    {
+        int ret;
+        if(argc != 3) {
+            printf("I need a torpedo number!\n");
+        }
+        else if((ret = fireTorpedo(fd, atoi(argv[2]))) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-armtorp") == 0)
+    {
+        int ret;
+        if(argc != 3) {
+            printf("I need a torpedo number!\n");
+        }
+        else if((ret = armTorpedo(fd, atoi(argv[2]))) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-voidtorp") == 0)
+    {
+        int ret;
+        if(argc != 3) {
+            printf("I need a torpedo number!\n");
+        }
+        else if((ret = voidTorpedo(fd, atoi(argv[2]))) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-extgrabber") == 0)
+    {
+        int ret;
+        if((ret = extendGrabber(fd)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-retgrabber") == 0)
+    {
+        int ret;
+        if((ret = retractGrabber(fd)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-voidgrabber") == 0)
+    {
+        int ret;
+        if((ret = voidGrabber(fd)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-voidall") == 0)
+    {
+        int ret;
+        if((ret = voidSystem(fd)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
     

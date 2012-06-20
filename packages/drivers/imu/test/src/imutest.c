@@ -17,7 +17,7 @@
 
 int main(int argc, char ** argv)
 {
-    const char* deviceFile = "/dev/imu";
+    const char* deviceFile = "/dev/ttyUSB0";
 
     if (argc == 2)
         deviceFile = argv[1];

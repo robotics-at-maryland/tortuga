@@ -71,7 +71,6 @@ int readData(int fd, unsigned char * buf, int nbytes)
     return read(fd, buf, nbytes);
 }
 
-
 int syncBoard(int fd)
 {
     unsigned char buf[5];
@@ -104,7 +103,6 @@ int syncBoard(int fd)
 
     return SB_ERROR;
 }
-
 
 
 int pingBoard(int fd)
@@ -207,6 +205,8 @@ int readStatus(int fd)
     readData(fd, buf, 3);
     if(buf[2] != ((buf[0]+buf[1]+HOST_REPLY_BOARDSTATUS) & 0xFF)) {
         printf("Bad checksum while recieving status!\n");
+        printf("Got %x but was expecting %x\n", buf[2], ((buf[0] + buf[1] + HOST_REPLY_BOARDSTATUS) & 0xFF));
+        printf("%x; %x; %x\n", buf[0], buf[1], HOST_REPLY_BOARDSTATUS);
         return SB_ERROR;
     }
 
@@ -1078,11 +1078,36 @@ char* tempSensorIDToText(int id)
 
 int setServoPower(int fd, unsigned char power)
 {
+    /* The command has been removed, see "setMagPower" */
+    /*
     unsigned char buf[2];
     if(power) {
         buf[0]= buf[1]= HOST_CMD_SERVO_POWER_ON;
     } else {
         buf[0]= buf[1]= HOST_CMD_SERVO_POWER_OFF;
+    }
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;*/
+
+    return SB_ERROR;
+}
+
+int setMagPower(int fd, unsigned char power)
+{
+    unsigned char buf[2];
+    if(power) {
+        buf[0]= buf[1]= HOST_CMD_MAG_PWR_ON;
+    } else {
+        buf[0]= buf[1]= HOST_CMD_MAG_PWR_OFF;
     }
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
@@ -1101,21 +1126,48 @@ int setServoPower(int fd, unsigned char power)
 
 int setServoEnable(int fd, unsigned char servoMask)
 {
-    return simpleWrite(fd, HOST_CMD_SERVO_ENABLE, servoMask, 0x100);
+    /* The command is depreciated. Do not use it. */
+    return SB_ERROR;
+    /*return simpleWrite(fd, HOST_CMD_SERVO_ENABLE, servoMask, 0x100);*/
 }
 
 int setServoPosition(int fd, unsigned char servoNumber, unsigned short position)
 {
-    unsigned int fuckme= 0;
+    /* This command is depreciated, do not use it. */
+    /*
+    unsigned int tmpchksum= 0;
     unsigned char buf[5]= { HOST_CMD_SET_SERVO_POS, servoNumber, (position >> 8) & 0xFF, position & 0xFF, 0 };
 
-    fuckme+= buf[0];
-    fuckme+= buf[1];
-    fuckme+= buf[2];
-    fuckme+= buf[3];
-    buf[4]= (fuckme & 0xFF);
+    tmpchksum+= buf[0];
+    tmpchksum+= buf[1];
+    tmpchksum+= buf[2];
+    tmpchksum+= buf[3];
+    buf[4]= (tmpchksum & 0xFF);
 
     writeData(fd, buf, 5);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;*/
+
+    return SB_ERROR;
+}
+
+int DVLOn(int fd, unsigned char power)
+{
+    unsigned char buf[2];
+    if(power) {
+        buf[0]= buf[1]= HOST_CMD_DVL_ON;
+    } else {
+        buf[0]= buf[1]= HOST_CMD_DVL_OFF;
+    }
+    writeData(fd, buf, 2);
     readData(fd, buf, 1);
 
     if(buf[0] == HOST_REPLY_SUCCESS)
@@ -1130,24 +1182,153 @@ int setServoPosition(int fd, unsigned char servoNumber, unsigned short position)
     return SB_ERROR;
 }
 
-int resetMotorBoard(int fd)
-{
-    unsigned char buf[2]={HOST_CMD_MTR_RST, HOST_CMD_MTR_RST};
-    writeData(fd, buf, 2);
-    readData(fd, buf, 1);
-    if(buf[0] == HOST_REPLY_SUCCESS)
-        return SB_OK;
-    return SB_HWFAIL;
-}
-
-int DVLOn(int fd, unsigned char power)
+int fireTorpedo(int fd, unsigned char torpnum)
 {
     unsigned char buf[2];
-    if(power) {
-        buf[0]= buf[1]= HOST_CMD_DVL_ON;
+    if(torpnum == 1) {
+        buf[0]= buf[1]= HOST_CMD_FIRE_TORP_1;
+    } else if(torpnum == 2) {
+        buf[0]= buf[1]= HOST_CMD_FIRE_TORP_2;
     } else {
-        buf[0]= buf[1]= HOST_CMD_DVL_OFF;
+        return SB_ERROR;
     }
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int voidTorpedo(int fd, unsigned char torpnum)
+{
+    unsigned char buf[2];
+    if(torpnum == 1) {
+        buf[0]= buf[1]= HOST_CMD_VOID_TORP_1;
+    } else if(torpnum == 2) {
+        buf[0]= buf[1]= HOST_CMD_VOID_TORP_2;
+    } else {
+        return SB_ERROR;
+    }
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int armTorpedo(int fd, unsigned char torpnum)
+{
+    unsigned char buf[2];
+    if(torpnum == 1) {
+        buf[0]= buf[1]= HOST_CMD_ARM_TORP_1;
+    } else if(torpnum == 2) {
+        buf[0]= buf[1]= HOST_CMD_ARM_TORP_2;
+    } else {
+        return SB_ERROR;
+    }
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int extendGrabber(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_EXT_GRABBER;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int retractGrabber(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_RET_GRABBER;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int voidGrabber(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_VOID_GRABBER;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int voidSystem(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_VOID_PNEU;
+
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
 

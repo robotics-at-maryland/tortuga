@@ -10,7 +10,7 @@
 #ifndef RAM_DRIVER_SENSORAPI_H_06_09_2008
 #define RAM_DRIVER_SENSORAPI_H_06_09_2008
 
-#include "../../../embedded/sbr5/buscodes.h"
+#include "../../../embedded/sbr9/buscodes.h"
 
 #define MAX_SYNC_ATTEMPTS 20
 
@@ -452,6 +452,15 @@ char* sbErrorToText(int ret);
 char* tempSensorIDToText(int id);
 
 int DVLOn(int fd, unsigned char power);
+
+int setMagPower(int fd, unsigned char power);
+int fireTorpedo(int fd, unsigned char torpnum);
+int voidTorpedo(int fd, unsigned char torpnum);
+int armTorpedo(int fd, unsigned char torpnum);
+int extendGrabber(int fd);
+int retractGrabber(int fd);
+int voidGrabber(int fd);
+int voidSystem(int fd);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
