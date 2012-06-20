@@ -1,8 +1,10 @@
+/* Copyright 2012 Gary Sullivan
+ * Copyright 2012 Robotics @ Maryland
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <cv.h>
-#include <highgui.h>
+#include <opencv.hpp>
 #include <iostream>
 #include <algorithm>
 
@@ -108,14 +110,14 @@ cv::Mat HOGFeatures(cv::Mat &image){
                 }
                 else{
                     magRowPtr[col * image.channels() + ch] =
-                        sqrt(dxRowPtr[col * image.channels() + ch] * 
+                        sqrt((float) dxRowPtr[col * image.channels() + ch] * 
                              dxRowPtr[col * image.channels() + ch] + 
                              dyRowPtr[col * image.channels() + ch] * 
                              dyRowPtr[col * image.channels() + ch]);
 
                     angRowPtr[col * image.channels() + ch] =
                         (!dxRowPtr[col * image.channels() + ch] ? 0 :
-                         atan(dyRowPtr[col * image.channels() + ch] /
+                         atan((float) dyRowPtr[col * image.channels() + ch] /
                               dxRowPtr[col * image.channels() + ch])
                             );
                 }
@@ -244,6 +246,8 @@ cv::Mat HOGFeatures(cv::Mat &image){
         }
     }
 
+    cv::imshow("bins", bins*14);
+    cv::waitKey(0);
     
     // Part 3: Spatial Aggregation
 
@@ -293,23 +297,23 @@ cv::Mat HOGFeatures(cv::Mat &image){
             int orientationBin = binPtr[col];
 
             // add the contributions of this pixel to the lower cell
-            if((xCellIdx  <= cellHeight) && (yCellIdx <= cellWidth)){
+            if((xCellIdx  < cellWidth) && (yCellIdx < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 0, 
                                                 xCellIdx + 0)[orientationBin] +=
                     fracLowerX * fracLowerY * magnitude;
             }
                 
-            if((xCellIdx <= cellHeight) && (yCellIdx + 1 <= cellWidth)){
+            if((xCellIdx < cellWidth) && (yCellIdx + 1 < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
                                                 xCellIdx + 0)[orientationBin] 
                     += fracUpperX * fracLowerY * magnitude;
             }
-            if((xCellIdx + 1 <= cellHeight) && (yCellIdx <= cellWidth)){
+            if((xCellIdx + 1 < cellWidth) && (yCellIdx < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 0, 
                                                 xCellIdx + 1)[orientationBin] 
                     += fracLowerX * fracUpperY * magnitude;
             }
-            if((xCellIdx + 1 <= cellHeight) && (yCellIdx + 1 <= cellWidth)){
+            if((xCellIdx + 1 < cellWidth) && (yCellIdx + 1 < cellHeight)){
                 cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
                                                 xCellIdx + 1)[orientationBin] 
                     += fracUpperX * fracUpperY * magnitude;
@@ -437,20 +441,43 @@ int main(int argc, char *argv[])
 {
     //Load the image from the args
     cv::Mat image = cv::imread(argv[1]);
-    image = HOGFeatures(image);
+    HOGFeatures(image).convertTo(image, CV_32FC(32));
 
     cv::Mat myTemplate = cv::imread(argv[2]);
-    myTemplate = HOGFeatures(myTemplate);
+	HOGFeatures(myTemplate).convertTo(myTemplate, CV_32FC(32));
 
     cv::Mat output;
 
     cv::matchTemplate(image, myTemplate, output, CV_TM_CCORR);
 
 
-    output = output * 255;
+	float minNum = 1000000000;
+	float maxNum = -1000000000;
+
+	for(int row = 0; row < output.rows; row++)
+    {
+        float* rowPtr = output.ptr<float>(row);
+
+        for(int col = 0; col < output.cols; col++)
+        {
+            if(rowPtr[col] < minNum){
+                minNum = rowPtr[col];
+            }
+            if(rowPtr[col] > maxNum){
+                maxNum = rowPtr[col];
+            }
+        }
+    }
+
+    output -= minNum;
+    output *= (1 / (maxNum - minNum));
+
+    resize(output, output, cv::Size(), 8, 8);
 
     // show the window
     cv::imshow("output", output);
     cv::waitKey(0);
-    
+
+    // CV_64FC(32) == cv::DataType<cv::Vec<double, 32> >::type
+    // CV_32FC(32) == cv::DataType<cv::Vec<float, 32> >::type
 }
