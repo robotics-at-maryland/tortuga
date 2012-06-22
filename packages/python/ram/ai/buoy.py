@@ -163,7 +163,7 @@ class Align(state.State):
 
     def enter(self):
         if( len(self.ai.data['buoyList']) == 0 ):
-            print('All buoys hit')
+            #print('All buoys hit')
             self.publish(Align.NONE_LEFT, core.Event())
             return
         
@@ -253,36 +253,36 @@ class Center(state.State):
             return
 
         if(self.STEPNUM == 0):
-            print("Buoy X: " + str(event.x))
+            #print("Buoy X: " + str(event.x))
             if(event.x <= self._xmin):
-                print("Moving left to compensate")
+                #print("Moving left to compensate")
                 self.move(-self._distance)
             elif(event.x >= self._xmax):
-                print("Moving right to compensate")
+                #print("Moving right to compensate")
                 self.move(self._distance)
 
             self.STEPNUM += 1
         
         elif(self.STEPNUM == 1):
             if(event.x > self._xmin and event.x < self._xmax):
-                print("X Axis Aligned")
+                #print("X Axis Aligned")
                 self.motionManager.stopCurrentMotion()
                 self.STEPNUM += 1
 
         elif(self.STEPNUM == 2):
             print("Buoy Y: " + str(event.y))
             if(event.y <= self._ymin):
-                print("Moving down to compensate")
+                #print("Moving down to compensate")
                 self.dive(self._distance)
             elif(event.y >= self._ymax):
-                print("Moving up to compensate")
+                #print("Moving up to compensate")
                 self.dive(-self._distance)
 
             self.STEPNUM += 1
 
         elif(self.STEPNUM == 3):
             if(event.y > self._ymin and event.y < self._ymax):
-                print("Y Axis Aligned, All Done")
+                #print("Y Axis Aligned, All Done")
                 self.motionManager.stopCurrentMotion()
                 self.publish(Center.CENTERED, core.Event())
 
@@ -300,13 +300,12 @@ class Attack(state.State):
     @staticmethod
     def getattr():
         return { 'speed' : 0.3 , 'distance' : 1 , 
-                 'correct_factor' : 2 , 'update_delay' : 2}
+                 'correct_factor' : 2 , 'range_thresh' : 1.5}
 
     def enter(self):
         self.X = 0
         self.Y = 0
-        self.RANGE = -1
-        self.PREV_RANGE = -1
+        self.RANGE = 1337
 
     def update(self):
         
@@ -315,7 +314,7 @@ class Attack(state.State):
         print('Range: ' + str(self.RANGE))
         print('Previous Range: ' + str(self.PREV_RANGE))
 
-        if(self.PREV_RANGE == self.RANGE):
+        if(self.RANGE < self._range_thresh):
             self.publish(Attack.DONE, core.Event())
 
         else:
@@ -330,8 +329,6 @@ class Attack(state.State):
                 frame = Frame.LOCAL)
             
             self.motionManager.setMotion(translateMotion)
-
-            self.PREV_RANGE = self.RANGE
         
 
     def BUOY_FOUND(self, event):
@@ -354,11 +351,33 @@ class Hit(state.State):
 
     @staticmethod
     def transitions():
+        return { motion.basic.MotionManager.FINISHED : Retreat }
+
+    @staticmethod
+    def getattr():
+        return { 'distance' : 1.5 , 'speed' : 0.3 }
+
+    def enter(self):
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(self._distance, 0),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+
+class Retreat(state.State):
+
+    @staticmethod
+    def transitions():
         return { motion.basic.MotionManager.FINISHED : Align }
 
     @staticmethod
     def getattr():
-        return { 'distance' : 2 , 'speed' : 0.3 }
+        return { 'distance' : 2.5 , 'speed' : 0.3 }
 
     def enter(self):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -371,7 +390,6 @@ class Hit(state.State):
             frame = Frame.LOCAL)
 
         self.motionManager.setMotion(translateMotion)
-
 
 class End(state.State):
     def enter(self):
