@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/src/NonlinearPDRotationalController.cpp
+ * File:  packages/control/src/AdaptiveRotationalController.cpp
  */
 
 
@@ -180,13 +180,13 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
 
     // buoyancy terms
     Y[0][6] = 0;
-    Y[0][7] = -Rot[2][2];
-    Y[0][8] = Rot[1][2];
-    Y[1][6] = Rot[2][2];
+    Y[0][7] = Rot[2][2];//sign flip
+    Y[0][8] = -Rot[1][2];//sign flip
+    Y[1][6] = -Rot[2][2];//sign flip
     Y[1][7] = 0;
-    Y[1][8] = -Rot[0][2];
-    Y[2][6] = -Rot[1][2];
-    Y[2][7] = Rot[0][2];
+    Y[1][8] = Rot[0][2];//sign flip
+    Y[2][6] = Rot[1][2];//sign flip
+    Y[2][7] = -Rot[0][2];//sign flip
     Y[2][8] = 0;
 
     // drag terms
