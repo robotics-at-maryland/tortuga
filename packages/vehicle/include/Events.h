@@ -146,7 +146,33 @@ struct ThrustUpdateEvent : public core::Event
 
 typedef boost::shared_ptr<ThrustUpdateEvent> ThrustUpdateEventPtr;
 
+struct ExternalForceEvent : public core::Event
+{
+    math::Vector3 location;
+    math::Vector3 force;
 
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<ExternalForceEvent> ExternalForceEventPtr;
+
+struct ExternalForceOnEvent : public core::Event
+{
+    bool status;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<ExternalForceOnEvent> ExternalForceOnEventPtr;
+
+struct ExternalForceOffEvent : public core::Event
+{
+    bool status;
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<ExternalForceOffEvent> ExternalForceOffEventPtr;
     
 } // namespace vehicle
 } // namespace ram

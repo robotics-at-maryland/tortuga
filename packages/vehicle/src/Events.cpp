@@ -45,6 +45,15 @@ RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::ThrustUpdateEvent>
 RAM_VEHICLE_THRUSTUPDATE_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceEvent>
+RAM_VEHICLE_EXTERNALFORCE_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceOnEvent>
+RAM_VEHICLE_EXTERNALFORCEON_EVENT;
+
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceOffEvent>
+RAM_VEHICLE_EXTERNALFORCEOFF_EVENT;
+
 #endif // RAM_WITH_WRAPPERS
 
 namespace ram {
@@ -161,6 +170,35 @@ core::EventPtr ThrustUpdateEvent::clone()
     return event;
 }
 
+core::EventPtr ExternalForceEvent::clone()
+{
+    ExternalForceEventPtr event = ExternalForceEventPtr(new ExternalForceEvent());
+    copyInto(event);
+
+    event->location = location;
+    event->force = force;
+
+    return event;
+}
+core::EventPtr ExternalForceOnEvent::clone()
+{
+    ExternalForceOnEventPtr event = ExternalForceOnEventPtr(new ExternalForceOnEvent());
+    copyInto(event);
+
+    event->status = status;
+
+    return event;
+}
+
+core::EventPtr ExternalForceOffEvent::clone()
+{
+    ExternalForceOffEventPtr event = ExternalForceOffEventPtr(new ExternalForceOffEvent());
+    copyInto(event);
+
+    event->status = status;
+
+    return event;
+}
 
 } // namespace vehicle
 } // namespace ram
