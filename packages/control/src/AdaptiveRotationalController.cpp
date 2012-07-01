@@ -38,7 +38,7 @@ AdaptiveRotationalController::AdaptiveRotationalController(
     m_rotLambda(config["rotLambda"].asDouble(1.0)),
     m_rotGamma(config["rotGamma"].asDouble(1.0)),
     m_rotK(config["rotK"].asDouble(1.0)),
-    m_params(math::MatrixN(12,1))
+    m_params(math::MatrixN(15,1))//was 12,1
 {
     m_params[0][0] = config["adaptParams"][0].asDouble(2);
     m_params[1][0] = config["adaptParams"][1].asDouble(1);
@@ -52,7 +52,10 @@ AdaptiveRotationalController::AdaptiveRotationalController(
     m_params[9][0] = config["adaptParams"][9].asDouble(1);
     m_params[10][0] = config["adaptParams"][10].asDouble(1);
     m_params[11][0] = config["adaptParams"][11].asDouble(1.95);
-
+    //added new m_params terms
+    m_params[12][0] = config["adaptParams"][9].asDouble(0);
+    m_params[13][0] = config["adaptParams"][10].asDouble(0);
+    m_params[14][0] = config["adaptParams"][11].asDouble(0);
     LOGGER.info("dQuat(4) dOmega(3) eQuat(4) eOmega(3) "
                 "params(12) torque(3) shat(3)");
 }
@@ -78,7 +81,8 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     math::Quaternion q(estimator->getEstimatedOrientation());
     math::Vector3 wd(desiredState->getDesiredAngularRate());
     math::Vector3 w(estimator->getEstimatedAngularRate());
-
+    math::Vector2 xyVel(estimator->getEstimatedVelocity());
+    math::Vector3 linVel(xyVel[0], xyVel[1], estimator->getEstimatedDepthRate());
     /****************************
        propagate desired states 
     *****************************/
@@ -154,7 +158,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     q.ToRotationMatrix(Rot);
 
     // the dreaded parameterization matrix
-    math::MatrixN Y(3,12);
+    math::MatrixN Y(3,15);//was 3,12
 
     // inertia terms
     Y[0][0] = dwr[0];
@@ -179,6 +183,8 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][5] = dwr[2];
 
     // buoyancy terms
+    //do not change terms labeled sign flip without a good reason
+    //the original signs used here were not probably not correct!
     Y[0][6] = 0;
     Y[0][7] = Rot[2][2];//sign flip
     Y[0][8] = -Rot[1][2];//sign flip
@@ -189,7 +195,7 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][7] = -Rot[0][2];//sign flip
     Y[2][8] = 0;
 
-    // drag terms
+    //angular drag terms
     Y[0][9]  = -w[0]*fabs(w[0]);
     Y[0][10] = 0;
     Y[0][11] = 0;
@@ -199,7 +205,18 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     Y[2][9]  = 0;
     Y[2][10] = 0;
     Y[2][11] = -w[2]*fabs(w[2]);
-
+    //linear drag terms, currently not right, need to work out moments
+    //sign could go either way here so negative will be assumed
+    //all effects should occur in cross terms, drag force in x has no x moment
+    Y[0][12]  = 0;
+    Y[0][13] = linVel[2];
+    Y[0][14] = -linVel[1];
+    Y[1][12]  = -linVel[2];
+    Y[1][13] = 0;
+    Y[1][14] = linVel[0];
+    Y[2][12]  = -linVel[1];
+    Y[2][13] = linVel[0];
+    Y[2][14] = 0;
     /**********************************
       adaptation law
     **********************************/
