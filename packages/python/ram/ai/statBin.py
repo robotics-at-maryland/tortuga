@@ -38,12 +38,9 @@ class Start(state.State):
 
         binDepth = self.ai.data['config'].get('binDepth', 10)
 
-        self._orientation = self.ai.data['binOrientation']
         self.ai.data['binData'] = {}
-        self.ai.data['binData']['net'] = []
-        self.ai.data['binData']['shield'] = []
-        self.ai.data['binData']['sword'] = []
-        self.ai.data['binData']['trident'] = []
+        for symbol in self.ai.data['symbolList']:
+            self.ai.data['binData'][symbol.lower()] = []
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -51,27 +48,18 @@ class Start(state.State):
             finalValue = binDepth,
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._diveRate)
-        
-        currentOrientation = self.stateEstimator.getEstimatedOrientation()
-        yawTrajectory = motion.trajectories.StepTrajectory(
-            initialValue = currentOrientation,
-            finalValue = math.Quaternion(
-                math.Degree(self._orientation), math.Vector3.UNIT_Z),
-            initialRate = self.stateEstimator.getEstimatedAngularRate(),
-            finalRate = math.Vector3.ZERO)
 
         # Dive yaw and translate
         diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
-        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
         
-        self.motionManager.setMotion(diveMotion, yawMotion)
+        self.motionManager.setMotion(diveMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
 
 class Search(state.ZigZag):
-    DONE : core.declareEventType('DONE')
+    DONE = core.declareEventType('DONE')
 
     foundBins = 0
 
@@ -82,8 +70,8 @@ class Search(state.ZigZag):
                  state.ZigZag.DONE : End }
 
     def BIN_FOUND(self, event):
-        foundBins = foundBins + 1
-        if foundBins >= 10:
+        self.foundBins = self.foundBins + 1
+        if self.foundBins >= 10:
             self.publish(Search.DONE, core.Event())
             
 
@@ -101,11 +89,22 @@ class Strafe(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 2 , 'speed' : 0.3 }
+        return { 'distanceLeft' : 3 , 'distanceRight' : 3,  'speed' : 0.3 }
 
     def enter(self):
+
+        self._orientation = self.ai.data['binOrientation']
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = math.Quaternion(
+                math.Degree(self._orientation), math.Vector3.UNIT_Z),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        self.motionManager.setMotion(yawMotion)
+
         self.STEPNUM = 0
-        self.nextStep()
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -115,8 +114,9 @@ class Strafe(state.State):
 
     def BIN_FOUND(self, event):
         symbol = str(event.symbol).lower()
-        self.ai.data['binData'][symbol].append(
-            self.stateEstimator.getEstimatedPosition())
+        if(symbol in self.ai.data['binData']):
+            self.ai.data['binData'][symbol].append(
+                self.stateEstimator.getEstimatedPosition())
 
     def move(self, distance):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -132,12 +132,13 @@ class Strafe(state.State):
 
     def nextStep(self):
         #print("Step #: " + str(self.STEPNUM))
-        if ( self.STEPNUM == 0 or self.STEPNUM == 2 ):
-            self.move(self._distance)
+        if ( self.STEPNUM == 0):
+            self.move(self._distanceRight)
 
         elif ( self.STEPNUM == 1 ):
-            self.move(-2 * self._distance)
-
+            self.move(-self._distanceRight - self._distanceLeft)
+        elif ( self.STEPNUM == 2 ):
+            self.move(self._distanceLeft)
         else: 
             self.publish(Strafe.DONE, core.Event())
 
@@ -157,15 +158,15 @@ class Align(state.State):
 
     @staticmethod
     def getattr():
-        return { 'speed' : 0.3 }
+        return { 'speed' : 0.2 }
 
     def enter(self):
-        if( len(self.ai.data['binList']) == 0 ):
+        if( len(self.ai.data['symbolList']) == 0 ):
             #print('All buoys hit')
             self.publish(Align.NONE_LEFT, core.Event())
             return
         
-        symbol = self.ai.data['binList'].pop(0).lower()
+        symbol = self.ai.data['symbolList'].pop(0).lower()
         #print('Aligning with ' + color + ' buoy')
         self.ai.data['binSymbol'] = symbol;
         count = 0
@@ -221,7 +222,7 @@ class Center(state.State):
     def movex(self, distance):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
-            finalValue = math.Vector2(distance, 0),
+            finalValue = math.Vector2(0, -distance),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
         translateMotion = motion.basic.Translate(
@@ -233,7 +234,7 @@ class Center(state.State):
     def movey(self, distance):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
-            finalValue = math.Vector2(0, distance),
+            finalValue = math.Vector2(-distance,0),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
         translateMotion = motion.basic.Translate(
@@ -268,14 +269,13 @@ class Center(state.State):
                 #print("X Axis Aligned")
                 self.motionManager.stopCurrentMotion()
                 self.STEPNUM += 1
+            else:
+                self.STEPNUM -= 1
 
         elif(self.STEPNUM == 2):
-            #print("Buoy Y: " + str(event.y))
             if(event.y <= self._ymin):
-                #print("Moving down to compensate")
                 self.movey(self._distance)
             elif(event.y >= self._ymax):
-                #print("Moving up to compensate")
                 self.movey(-self._distance)
 
             self.STEPNUM += 1
@@ -295,10 +295,6 @@ class Drop(state.State):
     def transitions():
         return { Drop.DROPPED : Align }
 
-    @staticmethod
-    def getattr():
-        return { 'distance' : 2.5 , 'speed' : 0.3 }
-
     def enter(self):
         # Release the marker
         self.vehicle.dropMarker();
@@ -306,5 +302,7 @@ class Drop(state.State):
 
 class End(state.State):
     def enter(self):
+        self.vehicle.dropMarkerIndex(1)
+        self.vehicle.dropMarkerIndex(0)
         self.publish(COMPLETE, core.Event())
 

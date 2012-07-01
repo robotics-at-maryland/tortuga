@@ -32,7 +32,8 @@ import ram.ai.barbedwire as barbedwire
 import ram.ai.hedge as hedge
 import ram.ai.target as target
 import ram.ai.window as window
-import ram.ai.bin as bin
+import ram.ai.statBin as bin
+#import ram.ai.bin as bin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
@@ -940,6 +941,19 @@ class Bin(task.Task):
         self.ai.data['binComplete'] = True
 
     def enter(self, defaultTimeout = 240):
+
+        self._className = type(self).__name__
+        self.ai.data['binOrientation'] = self.ai.data['config'].get(self._className, {}).get('orientation', 0)
+
+        # get the list of buoys we want to hit
+        self.ai.data['symbolList'] = \
+            self.ai.data['config'].get('targetSymbols', [])
+        if len(self.ai.data['symbolList']) == 0:
+            raise LookupError, "No symbols specified"
+
+#         if self.ai.data['buoyOrientation'] is None:
+#             raise LookupError, "No orientation specified"
+
         timeout = self.ai.data['config'].get('Bin', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)

@@ -101,7 +101,7 @@ class AI(core.Subsystem):
                            'turnSpeed', 'depthSpeed'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
                           'forwardSpeed', 'adjustAngle', 'binDirection',
-                          'duration', 'travelSpeed', 'taskTimeout'])
+                          'duration', 'travelSpeed', 'taskTimeout', 'orientation'])
         travelOptions = set(['taskTimeout', 'motions', 'X', 'Y', 'orientation',
                              'speed'])
         cupidOptions = set(['taskTimeout', 'windowX', 'windowY', 'windowDepth',
