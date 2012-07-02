@@ -247,6 +247,10 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     clip(m_params[10][0], 0.0, 4.0);
     clip(m_params[11][0], 0.0, 5.0);
 
+    clip(m_params[12][0], -5.0, 5.0);
+    clip(m_params[13][0], -4.0, 4.0);
+    clip(m_params[14][0], -5.0, 5.0);
+
     /**********************************
              control law
     **********************************/
@@ -285,6 +289,9 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
                         << m_params[9][0] << " "
                         << m_params[10][0] << " "
                         << m_params[11][0] << " "
+                        << m_params[12][0] << " "
+                        << m_params[13][0] << " "
+                        << m_params[14][0] << " "
                         << output[0] << " "
                         << output[1] << " "
                         << output[2] <<" "
