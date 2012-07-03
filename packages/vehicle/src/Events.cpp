@@ -48,11 +48,8 @@ RAM_VEHICLE_THRUSTUPDATE_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceEvent>
 RAM_VEHICLE_EXTERNALFORCE_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceOnEvent>
-RAM_VEHICLE_EXTERNALFORCEON_EVENT;
-
-static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceOffEvent>
-RAM_VEHICLE_EXTERNALFORCEOFF_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceToggleEvent>
+RAM_VEHICLE_EXTERNALFORCETOGGLE_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
 
@@ -180,19 +177,9 @@ core::EventPtr ExternalForceEvent::clone()
 
     return event;
 }
-core::EventPtr ExternalForceOnEvent::clone()
+core::EventPtr ExternalForceToggleEvent::clone()
 {
-    ExternalForceOnEventPtr event = ExternalForceOnEventPtr(new ExternalForceOnEvent());
-    copyInto(event);
-
-    event->status = status;
-
-    return event;
-}
-
-core::EventPtr ExternalForceOffEvent::clone()
-{
-    ExternalForceOffEventPtr event = ExternalForceOffEventPtr(new ExternalForceOffEvent());
+    ExternalForceToggleEventPtr event = ExternalForceToggleEventPtr(new ExternalForceToggleEvent());
     copyInto(event);
 
     event->status = status;

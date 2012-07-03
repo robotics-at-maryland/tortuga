@@ -156,23 +156,14 @@ struct ExternalForceEvent : public core::Event
 
 typedef boost::shared_ptr<ExternalForceEvent> ExternalForceEventPtr;
 
-struct ExternalForceOnEvent : public core::Event
+struct ExternalForceToggleEvent : public core::Event
 {
     bool status;
 
     virtual core::EventPtr clone();
 };
 
-typedef boost::shared_ptr<ExternalForceOnEvent> ExternalForceOnEventPtr;
-
-struct ExternalForceOffEvent : public core::Event
-{
-    bool status;
-
-    virtual core::EventPtr clone();
-};
-
-typedef boost::shared_ptr<ExternalForceOffEvent> ExternalForceOffEventPtr;
+typedef boost::shared_ptr<ExternalForceToggleEvent> ExternalForceToggleEventPtr;
     
 } // namespace vehicle
 } // namespace ram
