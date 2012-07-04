@@ -41,6 +41,7 @@
 // Register vehicle into the maker subsystem
 RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vehicle::Vehicle, Vehicle);
 
+
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vehicle"));
 static log4cpp::Category& TLOGGER(log4cpp::Category::getInstance("ThrusterSig"));
 
@@ -89,8 +90,17 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_grabber(device::IPayloadSetPtr()),
     m_controlSignalToThrusterForces(0.0, 6, 6),
     m_controlSignalToThrusterForcesCreated(false)
+
 {
 
+    m_extraLocation = math::Vector3(config["extraThusterLocation"][0].asDouble(0), 
+                                config["extraThrusterLocation"][1].asDouble(0),
+                               config["extraThrusterLocation"][2].asDouble(0));
+    m_extraDirection = math::Vector3(config["extraThrusterDirection"][0].asDouble(0), 
+                               config["extraThrusterDirection"][1].asDouble(0),
+                               config["extraThrusterDirection"][2].asDouble(0));
+    force = config["extraThrusterForce"].asDouble(0);
+    m_extraThrustOn = false;
     // Create devices
     if (config.exists("Devices"))
     {
@@ -150,6 +160,19 @@ Vehicle::~Vehicle()
     // Stop all background threads (does not include device background threads)
     unbackground(true);
 }
+
+
+//true if on, false otherwise
+void Vehicle::setExtraThruster(bool state)
+{
+    m_extraThrustOn = state;
+}
+
+
+
+
+
+
     
 device::IDevicePtr Vehicle::getDevice(std::string name)
 {
@@ -275,8 +298,27 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     controlSignal[4] = rotationalTorques[1];
     controlSignal[5] = rotationalTorques[2];
 
+    //from config values the output force
+    //orientation and position will be obtained
+    //need to get these added
+    //need to discuss how to config this with gary
+    math::VectorN extraThruster(0.0, 6);
+    if(m_extraThrustOn == true)
+    {
+        //initialize this here! format is fx fy yz tx ty tz
+        //first 3  just force*directions, torques are forces cross position vector
+        extraThruster[0] = force*m_extraDirection[0];
+        extraThruster[1] = force*m_extraDirection[1];
+        extraThruster[2] = force*m_extraDirection[2];
+        math::Vector3 fCrossD;
+        fCrossD = (force*m_extraDirection).crossProduct(m_extraLocation);
+        extraThruster[4] = fCrossD[0];
+        extraThruster[5] = fCrossD[1];
+        extraThruster[6] = fCrossD[2];
+    }
+    //now adding in the extra thuster, still needs events
     math::VectorN thrusterForces = 
-        m_controlSignalToThrusterForces * controlSignal;
+        (m_controlSignalToThrusterForces) * (controlSignal-extraThruster);
 
 
     /****** Set Thruster Forces *************************/

@@ -98,12 +98,16 @@ public:
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
 
+
     /** compute vector of forces to apply to thrusters at given offsets
        so that there is no net torque.  This assumes that the thrusters
        are applying a torque in opposite directions*/
 
     math::MatrixN createControlSignalToThrusterForcesMatrix(
         Tuple6Vector3 thrusterLocations, Tuple6Vector3 thrusterDirections);
+
+    
+    void setExtraThruster(bool state);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
@@ -126,6 +130,11 @@ private:
     vehicle::device::IThrusterPtr m_topThruster;
     std::string m_bottomThrusterName;
     vehicle::device::IThrusterPtr m_bottomThruster;
+    math::Vector3 m_extraLocation;
+    math::Vector3 m_extraDirection;
+    double force;
+    bool m_extraThrustOn;
+
 
     double m_topThrusterThrottle;
 
