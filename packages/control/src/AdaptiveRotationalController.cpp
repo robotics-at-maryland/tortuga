@@ -53,11 +53,11 @@ AdaptiveRotationalController::AdaptiveRotationalController(
     m_params[10][0] = config["adaptParams"][10].asDouble(1);
     m_params[11][0] = config["adaptParams"][11].asDouble(1.95);
     //added new m_params terms
-    m_params[12][0] = config["adaptParams"][9].asDouble(0);
-    m_params[13][0] = config["adaptParams"][10].asDouble(0);
-    m_params[14][0] = config["adaptParams"][11].asDouble(0);
+    m_params[12][0] = config["adaptParams"][12].asDouble(0.2);
+    m_params[13][0] = config["adaptParams"][13].asDouble(0.2);
+    m_params[14][0] = config["adaptParams"][14].asDouble(0.2);
     LOGGER.info("dQuat(4) dOmega(3) eQuat(4) eOmega(3) "
-                "params(12) torque(3) shat(3)");
+                "params(15) torque(3) shat(3)");
 }
 
 math::Vector3 AdaptiveRotationalController::rotationalUpdate(
@@ -209,16 +209,19 @@ math::Vector3 AdaptiveRotationalController::rotationalUpdate(
     //sign could go either way here so negative will be assumed
     //all effects should occur in cross terms, drag force in x has no x moment
     //yaw occurs about the z axis, pitch about our x axis, roll about our y axis
-    //there is no moment caused by forces in the respective axes on their respective direction
-    Y[0][12]  = linVel[1];
-    Y[0][13] = -linVel[0];
-    Y[0][14] = 0;
-    Y[1][12]  = 0;
-    Y[1][13] = linVel[2];
-    Y[1][14] = -linVel[1];
-    Y[2][12]  = -linVel[2];
-    Y[2][13] = 0;
-    Y[2][14] = linVel[0];
+    //there is no moment caused by forces in the respective axes 
+    //on their respective direction
+    Y[0][12]  = 0;
+    Y[0][13] = linVel[2];
+    Y[0][14] = -linVel[1];
+    Y[1][12]  = -linVel[2];
+    Y[1][13] = 0;
+    Y[1][14] = linVel[0];
+    Y[2][12]  = linVel[1];
+    Y[2][13] = -linVel[0];
+    Y[2][14] = 0;
+    
+
     /**********************************
       adaptation law
     **********************************/
