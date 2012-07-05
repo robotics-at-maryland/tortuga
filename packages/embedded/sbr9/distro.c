@@ -1,4 +1,5 @@
 #include <p30fxxxx.h>
+#include <stdio.h>
 #include <string.h>
 #include "buscodes.h"
 
@@ -10,6 +11,7 @@
 /* The marker droppers will not work unless you remove this line! */
 /******************************************************************/
 #define DVL_INSIDE
+#define DERPY_ATTACHED
 
 //_FOSC( CSW_FSCM_OFF & FRC );
 _FOSC( CSW_FSCM_OFF & HS); //EC_PLL4); //ECIO );
@@ -48,6 +50,7 @@ _FWDT ( WDT_OFF );
 #define TRIS_MRKR2  _TRISG15
 
 
+
 /* Level specification for thruster enables */
 #define MOTR_ON     1
 
@@ -69,6 +72,9 @@ _FWDT ( WDT_OFF );
 
 #define LAT_MOTR6   _LATC2
 #define TRIS_MOTR6  _TRISC2
+
+#define LAT_DERPY   _LATG15
+#define TRIS_DERPY  _TRISG15
 
 /* DVL power Specification */
 #define DVL_ON      1
@@ -119,7 +125,6 @@ _FWDT ( WDT_OFF );
 #define LAT_BAR8    _LATD11
 #define TRIS_BAR8   _TRISD11
 
-
 /* Regulator board enables */
 #define LAT_12V_EN  _LATC13
 #define TRIS_12V_EN _TRISC13
@@ -131,10 +136,8 @@ _FWDT ( WDT_OFF );
 /* Who knows? */
 #define REG_ON  0
 
-
 /* LED level specification */
 #define LED_ON          1
-
 
 /* LED pin definitions */
 #define LAT_LED_STA1    _LATF8
@@ -148,8 +151,6 @@ _FWDT ( WDT_OFF );
 
 #define LAT_LED_OVR     _LATA9
 #define TRIS_LED_OVR    _TRISA9
-
-
 
 /* Motor controller and marker currents */
 #define ADC_IM1         0x09
@@ -191,8 +192,13 @@ byte txBuf[TXBUF_LEN];
 byte txPtr = 0;
 
 
+/* Function prototypes */
 void dropMarker(byte id);
-
+void checkOvrReg(void);
+void disableBusInterrupt(void);
+void enableBusInterrupt(void);
+void setBarMode(byte data);
+void setBars(byte b);
 
 /*
  * Configuration Registers
@@ -362,6 +368,9 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER4_OFF:  { LAT_MOTR4 = ~MOTR_ON; ovrReg &= ~0x08; checkOvrReg(); break; }
                 case BUS_CMD_THRUSTER5_OFF:  { LAT_MOTR5 = ~MOTR_ON; ovrReg &= ~0x10; checkOvrReg(); break; }
                 case BUS_CMD_THRUSTER6_OFF:  { LAT_MOTR6 = ~MOTR_ON; ovrReg &= ~0x20; checkOvrReg(); break; }
+#ifdef DERPY_ATTACHED
+                case BUS_CMD_DERPY_OFF:  { LAT_DERPY = ~MOTR_ON; ovrReg &= ~0x80; checkOvrReg(); break; }
+#endif
 
                 case BUS_CMD_THRUSTER1_ON:  { if(!(ovrReg & 0x01)) LAT_MOTR1 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER2_ON:  { if(!(ovrReg & 0x02)) LAT_MOTR2 = MOTR_ON; break; }
@@ -369,6 +378,9 @@ void processData(byte data)
                 case BUS_CMD_THRUSTER4_ON:  { if(!(ovrReg & 0x08)) LAT_MOTR4 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER5_ON:  { if(!(ovrReg & 0x10)) LAT_MOTR5 = MOTR_ON; break; }
                 case BUS_CMD_THRUSTER6_ON:  { if(!(ovrReg & 0x20)) LAT_MOTR6 = MOTR_ON; break; }
+#ifdef DERPY_ATTACHED
+                case BUS_CMD_DERPY_ON:      { if(!(ovrReg & 0x80)) LAT_DERPY = MOTR_ON; break; }
+#endif
 
                 case BUS_CMD_THRUSTER_STATE:
                 {
@@ -674,6 +686,9 @@ int markerCountsLeft = 0;
  */
 void dropMarker(byte id)
 {
+#ifdef DERPY_ATTACHED
+    return;
+#endif
 #ifdef DVL_INSIDE
     return;
 #endif
@@ -727,6 +742,8 @@ void _ISR _T1Interrupt(void)
      * solenids will deactivate when the timer expires.
      */
 
+#ifndef DERPY_ATTACHED
+#ifndef DVL_INSIDE
     markerCountsLeft--;
 
     if(markerCountsLeft == 0)
@@ -736,6 +753,8 @@ void _ISR _T1Interrupt(void)
         T1CONbits.TON = 0;  /* Stop Timer1 */
         IEC0bits.T1IE = 0;      /* Disable interrupts */
     }
+#endif
+#endif
 }
 
 
@@ -762,7 +781,7 @@ void enableBusInterrupt()
     checkBus();
 }
 
-void disableBusInterrupt()
+void disableBusInterrupt(void)
 {
     REQ_CN_BIT = 0;    /* Turn off CN for the pin */
 }
@@ -946,7 +965,7 @@ void checkSafetyIndicator()
 }
 
 
-void checkOvrReg()
+void checkOvrReg(void)
 {
     if(ovrReg)
         LAT_LED_OVR = LED_ON;
@@ -959,6 +978,9 @@ void checkOvrReg()
     if(ovrReg & 0x08) LAT_MOTR4 = ~MOTR_ON;
     if(ovrReg & 0x10) LAT_MOTR5 = ~MOTR_ON;
     if(ovrReg & 0x20) LAT_MOTR6 = ~MOTR_ON;
+#ifdef DERPY_ATTACHED
+    if(ovrReg & 0x80) LAT_DERPY = ~MOTR_ON;
+#endif
 }
 
 void checkKillSwitch()
@@ -971,7 +993,12 @@ void checkKillSwitch()
         LAT_MOTR4 = ~MOTR_ON;
         LAT_MOTR5 = ~MOTR_ON;
         LAT_MOTR6 = ~MOTR_ON;
+#ifdef DERPY_ATTACHED
+        LAT_DERPY = ~MOTR_ON;
+        ovrReg &= 0x40;
+#else
         ovrReg &= 0xC0;
+#endif
     }
 }
 
@@ -1058,16 +1085,19 @@ void main()
 
 #ifndef DVL_INSIDE
     LAT_MRKR1 = ~MRKR_ON;
-    LAT_MRKR2 = ~MRKR_ON;
 
     TRIS_MRKR1 = TRIS_OUT;
-    TRIS_MRKR2 = TRIS_OUT;
 #else
     LAT_DVL = ~DVL_ON;
     TRIS_DVL = TRIS_OUT;
+#endif
 
+#ifndef DERPY_ATTACHED
     LAT_MRKR2 = ~MRKR_ON;
     TRIS_MRKR2 = TRIS_OUT;
+#else
+    LAT_DERPY = ~MOTR_ON;
+    TRIS_DERPY = TRIS_OUT;
 #endif
 
     LAT_MOTR1 = ~MOTR_ON;
@@ -1233,8 +1263,15 @@ void main()
         /* Check for over-current */
         if(writeIndex == 0 && cfgRegs[1] != 0xFF)
         {
-            for(i=0; i<6; i++)
+#ifdef DERPY_ATTACHED
+            for(i= 0;i < 8;i++)
             {
+                if(i == 6)
+                    continue;
+#else
+            for(i= 0;i < 6;i++)
+            {
+#endif
                 unsigned int maxCurrent;
                 maxCurrent = (cfgRegs[0] * mSpeeds[i]) / 6 + (cfgRegs[1] * 40);
                 if(iMotor[i] > maxCurrent)

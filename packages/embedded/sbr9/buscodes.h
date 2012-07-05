@@ -300,7 +300,10 @@
 #define HOST_CMD_VOID_PNEU          0x3D
 #define HOST_CMD_OFF_PNEU           0x3E
 
-#define HOST_CMD_
+#define HOST_CMD_DERPY_ON           0x3F
+#define HOST_CMD_DERPY_OFF          0x40
+#define HOST_CMD_SET_DERPY          0x41
+#define HOST_CMD_STOP_DERPY         0x42
 
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.

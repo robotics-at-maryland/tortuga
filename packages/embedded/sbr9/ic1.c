@@ -2453,6 +2453,121 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+
+            case HOST_CMD_OFF_PNEU:
+            {
+                if(waitchar(1) != HOST_CMD_OFF_PNEU) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_OFF_PNEU, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_DERPY_ON:
+            {
+                if(waitchar(1) != HOST_CMD_DERPY_ON) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DERPY_ON, SLAVE_ID_THRUSTERS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_DERPY_OFF:
+            {
+                if(waitchar(1) != HOST_CMD_DERPY_OFF) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_DERPY_OFF, SLAVE_ID_THRUSTERS) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                /* This one is a bit oddball in that it sends two commands to
+                   two boards... */
+                if(busWriteByte(BUS_CMD_STOP_DERPY, SLAVE_ID_MOTOR) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_STOP_DERPY:
+            {
+                if(waitchar(1) != HOST_CMD_STOP_DERPY) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_STOP_DERPY, SLAVE_ID_MOTOR) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_SET_DERPY:
+            {
+                rxBuf[0] = waitchar(1); // Speed
+                rxBuf[1] = waitchar(1); // D
+                rxBuf[2] = waitchar(1); // E
+                rxBuf[3] = waitchar(1); // R
+                rxBuf[4] = waitchar(1); // P
+                rxBuf[5] = waitchar(1); // checksum
+
+                if(chksum(rxBuf, 5, HOST_CMD_SET_DERPY) != rxBuf[5])
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(rxBuf[1] != 'D' || rxBuf[2] != 'E' || rxBuf[3] != 'R' || rxBuf[4] != 'P')
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_SET_DERPY, SLAVE_ID_MOTOR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                if(busWriteByte(rxBuf[0], SLAVE_ID_MOTOR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                /* Turning on Derpy has an extra safety checksum thrown in */
+                if(busWriteByte(chksum(rxBuf, 1, BUS_CMD_SET_DERPY), SLAVE_ID_MOTOR) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
         }
     }
 }

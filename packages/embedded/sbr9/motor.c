@@ -4,6 +4,7 @@
 #include <outcompare.h>
 #include <timer.h>
 #include "buscodes.h"
+#include "common.h"
 
 /* Turn on the oscillator in XT mode so that it runs at the clock on
  * OSC1 and OSC2 */
@@ -66,6 +67,7 @@ _FWDT ( WDT_OFF );
 #define STATE_TOP_LEVEL      0x00
 #define STATE_SET_MOT_SPEEDS 0x01
 #define STATE_SET_MOT_N      0x02
+#define STATE_SET_DERPY      0x03
 
 /* Timeout value */
 // Specifies number of Tcy to wait for I2C ack before borking
@@ -160,7 +162,7 @@ _FWDT ( WDT_OFF );
 #define PIST2_EXT_PAIR 5
 
 /* Here are some motor board variables */
-byte motorSpeed[6];
+byte motorSpeed[7];
 
 /* Pneumatics tracking stuff */
 byte uartBuf[64];
@@ -217,15 +219,7 @@ void writeBus(byte);
 void processData(byte);
 
 /* Extending and retracting pistons */
-void retractPiston(unsigned char pist, unsigned char *buf);
-void extendPiston(unsigned char pist, unsigned char *buf);
-void offPair(unsigned char pair, unsigned char *buf);
-void voidPair(unsigned char pair, unsigned char *buf);
-void fillPair(unsigned char pair, unsigned char *buf);
-void voidAll(unsigned char *buf);
-
-/* Marker Dropper */
-void dropMarker(byte id);
+void forwardCmd(unsigned char cmd);
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -241,6 +235,7 @@ void kill_motors() {
     motorSpeed[3]= 0x80; /* Set all speeds to 0 */
     motorSpeed[4]= 0x80; /* Set all speeds to 0 */
     motorSpeed[5]= 0x80; /* Set all speeds to 0 */
+    motorSpeed[6]= 0x80; /* Set all speeds to 0 */
 
     return;
 }
@@ -455,7 +450,7 @@ void processData(byte data)
             {
                 case BUS_CMD_ID:
                 {
-                    txBuf[0] = sprintf(txBuf+1, "MTR SRV TSN");
+                    txBuf[0] = sprintf(txBuf+1, "MTR PNU");
                     break;
                 }
 
@@ -493,79 +488,92 @@ void processData(byte data)
 
                 case BUS_CMD_VOID_PNEU:
                 {
-                    voidAll(uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_VOID_PNEU);
+                    break;
+                }
+
+                case BUS_CMD_OFF_PNEU:
+                {
+                    forwardCmd(BUS_CMD_OFF_PNEU);
                     break;
                 }
 
                 case BUS_CMD_FIRE_TORP_1:
                 {
-                    extendPiston(1, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_FIRE_TORP_1);
                     break;
                 }
 
                 case BUS_CMD_FIRE_TORP_2:
                 {
-                    extendPiston(2, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_FIRE_TORP_2);
                     break;
                 }
 
                 case BUS_CMD_VOID_TORP_1:
                 {
-                    voidPair(PIST1_RET_PAIR, uartBuf + uartBufSize);
-                    voidPair(PIST1_EXT_PAIR, uartBuf + uartBufSize);
-
+                    forwardCmd(BUS_CMD_VOID_TORP_1);
                     break;
                 }
 
                 case BUS_CMD_VOID_TORP_2:
                 {
-                    voidPair(PIST2_RET_PAIR, uartBuf + uartBufSize);
-                    voidPair(PIST2_EXT_PAIR, uartBuf + uartBufSize);
-
+                    forwardCmd(BUS_CMD_VOID_TORP_2);
                     break;
                 }
 
                 case BUS_CMD_ARM_TORP_1:
                 {
-                    retractPiston(1, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_ARM_TORP_1);
                     break;
                 }
 
                 case BUS_CMD_ARM_TORP_2:
                 {
-                    retractPiston(2, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_ARM_TORP_2);
                     break;
                 }
 
                 case BUS_CMD_EXT_GRABBER:
                 {
-                    extendPiston(0, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_EXT_GRABBER);
                     break;
                 }
 
                 case BUS_CMD_RET_GRABBER:
                 {
-                    retractPiston(0, uartBuf + uartBufSize);
+                    forwardCmd(BUS_CMD_RET_GRABBER);
                     break;
                 }
 
                 case BUS_CMD_VOID_GRABBER:
                 {
-                    voidPair(PIST0_RET_PAIR, uartBuf + uartBufSize);
-                    voidPair(PIST0_EXT_PAIR, uartBuf + uartBufSize);
-
+                    forwardCmd(BUS_CMD_VOID_GRABBER);
                     break;
                 }
 
                 case BUS_CMD_MARKER1:
                 {
-                    dropMarker(0);
+                    forwardCmd(BUS_CMD_MARKER1);
                     break;
                 }
 
                 case BUS_CMD_MARKER2:
                 {
-                    dropMarker(1);
+                    forwardCmd(BUS_CMD_MARKER2);
+                    break;
+                }
+
+                case HOST_CMD_SET_DERPY:
+                {
+                    nParam= 0;
+                    busState= STATE_SET_DERPY;
+                    break;
+                }
+
+                case HOST_CMD_STOP_DERPY:
+                {
+                    motorSpeed[6]= 0x80;
                     break;
                 }
             }
@@ -609,12 +617,36 @@ void processData(byte data)
             if(nParam >= 2) {
                 /* Did we get a bad state? */
                 if(rxBuf[1] > 0xE6 || rxBuf[1] < 0x19 || rxBuf[0] > 5) {
-                    kill_motors(); 
-                    break; //might be wrong. exits case without state change -Keith
+                    kill_motors();
+                    busState= STATE_TOP_LEVEL;
+                    break;
                 }
 
                 /* Set motor N to the speed defined */
                 motorSpeed[rxBuf[0]]= rxBuf[1];
+
+                /* We're done setting speeds! */
+                busState= STATE_TOP_LEVEL;
+            }
+
+            break;
+        }
+
+        case STATE_SET_DERPY:
+        {
+            rxBuf[nParam++]= data;
+
+            if(nParam >= 2) {
+                /* Did we get bad data? */
+                if(chksum(rxBuf, 1, BUS_CMD_SET_DERPY) != rxBuf[1] ||
+                        rxBuf[0] > 0xE6 || rxBuf[0] < 0x19) {
+                    kill_motors();
+                    busState= STATE_TOP_LEVEL;
+                    break;
+                }
+
+                /* Set Derpy to the speed defined */
+                motorSpeed[6]= rxBuf[0];
 
                 /* We're done setting speeds! */
                 busState= STATE_TOP_LEVEL;
@@ -1050,77 +1082,12 @@ void resetI2C_registers(void) {
     I2CCONbits.I2CEN= 1;
 }
 
-void extendPiston(unsigned char pist, unsigned char *buf) {
-    unsigned char fillp, voidp;
-
-    if(pist == 0) {
-        voidp= PIST0_RET_PAIR;
-        fillp= PIST0_EXT_PAIR;
-    } else if(pist == 1) {
-        voidp= PIST1_RET_PAIR;
-        fillp= PIST1_EXT_PAIR;
-    } else if(pist == 2) {
-        voidp= PIST2_RET_PAIR;
-        fillp= PIST2_EXT_PAIR;
-    } else {
-        return;
-    }
-
-    voidPair(voidp, buf);
-    fillPair(fillp, buf + 4);
-}
-
-void retractPiston(unsigned char pist, unsigned char *buf) {
-    unsigned char fillp, voidp;
-    if(pist == 0) {
-        voidp= PIST0_EXT_PAIR;
-        fillp= PIST0_RET_PAIR;
-    } else if(pist == 1) {
-        voidp= PIST1_EXT_PAIR;
-        fillp= PIST1_RET_PAIR;
-    } else if(pist == 2) {
-        voidp= PIST2_EXT_PAIR;
-        fillp= PIST2_RET_PAIR;
-    } else {
-        return;
-    }
-
-    voidPair(voidp, buf);
-    fillPair(fillp, buf + 4);
-}
-
-void fillPair(unsigned char pair, unsigned char *buf) {
-    buf[0]= 'F';
-    buf[1]= 'L';
-    buf[2]= pair;
-    buf[3]= buf[0] + buf[1] + buf[2];
-
-    uartBufSize+= 4;
-}
-
-void voidPair(unsigned char pair, unsigned char *buf) {
-    buf[0]= 'V';
-    buf[1]= 'O';
-    buf[2]= pair;
-    buf[3]= buf[0] + buf[1] + buf[2];
-
-    uartBufSize+= 4;
-}
-
-void offPair(unsigned char pair, unsigned char *buf) {
-    buf[0]= 'O';
-    buf[1]= 'F';
-    buf[2]= pair;
-    buf[3]= buf[0] + buf[1] + buf[2];
-
-    uartBufSize+= 4;
-}
-
-void voidAll(unsigned char *buf) {
-    buf[0]= 'V';
-    buf[1]= 'A';
-    buf[2]= '!';
-    buf[3]= buf[0] + buf[1] + buf[2];
+void forwardCmd(unsigned char cmd) {
+    uartBuf[uartBufSize]=     'B';
+    uartBuf[uartBufSize + 1]= 'C';
+    uartBuf[uartBufSize + 2]= cmd;
+    uartBuf[uartBufSize + 3]= uartBuf[uartBufSize] + uartBuf[uartBufSize + 1]
+                                + uartBuf[uartBufSize + 2];
 
     uartBufSize+= 4;
 }
