@@ -135,7 +135,8 @@ TEST(TestAdaptiveRotationalController)
                     "  'adaptParams' : [0.5, 0.0, -0.1,"
                     "                   1.0, 0.0, 1.0,"
                     "                   0.0, 0.0, 0.0,"
-                    "                   1.0, 2.0, 2.0] }"));
+                    "                   1.0, 2.0, 2.0,"
+                    "                   0.2, 0.2, 0.2] }"));
         
         control::IRotationalControllerImpPtr controllerPtr = 
             control::IRotationalControllerImpPtr(controller);
@@ -166,7 +167,7 @@ TEST(TestAdaptiveRotationalController)
                     "  'adaptParams' : [0.5, 0.0, -0.1,"
                     "                   1.0, 0.0, 1.0,"
                     "                   0.0, 0.0, 0.0,"
-                    "                   1.0, 2.0, 2.0] }"));
+                    "                   1.0, 2.0, 2.0,"                                                         "                   0.2, 0.2, 0.2] }"));
         
         control::IRotationalControllerImpPtr controllerPtr = 
             control::IRotationalControllerImpPtr(controller);
@@ -197,7 +198,8 @@ TEST(TestAdaptiveRotationalController)
                     "  'adaptParams' : [0.5, 0.0, -0.1,"
                     "                   1.0, 0.0, 1.0,"
                     "                   0.0, 0.0, 0.0,"
-                    "                   1.0, 2.0, 2.0] }"));
+                    "                   1.0, 2.0, 2.0,"
+                    "                   0.2, 0.2, 0.2] }"));
         
         control::IRotationalControllerImpPtr controllerPtr = 
             control::IRotationalControllerImpPtr(controller);
