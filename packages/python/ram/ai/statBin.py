@@ -16,12 +16,19 @@ import ext.math as math
 import ext.estimation as estimation
 from ext.control import yawVehicleHelper
 
+import ram.ai.tracking as tracking
 import ram.ai.state as state
 import ram.motion as motion
 import ram.timer
 from ram.motion.basic import Frame
 
 COMPLETE = core.declareEventType('COMPLETE')
+
+def ensureBinTracking(qeventHub, ai):        
+    tracking.ensureItemTracking(qeventHub, ai, 'binData',
+                                vision.EventType.BIN_FOUND,
+                                vision.EventType.BIN_DROPPED)
+    ai.data['binData'].setdefault('histogram', {})
 
 class Start(state.State):
 
@@ -36,11 +43,18 @@ class Start(state.State):
     def enter(self):
         self.visionSystem.binDetectorOn()
 
+        # Make sure we are tracking
+        ensureBinTracking(self.queuedEventHub, self.ai)
+
+
         binDepth = self.ai.data['config'].get('binDepth', 10)
 
         self.ai.data['binData'] = {}
+        self.ai.data['ignoreSymbol'] = {}
         for symbol in self.ai.data['symbolList']:
             self.ai.data['binData'][symbol.lower()] = []
+            self.ai.data[symbol.lower() + 'FoundNum'] = 0
+            self.ai.data['ignoreSymbol'][symbol.lower()] = False
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -78,20 +92,36 @@ class Search(state.ZigZag):
 
 class Strafe(state.State):
 
+    NONE_LEFT = core.declareEventType('NONE_LEFT')
     DONE = core.declareEventType('DONE')
+    SYMBOL_FOUND = core.declareEventType('SYMBOL_FOUND')
+
     STEPNUM = 0
 
     @staticmethod
     def transitions():
         return { motion.basic.MotionManager.FINISHED : Strafe ,
                  vision.EventType.BIN_FOUND : Strafe ,
-                 Strafe.DONE : Align }
+                 Strafe.SYMBOL_FOUND : Center ,
+                 Strafe.DONE : Align,
+                 Strafe.NONE_LEFT : End}
 
     @staticmethod
     def getattr():
-        return { 'distanceLeft' : 3 , 'distanceRight' : 3,  'speed' : 0.3 }
+        return { 'distanceLeft' : 3 , 'distanceRight' : 3,  'speed' : 0.15,
+                 'foundMin' : 10}
 
     def enter(self):
+        
+        self.ignoreCount = 0
+
+        for symbol in self.ai.data['ignoreSymbol']:
+            if self.ai.data['ignoreSymbol'][symbol] == True:
+                self.ignoreCount += 1
+
+        if self.ignoreCount == len(self.ai.data['ignoreSymbol']):
+            self.publish(Strafe.NONE_LEFT, core.Event())
+            
 
         self._orientation = self.ai.data['binOrientation']
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
@@ -117,6 +147,12 @@ class Strafe(state.State):
         if(symbol in self.ai.data['binData']):
             self.ai.data['binData'][symbol].append(
                 self.stateEstimator.getEstimatedPosition())
+            self.ai.data[symbol + 'FoundNum'] += 1
+            if(self.ai.data[symbol + 'FoundNum'] >= self._foundMin and
+               not self.ai.data['ignoreSymbol'][symbol]):
+                self.ai.data['binSymbol'] = symbol
+                self.publish(Strafe.SYMBOL_FOUND, core.Event())
+
 
     def move(self, distance):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -158,7 +194,7 @@ class Align(state.State):
 
     @staticmethod
     def getattr():
-        return { 'speed' : 0.2 }
+        return { 'speed' : 0.15 }
 
     def enter(self):
         if( len(self.ai.data['symbolList']) == 0 ):
@@ -167,6 +203,15 @@ class Align(state.State):
             return
         
         symbol = self.ai.data['symbolList'].pop(0).lower()
+        ignoreSymbol = self.ai.data['ignoreSymbol'][symbol]
+        while ignoreSymbol:
+            if( len(self.ai.data['symbolList']) == 0 ):
+                #print('All buoys hit')
+                self.publish(Align.NONE_LEFT, core.Event())
+                return
+            symbol = self.ai.data['symbolList'].pop(0).lower()
+            ignoreSymbol = self.ai.data['ignoreSymbol'][symbol]
+
         #print('Aligning with ' + color + ' buoy')
         self.ai.data['binSymbol'] = symbol;
         count = 0
@@ -209,20 +254,25 @@ class Center(state.State):
 
     @staticmethod
     def transitions():
-        return { vision.EventType.BIN_FOUND : Center ,
+        return { motion.basic.MotionManager.FINISHED : Center,
+                 vision.EventType.BIN_FOUND : Center ,
                  Center.CENTERED : Drop , 
                  Center.TIMEOUT : Drop }
 
     @staticmethod
     def getattr():
-        return { 'speed' : 0.2 , 'diveRate' : 0.2 , 'distance' : 10 ,
+        return { 'speed' : 0.2 , 'diveRate' : 0.2 , 'distance' : 1 ,
                  'xmin' : -0.05 , 'xmax' : 0.05 , 
-                 'ymin' : -0.05 , 'ymax' : 0.05 }
+                 'ymin' : -0.05 , 'ymax' : 0.05,
+                 'timeout' : 20}
 
     def movex(self, distance):
+        if not self.move_again:
+            return
+
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
-            finalValue = math.Vector2(0, -distance),
+            finalValue = math.Vector2(0, distance),
             initialRate = self.stateEstimator.getEstimatedVelocity(),
             avgRate = self._speed)
         translateMotion = motion.basic.Translate(
@@ -231,7 +281,12 @@ class Center(state.State):
 
         self.motionManager.setMotion(translateMotion)
 
+        self.move_again = False
+
     def movey(self, distance):
+        if not self.move_again:
+            return
+
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
             initialValue = math.Vector2.ZERO,
             finalValue = math.Vector2(-distance,0),
@@ -243,14 +298,27 @@ class Center(state.State):
 
         self.motionManager.setMotion(translateMotion)
 
+        self.move_again = False
+
     def enter(self):
         self.STEPNUM = 0
 
+        self.move_again = True
+
+        self.timer = self.timerManager.newTimer(Center.TIMEOUT, self._timeout)
+        self.timer.start()
+
     def exit(self):
+        if self.timer is not None:
+            self.timer.stop()
         self.motionManager.stopCurrentMotion()
+
+    def FINISHED(self, event):
+        self.move_again = True
 
     def BIN_FOUND(self, event):
         if(str(event.symbol).lower() != self.ai.data['binSymbol']):
+            #print 'returng ' + str(event.symbol).lower() + 'dumbfuck ' + self.ai.data['binSymbol']
             return
 
         if(self.STEPNUM == 0):
@@ -268,6 +336,7 @@ class Center(state.State):
             if(event.x > self._xmin and event.x < self._xmax):
                 #print("X Axis Aligned")
                 self.motionManager.stopCurrentMotion()
+                self.move_again = True
                 self.STEPNUM += 1
             else:
                 self.STEPNUM -= 1
@@ -285,6 +354,8 @@ class Center(state.State):
                 #print("Y Axis Aligned, All Done")
                 self.motionManager.stopCurrentMotion()
                 self.publish(Center.CENTERED, core.Event())
+            else:
+                self.STEPNUM -= 1
 
 
 class Drop(state.State):
@@ -293,16 +364,17 @@ class Drop(state.State):
 
     @staticmethod
     def transitions():
-        return { Drop.DROPPED : Align }
+        return { Drop.DROPPED : Strafe }
 
     def enter(self):
         # Release the marker
         self.vehicle.dropMarker();
+        self.ai.data['ignoreSymbol'][self.ai.data['binSymbol']] = True
         self.publish(Drop.DROPPED, core.Event())
 
 class End(state.State):
     def enter(self):
-        self.vehicle.dropMarkerIndex(1)
-        self.vehicle.dropMarkerIndex(0)
+        #self.vehicle.dropMarkerIndex(1)
+        #self.vehicle.dropMarkerIndex(0)
         self.publish(COMPLETE, core.Event())
 
