@@ -34,6 +34,7 @@
 #include "vision/include/BasicGladiatorDetector.h"
 #include "vision/include/FANNGladiatorDetector.h"
 #include "vision/include/LoversLaneDetector.h"
+#include "vision/include/NullDetector.h"
 
 namespace ram {
 namespace vision {
@@ -97,6 +98,9 @@ registerHedgeDetector("HedgeDetector");
 
 static DetectorMakerTemplate<WindowDetector>
 registerWindowDetector("WindowDetector");
+
+static DetectorMakerTemplate<NullDetector>
+registerNullDetector("NullDetector");
 
 // static DetectorMakerTemplate<VelocityDetector>
 // registerVelocityDetector("VelocityDetector");
