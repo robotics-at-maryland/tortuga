@@ -1103,6 +1103,7 @@ int setServoPower(int fd, unsigned char power)
 
 int setMagPower(int fd, unsigned char power)
 {
+    /*
     unsigned char buf[2];
     if(power) {
         buf[0]= buf[1]= HOST_CMD_MAG_PWR_ON;
@@ -1120,6 +1121,7 @@ int setMagPower(int fd, unsigned char power)
 
     if(buf[0] == HOST_REPLY_FAILURE)
         return SB_HWFAIL;
+    */
 
     return SB_ERROR;
 }
@@ -1343,3 +1345,104 @@ int voidSystem(int fd)
 
     return SB_ERROR;
 }
+
+int pneumaticsOff(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_OFF_PNEU;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+/* if (on == 1) it will turn derpy on, otherwise it will turn derpy off */
+int setDerpyPower(int fd, unsigned char on)
+{
+    unsigned char buf[2];
+
+    if(on == 1) {
+        buf[0]= buf[1]= HOST_CMD_DERPY_ON;
+    } else {
+        buf[0]= buf[1]= HOST_CMD_DERPY_OFF;
+    }
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int setDerpySpeed(int fd, int speed)
+{
+    int i;
+    unsigned char buf[8];
+
+    buf[0]= HOST_CMD_SET_DERPY;
+    buf[1]= (speed >> 8);
+    buf[2]= (speed & 0xff);
+    buf[3]= 'D';
+    buf[4]= 'E';
+    buf[5]= 'R';
+    buf[6]= 'P';
+    buf[7]= 0; // zero out the checksum
+
+    for(i= 0;i < 7;++i)
+        buf[7]+= buf[i];
+
+    writeData(fd, buf, 8);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int stopDerpy(int fd)
+{
+    unsigned char buf[2];
+
+    buf[0]= buf[1]= HOST_CMD_STOP_DERPY;
+
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
+
+    if(buf[0] == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf[0] == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+

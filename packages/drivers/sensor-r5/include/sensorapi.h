@@ -461,6 +461,10 @@ int extendGrabber(int fd);
 int retractGrabber(int fd);
 int voidGrabber(int fd);
 int voidSystem(int fd);
+int pneumaticsOff(int fd);
+int setDerpyPower(int fd, unsigned char on);
+int setDerpySpeed(int fd, int speed);
+int stopDerpy(int fd);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus

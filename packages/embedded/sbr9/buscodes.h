@@ -77,7 +77,9 @@
 #define BUS_CMD_BATT6_ON        0x52
 
 
-/* Bars (LED and fan) on distro board */
+/* Bars (multi-color LEDs) */
+#define BUS_CMD_BAR_COLOR       0x5A
+
 #define BUS_CMD_BAR1_OFF        0x32
 #define BUS_CMD_BAR2_OFF        0x33
 #define BUS_CMD_BAR3_OFF        0x34
@@ -134,6 +136,9 @@
    working code I'm going to keep them around.  "Magnet"
    power is what is replacing it, which is for the magnetic
    droppers.
+
+   Magnetic droppers have been replaced by pneumatic droppers.
+   0x56 and 0x57 should now be depreciated
  */
 #define BUS_CMD_SERVO_POWER_ON  0x56
 #define BUS_CMD_MAG_PWR_ON      0x56
@@ -144,8 +149,7 @@
 #define BUS_CMD_SERVO_ENABLE    0x58
 #define BUS_CMD_SET_SERVO_POS   0x59
 
-/* Motor board reset was never implemented, and has been removed */
-// 0x5A is open
+/* 0x5A is taken by BUS_CMD_BAR COLOR above */
 
 #define BUS_CMD_DVL_ON          0x5B
 #define BUS_CMD_DVL_OFF         0x5C
@@ -162,7 +166,15 @@
 #define BUS_CMD_VOID_GRABBER    0x65
 
 #define BUS_CMD_VOID_PNEU       0x66
-/* Next free is 0x67 */
+#define BUS_CMD_OFF_PNEU        0x67
+
+/* Derpy commands! */
+/* Stop derpy is automatically generated when you send a DERPY_OFF cmd */
+#define BUS_CMD_DERPY_ON        0x68
+#define BUS_CMD_DERPY_OFF       0x69
+#define BUS_CMD_SET_DERPY       0x6A
+#define BUS_CMD_STOP_DERPY      0x6B
+/* Next free is 0x6C */
 
 
 /* I wanted a more Unique response to a ping.
@@ -286,6 +298,12 @@
 #define HOST_CMD_VOID_GRABBER       0x3C
 
 #define HOST_CMD_VOID_PNEU          0x3D
+#define HOST_CMD_OFF_PNEU           0x3E
+
+#define HOST_CMD_DERPY_ON           0x3F
+#define HOST_CMD_DERPY_OFF          0x40
+#define HOST_CMD_SET_DERPY          0x41
+#define HOST_CMD_STOP_DERPY         0x42
 
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.

@@ -18,10 +18,8 @@
 
 void thrusterCmd(int fd, int cmd)
 {
-    int ret;
-
-    if((ret= setThrusterSafety(fd, cmd)) != SB_OK)
-        printf("Error: %s\n", sbErrorToText(ret));
+    if(setThrusterSafety(fd, cmd) != SB_OK)
+        printf("Error safing thruster\n");
 }
 
 void barCmd(int fd, int cmd)
@@ -36,68 +34,69 @@ int main(int argc, char ** argv)
     if(argc < 2 || ((argc == 2) && (strcmp(argv[1], "-h") == 0) ))
     {
         printf("LCD-related Commands:\n");
-        printf("\tlcdshow -c  (clear screen)\n");
-        printf("\tlcdshow -t line1 line2\n");
-        printf("\tlcdshow -bloff (backlight on)\n");
-        printf("\tlcdshow -blon  (backlight off)\n");
-        printf("\tlcdshow -blfl  (backlight flash)\n");
-
+        printf("\t-c (clear screen)\n");
+        printf("\t-t line1 line2\n");
+        printf("\t-bloff (backlight on)\n");
+        printf("\t-blon (backlight off)\n");
+        printf("\t-blfl (backlight flash)\n");
 
         printf("\nSafety commands:\n");
-        printf("\tlcdshow -safe (disable thrusters)\n");
-        printf("\tlcdshow -unsafe (enable thrusters)\n");
-        printf("\tlcdshow -safe [n] (safe thruster n)\n");
-        printf("\tlcdshow -unsafe [n] (unsafe thruster n)\n");
-        printf("\tlcdshow -diagon  (runtime diagnostics on)\n");
-        printf("\tlcdshow -diagoff (runtime diagnostics off)\n");
-	    printf("\tlcdshow -tstop (send zero speed command)\n");
-
+        printf("\t-safe (disable thrusters)\n");
+        printf("\t-unsafe (enable thrusters)\n");
+        printf("\t-safe [n] (safe thruster n)\n");
+        printf("\t-unsafe [n] (unsafe thruster n)\n");
+        printf("\t-diagon  (runtime diagnostics on)\n");
+        printf("\t-diagoff (runtime diagnostics off)\n");
+        printf("\t-tstop (send zero speed command)\n");
 
         printf("\nPower commands:\n");
-        printf("\tlcdshow -hardkill  (kill power)\n");
-        printf("\tlcdshow -extpower  (switch to external power source)\n");
-        printf("\tlcdshow -intpower  (switch to batteries)\n");
-        printf("\tlcdshow -batton n (enable battery n)\n");
-        printf("\tlcdshow -battoff n  (disable battery n)\n");
-        printf("\tlcdshow -setovr a b  (configure overcurrent parameters)\n");
-		printf("\tlcdshow -readovr  (read overcurrent parameters)\n");
-		printf("\tlcdshow -setspeed a b c d e f  (set speeds)\n");
-
+        printf("\t-hardkill  (kill power)\n");
+        printf("\t-extpower  (switch to external power source)\n");
+        printf("\t-intpower  (switch to batteries)\n");
+        printf("\t-batton n (enable battery n)\n");
+        printf("\t-battoff n  (disable battery n)\n");
+        printf("\t-setovr a b  (configure overcurrent parameters)\n");
+        printf("\t-readovr  (read overcurrent parameters)\n");
+        printf("\t-setspeed a b c d e f  (set speeds)\n");
 
         printf("\nSonar commands:\n");
-        printf("\tlcdshow -bfstart (starts the Blackfin processor)\n");
-        printf("\tlcdshow -bfstop (stops the Blackfin processor)\n");
-        printf("\tlcdshow -bfreset (reboots the Blackfin processor)\n");
-        printf("\tlcdshow -sonar (retrieve latest sonar telemetry)\n");
+        printf("\t-bfstart (starts the Blackfin processor)\n");
+        printf("\t-bfstop (stops the Blackfin processor)\n");
+        printf("\t-bfreset (reboots the Blackfin processor)\n");
+        printf("\t-sonar (retrieve latest sonar telemetry)\n");
         
         printf("\nOther commands:\n");
-        printf("\tlcdshow -check (crude system check)\n");
-        printf("\tlcdshow -status (show sensor readings)\n");
-        printf("\tlcdshow -baron (enable bar outputs)\n");
-        printf("\tlcdshow -baroff (disable bar outputs)\n");
-        printf("\tlcdshow -baron [n] (enable bar output n)\n");
-        printf("\tlcdshow -baroff [n] (disable bar output n)\n");
-        printf("\tlcdshow -marker {1|2} (drop marker 1 or 2)\n");
-        printf("\tlcdshow -s  (begin start sequence)\n");
-        printf("\tlcdshow -setbars n (set bar outputs)\n");
-        printf("\tlcdshow -noblink (stop animation)\n");
-        printf("\tlcdshow -redgreen (start red/green animation)\n");
-        printf("\tlcdshow -redblue (start red/blue animation)\n");
-        printf("\tlcdshow -magpwron (turn on the 5V WAH on motor)\n");
-        printf("\tlcdshow -magpwroff (turn off the 5V WAH on motor)\n");
+        printf("\t-check (crude system check)\n");
+        printf("\t-status (show sensor readings)\n");
+        printf("\t-baron (enable bar outputs)\n");
+        printf("\t-baroff (disable bar outputs)\n");
+        printf("\t-baron [n] (enable bar output n)\n");
+        printf("\t-baroff [n] (disable bar output n)\n");
+        printf("\t-marker {1|2} (drop marker 1 or 2)\n");
+        printf("\t-s  (begin start sequence)\n");
+        printf("\t-setbars n (set bar outputs)\n");
+        printf("\t-noblink (stop animation)\n");
+        printf("\t-redgreen (start red/green animation)\n");
+        printf("\t-redblue (start red/blue animation)\n");
 
         printf("\nDVL commands:\n");
-        printf("\tlcdshow -dvlon (enable dvl)\n");
-        printf("\tlcdshow -dvloff (disable dvl)\n");
+        printf("\t-dvlon (enable dvl)\n");
+        printf("\t-dvloff (disable dvl)\n");
 
         printf("\nPneumatics Commands:\n");
-        printf("\tlcdshow -firetorp # (fire torpedo number #)\n");
-        printf("\tlcdshow -armtorp # (arm torpedo number #)\n");
-        printf("\tlcdshow -voidtorp # (void torpedo number #)\n");
-        printf("\tlcdshow -extgrabber (close the grabber)\n");
-        printf("\tlcdshow -retgrabber (open the grabber)\n");
-        printf("\tlcdshow -voidgrabber (void the grabber)\n");
-        printf("\tlcdshow -voidall (void all pneumatics)\n");
+        printf("\t-firetorp # (fire torpedo number #)\n");
+        printf("\t-armtorp # (arm torpedo number #)\n");
+        printf("\t-voidtorp # (void torpedo number #)\n");
+        printf("\t-extgrabber (close the grabber)\n");
+        printf("\t-retgrabber (open the grabber)\n");
+        printf("\t-voidgrabber (void the grabber)\n");
+        printf("\t-voidall (void all pneumatics)\n");
+        printf("\t-pneuoff (turn off pneumatics)\n");
+
+        printf("\nDerpy Commands:\n");
+        printf("\t-derpypwr {on|off} (turn on or off derpy power)\n");
+        printf("\t-setderpy # (set derpy speed)\n");
+        printf("\t-stopderpy (set derpy speed to not move)\n");
 
         return -1;
     }
@@ -829,8 +828,7 @@ int main(int argc, char ** argv)
         int ret;
         if(argc != 3) {
             printf("I need a torpedo number!\n");
-        }
-        else if((ret = fireTorpedo(fd, atoi(argv[2]))) != SB_OK)
+        } else if((ret = fireTorpedo(fd, atoi(argv[2]))) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
 
@@ -879,6 +877,48 @@ int main(int argc, char ** argv)
     {
         int ret;
         if((ret = voidSystem(fd)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-pneuoff") == 0)
+    {
+        int ret;
+        if((ret = pneumaticsOff(fd)) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+    }
+
+    else if(strcmp(argv[1], "-derpypwr") == 0)
+    {
+        int ret;
+
+        if(argc != 3) {
+            printf("No parameter for -derpypwr!\n");
+        } else if(strcmp(argv[2], "on") == 0) {
+            if((ret = setDerpyPower(fd, 1)) != SB_OK)
+                printf("Error: %s\n", sbErrorToText(ret));
+        } else if(strcmp(argv[2], "off") == 0) {
+            if((ret = setDerpyPower(fd, 0)) != SB_OK)
+                printf("Error: %s\n", sbErrorToText(ret));
+        } else {
+            printf("Invalid parameter for -derpypwr!\n");
+        }
+    }
+    
+    else if(strcmp(argv[1], "-setderpy") == 0)
+    {
+        int ret;
+        if(argc != 3) {
+            printf("No parameter for -setderpy!\n");
+        } else {
+            if((ret = setDerpySpeed(fd, atoi(argv[2]))) != SB_OK)
+                printf("Error: %s\n", sbErrorToText(ret));
+        }
+    }
+
+    else if(strcmp(argv[1], "-stopderpy") == 0)
+    {
+        int ret;
+        if((ret = stopDerpy(fd)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
     
