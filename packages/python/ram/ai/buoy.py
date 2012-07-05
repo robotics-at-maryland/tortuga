@@ -36,7 +36,7 @@ class Start(state.State):
     def enter(self):
         self.visionSystem.buoyDetectorOn()
 
-        buoyDepth = self.ai.data['config'].get('buoyDepth', 9)
+        buoyDepth = self.ai.data['config'].get('buoyDepth', -1)
 
         self._orientation = self.ai.data['buoyOrientation']
         self.ai.data['buoyData'] = {}
@@ -335,7 +335,6 @@ class Center(state.State):
                 self.publish(Center.CENTERED, core.Event())
             else:
                 self.STEPNUM -= 1
-
 
 class Attack(state.State):
 
