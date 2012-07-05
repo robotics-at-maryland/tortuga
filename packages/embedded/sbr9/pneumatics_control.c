@@ -97,70 +97,75 @@ unsigned int cmdValid[VALIDBITS];
 /* }}} */
 
 /* {{{ Logical names - We have them in void-fill pairs */
-#define VOID_PAIR_0  RELAY_13
-#define VOID_PAIR_1  RELAY_14
-#define VOID_PAIR_2  RELAY_15
-#define VOID_PAIR_3  RELAY_16
-#define VOID_PAIR_4  RELAY_17
-#define VOID_PAIR_5  RELAY_18
-#define VOID_PAIR_6  RELAY_19
-#define VOID_PAIR_7  RELAY_20
-#define VOID_PAIR_8  RELAY_21
-#define VOID_PAIR_9  RELAY_22
-#define VOID_PAIR_10 RELAY_23
-#define VOID_PAIR_11 RELAY_24
+#define FILL_PAIR_0  RELAY_13
+#define FILL_PAIR_1  RELAY_14
+#define FILL_PAIR_2  RELAY_15
+#define FILL_PAIR_3  RELAY_16
+#define FILL_PAIR_4  RELAY_17
+#define FILL_PAIR_5  RELAY_18
+#define FILL_PAIR_6  RELAY_19
+#define FILL_PAIR_7  RELAY_20
+#define FILL_PAIR_8  RELAY_21
+#define FILL_PAIR_9  RELAY_22
+#define FILL_PAIR_10 RELAY_23
+#define FILL_PAIR_11 RELAY_24
 
-#define FILL_PAIR_0  RELAY_1
-#define FILL_PAIR_1  RELAY_2
-#define FILL_PAIR_2  RELAY_3
-#define FILL_PAIR_3  RELAY_4
-#define FILL_PAIR_4  RELAY_5
-#define FILL_PAIR_5  RELAY_6
-#define FILL_PAIR_6  RELAY_7
-#define FILL_PAIR_7  RELAY_8
-#define FILL_PAIR_8  RELAY_9
-#define FILL_PAIR_9  RELAY_10
-#define FILL_PAIR_10 RELAY_11
-#define FILL_PAIR_11 RELAY_12
+#define VOID_PAIR_0  RELAY_1
+#define VOID_PAIR_1  RELAY_2
+#define VOID_PAIR_2  RELAY_3
+#define VOID_PAIR_3  RELAY_4
+#define VOID_PAIR_4  RELAY_5
+#define VOID_PAIR_5  RELAY_6
+#define VOID_PAIR_6  RELAY_7
+#define VOID_PAIR_7  RELAY_8
+#define VOID_PAIR_8  RELAY_9
+#define VOID_PAIR_9  RELAY_10
+#define VOID_PAIR_10 RELAY_11
+#define VOID_PAIR_11 RELAY_12
 
 /* Maps pistons as extend and retract pairs */
-#define PIST_0_EXT 0
-#define PIST_0_RET 2
-#define PIST_1_EXT 1
-#define PIST_1_RET 3
+#define PIST_0_EXT 2
+#define PIST_0_RET 0
+
+#define PIST_1_EXT 3
+#define PIST_1_RET 1
+
 #define PIST_2_EXT 4
 #define PIST_2_RET 6
+
 #define PIST_3_EXT 5
 #define PIST_3_RET 7
+
 #define PIST_4_EXT 8
 #define PIST_4_RET 10
+
 #define PIST_5_EXT 9
 #define PIST_5_RET 11
 
 /* Maps specific types of pistons to piston numbers */
-#define TORP_1_PIST 0
-#define TORP_1_RET  PIST_0_RET
-#define TORP_1_EXT  PIST_0_EXT
+#define TORP_1_PIST 4
+#define TORP_1_RET  PIST_4_RET
+#define TORP_1_EXT  PIST_4_EXT
 
-#define TORP_2_PIST 1
-#define TORP_2_RET  PIST_1_RET
-#define TORP_2_EXT  PIST_1_EXT
+#define TORP_2_PIST 5
+#define TORP_2_RET  PIST_5_RET
+#define TORP_2_EXT  PIST_5_EXT
 
-#define GRABBER_1_PIST 2
-#define GRABBER_1_RET  PIST_2_RET
-#define GRABBER_1_EXT  PIST_2_EXT
+#define GRABBER_1_PIST 0
+#define GRABBER_1_RET  PIST_0_RET
+#define GRABBER_1_EXT  PIST_0_EXT
 
-#define GRABBER_2_PIST 3
-#define GRABBER_2_RET  PIST_3_RET
-#define GRABBER_2_EXT  PIST_3_EXT
+#define GRABBER_2_PIST 1
+#define GRABBER_2_RET  PIST_1_RET
+#define GRABBER_2_EXT  PIST_1_EXT
 
-#define MARKER_1_PIST 4
-#define MARKER_1_RET  PIST_4_RET
-#define MARKER_1_EXT  PIST_4_EXT
+#define MARKER_1_PIST 2
+#define MARKER_1_RET  PIST_2_RET
+#define MARKER_1_EXT  PIST_2_EXT
 
-#define MARKER_2_PIST 5
-#define MARKER_2_RET  PIST_5_RET
-#define MARKER_2_EXT  PIST_5_EXT
+#define MARKER_2_PIST 3
+#define MARKER_2_RET  PIST_3_RET
+#define MARKER_2_EXT  PIST_3_EXT
 /* }}} */
 
 /* {{{ Function Prototypes */

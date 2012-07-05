@@ -564,14 +564,14 @@ void processData(byte data)
                     break;
                 }
 
-                case HOST_CMD_SET_DERPY:
+                case BUS_CMD_SET_DERPY:
                 {
                     nParam= 0;
                     busState= STATE_SET_DERPY;
                     break;
                 }
 
-                case HOST_CMD_STOP_DERPY:
+                case BUS_CMD_STOP_DERPY:
                 {
                     motorSpeed[6]= 0x80;
                     break;
@@ -634,23 +634,18 @@ void processData(byte data)
 
         case STATE_SET_DERPY:
         {
-            rxBuf[nParam++]= data;
-
-            if(nParam >= 2) {
-                /* Did we get bad data? */
-                if(chksum(rxBuf, 1, BUS_CMD_SET_DERPY) != rxBuf[1] ||
-                        rxBuf[0] > 0xE6 || rxBuf[0] < 0x19) {
-                    kill_motors();
-                    busState= STATE_TOP_LEVEL;
-                    break;
-                }
-
-                /* Set Derpy to the speed defined */
-                motorSpeed[6]= rxBuf[0];
-
-                /* We're done setting speeds! */
+            /* Did we get bad data? */
+            if(data > 0xE6 || data < 0x19) {
+                kill_motors();
                 busState= STATE_TOP_LEVEL;
+                break;
             }
+
+            /* Set Derpy to the speed defined */
+            motorSpeed[6]= data;
+
+            /* We're done setting speeds! */
+            busState= STATE_TOP_LEVEL;
 
             break;
         }
@@ -674,7 +669,7 @@ int main()
 {
     unsigned int i, temp;
     unsigned long timeout, err_reset;
-    byte activeSpeed[6];
+    byte activeSpeed[7];
 
     uartBufSize= uartBufPos= 0;
     sent_start= 0;
@@ -682,7 +677,7 @@ int main()
     /* Set up the Oscillator */
     initOSC();
 
-    for(i= 0;i < 6;i++)
+    for(i= 0;i < 7;i++)
         motorSpeed[i]= 0x80;
 
     /* Set up the ADCs*/
@@ -759,7 +754,7 @@ int main()
     while(1) {
         /* Avoid a race condition!!! */
         REQ_INT_BIT= 0;
-        for(i= 0;i < 6;i++) {
+        for(i= 0;i < 7;i++) {
             activeSpeed[i]= motorSpeed[i];
         }
         REQ_INT_BIT= 1;
@@ -793,7 +788,7 @@ int main()
             LAT_WAH_INH= WAH_OFF;
         }
 
-        for(i= 0;i < 6;i++) {
+        for(i= 0;i < 7;i++) {
             /*temp= LATF & 0xFE3F;
             LATF= temp | (i << 6);*/
             /*temp= ~i;

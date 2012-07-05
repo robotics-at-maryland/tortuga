@@ -2527,20 +2527,21 @@ int main(void)
 
             case HOST_CMD_SET_DERPY:
             {
-                rxBuf[0] = waitchar(1); // Speed
-                rxBuf[1] = waitchar(1); // D
-                rxBuf[2] = waitchar(1); // E
-                rxBuf[3] = waitchar(1); // R
-                rxBuf[4] = waitchar(1); // P
-                rxBuf[5] = waitchar(1); // checksum
+                rxBuf[0] = waitchar(1); // Speed MSB
+                rxBuf[1] = waitchar(1); // Speed LSB
+                rxBuf[2] = waitchar(1); // D
+                rxBuf[3] = waitchar(1); // E
+                rxBuf[4] = waitchar(1); // R
+                rxBuf[5] = waitchar(1); // P
+                rxBuf[6] = waitchar(1); // checksum
 
-                if(chksum(rxBuf, 5, HOST_CMD_SET_DERPY) != rxBuf[5])
+                if(chksum(rxBuf, 6, HOST_CMD_SET_DERPY) != rxBuf[6])
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
                     break;
                 }
 
-                if(rxBuf[1] != 'D' || rxBuf[2] != 'E' || rxBuf[3] != 'R' || rxBuf[4] != 'P')
+                if(rxBuf[2] != 'D' || rxBuf[3] != 'E' || rxBuf[4] != 'R' || rxBuf[5] != 'P')
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
@@ -2552,14 +2553,7 @@ int main(void)
                     break;
                 }
 
-                if(busWriteByte(rxBuf[0], SLAVE_ID_MOTOR) != 0)
-                {
-                    sendByte(HOST_REPLY_FAILURE);
-                    break;
-                }
-
-                /* Turning on Derpy has an extra safety checksum thrown in */
-                if(busWriteByte(chksum(rxBuf, 1, BUS_CMD_SET_DERPY), SLAVE_ID_MOTOR) != 0)
+                if(busWriteByte(convertSpeed(rxBuf[0], rxBuf[1]), SLAVE_ID_MOTOR) != 0)
                 {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
