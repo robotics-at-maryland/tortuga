@@ -7,6 +7,12 @@
  * File:  packages/vision/src/device/SensorBoard.cpp
  */
 //#include <iostream>
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
 // Library Includes
 #include <log4cpp/Category.hh>
 
@@ -131,7 +137,7 @@ SensorBoard::~SensorBoard()
     boost::mutex::scoped_lock lock(m_deviceMutex);
     if (m_deviceFD >= 0)
     {
-        setServoPower(SERVO_POWER_OFF);
+        // setServoPower(SERVO_POWER_OFF);
         close(m_deviceFD);
         m_deviceFD = -1;
     }
@@ -438,8 +444,8 @@ int SensorBoard::fireTorpedo()
     return -1;
 #else // NO_SERVOS
     boost::mutex::scoped_lock lock(m_deviceMutex);
-    
-    int torpedoNum;
+
+    int torpedoNum = 0;
     for (torpedoNum = 0; torpedoNum < NUMBER_OF_TORPEDOS; torpedoNum++)
     {
         if(torpedosFired[torpedoNum] == false){
@@ -457,7 +463,7 @@ int SensorBoard::fireTorpedo(int index)
 {
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    if (index < NUMBER_OF_TORPEDOS)
+    if (index <= NUMBER_OF_TORPEDOS)
     {
         handleReturn(::fireTorpedo(m_deviceFD, index));
         torpedosFired[index] = true;
@@ -488,6 +494,7 @@ void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 
 void SensorBoard::setExtraThrusterSpeed(int speed)
 {
+    boost::mutex::scoped_lock lock(m_deviceMutex);
     if(speed){
         // NOTE: I don't like this name, but there's no time for me
         // to bother changing it
@@ -532,7 +539,10 @@ void SensorBoard::setBatteryState(int state)
 
 void SensorBoard::dropMarker(int markerNum)
 {
-    handleReturn(::dropMarker(m_deviceFD, markerNum));
+    std::cout << "Dropping Marker " << markerNum << std::endl;
+    int ret = ::dropMarker(m_deviceFD, markerNum);
+    std::cout << "Marker Return: " << ret << std::endl;
+    //handleReturn(ret);
 }
 
 void SensorBoard::setServoPosition(unsigned char servoNumber,
@@ -580,7 +590,7 @@ void SensorBoard::establishConnection()
     syncBoard();
 
     // Turn on the servos
-    setServoPower(SERVO_POWER_ON);
+    // setServoPower(SERVO_POWER_ON);
 }
 
 bool SensorBoard::handleReturn(int ret)
@@ -588,6 +598,30 @@ bool SensorBoard::handleReturn(int ret)
     if (ret < 0)
     {
         std::cout << "some kind of error.  reestablishing connection." << std::endl;
+
+//         int j, nptrs;
+// #define SIZE 100
+//         void *buffer[100];
+//         char **strings;
+
+//         nptrs = backtrace(buffer, SIZE);
+//         printf("backtrace() returned %d addresses\n", nptrs);
+
+//         /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+//            would produce similar output to the following: */
+
+//         strings = backtrace_symbols(buffer, nptrs);
+//         if (strings == NULL) {
+//             perror("backtrace_symbols");
+//             exit(EXIT_FAILURE);
+//         }
+
+//         for (j = 0; j < nptrs; j++)
+//             printf("%s\n", strings[j]);
+
+//         free(strings);
+// #undef SIZE
+
         close(m_deviceFD);
         m_deviceFD = -1;
         establishConnection();

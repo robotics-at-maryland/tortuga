@@ -24,6 +24,7 @@
 #include "vehicle/include/device/SBPowerSource.h"
 #include "vehicle/include/device/SBTempSensor.h"
 #include "vehicle/include/device/SBThruster.h"
+#include "vehicle/include/device/SBExtraThruster.h"
 #include "vehicle/include/device/SBSonar.h"
 #include "vehicle/include/device/SBMarkerDropper.h"
 #include "vehicle/include/device/SBTorpedoLauncher.h"
@@ -50,6 +51,8 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBTempSensor,
                                    SBTempSensor);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBThruster,
                                    SBThruster);
+RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBExtraThruster,
+                                   SBExtraThruster);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBSonar,
                                    SBSonar);
 RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::SBMarkerDropper,

@@ -26,7 +26,6 @@ SBExtraThruster::SBExtraThruster(core::ConfigNode config, core::EventHubPtr even
                    IVehiclePtr vehicle) :
     Device(config["name"].asString()),
     IThruster(eventHub, config["name"].asString()),
-    m_address(config["address"].asInt()),
     m_sensorBoard(SensorBoardPtr())
 {
     // A little hack to determine the offset based on thruster type
@@ -34,6 +33,7 @@ SBExtraThruster::SBExtraThruster(core::ConfigNode config, core::EventHubPtr even
 
     m_sensorBoard = IDevice::castTo<SensorBoard>(
         vehicle->getDevice("SensorBoard"));
+
 }
 
 SBExtraThruster::~SBExtraThruster()

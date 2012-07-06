@@ -46,6 +46,35 @@ public:
     /** Return the current force the thrusters are outputing in newtons */
     virtual double getForce();
 
+    virtual double getMaxForce()
+    {
+        return 300;
+    }
+    
+    virtual double getMinForce()
+    {
+        return 0;
+    }
+
+    virtual bool isEnabled()
+    {
+        return 1;
+    }
+
+    virtual void setEnabled(bool state)
+    {
+        return;
+    }
+
+    virtual math::Vector3 getLocation()
+    {
+        return math::Vector3();
+    }
+
+    virtual double getCurrent()
+    {
+        return 0;
+    }
 
     // IUpdatable Interface methods, these delegate to the communicator
 

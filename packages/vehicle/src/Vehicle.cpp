@@ -104,6 +104,7 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
                                config["extraThrusterDirection"][2].asDouble(0));
     force = config["extraThrusterForce"].asDouble(0);
     m_extraThrustOn = false;
+
     // Create devices
     if (config.exists("Devices"))
     {
@@ -137,6 +138,12 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
             }
         }
         TLOGGER.warn("starboard port bottom top fore aft");
+
+
+        NameDeviceMapIter iter = m_devices.find(m_extraThrusterName);
+        if(iter != m_devices.end())
+            m_extraThruster = device::IDevice::castTo<device::IThruster>(
+                (*iter).second);
     }
 
 
@@ -279,17 +286,9 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
             m_bottomThruster->getLocation(),
             m_aftThruster->getLocation());
 
-        Tuple6Vector3 thrusterDirections = Tuple6Vector3(
-            m_portThruster->getDirection(),
-            m_starboardThruster->getDirection(),
-            m_topThruster->getDirection(),
-            m_foreThruster->getDirection(),
-            m_bottomThruster->getDirection(),
-            m_aftThruster->getDirection());
-
         m_controlSignalToThrusterForces = 
             createControlSignalToThrusterForcesMatrix(
-                thrusterLocations, thrusterDirections);
+                thrusterLocations);
 
         m_controlSignalToThrusterForcesCreated = true;
     }
@@ -298,7 +297,7 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     
     // Thruster order convention is based on the direction of
     // the force applied and the offset location
-    // PRT, STR, TOP, FOR, BOT, AFT
+    // PORT, STAR, TOP, FORE, BOT, AFT
 
     math::VectorN controlSignal(0.0, 6);
     controlSignal[0] = translationalForces[0];
@@ -322,9 +321,9 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
         extraThruster[2] = force*m_extraDirection[2];
         math::Vector3 fCrossD;
         fCrossD = (force*m_extraDirection).crossProduct(m_extraLocation);
-        extraThruster[4] = fCrossD[0];
-        extraThruster[5] = fCrossD[1];
-        extraThruster[6] = fCrossD[2];
+        extraThruster[3] = fCrossD[0];
+        extraThruster[4] = fCrossD[1];
+        extraThruster[5] = fCrossD[2];
     }
     //now adding in the extra thuster, still needs events
     math::VectorN thrusterForces = 
@@ -332,11 +331,11 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
 
     /****** Set Thruster Forces *************************/
-    m_starboardThruster->setForce(thrusterForces[STR]);
-    m_portThruster->setForce(thrusterForces[PRT]);
+    m_starboardThruster->setForce(thrusterForces[STAR]);
+    m_portThruster->setForce(thrusterForces[PORT]);
     m_bottomThruster->setForce(thrusterForces[BOT]);
     m_topThruster->setForce(thrusterForces[TOP]);
-    m_foreThruster->setForce(thrusterForces[FOR]);
+    m_foreThruster->setForce(thrusterForces[FORE]);
     m_aftThruster->setForce(thrusterForces[AFT]);
 
 
@@ -346,11 +345,11 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
     event->torques = rotationalTorques;
     publish(VEHICLE_THRUST_UPDATE ,event);
 
-    TLOGGER.infoStream() << thrusterForces[STR] << " "
-                         << thrusterForces[PRT] << " "
+    TLOGGER.infoStream() << thrusterForces[STAR] << " "
+                         << thrusterForces[PORT] << " "
                          << thrusterForces[BOT] << " "
                          << thrusterForces[TOP] << " "
-                         << thrusterForces[FOR] << " "
+                         << thrusterForces[FORE] << " "
                          << thrusterForces[AFT];
 }
     
@@ -517,53 +516,53 @@ bool Vehicle::lookupThrusterDevices()
 }
     
 math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
-    Tuple6Vector3 thrusterLocations, Tuple6Vector3 thrusterDirections)
+    Tuple6Vector3 thrusterLocations)
 {
     Tuple6Vector3 tl = thrusterLocations;
-    Tuple6Vector3 td = thrusterDirections;
 
     // make a 6 x 6 matrix that maps thruster force to output force and torque
     math::MatrixN A(0.0, 6, 6);
 
     // this is the torque calculated for a unit force in the thruster direction
-    math::Vector3 tB = tl.get<BOT>().crossProduct(td.get<BOT>());
-    math::Vector3 tT = tl.get<TOP>().crossProduct(td.get<TOP>());
-    math::Vector3 tF = tl.get<FOR>().crossProduct(td.get<FOR>());
-    math::Vector3 tA = tl.get<AFT>().crossProduct(td.get<AFT>());
-    math::Vector3 tS = tl.get<STR>().crossProduct(td.get<STR>());
-    math::Vector3 tP = tl.get<PRT>().crossProduct(td.get<PRT>());
+    math::Vector3 tB = tl.get<BOT>().crossProduct(math::Vector3::UNIT_Y);
+    math::Vector3 tT = tl.get<TOP>().crossProduct(math::Vector3::UNIT_Y);
+    math::Vector3 tF = tl.get<FORE>().crossProduct(math::Vector3::UNIT_Z);
+    math::Vector3 tA = tl.get<AFT>().crossProduct(math::Vector3::UNIT_Z);
+    math::Vector3 tS = tl.get<STAR>().crossProduct(-math::Vector3::UNIT_X);
+    math::Vector3 tP = tl.get<PORT>().crossProduct(-math::Vector3::UNIT_X);
 
-    A[FX][PRT] = 1; 
-    A[FX][STR] = 1;
-    A[FY][TOP] = 1; 
-    A[FZ][FOR] = 1;
-    A[FY][BOT] = 1; 
-    A[FZ][AFT] = 1;
+
+    A[FX][PORT] = 1; 
+    A[FX][STAR] = 1;
+    A[FY][TOP]  = 1; 
+    A[FZ][FORE] = 1;
+    A[FY][BOT]  = 1; 
+    A[FZ][AFT]  = 1;
     
     // these terms multiplied by force component give resultant torque
     // torque_x
-    A[TX][PRT] = tP[0];
-    A[TX][STR] = tS[0];
-    A[TX][TOP] = tT[0];
-    A[TX][FOR] = tF[0];
-    A[TX][BOT] = tB[0];
-    A[TX][AFT] = tA[0];
+    A[TX][PORT] = tP[0];
+    A[TX][STAR] = tS[0];
+    A[TX][TOP]  = tT[0];
+    A[TX][FORE] = tF[0];
+    A[TX][BOT]  = tB[0];
+    A[TX][AFT]  = tA[0];
     
     // torque_y
-    A[TY][PRT] = tP[1];
-    A[TY][STR] = tS[1];
-    A[TY][TOP] = tT[1];
-    A[TY][FOR] = tF[1];
-    A[TY][BOT] = tB[1];
-    A[TY][AFT] = tA[1];
+    A[TY][PORT] = tP[1];
+    A[TY][STAR] = tS[1];
+    A[TY][TOP]  = tT[1];
+    A[TY][FORE] = tF[1];
+    A[TY][BOT]  = tB[1];
+    A[TY][AFT]  = tA[1];
 
     // torque_z
-    A[TZ][PRT] = tP[2];
-    A[TZ][STR] = tS[2];
-    A[TZ][TOP] = tT[2];
-    A[TZ][FOR] = tF[2];
-    A[TZ][BOT] = tB[2];
-    A[TZ][AFT] = tA[2];
+    A[TZ][PORT] = tP[2];
+    A[TZ][STAR] = tS[2];
+    A[TZ][TOP]  = tT[2];
+    A[TZ][FORE] = tF[2];
+    A[TZ][BOT]  = tB[2];
+    A[TZ][AFT]  = tA[2];
 
     // when given control signal vector b, this will allow 
     // us to efficiently compute x = A_inv * b
