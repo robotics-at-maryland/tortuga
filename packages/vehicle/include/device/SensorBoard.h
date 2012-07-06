@@ -236,6 +236,13 @@ public:
      */
     virtual double getMainBusVoltage();
 
+    /** This turns on or off the external thruster
+     *
+     *  if the parameter is 0 it turns off the thruster
+     *  if the parameter is anything else, it sets the speed to that
+     */
+    virtual void setExtraThrusterSpeed(int speed);
+
 protected:
     // Makes easy access to the sensor board and allows testing
     virtual void setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6);

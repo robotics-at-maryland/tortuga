@@ -106,6 +106,9 @@ public:
     /** Grab the PVC */
     virtual void closeGrabber() = 0;
 
+    /** Toggle the external thruster */
+    virtual void setExtraThruster(int speed) = 0;
+
     /** This event should be published when thrusts are updated */
     static const core::Event::EventType VEHICLE_THRUST_UPDATE;
     

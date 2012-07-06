@@ -85,6 +85,8 @@ public:
     virtual void releaseGrabber() {assert(false && "Method not implemented");}
     virtual void closeGrabber() {assert(false && "Method not implemented");}
 
+    virtual void setExtraThruster(int speed) {assert(false && "Method not implemented");}
+
     virtual int startStatus()
     {
         assert(false && "Method not implemented");

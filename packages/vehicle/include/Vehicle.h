@@ -107,7 +107,7 @@ public:
         Tuple6Vector3 thrusterLocations, Tuple6Vector3 thrusterDirections);
 
     
-    void setExtraThruster(bool state);
+    virtual void setExtraThruster(int speed);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
@@ -130,6 +130,8 @@ private:
     vehicle::device::IThrusterPtr m_topThruster;
     std::string m_bottomThrusterName;
     vehicle::device::IThrusterPtr m_bottomThruster;
+    std::string m_extraThrusterName;
+    vehicle::device::IThrusterPtr m_extraThruster;
     math::Vector3 m_extraLocation;
     math::Vector3 m_extraDirection;
     double force;

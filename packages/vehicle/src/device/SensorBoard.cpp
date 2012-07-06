@@ -485,6 +485,20 @@ void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 {
     handleReturn(::setSpeeds(m_deviceFD, s1, s2, s3, s4, s5, s6));
 }
+
+void SensorBoard::setExtraThrusterSpeed(int speed)
+{
+    if(speed){
+        // NOTE: I don't like this name, but there's no time for me
+        // to bother changing it
+        handleReturn(::setDerpyPower(m_deviceFD, 1)); //turn on
+        handleReturn(::setDerpySpeed(m_deviceFD, speed)); //set speed
+    }
+    else{
+        handleReturn(::setDerpyPower(m_deviceFD, 0)); //turn off
+        handleReturn(::setDerpySpeed(m_deviceFD, 0)); //set speed to 0
+    }
+}
     
 int SensorBoard::partialRead(struct boardInfo* telemetry)
 {

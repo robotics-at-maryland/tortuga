@@ -81,6 +81,9 @@ Vehicle::Vehicle(core::ConfigNode config, core::SubsystemList deps) :
     m_bottomThrusterName(
         config["BottomThrusterName"].asString("BottomThruster")),
     m_bottomThruster(device::IThrusterPtr()),
+    m_extraThrusterName(
+        config["ExtraThrusterName"].asString("ExtraThruster")),
+    m_extraThruster(device::IThrusterPtr()),
     m_topThrusterThrottle(config["TopThrusterThrottle"].asDouble(1.0)),
     m_markerDropperName(config["MarkerDropperName"].asString("MarkerDropper")),
     m_markerDropper(device::IPayloadSetPtr()),
@@ -162,10 +165,17 @@ Vehicle::~Vehicle()
 }
 
 
-//true if on, false otherwise
-void Vehicle::setExtraThruster(bool state)
+//0 if off, anything else otherwise
+
+void Vehicle::setExtraThruster(int speed)
 {
-    m_extraThrustOn = state;
+    if(speed){
+        m_extraThrustOn = true;
+    }
+    else{
+        m_extraThrustOn = false;
+    }
+    m_extraThruster->setForce(speed);
 }
 
 
