@@ -278,6 +278,22 @@ void Vehicle::applyForcesAndTorques(const math::Vector3& translationalForces,
 
     if(!m_controlSignalToThrusterForcesCreated)
     {
+        Tuple6Vector3 thrusterLocations = Tuple6Vector3(
+            m_portThruster->getLocation(),
+            m_starboardThruster->getLocation(),
+            m_topThruster->getLocation(),
+            m_foreThruster->getLocation(),
+            m_bottomThruster->getLocation(),
+            m_aftThruster->getLocation());
+
+        Tuple6Vector3 thrusterDirections = Tuple6Vector3(
+            m_portThruster->getDirection(),
+            m_starboardThruster->getDirection(),
+            m_topThruster->getDirection(),
+            m_foreThruster->getDirection(),
+            m_bottomThruster->getDirection(),
+            m_aftThruster->getDirection());
+
         m_controlSignalToThrusterForces = 
             createControlSignalToThrusterForcesMatrix(
                 thrusterLocations, thrusterDirections);

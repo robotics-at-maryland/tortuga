@@ -71,6 +71,11 @@ public:
         return math::Vector3();
     }
 
+    virtual math::Vector3 getDirection()
+    {
+        return math::Vector3();
+    }
+
     virtual double getCurrent()
     {
         return 0;
