@@ -4,9 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <opencv.hpp>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 #include <iostream>
 #include <algorithm>
+
+#include <time.h>
 
 //values found earlier to increase efficiency.
 // 0 = tan(10 * (PI / 180))
@@ -34,70 +37,166 @@
 
 #define THRESHOLD 0.2
 
-cv::Mat HOGFeatures(cv::Mat &image){
 
+int binning(float dx, float dy){
+
+	//float angle = ( !dx ? 0 : atan((float)dy / dx) );
+
+    float ratio = 0;
+    if(dx == 0 && dy > 0){
+		ratio = 100;
+	}
+	else if(dx == 0 && dy < 0){
+		ratio = -100;
+	}
+	else if(dx == 0 && dy == 0){
+		ratio = .0001;
+	}
+	else{
+		ratio = dy / dx;
+	}
+	if(dx>=0){
+		if(dy>=0){
+			//Quadrant 1
+			if(ratio < BOUNDARY0){
+				return 0;
+			}
+			else if(ratio < BOUNDARY17){
+				return 1;
+			}
+			else if(ratio < BOUNDARY16){
+				return 2;
+			}
+			else if(ratio < BOUNDARY15){
+				return 3;
+			}
+			else{
+				return 4;
+			}
+		}
+		else{
+			//Quadrant 4
+			if(ratio > BOUNDARY1){
+				return 0;
+			}
+			else if(ratio > BOUNDARY2){
+				return 17;
+			}
+			else if(ratio > BOUNDARY3){
+				return 16;
+			}
+			else if(ratio > BOUNDARY4){
+				return 15;
+			}
+			else{
+				return 14;
+			}
+		}
+	}
+	else{
+		if(dy>=0){
+			//Quadrant 2
+			if(ratio > BOUNDARY10){
+				return 9;
+			}
+			else if(ratio > BOUNDARY11){
+				return 8;
+			}
+			else if(ratio > BOUNDARY12){
+				return 7;
+			}
+			else if(ratio > BOUNDARY13){
+				return 6;
+			}
+			else{
+				return 5;
+			}
+		}
+		else{
+			//Quadrant 3
+			if(ratio < BOUNDARY9){
+				return 10;
+			}
+			else if(ratio < BOUNDARY8){
+				return 11;
+			}
+			else if(ratio < BOUNDARY7){
+				return 12;
+			}
+			else if(ratio < BOUNDARY6){
+				return 13;
+			}
+			else{
+				return 14;
+			}
+			
+		}
+	} 
+}	
+
+cv::Mat HOGFeatures(cv::Mat &image){
+    
     int width = image.cols;
     int height = image.rows;
     
-    cv::Mat dx_channels(height, width, CV_16SC3);
-    cv::Mat dy_channels(height, width, CV_16SC3);
-    
     cv::Mat dx(height, width, CV_16SC2);
-
-    cv::Mat channel_mag(height, width, CV_32FC3);
-    cv::Mat channel_ang(height, width, CV_32FC3);
-
+    
     cv::Mat mag_ang(height, width, CV_32FC2);
-
-    for(int row = 0; row < image.rows; row++)
-    {
-        // get a pointer to the first pixel in the current row
-        unsigned char* rowPtr = image.ptr<unsigned char>(row);
-        short* dxRowPtr = dx_channels.ptr<short>(row);
-        short* dyRowPtr = dy_channels.ptr<short>(row);
-
-        unsigned char* rowPtrM = NULL;
-        unsigned char* rowPtrP = NULL;
-        if(row != 0){
-            rowPtrM = image.ptr<unsigned char>(row-1);
-        }
+    
+    cv::Mat bins(height, width, CV_8UC1);
+	
+	for(int row = 0; row < image.rows; row++)
+	{
+		// get a pointer to the first pixel in the current row
+		unsigned char* rowPtr = image.ptr<unsigned char>(row);
+		
+		unsigned char* rowPtrM = NULL;
+		unsigned char* rowPtrP = NULL;
+		if(row != 0){
+			rowPtrM = image.ptr<unsigned char>(row-1);
+		}
         if(row != image.rows-1){
-            rowPtrP = image.ptr<unsigned char>(row+1);
-        }
+			rowPtrP = image.ptr<unsigned char>(row+1);   
+        }            
 
-        float* magRowPtr = channel_mag.ptr<float>(row);
-        float* angRowPtr = channel_ang.ptr<float>(row);
-
-        float* mag_angRowPtr = mag_ang.ptr<float>(row);
-
+		float* mag_angRowPtr = mag_ang.ptr<float>(row);
+		
         short* derivRowPtr = dx.ptr<short>(row);
-        
-        
-        for(int col = 0; col < image.cols; col++)
-        {
-            float maxMag = 0;
-            float maxAng = 0;
-            int maxDx = 0;
-            int maxDy = 0;
+		
+		
+		unsigned char* binPtr = bins.ptr<unsigned char>(row);
+		
+		
+		for(int col = 0; col < image.cols; col++)
+		{
+			float maxMag = 0;
+			float maxAng = 0;
+			int maxDx = 0;
+			int maxDy = 0;
+			
+			int *xDerivs = new int[image.channels()];
+			int *yDerivs = new int[image.channels()];
+
+			float *magChannel = new float[image.channels()];
+			float *angChannel = new float[image.channels()];
+				
             for(int ch = 0; ch < image.channels(); ch++)
             {
                 // calculate dx's per pixel and channel
                 if((col == 0) || (col == image.cols-1)){
-                    dxRowPtr[col * image.channels() + ch] = 0;
+                   xDerivs[ch] = 0;
                 }
                 else{
-                    dxRowPtr[col * image.channels() + ch] = 
-                        rowPtr[(col + 1) * image.channels() + ch] - 
+                    xDerivs[ch] = rowPtr[(col + 1) * image.channels() + ch] - 
                         rowPtr[(col - 1) * image.channels() + ch];
                 }
 
                 // calculate dy's per pixel and channel
                 if((row == 0) || (row == image.rows-1)){
-                    dyRowPtr[col * image.channels() + ch] = 0;
+                    yDerivs[ch] = 0;
                 }
                 else{
-                    dyRowPtr[col * image.channels() + ch] = 
-                        rowPtrP[(col) * image.channels() + ch] - 
+                    yDerivs[ch] = rowPtrP[(col) * image.channels() + ch] - 
                         rowPtrM[(col) * image.channels() + ch];
 
                 }
@@ -105,28 +204,27 @@ cv::Mat HOGFeatures(cv::Mat &image){
                 // calculate magnitudes and angles
                 if((col == 0) || (col == image.cols-1) ||
                    (row == 0) || (row == image.rows-1)){
-                    magRowPtr[col * image.channels() + ch] = 0;
-                    angRowPtr[col * image.channels() + ch] = 0;
+                    magChannel[ch] = 0;
+                    angChannel[ch] = 0;
                 }
                 else{
-                    magRowPtr[col * image.channels() + ch] =
-                        sqrt((float) dxRowPtr[col * image.channels() + ch] * 
-                             dxRowPtr[col * image.channels() + ch] + 
-                             dyRowPtr[col * image.channels() + ch] * 
-                             dyRowPtr[col * image.channels() + ch]);
+                    magChannel[ch] =
+                        sqrt((float) xDerivs[ch] * 
+                             xDerivs[ch] + 
+                             yDerivs[ch] * 
+                             yDerivs[ch]);
 
-                    angRowPtr[col * image.channels() + ch] =
-                        (!dxRowPtr[col * image.channels() + ch] ? 0 :
-                         atan((float) dyRowPtr[col * image.channels() + ch] /
-                              dxRowPtr[col * image.channels() + ch])
-                            );
+                    angChannel[ch] =
+                        (!xDerivs[ch] ? 0 : atan((float) yDerivs[ch] / xDerivs[ch]));
                 }
-                if(magRowPtr[col * image.channels() + ch] > maxMag){
-                    maxMag = magRowPtr[col * image.channels() + ch];
-                    maxAng = angRowPtr[col * image.channels() + ch];
-                    maxDx = dxRowPtr[col * image.channels() + ch];
-                    maxDy = dyRowPtr[col * image.channels() + ch];
+                if(magChannel[ch] > maxMag){
+                    maxMag = magChannel[ch];
+                    maxAng = angChannel[ch];
+                    maxDx = xDerivs[ch];
+                    maxDy = yDerivs[ch];
                 }
+
+
             }
 
             //insert max magnitude, angle, and derivatives
@@ -135,120 +233,17 @@ cv::Mat HOGFeatures(cv::Mat &image){
 
             derivRowPtr[col * 2] = maxDx;
             derivRowPtr[col * 2 + 1] = maxDy;
-        }
-    }
-    
 
-    // Part 2: Partitioning pixels into bins
+			// Part 2: Partitioning pixels into bins
+			binPtr[col] = binning(maxDx, maxDy);
 
-    cv::Mat bins(height, width, CV_8UC1);
-
-    for(int row = 0; row < image.rows; row++)
-    {
-        unsigned char* rowPtr = bins.ptr<unsigned char>(row);
-        
-        short* dxRowPtr = dx.ptr<short>(row);
-
-        for(int col = 0; col < image.cols; col++)
-        {
-            float x = dxRowPtr[col * 2];
-            float y = dxRowPtr[col * 2 + 1];
-            float ratio = 0;
-            if(x == 0 && y > 0){
-                ratio = 100;
-            }
-            else if(x == 0 && y < 0){
-                ratio = -100;
-            }
-            else if(x == 0 && y == 0){
-                ratio = .0001;
-            }
-            else{
-                ratio = y / x;
-            }
-            if(x>=0){
-                if(y>=0){
-                    //Quadrant 1
-                    if(ratio < BOUNDARY0){
-                        rowPtr[col] = 0;
-                    }
-                    else if(ratio < BOUNDARY17){
-                        rowPtr[col] = 1;
-                    }
-                    else if(ratio < BOUNDARY16){
-                        rowPtr[col] = 2;
-                    }
-                    else if(ratio < BOUNDARY15){
-                        rowPtr[col] = 3;
-                    }
-                    else{
-                        rowPtr[col] = 4;
-                    }
-                }
-                else{
-                    //Quadrant 4
-                    if(ratio > BOUNDARY1){
-                        rowPtr[col] = 0;
-                    }
-                    else if(ratio > BOUNDARY2){
-                        rowPtr[col] = 17;
-                    }
-                    else if(ratio > BOUNDARY3){
-                        rowPtr[col] = 16;
-                    }
-                    else if(ratio > BOUNDARY4){
-                        rowPtr[col] = 15;
-                    }
-                    else{
-                        rowPtr[col] = 14;
-                    }
-                }
-            }
-            else{
-                if(y>=0){
-                    //Quadrant 2
-                    if(ratio > BOUNDARY10){
-                        rowPtr[col] = 9;
-                    }
-                    else if(ratio > BOUNDARY11){
-                        rowPtr[col] = 8;
-                    }
-                    else if(ratio > BOUNDARY12){
-                        rowPtr[col] = 7;
-                    }
-                    else if(ratio > BOUNDARY13){
-                        rowPtr[col] = 6;
-                    }
-                    else{
-                        rowPtr[col] = 5;
-                    }
-                }
-                else{
-                    //Quadrant 3
-                    if(ratio < BOUNDARY9){
-                        rowPtr[col] = 10;
-                    }
-                    else if(ratio < BOUNDARY8){
-                        rowPtr[col] = 11;
-                    }
-                    else if(ratio < BOUNDARY7){
-                        rowPtr[col] = 12;
-                    }
-                    else if(ratio < BOUNDARY6){
-                        rowPtr[col] = 13;
-                    }
-                    else{
-                        rowPtr[col] = 14;
-                    }
-
-                }
-            }
+			delete [] xDerivs;
+			delete [] yDerivs;
+			delete [] magChannel;
+			delete [] angChannel;
         }
     }
 
-    cv::imshow("bins", bins*14);
-    cv::waitKey(0);
-    
     // Part 3: Spatial Aggregation
 
     
@@ -278,6 +273,7 @@ cv::Mat HOGFeatures(cv::Mat &image){
             int xCellIdx = (int) std::floor(xCellCoord);
             int yCellIdx = (int) std::floor(yCellCoord);
 
+
             if(xCellIdx < 0){
                 xCellIdx = 0;
             }
@@ -298,25 +294,29 @@ cv::Mat HOGFeatures(cv::Mat &image){
 
             // add the contributions of this pixel to the lower cell
             if((xCellIdx  < cellWidth) && (yCellIdx < cellHeight)){
-                cells.at< cv::Vec<double, 32> >(yCellIdx + 0, 
-                                                xCellIdx + 0)[orientationBin] +=
+				cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(yCellIdx); 
+
+				cellPtr[xCellIdx][orientationBin] +=
                     fracLowerX * fracLowerY * magnitude;
             }
                 
             if((xCellIdx < cellWidth) && (yCellIdx + 1 < cellHeight)){
-                cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
-                                                xCellIdx + 0)[orientationBin] 
-                    += fracUpperY * fracLowerX * magnitude;
+				cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(yCellIdx+1);
+
+				cellPtr[xCellIdx][orientationBin] += 
+					fracUpperY * fracLowerX * magnitude;
             }
             if((xCellIdx + 1 < cellWidth) && (yCellIdx < cellHeight)){
-                cells.at< cv::Vec<double, 32> >(yCellIdx + 0, 
-                                                xCellIdx + 1)[orientationBin] 
-                    += fracLowerY * fracUpperX * magnitude;
+				cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(yCellIdx);
+
+				cellPtr[xCellIdx + 1][orientationBin] += 
+					fracLowerY * fracUpperX * magnitude;
             }
             if((xCellIdx + 1 < cellWidth) && (yCellIdx + 1 < cellHeight)){
-                cells.at< cv::Vec<double, 32> >(yCellIdx + 1, 
-                                                xCellIdx + 1)[orientationBin] 
-                    += fracUpperX * fracUpperY * magnitude;
+				cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(yCellIdx+1);
+
+				cellPtr[xCellIdx+1][orientationBin] += 
+					fracUpperX * fracUpperY * magnitude;
             }
             
         }
@@ -330,11 +330,12 @@ cv::Mat HOGFeatures(cv::Mat &image){
     for(int row = 0; row < cellHeight; row++) {
         
         int* cellEnergyPtr = cellEnergy.ptr<int>(row);
+
+		cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(row);
         
         for(int col = 0; col < cellWidth; col++) {
             
-            cv::Vec<double, 32> &thisCell = 
-                cells.at< cv::Vec<double, 32> >(row, col);
+            cv::Vec<double, 32> &thisCell = cellPtr[col];
 
             // Compute undirected magnitudes
             thisCell[18] = thisCell[0] + thisCell[9];
@@ -369,28 +370,29 @@ cv::Mat HOGFeatures(cv::Mat &image){
         
         int* cellEnergyPtr = cellEnergy.ptr<int>(row);
         int* cellEnergyP1Ptr = cellEnergy.ptr<int>(row+1);
-
+        
         int* blockEnergyPtr = blockEnergy.ptr<int>(row);
         
         for(int col = 0; col < cellWidth-1; col++) {
-
+            
             // Compute block energy
             blockEnergyPtr[col] = cellEnergyPtr[col] + cellEnergyPtr[col+1] +
                 cellEnergyP1Ptr[col] + cellEnergyP1Ptr[col+1];
         }
     }
-
+    
     //Compute a normalized feature vector
     // cv::Mat featureVector = cv::Mat(cellHeight, cellWidth, cv::DataType< 
     //                      cv::Vec<double, 32> >::type);
-
+    
     for(int row = 0; row < cellHeight; row++) {
-       
+        
         if(row != 0 && row != cellHeight-1){
             
             int* blockEnergyPtr = blockEnergy.ptr<int>(row);
             int* blockEnergyM1Ptr = blockEnergy.ptr<int>(row-1);
-
+            
+			cv::Vec<double, 32> *cellPtr = cells.ptr< cv::Vec<double, 32> >(row);
             
             for(int col = 0; col < cellWidth; col++) {
                 if(col != 0 && col != cellWidth-1){
@@ -398,9 +400,9 @@ cv::Mat HOGFeatures(cv::Mat &image){
                     int norm1 = blockEnergyM1Ptr[col];
                     int norm2 = blockEnergyPtr[col - 1];
                     int norm0 = blockEnergyPtr[col];
-
-                    cv::Vec<double, 32> &thisCell = 
-                        cells.at< cv::Vec<double, 32> >(row, col);
+                    
+                    cv::Vec<double, 32> &thisCell = cellPtr[col];
+                    
                     for(int i=0; i<18; i++){
                         double oldValue = thisCell[i];
                         thisCell[i] = (1/2) * 
@@ -439,6 +441,9 @@ cv::Mat HOGFeatures(cv::Mat &image){
 
 int main(int argc, char *argv[])
 {
+	clock_t start, end;
+
+	start = clock();
     //Load the image from the args
     cv::Mat image = cv::imread(argv[1]);
     HOGFeatures(image).convertTo(image, CV_32FC(32));
@@ -449,7 +454,7 @@ int main(int argc, char *argv[])
     cv::Mat output;
 
     cv::matchTemplate(image, myTemplate, output, CV_TM_CCORR);
-
+	 
 
 	float minNum = 1000000000;
 	float maxNum = -1000000000;
@@ -473,6 +478,10 @@ int main(int argc, char *argv[])
     output *= (1 / (maxNum - minNum));
 
     resize(output, output, cv::Size(), 8, 8);
+	
+	end = clock();
+
+	std::cout << "Time required for execution: " << (double)(end-start)/CLOCKS_PER_SEC << " seconds." << std::endl;
 
     // show the window
     cv::imshow("output", output);
