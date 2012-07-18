@@ -881,8 +881,8 @@ class Window(task.Task):
     @staticmethod
     def _transitions():
         return { task.TIMEOUT : task.Next,
-                 vision.EventType.WINDOW_FOUND : Window,
-                 window.Searching.WINDOW_SEARCHING : Window,
+                 #vision.EventType.WINDOW_FOUND : Window,
+                 #window.Searching.WINDOW_SEARCHING : Window,
                  window.COMPLETE : task.Next,
                  'GO' : state.Branch(window.Start) }
 

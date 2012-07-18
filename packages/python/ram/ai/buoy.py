@@ -75,7 +75,8 @@ class Search(state.ZigZag):
 
     @staticmethod
     def transitions():
-        return { vision.EventType.BUOY_FOUND : Strafe , 
+        return { motion.basic.MotionManager.FINISHED : Search ,
+                 vision.EventType.BUOY_FOUND : Strafe , 
                  state.ZigZag.DONE : End }
 
 
@@ -239,7 +240,7 @@ class Center(state.State):
 
     @staticmethod
     def getattr():
-        return { 'speed' : 0.2 , 'diveRate' : 0.2 , 'distance' : 2 ,
+        return { 'speed' : 0.15 , 'diveRate' : 0.15 , 'distance' : 2 ,
                  'xmin' : -0.05 , 'xmax' : 0.05 , 
                  'ymin' : -0.05 , 'ymax' : 0.05,
                  'timeout' : 20}
@@ -348,14 +349,14 @@ class Attack(state.State):
         
     @staticmethod
     def getattr():
-        return { 'speed' : 0.3 , 'distance' : 1 , 
+        return { 'speed' : 0.3 , 'distance' : 0.5 , 
                  'correct_factor' : 2 , 'range_thresh' : 1.5,
                  'timeout' : 10}
 
     def enter(self):
         self.X = 0
         self.Y = 0
-        self.RANGE = 10000
+        self.RANGE = -1
         self.ai.data['ignoreBuoy'][self.ai.data['buoyColor']] = True
         self.timer = self.timerManager.newTimer(Attack.DONE, self._timeout)
         self.timer.start()
@@ -366,11 +367,6 @@ class Attack(state.State):
 
     def update(self):
         
-        print('Buoy X: ' + str(self.X))
-        print('Buoy Y: ' + str(self.Y))
-        print('Range: ' + str(self.RANGE))
-        print('Previous Range: ' + str(self.PREV_RANGE))
-
         if(self.RANGE < self._range_thresh):
             self.publish(Attack.DONE, core.Event())
 
@@ -412,7 +408,7 @@ class Hit(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 1.75 , 'speed' : 0.3 }
+        return { 'distance' : 1.5 , 'speed' : 0.15 }
 
     def enter(self):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
@@ -434,7 +430,7 @@ class Retreat(state.State):
 
     @staticmethod
     def getattr():
-        return { 'distance' : 1.5 , 'speed' : 0.3 }
+        return { 'distance' : 2.5 , 'speed' : 0.15 }
 
     def enter(self):
         translateTrajectory = motion.trajectories.Vector2CubicTrajectory(

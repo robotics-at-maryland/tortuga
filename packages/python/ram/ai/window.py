@@ -34,14 +34,12 @@ class Start(state.State):
         return { 'diveRate' : 0.3 , 'speed' : 0.3 }
 
     def enter(self):
-        self.visionSystem.windowDetectorOn()
+        self.visionSystem.buoyDetectorOn()
 
-        windowX = self.ai.data['config'].get('windowX', -1)
-        windowY = self.ai.data['config'].get('windowY', -1)
         windowDepth = self.ai.data['config'].get('windowDepth', -1)
 
-        if windowX == -1 or windowY == -1 or windowDepth == -1:
-            raise LookupError, "windowX, windowY or windowDepth not specified"
+        if windowDepth == -1:
+            raise LookupError, "windowDepth not specified"
 
         # Compute trajectories
         diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
@@ -50,18 +48,10 @@ class Start(state.State):
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
             avgRate = self._diveRate)
         
-        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-            initialValue = self.stateEstimator.getEstimatedPosition(),
-            finalValue = math.Vector2(windowX, windowY),
-            initialRate = self.stateEstimator.getEstimatedVelocity(),
-            avgRate = self._speed)
-
-        # Dive yaw and translate
+        # Dive
         diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
-        translateMotion = ram.motion.basic.Translate(translateTrajectory,
-                                                     frame = Frame.GLOBAL)
         
-        self.motionManager.setMotion(diveMotion, translateMotion)
+        self.motionManager.setMotion(diveMotion)
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
@@ -71,76 +61,74 @@ class Search(state.ZigZag):
 
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : ReAlign , 
+        return { motion.basic.MotionManager.FINISHED : Search ,
+                 vision.EventType.BUOY_FOUND : ReAlign , 
                  state.ZigZag.DONE : End }
 
 
 class ReAlign(state.State):
 
-    FOUND = core.declareEventType('FOUND')
     DONE = core.declareEventType('DONE')
 
     STEPNUM = 0
 
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : ReAlign , 
-                 ReAlign.FOUND : Center , 
-                 ReAlign.DONE : End }
+        return {  ReAlign.DONE : Strafe }
+
+    @staticmethod
+    def getattr():
+        return { 'speed' : 0.3 , 'distance' : 4 , 'delay' : 3 }
+
+    def enter(self):
+        windowOrientation = self.ai.data['config'].get('windowOrientation', 9001)
+
+        if windowOrientation > 9000:
+            raise LookupError, "windowOrientation not specified"
+
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = math.Quaternion(math.Degree(windowOrientation), 
+                                         math.Vector3.UNIT_Z),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+            
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        self.motionManager.setMotion(yawMotion)
+
+        self.timer = self.timerManager.newTimer(ReAlign.DONE, self._delay)
+        self.timer.start()
+        
+    def exit(self):
+        self.motionManager.stopCurrentMotion()
+
+class Strafe(state.State):
+
+    @staticmethod
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : End ,
+                 vision.EventType.BUOY_FOUND : Center }
 
     @staticmethod
     def getattr():
         return { 'speed' : 0.3 , 'distance' : 4 }
 
     def enter(self):
-        self.STEPNUM = 0
-        self.nextStep()
-        
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(0, self._distance),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-    def FINISHED(self):
-        self.nextStep()
-
-    def WINDOW_FOUND(self):
-        if(STEPNUM > 0):
-            self.publish(ReAlign.FOUND, core.Event())
-
-    def nextStep(self):
-        if(self.STEPNUM == 0):
-
-            windowOrientation = self.ai.data['config'].get(
-                'windowOrientation', 9001)
-            if windowOrientation > 9000:
-                raise LookupError, "windowOrientation not specified"
-
-            currentOrientation = self.stateEstimator.getEstimatedOrientation()
-            yawTrajectory = motion.trajectories.StepTrajectory(
-                initialValue = currentOrientation,
-                finalValue = math.Quaternion(math.Degree(windowOrientation), 
-                                             math.Vector3.UNIT_Z),
-                initialRate = self.stateEstimator.getEstimatedAngularRate(),
-                finalRate = math.Vector3.ZERO)
-            
-            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
-            self.motionManager.setMotion(yawMotion)
-
-        elif(step.STEPNUM == 1):
-            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
-                initialValue = math.Vector2.ZERO,
-                finalValue = math.Vector2(0, self._distance),
-                initialRate = self.stateEstimator.getEstimatedVelocity(),
-                avgRate = self._speed)
-            translateMotion = motion.basic.Translate(
-                trajectory = translateTrajectory,
-                frame = Frame.LOCAL)
-            
-            self.motionManager.setMotion(translateMotion)
-            
-        else:
-            self.publish(ReAlign.DONE, core.Event())
-
-        self.STEPNUM += 1
 
 class Center(state.State):
     
@@ -151,7 +139,7 @@ class Center(state.State):
 
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : Center ,
+        return { vision.EventType.BUOY_FOUND : Center ,
                  Center.CENTERED : Fire }
 
     @staticmethod
@@ -188,7 +176,7 @@ class Center(state.State):
     def exit(self):
         self.motionManager.stopCurrentMotion()
 
-    def WINDOW_FOUND(self, event):
+    def BUOY_FOUND(self, event):
         if(self.STEPNUM == 0):
             print("Window X: " + str(event.x))
             if(event.x <= self._xmin):
@@ -227,21 +215,18 @@ class Center(state.State):
 class Fire(state.State):
     
     FIRED = core.declareEventType('FIRED')
-    DONE = core.declareEventType('NONE_LEFT')
+    DONE = core.declareEventType('DONE')
     
     @staticmethod
     def transitions():
-        return { vision.EventType.WINDOW_FOUND : Fire ,
+        return { vision.EventType.BUOY_FOUND : Fire ,
                  Fire.FIRED : MoveOver ,
                  Fire.DONE : End }
 
-    def WINDOW_FOUND(self, event):
-        if event.color == vision.Color.ColorType.BLUE:
-            self.vehicle.fireTorpedo(1)
-            self.publish(Fire.FIRED, core.Event())
-        elif event.color == vision.Color.ColorType.RED:
-            self.vehicle.fireTorpedo(2)
-            self.publish(Fire.DONE, core.Event())
+    def BUOY_FOUND(self, event):
+        self.vehicle.fireTorpedo()
+        self.publish(Fire.FIRED, core.Event())
+
 
 class MoveOver(state.State):
 
@@ -252,7 +237,7 @@ class MoveOver(state.State):
     @staticmethod
     def getattr():
         return { 'speed' : 0.3 , 'diveRate' : 0.3 , 
-                 'height' : 3 , 'distance' : 3 }
+                 'height' : 3 , 'distance' : 5 , 'delay' : 5 }
 
     @staticmethod
     def transitions():
@@ -314,7 +299,8 @@ class MoveOver(state.State):
             self.motionManager.setMotion(yawMotion)
 
         else:
-            self.publish(MoveOver.DONE, core.Event())
+            self.timer = self.timerManager.newTimer(MoveOver.DONE, self._delay)
+            self.timer.start()
 
         self.STEPNUM += 1
 
