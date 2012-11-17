@@ -143,7 +143,7 @@ class TestGrabbing(aisupport.AITestCase):
             }
         }
         aisupport.AITestCase.setUp(self, cfg = cfg)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(sonarSafe.Grabbing)
 
     def testConfig(self):
@@ -180,7 +180,7 @@ class TestGrabbing(aisupport.AITestCase):
 class TestSurface(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(sonarSafe.Surface)
         
     def testStart(self):

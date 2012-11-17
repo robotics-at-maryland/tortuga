@@ -20,8 +20,7 @@
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
 #include "vision/include/TrackedBlob.h"
-#include "vision/include/SuitDetector.h"
-
+#include "vision/include/Symbol.h"
 // Must be included last
 #include "vision/include/Export.h"
 
@@ -42,7 +41,6 @@ class RAM_EXPORT BinDetector : public Detector
 
         /** Draws the bounds of the bin in green, and its ID */
         void draw(Image* image, Image* red = 0);
-        
 
     private:
         Symbol::SymbolType m_symbol;
@@ -249,6 +247,11 @@ class RAM_EXPORT BinDetector : public Detector
      *  @note Its always just a bit bigger then the raw image
      */
     unsigned char* m_scratchBuffer2;
+
+    /** Buffer we use during image processing
+     *  @note Its always just a bit bigger then the raw image
+     */
+    unsigned char* m_scratchBuffer3;
     
     /** Minimum percent for the white mask */
     int m_whiteMaskMinimumPercent;
@@ -271,6 +274,9 @@ class RAM_EXPORT BinDetector : public Detector
     /** Dilation iterations on the red filtered image */
     int m_redDilateIterations;
     
+    int m_redOpenIterations;
+    int m_redCloseIterations;
+
     /** Minimum percent of the total pixel value for red */
     int m_redMinPercent;
 

@@ -7,10 +7,6 @@
  * File:  packages/vehicle/src/device/IMU.cpp
  */
 
-/*
- * This is a work in progress. It shouldn't be used yet.
- */
-
 // STD Includes
 #include <iostream>
 #include <cstdio>
@@ -24,6 +20,8 @@
 // Project Includes
 #include "vehicle/include/device/DVL.h"
 #include "vehicle/include/IVehicle.h"
+#include "vehicle/include/Events.h"
+
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector2.h"
@@ -51,16 +49,10 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     m_devfile(config["devfile"].asString("/dev/dvl")),
     m_serialFD(-1),
     m_dvlNum(config["num"].asInt(0)),
-    m_velocity(0, 0),
     m_location(0, 0, 0),
-    bRt(math::Matrix2::IDENTITY),
     m_rawState(0)
 {
     m_rawState = new RawDVLData();
-
-    double angOffset = config["angularOffset"].asDouble(0);
-    double r_cos = cos(angOffset), r_sin = sin(angOffset);
-    bRt = math::Matrix2(r_cos, r_sin, -r_sin, r_cos);
 
     // Need an api before I can do this
     m_serialFD = openDVL(m_devfile.c_str());
@@ -71,13 +63,7 @@ DVL::DVL(core::ConfigNode config, core::EventHubPtr eventHub,
     else
         LOGGER.info("Could not connect with DVL");
 
-    // TODO: Temporary values until I know what to put in here
-    LOGGER.info("% DVL#(0=main) Valid BottomTrack0 BottomTrack1"
-		" BottomTrack2 BottomTrack3 Velocity ensembleNum"
-                " year month day hour min sec hundredth TimeStamp");
-
-    for (int i = 0; i < 5; ++i)
-        update(1/50.0);
+    LOGGER.info("Velocity[0] Velocity[1]");
 }
 
 DVL::~DVL()
@@ -109,22 +95,44 @@ void DVL::update(double timestep)
 
             int xVel = newState.xvel_btm;
             int yVel = newState.yvel_btm;
-            math::Vector2 velocity(yVel / 1000.0, xVel / 1000.0);
+            double mmToMeters = 1.0 / 1000;
+            math::Vector2 velocity(yVel * mmToMeters, xVel * mmToMeters);
+
+            double cmToMeters = 1.0 / 100;
+            double beam1Range = newState.beam1_range * cmToMeters;
+            double beam2Range = newState.beam2_range * cmToMeters;
+            double beam3Range = newState.beam3_range * cmToMeters;
+            double beam4Range = newState.beam4_range * cmToMeters;
+
+            if(xVel != BAD_VELOCITY && yVel != BAD_VELOCITY)
+            {
+                RawDVLDataEventPtr velEvent = RawDVLDataEventPtr(
+                    new RawDVLDataEvent());
+
+                velEvent->velocity_b = velocity;
+                velEvent->timestep = timestep;
+            
+                publish(IVelocitySensor::RAW_UPDATE, velEvent);
+
+                RawBottomRangeEventPtr rangeEvent = RawBottomRangeEventPtr(
+                    new RawBottomRangeEvent());
+                
+                rangeEvent->rangeBeam1 = beam1Range;
+                rangeEvent->rangeBeam2 = beam2Range;
+                rangeEvent->rangeBeam3 = beam3Range;
+                rangeEvent->rangeBeam4 = beam4Range;
+
+                publish(IVelocitySensor::RAW_RANGE_UPDATE, rangeEvent);
+            }
             LOGGER.infoStream() << velocity[0] << " "
                                 << velocity[1];
         }
     }
     // We didn't connect, try to reconnect
     else
-    {	
+    {
         //m_serialFD = openDVL(m_devfile.c_str());
     }
-}
-
-math::Vector2 DVL::getVelocity()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_velocityMutex);
-    return m_velocity;
 }
 
 math::Vector3 DVL::getLocation()

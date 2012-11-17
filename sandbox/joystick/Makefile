@@ -1,4 +1,4 @@
-OIS_ROOT=$(RAM_ROOT_DIR)
+OIS_ROOT=/usr
 HEADERS=logitech.h joystick.h
 
 all: oisserver logitech keepalive

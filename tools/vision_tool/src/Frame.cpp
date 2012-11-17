@@ -28,7 +28,6 @@
 
 // Project Includes
 #include "Frame.h"
-#include "GLMovie.h"
 #include "IPLMovie.h"
 #include "MediaControlPanel.h"
 #include "DetectorControlPanel.h"

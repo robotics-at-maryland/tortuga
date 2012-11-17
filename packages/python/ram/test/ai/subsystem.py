@@ -115,3 +115,6 @@ class TestAITasks(AITestCase):
         # Now stop it and make sure we are no longer in a state
         self.ai.stop()
         self.assertEqual(None, self.machine.currentState())
+
+if __name__ == '__main__':
+    unittest.main()

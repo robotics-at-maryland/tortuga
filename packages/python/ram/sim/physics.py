@@ -16,6 +16,7 @@ import ram.core as core
 import ram.event as event
 import ram.sim.util as util
 import ram.sim.defaults as defaults
+import random
 from ram.sim.object import Object, IObject
 from ram.sim.serialization import IKMLStorable, two_step_init, parse_position_orientation
 
@@ -670,6 +671,14 @@ class World(OgreNewt.World):
             newton_body.addLocalForce(force, pos)
         for force, pos in body.get_global_forces():
             newton_body.addGlobalForce(force, pos)
+            
+        #Water current using Gaussian random walk
+        mu = 0     #mean
+        sigma = 2  #std. deviation
+        x = random.gauss(mu, sigma)
+        y = random.gauss(mu, sigma)
+        z = random.gauss(mu, sigma)
+        newton_body.addLocalForce((x,y,z),(0,0,0))
         
         # Apply torques
         torque = body.torque

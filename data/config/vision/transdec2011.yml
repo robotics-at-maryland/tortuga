@@ -1,0 +1,183 @@
+ForwardCamera:
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 3  # 0 to 15
+    shutter: -1  # 0 to 7
+    gamma: -1     # 0 to 0
+    gain: -1      # 0 to 46
+
+DownwardCamera:
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 3
+    shutter: -1
+    gamma: -1
+    gain: -1
+
+OrangePipeDetector:
+    rOverGMin: 1.05 #0.75 (NEW# 0.88)
+    rOverGMax: 2.41 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
+    filtLMax: 255
+    filtLMin: 152
+    filtUMax: 191
+    filtUMin: 95
+    filtVMax: 210
+    filtVMin: 116
+    centeredLimitt: 0.4
+    minBrightness: 100
+    minPixels: 3000
+    minPixelsFound: 1500
+    erodeIterations: 1
+
+BuoyDetector:
+    debug: 0
+    filtGreenCMax: 223
+    filtGreenCMin: 38
+    filtGreenHMax: 92
+    filtGreenHMin: 70
+    filtGreenLMax: 232
+    filtGreenLMin: 85 #120
+    filtRedCMax: 255
+    filtRedCMin: 34
+    filtRedHMax: 32
+    filtRedHMin: 233
+    filtRedLMax: 215
+    filtRedLMin: 80
+    filtYellowCMax: 255
+    filtYellowCMin: 45
+    filtYellowHMax: 67
+    filtYellowHMin: 43
+    filtYellowLMax: 239
+    filtYellowLMin: 67 #120
+    maxAspectRatio: 1.5
+    minAspectRatio: 0.6
+    minHeight: 20
+    minPixelPercentage: 0.5
+    minPixels: 15
+    minWidth: 20
+    almostHitPercentage: 0.17
+
+CupidDetector:
+    ColorFilterLookupTable: 0
+    debug: 2
+    dilateIterations: 2
+    erodeIterations: 2
+    filtBlueCMax: 255
+    filtBlueCMin: 0
+    filtBlueHMax: 182
+    filtBlueHMin: 177
+    filtBlueLMax: 138
+    filtBlueLMin: 0
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 255
+    filtRedHMin: 185
+    filtRedLMax: 255
+    filtRedLMin: 0
+    maxAspectRatio: 1.1
+    maxPixelPercentage: 1
+    minAspectRatio: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minWidth: 50
+
+BinDetector:
+    binHoughMaxLineGap: 50
+    binHoughMinLineLength: 20
+    binHoughPixelRes: 3
+    binHoughThresdhold: 110
+    binLostFrames: 0
+    binMaxAspectRatio: 3
+    binMaxOverlaps: 20
+    binMinFillPrecentage: 0
+    binSameThreshold: 0.2
+    blackIsRed: 1
+    blackMaskMaxTotalIntensity: 350
+    blackMaskMinimumPercent: 10
+    blobMinBlackPixels: 2500
+    blobMinRedPercent: 10
+    blobMinWhitePixels: 1500
+    centeredLimit: 0.1
+    debug: 0
+    filtblackCMax: 255
+    filtblackCMin: 0
+    filtblackHMax: 255
+    filtblackHMin: 0
+    filtblackLMax: 124
+    filtblackLMin: 0
+    filtredCMax: 200
+    filtredCMin: 0
+    filtredHMax: 255
+    filtredHMin: 186
+    filtredLMax: 255
+    filtredLMin: 0
+    filtwhiteCMax: 255
+    filtwhiteCMin: 0
+    filtwhiteHMax: 255
+    filtwhiteHMin: 0
+    filtwhiteLMax: 255
+    filtwhiteLMin: 125
+    largeOCenterPixelPercentageMean: 0
+    largeOCenterPixelPercentageStDev: 10
+    largeOPixelPercentageMean: 0.1348
+    largeOPixelPercentageStDev: 0.0145
+    largeORelativeHeightMean: 0.411
+    largeORelativeHeightStDev: 0.013
+    largeORelativeWidthMean: 0.656
+    largeORelativeWidthStDev: 0.059
+    largeXCenterPixelPercentageMean: 240
+    largeXCenterPixelPercentageStDev: 51
+    largeXPixelPercentageMean: 0.122
+    largeXPixelPercentageStDev: 0.018
+    largeXRelativeHeightMean: 0.447
+    largeXRelativeHeightStDev: 0.054
+    largeXRelativeWidthMean: 0.651
+    largeXRelativeWidthStDev: 0.078
+    logSymbolImages: 0
+    redDilateIterations: 0
+    redErodeIterations: 0
+    redMaxBValue: 170
+    redMaxGValue: 170
+    redMinFillPrecentage: 0
+    redMinPercent: 35
+    redMinRValue: 125
+    smallOCenterPixelPercentageMean: 4.7
+    smallOCenterPixelPercentageStDev: 29
+    smallOPixelPercentageMean: 0.0935
+    smallOPixelPercentageStDev: 0.0145
+    smallORelativeHeightMean: 0.307
+    smallORelativeHeightStDev: 0.035
+    smallORelativeWidthMean: 0.514
+    smallORelativeWidthStDev: 0.067
+    smallXCenterPixelPercentageMean: 245
+    smallXCenterPixelPercentageStDev: 42
+    smallXPixelPercentageMean: 0.09
+    smallXPixelPercentageStDev: 0.014
+    smallXRelativeHeightMean: 0.301
+    smallXRelativeHeightStDev: 0.013
+    smallXRelativeWidthMean: 0.566
+    smallXRelativeWidthStDev: 0.085
+    whiteMaskMinimumIntensity: 190
+    whiteMaskMinimumPercent: 30
+
+LoversLaneDetector:
+    ColorFilterLookupTable: 0
+    debug: 2
+    dilateIterations: 0
+    erodeIterations: 0
+    filtCMax: 86
+    filtCMin: 0
+    filtHMax: 154
+    filtHMin: 77
+    filtLMax: 255
+    filtLMin: 62
+    lostPoleThreshold: 0
+    maxAspectRatio: 4
+    maxPixelPercentage: 1
+    minAspectRatio: 0.5
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minWidth: 50

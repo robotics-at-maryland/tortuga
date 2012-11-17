@@ -27,6 +27,9 @@ struct Utility
     
     static int countWhitePixels(Image* source, RegionOfInterest roi);
 
+    static double distanceToObjective(double actualWidth, double pixelWidth,
+                                      double fieldOfView);
+
 
     // /** Balance the white values */
     // static void balanceWhite();

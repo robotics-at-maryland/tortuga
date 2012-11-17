@@ -1,12 +1,13 @@
-# Copyright (C) 2007 Maryland Robotics Club
-# Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
+# Copyright (C) 2010 Maryland Robotics Club
+# Copyright (C) 2010 Jonathan Wonders <jwonders@umd.edu>
 # All rights reserved.
 #
-# Author: Joseph Lisee <jlisee@umd.edu>
-# File:  wrappers/control/gen_control.py
+# Author: Jonathan Wonders <jwonders@umd.edu>
+# File:  wrappers/estimation/gen_control.py
 
 import os
-
+from pyplusplus.module_builder import call_policies
+from pygccxml import declarations
 import buildfiles.wrap as wrap
 
 def generate(module_builder, local_ns, global_ns):
@@ -18,7 +19,6 @@ def generate(module_builder, local_ns, global_ns):
     Quaternion = module_builder.class_('::ram::math::Quaternion')
     Quaternion.already_exposed = True
     Quaternion.constructors().allow_implicit_conversion = False
-
 
     # Include controller classes
     IController = local_ns.class_('IController')
@@ -35,6 +35,16 @@ def generate(module_builder, local_ns, global_ns):
                                      '/packages/control/include/DesiredState.h')
     classes.append(DesiredState)
 
+    yawVehicleHelper = local_ns.free_function('yawVehicleHelper')
+    pitchVehicleHelper = local_ns.free_function('pitchVehicleHelper')
+    rollVehicleHelper = local_ns.free_function('rollVehicleHelper')
+    holdCurrentHeadingHelper = local_ns.free_function('holdCurrentHeadingHelper')
+
+    yawVehicleHelper.include()
+    pitchVehicleHelper.include()
+    rollVehicleHelper.include()
+    holdCurrentHeadingHelper.include()
+
     # Wrap Events
     events = wrap.expose_events(local_ns)
 
@@ -50,6 +60,7 @@ def generate(module_builder, local_ns, global_ns):
     module_builder.add_registration_code("registerIControllerPtrs();")
 
     include_files = set([cls.location.file_name for cls in classes])
+    include_files.add('packages/control/include/Helpers.h')
     for cls in classes:
         include_files.update(cls.include_files)
     return ['wrappers/control/include/RegisterFunctions.h'] + list(include_files)

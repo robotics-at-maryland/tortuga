@@ -193,7 +193,7 @@ class TestSettling(aisupport.AITestCase):
 class TestGrabbing(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(safe.Grabbing)
         
     def testStart(self):
@@ -218,7 +218,7 @@ class TestGrabbing(aisupport.AITestCase):
 class TestSurface(aisupport.AITestCase):
     def setUp(self):
         aisupport.AITestCase.setUp(self)
-        self.vehicle.depth = 5
+        self.estimator.depth = 5
         self.machine.start(safe.Surface)
         
     def testStart(self):

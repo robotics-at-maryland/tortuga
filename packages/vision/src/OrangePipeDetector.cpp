@@ -10,6 +10,7 @@
 // STD Includes
 #include <iostream>
 #include <algorithm>
+#include <string>
 
 // Library Includes
 #include "cv.h"
@@ -17,6 +18,7 @@
 #include "highgui.h"
 
 #include <boost/foreach.hpp>
+#include <boost/bind.hpp>
 
 // Project Includes
 #include "vision/include/main.h"
@@ -24,7 +26,9 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
+#include "vision/include/ImageFilter.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/TableColorFilter.h"
 
 #include "math/include/Vector2.h"
 
@@ -43,7 +47,9 @@ static bool pipeToCenterComparer(PipeDetector::Pipe b1, PipeDetector::Pipe b2)
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     PipeDetector(config, eventHub),
-    m_centered(false)
+    m_centered(false),
+    m_colorFilterLookupTable(false),
+    m_lookupTablePath("")
 {
     init(config);
 }
@@ -74,6 +80,11 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "How many times to erode the filtered image",
         1, &m_erodeIterations);
 
+    propSet->addProperty(config, false, "openIterations",
+                         "How many times to perform the open morphological operation",
+                         0, &m_openIterations);
+                         
+
     propSet->addProperty(config, false, "rOverGMin",
        "Red/Green minimum ratio", 1.0, &m_rOverGMin, 0.0, 5.0);
     propSet->addProperty(config, false, "rOverGMax",
@@ -86,6 +97,11 @@ void OrangePipeDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "useLUVFilter",
         "Use LUV based color filter",  true, &m_useLUVFilter);
     
+    propSet->addProperty(config, false, "ColorFilterLookupTable",
+        "True uses color filter lookup table", false,
+        boost::bind(&OrangePipeDetector::getLookupTable, this),
+        boost::bind(&OrangePipeDetector::setLookupTable, this, _1));
+
     m_filter->addPropertiesToSet(propSet, &config,
                                  "L", "L*",
                                  "U", "Blue Chrominance",
@@ -97,6 +113,25 @@ void OrangePipeDetector::init(core::ConfigNode config)
     
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
+}
+
+bool OrangePipeDetector::getLookupTable()
+{
+    return m_colorFilterLookupTable;
+}
+
+void OrangePipeDetector::setLookupTable(bool lookupTable)
+{
+    if ( lookupTable ) {
+        m_colorFilterLookupTable = true;
+
+        // Initializing ColorFilterTable
+        m_lookupTablePath =
+            "/home/steven/ImageFilter/LookupTables/doubleRedBuoyBlend1.25.serial";
+        m_tableColorFilter = new TableColorFilter(m_lookupTablePath);
+    } else {
+        m_colorFilterLookupTable = false;
+    }
 }
 
 void OrangePipeDetector::filterForOrangeOld(Image* image)
@@ -119,8 +154,12 @@ void OrangePipeDetector::filterForOrangeOld(Image* image)
 
 void OrangePipeDetector::filterForOrangeNew(Image* image)
 {
-    // Filter the image so all green is white, and everything else is black
-    m_filter->filterImage(image);
+    // Filter the image so all orange is white, and everything else is black
+    image->setPixelFormat(Image::PF_LUV_8);
+    if ( m_colorFilterLookupTable )
+        m_tableColorFilter->filterImage(image);
+    else
+        m_filter->filterImage(image);
 }
     
 bool OrangePipeDetector::found()
@@ -150,6 +189,10 @@ void OrangePipeDetector::setUseLUVFilter(bool value)
 
 OrangePipeDetector::~OrangePipeDetector()
 {
+    delete m_filter;
+
+    if ( m_colorFilterLookupTable )
+        delete m_tableColorFilter;
 }
 
 void OrangePipeDetector::processImage(Image* input, Image* output)
@@ -163,6 +206,8 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     
     // Mask orange takes frame, then alter image, then strictness (true=more
 
+    input->setPixelFormat(Image::PF_BGR_8);
+    
     // Filter the image for the proper color
     if (m_useLUVFilter)
         filterForOrangeNew(input);
@@ -171,6 +216,12 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 
     // 3 x 3 default erosion element, default 3 iterations.
     cvErode(input->asIplImage(), input->asIplImage(), 0, m_erodeIterations);
+
+    if(m_openIterations > 0)
+    {
+        cvErode(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
+        cvDilate(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
+    }
 
     // Debug display
     if (output)
@@ -201,7 +252,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out lost events for all the pipes we lost
     BOOST_FOREACH(int id, lostIds)
     {
-        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = id;
         publish(EventType::PIPE_DROPPED, event);
     }
@@ -209,7 +260,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
     // Send out found events for all the pipes we currently see
     BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
     {
-        PipeEventPtr event(new PipeEvent(0, 0, 0));
+        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
         event->id = pipe.getId();
         event->x = pipe.getX();
         event->y = pipe.getY();
@@ -244,7 +295,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
         {
             if(!m_centered)
             {
-                PipeEventPtr event(new PipeEvent(0, 0, 0));
+                PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
                 event->x = pipes[0].getX();
                 event->y = pipes[0].getY();
                 event->angle = pipes[0].getAngle();

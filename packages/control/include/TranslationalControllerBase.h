@@ -16,6 +16,7 @@
 #include "control/include/DesiredState.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
+#include "core/include/EventPublisher.h"
 
 // Must Be Included last
 #include "control/include/Export.h"
@@ -25,7 +26,8 @@ namespace control {
 
 /** Defines the interface for controler which controls in plane motion */
 class RAM_EXPORT TranslationalControllerBase :
-        public ITranslationalControllerImp
+        public ITranslationalControllerImp,
+        public core::EventPublisher
 {
   public:
 
@@ -34,31 +36,15 @@ class RAM_EXPORT TranslationalControllerBase :
     
     virtual ~TranslationalControllerBase() {}
 
-    virtual math::Vector3 translationalUpdate(double timestep,
-                                              math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation,
-                                              math::Vector2 position,
-                                              math::Vector2 velocity,
-                                              controltest::DesiredStatePtr desiredState);
-
-
-    virtual void setControlMode(ControlMode::ModeType mode);
-    virtual ControlMode::ModeType getControlMode();
+    virtual math::Vector3 translationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
     
   protected:
-
     /** Syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
 
-    // math::Vector2 m_currentVelocity;
-    // math::Vector2 m_currentPosition;
-
-    // double m_positionThreshold;
-    // double m_velocityThreshold;
-
-    /** What type of translation control we are doing */
-    ControlMode::ModeType m_controlMode;
-    
   private:
     /** Does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);

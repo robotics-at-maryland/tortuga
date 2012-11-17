@@ -38,7 +38,7 @@ public:
     //         outside the implicit primitive surface
     //     when the result is equal to some constant c, the point lies on
     //         the implicit primitive surface
-    virtual double implicitFunctionValue(Vector3 p) = 0;
+    virtual float implicitFunctionValue(Vector3 p) = 0;
 };
 
 } // namespace math

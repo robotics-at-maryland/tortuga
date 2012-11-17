@@ -16,23 +16,22 @@ import ext.control
 class TestIController(unittest.TestCase):
     def test(self):
         cfg = {
-            "type" : "BWPDController",
-            "angularPGain" : 10,
-            "angularDGain" : 1,
-            "speedPGain" : 3,
-            "depthPGain" : 20,
-            "desiredSpeed" : 0,
-            "desiredDepth" : 0.25,
-            "desiredQuaternion" : [0, 0, 0, 1]
+            "type" : "CombineController",
+            "TranslationalController" : {"type" : "OpenLoopTranslationalController"},
+            "DepthController" : {"type" : "PIDDepthController"},
+            "RotationalController" : {"type" : "NonlinearPDRotationalController"},
+            "holdCurrentDepth" : 0,
+            "holdCurrentHeading" : 0,
+            "holdCurrentPosition" : 0
         }
         cfg = core.ConfigNode.fromString(str(cfg))
         obj = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
         # Make sure we have the right methods on the controller object
         controller = obj
-        self.assert_(hasattr(controller,'setSpeed'))
+        self.assert_(hasattr(controller,'translate'))
         self.assert_(hasattr(controller,'yawVehicle'))
-        self.assert_(hasattr(controller,'setDepth'))
+        self.assert_(hasattr(controller,'changeDepth'))
         
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@
 #define BTN_ASCEND 3
 #define BTN_DESCEND 2
 
-#define BTN_EMERGSTOP -7
+#define BTN_EMERGSTOP 8
 #define BTN_ZEROSPEED -8
 
 #define BTN_ARM_TORPEDO 10
@@ -23,32 +23,35 @@
 #define AXIS_YAW 2
 #define AXIS_THROTTLE -1 /* to enable, use 3 */
 
-int scaleAxis(int val, int negRange, int posRange, int offset, int outRange)
+int scaleAxis(int val, int negRange, int posRange,
+              int deadNeg, int deadPos,
+              int offset, int outRange)
 {
     val += offset;
-    if (val > 0) { /* Positive */
-        val = outRange * val / posRange;
-    } else {
+    if(val > deadNeg && val < deadPos)
+        val = 0;
+    else if(val < 0) /* Forward, range up to 15677 */
         val = -outRange * val / negRange;
-    }
+    else
+        val = outRange * val / posRange;
 
-    if (val > outRange)
+    if(val > outRange)
         val = outRange;
 
-    if (val < -outRange)
+    if(val < -outRange)
         val = -outRange;
 
     return val;
 }
 
 #define SCALE_SPEED(val)                        \
-    val = scaleAxis(val, 32767, -32767, 0, SPEED_RANGE)
+    val = scaleAxis(val, 32767, -32767, -4000, 4000, 0, SPEED_RANGE)
 #define SCALE_YAW(val)                          \
-    val = scaleAxis(val, -32767, 32767, 0, YAW_RANGE)
+    val = scaleAxis(val, -32767, 32767, -8000, 8000, 0, YAW_RANGE)
 #define SCALE_TSPEED(val)                       \
-    val = scaleAxis(val, -32767, 32767, 0, TSPEED_RANGE)
+    val = scaleAxis(val, -32767, 32767, -4000, 4000, 0, TSPEED_RANGE)
 #define SCALE_THROTTLE(val)                     \
-    val = scaleAxis(val, 32767, -32767, 0, SPEED_RANGE)
+    val = scaleAxis(val, 32767, -32767, -4000, 4000, 0, SPEED_RANGE)
 
 #include "joystick.h"
 

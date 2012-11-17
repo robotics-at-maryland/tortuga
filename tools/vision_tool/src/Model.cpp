@@ -302,6 +302,7 @@ void Model::sendNewImage(bool grabFromSource)
     {
         m_camera->update(0);
         m_camera->getImage(m_latestImage);
+        m_latestImage->setPixelFormat(vision::Image::PF_BGR_8);
     }
 
     // If we have detector process the image so we can show the debug result

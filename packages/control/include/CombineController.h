@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008 Robotics at Maryland
+ * Copyright (C) 2008  Maryland
  * Copyright (C) 2008 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
@@ -13,6 +13,8 @@
 // Project Includes
 #include "control/include/Common.h"
 #include "control/include/ControllerBase.h"
+
+#include "estimation/include/Common.h"
 
 #include "vehicle/include/Common.h"
 
@@ -28,7 +30,7 @@
 namespace ram {
 namespace control {
 
-/** A class whichs allows easy combine of fundamental controllers
+/** A class whichs allows easy combination of control algorithms
  *
  *  This class easily lets you change out just the rotational, or just the
  *  depth just the in plane controller.  Which allows for much easier over
@@ -38,37 +40,42 @@ namespace control {
 class RAM_EXPORT CombineController : public ControllerBase
 {
 public:
-    /** Construct the controller with the given vehicle */
-    CombineController(vehicle::IVehiclePtr vehicle, core::ConfigNode config);
+    /** Construct the controller with the given event hub, vehicle, and estimator.
+     ** This constructor will mainly be used for testing purposes.
+     **/
+    CombineController(core::EventHubPtr eventHub,
+                      vehicle::IVehiclePtr vehicle,
+                      estimation::IStateEstimatorPtr estimator,
+                      core::ConfigNode config);
     
-    /** The controller finds its vehicle from the given list of subsystems */
+    /** The controller finds its event hub, vehicle, and estimator from the 
+     ** given list of subsystems 
+     **/
     CombineController(core::ConfigNode config,
                       core::SubsystemList deps = core::SubsystemList());
 
     virtual ~CombineController();
     
-    virtual void setVelocity(math::Vector2 velocity);
-    virtual void setSpeed(double speed);
-    virtual void setSidewaysSpeed(double speed);
-    virtual void setDesiredVelocity(math::Vector2 velocity, const int frame);
-    virtual void setDesiredPosition(math::Vector2 position, const int frame);
-    virtual void setDesiredPositionAndVelocity(math::Vector2 position, 
-                                               math::Vector2 velocity);
-
+    /** Returns a smart pointer to the current translational controller */
     ITranslationalControllerPtr getTranslationalController();
     
+    /** Returns a smart pointer to the current depth controller */
     IDepthControllerPtr getDepthController();
     
+    /** Returns a smart pointer to the current rotational controller */
     IRotationalControllerPtr getRotationalController();
 
 protected:
+    /* doUpdate - performs actual controller work
+     *
+     *  @param timestep
+     *      The time sice the last update
+     *  @param translationalForceOut
+     *      The new force to apply to the vehicle (newtons)
+     *  @param rotationalTorqueOut
+     *      The new torque to apply to the vehicle (newtons)
+     */
     virtual void doUpdate(const double& timestep,
-                          const math::Vector3& linearAcceleration,
-                          const math::Quaternion& orientation,
-                          const math::Vector3& angularRate,
-                          const double& depth,
-                          const math::Vector2& position,
-                          const math::Vector2& velocity,
                           math::Vector3& translationalForceOut,
                           math::Vector3& rotationalTorqueOut);
 

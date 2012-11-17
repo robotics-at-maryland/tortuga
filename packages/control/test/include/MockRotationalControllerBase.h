@@ -22,12 +22,11 @@ public:
     
     virtual ram::math::Vector3 rotationalUpdate(
         double timestep,
-        ram::math::Quaternion orientation,
-        ram::math::Vector3 angularRate,
-        ram::controltest::DesiredStatePtr desiredState)
+        ram::estimation::IStateEstimatorPtr estimator,
+        ram::control::DesiredStatePtr desiredState)
         {
             ram::control::RotationalControllerBase::rotationalUpdate(
-                timestep, orientation, angularRate, desiredState);
+                timestep, estimator, desiredState);
             return ram::math::Vector3::ZERO;
         }
 };

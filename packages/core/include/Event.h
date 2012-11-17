@@ -62,7 +62,7 @@ struct RAM_EXPORT Event
 #define RAM_CORE_EVENT_STR(S) RAM_CORE_EVENT_STRINGIFY(S)
 #define RAM_CORE_EVENT_TYPE(_class, name) \
     const ram::core::Event::EventType _class  :: name  \
-    (std::string(__FILE__ ":" RAM_CORE_EVENT_STR(__LINE__) " ") \
-                 + RAM_CORE_EVENT_STR(name))
+    (RAM_CORE_EVENT_STR(__LINE__) " " RAM_CORE_EVENT_STR(_class) "::" \
+     RAM_CORE_EVENT_STR(name))
 
 #endif // RAM_CORE_EVENT_H_11_19_2007

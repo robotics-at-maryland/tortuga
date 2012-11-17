@@ -36,17 +36,20 @@ RAM_VEHICLE_RAWIMUDATA_EVENT;
 static ram::core::SpecificEventConverter<ram::vehicle::RawDVLDataEvent>
 RAM_VEHICLE_RAWDVLDATA_EVENT;
 
+static ram::core::SpecificEventConverter<ram::vehicle::RawBottomRangeEvent>
+RAM_VEHICLE_RAWBOTTOMRANGE_EVENT;
+
 static ram::core::SpecificEventConverter<ram::vehicle::RawDepthSensorDataEvent>
 RAM_VEHICLE_RAWDEPTHSENSORDATA_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::DepthSensorInitEvent>
-RAM_VEHICLE_DEPTHSENSORINIT_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ThrustUpdateEvent>
+RAM_VEHICLE_THRUSTUPDATE_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::IMUInitEvent>
-RAM_VEHICLE_IMUINIT_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceEvent>
+RAM_VEHICLE_EXTERNALFORCE_EVENT;
 
-static ram::core::SpecificEventConverter<ram::vehicle::DVLInitEvent>
-RAM_VEHICLE_DVLINIT_EVENT;
+static ram::core::SpecificEventConverter<ram::vehicle::ExternalForceToggleEvent>
+RAM_VEHICLE_EXTERNALFORCETOGGLE_EVENT;
 
 #endif // RAM_WITH_WRAPPERS
 
@@ -100,21 +103,41 @@ core::EventPtr SonarEvent::clone()
 core::EventPtr RawIMUDataEvent::clone()
 {
     RawIMUDataEventPtr event = RawIMUDataEventPtr(new RawIMUDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawIMUData = rawIMUData;
+    event->magIsCorrupt = magIsCorrupt; 
     event->timestep = timestep;
-
+ 
     return event;
 }
 
 core::EventPtr RawDVLDataEvent::clone()
 {
     RawDVLDataEventPtr event = RawDVLDataEventPtr(new RawDVLDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawDVLData = rawDVLData;
+    event->velocity_b = velocity_b;
+    event->angularOffset = angularOffset;
     event->timestep = timestep;
+
+    return event;
+}
+
+core::EventPtr RawBottomRangeEvent::clone()
+{
+    RawBottomRangeEventPtr event = RawBottomRangeEventPtr(
+        new RawBottomRangeEvent());
+    copyInto(event);
+
+    event->name = name;
+    event->rangeBeam1 = rangeBeam1;
+    event->rangeBeam2 = rangeBeam2;
+    event->rangeBeam3 = rangeBeam3;
+    event->rangeBeam4 = rangeBeam4;
 
     return event;
 }
@@ -123,51 +146,46 @@ core::EventPtr RawDepthSensorDataEvent::clone()
 {
     RawDepthSensorDataEventPtr event = RawDepthSensorDataEventPtr(
         new RawDepthSensorDataEvent());
+    copyInto(event);
 
     event->name = name;
     event->rawDepth = rawDepth;
+    event->sensorLocation = sensorLocation;
     event->timestep = timestep;
 
     return event;
 }
 
-core::EventPtr IMUInitEvent::clone()
+core::EventPtr ThrustUpdateEvent::clone()
 {
-    IMUInitEventPtr event = IMUInitEventPtr(new IMUInitEvent());
+    ThrustUpdateEventPtr event = ThrustUpdateEventPtr(new ThrustUpdateEvent());
+    copyInto(event);
 
-    event->name = name;
-    event->IMUtoVehicleFrame = math::Matrix3(IMUtoVehicleFrame);
-    event->magBias = math::Vector3(magBias);
-    event->gyroBias = math::Vector3(gyroBias);
-    event->magCorruptThreshold = magCorruptThreshold;
-    event->magNominalLength = magNominalLength;
+    event->forces = forces;
+    event->torques = torques;
 
     return event;
 }
 
-core::EventPtr DVLInitEvent::clone()
+core::EventPtr ExternalForceEvent::clone()
 {
-    DVLInitEventPtr event = DVLInitEventPtr(new DVLInitEvent());
+    ExternalForceEventPtr event = ExternalForceEventPtr(new ExternalForceEvent());
+    copyInto(event);
 
-    event->name = name;
-    event->angularOffset = angularOffset;
-
-    return event;
-}
-
-core::EventPtr DepthSensorInitEvent::clone()
-{
-    DepthSensorInitEventPtr event = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-
-    event->name = name;
     event->location = location;
-    event->depthCalibSlope = depthCalibSlope;
-    event->depthCalibIntercept = depthCalibIntercept;
+    event->force = force;
 
     return event;
 }
+core::EventPtr ExternalForceToggleEvent::clone()
+{
+    ExternalForceToggleEventPtr event = ExternalForceToggleEventPtr(new ExternalForceToggleEvent());
+    copyInto(event);
 
+    event->status = status;
+
+    return event;
+}
 
 } // namespace vehicle
 } // namespace ram

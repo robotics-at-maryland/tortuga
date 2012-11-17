@@ -22,9 +22,23 @@ class Pipe(common.Target):
     
     def __init__(self, x, y, relativeAngle, timeStamp = None,
                  kp = 1.0, kd = 1.0):
+        
         common.Target.__init__(self, x, y, timeStamp, kp, kd)
+
         self.prevRelativeAngle = None
         self.relativeAngle = relativeAngle
+        self.x = x
+        self.y = y
+        self.angle = relativeAngle
+        
+    def getAngle(self):
+        return self.angle
+    
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y
 
     def setState(self, x, y, relativeAngle, timeStamp, publish = True):
         common.Target.setState(self, x, y, timeStamp, False)
@@ -95,7 +109,7 @@ class Hover(common.Hover):
         """Determine turn"""
         # If yawGain is zero, don't run any of this code
         if self._yawGain != 0.0:
-            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading =  self._estimator.getEstimatedOrientation().getYaw(True)
             vehicleHeading = vehicleHeading.valueDegrees()
             absoluteTargetHeading = vehicleHeading + self._pipe.relativeAngle
         

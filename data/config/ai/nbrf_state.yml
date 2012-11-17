@@ -10,16 +10,18 @@ ram.ai.gate.Start:
 #    speed: 2
 
 # Pipe task
+ram.ai.pipe.Searching:
+    forwardSpeed: 0.3
 ram.ai.pipe.Seeking:
     speedGain: 3
-    forwardSpeed: 4
+    forwardSpeed: 0.2
     sidewaysSpeedGain: 7
     iSidewaysSpeedGain: 1
     dSidewaysSpeedGain: 2
     yawGain: 0.25
 ram.ai.pipe.Centering:
     speedGain: 3
-    forwardSpeed: 4
+    forwardSpeed: 0.15
     yawGain: 0.25
     planeThreshold: 0.1
     angleThreshold: 3

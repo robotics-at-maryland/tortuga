@@ -9,12 +9,20 @@
 This module uses the ram.sim.input package to turn key events into commands to
 an for an IController.
 """
+import math as pmath
 
 # Project Imports
 import ext.core as core
+import ext.math as math
 import ext.control as control
+import ext.network as network
+import ext.vehicle as vehicle
+import ext.estimation as estimation
 
 import ram.sim.input as input
+import ram.motion.basic as motion
+import ram.motion.trajectories as trajectories
+import ram.timer as timer
 
 import ram.event as event
 
@@ -24,13 +32,28 @@ event.add_event_types(['THRUST_FORE', 'THRUST_BACK', 'TURN_LEFT', 'TURN_RIGHT',
                        'STRAFE_LEFT', 'STOP'])
 
 class KeyboardController(core.Subsystem):
+    TARGET_VELOCITY_UPDATE = core.declareEventType('TARGET_VELOCITY_UPDATE')
+    TARGET_DEPTH_UPDATE = core.declareEventType('TARGET_DEPTH_UPDATE')
+
     def __init__(self, config, deps):
         core.Subsystem.__init__(self, config.get('name', 'KeyboardController'))
-#        self._controller = control.IController.castTo(deps[0])
-        self._controller = deps[0]
-        self._desiredSpeed = self._controller.getSpeed()
-        self._desiredSidewaysSpeed = self._controller.getSidewaysSpeed()
-        
+
+        self._controller = core.Subsystem.getSubsystemOfType(
+            control.IController, deps)
+        self._stateEstimator = core.Subsystem.getSubsystemOfType(
+            estimation.IStateEstimator, deps)
+        self._motionManager = core.Subsystem.getSubsystemOfType(
+            motion.MotionManager, deps)
+
+        self._time_since_last_motion = 0
+        self._MOTION_RATE = 0.1 # seconds in between motions
+
+        self._targetVelocity_b = self._stateEstimator.getEstimatedVelocity()
+        self._targetDepth = self._stateEstimator.getEstimatedDepth()
+
+        self._newDepth = False
+        self._newVelocity = False
+
         # Hook into input system
         watched_buttons = {'_left' : ['TURN_LEFT'],
                            '_right' : ['TURN_RIGHT'],
@@ -57,61 +80,117 @@ class KeyboardController(core.Subsystem):
         pass
     
     def update(self, time_since_last_frame):
+        self._time_since_last_motion += time_since_last_frame
+        
+        # Try to stop wherever we currently are.
+        if self._stop:
+            self._controller.holdCurrentPosition()
+            self._controller.holdCurrentOrientation()
+            self._controller.holdCurrentDepth()
+            self._targetDepth = self._controller.getDesiredDepth()
+            self._targetVelocity_b = math.Vector2.ZERO
+            self._newVelocity = True
+            self._newDepth = True
+            return 
+        
         # Turn (Yaw) Control
         if self._left:
-            self._controller.yawVehicle(30 * time_since_last_frame)
+            self._controller.yawVehicle(30 * time_since_last_frame, 0)
         elif self._right:
-            self._controller.yawVehicle(-30 * time_since_last_frame)
+            self._controller.yawVehicle(-30 * time_since_last_frame, 0)
         
         # Pitch Control
         if self._pitch_up:
-            self._controller.pitchVehicle(30 * time_since_last_frame)
+            self._controller.pitchVehicle(30 * time_since_last_frame, 0)
         elif self._pitch_down:
-            self._controller.pitchVehicle(-30 * time_since_last_frame)
+            self._controller.pitchVehicle(-30 * time_since_last_frame, 0)
         
         # Roll Control
         if self._roll_port:
-            self._controller.rollVehicle(30 * time_since_last_frame)
+            self._controller.rollVehicle(30 * time_since_last_frame, 0)
         elif self._roll_starboard:
-            self._controller.rollVehicle(-30 * time_since_last_frame)
+            self._controller.rollVehicle(-30 * time_since_last_frame, 0)
         
-        # Speed Control
-        if self._desiredSpeed > 5:
-            self._desiredSpeed = 5
-        elif self._desiredSpeed < -5:
-            self._desiredSpeed = -5
-            
+
+        # increment or decrement the foreward velocity in body coordinates
+        vIncForeward_b = math.Vector2(0.2 * time_since_last_frame,
+                                      0)
+        
         if self._forward:
-            self._desiredSpeed += 2 * time_since_last_frame
-            self._controller.setSpeed(self._desiredSpeed)
+            self._targetVelocity_b += vIncForeward_b
+            self._newVelocity = True
+
         elif self._backward:
-            self._desiredSpeed -= 2 * time_since_last_frame
-            self._controller.setSpeed(self._desiredSpeed)
+            self._targetVelocity_b -= vIncForeward_b
+            self._newVelocity = True
 
-        # SidewaysSpeed Control
-        if self._desiredSidewaysSpeed > 5:
-            self._desiredSidewaysSpeed = 5
-        elif self._desiredSidewaysSpeed < -5:
-            self._desiredSidewaysSpeed = -5
-            
+        # increment or decrement the sideways velocity in body coordinates
+        vIncStarboard_b = math.Vector2(0,
+                                       0.2 * time_since_last_frame)
+
         if self._strafe_right:
-            self._desiredSidewaysSpeed += 2 * time_since_last_frame
-            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
-        elif self._strafe_left:
-            self._desiredSidewaysSpeed -= 2 * time_since_last_frame
-            self._controller.setSidewaysSpeed(self._desiredSidewaysSpeed)
-            
-        # Depth Control
-        currentDepth = self._controller.getDepth()
-        if self._dive:
-            currentDepth += 2 * time_since_last_frame
-            self._controller.setDepth(currentDepth)
-        elif self._surface:
-            currentDepth -= 2 * time_since_last_frame
-            self._controller.setDepth(currentDepth)
+            self._targetVelocity_b += vIncStarboard_b
+            self._newVelocity = True
 
-        if self._stop:
-            self._controller.setSpeed(0)
-            self._controller.setSidewaysSpeed(0)
+        elif self._strafe_left:
+            self._targetVelocity_b -= vIncStarboard_b
+            self._newVelocity = True
+
+        
+        # Depth Control
+        if self._dive:
+            self._targetDepth += 2 * time_since_last_frame
+            self._newDepth = True
+
+        elif self._surface:
+            self._targetDepth -= 2 * time_since_last_frame
+            self._newDepth = True
+
+        # only update every once in a while so we are not computing 
+        # new trajectories at absurd rates.  
+        if self._time_since_last_motion > self._MOTION_RATE:
+            
+            if self._newVelocity:
+                # calculate the current velocity in body coordinates
+                orientation = self._stateEstimator.getEstimatedOrientation()
+                yaw = orientation.getYaw()
+                estVelocity_n = self._stateEstimator.getEstimatedVelocity()
+                estVelocity_b = math.Matrix2.bRn(yaw) * estVelocity_n
+                desVelocity_n = self._controller.getDesiredVelocity()
+                desVelocity_b = math.Matrix2.bRn(yaw) * desVelocity_n
+                # do the translate motion
+                self._motionManager.setMotion(
+                    motion.Translate(
+                        trajectories.Vector2ConstAccelTrajectory(
+                            initialValue = math.Vector2.ZERO,
+                            initialRate = estVelocity_b,
+                            finalRate = self._targetVelocity_b,
+                            accel = 0.2),
+                        frame = motion.Frame.LOCAL))
+                vEvent = core.Event()
+                vEvent.velocity = math.Matrix2.bRn(yaw) * self._targetVelocity_b
+                self.publish(KeyboardController.TARGET_VELOCITY_UPDATE, vEvent)
+                
+            if self._newDepth:
+                estDepth = self._stateEstimator.getEstimatedDepth()
+                estDepthRate = self._stateEstimator.getEstimatedDepthRate()
+                desDepth = self._controller.getDesiredDepth()
+                desDepthRate = self._controller.getDesiredDepthRate()
+                # do the depth motion
+                self._motionManager.setMotion(
+                    motion.ChangeDepth(trajectories.ScalarCubicTrajectory(
+                            initialValue = estDepth,
+                            finalValue = self._targetDepth,
+                            initialRate = estDepthRate,
+                            avgRate = 0.2))) 
+                dEvent = core.Event()
+                dEvent.depth = self._targetDepth
+                self.publish(KeyboardController.TARGET_DEPTH_UPDATE, dEvent)
+
+            self._newDepth = False
+            self._newVelocity = False
+            # reset update timer
+            self._time_since_last_motion = 0
+
             
 core.SubsystemMaker.registerSubsystem('KeyboardController', KeyboardController)

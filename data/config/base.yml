@@ -6,10 +6,15 @@ QueuedEventHub:
     depends_on: ["EventHub"]
     type: QueuedEventHub
 
+NetworkPublisher:
+    depends_on: ["QueuedEventHub"]
+    type: NetworkPublisher
+    update_interval: 1
+
 # Exectures Motions
 MotionManager:
     type: MotionManager
-    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+    depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub", "StateEstimator"]
 
 # Handles Timers
 TimerManager:
@@ -39,11 +44,12 @@ Vehicle:
         #    type: VisionVelocitySensor
         SensorBoard:
             type: SensorBoard
-            update_interval: 25
+            update_interval: 40
             priority: high
             depthCalibSlope: 35.5
             depthCalibIntercept: 1182
             # Position is for Tortuga 2 measured in inches as (-11, 1.5, 3)
+            # Position for Tortuga 4 measured in cm as (-44.0, 10.0, 5.3)
             depthSensorLocation: [-0.916666667, 0.125, 0.25]
             servo1FirePosition: 4000 # Range 256-4352
             servo2FirePosition: 256 # Range 256-4352
@@ -110,18 +116,17 @@ Vehicle:
             depends_on: ['SensorBoard']
             # serial: 147
             type: SBThruster
-            update_interval: 100
 
             # String representing the address of the thruster
             address: 1
             # Number determined by testing
             calibration_factor: 25
-            # Number used to flip thruster forces (if thruster is reversed
-                
+            # Number used to flip thruster forces (if thruster is reversed    
             # on the vehicle)
             direction: 1
-            # Distance from center of rotation
-            offset: 0.19685
+            # Vector in body coordinate system from center of mass
+            location: [0.00, 0.20, 0.00]
+
         PortThruster:
             depends_on: ['SensorBoard']
             # serial: 149
@@ -129,7 +134,7 @@ Vehicle:
             address: 0
             calibration_factor: 25
             direction: 1
-            offset: 0.19685
+            location: [0.00, -0.20, 0.00]
 
         ForeThruster:
             depends_on: ['SensorBoard']
@@ -138,7 +143,7 @@ Vehicle:
             address: 3
             calibration_factor: 25
             direction: -1
-            offset: 0.2413
+            location: [0.4, 0.00, 0.00]
 
         AftThruster:
             depends_on: ['SensorBoard']
@@ -147,7 +152,7 @@ Vehicle:
             address: 5
             calibration_factor: 25
             direction: -1
-            offset: 0.381
+            location: [-0.40, 0.00, 0.00]
 
         TopThruster:
             depends_on: ['SensorBoard']
@@ -156,7 +161,7 @@ Vehicle:
             address: 2
             calibration_factor: 25
             direction: 1
-            offset: 0.19685
+            location: [0.09, -0.0, -0.13]
 
         BottomThruster:
             depends_on: ['SensorBoard']
@@ -164,7 +169,7 @@ Vehicle:
             address: 4
             calibration_factor: 25
             direction: -1
-            offset: 0.19685
+            location: [0.09, 0.0, 0.10]
             
         MagBoom:
             type: IMU
@@ -173,76 +178,22 @@ Vehicle:
             update_interval: 5
             priority: high
 
-            #imuToVehicleRotMatrix: [[ 0.9140, -0.4048, -0.0273],
-            #                        [-0.4057, -0.9123, -0.0554],
-            #                        [-0.0024,  0.0617, -0.9981]] 
+            #from 2011-4-2011
+            imuToVehicleRotMatrix: [[ -0.2991, -0.9530, -0.0479 ],
+                                    [ -0.9541, 0.2996, -0.0020 ],
+                                    [ 0.0162, 0.0451, -0.9989 ]]
 
-            #imuToVehicleRotMatrix: [[0.6022, -0.7980, 0.0253],
-            #                        [-0.7975, -0.5997, 0.0655],
-            #                        [-0.0371, -0.0597, -0.9975]]
-            #from 2009-7-22
-            #imuToVehicleRotMatrix: [[-0.4351, -0.9000, -0.0268],
-            #                        [-0.9004, 0.4346, 0.0216],
-            #                        [-0.0077, 0.0335, -0.9994]]
-            #from 2009-8-1
-            #imuToVehicleRotMatrix: [[-0.2657, -0.9640, -0.0121],
-            #                        [-0.9638, 0.2654, 0.0245],
-            #                        [-0.0204, 0.0182, -0.9996]]
-            #from 2010-01-14
-            #imuToVehicleRotMatrix: [[ 0.0257, 0.9994, -0.0222 ],
-            #                        [ 0.9995, -0.0253, 0.0161 ],
-            #                        [ 0.0155, -0.0226, -0.9996 ]]
-            #from 2010-07-13
-            #imuToVehicleRotMatrix: [[ 0.3740, 0.9274, -0.0035 ],
-            #                        [ 0.9271, -0.3738, 0.0288 ],
-            #                        [ 0.0254, -0.0140, -0.9996 ]]
-            #from 2010-10-12
-            imuToVehicleRotMatrix: [[-0.1557, -0.9866, -0.0488],
-                                    [-0.9878, 0.1555, 0.0095],
-                                    [-0.0018, 0.0497, -0.998]]
-            #magXBias: -0.0702
-            #magYBias:  0.0056
-            #magZBias:  0.0124
-            #magXBias: -0.0735
-            #magYBias: 0.0056
-            #magZBias: -0.0109
-            # Tortuga 3  from 2009-7-22
-            #magXBias: -0.0135
-            #magYBias: 0.0147
-            #magZBias: -0.0495
-            # Tortuga 3  from 2010-01-14
-            #magXBias: 0.0075
-            #magYBias: -0.0217
-            #magZBias: -0.0909
-            # Tortuga 3  from 2010-07-14
-            #magXBias: 0.0177
-            #magYBias: -0.0670
-            #magZBias: -0.0815
-            # Tortuga 3  from 2010-10-12
-            magXBias: -0.0334
-            magYBias: 0.0321
-            magZBias: -0.0610
+            magXBias: -0.026977
+            magYBias: 0.019687
+            magZBias: -0.064661
 
-            #gyroXBias: 0.0013
-            #gyroYBias: 0.0499
-            #gyroZBias: -0.0501
+            gyroXBias: -0.006018
+            gyroYBias: 0.004329
+            gyroZBias: 0.004822
 
-            # Tortuga 3
-            #gyroXBias: 0.0087
-            #gyroYBias: 0.0201
-            #gyroZBias: -0.0084
-            # Tortuga 3
-            #gyroXBias: -0.0003
-            #gyroYBias: -0.0027
-            #gyroZBias: 0.0015
-            # Tortuga 3  from 2010-07-14
-            #gyroXBias: -0.0051
-            #gyroYBias: 0.0021
-            #gyroZBias: 0.0040
-            # Tortuga 3  from 2010-10-12
-            gyroXBias: -0.0044
-            gyroYBias: 0.0005
-            gyroZBias: 0.0035
+            accelXBias: -0.003667
+            accelYBias: -0.019106
+            accelZBias: -0.021700
 
             localMagneticPitch: 60
 
@@ -252,111 +203,43 @@ Vehicle:
             update_interval: 5
             priority: high
             # These are in VEHICLE FRAME
-            # Pre-thruster change out
-            #magXBias: 0.158325
-            #magYBias: 0.229488
-            #magZBias: -0.270406
-            # Post Thruster change out, and with 6 thrusters
-            #magXBias: 0.243511
-            #magYBias: 0.260058
-            #magZBias: -0.211263
-            # New Electronics
-            #magXBias: 0.243998
-            #magYBias: 0.269084
-            #magZBias: -0.221182
-            # Tortuga 2 first dive
-            #magXBias: 0.251043
-            #magYBias: 0.196805
-            #magZBias: -0.171669
-            # Tortuga 2 With Everthing
-            #magXBias: 0.25861
-            #magYBias: 0.252917
-            #magZBias: -0.183411
-            # Tortuga 2 Redo
-            #magXBias: 0.2010
-            #magYBias: 0.2160
-            #magZBias: -0.1899
-            # Tortuga 2.5
-            #magXBias: -0.1698
-            #magYBias: -0.1691
-            #magZBias: -0.2362
-            # Tortuga 3
-            #magXBias: 0.0798
-            #magYBias: 0.0384
-            #magZBias: 0.5876 
-            # Tortuga 3  from 2010-01-14
-            #magXBias: 0.1130
-            #magYBias: -0.0529
-            #magZBias: 0.5463
-            # Tortuga 3  from 2010-07-14
-            #magXBias: 0.1631
-            #magYBias: -0.0391
-            #magZBias: 0.5789
-            # Tortuga 3  from 2010-10-12
-            magXBias: 0.1086
-            magYBias: -0.1885
-            magZBias: 0.5033
+            imuToVehicleRotMatrix: [[ -0.6234, 0.0290, 0.7814 ],
+                                    [ 0.7818, 0.0102, 0.6234 ],
+                                    [ 0.0101, 0.9995, -0.0291 ]]
 
-            # Tortuga 2.5
-            #gyroXBias: 0.0216
-            #gyroYBias: -0.0148
-            #gyroZBias: -0.0242
-            # Tortuga 3
-            #gyroXBias: 0.0174
-            #gyroYBias: -0.0136
-            #gyroZBias: -0.0304
-            # Tortuga 3  from 2010-01-14
-            #gyroXBias: 0.0179
-            #gyroYBias: -0.0223
-            #gyroZBias: -0.0336
-            # Tortuga 3  from 2010-07-14
-            #gyroXBias: 0.0123
-            #gyroYBias: -0.0269
-            #gyroZBias: -0.0359
-            # Tortuga 3  from 2010-10-12
-            gyroXBias: 0.0193
-            gyroYBias: -0.0261
-            gyroZBias: -0.0365
+            magXBias: -0.130466
+            magYBias: -0.491657
+            magZBias: 0.045481
 
-            # Tortuga 2.5
-            #imuToVehicleRotMatrix: [[-0.8794, 0.0060, -0.4761],
-            #                        [0.4759, 0.0424, -0.8785],
-            #                        [0.0149, -0.9991, -0.0401]]
-            # Tortuga 3   from 2009-7-22
-            #imuToVehicleRotMatrix: [[0.1806, 0.0378, 0.9828],
-            #                        [0.9833, -0.0313, -0.1795],
-            #                        [0.0240, 0.9988, -0.0428]]
-            # from 2009-8-1
-            #imuToVehicleRotMatrix: [[0.0904, 0.0326, 0.9954],
-            #                        [0.9959, -0.0011, -0.0904],
-            #                        [-0.0019, 0.9995, -0.0326]]
-            # Tortuga 3  from 2010-01-14
-            #imuToVehicleRotMatrix: [[ 0.1629, 0.0284, 0.9862],
-            #                        [ 0.9864, 0.0183, -0.1635],
-            #                        [ -0.0227, 0.9994, -0.0250]]
-            # Tortuga 3  from 2010-07-14
-            #imuToVehicleRotMatrix: [[ 0.2608, 0.0058, 0.9654],
-            #                        [ 0.9642, -0.0519, -0.2601],
-            #                        [ 0.0486, 0.9986, -0.0192]]
-            # Tortuga 3  from 2010-10-12
-            imuToVehicleRotMatrix: [[ 0.1536, 0.0306, 0.9877],
-                                    [ 0.9880, -0.0196, -0.1530],
-                                    [ 0.0147, 0.9993, -0.0333]]
-            
+            gyroXBias: 0.022581
+            gyroYBias: -0.027298
+            gyroZBias: -0.036842
+
+            accelXBias: -0.019185
+            accelYBias: -0.029437
+            accelZBias: 0.028014
+
             # Set me to zero to ignore mag.
             #magCorruptThresh: 0.0
             localMagneticPitch: 60
 
-        #DVL:
-        #    type: DVL
-        #    depends_on: ["SensorBoard"]
-        #    devfile: /dev/dvl
+        DVL:
+            type: DVL
+            update_interval: 50
+            depends_on: []
+            devfile: /dev/dvl
 
 RemoteController:
     type: RemoteController
-    depends_on: ["Controller"]
-    update_interval: -1
-    yawGain: 40
+    depends_on: ["QueuedEventHub", "Vehicle", "StateEstimator", "Controller"]
+    yawGain: 30
+    speedGain: 2
+    tSpeedGain: 2
+
+NetworkController:
+    type: NetworkController
+    depends_on: ["EventHub"]
+    update_interval: 10
 
 Logging:
     type: Logging
@@ -380,43 +263,95 @@ Logging:
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-                    
         IMULog:
             type: File
             fileName: imu.log
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-
         DVLLog:
             type: File
             fileName: dvl.log
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-
         VehicleLog:
             type: File
             fileName: vehicle.log
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-
+        ThrusterSigLog:
+            type: File
+            fileName: thrusterSig.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        StEstDVLLog:
+            type: File
+            filename: stEstDVL.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        StEstDepthLog:
+            type: File
+            filename: stEstDepth.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        StEstIMULog:
+            type: File
+            filename: stEstIMU.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        BuoyDetectorLog:
+            type: File
+            filename: buoyDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        LoversLaneDetectorLog:
+            type: File
+            filename: loversLaneDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        CupidDetectorLog:
+            type: File
+            filename: cupidDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        BinsDetectorLog:
+            type: File
+            filename: binsDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
+        PipeDetectorLog:
+            type: File
+            filename: pipeDetector.log
+            Layout:
+                type: Pattern
+                pattern: "%m %r%n"
         CameraLog:
             type: File
             fileName: camera.log
             Layout:
                 type: Pattern
                 pattern: "%m %r%n"
-
         Console:
             type: Console
             Layout:
                 type: Pattern
                 pattern: "%c %m %r%n"
+
     Categories:
         Thruster:
             appenders: ['ThrusterLog'] #,'Console']
+        ThrusterSig:
+            appenders: ['ThrusterSigLog']
         Power:
             appenders: ['PowerLog'] #,'Console']
         Controller:
@@ -425,59 +360,98 @@ Logging:
             appenders: ['IMULog'] #'Console']
         DVL:
             appenders: ['DVLLog']
+        StEstDVL:
+            appenders: ['StEstDVLLog']
+        StEstDepth:
+            appenders: ['StEstDepthLog']
+        StEstIMU:
+            appenders: ['StEstIMULog']
+        BuoyDetector:
+            appenders: ['BuoyDetectorLog']
+        LoversLaneDetector:
+            appenders: ['LoversLaneDetectorLog']
+        BinsDetector:
+            appenders: ['BinsDetectorLog']
+        CupidDetector:
+            appenders: ['CupidDetectorLog']
+        PipeDetector:
+            appenders: ['PipeDetectorLog']
         Vehicle:
             appenders: ['VehicleLog']
         Camera:
             appenders: ['CameraLog', 'Console']
             priority: 'info'
 
+StateEstimator:
+    type: ModularStateEstimator
+    depends_on: ["EventHub", "Vehicle"]
+    DepthEstimationModule:
+        degree: 3
+        windowSize: 81
+    # GreenBuoy:
+    #     location: [0, 0, 8]
+    #     covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    #     attackHeading: 0
+    # GreenBuoyEstimationModule:
+    #     numParticles: 200
+    # YellowBuoy:
+    #     location: [0, 0, 8]
+    #     covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    #     attackHeading: 0
+    # YellowBuoyEstimationModule:
+    #     numParticles: 200
+    RedBuoy:
+        location: [0, 0, 8]
+        covariance: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+        attackHeading: 0
+    RedBuoyEstimationModule:
+        numParticles: 200
+
 Controller:
-    depends_on: ["Vehicle", "EventHub"]
-    type: BWPDController
-    update_interval: 40
-    priority: high
-    holdCurrentHeading: 1 # Set to 0 to always point north
-    holdCurrentDepth: 1
+    depends_on: ["Vehicle", "EventHub", "StateEstimator"]
+    type: CombineController
+    update_interval: 25
+
+    # wait for this amout of time before doing control
     initializationPause: 2
-    orientationThreshold: 0.05
 
-    adaptCtrlRotK: 5
-    adaptCtrlRotGamma: 1
+    # hold our initial depth and heading
+    holdCurrentHeading: 1
+    holdCurrentDepth: 1
 
+    velocityThreshold: 0.3
+    positionThreshold: 0.3
+    depthThreshold: 0.2
+    orientationThreshold: 0.3
 
-    angularPGain: 15
-    angularDGain: 2
-    speedPGain: 8
-    sidewaysSpeedPGain: 8
-    # Should not be negative
-    depthPGain: 20
-    velocityPGain: 0.1
-    inertia: [[0.201, 0, 0],
-              [0, 4, 0],
-              [0, 0, 1.288]]
+    TranslationalController:
+        type: TrackingTranslationalController
+        x1kp: 25
+        x1ki: 1
+        x1kd: 20
+        x2kp: 25
+        x2ki: 1
+        x2kd: 20
 
-    desiredSpeed: 0
-    desiredDepth: 0.2
-    desiredQuaternion: [0, 0, 0, 1]
+        # type: OpenLoopTranslationalController
+        # speedPGain: 8
+        # sidewaysSpeedPGain: 8
 
-    # Picks kind of depth controller
-    # 1 = P control (Normal)
-    # 4 = Dis. Obs. w/Integral Aug.
-    # 5 = PID
-    depthControlType: 5
+    DepthController:
+        type: PIDDepthController
+        kp: 20
+        ki: 1
+        kd: 3
+        dtMin: 0.005
+        dtMax: 0.1
 
-    # Discrete Observer Controller w/Integral Aug. (#4)
-    depthOCIA4: [0, 12217, -469, 0,
-                 0, 0, 0, 0,
-                 0, -9, 0, 0,
-                 0, 2932, 49, 1]
-    depthOCIB4: [-12221, 1, 9, -2937]
-    depthOCIC4: [0, 0, 0, 1]
-
-    # Settings for PID Depth Controller (#5)
-    depthKp: 10.0 #12.0
-    depthKi: 1.0
-    depthKd: 1.0 #3.0
+    RotationalController:
+        type: NonlinearPDRotationalController
+        kp: 22.5
+        kd: 2
+        dtMin: 0.005
+        dtMax: 0.1
+        desiredOrientation: [0, 0, 0, 1]
 
 #Monitor:
     #type: Monitor

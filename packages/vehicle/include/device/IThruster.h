@@ -61,12 +61,16 @@ public:
      */
     virtual void setEnabled(bool state) = 0;
     
-    /** Returns the offset from axis perpendicular to axis of inducded rotation
-     *
-     *  The means the port thruster which rotates around Z-axis and is in the
-     *  X-Y plane would give report its distance off the X axis.
+    /** Returns the vector from the center of mass to the thruster
+     *  Follows our standard convention +x - fore, +y - star, +z - down
+     *  This is meant to replace the getOffset() function
      */
     virtual math::Vector3 getLocation() = 0;
+    
+    /** Returns the direction of the thruster force vector in body
+        coordinates. Same convention as getLocation
+    */
+    virtual math::Vector3 getDirection() = 0;
 
 protected:
     IThruster(core::EventHubPtr eventHub = core::EventHubPtr(),

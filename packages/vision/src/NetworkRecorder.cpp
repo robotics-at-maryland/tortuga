@@ -79,7 +79,8 @@ void NetworkRecorder::handle_accept(Connection::pointer new_connection,
             {
                 boost::mutex::scoped_lock lock(m_lock);
                 image.copyFrom(m_buffer);
-                image.setSize(160, 120);
+                image.setSize(getRecordingWidth(),
+			      getRecordingHeight());
             }
 
             new_connection->sendImage(&image);
@@ -104,12 +105,26 @@ NetworkRecorder::Connection::create(ba::io_service& io)
 
 void NetworkRecorder::Connection::sendImage(Image *img)
 {
-    std::vector<unsigned char> buf;
-    cv::imencode(".jpg", cv::Mat(img->asIplImage()), buf);
+    img->setPixelFormat(Image::PF_BGR_8);
+    
+    size_t width = img->getWidth();
+    size_t height = img->getHeight();
+    size_t nCh = img->getNumChannels();
+    Image::PixelFormat fmt = img->getPixelFormat();
+    size_t len = width * height * nCh;
 
-    // send compressed data
-    size_t len = buf.size();
+    std::vector<unsigned char> buf(len);
+    unsigned char *imgData = img->getData();
+
+    for(size_t i = 0; i < len; i++)
+    {
+        buf[i] = imgData[i];
+    }
+    
     ba::write(m_socket, ba::buffer(&len, sizeof(size_t)));
+    ba::write(m_socket, ba::buffer(&width, sizeof(size_t)));
+    ba::write(m_socket, ba::buffer(&height, sizeof(size_t)));
+    ba::write(m_socket, ba::buffer(&fmt, sizeof(Image::PixelFormat)));
     ba::write(m_socket, ba::buffer(buf), ba::transfer_all());
 }
 

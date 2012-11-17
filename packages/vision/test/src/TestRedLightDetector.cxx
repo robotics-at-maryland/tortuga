@@ -16,10 +16,9 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Events.h"
 #include "vision/test/include/Utility.h"
+#include "vision/include/VisionSystem.h"
 
 #include "core/include/EventHub.h"
-
-
 
 using namespace ram;
 
@@ -103,7 +102,7 @@ TEST_FIXTURE(RedLightDetectorFixture, CenterLight)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -130,11 +129,14 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
     CHECK(detector.found);
+
+    math::Degree xFOV = vision::VisionSystem::getFrontHorizontalFieldOfView();
+    math::Degree yFOV = vision::VisionSystem::getFrontVerticalFieldOfView();
 
     // Check the events
     CHECK(found);
@@ -142,8 +144,8 @@ TEST_FIXTURE(RedLightDetectorFixture, UpperLeft)
     CHECK_CLOSE(expectedX, event->x, 0.005);
     CHECK_CLOSE(expectedY, event->y, 0.005);
     CHECK_CLOSE(3, event->range, 0.1);
-    CHECK_CLOSE(math::Degree(78.0/4), event->azimuth, math::Degree(0.4));
-    CHECK_CLOSE(math::Degree(105.0/4), event->elevation, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(xFOV/4), event->azimuth, math::Degree(0.4));
+    CHECK_CLOSE(math::Degree(yFOV/4), event->elevation, math::Degree(0.4));
 
     // Make sure we haven't "almost hit" the light
     CHECK(false == almostHit);
@@ -174,7 +176,7 @@ TEST_FIXTURE(RedLightDetectorFixture, TestNOLUV)
     detector.setUseLUVFilter(false);
     processImage(&input);
 
-    double expectedX = 0.5 * 640.0/480.0;
+    double expectedX = 0.5;
     double expectedY = -0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -195,7 +197,7 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_LOST)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
+    CHECK_CLOSE(-0.5, event->x, 0.005);
     CHECK_CLOSE(0.5, event->y, 0.005);
 
     // Now we lost the light
@@ -219,7 +221,7 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -253,7 +255,7 @@ TEST_FIXTURE(RedLightDetectorFixture, Events_LIGHT_ALMOST_HIT_TOPBOT)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -282,7 +284,7 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveTop)
 
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -305,7 +307,7 @@ TEST_FIXTURE(RedLightDetectorFixture, RemoveBottom)
 
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = -0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -347,7 +349,7 @@ TEST_FIXTURE(RedLightDetectorFixture, oddShapes)
 
     processImage(&input);
 
-    double expectedX = 0.5 * 640.0/480.0;
+    double expectedX = 0.5;
     double expectedY = -0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);

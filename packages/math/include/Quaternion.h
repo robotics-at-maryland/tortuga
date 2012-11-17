@@ -254,6 +254,8 @@ namespace math {
 		/// Equality with tolerance (tolerance is max angle difference)
 		bool equals(const Quaternion& rhs, const Radian& tolerance) const;
 		
+        static Quaternion fromDirectionCosineMatrix(Matrix3& nCb);
+
 	    // spherical linear interpolation
         static Quaternion Slerp (Real fT, const Quaternion& rkP,
             const Quaternion& rkQ, bool shortestPath = false);

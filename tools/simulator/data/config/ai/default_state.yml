@@ -8,6 +8,10 @@ ram.ai.course.Light:
 ram.ai.course.Target:
     timeout: 180
 
+ram.ai.gate.Forward:
+    angle: 60
+    distance: 11
+
 # Duct settings
 ram.ai.duct.SeekingToRange:
     desiredRange: 0.5
