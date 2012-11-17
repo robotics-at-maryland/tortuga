@@ -154,12 +154,13 @@ class ZigZag(State):
     DONE = core.declareEventType('DONE')
 
     @staticmethod
-    def transitions(myState = None):
+    def transitions(finishState, myState = None):
         
         if myState is None :
             myState = ZigZag
         
-        return { motion.basic.MotionManager.FINISHED : myState}
+        return { motion.basic.MotionManager.FINISHED : myState,
+                 ZigZag.DONE : finishState }
 
     #moves the robot forward a set distance as defined in the getattr() function
     def Forward(self):

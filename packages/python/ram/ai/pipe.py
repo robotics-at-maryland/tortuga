@@ -492,7 +492,7 @@ class Searching(PipeTrackingState, state.ZigZag):
         
         trans = PipeTrackingState.transitions(Searching,
             { vision.EventType.PIPE_FOUND : Seeking })
-        trans.update(state.ZigZag.transitions(Searching))
+        trans.update(state.ZigZag.transitions(End, Searching))
         
         return trans;
 

@@ -41,6 +41,8 @@ import ram.ai.vase as vase
 import ram.ai.lane as lane
 import ram.ai.cupid as cupid
 import ram.ai.OldBuoy as oldBuoy
+import ram.ai.uprights as uprights
+import ram.ai.grapes as grapes
 
 import ram.motion as motion
 import ram.motion.basic
@@ -71,7 +73,8 @@ class Gate(task.Task):
 
     def PIPE_ON_(self, event):
         """Turn pipe detector on after a delay"""
-        self.visionSystem.pipeLineDetectorOn()
+        #self.visionSystem.pipeLineDetectorOn()
+        return
 
     def enter(self):
         task.Task.enter(self)
@@ -89,6 +92,8 @@ class Gate(task.Task):
             # Save current heading
             self.ai.data['gateOrientation'] = \
                 self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+
+        self.ai.data['fakeGate'] = False
         
         # Setup timer to trigger pipe detector after a certain delay
         delay = self._config.get('pipeDelay', 30)
@@ -126,6 +131,11 @@ class FakeGate(task.Task):
 
         self.ai.data['gateOrientation'] = \
             self._config.get('gateOrientation', 0)
+
+        self.ai.data['fakeGateDistance'] = \
+            self._config.get('fakeGateDistance', 5)
+        
+        self.ai.data['fakeGate'] = True
         
         if self.ai.data['gateOrientation'] == 0:
             # Save current heading
@@ -753,12 +763,6 @@ class Buoy(task.Task):
             self.ai.data['config'].get('targetBuoys', [])
         if len(self.ai.data['buoyList']) == 0:
             raise LookupError, "No buoys specified"
-
-        self._className = type(self).__name__
-        self.ai.data['buoyOrientation'] = self.ai.data['config'].get(self._className, {}).get('orientation', None)
-
-        if self.ai.data['buoyOrientation'] is None:
-            raise LookupError, "No orientation specified"
         
         self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
             'lostTimeout', 5)
@@ -774,7 +778,6 @@ class Buoy(task.Task):
         task.Task.exit(self)
 
         del self.ai.data['buoyList']
-        del self.ai.data['buoyOrientation']
 
         self.stateMachine.stopBranch(buoy.Start)
         self.visionSystem.buoyDetectorOff()
@@ -886,17 +889,6 @@ class Window(task.Task):
                  window.COMPLETE : task.Next,
                  'GO' : state.Branch(window.Start) }
 
-    def WINDOW_SEARCHING(self, event):
-        # This is defensive, it should never happen
-        if self._lostTimeout is not None:
-            self._lostTimeout.stop()
-
-        if self._windowFound:
-            # We should not continue searching for too long
-            self._lostTimeout = self.timerManager.newTimer(
-                self._timeoutEvent, self._lostDelay)
-            self._lostTimeout.start()
-
     def WINDOW_FOUND(self, event):
         if self._lostTimeout is not None:
             self._lostTimeout.stop()
@@ -904,11 +896,7 @@ class Window(task.Task):
         self._windowFound = True
 
     def TIMEOUT_WINDOW(self, event):
-        while self.ai.data.get('torpedosFired', 0) < \
-                window.FireTorpedos.NUMBER_TORPEDOS:
-            self.vehicle.fireTorpedo()
-            self.ai.data['torpedosFired'] = \
-                self.ai.data.get('torpedosFired', 0) + 1
+        pass
     
     def enter(self, defaultTimeout = 120):
         # Initialize task part of class
@@ -1138,11 +1126,12 @@ class Octagon(task.Task):
         if self._release:
             print 'releasing'
             self.vehicle.releaseGrabber()
+        
 
     def enter(self):
         task.Task.enter(self)
 
-        self._delay = self._config.get('delay', 70)
+        self._delay = self._config.get('delay', 25)
         self._release = self._config.get('release', True)
 
 
@@ -1154,7 +1143,55 @@ class Octagon(task.Task):
             initialValue = self.stateEstimator.getEstimatedDepth(),
             finalValue = self._config.get('depth', 0),
             initialRate = self.stateEstimator.getEstimatedDepthRate(),
-            avgRate = self._config.get('diveSpeed', 0.2))
+            avgRate = self._config.get('diveSpeed', 0.3))
+
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
+
+        self.motionManager.setMotion(diveMotion)
+
+    def exit(self):
+        task.Task.exit(self)
+        self.motionManager.stopCurrentMotion()
+
+        if self._timer is not None:
+            self._timer.stop()
+
+
+class SimpleDive(task.Task):
+    """
+    Dive to a specified depth and drops the object
+    """
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next }
+
+    @staticmethod
+    def getattr():
+        return set(['depth', 'diveSpeed', 'release']).union(
+            task.Task.getattr())
+
+    def FINISHED(self, event):
+        """
+        Releases the grabber.
+        """
+        if self._release:
+            print 'releasing'
+            self.vehicle.releaseGrabber()
+        
+
+    def enter(self):
+        task.Task.enter(self)
+
+        self._depth = self._config.get('depth', 6)
+        self._release = self._config.get('release', True)
+
+        # Start our dive
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self._depth,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('diveSpeed', 0.3))
 
         diveMotion = motion.basic.ChangeDepth(
             trajectory = diveTrajectory)
@@ -1317,3 +1354,49 @@ class TimedTravel(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
+
+class Uprights(task.Task):
+    """
+    Finds the uprights and swims through them.
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { uprights.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(uprights.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(uprights.Start)
+
+class Grapes(task.Task):
+    """
+    Pushes the grapes off of the stands using the Derpy thruster.
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { grapes.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(grapes.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(grapes.Start)

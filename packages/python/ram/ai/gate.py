@@ -83,6 +83,9 @@ class Forward(state.State):
         return { 'distance' : 5 , 'avgRate' : 0.15}
 
     def enter(self):
+        if(self.ai.data['fakeGate']):
+            self._distance = self.ai.data['fakeGateDistance']
+
         currentOrientation = self.stateEstimator.getEstimatedOrientation()
         yawTrajectory = motion.trajectories.StepTrajectory(
             initialValue = currentOrientation,
