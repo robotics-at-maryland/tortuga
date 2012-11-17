@@ -4,14 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 #include <iostream>
 #include <algorithm>
 
 #include <time.h>
-
-#include "LibSVMsetup.h"
 
 //values found earlier to increase efficiency.
 // 0 = tan(10 * (PI / 180))
@@ -437,62 +434,57 @@ cv::Mat HOGFeatures(cv::Mat &image){
         }
     }
     
-    cv::Mat ret =  cv::Mat(cells, cv::Rect(1, 1, cells.cols - 2, 
+    return cv::Mat(cells, cv::Rect(1, 1, cells.cols - 2, 
                                    cells.rows - 2));
-
-    ret.convertTo(ret, CV_32FC(32));
-
-    return ret;
 }
 
 int main(int argc, char *argv[])
 {
-    runSetup();
-	// clock_t start, end;
+	clock_t start, end;
 
-	// start = clock();
-    // //Load the image from the args
-    // cv::Mat image = cv::imread(argv[1]);
-    // HOGFeatures(image).convertTo(image, CV_32FC(32));
+	start = clock();
+    //Load the image from the args
+    cv::Mat image = cv::imread(argv[1]);
+    HOGFeatures(image).convertTo(image, CV_32FC(32));
 
-    // cv::Mat myTemplate = cv::imread(argv[2]);
-	// HOGFeatures(myTemplate).convertTo(myTemplate, CV_32FC(32));
+    cv::Mat myTemplate = cv::imread(argv[2]);
+	HOGFeatures(myTemplate).convertTo(myTemplate, CV_32FC(32));
 
-    // cv::Mat output;
+    cv::Mat output;
 
-    // cv::matchTemplate(image, myTemplate, output, CV_TM_CCORR);
+    cv::matchTemplate(image, myTemplate, output, CV_TM_CCORR);
 	 
 
-	// float minNum = 1000000000;
-	// float maxNum = -1000000000;
+	float minNum = 1000000000;
+	float maxNum = -1000000000;
 
-	// for(int row = 0; row < output.rows; row++)
-    // {
-    //     float* rowPtr = output.ptr<float>(row);
+	for(int row = 0; row < output.rows; row++)
+    {
+        float* rowPtr = output.ptr<float>(row);
 
-    //     for(int col = 0; col < output.cols; col++)
-    //     {
-    //         if(rowPtr[col] < minNum){
-    //             minNum = rowPtr[col];
-    //         }
-    //         if(rowPtr[col] > maxNum){
-    //             maxNum = rowPtr[col];
-    //         }
-    //     }
-    // }
+        for(int col = 0; col < output.cols; col++)
+        {
+            if(rowPtr[col] < minNum){
+                minNum = rowPtr[col];
+            }
+            if(rowPtr[col] > maxNum){
+                maxNum = rowPtr[col];
+            }
+        }
+    }
 
-    // output -= minNum;
-    // output *= (1 / (maxNum - minNum));
+    output -= minNum;
+    output *= (1 / (maxNum - minNum));
 
-    // resize(output, output, cv::Size(), 8, 8);
+    resize(output, output, cv::Size(), 8, 8);
 	
-	// end = clock();
+	end = clock();
 
-	// std::cout << "Time required for execution: " << (double)(end-start)/CLOCKS_PER_SEC << " seconds." << std::endl;
+	std::cout << "Time required for execution: " << (double)(end-start)/CLOCKS_PER_SEC << " seconds." << std::endl;
 
-    // // show the window
-    // cv::imshow("output", output);
-    // cv::waitKey(0);
+    // show the window
+    cv::imshow("output", output);
+    cv::waitKey(0);
 
     // CV_64FC(32) == cv::DataType<cv::Vec<double, 32> >::type
     // CV_32FC(32) == cv::DataType<cv::Vec<float, 32> >::type
