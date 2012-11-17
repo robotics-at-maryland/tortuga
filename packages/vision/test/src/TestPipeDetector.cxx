@@ -80,7 +80,7 @@ TEST_FIXTURE(PipeDetectorFixture, UpperLeft)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -104,7 +104,7 @@ TEST_FIXTURE(PipeDetectorFixture, Left)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0; 
+    double expectedX = -0.5;
     double expectedY = 0;
     math::Degree expectedAngle(0);
     
@@ -129,7 +129,7 @@ TEST_FIXTURE(PipeDetectorFixture, LowerRight)
     // Process it
     processImage(&input);
     
-    double expectedX = 0.5 * 640.0/480.0; 
+    double expectedX = 0.5;
     double expectedY = -0.5;
     math::Degree expectedAngle(-25);
     
@@ -154,7 +154,7 @@ TEST_FIXTURE(PipeDetectorFixture, CenterUp)
     processImage(&input);
 
     double expectedX = 0;
-    double expectedY = 0 * 640.0/480.0; 
+    double expectedY = 0;
     math::Degree expectedAngle(0);
     
     CHECK(detector.found());
@@ -178,7 +178,7 @@ TEST_FIXTURE(PipeDetectorFixture, CenterSideways)
     processImage(&input);
     
     double expectedX = 0;
-    double expectedY = 0 * 640.0/480.0; 
+    double expectedY = 0;
     math::Degree expectedAngle(-90);
     
     CHECK(detector.found());
@@ -203,7 +203,7 @@ TEST_FIXTURE(PipeDetectorFixture, UpperLeftNoHough)
     // Process it
     processImage(&input);
     
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -231,10 +231,10 @@ TEST_FIXTURE(PipeDetectorFixture, DoubleClose)
     processImage(testInput);
     delete testInput;
     
-    double expectedTopX = (436-320)/320.0 * 640.0/480.0;
+    double expectedTopX = (436-320)/320.0;
     double expectedTopY = 130.0/240.0;
     math::Degree expectedTopAngle(79.5);
-    double expectedBottomX = 30/320.0 * 640.0/480.0;
+    double expectedBottomX = 30/320.0;
     double expectedBottomY = 78.0/240.0;
     math::Degree expectedBottomAngle(84);
     

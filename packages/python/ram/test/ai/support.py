@@ -22,7 +22,8 @@ import ram.motion.basic
 
 from ram.ai.subsystem import AI
 from ram.test.timer import TimerTester
-from ram.test.motion.support import MockController, MockVehicle, MockTimer
+from ram.test.motion.support import \
+    MockController, MockVehicle, MockTimer, MockEstimator
 
 
 class MockMotionManager(core.Subsystem):
@@ -43,6 +44,7 @@ class MockVisionSystem(core.Subsystem):
         core.Subsystem.__init__(self, 'VisionSystem')
         self.redLightDetector = False
         self.buoyDetector = False
+        self.cupidDetector = False
         self.pipeLineDetector = False
         self.binDetector = False
         self.ductDetector = False
@@ -63,6 +65,12 @@ class MockVisionSystem(core.Subsystem):
 
     def buoyDetectorOff(self):
         self.buoyDetector = False
+        
+    def cupidDetectorOn(self):
+        self.cupidDetector = True
+
+    def cupidDetectorOff(self):
+        self.cupidDetector = False
         
     def pipeLineDetectorOn(self):
         self.pipeLineDetector = True
@@ -152,7 +160,10 @@ class AITestCase(unittest.TestCase):
         self.eventHub = core.EventHub()
         self.qeventHub = core.QueuedEventHub(self.eventHub)
         self.timerManager = timer.TimerManager(deps = [self.eventHub])
-        self.controller = MockController(self.eventHub)
+        self.estimator = MockEstimator(cfg = cfg.get('StateEstimator', {}))
+        self.controller = MockController(
+            eventHub = self.eventHub,
+            estimator = self.estimator)
         self.vehicle = MockVehicle(cfg = cfg.get('Vehicle', {}))
         self.visionSystem = MockVisionSystem()
         
@@ -160,7 +171,8 @@ class AITestCase(unittest.TestCase):
         self.ai = AI(aCfg)
         
         deps = [self.controller, self.timerManager, self.eventHub, 
-                self.qeventHub, self.vehicle, self.visionSystem, self.ai]
+                self.qeventHub, self.vehicle, self.visionSystem, self.ai,
+                self.estimator]
         
         mCfg = cfg.get('MotionManager', {})
         self.motionManager = motion.basic.MotionManager(mCfg, deps)
@@ -215,6 +227,8 @@ class AITestCase(unittest.TestCase):
         self.qeventHub.publishEvents()
      
     def releaseTimer(self, eventType):
+        print MockTimer.LOG
+        print eventType
         timer = MockTimer.LOG[eventType]
 
         # Make sure the timer has actual been started

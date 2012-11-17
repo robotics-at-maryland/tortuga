@@ -13,6 +13,7 @@
 // Project Includes
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
+#include "estimation/include/Common.h"
 
 #include "control/include/DesiredState.h"
 
@@ -39,9 +40,10 @@ class RAM_EXPORT IDepthControllerImp : public IDepthController
     virtual ~IDepthControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */
-    virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orientation,
-                                      controltest::DesiredStatePtr desiredState) = 0;
+    virtual math::Vector3 depthUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState) = 0;
 };
     
 } // namespace control

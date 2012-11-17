@@ -8,6 +8,7 @@
  */
 
 // Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/OpenLoopTranslationalController.h"
 #include "control/include/ControllerMaker.h"
 #include "control/include/Helpers.h"
@@ -28,27 +29,20 @@ OpenLoopTranslationalController::OpenLoopTranslationalController(
     m_sidewaysSpeedPGain(0)
 {
     // Load things from the configuration file
-    m_speedPGain = config["speedPGain"].asInt(1);
-    m_sidewaysSpeedPGain = config["sidewaysSpeedPGain"].asInt(1);
+    m_speedPGain = config["speedPGain"].asDouble(1);
+    m_sidewaysSpeedPGain = config["sidewaysSpeedPGain"].asDouble(1);
 }
     
 math::Vector3 OpenLoopTranslationalController::translationalUpdate(
     double timestep,
-    math::Vector3 linearAcceleration,
-    math::Quaternion orientation,
-    math::Vector2 position,
-    math::Vector2 velocity,
-    controltest::DesiredStatePtr desiredState)
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
-    // The quaternion with just the pitch
-    math::Quaternion quatPitch(math::Degree(orientation.Inverse().getPitch()),
-                               math::Vector3::UNIT_Y);
-
-    /*  Retrieve velocity as if the robots frame is the inertial frame.  
-        In other words, the robot should always travel at this velocity 
-        relative to itself.  Doing this, the robot's actual velocity in
-        the true inertial frame will change as its orientation changes. */
+    math::Quaternion orientation = estimator->getEstimatedOrientation();
     math::Vector2 desiredVelocity = desiredState->getDesiredVelocity();
+
+    // math::Quaternion quatPitch(math::Degree(orientation.getPitch()),
+    //                            math::Vector3::UNIT_Y);
 
     // Compute the base force
     math::Vector3 foreAftComponent(
@@ -56,11 +50,10 @@ math::Vector3 OpenLoopTranslationalController::translationalUpdate(
         m_sidewaysSpeedPGain * desiredVelocity[1],
         0);
 
-    // Rotate it to account for odd pitches
-    math::Vector3 result = quatPitch * foreAftComponent;
+    //math::Vector3 bodyFrameForeAftComponent = quatPitch * foreAftComponent;
 
     // Return the results
-    return result;
+    return foreAftComponent;
 }
 
 } // namespace control

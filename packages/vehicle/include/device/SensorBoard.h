@@ -22,7 +22,6 @@
 #include "core/include/Updatable.h"
 #include "core/include/ConfigNode.h"
 #include "core/include/ReadWriteMutex.h"
-#include "core/include/AveragingFilter.h"
 
 #include "math/include/SGolaySmoothingFilter.h"
 
@@ -118,7 +117,6 @@ public:
     };
     
     // IDepth interface methods
-    virtual double getDepth();
 
     virtual math::Vector3 getLocation();
 
@@ -156,6 +154,16 @@ public:
      */
     virtual int dropMarker();
 
+    /** Drops a specified marker
+     *
+     *  @param index
+     *      The number of the marker to be dropped
+     * 
+     *  @return
+     *      The number of the marker dropped, -1 if all markers are used.
+     */
+    virtual int dropMarkerIndex(int index);
+
     /** Fire a torpedo (works only NUMBER_TORPEDOS times)
      *
      *  @return
@@ -163,13 +171,31 @@ public:
      */
     virtual int fireTorpedo();
 
-    /** Releases the object in the treasure grabber. Only works once.
+    /** Fire a specifed torpedo
+     *
+     *  @param index
+     *      The number of the torpedo we want to launch
+     * 
+     *  @return
+     *      The number of the torpedo fired, -1 if all torpedos are used.
+     */
+    virtual int fireTorpedo(int index);
+
+    /** Closes the grabber.
      *
      *  @return
      *      0 if the grabber successfully released the object. -1 if
      *      the object was already released.
      */
-    virtual int releaseGrabber();
+    virtual int extendGrabber();
+
+    /** Opens the grabber
+     *
+     *  @return
+     *      0 if the grabber successfully released the object. -1 if
+     *      the object was already released.
+     */
+    virtual int retractGrabber();
     
    /** Returns true if the vehicle can draw power from the power source
      *
@@ -209,6 +235,13 @@ public:
      *   the main bus voltage directly.
      */
     virtual double getMainBusVoltage();
+
+    /** This turns on or off the external thruster
+     *
+     *  if the parameter is 0 it turns off the thruster
+     *  if the parameter is anything else, it sets the speed to that
+     */
+    virtual void setExtraThrusterSpeed(int speed);
 
 protected:
     // Makes easy access to the sensor board and allows testing
@@ -280,21 +313,6 @@ private:
     // Location of the depth sensor
     math::Vector3 m_location;
 
-    // Window size of the depth filter
-    double m_windowSize;
-    
-    // Polynomial degree of the depth filter
-    double m_degree;
-
-    // Filter for depth measurements
-    typedef boost::shared_ptr<math::SGolaySmoothingFilter> SGolaySmoothingFilterPtr;
-    SGolaySmoothingFilterPtr m_depthFilter;
-    bool m_filterInitialized;
-
-    //bool m_calibratedDepth;
-    //core::AveragingFilter<double, 5> m_depthFilter;
-    //double m_depthOffset;
-    
     /** The device file to open the file descriptor from */
     std::string m_deviceFile;
 

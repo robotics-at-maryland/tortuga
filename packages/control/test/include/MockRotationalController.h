@@ -20,26 +20,27 @@ class MockRotationalController :
 public:
     MockRotationalController(ram::core::ConfigNode) :
         timestep(0),
-        orientation(ram::math::Quaternion::IDENTITY),
-        angularRate(0, 0, 0),
+        estimator(ram::estimation::IStateEstimatorPtr()),
+        desiredState(ram::control::DesiredStatePtr()),
         torque(0, 0, 0)
         {}
     
     virtual ~MockRotationalController() {}
-
+    
     virtual ram::math::Vector3 rotationalUpdate(
         double timestep_,
-        ram::math::Quaternion orientation_,
-        ram::math::Vector3 angularRate_,
-        ram::controltest::DesiredStatePtr desiredState_) {
+        ram::estimation::IStateEstimatorPtr estimator_,
+        ram::control::DesiredStatePtr desiredState_)
+    {
         timestep = timestep_;
-        orientation = orientation_;
-        angularRate = angularRate_;
-        return torque; }
+        estimator = estimator_;
+        desiredState = desiredState_;
+        return torque;
+    }
 
     double timestep;
-    ram::math::Quaternion orientation;
-    ram::math::Vector3 angularRate;
+    ram::estimation::IStateEstimatorPtr estimator;
+    ram::control::DesiredStatePtr desiredState;
     ram::math::Vector3 torque;
 };
 

@@ -3,6 +3,7 @@ if (RAM_WITH_CONTROL)
   set(WRAPPED_HEADERS
     IController.h
     DesiredState.h
+    Helpers.h
     )
   if (RAM_WITH_CORE)
     list(APPEND WRAPPED_HEADERS Events.h)

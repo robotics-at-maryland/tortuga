@@ -20,7 +20,6 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
-#include "core/include/AveragingFilter.h"
 
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
@@ -55,18 +54,8 @@ public:
 
     virtual ~IMU();
     
-    virtual math::Vector3 getLinearAcceleration();
-
-    virtual math::Vector3 getMagnetometer();
-    
-    virtual math::Vector3 getAngularRate();
-
-    virtual math::Quaternion getOrientation();
-    
     /** Grabs the raw IMU state */
     void getRawState(RawIMUData& imuState);
-    /** Grab filtered state */
-    void getFilteredState(FilteredIMUData& filteredState);
 
     virtual std::string getName() { return Device::getName(); }
     
@@ -101,23 +90,6 @@ public:
     };
     
 private:
-    void rotateAndFilterData(const RawIMUData* newState);
-    
-    static void quaternionFromIMU(double mag[3], double accel[3],
-                                  double* quaternion);
-    
-    static void quaternionFromRate(double* quaternionOld,
-				   double angRate[3],
-				   double deltaT,
-				   double* quaternionNew);
-
-    math::Quaternion computeQuaternion(math::Vector3 mag, 
-					      math::Vector3 accel,
-					      math::Vector3 angRate,
-					      double deltaT,
-					      math::Quaternion quaternionOld);
-    
-
     /** Name of the serial device file */
     std::string m_devfile;
     
@@ -146,29 +118,10 @@ private:
     /** Nominal value of magnetic vector length obtained experimentally **/
     double m_magNominalLength;
     
-    /** Protects acces to public state */
-    core::ReadWriteMutex m_orientationMutex;
-    math::Quaternion m_orientation;
-    
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
     /** The raw data read back from the IMU */
     RawIMUData* m_rawState;
-
-    /** Filterd and rotated IMU data */
-    FilteredIMUData* m_filteredState;
-    
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelX; 
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelY;
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredAccelZ; 
-
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroX; 
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroY;
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredGyroZ;
-
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagX; 
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagY;
-    core::AveragingFilter<double, FILTER_SIZE> m_filteredMagZ; 
 };
 
     

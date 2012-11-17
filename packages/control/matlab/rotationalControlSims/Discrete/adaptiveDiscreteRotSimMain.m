@@ -7,15 +7,15 @@ clear;
 %sampling frequency
 frequency = 40;
 %initial position
-axis0=[1 0 0]';
-angle0=180*pi/180;
+axis0=[0 0 0]';
+angle0=0*pi/180;%altered from 180
 q0=[axis0*sin(angle0/2); cos(angle0/2)];
 %q0=[1 0 0 0]';
 q_old = q0;
 %initial angular rate
-w0=(pi/180)*[10 0 0]';
+w0=(pi/180)*[0 0 0]';
 %initial desired position
-qd0=[0 0 0 1]';
+qd0=[0 0 0.7071 0.7071]';
 %initial desired angular rate
 wd0=(pi/180)*[0 0 0]';
 w_old = 0;
@@ -81,7 +81,7 @@ global u;
 %% timing (in seconds)
 t0=0;
 te=50;
-step = 1/frequency;
+step = .3;
 time = t0:step:te;
 
 
@@ -94,7 +94,7 @@ x(1,:) = x0';
 %options=odeset(options,'AbsTol',1e-3,'MaxStep',0.05);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0);
 %[time,x] = ode45(@rotationalSimDynamics,[t0,te],x0,options);
-for i = 2:length(time)
+for i = 2:2%length(time)
     
     % unpack data
     x_curr = x(i-1,:)';
@@ -144,14 +144,14 @@ for i = 2:length(time)
     qc_tilde=quaternionProduct(q_meas,q_d);
 
     %compute composite error metric s
-    w_r=R(qc_tilde)*w_d-lambda*qc_tilde(1:3);
+    w_r=R(qc_tilde)*w_d-lambda*qc_tilde(1:3)*qc_tilde(4);%altered
     shat=w_meas-w_r;
 
     %compute angular rate error wc_tilde
     wc_tilde=w_meas-R(qc_tilde)*w_d;
 
     %d/dt(wrhat)=alpharhat
-    dw_r=R(qc_tilde)*dw_d-S(wc_tilde)*R(qc_tilde)*w_d-lambda*Q1(qc_tilde)*wc_tilde;
+    dw_r=R(qc_tilde)*dw_d-lambda*Q1(qc_tilde)*wc_tilde;%S(wc_tilde)*R(qc_tilde)*w_d-
     
     
     %find rotation matrix

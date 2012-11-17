@@ -25,6 +25,7 @@ import math
 # Project Imports
 import ext.core as core
 import ext.vision as vision
+from ext.control import yawVehicleHelper
 import ext.math
 
 import ram.ai.state as state
@@ -33,11 +34,38 @@ import ram.motion as motion
 import ram.motion.search
 import ram.motion.pipe
 import ram.timer
+from ram.motion.basic import Frame
+
+# Denotes when this state machine finishes
+COMPLETE = core.declareEventType('COMPLETE')
 
 def ensurePipeTracking(qeventHub, ai):        
     tracking.ensureItemTracking(qeventHub, ai, 'pipeData',
                                 vision.EventType.PIPE_FOUND,
                                 vision.EventType.PIPE_DROPPED)
+
+class PipeInfo(object):
+    """
+    A class to hold information about the pipe for tracking it
+    """
+    def __init__(self, x, y, relativeAngle):
+        self._x = x
+        self._y = y
+        self._angle = relativeAngle
+        
+    def getAngle(self):
+        return self._angle
+    
+    def getX(self):
+        return self._x
+    
+    def getY(self):
+        return self._y
+
+    def setState(self, x, y, relativeAngle):
+        self._x = x
+        self._y = y
+        self._angle = relativeAngle
 
 class PipeTrackingState(state.State):
     """
@@ -65,12 +93,12 @@ class PipeTrackingState(state.State):
         angle = event.angle
         
         # Find absolute vehicle direction
-        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
 
         # Determine the absolute pipe direction
         absPipeDirection = ext.math.Degree(vehicleDirection + angle)
-        
+
         # Store the absolute pipe direction in the itemData
         pipeData.setdefault('absoluteDirection', {})[event.id] = \
             absPipeDirection
@@ -104,7 +132,7 @@ class PipeTrackingState(state.State):
         # Ensure pipe tracking
         ensurePipeTracking(self.queuedEventHub, self.ai)
         
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
+        self._pipe = PipeInfo(0, 0, 0)
         
         self._biasDirection = self.ai.data.get('pipeBiasDirection', None)
         self._threshold = self.ai.data.get('pipeThreshold', None)
@@ -148,7 +176,9 @@ class PipeFollowingState(PipeTrackingState):
     def getattr():
         return set(['speedGain', 'dSpeedGain', 'iSpeedGain',
                     'sidewaysSpeedGain', 'iSidewaysSpeedGain',
-                    'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed', 'maxSidewaysSpeed'])
+                    'dSidewaysSpeedGain', 'yawGain', 'forwardSpeed',
+                    'maxSidewaysSpeed', 'sidewaysRate', 'forwardRate',
+                    'motionRange'])
 
     def PIPE_LOST(self, event):
         """
@@ -183,7 +213,7 @@ class PipeFollowingState(PipeTrackingState):
             # comparing them to the vehicles
 
             # Find absolute vehicle direction
-            vehicleOrientation = self.vehicle.getOrientation()
+            vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
             vehicleDirection = vehicleOrientation.getYaw(True)
             
             # Find the id with the absolute direction closest to the
@@ -204,22 +234,23 @@ class PipeFollowingState(PipeTrackingState):
                 pipeData['currentID'] = minID
                 self._pipe.setState(pipeData['itemData'][minID].x,
                                     pipeData['itemData'][minID].y,
-                                    pipeData['itemData'][minID].angle,
-                                    pipeData['itemData'][minID].timeStamp)
+                                    pipeData['itemData'][minID].angle.valueDegrees())
+                self.changedPipe()
 
     def PIPE_FOUND(self, event):
         """Update the state of the light, this moves the vehicle"""
+        if self._ignoreEvents:
+            return
         pipeData = self.ai.data['pipeData']
         angle = event.angle
-        
+
         goodPipe = PipeTrackingState.PIPE_FOUND(self, event)
         
         # If it is not vetoed
         if goodPipe is False:
             return False
-
         # Find absolute vehicle direction
-        vehicleOrientation = self.vehicle.getOrientation()
+        vehicleOrientation = self.stateEstimator.getEstimatedOrientation()
         vehicleDirection = vehicleOrientation.getYaw(True)
         
         # Get the currentID
@@ -229,7 +260,7 @@ class PipeFollowingState(PipeTrackingState):
             self.ai.data['lastPipeEvent'] = event
 
         # Check if this pipe exists
-        if not pipeData['itemData'].has_key(pipeData['currentID']):
+        if not pipeData['itemData'].has_key(pipeData['currentID']) or not pipeData['absoluteDirection'].has_key(pipeData['currentID']):
             # If it doesn't, set the currentID to event.id
             pipeData['currentID'] = event.id
 
@@ -247,8 +278,8 @@ class PipeFollowingState(PipeTrackingState):
                 if math.fabs(newPipeDifference.valueDegrees()) < \
                         math.fabs(currentPipeDifference.valueDegrees()):
                     pipeData['currentID'] = event.id
-                    self._pipe.setState(event.x, event.y, angle,
-                                            event.timeStamp)
+                    self._pipe.setState(event.x, event.y, angle.valueDegrees())
+                    self.changedPipe()
             else: # Otherwise continue normally
                 # Check difference between actual and "biasDirection"
                 difference = self._biasDirection - \
@@ -261,8 +292,8 @@ class PipeFollowingState(PipeTrackingState):
                         angle = ext.math.Degree(180) + angle
                     else:
                         angle = ext.math.Degree(-180) + angle
-                self._pipe.setState(event.x, event.y, angle,
-                                    event.timeStamp)
+                self._pipe.setState(event.x, event.y, angle.valueDegrees())
+                self.changedPipe()
         
         else: # If we are not biasing the direction
             # If the pipe event is not the currently followed pipe
@@ -270,19 +301,18 @@ class PipeFollowingState(PipeTrackingState):
             if not self._currentPipe(event):
                     # If the new pipe is closer to our current direction, switch
                     if math.fabs(angle.valueDegrees()) < \
-                            math.fabs(pipeData['itemData'][pipeData['currentID']]
-                                      .angle.valueDegrees()):
+                            math.fabs(pipeData['itemData'][pipeData['currentID']].angle.valueDegrees()):
                         pipeData['currentID'] = event.id
-                        self._pipe.setState(event.x, event.y, angle,
-                                            event.timeStamp)
+                        self._pipe.setState(event.x, event.y, angle.valueDegrees())
+                        self.changedPipe()
             else: # Otherwise continue normally
-                self._pipe.setState(event.x, event.y, angle,
-                                    event.timeStamp)
-
+                self._pipe.setState(event.x, event.y, self._pipe.getAngle())
+                self.changedPipe()
     def enter(self):
+        self._ignoreEvents = False
         PipeTrackingState.enter(self)
         
-        self._pipe = ram.motion.pipe.Pipe(0, 0, 0, timeStamp = None)
+        self._pipe = PipeInfo(0, 0, 0)
 
         speedGain = self._config.get('speedGain', 7)
         dSpeedGain = self._config.get('dSpeedGain', 1)
@@ -292,22 +322,83 @@ class PipeFollowingState(PipeTrackingState):
         iSidewaysSpeedGain = self._config.get('iSidewaysSpeedGain', 0.05)
         dSidewaysSpeedGain = self._config.get('dSidewaysSpeedGain', 0.5)
         
-        yawGain = self._config.get('yawGain', 1)
-        maxSpeed = self._config.get('forwardSpeed', 5)
-	maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
+        yawGain = self._config.get('yawGain', 0.3)
+        self._forwardSpeed = self._config.get('forwardSpeed', 0.15)
+        maxSidewaysSpeed = self._config.get('maxSidewaysSpeed', 3)
         
-        motion = ram.motion.pipe.Hover(pipe = self._pipe,
-                                       maxSpeed = maxSpeed,
-                                       maxSidewaysSpeed = maxSidewaysSpeed,
-                                       sidewaysSpeedGain = sidewaysSpeedGain,
-                                       iSidewaysSpeedGain = iSidewaysSpeedGain,
-                                       dSidewaysSpeedGain = dSidewaysSpeedGain,
-                                       speedGain = speedGain,
-                                       dSpeedGain = dSpeedGain,
-                                       iSpeedGain = iSpeedGain,
-                                       yawGain = yawGain)
-        self.motionManager.setMotion(motion)
+        self._forwardRate = self._config.get('forwardRate', 1)
+        self._sidewaysRate = self._config.get('sidewaysRate', 1)
         
+        self._motionRange = self._config.get('motionRange', .1)
+
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * 
+                                                   self._forwardRate,
+                                                   self._pipe.getX() * 
+                                                   self._sidewaysRate)
+                                                   
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, self._pipe.getAngle()),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = ext.math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = self._currentDesiredPos,
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._forwardSpeed)
+
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(yawMotion, translateMotion)
+
+    def changedPipe(self):
+        # A stupid solution. Stop current motion and restart it when
+        # PipeInfo is changed
+
+        if not self._changeMotion(self._currentDesiredPos, ext.math.Vector2( 
+                self._pipe.getY() * self._forwardRate, 
+                self._pipe.getX() * self._sidewaysRate)):
+            return
+        
+        
+        self._currentDesiredPos = ext.math.Vector2(self._pipe.getY() * 
+                                                   self._forwardRate, 
+                                                   self._pipe.getX() * 
+                                                   self._sidewaysRate)
+        self.motionManager.stopCurrentMotion()
+
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, self._pipe.getAngle()),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = ext.math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = self._currentDesiredPos,
+            initialRate = ext.math.Vector2.ZERO,
+            avgRate = self._forwardSpeed)
+        
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+        
+        self.motionManager.setMotion(yawMotion, translateMotion)
+
+
+    def _changeMotion(self, vector1, vector2):
+        # Another messy solution, compares two vectors to see if there
+        # is much of a difference between them. Returns True if there is
+        # is significant difference
+        if math.sqrt((vector2.x - vector1.x) * (vector2.x - vector1.x) + 
+                     (vector2.y - vector1.y) * 
+                     (vector2.y - vector1.y)) < self._motionRange:
+            return False
+        return True
+
 class Start(state.State):
     @staticmethod
     def transitions():
@@ -318,23 +409,27 @@ class Start(state.State):
         return set(['speed', 'offset', 'minimumDepth'])
     
     def enter(self):
-        orientation = self.vehicle.getOrientation()
+        orientation = self.stateEstimator.getEstimatedOrientation()
         self.ai.data['pipeStartOrientation'] = \
             orientation.getYaw().valueDegrees()
-
+        
         offset = self._config.get('offset', 0)
         desiredDepth = self.ai.data['config'].get('pipeDepth', 6)
 
         # Calculate the real depth and check to that it's lower than the minimum
         desiredDepth -= offset
-        minimumDepth = self._config.get('minimumDepth', 0.5)
+        minimumDepth = self._config.get('minimumDepth', 2)
         if desiredDepth < minimumDepth:
             desiredDepth = minimumDepth
 
-        # Go to 5 feet in 5 increments
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = desiredDepth,
-            speed = self._config.get('speed', 1.0/3.0))
+        # Go to 5 feet
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = desiredDepth,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('speed', 0.2))
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
         self.motionManager.setMotion(diveMotion)
         
     def exit(self):
@@ -365,26 +460,45 @@ class FindAttempt(state.FindAttempt, PipeTrackingState):
             ahead = ext.math.Vector3(event.x, event.y, 0)
             quat = ext.math.Vector3.UNIT_Y.getRotationTo(ahead)
             self._direction = quat.getYaw(True)
-            self._speed = self._config.get('speed', 0.5)
+            self._speed = self._config.get('speed', 0.15)
 
-            searchMotion = \
-                motion.basic.MoveDirection(self._direction, self._speed)
+            currentOrientation = self.stateEstimator.getEstimatedOrientation()
+            yawTrajectory = motion.trajectories.StepTrajectory(
+                initialValue = currentOrientation,
+                finalValue = yawVehicleHelper(currentOrientation, 
+                                              self._direction.valueDegrees()),
+                initialRate = self.stateEstimator.getEstimatedAngularRate(),
+                finalRate = ext.math.Vector3.ZERO)
+            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = ext.math.Vector2.ZERO,
+                finalValue = ext.math.Vector2(5,0),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = self._speed)
 
-            self.motionManager.setMotion(searchMotion)
+            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+            translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+            
+            self.motionManager.setMotion(yawMotion, translateMotion)
+            #self.motionManager.setMotion(translateMotion)
         else:
             self.motionManager.stopCurrentMotion()
 
-class Searching(PipeTrackingState):
+class Searching(PipeTrackingState, state.ZigZag):
     """When the vehicle is looking for a pipe"""
     
     @staticmethod
     def transitions():
-        return PipeTrackingState.transitions(Searching,
+        
+        trans = PipeTrackingState.transitions(Searching,
             { vision.EventType.PIPE_FOUND : Seeking })
+        trans.update(state.ZigZag.transitions(End, Searching))
+        
+        return trans;
 
     @staticmethod
     def getattr():
-        return set(['forwardSpeed'])
+        return state.ZigZag.getattr()
 
     def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -396,20 +510,8 @@ class Searching(PipeTrackingState):
         
         # Turn on the vision system
         self.visionSystem.pipeLineDetectorOn()
-
-        # Set the start orientation if it isn't already set
-        orientation = self.vehicle.getOrientation()
-        direction = self.ai.data.setdefault('pipeStartOrientation',
-                                            orientation.getYaw().valueDegrees())
-
-        # Create zig zag search to 
-        zigZag = motion.search.ForwardZigZag(
-            legTime = 5,
-            sweepAngle = 0,
-            speed = self._config.get('forwardSpeed', 2),
-            direction = direction)
-
-        self.motionManager.setMotion(zigZag)
+        
+        state.ZigZag.enter(self)
 
 class Seeking(PipeFollowingState):
     """When the vehicle is moving over the found pipe"""
@@ -527,18 +629,23 @@ class AlongPipe(PipeFollowingState):
         # Load our configuration settings
         self._lastPipeLoc = None
         self._angleDistance = self._config.get('angleDistance', 0.5)
-        maxSpeed = self._config.get('forwardSpeed', 5)
+        forwardSpeed = self._config.get('forwardSpeed', 0.15)
         
-        # Create our new motion to follow the pipe
-        motion = ram.motion.pipe.Follow(pipe = self._pipe,
-                                        speedGain = 5,
-                                        maxSpeed = maxSpeed,
-                                        maxSidewaysSpeed = 3)
-        self.motionManager.setMotion(motion)
+        # Create our new motion to follow the pipe straight forward
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = ext.math.Vector2(10,0),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = forwardSpeed)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+        self.motionManager.setMotion(translateMotion)
+        self._ignoreEvents = True
 
     def exit(self):
-        self.motionManager.stopCurrentMotion()
-       
+        #self.motionManager.stopCurrentMotion()
+        print 'leaving AlongPipe'
+
 class BetweenPipes(PipeTrackingState):
     """
     When the vehicle is between two pipes, and can't see either.
@@ -549,11 +656,12 @@ class BetweenPipes(PipeTrackingState):
     def transitions():
         return PipeTrackingState.transitions(BetweenPipes,
                                              {vision.EventType.PIPE_FOUND : Seeking,
+                                              motion.basic.MotionManager.FINISHED : End,
                                               BetweenPipes.LOST_PATH : End })
 
     @staticmethod
     def getattr():
-        return set(['forwardTime', 'forwardSpeed'])
+        return set(['forwardTime', 'distance', 'forwardSpeed'])
     
     def PIPE_FOUND(self, event):
         currentID = self.ai.data['pipeData'].setdefault('currentID', event.id)
@@ -564,20 +672,33 @@ class BetweenPipes(PipeTrackingState):
         """We have driving off the 'end' of the pipe set a timeout"""
         PipeTrackingState.enter(self)
         
-        forwardTime = self._config.get('forwardTime', 15)
+        forwardTime = self._config.get('forwardTime', 10)
+        forwardSpeed = self._config.get('forwardSpeed', 0.15)
         self.timer = self.timerManager.newTimer(BetweenPipes.LOST_PATH, 
-						forwardTime)
+                                                forwardTime)
         self.timer.start()
         
-        self.controller.setSpeed(self._config.get('forwardSpeed', 5))
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = ext.math.Vector2.ZERO,
+            finalValue = ext.math.Vector2(self._config.get('distance', 5),0),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = forwardSpeed)
+
+        self.motionManager.stopCurrentMotion()
+
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+        self.motionManager.setMotion(translateMotion)
         
     def exit(self):
         PipeTrackingState.exit(self)
         
-        self.controller.setSpeed(0)
+        self.controller.holdCurrentOrientation()
+        self.controller.holdCurrentPosition()
         self.timer.stop()
         
 class End(state.State):
     def enter(self):
         self.visionSystem.pipeLineDetectorOff()
+        self.publish(COMPLETE, core.Event())
         #print '"Pipe Follow"'

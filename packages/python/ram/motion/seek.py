@@ -24,9 +24,10 @@ class PointTarget(common.Target):
     VERTICAL_FOV = 78.0 # TODO: Make me configurable
     
     def __init__(self, azimuth, elevation, range, x, y,
-                 timeStamp = None, vehicle = None, kp = 1.0, kd = 1.0):
+                 timeStamp = None, estimator = None,
+                 kp = 1.0, kd = 1.0):
         common.Target.__init__(self, x, y, timeStamp, kp, kd)
-        self._vehicle = vehicle
+        self._estimator = estimator
         self.prevAzimuth = None
         self.prevElevation = None
         self.prevRange = None
@@ -47,11 +48,11 @@ class PointTarget(common.Target):
         self.range = range
 
         # If we have vehicle do the correction
-        if self._vehicle is not None:
+        if self._estimator is not None:
             # Grab the current azimuth based on X and FOV
             angle = y * (PointTarget.VERTICAL_FOV/2.0)
             # Get the actual vehicle pitch, and remove it from the angle
-            pitch = self._vehicle.getOrientation().getPitch(True)
+            pitch = self._estimator.getEstimatedOrientation().getPitch(True)
             realAngle = angle - pitch.valueDegrees()
             # Now use actual angle of the object to get the real X value
             y = realAngle / (PointTarget.VERTICAL_FOV/2.0)
@@ -196,14 +197,14 @@ class SeekPoint(Motion):
                 elif dtDepth < -self._maxDepthDt:
                     dtDepth = -self._maxDepthDt
             
-            currentDepth = self._vehicle.getDepth()
+            currentDepth = self._estimator.getEstimatedDepth()
             newDepth = currentDepth + dtDepth
-            self._controller.setDepth(newDepth)
+            self._controller.changeDepth(newDepth)
     
         # Do pointing control
         if not self._translate:
             # Determine how to yaw the vehicle
-            vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+            vehicleHeading =  self._estimator.getEstimatedOrientation().getYaw(True)
             vehicleHeading = vehicleHeading.valueDegrees()
             absoluteTargetHeading = vehicleHeading + self._target.azimuth
             
@@ -213,7 +214,7 @@ class SeekPoint(Motion):
             yawCommand = (absoluteTargetHeading - desiredHeading) * self._yawGain
             if self._maxYaw is not None and abs(yawCommand) > self._maxYaw:
                 yawCommand = self._maxYaw * (yawCommand / abs(yawCommand))
-            self._controller.yawVehicle(yawCommand)
+            self._controller.yawVehicle(yawCommand,0)
         else:
             sidewaysSpeed, self._sumX, self._oldX = common.PIDLoop(
                 x = self._target.x,
@@ -231,7 +232,7 @@ class SeekPoint(Motion):
 
         # Drive toward light
         if self._maxSpeed != 0:
-            self._controller.setSpeed(self._speedScale() * self._maxSpeed)
+            self._controller.translate(ext.math.Vector2(1, 0), ext.math.Vector2(0.1,0))
         
         if self._alignment() <= self._alignmentThreshold and not self._first:
             self.publish(SeekPoint.POINT_ALIGNED, ext.core.Event())
@@ -274,9 +275,7 @@ class SeekPoint(Motion):
         Finishes off the motion, disconnects events, and putlishes finish event
         """
         self._running = False
-        self._controller.setSpeed(0)
-        if self._translate:
-            self._controller.setSidewaysSpeed(0)
+        self._controller.holdCurrentPosition()
         self._conn.disconnect()
 
     @staticmethod
@@ -357,11 +356,11 @@ class ObserverControllerSeekPoint(Motion):
         
         # Determine new Depth
         absoluteTargetDepth = \
-            self._vehicle.getDepth() + self._target.relativeDepth
+            self._estimator.getEstimatedDepth() + self._target.relativeDepth
         self._controller.setDepth(absoluteTargetDepth)
     
         # Determine how to yaw the vehicle
-        vehicleHeading =  self._vehicle.getOrientation().getYaw(True)
+        vehicleHeading =  self._estimator.getEstimatedOrientation().getYaw(True)
         vehicleHeading = vehicleHeading.valueDegrees()
         absoluteTargetHeading = vehicleHeading + self._target.azimuth
         

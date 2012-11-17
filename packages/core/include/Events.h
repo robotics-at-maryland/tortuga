@@ -10,8 +10,13 @@
 #ifndef RAM_CORE_EVENTS_06_04_2009
 #define RAM_CORE_EVENTS_06_04_2009
 
+// STD Includes
+#include <vector>
+#include <string>
+
 // Project Includes
 #include "core/include/Event.h"
+#include "math/include/Vector2.h"
 
 namespace ram {
 namespace core {
@@ -31,13 +36,20 @@ struct IntEvent : public core::Event
 
     IntEvent(int data_) : data(data_) {}
 
-    virtual EventPtr clone();
+    virtual EventPtr clone()
+    {
+        boost::shared_ptr< IntEvent > event =
+            boost::shared_ptr< IntEvent >(new IntEvent());
+        copyInto(event);
+        event->data = data;
+        return event;
+    }
 
     int data;
 };
 
-typedef boost::shared_ptr<IntEvent> IntEventPtr;
-    
+typedef boost::shared_ptr< IntEvent > IntEventPtr;
+
 } // namespace core
 } // namespace ram
 

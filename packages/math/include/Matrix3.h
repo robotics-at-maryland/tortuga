@@ -111,6 +111,7 @@ namespace math {
 		{
 			return (Real*)m[0];
 		}*/
+
         Vector3 GetColumn (size_t iCol) const;
         void SetColumn(size_t iCol, const Vector3& vec);
         void FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis);
@@ -122,6 +123,7 @@ namespace math {
 			return *this;
 		}
         bool operator== (const Matrix3& rkMatrix) const;
+
         inline bool operator!= (const Matrix3& rkMatrix) const
 		{
 			return !operator==(rkMatrix);
@@ -342,7 +344,8 @@ namespace math {
             o << ")";
             return o;
         }
-        
+        static Matrix3 fromOuterProduct(Vector3 a, Vector3 b);
+
     protected:
         // support for eigensolver
         void Tridiagonal (Real afDiag[3], Real afSubDiag[3]);
@@ -355,6 +358,7 @@ namespace math {
             Matrix3& kR);
         static void GolubKahanStep (Matrix3& kA, Matrix3& kL,
             Matrix3& kR);
+
 
         // support for spectral norm
         static Real MaxCubicRoot (Real afCoeff[3]);

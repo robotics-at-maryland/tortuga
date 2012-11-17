@@ -66,7 +66,7 @@ bool writeEvent(core::EventPtr event, Archive& archive)
     boost::mutex::scoped_lock lock(writeMutex);
     try
     {
-        // Only attempt to convert events we now we can convert
+        // Only attempt to convert events we know we can convert
         bool convertable = unconvertableTypes.end() ==
             unconvertableTypes.find(typeName);
         if (convertable) {
@@ -302,6 +302,7 @@ void serialize(Archive &ar, ram::vision::BuoyEvent &t,
     ar & t.y;
     ar & t.id;
     ar & t.color;
+    ar & t.touchingEdge;
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vision::BuoyEvent)
@@ -510,46 +511,6 @@ void serialize(Archive &ar, ram::vehicle::RawDepthSensorDataEvent &t,
 }
 
 BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::RawDepthSensorDataEvent)
-
-
-template <class Archive>
-void serialize(Archive &ar, ram::vehicle::IMUInitEvent &t,
-               const unsigned int file_version)
-{
-    ar & boost::serialization::base_object<ram::core::Event>(t);
-    ar & t.name;
-    // TODO: Serialize matrix3
-    ar & t.magBias;
-    ar & t.gyroBias;
-    ar & t.magCorruptThreshold;
-    ar & t.magNominalLength;
-}
-
-BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::IMUInitEvent)
-
-
-template <class Archive>
-void serialize(Archive &ar, ram::vehicle::DVLInitEvent &t,
-               const unsigned int file_version)
-{
-    ar & boost::serialization::base_object<ram::core::Event>(t);
-    ar & t.name;
-    ar & t.angularOffset;
-}
-
-BOOST_SERIALIZATION_SHARED_PTR(ram::vehicle::DVLInitEvent)
-
-
-template <class Archive>
-void serialize(Archive &ar, ram::vehicle::DepthSensorInitEvent &t,
-               const unsigned int file_version)
-{
-    ar & boost::serialization::base_object<ram::core::Event>(t);
-    ar & t.name;
-    ar & t.location;
-    ar & t.depthCalibSlope;
-    ar & t.depthCalibIntercept;
-}
 
 #endif // RAM_WITH_VEHICLE
 

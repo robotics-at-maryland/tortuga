@@ -20,12 +20,13 @@ public:
     MockDepthControllerBase(ram::core::ConfigNode config) :
         ram::control::DepthControllerBase(config) {}
     
-    virtual ram::math::Vector3 depthUpdate(double timestep, double depth,
-                                           ram::math::Quaternion orientation,
-                                           ram::controltest::DesiredStatePtr desiredState)
+    virtual ram::math::Vector3 depthUpdate(
+        double timestep,
+        ram::estimation::IStateEstimatorPtr estimator,
+        ram::control::DesiredStatePtr desiredState)
     {
         ram::control::DepthControllerBase::depthUpdate(
-            timestep, depth, orientation, desiredState);
+            timestep, estimator, desiredState);
         return ram::math::Vector3::ZERO;
     }
 };

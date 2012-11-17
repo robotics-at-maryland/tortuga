@@ -19,6 +19,8 @@ Requires the following subsystems:
 import ext.core as core
 import ext.vision as vision
 import ext.control as control
+from ext.control import yawVehicleHelper
+import ext.math as math
 
 import ram.ai.task as task
 import ram.ai.state as state
@@ -30,14 +32,21 @@ import ram.ai.barbedwire as barbedwire
 import ram.ai.hedge as hedge
 import ram.ai.target as target
 import ram.ai.window as window
-import ram.ai.bin as bin
-import ram.ai.randombin as randombin
+import ram.ai.statBin as bin
+#import ram.ai.bin as bin
 import ram.ai.safe as safe
 import ram.ai.sonarSafe as sonarSafe
 import ram.ai.sonar as sonar
+import ram.ai.vase as vase
+import ram.ai.lane as lane
+import ram.ai.cupid as cupid
+import ram.ai.OldBuoy as oldBuoy
+import ram.ai.uprights as uprights
+import ram.ai.grapes as grapes
 
 import ram.motion as motion
 import ram.motion.basic
+from ram.motion.basic import Frame
 
 class Gate(task.Task):
     """
@@ -57,14 +66,15 @@ class Gate(task.Task):
 
     @staticmethod
     def getattr():
-        return set(['pipeDelay']).union(task.Task.getattr())
+        return set(['pipeDelay', 'gateOrientation']).union(task.Task.getattr())
 
     def PIPE_FOUND(self, event):
         self.ai.data['foundPipeEarly'] = True
 
     def PIPE_ON_(self, event):
         """Turn pipe detector on after a delay"""
-        self.visionSystem.pipeLineDetectorOn()
+        #self.visionSystem.pipeLineDetectorOn()
+        return
 
     def enter(self):
         task.Task.enter(self)
@@ -74,16 +84,64 @@ class Gate(task.Task):
         
         # Branch of state machine for gate
         self.stateMachine.start(state.Branch(gate.Start))
-        
-        # Save current heading
+
         self.ai.data['gateOrientation'] = \
-            self.controller.getDesiredOrientation()
+            self._config.get('gateOrientation', 0)
+        
+        if self.ai.data['gateOrientation'] == 0:
+            # Save current heading
+            self.ai.data['gateOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+
+        self.ai.data['fakeGate'] = False
         
         # Setup timer to trigger pipe detector after a certain delay
         delay = self._config.get('pipeDelay', 30)
         self.timer = self.timerManager.newTimer(Gate.PIPE_ON, delay)
         self.timer.start()
         
+    def exit(self):
+        task.Task.exit(self)
+        
+        self.exited = True
+        if (self.stateMachine.branches.has_key(gate.Start)):
+            self.stateMachine.stopBranch(gate.Start)
+    
+class FakeGate(task.Task):
+    """
+    A secondary gate task for if we need to easily dive and go in a direction
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { gate.COMPLETE : task.Next,
+                 'GO' : state.Branch(gate.Start) }
+
+    @staticmethod
+    def getattr():
+        return set(['pipeDelay', 'gateOrientation']).union(task.Task.getattr())
+
+    def enter(self):
+        task.Task.enter(self)
+        
+        self.exited = False
+        
+        # Branch of state machine for gate
+        self.stateMachine.start(state.Branch(gate.Start))
+
+        self.ai.data['gateOrientation'] = \
+            self._config.get('gateOrientation', 0)
+
+        self.ai.data['fakeGateDistance'] = \
+            self._config.get('fakeGateDistance', 5)
+        
+        self.ai.data['fakeGate'] = True
+        
+        if self.ai.data['gateOrientation'] == 0:
+            # Save current heading
+            self.ai.data['gateOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+
     def exit(self):
         task.Task.exit(self)
         
@@ -154,6 +212,72 @@ class Pipe(task.Task):
     @property
     def pipesToFind(self):
         return self._pipesToFind
+
+class Cupid(task.Task):
+    """
+    Finds and fires through through the Cupid
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { lane.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(cupid.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(cupid.Start)
+    
+
+class LoversLane(task.Task):
+    """
+    Finds and goes through the Lovers Lane
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { lane.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+        
+    
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        self.ai.data['laneOrientation'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'orientation', 0)
+        self.ai.data['laneDepth'] = \
+            self.ai.data['config'].get(self._className, {}).get(
+                    'depth', 5)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(lane.Start))
+        
+    def exit(self):
+        del self.ai.data['laneDepth']
+        del self.ai.data['laneOrientation']
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(lane.Start)
+    
+class LoversLane1(LoversLane):
+    pass
+    
+class LoversLane2(LoversLane):
+    pass
+    
+class LoversLane3(LoversLane):
+    pass
     
 class PipeGate(task.Task):
     """
@@ -523,18 +647,18 @@ class LightStaged(Light):
         # Set time to none
         self.doTimer = None
 
-class Buoy(task.Task):
+class OldBuoy(task.Task):
     """
     Task for completion of the Buoy objective within a certain time limit.
     """
 
     @staticmethod
     def _transitions():
-        return { buoy.COMPLETE : task.Next,
-                 buoy.Searching.BUOY_SEARCHING : Buoy,
-                 vision.EventType.BUOY_FOUND : Buoy,
+        return { oldBuoy.COMPLETE : task.Next,
+                 oldBuoy.Searching.BUOY_SEARCHING : OldBuoy,
+                 vision.EventType.BUOY_FOUND : OldBuoy,
                  task.TIMEOUT : task.Next,
-                 'GO' : state.Branch(buoy.Start) }
+                 'GO' : state.Branch(oldBuoy.Start) }
 
     def BUOY_SEARCHING(self, event):
         # This is defensive, it should never happen
@@ -576,10 +700,84 @@ class Buoy(task.Task):
         self._searchTimeout = None
         self._buoyFound = False
 
+        self.stateMachine.start(state.Branch(oldBuoy.Start))
+
+    def exit(self):
+        task.Task.exit(self)
+
+        self.stateMachine.stopBranch(oldBuoy.Start)
+        self.visionSystem.buoyDetectorOff()
+        self.motionManager.stopCurrentMotion()
+
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
+    
+class Buoy(task.Task):
+    """
+    Task for completion of the Buoy objective within a certain time limit.
+    """
+
+    @staticmethod
+    def _transitions():
+        return { buoy.COMPLETE : task.Next,
+                 vision.EventType.BUOY_FOUND : Buoy,
+                 task.TIMEOUT : task.Next,
+                 'GO' : state.Branch(buoy.Start) }
+
+    def BUOY_SEARCHING(self, event):
+        # This is defensive, it should never happen
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._searchTimeout is None:
+            self._searchTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._searchDelay)
+            self._searchTimeout.start()
+
+        if self._buoyFound:
+            # We should not continue searching for too long
+            self._lostTimeout = self.timerManager.newTimer(
+                self._timeoutEvent, self._lostDelay)
+            self._lostTimeout.start()
+
+    def BUOY_FOUND(self, event):
+        # Stop the lost timeout if we find a buoy
+        # Set it so we are in the vicinity of the buoys
+        if self._lostTimeout is not None:
+            self._lostTimeout.stop()
+
+        if self._searchTimeout is not None:
+            self._searchTimeout.stop()
+
+        self._buoyFound = True
+
+    def enter(self, defaultTimeout = 90):
+        timeout = self.ai.data['config'].get('Buoy', {}).get(
+            'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        # get the list of buoys we want to hit
+        self.ai.data['buoyList'] = \
+            self.ai.data['config'].get('targetBuoys', [])
+        if len(self.ai.data['buoyList']) == 0:
+            raise LookupError, "No buoys specified"
+        
+        self._lostDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'lostTimeout', 5)
+        self._lostTimeout = None
+        self._searchDelay = self.ai.data['config'].get('Buoy', {}).get(
+            'searchTimeout', 10)
+        self._searchTimeout = None
+        self._buoyFound = False
+
         self.stateMachine.start(state.Branch(buoy.Start))
 
     def exit(self):
         task.Task.exit(self)
+
+        del self.ai.data['buoyList']
 
         self.stateMachine.stopBranch(buoy.Start)
         self.visionSystem.buoyDetectorOff()
@@ -686,21 +884,10 @@ class Window(task.Task):
     @staticmethod
     def _transitions():
         return { task.TIMEOUT : task.Next,
-                 vision.EventType.WINDOW_FOUND : Window,
-                 window.Searching.WINDOW_SEARCHING : Window,
+                 #vision.EventType.WINDOW_FOUND : Window,
+                 #window.Searching.WINDOW_SEARCHING : Window,
                  window.COMPLETE : task.Next,
                  'GO' : state.Branch(window.Start) }
-
-    def WINDOW_SEARCHING(self, event):
-        # This is defensive, it should never happen
-        if self._lostTimeout is not None:
-            self._lostTimeout.stop()
-
-        if self._windowFound:
-            # We should not continue searching for too long
-            self._lostTimeout = self.timerManager.newTimer(
-                self._timeoutEvent, self._lostDelay)
-            self._lostTimeout.start()
 
     def WINDOW_FOUND(self, event):
         if self._lostTimeout is not None:
@@ -709,11 +896,7 @@ class Window(task.Task):
         self._windowFound = True
 
     def TIMEOUT_WINDOW(self, event):
-        while self.ai.data.get('torpedosFired', 0) < \
-                window.FireTorpedos.NUMBER_TORPEDOS:
-            self.vehicle.fireTorpedo()
-            self.ai.data['torpedosFired'] = \
-                self.ai.data.get('torpedosFired', 0) + 1
+        pass
     
     def enter(self, defaultTimeout = 120):
         # Initialize task part of class
@@ -746,6 +929,19 @@ class Bin(task.Task):
         self.ai.data['binComplete'] = True
 
     def enter(self, defaultTimeout = 240):
+
+        self._className = type(self).__name__
+        self.ai.data['binOrientation'] = self.ai.data['config'].get(self._className, {}).get('orientation', 0)
+
+        # get the list of buoys we want to hit
+        self.ai.data['symbolList'] = \
+            self.ai.data['config'].get('targetSymbols', [])
+        if len(self.ai.data['symbolList']) == 0:
+            raise LookupError, "No symbols specified"
+
+#         if self.ai.data['buoyOrientation'] is None:
+#             raise LookupError, "No orientation specified"
+
         timeout = self.ai.data['config'].get('Bin', {}).get(
                     'taskTimeout', defaultTimeout)
         task.Task.enter(self, defaultTimeout = timeout)
@@ -759,35 +955,26 @@ class Bin(task.Task):
         self.visionSystem.binDetectorOff()
         self.motionManager.stopCurrentMotion()
 
-class RandomBin(task.Task):
-
-    MOVE_ON = core.declareEventType('MOVE_ON')
-
-    @staticmethod
-    def _transitions():
-        return { bin.COMPLETE : task.Next,
-                 task.TIMEOUT : task.Next,
-                 RandomBin.MOVE_ON : task.Next,
-                 'GO' : state.Branch(bin.Start) }
-
-    def enter(self, defaultTimeout = 60):
-        timeout = self.ai.data['config'].get('RandomBin', {}).get(
-                    'taskTimeout', defaultTimeout)
-        task.Task.enter(self, defaultTimeout = timeout)
-
-        if self.ai.data.get('binComplete', False):
-            self.publish(RandomBin.MOVE_ON, core.Event())
-        else:
-            self.stateMachine.start(state.Branch(randombin.Start))
-    
-    def exit(self):
-        task.Task.exit(self)
-        if not self.ai.data.get('binComplete', False):
-            self.stateMachine.stopBranch(randombin.Start)
-        self.visionSystem.binDetectorOff()
-        self.motionManager.stopCurrentMotion()
         
 class Pinger(task.Task):
+    """
+    Move until we are over the pinger
+    """
+    @staticmethod
+    def _transitions():
+        return {  sonar.COMPLETE : task.Next,
+                 'GO' : state.Branch(sonar.Start) }
+    
+    def enter(self):
+        task.Task.enter(self)
+        # Branch off state machine for finding the sonar
+        self.stateMachine.start(state.Branch(sonar.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(sonar.Start)
+        
+class Pinger2(task.Task):
     """
     Move until we are over the pinger
     """
@@ -883,6 +1070,40 @@ class SafeSonar(task.Task):
         task.Task.exit(self)
         self.stateMachine.stopBranch(sonarSafe.Settling)
 
+class Vase(task.Task):
+    """
+    Dives to the depth of the Vase, grabs it and surfaces to a predefined
+    depth
+    """
+
+    @staticmethod
+    def _transitions():
+        return { vase.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+    
+    @staticmethod
+    def getattr():
+        return set(['vaseOrientation']).union(task.Task.getattr())
+
+    def enter(self, defaultTimeout = 500):
+        timeout = self.ai.data['config'].get('Vase', {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+
+        self.ai.data['vaseOrientation'] = \
+            self._config.get('vaseOrientation', 0)
+        
+        if self.ai.data['vaseOrientation'] == 0:
+            # Save current heading
+            self.ai.data['vaseOrientation'] = \
+                self.stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+        
+        self.stateMachine.start(state.Branch(vase.Start))
+    
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(vase.Start)
+
 class Octagon(task.Task):
     """
     Surface in the octagon with or without the treasure, but with the sonar on
@@ -891,42 +1112,90 @@ class Octagon(task.Task):
 
     @staticmethod
     def _transitions():
-        return { motion.basic.MotionManager.FINISHED : Octagon,
-                 Octagon.SURFACED : task.Next }
+        return { Octagon.SURFACED : task.Next }
 
     @staticmethod
     def getattr():
         return set(['depth', 'diveSpeed', 'delay', 'release']).union(
             task.Task.getattr())
 
-    def FINISHED(self, event):
-        """
-        Waits for the vehicle to balance out on the top of the water
-        before releasing the grabber.
-        """
-        # Safe the thrusters (that way we float to the absolute top)
-        #self.vehicle.safeThrusters()
-        self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
-        self._timer.start()
-
     def SURFACED_(self, event):
         """
         Releases the grabber.
         """
         if self._release:
+            print 'releasing'
             self.vehicle.releaseGrabber()
+        
 
     def enter(self):
         task.Task.enter(self)
 
-        self._delay = self._config.get('delay', 5)
+        self._delay = self._config.get('delay', 25)
+        self._release = self._config.get('release', True)
+
+
+        self._timer = self.timerManager.newTimer(Octagon.SURFACED, self._delay)
+        self._timer.start()
+
+        # Start our dive
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self._config.get('depth', 0),
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('diveSpeed', 0.3))
+
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
+
+        self.motionManager.setMotion(diveMotion)
+
+    def exit(self):
+        task.Task.exit(self)
+        self.motionManager.stopCurrentMotion()
+
+        if self._timer is not None:
+            self._timer.stop()
+
+
+class SimpleDive(task.Task):
+    """
+    Dive to a specified depth and drops the object
+    """
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next }
+
+    @staticmethod
+    def getattr():
+        return set(['depth', 'diveSpeed', 'release']).union(
+            task.Task.getattr())
+
+    def FINISHED(self, event):
+        """
+        Releases the grabber.
+        """
+        if self._release:
+            print 'releasing'
+            self.vehicle.releaseGrabber()
+        
+
+    def enter(self):
+        task.Task.enter(self)
+
+        self._depth = self._config.get('depth', 6)
         self._release = self._config.get('release', True)
 
         # Start our dive
-        diveMotion = motion.basic.RateChangeDepth(
-            desiredDepth = self._config.get('depth', 0),
-            speed = self._config.get('diveSpeed', 0.3))
-        
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self._depth,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._config.get('diveSpeed', 0.3))
+
+        diveMotion = motion.basic.ChangeDepth(
+            trajectory = diveTrajectory)
+
         self.motionManager.setMotion(diveMotion)
 
     def exit(self):
@@ -980,6 +1249,52 @@ class Travel2(Travel):
     pass
 
 class Travel3(Travel):
+    pass
+
+class TravelPoint(task.Task):
+    @staticmethod
+    def _transitions():
+        return { motion.basic.MotionManager.FINISHED : task.Next}
+
+    def enter(self):
+        self._className = type(self).__name__
+
+        taskTimeout = self.ai.data['config'].get(self._className, {}).get(
+            'taskTimeout', 30)
+        Xpos = self.ai.data['config'].get(self._className, {}).get(
+            'X', 0)
+        Ypos = self.ai.data['config'].get(self._className, {}).get(
+            'Y', 0)
+        yaw = self.ai.data['config'].get(self._className, {}).get(
+            'orientation', 0)
+        speed = self.ai.data['config'].get(self._className, {}).get(
+            'speed', 0.2)
+
+        currentOrientation = self.stateEstimator.getEstimatedOrientation()
+        yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, yaw),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(Ypos,Xpos),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = speed)
+
+        yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+        translateMotion = ram.motion.basic.Translate(translateTrajectory,
+                                                     frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(yawMotion, translateMotion)
+
+class TravelPoint1(TravelPoint):
+    pass
+
+class TravelPoint2(TravelPoint):
+    pass
+
+class TravelPoint3(TravelPoint):
     pass
 
 class TimedTravel(task.Task):
@@ -1039,3 +1354,49 @@ class TimedTravel(task.Task):
     def exit(self):
         task.Task.exit(self)
         self.motionManager.stopCurrentMotion()
+
+class Uprights(task.Task):
+    """
+    Finds the uprights and swims through them.
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { uprights.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(uprights.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(uprights.Start)
+
+class Grapes(task.Task):
+    """
+    Pushes the grapes off of the stands using the Derpy thruster.
+    """
+    
+    @staticmethod
+    def _transitions():
+        return { grapes.COMPLETE : task.Next,
+                 task.TIMEOUT : task.Next }
+
+    def enter(self, defaultTimeout = 60):
+        self._className = type(self).__name__
+        timeout = self.ai.data['config'].get(self._className, {}).get(
+                    'taskTimeout', defaultTimeout)
+        task.Task.enter(self, defaultTimeout = timeout)
+        
+        # Branch off state machine for finding the pipe
+        self.stateMachine.start(state.Branch(grapes.Start))
+        
+    def exit(self):
+        task.Task.exit(self)
+        self.stateMachine.stopBranch(grapes.Start)

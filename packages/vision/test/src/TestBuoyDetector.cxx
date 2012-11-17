@@ -142,8 +142,6 @@ TEST_FIXTURE(BuoyDetectorFixture, CenterRedBuoy)
     CHECK(found);
     CHECK_CLOSE(0.0, event->x, 0.02);
     CHECK_CLOSE(0.0, event->y, 0.02);
-    // Radius of 25
-    CHECK_CLOSE(2.963753, event->range, 0.3);
     CHECK_EQUAL(vision::Color::RED, event->color);
 }
 

@@ -15,10 +15,6 @@ import ext.vehicle
 class Vehicle(ext.vehicle.IVehicle):
     def __init__(self, config, deps):
         ext.vehicle.IVehicle.__init__(self, config["name"])
-        self.depth = 5
-
-    def getDepth(self):
-        return self.depth
 
 core.SubsystemMaker.registerSubsystem('MockVehicle', Vehicle)
 
@@ -38,7 +34,7 @@ class TestIVehicle(unittest.TestCase):
             veh = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
             # Make sure the type was properly converted
-            self.assert_(hasattr(veh,'getDepth'))
+            self.assert_(hasattr(veh,'applyForcesAndTorques'))
             self.assert_(hasattr(veh,'safeThrusters'))
             self.assertEquals(None, veh.safeThrusters())
             
@@ -51,8 +47,9 @@ class TestIVehicle(unittest.TestCase):
         cfg = core.ConfigNode.fromString(str(cfg))
         veh = core.SubsystemMaker.newObject(cfg, core.SubsystemList())
 
-        self.assertEquals(5, veh.depth)
-        self.assertEquals(5, veh.getDepth())
+        # Not valid anymore
+        #self.assertEquals(5, veh.depth)
+        #self.assertEquals(5, veh.getDepth())
         self.assert_(isinstance(veh, ext.vehicle.IVehicle))
 
 if __name__ == '__main__':

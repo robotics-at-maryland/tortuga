@@ -226,6 +226,18 @@ Real Matrix2::Determinant () const
     return m[0][0]*m[1][1] - m[0][1]*m[1][0];
 }
 //-----------------------------------------------------------------------
+Matrix2 Matrix2::nRb(Radian angle)
+{
+    double r_cos = Math::Cos(angle.valueRadians());
+    double r_sin = Math::Sin(angle.valueRadians());
+    return Matrix2(r_cos, r_sin, -r_sin, r_cos);
+}
+//-----------------------------------------------------------------------
+Matrix2 Matrix2::bRn(Radian angle)
+{
+    return nRb(-angle);
+}
+//-----------------------------------------------------------------------
 /*
   void Matrix3::Bidiagonalize (Matrix3& kA, Matrix3& kL,
   Matrix3& kR)
@@ -1035,6 +1047,18 @@ Real Matrix2::Determinant () const
   }
   }*/
 //-----------------------------------------------------------------------
+
+
+Matrix2 Matrix2::fromOuterProduct(Vector2 lhs, Vector2 rhs)
+{
+    Matrix2 m;
+    m[0][0] = lhs[0] * rhs[0];
+    m[0][1] = lhs[0] * rhs[1];
+    m[1][0] = lhs[1] * rhs[0];
+    m[1][1] = lhs[1] * rhs[1];
+
+    return m;
+}
 
 } // namespace math
 } // namespace ram

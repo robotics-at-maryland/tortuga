@@ -7,6 +7,12 @@
  * File:  packages/vision/src/device/SensorBoard.cpp
  */
 //#include <iostream>
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
 // Library Includes
 #include <log4cpp/Category.hh>
 
@@ -26,6 +32,10 @@ RAM_CORE_EVENT_TYPE(ram::vehicle::device::SensorBoard, SONAR_UPDATE);
 // Current vehicle 
 int ram::vehicle::device::SensorBoard::NUMBER_OF_MARKERS = 2;
 int ram::vehicle::device::SensorBoard::NUMBER_OF_TORPEDOS = 2;
+
+//Make sure the size of these arrays matches the number of markers/torpedos.
+bool markersDropped[2] = {0};
+bool torpedosFired[2] = {0};
 
 static log4cpp::Category& s_thrusterLog
 (log4cpp::Category::getInstance("Thruster"));
@@ -61,23 +71,6 @@ SensorBoard::SensorBoard(int deviceFD,
     m_location = math::Vector3(config["depthSensorLocation"][0].asDouble(0), 
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
-
-    m_windowSize = config["windowSize"].asDouble(81);
-    m_degree = config["degree"].asDouble(2);
-
-    m_depthFilter = SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
-    m_filterInitialized = false;
-
-    /* Publish the Depth Sensor calibration values for the estimator */
-    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-    depthSensorInit->name = getName();
-    depthSensorInit->location = m_location;
-    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
-    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
-
-    publish(IDepthSensor::INIT, depthSensorInit);
 
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
@@ -116,21 +109,6 @@ SensorBoard::SensorBoard(core::ConfigNode config,
                                config["depthSensorLocation"][1].asDouble(0),
                                config["depthSensorLocation"][2].asDouble(0));
 
-    m_windowSize = config["windowSize"].asDouble(81);
-    m_degree = config["degree"].asDouble(2);
-
-    m_depthFilter = SGolaySmoothingFilterPtr(
-        new math::SGolaySmoothingFilter(m_windowSize, m_degree));
-    m_filterInitialized = false;
-
-    /* Publish the Depth Sensor calibration values for the estimator */
-    DepthSensorInitEventPtr depthSensorInit = DepthSensorInitEventPtr(
-        new DepthSensorInitEvent());
-    depthSensorInit->name = config["name"].asString();
-    depthSensorInit->location = m_location;
-    depthSensorInit->depthCalibSlope = m_depthCalibSlope;
-    depthSensorInit->depthCalibIntercept = m_depthCalibIntercept;
-
     m_state.thrusterValues[0] = 0;
     m_state.thrusterValues[1] = 0;
     m_state.thrusterValues[2] = 0;
@@ -159,7 +137,7 @@ SensorBoard::~SensorBoard()
     boost::mutex::scoped_lock lock(m_deviceMutex);
     if (m_deviceFD >= 0)
     {
-        setServoPower(SERVO_POWER_OFF);
+        // setServoPower(SERVO_POWER_OFF);
         close(m_deviceFD);
         m_deviceFD = -1;
     }
@@ -193,18 +171,7 @@ void SensorBoard::update(double timestep)
         // Now read depth and set its state
         int ret = readDepth();
         depth = (((double)ret) - m_depthCalibIntercept) / m_depthCalibSlope;
-
-        if(m_filterInitialized)
-            m_depthFilter->addValue(depth);
-        else
-        {
-            // fill the filter with the first depth reading
-            for(int i = 0; i < m_depthFilter->getWindowSize(); i++)
-                m_depthFilter->addValue(depth);
-            m_filterInitialized = true;
-        }
-
-        state.depth = m_depthFilter->getValue();
+        state.depth = depth;
     } // end deviceMutex lock
 
     // Publish depth event
@@ -215,6 +182,7 @@ void SensorBoard::update(double timestep)
         new vehicle::RawDepthSensorDataEvent());
     rawEvent->name = getName();
     rawEvent->rawDepth = depth;
+    rawEvent->sensorLocation = m_location;
     rawEvent->timestep = timestep;
     publish(IDepthSensor::RAW_UPDATE, rawEvent);
 
@@ -285,12 +253,6 @@ void SensorBoard::update(double timestep)
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_state = state;
     }
-}
-
-double SensorBoard::getDepth()
-{
-    core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-    return m_state.depth;
 }
 
 math::Vector3 SensorBoard::getLocation()
@@ -370,7 +332,7 @@ bool SensorBoard::isPowerSourceEnabled(int address)
         BATT3_ENABLED,
         BATT4_ENABLED,
         BATT5_ENABLED,
-	BATT6_ENABLED,
+        BATT6_ENABLED,
     };
 
     assert((0 <= address) && (address < 6) && "Address out of range");
@@ -387,7 +349,7 @@ bool SensorBoard::isPowerSourceInUse(int address)
         BATT3_INUSE,
         BATT4_INUSE,
         BATT5_INUSE,
-	BATT6_INUSE,
+        BATT6_INUSE,
     };
 
     assert((0 <= address) && (address < 6) && "Address out of range");
@@ -404,7 +366,7 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_ON,
         CMD_BATT4_ON,
         CMD_BATT5_ON,
-	CMD_BATT6_ON,
+        CMD_BATT6_ON,
     };
     
     static int addressToOff[] = {
@@ -413,7 +375,7 @@ void SensorBoard::setPowerSouceEnabled(int address, bool state)
         CMD_BATT3_OFF,
         CMD_BATT4_OFF,
         CMD_BATT5_OFF,
-	CMD_BATT6_OFF,
+        CMD_BATT6_OFF,
     };
 
     assert((0 <= address) && (address < 6) && "Power source id out of range");
@@ -449,18 +411,31 @@ double SensorBoard::getMainBusVoltage()
 
 int SensorBoard::dropMarker()
 {
-    static int markerNum = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    int markerDropped = -1;
-    if (markerNum < NUMBER_OF_MARKERS)
+    int markerNum;
+    for (markerNum = 0; markerNum < NUMBER_OF_MARKERS; markerNum++)
     {
-        dropMarker(markerNum);
-        markerDropped = markerNum;
-        markerNum++;
+        if(markersDropped[markerNum] == false){
+            dropMarker(markerNum + 1);
+            markersDropped[markerNum] = true;
+            return (markerNum + 1);
+        }
     }
 
-    return markerDropped;
+    return -1;
+}
+
+int SensorBoard::dropMarkerIndex(int index)
+{
+    if (index <= NUMBER_OF_MARKERS)
+    {
+        dropMarker(index);
+        markersDropped[index - 1] = true;
+        return index;
+    }
+
+    return -1;
 }
 
 int SensorBoard::fireTorpedo()
@@ -468,71 +443,68 @@ int SensorBoard::fireTorpedo()
 #ifdef NO_SERVOS
     return -1;
 #else // NO_SERVOS
-    static int torpedoNum = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
-    
-    int torpedoFired = -1;
-    if (torpedoNum < NUMBER_OF_TORPEDOS)
+
+    int torpedoNum = 0;
+    for (torpedoNum = 0; torpedoNum < NUMBER_OF_TORPEDOS; torpedoNum++)
     {
-        // Yes this code looks weird, but MotorBoard r3 has some bugs that we
-        // need to code around
-        if (torpedoNum == 0)
-        {
-            // Hacky because the command doesn't always work
-            for (int i=0; i < 10; i++)
-            {
-                setServoPosition(SERVO_1, m_servo1FirePosition);
-                setServoEnable(SERVO_ENABLE_1);
-            }
+        if(torpedosFired[torpedoNum] == false){
+            handleReturn(::fireTorpedo(m_deviceFD, torpedoNum));
+            torpedosFired[torpedoNum] = true;
+            return torpedoNum;
         }
-        else if (torpedoNum == 1)
-        {
-            // Hacky because the command doesn't always work
-            for (int i=0; i < 10; i++)
-            {
-                setServoPosition(SERVO_2, m_servo2FirePosition);
-                setServoEnable(SERVO_ENABLE_2);
-            }
-        }
-        
-        torpedoFired = torpedoNum;
-        torpedoNum++;
     }
 
-    return torpedoFired;
+    return -1;
 #endif // NO_SERVOS
 }
 
-int SensorBoard::releaseGrabber()
+int SensorBoard::fireTorpedo(int index)
 {
-#ifdef NO_SERVOS
-    return -1;
-#else // NO_SERVOS
-    static int released = 0;
     boost::mutex::scoped_lock lock(m_deviceMutex);
     
-    if (!released)
+    if (index <= NUMBER_OF_TORPEDOS)
     {
-        // Hacky because the command doesn't always work
-        for (int i=0; i < 10; i++)
-        {
-            setServoPosition(SERVO_3, m_servo3FirePosition);
-            setServoPosition(SERVO_4, m_servo4FirePosition);
-
-            setServoEnable(SERVO_ENABLE_3_4);
-        }
-
-        released = -1;
-        return 0;
-    } else {
-        return -1;
+        handleReturn(::fireTorpedo(m_deviceFD, index));
+        torpedosFired[index] = true;
+        return index;
     }
-#endif // NO_SERVOS
+    return -1;
+}
+int SensorBoard::extendGrabber()
+{
+    // Closes Grabber
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    handleReturn(::extendGrabber(m_deviceFD));
+    return 1;
+
+}
+int SensorBoard::retractGrabber()
+{
+    // Opens Grabber
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    handleReturn(::retractGrabber(m_deviceFD));
+    return 1;
 }
     
 void SensorBoard::setSpeeds(int s1, int s2, int s3, int s4, int s5, int s6)
 {
     handleReturn(::setSpeeds(m_deviceFD, s1, s2, s3, s4, s5, s6));
+}
+
+void SensorBoard::setExtraThrusterSpeed(int speed)
+{
+    boost::mutex::scoped_lock lock(m_deviceMutex);
+    if(speed){
+        // NOTE: I don't like this name, but there's no time for me
+        // to bother changing it
+        handleReturn(::setDerpyPower(m_deviceFD, 1)); //turn on
+        handleReturn(::setDerpySpeed(m_deviceFD, speed)); //set speed
+    }
+    else{
+        handleReturn(::setDerpyPower(m_deviceFD, 0)); //turn off
+        handleReturn(::setDerpySpeed(m_deviceFD, 0)); //set speed to 0
+    }
 }
     
 int SensorBoard::partialRead(struct boardInfo* telemetry)
@@ -567,11 +539,14 @@ void SensorBoard::setBatteryState(int state)
 
 void SensorBoard::dropMarker(int markerNum)
 {
-    handleReturn(::dropMarker(m_deviceFD, markerNum));
+    std::cout << "Dropping Marker " << markerNum << std::endl;
+    int ret = ::dropMarker(m_deviceFD, markerNum);
+    std::cout << "Marker Return: " << ret << std::endl;
+    //handleReturn(ret);
 }
 
 void SensorBoard::setServoPosition(unsigned char servoNumber,
-                                  unsigned short position)
+                                   unsigned short position)
 {
     handleReturn(::setServoPosition(m_deviceFD, servoNumber, position));    
 }  
@@ -615,13 +590,38 @@ void SensorBoard::establishConnection()
     syncBoard();
 
     // Turn on the servos
-    setServoPower(SERVO_POWER_ON);
+    // setServoPower(SERVO_POWER_ON);
 }
 
 bool SensorBoard::handleReturn(int ret)
 {
     if (ret < 0)
     {
+        std::cout << "some kind of error.  reestablishing connection." << std::endl;
+
+//         int j, nptrs;
+// #define SIZE 100
+//         void *buffer[100];
+//         char **strings;
+
+//         nptrs = backtrace(buffer, SIZE);
+//         printf("backtrace() returned %d addresses\n", nptrs);
+
+//         /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+//            would produce similar output to the following: */
+
+//         strings = backtrace_symbols(buffer, nptrs);
+//         if (strings == NULL) {
+//             perror("backtrace_symbols");
+//             exit(EXIT_FAILURE);
+//         }
+
+//         for (j = 0; j < nptrs; j++)
+//             printf("%s\n", strings[j]);
+
+//         free(strings);
+// #undef SIZE
+
         close(m_deviceFD);
         m_deviceFD = -1;
         establishConnection();

@@ -86,21 +86,26 @@ class AI(core.Subsystem):
         options = set(['gateDepth', 'lightDepth', 'pipeDepth', 'bwireDepth',
                        'targetDepth', 'binDepth', 'targetSymbols',
                        'sonarDepth', 'safeDepth', 'safeOffset', 'hedgeDepth',
-                       'buoyDepth', 'targetBuoys', 'windowDepth',
-                       'targetWindows', 'windowOffset'])
+                       'buoyDepth', 'buoyX', 'buoyY', 'targetBuoys', 
+                       'windowDepth', 'windowX', 'windowY', 'heartSize',
+                       'windowOrientation', 'targetWindows', 'windowOffset'])
         pipeOptions = set(['biasDirection', 'threshold', 'taskTimeout'])
         pipeObjective = set(['biasDirection', 'threshold', 'rotation',
                              'duration', 'legTime', 'sweepAngle', 'sweepSpeed',
                              'absolute', 'taskTimeout', 'motionTimeout',
                              'motions'])
         taskOptions = set(['taskTimeout', 'forwardDuration', 'forwardSpeed'])
-        buoyOptions = taskOptions.union(set(['lostTimeout', 'searchTimeout']))
+        buoyOptions = taskOptions.union(set(['lostTimeout', 'searchTimeout', 
+                                             'orientation', 'buoyOrder']))
         moveOptions = set(['depth', 'heading', 'speed', 'duration',
                            'turnSpeed', 'depthSpeed'])
         binOptions = set(['heading', 'speed', 'absolute', 'forwardDuration',
                           'forwardSpeed', 'adjustAngle', 'binDirection',
-                          'duration', 'travelSpeed', 'taskTimeout'])
-        travelOptions = set(['taskTimeout', 'motions'])
+                          'duration', 'travelSpeed', 'taskTimeout', 'orientation'])
+        travelOptions = set(['taskTimeout', 'motions', 'X', 'Y', 'orientation',
+                             'speed'])
+        cupidOptions = set(['taskTimeout', 'windowX', 'windowY', 'windowDepth',
+                             'windowOrientation'])
         gateOptions = set(['time', 'speed'])
         for item in cfg.iterkeys():
             if item == 'Pipe' or item == 'Pipe1' or item == 'Pipe2' or \
@@ -150,7 +155,9 @@ class AI(core.Subsystem):
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             elif item == 'Travel' or item == 'Travel1' \
-                    or item == 'Travel2' or item == 'Travel3':
+                    or item == 'Travel2' or item == 'Travel3' or \
+                    item == 'TravelPoint' or item == 'TravelPoint1' or \
+                    item == 'TravelPoint2'or item == 'TravelPoint3':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in travelOptions:
                         raise Exception("'%s' is not a valid config "
@@ -158,6 +165,23 @@ class AI(core.Subsystem):
             elif item == 'SafeSonar':
                 for innerItem in cfg[item].iterkeys():
                     if innerItem not in set(['taskTimeout']):
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Vase':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in set(['taskTimeout']):
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'LoversLane' or item == 'LoversLane1' or \
+                    item == 'LoversLane2' or item == 'LoversLane3':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in set(['taskTimeout', 'depth', 
+                                             'orientation']):
+                        raise Exception("'%s' is not a valid config "
+                                        "option for %s." % (innerItem, item))
+            elif item == 'Cupid':
+                for innerItem in cfg[item].iterkeys():
+                    if innerItem not in cupidOptions:
                         raise Exception("'%s' is not a valid config "
                                         "option for %s." % (innerItem, item))
             else:

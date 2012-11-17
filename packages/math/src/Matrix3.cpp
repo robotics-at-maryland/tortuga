@@ -45,6 +45,21 @@ namespace math {
     const Real Matrix3::ms_fSvdEpsilon = 1e-04;
     const unsigned int Matrix3::ms_iSvdMaxIterations = 32;
 
+    //makes a matrix via the outer product
+    Matrix3 Matrix3::fromOuterProduct(Vector3 a, Vector3 b)
+    {
+        Matrix3 m;
+        m[0][0]=a[0]*b[0];
+        m[0][1]=a[0]*b[1];
+        m[0][2]=a[0]*b[2];
+        m[1][0]=a[1]*b[0];
+        m[1][1]=a[1]*b[1];
+        m[1][2]=a[1]*b[2];
+        m[2][0]=a[2]*b[0];
+        m[2][1]=a[2]*b[1];
+        m[2][2]=a[2]*b[2];
+        return m;
+    }
     //-----------------------------------------------------------------------
     Vector3 Matrix3::GetColumn (size_t iCol) const
     {
@@ -607,6 +622,7 @@ namespace math {
             }
         }
     }
+
     //-----------------------------------------------------------------------
     void Matrix3::SingularValueComposition (const Matrix3& kL,
         const Vector3& kS, const Matrix3& kR)

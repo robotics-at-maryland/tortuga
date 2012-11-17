@@ -24,7 +24,7 @@ class TestSearching(support.AITestCase):
     def setUp(self):
         support.AITestCase.setUp(self)
         self.machine.start(ram.ai.duct.Searching)
-    
+
     def tearDown(self):
         support.AITestCase.tearDown(self)
     
@@ -84,7 +84,7 @@ class TestSeekingToRange(support.AITestCase):
         self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertLessThan(self.controller.yawChange, 0)
     
@@ -137,7 +137,7 @@ class AlignmentTest(object):
         self.assertEqual(False, self.ai.data['lastDuctEvent'].visible)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertLessThan(self.controller.sidewaysSpeed, 0)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -224,3 +224,6 @@ class Through(support.AITestCase):
         
         # Make sure hit the end state
         self.assert_(self.machine.complete)
+
+if __name__ == '__main__':
+    unittest.main()

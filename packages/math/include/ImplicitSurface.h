@@ -12,6 +12,7 @@
 
 // STD Includes
 #include <vector>
+#include <cmath>
 
 // Library Includes
 #include <boost/foreach.hpp>
@@ -33,26 +34,38 @@ class ImplicitSurface
 {
 public:
     ImplicitSurface(std::vector<IPrimitive3DPtr> primitives,
-                    double blendingFactor) :
+                    float blendingFactor) :
         m_primitives(primitives),
         m_blendingFactor(blendingFactor) {}
 
-    virtual double implicitFunctionValue(Vector3 p)
+    virtual inline float implicitFunctionValue(Vector3 p)
     {
-        double invSum = 0;
-        // we need to blend all of the primitives
-        BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+        float invSum = 0;
+        if(fabs(m_blendingFactor - 1.0)  < 0.0001)
         {
-            invSum += 1 / pow(it->implicitFunctionValue(p),
-                              m_blendingFactor);
+            // we need to blend all of the primitives
+            BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+            {
+                invSum += 1 / it->implicitFunctionValue(p);
+            }
+            return 1 / invSum;
         }
+        else
+        {
+            // we need to blend all of the primitives
+            BOOST_FOREACH(IPrimitive3DPtr it, m_primitives)
+            {
+                invSum += 1 / pow(it->implicitFunctionValue(p),
+                                  m_blendingFactor);
+            }
         
-        return pow(invSum, (-1.0 / m_blendingFactor));
+            return pow(invSum, (-1.0 / m_blendingFactor));
+        }
     }
 
 private:
     std::vector<IPrimitive3DPtr> m_primitives;
-    double m_blendingFactor;
+    float m_blendingFactor;
 };
 
 } // namespace math

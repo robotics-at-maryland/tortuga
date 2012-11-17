@@ -27,4 +27,6 @@
 #define CMD_FIRE_TORPEDO 14
 #define CMD_DROP_MARKER  15
 
+#define CMD_MAINTAIN_DEPTH 16
+
 #endif // COMMANDS_H

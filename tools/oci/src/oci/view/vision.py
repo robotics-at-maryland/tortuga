@@ -49,9 +49,13 @@ class MasterVisionPanel(BasePanel):
             #barbedWirePanel = BarbedWirePanel(self, self._childChangedSize, eventHub, vision)
             #self._sizer.Add(barbedWirePanel)
 
-        hedgePanel = HedgePanel(self, self._childChangedSize, eventHub,
+        lanePanel = LanePanel(self, self._childChangedSize, eventHub,
                                     vision)
-        self._sizer.Add(hedgePanel)
+        self._sizer.Add(lanePanel)
+
+        cupidPanel = CupidPanel(self, self._childChangedSize, eventHub,
+                                    vision)
+        self._sizer.Add(cupidPanel)
             
         self.SetSizerAndFit(self._sizer)
         
@@ -1010,6 +1014,145 @@ class HedgePanel(BaseVisionPanel):
         self._y.Value = ""
         self._squareNess.Value = ""
         self._range.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+        self._detector = False
+        self._toggleSize(False)
+
+class LanePanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
+        self._x = None
+        self._y = None
+        self._detector = False
+        self._vision = vision
+
+        # Controls
+        self._createControls("Lovers Lane")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.LOVERSLANE_FOUND, 
+                             self._onLaneFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.LOVERSLANE_LOST, 
+                             self._onLaneLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              LOVERSLANE_DETECTOR_ON,
+                              self._laneDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              LOVERSLANE_DETECTOR_OFF,
+                              self._laneDetectorOff)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_x', label = 'X: ')
+        self._createDataControl(controlName = '_y', label = 'Y: ')
+                
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.loversLaneDetectorOff()
+        else:
+            if self._vision is not None:
+                self._vision.loversLaneDetectorOn()
+
+    def _onLaneFound(self, event):
+        if self._detector:
+            self._x.Value = "% 4.2f" % (event.centerX)
+            self._y.Value = "% 4.2f" % (event.centerY)
+        
+            self.enableControls()
+    
+    def _onLaneLost(self, event):
+        self.disableControls()
+
+    def _laneDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+        self._detector = True
+        self._toggleSize(True)
+
+    def _laneDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
+        self.disableControls()
+        self._bouyLED.SetState(3)
+        self._detector = False
+        self._toggleSize(False)
+
+class CupidPanel(BaseVisionPanel):
+    def __init__(self, parent, buttonHandler, eventHub, vision, *args, **kwargs):
+        BaseVisionPanel.__init__(self, parent, buttonHandler, *args, **kwargs)
+        self._xLarge = None
+        self._yLarge = None
+        self._xSmall = None
+        self._ySmall = None
+        self._color = None
+        self._detector = False
+        self._vision = vision
+
+        # Controls
+        self._createControls("Cupid")
+        
+        # Events
+        self._subscribeToType(eventHub, ext.vision.EventType.CUPID_LARGE_FOUND, 
+                             self._onLargeFound)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.CUPID_SMALL_FOUND, 
+                             self._onSmallFound)
+        
+        self._subscribeToType(eventHub, ext.vision.EventType.LOVERSLANE_LOST, 
+                             self._onLaneLost)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              CUPID_DETECTOR_ON,
+                              self._cupidDetectorOn)
+
+        self._subscribeToType(eventHub, ext.vision.EventType.
+                              CUPID_DETECTOR_OFF,
+                              self._cupidDetectorOff)
+        
+    def _createDataControls(self):
+        self._createDataControl(controlName = '_xSmall', 
+                                label = 'Small_X: ')
+        self._createDataControl(controlName = '_ySmall', 
+                                label = 'Small_Y: ')
+        self._createDataControl(controlName = '_xLarge', 
+                                label = 'Small_X: ')
+        self._createDataControl(controlName = '_yLarge', 
+                                label = 'Small_Y: ')
+                
+    def _onButton(self, event):
+        if self._detector:
+            self._vision.cupidDetectorOff()
+        else:
+            if self._vision is not None:
+                self._vision.cupidDetectorOn()
+
+    def _onLargeFound(self, event):
+        if self._detector:
+            self._xLarge.Value = "% 4.2f" % (event.x)
+            self._yLarge.Value = "% 4.2f" % (event.y)
+        
+            self.enableControls()
+
+    def _onSmallFound(self, event):
+        if self._detector:
+            self._xSmall.Value = "% 4.2f" % (event.x)
+            self._ySmall.Value = "% 4.2f" % (event.y)
+        
+            self.enableControls()
+    
+    def _onLaneLost(self, event):
+        self.disableControls()
+
+    def _cupidDetectorOn(self, event):
+        self._bouyLED.SetState(0)
+        self._detector = True
+        self._toggleSize(True)
+
+    def _cupidDetectorOff(self, event):
+        self._x.Value = ""
+        self._y.Value = ""
         self.disableControls()
         self._bouyLED.SetState(3)
         self._detector = False

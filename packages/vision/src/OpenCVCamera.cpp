@@ -81,7 +81,8 @@ size_t OpenCVCamera::height()
 
 double OpenCVCamera::fps()
 {
-    return m_camCapture->get(CV_CAP_PROP_FPS);
+    double fps = m_camCapture->get(CV_CAP_PROP_FPS);
+    return fps;
 }
     
 double OpenCVCamera::duration()

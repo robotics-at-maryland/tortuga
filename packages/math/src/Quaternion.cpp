@@ -436,6 +436,45 @@ namespace math {
 
 	}
     //-----------------------------------------------------------------------
+    Quaternion Quaternion::fromDirectionCosineMatrix(Matrix3& nCb)
+    {
+
+        double a, b, c, d;
+        
+        d = 0.5 * sqrt(nCb[0][0] + nCb[1][1] + nCb[2][2] + 1);
+        
+        if (fabs(d) >= 0.125){
+            a = 0.25 * (nCb[2][1] - nCb[1][2]) / d;
+            b = 0.25 * (nCb[0][2] - nCb[2][0]) / d;
+            c = 0.25 * (nCb[1][0] - nCb[0][1]) / d;
+        }
+        else{
+            c = 0.5 * sqrt(-nCb[0][0] - nCb[1][1] + nCb[2][2] + 1);
+            if (fabs(c) >= 0.125){
+                a = 0.25 * (nCb[0][2] - nCb[2][0]) / c;
+                b = 0.25 * (nCb[1][2] + nCb[2][1]) / c;
+                d = 0.25 * (nCb[1][0] - nCb[0][1]) / c;
+            }
+            else{
+                b = 0.5 * sqrt(-nCb[0][0] + nCb[1][1] - nCb[2][2] + 1);
+                if (fabs(b) >= 0.125){
+                    a = 0.25 * (nCb[0][1] + nCb[1][0]) / b;
+                    c = 0.25 * (nCb[1][2] + nCb[2][1]) / b;
+                    d = 0.25 * (nCb[0][2] - nCb[2][0]) / b;
+                }
+                else{
+                    a = 0.5 * sqrt(nCb[0][0] - nCb[1][1] - nCb[2][2] + 1);
+                    b = 0.25 * (nCb[0][1] + nCb[1][0]) / a;
+                    c = 0.25 * (nCb[0][2] - nCb[2][0]) / a;
+                    d = 0.25 * (nCb[2][1] - nCb[1][2]) / a;
+                }
+            }
+        }
+        
+        return Quaternion(a, b, c, d);
+    }
+
+    //-----------------------------------------------------------------------
     Quaternion Quaternion::Slerp (Real fT, const Quaternion& rkP,
         const Quaternion& rkQ, bool shortestPath)
     {

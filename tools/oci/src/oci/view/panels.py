@@ -23,6 +23,7 @@ from oci.view.controls import ThrusterCurrentDisplay
 import oci.model.subsystem as subsystemMod
 
 import ext.math
+import ext.estimation
 import ext.vehicle
 import ext.vehicle.device
 import ext.control
@@ -67,12 +68,29 @@ class BasePanel(wx.Panel):
         
         self.SetSizerAndFit(topSizer)
 
+    def _createControls2(self, name, rowSize, colSize, startEnable = False):
+        # Create box around controls
+        box = wx.StaticBox(parent = self, label = name)
+        topSizer = wx.StaticBoxSizer(box)
+        
+        self.sizer = wx.FlexGridSizer(rowSize, colSize, 10, 10)
+        topSizer.Add(self.sizer, 1, wx.EXPAND)
+        
+        # Create controls
+        self._createDataControls()
+        
+        # Start off greyed out if desired
+        for control in self._generatedControls:
+            control.Enable(startEnable)
+            
+        self.SetSizerAndFit(topSizer)
+
     def _createDataControls(self):
         pass
 
     def _getTextSize(self):
         textWidth, textHeight = wx.ClientDC(self).GetTextExtent('+0.000')
-        return wx.Size(textWidth, wx.DefaultSize.height)         
+        return wx.Size(textWidth + 1, wx.DefaultSize.height)         
         
     def _createDataControl(self, controlName, label):
         textSize = self._getTextSize()
@@ -85,7 +103,8 @@ class BasePanel(wx.Panel):
         setattr(self, controlName, control)
         self._generatedControls.append(control)
         self.sizer.Add(control, proportion = 1 , flag = wx.ALIGN_CENTER)
-
+        
+   
 class ThrusterPanel(wx.Panel):
     implements(IPanelProvider)
     
@@ -177,7 +196,7 @@ class ThrusterPanel(wx.Panel):
 class DepthPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub, vehicle, controller, *args, **kwargs):
+    def __init__(self, parent, eventHub, estimator, controller, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -221,9 +240,10 @@ class DepthPanel(wx.Panel):
         self.SetSizerAndFit(layout)
         #self.SetSizeHints(0,0,100,-1)
         
-        if vehicle is not None:
+        if estimator is not None:
             conn = eventHub.subscribeToType(
-                ext.vehicle.IVehicle.DEPTH_UPDATE, self._depthUpdate)
+                ext.estimation.IStateEstimator.ESTIMATED_DEPTH_UPDATE,
+                self._depthUpdate)
             self._connections.append(conn)
         
         if controller is not None:
@@ -251,18 +271,18 @@ class DepthPanel(wx.Panel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
         
-        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
-                                                        subsystems)
+        estimator = core.Subsystem.getSubsystemOfType(
+            ext.estimation.IStateEstimator, subsystems)
         controller = core.Subsystem.getSubsystemOfType(
             ext.control.IController, subsystems)
         
-        if (vehicle is not None) or (controller is not None):
+        if (estimator is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Depth")
             paneInfo = paneInfo.Caption("Depth").Right()
         
         
-            panel = DepthPanel(parent, eventHub, vehicle, controller)
-            return [(paneInfo, panel, [vehicle])]
+            panel = DepthPanel(parent, eventHub, estimator, controller)
+            return [(paneInfo, panel, [estimator])]
         
         return []
     
@@ -817,7 +837,7 @@ class PayloadPanel(wx.Panel):
 class RotationPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub, vehicle, controller, *args, **kwargs):
+    def __init__(self, parent, eventHub, estimator, controller, *args,**kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         self._connections = []
         self._actualOrientation = ext.math.Quaternion.IDENTITY
@@ -852,7 +872,7 @@ class RotationPanel(wx.Panel):
         # Subscribe to events
         self.Bind(wx.EVT_CLOSE,self._onClose)
         conn = eventHub.subscribeToType(
-            ext.vehicle.IVehicle.ORIENTATION_UPDATE,
+            ext.estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE,
             self._onOrientationUpdate)
         
         conn = eventHub.subscribeToType(
@@ -885,25 +905,25 @@ class RotationPanel(wx.Panel):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
         
-        vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
-                                                        subsystems)
+        estimator = core.Subsystem.getSubsystemOfType(
+            ext.estimation.IStateEstimator, subsystems)
         
         controller = core.Subsystem.getSubsystemOfType(
             ext.control.IController, subsystems)
         
-        if (vehicle is not None) or (controller is not None):
+        if (estimator is not None) or (controller is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Orientation")
             paneInfo = paneInfo.Caption("Orientation").Bottom()
         
-            panel = RotationPanel(parent, eventHub, vehicle, controller)
-            return [(paneInfo, panel, [vehicle])]
+            panel = RotationPanel(parent, eventHub, estimator, controller)
+            return [(paneInfo, panel, [estimator])]
         
         return []
 
 class SonarPanel(wx.Panel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+    def __init__(self, parent, eventHub, vehicle, estimator, *args, **kwargs):
         """Create the Control Panel"""
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
@@ -985,7 +1005,7 @@ class SonarPanel(wx.Panel):
         self._connections.append(conn)
         
         conn = eventHub.subscribeToType(
-            ext.vehicle.IVehicle.ORIENTATION_UPDATE, 
+            ext.estimation.IStateEstimator.ESTIMATED_ORIENTATION_UPDATE, 
             self._onOrientationUpdate)
         self._connections.append(conn)
         
@@ -1050,11 +1070,14 @@ class SonarPanel(wx.Panel):
         vehicle = core.Subsystem.getSubsystemOfType(ext.vehicle.IVehicle,
                                                         subsystems)
 
-        if (vehicle is not None):
+        estimator = core.Subsystem.getSubsystemOfType(
+            ext.estimation.IStateEstimator, subsystems)
+
+        if (vehicle is not None) and (estimator is not None):
             paneInfo = wx.aui.AuiPaneInfo().Name("Sonar")
             paneInfo = paneInfo.Caption("Sonar").Right()
         
-            panel = SonarPanel(parent, eventHub, vehicle)
+            panel = SonarPanel(parent, eventHub, vehicle, estimator)
             return [(paneInfo, panel, [vehicle])]
         
         return []
@@ -1205,84 +1228,18 @@ class PowerSourcePanel(BarDisplayPanel):
             
         return []
 
-class ControlDebugPanel(BasePanel):
-    implements(IPanelProvider)
-    
-    def __init__(self, parent, eventHub):
-        BasePanel.__init__(self, parent)#, *args, **kwargs)
-        self._configured = False
-        self._count = 0
-    
-        # Controls
-        self._createControls("Controller")
-        
-        # Events
-        conn = eventHub.subscribeToType(ext.control.IController.PARAM_SETUP,
-                                        self._onParamSetup)
-        self._connections.append(conn)
-        
-        conn = eventHub.subscribeToType(ext.control.IController.PARAM_UPDATE,
-                                        self._onParamUpdate)
-        self._connections.append(conn)
-        
-        self.Bind(wx.EVT_CLOSE, self._onClose)
-    
-    def _onParamSetup(self, event):
-        """
-        Called when the controller configures its update
-        """
-        assert not self._configured
-        self._count = len(event.labels)
-        
-        # Iterate over each label this is ugly because of a current bug in the
-        # wrapping of C++ containers, typeof(event.labes) == vector<string>
-        for i in xrange(0, len(event.labels)):
-            labelName = event.labels[i]
-            self._createDataControl(controlName = '_' + str(i),
-                                    label = labelName + ': ')
-        
-        self._configured = True
-        
-        # Reset sizer
-        #self.SetSizerAndFit(self.GetSizer())
-
-    def _onParamUpdate(self, event):
-        assert len(event.values)  == self._count
-        
-        # Go through value and match it up to its control
-        for i in xrange(0, len(event.values)):
-            labelControl = getattr(self, '_' + str(i))
-            labelControl.Value = "% 4.2f" % event.values[i]
-
-    @staticmethod
-    def getPanels(subsystems, parent):
-        eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
-                                                     subsystems, nonNone = True)
-        
-        controller = core.Subsystem.getSubsystemOfType(
-            ext.control.IController, subsystems)
-        
-        if controller is not None:
-            paneInfo = wx.aui.AuiPaneInfo().Name("Controller")
-            paneInfo = paneInfo.Caption("Controller").Right()
-        
-            panel = ControlDebugPanel(parent, eventHub)
-            return [(paneInfo, panel, [controller])]
-        
-        return []
-
 
 class VelocityPosition(BasePanel):
     implements(IPanelProvider)
     
-    def __init__(self, parent, eventHub, vehicle, *args, **kwargs):
+    def __init__(self, parent, eventHub, estimator, *args, **kwargs):
         BasePanel.__init__(self, parent, *args, **kwargs)
     
-        self.vehicle = vehicle
+        self.estimator = estimator
 
         # Controls
-        self._createControls("Pos & Vel", startEnable = True)
-
+        self._createControls2("Pos & Vel", startEnable = True)
+     
         # Only update the velocity and position at the timer (so we can read it)
         #self._timer = wx.Timer()
         #self._timer.Bind(wx.EVT_TIMER, self._update)
@@ -1290,57 +1247,115 @@ class VelocityPosition(BasePanel):
         
         # Events
         conn = eventHub.subscribeToType(
-            ext.vehicle.IVehicle.VELOCITY_UPDATE,
-            self._onVelocityUpdate)
+            ext.estimation.IStateEstimator.ESTIMATED_VELOCITY_UPDATE,
+            self._onEstimatedVelocityUpdate)
         self._connections.append(conn)
         
         conn = eventHub.subscribeToType(
-            ext.vehicle.IVehicle.POSITION_UPDATE,
-            self._onPositionUpdate)
+            ext.estimation.IStateEstimator.ESTIMATED_POSITION_UPDATE,
+            self._onEstimatedPositionUpdate)
+        self._connections.append(conn)
+     
+        conn = eventHub.subscribeToType(ext.control.IController.DESIRED_POSITION_UPDATE, self._onDesiredPositionUpdate)
+        self._connections.append(conn)
+       
+        conn = eventHub.subscribeToType(ext.control.IController.DESIRED_VELOCITY_UPDATE, self._onDesiredVelocityUpdate)
         self._connections.append(conn)
         
         self.Bind(wx.EVT_CLOSE, self._onClose)
-    
-    def _createDataControls(self):
-        self._createDataControl(controlName = '_xPos', label = 'X Pos: ')
-        self._createDataControl(controlName = '_yPos', label = 'Y Pos: ')
-        self._createDataControl(controlName = '_xVel', label = 'X Vel: ')
-        self._createDataControl(controlName = '_yVel', label = 'Y Vel: ')
-    
-    def _onVelocityUpdate(self, event):
+        
+
+    def _createControls2(self, name, startEnable = False):
+        self._layout = wx.BoxSizer(wx.VERTICAL)
+
+        positionLabel = wx.StaticText(self, label = "Position")
+        velocityLabel = wx.StaticText(self, label = "Velocity")
+        xLabel = wx.StaticText(self, label = "x")
+        yLabel = wx.StaticText(self, label = "y")
+      
+        titleSizer = wx.BoxSizer(wx.HORIZONTAL)
+        titleSizer.Add(positionLabel, proportion = 1, flag = wx.EXPAND)
+        titleSizer.Add(xLabel, proportion = 1, flag = wx.EXPAND | wx.ALIGN_CENTER)
+        titleSizer.Add(yLabel, proportion = 1, flag = wx.EXPAND | wx.ALIGN_CENTER)
+      
+        self._layout.Add(titleSizer, proportion = 1, flag = wx.EXPAND)
+              
+        self._createDataControl2(controlName1 = '_xEPos', controlName2 = '_yEPos',
+                                 label = 'Estimated: ')
+        self._createDataControl2(controlName1 = '_xDPos', controlName2 = '_yDPos',
+                                 label = 'Desired:   ') 
+        self._layout.Add(wx.StaticLine(self), proportion = 1, flag = wx.EXPAND)
+        self._layout.Add(velocityLabel, proportion = 1, flag = wx.EXPAND)
+        self._createDataControl2(controlName1 = '_xEVel', controlName2 = '_yEVel',
+                                 label = 'Estimated: ')
+      
+        self._createDataControl2(controlName1 = '_xDVel', controlName2 = '_yDVel',
+                                 label = 'Desired:   ')
+                      
+        # Start off greyed out if desired
+        for control in self._generatedControls:
+            control.Enable(startEnable)
+
+        self.SetSizerAndFit(self._layout)
+        
+    def _createDataControl2(self, controlName1, controlName2,  label):
+        textSize = self._getTextSize()
+        textStyle = wx.TE_CENTER | wx.TE_READONLY | wx.EXPAND
+        boxSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        desiredLabel = wx.StaticText(self, label = label)
+        boxSizer.Add(desiredLabel, proportion = 1, flag = wx.EXPAND)
+
+        control1 = wx.TextCtrl(self, size = wx.Size(50, -1), style = textStyle)
+        setattr(self, controlName1, control1)
+        self._generatedControls.append(control1)
+        boxSizer.Add(control1, proportion = 1 , flag = wx.EXPAND)
+
+        control2 = wx.TextCtrl(self, size = wx.Size(50, -1), style = textStyle)
+        setattr(self, controlName2, control2)
+        self._generatedControls.append(control2)
+        boxSizer.Add(control2, proportion = 1 , flag = wx.EXPAND)
+        self._layout.Add(boxSizer, proportion = 1, flag = wx.EXPAND)
+        
+    def _onEstimatedVelocityUpdate(self, event):
         vel = event.vector2
-        self._xVel.Value = "% 4.2f" % vel.x
-        self._yVel.Value = "% 4.2f" % vel.y
+        self._xEVel.Value = "% 4.2f" % vel.x
+        self._yEVel.Value = "% 4.2f" % vel.y
 
-    def _onPositionUpdate(self, event):
+    def _onEstimatedPositionUpdate(self, event):
         pos = event.vector2
-        self._xPos.Value = "% 4.2f" % pos.x
-        self._yPos.Value = "% 4.2f" % pos.y
+        self._xEPos.Value = "% 4.2f" % pos.x
+        self._yEPos.Value = "% 4.2f" % pos.y
+        
+    def _onDesiredVelocityUpdate(self, event):
+        vel = event.vector2
+        self._xDVel.Value = "% 4.2f" % vel.x
+        self._yDVel.Value = "% 4.2f" % vel.y
+        
+    
+    def _onDesiredPositionUpdate(self, event):
+        pos = event.vector2
+        self._xDPos.Value = "% 4.2f" % pos.x
+        self._yDPos.Value = "% 4.2f" % pos.y
 
-    #def _update(self, event):
-    #    vel = self.vehicle.getVelocity()
-    #    pos = self.vehicle.getPosition()
-
-    #    self._xVel.Value = "% 4.2f" % vel.x
-    #    self._yVel.Value = "% 4.2f" % vel.y
-    #    self._xPos.Value = "% 4.2f" % pos.x
-    #    self._yPos.Value = "% 4.2f" % pos.y
-    #    self._timer.Start(100)
-
+    def _onClose(self, event):
+        for conn in self. _connections:
+            conn.disconnect() 
+       
     @staticmethod
     def getPanels(subsystems, parent):
         eventHub = core.Subsystem.getSubsystemOfType(core.QueuedEventHub,  
                                                      subsystems, nonNone = True)
         
-        vehicle = core.Subsystem.getSubsystemOfType(
-            ext.vehicle.IVehicle, subsystems)
+        estimator = core.Subsystem.getSubsystemOfType(
+            ext.estimation.IStateEstimator, subsystems)
         
-        if vehicle is not None:
+        if estimator is not None:
             paneInfo = wx.aui.AuiPaneInfo().Name("Pos & Vel")
             paneInfo = paneInfo.Caption("Pos & Vel").Right()
         
-            panel = VelocityPosition(parent, eventHub, vehicle)
-            return [(paneInfo, panel, [vehicle])]
+            panel = VelocityPosition(parent, eventHub, estimator)
+            return [(paneInfo, panel, [estimator])]
         
         return []
 
