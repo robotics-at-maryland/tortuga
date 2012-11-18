@@ -17,6 +17,8 @@
 #include "vehicle/test/include/MockVehicle.h"
 #include "vehicle/test/include/MockSensorBoard.h"
 
+#include "math/include/Vector3.h"
+
 static const std::string SB_CONFIG(
     "{'name' : 'TestVehicle',"
     "'depthCalibSlope' : 33.01,"
@@ -54,7 +56,7 @@ TEST_FIXTURE(Thruster, setForce)
     std::string config = TH_CONFIG_BASE +
         "'name' : 'StarboardThruster',"
         "'address' : 5,"
-        "'direction' : 1}";
+        "'direction' : [1, 0, 0]}";
 
     thruster = new ram::vehicle::device::SBThruster(
         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
@@ -65,28 +67,6 @@ TEST_FIXTURE(Thruster, setForce)
     thruster->setForce(2.5);
     int thrustValue = sensorBoard->thrusterValues[5];
     CHECK(thrustValue > 0);
-
-    // Double the voltage, and check to make sure the output is halved
-    //    sensorBoard->mainBusVoltage = 2.0;
-    //    thruster->setForce(2.5);
-    //    CHECK_CLOSE(thrustValue/2, sensorBoard->thrusterValues[5], 2);
-
-    delete thruster;
-    
-    // Now with reverse direction
-    config = TH_CONFIG_BASE +
-        "'name' : 'StarboardThruster',"
-        "'address' : 0,"
-        "'direction' : -1}";
-
-    thruster = new ram::vehicle::device::SBThruster(
-        ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-        ivehicle);
-    
-    CHECK_EQUAL(0, sensorBoard->thrusterValues[0]);
-    thruster->setForce(2.5);
-    CHECK(sensorBoard->thrusterValues[0] < 0);
-    delete thruster;
 }
     
 TEST_FIXTURE(Thruster, getForce)
@@ -156,50 +136,73 @@ TEST_FIXTURE(Thruster, setEnable)
     delete thruster;
 }
 
-// TEST_FIXTURE(Thruster, getOffset)
-// {
-//     std::string config = TH_CONFIG_BASE + "'name' : 'StarboardThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.1905, thruster->getOffset());
-//     delete thruster;
+TEST_FIXTURE(Thruster, getLocation)
+{
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'StarboardThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(-0.1019, 0.2015, -0.0242);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'PortThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(-0.1019, -0.1998, -0.0242);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
 
-//     config = TH_CONFIG_BASE + "'name' : 'PortThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.1905, thruster->getOffset());
-//     delete thruster;
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'ForeThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(0.1498, 0.0008, -0.0908);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
 
-//     config = TH_CONFIG_BASE + "'name' : 'ForeThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.3366, thruster->getOffset());
-//     delete thruster;
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'AftThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(-0.4083, 0.0008, -0.0908);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
 
-//     config = TH_CONFIG_BASE + "'name' : 'AftThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.3366, thruster->getOffset());
-//     delete thruster;
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'TopThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(-0.0921, 0.0658, -0.2216);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
 
-//     config = TH_CONFIG_BASE + "'name' : 'TopThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.193, thruster->getOffset());
-//     delete thruster;
-
-//     config = TH_CONFIG_BASE + "'name' : 'BottomThruster'}";
-//     thruster = new ram::vehicle::device::SBThruster(
-//         ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
-//         ivehicle);
-//     CHECK_EQUAL(0.193, thruster->getOffset());
-//     delete thruster;
-// }
+    {
+        std::string config = TH_CONFIG_BASE + "'name' : 'BottomThruster'}";
+        thruster = new ram::vehicle::device::SBThruster(
+            ram::core::ConfigNode::fromString(config), ram::core::EventHubPtr(),
+            ivehicle);
+        ram::math::Vector3 loc = thruster->getLocation();
+        ram::math::Vector3 exp(-0.0921, -0.0675, 0.1733);
+        CHECK_ARRAY_CLOSE(loc.ptr(), exp.ptr(), 0.0001, 3);
+        delete thruster;
+    }
+}
 
 TEST_FIXTURE(Thruster, getCurrent)
 {

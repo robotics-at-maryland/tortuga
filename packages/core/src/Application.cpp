@@ -7,10 +7,10 @@
  * File:  packages/core/src/Application.cpp
  */
 
-#ifdef RAM_WINDOWS
-#pragma warning( disable : 4510 ) // Not default constuctor generated (BGL)
-#pragma warning( disable : 4610 ) // Another caused by BGL
-#endif
+#ifdef RAM_WINDOWS 
+#pragma warning( disable : 4510 ) // Not default constuctor generated (BGL) 
+#pragma warning( disable : 4610 ) // Another caused by BGL 
+#endif 
  
 // STD Includes
 #include <cassert>

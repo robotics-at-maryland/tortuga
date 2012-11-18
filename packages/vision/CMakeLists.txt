@@ -7,6 +7,7 @@ set(LINK_LIBS
   ram_math
   ${OpenCV_LIBS}
   ${Boost_THREAD_LIBRARY}
+  ${Boost_SERIALIZATION_LIBRARY}
   ${Boost_REGEX_LIBRARY}
   ${DC1394_LIBRARIES}
   ${FANN_LIBRARIES}
@@ -80,6 +81,19 @@ if (RAM_WITH_VISION)
   add_executable(LCHLookupTable "test/src/LCHLookupTable.cpp")
   target_link_libraries(LCHLookupTable
     ram_vision
+    )
+
+  add_executable(GenColorFilterLookup "test/src/GenColorFilterLookup.cpp")
+  target_link_libraries(GenColorFilterLookup
+    ram_vision
+    ram_core
+    ${OpenCV_LIBS}
+    )
+
+  add_executable(TestColorFilterLookup "test/src/TestColorFilterLookup.cpp")
+  target_link_libraries(TestColorFilterLookup
+    ram_vision
+    ${OpenCV_LIBS}
     )
 
   set(vision_EXCLUDE_LIST "test/src/TestConvert.cxx")

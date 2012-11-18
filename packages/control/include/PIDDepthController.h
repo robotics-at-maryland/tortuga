@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders <jwonders@umd.edu>
- * File:  packages/control/include/PIDDepthController.cpp
+ * File:  packages/control/include/PIDDepthController.h
  */
 
 
@@ -22,21 +22,15 @@ public:
     PIDDepthController(ram::core::ConfigNode config);
     virtual ~PIDDepthController() {}
 
-    virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orientation,
-                                      controltest::DesiredStatePtr desiredState);
+    virtual math::Vector3 depthUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
 private:
-
-  double m_depthSumError;
-  double m_prevDepth;
-
-  double m_kp;
-  double m_kd;
-  double m_ki;
-
-  double dt_min;
-  double dt_max;
+    double m_iErr; // Integrated error
+    double m_kp, m_kd, m_ki; // PID gains
+    double m_dtMin, m_dtMax; // Timestep limits
 };
 
 } // namespace control

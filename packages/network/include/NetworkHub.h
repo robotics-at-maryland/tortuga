@@ -27,7 +27,7 @@ namespace network {
 class RAM_EXPORT NetworkHub : public core::EventHub
 {
 public:
-    /** Normal constructor */
+    /** Default constructor */
     NetworkHub(std::string name = "NetworkHub",
                std::string host = "localhost",
                uint16_t port = NetworkPublisher::PORT);

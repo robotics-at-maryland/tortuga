@@ -1,5 +1,5 @@
 GUI:
-    # In Hz
+    # In milliseconds
     updateRate: 30
     guiConfigFile: ramsim.yml
     redirect: False
@@ -36,7 +36,8 @@ Subsystems:
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
-                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem",
+                     "StateEstimator"]
         States:
             # Includes all the state specific NBRF settings
             INCLUDE: tools/simulator/data/config/ai/default_state.yml
@@ -44,11 +45,6 @@ Subsystems:
     # EventLogger:
     #     type: EventLogger
     #     depends_on: ["QueuedEventHub","EventHub"]
-
-    EventPlayer:
-        fileName: /home/gary/ram_code/logs/2011-02-22T19:18:46/event.log
-        type: EventPlayer
-        depends_on: ["QueuedEventHub","EventHub"]
 
     # Includes all common subsystems    
     INCLUDE: tools/simulator/data/config/base.yml

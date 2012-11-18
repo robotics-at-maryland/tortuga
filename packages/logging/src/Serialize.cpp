@@ -36,9 +36,6 @@ BOOST_CLASS_EXPORT(ram::vehicle::SonarEvent)
 BOOST_CLASS_EXPORT(ram::vehicle::RawIMUDataEvent)
 BOOST_CLASS_EXPORT(ram::vehicle::RawDVLDataEvent)
 BOOST_CLASS_EXPORT(ram::vehicle::RawDepthSensorDataEvent)
-BOOST_CLASS_EXPORT(ram::vehicle::IMUInitEvent)
-BOOST_CLASS_EXPORT(ram::vehicle::DVLInitEvent)
-BOOST_CLASS_EXPORT(ram::vehicle::DepthSensorInitEvent)
 #endif // RAM_WITH_VEHICLE
 
 #ifdef RAM_WITH_CONTROL

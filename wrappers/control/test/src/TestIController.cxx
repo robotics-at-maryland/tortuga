@@ -25,64 +25,58 @@ class MockController : public ram::control::IController
 public:
     MockController(std::string name) : IController(name) {}
 
-    virtual void setVelocity(ram::math::Vector2 velocity_) {
-        velocity = velocity_; }
+    virtual void changeDepth(double depth,
+                             double rate = 0,
+                             double accel = 0)
+    { 
+        m_depth = depth;
+        m_depthRate = rate;
+        m_depthAccel = accel;
+    }
 
-    virtual ram::math::Vector2 getVelocity() {
-        return ram::math::Vector2::ZERO; }
-    
-    virtual void setSpeed(double speed_) { speed = speed_; }
+    virtual void translate(ram::math::Vector2 position,
+                           ram::math::Vector2 velocity = ram::math::Vector2::ZERO,
+                           ram::math::Vector2 accel = ram::math::Vector2::ZERO)
+    {
+        m_position = position;
+        m_velocity = velocity;
+        m_accel = accel;
+    }
 
-    virtual void setSidewaysSpeed(double speed) { sidewaysSpeed = speed; }
-    
-    virtual void setDepth(double depth_) { depth = depth_; }
+    virtual void rotate(ram::math::Quaternion orientation,
+                        ram::math::Vector3 angularRate = ram::math::Vector3::ZERO,
+                        ram::math::Vector3 angularAccel = ram::math::Vector3::ZERO)
+    {
+        m_orientation = orientation;
+        m_angularRate = angularRate;
+        m_angularAccel = angularAccel;
+    }
 
-    virtual double getSpeed() { return speed; }
+    virtual void yawVehicle(double degrees, double rate) { yaw = degrees; }
+    virtual void pitchVehicle(double degrees, double rate) {  }
+    virtual void rollVehicle(double degrees, double rate) { }
 
-    virtual double getSidewaysSpeed() { return sidewaysSpeed; }
+    virtual double getDesiredDepth() {return m_depth;}
+    virtual double getDesiredDepthRate() {return m_depthRate;}
+    virtual double getDesiredDepthAccel() {return m_depthAccel;}
+
+    virtual ram::math::Vector2 getDesiredVelocity() {return m_velocity;}
+    virtual ram::math::Vector2 getDesiredPosition() {return m_position;}
+    virtual ram::math::Vector2 getDesiredAccel() {return m_accel;}
+
+    virtual ram::math::Quaternion getDesiredOrientation() {return m_orientation;}
+    virtual ram::math::Vector3 getDesiredAngularRate() {return m_angularRate;}
+    virtual ram::math::Vector3 getDesiredAngularAccel() {return m_angularAccel;}
+
+    virtual bool atPosition(){return m_atPosition;}
+    virtual bool atVelocity(){return m_atVelocity;}
+    virtual bool atOrientation() { return m_atOrientation; }
+    virtual bool atDepth() { return m_atDepth; }
 
     virtual void holdCurrentPosition() {}
-
-    virtual void setDesiredVelocity(ram::math::Vector2 velocity,
-                                    int frame){}
-    virtual void setDesiredPosition(ram::math::Vector2 position,
-                                    int frame){}
-    virtual void setDesiredPositionAndVelocity(ram::math::Vector2 position,
-                                               ram::math::Vector2 velocity){}
-
-    virtual ram::math::Vector2 getDesiredVelocity(int frame)
-    {return ram::math::Vector2::ZERO;}
-    virtual ram::math::Vector2 getDesiredPosition(int frame)
-    {return ram::math::Vector2::ZERO;}
-
-    virtual bool atPosition(){return 0;}
-    virtual bool atVelocity(){return 0;}
-
-    virtual double getDepth() { return depth; }
-    
-    virtual double getEstimatedDepth() { return 0; }
-    
-    virtual double getEstimatedDepthDot() { return 0; }
-
-    virtual void yawVehicle(double degrees) { yaw = degrees; }
-
-    virtual void pitchVehicle(double degrees) {  }
-
-    virtual void rollVehicle(double degrees) { }
-
-    virtual ram::math::Quaternion getDesiredOrientation()
-        { return ram::math::Quaternion(); }
-	
-	virtual void setDesiredOrientation(ram::math::Quaternion)
-		{ }
-    
-    virtual bool atOrientation() { return atorientation; }
-    
-    virtual bool atDepth() { return atdepth; }
-
     virtual void holdCurrentDepth() {}
-
     virtual void holdCurrentHeading() {}
+    virtual void holdCurrentOrientation() {}
     
     virtual void setPriority(ram::core::IUpdatable::Priority) {};
     virtual ram::core::IUpdatable::Priority getPriority() {
@@ -97,13 +91,16 @@ public:
     virtual void unbackground(bool) {};
     virtual bool backgrounded() { return false; }
 
-    ram::math::Vector2 velocity;
-    double speed;
-    double sidewaysSpeed;
-    double depth;
+    double m_depth, m_depthRate, m_depthAccel;
+    ram::math::Vector2 m_position, m_velocity, m_accel;
+    ram::math::Quaternion m_orientation;
+    ram::math::Vector3 m_angularRate, m_angularAccel;
+
     double yaw;
-    bool atorientation;
-    bool atdepth;
+    bool m_atPosition;
+    bool m_atVelocity;
+    bool m_atOrientation;
+    bool m_atDepth;
 };
 
 TEST(MockController)
@@ -111,8 +108,8 @@ TEST(MockController)
     MockController* mockController = new MockController("Controller");
     ram::control::IController* controller = mockController;
 
-    controller->setSpeed(5);
-    CHECK_EQUAL(5, mockController->speed);
+    controller->changeDepth(5, 0);
+    CHECK_EQUAL(5, mockController->m_depth);
 
     delete mockController;
 }
@@ -162,12 +159,12 @@ TEST(ControllerWrapping)
         boost::bind(py::exec, _1, main_namespace, main_namespace);
 
     // Test speed (if this works everything else should to)
-    eval("controller.setSpeed(3)");
-    CHECK_EQUAL(3, mockController->speed);
+    eval("controller.changeDepth(3, 0)");
+    CHECK_EQUAL(3, mockController->m_depth);
     
-    eval("speed = controller.getSpeed()");
-    double speed = py::extract<double>(main_namespace["speed"]);
-    CHECK_EQUAL(3, speed);
+    eval("depth = controller.getDesiredDepth()");
+    double depth = py::extract<double>(main_namespace["depth"]);
+    CHECK_EQUAL(3, depth);
     
     } catch(py::error_already_set err) { PyErr_Print(); throw err; }
 }
@@ -178,4 +175,5 @@ int main()
     // We must register this contverted so we can pass a pointer to python
     py::register_ptr_to_python< boost::shared_ptr<ram::control::IController> >();
     return UnitTest::RunAllTests();
+    return 0;
 }

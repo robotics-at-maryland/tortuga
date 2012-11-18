@@ -23,6 +23,7 @@ sys.stderr = StringIO.StringIO()
 try:
     # Core more first because of Boost.Python wrapping dependencies
     import ext.core
+    import ext.math
 
     from ext._control import *
 

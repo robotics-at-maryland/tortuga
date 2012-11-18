@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Robotics at Maryland
+ * Copyright (C) 2007 Robotics  Maryland
  * Copyright (C) 2007 Joseph Lisee <jlisee@umd.edu>
  * All rights reserved.
  *
@@ -31,6 +31,7 @@
 
 #include "core/include/SubsystemMaker.h"
 #include "core/include/EventHub.h"
+#include "core/include/Events.h"
 
 #include "math/include/Helpers.h"
 #include "math/include/Vector3.h"
@@ -42,14 +43,14 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::control::CombineController, CombineContro
 // Create category for logging
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Controller"));
 
-using namespace std;
-
 namespace ram {
 namespace control {
 
-CombineController::CombineController(vehicle::IVehiclePtr vehicle,
+CombineController::CombineController(core::EventHubPtr eventHub,
+                                     vehicle::IVehiclePtr vehicle,
+                                     estimation::IStateEstimatorPtr estimator,
                                      core::ConfigNode config) :
-    ControllerBase(vehicle, config),
+    ControllerBase(eventHub, vehicle, estimator, config),
     m_transController(ITranslationalControllerImpPtr()),
     m_depthController(IDepthControllerImpPtr()),
     m_rotController(IRotationalControllerImpPtr()),
@@ -88,117 +89,72 @@ void CombineController::init(core::ConfigNode config)
     node = config["RotationalController"];
     m_rotController = RotationalControllerImpMaker::newObject(node);
 
-    m_initializationPause = config["InitializationPause"].asDouble(0);
+    m_initializationPause = config["initializationPause"].asDouble(0);
+
+    LOGGER.infoStream() << "ForceOut TorqueOut";
 }
 
 void CombineController::doUpdate(const double& timestep,
-                                 const math::Vector3& linearAcceleration,
-                                 const math::Quaternion& orientation,
-                                 const math::Vector3& angularRate,
-                                 const double& depth,
-                                 const math::Vector2& position,
-                                 const math::Vector2& velocity,
                                  math::Vector3& translationalForceOut,
                                  math::Vector3& rotationalTorqueOut)
 {
 
+    // Don't do anything during the initialization pause
     if (m_initializationPause > 0)
     {
         m_initializationPause -= timestep;
+
+        // so at the end of the initialization pause we
+        // are steady
+
+        if(m_initHoldDepth)
+            holdCurrentDepth();
+        if(m_initHoldHeading)
+            holdCurrentHeading();
+        if(m_initHoldPosition)
+            holdCurrentPosition();
+
     	return;
     }
 
     // Update controllers
     math::Vector3 inPlaneControlForce(
-        m_transController->translationalUpdate(timestep, linearAcceleration,
-                                               orientation, position,
-                                               velocity, desiredState));
+        m_transController->translationalUpdate(
+            timestep, m_stateEstimator, m_desiredState));
 
     math::Vector3 depthControlForce(
-        m_depthController->depthUpdate(timestep, depth, orientation, desiredState));
+        m_depthController->depthUpdate(
+            timestep, m_stateEstimator, m_desiredState));
 
     math::Vector3 rotControlTorque(
-        m_rotController->rotationalUpdate(timestep, orientation, angularRate, desiredState));
+        m_rotController->rotationalUpdate(
+            timestep, m_stateEstimator, m_desiredState));
     
     // Combine into desired rotational control and torque
     translationalForceOut = inPlaneControlForce + depthControlForce;
     rotationalTorqueOut = rotControlTorque;
-}
 
-void CombineController::setVelocity(math::Vector2 velocity)
-{
-    setDesiredVelocity(velocity,IController::BODY_FRAME);
-    m_transController->setControlMode(ControlMode::VELOCITY);
-}
+    LOGGER.infoStream() << translationalForceOut[0] << " "
+                        << translationalForceOut[1] << " "
+                        << translationalForceOut[2] << " " 
+                        << rotationalTorqueOut[0] << " "
+                        << rotationalTorqueOut[1] << " "
+                        << rotationalTorqueOut[2];
 
-void CombineController::setSpeed(double speed)
-{
-    double sidewaysSpeed = 0;
+    // publish the individual control signals
+    math::Vector3EventPtr dEvent = math::Vector3EventPtr(new math::Vector3Event());
+    dEvent->vector3 = depthControlForce;
 
-    // clamp speeds
-    if(speed > 5)
-        speed = 5;
-    else if(speed < -5)
-        speed = -5;
-
-    // when going between control modes, reset the sideways speed to 0
-    if(m_transController->getControlMode() == ControlMode::OPEN_LOOP)
-        sidewaysSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[1];
-
-    /*  Store velocity as if the robots frame is the inertial frame.  
-        In other words, the robot should always travel at this velocity 
-        relative to itself.  Doing this, the robot's actual velocity in
-        the true inertial frame will change as its orientation changes. */
-    setDesiredVelocity(math::Vector2(speed,sidewaysSpeed), IController::INERTIAL_FRAME);
-    m_transController->setControlMode(ControlMode::OPEN_LOOP);
-}
-
-void CombineController::setSidewaysSpeed(double speed)
-{
-    double forwardSpeed = 0;
+    math::Vector3EventPtr tEvent = math::Vector3EventPtr(new math::Vector3Event());
+    tEvent->vector3 = inPlaneControlForce;
     
-    // clamp speeds
-    if(speed > 5)
-        speed = 5;
-    else if(speed < -5)
-        speed = -5;
+    math::Vector3EventPtr oEvent = math::Vector3EventPtr(new math::Vector3Event());
+    oEvent->vector3 = rotControlTorque;
 
-    // when going between control modes, reset the velocity
-    if(m_transController->getControlMode() == ControlMode::OPEN_LOOP)
-        forwardSpeed = getDesiredVelocity(IController::INERTIAL_FRAME)[0];
-
-    /*  Store velocity as if the robots frame is the inertial frame.  
-        In other words, the robot should always travel at this velocity 
-        relative to itself.  Doing this, the robot's actual velocity in
-        the true inertial frame will change as its orientation changes. */
-    setDesiredVelocity(math::Vector2(forwardSpeed,speed), IController::INERTIAL_FRAME);
-    m_transController->setControlMode(ControlMode::OPEN_LOOP);
+    publish(IController::DEPTH_CONTROL_SIGNAL_UPDATE, dEvent);
+    publish(IController::TRANSLATION_CONTROL_SIGNAL_UPDATE, tEvent);
+    publish(IController::ORIENTATION_CONTROL_SIGNAL_UPDATE, oEvent);
 }
-
-void CombineController::setDesiredVelocity(math::Vector2 velocity, int frame)
-{
-    if(frame == IController::BODY_FRAME)
-        velocity = math::nRb(desiredState->getDesiredOrientation().getYaw().valueRadians())*velocity;
-    desiredState->setDesiredVelocity(velocity);
-    m_transController->setControlMode(ControlMode::VELOCITY);
-}
-
-void CombineController::setDesiredPosition(math::Vector2 position, int frame)
-{
-    if(frame == IController::BODY_FRAME)
-        position = math::nRb(m_vehicle->getOrientation().getYaw().valueRadians())*position;
-    desiredState->setDesiredPosition(position);
-    m_transController->setControlMode(ControlMode::POSITION);
-}
-
-void CombineController::setDesiredPositionAndVelocity(math::Vector2 position,
-                                                      math::Vector2 velocity)
-{
-    desiredState->setDesiredVelocity(velocity);
-    desiredState->setDesiredPosition(position);
-    m_transController->setControlMode(ControlMode::POSITIONANDVELOCITY);
-}
-
 
 ITranslationalControllerPtr CombineController::getTranslationalController()
 { 

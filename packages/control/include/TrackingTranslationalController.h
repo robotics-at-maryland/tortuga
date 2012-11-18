@@ -22,23 +22,18 @@ class TrackingTranslationalController : public TranslationalControllerBase
 public:
     TrackingTranslationalController(ram::core::ConfigNode config);
         
-    virtual math::Vector3 translationalUpdate(double timestep,
-                                              math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation,
-                                              math::Vector2 position,
-                                              math::Vector2 velocity,
-                                              controltest::DesiredStatePtr desiredState);
+    virtual math::Vector3 translationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
 private:
+    math::Vector2 m_iError;
 
-    math::Vector2 m_prevPositionError;
-    math::Vector2 m_prevVelocityError;
+    double m_x1kp, m_x1ki, m_x1kd;
+    double m_x2kp, m_x2ki, m_x2kd;
 
-    math::Vector2 m_iPositionError;
-    math::Vector2 m_iVelocityError;
-
-    double x1kp, x1ki, x1kd;
-    double x2kp, x2ki, x2kd;
+    double m_dtMin, m_dtMax;
 
 };
 

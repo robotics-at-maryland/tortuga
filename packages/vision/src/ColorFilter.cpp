@@ -98,11 +98,14 @@ void ColorFilter::filterImage(Image* input, Image* output)
     int numPixels = input->getWidth() * input->getHeight();
     int nChannels;
     unsigned char* inputData = input->getData();
-    unsigned char* outputData = 0;
-    if (output) {
+    unsigned char* outputData = NULL;
+    if (output)
+    {
         outputData = output->getData();
         nChannels = output->getNumChannels();
-    } else {
+    }
+    else
+    {
         outputData = input->getData();
         nChannels = input->getNumChannels();
     }
@@ -114,10 +117,9 @@ void ColorFilter::filterImage(Image* input, Image* output)
             m_channel2Range[*(inputData + 1)] &
             m_channel3Range[*(inputData + 2)];
         
-        for (int k = 0; k < nChannels; k++, outputData++) {
+        for (int k = 0; k < nChannels; k++, outputData++)
             *outputData = result;
-        }
-        
+
         inputData += 3;
     }
 }

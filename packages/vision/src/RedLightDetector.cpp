@@ -22,6 +22,7 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/Events.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/VisionSystem.h"
 
 #include "core/include/PropertySet.h"
 
@@ -401,12 +402,14 @@ void RedLightDetector::publishFoundEvent(double lightPixelRadius)
     {
         RedLightEventPtr event(new RedLightEvent(0, 0));
         
+        static math::Degree xFOV = vision::VisionSystem::getFrontHorizontalFieldOfView();
+        static math::Degree yFOV = vision::VisionSystem::getFrontVerticalFieldOfView();
+
         event->x = m_redLightCenterX;
         event->y = m_redLightCenterY;
-        event->azimuth = math::Degree(
-            (78.0 / 2) * event->x * -1.0 *
-            (double)flashFrame->height/flashFrame->width);
-        event->elevation = math::Degree((105.0 / 2) * event->y * 1);
+
+        event->azimuth = math::Degree((xFOV / 2) * event->x * -1.0);
+        event->elevation = math::Degree((yFOV / 2) * event->y * 1);
         
         // Compute range (assume a sphere)
         double lightRadius = 0.25; // feet

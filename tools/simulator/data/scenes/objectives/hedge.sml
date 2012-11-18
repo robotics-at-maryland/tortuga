@@ -36,6 +36,16 @@ Scene:
               type: [ram.sim.object.IObject, sim.vision.Hedge]
               position: [0, 0, -3] #[0, 0, -2.5]
               orientation: [0, 0, 1, -25]
+        
+        Hedge2:
+            type: [ram.sim.object.IObject, sim.vision.Hedge]
+            position: [3, 1, -3]
+            orientation: [0, 0, 1, 155]
+
+        Hedge3:
+            type: [ram.sim.object.IObject, sim.vision.Hedge]
+            position: [6, -1, -3]
+            orientation: [0, 0, 1, 225]
           
         water:
             type: [ram.sim.graphics.IVisual, ram.sim.graphics.Visual]

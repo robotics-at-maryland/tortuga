@@ -24,7 +24,6 @@
 
 #include "vehicle/include/Common.h"
 #include "vehicle/include/IVehicle.h"
-#include "vehicle/include/estimator/IStateEstimator.h"
 
 #include "math/include/MatrixN.h"
 #include "math/include/VectorN.h"
@@ -48,22 +47,6 @@ public:
     virtual device::IDevicePtr getDevice(std::string name);
 
     virtual std::vector<std::string> getDeviceNames();
-    
-    virtual double getDepth(std::string obj = "vehicle");
-
-    virtual math::Vector2 getPosition(std::string obj = "vehicle");
-    
-    virtual math::Vector2 getVelocity(std::string obj = "vehicle");
-
-    math::Vector3 getLinearAcceleration();
-
-    math::Vector3 getAngularRate();
-    
-    math::Quaternion getOrientation(std::string obj = "vehicle");
-
-    bool hasObject(std::string obj);
-
-    bool hasMagBoom();
 
     virtual void safeThrusters();
 
@@ -73,7 +56,13 @@ public:
 
     virtual void fireTorpedo();
 
+    virtual void dropMarkerIndex(int index);
+
+    virtual void fireTorpedoIndex(int index);
+
     virtual void releaseGrabber();
+
+    virtual void closeGrabber();
     
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);
@@ -108,45 +97,21 @@ public:
 
     /** Currently just manually grabs depth */
     virtual void update(double timestep);
-    
 
-    /** Get the depth directly from the depth sensor */
-    virtual double getRawDepth();
-
-    /** Get the position directly from the position sensor */
-    virtual math::Vector2 getRawPosition();
-
-    /** Get the velocity directly from the velocity sensor */
-    virtual math::Vector2 getRawVelocity();
-
-    /** Get the orientation directly from the orientation sensor */
-    virtual math::Quaternion getRawOrientation();
-
-    /** Get the state estimator */
-    virtual estimator::IStateEstimatorPtr getStateEstimator();
 
     /** compute vector of forces to apply to thrusters at given offsets
        so that there is no net torque.  This assumes that the thrusters
        are applying a torque in opposite directions*/
 
     math::MatrixN createControlSignalToThrusterForcesMatrix(
-        Tuple6Vector3 thrusterLocations);
+        Tuple6Vector3 thrusterLocations, Tuple6Vector3 thrusterDirections);
+
+    
+    virtual void setExtraThruster(int speed);
 
 protected:    
     /** Returns true if all IThrusterPtrs now contain valid thrusters */
     bool lookupThrusterDevices();
-
-    /** Called when the depth sensor has an update, publishes vehicle update */
-    void onDepthUpdate(core::EventPtr event);
-
-    /** Called when the IMU has an update, publishes vehicle update */
-    void onOrientationUpdate(core::EventPtr event);
-
-    /** Called when the position sensor has an update, publises vehicle up. */
-    void onPositionUpdate(core::EventPtr event);
-
-    /** Called when the velocity sensor has an update, publises vehicle up. */
-    void onVelocityUpdate(core::EventPtr event);
     
 private:
     core::ConfigNode m_config;
@@ -165,33 +130,16 @@ private:
     vehicle::device::IThrusterPtr m_topThruster;
     std::string m_bottomThrusterName;
     vehicle::device::IThrusterPtr m_bottomThruster;
+    std::string m_extraThrusterName;
+    vehicle::device::IThrusterPtr m_extraThruster;
+    math::Vector3 m_extraLocation;
+    math::Vector3 m_extraDirection;
+    double force;
+    bool m_extraThrustOn;
+
 
     double m_topThrusterThrottle;
 
-    std::string m_stateEstimatorName;
-    vehicle::device::IStateEstimatorPtr m_stateEstimator;
-    
-    std::string m_imuName;
-    vehicle::device::IIMUPtr m_imu;
-    
-    bool m_hasMagBoom;
-    std::string m_magBoomName;
-    vehicle::device::IIMUPtr m_magBoom;
-
-    core::EventConnectionPtr m_orientationConnection;
-    
-    std::string m_depthSensorName;
-    vehicle::device::IDepthSensorPtr m_depthSensor;
-    core::EventConnectionPtr m_depthConnection;
-    
-    std::string m_velocitySensorName;
-    vehicle::device::IVelocitySensorPtr m_velocitySensor;
-    core::EventConnectionPtr m_velocityConnection;
-    
-    std::string m_positionSensorName;
-    vehicle::device::IPositionSensorPtr m_positionSensor;
-    core::EventConnectionPtr m_positionConnection;
-    
     std::string m_markerDropperName;
     vehicle::device::IPayloadSetPtr m_markerDropper;
 
@@ -201,12 +149,11 @@ private:
     std::string m_grabberName;
     vehicle::device::IPayloadSetPtr m_grabber;
 
-    estimator::IStateEstimatorPtr stateEstimator;
-
     math::MatrixN m_controlSignalToThrusterForces;
     bool m_controlSignalToThrusterForcesCreated;
     
-    enum thrusters {STAR = 0, PORT, BOT, TOP, FORE, AFT};
+    enum thrusters {PRT = 0, STR, TOP, FOR, BOT, AFT};
+    enum forceAndThrustIndices {FX = 0, FY, FZ, TX, TY, TZ};
 };
     
 } // namespace vehicle

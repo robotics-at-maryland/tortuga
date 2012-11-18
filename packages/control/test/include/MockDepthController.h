@@ -18,14 +18,9 @@ class MockDepthController : public ram::control::IDepthControllerImp
 {
 public:
     MockDepthController(ram::core::ConfigNode) :
-        depth(0),
-        depthSet(0),
-        estimatedDepth(0),
-        estimatedDepthDot(0),
-        atDepthValue(false),
-        updateDepth(0),
         timestep(0),
-        orientation(ram::math::Quaternion::IDENTITY),
+        estimator(ram::estimation::IStateEstimatorPtr()),
+        desiredState(ram::control::DesiredStatePtr()),
         force(0, 0, 0),
         holdCurrentDepthCount(0)
         {}
@@ -33,22 +28,19 @@ public:
     virtual ~MockDepthController() {}
 
     virtual ram::math::Vector3 depthUpdate(
-        double timestep_, double depth,
-        ram::math::Quaternion orientation_,
-        ram::controltest::DesiredStatePtr desiredState)
-        { timestep = timestep_;
-        updateDepth = depth;
-        orientation = orientation_;
-        return force; }
+        double timestep_,
+        ram::estimation::IStateEstimatorPtr estimator_,
+        ram::control::DesiredStatePtr desiredState_)
+    { 
+        timestep = timestep_;
+        estimator = estimator_;
+        desiredState = desiredState_;
+        return force; 
+    }
 
-    double depth;
-    double depthSet;
-    double estimatedDepth;
-    double estimatedDepthDot;
-    double atDepthValue;
-    double updateDepth;
     double timestep;
-    ram::math::Quaternion orientation;
+    ram::estimation::IStateEstimatorPtr estimator;
+    ram::control::DesiredStatePtr desiredState;
     ram::math::Vector3 force;
     int holdCurrentDepthCount;
 };

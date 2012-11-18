@@ -284,7 +284,7 @@ TEST_FIXTURE(BinDetectorFixture, TestLCH)
     
     // Process it
     processImage(&input);
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -304,7 +304,7 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
     
     // Process it
     processImage(&input);
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     math::Degree expectedAngle(25);
     
@@ -581,7 +581,7 @@ TEST_FIXTURE(BinDetectorFixture, Left)
     // Process it
     processImage(&input);
 
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0;
 
     CHECK(detector.found());
@@ -609,7 +609,7 @@ TEST_FIXTURE(BinDetectorFixture, LowerRight)
     // Process it
     processImage(&input);
 
-    double expectedX = 0.5 * 640.0/480.0;
+    double expectedX = 0.5;
     double expectedY = -0.5;
 
     CHECK(detector.found());
@@ -637,7 +637,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterUp)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
 
     CHECK(detector.found());
@@ -665,7 +665,7 @@ TEST_FIXTURE(BinDetectorFixture, CenterSideways)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0; 
+    double expectedX = 0;
     double expectedY = 0;
 
     CHECK(detector.found());
@@ -861,7 +861,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BINS_LOST)
     CHECK(event);
     if (event)
     {
-        CHECK_CLOSE(0.5  * 640.0/480.0, event->x, 0.05);
+        CHECK_CLOSE(0.5, event->x, 0.05);
         CHECK_CLOSE(-0.5, event->y, 0.05);
     }
 
@@ -1027,7 +1027,7 @@ TEST_FIXTURE(BinDetectorFixture, Events_BIN_CENTERED)
     if (event)
     {
         CHECK(!centered);
-        CHECK_CLOSE(0.5 * 640.0/480.0, event->x, 0.05);
+        CHECK_CLOSE(0.5, event->x, 0.05);
         CHECK_CLOSE(-0.5, event->y, 0.05);
     }
 

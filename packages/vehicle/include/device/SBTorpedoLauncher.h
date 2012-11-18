@@ -43,6 +43,7 @@ public:
 
     // IPayloadSet methods
     virtual void releaseObject();
+    virtual void releaseObjectIndex(int index);
     virtual int objectCount();
     virtual int initialObjectCount();
 

@@ -16,7 +16,6 @@
 // Project Includes
 #include "math/include/SGolaySmoothingFilter.h"
 #include "math/include/MatrixN.h"
-#include "math/include/VectorN.h"
 #include "math/include/Helpers.h"
 
 namespace ram {
@@ -73,7 +72,7 @@ double SGolaySmoothingFilter::getValue(int order, double timestep)
         // multiply the value of given order by the coefficient due
         // to taking the derivative of a polynomial
         double tpow = std::pow(timestep, order);
-        double dcoeff = factorial(order - 1);
+        double dcoeff = math::factorial(order - 1);
         return m_values[order] * dcoeff / tpow;
     }
     
@@ -100,5 +99,5 @@ MatrixN SGolaySmoothingFilter::getCoefficientMatrix()
     return m_coeffMatrix;
 }
 
-} // namespace math 
+} // namespace math
 } // namespace ram

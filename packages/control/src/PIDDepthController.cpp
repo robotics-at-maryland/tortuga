@@ -6,62 +6,96 @@
  * Author: Jonathan Wonders <jwonders@umd.edu>
  * File:  packages/control/include/PIDDepthController.cpp
  */
+
+// Library Includes
+#include <log4cpp/Category.hh>
+
+// STD Includes
 #include <cmath>
 #include <stdlib.h>
+
+// Project Includes
+#include "estimation/include/IStateEstimator.h"
 #include "control/include/PIDDepthController.h"
 #include "control/include/ControllerMaker.h"
+
+// create a category for logging specific depth controller info
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance(
+                                     "DepthController"));
 
 namespace ram {
 namespace control {
 
-static DepthControllerImpMakerTemplate<
-    PIDDepthController>
-registerPIDDepthController(
-    "PIDDepthController");
+static DepthControllerImpMakerTemplate<PIDDepthController>
+registerPIDDepthController("PIDDepthController");
 
-PIDDepthController::PIDDepthController(ram::core::ConfigNode config) :
+PIDDepthController::PIDDepthController(
+    ram::core::ConfigNode config) :
     DepthControllerBase(config),
-    m_depthSumError(0),
-    m_prevDepth(0),
-    m_kp(0),
-    m_kd(0),
-    m_ki(0),
-    dt_min(0),
-    dt_max(100000)
+    m_iErr(0),
+    m_kp(config["kp"].asDouble(0)),
+    m_kd(config["kd"].asDouble(0)),
+    m_ki(config["ki"].asDouble(0)),
+    m_dtMin(config["dtMin"].asDouble(0.02)),
+    m_dtMax(config["dtMax"].asDouble(0.5))
 {
-    m_kp = config["kp"].asDouble(0);
-    m_kd = config["kd"].asDouble(0);
-    m_ki = config["ki"].asDouble(0);
-    dt_min = config["dtMin"].asDouble(0.02);
-    dt_max = config["dtMax"].asDouble(0.5);
+    LOGGER.info("PIDRegulator dDepth eDepth eRate eQuat(4) timestep "
+                "pSig dSig iSig forces_n(3) forces_b(3)");
 }
 
-math::Vector3 PIDDepthController::depthUpdate(double timestep, double depth,
-                                              math::Quaternion orientation,
-                                              controltest::DesiredStatePtr desiredState)
+math::Vector3 PIDDepthController::depthUpdate(
+    double timestep,
+    estimation::IStateEstimatorPtr estimator,
+    control::DesiredStatePtr desiredState)
 {
-    double desiredDepth = desiredState->getDesiredDepth();
+    // get desired and estimated quantities
+    double dDepth = desiredState->getDesiredDepth();
 
-    if(timestep < dt_min)
-        timestep = dt_min;
-    if(timestep > dt_max)
-        timestep = dt_max;
+    double eDepth = estimator->getEstimatedDepth();
+    double eRate = estimator->getEstimatedDepthRate();
 
-    double error = depth - desiredDepth;
-    double errorDot = (depth - m_prevDepth)/timestep;
-    double errorInt = m_depthSumError+error*timestep;
+    math::Quaternion orientation = estimator->getEstimatedOrientation();
 
-    {
-        core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
-        m_depthSumError = errorInt;
-        m_prevDepth = depth;
-    }
+    // make sure timestep is not to large or small
+    if(timestep < m_dtMin)
+        timestep = m_dtMin;
+    if(timestep > m_dtMax)
+        timestep = m_dtMax;
 
-    double depthControlSignal = - (m_kp*error + m_kd*errorDot + m_ki*errorInt);
+    // calculate error terms for PID
+    double pErr = eDepth - dDepth;
+    double dErr = eRate;  // for regulator, dRate = 0
+    double iErr = m_iErr + pErr * timestep;
+    m_iErr = iErr;
 
-    math::Vector3 controlSignal(0,0,-depthControlSignal);
+    double depthControlSignal = 
+        m_kp * pErr + m_kd * dErr + m_ki * iErr;
 
-    return controlSignal;
+    // we need to return a Vector3
+    math::Vector3 controlSignal_n(0, 0, depthControlSignal);
+    // rotate the control signal into the body frame
+    math::Vector3 controlSignal_b = orientation * controlSignal_n;
+
+    // log everything we could possibly want to know
+    LOGGER.infoStream() << dDepth << " "
+                        << eDepth << " "
+                        << eRate << " "
+                        << orientation[0] << " "
+                        << orientation[1] << " "
+                        << orientation[2] << " "
+                        << orientation[3] << " "
+                        << timestep << " "
+                        << m_kp * pErr << " "
+                        << m_kd * dErr << " "
+                        << m_ki * iErr << " "
+                        << controlSignal_n[0] << " "
+                        << controlSignal_n[1] << " "
+                        << controlSignal_n[2] << " "
+                        << controlSignal_b[0] << " "
+                        << controlSignal_b[1] << " "
+                        << controlSignal_b[2];
+
+    return controlSignal_b;
 }
 
 } // namespace control

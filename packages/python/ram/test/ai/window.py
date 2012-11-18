@@ -271,7 +271,7 @@ class TestCorrectHeight(WindowTest):
                 }
             }
         WindowTest.setUp(self, cfg = cfg)
-        self.vehicle.depth = TestCorrectHeight.DEPTH
+        self.estimator.depth = TestCorrectHeight.DEPTH
 
     def testDownwardMotion(self):
         # Create a fake event with the y position positive
@@ -367,7 +367,7 @@ class TestRangeXYHold(support.AITestCase):
                          color = self._color)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertEqual(self.controller.yawChange, 0)
@@ -537,7 +537,7 @@ class TestSeekingToCentered(TestRangeXYHold):
                          squareNess = 1, color = vision.Color.BLUE)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         # TODO: Take a close look at range seeking here
         #self.assertEqual(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
@@ -687,7 +687,7 @@ class AlignmentTest(object):
                          squareNess = 0.5, color = self._color)
         
         # Bigger numbers = deeper
-        self.assertGreaterThan(self.controller.depth, self.vehicle.depth)
+        self.assertGreaterThan(self.controller.depth, self.estimator.depth)
         self.assertGreaterThan(self.controller.speed, 0)
         self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
         self.assertLessThan(self.controller.yawChange, 0)
@@ -835,7 +835,7 @@ class TestReposition(support.AITestCase):
         support.AITestCase.setUp(self, cfg = cfg)
 
         # Initial values
-        self.vehicle.depth = 11.7
+        self.estimator.depth = 11.7
         self.ai.data['windowStartOrientation'] = 15
         self.ai.data['firstSearching'] = False
         

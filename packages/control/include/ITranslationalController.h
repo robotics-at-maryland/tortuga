@@ -14,6 +14,7 @@
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Quaternion.h"
+#include "estimation/include/Common.h"
 
 #include "control/include/DesiredState.h"
 
@@ -22,17 +23,6 @@
 
 namespace ram {
 namespace control {
-
-struct ControlMode
-{
-    enum ModeType {
-        OPEN_LOOP,
-        VELOCITY,
-        POSITION,
-        POSITIONANDVELOCITY
-    };
-};
-
 
 /** Defines the interface for controler which controls in plane motion */
 class RAM_EXPORT ITranslationalController 
@@ -52,15 +42,10 @@ class RAM_EXPORT ITranslationalControllerImp : public ITranslationalController
     virtual ~ITranslationalControllerImp() {}
 
     /** Gets the needed vehicle force based on current vehicle state */
-    virtual math::Vector3 translationalUpdate(double timestep,
-                                              math::Vector3 linearAcceleration,
-                                              math::Quaternion orientation,
-                                              math::Vector2 position,
-                                              math::Vector2 velocity,
-                                              controltest::DesiredStatePtr desiredState) = 0;
-
-    virtual void setControlMode(ControlMode::ModeType mode) = 0;
-    virtual ControlMode::ModeType getControlMode() = 0;
+    virtual math::Vector3 translationalUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState) = 0;
 };
     
 } // namespace control

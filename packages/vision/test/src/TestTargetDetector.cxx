@@ -86,7 +86,7 @@ TEST_FIXTURE(TargetDetectorFixture, CenterLight)
     // Process it
     processImage(&input);
 
-    double expectedX = 0 * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0;
     double expectedRange = 1.0 - 200.0/480;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -109,7 +109,7 @@ TEST_FIXTURE(TargetDetectorFixture, UpperLeft)
     
     processImage(&input);
 
-    double expectedX = -0.5 * 640.0/480.0;
+    double expectedX = -0.5;
     double expectedY = 0.5;
     double expectedRange = 1.0 - 100.0/480;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
@@ -132,7 +132,7 @@ TEST_FIXTURE(TargetDetectorFixture, LowerRight)
     
     processImage(&input);
 
-    double expectedX = 0.5 * 640.0/480.0;
+    double expectedX = 0.5;
     double expectedY = -0.5;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -194,7 +194,7 @@ TEST_FIXTURE(TargetDetectorFixture, Events_TARGET_LOST)
     processImage(&input);
     CHECK(found);
     CHECK(event);
-    CHECK_CLOSE(-0.5 * 640.0/480.0, event->x, 0.005);
+    CHECK_CLOSE(-0.5, event->x, 0.005);
     CHECK_CLOSE(0.5, event->y, 0.005);
 
     // Now we lost the light
@@ -217,7 +217,7 @@ TEST_FIXTURE(TargetDetectorFixture, RemoveTop)
 
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = 0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);
@@ -239,7 +239,7 @@ TEST_FIXTURE(TargetDetectorFixture, RemoveBottom)
 
     // Check with a non top removed detector
     processImage(&input);
-    double expectedX = 0  * 640.0/480.0;
+    double expectedX = 0;
     double expectedY = -0.808;
     CHECK_CLOSE(expectedX, detector.getX(), 0.005);
     CHECK_CLOSE(expectedY, detector.getY(), 0.005);

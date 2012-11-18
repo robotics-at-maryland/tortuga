@@ -39,6 +39,7 @@
 
 //static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("Vision"));
 
+// extra boarder pixels to include when extracting sub-image of the bin
 static const int BIN_EXTRACT_BORDER = 16;
 
 namespace ram {
@@ -65,32 +66,49 @@ BinDetector::Bin::Bin(BlobDetector::Blob blob, Image* source,
 void BinDetector::Bin::draw(Image* image, Image* redImage)
 {
     IplImage* out = image->asIplImage();
+
     // Draw green rectangle around the blob
-    CvPoint tl,tr,bl,br;
-    tl.x = bl.x = getMinX();
-    tr.x = br.x = getMaxX();
-    tl.y = tr.y = getMinY();
-    bl.y = br.y = getMaxY();
+    CvPoint tl; // top left
+    CvPoint tr; // top right
+    CvPoint bl; // bottom left
+    CvPoint br; // bottom right
+    int minX, maxX, minY, maxY;
+
+    tl.x = bl.x = minX = getMinX();
+    tr.x = br.x = maxX = getMaxX();
+    tl.y = tr.y = minY = getMinY();
+    bl.y = br.y = maxY = getMaxY();
+
     cvLine(out, tl, tr, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, tl, bl, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, tr, br, CV_RGB(0,255,0), 3, CV_AA, 0);
     cvLine(out, bl, br, CV_RGB(0,255,0), 3, CV_AA, 0);
 
     // Now draw my id
-    std::stringstream ss;
-    ss << getId();
-    Image::writeText(image, ss.str(), tl.x, tl.y);
+    std::stringstream ssId;
+    ssId << getId();
+    Image::writeText(image, ssId.str(), minX, maxY);
 
+    // Draw the fill percentage
     if (redImage)
     {
-        std::stringstream ss3;
-        ss3 << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
-        Image::writeText(image, ss3.str(), br.x-30, tl.y);
+        std::stringstream ssFillPct;
+        ssFillPct << "F%: " << BinDetector::getRedFillPercentage(*this, redImage);
+        int fillPctXOffset = -30;
+        int fillPctYOffset = 0;
+        Image::writeText(image, ssFillPct.str(),
+                         maxX + fillPctXOffset,
+                         minY + fillPctYOffset);
     }
 
-    std::stringstream ss2;
-    ss2 << std::setprecision(1) << getAngle().valueDegrees();
-    Image::writeText(image, ss2.str(), br.x-30, br.y-15);
+    // Draw the angle
+    std::stringstream ssAngle;
+    ssAngle << std::setprecision(1) << getAngle().valueDegrees();
+    int angleXOffset = -30;
+    int angleYOffset = -15;
+    Image::writeText(image, ssAngle.str(),
+                     maxX + angleXOffset,
+                     minY + angleYOffset);
 
     // Now do the symbol
     Image::writeText(image, Symbol::symbolToText(m_symbol), bl.x, bl.y - 15);
@@ -113,12 +131,15 @@ BinDetector::BinDetector(core::ConfigNode config,
     m_extractBuffer(0),
     m_scratchBuffer1(0),
     m_scratchBuffer2(0),
+    m_scratchBuffer3(0),
     m_whiteMaskMinimumPercent(0),
     m_whiteMaskMinimumIntensity(0),
     m_blackMaskMinimumPercent(0),
     m_blackMaskMaxTotalIntensity(0),
     m_redErodeIterations(0),
     m_redDilateIterations(0),
+    m_redOpenIterations(0),
+    m_redCloseIterations(0),
     m_redMinPercent(0),
     m_redMinRValue(0),
     m_redMaxGValue(0),
@@ -220,8 +241,9 @@ void BinDetector::processImage(Image* input, Image* out)
         int binNumber = 0;
         BOOST_FOREACH(BlobDetector::Blob binBlob, binBlobs)
         {
-            newBins.push_back(processBin(binBlob, m_runSymbolDetector,
-                                         binNumber, out));
+            Bin newBin = processBin(binBlob, m_runSymbolDetector,
+                                    binNumber, out);
+            newBins.push_back(newBin);
             binNumber++;
         }
 
@@ -232,7 +254,7 @@ void BinDetector::processImage(Image* input, Image* out)
         // Anybody left we didn't find this iteration, so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)
         {
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
@@ -259,8 +281,8 @@ void BinDetector::processImage(Image* input, Image* out)
             if(!m_centered)
             {
                 m_centered = true;
-                BinEventPtr event(new BinEvent(getX(), getY(), getSymbol(),
-                                               getAngle()));
+                BinEventPtr event(new BinEvent(getX(), getY(), 0,
+                                               getSymbol(), getAngle()));
                 publish(EventType::BIN_CENTERED, event);
             }
         }
@@ -278,7 +300,7 @@ void BinDetector::processImage(Image* input, Image* out)
                 bin.draw(out);
 
             // Send out the bin event
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_FOUND, event);
@@ -295,7 +317,7 @@ void BinDetector::processImage(Image* input, Image* out)
         // Anybody left has run out of lost frames so its been dropped
         BOOST_FOREACH(Bin bin, m_bins)
         {
-            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 
+            BinEventPtr event(new BinEvent(bin.getX(), bin.getY(), 0,
                                            bin.getSymbol(), bin.getAngle()));
             event->id = bin.getId();
             publish(EventType::BIN_DROPPED, event);
@@ -368,7 +390,7 @@ void BinDetector::setSymbolImageLogging(bool value)
 void BinDetector::init(core::ConfigNode config)
 {
     // Look up type for the symbol detector and validate it
-    std::string symbolDetectorType = "BasicWW2Detector";
+    std::string symbolDetectorType = "BasicGladiatorDetector";
     if (config.exists("symbolDetector"))
         symbolDetectorType = config["symbolDetector"].asString();
     assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
@@ -442,7 +464,12 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
          0, &m_redDilateIterations, 0, 10);
-    
+    propSet->addProperty(config, false, "redOpenIterations",
+        "Opening iterations on the red filtered image",
+         0, &m_redOpenIterations, 0, 10);
+    propSet->addProperty(config, false, "redCloseIterations",
+        "Closing iterations on the red filtered image",
+         0, &m_redCloseIterations, 0, 10);
 
     // Blob detector properties
     propSet->addProperty(config, false, "blobMinBlackPixels",
@@ -523,15 +550,16 @@ void BinDetector::init(core::ConfigNode config)
 void BinDetector::allocateImages(int width, int height)
 {
     m_percents = new OpenCVImage(width, height);
-    m_whiteMaskedFrame = new OpenCVImage(width, height);
-    m_blackMaskedFrame = new OpenCVImage(width, height);
-    m_redMaskedFrame = new OpenCVImage(width, height);
+    m_whiteMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
+    m_blackMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
+    m_redMaskedFrame = new OpenCVImage(width, height, Image::PF_BGR_8);
     
     int extra = BIN_EXTRACT_BORDER * 2;
     size_t size = (width + extra) * (height + extra) * 3;
     m_extractBuffer = new unsigned char[size];
     m_scratchBuffer1 = new unsigned char[size];
     m_scratchBuffer2 = new unsigned char[size];
+    m_scratchBuffer3 = new unsigned char[size];
 }
 
 void BinDetector::deleteImages()
@@ -543,6 +571,7 @@ void BinDetector::deleteImages()
     delete [] m_extractBuffer;
     delete [] m_scratchBuffer1;
     delete [] m_scratchBuffer2;
+    delete [] m_scratchBuffer3;
 }
     
 void BinDetector::filterForWhite(Image* input, Image* output)
@@ -572,8 +601,23 @@ void BinDetector::filterForBlack(Image* input, Image* output)
 
 void BinDetector::filterForRed(Image* input, Image* output)
 {
-
     m_redFilter->filterImage(input, output);
+
+    cvSmooth(output->asIplImage(), output->asIplImage(), CV_MEDIAN, 5);
+
+    if (m_redOpenIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvErode(img, img, NULL, m_redOpenIterations);
+        cvDilate(img, img, NULL, m_redOpenIterations);
+    }
+
+    if (m_redCloseIterations > 0)
+    {
+        IplImage *img = output->asIplImage();
+        cvDilate(img, img, NULL, m_redCloseIterations);
+        cvErode(img, img, NULL, m_redCloseIterations);
+    }
 
     if (m_redErodeIterations)
     {
@@ -960,16 +1004,17 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
             vision::Image::loadFromBuffer(m_scratchBuffer1,
                                           redBinImage->getWidth(),
                                           redBinImage->getHeight(),
-                                          false);
+                                          false,
+                                          m_redMaskedFrame->getPixelFormat());
+        
         vision::Image::transform(redBinImage, rotatedBinImage, binAngle);
-        delete redBinImage; // m_scratchBuffer2 free to use
         
         // Crop down Image to square around bin symbol
-        Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer2);
-        delete rotatedBinImage; // m_scratchBuffer1 free to use
+        Image* cropped = cropBinImage(rotatedBinImage, m_scratchBuffer3);
+
         if (cropped)
         {
-            symbol = determineSymbol(cropped, m_scratchBuffer1, output);
+            symbol = determineSymbol(redBinImage, m_scratchBuffer1, output);
 
             if (output && (binNum < 4))
             {
@@ -985,10 +1030,12 @@ BinDetector::Bin BinDetector::processBin(BlobDetector::Blob bin,
 
             // Log the images if desired
             if (m_logSymbolImages)
-                logSymbolImage(cropped, symbol);
+                logSymbolImage(redBinImage, symbol);
             
             delete cropped;// m_scratchBuffer2 free to use
         }
+        delete rotatedBinImage; // m_scratchBuffer1 free to use
+        delete redBinImage;
     }
     
     // Report our results
@@ -1225,53 +1272,9 @@ Symbol::SymbolType BinDetector::determineSymbol(Image* input,
                                                 Image* output)
 {
     m_symbolDetector->processImage(input, output);
-    
     // Filter symbol type
     Symbol::SymbolType symbolFound = m_symbolDetector->getSymbol(); 
-    Symbol::SymbolType symbol = Symbol::UNKNOWN;
-
-    if (symbolFound == Symbol::CLUB || symbolFound == Symbol::CLUBR90 ||
-        symbolFound == Symbol::CLUBR180 || symbolFound == Symbol::CLUBR270)
-    {
-        symbol = Symbol::CLUB;
-    }
-    else if (symbolFound == Symbol::SPADE ||
-             symbolFound == Symbol::SPADER90 ||
-             symbolFound == Symbol::SPADER180 ||
-             symbolFound == Symbol::SPADER270)
-    {
-        symbol = Symbol::SPADE;
-    }
-    else if (symbolFound == Symbol::HEART ||
-             symbolFound == Symbol::HEARTR90 ||
-             symbolFound == Symbol::HEARTR180 ||
-             symbolFound == Symbol::HEARTR270)
-    {
-        symbol = Symbol::HEART;
-    }
-    else if (symbolFound == Symbol::DIAMOND ||
-             symbolFound == Symbol::DIAMONDR90 ||
-             symbolFound == Symbol::DIAMONDR180 ||
-             symbolFound == Symbol::DIAMONDR270)
-    {
-        symbol = Symbol::DIAMOND;
-    }
-    else if (symbolFound == Symbol::SHIP ||
-             symbolFound == Symbol::AIRCRAFT ||
-             symbolFound == Symbol::TANK ||
-             symbolFound == Symbol::FACTORY)
-    {
-        symbol = symbolFound;
-    }
-    else if (symbolFound == Symbol::AXE ||
-             symbolFound == Symbol::CLIPPERS ||
-             symbolFound == Symbol::HAMMER ||
-             symbolFound == Symbol::MACHETE)
-    {
-        symbol = symbolFound;
-    }
-    
-    return symbol;
+    return symbolFound;
 }
 
 void BinDetector::logSymbolImage(Image* image, Symbol::SymbolType symbol)

@@ -36,13 +36,5 @@ EventPtr StringEvent::clone()
     return event;
 }
 
-EventPtr IntEvent::clone()
-{
-    IntEventPtr event = IntEventPtr(new IntEvent());
-    copyInto(event);
-    event->data = data;
-    return event;
-}
-
 } // namespace core
 } // namespace ram

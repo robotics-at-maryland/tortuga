@@ -1,22 +1,16 @@
 #!/bin/bash
 lcdshow -c
-lcdshow -noblink
-lcdshow -setbars 12
 lcdshow -s
 lcdshow -t "Get ready..."
 lcdshow -redgreen
 sleep 5
-lcdshow -noblink
-lcdshow -setbars 240
 lcdshow -t "Running..."
 
 
 lcdshow -unsafe
 source scripts/setenv
-python tools/acs/src/main.py -c data/config/aitest.yml
+python tools/acs/src/main.py -c data/config/transdec_final_competition.yml -s ram.ai.course.Gate
 
 
 
-lcdshow -noblink
-lcdshow -setbars 12
 lcdshow -t "Stopped"

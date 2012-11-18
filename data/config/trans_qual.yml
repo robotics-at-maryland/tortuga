@@ -20,23 +20,24 @@ Subsystems:
         #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
-        INCLUDE: data/config/vision/transdec2010.yml
+        INCLUDE: data/config/vision/nbrf.yml
         
 
     Ai:
          type: AI
 
          # Includes the "taskOrder" for the AI
-         INCLUDE: data/config/ai/transdec_qual_light_only.yml
+         INCLUDE: data/config/ai/transdec_qual.yml
 
 
     StateMachine:
         type: StateMachine
         depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
-                     "MotionManager", "TimerManager", "Ai", "VisionSystem"]
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem",
+                     "StateEstimator"]
         States:
-            # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/transdec2010_state.yml
+            # Includes all the state specific Transdec settings
+            INCLUDE: data/config/ai/transdec2011_state.yml
 
 
     # Includes all common subsystems    

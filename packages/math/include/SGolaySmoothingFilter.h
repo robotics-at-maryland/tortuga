@@ -3,12 +3,17 @@
  * All rights reserved.
  *
  * Author: Jonathan Wonders
- * File:  packages/math/include/SGolaySmoothingFilter.h
+ * File:  packages/core/include/SGolaySmoothingFilter.h
  */
 
 
 #ifndef RAM_MATH_SGOLAYSMOOTHINGFILTER_H
 #define RAM_MATH_SGOLAYSMOOTHINGFILTER_H
+
+// STD Includes
+
+// Library Includes
+#include <boost/shared_ptr.hpp>
 
 // Project Includes
 #include "math/include/MatrixN.h"
@@ -16,6 +21,9 @@
 
 namespace ram {
 namespace math {
+
+class SGolaySmoothingFilter;
+typedef boost::shared_ptr<SGolaySmoothingFilter> SGolaySmoothingFilterPtr;
 
 class SGolaySmoothingFilter
 {

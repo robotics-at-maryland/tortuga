@@ -165,7 +165,7 @@ void MediaControlPanel::updateTimeDisplay()
     
     if (FORMAT_LIVE == m_format)
     {
-        label =  wxString::Format(wxT("Live (%02d fps)"), m_model->fps());
+        label =  wxString::Format(wxT("Live (%02d fps)"), (int)m_model->fps());
     }
     else
     {

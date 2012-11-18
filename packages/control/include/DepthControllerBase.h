@@ -23,43 +23,29 @@
 namespace ram {
 namespace control {
 
-/** Class to make implementation of an IDepthController simpler
+/** class to make implementation of an IDepthController simpler
  *
  *  Makes implementing IDepthControllerImp much easier.
  */
-class RAM_EXPORT DepthControllerBase : public IDepthControllerImp
+class RAM_EXPORT DepthControllerBase : public IDepthControllerImp,
+                                       public core::EventPublisher
 {
-public:
+  public:
     DepthControllerBase(core::ConfigNode config);
     
     virtual ~DepthControllerBase() {}
 
-    /** Does housing keeping work, should be called first in every override
-     *
-     *  When this method is overridden to implement your controller, call this
-     *  method first with the same arguments you are given.
-     */
-    virtual math::Vector3 depthUpdate(double timestep, double depth,
-                                      math::Quaternion orienation,
-                                      controltest::DesiredStatePtr desiredState);
-protected:
-    // /** When we are within this limit atDepth returns */
-    // double m_depthThreshold;
+    virtual math::Vector3 depthUpdate(
+        double timestep,
+        estimation::IStateEstimatorPtr estimator,
+        control::DesiredStatePtr desiredState);
 
-    /** Syncs asscess to the shared state */
+  protected:
+    /** syncs asscess to the shared state */
     core::ReadWriteMutex m_stateMutex;
-
-    /** The depth from the last update command */
-    // double m_currentDepth;
-
-    // math::Quaternion m_currentOrientation;
-
-    // bool m_atDepth;
-
-    // bool m_atOrientation;
-
- private:
-    /** Does all initialzation based on the configuration settings */
+    
+  private:
+    /** does all initialzation based on the configuration settings */
     void init(core::ConfigNode config);
 };
     

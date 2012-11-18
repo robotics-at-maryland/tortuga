@@ -39,39 +39,39 @@ void sigIntHandler(int signal) {
 }
 
 int main() {
-    // Assign signal handler
-    if (SIG_ERR == signal(SIGINT, sigIntHandler)) {
-	std::cout << "Error setting SIGINT signal" << std::endl;
-	exit(1);
-    }
+    // // Assign signal handler
+    // if (SIG_ERR == signal(SIGINT, sigIntHandler)) {
+	// std::cout << "Error setting SIGINT signal" << std::endl;
+	// exit(1);
+    // }
 
-    DVL dvl(ConfigNode::fromString(EMPTY_CFG));
+    // DVL dvl(ConfigNode::fromString(EMPTY_CFG));
 
-    AveragingFilter<double, POINT_COUNT> vect1;
-    AveragingFilter<double, POINT_COUNT> vect2;
+    // AveragingFilter<double, POINT_COUNT> vect1;
+    // AveragingFilter<double, POINT_COUNT> vect2;
 
-    RawDVLData rawData;
-    dvl.background(5);
+    // RawDVLData rawData;
+    // dvl.background(5);
 
-    for (int i = 0; i < POINT_COUNT; ++i) {
-	dvl.getRawState(rawData);
-	Vector2 vector2(dvl.getVelocity());
+    // for (int i = 0; i < POINT_COUNT; ++i) {
+	// dvl.getRawState(rawData);
+	// Vector2 vector2(dvl.getVelocity());
 
-	std::cout << vector2.x << " " << vector2.y << " "
-		  << rawData.valid << " "
-		  << rawData.bt_velocity[0] << " "
-		  << rawData.bt_velocity[1] << " "
-		  << rawData.bt_velocity[2] << " "
-		  << rawData.bt_velocity[3] << std::endl;
+	// std::cout << vector2.x << " " << vector2.y << " "
+	// 	  << rawData.valid << " "
+	// 	  << rawData.bt_velocity[0] << " "
+	// 	  << rawData.bt_velocity[1] << " "
+	// 	  << rawData.bt_velocity[2] << " "
+	// 	  << rawData.bt_velocity[3] << std::endl;
 
-	if (!RUNNING)
-	    break;
+	// if (!RUNNING)
+	//     break;
 
-	usleep(MS_SLEEP_TIME * 1000);
-    }
+	// usleep(MS_SLEEP_TIME * 1000);
+    // }
 
-    std::cout << "Averaged Vector2: [" << vect1.getValue() << ", "
-	      << vect2.getValue() << "]" << std::endl;
+    // std::cout << "Averaged Vector2: [" << vect1.getValue() << ", "
+	//       << vect2.getValue() << "]" << std::endl;
 
-    return 0;
+    // return 0;
 }

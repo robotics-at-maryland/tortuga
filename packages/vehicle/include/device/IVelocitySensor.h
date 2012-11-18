@@ -34,11 +34,9 @@ public:
     static const core::Event::EventType UPDATE;
     static const core::Event::EventType RAW_UPDATE;
     static const core::Event::EventType INIT;
-    
-    virtual ~IVelocitySensor();
+    static const core::Event::EventType RAW_RANGE_UPDATE;
 
-    /** The current velocity the sensor is reading in meters/second */
-    virtual math::Vector2 getVelocity() = 0;
+    virtual ~IVelocitySensor();
 
     /** The location of the velocity sensor on the vehicle */
     virtual math::Vector3 getLocation() = 0;

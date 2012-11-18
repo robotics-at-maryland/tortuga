@@ -81,6 +81,8 @@ def main(args = None):
                       help = 'Location of Python-Ogre install')
     parser.add_option('-g', '--gui', dest = 'useGUI', action='store_true',
                       help = 'Turn on graphical interface')
+    parser.add_option('-n', '--nogui', dest = 'useGUI', action='store_false',
+                      help = 'Turn off graphical interface')
     
     # Set defaults for configuration options
     defaultConfigPath = os.path.abspath(os.path.join(os.environ['RAM_SVN_DIR'], 
@@ -92,7 +94,7 @@ def main(args = None):
     
     parser.set_defaults(configPath = defaultConfigPath,
                         pythonOgreHome = defaultPythonOgreHome,
-                        useGUI = False)
+                        useGUI = True)
 
     # Parse arguments, (help requests quit program here)
     options, args = parser.parse_args()

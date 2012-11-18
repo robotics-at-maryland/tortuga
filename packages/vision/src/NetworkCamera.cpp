@@ -78,22 +78,32 @@ void NetworkCamera::update(double timestep)
     // read in the image data
     try {
         size_t packetSize;
-        boost::asio::read(socket, boost::asio::buffer(
-                              &packetSize, sizeof(size_t)));
+        size_t width, height;
+        Image::PixelFormat fmt;
 
-        std::vector<unsigned char> buf(packetSize);
+        boost::asio::read(socket, boost::asio::buffer(&packetSize, sizeof(size_t)));
+        boost::asio::read(socket, boost::asio::buffer(&width, sizeof(size_t)));
+        boost::asio::read(socket, boost::asio::buffer(&height, sizeof(size_t)));
+        boost::asio::read(socket, boost::asio::buffer(&fmt, sizeof(Image::PixelFormat)));
+
+        std::vector<unsigned char> data(packetSize);
         size_t len = boost::asio::read(
-            socket, boost::asio::buffer(buf), boost::asio::transfer_all());
+            socket, boost::asio::buffer(data), boost::asio::transfer_all());
         if (len != packetSize) {
             std::cout << "incorrect number of bytes received!" << std::endl;
             return;
         }
 
-        cv::Mat mat = cv::imdecode(cv::Mat(buf), 1);
-        IplImage img = (IplImage) mat;
-        OpenCVImage newImage(&img, false);
+        unsigned char *imgData = new unsigned char[packetSize];
+        
+        for(size_t i = 0; i < packetSize; i++)
+        {
+            imgData[i] = data[i];
+        }
 
+        OpenCVImage newImage(imgData, width, height, true, fmt);
         capturedImage(&newImage);
+
     } catch (boost::system::system_error &error) {
         // bad error (don't want to crash though, so don't rethrow)
         std::cout << error.what() << std::endl;

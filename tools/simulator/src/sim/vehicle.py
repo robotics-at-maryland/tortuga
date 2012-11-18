@@ -253,7 +253,6 @@ class SimThruster(SimDevice, device.IThruster):
         simDevice = vehicle.getDevice('SimulationDevice')
         robot = simDevice.robot        
         self._simThruster = getattr(robot.parts, config['simName'])
-        self._relAxis = config['relAxis']
         self._enabled = True
                 
     @property
@@ -285,12 +284,20 @@ class SimThruster(SimDevice, device.IThruster):
                 
     def setEnabled(self, state):
         self._enabled = state
+        self.publish({ True : device.IThruster.ENABLED,
+                       False : device.IThruster.DISABLED }[self._enabled],
+                     core.Event())
     
     def isEnabled(self):
         return self._enabled
-    
-    def getOffset(self):
-        return pmath.fabs(getattr(self.relativePosition, self._relAxis))
+
+    def getLocation(self):
+        return self.relativePosition
+
+    def getDirection(self):
+        print self._name, ': ', self.forceDirection
+        return self.forceDirection
+
     
 device.IDeviceMaker.registerDevice('SimThruster', SimThruster)
 
@@ -314,6 +321,26 @@ class SimPayloadSet(SimDevice, device.IPayloadSet):
         return self._count
     
     def releaseObject(self):
+        if self._count != 0:
+            
+            event = core.Event()
+            self.publish(device.IPayloadSet.OBJECT_RELEASED, event)
+            
+            # Bail out early if there is no scene
+            if self._scene is None:
+                self._count -= 1
+                return
+            
+            if self._payload == 'marker':
+                self._spawnMarker()
+            elif self._payload == 'torpedo':
+                self._spawnTorpedo()
+            elif self._payload == 'grabber':
+                self._spawnCube()
+            
+            self._count -= 1
+
+    def releaseObjectIndex(self, index):
         if self._count != 0:
             
             event = core.Event()

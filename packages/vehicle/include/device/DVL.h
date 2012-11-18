@@ -20,11 +20,11 @@
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/ConfigNode.h"
-#include "core/include/AveragingFilter.h"
 
 #include "math/include/Vector2.h"
 #include "math/include/Vector3.h"
 #include "math/include/Matrix2.h"
+#include "math/include/Math.h"
 
 // Forward declare structure from dvlapi.h
 struct _RawDVLData;
@@ -36,9 +36,6 @@ namespace device {
 
 class DVL;
 typedef boost::shared_ptr<DVL> DVLPtr;
-
-// Consult with Joe for how big he wants this filter
-const static int DVL_FILTER_SIZE = 10;
 
 class DVL : public IVelocitySensor,
             public Device, // for getName
@@ -54,8 +51,6 @@ public:
 
     virtual ~DVL();
     
-    virtual math::Vector2 getVelocity();
-
     virtual math::Vector3 getLocation();
 
     /** Grabs the raw DVL state */
@@ -105,18 +100,12 @@ private:
     /** DVL number for the log file */
     int m_dvlNum;
     
-    /** Protects access to public state */
-    core::ReadWriteMutex m_velocityMutex;
-    math::Vector2 m_velocity;
-
     /** sensor location **/
     math::Vector3 m_location;
 
-    /** rotation matrix from transducer frame to body frame */
-    math::Matrix2 bRt;
-
     /** Protects access to raw state */
     core::ReadWriteMutex m_stateMutex;
+
     /** The raw data read back from the DVL */
     RawDVLData* m_rawState;
 

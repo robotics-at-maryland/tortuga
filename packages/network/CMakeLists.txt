@@ -1,15 +1,15 @@
 file(GLOB HEADERS "include/*.h")
 file(GLOB SOURCES "src/*.cpp")
 list(REMOVE_ITEM SOURCES
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkAdapter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/AdapterMaker.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/NetworkAdapter.cpp"
   )
 
 set(LINK_LIBS
   pthread
   ${Boost_THREAD_LIBRARY}
   ram_core
-  ram_control
+  ram_math
   #${ZeroCIceCore_LIBRARY}
   #${ZeroCIceUtil_LIBRARY}
   )
@@ -23,7 +23,7 @@ if (RAM_WITH_NETWORK)
   #slice( network )
 
   # Include the generated headers from slice
-  include_directories(${CMAKE_CURRENT_BINARY_DIR}/slice)
+  #include_directories(${CMAKE_CURRENT_BINARY_DIR}/slice)
   add_library(ram_network SHARED ${SOURCES} ${HEADERS} ${network_SLICE_SOURCES})
   target_link_libraries(ram_network ${LINK_LIBS})
   set_target_properties(ram_network PROPERTIES

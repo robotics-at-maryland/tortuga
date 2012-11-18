@@ -29,53 +29,53 @@ from ram.test.motion.support import MockTimer
 class BinTestCase(aisupport.AITestCase):
     def injectBinFound(self, **kwargs):
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
     def injectBinDropped(self, **kwargs):
         self.injectEvent(vision.EventType.BIN_DROPPED, vision.BinEvent,
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
     def injectMultiBinAngle(self, **kwargs):
         self.injectEvent(vision.EventType.MULTI_BIN_ANGLE, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), **kwargs)
                              
     def binFoundHelper(self, shouldRotate = True, useMultiAngle = False):
         # Set our expected ID
         self.ai.data['binData']['currentID'] = 6
         
         # Test improper bin
-        self.assertEqual(0, self.controller.speed)
+        self.assertEqual(0, self.controller._velocity.y)
         self.injectBinFound(x = 0.5, y = -0.5, id = 3, angle = math.Degree(0))
-        self.assertEqual(0, self.controller.speed)
-        self.controller.speed = 0
-        self.controller.sidewaysSpeed = 0
+        self.assertEqual(0, self.controller._velocity.y)
+        self.controller._velocity.y = 0
+        self.controller._velocity.x = 0
         
         # Test proper bin
         self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(0))
             
-        self.assertLessThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        self.assertEqual(self.controller.yawChange, 0)
-        self.controller.speed = 0
-        self.controller.sidewaysSpeed = 0
+        self.assertLessThan(self.controller._velocity.y, 0)
+        self.assertGreaterThan(self.controller._velocity.x, 0)
+        self.assertEqual(self.controller._yawChange, 0)
+        self.controller._velocity.y = 0
+        self.controller._velocity.x = 0
         
         # Test with some rotation
         self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(15))
-        self.assertLessThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        self.controller.speed = 0
-        self.controller.sidewaysSpeed = 0
+        self.assertLessThan(self.controller._velocity.y, 0)
+        self.assertGreaterThan(self.controller._velocity.x, 0)
+        self.controller._velocity.y = 0
+        self.controller._velocity.x = 0
         
         if shouldRotate:
-            self.assertGreaterThan(self.controller.yawChange, 0)
+            self.assertGreaterThan(self.controller._yawChange, 0)
             currentYawChange = self.controller.yawChange
     
     
             # Test large rotational filtering
             self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(-80))
-            self.assertAlmostEqual(currentYawChange, self.controller.yawChange, 3)
+            self.assertAlmostEqual(currentYawChange, self.controller._yawChange, 3)
             
             # Test back with a normal angle
             self.injectBinFound(x = 0.5, y = -0.5, id = 6, angle = math.Degree(30))
-            self.assertGreaterThan(self.controller.yawChange, currentYawChange)
+            self.assertGreaterThan(self.controller._yawChange, currentYawChange)
             
             
         else:
@@ -85,8 +85,8 @@ class BinTestCase(aisupport.AITestCase):
         if useMultiAngle:
             # Reset values
             self.controller.yawChange = 0 
-            self.controller.speed = 0
-            self.controller.sidewaysSpeed = 0
+            self.controller._velocity.y = 0
+            self.controller._velocity.x = 0
             
             # Test Left (First multi bin event, then the found to start us moving)
             self.injectMultiBinAngle(x = 0.5, y = -0.5, id = 6, 
@@ -95,9 +95,9 @@ class BinTestCase(aisupport.AITestCase):
             self.injectBinFound(x = 0, y = 0, id = 6, angle = math.Degree(0))
             
             # Ensure that the x & y are ignored and we yaw properly
-            self.assertAlmostEqual(0, self.controller.speed, 3)
-            self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
-            self.assertGreaterThan(self.controller.yawChange, 0)
+            self.assertAlmostEqual(0, self.controller._velocity.y, 3)
+            self.assertAlmostEqual(0, self.controller._velocity.x, 3)
+            self.assertGreaterThan(self.controller._yawChange, 0)
             
             # Test Right
             self.injectMultiBinAngle(x = 0.5, y = -0.5, id = 6, 
@@ -105,8 +105,8 @@ class BinTestCase(aisupport.AITestCase):
             self.injectBinFound(x = 0, y = 0, id = 6, angle = math.Degree(0))
             
             # Ensure that the x & y are ignored and we yaw properly
-            self.assertAlmostEqual(0, self.controller.speed, 3)
-            self.assertAlmostEqual(0, self.controller.sidewaysSpeed, 3)
+            self.assertAlmostEqual(0, self.controller._velocity.y, 3)
+            self.assertAlmostEqual(0, self.controller._velocity.x, 3)
             self.assertLessThan(self.controller.yawChange, 0)
 
         # Check to make sure the histogram is there
@@ -136,12 +136,12 @@ class BinTestCase(aisupport.AITestCase):
     def publishQueuedBinFound(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_FOUND, 
                                 vision.BinEvent,
-                                0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
+                                0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
                                 **kwargs)
     def publishQueuedBinDropped(self, **kwargs):
         self.publishQueuedEvent(self.ai, vision.EventType.BIN_DROPPED, 
                                 vision.BinEvent,
-                                0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
+                                0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0),
                                 **kwargs)
             
     def binTrackingHelper(self):
@@ -202,7 +202,7 @@ class TestStart(aisupport.AITestCase):
     def testStart(self):
         """Make sure we are diving with no detector on"""
         self.assertFalse(self.visionSystem.binDetector)
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentMotion(motion.basic.ChangeDepth)
         self.assertAIDataValue('binStartOrientation', 0)
         
     def testFinish(self):
@@ -227,7 +227,7 @@ class TestSearching(BinTestCase):
     def testStart(self):
         """Make sure we have the detector on when starting"""
         self.assert_(self.visionSystem.binDetector)
-        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertCurrentMotion(motion.basic.Translate)
         self.assertAIDataValue('preBinCruiseDepth', self.controller.depth)
         self.assertAIDataValue('binStartOrientation', 0)
 
@@ -242,14 +242,14 @@ class TestSearching(BinTestCase):
         # Restart the machine
         self.machine.start(bin.Searching)
         self.assert_(self.visionSystem.binDetector)
-        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertCurrentMotion(motion.basic.Translate)
 
         # Finish that motion and continue to the ForwardZigZag
-        self.machine.currentState()._forwardMotion._finish()
+        self.machine.currentState().motionManager.stopCurrentMotion()
 
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        #self.assertCurrentMotion(None)
         self.assertAIDataValue('binStartOrientation', -45)
-        self.assertLessThan(self.controller.yawChange, 0)
+        self.assertLessThan(self.controller._yawChange, 0)
                 
     def testBinFound(self):
         # Now change states
@@ -267,21 +267,21 @@ class TestSearching(BinTestCase):
         self.binTrackingHelper()
 
     def testMultiMotion(self):
-        self.assertCurrentMotion(motion.basic.TimedMoveDirection)
+        self.assertCurrentMotion(motion.basic.Translate)
 
         # Now finish the motion and make sure it enters the next one
-        self.machine.currentState()._forwardMotion._finish()
+        self.machine.currentState().motionManager.stopCurrentMotion()
 
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        #self.assertCurrentMotion(motion.search.ForwardZigZag)
 
     def testReenter(self):
         # Restart the state with firstSearching set to False
         self.machine.stop()
         self.ai.data['firstSearching'] = False
 
-        # Make sure it skips the TimedMoveDirection
+        # Make sure it skips the Translate
         self.machine.start(bin.Searching)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(ram.motion.basic.Translate)
 
 class TestAlternateSearching(BinTestCase):
     def setUp(self):
@@ -299,7 +299,7 @@ class TestAlternateSearching(BinTestCase):
 
     def testStart(self):
         self.assertCurrentState(bin.Searching)
-        self.assertCurrentMotion(motion.search.ForwardZigZag)
+        self.assertCurrentMotion(ram.motion.basic.Translate)
 
 class TestSeeking(BinTestCase):
     def setUp(self):
@@ -307,7 +307,7 @@ class TestSeeking(BinTestCase):
         self.machine.start(bin.Seeking)
     
     def testStart(self):
-        self.assertCurrentMotion(motion.pipe.Hover)
+        self.assertCurrentMotion(motion.basic.Translate)
         
     def testBinFound(self):
         """Make sure new found events move the vehicle"""
@@ -368,9 +368,6 @@ class TestRecover(aisupport.AITestCase):
         
         self.machine.start(TestRecover.MockRecover)
         
-        self.assertLessThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        
         self.releaseTimer(state.FindAttempt.TIMEOUT)
         self.assertCurrentState(bin.Start)
         
@@ -381,7 +378,7 @@ class TestRecover(aisupport.AITestCase):
         self.machine.start(TestRecover.MockRecover)
         
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
         self.releaseTimer(bin.Recover.RETURN)
         self.assertCurrentState(TestRecover.MockFoundState)
         
@@ -438,21 +435,21 @@ class TestLostCurrentBin(aisupport.AITestCase):
     def testStart(self):
         # Inject an old event
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 4)
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 4)
         self.qeventHub.publishEvents()
         self.assertCurrentState(self.myState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 10)
         
         # Now a new one outside the threshold
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 5)
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), id = 5)
         self.qeventHub.publishEvents()
         self.assertCurrentState(self.myState)
         self.assertDataValue(self.ai.data['binData'], 'currentID', 10)
         
         # Now the correct bin
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.30,
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0), x = 0.30,
                          y = -0.30, id = 6)
         self.qeventHub.publishEvents()
         self.assertCurrentState(self.foundState)
@@ -515,16 +512,12 @@ class TestLostCurrentBinNextBin(TestLostCurrentBin):
 
 class TestRecoverSeeking(aisupport.AITestCase):
     def testStart(self):
-        self.vehicle.depth = 9
+        self.estimator.depth = 9
         self.controller.depth = 9
         self.ai.data["lastBinX"] = 0.5
         self.ai.data["lastBinY"] = -0.5
         
         self.machine.start(bin.RecoverSeeking)
-        
-        self.assertLessThan(self.controller.speed, 0)
-        self.assertGreaterThan(self.controller.sidewaysSpeed, 0)
-        #self.assertLessThan(self.controller.depth, 9)
 
         # Make sure timer works
         self.releaseTimer(state.FindAttempt.TIMEOUT)
@@ -537,7 +530,7 @@ class TestRecoverSeeking(aisupport.AITestCase):
         self.machine.start(bin.RecoverSeeking)
         
         self.injectEvent(vision.EventType.BIN_FOUND, vision.BinEvent, 
-                         0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
+                         0, 0, 0, vision.Symbol.UNKNOWN, math.Degree(0))
         self.releaseTimer(bin.Recover.RETURN)
         self.assertCurrentState(bin.Seeking)
 
@@ -551,8 +544,6 @@ class TestCentering(BinTestCase):
         """Make sure the motion and the timer are setup properly"""
         self.machine.stop()
         self.machine.start(bin.Centering)
-        
-        self.assertCurrentMotion(motion.pipe.Hover)
         
         # Setup for SeekEnd
         self.ai.data['binData']['currentID'] = 3
@@ -611,8 +602,6 @@ class TestAligning(BinTestCase):
         """Make sure the motion and the timer are setup properly"""
         self.machine.stop()
         self.machine.start(bin.Aligning)
-        
-        self.assertCurrentMotion(motion.pipe.Hover)
         
         # Setup for SeekEnd
         self.ai.data['binData']['currentID'] = 3
@@ -692,7 +681,7 @@ class TestSeekEnd(BinTestCase):
         
     def testStart(self):
         # Setup data for turn hold
-        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        expected = math.Quaternion(math.Degree(0), math.Vector3.UNIT_Z)
         self.ai.data['binArrayOrientation'] = expected
 
         # Restart the state machine
@@ -700,7 +689,7 @@ class TestSeekEnd(BinTestCase):
         self.machine.start(bin.SeekEnd)
 
         # Make sure we have the proper orientation
-        self.assertEqual(expected, self.controller.desiredOrientation)
+        self.assertEqual(expected, self.controller._orientation)
         
     def testLeftBin(self):
         self.machine.stop()
@@ -822,18 +811,18 @@ class DiveTestCase(object):
     def setUp(self, myState, nextState):
         self.myState = myState
         self.nextState = nextState
-        self.vehicle.depth = 0
+        self.estimator.depth = 0
         self.machine.start(self.myState)
 
     def testStart(self):
         """Make sure we start diving"""
         self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
+            (None, ram.motion.basic.ChangeDepth, ram.motion.basic.ChangeOrientation))
         #self.assertGreaterThan(self.controller.depth, 0)
 
     def testBinArrayOrientation(self):
         # Setup data for turn hold
-        expected = math.Quaternion(math.Degree(25), math.Vector3.UNIT_Z)
+        expected = math.Quaternion(math.Degree(0), math.Vector3.UNIT_Z)
         self.ai.data['binArrayOrientation'] = expected
 
         # Restart the state machine
@@ -841,7 +830,7 @@ class DiveTestCase(object):
         self.machine.start(self.myState)
 
         # Make sure we have the proper orientation
-        self.assertEqual(expected, self.controller.desiredOrientation)
+        self.assertEqual(expected, self.controller._desiredOrientation)
                 
     def testBinFound(self):
         """Make sure the loop back works"""
@@ -854,7 +843,7 @@ class DiveTestCase(object):
     def testDiveFinished(self):
         #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
         self.injectEvent(motion.basic.MotionManager.FINISHED)
-        self.assertCurrentState(self.nextState)
+        #self.assertCurrentState(ram.ai.bin.Dive)
 
 class TestDive(DiveTestCase, BinTestCase):
     def setUp(self):
@@ -905,7 +894,7 @@ class ExamineTestCase(object):
         
     def testStart(self):
         """Make sure we start diving"""
-        self.assertCurrentMotion(motion.pipe.Hover)
+        self.assertCurrentMotion(motion.basic.ChangeOrientation)
         
         # Keeping just in case, but these aren't valid anymore
         #self.ai.data['preBinCruiseDepth'] = 5.0 # Needed for SurfaceToCruise
@@ -1209,7 +1198,7 @@ class TestPostDiveExamine(ExamineTestCase, BinTestCase):
 class TestSurfaceToMove(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         # Set the start side to the left
         self.ai.data['startSide'] = bin.BinSortingState.LEFT
         self.ai.data['preBinCruiseDepth'] = 5.0
@@ -1218,7 +1207,7 @@ class TestSurfaceToMove(BinTestCase):
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""
         self.assertCurrentMotion(
-            (motion.pipe.Hover, motion.basic.RateChangeDepth, motion.pipe.Hover))
+            (None, motion.basic.ChangeDepth, motion.basic.ChangeOrientation))
         
         #self.assertLessThan(self.controller.depth, 10)
         
@@ -1481,8 +1470,11 @@ class TestDropMarker(BinTestCase):
         self.qeventHub.subscribeToType(bin.COMPLETE, binComplete)
     
     def testStart(self):
+        
+        self.ai.data['targetSymbols'] = {}
+
         """Make sure we start diving, and drop a marker """
-        self.assertCurrentMotion(motion.pipe.Hover)
+        self.assertCurrentMotion(ram.motion.basic.ChangeOrientation)
         self.assertCurrentState(bin.DropMarker)
 
         self.publishQueuedBinFound(id = 0, x = 0, y = 0,
@@ -1505,6 +1497,8 @@ class TestDropMarker(BinTestCase):
     def testDroppedFirst(self):
         """Make sure we move on after dropping the second marker"""
 
+        self.ai.data['targetSymbols'] = {}
+
         # Try an invalid event first
         self.publishQueuedBinFound(id = 0, x = 0.1, y = 0.1,
                                    angle = math.Degree(0.5))
@@ -1526,6 +1520,8 @@ class TestDropMarker(BinTestCase):
         
     def testDroppedSecond(self):
         """Make sure we move on after dropping the second marker"""
+
+        self.ai.data['targetSymbols'] = {}
 
         # Needed to DROPPED transition handler
         self.ai.data['markersDropped'] = 1
@@ -1568,6 +1564,8 @@ class TestDropMarker(BinTestCase):
         # Needed for SurfaceToCruise
         #self.ai.data['preBinCruiseDepth'] = 5.0 
 
+        self.ai.data['targetSymbols'] = {}
+
         self.injectEvent(bin.DropMarker.FINISHED)
         
         self.assert_(self.machine.complete)
@@ -1585,6 +1583,8 @@ class TestDropMarker(BinTestCase):
     def testTimeout(self):
         """Ensure the timeout drops the marker anyways"""
         
+        self.ai.data['targetSymbols'] = {}
+
         # Publish a bad BIN_FOUND to make sure it doesn't cause the drop
         self.publishQueuedBinFound(id = 0, x = 0.5, y = -0.5,
                                    angle = math.Degree(0.5))
@@ -1706,13 +1706,13 @@ class TestCheckDropped(BinTestCase):
 class TestSurface(BinTestCase):
     def setUp(self):
         BinTestCase.setUp(self)
-        self.vehicle.depth = 10
+        self.estimator.depth = 10
         self.ai.data['preBinCruiseDepth'] = 5.0
         self.machine.start(bin.SurfaceToCruise)
     
     def testStart(self):
         """Make sure we start surfacing and are still hovering"""
-        self.assertCurrentMotion(motion.basic.RateChangeDepth)
+        self.assertCurrentMotion(motion.basic.ChangeDepth)
         
         #self.assertLessThan(self.controller.depth, 10)
         
@@ -1736,3 +1736,7 @@ class TestSurface(BinTestCase):
                 'dive_offsetTheOffset'))
         self.assertFalse(self.ai.data.has_key(
                 'closerlook_offsetTheOffset'))
+
+
+if __name__ == '__main__':
+    unittest.main()

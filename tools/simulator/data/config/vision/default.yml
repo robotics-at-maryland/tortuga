@@ -54,5 +54,5 @@ BuoyDetector:
 
 BinDetector:
 #    logSymbolImages: true
-    symbolDetector: BasicWeaponDetector
+    symbolDetector: BasicLetterDetector
 
