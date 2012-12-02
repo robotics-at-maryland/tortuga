@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/pattern/include/Maker.h
+ * File:  packages/core/include/Maker.h
  */
 
-#ifndef RAM_PATTERN_MAKER_H_10_06_2007
-#define RAM_PATTERN_MAKER_H_10_06_2007
+#ifndef RAM_CORE_MAKER_H_10_06_2007
+#define RAM_CORE_MAKER_H_10_06_2007
 
 // STD Includes
 #include <map>
@@ -39,7 +39,7 @@
 */
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 /** Default MakerLookup policy.  Returns first maker which maps to the given key.
  */
@@ -216,7 +216,7 @@ static NumberMaker::MakerMap* getRegistry();
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram
 
 
@@ -261,7 +261,7 @@ static MakerType::MakerMap* getRegistry();
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram
      *  @endcode
      */
@@ -362,7 +362,7 @@ public:
     }
 };
 
-} // namespace pattern
+} // namespace core
 } // namespace ram
 
-#endif // RAM_PATTERN_MAKER_H_10_06_2007
+#endif // RAM_CORE_MAKER_H_10_06_2007

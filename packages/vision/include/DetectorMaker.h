@@ -13,7 +13,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
 
 // Must Be Included last
@@ -37,7 +37,7 @@ struct DetectorKeyExtractor
     }
 };
     
-typedef pattern::Maker<
+typedef core::Maker<
     DetectorPtr, // The type of object created by the maker
     DetectorMakerParamType,  // The parameter used to create the object
     std::string,            // The type of key used to register makers
@@ -46,7 +46,7 @@ DetectorMaker;
 
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT pattern::Maker<DetectorPtr,
+template class RAM_EXPORT core::Maker<DetectorPtr,
     DetectorMakerParamType,
     std::string,
     DetectorKeyExtractor>;

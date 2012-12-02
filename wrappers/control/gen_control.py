@@ -56,7 +56,6 @@ def generate(module_builder, local_ns, global_ns):
     wrap.registerSubsystemConverter(IController)
 
     wrap.add_needed_includes(classes)
-#    wrap.make_already_exposed(global_ns, 'ram::pattern', 'Subject')
     module_builder.add_registration_code("registerIControllerPtrs();")
 
     include_files = set([cls.location.file_name for cls in classes])

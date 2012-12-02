@@ -200,7 +200,7 @@ std::string CameraKeyExtractor::extractKey(CameraMakerParamType& params)
 #endif
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 vision::CameraMaker::MakerMap*
@@ -212,5 +212,5 @@ vision::CameraMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram

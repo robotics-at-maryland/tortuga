@@ -14,7 +14,7 @@
 #include <utility>
 
 // Project Includes
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 #include "core/include/Subsystem.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
 
@@ -39,7 +39,7 @@ struct SubsystemKeyExtractor
     }
 };
 
-typedef ram::pattern::Maker<SubsystemPtr, // The type of object created by the maker
+typedef ram::core::Maker<SubsystemPtr, // The type of object created by the maker
               SubsystemMakerParamType,  // The parameter used to create the object
               std::string,        // The type of key used to register makers
               SubsystemKeyExtractor> // Gets the key from the paramters
@@ -47,10 +47,10 @@ SubsystemMaker;
     
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT ram::pattern::Maker<SubsystemPtr, 
-                                              SubsystemMakerParamType,  
-                                              std::string,        
-                                              SubsystemKeyExtractor>;
+template class RAM_EXPORT ram::core::Maker<SubsystemPtr, 
+                                           SubsystemMakerParamType,  
+                                           std::string,        
+                                           SubsystemKeyExtractor>;
 #endif
 
 

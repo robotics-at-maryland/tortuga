@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/pattern/test/src/TestMaker.cxx
+ * File:  packages/core/test/src/TestMaker.cxx
  */
 
 // STD Includes
@@ -15,8 +15,8 @@
 #include <boost/assign/list_of.hpp>
 
 // Test Includes
-#include "pattern/include/Maker.h"
-#include "pattern/test/include/TestMaker.h"
+#include "core/include/Maker.h"
+#include "core/test/include/TestMaker.h"
 
 // Needed force creation of the static objects which register the makers
 IntMaker IntMaker::registerThis;
@@ -32,7 +32,7 @@ DoubleMakerVer2 DoubleMakerVer2::registerThis;
 
 // Needed to prevent ea chclient from have there own static registry
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 NumberMaker::MakerMap* NumberMaker::getRegistry()
@@ -42,7 +42,7 @@ NumberMaker::MakerMap* NumberMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram
 
 // See TestMaker.h for an example of how to create classes which use the maker
@@ -100,9 +100,4 @@ TEST(isKeyRegistered)
 {
     CHECK(NumberMaker::isKeyRegistered("Int"));
     CHECK(false == NumberMaker::isKeyRegistered("Bob"));
-}
-
-int main()
-{
-    return UnitTest::RunAllTests();
 }

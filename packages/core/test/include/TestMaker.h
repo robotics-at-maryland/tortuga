@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Joseph Lisee <jlisee@umd.edu>
- * File:  packages/pattern/test/include/TestMaker.h
+ * File:  packages/core/test/include/TestMaker.h
  */
 
-#ifndef RAM_PATTERN_TESTMAKER_H_08_10_2007
-#define RAM_PATTERN_TESTMAKER_H_08_10_2007
+#ifndef RAM_CORE_TESTMAKER_H_08_10_2007
+#define RAM_CORE_TESTMAKER_H_08_10_2007
 
 // STD Includes
 #include <sstream>
@@ -16,7 +16,7 @@
 #include <string>
 
 // Project Includes
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 
 // A simple example set of class we wish to make dynamically
 class Number
@@ -54,7 +54,7 @@ struct StreamKeyExtractor
 
 // A more verbose but simpler approach to using the pattern
 
-typedef ram::pattern::Maker<Number*, // The type of object created by the maker
+typedef ram::core::Maker<Number*, // The type of object created by the maker
               std::iostream&,     // The parameter used to create the object
               std::string,        // The type of key used to register makers
               StreamKeyExtractor> // Gets the key from the paramters
@@ -119,4 +119,4 @@ class IntMakerVer2 : public NumberMakerTemplate<int, Int>
     IntMakerVer2() : NumberMakerTemplate<int, Int>("IntVer2") {};
 };
 
-#endif // RAM_PATTERN_TESTMAKER_H_08_10_2007
+#endif // RAM_CORE_TESTMAKER_H_08_10_2007
