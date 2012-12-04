@@ -18,7 +18,7 @@
 #include "control/include/ITranslationalController.h"
 #include "control/include/Common.h"
 
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 
 #include "core/include/ConfigNodeKeyExtractor.h"
 
@@ -65,7 +65,7 @@ struct ControllerImpMakerTemplate : public MakerType
 //              D E P T H   C O N T R O L L E R   M A K E R                  //
 // ------------------------------------------------------------------------- //
     
-typedef pattern::Maker<
+typedef core::Maker<
     IDepthControllerImpPtr,   // The type of object created by the maker
     ControllerMakerParamType, // The parameter used to create the object
     std::string,              // The type of key used to register makers
@@ -75,8 +75,8 @@ DepthControllerImpMaker;
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
 template class RAM_EXPORT
-pattern::Maker< IDepthControllerImpPtr, ControllerMakerParamType, std::string,
-                ControllerKeyExtractor>   
+core::Maker< IDepthControllerImpPtr, ControllerMakerParamType, std::string,
+             ControllerKeyExtractor>   
 #endif
 
 template<class ControllerType>
@@ -92,7 +92,7 @@ struct DepthControllerImpMakerTemplate :
 //       T R A N S L A T I O N A L   C O N T R O L L E R   M A K E R         //
 // ------------------------------------------------------------------------- //
 
-typedef pattern::Maker<
+typedef core::Maker<
     ITranslationalControllerImpPtr, // The type of object created by the maker
     ControllerMakerParamType,       // The parameter used to create the object
     std::string,                    // The type of key used to register makers
@@ -102,8 +102,8 @@ TranslationalControllerImpMaker;
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
 template class RAM_EXPORT
-pattern::Maker< ITranslationalControllerImpPtr,
-                ControllerMakerParamType, std::string, ControllerKeyExtractor>
+core::Maker< ITranslationalControllerImpPtr,
+             ControllerMakerParamType, std::string, ControllerKeyExtractor>
 #endif
 
 template<class ControllerType>
@@ -121,7 +121,7 @@ struct TranslationalControllerImpMakerTemplate :
 //          R O T A T I O N A L   C O N T R O L L E R   M A K E R            //
 // ------------------------------------------------------------------------- //
 
-typedef pattern::Maker<
+typedef core::Maker<
     IRotationalControllerImpPtr, // The type of object created by the maker
     ControllerMakerParamType,    // The parameter used to create the object
     std::string,                 // The type of key used to register makers
@@ -131,8 +131,8 @@ RotationalControllerImpMaker;
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
 template class RAM_EXPORT
-pattern::Maker< IRotationalControllerImpPtr,
-                ControllerMakerParamType, std::string, ControllerKeyExtractor>
+core::Maker< IRotationalControllerImpPtr,
+             ControllerMakerParamType, std::string, ControllerKeyExtractor>
 #endif
 
 template<class ControllerType>

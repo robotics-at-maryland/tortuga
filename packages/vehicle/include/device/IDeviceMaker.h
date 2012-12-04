@@ -17,7 +17,7 @@
 #include "vehicle/include/Common.h"
 #include "vehicle/include/device/Common.h"
 #include "vehicle/include/device/IDevice.h"
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
         
 // Must Be Included last
@@ -43,7 +43,7 @@ struct IDeviceKeyExtractor
     }
 };
     
-typedef pattern::Maker<IDevicePtr, // The type of object created by the maker
+typedef core::Maker<IDevicePtr, // The type of object created by the maker
               IDeviceMakerParamType,  // The parameter used to create the object
               std::string,            // The type of key used to register makers
               IDeviceKeyExtractor> // Gets the key from the paramters
@@ -51,7 +51,7 @@ IDeviceMaker;
 
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT pattern::Maker<IDevicePtr,
+template class RAM_EXPORT core::Maker<IDevicePtr,
     IDeviceMakerParamType,
     std::string,
     IDeviceKeyExtractor>;

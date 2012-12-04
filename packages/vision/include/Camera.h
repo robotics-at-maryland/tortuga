@@ -11,8 +11,6 @@
 #define RAM_VISION_CAMERA_H_05_23_2007
 
 // Project Includes
-#include "pattern/include/Subject.h"
-
 #include "core/include/Updatable.h"
 #include "core/include/ReadWriteMutex.h"
 #include "core/include/CountDownLatch.h"

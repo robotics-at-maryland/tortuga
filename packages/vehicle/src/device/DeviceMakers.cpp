@@ -78,7 +78,7 @@ RAM_VEHILCE_REGISTER_IDEVICE_MAKER(ram::vehicle::device::VisionVelocitySensor,
 #endif
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 vehicle::device::IDeviceMaker::MakerMap*
@@ -90,5 +90,5 @@ vehicle::device::IDeviceMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram

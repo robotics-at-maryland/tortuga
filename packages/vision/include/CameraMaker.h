@@ -16,7 +16,7 @@
 // Project Includes
 #include "vision/include/Common.h"
 #include "vision/include/Camera.h"
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 #include "core/include/ConfigNodeKeyExtractor.h"
 #include "core/include/Common.h"
 
@@ -41,7 +41,7 @@ struct CameraKeyExtractor
     static std::string extractKey(CameraMakerParamType& params);
 };
     
-typedef pattern::Maker<
+typedef core::Maker<
     CameraPtr, // The type of object created by the maker
     CameraMakerParamType,  // The parameter used to create the object
     std::string,            // The type of key used to register makers
@@ -50,7 +50,7 @@ CameraMaker;
 
 // Needed to keep the linker/compiler happy
 #ifdef RAM_WINDOWS
-template class RAM_EXPORT pattern::Maker<CameraPtr,
+template class RAM_EXPORT core::Maker<CameraPtr,
     CameraMakerParamType,
     std::string,
     CameraKeyExtractor>;

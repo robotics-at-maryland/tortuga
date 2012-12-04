@@ -20,7 +20,6 @@ add_custom_command(
   )
 add_custom_target(feature_list ALL DEPENDS _feature_list.cache)
 
-subdirs(packages/pattern)
 subdirs(packages/drivers)
 subdirs(packages/core)
 subdirs(packages/math)

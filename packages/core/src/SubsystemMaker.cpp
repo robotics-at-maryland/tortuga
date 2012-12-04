@@ -18,7 +18,7 @@
 // This must be here so that there is only static registry, otherwise each
 // include of the SubsystemMaker.h header will result in a different registry
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 core::SubsystemMaker::MakerMap* core::SubsystemMaker::getRegistry()
@@ -29,5 +29,5 @@ core::SubsystemMaker::MakerMap* core::SubsystemMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram

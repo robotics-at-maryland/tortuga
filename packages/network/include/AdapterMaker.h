@@ -18,7 +18,7 @@
 
 // Project Includes
 #include "core/include/Subsystem.h"
-#include "pattern/include/Maker.h"
+#include "core/include/Maker.h"
 
 namespace ram {
 namespace network {
@@ -33,10 +33,10 @@ struct AdapterKeyExtractor
     }
 };
 
-typedef ram::pattern::Maker<Ice::ObjectPtr,
-                            AdapterMakerParamType,
-                            std::string,
-                            AdapterKeyExtractor> AdapterMaker;
+typedef ram::core::Maker<Ice::ObjectPtr,
+                         AdapterMakerParamType,
+                         std::string,
+                         AdapterKeyExtractor> AdapterMaker;
 
 template <class AdapterType>
 struct AdapterMakerTemplate : public AdapterMaker
