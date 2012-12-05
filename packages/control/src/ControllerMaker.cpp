@@ -27,7 +27,7 @@ namespace control {
 #endif
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 control::DepthControllerImpMaker::MakerMap*
@@ -59,5 +59,5 @@ control::RotationalControllerImpMaker::getRegistry()
     return reg;
 }
     
-} // namespace pattern
+} // namespace core
 } // namespace ram

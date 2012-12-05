@@ -3,7 +3,6 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 set(LINK_LIBS
   ram_core
-  ram_pattern
   ram_math
   )
 

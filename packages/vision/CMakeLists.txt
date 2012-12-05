@@ -2,7 +2,6 @@ file(GLOB HEADERS "include/*.h")
 file(GLOB SOURCES "src/*.cpp")
 
 set(LINK_LIBS
-  ram_pattern
   ram_core
   ram_math
   ${OpenCV_LIBS}

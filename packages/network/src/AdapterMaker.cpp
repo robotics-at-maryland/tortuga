@@ -11,7 +11,7 @@
 #include "network/include/AdapterMaker.h"
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 network::AdapterMaker::MakerMap* network::AdapterMaker::getRegistry()
@@ -21,5 +21,5 @@ network::AdapterMaker::MakerMap* network::AdapterMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram

@@ -114,7 +114,7 @@ registerNullDetector("NullDetector");
 #endif
 
 namespace ram {
-namespace pattern {
+namespace core {
 
 template<>
 vision::DetectorMaker::MakerMap*
@@ -126,5 +126,5 @@ vision::DetectorMaker::getRegistry()
     return reg;
 }
 
-} // namespace pattern
+} // namespace core
 } // namespace ram
