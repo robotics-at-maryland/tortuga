@@ -326,6 +326,203 @@ class Vector2CubicTrajectory(Trajectory):
         yCoord = scalar * self._changeInValueV[1] / self._changeInValueS
         return math.Vector2(xCoord,yCoord)
 
+class Vector2CubicDecoupledTrajectory(Trajectory):
+    """
+    This trajectory goes in a straight line between 2D points.
+    It has two continous derivatives. This is very similar to
+    the scalar cubic trajectory.  However this one will finish
+    at different times for each DOF, unlike the one above
+    This approach takes in times instead of velocity, because
+    you should only use this if you need one part of the motion
+    to finish before the other part
+    You MUST supply these, no default parameters will be specified
+    since you should be using the other trajectory if don't want
+    to do that
+    """
+    def __init__(self, initialValue, finalValue, initialTime = 0,
+                 initialRate = math.Vector2.ZERO, time1 = 0,time2 = 0):
+
+        # keep track of the arguments V - vector quantity, S - scalar quantity
+        self._initialValue = initialValue
+        self._finalValue = finalValue
+        self._changeInValueV = finalValue - initialValue
+        self._changeInValueS = self._changeInValueV.length()
+
+        self._initialRate = initialRate
+        self._finalRate = math.Vector2.ZERO
+        self._changeInRateV = self._finalRate - self._initialRate
+        self._changeInRateS = self._changeInRateV.length()
+        
+        self._initialTime = initialTime
+        if initialTime == 0:
+            self._relative = True
+
+        # compute the final time
+        self._timePeriod1 = time1
+        self._timePeriod2 = time2
+        if time1>time2:
+            self._timePeriod = time1
+        else:
+            self._timePeriod = time2
+        self._finalTime = self._initialTime + self._timePeriod
+
+        if initialValue == finalValue:
+            self._maxRate = math.Vector2.ZERO
+            self._coefficients1 = numpy.array([0, 0, 0, 0, 0])
+            self._coefficients2 = numpy.array([0, 0, 0, 0, 0])
+
+
+        else:
+            # we solve for the polynomial starting at time 0 to avoid
+            # numerical problems that could occur if we use the given
+            # initial time.
+            ti = 0
+            tf1 = self._timePeriod1
+            tf2 = self._timePeriod2
+            
+            # compute matrix A and vector b for equation Ax = b
+            #for first trajectory
+            ti_p21 = ti ** 2
+            ti_p31 = ti ** 3
+            
+            tf_p21 = tf1 ** 2
+            tf_p31 = tf1 ** 3
+            #for second trajectory
+            ti_p22 = ti ** 2
+            ti_p32 = ti ** 3
+            
+            tf_p22 = tf2 ** 2
+            tf_p32 = tf2 ** 3
+
+            
+            #first trajectory
+
+            A1 = numpy.array([[1, ti, ti_p21,  ti_p31    ],
+                             [1, tf1, tf_p21,  tf_p31    ],
+                             [0, 1,  2 * ti, 3 * ti_p21],
+                             [0, 1,  2 * tf1, 3 * tf_p21]])
+            
+            b1 = numpy.array([0, self._changeInValueV[0], 0, self._changeInRateV[0]])
+            
+            x = numpy.linalg.solve(A1,b1)
+            self._coefficients1 = x
+            #second trajectory
+            # solve for coefficient vector x
+
+
+            A2 = numpy.array([[1, ti, ti_p22,  ti_p32    ],
+                             [1, tf2, tf_p22,  tf_p32    ],
+                             [0, 1,  2 * ti, 3 * ti_p22],
+                             [0, 1,  2 * tf2, 3 * tf_p22]])
+            
+            b2 = numpy.array([0, self._changeInValueV[1], 0, self._changeInRateV[1]])
+            
+            # solve for coefficient vector x
+            x = numpy.linalg.solve(A2,b2)
+            self._coefficients2 = x
+            
+            self._maxRate = math.Vector2.ZERO # TODO
+
+
+    def computeValue(self, time):
+        # compute the time from the beginning of the trajectory
+        # because we have constructed the trajectory starting at time 0
+        ts = time - self._initialTime
+        if ts < 0:
+            return self._initialValue
+
+        else:
+            if ts >= self._timePeriod1:
+                o1 = self._finalValue[0]
+            else:
+                c1 = self._coefficients1
+                a0 = c1[0] + ts * (c1[1] + ts * (c1[2] + ts * c1[3]))
+                v0 = a0 + self._initialValue[0]
+                o1 = v0
+            if ts >= self._timePeriod2:
+                o2 = self._finalValue[1]
+            else:
+                c2 = self._coefficients2
+                a1 = c2[0] + ts * (c2[1] + ts * (c2[2] + ts * c2[3]))
+                v1 = a1 + self._initialValue[1]
+                o2 = v1
+            return math.Vector2(o1,o2)
+
+    def computeDerivative(self, time, order):
+        # compute the time from the beginning of the trajectory
+        # because we have constructed the trajectory starting at time 0
+
+        # handle t < ti
+        if time < 0:
+            if order == 1:
+                return self._initialRate
+            elif order > 1:
+                return math.Vector2.ZERO
+            else:
+                return None
+
+        # handle t > tf
+        if time >= self._timePeriod:
+            if order == 1:
+                return self._finalRate
+            elif order > 1:
+                return math.Vector2.ZERO
+            else:
+                return None
+
+
+        # handle times during the computed trajector
+        #c = self._coefficients
+        v = (0,0)
+        if order < 1 :
+            return None
+        elif order == 1:
+            #rateScalar = c[1] + time * (2 * c[2] + time * 3 * c[3])
+            #v = self._projectOntoAxes(rateScalar)
+            #v0 = v[0] + self._initialRate[0]
+            #v1 = v[1] + self._initialRate[1]
+            c1 = self._coefficients1
+            c2 = self._coefficients2
+            a0 = c1[1] + time * (2*c1[2] + 3*time * c1[3])
+            a1 = c2[1] + time * (2*c2[2] + 3*time * c2[3])
+            v0 = a0 + self._initialValue[0]
+            v1 = a1 + self._initialValue[1]
+            return math.Vector2(v0, v1)
+        elif order == 2:
+            #rateScalar = 2 * c[2] + 6 * c[3] * time
+            #v = self._projectOntoAxes(rateScalar)
+            c1 = self._coefficients1
+            c2 = self._coefficients2
+            a0 = (2*c1[2] + 6*time * c1[3])
+            a1 = (2*c2[2] + 6*time * c2[3])
+            v = math.Vector2(a0,a1)
+            return v
+        elif order == 3:
+            c1 = self._coefficients1
+            c2 = self._coefficients2
+            rateScalar = 6 * c1[3], 6 * c2[3]
+            v = self._projectOntoAxes(rateScalar)
+            return v
+        else:
+            return math.Vector2.ZERO
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._finalTime
+
+    def getMaxOfDerivative(self, order):
+        return None
+
+    def isRelative(self):
+        return self._relative
+
+    def _projectOntoAxes(self, scalar):
+        xCoord = scalar * self._changeInValueV[0] / self._changeInValueS
+        yCoord = scalar * self._changeInValueV[1] / self._changeInValueS
+        return math.Vector2(xCoord,yCoord)
+
 class Vector2VelocityTrajectory(Trajectory):
     """
     Defines a constant velocity 2D trajectory
