@@ -4,6 +4,7 @@ import ext.core as core
 import ext.vision as vision
 import ext.math as math
 from ram.motion.basic import Frame
+from ext.control import yawVehicleHelper
 
 
 DONE = core.declareEventType('DONE')
@@ -31,6 +32,76 @@ def freeze(you):
     traj = motion.trajectories.Vector2CubicTrajectory(math.Vector2.ZERO,math.Vector2.ZERO)
     mot = motion.basic.Translate(traj,Frame.LOCAL)
     you.motionManager.setMotion(mot)
+
+#this class contains routines to handle motions
+#thus allowing for easy manuevers(sp?)
+#it sends a done event when it finishes
+#this publishes a done event when finished
+class MotionState(state.State):
+YAWED = core.declareEventType('YAWED')
+#dive to a specified depth
+    def dive(self, depth, rate):
+        # Compute trajectories
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = you.stateEstimator.getEstimatedDepth(),
+            finalValue = depth,
+            initialRate = you.stateEstimator.getEstimatedDepthRate(),
+            avgRate = diveRate)
+        # Dive
+        diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
+        self.motionManager.setMotion(diveMotion)
+        self._mYaw = False
+        
+#translate locally x,y at rate rate
+        def translate(self,x,y,rate):
+            translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+                initialValue = math.Vector2.ZERO,
+                finalValue = math.Vector2(y, x),
+                initialRate = self.stateEstimator.getEstimatedVelocity(),
+                avgRate = rate)
+            translateMotion = motion.basic.Translate(
+                trajectory = translateTrajectory,
+                frame = Frame.LOCAL)
+            self.motionManager.setMotion(translateMotion)
+            self._mYaw = False
+            
+#rotate to global orientation of deg degrees, ending after time t has passed
+        def yawGlobal(self,deg,t):
+            currentOrientation = self.stateEstimator.getEstimatedOrientation()
+            yawTrajectory = motion.trajectories.StepTrajectory(
+                initialValue = currentOrientation,
+                finalValue = math.Quaternion(math.Degree(deg), 
+                                             math.Vector3.UNIT_Z),
+                initialRate = self.stateEstimator.getEstimatedAngularRate(),
+                finalRate = math.Vector3.ZERO)
+            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+            self.motionManager.setMotion(yawMotion)
+            self.timer = self.timerManager.newTimer(YAWED, self._delay)
+            self.timer.start()
+            self._mYaw = True
+            
+#rotate to local orientation of deg degrees, ending after time t has passed
+        def yaw(self,deg,t):
+            currentOrientation = self.stateEstimator.getEstimatedOrientation()
+            yawTrajectory = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = yawVehicleHelper(currentOrientation, 
+                                          deg),
+            initialRate = self.stateEstimator.getEstimatedAngularRate(),
+            finalRate = math.Vector3.ZERO)
+            yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
+            self.motionManager.setMotion(yawMotion)
+            self.timer = self.timerManager.newTimer(YAWED, self._delay)
+            self.timer.start()
+            self._mYaw = True
+        
+        def FINISHED(self,event):
+            if(self._mYAW = False):
+                self.publish(DONE,core.Event())
+        def YAWED(self,event):
+            self.publish(DONE,core.Event())
+            
+#end motionState
 
 #specialized version of state for doing intitializations
 #and other things that are just busywork
@@ -149,7 +220,6 @@ class genApproach(ConstApproach):
     @staticmethod
     def transitions():
         return {DONE : state.State, vision.EventType.BUOY_FOUND : genApproach}#, motion.basic.MotionManager.FINISHED : genApproach}
-        
         
 
         
