@@ -56,6 +56,7 @@ TEST_FIXTURE(VisionRunnerFixture, CreateDestroy)
 #ifndef RAM_WINDOWS
 TEST_FIXTURE(VisionRunnerFixture, Update)
 {
+
     vision::VisionRunner runner(camera, vision::Recorder::NEXT_FRAME);
 
     // "Backgrounds" the camera (no real background thread, because this is
@@ -103,6 +104,7 @@ TEST_FIXTURE(VisionRunnerFixture, Update)
     }
 
     camera->unbackground(true);
+
 }
 #endif
   

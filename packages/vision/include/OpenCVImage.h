@@ -13,6 +13,10 @@
 // STD Includes
 #include <string>
 
+// Library Includes
+#include "cv.h"
+#include "highgui.h"
+
 // Project Imports
 #include "vision/include/Image.h"
 #include "math/include/Matrix3.h"
@@ -90,12 +94,14 @@ public:
     virtual operator IplImage*();
     
     virtual IplImage* asIplImage() const;
+    virtual cv::Mat asMat() const;
 
 private:
     bool m_own;
     unsigned char *m_data;
     IplImage* m_img;
     Image::PixelFormat m_fmt;
+    cv::Mat m_imgMat;
 };
 
 } // namespace vision

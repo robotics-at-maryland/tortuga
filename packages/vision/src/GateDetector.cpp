@@ -17,6 +17,14 @@
 #include "vision/include/GateDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
+#include "vision/include/VisionSystem.h"
+#include "vision/include/TableColorFilter.h"
+#include "vision/include/WhiteBalance.h"
+#include "vision/include/GateDetectorKate.h"
+
+
+using namespace std;
+using namespace cv;
 
 
 namespace ram {
@@ -86,7 +94,36 @@ void GateDetector::update()
     
 void GateDetector::processImage(Image* input, Image* output)
 {	
-	IplImage* image =(IplImage*)(*input);
+//KATE
+	Mat img = input->asIplImage();
+	//imshow("input image", img);
+
+	//IplImage* tempImage=0;
+	img_whitebalance = WhiteBalance(img);
+	img_gate = gate.rectangle(img_whitebalance);
+	cvtColor(img_gate,img_gate,CV_BGR2RGB);
+
+	input->setData(img_gate.data,false);
+	frame->copyFrom(input);
+	
+	if(output)
+	    {
+		output->copyFrom(frame);
+		//if (m_debug >= 1) {
+		//    output->copyFrom(frame);
+		//} //endif mdebug==1
+
+	    } //end if output
+
+
+
+//------------end Kate
+
+
+       // output->setData(output_blob2.data,false);
+        //tempImage->imageData = (char *)output_blob2.data;
+
+
 //  These lines are correct only if the camera is on sideways again.
 //	rotate90Deg(image,gateFrame);//Rotate image into gateFrame, so that it will be vertical.
 //	rotate90Deg(image,gateFrameRatios); 
@@ -97,6 +134,7 @@ void GateDetector::processImage(Image* input, Image* output)
 	//but I've heard openCV gets angry if you write pixels 
 	//to image when it is getting images from a camera.
 	//TODO: Before changing this, check the Camera class to see if it automatically copies anyway.
+/*KATE
 	cvCopyImage(image,gateFrame);
 	cvCopyImage(gateFrame, gateFrameRatios);
 
@@ -106,11 +144,12 @@ void GateDetector::processImage(Image* input, Image* output)
 	gateYNorm=gateY;
 	gateXNorm/=image->width;
 	gateXNorm/=image->height;
-
+*/
         if (output)
         {
-            OpenCVImage temp(gateFrame, false);
-            output->copyFrom(&temp);
+	    output->copyFrom(frame);///kate a dded
+           // OpenCVImage temp(gateFrame, false);
+           // output->copyFrom(&temp);
         }
 }
 

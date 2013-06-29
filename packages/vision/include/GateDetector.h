@@ -14,6 +14,7 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "core/include/ConfigNode.h"
+#include "vision/include/GateDetectorKate.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -50,6 +51,12 @@ class RAM_EXPORT GateDetector : public Detector
     
     Image* frame;
     Camera* cam;
+
+/*Kate edit - same whitebalance image and final output*/
+	cv::Mat img_whitebalance;
+	cv::Mat img_gate;
+	foundLines gate;
+
 };
     
 } // namespace vision

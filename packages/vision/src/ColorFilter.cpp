@@ -13,7 +13,8 @@
 
 // Library Includes
 #include "boost/bind.hpp"
-#include "cxtypes.h"
+#include "cv.h" //kate changed from cxtypes.h to cv.h in an attempt to update openCV 6-6-2013
+#include "highgui.h"
 
 // Project Includes
 #include "vision/include/ColorFilter.h"
