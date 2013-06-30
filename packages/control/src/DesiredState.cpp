@@ -37,6 +37,13 @@ DesiredState::DesiredState(core::ConfigNode config, core::EventHubPtr eventHub) 
 
 DesiredState::~DesiredState() {}
 
+void DesiredState::setvCon(bool x, bool y, bool z)
+{
+    vx = x;
+    vy = y;
+    vz = z;
+}
+
 void DesiredState::init(core::ConfigNode config)
 {
     setDesiredVelocity(math::Vector2(config["desiredVelocity"][0].asDouble(0),
@@ -79,6 +86,9 @@ void DesiredState::init(core::ConfigNode config)
     newDesiredPositionSet(getDesiredPosition());
     newDesiredVelocitySet(getDesiredVelocity());
     newDesiredLinearAccelSet(getDesiredAccel());
+    vx = false;
+    vy = false;
+    vz = false;
 }
 
 

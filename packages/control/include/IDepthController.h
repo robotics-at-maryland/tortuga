@@ -31,6 +31,12 @@ public:
 
     /** Returns true if the vehicle is at the desired depth */
     //virtual bool atDepth() = 0;
+
+    virtual double getISum()
+    {
+        //this method is something of a hack
+        return -1;
+    }
 };
 
 /** Provides an interface for a implementation of a Depth Controller */

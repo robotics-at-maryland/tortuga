@@ -129,6 +129,13 @@ public:
      */
     void setDesiredAngularAccel(math::Vector3 angularAccel);
 
+    void setvCon(bool x, bool y, bool z);
+
+
+    //yes these shouldn't be public, but they're only really used from python(which doesn't care) anyway
+    bool vx;
+    bool vy;
+    bool vz;
 private:
     void init(core::ConfigNode config);
 
@@ -209,6 +216,7 @@ private:
     math::Quaternion m_desiredOrientation;
     math::Vector3 m_desiredAngularRate;
     math::Vector3 m_desiredAngularAccel;
+
 
     core::ReadWriteMutex m_stateMutex;
 }; // class

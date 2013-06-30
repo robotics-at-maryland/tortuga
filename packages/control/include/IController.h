@@ -132,6 +132,10 @@ public:
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 
+    virtual void moveVel(double x, double y, double z)
+    {
+
+    }
 
     /**
      * \defgroup Events IController Events
