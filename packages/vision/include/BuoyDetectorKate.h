@@ -10,8 +10,8 @@
 #include <cmath>
 
 // Library Includes
-#include "cv.h"
-#include "highgui.h"
+#include <cv.h>
+#include <highgui.h>
 
 // Project Includes
 #include "vision/include/Common.h"
@@ -33,8 +33,6 @@
 //#include "vision/include/VisionSystem.h"
 //#include "vision/include/TableColorFilter.h"
 #include "vision/include/WhiteBalance.h"
-#include "vision/include/BuoyDetectorKate.h"
-
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -84,6 +82,9 @@ public:
 	vector<KeyPoint> getYellow();
 	vector<KeyPoint> getRed();
 	vector<KeyPoint> getGreen();
+	Mat RedFilter(vector<Mat> hsv_planes,int red_minH, int red_maxH);
+	Mat OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH);
+
 
 
 

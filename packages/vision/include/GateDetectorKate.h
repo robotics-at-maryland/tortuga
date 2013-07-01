@@ -52,7 +52,11 @@ namespace vision {
 
 class foundLines {
 public:
-Mat rectangle(Mat src);
+Mat gateblob(Mat img_whitebalance);
+Mat hedgeblob(Mat img_whitebalance);
+
+Mat rectangle(Mat bw,Mat src);
+Mat verticalParallelLines(Mat bw, Mat src);
 
 	struct foundCorner
 	{
@@ -109,8 +113,30 @@ Mat rectangle(Mat src);
 		int width;
 	};
 
+	struct parallelLinesPairs
+	{
+		CvPoint line1_lower;
+		CvPoint line1_upper;
+		CvPoint line2_lower;
+		CvPoint line2_upper;
+		int line1_height;
+		int line2_height;
+		int height; //max height - lowest point ot the heightest point
+		int width;
+		float foundAspectRatio;
+		float foundAspectRatio_diff;
+		int foundtwoside;
+		int foundleft;
+		int foundright;
+		int foundhedge;
+		int foundHorizontal;
+		int horizontalAtTop;
+		CvPoint center;
+	};
+
 	//int foundFullHedge;
 	//int foundFullSquare;
+	parallelLinesPairs finalPair;
 private:
 	foundRectangle final[5];
 	foundRectangle previous[5];

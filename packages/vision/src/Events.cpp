@@ -325,5 +325,20 @@ core::EventPtr RedLightEvent::clone()
     event->color = color;
     return event;
 }
+
+core::EventPtr GateEvent::clone()
+{
+    GateEventPtr event = GateEventPtr(new GateEvent());
+    copyInto(event);
+    event->leftX = leftX;
+    event->leftY = leftY;
+    event->rightX = rightX;
+    event->rightY = rightY;
+    event->squareNess = squareNess;
+    event->range = range;
+    event->haveLeft = haveLeft;
+    event->haveRight = haveRight;
+    return event;
+}
 } // namespace vision
 } // namespace ram

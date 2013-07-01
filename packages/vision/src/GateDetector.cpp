@@ -100,10 +100,14 @@ void GateDetector::processImage(Image* input, Image* output)
 
 	//IplImage* tempImage=0;
 	img_whitebalance = WhiteBalance(img);
-	img_gate = gate.rectangle(img_whitebalance);
-	cvtColor(img_gate,img_gate,CV_BGR2RGB);
+	Mat img_red = gate.gateblob(img_whitebalance); //built in redfilter
+	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter
 
-	input->setData(img_gate.data,false);
+	//img_gate = gate.rectangle(img_red, img_whitebalance);
+	//cvtColor(img_gate,img_gate,CV_BGR2RGB);
+	cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
+
+	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
 	
 	if(output)
@@ -145,13 +149,64 @@ void GateDetector::processImage(Image* input, Image* output)
 	gateXNorm/=image->width;
 	gateXNorm/=image->height;
 */
+	publishFoundEvent(gate.finalPair);
         if (output)
         {
 	    output->copyFrom(frame);///kate a dded
            // OpenCVImage temp(gateFrame, false);
            // output->copyFrom(&temp);
         }
-}
+};
+
+void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
+{
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
+
+   GateEventPtr event = GateEventPtr(new GateEvent());
+    
+    double centerX = 0, centerY = 0;
+    Detector::imageToAICoordinates(frame, finalPairs.center.x, finalPairs.center.y,
+                                   centerX, centerY);
+
+	//blob.size (or any keypoint.size) returns the diameter of the meaningfull keypooint neighborhood
+	//dont get it confused with keypoint.size() which will return the size of the keypoitn vector
+
+   // double blobWidth = blob.getWidth();
+   // double fracWidth = blobWidth / xPixelWidth;
+   // double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+
+    int minX = finalPairs.line1_lower.x-finalPairs.width;
+    int maxX = finalPairs.line2_lower.x+finalPairs.width;
+    int minY = finalPairs.line1_lower.y-finalPairs.line1_height;
+    int maxY = finalPairs.line1_upper.y-finalPairs.line1_height;;
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
+
+    event->range = finalPairs.width;
+    //event->color = color;
+    //event->touchingEdge = touchingEdge;
+	if (finalPairs.foundleft == 1)
+	{
+	    event->leftX = finalPairs.line1_lower.x;
+	    event->leftY = finalPairs.line1_lower.y;
+	    event->haveLeft = true;
+	}
+	if (finalPairs.foundright == 1)
+	{
+	    event->rightX = finalPairs.line2_lower.x;
+	    event->rightY = finalPairs.line2_lower.y;
+	    event->haveRight = true;
+	}
+
+    publish(EventType::GATE_FOUND, event);
+};
+
+
 
 } // namespace vision
 } // namespace ram

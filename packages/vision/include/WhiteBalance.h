@@ -5,23 +5,23 @@
 #ifndef whitebalance_H
 #define whitebalance_H
  
-
 // Library Includes
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
-using namespace std;
-using namespace cv;
 #include <cmath>
 
 // Must be included last
 #include "vision/include/Export.h"
 
+using namespace std;
+using namespace cv;
 
 namespace ram {
 namespace vision {
 
 Mat WhiteBalance (Mat Input);
+
 } //end ram
 } //end vision
 

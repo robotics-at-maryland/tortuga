@@ -450,6 +450,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
 	//IplImage finalBouys_iplimage;
 
 	img_whitebalance = WhiteBalance(img);
+	imshow("whitebalance",img_whitebalance);
 	img_buoy = blob.DetectBuoys(img_whitebalance, m_redFilter, m_greenFilter,m_yellowFilter);
 	
 	cvtColor(img_buoy,img_buoy,CV_BGR2RGB);

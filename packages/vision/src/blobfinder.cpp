@@ -115,37 +115,20 @@ unsigned int j,k;
 		//first take any value higher than max and converts it to 0
 		//red is a special case because the hue value for red are 0-10 and 170-1980
 		//same filter as the other cases followed by an invert
-		threshold(hsv_planes[0],img_red,red_minH,255,THRESH_TOZERO);
-		threshold(img_red,img_red,red_maxH,0,THRESH_TOZERO_INV);
-		threshold(img_red,img_red,1,255,THRESH_BINARY_INV);
-
-		threshold(hsv_planes[0],img_yellow,yellow_maxH,0,THRESH_TOZERO_INV);
-		threshold(img_yellow,img_yellow,yellow_minH,255,THRESH_TOZERO);
-
-		threshold(hsv_planes[0],img_green,green_maxH,0,THRESH_TOZERO_INV);
-		threshold(img_green,img_green,green_minH,255,THRESH_TOZERO);
-
-		threshold(img_red,img_red,1,255,THRESH_BINARY);
-		threshold(img_green,img_green,1,255,THRESH_BINARY);
-		threshold(img_yellow,img_yellow,1,255,THRESH_BINARY);
-
+		img_red =RedFilter(hsv_planes,red_minH,red_maxH);
+		img_yellow = OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
+		img_green = OtherColorFilter(hsv_planes,green_minH,green_maxH);
 		//imshow("Red Single Plane",img_red);
 		//imshow("Yellow Plane",img_yellow);
 		//imshow("Green Plane",img_green);
 		
+		//only do this for visualization reasons
 		hsv_planes[2] = img_red;
 		hsv_planes[0] = img_yellow;
 		hsv_planes[1] = img_green;
 		merge(hsv_planes,img_whitebalance);
 
-		//Step 3: Blob detection! On the thresheld (thresholded?) image
-		//Attempt 2:
-		//creation 
-		//SimpleBlobDetector* blob_detector;
-		//blob_detector = new SimpleBlobDetector();
-		//blob_detector->creat("SimpleBlobDetector");
-		//change params, first move it tp public
-	
+		//Step 3: Blob detection! On the thresheld (thresholded?) image	
 
 		SimpleBlobDetector::Params params;
 		params.minDistBetweenBlobs =0;
@@ -497,6 +480,32 @@ vector<KeyPoint> blobfinder::getGreen()
 {
 	return (_keypoints_green);
 }
+Mat blobfinder::RedFilter(vector<Mat> hsv_planes,int red_minH, int red_maxH)
+{
+		Mat img_red;
+		threshold(hsv_planes[0],img_red,red_minH,255,THRESH_TOZERO);
+		threshold(img_red,img_red,red_maxH,0,THRESH_TOZERO_INV);
+		threshold(img_red,img_red,1,255,THRESH_BINARY_INV);
+		threshold(img_red,img_red,1,255,THRESH_BINARY);
+		return(img_red);
+};
+Mat blobfinder::OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH)
+{
+		Mat img;
+		Mat img_saturation;
+		threshold(hsv_planes[1],img_saturation,1,0,THRESH_TOZERO);
+
+
+
+		threshold(hsv_planes[0],img,maxH,0,THRESH_TOZERO_INV);
+		threshold(img,img,minH,255,THRESH_TOZERO);
+		threshold(img,img,1,255,THRESH_BINARY);
+		
+		//double alpha = 0.5;
+		// double beta = ( 1-alpha );
+		// addWeighted( img, alpha, img_saturation, beta, 0.0, img);
+		return(img);
+};
 
 }//end namspace vision
 }//end namespace RAM

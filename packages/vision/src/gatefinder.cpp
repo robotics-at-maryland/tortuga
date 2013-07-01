@@ -10,6 +10,7 @@
 //#include <stdio.h>
 #include "vision/include/WhiteBalance.h"
 #include "vision/include/GateDetectorKate.h"
+#include "vision/include/GateDetector.h"
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -24,16 +25,609 @@ namespace ram {
 namespace vision {
 
 //dont need to run whitebalance before this since I'm just going to convert to grayscale.
-Mat foundLines::rectangle(Mat src)
+Mat foundLines::hedgeblob(Mat img_whitebalance)
 {
+	Mat img_hsv;
+	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+		
+	//use blob detection to find gate
+	//find left and right red poles - vertical poles
+	vector<Mat> hsv_planes;
+	split(img_hsv,hsv_planes);
+
+	//first take any value higher than max and converts it to 0
+	//red is a special case because the hue value for red are 0-10 and 170-1980
+	//same filter as the other cases followed by an invert
+	int minH = 20;
+	int maxH = 70;
+	blobfinder blob;
+	Mat img =blob.OtherColorFilter(hsv_planes,minH,maxH);
+
+	//For attempting to use with canny
+	int erosion_type = 0;
+	int erosion_size = 1;
+	//if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+	// else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+	// else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+	Mat element = getStructuringElement( erosion_type,
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+
+  	/// Apply the erosion operation
+	Mat erosion_dst;
+  	erode(img, erosion_dst, element );
+  	imshow( "Erosion Demo", erosion_dst );
+
+
+	imshow("green",img);
+
+	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
+	imshow("ertical filter whitebalacnce",img_whitebalance);
+	return(erosion_dst);
+};
+
+
+Mat foundLines::gateblob(Mat img_whitebalance)
+{
+	Mat img_hsv;
+	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+		
+	//use blob detection to find gate
+	//find left and right red poles - vertical poles
+	vector<Mat> hsv_planes;
+	split(img_hsv,hsv_planes);
+
+	//first take any value higher than max and converts it to 0
+	//red is a special case because the hue value for red are 0-10 and 170-1980
+	//same filter as the other cases followed by an invert
+	int red_minH = 5;
+	int red_maxH = 130;
+	blobfinder blob;
+	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+
+	//For attempting to use with canny
+	int erosion_type = 0;
+	int erosion_size = 1;
+	//if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
+	// else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
+	// else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
+	Mat element = getStructuringElement( erosion_type,
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+
+  	/// Apply the erosion operation
+	Mat erosion_dst;
+  	erode(img_red, erosion_dst, element );
+  	imshow( "Erosion Demo", erosion_dst );
+
+
+	imshow("red",img_red);
+
+	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
+	imshow("Vertical filter whitebalacnce",img_whitebalance);
+	return(erosion_dst);
+};
+
+Mat foundLines::verticalParallelLines(Mat bw, Mat src)
+{
+
+	//use hough lines to find two vertical parallel lines
+	//check to see if there is a horizontal line inbetween, preferably at either the top or bottom of the bars
+
+	int cannylow = 40;
+	int cannyhigh =80;
+	float aspectRatio =1.0; //height/width
+	float horizontalslope = 0.5; //metric to determine if horizontal
+	float verticleslope = 6.1;
+	int hough_threshold = 50;
+	int hough_minLineLength = 50;
+	int hough_maxLinegap = 10;
+	//int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
+	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
+	int topdifflimit = 40;
+	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
+	imshow("canny",bw);
+
+	//Step 2: Use Hough to find lines
+	// Hough Line Probability Method
+    	// dst: Output of the edge detector. It should be a grayscale image (although in fact it is a binary one)
+   	// lines: A vector that will store the parameters (r,\theta) of the detected lines
+   	// rho : The resolution of the parameter r in pixels. We use 1 pixel.
+   	// theta: The resolution of the parameter \theta in radians. We use 1 degree (CV_PI/180)
+   	// threshold: The minimum number of intersections to “detect” a line
+   	// minLinLength: The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
+	// maxLineGap: The maximum gap between two points to be considered in the same line.
+
+	vector<Vec4i> linesP;
+  	  HoughLinesP(bw, linesP, 1, CV_PI/180, hough_threshold, hough_minLineLength, hough_maxLinegap );
+
+	//calculate slope and yintercept  - used to filter out horizontal and vertical lines
+	//then they are saved for each line so I dont have to calculate them again
+	float m1, m2, b1,b2,bdiff;
+	float m[linesP.size()];
+	float b[linesP.size()];
+
+	int rightXi,rightYi,leftXi,leftYi,rightXj,rightYj,leftXj,leftYj;
+	int topXi, topYi, bottomXi,bottomYi, topXj, topYj, bottomXj, bottomYj, topdiff;
+	
+	//keep track of which lines are just repeats (or part of a combined line)
+	//matches = how many lines were similiar enough to be the same line
+	//horizontal or vertical saves 1 if horizontal and a 2 if vertical
+	int repeatabilityP[linesP.size()];
+	int matchesP[linesP.size()];
+	int horizontalOrVertical[linesP.size()];
+
+
+
+	 for( size_t i = 0; i < linesP.size(); i++ )
+   	 {
+		repeatabilityP[i] = 0;
+		matchesP[i] = 0;
+		horizontalOrVertical[i] = 0;
+      		line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
+			//printf("\n m = %f", m1);
+	 }
+	imshow("all hough", src);
+
+   	 for( size_t i = 0; i < linesP.size(); i++ )
+   	 {
+	  if (repeatabilityP[i] < 1)
+	  {
+		//I have two points to define each line segment
+		//first filter through and look for horizontal, slope near 0
+		if (linesP[i][0] == linesP[i][2])
+			m1 = 10000;
+		else
+			m1 = float(linesP[i][1]-linesP[i][3])/float(linesP[i][0]-linesP[i][2]);
+
+		b1 = linesP[i][1]-m1*linesP[i][0];
+		if (m1 < 0)
+			m1 = -m1;
+
+		if (m1 < horizontalslope)
+		{
+			//printf("\n Horizontal");
+			horizontalOrVertical[i] = 1;
+			
+			//now I need to combine with other horizontal line segments
+			 for( size_t j = i+1; j< linesP.size(); j++ )
+   			 {
+				//if its already labeled repeated then dont bother
+				if (repeatabilityP[j] < 1)
+				{
+					 if (linesP[j][0] == linesP[j][2])
+						m2 = 10000;
+					else
+						m2 = float(linesP[j][1]-linesP[j][3])/float(linesP[j][0]-linesP[j][2]);
+					
+					b2 = linesP[j][1]-m2*linesP[j][0];
+					
+					//step 1: check slopes
+					if (m2 < horizontalslope)
+					{ 
+						//slopes are both more of less horizontal
+						//check vertical distance between the end points
+
+						//first find left most point of each line segment
+						//line i:
+						if (linesP[i][0] < linesP[i][2])
+						{
+							leftXi = linesP[i][0];
+							leftYi = linesP[i][1];
+							rightXi= linesP[i][2];
+							rightYi = linesP[i][3];
+						}
+						else
+						{
+							leftXi = linesP[i][2];
+							leftYi = linesP[i][3];
+							rightXi= linesP[i][0];
+							rightYi = linesP[i][1];
+						}
+						//line j:
+						if (linesP[j][0] < linesP[j][2])
+						{
+							leftXj = linesP[j][0];
+							leftYj = leftXi*m2 + b2;
+							rightXj= linesP[j][2];
+							rightYj = rightXi*m2+b2;
+						}
+						else
+						{
+							leftXj = linesP[j][2];
+							leftYj = leftXi*m2 + b2;
+							rightXj= linesP[j][0];
+							rightYj = rightXi*m2+b2;
+						}
+							
+						if (b1 < b2)
+							 bdiff = b2-b1;
+						else
+							bdiff = b1-b2;
+						//printf("\n bdiff = %f hieght1 = %d, height2 = %d",bdiff, height1,height2);
+						if (bdiff < bdifflimit)
+						{
+							 //same line, so combine them
+							repeatabilityP[j] = 2;
+							matchesP[i] = matchesP[i]+1;
+							//form the longest line
+							if (leftXj < leftXi)
+							{
+								linesP[i][0] = leftXj;
+								linesP[i][1] = leftYj;
+							}
+
+							if (rightXj > rightXi)
+							{
+								linesP[i][2] =rightXj;
+								linesP[i][3] =rightYj;
+							}
+						} //end if a match
+					  }//end if mj < 2
+				} //end for j repeated
+			 } //end for j
+			//horizontal line
+			//printf(" horizontal lines = %d", matchesP[i]);
+			//horizontal
+			line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
+			
+			//recalculate slope here for the new combine line, and save
+			if (linesP[i][0] == linesP[i][2])
+				m1 = 10000;
+			else
+				m1 = float(linesP[i][1]-linesP[i][3])/float(linesP[i][0]-linesP[i][2]);
+	
+			b1 = linesP[i][1]-m1*linesP[i][0];
+			//if (m1 < 0)
+			//	m1 = -m1;
+			m[i] = m1;
+			b[i] =b1;
+
+		}//end for m1 < 2
+		else if (m1 >verticleslope )
+		{
+			//Vertical Line
+
+			horizontalOrVertical[i] = 2;
+		 	if (linesP[i][1] < linesP[i][3])
+			{
+				bottomXi = linesP[i][0];
+				bottomYi = linesP[i][1];
+				topXi= linesP[i][2];
+				topYi = linesP[i][3];
+			}
+			else
+			{
+				bottomXi = linesP[i][2];
+				bottomYi = linesP[i][3];
+				topXi= linesP[i][0];
+				topYi = linesP[i][1];
+				linesP[i][0] = bottomXi;
+				linesP[i][1] = bottomYi;
+				linesP[i][2] = topXi;		
+				linesP[i][3] = topYi;
+			}
+			//printf("\n i: (%d, %d), (%d, %d)", linesP[i][0],linesP[i][1],linesP[i][2],linesP[i][3]);
+
+			//now I need to combine with vertical line segments
+			for( size_t j = i+1; j< linesP.size(); j++ )
+   			 {
+ 				if (linesP[j][0] == linesP[j][2])
+					m2 = 10000;
+				else
+					m2 = float(linesP[j][1]-linesP[j][3])/float(linesP[j][0]-linesP[j][2]);				
+				b2 = linesP[j][1]-m2*linesP[j][0];
+
+				if (m2 < 0)
+					m2 = -m2;
+
+				//if its already labeled repeated then dont bother
+				if (m2 > verticleslope  && repeatabilityP[j] < 1)
+				{
+				  //slopes line up - now extend j line to length Y coordinates of line i
+				  //or we can just compare where first X coordinates
+
+					//line j:
+					if (linesP[j][1] < linesP[j][3])	
+					{
+						bottomXj = linesP[j][0];
+						bottomYj = linesP[j][1];
+						topXj= linesP[j][2];
+						topYj = linesP[j][3];
+					}
+					else
+					{
+						bottomXj = linesP[j][2];
+						bottomYj = linesP[j][3];
+						topXj= linesP[j][0];
+						topYj = linesP[j][1];
+					}
+
+					if (topXi < topXj)
+						topdiff = topXj - topXi;
+					else
+						topdiff = topXi-topXj;
+
+					//printf("\n Vertical:bottom = %d %d, top= %d %d",bottomXi,bottomXj, topXi, topXj);
+					if (topdiff < topdifflimit)
+					{
+						//same line
+						repeatabilityP[j] = 1;
+						matchesP[i] = matchesP[i] + 1;
+
+						//find the longest line
+						if (topYj > topYi)
+						{
+               						linesP[i][2] = topXj;
+               						linesP[i][3] = topYj;
+						}
+						if (bottomYj < bottomYi)
+						{
+               						linesP[i][0] = bottomXj;
+               						linesP[i][1] = bottomYj;
+						}
+					}
+				}//end if repeated and slope limit
+			}//end for j
+			//verticel
+
+			line(src, Point(linesP[i][0], linesP[i][1]),
+   	          	 Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
+
+			//find slope for new combined line and save
+			if (linesP[i][0] == linesP[i][2])
+				m1 = 10000;
+			else
+				m1 = float(linesP[i][1]-linesP[i][3])/float(linesP[i][0]-linesP[i][2]);
+	
+			b1 = linesP[i][1]-m1*linesP[i][0];
+			//if (m1 < 0)
+			//	m1 = -m1;
+			m[i] = m1;
+			b[i] =b1;
+
+		}
+		else
+		{	//not a horizontal or vertical line
+
+      			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	// Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
+			//printf("\n m = %f", m1);
+		}
+           }//end if repeatability
+   	 }
+
+
+
+	//imshow("hough",src);
+	//I should have all the lines now
+	//look for pairs- which they'll all be since they're all vertical
+	//if there are more than two lines, than find the ones with the best aspect ratio
+	int totalVertical= 0;
+	int totalHorizontal = 0;
+	finalPair.foundAspectRatio_diff = 10000;
+ 	for( size_t i = 0; i < linesP.size(); i++ )
+   	{
+		if (horizontalOrVertical[i] == 2)
+			totalVertical= totalVertical+1;
+		if (horizontalOrVertical[i] == 1)
+			totalHorizontal= totalHorizontal+1;
+	};
+	printf("\n numberof lines found = %d",linesP.size());
+
+	parallelLinesPairs pairs;
+	if (totalVertical ==  1)
+	{
+		//only have one line
+		if (linesP[0][1] < linesP[0][3])
+		{
+			pairs.line1_lower.x = linesP[0][0];
+			pairs.line1_lower.y = linesP[0][1];
+			pairs.line1_upper.x = linesP[0][2];
+			pairs.line1_upper.y = linesP[0][3];
+		}		
+		else
+		{
+			pairs.line1_lower.x = linesP[0][2];
+			pairs.line1_lower.y = linesP[0][3];
+			pairs.line1_upper.x = linesP[0][0];
+			pairs.line1_upper.y = linesP[0][1];
+		}
+		pairs.line1_height = pairs.line1_upper.y-pairs.line1_lower.y;
+		pairs.width = pairs.line1_height/aspectRatio;
+		pairs.foundtwoside = 0;		
+		pairs.center.x = pairs.line1_lower.x +(pairs.width)/2;
+		pairs.center.y = (pairs.line1_upper.y+ pairs.line1_lower.y)/2;
+		finalPair = pairs;
+		circle(src, finalPair.center,3,Scalar( 0, 255, 0),-1,8 );
+
+		line(src, finalPair.line1_lower,
+   	          	finalPair.line1_upper, Scalar(0,0,255), 5, 8 ); 
+	}
+	else if (totalVertical > 1)
+	{
+		for(size_t i = 0; i < linesP.size(); i++ )
+		{
+			for( size_t j = 0; j < linesP.size(); j++ )
+			{ 
+				if (i !=j && (horizontalOrVertical[i] == 2)&& (horizontalOrVertical[j] == 2))
+				{
+					pairs.foundtwoside = 1;
+
+					//always make the line1 the left line
+					if (linesP[i][0] < linesP[j][0])
+					{
+						if (linesP[i][1] < linesP[i][3])
+						{
+							pairs.line1_lower.x = linesP[i][0];
+							pairs.line1_lower.y = linesP[i][1];
+							pairs.line1_upper.x = linesP[i][2];
+							pairs.line1_upper.y = linesP[i][3];
+						}		
+						else
+						{
+							pairs.line1_lower.x = linesP[i][2];
+							pairs.line1_lower.y = linesP[i][3];
+							pairs.line1_upper.x = linesP[i][0];
+							pairs.line1_upper.y = linesP[i][1];
+						}
+
+						//find the aspect ratio - which means calculating the height of each line and the distance along x between teh pairs
+						if (linesP[j][1] < linesP[j][3])
+						{
+							pairs.line2_lower.x = linesP[j][0];
+							pairs.line2_lower.y = linesP[j][1];
+							pairs.line2_upper.x = linesP[j][2];
+							pairs.line2_upper.y = linesP[j][3];
+						}		
+						else
+						{
+							pairs.line2_lower.x = linesP[j][2];
+							pairs.line2_lower.y = linesP[j][3];
+							pairs.line2_upper.x = linesP[j][0];
+							pairs.line2_upper.y = linesP[j][1];
+						}
+					}
+					else
+					{
+						if (linesP[i][1] < linesP[i][3])
+						{
+							pairs.line2_lower.x = linesP[i][0];
+							pairs.line2_lower.y = linesP[i][1];
+							pairs.line2_upper.x = linesP[i][2];
+							pairs.line2_upper.y = linesP[i][3];
+						}		
+						else
+						{
+							pairs.line2_lower.x = linesP[i][2];
+							pairs.line2_lower.y = linesP[i][3];
+							pairs.line2_upper.x = linesP[i][0];
+							pairs.line2_upper.y = linesP[i][1];
+						}
+
+						//find the aspect ratio - which means calculating the height of each line and the distance along x between teh pairs
+						if (linesP[j][1] < linesP[j][3])
+						{
+							pairs.line1_lower.x = linesP[j][0];
+							pairs.line1_lower.y = linesP[j][1];
+							pairs.line1_upper.x = linesP[j][2];
+							pairs.line1_upper.y = linesP[j][3];
+						}		
+						else
+						{
+							pairs.line1_lower.x = linesP[j][2];
+							pairs.line1_lower.y = linesP[j][3];
+							pairs.line1_upper.x = linesP[j][0];
+							pairs.line1_upper.y = linesP[j][1];
+						}
+					}
+					pairs.line1_height = pairs.line1_upper.y-pairs.line1_lower.y;
+					pairs.line2_height = pairs.line2_upper.y-pairs.line2_lower.y;
+					pairs.width = abs(pairs.line1_lower.x-pairs.line2_lower.x);
+					int lower, upper;
+					if (pairs.line1_lower.y < pairs.line2_lower.y)
+						lower = pairs.line1_lower.y;
+					else
+						lower = pairs.line2_lower.y;
+
+					if (pairs.line1_upper.y < pairs.line2_upper.y)
+						upper = pairs.line1_upper.y;
+					else
+						upper = pairs.line2_upper.y;
+				
+					pairs.center.x = ((pairs.line2_lower.x+pairs.line1_lower.x)+ (pairs.line2_upper.x+pairs.line1_upper.x))/4;
+					pairs.center.y = ((pairs.line2_lower.y+pairs.line1_lower.y)+ (pairs.line2_upper.y+pairs.line1_upper.y))/4;
+					pairs.height = upper-lower;
+					pairs.foundAspectRatio = (float)pairs.height/(float)pairs.width;
+					pairs.foundAspectRatio_diff = abs(pairs.foundAspectRatio-aspectRatio);
+					//want to see if t
+					if (totalHorizontal > 0)
+					{
+						for( size_t k = 0; k < linesP.size(); k++ )
+					   	{
+							if (horizontalOrVertical[k] == 1)
+							{
+								//check to see if its near the top or the bottom
+								//check to see if its between the left and the right side
+								if ((abs(linesP[k][1]-pairs.line1_upper.y)< 50 || abs(linesP[k][1]-pairs.line2_upper.y)<50 || abs(linesP[k][1]-pairs.line1_lower.y)< 50 || abs(linesP[k][1]-pairs.line2_lower.y)<50) && ((linesP[k][0]>pairs.line1_lower.x-20) || (linesP[k][2]<pairs.line2_lower.x+20)))
+								{
+
+									//horizontal line does work
+									pairs.foundHorizontal = 1;
+									//need to determine if the line is at the upper edge or the lower edge
+									if ((abs(linesP[k][1]-pairs.line1_upper.y)< 50) || (abs(linesP[k][1]-pairs.line2_upper.y)<50) )
+										pairs.horizontalAtTop = 1;
+									else
+										pairs.horizontalAtTop = 0;
+								}
+							
+							}//end if horizontalorVertical == 1
+						};
+					}//end search for horizontal
+					else
+					{
+						pairs.foundHorizontal = 0;
+					};
+	
+					//want to make sure they aren't the same side so require a minimum distance of 50
+					if (pairs.width > 50 && ((pairs.foundAspectRatio_diff < finalPair.foundAspectRatio_diff) || (pairs.foundAspectRatio_diff < finalPair.foundAspectRatio_diff*1.25 && pairs.foundHorizontal > finalPair.foundHorizontal)) )
+						finalPair = pairs;
+				}//end if the same
+			}//end forj
+		}//end for i
+
+			
+		line(src, finalPair.line1_lower,
+	   	          	finalPair.line1_upper, Scalar(0,255,0), 5, 8 ); 
+		line(src, finalPair.line2_lower,
+	   	          	finalPair.line2_upper, Scalar(0,255,255), 5, 8 ); 
+		if (finalPair.horizontalAtTop == 1 && finalPair.foundHorizontal == 1)
+		{
+			line(src, finalPair.line1_upper,
+	   	          	finalPair.line2_upper, Scalar(255,255,0), 5, 8 ); 
+		}
+		if (finalPair.horizontalAtTop == 0 && finalPair.foundHorizontal == 1)
+		{
+			line(src, finalPair.line1_lower,
+	   	          	finalPair.line2_lower, Scalar(255,255,0), 5, 8 ); 
+		}
+		circle(src, finalPair.center,3,Scalar( 0, 255, 0),-1,8 );
+	}//end else
+	return(src);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Mat foundLines::rectangle(Mat bw, Mat src)
+{
+	
 	//inputs: 
 	int cannylow = 40;
 	int cannyhigh =100;
 	float aspectRatio =1.0*1000; //height/width
 	float horizontalslope = 0.5; //metric to determine if horizontal
 	float verticleslope = 6.0;
-	int hough_threshold = 35;
-	int hough_minLineLength = 30;
+	int hough_threshold = 30;
+	int hough_minLineLength = 20;
 	int hough_maxLinegap = 10;
 	int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
@@ -47,13 +641,13 @@ Mat foundLines::rectangle(Mat src)
 	}
 	//Step 1: Use canny
 	//step a: grayscale
-	cv::Mat bw;
-	cv::cvtColor(src, bw, CV_BGR2GRAY);
+	//cv::Mat bw;
+	//cv::cvtColor(src, bw, CV_BGR2GRAY);
 	//cv::blur(bw, bw, cv::Size(3, 3));
 
 	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
 	//Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
-	//imshow("canny", bw);
+	imshow("canny", bw);
 
 	//Step 2: Use Hough to find lines
 	// Hough Line Probability Method

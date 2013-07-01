@@ -15,7 +15,7 @@
 #include "vision/include/Detector.h"
 #include "core/include/ConfigNode.h"
 #include "vision/include/GateDetectorKate.h"
-
+#include "vision/include/BuoyDetectorKate.h"
 // Must be included last
 #include "vision/include/Export.h"
 
@@ -33,11 +33,13 @@ class RAM_EXPORT GateDetector : public Detector
     
     void update();
     void processImage(Image* input, Image* output= 0);
+    void publishFoundEvent(foundLines::parallelLinesPairs finalPairs);
     
     double getX();
     double getY();
     void show(char* window);
     IplImage* getAnalyzedImage();
+    blobfinder blob;
     
   private:
     void init(core::ConfigNode config);
