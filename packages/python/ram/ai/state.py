@@ -81,6 +81,7 @@ class State(object):
         @warning: Only valid when the object is created by a Machine object
         """
         raise 
+    
 
 class FindAttempt(State):
     """

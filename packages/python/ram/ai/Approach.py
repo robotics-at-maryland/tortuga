@@ -1,4 +1,6 @@
 
+import math as m
+
 import ram.ai.state as state
 import ram.motion as motion
 import ext.core as core
@@ -250,3 +252,87 @@ class SuperApproach(VSDirect2ControlConst):
 
     def end_cond(self,event):
         return ((self.decideZ(event) == 0) and (self.decideX(event) == 0) and (self.decideY(event) == 0))
+
+#A 3DOF Visual Servoing controller
+class HyperApproach(VSMotion):
+    @staticmethod
+    def getattr():
+        return { 'kx' : .05 ,  'ky' : .4 , 'kz' : .45, 'x_d' : 0, 'r_d' : 1.75 , 'y_d' : 0, 'x_bound': .05, 'r_bound': .25, 'y_bound':.025 ,'minvx': .1, 'minvy': .1 ,'minvz' : .1} 
+#define error methods to return the current error
+    def yFunc(self,event):
+        a = self._ky*(event.x - self._x_d)
+        if(abs(a)<self._minvy):
+            a = m.copysign(self._minvy,a)
+        return a
+
+    def xFunc(self,event):
+        a = self._kx*(event.range - self._r_d)
+        if(abs(a)<self._minvx):
+            a = m.copysign(self._minvx,a)
+        return a
+
+    def zFunc(self,event):
+        a = self._kz*-(event.y - self._y_d)
+        if(abs(a)<self._minvz):
+            a = m.copysign(self._minvz,a)
+        return a
+
+    def runMotion(self,event):
+        self.motionManager._controller.moveVel(self.xFunc(event)*self.decideX(event), self.yFunc(event)*self.decideY(event), self.zFunc(event)*self.decideZ(event))
+    
+    def stop(self):
+        self.motionManager._controller.moveVel(0,0,0)
+        util.freeze(self)
+
+    def decideY(self,event):
+        if(event.x<(self._x_d - self._x_bound)):
+            return 1#go the other way
+        else:
+            if(event.x>(self._x_d + self._x_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
+
+    def decideX(self,event):
+        if(event.range<(self._r_d - self._r_bound)):
+            return 1#go the other way
+        else:
+            if(event.range>(self._r_d + self._r_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
+
+    def decideZ(self,event):
+        if(event.y<(self._y_d - self._y_bound)):
+            return 1#go the other way
+        else:
+            if(event.y>(self._y_d + self._y_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
+
+    def end_cond(self,event):
+        return ((self.decideZ(event) == 0) and (self.decideX(event) == 0) and (self.decideY(event) == 0))
+    #where are the move function definitions?
+    #missing, because this variant has no need for such things, thus they aren't defined
+
+class genHyperApproach(HyperApproach):
+    def enter(self):
+        pass
+
+    def BUOY_FOUND(self,event):
+        if(event.color == vision.Color.YELLOW):
+            self.run(event)
+
+    @staticmethod
+    def transitions():
+        return {DONE : state.State, vision.EventType.BUOY_FOUND : genHyperApproach}    
+
+#    def DONE(self,event):
+#        util.freeze(self)
+                                                
+
+   
