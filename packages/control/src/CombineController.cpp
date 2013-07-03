@@ -170,10 +170,11 @@ void CombineController::doUpdate(const double& timestep,
         translationalForceOut = inPlaneControlForce + depthControlForce;
         rotationalTorqueOut = rotControlTorque;
 
-        if(m_desiredState->vz == true && vConz == false)
-        {
-            intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
-        }
+        //moved
+        //if(m_desiredState->vz == true && vConz == false)
+        //{
+        // intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
+            //}
         
         //begin the velocity controller
         //yes this is the wrong place, but the system doesn't really provide effective support for controller switching
@@ -197,41 +198,60 @@ void CombineController::doUpdate(const double& timestep,
         double errVz = eRate - dRate;
         intTermxy = intTermxy + errVxy*timestep;
         intTermz = intTermz + errVz*timestep;
-        double eXv = errVxy.x;
-        double eXa = eAccel.x;
-        double eXi = intTermxy.x;
-        double eYv = errVxy.y;
-        double eYa = eAccel.y;
-        double eYi = intTermxy.y;
-        double eZv = errVz;
-        double eZa = eAccel.z;
-        double eZi = intTermz;
-        fX = kpvx * eXv + kivx*eXi + kdvx*eXa;
-        fY = kpvy * eYv + kivy*eYi + kdvy*eYa;
-        fZ = kpvz * eZv + kivz*eZi + kdvz*eZa;
-        if((vConx == true && m_desiredState->vx == false) || (vCony == true && m_desiredState->vy == false) || (vConz == true && m_desiredState->vz == false))
+
+
+        //if about to turn on one of the visual servoing controllers, stabilize self
+        if((vConx == false && m_desiredState->vx == true) || (vCony == false && m_desiredState->vy == true) || (vConz == false && m_desiredState->vz == true))
         {
 
                 holdCurrentDepth();
                 holdCurrentHeading();
                 holdCurrentPosition();
-                intTermxy.x = 0;
-                intTermxy.y = 0;
-                intTermz = 0;
+                if(m_desiredState->vx == true)
+                {
+                    intTermxy.x = 0;
+                }
+                if(m_desiredState->vy == true)
+                {
+                    intTermxy.y = 0;
+                }
+                if(m_desiredState->vz == true)
+                {
+                    intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
+                }
+        }
+       //if turning off visual servoing, hold the current position for all axes so the position controllers are ready
+        if((vConx == true && m_desiredState->vx == false) || (vCony == true && m_desiredState->vy == false) || (vConz == true && m_desiredState->vz == false))
+        {
+                holdCurrentDepth();
+                holdCurrentHeading();
+                holdCurrentPosition();
         }
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
         vConz = m_desiredState->vz;
         if(vConx == true)
         {
+            double eXv = errVxy.x;
+            double eXa = eAccel.x;
+            double eXi = intTermxy.x;
+            fX = kpvx * eXv + kivx*eXi + kdvx*eXa;
             translationalForceOut.x = fX;
         }
         if(vCony == true)
         {
+            double eYv = errVxy.y;
+            double eYa = eAccel.y;
+            double eYi = intTermxy.y;
+            fY = kpvy * eYv + kivy*eYi + kdvy*eYa;
             translationalForceOut.y = fY;
         }
         if(vConz == true)
         {
+            double eZv = errVz;
+            double eZa = eAccel.z;
+            double eZi = intTermz;
+            fZ = kpvz * eZv + kivz*eZi + kdvz*eZa;
             translationalForceOut.z = fZ;
         }
 
