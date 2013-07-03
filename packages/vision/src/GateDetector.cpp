@@ -100,6 +100,7 @@ void GateDetector::processImage(Image* input, Image* output)
 
 	//IplImage* tempImage=0;
 	img_whitebalance = WhiteBalance(img);
+	gate.m_found = FALSE;
 	Mat img_red = gate.gateblob(img_whitebalance); //built in redfilter
 	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter
 
@@ -109,7 +110,10 @@ void GateDetector::processImage(Image* input, Image* output)
 
 	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
-	
+
+	if (gate.m_found==TRUE)
+		publishFoundEvent(gate.finalPair);
+
 	if(output)
 	    {
 		output->copyFrom(frame);
@@ -118,8 +122,9 @@ void GateDetector::processImage(Image* input, Image* output)
 		//} //endif mdebug==1
 
 	    } //end if output
-
-
+	
+	
+        
 
 //------------end Kate
 
@@ -149,13 +154,7 @@ void GateDetector::processImage(Image* input, Image* output)
 	gateXNorm/=image->width;
 	gateXNorm/=image->height;
 */
-	publishFoundEvent(gate.finalPair);
-        if (output)
-        {
-	    output->copyFrom(frame);///kate a dded
-           // OpenCVImage temp(gateFrame, false);
-           // output->copyFrom(&temp);
-        }
+	
 };
 
 void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
@@ -171,13 +170,6 @@ void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
     Detector::imageToAICoordinates(frame, finalPairs.center.x, finalPairs.center.y,
                                    centerX, centerY);
 
-	//blob.size (or any keypoint.size) returns the diameter of the meaningfull keypooint neighborhood
-	//dont get it confused with keypoint.size() which will return the size of the keypoitn vector
-
-   // double blobWidth = blob.getWidth();
-   // double fracWidth = blobWidth / xPixelWidth;
-   // double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
-
     int minX = finalPairs.line1_lower.x-finalPairs.width;
     int maxX = finalPairs.line2_lower.x+finalPairs.width;
     int minY = finalPairs.line1_lower.y-finalPairs.line1_height;
@@ -192,18 +184,18 @@ void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
     //event->touchingEdge = touchingEdge;
 	if (finalPairs.foundleft == 1)
 	{
-	    event->leftX = finalPairs.line1_lower.x;
-	    event->leftY = finalPairs.line1_lower.y;
-	    event->haveLeft = true;
-	}
+	    	event->leftX = finalPairs.line1_lower.x;
+	    	event->leftY = finalPairs.line1_lower.y;
+	    	event->haveLeft = true;
+	     }
 	if (finalPairs.foundright == 1)
 	{
 	    event->rightX = finalPairs.line2_lower.x;
 	    event->rightY = finalPairs.line2_lower.y;
 	    event->haveRight = true;
 	}
-
-    publish(EventType::GATE_FOUND, event);
+	if (finalPairs.foundleft == 1 && finalPairs.foundright == 1)
+	    publish(EventType::GATE_FOUND, event);
 };
 
 

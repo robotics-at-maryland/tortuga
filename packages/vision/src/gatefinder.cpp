@@ -56,19 +56,20 @@ Mat foundLines::hedgeblob(Mat img_whitebalance)
   	/// Apply the erosion operation
 	Mat erosion_dst;
   	erode(img, erosion_dst, element );
-  	imshow( "Erosion Demo", erosion_dst );
+  	//imshow( "Erosion Demo", erosion_dst );
 
 
-	imshow("green",img);
+	//imshow("green",img);
 
 	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
-	imshow("ertical filter whitebalacnce",img_whitebalance);
+	//imshow("ertical filter whitebalacnce",img_whitebalance);
 	return(erosion_dst);
 };
 
 
 Mat foundLines::gateblob(Mat img_whitebalance)
 {
+	m_found = false;
 	Mat img_hsv;
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
@@ -98,13 +99,13 @@ Mat foundLines::gateblob(Mat img_whitebalance)
   	/// Apply the erosion operation
 	Mat erosion_dst;
   	erode(img_red, erosion_dst, element );
-  	imshow( "Erosion Demo", erosion_dst );
+  	//imshow( "Erosion Demo", erosion_dst );
 
 
-	imshow("red",img_red);
+	//imshow("red",img_red);
 
 	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
-	imshow("Vertical filter whitebalacnce",img_whitebalance);
+	//imshow("Vertical filter whitebalacnce",img_whitebalance);
 	return(erosion_dst);
 };
 
@@ -122,11 +123,12 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	int hough_threshold = 50;
 	int hough_minLineLength = 50;
 	int hough_maxLinegap = 10;
+	float maxAspectRatio_diff = 0.75;
 	//int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
 	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
-	imshow("canny",bw);
+	//imshow("canny",bw);
 
 	//Step 2: Use Hough to find lines
 	// Hough Line Probability Method
@@ -168,7 +170,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
    	         	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
 			//printf("\n m = %f", m1);
 	 }
-	imshow("all hough", src);
+	//imshow("all hough", src);
 
    	 for( size_t i = 0; i < linesP.size(); i++ )
    	 {
@@ -401,13 +403,15 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 
 
 
-	//imshow("hough",src);
+	////imshow("hough",src);
 	//I should have all the lines now
 	//look for pairs- which they'll all be since they're all vertical
 	//if there are more than two lines, than find the ones with the best aspect ratio
 	int totalVertical= 0;
 	int totalHorizontal = 0;
-	finalPair.foundAspectRatio_diff = 10000;
+	finalPair.foundAspectRatio_diff = maxAspectRatio_diff;
+	finalPair.foundleft = 0;
+	finalPair.foundright = 0;
  	for( size_t i = 0; i < linesP.size(); i++ )
    	{
 		if (horizontalOrVertical[i] == 2)
@@ -578,11 +582,11 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 			}//end forj
 		}//end for i
 
-			
-		line(src, finalPair.line1_lower,
-	   	          	finalPair.line1_upper, Scalar(0,255,0), 5, 8 ); 
-		line(src, finalPair.line2_lower,
-	   	          	finalPair.line2_upper, Scalar(0,255,255), 5, 8 ); 
+		m_found = true;	
+		//line(src, finalPair.line1_lower,
+	   	//          	finalPair.line1_upper, Scalar(0,255,0), 5, 8 ); 
+		//line(src, finalPair.line2_lower,
+	   	//          	finalPair.line2_upper, Scalar(0,255,255), 5, 8 ); 
 		if (finalPair.horizontalAtTop == 1 && finalPair.foundHorizontal == 1)
 		{
 			line(src, finalPair.line1_upper,
@@ -647,7 +651,7 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 
 	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
 	//Canny( detected_edges, detected_edges, lowThreshold, lowThreshold*ratio, kernel_size );
-	imshow("canny", bw);
+	//imshow("canny", bw);
 
 	//Step 2: Use Hough to find lines
 	// Hough Line Probability Method
@@ -919,7 +923,7 @@ Mat foundLines::rectangle(Mat bw, Mat src)
    	 }
 
 
-	imshow("hough",src);
+	//imshow("hough",src);
 	//I should have all the lines now
 	//want to find bottom_corner poitns ofas the rectangle
 	//can find intercept of all horizontal and verticle lines
@@ -1301,6 +1305,7 @@ for (unsigned int i =0;i<5;i++)
 		if (final[i].numberofcorners >3)
 			circle(src, final[i].corner4,5,Scalar(100, 0,255),-1,8 );
 	}
+ 
 	printf("\n yay i  = %d, center =( %d, %d ), height %d, width %d",i,final[i].center.x,final[i].center.y, final[i].height, final[i].width);
 
 }
@@ -1607,7 +1612,7 @@ circle(src, Point(finalLines.left_bottom_corner.cornerX, finalLines.left_bottom_
 circle(src, Point(finalLines.left_top_corner.cornerX, finalLines.left_top_corner.cornerY),5,Scalar(0, 100, 255),4,8 );
 */
 
-	imshow("Final",src);
+	//imshow("Final",src);
 
 	//printf("\n \n complete!!!");
 return( src);

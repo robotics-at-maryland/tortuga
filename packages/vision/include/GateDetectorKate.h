@@ -58,6 +58,7 @@ Mat hedgeblob(Mat img_whitebalance);
 Mat rectangle(Mat bw,Mat src);
 Mat verticalParallelLines(Mat bw, Mat src);
 
+bool m_found;
 	struct foundCorner
 	{
 		int cornerX;
