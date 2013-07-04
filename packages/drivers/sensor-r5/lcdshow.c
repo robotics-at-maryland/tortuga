@@ -98,6 +98,11 @@ int main(int argc, char ** argv)
         printf("\t-setderpy # (set derpy speed)\n");
         printf("\t-stopderpy (set derpy speed to not move)\n");
 
+        printf("\nCamera Relay Board Commands:\n");
+        printf("\t-camconnect (connect cameras)\n");
+        printf("\t-camdisconnect (disconnect cameras)\n");
+
+
         return -1;
     }
 
@@ -185,6 +190,34 @@ int main(int argc, char ** argv)
         if((ret = setMagPower(fd, 0)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
     }
+    
+    //kanga 7/2/2013
+    else if(strcmp(argv[1], "-camconnect") == 0)
+    {
+        int ret;
+        if(argc != 2) {
+            printf("Incorrect parameters for -camconnect!\n");
+        } 
+        else {
+            if((ret = camConnect(fd)) != SB_OK)
+                printf("Error: %s\n", sbErrorToText(ret));
+        }
+    }
+
+    else if(strcmp(argv[1], "-camdisconnect") == 0)
+    {
+        int ret;
+        if(argc != 2) {
+            printf("Incorrect parameters for -camdisconnect!\n");
+        } 
+        else {
+            if((ret = camDisconnect(fd)) != SB_OK)
+                printf("Error: %s\n", sbErrorToText(ret));
+        }        
+    }    
+
+
+
     else if(strcmp(argv[1], "-setspeed") == 0)
     {
         if(argc != 8)

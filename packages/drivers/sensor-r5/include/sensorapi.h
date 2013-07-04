@@ -171,6 +171,9 @@
 /* Start switch is being pressed */
 #define STATUS_STARTSW    0x0200
 
+#define CMD_CAM_RELAY_ON 0x6C
+#define CMD_CAM_RELAY_OFF 0x6D
+
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
 extern "C" {
@@ -465,6 +468,184 @@ int pneumaticsOff(int fd);
 int setDerpyPower(int fd, unsigned char on);
 int setDerpySpeed(int fd, int speed);
 int stopDerpy(int fd);
+int camConnect(int fd);
+int camDisconnect(int fd);
+
+
+ /*  @return An integer between 0 and 1023, or SB_ERROR.
+ */
+int readDepth(int fd);
+
+/** Read the status bit back from the board */
+int readStatus(int fd);
+
+/** Reads the state of thrusters (safed or not)
+ *  Returns a bit combination of THRUSTERx_ENABLED as above
+ *  or SB_ERROR. How to tell them apart? SB_ERROR is negative,
+ *  don't worry.
+ */
+int readThrusterState(int fd);
+
+int hardKill(int fd);
+
+/** This drops the marker (accepts only 0 and 1 for markerNum) */
+int dropMarker(int fd, int markerNum);
+
+/** Enables and disables the servo power supply
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param power
+ *      A non-zero value turns on the servo power, and zero value turns off
+ *      the servo power.
+ */
+int setServoPower(int fd, unsigned char power);
+
+/** Sets the enable state of the each servo
+ *
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param servoMask
+ *      Sets the enable states of the servo, each bit of the byte that is 1
+ *      turns activates a servo.  If the bit is 0 that servo signal is disabled.
+ *      Currently we have only two servos, so bits 1 & 2 are the only usable
+ *      ones.
+ */    
+int setServoEnable(int fd, unsigned char servoMask);
+
+/** Sets the position of desired servo
+ *
+ *  @param fd
+ *      The file descriptor returned by openSensorBoard()
+ *  @param servoNumber
+ *      The specific servo to turn on and off.
+ *  @param position
+ *      A 16 bit number that specifies the position of the servo. These numbers
+ *      varry per servo so they must be specifically calibrated.
+ *
+ */
+int setServoPosition(int fd, unsigned char servoNumber,
+                     unsigned short position);
+
+
+/** Power cycles the motor board */
+int resetMotorBoard(int fd);
+    
+int lcdBacklight(int fd, int state);
+
+/** Either enables or disables a desired thruster */
+int setThrusterSafety(int fd, int state);
+
+int setBarState(int fd, int state);
+
+int displayText(int fd, int line, const char* text);
+
+/**  Reads the values from the board's temperature
+
+     @param fd
+         The file descriptor returned by openSensorBoard()
+     @param tempData
+         Where the sensor data is written. The array must be at least
+         NUM_TEMP_SENSORS elements long. The temperatures are specified in
+         degrees C. A value of 255 indicates a missing or malfunctioning
+         sensor.
+     @return SB_OK upon success or SB_ERROR.
+**/
+int readTemp(int fd, unsigned char * tempData);
+
+int getSonarData(int fd, struct sonarData * sd);
+
+
+int startBlackfin(int fd);
+int stopBlackfin(int fd);
+int resetBlackfin(int fd);
+
+int setDiagnostics(int fd, int state);
+
+/** Set the speed of the thrusters
+
+    This command takes about 2 ms to execute.  You must call
+    readSpeedResponses before this command, or about 15 ms after this call is
+    made.
+
+    @param fd
+         The file descriptor returned by openSensorBoard()
+
+    @param s1
+         The speed of thruster with address one
+    @param s2
+         The speed of thruster with address two
+    @param s3
+         The speed of thruster with address three
+    @param s4
+         The speed of thruster with address four
+    @param s5
+         The speed of thruster with address five
+    @param s6
+         The speed of thruster with address six
+ */
+int setSpeeds(int fd, int s1, int s2, int s3, int s4, int s5, int s6);
+
+/** Reads back the on the board from the motor controller
+
+    This is basically a house cleaning command, seee setSpeeds for information
+    on its use.
+ */
+int readSpeedResponses(int fd);
+
+int readThrusterState(int fd);
+
+int readBarState(int fd);
+
+int readOvrState(int fd);
+
+int readBatteryEnables(int fd);
+
+int readBatteryUsage(int fd);
+
+int readMotorCurrents(int fd, struct powerInfo * info);
+int readBoardVoltages(int fd, struct powerInfo * info);
+
+int readBatteryVoltages(int fd, struct powerInfo * info);
+int readBatteryCurrents(int fd, struct powerInfo * info);
+
+int switchToExternalPower(int fd);
+int switchToInternalPower(int fd);
+
+int setBatteryState(int fd, int state);
+
+int setAnimation(int fd, int anim);
+int setBarOutputs(int fd, int bars);
+
+// maxCurrent (mA) = (a * speed) / 6 + b*40
+// where speed=[0,255] corresponds to 0 to full speed
+int setOvrParams(int fd, int a, int b);
+int readOvrParams(int fd, int * a, int * b);
+
+/** Translates the function error return codes into text */
+char* sbErrorToText(int ret);
+
+/** Translates the index from the boardInfo array into the sensor name */
+char* tempSensorIDToText(int id);
+
+int DVLOn(int fd, unsigned char power);
+
+int setMagPower(int fd, unsigned char power);
+int fireTorpedo(int fd, unsigned char torpnum);
+int voidTorpedo(int fd, unsigned char torpnum);
+int armTorpedo(int fd, unsigned char torpnum);
+int extendGrabber(int fd);
+int retractGrabber(int fd);
+int voidGrabber(int fd);
+int voidSystem(int fd);
+int pneumaticsOff(int fd);
+int setDerpyPower(int fd, unsigned char on);
+int setDerpySpeed(int fd, int speed);
+int stopDerpy(int fd);
+
+/*Turn the camera connection on or off
+kanga - 7/3/2013*/
+int camConnect(int fd);
+int camDisconnect(int fd);
 
 // If we are compiling as C++ code we need to use extern "C" linkage
 #ifdef __cplusplus
