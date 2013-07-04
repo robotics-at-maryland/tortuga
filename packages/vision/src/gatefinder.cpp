@@ -452,6 +452,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 		line(src, finalPair.line1_lower,
    	          	finalPair.line1_upper, Scalar(0,0,255), 5, 8 ); 
 		//also, is there a horizontal line?
+		int leftx, rightx;
 		if (totalHorizontal > 1)
 		{	
 			for(size_t i = 0; i < linesP.size(); i++ )
@@ -471,13 +472,13 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 					{
 						//good line
 						pairs.foundHorizontal = 1;
-						horizontalAtTop = 0;
+						pairs.horizontalAtTop = 0;
 					}
 					else if ( (abs(leftx-pairs.line1_upper.x) < 30 || abs(rightx-pairs.line1_upper.x)<30) && (rightx-leftx)>30)
 					{
 						//good line
 						pairs.foundHorizontal = 1;
-						horizontalAtTop = 1;
+						pairs.horizontalAtTop = 1;
 					}
 					//now I can determine if the vertical is left or right
 				}
