@@ -1247,6 +1247,48 @@ int main(void)
                 break;
             }
 
+//kanga - 7/3/2013
+            case HOST_CMD_CAM_RELAY_ON:
+            {
+                t1= waitchar(1);
+                if(t1 != HOST_CMD_CAM_RELAY_ON)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_CAM_RELAY_ON, SLAVE_ID_DEPTH) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+                
+            }
+
+            case HOST_CMD_CAM_RELAY_OFF:
+            {
+                 t1= waitchar(1);
+                if(t1 != HOST_CMD_CAM_RELAY_OFF)
+                {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_CAM_RELAY_OFF, SLAVE_ID_DEPTH) != 0)
+                {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+
+                break;
+            }
+
 
             case HOST_CMD_BATTSTATE:
             {

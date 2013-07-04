@@ -174,7 +174,17 @@
 #define BUS_CMD_DERPY_OFF       0x69
 #define BUS_CMD_SET_DERPY       0x6A
 #define BUS_CMD_STOP_DERPY      0x6B
-/* Next free is 0x6C */
+
+
+/* In order to fix the in-rush issue with the power supply inside the cameras 
+we are setting up an interrupt circuit for replicating plugging and unplugging 
+the subcon connector. this will be fixed when the power supply for the cameras 
+is redesigned
+Kanga - 7/3/2013*/
+#define BUS_CMD_CAM_RELAY_ON    0x6C
+#define BUS_CMD_CAM_RELAY_OFF   0x6D
+
+/*Next free is 0x6E*/
 
 
 /* I wanted a more Unique response to a ping.
@@ -304,6 +314,14 @@
 #define HOST_CMD_DERPY_OFF          0x40
 #define HOST_CMD_SET_DERPY          0x41
 #define HOST_CMD_STOP_DERPY         0x42
+
+
+/*host commands for switching the camera connection on and off via relay
+kanga - 7/3/2013*/
+
+#define HOST_CMD_CAM_RELAY_ON    0x43
+#define HOST_CMD_CAM_RELAY_OFF   0x44
+
 
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.
