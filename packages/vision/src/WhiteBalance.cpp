@@ -63,10 +63,10 @@ Mat WhiteBalance(Mat Input)
 	temp=sum(output_planes[0]); 
 	
 	double mink_inverse = 1/mink_norm;
-	printf("\n mink_norm = %f, inverse = %f", mink_norm, mink_inverse);
+	//printf("\n mink_norm = %f, inverse = %f", mink_norm, mink_inverse);
 	
 	tempb =sum(kleur);
-	printf("tempb = %f,%f,%f", tempb.val[0],tempb.val[1],tempb.val[2]);
+	//printf("tempb = %f,%f,%f", tempb.val[0],tempb.val[1],tempb.val[2]);
 	float tempb_b = tempb.val[0];
 	float tempb_g = tempb.val[1];
 	float tempb_r = tempb.val[2];
@@ -76,7 +76,7 @@ Mat WhiteBalance(Mat Input)
 	white_g=pow(tempb_g,mink_inverse);
 	white_r=pow(tempb_r,mink_inverse);
 
-	printf("\n white_b, r,g = %f, %f, %f", white_b,white_g,white_r);
+	//printf("\n white_b, r,g = %f, %f, %f", white_b,white_g,white_r);
 	som = sqrt(pow(white_r,2)+pow(white_g,2)+pow(white_b,2));
 	//printf("Som = %f \n", som);
 	//printf(" %f %f %f ", white_b, white_g, white_r);

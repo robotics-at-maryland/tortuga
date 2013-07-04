@@ -81,8 +81,9 @@ Mat foundLines::gateblob(Mat img_whitebalance)
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980
 	//same filter as the other cases followed by an invert
-	int red_minH = 5;
-	int red_maxH = 130;
+	
+/*int red_minH = GateDetector::returnRedmin();
+	int red_maxH = GateDetector::m_redmaxH;
 	blobfinder blob;
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 
@@ -103,10 +104,11 @@ Mat foundLines::gateblob(Mat img_whitebalance)
 
 
 	//imshow("red",img_red);
-
-	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
+*/
+	
+	Mat parallelLinesresults = verticalParallelLines(img_whitebalance,img_whitebalance);
 	//imshow("Vertical filter whitebalacnce",img_whitebalance);
-	return(erosion_dst);
+	return(img_whitebalance);
 };
 
 Mat foundLines::verticalParallelLines(Mat bw, Mat src)
