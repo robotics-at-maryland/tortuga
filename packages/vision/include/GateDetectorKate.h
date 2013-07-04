@@ -52,7 +52,7 @@ namespace vision {
 
 class foundLines {
 public:
-Mat gateblob(Mat img_whitebalance);
+Mat gateblob(Mat bw, Mat img_whitebalance);
 Mat hedgeblob(Mat img_whitebalance);
 
 Mat rectangle(Mat bw,Mat src);

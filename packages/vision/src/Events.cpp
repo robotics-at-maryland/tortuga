@@ -278,6 +278,10 @@ core::EventPtr TargetEvent::clone()
     copyInto(event);
     event->x = x;
     event->y = y;
+    event->largex = largex;
+    event->largey = largey;
+    event->smallx = smallx;
+    event->smally = smally;
     event->squareNess = squareNess;
     event->range = range;
     event->color = color;

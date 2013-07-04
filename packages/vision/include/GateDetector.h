@@ -34,16 +34,33 @@ class RAM_EXPORT GateDetector : public Detector
     void update();
     void processImage(Image* input, Image* output= 0);
     void publishFoundEvent(foundLines::parallelLinesPairs finalPairs);
-    
+    Mat processImageColor(Image* input);
     double getX();
     double getY();
     void show(char* window);
     IplImage* getAnalyzedImage();
     blobfinder blob;
+
+ int returnRedmin(void);
+int returnRedmax(void);
+   
     
   private:
     void init(core::ConfigNode config);
-    
+      ColorFilter* m_filter;
+/**Filter for Red value for VisionToolV2*/
+
+	//Mat img_whitebalance;    
+
+	int m_redminH;
+	int m_redmaxH;
+	int m_greenminH;
+	int m_greenmaxH;
+	int m_yellowminH;
+	int m_yellowmaxH;
+	int m_minS;
+	int m_maxS;
+
     int gateX;
     int gateY;
     double gateXNorm;

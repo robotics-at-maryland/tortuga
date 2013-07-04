@@ -67,16 +67,16 @@ Mat foundLines::hedgeblob(Mat img_whitebalance)
 };
 
 
-Mat foundLines::gateblob(Mat img_whitebalance)
+Mat foundLines::gateblob(Mat bw, Mat img_whitebalance)
 {
 	m_found = false;
 	Mat img_hsv;
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
-	vector<Mat> hsv_planes;
-	split(img_hsv,hsv_planes);
+	//vector<Mat> hsv_planes;
+	//split(img_hsv,hsv_planes);
 
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980
@@ -106,7 +106,7 @@ Mat foundLines::gateblob(Mat img_whitebalance)
 	//imshow("red",img_red);
 */
 	
-	Mat parallelLinesresults = verticalParallelLines(img_whitebalance,img_whitebalance);
+	Mat parallelLinesresults = verticalParallelLines(bw,img_whitebalance);
 	//imshow("Vertical filter whitebalacnce",img_whitebalance);
 	return(img_whitebalance);
 };
@@ -117,8 +117,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	//use hough lines to find two vertical parallel lines
 	//check to see if there is a horizontal line inbetween, preferably at either the top or bottom of the bars
 
-	int cannylow = 40;
-	int cannyhigh =80;
+	//int cannylow = 40;
+	//int cannyhigh =80;
 	float aspectRatio =1.0; //height/width
 	float horizontalslope = 0.5; //metric to determine if horizontal
 	float verticleslope = 6.1;
@@ -129,8 +129,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	//int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
-	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
-	//imshow("canny",bw);
+	//cv::Canny(bw, bw, cannylow, cannyhigh, 3);
+	//imshow("Bw",bw);
 
 	//Step 2: Use Hough to find lines
 	// Hough Line Probability Method
@@ -451,6 +451,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 
 		line(src, finalPair.line1_lower,
    	          	finalPair.line1_upper, Scalar(0,0,255), 5, 8 ); 
+		//also, is there a horizontal line
 	}
 	else if (totalVertical > 1)
 	{
@@ -480,7 +481,6 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 							pairs.line1_upper.y = linesP[i][1];
 						}
 
-						//find the aspect ratio - which means calculating the height of each line and the distance along x between teh pairs
 						if (linesP[j][1] < linesP[j][3])
 						{
 							pairs.line2_lower.x = linesP[j][0];
@@ -513,7 +513,6 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 							pairs.line2_upper.y = linesP[i][1];
 						}
 
-						//find the aspect ratio - which means calculating the height of each line and the distance along x between teh pairs
 						if (linesP[j][1] < linesP[j][3])
 						{
 							pairs.line1_lower.x = linesP[j][0];

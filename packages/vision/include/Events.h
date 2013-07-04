@@ -492,13 +492,18 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
     
 typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 
+//Kate added small and large centers, since each panel has a small and large target hole
 class RAM_EXPORT TargetEvent : public core::Event
 {
   public:
-    TargetEvent(double centerX, double centerY, double squareNess_,
+    TargetEvent(double centerX, double centerY, double largeCenterX, double largeCenterY, double smallCenterX, double smallCenterY,double squareNess_,
                 double range_, Color::ColorType color_ = Color::UNKNOWN) :
         x(centerX),
         y(centerY),
+	largex(largeCenterX),
+        largey(largeCenterY),
+	smallx(smallCenterX),
+        smally(smallCenterY),
         squareNess(squareNess_),
         range(range_),
         color(color_)
@@ -508,6 +513,10 @@ class RAM_EXPORT TargetEvent : public core::Event
     TargetEvent() :
         x(0),
         y(0),
+	largex(0),
+	largey(0),
+	smallx(0),
+	smally(0),
         squareNess(0),
         range(0),
         color(Color::UNKNOWN)
@@ -517,6 +526,12 @@ class RAM_EXPORT TargetEvent : public core::Event
 
     double x;
     double y;
+    double largex; 
+    double largey;
+    double smallx;
+    double smally;
+    double panelx;
+    double panely;
     double squareNess;
     double range;
     Color::ColorType color;

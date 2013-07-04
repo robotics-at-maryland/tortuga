@@ -60,15 +60,6 @@ void GateDetector::init(core::ConfigNode config)
 	core::PropertySetPtr propSet(getPropertySet());
 
     // Color filter properties
-/*
-    m_filter->addPropertiesToSet(propSet, &config,
-                                 "Blue", "L*",
-                                 "Yellow", "Blue Chrominance",
-                                 "Green", "Red Chrominance",
-                                 145, 255,  // L defaults
-                                 0, 44,  // U defaults (0, 75)
-                                 27, 63); // V defaults (137, 181)
-*/
 //Kate edit: trying to edit the VisionToolV2 gui to allow sliders    
 	propSet->addProperty(config, false, "Rmin",
                          "min",
@@ -90,10 +81,10 @@ void GateDetector::init(core::ConfigNode config)
                          127, &m_yellowmaxH, 0, 255);
 	propSet->addProperty(config, false, "Smin",
                          "Smin",
-                         9, &m_minS, 0, 255);
+                         139, &m_minS, 0, 255);
 	propSet->addProperty(config, false, "Smax",
                          "Smax",
-                         127, &m_maxS, 0, 255);
+                         255, &m_maxS, 0, 255);
 
 }
     
@@ -183,22 +174,22 @@ Mat GateDetector::processImageColor(Image*input)
                                        Point( erosion_size, erosion_size ) );
 
   	/// Apply the erosion operation
-	Mat erosion_dst, erosion_dst_green, erosion_dst_blue;
-  	erode(img_red, erosion_dst, element );
-	imshow("Red",erosion_dst);
+	Mat erosion_dst,erosion_dst_red, erosion_dst_green, erosion_dst_blue;
+  	erode(img_red, erosion_dst_red, element );
+	//imshow("Red",erosion_dst_red);
 
   	erode(img_green, erosion_dst_green, element );
-	imshow("Green",erosion_dst_green);
+	//imshow("Green",erosion_dst_green);
 
   	erode(img_yellow, erosion_dst, element );
-	imshow("Yellow",erosion_dst);
+	//imshow("Yellow",erosion_dst);
 
   	erode(img_blue, erosion_dst_blue, element );
-	imshow("Blue",erosion_dst_blue);
+	//imshow("Blue",erosion_dst_blue);
 
 	//lets AND the blue and the green images
-	bitwise_and(erosion_dst_blue,erosion_dst_green, erosion_dst,noArray());
-	imshow("AND",erosion_dst);
+	bitwise_and(erosion_dst_blue,erosion_dst_red, erosion_dst,noArray());
+	//imshow("AND",erosion_dst);
 
 	return(erosion_dst);
 }
@@ -206,20 +197,21 @@ Mat GateDetector::processImageColor(Image*input)
 void GateDetector::processImage(Image* input, Image* output)
 {	
 //KATE
-	//m_redminH = 0;
-	//m_redmaxH = 255;
-	//Mat img = processImageColor(input);
+	Mat imgprocess = processImageColor(input);
+	//img_whitebalance = img;
 	Mat img = input->asIplImage();
 	//imshow("input image", img);
 
+	//imshow("process",imgprocess);
 	//IplImage* tempImage=0;
 	img_whitebalance = WhiteBalance(img);
 	gate.m_found = FALSE;
-	Mat img_red = gate.gateblob(img_whitebalance); //built in redfilter
+	Mat img_red = gate.gateblob(imgprocess,img_whitebalance); //built in redfilter
 	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter
 
+	//imshow("results",img_red);
 	//img_gate = gate.rectangle(img_red, img_whitebalance);
-	cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
+	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
 
 	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
