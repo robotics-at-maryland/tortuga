@@ -236,9 +236,9 @@ unsigned int j,k;
 					
 				if ((size_difference < size_reference_small) && (point_difference < point_reference) && (point_difference2 <point_reference))
 				{
-					printf("\n Size: %f,angle %f, response = %f",_keypoints_yellow[i].size,_keypoints_yellow[i].angle, _keypoints_yellow[i].response);
+					//printf("\n Size: %f,angle %f, response = %f",_keypoints_yellow[i].size,_keypoints_yellow[i].angle, _keypoints_yellow[i].response);
 					circle(img_whitebalance,point,10,Scalar(255,255,0),1,8,0);
-					printf("\n Keypoint = %d, (%d, %d)",i,point.x,point.y);
+					//printf("\n Keypoint = %d, (%d, %d)",i,point.x,point.y);
 				}
 			}//end for j
 
@@ -492,20 +492,26 @@ Mat blobfinder::RedFilter(vector<Mat> hsv_planes,int red_minH, int red_maxH)
 Mat blobfinder::OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH)
 {
 		Mat img;
-		Mat img_saturation;
-		threshold(hsv_planes[1],img_saturation,1,0,THRESH_TOZERO);
-
-
-
 		threshold(hsv_planes[0],img,maxH,0,THRESH_TOZERO_INV);
 		threshold(img,img,minH,255,THRESH_TOZERO);
 		threshold(img,img,1,255,THRESH_BINARY);
 		
+		
+		return(img);
+};
+Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH)
+{
+
+		Mat img;
+		threshold(hsv_planes[1],img,maxH,0,THRESH_TOZERO_INV);
+		threshold(img,img,minH,255,THRESH_TOZERO);
+		threshold(img,img,1,255,THRESH_BINARY);
 		//double alpha = 0.5;
 		// double beta = ( 1-alpha );
 		// addWeighted( img, alpha, img_saturation, beta, 0.0, img);
 		return(img);
 };
+
 
 }//end namspace vision
 }//end namespace RAM
