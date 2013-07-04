@@ -36,6 +36,11 @@ _FWDT ( WDT_OFF );
 #define IN_RW       _RD9
 #define TRIS_RW     _TRISD9
 
+//kanga
+#define TRIS_CAM_REL _TRISF4
+#define TRIS_CAM_LED _TRISF5
+#define LAT_CAM_REL _LATF4
+#define LAT_CAM_LED _LATF5
 
 #define RW_READ     0
 #define RW_WRITE    1
@@ -125,6 +130,19 @@ void processData(byte data)
                 {
                     busState = STATE_SETSPEED_U2;
                     nParam = 0;
+                    break;
+                }
+                //kanga - 7/3/2013
+                case BUS_CMD_CAM_RELAY_ON:
+                {
+                    LAT_CAM_REL = 1;
+                    LAT_CAM_LED = 1;
+                    break;
+                }
+                case BUS_CMD_CAM_RELAY_OFF:
+                {
+                    LAT_CAM_REL = 0;
+                    LAT_CAM_LED = 0;
                     break;
                 }
 
@@ -339,6 +357,15 @@ void initCN()
     IEC0bits.CNIE = 1;      /* Turn on CN interrupts */
 }
 
+//kanga 7/2/2013
+void initCam()
+{
+/* Init Camera cycling state to on*/
+    TRIS_CAM_REL = TRIS_OUT;
+    TRIS_CAM_LED = TRIS_OUT;
+    LAT_CAM_REL = 1;
+    LAT_CAM_LED = 1;
+}
 
 /*
  * Put bus in the idle state. This should be done as soon as possible to prevent
@@ -353,6 +380,7 @@ void initBus()
     TRIS_RW = TRIS_IN;
     TRIS_REQ = TRIS_IN;
     TRIS_AKN = TRIS_IN;
+    initCam();
     initCN();
 }
 
@@ -519,8 +547,10 @@ int main()
         cfgRegs[i] = 65;
 
     initADC();
-    initInterruptUarts();
-
+    
+//kanga - "it wasn't my fault. nick told me to do it"
+//initInterruptUarts();
+    
     while(1)
     {
         if (ADCON1bits.DONE && _T2IF)
