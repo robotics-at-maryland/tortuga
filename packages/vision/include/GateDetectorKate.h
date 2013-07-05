@@ -59,6 +59,22 @@ Mat rectangle(Mat bw,Mat src);
 Mat verticalParallelLines(Mat bw, Mat src);
 
 bool m_found;
+
+	struct checklines
+	{
+		//vertical lines
+		CvPoint upper1;
+		CvPoint lower1;
+		CvPoint upper2;
+		CvPoint lower2;
+		CvPoint left;
+		CvPoint right;
+		int diffVertical;
+		int diffHorizontal;
+		bool foundHorizontal;
+		bool foundVertical;
+	};
+
 	struct foundCorner
 	{
 		int cornerX;

@@ -43,6 +43,9 @@ class RAM_EXPORT GateDetector : public Detector
 
  int returnRedmin(void);
 int returnRedmax(void);
+int getmaxdiff(); //gets the maximum allowed difference for kate function
+int m_maxdiff;
+
    
     
   private:
@@ -60,6 +63,7 @@ int returnRedmax(void);
 	int m_yellowmaxH;
 	int m_minS;
 	int m_maxS;
+	bool m_checkRed;
 
     int gateX;
     int gateY;

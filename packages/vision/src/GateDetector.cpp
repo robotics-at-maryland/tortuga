@@ -72,7 +72,7 @@ void GateDetector::init(core::ConfigNode config)
                          9, &m_greenminH, 0, 255);
 	propSet->addProperty(config, false, "Gmax",
                          "max",
-                         127, &m_greenmaxH, 0, 255);
+                         76, &m_greenmaxH, 0, 255);
 	propSet->addProperty(config, false, "Ymin",
                          "Hmin",
                          9, &m_yellowminH, 0, 255);
@@ -81,10 +81,16 @@ void GateDetector::init(core::ConfigNode config)
                          127, &m_yellowmaxH, 0, 255);
 	propSet->addProperty(config, false, "Smin",
                          "Smin",
-                         139, &m_minS, 0, 255);
+                         20, &m_minS, 0, 255);
 	propSet->addProperty(config, false, "Smax",
                          "Smax",
-                         255, &m_maxS, 0, 255);
+                         70, &m_maxS, 0, 255);
+	propSet->addProperty(config, false, "diff",
+                         "diff",
+                         100, &m_maxdiff, 0,300);
+    propSet->addProperty(config, false, "treshold red",
+                         "threshold red or green",
+                         false, &m_checkRed);
 
 }
     
@@ -188,7 +194,10 @@ Mat GateDetector::processImageColor(Image*input)
 	//imshow("Blue",erosion_dst_blue);
 
 	//lets AND the blue and the green images
-	bitwise_and(erosion_dst_blue,erosion_dst_red, erosion_dst,noArray());
+	if (m_checkRed == true)
+		bitwise_and(erosion_dst_blue,erosion_dst_red, erosion_dst,noArray());
+	else
+		bitwise_and(erosion_dst_blue,erosion_dst_green, erosion_dst,noArray());
 	//imshow("AND",erosion_dst);
 
 	return(erosion_dst);
@@ -305,7 +314,9 @@ void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
       publish(EventType::GATE_FOUND, event);
 };
 
-
-
+int GateDetector::getmaxdiff(void)
+{
+	return(m_maxdiff);
+};
 } // namespace vision
 } // namespace ram
