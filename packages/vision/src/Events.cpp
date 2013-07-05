@@ -278,6 +278,10 @@ core::EventPtr TargetEvent::clone()
     copyInto(event);
     event->x = x;
     event->y = y;
+    event->largex = largex;
+    event->largey = largey;
+    event->smallx = smallx;
+    event->smally = smally;
     event->squareNess = squareNess;
     event->range = range;
     event->color = color;
@@ -323,6 +327,21 @@ core::EventPtr RedLightEvent::clone()
     event->y = y;
     event->pixCount = pixCount;
     event->color = color;
+    return event;
+}
+
+core::EventPtr GateEvent::clone()
+{
+    GateEventPtr event = GateEventPtr(new GateEvent());
+    copyInto(event);
+    event->leftX = leftX;
+    event->leftY = leftY;
+    event->rightX = rightX;
+    event->rightY = rightY;
+    event->squareNess = squareNess;
+    event->range = range;
+    event->haveLeft = haveLeft;
+    event->haveRight = haveRight;
     return event;
 }
 } // namespace vision
