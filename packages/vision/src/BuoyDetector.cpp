@@ -1157,8 +1157,8 @@ void BuoyDetector::publishFoundEventKate(KeyPoint blob, Color::ColorType color)
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
     static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
 
-    BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
-    
+    BuoyEventPtr event(new BuoyEvent());  
+  
     double centerX = 0, centerY = 0;
     Detector::imageToAICoordinates(frame, blob.pt.x, blob.pt.y,
                                    centerX, centerY);
