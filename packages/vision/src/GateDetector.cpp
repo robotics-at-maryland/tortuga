@@ -62,22 +62,22 @@ void GateDetector::init(core::ConfigNode config)
     // Color filter properties
 //Kate edit: trying to edit the VisionToolV2 gui to allow sliders    
 	propSet->addProperty(config, false, "Rmin",
-                         "min",
+                         "Rmin",
                          9, &m_redminH, 0, 255);
 	propSet->addProperty(config, false, "Rmax",
-                         "max",
+                         "Rmax",
                          127, &m_redmaxH, 0, 255);
 	propSet->addProperty(config, false, "Gmin",
-                         "min",
+                         "Gmin",
                          9, &m_greenminH, 0, 255);
 	propSet->addProperty(config, false, "Gmax",
-                         "max",
+                         "Gmax",
                          76, &m_greenmaxH, 0, 255);
 	propSet->addProperty(config, false, "Ymin",
-                         "Hmin",
+                         "Ymin",
                          9, &m_yellowminH, 0, 255);
 	propSet->addProperty(config, false, "Ymax",
-                         "Hmax",
+                         "Ymax",
                          127, &m_yellowmaxH, 0, 255);
 	propSet->addProperty(config, false, "Smin",
                          "Smin",
@@ -88,9 +88,9 @@ void GateDetector::init(core::ConfigNode config)
 	propSet->addProperty(config, false, "diff",
                          "diff",
                          100, &m_maxdiff, 0,300);
-    propSet->addProperty(config, false, "treshold red",
-                         "threshold red or green",
-                         false, &m_checkRed);
+   	propSet->addProperty(config, false, "thresholdwithred",
+                         "thresholdwithred",
+                         true, &m_checkRed);
 
 }
     
