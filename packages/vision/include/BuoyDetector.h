@@ -14,9 +14,12 @@
 #include <set>
 #include <vector>
 #include <string>
+#include <cmath>
+
 
 // Library Includes
 #include "cv.h"
+#include "highgui.h"
 
 // Project Includes
 #include "vision/include/Common.h"
@@ -25,9 +28,13 @@
 #include "vision/include/BlobDetector.h"
 #include "vision/include/TableColorFilter.h"
 #include "core/include/ConfigNode.h"
+#include "vision/include/BuoyDetectorKate.h"
 
 // Must be included last
 #include "vision/include/Export.h"
+
+using namespace std;
+using namespace cv;
 
 namespace ram {
 namespace vision {
@@ -72,7 +79,9 @@ class RAM_EXPORT BuoyDetector : public Detector
 
     // Process current state, and publishes LIGHT_FOUND event
     void publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color);
+    void publishFoundEventKate(cv::KeyPoint blob, Color::ColorType color);
     void publishLostEvent(Color::ColorType color);
+
 
     Camera *cam;
 
@@ -145,6 +154,10 @@ class RAM_EXPORT BuoyDetector : public Detector
     cv::Mat firstTempCast;
     cv::Mat secondTempCast;
     cv::Mat secondTemp;
+    
+   /*Kate edit - same whitebalance image and final output*/
+	cv::Mat img_whitebalance;
+	cv::Mat img_buoy;
 
     /* Configuration variables */
     double m_maxAspectRatio;
@@ -176,6 +189,10 @@ class RAM_EXPORT BuoyDetector : public Detector
     cv::Mat cutoffBuoys;
     //final image
     cv::Mat finalBuoys;
+    IplImage finalBuoys_iplimage;
+    Image* tempoutput;
+    //vision::OpenCVImage finalBuoys_image(&finalBuoys_iplimage);
+
     /*values for canny algorithm*/
     /*red, green, blue, value and 1rst component
       of the YCrCb colorspace*/
@@ -195,6 +212,11 @@ class RAM_EXPORT BuoyDetector : public Detector
     /*scaling factor for overlall image standard deviation*/
     double stDevFactor;
     
+    //added for Kate's buoy detector
+	//want blobfinder class to be added
+	blobfinder blob;
+
+
 };
 	
 } // namespace vision

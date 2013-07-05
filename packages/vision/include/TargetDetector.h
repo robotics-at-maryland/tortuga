@@ -14,6 +14,8 @@
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
+#include "vision/include/WhiteBalance.h"
+#include "vision/include/BuoyDetectorKate.h"
 
 #include "core/include/ConfigNode.h"
 
@@ -31,6 +33,7 @@ class RAM_EXPORT TargetDetector : public Detector
     ~TargetDetector();
 
     void processImage(Image* input, Image* output= 0);
+    void processColorImage(Image* input, Image* output=0);
 
     bool found();
 
@@ -45,6 +48,13 @@ class RAM_EXPORT TargetDetector : public Detector
 
     /** The percent of the bottom of the image blacked out */
     void setBottomRemovePercentage(double percent);
+
+  struct targetPanel
+	{
+	 RotatedRect outline;
+	 RotatedRect targetSmall;
+	 RotatedRect targetLarge;
+	};
         
   private:
     void init(core::ConfigNode config);
@@ -77,6 +87,9 @@ class RAM_EXPORT TargetDetector : public Detector
     /** Filters for the green in the water */
     ColorFilter* m_filter;
 
+/**Filter for Red value for VisionToolV2*/
+	int m_redminH;
+	int m_redmaxH;
     /** Working scratch image */
     Image* m_image;
 
@@ -92,6 +105,16 @@ class RAM_EXPORT TargetDetector : public Detector
     /** 1 when the area inside the target is perfectly square, < 1 otherwise */
     double m_squareNess;
 
+     /** location for the X center of the large hole target*/
+     double m_targetLargeCenterX;
+     /** location for the Y center of the large hole target*/
+     double m_targetLargeCenterY;
+     /** location for the X center of the small hole target*/
+     double m_targetSmallCenterX;
+     /** location for the Y center of the small hole target*/
+     double m_targetSmallCenterY;
+	/**color of target*/    
+	Color::ColorType m_color;
     /** 0 When the target fills the screen, goes to 1 as it shrinks */
     double m_range;
 
@@ -118,6 +141,10 @@ class RAM_EXPORT TargetDetector : public Detector
 
     /** Percentage of the image to remove from the bottom */
     double m_bottomRemovePercentage;
+
+
+Mat img_whitebalance;
+    targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
 };
 	
 } // namespace vision

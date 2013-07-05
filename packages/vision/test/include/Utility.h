@@ -11,7 +11,7 @@
 #define RAM_VISION_TEST_UTILITY_H_04_09_2008
 
 // Library Includes
-#include "cxtypes.h"
+//#include "cxtypes.h" McBryan 6-6-2013 says this doesn't exist I dont know what it does
 #include "cxcore.h"
 
 // Project Includes

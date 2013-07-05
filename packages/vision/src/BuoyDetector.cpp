@@ -41,6 +41,8 @@
 #include "vision/include/Utility.h"
 #include "vision/include/VisionSystem.h"
 #include "vision/include/TableColorFilter.h"
+#include "vision/include/WhiteBalance.h"
+#include "vision/include/BuoyDetectorKate.h"
 
 static boost::filesystem::path getImagesDir()
 {
@@ -49,6 +51,10 @@ static boost::filesystem::path getImagesDir()
 }
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
+
+
+using namespace std;
+using namespace cv;
 
 namespace ram {
 namespace vision {
@@ -256,6 +262,7 @@ void BuoyDetector::init(core::ConfigNode config)
                 "greenHeight greenNumPixels greenPixelPct"
                 "foundYellow yellowX yellowY yellowRange yellowWidth "
                 "yellowHeight yellowNumPixel yellowPixelPct");
+ 
     
         
 }
@@ -430,11 +437,72 @@ bool BuoyDetector::processColor(Image* input, Image* output,
     return foundBlob;
 }
 
+
 void BuoyDetector::processImage(Image* input, Image* output)
 {
-    
-    frame->copyFrom(input);
 
+	//KATE Update 2013
+	//convert from Image* to Mat
+	Mat img = input->asIplImage();
+	//imshow("input image", img);
+
+        Mat output_blob= img;
+	//IplImage finalBouys_iplimage;
+
+	img_whitebalance = WhiteBalance(img);
+	imshow("whitebalance",img_whitebalance);
+	img_buoy = blob.DetectBuoys(img_whitebalance, m_redFilter, m_greenFilter,m_yellowFilter);
+	
+	cvtColor(img_buoy,img_buoy,CV_BGR2RGB);
+	//copy data from Mat to an IMage*
+	//note, that the src (in this case img_buoy) must be a member of the class and not just here
+        input->setData(img_buoy.data,false);
+
+	vector<KeyPoint>  Yellow_keypoints= blob.getYellow();
+  	vector<KeyPoint>  Red_keypoints= blob.getRed();
+  	vector<KeyPoint>  Green_keypoints= blob.getGreen();
+
+	//Kate code
+	//publish event for found buoys
+	for (unsigned int i=0;i<Yellow_keypoints.size();i++)
+	{	
+		publishFoundEventKate(Yellow_keypoints[i], Color::YELLOW);
+	}
+	if (Yellow_keypoints.size() < 1)
+	{
+		publishLostEvent(Color::YELLOW);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+	for (unsigned int i=0;i<Red_keypoints.size();i++)
+	{	
+		publishFoundEventKate(Red_keypoints[i], Color::RED);
+	}
+	if (Red_keypoints.size() < 1)
+	{
+		publishLostEvent(Color::RED);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+	for (unsigned int i=0;i<Green_keypoints.size();i++)
+	{	
+		publishFoundEventKate(Green_keypoints[i], Color::GREEN);
+	}
+	if (Green_keypoints.size() < 1)
+	{
+		publishLostEvent(Color::GREEN);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+        //In order to pass the vision test, we need an output
+	//so thats why the rest of this code is still here
+       frame->copyFrom(input);
+
+
+/*
     int topRowsToIgnore = m_topIgnorePercentage * frame->getHeight();
     int bottomRowsToIgnore = m_bottomIgnorePercentage * frame->getHeight();
     int leftColsToIgnore = m_leftIgnorePercentage * frame->getWidth();
@@ -448,9 +516,11 @@ void BuoyDetector::processImage(Image* input, Image* output)
     RegionOfInterest initialROI = RegionOfInterest(initialMinX, initialMaxX,
                                                    initialMinY, initialMaxY);
 
-    int framePixels = initialROI.area();
-    int almostHitPixels = framePixels * m_almostHitPercentage;
+	    int framePixels = initialROI.area();
+	   int almostHitPixels = framePixels * m_almostHitPercentage; //kate comment
+*/
 
+/*
     // Filter for black if needed
     if (m_checkBlack)
     {
@@ -460,19 +530,21 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
         m_blackFilter->filterImage(blackFrame);
     }
+*/
 
+/*
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
 
     BlobDetector::Blob redBlob;
 
-    bool redFound;
+    bool redFound=1; //hardcoded by kate
 
     if ( m_useRedFilterLookup ) {
-        redFound = processColor(frame, redFrame, *m_redTableColorFilter, true, redBlob);
+        //redFound = processColor(frame, redFrame, *m_redTableColorFilter, true, redBlob);
     } else {
-        redFound = processColor(frame, redFrame, *m_redFilter, false, redBlob);
+        //redFound = processColor(frame, redFrame, *m_redFilter, false, redBlob);
     }
  
     if (redFound)
@@ -509,11 +581,9 @@ void BuoyDetector::processImage(Image* input, Image* output)
         
     }
     m_redFound = redFound;
+*/
 
-
-
-
-
+/*
     BlobDetector::Blob greenBlob;
     bool greenFound;
     if ( m_useGreenFilterLookup ) {
@@ -603,12 +673,13 @@ void BuoyDetector::processImage(Image* input, Image* output)
         
     }
     m_yellowFound = yellowFound;
-
+*/
     if(output)
     {
         output->copyFrom(frame);
         if (m_debug >= 1) {
             output->copyFrom(frame);
+
 
             unsigned char *data = output->getData();
             int width = output->getWidth();
@@ -616,7 +687,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
             int nch = output->getNumChannels();
 
             int topRowsToIgnore = height * m_topIgnorePercentage;
-            int bottomRowsToIgnore = height * m_bottomIgnorePercentage;
+        //    int bottomRowsToIgnore = height * m_bottomIgnorePercentage;
 
             int valuesPerRow = width * output->getNumChannels();
             for(int r = 0; r < topRowsToIgnore; r++)
@@ -627,36 +698,35 @@ void BuoyDetector::processImage(Image* input, Image* output)
                 }
             }
 
-            for(int r = height - bottomRowsToIgnore - 1; r < height - 1; r++)
-            {
-                for(int c = 0; c < valuesPerRow; c++)
-                {
-                    *(data + r * width * nch + c) = 0;
-                }
-            }
-            
+       //     for(int r = height - bottomRowsToIgnore - 1; r < height - 1; r++)
+       //     {
+       //         for(int c = 0; c < valuesPerRow; c++)    output->setData(imgdone.data,false);
+       //        {
+       //             *(data + r * width * nch + c) = 0;
+       //         }
+       //     }
 
-            Image::fillMask(output, redFrame, 255, 0, 0);
-            Image::fillMask(output, greenFrame, 0, 255, 0);
-            Image::fillMask(output, yellowFrame, 255, 255, 0);
-            Image::fillMask(output, blackFrame, 147, 20, 255);
-        }
 
-        if (m_debug == 2) {
-            if (redFound)
-                drawBuoyDebug(output, redBlob, 255, 0, 0);
-            if (greenFound)
-                drawBuoyDebug(output, greenBlob, 0, 255, 0);
-            if (yellowFound)
-                drawBuoyDebug(output, yellowBlob, 255, 255, 0);
-        }
-    }
+            //Image::fillMask(output, redFrame, 255, 0, 0);
+            //Image::fillMask(output, greenFrame, 0, 255, 0);
+            //Image::fillMask(output, yellowFrame, 255, 255, 0);
+            //Image::fillMask(output, blackFrame, 147, 20, 255);
+
+        } //endif mdebug==1
+
+    //    if (m_debug == 2) {
+    //       if (redFound)
+    //            drawBuoyDebug(output, redBlob, 255, 0, 0);
+    //        if (greenFound)
+    //            drawBuoyDebug(output, greenBlob, 0, 255, 0);
+    //        if (yellowFound)
+    //            drawBuoyDebug(output, yellowBlob, 255, 255, 0);
+    //    }
+
+    } //end if output
+
+
 }
-
-
-
-
-
 
 
 void BuoyDetector::initProcessBuoys(cv::Mat temp1, cv::Mat temp2)
@@ -701,10 +771,17 @@ void BuoyDetector::initProcessBuoys(cv::Mat temp1, cv::Mat temp2)
 void BuoyDetector::processBuoys(Image* input, Image* output)
 {
     std::cout<<"starting"<<std::endl;
-    tempImage = input->asIplImage();
+    Mat img = input->asIplImage();
 
-    /* RGB channels
-       order is BGR*/
+    Mat imgdone = WhiteBalance(img); 
+    //IplImage imgtemp = IplImage(imgdone);
+    //output->setData(imgdone.data,false);
+
+
+
+/* COMMENT oUT cause kate says so
+
+    // RGB channels order is BGR //
     cv::split(tempImage, channels);
     cv::Canny(channels[0], combImage, m_bMin, m_bMax);
     combImage.copyTo(cannyMat);
@@ -731,8 +808,8 @@ void BuoyDetector::processBuoys(Image* input, Image* output)
     //next up is the first template match
     m_template1.convertTo(firstTempCast, CV_8UC(1), 1.0, 0);
     cv::matchTemplate(cannyMat, m_template1, firstTemp, CV_TM_CCORR);
-    /*type of m_template1 has to be changed because the templates
-      have to be 8 bit images, which forces a change in type*/
+    //type of m_template1 has to be changed because the templates
+    //  have to be 8 bit images, which forces a change in type
 
     m_template2.convertTo(m_template2, CV_32FC(1), 1.0, 0);
     cv::matchTemplate(firstTemp, m_template2, secondTemp, CV_TM_SQDIFF);
@@ -859,14 +936,17 @@ void BuoyDetector::processBuoys(Image* input, Image* output)
   
     //std::cout<<"finished cutoff"<<std::endl;
     //std::cout<<"image shown"<<std::endl;
-    //*((IplImage*) *output) = (IplImage)finalBuoys;
-    output->setData(finalBuoys.data,false);
+    //((IplImage*) *output) = (IplImage)finalBuoys;
+    //output->setData(finalBuoys.data,false);
+*/
     //std::cout<<"swordfish"<<std::endl;
+
 }
 
 
 void BuoyDetector::processBuoysImage(Image* input, Image* output)
 {
+
     vision::OpenCVImage out(640, 480, vision::Image::PF_BGR_8);
     processBuoys(input,&out);
     if(output != 0)
@@ -1070,6 +1150,47 @@ void BuoyDetector::processBuoysMask(cv::Mat* mask, Image* img, Image* output)
 
 
 
+void BuoyDetector::publishFoundEventKate(KeyPoint blob, Color::ColorType color)
+{
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
+
+    BuoyEventPtr event = BuoyEventPtr(new BuoyEvent());
+    
+    double centerX = 0, centerY = 0;
+    Detector::imageToAICoordinates(frame, blob.pt.x, blob.pt.y,
+                                   centerX, centerY);
+
+	//blob.size (or any keypoint.size) returns the diameter of the meaningfull keypooint neighborhood
+	//dont get it confused with keypoint.size() which will return the size of the keypoitn vector
+
+   // double blobWidth = blob.getWidth();
+   // double fracWidth = blobWidth / xPixelWidth;
+   // double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+
+    int minX = blob.pt.x-blob.size;
+    int maxX = blob.pt.x+blob.size;
+    int minY = blob.pt.y-blob.size;
+    int maxY = blob.pt.y+blob.size;
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
+
+    event->x = centerX;
+    event->y = centerY;
+    event->range = blob.size;
+    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+    event->elevation = math::Degree((yFOV / 2) * centerY);
+    event->color = color;
+    event->touchingEdge = touchingEdge;
+
+    publish(EventType::BUOY_FOUND, event);
+}
+
+
 
 
 
@@ -1093,7 +1214,8 @@ void BuoyDetector::publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType 
     double fracWidth = blobWidth / xPixelWidth;
     double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
 
-    int minX = blob.getMinX();
+   
+ int minX = blob.getMinX();
     int maxX = blob.getMaxX();
     int minY = blob.getMinY();
     int maxY = blob.getMaxY();

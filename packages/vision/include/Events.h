@@ -362,6 +362,67 @@ class RAM_EXPORT HedgeEvent : public core::Event
 
 typedef boost::shared_ptr<HedgeEvent> HedgeEventPtr;
 
+
+
+
+
+
+
+
+
+class RAM_EXPORT GateEvent : public core::Event
+{
+  public:
+    GateEvent(double leftX_, double leftY_, double rightX_, double rightY_,
+               double width_, double range_,
+               bool haveLeft_, bool haveRight_) :
+        leftX(leftX_),
+        leftY(leftY_),
+        rightX(rightX_),
+        rightY(rightY_),
+        squareNess(width_),
+        range(range_),
+        haveLeft(haveLeft_),
+        haveRight(haveRight_)
+    {
+    }
+
+    GateEvent() :
+        leftX(0),
+        leftY(0),
+        rightX(0),
+        rightY(0),
+        squareNess(0),
+        range(0),
+        haveLeft(false),
+        haveRight(false)
+    {
+    }
+
+    double leftX;
+    double leftY;
+    double rightX;
+    double rightY;
+
+    // Calculated on width / height
+    double squareNess;
+    double range;
+
+    bool haveLeft;
+    bool haveRight;
+
+
+    virtual core::EventPtr clone();
+};
+
+typedef boost::shared_ptr<GateEvent> GateEventPtr;
+
+
+
+
+
+
+
 class RAM_EXPORT RedLightEvent : public core::Event
 {
 public:
@@ -431,13 +492,18 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
     
 typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 
+//Kate added small and large centers, since each panel has a small and large target hole
 class RAM_EXPORT TargetEvent : public core::Event
 {
   public:
-    TargetEvent(double centerX, double centerY, double squareNess_,
+    TargetEvent(double centerX, double centerY, double largeCenterX, double largeCenterY, double smallCenterX, double smallCenterY,double squareNess_,
                 double range_, Color::ColorType color_ = Color::UNKNOWN) :
         x(centerX),
         y(centerY),
+	largex(largeCenterX),
+        largey(largeCenterY),
+	smallx(smallCenterX),
+        smally(smallCenterY),
         squareNess(squareNess_),
         range(range_),
         color(color_)
@@ -447,6 +513,10 @@ class RAM_EXPORT TargetEvent : public core::Event
     TargetEvent() :
         x(0),
         y(0),
+	largex(0),
+	largey(0),
+	smallx(0),
+	smally(0),
         squareNess(0),
         range(0),
         color(Color::UNKNOWN)
@@ -456,6 +526,12 @@ class RAM_EXPORT TargetEvent : public core::Event
 
     double x;
     double y;
+    double largex; 
+    double largey;
+    double smallx;
+    double smally;
+    double panelx;
+    double panely;
     double squareNess;
     double range;
     Color::ColorType color;

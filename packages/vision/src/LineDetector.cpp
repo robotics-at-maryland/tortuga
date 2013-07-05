@@ -5,11 +5,12 @@
  *
  * Author: Jonathan Sternberg <jsternbe@umd.edu>
  * File:  packages/vision/src/LineDetector.cpp
- */
+*/ 
 
 // STD Includes
 #include <algorithm>
 #include <iostream>
+
 // Library Includes
 #include <UnitTest++/Checks.h>
 
@@ -233,46 +234,46 @@ int LineDetector::houghTransform()
         double rho;
         double theta;
         
-        /**
-           TO FIND THETA:
-           The atan2 function allows us to do atan(y/x) without
-           division by 0 errors.
+        
+          // TO FIND THETA:
+          // The atan2 function allows us to do atan(y/x) without
+          // division by 0 errors.
 
-           range of theta: [-pi/2, pi/2)
-           (more on why -pi/2 is included, but pi/2 isn't later)
+         //  range of theta: [-pi/2, pi/2)
+          // (more on why -pi/2 is included, but pi/2 isn't later)
 
-           For every other situation, we know this:
-           m = -(cos(theta)/sin(theta))
-           m = -1/tan(theta)
-           theta = atan(-1/m)
-           m = rise/run
-           m = (y2 - y1) / (x2 - x1)
+          // For every other situation, we know this:
+         //  m = -(cos(theta)/sin(theta))
+         //  m = -1/tan(theta)
+         //  theta = atan(-1/m)
+         //  m = rise/run
+         //  m = (y2 - y1) / (x2 - x1)
 
-           The division by 0 error when m = 0 is handled by atan2.
-           atan2(-1, 0) = -pi/2
-           (because it's a vector pointing straight down)
+         //  The division by 0 error when m = 0 is handled by atan2.
+         //  atan2(-1, 0) = -pi/2
+         //  (because it's a vector pointing straight down)
 
-           This will give us the value of theta in radians.
+         //  This will give us the value of theta in radians.
 
-           Now for the sake of simplicity in the rho calculation, we want to
-           change the range to [0, pi). We can do this pretty simply by
-           just adding pi to the theta value as long as it isn't negative.
+         //  Now for the sake of simplicity in the rho calculation, we want to
+         //  change the range to [0, pi). We can do this pretty simply by
+         //  just adding pi to the theta value as long as it isn't negative.
 
-           After finding theta, rho is really easy.
-           TO FIND RHO:
-           b = rho/sin(theta)
-           rho = b*sin(theta)
+          // After finding theta, rho is really easy.
+         //  TO FIND RHO:
+         //  b = rho/sin(theta)
+          // rho = b*sin(theta)
                        
-           y = mx + b
-           b = y - mx (use one of the points for [x,y])
-           Special case when theta = 0
-           sin(0) = 0, rho = b*0 would mean rho = 0, which is wrong
-           When theta = 0, m = infinity
+         //  y = mx + b
+        //   b = y - mx (use one of the points for [x,y])
+         //  Special case when theta = 0
+         //  sin(0) = 0, rho = b*0 would mean rho = 0, which is wrong
+         //  When theta = 0, m = infinity
 
-           When theta = 0, then it's a vertical line. The perpendicular
-           line is then the horizontal line. The x values should
-           be the same, take one and use that as the rho in this case.
-        **/
+         // When theta = 0, then it's a vertical line. The perpendicular
+         //  line is then the horizontal line. The x values should
+          // be the same, take one and use that as the rho in this case.
+        
         float m = ((float) (pt1.y - pt2.y)) / ((float) (pt1.x - pt2.x));
         theta = atan2(-1, m);
         while (theta < 0) theta += CV_PI;
@@ -311,3 +312,4 @@ std::vector<LineDetector::Line> LineDetector::getLines()
 
 } // namespace vision
 } // namespace ram
+
