@@ -31,6 +31,8 @@
 #include "vision/include/DetectorMaker.h"
 #include "vision/include/SymbolDetector.h"
 #include "vision/include/ColorFilter.h"
+#include "vision/include/WhiteBalance.h"
+#include "vision/include/BuoyDetectorKate.h"
 
 #include "math/include/Vector2.h"
 
@@ -177,6 +179,196 @@ BinDetector::~BinDetector()
 {
     deleteImages();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void BinDetector::DetectorContours(Image* input)
+{
+/*
+Kate Note:
+This function is used to find the contour of the buoys
+A color filter, in HSV space, is first used on a whitebalanced image
+Then an erode function is used to clean up the results
+The contours are found, and the maximum one with the correct aspect ratio is dubbed the buoy
+
+makes use of find getsquareBlob() this is the part that takes the contours and pulls out the
+buoy
+
+*/
+	//double givenAspectRatio = 1.0;
+
+	int red_minH= m_redFilter->getChannel3Low();
+	int red_maxH= m_redFilter->getChannel3High();
+	//int green_minH= m_greenFilter->getChannel3Low();
+	//int green_maxH= m_greenFilter->getChannel3High();
+	double minS = (double)m_redFilter->getChannel1Low();//there is no reason these should be doubles
+	double maxS = (double)m_redFilter->getChannel1High();
+	cv::Mat img = input->asIplImage();
+	cv::Mat img_hsv;
+
+	img_whitebalance = WhiteBalance(img);
+	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+		
+	//use blob detection to find gate
+	//find left and right red poles - vertical poles
+	cv::vector<Mat> hsv_planes;
+	cv::split(img_hsv,hsv_planes);
+
+	//first take any value higher than max and converts it to 0
+	//red is a special case because the hue value for red are 0-10 and 170-1980
+	//same filter as the other cases followed by an invert
+	blobfinder blob;
+
+	//green blends in really well so we want to use a saturation filter as well
+	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
+	//Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
+	//Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
+	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+
+
+	//For attempting to use with canny
+	int erosion_type = 0; //morph rectangle type of erosion
+	int erosion_size = 1;
+	cv::Mat erode_dst_red, erode_dst_green;
+	cv::Mat element = getStructuringElement( erosion_type,
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+
+  	/// Apply the erosion operation 
+	//Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow; //moved to header to put in output
+	bitwise_or(img_saturation,img_red,erode_dst_green,noArray());
+	
+  	erode(img_red, erode_dst_red, element );
+    	erode(erode_dst_green, erode_dst_green, element );
+
+	imshow("greenAND1",erode_dst_green);
+	imshow("sat1",img_saturation);
+	//imshow("yellowerosion1",erode_dst_yellow);
+	imshow("rederosion1",erode_dst_red);
+
+	//get Blobs
+	//m_redbuoy= getSquareBlob(erode_dst_red);
+	//m_yellowbuoy = getSquareBlob(erode_dst_yellow);
+	m_bin = getSquareBlob(erode_dst_green);
+};
+
+
+BinDetector::bincontours BinDetector::getSquareBlob(Mat erosion_dst)
+{
+	//finds the maximum contour that meets aspectratio
+
+	double aspectdifflimit = 0.5;
+	double foundaspectdiff;
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+
+	  /// Find contours
+	findContours(erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+	//find contour with the largest area- by area I mean number of pixels
+	double maxArea = 0;
+	unsigned int maxContour;
+	RotatedRect temp,maxtemp;
+	//targetSmall and targetLarge are within the maxSize contour
+	double area;
+
+	//find larget area where it should be about a square
+	//outline of the main box
+	//actually want the top 9 outlines
+	//largest = all bins
+	//next 4 largest - contour between black and white inside bins
+	//next 4 largest - contour of the yellow bottom
+bincontours bins;
+bool used = false;
+	for(unsigned int j=0; j<contours.size(); j++)
+	{
+
+	     //cout << "# of contour points: " << contours[i].size() << endl ;
+		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+		area = temp.size.width*temp.size.height;
+		foundaspectdiff = abs(temp.size.height/temp.size.width- 1.0);
+		//printf("\n foundaspectdiff = %f",foundaspectdiff);
+		//want to save the top 10 boxes
+		for (int k=0;k<8;k++)
+		{
+			if (area > bins.area[k] && used == false)
+			{
+				// 0 = largest
+				for (int k2 = k;k2>8;k2++)
+				{
+
+				};
+			}
+		}
+		if (area > maxArea && foundaspectdiff < aspectdifflimit)
+		{	maxContour = j;
+			maxtemp = temp;
+			maxArea = area;
+		}
+	};
+
+	if (maxArea  > 10)
+	{
+		Point2f vertices[4];
+		maxtemp.points(vertices);
+		//given the vertices find the min and max X and min and maxY
+		double minX= 90000;
+		double maxX = 0;
+		double minY= 90000;
+		double maxY=0;	
+		for (int i = 0; i < 4; i++)
+		{
+			//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+			if (vertices[i].x < minX)
+				minX = vertices[i].x;
+			if (vertices[i].x > maxX)
+				maxX = vertices[i].x;
+			if (vertices[i].y < minY)
+				minY = vertices[i].y;
+			if (vertices[i].y > maxY)
+				maxY = vertices[i].y;
+		};
+		//allocate data
+		
+		//Display Purposes
+		maxtemp.points(vertices);
+		for (int i = 0; i < 4; i++)
+		    line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),5);
+		//imshow("final",img_whitebalance); 
+	}
+	
+ 
+		return(bins);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void BinDetector::processImage(Image* input, Image* out)
 {

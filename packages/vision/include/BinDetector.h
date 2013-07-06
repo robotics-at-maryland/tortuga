@@ -29,6 +29,12 @@ namespace vision {
     
 class RAM_EXPORT BinDetector : public Detector
 {
+	struct bincontours
+	{
+		int area[10];
+		int contournumber[10];
+		int aspectratio_diff[10];
+	};
   public:
     class Bin : public TrackedBlob
     {
@@ -342,6 +348,13 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Temporary LCH Image */
     OpenCVImage* m_frame;
+
+	/**Kate changes*/
+	void DetectorContours(Image* input);
+	bincontours getSquareBlob(cv::Mat erosion_dst);
+	cv::Mat img_whitebalance;
+	cv::Mat img_saturation;
+	bincontours m_bin;
 };
 
 } // namespace vision

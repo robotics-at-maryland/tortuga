@@ -223,7 +223,7 @@ void BuoyDetector::init(core::ConfigNode config)
                                     "YellowL", "Yellow Luminance",
                                     "YellowC", "Yellow Chrominance",
                                     "YellowH", "Yellow Hue",
-                                    0, 255, 0, 255, 0, 255);
+                                    0, 255, 0, 255, 15,35);
 
     m_blackFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_blackFilter->addPropertiesToSet(propSet, &config,
@@ -483,7 +483,7 @@ buoy
 	blobfinder blob;
 
 	//green blends in really well so we want to use a saturation filter as well
-	Mat img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
+	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
 	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
@@ -491,28 +491,29 @@ buoy
 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
-	int erosion_size = 4;
+	int erosion_size = 1;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
 
-  	/// Apply the erosion operation
-	Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow;
-	bitwise_and(img_saturation,img_green,erosion_dst_green,noArray());
-	//imshow("greenAND",erosion_dst_green);
-	//imshow("green",img_green);
-	//imshow("sat",img_saturation);
+  	/// Apply the erosion operation 
+	//Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow; //moved to header to put in output
+	bitwise_and(img_saturation,img_green,erode_dst_green,noArray());
 
-  	erode(img_red, erosion_dst_red, element );
-  	erode(img_yellow, erosion_dst_yellow, element );
-  	erode(erosion_dst_green, erosion_dst_green, element );
 
-	//imshow("yellowerosion",erosion_dst_yellow);
-	//imshow("rederosion",erosion_dst_red);
+  	erode(img_red, erode_dst_red, element );
+  	erode(img_yellow, erode_dst_yellow, element );
+  	erode(erode_dst_green, erode_dst_green, element );
+
+	imshow("greenAND1",erode_dst_green);
+	imshow("sat1",img_saturation);
+	imshow("yellowerosion1",erode_dst_yellow);
+	imshow("rederosion1",erode_dst_red);
+
 	//get Blobs
-	m_redbuoy= getSquareBlob(erosion_dst_red);
-	m_yellowbuoy = getSquareBlob(erosion_dst_yellow);
-	m_greenbuoy = getSquareBlob(erosion_dst_green);
+	m_redbuoy= getSquareBlob(erode_dst_red);
+	m_yellowbuoy = getSquareBlob(erode_dst_yellow);
+	m_greenbuoy = getSquareBlob(erode_dst_green);
 }
 
 
@@ -579,7 +580,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 
 		finalbuoy.centerx = (minX+maxX)/2;
 		finalbuoy.centery = (minY+maxY)/2;
-		finalbuoy.range = maxArea;
+		finalbuoy.range = maxtemp.size.width;
 
 
 		//Display Purposes
@@ -698,6 +699,7 @@ pasted into this function afterwards. So not sure it runs - but it did. And it w
        frame->copyFrom(input);
   if(output)
     {
+
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
 
        input->setData(img_whitebalance.data,false);
@@ -1003,6 +1005,11 @@ void BuoyDetector::processImage(Image* input, Image* output)
     if(output)
     {
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+
+	imshow("greenAND",erode_dst_green);
+	imshow("sat",img_saturation);
+	imshow("yellowerosion",erode_dst_yellow);
+	imshow("rederosion",erode_dst_red);
 
        input->setData(img_whitebalance.data,false);
        frame->copyFrom(input);

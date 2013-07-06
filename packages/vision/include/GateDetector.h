@@ -35,6 +35,8 @@ class RAM_EXPORT GateDetector : public Detector
     void processImage(Image* input, Image* output= 0);
     void publishFoundEvent(foundLines::parallelLinesPairs finalPairs);
     Mat processImageColor(Image* input);
+    void publishFoundEventBuoy(foundLines::parallelLinesPairs finalPairs, Color::ColorType color); //hack to trick event system
+    void publishLostEventBuoy(Color::ColorType color);
     double getX();
     double getY();
     void show(char* window);
@@ -49,6 +51,8 @@ int m_maxdiff;
    
     
   private:
+
+bool m_found;
     void init(core::ConfigNode config);
       ColorFilter* m_filter;
 /**Filter for Red value for VisionToolV2*/

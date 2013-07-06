@@ -47,6 +47,7 @@ GateDetector::GateDetector(Camera* camera) :
 
 void GateDetector::init(core::ConfigNode config)
 {
+	m_found = false;
 	frame = new OpenCVImage(640,480);
 	gateX=0;
 	gateY=0;
@@ -81,10 +82,10 @@ void GateDetector::init(core::ConfigNode config)
                          127, &m_yellowmaxH, 0, 255);
 	propSet->addProperty(config, false, "Smin",
                          "Smin",
-                         20, &m_minS, 0, 255);
+                         90, &m_minS, 0, 255);
 	propSet->addProperty(config, false, "Smax",
                          "Smax",
-                         70, &m_maxS, 0, 255);
+                         255, &m_maxS, 0, 255);
 	propSet->addProperty(config, false, "diff",
                          "diff",
                          100, &m_maxdiff, 0,300);
@@ -214,21 +215,38 @@ void GateDetector::processImage(Image* input, Image* output)
 	//imshow("process",imgprocess);
 	//IplImage* tempImage=0;
 	img_whitebalance = WhiteBalance(img);
-	gate.m_found = FALSE;
-	Mat img_red = gate.gateblob(imgprocess,img_whitebalance); //built in redfilter
+
+	foundLines::parallelLinesPairs final= gate.gateblob(imgprocess,img_whitebalance); //built in redfilter
 	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter
 
 	//imshow("results",img_red);
 	//img_gate = gate.rectangle(img_red, img_whitebalance);
 	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
-	printf("\n done with function now copying data");
 	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
 
-	if (gate.m_found==TRUE)
+	if (final.foundtwosides == 1 || final.foundHorizontal == 1)
 	{
-		publishFoundEvent(gate.finalPair);
-		printf("\n gate found publishing event");
+		m_found = TRUE;
+	}
+	else if  (m_found == TRUE)
+	{ //found it before but cannot find it now- lostEvent
+		m_found = FALSE;
+		if (m_checkRed == true)
+			publishLostEventBuoy(Color::RED);
+		else
+			publishLostEventBuoy(Color::GREEN);
+		
+        }
+
+	if (m_found==TRUE)
+	{
+		if (m_checkRed == true)
+			publishFoundEventBuoy(final,Color::RED);
+		else
+			publishFoundEventBuoy(final,Color::GREEN);
+
+		//printf("\n gate found publishing event");
 	}
 
 	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
@@ -239,7 +257,6 @@ void GateDetector::processImage(Image* input, Image* output)
 		imshow("Green",erosion_dst_green);
 		imshow("Red",erosion_dst_red);
 		imshow("AND",erosion_dst);
-		printf(" outputting to frame");
 		output->copyFrom(frame);
 		//if (m_debug >= 1) {
 		//    output->copyFrom(frame);
@@ -281,6 +298,15 @@ void GateDetector::processImage(Image* input, Image* output)
 	
 };
 
+void GateDetector::publishLostEventBuoy(Color::ColorType color)
+{
+    BuoyEventPtr event(new BuoyEvent());
+    event->color = color;
+    
+    publish(EventType::BUOY_LOST, event);
+}
+
+
 void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
 {
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
@@ -321,6 +347,40 @@ void GateDetector::publishFoundEvent(foundLines::parallelLinesPairs finalPairs)
 
       publish(EventType::GATE_FOUND, event);
 };
+
+void GateDetector::publishFoundEventBuoy(foundLines::parallelLinesPairs finalPairs, Color::ColorType color)
+{
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
+
+   BuoyEventPtr event(new BuoyEvent()); 
+
+    double centerX = 0, centerY = 0;
+    Detector::imageToAICoordinates(frame, finalPairs.center.x, finalPairs.center.y,
+                                   centerX, centerY);
+
+    int minX = finalPairs.line1_lower.x-finalPairs.width;
+    int maxX = finalPairs.line2_lower.x+finalPairs.width;
+    int minY = finalPairs.line1_lower.y-finalPairs.line1_height;
+    int maxY = finalPairs.line1_upper.y-finalPairs.line1_height;;
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
+
+      event->x = centerX;
+    event->y = centerY;
+    event->range = finalPairs.width;
+    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+    event->elevation = math::Degree((yFOV / 2) * centerY);
+    event->color = color;
+    event->touchingEdge = touchingEdge;
+
+    publish(EventType::BUOY_FOUND, event);
+};
+
 
 int GateDetector::getmaxdiff(void)
 {

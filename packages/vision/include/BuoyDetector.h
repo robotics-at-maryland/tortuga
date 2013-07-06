@@ -85,6 +85,13 @@ class RAM_EXPORT BuoyDetector : public Detector
     foundblob getSquareBlob(Mat erosion_dst);
     void processImageSimpleBlob(Image* input, Image* output);
   private:
+
+	Mat erode_dst_red;
+	Mat erode_dst_green;
+	Mat erode_dst_yellow;
+	Mat img_saturation;
+	Mat erode_dst;
+
     void init(core::ConfigNode config);
 
     /* Normal processing to find one blob/color */
@@ -237,6 +244,7 @@ class RAM_EXPORT BuoyDetector : public Detector
 	blobfinder blob;
   foundblob m_yellowbuoy,m_greenbuoy,m_redbuoy;
   void publishFoundEventContour(foundblob buoy, Color::ColorType color);
+
 
 };
 	
