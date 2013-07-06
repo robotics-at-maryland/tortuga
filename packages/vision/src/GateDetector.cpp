@@ -303,7 +303,7 @@ void GateDetector::publishLostEventBuoy(Color::ColorType color)
     BuoyEventPtr event(new BuoyEvent());
     event->color = color;
     
-    publish(EventType::BUOY_LOST, event);
+    publish(EventType::GATE_LOST, event);
 }
 
 
@@ -378,7 +378,7 @@ void GateDetector::publishFoundEventBuoy(foundLines::parallelLinesPairs finalPai
     event->color = color;
     event->touchingEdge = touchingEdge;
 
-    publish(EventType::BUOY_FOUND, event);
+    publish(EventType::GATE_FOUND, event);
 };
 
 
