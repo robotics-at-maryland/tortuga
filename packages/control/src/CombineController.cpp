@@ -184,18 +184,22 @@ void CombineController::doUpdate(const double& timestep,
         math::Vector3 eAccel = m_stateEstimator->getEstimatedLinearAcceleration();
         math::Vector2 dAccelxy = m_desiredState->getDesiredAccel();
         //double dAccel = m_desiredState->getDesiredDepthAccel();
+
+
         double eRate = m_stateEstimator->getEstimatedDepthRate();
-        math::Vector3 toRot(eVelocity.x,eVelocity.y,eRate);
-        math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
         double dRate = m_desiredState->getDesiredDepthRate();
-        eVelocity.x = rot.x;
-        eVelocity.y = rot.y;
-        eRate = rot.z;
+        //math::Vector3 toRot(eVelocity.x,eVelocity.y,eRate);
+        //math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
+        //eVelocity.x = rot.x;
+        //eVelocity.y = rot.y;
+        //eRate = rot.z;
         //double eAccel = (eRate - lastDV)/timestep;
         lastDV = eRate;
         double fX, fY,fZ;
-        math::Vector2 errVxy = dVelocity - eVelocity;
-        double errVz = eRate - dRate;
+        math::Vector3 toRot(dVelocity.x-eVelocity.x,dVelocity.y - eVelocity.y,eRate - dRate);
+        math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
+        math::Vector2 errVxy = math::Vector2(rot.x,rot.y);//dVelocity - eVelocity;
+        double errVz = rot.z;//eRate - dRate;
         intTermxy = intTermxy + errVxy*timestep;
         intTermz = intTermz + errVz*timestep;
 
@@ -230,13 +234,23 @@ void CombineController::doUpdate(const double& timestep,
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
         vConz = m_desiredState->vz;
+        math::Vector3 translationalForceOutp =  m_stateEstimator->getEstimatedOrientation().UnitInverse() * translationalForceOut;
+        math::Vector3 translationalForceOutf(0,0,0);
+        //this freezes up the other translation DOF's motion
+        //since if we are rotated we will likely move in it
+        //this does allow for some drift, but we don't have
+        //an alternative due to the structure of the system
+        math::Vector2 padj = m_desiredState->getDesiredPosition();
+        math::Vector2 cp = m_stateEstimator->getEstimatedPosition();
         if(vConx == true)
         {
             double eXv = errVxy.x;
             double eXa = eAccel.x;
             double eXi = intTermxy.x;
-            fX = kpvx * eXv + kivx*eXi + kdvx*eXa;
-            translationalForceOut.x = fX;
+            fX = kp vx * eXv + kivx*eXi + kdvx*eXa;
+            translationalForceOutf.x = fX;
+            translationalForceOutp.x = 0;
+            padj.y = cp.y;
         }
         if(vCony == true)
         {
@@ -244,7 +258,9 @@ void CombineController::doUpdate(const double& timestep,
             double eYa = eAccel.y;
             double eYi = intTermxy.y;
             fY = kpvy * eYv + kivy*eYi + kdvy*eYa;
-            translationalForceOut.y = fY;
+            translationalForceOutf.y = fY;
+            translationalForceOutp.y = 0;
+            padj.x = cp.x;
         }
         if(vConz == true)
         {
@@ -252,8 +268,13 @@ void CombineController::doUpdate(const double& timestep,
             double eZa = eAccel.z;
             double eZi = intTermz;
             fZ = kpvz * eZv + kivz*eZi + kdvz*eZa;
-            translationalForceOut.z = fZ;
+            translationalForceOutf.z = fZ;
+            translationalForceOutp.z = 0;
         }
+        m_desiredState->setDesiredPosition(padj);
+        //this is done so that we can remove the other controllers ability to control a DOF
+        //the controller forces are removed in the body frame, then the outputs of the visual servoing controller are moved to the body frame
+        translationalForceOut = m_stateEstimator->getEstimatedOrientation()  * translationalForceOutp + translationalForceOutf;
 
 
     LOGGER.infoStream() << translationalForceOut[0] << " "
