@@ -266,7 +266,7 @@ class HyperApproach(VSMotion):
         return a
 
     def xFunc(self,event):
-        a = self._kx*(event.range - self._r_d)
+        a = self._kx*(1/event.range - 1/self._r_d)
         if(abs(a)<self._minvx):
             a = m.copysign(self._minvx,a)
         return a
@@ -319,9 +319,40 @@ class HyperApproach(VSMotion):
     #where are the move function definitions?
     #missing, because this variant has no need for such things, thus they aren't defined
 
-class genHyperApproach(HyperApproach):
+
+                                                
+
+   
+class HyperApproachVConstrict(HyperApproach):
+    def runMotion(self,event):
+        #this variant moves the minimal speed possible unless
+        #a speed is zero, allowing for theoretically very fast behaviour
+        #while maintaining the image within the frame
+        vx = self.xFunc(event)*self.decideX(event)
+        vy = self.yFunc(event)*self.decideY(event)
+        vz = self.zFunc(event)*self.decideZ(event)
+        if(abs(vx) > abs(vy) and vy != 0):
+            vx = m.copysign(vy,vx)
+        if(abs(vy) > abs(vx) and vx != 0):
+            vy = m.copysign(vx,vy)        
+        self.motionManager._controller.moveVel(vx, vy, vz)
+
+
+
+
+class genHyperApproach(HyperApproachVConstrict):
+    @staticmethod
+    def getattr():
+        return { 'kx' : .15 ,  'ky' : .4 , 'kz' : .45, 'x_d' : 0, 'r_d' : 1.75 , 'y_d' : 0, 'x_bound': .05, 'r_bound': .25, 'y_bound':.025 ,'minvx': .1, 'minvy': .1 ,'minvz' : .1}     
     def enter(self):
         pass
+
+    #redefined because the simulator cheats at ranges
+    def xFunc(self,event):
+        a = self._kx*(event.range - self._r_d)
+        if(abs(a)<self._minvx):
+            a = m.copysign(self._minvx,a)
+        return a
 
     def BUOY_FOUND(self,event):
         if(event.color == vision.Color.YELLOW):
@@ -333,6 +364,3 @@ class genHyperApproach(HyperApproach):
 
 #    def DONE(self,event):
 #        util.freeze(self)
-                                                
-
-   
