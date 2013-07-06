@@ -116,8 +116,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	//use hough lines to find two vertical parallel lines
 	//check to see if there is a horizontal line inbetween, preferably at either the top or bottom of the bars
 
-	//int cannylow = 40;
-	//int cannyhigh =80;
+	int cannylow = 40;
+	int cannyhigh =80;
 	float aspectRatio =1.0; //height/width
 	float horizontalslope = 0.5; //metric to determine if horizontal
 	float verticleslope = 6.1;
@@ -125,13 +125,14 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	int hough_minLineLength = 50;
 	int hough_maxLinegap = 10;
 	float maxAspectRatio_diff = 0.75;
-	//int maxdiff = 100;
-	//float foundAspectRatio = 0;
+	int maxdiff = 100;
+	float foundAspectRatio = 0;
+	int height;
 	//int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
-	//cv::Canny(bw, bw, cannylow, cannyhigh, 3);
-	//imshow("Bw",bw);
+	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
+	imshow("Bw",bw);
 
 	//Step 2: Use Hough to find lines
 	// Hough Line Probability Method
@@ -418,11 +419,11 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	};
 	printf("\n numberof lines found = %d",linesP.size());
 
-/*
+
 	//I have all the lines
 	//look for vertical and horizontal lines with about the same endpoints
 	//or vertical lines with roughly the same y coordinates
-       checklines lineResults[linesP.size()];
+        checklines lineResults[linesP.size()];
 	checklines temp;
 	int diff;
 	int diff2;
@@ -458,7 +459,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 				{
 					//is vertical
 					//find upper and lower ones
-					if (linesP[i][1]< linesP[i][3])
+					if (linesP[j][1]< linesP[j][3])
 					{
 						temp.upper2.x = linesP[j][2];
 						temp.upper2.y = linesP[j][3];
@@ -473,15 +474,17 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 						temp.lower2.y = linesP[j][3];
 					}
 					widthUpper = abs(lineResults[i].upper1.x - temp.upper2.x);
+					printf("width upper = %d",widthUpper);
 					foundAspectRatio = float(lineResults[i].upper1.y-lineResults[i].lower1.y)/float(widthUpper);
 					diff = abs(lineResults[i].lower1.y-temp.lower2.y)+abs(lineResults[i].upper1.y-temp.upper2.y);
 					diff2 = lineResults[i].diffVertical*1.5;
-					if ((widthUpper > 50) && (abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff)  && (((diff < lineResults[i].diffVertical) && (lineResults[i].foundHorizontal == false)) || (lineResults[i].foundHorizontal == true && (diff<diff2))))
+					if ((widthUpper > 10) && (abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff)  && (( (diff < lineResults[i].diffVertical) )))
 					{	
 					  lineResults[i].upper2 = temp.upper2;
 					  lineResults[i].lower2 = temp.lower2;
 					  lineResults[i].foundVertical = true;
 					  lineResults[i].diffVertical = diff;
+					  lineResults[i].aspectratio_diff = abs(foundAspectRatio-aspectRatio);
 					}
 
 				}
@@ -489,7 +492,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 				{
 					//is horizontal
 					//find upper and lower ones
-					if (linesP[i][0]< linesP[i][2])
+					if (linesP[j][0]< linesP[j][2])
 					{
 						temp.right.x = linesP[j][2];
 						temp.right.y = linesP[j][3];
@@ -504,19 +507,46 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 						temp.left.y = linesP[j][3];;
 					}
 					//unlike Vertical, only want to check one side, the closer side
-					diff = abs(lineResults[i].lower1.x-temp.left.x);
-					if (abs(lineResults[i].upper1.x-temp.right.x)< diff)
-						diff = abs(lineResults[i].upper1.x-temp.right.x);
+					
+					//can also use the difference between determined width and actual width...
 					diff2 = lineResults[i].diffHorizontal*1.5;
 					widthUpper = temp.right.x-temp.left.x;
-					foundAspectRatio = float(lineResults[i].upper1.y-lineResults[i].lower1.y)/float(widthUpper);
+					height = abs(lineResults[i].upper1.y-lineResults[i].lower1.y);
+					if (temp.right.y < lineResults[i].lower1.y)
+					{
+					 // below the previous line
+					 	height = lineResults[i].upper1.y-temp.right.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].lower1.x-temp.left.x);
+							if (abs(lineResults[i].lower1.x-temp.right.x)< diff)
+								diff = abs(lineResults[i].lower1.x-temp.right.x);
+					}
+					else if (temp.right.y > lineResults[i].upper1.y)
+					{
 
-					if ((abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff) && (((diff < lineResults[i].diffVertical) && (lineResults[i].foundVertical == false)) || (lineResults[i].foundVertical == true && diff <diff2)))
+						height = temp.right.y-lineResults[i].lower1.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].upper1.x-temp.left.x);
+							if (abs(lineResults[i].upper1.x-temp.right.x)< diff)
+								diff = abs(lineResults[i].upper1.x-temp.right.x);
+					}
+					else
+					{
+						//line is in between so not a hedge
+						foundAspectRatio = 9000;
+					}
+	printf("\n widthupper, height = %d %d",widthUpper,height);
+				
+					//also want to make sure that the horizontal line isn't in the middle of the vertical
+					
+					if ( (foundAspectRatio < 1) && (diff < lineResults[i].diffVertical))
 					{	
+					  //printf(" aspect ratio difference = %f",abs(foundAspectRatio-aspectRatio));
 					  lineResults[i].left = temp.left; 
 					  lineResults[i].right = temp.right;
 					  lineResults[i].foundHorizontal = true;
 					  lineResults[i].diffHorizontal = diff;
+					  lineResults[i].aspectratio_diff = abs(foundAspectRatio-aspectRatio);
 					}
 				}//end horizontalOrVertical
 			} //end for j
@@ -526,7 +556,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 
 	for(size_t i = 0; i < linesP.size(); i++ )	
 	{
-		printf("\n i = %d, diff = %d, horizontal diff = %d", i, lineResults[i].diffVertical,lineResults[i].diffHorizontal);
+		printf("\n i = %d, diff = %d, horizontal diff = %d aspectratio difference = %f", i, lineResults[i].diffVertical,lineResults[i].diffHorizontal,lineResults[i].aspectratio_diff);
 		if (lineResults[i].foundVertical == true && lineResults[i].diffVertical <maxdiff)
 		{
 			line(src, lineResults[i].upper1,lineResults[i].lower1, Scalar(0,0,255), 15, 8 ); 
@@ -541,8 +571,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	//I should have all the lines now
 	//look for pairs- which they'll all be since they're all vertical
 	//if there are more than two lines, than find the ones with the best aspect ratio
-*/
 
+/*
 	parallelLinesPairs pairs;
 	if (totalVertical ==  1)
 	{
@@ -752,7 +782,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 		}
 		circle(src, finalPair.center,3,Scalar( 0, 255, 0),-1,8 );
 	}//end else
-
+*/
 	return(src);
 };
 

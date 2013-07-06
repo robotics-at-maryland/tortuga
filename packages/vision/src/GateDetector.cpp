@@ -180,7 +180,7 @@ Mat GateDetector::processImageColor(Image*input)
                                        Point( erosion_size, erosion_size ) );
 
   	/// Apply the erosion operation
-	Mat erosion_dst,erosion_dst_red, erosion_dst_green, erosion_dst_blue;
+	
   	erode(img_red, erosion_dst_red, element );
 	//imshow("Red",erosion_dst_red);
 
@@ -221,17 +221,25 @@ void GateDetector::processImage(Image* input, Image* output)
 	//imshow("results",img_red);
 	//img_gate = gate.rectangle(img_red, img_whitebalance);
 	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
-
+	printf("\n done with function now copying data");
 	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
 
 	if (gate.m_found==TRUE)
+	{
 		publishFoundEvent(gate.finalPair);
+		printf("\n gate found publishing event");
+	}
 
 	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
 
 	if(output)
 	    {
+		imshow("Blue",erosion_dst_blue);
+		imshow("Green",erosion_dst_green);
+		imshow("Red",erosion_dst_red);
+		imshow("AND",erosion_dst);
+		printf(" outputting to frame");
 		output->copyFrom(frame);
 		//if (m_debug >= 1) {
 		//    output->copyFrom(frame);

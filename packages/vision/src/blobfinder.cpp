@@ -29,8 +29,6 @@ blobfinder::blobfinder()
 */
 }
 
-
-
 Mat blobfinder::DetectBuoys(Mat img_whitebalance,ColorFilter *m_redFilter, ColorFilter *m_greenFilter, ColorFilter *m_yellowFilter)
 {
 
@@ -53,20 +51,21 @@ thats getting moved to the estimator
 	Mat img_temp;
 	Mat img_red, img_green, img_yellow; //thresholded for these colors
 
-
+/*
 	_keypoints_red_previous2  = _keypoints_red_previous;
 	_keypoints_green_previous2  = _keypoints_green_previous;
 	_keypoints_yellow_previous2  = _keypoints_yellow_previous;
 	_keypoints_red_previous  = _keypoints_red;
 	_keypoints_green_previous  = _keypoints_green;
 	_keypoints_yellow_previous  = _keypoints_yellow;
+*/
 
 
-	CvPoint point;
-	CvPoint point2;
-	CvPoint point3;
-	unsigned int i;
-unsigned int j,k;
+//	CvPoint point;
+//	CvPoint point2;
+//	CvPoint point3;
+//	unsigned int i;
+//	unsigned int j,k;
 
 	/*
 	for (i=0;i<_keypoints_red_previous.size();i++)
@@ -164,7 +163,7 @@ unsigned int j,k;
 		blob_yellow.detect(img_yellow,_keypoints_yellow);
 		blob_green.detect(img_green,_keypoints_green);
 		//extract x y coordinates of the keypoints
-		
+		/*
 		//printf("\n Red");
 		for (i=0;i<_keypoints_red.size();i++)
 		{		
@@ -427,7 +426,7 @@ unsigned int j,k;
 
 	}
 
-
+*/
 
 		//imshow("Found Blobs",img_whitebalance);
 		//imshow("img_red",img_red);

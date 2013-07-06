@@ -75,10 +75,12 @@ int m_maxdiff;
     Image* frame;
     Camera* cam;
 
+
 /*Kate edit - same whitebalance image and final output*/
 	cv::Mat img_whitebalance;
 	cv::Mat img_gate;
 	foundLines gate;
+cv::Mat erosion_dst,erosion_dst_red, erosion_dst_green, erosion_dst_blue;
 
 };
     

@@ -730,7 +730,6 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 			}//end if in the center
 		} //end if j!=maxcounter
 	};
-//drawContours(img_whitebalance, contours, maxContour, Scalar(0,0,255), 2, 8, hierarchy, 0, Point() );
 
 imshow("internal",img_whitebalance);
 /*

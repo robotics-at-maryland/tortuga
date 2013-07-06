@@ -211,13 +211,13 @@ void BuoyDetector::init(core::ConfigNode config)
                                     "RedL", "Red Luminance",
                                     "RedC", "Red Chrominance",
                                     "RedH", "Red Hue",
-                                    0, 255, 0, 255, 0, 255);
+                                    0, 255, 0, 255, 20, 160);
     m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_greenFilter->addPropertiesToSet(propSet, &config,
                                     "GreenL", "Green Luminance",
                                     "GreenC", "Green Chrominance",
                                     "GreenH", "Green Hue",
-                                    0, 255, 0, 255, 0, 255);
+                                    30, 85, 0, 255, 10, 90);
     m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_yellowFilter->addPropertiesToSet(propSet, &config,
                                     "YellowL", "Yellow Luminance",
@@ -263,7 +263,10 @@ void BuoyDetector::init(core::ConfigNode config)
                 "foundYellow yellowX yellowY yellowRange yellowWidth "
                 "yellowHeight yellowNumPixel yellowPixelPct");
  
-    
+     foundgreenbefore=(false);
+    foundredbefore=(false);
+    foundyellowbefore=(false);
+
         
 }
 
@@ -438,11 +441,324 @@ bool BuoyDetector::processColor(Image* input, Image* output,
 }
 
 
+
+
+void BuoyDetector::DetectorContours(Image* input)
+{
+/*
+Kate Note:
+This function is used to find the contour of the buoys
+A color filter, in HSV space, is first used on a whitebalanced image
+Then an erode function is used to clean up the results
+The contours are found, and the maximum one with the correct aspect ratio is dubbed the buoy
+
+makes use of find getsquareBlob() this is the part that takes the contours and pulls out the
+buoy
+
+*/
+	//double givenAspectRatio = 1.0;
+
+	int red_minH= m_redFilter->getChannel3Low();
+	int red_maxH= m_redFilter->getChannel3High();
+	int yellow_minH= m_yellowFilter->getChannel3Low();
+	int yellow_maxH= m_yellowFilter->getChannel3High();
+	int green_minH= m_greenFilter->getChannel3Low();
+	int green_maxH= m_greenFilter->getChannel3High();
+	double minS = (double)m_greenFilter->getChannel1Low();//there is no reason these should be doubles
+	double maxS = (double)m_greenFilter->getChannel1High();
+	Mat img = input->asIplImage();
+	Mat img_hsv;
+
+	img_whitebalance = WhiteBalance(img);
+	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+		
+	//use blob detection to find gate
+	//find left and right red poles - vertical poles
+	vector<Mat> hsv_planes;
+	split(img_hsv,hsv_planes);
+
+	//first take any value higher than max and converts it to 0
+	//red is a special case because the hue value for red are 0-10 and 170-1980
+	//same filter as the other cases followed by an invert
+	blobfinder blob;
+
+	//green blends in really well so we want to use a saturation filter as well
+	Mat img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
+	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
+	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
+	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+
+
+	//For attempting to use with canny
+	int erosion_type = 0; //morph rectangle type of erosion
+	int erosion_size = 4;
+	Mat element = getStructuringElement( erosion_type,
+                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
+                                       Point( erosion_size, erosion_size ) );
+
+  	/// Apply the erosion operation
+	Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow;
+	bitwise_and(img_saturation,img_green,erosion_dst_green,noArray());
+	//imshow("greenAND",erosion_dst_green);
+	//imshow("green",img_green);
+	//imshow("sat",img_saturation);
+
+  	erode(img_red, erosion_dst_red, element );
+  	erode(img_yellow, erosion_dst_yellow, element );
+  	erode(erosion_dst_green, erosion_dst_green, element );
+
+	//imshow("yellowerosion",erosion_dst_yellow);
+	//imshow("rederosion",erosion_dst_red);
+	//get Blobs
+	m_redbuoy= getSquareBlob(erosion_dst_red);
+	m_yellowbuoy = getSquareBlob(erosion_dst_yellow);
+	m_greenbuoy = getSquareBlob(erosion_dst_green);
+}
+
+
+BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
+{
+	//finds the maximum contour that meets aspectratio
+
+	double aspectdifflimit = 0.5;
+	double foundaspectdiff;
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+
+	  /// Find contours
+	findContours(erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+	//find contour with the largest area- by area I mean number of pixels
+	double maxArea = 0;
+	unsigned int maxContour;
+	RotatedRect temp,maxtemp;
+	//targetSmall and targetLarge are within the maxSize contour
+	double area;
+	foundblob finalbuoy; 
+	for(unsigned int j=0; j<contours.size(); j++)
+	{
+
+	     //cout << "# of contour points: " << contours[i].size() << endl ;
+		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+		area = temp.size.width*temp.size.height;
+		foundaspectdiff = abs(temp.size.height/temp.size.width- 1.0);
+		//printf("\n foundaspectdiff = %f",foundaspectdiff);
+		if (area > maxArea && foundaspectdiff < aspectdifflimit)
+		{	maxContour = j;
+			maxtemp = temp;
+			maxArea = area;
+		}
+	};
+
+	if (maxArea  > 10)
+	{
+		Point2f vertices[4];
+		maxtemp.points(vertices);
+		//given the vertices find the min and max X and min and maxY
+		double minX= 90000;
+		double maxX = 0;
+		double minY= 90000;
+		double maxY=0;	
+		for (int i = 0; i < 4; i++)
+		{
+			//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+			if (vertices[i].x < minX)
+				minX = vertices[i].x;
+			if (vertices[i].x > maxX)
+				maxX = vertices[i].x;
+			if (vertices[i].y < minY)
+				minY = vertices[i].y;
+			if (vertices[i].y > maxY)
+				maxY = vertices[i].y;
+		};
+		//allocate data
+		finalbuoy.minX = minX;
+		finalbuoy.minY = minY;
+		finalbuoy.maxX = maxX;
+		finalbuoy.maxY = maxY;
+
+		finalbuoy.centerx = (minX+maxX)/2;
+		finalbuoy.centery = (minY+maxY)/2;
+		finalbuoy.range = maxArea;
+
+
+		//Display Purposes
+		maxtemp.points(vertices);
+		for (int i = 0; i < 4; i++)
+		    line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),5);
+		//imshow("final",img_whitebalance); 
+
+		finalbuoy.vertex1 = vertices[0]; 
+		finalbuoy.vertex2 = vertices[1]; 
+		finalbuoy.vertex3 = vertices[2]; 
+		finalbuoy.vertex4 = vertices[3];
+	}
+	else	
+	{
+		//printf("\n unable to find buoy");
+		finalbuoy.minX = 0;
+		finalbuoy.minY = 0;
+		finalbuoy.maxX = 0;
+		finalbuoy.maxY = 0;
+
+		finalbuoy.centerx = 0;
+		finalbuoy.centery = 0;
+		finalbuoy.range = 0;
+		CvPoint vert;	
+		vert.x = 0;
+		vert.y = 0;
+		finalbuoy.vertex1 = vert; 
+		finalbuoy.vertex2 = vert; 
+		finalbuoy.vertex3 = vert; 
+		finalbuoy.vertex4 = vert; 
+	}
+ 
+		return(finalbuoy);
+}
+
+
+void BuoyDetector::processImageSimpleBlob(Image* input, Image* output)
+{
+
+/*
+This function uses OpenCV's simpleblobdetection to find the buoys
+a color filter, in HSV space after a whitebalance, is first used
+the SimpleBlobDetection is then used to find the blob that meets a number of criteria
+
+Note: this seemed to run slow, and was abandoned for contour. The code was super messy and 
+pasted into this function afterwards. So not sure it runs - but it did. And it worked fairly well if a bit slow
+
+*/
+	Mat img = input->asIplImage();
+	//imshow("input image", img);
+
+        Mat output_blob= img;
+	//IplImage finalBouys_iplimage;
+
+	img_whitebalance = WhiteBalance(img);
+	//imshow("whitebalance",img_whitebalance);
+	img_buoy = blob.DetectBuoys(img_whitebalance, m_redFilter, m_greenFilter,m_yellowFilter);
+	
+	cvtColor(img_buoy,img_buoy,CV_BGR2RGB);
+	//copy data from Mat to an IMage*
+	//note, that the src (in this case img_buoy) must be a member of the class and not just here
+        input->setData(img_buoy.data,false);
+
+	vector<KeyPoint>  Yellow_keypoints= blob.getYellow();
+  	vector<KeyPoint>  Red_keypoints= blob.getRed();
+  	vector<KeyPoint>  Green_keypoints= blob.getGreen();
+
+	//Kate code
+	//publish event for found buoys
+	//printf("\n found yellow =%d",foundyellowbefore);
+	//printf(" found red =%d",foundredbefore);
+	//printf(" found green =%d",foundgreenbefore);
+
+	for (unsigned int i=0;i<Yellow_keypoints.size();i++)
+	{	
+		publishFoundEventKate(Yellow_keypoints[i], Color::YELLOW);
+		foundyellowbefore = true;
+	}
+
+	if (Yellow_keypoints.size() < 1 && foundyellowbefore==true)
+	{
+		foundyellowbefore = false;
+		publishLostEvent(Color::YELLOW);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+	for (unsigned int i=0;i<Red_keypoints.size();i++)
+	{	
+		foundredbefore = true;
+		publishFoundEventKate(Red_keypoints[i], Color::RED);
+	}
+	if (Red_keypoints.size() < 1 && foundredbefore == true)
+	{
+		publishLostEvent(Color::RED);
+		foundredbefore = false;
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+	for (unsigned int i=0;i<Green_keypoints.size();i++)
+	{	
+		publishFoundEventKate(Green_keypoints[i], Color::GREEN);
+		foundgreenbefore = true;
+	}
+	if (Green_keypoints.size() < 1 && foundgreenbefore == true)
+	{
+		publishLostEvent(Color::GREEN);
+		foundgreenbefore = false;
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+
+        //In order to pass the vision test, we need an output
+	//so thats why the rest of this code is still here
+       frame->copyFrom(input);
+  if(output)
+    {
+	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+
+       input->setData(img_whitebalance.data,false);
+       frame->copyFrom(input);
+        output->copyFrom(frame);
+
+    } //end if output
+};
+
+
 void BuoyDetector::processImage(Image* input, Image* output)
 {
 
 	//KATE Update 2013
-	//convert from Image* to Mat
+	DetectorContours(input);
+	if (m_yellowbuoy.range > 10)
+	{
+		foundyellowbefore = true;
+		publishFoundEventContour(m_yellowbuoy, Color::YELLOW);
+
+	}
+	if (m_yellowbuoy.range < 10 && foundyellowbefore==true)
+	{
+		foundyellowbefore = false;
+		publishLostEvent(Color::YELLOW);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+
+	if (m_redbuoy.range > 10)
+	{
+		foundredbefore = true;
+		publishFoundEventContour(m_redbuoy, Color::RED);
+
+	}
+	if (m_redbuoy.range < 10 && foundredbefore==true)
+	{
+		foundredbefore = false;
+		publishLostEvent(Color::RED);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+
+	if (m_greenbuoy.range > 10)
+	{
+		foundgreenbefore = true;
+		publishFoundEventContour(m_greenbuoy, Color::GREEN);
+
+	}
+	if (m_greenbuoy.range < 10 && foundgreenbefore==true)
+	{
+		foundgreenbefore = false;
+		publishLostEvent(Color::GREEN);
+
+       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
+                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+	}
+
+/*
 	Mat img = input->asIplImage();
 	//imshow("input image", img);
 
@@ -464,12 +780,19 @@ void BuoyDetector::processImage(Image* input, Image* output)
 
 	//Kate code
 	//publish event for found buoys
+	//printf("\n found yellow =%d",foundyellowbefore);
+	//printf(" found red =%d",foundredbefore);
+	//printf(" found green =%d",foundgreenbefore);
+
 	for (unsigned int i=0;i<Yellow_keypoints.size();i++)
 	{	
 		publishFoundEventKate(Yellow_keypoints[i], Color::YELLOW);
-	}
-	if (Yellow_keypoints.size() < 1)
+		foundyellowbefore = true;
+	
+
+	if (Yellow_keypoints.size() < 1 && foundyellowbefore==true)
 	{
+		foundyellowbefore = false;
 		publishLostEvent(Color::YELLOW);
 
        		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
@@ -477,30 +800,33 @@ void BuoyDetector::processImage(Image* input, Image* output)
 	}
 	for (unsigned int i=0;i<Red_keypoints.size();i++)
 	{	
+		foundredbefore = true;
 		publishFoundEventKate(Red_keypoints[i], Color::RED);
 	}
-	if (Red_keypoints.size() < 1)
+	if (Red_keypoints.size() < 1 && foundredbefore == true)
 	{
 		publishLostEvent(Color::RED);
-
+		foundredbefore = false;
        		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
                             << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
 	}
 	for (unsigned int i=0;i<Green_keypoints.size();i++)
 	{	
 		publishFoundEventKate(Green_keypoints[i], Color::GREEN);
+		foundgreenbefore = true;
 	}
-	if (Green_keypoints.size() < 1)
+	if (Green_keypoints.size() < 1 && foundgreenbefore == true)
 	{
 		publishLostEvent(Color::GREEN);
-
+		foundgreenbefore = false;
        		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
                             << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
 	}
+
         //In order to pass the vision test, we need an output
 	//so thats why the rest of this code is still here
        frame->copyFrom(input);
-
+*/
 
 /*
     int topRowsToIgnore = m_topIgnorePercentage * frame->getHeight();
@@ -676,6 +1002,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
 */
     if(output)
     {
+	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+
+       input->setData(img_whitebalance.data,false);
+       frame->copyFrom(input);
         output->copyFrom(frame);
         if (m_debug >= 1) {
             output->copyFrom(frame);
@@ -1148,6 +1478,58 @@ void BuoyDetector::processBuoysMask(cv::Mat* mask, Image* img, Image* output)
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType color)
+{
+    static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
+    static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
+    static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
+    static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
+
+    BuoyEventPtr event(new BuoyEvent());  
+  
+    double centerX = 0, centerY = 0;
+    Detector::imageToAICoordinates(frame, buoy.centerx, buoy.centery,
+                                   centerX, centerY);
+
+	//blob.size (or any keypoint.size) returns the diameter of the meaningfull keypooint neighborhood
+	//dont get it confused with keypoint.size() which will return the size of the keypoitn vector
+
+   // double blobWidth = blob.getWidth();
+   // double fracWidth = blobWidth / xPixelWidth;
+   // double range = m_physicalWidthMeters / (2 * std::tan(xFOV.valueRadians() * fracWidth / 2));
+
+    int minX = buoy.minX;
+    int maxX = buoy.maxX;
+    int minY = buoy.minY;
+    int maxY = buoy.maxY;
+
+    bool touchingEdge = false;
+    if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
+        touchingEdge = true;
+
+    event->x = centerX;
+    event->y = centerY;
+    event->range = buoy.range;
+    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+    event->elevation = math::Degree((yFOV / 2) * centerY);
+    event->color = color;
+    event->touchingEdge = touchingEdge;
+
+    publish(EventType::BUOY_FOUND, event);
+}
 
 
 void BuoyDetector::publishFoundEventKate(KeyPoint blob, Color::ColorType color)

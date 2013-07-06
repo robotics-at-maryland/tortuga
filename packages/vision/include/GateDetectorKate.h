@@ -73,6 +73,7 @@ bool m_found;
 		int diffHorizontal;
 		bool foundHorizontal;
 		bool foundVertical;
+		float aspectratio_diff;
 	};
 
 	struct foundCorner

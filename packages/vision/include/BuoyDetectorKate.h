@@ -45,6 +45,17 @@ namespace vision {
 
 
 class blobfinder {
+
+		struct foundblob
+		{
+			double centerx;
+			double centery;
+			double range;
+			int minX, minY, maxX,maxY;
+			int color;
+			int position;
+			int frames;
+		};
 private:
 		
 
@@ -59,17 +70,9 @@ private:
 		vector<KeyPoint> _keypoints_red;
 		vector<KeyPoint> _keypoints_green;
 		vector<KeyPoint> _keypoints_yellow;     
+
 public:
-		struct foundblob
-		{
-			double centerx;
-			double centery;
-			double range;
-			int minX, minY, maxX,maxY;
-			int color;
-			int position;
-			int frames;
-		};
+
 	foundblob yellow;
 
         blobfinder();
