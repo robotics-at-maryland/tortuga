@@ -30,7 +30,7 @@ def dive(you, depth, rate):
 #hold the current position in xy
 def freeze(you):
     traj = motion.trajectories.Vector2CubicTrajectory(math.Vector2.ZERO,math.Vector2.ZERO)
-    dive(you, 0, 0.15)
+    dive(you, you.stateEstimator.getEstimatedDepth(), 0.15)
     mot = motion.basic.Translate(traj,Frame.LOCAL)
     you.motionManager.setMotion(mot)
 
