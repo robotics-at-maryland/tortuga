@@ -204,9 +204,9 @@ void CombineController::doUpdate(const double& timestep,
         if((vConx == false && m_desiredState->vx == true) || (vCony == false && m_desiredState->vy == true) || (vConz == false && m_desiredState->vz == true))
         {
 
-                holdCurrentDepth();
-                holdCurrentHeading();
-                holdCurrentPosition();
+            //holdCurrentDepth();
+            //holdCurrentHeading();
+            //holdCurrentPosition();
                 if(m_desiredState->vx == true)
                 {
                     intTermxy.x = 0;
@@ -220,7 +220,7 @@ void CombineController::doUpdate(const double& timestep,
                     intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
                 }
         }
-       //if turning off visual servoing, hold the current position for all axes so the position controllers are ready
+       //if turning of visual servoing, hold the current position for all axes so the position controllers are ready
         if((vConx == true && m_desiredState->vx == false) || (vCony == true && m_desiredState->vy == false) || (vConz == true && m_desiredState->vz == false))
         {
                 holdCurrentDepth();
