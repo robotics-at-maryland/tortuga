@@ -8,6 +8,7 @@ from ext.control import yawVehicleHelper
 
 
 DONE = core.declareEventType('DONE')
+YAWED = core.declareEventType('YAWED')
 
 
 #parameter lookup function
@@ -39,7 +40,6 @@ def freeze(you):
 #it sends a done event when it finishes
 #this publishes a done event when finished
 class MotionState(state.State):
-    YAWED = core.declareEventType('YAWED')
     #dive to a specified depth
     def dive(self, depth, rate):
         # Compute trajectories
@@ -97,7 +97,7 @@ class MotionState(state.State):
             self._mYaw = True
         
         def FINISHED(self,event):
-            if(self._mYAW == False):
+            if(self._mYaw == False):
                 self.publish(DONE,core.Event())
         def YAWED(self,event):
             self.publish(DONE,core.Event())
