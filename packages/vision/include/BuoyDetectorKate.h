@@ -77,7 +77,6 @@ public:
 
         blobfinder();
 	Mat DetectBuoys(Mat img_whitebalance,ColorFilter *m_redFilter, ColorFilter *m_greenFilter, ColorFilter *m_yellowFilter);
-	void FindWindow(Image* input, Mat output,ColorFilter *m_redFilter, ColorFilter *m_greenFilter, ColorFilter *m_yellowFilter);
 	foundblob getKeyPoints(KeyPoint blob);
 	unsigned int getYellowSize();
 	unsigned int getRedSize();

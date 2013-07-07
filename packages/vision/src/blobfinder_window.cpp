@@ -1,3 +1,4 @@
+/*
 //#include <cv.h>
 //#include <highgui.h>
 //#include <stdio.h>
@@ -174,3 +175,4 @@ void blobfinder::FindWindow(Image* input, Mat output,ColorFilter *m_redFilter, C
 
 }//end namspace vision
 }//end namespace RAM
+*/

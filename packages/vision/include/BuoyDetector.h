@@ -89,7 +89,6 @@ class RAM_EXPORT BuoyDetector : public Detector
 	Mat erode_dst_red;
 	Mat erode_dst_green;
 	Mat erode_dst_yellow;
-	Mat img_saturation;
 	Mat erode_dst;
 
     void init(core::ConfigNode config);

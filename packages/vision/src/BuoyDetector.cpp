@@ -227,7 +227,7 @@ void BuoyDetector::init(core::ConfigNode config)
                                     "GreenL", "Green Luminance",
                                     "GreenC", "Green Chrominance",
                                     "GreenH", "Green Hue",
-                                    30, 85, 0, 255, 10, 90);
+                                    0, 255, 0, 255, 10, 90);
     m_yellowFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_yellowFilter->addPropertiesToSet(propSet, &config,
                                     "YellowL", "Yellow Luminance",
@@ -507,7 +507,9 @@ buoy
 
 	//green blends in really well so we want to use a saturation filter as well
 	Mat temp_yellow,temp_red,temp_green; //temperoary Mat used for merging channels
-	Mat img_Luminance; 
+
+	Mat img_saturation(img_whitebalance.size(),CV_8UC1);
+	Mat img_Luminance(img_whitebalance.size(),CV_8UC1);
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
 	int erosion_size = 3;
@@ -1067,7 +1069,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
 
 	imshow("greenAND",erode_dst_green);
-	imshow("sat",img_saturation);
+	//imshow("sat",img_saturation);
 	imshow("yellowerosion",erode_dst_yellow);
 	imshow("rederosion",erode_dst_red);
 
