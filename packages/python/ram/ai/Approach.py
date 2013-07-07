@@ -343,7 +343,8 @@ class HyperApproachVConstrict(HyperApproach):
 class genHyperApproach(HyperApproachVConstrict):
     @staticmethod
     def getattr():
-        return { 'kx' : .15 ,  'ky' : .4 , 'kz' : .45, 'x_d' : 0, 'r_d' : 1.75 , 'y_d' : 0, 'x_bound': .05, 'r_bound': .25, 'y_bound':.025 ,'minvx': .1, 'minvy': .1 ,'minvz' : .1}     
+        return { 'kx' : .15 ,  'ky' : .4 , 'kz' : .45, 'x_d' : 0, 'r_d' : 1.75 , 'y_d' : 0, 'x_bound': .05, 'r_bound': .25, 'y_bound':.025 ,'minvx': .1, 'minvy': .1 ,'minvz' : .1}   
+
     def enter(self):
         pass
 
@@ -364,3 +365,37 @@ class genHyperApproach(HyperApproachVConstrict):
 
 #    def DONE(self,event):
 #        util.freeze(self)
+
+class DHyperApproach(HyperApproach):
+    @staticmethod
+    def getattr():
+        return { 'kx' : .15 ,  'ky' : .4 , 'kz' : 9, 'x_d' : 0, 'r_d' : 50 , 'y_d' : 0, 'x_bound': .05, 'r_bound': 20, 'y_bound':.025 ,'minvx': .1, 'minvy': .1 ,'minvz' : .1}   
+    
+    def enter(self):
+        pass
+
+    def BUOY_FOUND(self,event):
+        if(event.color == vision.Color.RED):
+            self.run(event)
+
+    def yFunc(self,event):
+        a = self._ky*(event.x - self._x_d)
+        if(abs(a)<self._minvy):
+            a = m.copysign(self._minvy,a)
+        return a
+
+    def zFunc(self,event):
+        a = self._kz*(1/event.range - 1/self._r_d)
+        if(abs(a)<self._minvx):
+            a = m.copysign(self._minvx,a)
+        return a
+
+    def xFunc(self,event):
+        a = self._kx*-(event.y - self._y_d)
+        if(abs(a)<self._minvz):
+            a = m.copysign(self._minvz,a)
+        return a
+
+    @staticmethod
+    def transitions():
+        return {DONE : state.State, vision.EventType.BUOY_FOUND : genHyperApproach} 
