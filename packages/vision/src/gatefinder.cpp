@@ -25,10 +25,10 @@ namespace ram {
 namespace vision {
 
 //dont need to run whitebalance before this since I'm just going to convert to grayscale.
-foundLines::parallelLinesPairs foundLines::hedgeblob(Mat img_whitebalance)
+foundLines::parallelLinesPairs foundLines::hedgeblob(Mat img_hsv)
 {
-	Mat img_hsv;
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+	//Mat img_hsv;
+	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
@@ -61,7 +61,7 @@ foundLines::parallelLinesPairs foundLines::hedgeblob(Mat img_whitebalance)
 
 	//imshow("green",img);
 
-	parallelLinesPairs parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
+	parallelLinesPairs parallelLinesresults = verticalParallelLines(erosion_dst,img_hsv);
 	//imshow("ertical filter whitebalacnce",img_whitebalance);
 	return(parallelLinesresults);
 };
@@ -146,6 +146,8 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 	vector<Vec4i> linesP;
   	  HoughLinesP(bw, linesP, 1, CV_PI/180, hough_threshold, hough_minLineLength, hough_maxLinegap );
 
+
+ //Step 3: Clean up lines
 	//calculate slope and yintercept  - used to filter out horizontal and vertical lines
 	//then they are saved for each line so I dont have to calculate them again
 	float m1, m2, b1,b2,bdiff;
@@ -417,7 +419,7 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 	};
 	//printf("\n numberof lines found = %d",linesP.size());
 
-
+//Step 4: look for horizontal and vertical ones and decide which ones go together
 	//I have all the lines
 	//look for vertical and horizontal lines with about the same endpoints
 	//or vertical lines with roughly the same y coordinates

@@ -511,6 +511,18 @@ Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH
 		return(img);
 };
 
+Mat blobfinder::LuminanceFilter(vector<Mat> hsv_planes,double minH, double maxH)
+{
+
+		Mat img;
+		threshold(hsv_planes[2],img,maxH,0,THRESH_TOZERO_INV);
+		threshold(img,img,minH,255,THRESH_TOZERO);
+		threshold(img,img,1,255,THRESH_BINARY);
+		//double alpha = 0.5;
+		// double beta = ( 1-alpha );
+		// addWeighted( img, alpha, img_saturation, beta, 0.0, img);
+		return(img);
+};
 
 }//end namspace vision
 }//end namespace RAM

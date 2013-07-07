@@ -460,6 +460,11 @@ buoy
 
 	int red_minH= m_redFilter->getChannel3Low();
 	int red_maxH= m_redFilter->getChannel3High();
+	int red_maxL= m_redFilter->getChannel2High();
+	int red_minL =m_redFilter->getChannel2Low();
+	//int red_maxS= m_redFilter->getChannel1High();
+	//int red_minS =m_redFilter->getChannel1Low();
+
 	int yellow_minH= m_yellowFilter->getChannel3Low();
 	int yellow_maxH= m_yellowFilter->getChannel3High();
 	int green_minH= m_greenFilter->getChannel3Low();
@@ -484,6 +489,8 @@ buoy
 
 	//green blends in really well so we want to use a saturation filter as well
 	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
+	Mat img_Luminance = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
+	
 	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
@@ -499,7 +506,7 @@ buoy
   	/// Apply the erosion operation 
 	//Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow; //moved to header to put in output
 	bitwise_and(img_saturation,img_green,erode_dst_green,noArray());
-
+	bitwise_and(img_Luminance,img_red,erode_dst_red,noArray());
 
   	erode(img_red, erode_dst_red, element );
   	erode(img_yellow, erode_dst_yellow, element );
@@ -580,7 +587,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 
 		finalbuoy.centerx = (minX+maxX)/2;
 		finalbuoy.centery = (minY+maxY)/2;
-		finalbuoy.range = maxtemp.size.width;
+		finalbuoy.range = maxX-minX;
 
 
 		//Display Purposes
