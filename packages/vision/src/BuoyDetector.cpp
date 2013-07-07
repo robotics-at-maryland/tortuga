@@ -7,6 +7,16 @@
  * File:  packages/vision/src/BuoyDetector.cpp
  */
 
+
+/*
+To DO:
+Change how contour detector defines aspectratio difference because if its a really really low aspect ratio then subtracting it from one
+one do anything!
+
+so just add the maxaspectratio_difference as part of the vision too
+also teh size of the erosion elements
+
+*/
 // STD Includes
 #include <math.h>
 #include <algorithm>
@@ -571,7 +581,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 {
 	//finds the maximum contour that meets aspectratio
 
-	double aspectdifflimit = 1.0;
+	double aspectdifflimit = 0.75;
 	double foundaspectdiff;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
