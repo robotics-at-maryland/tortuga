@@ -8,15 +8,6 @@
  */
 
 
-/*
-To DO:
-Change how contour detector defines aspectratio difference because if its a really really low aspect ratio then subtracting it from one
-one do anything!
-
-so just add the maxaspectratio_difference as part of the vision too
-also teh size of the erosion elements
-
-*/
 // STD Includes
 #include <math.h>
 #include <algorithm>
@@ -470,22 +461,28 @@ buoy
 
 	int red_minH =m_redFilter->getChannel3Low();
 	int red_maxH =m_redFilter->getChannel3High();
+
 	int red_maxL =m_redFilter->getChannel2High();
 	int red_minL =m_redFilter->getChannel2Low();
+
 	int red_maxS =m_redFilter->getChannel1High();
 	int red_minS =m_redFilter->getChannel1Low();
 
 	int yellow_minH = m_yellowFilter->getChannel3Low();
 	int yellow_maxH = m_yellowFilter->getChannel3High();
+
 	int yellow_maxL = m_yellowFilter->getChannel2High();
 	int yellow_minL = m_yellowFilter->getChannel2Low();
+
 	int yellow_maxS = m_yellowFilter->getChannel1High();
 	int yellow_minS = m_yellowFilter->getChannel1Low();
 
 	int green_minH= m_greenFilter->getChannel3Low();
 	int green_maxH= m_greenFilter->getChannel3High();
+
 	int green_minL = m_greenFilter->getChannel2Low();
 	int green_maxL = m_greenFilter->getChannel2High();
+
 	int green_minS = m_greenFilter->getChannel1Low();
 	int green_maxS = m_greenFilter->getChannel1High();
 
@@ -512,7 +509,7 @@ buoy
 	Mat img_Luminance(img_whitebalance.size(),CV_8UC1);
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
-	int erosion_size = 3;
+	int erosion_size = m_erodeIterations;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
@@ -557,14 +554,16 @@ buoy
 	if (red_minS != 0 || red_maxS != 255)	
 	{
 		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
-		bitwise_and(img_Luminance,img_red,temp_red,noArray());
+		bitwise_and(img_saturation,img_red,temp_red,noArray());
 		img_red = temp_red;
+		imshow("Sat ReD",img_saturation);
 	}
 	if (red_minL != 0 || red_maxL != 255)	
 	{
-		img_Luminance = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
-		bitwise_and(img_Luminance,img_red,temp_red,noArray());
+		Mat img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
+		bitwise_and(img_Luminance_red,img_red,temp_red,noArray());
 		img_red = temp_red;
+		imshow("Luminance Red",img_Luminance);
 	}	
   	erode(img_red, erode_dst_red, element);
 
@@ -583,7 +582,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 {
 	//finds the maximum contour that meets aspectratio
 
-	double aspectdifflimit = 0.75;
+	double aspectdifflimit = m_maxAspectRatio;
 	double foundaspectdiff;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
