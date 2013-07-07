@@ -211,7 +211,7 @@ void BuoyDetector::init(core::ConfigNode config)
                                     "RedL", "Red Luminance",
                                     "RedC", "Red Chrominance",
                                     "RedH", "Red Hue",
-                                    0, 255, 0, 255, 20, 160);
+                                    53, 148, 97, 255,9, 160);
     m_greenFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_greenFilter->addPropertiesToSet(propSet, &config,
                                     "GreenL", "Green Luminance",
@@ -467,11 +467,10 @@ buoy
 
 	int yellow_minH = m_yellowFilter->getChannel3Low();
 	int yellow_maxH = m_yellowFilter->getChannel3High();
-	int yellow_maxL = m_yellowFilter->getChannel2Low();
-	int yellow_minL = m_yellowFilter->getChannel2High();
+	int yellow_maxL = m_yellowFilter->getChannel2High();
+	int yellow_minL = m_yellowFilter->getChannel2Low();
 	int yellow_maxS = m_yellowFilter->getChannel1High();
 	int yellow_minS = m_yellowFilter->getChannel1Low();
-
 
 	int green_minH= m_greenFilter->getChannel3Low();
 	int green_maxH= m_greenFilter->getChannel3High();
@@ -497,11 +496,11 @@ buoy
 	blobfinder blob;
 
 	//green blends in really well so we want to use a saturation filter as well
-	Mat temp,temp_green; //temperoary Mat used for merging channels
+	Mat temp_yellow,temp_red,temp_green; //temperoary Mat used for merging channels
 	Mat img_Luminance; 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
-	int erosion_size = 1;
+	int erosion_size = 3;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
@@ -509,56 +508,57 @@ buoy
 	//green blends in really well so we want to use a saturation filter as well
 	//green
 	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);	
-	if (green_minS != 0 && green_maxS != 255)	
+	if (green_minS != 0 || green_maxS != 255)	
 	{
 		img_saturation = blob.SaturationFilter(hsv_planes,green_minS,green_maxS);
-		bitwise_and(img_saturation,img_green,temp,noArray());
-		img_green = temp;
-		imshow("green sat",img_saturation);
+		bitwise_and(img_saturation,img_green,temp_green,noArray());
+		img_green = temp_green;
+		imshow("Sat",img_saturation);
 	}
-	if (green_minL != 0 && green_maxL != 255)	
+	if (green_minL != 0 || green_maxL != 255)	
 	{
 		img_Luminance = blob.LuminanceFilter(hsv_planes,green_minL,green_maxL);
 		bitwise_and(img_Luminance,img_green,temp_green,noArray());
-		imshow("green Luminance",img_Luminance);
+		imshow("Luminance",img_Luminance);
+		img_green = temp_green;
 	}	
   	erode(img_green, erode_dst_green, element);
 
 	//yellow
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);	
-	if (yellow_minS != 0 && yellow_maxS != 255)	
+	if (yellow_minS != 0 || yellow_maxS != 255)	
 	{
 		img_saturation = blob.SaturationFilter(hsv_planes,yellow_minS,yellow_maxS);
-		bitwise_and(img_saturation,img_yellow,temp,noArray());
-		img_yellow = temp;
+		bitwise_and(img_saturation,img_yellow,temp_yellow,noArray());
+		img_yellow = temp_yellow;
 	}
-	if (yellow_minL != 0 && yellow_maxL != 255)	
+	if (yellow_minL != 0 || yellow_maxL != 255)	
 	{
 		img_Luminance = blob.LuminanceFilter(hsv_planes,yellow_minL,yellow_maxL);
-		bitwise_and(img_Luminance,img_yellow,temp,noArray());
-		img_yellow = temp;
+		bitwise_and(img_Luminance,img_yellow,temp_yellow,noArray());
+		img_yellow = temp_yellow;
 	}	
   	erode(img_yellow, erode_dst_yellow, element);
 
 	//red
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);	
-	if (red_minS != 0 && red_maxS != 255)	
+	if (red_minS != 0 || red_maxS != 255)	
 	{
 		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
-		bitwise_and(img_Luminance,img_red,temp,noArray());
-		img_red = temp;
+		bitwise_and(img_Luminance,img_red,temp_red,noArray());
+		img_red = temp_red;
 	}
-	if (red_minL != 0 && red_maxL != 255)	
+	if (red_minL != 0 || red_maxL != 255)	
 	{
 		img_Luminance = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
-		bitwise_and(img_Luminance,img_red,temp,noArray());
-		img_red = temp;
+		bitwise_and(img_Luminance,img_red,temp_red,noArray());
+		img_red = temp_red;
 	}	
   	erode(img_red, erode_dst_red, element);
 
-  	imshow("greenAND1",erode_dst_green);
-	imshow("yellowerosion1",erode_dst_yellow);
-	imshow("rederosion1",erode_dst_red);
+  	imshow("green",erode_dst_green);
+	imshow("yellow",erode_dst_yellow);
+	imshow("red",erode_dst_red);
 
 	//get Blobs
 	m_redbuoy= getSquareBlob(erode_dst_red);
@@ -571,7 +571,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 {
 	//finds the maximum contour that meets aspectratio
 
-	double aspectdifflimit = 0.5;
+	double aspectdifflimit = 1.0;
 	double foundaspectdiff;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
@@ -601,7 +601,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 		}
 	};
 
-	if (maxArea  > 10)
+	if (maxArea  > 5)
 	{
 		Point2f vertices[4];
 		maxtemp.points(vertices);
