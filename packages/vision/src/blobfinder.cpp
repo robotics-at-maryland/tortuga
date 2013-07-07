@@ -498,7 +498,7 @@ Mat blobfinder::OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH)
 		
 		return(img);
 };
-Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH)
+Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,int minH,int maxH)
 {
 
 		Mat img;
@@ -511,7 +511,7 @@ Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH
 		return(img);
 };
 
-Mat blobfinder::LuminanceFilter(vector<Mat> hsv_planes,double minH, double maxH)
+Mat blobfinder::LuminanceFilter(vector<Mat> hsv_planes,int minH,int maxH)
 {
 
 		Mat img;

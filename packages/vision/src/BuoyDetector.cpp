@@ -458,19 +458,28 @@ buoy
 */
 	//double givenAspectRatio = 1.0;
 
-	int red_minH= m_redFilter->getChannel3Low();
-	int red_maxH= m_redFilter->getChannel3High();
-	int red_maxL= m_redFilter->getChannel2High();
+	int red_minH =m_redFilter->getChannel3Low();
+	int red_maxH =m_redFilter->getChannel3High();
+	int red_maxL =m_redFilter->getChannel2High();
 	int red_minL =m_redFilter->getChannel2Low();
-	//int red_maxS= m_redFilter->getChannel1High();
-	//int red_minS =m_redFilter->getChannel1Low();
+	int red_maxS =m_redFilter->getChannel1High();
+	int red_minS =m_redFilter->getChannel1Low();
 
-	int yellow_minH= m_yellowFilter->getChannel3Low();
-	int yellow_maxH= m_yellowFilter->getChannel3High();
+	int yellow_minH = m_yellowFilter->getChannel3Low();
+	int yellow_maxH = m_yellowFilter->getChannel3High();
+	int yellow_maxL = m_yellowFilter->getChannel2Low();
+	int yellow_minL = m_yellowFilter->getChannel2High();
+	int yellow_maxS = m_yellowFilter->getChannel1High();
+	int yellow_minS = m_yellowFilter->getChannel1Low();
+
+
 	int green_minH= m_greenFilter->getChannel3Low();
 	int green_maxH= m_greenFilter->getChannel3High();
-	double minS = (double)m_greenFilter->getChannel1Low();//there is no reason these should be doubles
-	double maxS = (double)m_greenFilter->getChannel1High();
+	int green_minL = m_greenFilter->getChannel2Low();
+	int green_maxL = m_greenFilter->getChannel2High();
+	int green_minS = m_greenFilter->getChannel1Low();
+	int green_maxS = m_greenFilter->getChannel1High();
+
 	Mat img = input->asIplImage();
 	Mat img_hsv;
 
@@ -488,14 +497,8 @@ buoy
 	blobfinder blob;
 
 	//green blends in really well so we want to use a saturation filter as well
-	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
-	Mat img_Luminance = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
-	
-	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
-	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
-	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
-
-
+	Mat temp,temp_green; //temperoary Mat used for merging channels
+	Mat img_Luminance; 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
 	int erosion_size = 1;
@@ -503,17 +506,57 @@ buoy
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
 
-  	/// Apply the erosion operation 
-	//Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow; //moved to header to put in output
-	bitwise_and(img_saturation,img_green,erode_dst_green,noArray());
-	bitwise_and(img_Luminance,img_red,erode_dst_red,noArray());
+	//green blends in really well so we want to use a saturation filter as well
+	//green
+	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);	
+	if (green_minS != 0 && green_maxS != 255)	
+	{
+		img_saturation = blob.SaturationFilter(hsv_planes,green_minS,green_maxS);
+		bitwise_and(img_saturation,img_green,temp,noArray());
+		img_green = temp;
+		imshow("green sat",img_saturation);
+	}
+	if (green_minL != 0 && green_maxL != 255)	
+	{
+		img_Luminance = blob.LuminanceFilter(hsv_planes,green_minL,green_maxL);
+		bitwise_and(img_Luminance,img_green,temp_green,noArray());
+		imshow("green Luminance",img_Luminance);
+	}	
+  	erode(img_green, erode_dst_green, element);
 
-  	erode(img_red, erode_dst_red, element );
-  	erode(img_yellow, erode_dst_yellow, element );
-  	erode(erode_dst_green, erode_dst_green, element );
+	//yellow
+	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);	
+	if (yellow_minS != 0 && yellow_maxS != 255)	
+	{
+		img_saturation = blob.SaturationFilter(hsv_planes,yellow_minS,yellow_maxS);
+		bitwise_and(img_saturation,img_yellow,temp,noArray());
+		img_yellow = temp;
+	}
+	if (yellow_minL != 0 && yellow_maxL != 255)	
+	{
+		img_Luminance = blob.LuminanceFilter(hsv_planes,yellow_minL,yellow_maxL);
+		bitwise_and(img_Luminance,img_yellow,temp,noArray());
+		img_yellow = temp;
+	}	
+  	erode(img_yellow, erode_dst_yellow, element);
 
-	imshow("greenAND1",erode_dst_green);
-	imshow("sat1",img_saturation);
+	//red
+	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);	
+	if (red_minS != 0 && red_maxS != 255)	
+	{
+		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
+		bitwise_and(img_Luminance,img_red,temp,noArray());
+		img_red = temp;
+	}
+	if (red_minL != 0 && red_maxL != 255)	
+	{
+		img_Luminance = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
+		bitwise_and(img_Luminance,img_red,temp,noArray());
+		img_red = temp;
+	}	
+  	erode(img_red, erode_dst_red, element);
+
+  	imshow("greenAND1",erode_dst_green);
 	imshow("yellowerosion1",erode_dst_yellow);
 	imshow("rederosion1",erode_dst_red);
 

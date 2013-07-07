@@ -87,8 +87,8 @@ public:
 	vector<KeyPoint> getGreen();
 	Mat RedFilter(vector<Mat> hsv_planes,int red_minH, int red_maxH);
 	Mat OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH);
-	Mat SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH);
-	Mat LuminanceFilter(vector<Mat> hsv_planes,double minH, double maxH);
+	Mat SaturationFilter(vector<Mat> hsv_planes,int minS, int maxS);
+	Mat LuminanceFilter(vector<Mat> hsv_planes,int minL,int maxL);
 
 
 
