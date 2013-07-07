@@ -289,8 +289,10 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat erosion_dst)
 	//largest = all bins
 	//next 4 largest - contour between black and white inside bins
 	//next 4 largest - contour of the yellow bottom
-bincontours bins;
-bool used = false;
+	bincontours bins;
+	bool used = false;
+	int k3;
+	int numberoftrackedcontours = 9;
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
 
@@ -304,10 +306,25 @@ bool used = false;
 		{
 			if (area > bins.area[k] && used == false)
 			{
+				used = true;
 				// 0 = largest
-				for (int k2 = k;k2>8;k2++)
-				{
+				//want to take everyone at a lower number and save up
+				//save 0 as 1
+				//save 1 as 2
+				//save 2 as 3
 
+				for (int k2 = k;k2>numberoftrackedcontours;k2++)
+				{
+					k3 = numberoftrackedcontours-k2;					
+					bins.area[k3] = bins.area[k3-1];
+					//if area is bigger than bins.area[0]		
+					//want to take bins[8] = bins[7]
+						
+					//0 gets saved as 1
+					//k gets saved as new
+					//want everyone to get saved down one
+					//k+1 gets saved as k+2
+					//k+3 gets saved as k+2 = k+1 so no
 				};
 			}
 		}

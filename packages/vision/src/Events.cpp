@@ -26,6 +26,7 @@ RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPELINE_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, PIPELINE_DETECTOR_OFF);
 
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_FOUND);
+RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_LOST);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_DETECTOR_ON);
 RAM_CORE_EVENT_TYPE(ram::vision::EventType, GATE_DETECTOR_OFF);
 

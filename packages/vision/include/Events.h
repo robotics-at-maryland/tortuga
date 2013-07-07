@@ -42,6 +42,7 @@ struct RAM_EXPORT EventType
     static const core::Event::EventType PIPELINE_DETECTOR_OFF;
 
     static const core::Event::EventType GATE_FOUND;
+    static const core::Event::EventType GATE_LOST;
     static const core::Event::EventType GATE_DETECTOR_ON;
     static const core::Event::EventType GATE_DETECTOR_OFF;
 
