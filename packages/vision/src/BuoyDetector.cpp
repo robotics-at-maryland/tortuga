@@ -267,6 +267,7 @@ void BuoyDetector::init(core::ConfigNode config)
      foundgreenbefore=(false);
     foundredbefore=(false);
     foundyellowbefore=(false);
+    m_framenumber = 0;
 
         
 }
@@ -458,7 +459,7 @@ buoy
 
 */
 	//double givenAspectRatio = 1.0;
-
+m_framenumber = m_framenumber+1;
 	int red_minH =m_redFilter->getChannel3Low();
 	int red_maxH =m_redFilter->getChannel3High();
 
@@ -522,13 +523,13 @@ buoy
 		img_saturation = blob.SaturationFilter(hsv_planes,green_minS,green_maxS);
 		bitwise_and(img_saturation,img_green,temp_green,noArray());
 		img_green = temp_green;
-		imshow("Sat",img_saturation);
+		//imshow("Sat",img_saturation);
 	}
 	if (green_minL != 0 || green_maxL != 255)	
 	{
 		img_Luminance = blob.LuminanceFilter(hsv_planes,green_minL,green_maxL);
 		bitwise_and(img_Luminance,img_green,temp_green,noArray());
-		imshow("Luminance",img_Luminance);
+		//imshow("Luminance",img_Luminance);
 		img_green = temp_green;
 	}	
   	erode(img_green, erode_dst_green, element);
@@ -556,20 +557,20 @@ buoy
 		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
 		bitwise_and(img_saturation,img_red,temp_red,noArray());
 		img_red = temp_red;
-		imshow("Sat ReD",img_saturation);
+		//imshow("Sat ReD",img_saturation);
 	}
 	if (red_minL != 0 || red_maxL != 255)	
 	{
 		Mat img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 		bitwise_and(img_Luminance_red,img_red,temp_red,noArray());
 		img_red = temp_red;
-		imshow("Luminance Red",img_Luminance);
+		//imshow("Luminance Red",img_Luminance);
 	}	
   	erode(img_red, erode_dst_red, element);
 
-  	imshow("green",erode_dst_green);
-	imshow("yellow",erode_dst_yellow);
-	imshow("red",erode_dst_red);
+  	//imshow("green",erode_dst_green);
+	//imshow("yellow",erode_dst_yellow);
+	//imshow("red",erode_dst_red);
 
 	//get Blobs
 	m_redbuoy= getSquareBlob(erode_dst_red);
@@ -1067,10 +1068,10 @@ void BuoyDetector::processImage(Image* input, Image* output)
     {
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
 
-	imshow("greenAND",erode_dst_green);
+	//imshow("greenAND",erode_dst_green);
 	//imshow("sat",img_saturation);
-	imshow("yellowerosion",erode_dst_yellow);
-	imshow("rederosion",erode_dst_red);
+	//imshow("yellowerosion",erode_dst_yellow);
+	//imshow("rederosion",erode_dst_red);
 
        input->setData(img_whitebalance.data,false);
        frame->copyFrom(input);
@@ -1591,7 +1592,8 @@ void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType col
     event->x = centerX;
     event->y = centerY;
     event->range = buoy.range;
-    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+//    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+    event->azimuth =m_framenumber;
     event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
     event->touchingEdge = touchingEdge;

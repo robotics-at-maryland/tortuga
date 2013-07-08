@@ -35,15 +35,15 @@ class RAM_EXPORT BinDetector : public Detector
 	};
 	struct bincontours
 	{
-		int area[10];
-		int contournumber[10];
-		double aspectratio_diff[10];
-		double maxX[10];
-		double maxY[10];
-		double minY[10];
-		double minX[10];
-		bool found[10];
-		contourvertices vertex[10];
+		int area;
+		int contournumber;
+		double aspectratio_diff;
+		double maxX;
+		double maxY;
+		double minY;
+		double minX;
+		bool found;
+		cv::Point2f vertices[4];
 	};
 
   public:

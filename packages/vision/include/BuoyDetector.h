@@ -244,7 +244,7 @@ class RAM_EXPORT BuoyDetector : public Detector
   foundblob m_yellowbuoy,m_greenbuoy,m_redbuoy;
   void publishFoundEventContour(foundblob buoy, Color::ColorType color);
 
-
+	int m_framenumber; //frame number since start of class
 };
 	
 } // namespace vision
