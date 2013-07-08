@@ -212,10 +212,17 @@ buoy
 	int red_maxH= m_redFilter->getChannel3High();
 	//int green_minH= m_greenFilter->getChannel3Low();
 	//int green_maxH= m_greenFilter->getChannel3High();
-	double minS = (double)m_redFilter->getChannel1Low();//there is no reason these should be doubles
-	double maxS = (double)m_redFilter->getChannel1High();
+	int minS = m_redFilter->getChannel1Low();//there is no reason these should be doubles
+	int maxS = m_redFilter->getChannel1High();
 	cv::Mat img = input->asIplImage();
-	cv::Mat img_hsv;
+
+	//Initializae things
+	cv::Mat img_hsv(img_whitebalance.size(),img_whitebalance.type());
+	blobfinder blob;
+	cv::Mat img_saturation(img_whitebalance.size(),CV_8UC1);
+	cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
+	cv::Mat img_added(img_whitebalance.size(),CV_8UC1);
+ 	cv::Mat erode_dst_red(img_whitebalance.size(),CV_8UC1);
 
 	img_whitebalance = WhiteBalance(img);
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
@@ -228,59 +235,48 @@ buoy
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980
 	//same filter as the other cases followed by an invert
-	blobfinder blob;
 
-	//green blends in really well so we want to use a saturation filter as well
+
+
 	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
-	//Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
-	//Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
-	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
-
+	img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
-	int erosion_size = 1;
-	cv::Mat erode_dst_red, erode_dst_green;
+	int erosion_size = 2;
+	
 	cv::Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
 
   	/// Apply the erosion operation 
-	//Mat erosion_dst_red, erosion_dst_green, erosion_dst_yellow; //moved to header to put in output
-	bitwise_or(img_saturation,img_red,erode_dst_green,noArray());
+	bitwise_or(img_saturation,img_red,img_added,noArray());
+  	erode(img_added, erode_dst_red, element );
 	
-  	erode(img_red, erode_dst_red, element );
-    	erode(erode_dst_green, erode_dst_green, element );
-
-	imshow("greenAND1",erode_dst_green);
+	imshow("Red",img_red);
+	imshow("Or images",img_added);
 	imshow("sat1",img_saturation);
-	//imshow("yellowerosion1",erode_dst_yellow);
 	imshow("rederosion1",erode_dst_red);
 
-	//get Blobs
-	//m_redbuoy= getSquareBlob(erode_dst_red);
-	//m_yellowbuoy = getSquareBlob(erode_dst_yellow);
-	m_bin = getSquareBlob(erode_dst_green);
+	//get Contours
+	m_bin = getSquareBlob(erode_dst_red);
 };
 
 
-BinDetector::bincontours BinDetector::getSquareBlob(Mat erosion_dst)
+BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 {
 	//finds the maximum contour that meets aspectratio
-
-	double aspectdifflimit = 0.5;
-	double foundaspectdiff;
+	double aspectratio = 1.0;
+	double aspectratio_limit = 1.0;
+	double aspectratio_diff;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 
 	  /// Find contours
-	findContours(erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
 	//find contour with the largest area- by area I mean number of pixels
-	double maxArea = 0;
-	unsigned int maxContour;
 	RotatedRect temp,maxtemp;
-	//targetSmall and targetLarge are within the maxSize contour
 	double area;
 
 	//find larget area where it should be about a square
@@ -290,83 +286,210 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat erosion_dst)
 	//next 4 largest - contour between black and white inside bins
 	//next 4 largest - contour of the yellow bottom
 	bincontours bins;
-	bool used = false;
-	int k3;
 	int numberoftrackedcontours = 9;
+
+	//initialize to zero
+	for (int k=0;k<numberoftrackedcontours;k++)
+	{
+		bins.contournumber[k] = 0;
+		bins.area[k] = 0;
+		bins.found[k] = false;
+		bins.vertex[k].vertices[0].x=0;
+		bins.vertex[k].vertices[0].y=0;
+
+		bins.vertex[k].vertices[1].x=0;
+		bins.vertex[k].vertices[1].y=0;
+
+		bins.vertex[k].vertices[2].x=0;
+		bins.vertex[k].vertices[2].y=0;
+
+		bins.vertex[k].vertices[3].x=0;
+		bins.vertex[k].vertices[3].y=0;
+	}
+
+
+	double minX,maxX,minY,maxY;
+	int imageheight, imagewidth;
+	imagewidth = img_whitebalance.cols;
+	imageheight = img_whitebalance.rows;
+
+	Point2f vertices[4];
+//find the largest rectangular contour
+//find the contours inside that one
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-
-	     //cout << "# of contour points: " << contours[i].size() << endl ;
-		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
-		area = temp.size.width*temp.size.height;
-		foundaspectdiff = abs(temp.size.height/temp.size.width- 1.0);
-		//printf("\n foundaspectdiff = %f",foundaspectdiff);
-		//want to save the top 10 boxes
-		for (int k=0;k<8;k++)
+		if (contours[j].size()>5)
 		{
-			if (area > bins.area[k] && used == false)
+			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+			area = temp.size.width*temp.size.height;
+			aspectratio_diff = abs((float(temp.size.height)/float(temp.size.width))- aspectratio);
+			//printf("\n j = %d, countoursize = %d, area = %f, aspectratio_diff =%f, height = %f, width = %f",j,contours[j].size(),area,aspectratio_diff,temp.size.height,temp.size.width);
+			drawContours(img_whitebalance, contours, j, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
+			if (area > bins.area[0] && aspectratio_diff < aspectratio_limit)
 			{
-				used = true;
-				// 0 = largest
-				//want to take everyone at a lower number and save up
-				//save 0 as 1
-				//save 1 as 2
-				//save 2 as 3
-
-				for (int k2 = k;k2>numberoftrackedcontours;k2++)
+				//printf(" beating max");
+				bins.contournumber[0] = j;
+				bins.area[0] = area;
+				bins.aspectratio_diff[0] = aspectratio_diff;
+				//get the min and max points
+				temp.points(vertices);
+				minX= 90000;
+				maxX = 0;
+				minY= 90000;
+				maxY=0;	
+				for (int i = 0; i < 4; i++)
 				{
-					k3 = numberoftrackedcontours-k2;					
-					bins.area[k3] = bins.area[k3-1];
-					//if area is bigger than bins.area[0]		
-					//want to take bins[8] = bins[7]
-						
-					//0 gets saved as 1
-					//k gets saved as new
-					//want everyone to get saved down one
-					//k+1 gets saved as k+2
-					//k+3 gets saved as k+2 = k+1 so no
+					//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+					if (vertices[i].x < minX)
+						minX = vertices[i].x;
+					if (vertices[i].x > maxX)
+						maxX = vertices[i].x;
+					if (vertices[i].y < minY)
+						minY = vertices[i].y;
+					if (vertices[i].y > maxY)
+						maxY = vertices[i].y;
+					bins.vertex[0].vertices[i]= vertices[i];
 				};
+				if (maxX > imagewidth)
+				{
+					maxX = imagewidth;
+				}
+				if (maxY > imageheight)
+				{
+					maxY = imageheight;
+				}
+				if (minX < 0)
+				{
+					minX = 0;
+				}
+				if (minY < 0)
+				{
+					 minY = 0;
+				}
+				bins.maxX[0] = maxX;
+				bins.minX[0] = minX;
+				bins.maxY[0] = maxY;
+				bins.minY[0] = minY;
+				bins.found[0]=true;
 			}
-		}
-		if (area > maxArea && foundaspectdiff < aspectdifflimit)
-		{	maxContour = j;
-			maxtemp = temp;
-			maxArea = area;
-		}
+		}//end if size
 	};
 
-	if (maxArea  > 10)
+			printf("\n FINAL j = %d, countoursize = %d, area = %d, aspectratio_diff =%f",bins.contournumber[0],contours[bins.contournumber[0]].size(),bins.area[0],bins.aspectratio_diff[0]);
+
+	for (int i = 0; i < 4; i++)
 	{
-		Point2f vertices[4];
-		maxtemp.points(vertices);
-		//given the vertices find the min and max X and min and maxY
-		double minX= 90000;
-		double maxX = 0;
-		double minY= 90000;
-		double maxY=0;	
-		for (int i = 0; i < 4; i++)
-		{
-			//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
-			if (vertices[i].x < minX)
-				minX = vertices[i].x;
-			if (vertices[i].x > maxX)
-				maxX = vertices[i].x;
-			if (vertices[i].y < minY)
-				minY = vertices[i].y;
-			if (vertices[i].y > maxY)
-				maxY = vertices[i].y;
-		};
-		//allocate data
-		
-		//Display Purposes
-		maxtemp.points(vertices);
-		for (int i = 0; i < 4; i++)
-		    line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),5);
-		//imshow("final",img_whitebalance); 
+		line(img_whitebalance, bins.vertex[0].vertices[i], bins.vertex[0].vertices[(i+1)%4], Scalar(255,0,255),8);
 	}
-	
+	//given the vertices find the min and max X and min and maxY
+
+
+	//have the largest one
+	//now to find which ones are inside
+	double minX2,minY2,maxX2,maxY2;
+	int contourcounter =1;
+	for(unsigned int j=0; j<contours.size(); j++)
+	{
+		if ((contours[j].size() >10) && ((int)j!=bins.contournumber[0]) && (bins.found[0] == true))
+		{
+			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+			area = temp.size.width*temp.size.height;
+			aspectratio_diff = abs((float(temp.size.height)/float(temp.size.width))- aspectratio);
+			temp.points(vertices);
+			minX2= 90000;
+			maxX2 = 0;
+			minY2= 90000;
+			maxY2=0;	
+			for (int i = 0; i < 4; i++)
+			{
+				//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+				if (vertices[i].x < minX2)
+					minX2 = vertices[i].x;
+				if (vertices[i].x > maxX2)
+					maxX2 = vertices[i].x;
+				if (vertices[i].y < minY2)
+					minY2 = vertices[i].y;
+				if (vertices[i].y > maxY2)
+					maxY2 = vertices[i].y;
+				
+			};
+			if (maxX2 > imagewidth)
+					{
+				maxX2 = imagewidth;
+			}
+			if (maxY2 > imageheight)
+			{
+				maxY2 = imageheight;
+			}
+			if (minX2 < 0)
+			{
+				minX2 = 0;
+			}
+			if (minY2 < 0)
+			{
+				 minY2 = 0;
+			}
+
+			if ( ((maxX-minX)>5)&&(aspectratio_diff < aspectratio_limit) && (minX2 >bins.minX[0]) && (maxX2<bins.maxX[0]) && (minY2>bins.minY[0]) && (maxY2<bins.maxY[0]) && (contourcounter < (numberoftrackedcontours-1)));
+			{
+				bins.contournumber[contourcounter] = j;
+				bins.area[contourcounter] = area;
+				bins.aspectratio_diff[contourcounter] = aspectratio_diff;
+				bins.maxX[contourcounter] = maxX2;
+				bins.minX[contourcounter] = minX2;
+				bins.maxY[contourcounter] = maxY2;
+				bins.minY[contourcounter] = minY2;
+				bins.found[contourcounter] = true;
+				for (int i = 0; i < 4; i++)
+				{
+				//	bins.vertex[contourcounter].vertices[i]= vertices[i];
+				}
+				contourcounter = contourcounter+1;
+			}
+		}//end if size
+	};
+
+
+	//have the top 10 areas
+	CvPoint point1,point2;
+
+	for (int k=0;k<numberoftrackedcontours;k++)
+	{
+		if (bins.found[k]==true)
+		{
+			point1.x = bins.maxX[k];
+			point1.y = bins.minY[k];
+			point2.x = bins.maxX[k];
+			point2.y = bins.maxY[k];
+			line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+
+			point1.x = bins.maxX[k];
+			point1.y = bins.maxY[k];
+			point2.x = bins.minX[k];
+			point2.y = bins.maxY[k];
+			line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+
+			point1.x = bins.minX[k];
+			point1.y = bins.maxY[k];
+			point2.x = bins.minX[k];
+			point2.y = bins.minY[k];
+			line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+
+			point1.x = bins.minX[k];
+			point1.y = bins.minY[k];
+			point2.x = bins.maxX[k];
+			point2.y = bins.minY[k];
+			line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+			for (int i = 0; i < 4; i++)
+			{
+				if (k==0)			
+					line(img_whitebalance, bins.vertex[k].vertices[i], bins.vertex[k].vertices[(i+1)%4], Scalar(255,255,0),5);
+			}
+		}
+	}
+	imshow("final",img_whitebalance); 
  
-		return(bins);
+	return(bins);
 }
 
 
@@ -390,7 +513,8 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat erosion_dst)
 void BinDetector::processImage(Image* input, Image* out)
 {
     m_frame->copyFrom(input);
-
+    DetectorContours(input);
+/*
     // Ensure all the images are the proper size
     if ((m_whiteMaskedFrame->getWidth() != m_frame->getWidth()) || 
         (m_whiteMaskedFrame->getHeight() != m_frame->getHeight()))
@@ -399,12 +523,13 @@ void BinDetector::processImage(Image* input, Image* out)
         deleteImages();
         allocateImages(m_frame->getWidth(), m_frame->getHeight());
     }
-
+*/
     // Make debug output look like m_frame (will be marked up later)
     if (out)
         out->copyFrom(m_frame);
     
     // Convert the image to LCh
+/*
     m_frame->setPixelFormat(Image::PF_RGB_8);
     m_frame->setPixelFormat(Image::PF_LCHUV_8);
     
@@ -415,7 +540,7 @@ void BinDetector::processImage(Image* input, Image* out)
     
     // Update debug image with black, white and red color info
     filterDebugOutput(out);
-
+*/
     // Find all the white blobs
     m_blobDetector.setMinimumBlobSize(m_blobMinWhitePixels);
     m_blobDetector.processImage(m_whiteMaskedFrame);
@@ -746,9 +871,9 @@ void BinDetector::init(core::ConfigNode config)
                                     "redL", "Luminance",
                                     "redC", "Chrominance",
                                     "redH", "Hue",
-                                    0, 255,  // L defaults // 180,255
+                                    5, 30,  // L defaults // 180,255
                                     0, 200,  // U defaults // 76, 245
-                                    200, 255); // V defaults // 200,255
+                                    45, 255); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 

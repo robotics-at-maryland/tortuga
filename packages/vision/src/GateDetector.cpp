@@ -168,6 +168,10 @@ printf("\n converting img_whitebalance");
 	blobfinder blob;
 	Mat img_blue =blob.SaturationFilter(hsv_planes,minS,maxS); //saturation filter
 printf("\n colorfilter");
+	cv::Mat erosion_dst(img_whitebalance.size(),CV_8UC1);
+	Mat erosion_dst_red(img_whitebalance.size(),CV_8UC1);
+	Mat erosion_dst_green(img_whitebalance.size(),CV_8UC1);
+	Mat erosion_dst_blue(img_whitebalance.size(),CV_8UC1);
 
 
 	//For attempting to use with canny

@@ -92,7 +92,7 @@ void TargetDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "erodeIterations",
                          "How many times to erode the filtered image",
-                         0, &m_erodeIterations, 0, 10);
+                         2, &m_erodeIterations, 0, 10);
 
     propSet->addProperty(config, false, "dilateIterations",
                          "How many times to dilate the filtered image",
@@ -116,6 +116,10 @@ void TargetDetector::init(core::ConfigNode config)
                          127, &m_redmaxH, 0, 255);
 
     /// TODO: add a found pixel drop off
+	m_greenFound = FALSE;
+	m_redFound = FALSE;
+	m_blueFound = FALSE;
+	m_yellowFound = FALSE;
 
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
@@ -155,7 +159,7 @@ void TargetDetector::setBottomRemovePercentage(double percent)
 
 void TargetDetector::processColorImage(Image* input, Image* output)
 {
-
+/*
 	 // Remove top and bottom chunks if desired
 	//this is only really used to keep the visionTest from failing
 	    if (m_topRemovePercentage != 0)
@@ -174,7 +178,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		    m_image->getWidth() * m_image->getHeight() * 3 - bytesToBlack;
 		memset(&(m_image->getData()[startIdx]), 0, bytesToBlack);
 	    }
-
+*/
 	//Step 1: color filter based on Vision tool
 	//want to filter for red, blue, green and yellow
 	//for blue we're going to use the saturation channel
@@ -183,8 +187,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	//so, we look for blobs in each filter, and then make sure the red,yellow, and green are within the blue
 	//thats our verification, and how we'll get the blue blob
 	
-	//We need to get the holes, so we do an invert-saturation filter on the area found by the blobs
-	//based on the color region, they're in and the relative areas, we should be able to get the big and small holes	
+	//get min and max values for the color filters	
 	double givenAspectRatio = 1.0;
 	int red_maxH = m_redmaxH;
 	int red_minH = m_redminH;
@@ -194,6 +197,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	int yellow_minH = m_filter->getChannel2Low();
 	double blue_maxS = m_filter->getChannel1High();
 	double blue_minS = m_filter->getChannel1Low();
+	int erosion_size = m_erodeIterations;
 
 	Mat img = input->asIplImage();
 	Mat img_hsv;
@@ -201,321 +205,126 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	img_whitebalance = WhiteBalance(img);
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
-	//use blob detection to find gate
-	//find left and right red poles - vertical poles
 	vector<Mat> hsv_planes;
 	split(img_hsv,hsv_planes);
 
-	//first take any value higher than max and converts it to 0
-	//red is a special case because the hue value for red are 0-10 and 170-1980
-	//same filter as the other cases followed by an invert
+	///apply color filters, which are private members of the blobfind class
 	blobfinder blob;
 	Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 	Mat img_blue =blob.SaturationFilter(hsv_planes,blue_minS,blue_maxS);
-	//imshow("green",img_green);
-	//imshow("yellow",img_yellow);
-	//imshow("red",img_red);
-	//imshow("blue",img_blue);
 
-	//For attempting to use with canny
+	//For the erode function, which really helps clean things up
 	int erosion_type = 0; //morph rectangle type of erosion
-	int erosion_size = 2;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
 
-  	/// Apply the erosion operation
+  	/// Apply the erosion operation and then find the contours
 	Mat erosion_dst_red, erosion_dst_green, erosion_dst_blue, erosion_dst_yellow;
   	erode(img_red, erosion_dst_red, element );
-	//get Blobs
 	targetPanel squareRed = getSquareBlob(erosion_dst_red,img_whitebalance);
 
   	erode(img_green, erosion_dst_green, element );
-  	//get Blobs
 	targetPanel squareGreen = getSquareBlob(erosion_dst_green,img_whitebalance);
 
   	erode(img_yellow, erosion_dst_yellow, element );
-  	//imshow( "Yellow", erosion_dst_yellow );
-	//get Blobs
 	targetPanel squareYellow = getSquareBlob(erosion_dst_yellow,img_whitebalance);
 
   	erode(img_blue, erosion_dst_blue, element );
-  	//imshow( "Blue", erosion_dst );
-	//get Blobs
 	targetPanel squareBlue = getSquareBlob(erosion_dst_blue,img_whitebalance);
 
-	//check to see if outer box meets aspet ratio
+	//NOw that I have the contours, check to see if outer box meets desired aspect ratio
 	Point2f vertices[4];
-	double aspectRatio;
+	float foundAspectRatio;
 	//green event
-	float foundAspectRatio = squareGreen.outline.size.height/squareGreen.outline.size.width;
-
-	int minTargetSize = 30;
-	bool greenFound = FALSE;
-	bool redFound = FALSE;
-	bool blueFound = FALSE;
-	bool yellowFound = FALSE;
-
+	foundAspectRatio = squareGreen.outline.size.height/squareGreen.outline.size.width;
 	if (abs(foundAspectRatio-givenAspectRatio) < .35)
 	{ 
 	 	 //valid panel
-		greenFound = TRUE;
-		squareGreen.outline.points(vertices);
+		m_greenFound = TRUE;
 		m_found = true;
 		m_color = Color::GREEN;
-	    		// Determine the corindates of the target
-		Detector::imageToAICoordinates(input, 
-		                               (int)squareGreen.outline.center.x,
-		                               (int)squareGreen.outline.center.y,
-		                               m_targetCenterX,
-		                               m_targetCenterY);
-
-		// Determine range
-		m_range = 1.0 - (((double)squareGreen.outline.size.width) /
-		                 ((double)squareGreen.outline.size.height));
-
-		// Determine the squareness
-		aspectRatio = ((double)squareGreen.outline.size.height)/((double)squareGreen.outline.size.width);
-		if (aspectRatio < 1)
-		    m_squareNess = 1.0;
-		else
-		    m_squareNess = 1.0/aspectRatio;
-
-
-		//plot pretty results
-		for (int i = 0; i < 4; i++)
-	  		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));
-		
-	 	if (squareGreen.targetLarge.size.width > minTargetSize && squareGreen.targetLarge.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                              (int) squareGreen.targetLarge.center.x,
-		                               (int)squareGreen.targetLarge.center.y,
-		                               m_targetLargeCenterX,
-		                               m_targetLargeCenterY);
-
-			//plot pretty results
-			ellipse(img_whitebalance, squareGreen.targetLarge, Scalar(0,250,0), 4, 8 );
-		};
-	  	if (squareGreen.targetSmall.size.width > minTargetSize && squareGreen.targetSmall.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                               (int)squareGreen.targetSmall.center.x,
-		                               (int)squareGreen.targetSmall.center.y,
-		                               m_targetSmallCenterX,
-		                               m_targetSmallCenterY);
-
-			ellipse(img_whitebalance, squareGreen.targetSmall, Scalar(0,250,0), 2, 8 );
-
-		};
-		// Notify every that we have found the target
+		setPublishData(squareGreen,input);
 		publishFoundEvent();
+		// Notify every that we have found the target
 	}
-	else
+	else if (m_greenFound == true)
 	{
         	// Just lost the light so issue a lost event
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
-		m_found = false;
+		m_greenFound = false;
 	}
-
 
 	//Red event
 	foundAspectRatio = squareRed.outline.size.height/squareRed.outline.size.width;
 	if (abs(foundAspectRatio-givenAspectRatio) < .35)
 	{ 
 	 	 //valid panel
-		redFound = TRUE;
-		squareRed.outline.points(vertices);
+		m_redFound = TRUE;
 		m_found = true;
 		m_color = Color::RED;
-	    		// Determine the corindates of the target
-		Detector::imageToAICoordinates(input, 
-		                               (int)squareRed.outline.center.x,
-		                               (int)squareRed.outline.center.y,
-		                               m_targetCenterX,
-		                               m_targetCenterY);
-
-		// Determine range
-		m_range = 1.0 - (((double)squareRed.outline.size.width) /
-		                 ((double)squareRed.outline.size.height));
-
-		// Determine the squareness
-		aspectRatio = ((double)squareRed.outline.size.height)/((double)squareRed.outline.size.width);
-		if (aspectRatio < 1)
-		    m_squareNess = 1.0;
-		else
-		    m_squareNess = 1.0/aspectRatio;
-
-
-		//plot pretty results
-		for (int i = 0; i < 4; i++)
-	  		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,0,255));
-		
-	 	if (squareRed.targetLarge.size.width > minTargetSize && squareRed.targetLarge.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                              (int) squareRed.targetLarge.center.x,
-		                               (int)squareRed.targetLarge.center.y,
-		                               m_targetLargeCenterX,
-		                               m_targetLargeCenterY);
-
-			//plot pretty results
-			ellipse(img_whitebalance, squareRed.targetLarge, Scalar(0,0,255), 4, 8 );
-		};
-	  	if (squareRed.targetSmall.size.width > minTargetSize && squareRed.targetSmall.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                               (int)squareRed.targetSmall.center.x,
-		                               (int)squareRed.targetSmall.center.y,
-		                               m_targetSmallCenterX,
-		                               m_targetSmallCenterY);
-
-			ellipse(img_whitebalance, squareRed.targetSmall, Scalar(0,0,255), 2, 8 );
-
-		};
-		// Notify every that we have found the target
+		setPublishData(squareRed,input);
 		publishFoundEvent();
+		// Notify every that we have found the target
 	}
-
-
-	//Yellow event
+	else if (m_redFound == true)
+	{
+        	// Just lost the light so issue a lost event
+    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+		m_redFound = false;
+	}
+	//yellow event
 	foundAspectRatio = squareYellow.outline.size.height/squareYellow.outline.size.width;
 	if (abs(foundAspectRatio-givenAspectRatio) < .35)
 	{ 
 	 	 //valid panel
-		yellowFound = TRUE;
-		squareYellow.outline.points(vertices);
+		m_yellowFound = TRUE;
 		m_found = true;
 		m_color = Color::YELLOW;
-	    		// Determine the corindates of the target
-		Detector::imageToAICoordinates(input, 
-		                               (int)squareYellow.outline.center.x,
-		                               (int)squareYellow.outline.center.y,
-		                               m_targetCenterX,
-		                               m_targetCenterY);
-
-		// Determine range
-		m_range = 1.0 - (((double)squareYellow.outline.size.width) /
-		                 ((double)squareYellow.outline.size.height));
-
-		// Determine the squareness
-		aspectRatio = ((double)squareYellow.outline.size.height)/((double)squareYellow.outline.size.width);
-		if (aspectRatio < 1)
-		    m_squareNess = 1.0;
-		else
-		    m_squareNess = 1.0/aspectRatio;
-
-
-		//plot pretty results
-		for (int i = 0; i < 4; i++)
-	  		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,255));
-		
-	 	if (squareYellow.targetLarge.size.width > minTargetSize && squareYellow.targetLarge.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                              (int) squareYellow.targetLarge.center.x,
-		                               (int)squareYellow.targetLarge.center.y,
-		                               m_targetLargeCenterX,
-		                               m_targetLargeCenterY);
-
-			//plot pretty results
-			ellipse(img_whitebalance, squareYellow.targetLarge, Scalar(0,250,255), 4, 8 );
-		};
-	  	if (squareYellow.targetSmall.size.width > minTargetSize && squareYellow.targetSmall.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                               (int)squareYellow.targetSmall.center.x,
-		                               (int)squareYellow.targetSmall.center.y,
-		                               m_targetSmallCenterX,
-		                               m_targetSmallCenterY);
-
-			ellipse(img_whitebalance, squareYellow.targetSmall, Scalar(0,250,255), 2, 8 );
-
-		};
-		// Notify every that we have found the target
+		setPublishData(squareYellow,input);
 		publishFoundEvent();
+		// Notify every that we have found the target
 	}
-
-	//blule event
+	else if (m_yellowFound == true)
+	{
+        	// Just lost the light so issue a lost event
+    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+		m_yellowFound = false;
+	}
+	//blue event
 	foundAspectRatio = squareBlue.outline.size.height/squareBlue.outline.size.width;
 	if (abs(foundAspectRatio-givenAspectRatio) < .35)
 	{ 
 	 	 //valid panel
-		blueFound = TRUE;
-		squareBlue.outline.points(vertices);
+		m_blueFound = TRUE;
 		m_found = true;
 		m_color = Color::BLUE;
-	    		// Determine the corindates of the target
-		Detector::imageToAICoordinates(input, 
-		                               (int)squareBlue.outline.center.x,
-		                               (int)squareBlue.outline.center.y,
-		                               m_targetCenterX,
-		                               m_targetCenterY);
-
-		// Determine range
-		m_range = 1.0 - (((double)squareBlue.outline.size.width) /
-		                 ((double)squareBlue.outline.size.height));
-
-		// Determine the squareness
-		aspectRatio = ((double)squareBlue.outline.size.height)/((double)squareBlue.outline.size.width);
-		if (aspectRatio < 1)
-		    m_squareNess = 1.0;
-		else
-		    m_squareNess = 1.0/aspectRatio;
-
-
-		//plot pretty results
-		for (int i = 0; i < 4; i++)
-	  		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(255,0,0));
-		
-	 	if (squareBlue.targetLarge.size.width > minTargetSize && squareBlue.targetLarge.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                              (int) squareBlue.targetLarge.center.x,
-		                               (int)squareBlue.targetLarge.center.y,
-		                               m_targetLargeCenterX,
-		                               m_targetLargeCenterY);
-
-			//plot pretty results
-			ellipse(img_whitebalance, squareBlue.targetLarge, Scalar(255,0,0), 4, 8 );
-		};
-	  	if (squareBlue.targetSmall.size.width > minTargetSize && squareBlue.targetSmall.size.height > minTargetSize)
-		{
-			//valid
-			Detector::imageToAICoordinates(input, 
-		                               (int)squareBlue.targetSmall.center.x,
-		                               (int)squareBlue.targetSmall.center.y,
-		                               m_targetSmallCenterX,
-		                               m_targetSmallCenterY);
-
-			ellipse(img_whitebalance, squareBlue.targetSmall, Scalar(255,0,0), 2, 8 );
-
-		};
-		// Notify every that we have found the target
+		setPublishData(squareBlue,input);
 		publishFoundEvent();
+		// Notify every that we have found the target
+	}
+	else if (m_blueFound == true)
+	{
+        	// Just lost the light so issue a lost event
+    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+		m_blueFound = false;
 	}
 
+	
     int numberofpanels = 0;	
     int tempx = 0;
     int tempy=0;
     int centerX =0;
     int centerY=0;
     //find center of the entire panel
-    if (greenFound == TRUE || redFound == TRUE || blueFound ==TRUE || yellowFound == TRUE)
+    if (m_greenFound == TRUE || m_redFound == TRUE || m_blueFound ==TRUE || m_yellowFound == TRUE)
 	{
 	  m_found = 1;
 	  //have found atleast one panel and therefore I can estimate  the center of the panel
 	  
-		if (greenFound == TRUE)
+		if (m_greenFound == TRUE)
 		{
 			//green should be the upper right panel, so the center of the entire panel is the lower left corner
 			numberofpanels = 1+numberofpanels;
@@ -534,7 +343,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			centerY = centerY+tempy;
 			circle(img_whitebalance, Point(tempx, tempy),15,Scalar( 0, 255, 0),-1,8 );
 		}
-		if (redFound == TRUE)
+		if (m_redFound == TRUE)
 		{
 			//red is upper left panel, so I want to lower right vertex for the center of the entire panel
 			numberofpanels = 1+numberofpanels;
@@ -553,7 +362,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			centerY = centerY+tempy;
 			circle(img_whitebalance, Point(tempx, tempy),15,Scalar( 0, 0, 255),-1,8 );
 		}
-		if (yellowFound == TRUE)
+		if (m_yellowFound == TRUE)
 		{
 			//yellow is lower right, so I want the upper left
 			numberofpanels = 1+numberofpanels;
@@ -572,7 +381,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			centerY = centerY+tempy;
 			circle(img_whitebalance, Point(tempx, tempy),15,Scalar( 0, 255, 255),-1,8 );
 		}
-		if (blueFound == TRUE)
+		if (m_blueFound == TRUE)
 		{
 			//blue is the lower left, so I want upper right corner
 			numberofpanels = 1+numberofpanels;
@@ -609,10 +418,10 @@ void TargetDetector::processColorImage(Image* input, Image* output)
     if (output)
     {
         // Make the output exactly match the input
-  	imshow( "Red", erosion_dst_red );
-	imshow( "Yellow", erosion_dst_yellow );
-	imshow( "Green", erosion_dst_green );
-	imshow( "blue", erosion_dst_blue );
+  	//imshow( "Red", erosion_dst_red );
+	//imshow( "Yellow", erosion_dst_yellow );
+	//imshow( "Green", erosion_dst_green );
+	//imshow( "blue", erosion_dst_blue );
 
         output->copyFrom(input);
 
@@ -731,7 +540,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		} //end if j!=maxcounter
 	};
 
-imshow("internal",img_whitebalance);
+//imshow("internal",img_whitebalance);
 /*
 //Display Purposes
 	Point2f vertices[4];
@@ -911,6 +720,10 @@ void TargetDetector::publishFoundEvent()
 				m_targetLargeCenterY,
                                  m_squareNess,
                                  m_range,
+				m_largeflag,
+				m_smallflag,
+				m_rangelarge,
+				m_rangesmall,
 				  m_color));
         
         publish(EventType::TARGET_FOUND, event);
@@ -973,7 +786,69 @@ bool TargetDetector::processGreenBlobs(const BlobDetector::BlobList& blobs,
 
     return foundBlobs;
 }
-    
+ 
+
+void TargetDetector::setPublishData(targetPanel square, Image* input)
+{
+	Point2f vertices[4];
+	int minTargetSize = 25;
+	square.outline.points(vertices);
+	// Determine the corindates of the target
+	Detector::imageToAICoordinates(input, 
+	              (int)square.outline.center.x,
+	              (int)square.outline.center.y,
+	              m_targetCenterX,
+                      m_targetCenterY);
+	// Determine range
+	m_range = 1.0 - (((double)square.outline.size.width) /
+	                 ((double)square.outline.size.height));
+	// Determine the squareness
+	double aspectRatio = ((double)square.outline.size.height)/((double)square.outline.size.width);
+	if (aspectRatio < 1)
+	    m_squareNess = 1.0;
+	else
+	    m_squareNess = 1.0/aspectRatio;
+
+	//plot pretty results
+	for (int i = 0; i < 4; i++)
+  		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));
+	
+ 	if (square.targetLarge.size.width > minTargetSize && square.targetLarge.size.height > minTargetSize)
+	{
+		m_largeflag = true;
+		//valid
+		Detector::imageToAICoordinates(input, 
+                         (int)square.targetLarge.center.x,
+                         (int)square.targetLarge.center.y,
+                          m_targetLargeCenterX,
+                          m_targetLargeCenterY);
+		m_rangelarge = square.targetLarge.size.width; 
+
+		//plot pretty results
+		ellipse(img_whitebalance, square.targetLarge, Scalar(0,250,0), 4, 8 );
+	}
+	else
+	{
+		m_largeflag = false;
+	}
+  	if (square.targetSmall.size.width > minTargetSize && square.targetSmall.size.height > minTargetSize)
+	{
+		m_smallflag = true;
+		//valid
+		Detector::imageToAICoordinates(input, 
+                         (int)square.targetSmall.center.x,
+                         (int)square.targetSmall.center.y,
+                         m_targetSmallCenterX,
+                         m_targetSmallCenterY);
+		
+		m_rangesmall = square.targetSmall.size.width; 
+		ellipse(img_whitebalance, square.targetSmall, Scalar(0,250,0), 2, 8 );
+	}
+	else
+	{
+		m_smallflag = false;
+	}
+}   
     
 } // namespace vision
 } // namespace ram

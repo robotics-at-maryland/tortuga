@@ -117,6 +117,11 @@ class RAM_EXPORT TargetDetector : public Detector
 	Color::ColorType m_color;
     /** 0 When the target fills the screen, goes to 1 as it shrinks */
     double m_range;
+    double m_rangelarge;
+    double m_rangesmall;
+
+    bool m_largeflag;
+    bool m_smallflag;
 
     /** The minimum pixel count of the green target blob */
     int m_minGreenPixels;
@@ -141,10 +146,14 @@ class RAM_EXPORT TargetDetector : public Detector
 
     /** Percentage of the image to remove from the bottom */
     double m_bottomRemovePercentage;
+	bool m_greenFound;
+	bool m_redFound;
+	bool m_blueFound;
+	bool m_yellowFound;
 
-
-Mat img_whitebalance;
-    targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
+	Mat img_whitebalance;
+	targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
+	void setPublishData(targetPanel square, Image* input);
 };
 	
 } // namespace vision

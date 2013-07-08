@@ -49,7 +49,6 @@ using namespace cv;
 namespace ram {
 namespace vision {
 
-
 class foundLines {
 
 public:

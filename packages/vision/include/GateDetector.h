@@ -84,7 +84,6 @@ bool m_found;
 	cv::Mat img_whitebalance;
 	cv::Mat img_gate;
 	foundLines gate;
-	cv::Mat erosion_dst,erosion_dst_red, erosion_dst_green, erosion_dst_blue;
 
 };
     

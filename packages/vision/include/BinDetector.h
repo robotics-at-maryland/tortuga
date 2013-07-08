@@ -29,12 +29,23 @@ namespace vision {
     
 class RAM_EXPORT BinDetector : public Detector
 {
+	struct contourvertices
+	{
+		cv::Point2f vertices[4];
+	};
 	struct bincontours
 	{
 		int area[10];
 		int contournumber[10];
-		int aspectratio_diff[10];
+		double aspectratio_diff[10];
+		double maxX[10];
+		double maxY[10];
+		double minY[10];
+		double minX[10];
+		bool found[10];
+		contourvertices vertex[10];
 	};
+
   public:
     class Bin : public TrackedBlob
     {
@@ -353,7 +364,7 @@ class RAM_EXPORT BinDetector : public Detector
 	void DetectorContours(Image* input);
 	bincontours getSquareBlob(cv::Mat erosion_dst);
 	cv::Mat img_whitebalance;
-	cv::Mat img_saturation;
+	//cv::Mat img_saturation;
 	bincontours m_bin;
 };
 

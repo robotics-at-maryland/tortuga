@@ -494,11 +494,17 @@ class RAM_EXPORT BarbedWireEvent : public core::Event
 typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 
 //Kate added small and large centers, since each panel has a small and large target hole
+//large flag - bool flag to indiciate if the large circle in a panel has been found
+//smallflag - bool flag to indicate if the small circle in the target has been found
+//rangelarge- width value of hte large circle
+//rangesmall- width value of teh small circle
+
+
 class RAM_EXPORT TargetEvent : public core::Event
 {
   public:
     TargetEvent(double centerX, double centerY, double largeCenterX, double largeCenterY, double smallCenterX, double smallCenterY,double squareNess_,
-                double range_, Color::ColorType color_ = Color::UNKNOWN) :
+                double range_, bool largeflag, bool smallflag, double rangelarge, double rangesmall,Color::ColorType color_ = Color::UNKNOWN) :
         x(centerX),
         y(centerY),
 	largex(largeCenterX),
@@ -507,10 +513,13 @@ class RAM_EXPORT TargetEvent : public core::Event
         smally(smallCenterY),
         squareNess(squareNess_),
         range(range_),
+	largeflag(largeflag),
+	smallflag(smallflag),
+	rangelarge(rangelarge),
+	rangesmall(rangesmall),
         color(color_)
     {
     }
-
     TargetEvent() :
         x(0),
         y(0),
@@ -520,6 +529,10 @@ class RAM_EXPORT TargetEvent : public core::Event
 	smally(0),
         squareNess(0),
         range(0),
+	largeflag(false),
+	smallflag(false),
+	rangelarge(0),
+	rangesmall(0),
         color(Color::UNKNOWN)
     {
     }
@@ -535,6 +548,10 @@ class RAM_EXPORT TargetEvent : public core::Event
     double panely;
     double squareNess;
     double range;
+    bool largeflag;
+    bool smallflag;
+    double rangelarge;
+    double rangesmall;
     Color::ColorType color;
 
     virtual core::EventPtr clone();
