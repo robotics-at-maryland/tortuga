@@ -1,6 +1,6 @@
 
 import math as m
-
+import ext.control as control
 import ram.ai.state as state
 import ram.motion as motion
 import ext.core as core
@@ -376,6 +376,17 @@ class DHyperApproach(HyperApproach):
 
     def BUOY_FOUND(self,event):
         if(event.color == vision.Color.RED):
+            #get rotation matrix from robot frame to intertial frame, then apply it to the x,y measurements
+            #this rotation matrix must exclude yaw, this ends up looking a bit silly because of quaternion math
+            q1 = self.stateEstimator.getEstimatedOrientation()
+            v1 = math.Vector3(event.x,event.y,0)
+            #now get the quaternion to unrotate our yaw, by unrotating by our level quaternion
+            qp = control.holdCurrentHeadingHelper(q1)
+            #by rotating to the inertial frame, then rotating to the body yaw frame we acheive our goal
+            #rotate coordinates from body frame to inertial frame
+            v1p = qp*(q1.UnitInverse()*v1)
+            event.x = v1p.x
+            event.y = v1p.y
             self.run(event)
 
     def yFunc(self,event):
@@ -398,4 +409,4 @@ class DHyperApproach(HyperApproach):
 
     @staticmethod
     def transitions():
-        return {DONE : state.State, vision.EventType.BUOY_FOUND : genHyperApproach} 
+        return {DONE : state.State, vision.EventType.BUOY_FOUND : DHyperApproach} 
