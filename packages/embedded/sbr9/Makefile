@@ -1,7 +1,7 @@
 
-TCPATH=/home/kickmyassman/robotics-toolchain/
+TCPATH=/home/nlimpari/ram_toolchain/pic_projects
 
-PATH = $(TCPATH)/usr/bin:/bin:/usr/kde/3.5/bin
+PATH = $(TCPATH)/usr/bin/:/bin:/usr/kde/3.5/bin
 
 CC = pic30-elf-gcc
 AS = pic30-elf-as

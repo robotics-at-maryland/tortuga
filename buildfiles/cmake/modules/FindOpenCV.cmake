@@ -48,6 +48,8 @@
 #----------------------------------------------------------
 
 
+
+
 FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/kmcbryan/Documents/opencv-2.4.5/release3 NO_DEFAULT_PATH)
 message(" KateOPENCV_DIR : " ${OPENCV_DIR})
 ##====================================================
