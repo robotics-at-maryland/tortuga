@@ -1454,8 +1454,8 @@ int camConnect(int fd){
 
     buf = HOST_CMD_CAM_RELAY_ON;
 
-    writeData(fd, buf, 1);
-    readData(fd, buf, 1);
+    writeData(fd, &buf, 1);
+    readData(fd, &buf, 1);
 
     if(buf == HOST_REPLY_SUCCESS)
         return SB_OK;
@@ -1474,8 +1474,8 @@ int camDisconnect(int fd){
     
     buf= HOST_CMD_CAM_RELAY_OFF;
 
-    writeData(fd, buf, 1);
-    readData(fd, buf, 1);
+    writeData(fd, &buf, 1);
+    readData(fd, &buf, 1);
 
     if(buf == HOST_REPLY_SUCCESS)
         return SB_OK;
