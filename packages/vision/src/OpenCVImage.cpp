@@ -122,7 +122,8 @@ OpenCVImage::OpenCVImage(std::string fileName, Image::PixelFormat fmt) :
     m_own(true),
     m_data(0),
     m_img(cvLoadImage(fileName.c_str())),
-    m_fmt(fmt)
+    m_fmt(fmt),
+    m_imgMat(m_img)
 {
     assert(m_img && "Image could not be loaded from file");
 }
@@ -289,7 +290,9 @@ void OpenCVImage::setPixelFormat(Image::PixelFormat format)
 
     int code = lookupTable[m_fmt][format];
     if(code == RGB2LCHUV) {
-        LCHConverter::convert(this);
+	//6-7-2013 McBryan, dont want LCH space but HSV
+       // LCHConverter::convert(this); 
+	
         m_fmt = Image::PF_LCHUV_8;
     } else if (code == -1) {
         throw ImageConversionException(m_fmt, format);
@@ -335,6 +338,11 @@ OpenCVImage::operator IplImage* ()
 IplImage* OpenCVImage::asIplImage() const
 {
     return m_img;
+}
+
+cv::Mat OpenCVImage::asMat() const
+{
+	return m_imgMat;
 }
 
 } // namespace vision

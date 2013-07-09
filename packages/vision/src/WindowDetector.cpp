@@ -29,6 +29,8 @@
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/ColorFilter.h"
 #include "vision/include/WindowDetector.h"
+#include "vision/include/WhiteBalance.h"
+#include "vision/include/BuoyDetectorKate.h"
 
 namespace ram {
 namespace vision {
@@ -277,6 +279,19 @@ bool WindowDetector::processBackground(Image *input, ColorFilter& filter,
 
 void WindowDetector::processImage(Image* input, Image* output)
 {
+
+//KATE
+	Mat img = input->asIplImage();
+	imshow("input image", img);
+
+	blobfinder window;
+        Mat output_blob= img;
+	//IplImage* tempImage=0;
+	window.FindWindow(input,output_blob, m_redFilter, m_greenFilter,m_yellowFilter);
+       // output->setData(output_blob2.data,false);
+        //tempImage->imageData = (char *)output_blob2.data;
+
+
     frame->copyFrom(input);
 
     BlobDetector::Blob redBlob, greenBlob, yellowBlob, blueBlob;

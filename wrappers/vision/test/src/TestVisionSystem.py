@@ -45,6 +45,7 @@ class TestVisionSystem(unittest.TestCase):
         
         def testBuoyDetector(self):
             # Create a vision system with two mock cameras and an EventHub
+
             cfg = { 'testing' : 1,
                     'BuoyDetector' : {
                         'filtRedLMin' : 0,

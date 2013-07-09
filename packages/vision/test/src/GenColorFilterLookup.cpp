@@ -43,6 +43,7 @@ cv::Mat buildTrainingSet(std::vector<cv::Mat> &images,
                          std::vector<std::string> &imageNames, 
                          std::vector<std::string> &maskNames)
 {
+
     std::vector<int>::iterator it;
     std::vector<cv::Vec3b> trainingSet;
       
@@ -191,8 +192,8 @@ int main(int argc, char* argv[])
     // Initializing variables for kmeans
     cv::Mat labels;
     cv::Mat center(numClusters, 1, CV_8UC3);
-    cv::kmeans(trainingSet, numClusters, labels, cv::TermCriteria(cv::TermCriteria::MAX_ITER, 50, 1), 
-               5, cv::KMEANS_RANDOM_CENTERS, &center);
+//commenting out because it through a hissy fit when I'm trying to get a Opencv2.4.5 workin
+   // cv::kmeans(trainingSet, numClusters, labels, cv::TermCriteria(cv::TermCriteria::MAX_ITER, 50, 1),5, cv::KMEANS_RANDOM_CENTERS, &center);
     
     std::ofstream tss;
     tss.open("trainingSet");

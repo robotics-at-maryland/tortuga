@@ -1446,3 +1446,45 @@ int stopDerpy(int fd)
     return SB_ERROR;
 }
 
+/*Turn the camera connection on or off.
+  kanga 7/2/2013*/
+
+int camConnect(int fd){
+    unsigned char buf;
+
+    buf = HOST_CMD_CAM_RELAY_ON;
+
+    writeData(fd, buf, 1);
+    readData(fd, buf, 1);
+
+    if(buf == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+}
+
+int camDisconnect(int fd){
+    unsigned char buf;
+    
+    buf= HOST_CMD_CAM_RELAY_OFF;
+
+    writeData(fd, buf, 1);
+    readData(fd, buf, 1);
+
+    if(buf == HOST_REPLY_SUCCESS)
+        return SB_OK;
+
+    if(buf == HOST_REPLY_BADCHKSUM)
+        return SB_BADCC;
+
+    if(buf == HOST_REPLY_FAILURE)
+        return SB_HWFAIL;
+
+    return SB_ERROR;
+} 

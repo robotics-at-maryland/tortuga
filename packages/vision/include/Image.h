@@ -16,6 +16,8 @@
 
 // Library Includes
 #include <boost/utility.hpp>
+#include "cv.h"
+#include "highgui.h"
 
 // Project Includes
 #include "vision/include/Common.h"
