@@ -1450,40 +1450,39 @@ int stopDerpy(int fd)
   kanga 7/2/2013*/
 
 int camConnect(int fd){
-    unsigned char buf;
+    unsigned char buf [2];
 
-    buf = HOST_CMD_CAM_RELAY_ON;
+    buf[0] = buf[1] = HOST_CMD_CAM_RELAY_ON;
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
 
-    writeData(fd, &buf, 1);
-    readData(fd, &buf, 1);
-
-    if(buf == HOST_REPLY_SUCCESS)
+    if(buf[0] == HOST_REPLY_SUCCESS)
         return SB_OK;
 
-    if(buf == HOST_REPLY_BADCHKSUM)
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
         return SB_BADCC;
 
-    if(buf == HOST_REPLY_FAILURE)
+    if(buf[0] == HOST_REPLY_FAILURE)
         return SB_HWFAIL;
 
     return SB_ERROR;
 }
 
 int camDisconnect(int fd){
-    unsigned char buf;
+    unsigned char buf[2];
     
-    buf= HOST_CMD_CAM_RELAY_OFF;
+    buf[0]=buf[1]= HOST_CMD_CAM_RELAY_OFF;
 
-    writeData(fd, &buf, 1);
-    readData(fd, &buf, 1);
+    writeData(fd, buf, 2);
+    readData(fd, buf, 1);
 
-    if(buf == HOST_REPLY_SUCCESS)
+    if(buf[0] == HOST_REPLY_SUCCESS)
         return SB_OK;
 
-    if(buf == HOST_REPLY_BADCHKSUM)
+    if(buf[0] == HOST_REPLY_BADCHKSUM)
         return SB_BADCC;
 
-    if(buf == HOST_REPLY_FAILURE)
+    if(buf[0] == HOST_REPLY_FAILURE)
         return SB_HWFAIL;
 
     return SB_ERROR;

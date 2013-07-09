@@ -1259,6 +1259,7 @@ int main(void)
 
                 if(busWriteByte(BUS_CMD_CAM_RELAY_ON, SLAVE_ID_DEPTH) != 0)
                 {
+
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }
@@ -1271,7 +1272,7 @@ int main(void)
 
             case HOST_CMD_CAM_RELAY_OFF:
             {
-                 t1= waitchar(1);
+                t1= waitchar(1);
                 if(t1 != HOST_CMD_CAM_RELAY_OFF)
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
