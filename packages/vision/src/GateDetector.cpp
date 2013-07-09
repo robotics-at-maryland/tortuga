@@ -139,7 +139,7 @@ return(m_redmaxH);
 }
 Mat GateDetector::processImageColor(Image*input)
 {
-	printf("\n processImageColor");
+
 	int red_maxH = m_redmaxH;
 	int red_minH = m_redminH;
 	int green_minH = m_greenminH;
@@ -150,13 +150,15 @@ Mat GateDetector::processImageColor(Image*input)
 	double minS = (double)m_minS;
 	double maxS = (double)m_maxS;
 
-printf("\n saving img from input");
+	printf("\n saving img from input");
 	Mat img = input->asIplImage();
-	Mat img_hsv;
-printf("\n entering whitebalance");
 	img_whitebalance = WhiteBalance(img);
+	printf("\n processImageColor");
+	cv::Mat img_hsv(img_whitebalance.size(),CV_8UC1);
+
+	printf("\n entering whitebalance");
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
-printf("\n converting img_whitebalance");
+	printf("\n converting img_whitebalance");
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
 	vector<Mat> hsv_planes;
@@ -165,21 +167,27 @@ printf("\n converting img_whitebalance");
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980
 	//same filter as the other cases followed by an invert
-	blobfinder blob;
-	Mat img_blue =blob.SaturationFilter(hsv_planes,minS,maxS); //saturation filter
-printf("\n colorfilter");
+
+	cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
+	cv::Mat img_green(img_whitebalance.size(),CV_8UC1);
+	cv::Mat img_blue(img_whitebalance.size(),CV_8UC1);
+
 	cv::Mat erosion_dst(img_whitebalance.size(),CV_8UC1);
 	Mat erosion_dst_red(img_whitebalance.size(),CV_8UC1);
 	Mat erosion_dst_green(img_whitebalance.size(),CV_8UC1);
 	Mat erosion_dst_blue(img_whitebalance.size(),CV_8UC1);
 
-
-	//For attempting to use with canny
+	//filter images
+	blobfinder blob;
+	//set up erode
 	int erosion_type = 0; //morph rectangle type of erosion
 	int erosion_size = 2;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
+	//saturation filter
+	img_blue =blob.SaturationFilter(hsv_planes,minS,maxS); //saturation filter
+	printf("\n colorfilter");
 
   	/// Apply the erosion operation  	
   	erode(img_blue, erosion_dst_blue, element );
@@ -188,13 +196,13 @@ printf("\n colorfilter");
 	//lets AND the blue and the green images
 	if (m_checkRed == true)
 	{
-		Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+		img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 		erode(img_red, erosion_dst_red, element );
 		bitwise_and(erosion_dst_blue,erosion_dst_red, erosion_dst,noArray());
 	}
 	else
 	{
-		Mat img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
+		img_green =blob.OtherColorFilter(hsv_planes,green_minH,green_maxH);
 		erode(img_green, erosion_dst_green, element );
 		bitwise_and(erosion_dst_blue,erosion_dst_green, erosion_dst,noArray());
 	}

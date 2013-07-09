@@ -207,27 +207,44 @@ makes use of find getsquareBlob() this is the part that takes the contours and p
 buoy
 
 */
-	//double givenAspectRatio = 1.0;
 
-	int red_minH= m_redFilter->getChannel3Low();
-	int red_maxH= m_redFilter->getChannel3High();
-	//int green_minH= m_greenFilter->getChannel3Low();
-	//int green_maxH= m_greenFilter->getChannel3High();
-	int minS = m_redFilter->getChannel1Low();//there is no reason these should be doubles
-	int maxS = m_redFilter->getChannel1High();
-	int erosion_size = m_redErodeIterations;
-
-	//Initializae things
-	cv::Mat img_hsv(img_whitebalance.size(),img_whitebalance.type());
-	blobfinder blob;
-	cv::Mat img_saturation(img_whitebalance.size(),CV_8UC1);
-	cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
-	cv::Mat img_added(img_whitebalance.size(),CV_8UC1);
- 	cv::Mat erode_dst_red(img_whitebalance.size(),CV_8UC1);
-
-	//get image into useable format and apply whitebalance
 	cv::Mat img = input->asIplImage();
 	img_whitebalance = WhiteBalance(img);
+	int ksize = 15;
+	imshow("hsv",img_whitebalance);
+	medianBlur(img_whitebalance, img_whitebalance, ksize);
+	imshow("blur",img_whitebalance);
+
+	//double givenAspectRatio = 1.0;
+
+	//int red_minH= m_redFilter->getChannel3Low();
+	//int red_maxH= m_redFilter->getChannel3High();
+	//int green_minH= m_greenFilter->getChannel3Low();
+	//int green_maxH= m_greenFilter->getChannel3High();
+	int minS = m_redFilter->getChannel1Low();
+	int maxS = m_redFilter->getChannel1High();
+
+	int minV = m_redFilter->getChannel2Low(); 
+	int maxV = m_redFilter->getChannel2High();
+
+	int erosion_size = m_redErodeIterations;
+	//int dilate_size = m_redDilateIterations;
+
+	//Initializae things
+
+	blobfinder blob;
+	cv::Mat img_hsv(img_whitebalance.size(),img_whitebalance.type());
+	cv::Mat img_saturation(img_whitebalance.size(),CV_8UC1);
+	//cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
+	//cv::Mat img_added(img_whitebalance.size(),CV_8UC1);
+ 	//cv::Mat erode_dst_red(img_whitebalance.size(),CV_8UC1);
+	cv::Mat erode_dst_redL(img_whitebalance.size(),CV_8UC1);
+	cv::Mat erode_dst_redS(img_whitebalance.size(),CV_8UC1);
+	cv::Mat dilate_dst_red(img_whitebalance.size(),CV_8UC1);
+	//cv::Mat img_filter(img_whitebalance.size(),img_whitebalance.type());
+
+
+	//get image into useable format and apply whitebalance;
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
@@ -238,30 +255,59 @@ buoy
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980
 	//same filter as the other cases followed by an invert
-
-
-
+	Mat img_Luminance = blob.LuminanceFilter(hsv_planes,minV,maxV);
 	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
-	img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+//	img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
-	
+
 	cv::Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
 
+
+//	cv::Mat dilate_element = getStructuringElement( erosion_type,
+//                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+//                                       Point( dilate_size, dilate_size ) );
+
   	/// Apply the erosion operation 
-	bitwise_or(img_saturation,img_red,img_added,noArray());
-  	erode(img_added, erode_dst_red, element );
-	
-	imshow("Red",img_red);
-	imshow("Or images",img_added);
-	imshow("sat1",img_saturation);
-	imshow("rederosion1",erode_dst_red);
+	//erode(img_red, erode_dst_red, element );
+	erode(img_saturation, erode_dst_redS, element );
+	erode(img_Luminance, erode_dst_redL, element );
+	//bitwise_or(img_saturation,img_red,img_added,noArray());
+  	//erode(img_added, erode_dst_red, element );
+	//imshow("erode-red",erode_dst_red);
+	//imshow("erode-sat",erode_dst_redS);
+	//imshow("erode-lum",erode_dst_redL);
+
+	//try dilate
+	//dilate(erode_dst_red, dilate_dst_red, dilate_element );
+	//imshow("dilate-red",dilate_dst_red);
+
+	//dilate(erode_dst_red, dilate_dst_red, dilate_element );
+	//imshow("dilate-red",dilate_dst_red);
+
+	//dilate(erode_dst_redS, dilate_dst_red, dilate_element );
+	//imshow("dilate-S",dilate_dst_red);
+
+	//dilate(erode_dst_redL, dilate_dst_red, dilate_element );
+	//imshow("dilate-V",dilate_dst_red);
+
+
+	//merge the dilated V and S	
+	bitwise_and(erode_dst_redS,erode_dst_redL, dilate_dst_red,noArray());
+
+	//imshow("erode-L",erode_dst_redL);
+	//imshow("Luminance",img_Luminance);
+	//imshow("Red",img_red);
+	//imshow("Or images",img_added);
+	//imshow("sat1",img_saturation);
+	//imshow("rederosion1",erode_dst_red);
+	imshow("final erode",dilate_dst_red);
 
 	//get Contours
-	m_bin = getSquareBlob(erode_dst_red);
+	m_bin = getSquareBlob(dilate_dst_red);
 };
 
 
