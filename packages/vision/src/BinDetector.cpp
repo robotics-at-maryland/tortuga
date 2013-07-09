@@ -207,18 +207,20 @@ makes use of find getsquareBlob() this is the part that takes the contours and p
 buoy
 
 */
-
+	
 	cv::Mat img = input->asIplImage();
 	img_whitebalance = WhiteBalance(img);
+
+	cv::Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
 	int ksize = 15;
 	imshow("hsv",img_whitebalance);
-	medianBlur(img_whitebalance, img_whitebalance, ksize);
-	imshow("blur",img_whitebalance);
+	medianBlur(img_whitebalance, img_blur, ksize);
+	imshow("blur",img_blur);
 
 	//double givenAspectRatio = 1.0;
 
-	//int red_minH= m_redFilter->getChannel3Low();
-	//int red_maxH= m_redFilter->getChannel3High();
+	int red_minH= m_redFilter->getChannel3Low();
+	int red_maxH= m_redFilter->getChannel3High();
 	//int green_minH= m_greenFilter->getChannel3Low();
 	//int green_maxH= m_greenFilter->getChannel3High();
 	int minS = m_redFilter->getChannel1Low();
@@ -228,24 +230,26 @@ buoy
 	int maxV = m_redFilter->getChannel2High();
 
 	int erosion_size = m_redErodeIterations;
-	//int dilate_size = m_redDilateIterations;
+	int dilate_size = m_redDilateIterations;
 
 	//Initializae things
 
 	blobfinder blob;
 	cv::Mat img_hsv(img_whitebalance.size(),img_whitebalance.type());
 	cv::Mat img_saturation(img_whitebalance.size(),CV_8UC1);
-	//cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
+	cv::Mat img_red(img_whitebalance.size(),CV_8UC1);
 	//cv::Mat img_added(img_whitebalance.size(),CV_8UC1);
  	//cv::Mat erode_dst_red(img_whitebalance.size(),CV_8UC1);
 	cv::Mat erode_dst_redL(img_whitebalance.size(),CV_8UC1);
 	cv::Mat erode_dst_redS(img_whitebalance.size(),CV_8UC1);
+	cv::Mat dilate_dst_redS(img_whitebalance.size(),CV_8UC1);
+	cv::Mat dilate_dst_redL(img_whitebalance.size(),CV_8UC1);
 	cv::Mat dilate_dst_red(img_whitebalance.size(),CV_8UC1);
 	//cv::Mat img_filter(img_whitebalance.size(),img_whitebalance.type());
 
 
 	//get image into useable format and apply whitebalance;
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+	cvtColor(img_blur,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
@@ -257,7 +261,7 @@ buoy
 	//same filter as the other cases followed by an invert
 	Mat img_Luminance = blob.LuminanceFilter(hsv_planes,minV,maxV);
 	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
-//	img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
+	img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
@@ -267,36 +271,27 @@ buoy
                                        Point( erosion_size, erosion_size ) );
 
 
-//	cv::Mat dilate_element = getStructuringElement( erosion_type,
-//                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
-//                                       Point( dilate_size, dilate_size ) );
+	cv::Mat dilate_element = getStructuringElement( erosion_type,
+                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+                                       Point( dilate_size, dilate_size ) );
 
   	/// Apply the erosion operation 
 	//erode(img_red, erode_dst_red, element );
 	erode(img_saturation, erode_dst_redS, element );
 	erode(img_Luminance, erode_dst_redL, element );
-	//bitwise_or(img_saturation,img_red,img_added,noArray());
-  	//erode(img_added, erode_dst_red, element );
-	//imshow("erode-red",erode_dst_red);
-	//imshow("erode-sat",erode_dst_redS);
-	//imshow("erode-lum",erode_dst_redL);
-
-	//try dilate
+	//imshow("sat",erode_dst_redS);
+	//imshow("Lum",erode_dst_redL);
+	
 	//dilate(erode_dst_red, dilate_dst_red, dilate_element );
 	//imshow("dilate-red",dilate_dst_red);
 
-	//dilate(erode_dst_red, dilate_dst_red, dilate_element );
-	//imshow("dilate-red",dilate_dst_red);
-
-	//dilate(erode_dst_redS, dilate_dst_red, dilate_element );
-	//imshow("dilate-S",dilate_dst_red);
-
-	//dilate(erode_dst_redL, dilate_dst_red, dilate_element );
-	//imshow("dilate-V",dilate_dst_red);
-
+	dilate(erode_dst_redS, dilate_dst_redS, dilate_element );
+	dilate(erode_dst_redL, dilate_dst_redL, dilate_element );
+	//imshow("dilate S",dilate_dst_redS);
+	//imshow("dilate L",dilate_dst_redL);
 
 	//merge the dilated V and S	
-	bitwise_and(erode_dst_redS,erode_dst_redL, dilate_dst_red,noArray());
+	bitwise_and(dilate_dst_redS,dilate_dst_redL, dilate_dst_red,noArray());
 
 	//imshow("erode-L",erode_dst_redL);
 	//imshow("Luminance",img_Luminance);
@@ -315,10 +310,12 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 {
 	//finds the maximum contour that meets aspectratio
 	double aspectratio = 1.0;
-	double aspectratio_limit = 1.0;
+	double aspectratio_limit = 2.0;
 	double aspectratio_diff;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
+	cv::Mat rotated(img_whitebalance.size(),img_whitebalance.type());
+	
 
 	  /// Find contours
 	findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
@@ -334,7 +331,9 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 	//next 4 largest - contour between black and white inside bins
 	//next 4 largest - contour of the yellow bottom
 
-	int numberoftrackedcontours = 9;
+	int numberoftrackedcontours = 6;
+	Mat Mmap;
+	Mat cropped[numberoftrackedcontours];
 	bincontours bins[numberoftrackedcontours];
 
 	//initialize to zero, just to verify everything is at zero
@@ -343,6 +342,11 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 		bins[k].contournumber = 0;
 		bins[k].area= 0;
 		bins[k].found = false;
+		bins[k].aspectratio_diff = 10;
+		bins[k].maxX = 0;
+		bins[k].minX = 0;
+		bins[k].maxY = 0;
+		bins[k].minY = 0;
 		bins[k].vertices[0].x=0;
 		bins[k].vertices[0].y=0;
 		bins[k].vertices[1].x=0;
@@ -436,10 +440,12 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 	//now to find which ones are inside
 	double minX2,minY2,maxX2,maxY2;
 	int contourcounter =1;
-	int k2;
+	int k2,tick;
+	double angle;
+	Mat mapMatrix(2,3,CV_32FC1);
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-		if ((contours[j].size() >10) && ((int)j!=bins[0].contournumber) && (bins[0].found == true))
+		if ((contours[j].size() > 5)&&((int)j!=bins[0].contournumber) && (bins[0].found == true))
 		{
 			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
 			area = temp.size.width*temp.size.height;
@@ -478,78 +484,109 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 			{
 				 minY2 = 0;
 			}
-
-			if (((maxX2-minX2)>5)&&((maxY2-minY2) > 5)&&(aspectratio_diff < aspectratio_limit) && (minX2 >bins[0].minX) && (maxX2<bins[0].maxX) && (minY2>bins[0].minY) &&(maxY2<bins[0].maxY) && (contourcounter < (numberoftrackedcontours)))
+			if ((aspectratio_diff <aspectratio_limit)&& (minX2 >=bins[0].minX) && (maxX2<=bins[0].maxX) && (minY2>=bins[0].minY) &&(maxY2<=bins[0].maxY))
 			{
 				used = false;
-				for (int i =1;i<contourcounter;i++)
+				for (int i =0;i<numberoftrackedcontours;i++)
 				{
 				 //put insize, in order from largest to smallest
 					if (area > bins[i].area && used == false)
 					{
 						//take the one that its greater than, i and move it down
 						//need to move all ones down first
-						k2 = contourcounter-i; //if contourcounter = 3 and i = 1, =>2, I want to take 1=new,2=old1,3=old2,4=old3
-						if ((k2 < contourcounter+1) && (k2 >0))
+						tick = 1;
+						for (k2 =i+1;k2<numberoftrackedcontours;k2++)
 						{
-							bins[k2+1].area =bins[k2].area; 
-						
+							//k3 = numberoftrackedcontours-tick;
+							tick = tick+1;
+							if ((numberoftrackedcontours-tick) > i && (numberoftrackedcontours-tick)<numberoftrackedcontours)
+							{
+								bins[numberoftrackedcontours-tick] = bins[numberoftrackedcontours-tick-1];
+							}
+
+							//i=2
+							//k2 = 3, tick = 1 k3 = 5 bin[5]=bin[4]
+							//k2 = 4, tick = 2 k3 = 4 bin[4]=bin[3]
 						}
-					}
-				}
+						//if area > bin[2] then i = 2
+						//so then k2 = 
+						bins[i].contournumber = j;
+						bins[i].area = area;
+						bins[i].aspectratio_diff = aspectratio_diff;
+						bins[i].maxX = maxX2;
+						bins[i].minX = minX2;
+						bins[i].maxY = maxY2;
+						bins[i].minY = minY2;
+						bins[i].found = true;
 
-				//should really set this to find the largest 8 instead of just recording them
-				bins[contourcounter].contournumber = j;
-				bins[contourcounter].area = area;
-				bins[contourcounter].aspectratio_diff = aspectratio_diff;
-				bins[contourcounter].maxX = maxX2;
-				bins[contourcounter].minX = minX2;
-				bins[contourcounter].maxY = maxY2;
-				bins[contourcounter].minY = minY2;
-				bins[contourcounter].found = true;
 
-				for (int i = 0; i < 4; i++)
-				{
-				   bins[contourcounter].vertices[i]= vertices[i];
+
+//void warpAffine(InputArray src, OutputArray dst, InputArray M, Size dsize, int flags=INTER_LINEAR, int borderMode=BORDER_CONSTANT, const Scalar& //borderValue=Scalar())
+
+//cv2DRotationMatrix(CvPoint2D32f center, double angle, double scale, CvMat* mapMatrix);
+//    center – Center of the rotation in the source image
+//    angle – The rotation angle in degrees. Positive values mean counter-clockwise rotation (the coordinate origin is assumed to be the top-left corner)
+//    scale – Isotropic scale factor
+//    mapMatrix – Pointer to the destination $2\times 3$ matrix
+
+						used = true;
+						for (int i2 = 0; i2 < 4; i2++)
+						{
+						   bins[i].vertices[i2]= vertices[i2];
+						}
+						contourcounter = 1;
+					}//end if
 				}
-				contourcounter = contourcounter+1;
 			}
 		}//end if size
 	};
-
-
-	CvPoint point1,point2;
-
+	
 	for (int k=0;k<numberoftrackedcontours;k++)
 	{
+		
 		if (bins[k].found==true)
 		{
-			point1.x = bins[k].maxX;
-			point1.y = bins[k].minY;
-			point2.x = bins[k].maxX;
-			point2.y = bins[k].maxY;
-			//line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+			temp = minAreaRect(contours[bins[k].contournumber]); //finds the rectangle that will encompass all the points
+			
+			if (abs(angle)>87  && abs(angle)<93)
+				angle = -90;
+printf("\n angle = %f, angle2=%f",temp.angle,angle);
+			Mmap = getRotationMatrix2D(temp.center,temp.angle,1.0);
+			warpAffine(img_whitebalance, rotated, Mmap, img_whitebalance.size(), INTER_CUBIC);
+			// crop the resulting image- different sizes will cause issues, wonder if I can scale it now to a predetermined size
+			getRectSubPix(rotated, temp.size, temp.center, cropped[k]);
 
-			point1.x = bins[k].maxX;
-			point1.y = bins[k].maxY;
-			point2.x = bins[k].minX;
-			point2.y = bins[k].maxY;
-			//line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+			if (k == 0)
+				imshow("cropped",cropped[k]);
+			else if (k==1)
+				imshow("cropped1",cropped[k]);
+			else if (k==2)
+				imshow("cropped2",cropped[k]);
+			else if (k==3)
+				imshow("cropped3",cropped[k]);
+			else if (k==4)
+				imshow("cropped4",cropped[k]);
+			else if (k==5)
+				imshow("cropped5",cropped[k]);
+			else if (k==6)
+				imshow("cropped",cropped[k]);
 
-			point1.x = bins[k].minX;
-			point1.y = bins[k].maxY;
-			point2.x = bins[k].minX;
-			point2.y = bins[k].minY;
-
-			point1.x = bins[k].minX;
-			point1.y = bins[k].minY;
-			point2.x = bins[k].maxX;
-			point2.y = bins[k].minY;
-			//line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+			//need the angle - so take the vertices and find the one where the Y increases
 			for (int i = 0; i < 4; i++)
 			{		
 				line(img_whitebalance, bins[k].vertices[i], bins[k].vertices[(i+1)%4], Scalar(255,255,0),5);
 			}
+			//use vertice 1 find teh angle using vertice 2
+			
+			//line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
+//cv2DRotationMatrix(CvPoint2D32f center, double angle, double scale, CvMat* mapMatrix);
+//    center – Center of the rotation in the source image
+//    angle – The rotation angle in degrees. Positive values mean counter-clockwise rotation (the coordinate origin is assumed to be the top-left corner)
+//    scale – Isotropic scale factor
+//    mapMatrix – Pointer to the destination $2\times 3$ matrix
+
+
+
 		}
 	}
 	imshow("final",img_whitebalance); 
@@ -859,10 +896,10 @@ void BinDetector::init(core::ConfigNode config)
         170, &m_redMaxBValue, 0, 255);
     propSet->addProperty(config, false, "redErodeIterations",
         "Erosion iterations on the red filtered image",
-	0, &m_redErodeIterations, 0, 10);
+	1, &m_redErodeIterations, 0, 10);
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
-         0, &m_redDilateIterations, 0, 10);
+         2, &m_redDilateIterations, 0, 10);
     propSet->addProperty(config, false, "redOpenIterations",
         "Opening iterations on the red filtered image",
          0, &m_redOpenIterations, 0, 10);
@@ -936,9 +973,9 @@ void BinDetector::init(core::ConfigNode config)
                                     "redL", "Luminance",
                                     "redC", "Chrominance",
                                     "redH", "Hue",
-                                    5, 30,  // L defaults // 180,255
-                                    0, 200,  // U defaults // 76, 245
-                                    45, 255); // V defaults // 200,255
+                                    10, 54,  // L defaults // 180,255
+                                    113, 255,  // U defaults // 76, 245
+                                    0, 255); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 

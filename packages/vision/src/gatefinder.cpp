@@ -171,8 +171,8 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 		repeatabilityP[i] = 0;
 		matchesP[i] = 0;
 		horizontalOrVertical[i] = 0;
-      		line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
+      	//	line(src, Point(linesP[i][0], linesP[i][1]),
+   	   //     	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
 			//printf("\n m = %f", m1);
 	 }
 	//imshow("all hough", src);
@@ -279,8 +279,8 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 			//horizontal line
 			//printf(" horizontal lines = %d", matchesP[i]);
 			//horizontal
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	// Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
 			
 			//recalculate slope here for the new combine line, and save
 			if (linesP[i][0] == linesP[i][2])
@@ -382,8 +382,9 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 			}//end for j
 			//verticel
 
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	          	 Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
+			//display only
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	          	// Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
 
 			//find slope for new combined line and save
 			if (linesP[i][0] == linesP[i][2])
@@ -552,6 +553,11 @@ foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src
 					  lineResults[i].foundHorizontal = true;
 					  lineResults[i].diffHorizontal = diff;
 					  lineResults[i].aspectratio_diff = abs(foundAspectRatio-aspectRatio);
+
+
+
+
+
 					}
 				}//end horizontalOrVertical
 			} //end for j
@@ -949,6 +955,8 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 	int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
+	int imageheight =src.rows;
+	int imagewidth=src.cols;
 
 	//save previous results
 	for (unsigned int i=0;i<5;i++)
@@ -1106,8 +1114,10 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			//horizontal line
 			//printf(" horizontal lines = %d", matchesP[i]);
 			//horizontal
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
+
+			
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	// Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
 			
 			//recalculate slope here for the new combine line, and save
 			if (linesP[i][0] == linesP[i][2])
@@ -1209,8 +1219,8 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			}//end for j
 			//verticel
 
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	          	 Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	          	// Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
 
 			//find slope for new combined line and save
 			if (linesP[i][0] == linesP[i][2])
@@ -1287,6 +1297,15 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			//find the center the horizontal line
 			Xcenter = (linesP[i][0]+linesP[i][2])/2;
 			Ycenter = (linesP[i][1]+linesP[i][3])/2;
+			if (Xcenter > imagewidth)
+				Xcenter = imagewidth;
+			if (Xcenter < 0)
+				Xcenter = 0;
+			if (Ycenter > imageheight)
+				Ycenter = imageheight;
+			if (Ycenter < 0)
+				Ycenter = 0;
+
 			circle(src, Point(Xcenter, Ycenter),5,Scalar( 255, 0, 0),-1,8 );
 		
 			for( size_t j = 0; j < linesP.size(); j++ )
@@ -1298,7 +1317,7 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 					//I only want the yvalue to determine if the horizontal line is above/below the vertical line
 					Yvert = (linesP[j][1]+linesP[j][3])/2;
 					Xvert = (linesP[j][0]+linesP[j][2])/2;
-					circle(src, Point(Xvert, Yvert),3,Scalar( 0, 255, 0),-1,8 );
+					//circle(src, Point(Xvert, Yvert),3,Scalar( 0, 255, 0),-1,8 );
 
 				 	//determine if vertical is left or right of center of horizontal
 					//want to find where the two intersect 
@@ -1418,7 +1437,7 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 					if (abs(corners[counter].cornerX- linesP[j][2]) > corners[counter].width)
 						corners[counter].width = abs(corners[counter].cornerX- linesP[j][2]);
 
-					circle(src, Point(corners[counter].cornerX, corners[counter].cornerY),3,Scalar(0, 0,255),-1,8 );
+					//circle(src, Point(corners[counter].cornerX, corners[counter].cornerY),3,Scalar(0, 0,255),-1,8 );
 
 					counter = counter+1;
 				}//end if vertical
@@ -1526,7 +1545,7 @@ for (int i = 0;i<counter;i++)
 //only save the top 5
 		if (aspectRatio_diff < allowableAspectRatio_diff && width > 30 && height > 30)
 		{	
-			printf("\n width = %d, height   %d",width, height);
+			//printf("\n width = %d, height   %d",width, height);
 			numberoffinals = numberoffinals+1;
 			//foundRectangle* finalpoints = new foundRectangle;
 			finalpoints.corner1.x = corners[i].cornerX;
@@ -1549,6 +1568,15 @@ for (int i = 0;i<counter;i++)
 			}
 			else
 			{
+
+				if (corners[j].cornerX > imagewidth)
+					corners[j].cornerX = imagewidth;
+				if (corners[j].cornerX< 0)
+					corners[j].cornerX = 0;
+				if (corners[j].cornerY> imageheight)
+					corners[j].cornerY = imageheight;
+				if (corners[j].cornerY <0)
+					corners[j].cornerY = 0;
 
 				finalpoints.corner2.x = corners[j].cornerX;
 				finalpoints.corner2.y = corners[j].cornerY;
@@ -1606,6 +1634,25 @@ for (unsigned int i =0;i<5;i++)
 {
 	if (final[i].foundAspectRatio_difference < 200)
 	{
+		if (final[i].corner1.x > imagewidth)
+			final[i].corner1.x = imagewidth;
+		if (final[i].corner1.x < 0)
+			final[i].corner1.x = 0;
+		if (final[i].corner1.y > imageheight)
+			final[i].corner1.y = imageheight;
+		if (final[i].corner1.y <0)
+			final[i].corner1.y = 0;
+
+		if (final[i].corneropposite.x > imagewidth)
+			final[i].corneropposite.x = imagewidth;
+		if (final[i].corneropposite.x < 0)
+			final[i].corneropposite.x = 0;
+		if (final[i].corneropposite.y > imageheight)
+			final[i].corneropposite.y = imageheight;
+		if (final[i].corneropposite.y <0)
+			final[i].corneropposite.y = 0;
+
+
 		cv::rectangle(src, final[i].corner1, final[i].corneropposite, Scalar(0,0,50*i), 2, 8, 0);
 
 		circle(src, final[i].corner1,5,Scalar(0, 0,255),-1,8 );
