@@ -50,6 +50,8 @@
 
 find_path(OpenCV_DIR "OpenCVConfig.cmake" DOC "Root directory of OpenCV")
 
+#set (OpenCV_DIR /home/nlimpari/ram_code/tortuga/opencv/)
+
 ##====================================================
 ## Find OpenCV libraries
 ##----------------------------------------------------
