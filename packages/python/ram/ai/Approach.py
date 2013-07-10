@@ -410,3 +410,49 @@ class DHyperApproach(HyperApproach):
     @staticmethod
     def transitions():
         return {DONE : state.State, vision.EventType.BUOY_FOUND : DHyperApproach} 
+
+class IMaTarget(state.State):
+    def TargetFound(self,event):
+            print "x:"+event.x
+            print "y:"+event.y
+            print "lx:"+event.largex
+            print "ly:"+event.largey
+            print "sx:"+event.smallx
+            print "sy:"+event.smally
+            print "px:"+event.panelx
+            print "py:"+event.panely
+            print "sq:"+event.squareNess
+            print "r:"+event.range
+            print "lf:"+event.largeflag
+            print "sf:"+event.smallflag
+            print "lr:"+event.rangelarge
+            print "sr:"+event.rangesmall
+            print "color:"+event.color
+
+class TMApproach(genApproach):
+    def TARGET_FOUND(self,event):
+        if(event.color == vision.Color.UNKNOWN):
+            run(event)
+    @staticmethod
+    def transitions():
+        return {DONE : state.State, vision.EventType.TARGET_FOUND : TMApproach} 
+
+class TMApproachL(genApproach):
+    def TARGET_FOUND(self,event):
+        if(event.color == vision.Color.RED and event.largeflag == true):
+            event.x = largex
+            event.y = largey
+            run(event)
+    @staticmethod
+    def transitions():
+        return {DONE : state.State, vision.EventType.TARGET_FOUND : TMApproachL} 
+
+class TMApproachS(genApproach):
+    def TARGET_FOUND(self,event):
+        if(event.color == vision.Color.RED and event.smallflag == True):
+            event.x = smallx
+            event.y = smally
+            run(event)
+    @staticmethod
+    def transitions():
+        return {DONE : state.State, vision.EventType.TARGET_FOUND : TMApproachS} 
