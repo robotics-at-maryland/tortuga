@@ -131,7 +131,6 @@ void CombineController::doUpdate(const double& timestep,
 
     	return;
     }
-
     //if visual servoing is enabled, fix the desired state for that DOF so that
     //the integral terms don't go insane
     math::Vector2 dxy = m_desiredState->getDesiredPosition();
@@ -224,16 +223,18 @@ void CombineController::doUpdate(const double& timestep,
                     intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
                 }
         }
-       //if turning of visual servoing, hold the current position for all axes so the position controllers are ready
+       //if turning off visual servoing, hold the current position for all axes so the position controllers are ready
+        //currently removed because this is no longer needed, but it is left in place just in case a need for it arises
         if((vConx == true && m_desiredState->vx == false) || (vCony == true && m_desiredState->vy == false) || (vConz == true && m_desiredState->vz == false))
         {
-                holdCurrentDepth();
-                holdCurrentHeading();
-                holdCurrentPosition();
+            //holdCurrentDepth();
+            //holdCurrentHeading();
+            //holdCurrentPosition();
         }
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
         vConz = m_desiredState->vz;
+        std::cout<<vConx<<":"<<vCony<<"::"<<vConz<<std::endl;
         math::Vector3 translationalForceOutp =  m_stateEstimator->getEstimatedOrientation().UnitInverse() * translationalForceOut;
         math::Vector3 translationalForceOutf(0,0,0);
         //this freezes up the other translation DOF's motion
@@ -247,7 +248,7 @@ void CombineController::doUpdate(const double& timestep,
             double eXv = errVxy.x;
             double eXa = eAccel.x;
             double eXi = intTermxy.x;
-            fX = kp vx * eXv + kivx*eXi + kdvx*eXa;
+            fX = kpvx * eXv + kivx*eXi + kdvx*eXa;
             translationalForceOutf.x = fX;
             translationalForceOutp.x = 0;
             padj.y = cp.y;
