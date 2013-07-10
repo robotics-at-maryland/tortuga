@@ -33,7 +33,11 @@ DesiredState::DesiredState(core::ConfigNode config, core::EventHubPtr eventHub) 
     m_desiredOrientation(math::Quaternion::IDENTITY),
     m_desiredAngularRate(math::Vector3::ZERO),
     m_desiredAngularAccel(math::Vector3::ZERO)
-{}
+{
+    vx = false;
+    vy = false;
+    vz = false;
+}
 
 DesiredState::~DesiredState() {}
 
@@ -163,6 +167,9 @@ void DesiredState::setDesiredPosition(math::Vector2 position)
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_desiredPosition = position;
     }
+    //vx = false;
+    //vy = false;
+    //vz = false;
     newDesiredPositionSet(position);
 }
 
@@ -192,6 +199,9 @@ void DesiredState::setDesiredDepth(double depth)
         core::ReadWriteMutex::ScopedWriteLock lock(m_stateMutex);
         m_desiredDepth = depth;
     }
+    //vx = false;
+    //vy = false;
+    //vz = false;
     newDesiredDepthSet(depth);
 }
 
