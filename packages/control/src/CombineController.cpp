@@ -102,6 +102,9 @@ void CombineController::init(core::ConfigNode config)
     intTermxy = math::Vector2::ZERO;
     intTermz = 0;
     lastDV = 0;
+    pix = 0;
+    piy = 0;
+    piz = 0;
     vConx = false;
     vCony = false;
     vConz = false;
@@ -203,38 +206,48 @@ void CombineController::doUpdate(const double& timestep,
         intTermz = intTermz + errVz*timestep;
 
 
-        //if about to turn on one of the visual servoing controllers, stabilize self
-        if((vConx == false && m_desiredState->vx == true) || (vCony == false && m_desiredState->vy == true) || (vConz == false && m_desiredState->vz == true))
-        {
 
-            //holdCurrentDepth();
-            //holdCurrentHeading();
-            //holdCurrentPosition();
-                if(m_desiredState->vx == true)
-                {
-                    intTermxy.x = 0;
-                }
-                if(m_desiredState->vy == true)
-                {
-                    intTermxy.y = 0;
-                }
-                if(m_desiredState->vz == true)
-                {
-                    intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
-                }
-        }
-       //if turning off visual servoing, hold the current position for all axes so the position controllers are ready
-        //currently removed because this is no longer needed, but it is left in place just in case a need for it arises
-        if((vConx == true && m_desiredState->vx == false) || (vCony == true && m_desiredState->vy == false) || (vConz == true && m_desiredState->vz == false))
+        //holdCurrentDepth();
+        //holdCurrentHeading();
+        //holdCurrentPosition();
+        if((vConx == false && m_desiredState->vx == true))
         {
-            //holdCurrentDepth();
-            //holdCurrentHeading();
-            //holdCurrentPosition();
+            //intTermxy.x = copysign(pix,dVelocity.x);
+            intTermxy.x = 0;
+        }
+        if((vCony == false && m_desiredState->vy == true))
+        {
+            //intTermxy.y = copysign(piy,dVelocity.y);
+            intTermxy.y = 0;
+        }
+        if((vConz == false && m_desiredState->vz == true))
+        {
+            //begin added
+            //a more sohpisticated stealing, which separates the transient sum from the steady state one
+            //intTermz = m_depthController->getISum();
+            //intTermz = copysign(piz-intTermz,dRate) + intTermz;
+            //end added
+            
+            intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
+        }
+        //if turning off visual servoing, store the previous integral sums
+        //this is done to reuse them later in order to speed up our rise time
+        if((vConx == true && m_desiredState->vx == false))
+        {
+            pix = intTermxy.x;
+        }
+        if(vCony == true && m_desiredState->vy == false)
+        {
+            piy = intTermxy.y;
+        }
+        if(vConz == true && m_desiredState->vz == false)
+        {
+            piz = intTermz;
         }
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
         vConz = m_desiredState->vz;
-        std::cout<<vConx<<":"<<vCony<<"::"<<vConz<<std::endl;
+        //std::cout<<vConx<<":"<<vCony<<"::"<<vConz<<std::endl;
         math::Vector3 translationalForceOutp =  m_stateEstimator->getEstimatedOrientation().UnitInverse() * translationalForceOut;
         math::Vector3 translationalForceOutf(0,0,0);
         //this freezes up the other translation DOF's motion
