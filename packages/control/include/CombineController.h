@@ -111,6 +111,10 @@ private:
     double kpvz;
     double kdvz;
     double kivz;
+    //last integral sum for each controller
+    double pix;
+    double piy;
+    double piz;
 
 };
     
