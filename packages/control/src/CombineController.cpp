@@ -208,7 +208,6 @@ void CombineController::doUpdate(const double& timestep,
 
 
         //holdCurrentDepth();
-        //holdCurrentHeading();
         //holdCurrentPosition();
         if((vConx == false && m_desiredState->vx == true))
         {
@@ -235,14 +234,20 @@ void CombineController::doUpdate(const double& timestep,
         if((vConx == true && m_desiredState->vx == false))
         {
             pix = intTermxy.x;
+            holdCurrentPosition();
+            holdCurrentHeading();
         }
         if(vCony == true && m_desiredState->vy == false)
         {
             piy = intTermxy.y;
+            holdCurrentPosition();
+            holdCurrentHeading();
         }
         if(vConz == true && m_desiredState->vz == false)
         {
             piz = intTermz;
+            holdCurrentDepth();
+            holdCurrentHeading();
         }
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
