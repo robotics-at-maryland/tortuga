@@ -385,8 +385,10 @@ class RAM_EXPORT BinDetector : public Detector
 	std::string m_filetype;
 	std::string m_underscore;
 	std::string m_D;
-	void FindMatches(cv::Mat image, int* avgDistance, cv::Mat* descriptors_object);
-
+	void FindMatches(cv::Mat image, double* avgDistance, cv::Mat* descriptors_object);
+	bool m_calcTraining;
+	bool m_comparebins;
+	bool m_saveimages;
 
 };
 

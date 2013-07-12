@@ -523,13 +523,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 
 
 
-//void warpAffine(InputArray src, OutputArray dst, InputArray M, Size dsize, int flags=INTER_LINEAR, int borderMode=BORDER_CONSTANT, const Scalar& //borderValue=Scalar())
 
-//cv2DRotationMatrix(CvPoint2D32f center, double angle, double scale, CvMat* mapMatrix);
-//    center – Center of the rotation in the source image
-//    angle – The rotation angle in degrees. Positive values mean counter-clockwise rotation (the coordinate origin is assumed to be the top-left corner)
-//    scale – Isotropic scale factor
-//    mapMatrix – Pointer to the destination $2\times 3$ matrix
 
 						used = true;
 						for (int i2 = 0; i2 < 4; i2++)
@@ -544,7 +538,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 	};
 	printf("\n should have all of them");
 
-	bool saveimages = false;
+	//m_saveimages = false;
 	Mat img_whitebalance_gray(img_whitebalance.size(),CV_8UC1);
 	cvtColor(img_whitebalance,img_whitebalance_gray,CV_RGB2GRAY);
 	for (int k=0;k<numberoftrackedcontours;k++)
@@ -569,7 +563,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 				finalcropped[k] = cropped[k];	
 			}
 
-			resize(finalcropped[k], finalresize[k], Size(200,500), 0, 0, INTER_LINEAR );
+			resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
 			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
 
 
@@ -594,54 +588,62 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 			{		
 				line(img_whitebalance, bins[k].vertices[i], bins[k].vertices[(i+1)%4], Scalar(255,255,0),5);
 			}
-			//use vertice 1 find teh angle using vertice 2
-			
-			//line(img_whitebalance,point1,point2, Scalar(0,k*25,250),5);
-//cv2DRotationMatrix(CvPoint2D32f center, double angle, double scale, CvMat* mapMatrix);
-//    center – Center of the rotation in the source image
-//    angle – The rotation angle in degrees. Positive values mean counter-clockwise rotation (the coordinate origin is assumed to be the top-left corner)
-//    scale – Isotropic scale factor
-//    mapMatrix – Pointer to the destination $2\times 3$ matrix
-
-
 
 		}
 	}
 
-//feature detector	//save images for training purposes
+	//feature detector	//save images for training purposes
 	Mat descriptors_object[m_numberofclasses*m_numberoftrainingimages];
 	
+	printf("\n Training = classes: %d, neach = %d", m_numberofclasses, m_numberoftrainingimages);
 	int trainingsuccess =0;
-	saveimages = false;
-	bool calcTraining = false;
-	bool comparebins = false;
-	//int j1,j2,rownumber;
-	//double avgDistance[m_numberofclasses];
-	if (saveimages == true)
+	//saveimages = false;
+	//bool calcTraining = false;
+	//bool comparebins = true;
+	int j1;
+	double avgDistance[m_numberofclasses];
+	if (m_saveimages == true)
 	{
 		printf("\n\n Saving Training Images");
 		saveTrainingImages(finalresize);
 	}
-	if (calcTraining== true)
+	if (m_calcTraining== true)
 	{
 		printf("\n\nTraining Bin Data, for %d classes with %d images each class",m_numberofclasses,m_numberoftrainingimages);
 		calcTrainingData(); //gets the keypoints from the images which have previously been saved
 				   //saves to a yml file
-		//would like to do KNN of the keypoints		
+				//would like to do KNN of the keypoints		
+		printf("\n Saved Training data!");
 	}
-	if (comparebins == true)
+
+	printf("\n numberof classes = %d",m_numberofclasses);
+	int foundBinType = 0;
+	double foundBinValue = 100;
+	if (m_comparebins == true)
 	{
 		//do bin matching
 		//step 1: load data
 		trainingsuccess = getTrainingData(descriptors_object);
 		if (trainingsuccess == 1)
-		{
-			//can now do comparision
-	
+		{//can now do comparision
+			printf("\n  Have Training data!");
 			for (int k=1;k<numberoftrackedcontours;k++)
 			{
 				if (bins[k].found==true)
-				{
+				{	
+					foundBinValue = 999;
+					FindMatches(finalresize[k], avgDistance, descriptors_object);
+					printf("\n FinalMatches: ");
+					for (j1 = 1;j1<=m_numberofclasses;j1++)
+					{	
+						if (avgDistance[j1-1]< foundBinValue)
+						{
+							foundBinValue = avgDistance[j1-1];
+							foundBinType = j1;
+						}
+						//printf("k=%d,class=%d, %f ",k,j1,avgDistance[j1-1]);
+					}//end for j1
+					printf("\n Image: =%d, BinType =%d, value =%f",k,foundBinType, foundBinValue);
 				/*
 					//Get keypoints of potential bin
 					detector.detect(finalresize[k], keypoints_bin_test0);
@@ -715,7 +717,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 		filename = filepath+imagenumber+filetype;
         	imwrite(filename,finalresize[4]);
 	}
-*/	
+
 	int minHessian = 300; //lower number = more keypoints? 100 seemed worse than 200/300
 	std::vector<KeyPoint> keypoints_0;
 	std::vector<KeyPoint> keypoints_1;
@@ -913,6 +915,7 @@ printf("\n starting comparision");
 		}
 		
 	}
+*/
 	imshow("final",img_whitebalance); 
 	printf("\n done");
  	
@@ -935,7 +938,8 @@ void BinDetector::calcTrainingData()
 	string filetype  =m_filetype;
 	string underscore =m_underscore;
 	string D = m_D;
-
+	
+	m_binyml = "VisionTrainingtest.yml";
 	m_filepath = filepath;
 
 	int rownumber;
@@ -945,36 +949,62 @@ void BinDetector::calcTrainingData()
 	SurfFeatureDetector detector( m_minHessian );
 	SurfDescriptorExtractor extractor;
         Mat descriptors_object[numberofclasses*numberoftrainingimages];
-
+	
+	//m_minHessian = 300;
+	printf("\n minHessian = %d",m_minHessian);
 	FileStorage fs(m_binyml, FileStorage::WRITE);
-	for (int k=1;k<numberofclasses;k++)
+	for (int k=1;k<numberofclasses+1;k++)
 	{
+
+		ss_class.str("");
 		ss_class<< k;
-		classnumber = ss_class.str();
-		for (int i=0;i<numberoftrainingimages;i++)
-		{
+		classnumber=ss_class.str();
+	
+		for (int i=1;i<numberoftrainingimages+1;i++)
+		{	
+			ss_number.str(""); // clear
+
+			filename ="";
+			imagenumber="";
 			ss_number<< i;
 			imagenumber = ss_number.str();
 			filename = filepath+classnumber+underscore+imagenumber+filetype;
 			Mat training = imread(filename, CV_LOAD_IMAGE_GRAYSCALE); //should probably preload Mat
-			//Can I get the detector points?
-			 //-- Step 1: Detect the keypoints using SURF Detector
-			rownumber = (k-1)*numberoftrainingimages+i;
-			  detector.detect(training, keypoints_object[rownumber] );
+			if (!training.data)
+			{
+				printf("\n ERROR UNABLE TO LOAD IMAGE class %d, # %d, ",k,i);
+				char* a = new char[filename.size()+1];
+						a[filename.size()] = 0;
+				memcpy(a,filename.c_str(),filename.size());
+				printf("%s",a);	
+			}
+			else
+			{
+				imshow("training",training);
+				cvWaitKey(100);
+				//Can I get the detector points?
+				 //-- Step 1: Detect the keypoints using SURF Detector
+				rownumber = (k-1)*numberoftrainingimages+(i-1);
+				  detector.detect(training, keypoints_object[rownumber] );
+				if (keypoints_object[rownumber].size() > 0 && keypoints_object[rownumber].size()<99999)
+				{
+					//printf("\n number of keypoints = %d in %d,%d",keypoints_object[rownumber].size(),k,i);
+					  //-- Step 2: Calculate descriptors (feature vectors)
+					  extractor.compute(training, keypoints_object[rownumber], descriptors_object[rownumber] );
+					//take the top N? data points, max feature points is the max size of the image
+					//but I only want Mat_descriptors_object, thanI want to save it... and then load it
 
-			  //-- Step 2: Calculate descriptors (feature vectors)
-			  extractor.compute(training, keypoints_object[rownumber], descriptors_object[rownumber] );
-			//take the top N? data points, max feature points is the max size of the image
-			//but I only want Mat_descriptors_object, thanI want to save it... and then load it
-
-			DescriptorName = D+classnumber+underscore+imagenumber;
-			write(fs,DescriptorName, descriptors_object[rownumber]);  
+					DescriptorName = D+classnumber+underscore+imagenumber;
+					write(fs,DescriptorName, descriptors_object[rownumber]);  
+				}
+				else
+				{
+					 printf(" \n ERROR IN FINDING KEYPOINTS IN TRAINING DATA %d, %d",k,i);
+				}
+			}
 		} //end for i
 	}//end for k
  	fs.release();
-
-
-
 return;
 };
 
@@ -983,9 +1013,17 @@ int BinDetector::getTrainingData(Mat* descriptors_object)
 	 
    	//read in training data saved in m_filename;
       	//load file
+	
+	m_binyml = "VisionTrainingtest.yml";
+char* a = new char[m_binyml.size()+1];
+	a[m_binyml.size()] = 0;
+	memcpy(a,m_binyml.c_str(),m_binyml.size());
+	printf("\n bin YML file: ");
+	printf("%s",a);	
+
 	FileStorage fs(m_binyml, FileStorage::READ);
 	fs.open(m_binyml, FileStorage::READ);
-
+printf("\n opening binyml file");
 	stringstream ss_class, ss_number;
 	string classnumber;
 	string imagenumber;
@@ -993,26 +1031,28 @@ int BinDetector::getTrainingData(Mat* descriptors_object)
 	int rownumber;
         if(fs.isOpened())
         {
-		for (int k=1;k<m_numberofclasses;k++)
+		for (int k=1;k<m_numberofclasses+1;k++)
 		{
+			ss_class.str(""); // clear
 			ss_class<< k;
 			classnumber = ss_class.str();
-			for (int i=0;i<m_numberoftrainingimages;i++)
+			for (int i=1;i<m_numberoftrainingimages+1;i++)
 			{
+				ss_number.str(""); // clear
 				ss_number<< i;
 				imagenumber = ss_number.str();
 				DescriptorName = m_D+classnumber+m_underscore+imagenumber;
-				rownumber = (k-1)*m_numberoftrainingimages+i;
+				rownumber = (k-1)*m_numberoftrainingimages+(i-1);
 			        read(fs[DescriptorName], descriptors_object[rownumber]);  
 			} //end for i
 		} ///end for k 
-	fs.release();
-	return(1);
+		fs.release();
+		return(1);
 	}  //end if 
 	else
 	{
-	fs.release();
-	return(0);
+		fs.release();
+		return(0);
 	}
 };
 
@@ -1023,6 +1063,7 @@ void BinDetector::saveTrainingImages(Mat* finalresize)
 	string filetype  =m_filetype;
 	string filename;
 	stringstream ss;
+	ss.str(""); // clear
 	ss<< m_framecount;
 	imagenumber = ss.str();
 
@@ -1049,14 +1090,18 @@ return;
 }
 
 
-void BinDetector::FindMatches(Mat image, int* avgDistance, Mat* descriptors_object)
+void BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_object)
 {	
-	BFMatcher matcher(NORM_L2);
+
+	printf(" finding matches");
+	//m_minHessian = 300;
+	 FlannBasedMatcher matcher;
 	std::vector< DMatch > matches0;
+	//printf("\n m_minHessian= %d",m_minHessian);
 	SurfFeatureDetector detector( m_minHessian );
 	SurfDescriptorExtractor extractor;
 	int j1,j2,i2;
-	int max_dist,min_dist,total_dist;
+	double max_dist,min_dist,total_dist;
 	Mat descriptors_bin_test;
 
 	std::vector<KeyPoint> keypoints_bin_test0;
@@ -1069,29 +1114,42 @@ void BinDetector::FindMatches(Mat image, int* avgDistance, Mat* descriptors_obje
 
 	if (keypoints_bin_test0.size() > 0)
 	{
-		for (j1 = 1;j1<m_numberofclasses;j1++)
+		for (j1 = 1;j1<m_numberofclasses+1;j1++)
 		{
 		  	  max_dist = 0;
 			  min_dist = 10000;
 			  total_dist= 0;
-	    		  for (j2 = 0;j2<m_numberoftrainingimages;j2++)
+			  avgDistance[j1-1] = 0;
+	    		  for (j2 = 1;j2<m_numberoftrainingimages+1;j2++)
 			  {
-				rownumber = (j1-1)*m_numberoftrainingimages+j2;
+				
+				rownumber = (j1-1)*m_numberoftrainingimages+(j2-1);
 				//match with training images
-				matcher.match(descriptors_object[rownumber],descriptors_bin_test, matches0 );
-				//printf(" \n matched0 =%d",descriptors_0.rows);
+			       // printf("\n Descriptors= %d",(descriptors_object[rownumber].rows));
 
+				matcher.match(descriptors_object[rownumber],descriptors_bin_test, matches0 );
+				//printf(" \n matched0 =%d",matches0.size());
+				
 								
-				  for( i2= 0; i2< descriptors_bin_test.rows; i2++ )
+				  for( i2= 0; i2<(int) matches0.size(); i2++ )
 				  { dist = matches0[i2].distance;
 				   if( dist < min_dist ) min_dist = dist;
 				   if( dist > max_dist ) max_dist = dist;
 				   total_dist = dist+total_dist;
 				  }
+
+				if (matches0.size() == 0)
+					total_dist = total_dist+1000;
+
 			}//end for j2
-			avgDistance[j1-1] = total_dist/m_numberoftrainingimages;
+			avgDistance[j1-1] = ((float)total_dist/(float)m_numberoftrainingimages);
+			//printf("\n class= %d, avgDistance %f, should be=%f",j1, avgDistance[j1-1],((float)total_dist/(float)m_numberoftrainingimages));
 	     }//end for j1
 	}//end if keypoints good
+	else
+	{
+		printf("ERROR- Unable to find Keypoints from the test image");
+	}
 return;
 }; //end function
 
@@ -1475,12 +1533,24 @@ void BinDetector::init(core::ConfigNode config)
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
 	m_numberofclasses = 4; //four different bins
-	m_numberoftrainingimages = 6; //number of training images PER CLASS - so a total of 40 images
-	m_filepath= "/home/kmcbryan/Documents/RAM/tortuga/images/cropped"; //should be an input
+	//m_numberoftrainingimages = 6; //number of training images PER CLASS - so a total of 40 images
+	m_filepath= "/home/kmcbryan/Documents/RAM/tortuga/images/training/cropped"; //should be an input
 	m_filetype  =".png";
 	m_underscore ="_";
 	m_D = "Descriptors";
 
+    propSet->addProperty(config, false, "CalcTraining",
+        "CalcTraining",false, &m_calcTraining);
+    propSet->addProperty(config, false, "CompareBins",
+        "CompareBins",false, &m_comparebins);
+    propSet->addProperty(config, false, "Save Images",
+        "Save Images",false, &m_saveimages);
+  propSet->addProperty(config, false, "minHessian",
+        "minHessian",
+        500, &m_minHessian, 0, 5000); // 50 in Dans version
+ propSet->addProperty(config, false, "NumberofImages",
+        "NumberofImages",
+        6, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
 
 }
 
