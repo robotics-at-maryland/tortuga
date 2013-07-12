@@ -190,18 +190,19 @@ void CombineController::doUpdate(const double& timestep,
 
         double eRate = m_stateEstimator->getEstimatedDepthRate();
         double dRate = m_desiredState->getDesiredDepthRate();
-        //math::Vector3 toRot(eVelocity.x,eVelocity.y,eRate);
-        //math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
-        //eVelocity.x = rot.x;
-        //eVelocity.y = rot.y;
+        //rotate estimated velocity into the body frame, since its in the intertial frame
+        math::Vector3 toRot(eVelocity.x,eVelocity.y,0);
+        math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
+        eVelocity.x = rot.x;
+        eVelocity.y = rot.y;
         //eRate = rot.z;
         //double eAccel = (eRate - lastDV)/timestep;
         lastDV = eRate;
         double fX, fY,fZ;
-        math::Vector3 toRot(dVelocity.x-eVelocity.x,dVelocity.y - eVelocity.y,eRate - dRate);
-        math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
-        math::Vector2 errVxy = math::Vector2(rot.x,rot.y);//dVelocity - eVelocity;
-        double errVz = rot.z;//eRate - dRate;
+        //math::Vector3 toRot(dVelocity.x-eVelocity.x,dVelocity.y - eVelocity.y,eRate - dRate);
+        //math::Vector3 rot = m_stateEstimator->getEstimatedOrientation() * toRot;
+        math::Vector2 errVxy = /*math::Vector2(rot.x,rot.y);*/dVelocity - eVelocity;
+        double errVz = /*rot.z;*/eRate - dRate;
         intTermxy = intTermxy + errVxy*timestep;
         intTermz = intTermz + errVz*timestep;
 
@@ -235,19 +236,19 @@ void CombineController::doUpdate(const double& timestep,
         {
             pix = intTermxy.x;
             holdCurrentPosition();
-            holdCurrentHeading();
+            //holdCurrentHeading();
         }
         if(vCony == true && m_desiredState->vy == false)
         {
             piy = intTermxy.y;
             holdCurrentPosition();
-            holdCurrentHeading();
+            //holdCurrentHeading();
         }
         if(vConz == true && m_desiredState->vz == false)
         {
             piz = intTermz;
             holdCurrentDepth();
-            holdCurrentHeading();
+            //holdCurrentHeading();
         }
         vConx = m_desiredState->vx;
         vCony = m_desiredState->vy;
