@@ -318,10 +318,12 @@ void TargetDetector::processColorImage(Image* input, Image* output)
     int tempy=0;
     int centerX =0;
     int centerY=0;
+    int mainpanelrange = 0;
     //find center of the entire panel
     if (m_greenFound == TRUE || m_redFound == TRUE || m_blueFound ==TRUE || m_yellowFound == TRUE)
 	{
 	  m_found = 1;
+	  mainpanelrange = 0;
 	  //have found atleast one panel and therefore I can estimate  the center of the panel
 	  
 		if (m_greenFound == TRUE)
@@ -331,7 +333,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			tempx = 100000;
 			tempy = 0;
 			squareGreen.outline.points(vertices);
-			
+			mainpanelrange = mainpanelrange+ squareGreen.outline.size.width;
 			for (int i = 0; i < 4; i++)
 	  		{
 				if (vertices[i].x < tempx)
@@ -350,7 +352,8 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			tempx = 0;
 			tempy = 0;
 			squareRed.outline.points(vertices);
-			
+			mainpanelrange = mainpanelrange + squareRed.outline.size.width;
+
 			for (int i = 0; i < 4; i++)
 	  		{
 				if (vertices[i].x > tempx)
@@ -369,6 +372,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			tempx = 100000;
 			tempy = 100000;
 			squareYellow.outline.points(vertices);
+			mainpanelrange = mainpanelrange + squareYellow.outline.size.width;
 			
 			for (int i = 0; i < 4; i++)
 	  		{
@@ -388,6 +392,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 			tempx = 0;
 			tempy = 100000;
 			squareBlue.outline.points(vertices);
+			mainpanelrange = mainpanelrange + squareBlue.outline.size.width;
 			
 			for (int i = 0; i < 4; i++)
 	  		{
@@ -410,6 +415,12 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		                               m_targetCenterX,
 		                               m_targetCenterY);
 		m_color = Color::UNKNOWN;
+		mainpanelrange = ((mainpanelrange)/(numberofpanels))*2;
+		m_range = mainpanelrange;
+
+	
+
+
 		publishFoundEvent();
 	} //end have found some of the panel
 	
@@ -800,8 +811,11 @@ void TargetDetector::setPublishData(targetPanel square, Image* input)
 	              m_targetCenterX,
                       m_targetCenterY);
 	// Determine range
-	m_range = 1.0 - (((double)square.outline.size.width) /
-	                 ((double)square.outline.size.height));
+	//m_range = 1.0 - (((double)square.outline.size.width) /
+	//                 ((double)square.outline.size.height));
+	
+	//m_range = square.outline.size.width;
+	//m_range is assigned before now
 	// Determine the squareness
 	double aspectRatio = ((double)square.outline.size.height)/((double)square.outline.size.width);
 	if (aspectRatio < 1)

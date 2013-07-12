@@ -13,6 +13,8 @@
 // STD Includes
 #include <list>
 #include <map>
+#include <string>
+
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -21,8 +23,12 @@
 #include "vision/include/BlobDetector.h"
 #include "vision/include/TrackedBlob.h"
 #include "vision/include/Symbol.h"
+#include "opencv2/nonfree/features2d.hpp"
+#include "opencv2/features2d/features2d.hpp"
+
 // Must be included last
 #include "vision/include/Export.h"
+
 
 namespace ram {
 namespace vision {
@@ -360,12 +366,28 @@ class RAM_EXPORT BinDetector : public Detector
     /** Temporary LCH Image */
     OpenCVImage* m_frame;
 
+	int m_framecount;
 	/**Kate changes*/
 	void DetectorContours(Image* input);
 	bincontours getSquareBlob(cv::Mat erosion_dst);
 	cv::Mat img_whitebalance;
 	//cv::Mat img_saturation;
 	bincontours m_bin;
+	void calcTrainingData(void);
+	int getTrainingData(cv::Mat* descriptors_object);
+	void saveTrainingImages(cv::Mat* finalresize);
+	int m_minHessian; //used for finding keypoints
+	std::string m_binyml;
+
+	int m_numberofclasses; //four different bins
+	int m_numberoftrainingimages; //number of training images PER CLASS - so a total of 40 images
+	std::string m_filepath; //should be an input
+	std::string m_filetype;
+	std::string m_underscore;
+	std::string m_D;
+	void FindMatches(cv::Mat image, int* avgDistance, cv::Mat* descriptors_object);
+
+
 };
 
 } // namespace vision
