@@ -211,23 +211,23 @@ void CombineController::doUpdate(const double& timestep,
         //holdCurrentPosition();
         if((vConx == false && m_desiredState->vx == true))
         {
-            //intTermxy.x = copysign(pix,dVelocity.x);
-            intTermxy.x = 0;
+            intTermxy.x = copysign(pix,dVelocity.x);
+            //intTermxy.x = 0;
         }
         if((vCony == false && m_desiredState->vy == true))
         {
-            //intTermxy.y = copysign(piy,dVelocity.y);
-            intTermxy.y = 0;
+            intTermxy.y = copysign(piy,dVelocity.y);
+            //intTermxy.y = 0;
         }
         if((vConz == false && m_desiredState->vz == true))
         {
             //begin added
             //a more sohpisticated stealing, which separates the transient sum from the steady state one
-            //intTermz = m_depthController->getISum();
-            //intTermz = copysign(piz-intTermz,dRate) + intTermz;
+            intTermz = m_depthController->getISum();
+            intTermz = copysign(piz-intTermz,dRate) + intTermz;
             //end added
             
-            intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
+            //intTermz = m_depthController->getISum(); //steal the positional controllers z integral term
         }
         //if turning off visual servoing, store the previous integral sums
         //this is done to reuse them later in order to speed up our rise time
