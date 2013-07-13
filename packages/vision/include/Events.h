@@ -153,17 +153,18 @@ public:
     BuoyEvent() : VisionEvent(), color(Color::UNKNOWN) {};
     BuoyEvent(double x_, double y_, double range_, 
               math::Degree azimuth_, math::Degree elevation_,
-              Color::ColorType color_, bool touchingEdge_) :
+              Color::ColorType color_, bool touchingEdge_,double angle_) :
         VisionEvent(x_, y_, range_),
         azimuth(azimuth_),
         elevation(elevation_),
         color(color_),
-        touchingEdge(touchingEdge_) {}
+        touchingEdge(touchingEdge_), angle(angle_) {}
 
     math::Degree azimuth;
     math::Degree elevation;
     Color::ColorType color;
     bool touchingEdge;
+	double angle;
 
     virtual core::EventPtr clone();
 };

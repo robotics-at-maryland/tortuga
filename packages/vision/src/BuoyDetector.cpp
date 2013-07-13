@@ -642,8 +642,8 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 
 		finalbuoy.centerx = (minX+maxX)/2;
 		finalbuoy.centery = (minY+maxY)/2;
-		finalbuoy.range = maxX-minX;
-
+		finalbuoy.range = maxtemp.size.width;
+		finalbuoy.angle = maxtemp.angle;
 
 		//Display Purposes
 		maxtemp.points(vertices);
@@ -667,6 +667,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 		finalbuoy.centerx = 0;
 		finalbuoy.centery = 0;
 		finalbuoy.range = 0;
+		finalbuoy.angle = 0;
 		CvPoint vert;	
 		vert.x = 0;
 		vert.y = 0;
@@ -1597,6 +1598,7 @@ void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType col
     event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
     event->touchingEdge = touchingEdge;
+    event->angle = buoy.angle;
 
     publish(EventType::BUOY_FOUND, event);
 }

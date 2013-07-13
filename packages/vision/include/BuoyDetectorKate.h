@@ -55,6 +55,7 @@ class blobfinder {
 			int color;
 			int position;
 			int frames;
+			double angle;
 		};
 private:
 		

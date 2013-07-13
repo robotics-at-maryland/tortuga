@@ -54,7 +54,7 @@ class RAM_EXPORT BuoyDetector : public Detector
 			CvPoint vertex2;
 			CvPoint vertex3;
 			CvPoint vertex4;
-			
+			double angle;
 		};
 
   public:
