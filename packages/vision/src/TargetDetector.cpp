@@ -248,6 +248,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		m_color = Color::GREEN;
 		setPublishData(squareGreen,input);
 		publishFoundEvent();
+		m_range = squareGreen.outline.size.width;
 		// Notify every that we have found the target
 	}
 	else if (m_greenFound == true)
@@ -265,6 +266,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		m_redFound = TRUE;
 		m_found = true;
 		m_color = Color::RED;
+		m_range = squareRed.outline.size.width;
 		setPublishData(squareRed,input);
 		publishFoundEvent();
 		// Notify every that we have found the target
@@ -284,6 +286,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		m_found = true;
 		m_color = Color::YELLOW;
 		setPublishData(squareYellow,input);
+		m_range = squareYellow.outline.size.width;
 		publishFoundEvent();
 		// Notify every that we have found the target
 	}
@@ -301,6 +304,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		m_blueFound = TRUE;
 		m_found = true;
 		m_color = Color::BLUE;
+		m_range = squareBlue.outline.size.width;
 		setPublishData(squareBlue,input);
 		publishFoundEvent();
 		// Notify every that we have found the target
@@ -735,7 +739,9 @@ void TargetDetector::publishFoundEvent()
 				m_smallflag,
 				m_rangelarge,
 				m_rangesmall,
+				m_angle,
 				  m_color));
+				
         
         publish(EventType::TARGET_FOUND, event);
 }
@@ -817,12 +823,15 @@ void TargetDetector::setPublishData(targetPanel square, Image* input)
 	//m_range = square.outline.size.width;
 	//m_range is assigned before now
 	// Determine the squareness
+	
 	double aspectRatio = ((double)square.outline.size.height)/((double)square.outline.size.width);
 	if (aspectRatio < 1)
 	    m_squareNess = 1.0;
 	else
 	    m_squareNess = 1.0/aspectRatio;
 
+
+	m_angle = square.outline.angle;
 	//plot pretty results
 	for (int i = 0; i < 4; i++)
   		line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));

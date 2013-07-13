@@ -151,6 +151,8 @@ class RAM_EXPORT TargetDetector : public Detector
 	bool m_blueFound;
 	bool m_yellowFound;
 
+	double m_angle; //angle of RotatedRect
+
 	Mat img_whitebalance;
 	targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
 	void setPublishData(targetPanel square, Image* input);
