@@ -138,8 +138,8 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 	int m_framenumber;
 
     /** Color Filters */
-    ColorFilter *m_redFilter;
-    ColorFilter *m_yellowFilter;
+	ColorFilter *m_redFilter;
+	ColorFilter *m_yellowFilter;
 
 	cv::Mat img_whitebalance;
 	cv::Mat m_frame;
@@ -148,6 +148,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 
     /** Working Images */
     Image *frame;
+    int m_minSize;
 
 };
     

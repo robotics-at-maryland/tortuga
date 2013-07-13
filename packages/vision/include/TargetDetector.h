@@ -156,6 +156,8 @@ class RAM_EXPORT TargetDetector : public Detector
 	Mat img_whitebalance;
 	targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
 	void setPublishData(targetPanel square, Image* input);
+
+	int m_minSize;
 };
 	
 } // namespace vision

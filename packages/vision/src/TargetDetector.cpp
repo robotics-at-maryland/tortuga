@@ -79,11 +79,11 @@ void TargetDetector::init(core::ConfigNode config)
     // Standard tuning properties
     propSet->addProperty(config, false, "maxAspectRatio",
                          "How \"skinny\" a blob can be",
-                         4.0, &m_maxAspectRatio, 1.0, 10.0);
+                         1.0, &m_maxAspectRatio, 1.0, 10.0);
 
     propSet->addProperty(config, false, "minAspectRatio",
                          "How \"fat\" a blob can be",
-                         0.8, &m_minAspectRatio, 0.0, 1.0);
+                         0.3, &m_minAspectRatio, 0.0, 1.0);
 
     
     propSet->addProperty(config, false, "minGreenPixels",
@@ -120,6 +120,11 @@ void TargetDetector::init(core::ConfigNode config)
 	m_redFound = FALSE;
 	m_blueFound = FALSE;
 	m_yellowFound = FALSE;
+
+
+    propSet->addProperty(config, false, "MinSize",
+                         "MinSize",
+                         6, &m_minSize, 6, 500); //must be atleast 5
 
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
@@ -188,7 +193,6 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	//thats our verification, and how we'll get the blue blob
 	
 	//get min and max values for the color filters	
-	double givenAspectRatio = 1.0;
 	int red_maxH = m_redmaxH;
 	int red_minH = m_redminH;
 	int green_maxH = m_filter->getChannel3High();
@@ -240,7 +244,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	float foundAspectRatio;
 	//green event
 	foundAspectRatio = squareGreen.outline.size.height/squareGreen.outline.size.width;
-	if (abs(foundAspectRatio-givenAspectRatio) < .35)
+	if (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
 		m_greenFound = TRUE;
@@ -260,7 +264,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 
 	//Red event
 	foundAspectRatio = squareRed.outline.size.height/squareRed.outline.size.width;
-	if (abs(foundAspectRatio-givenAspectRatio) < .35)
+	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
 		m_redFound = TRUE;
@@ -279,7 +283,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}
 	//yellow event
 	foundAspectRatio = squareYellow.outline.size.height/squareYellow.outline.size.width;
-	if (abs(foundAspectRatio-givenAspectRatio) < .35)
+	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
 		m_yellowFound = TRUE;
@@ -298,7 +302,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}
 	//blue event
 	foundAspectRatio = squareBlue.outline.size.height/squareBlue.outline.size.width;
-	if (abs(foundAspectRatio-givenAspectRatio) < .35)
+	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
 		m_blueFound = TRUE;
@@ -464,6 +468,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	//for now only do blob detection based on area
 
 
+	
 	  vector<vector<Point> > contours;
 	  vector<Vec4i> hierarchy;
 
@@ -526,7 +531,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	double targetSmallArea = 0;
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-		if (j != maxContour && contours[j].size() > 4)
+		if (j != maxContour && (int(contours[j].size()) > m_minSize))
 		{
 	     		//make sure the center of the next contour is within the bouding area
 			//have the center, height and width
@@ -732,7 +737,7 @@ void TargetDetector::publishFoundEvent()
 				 m_targetLargeCenterX,
 				m_targetLargeCenterY,
 				m_targetSmallCenterX,
-				m_targetLargeCenterY,
+				m_targetSmallCenterY,
                                  m_squareNess,
                                  m_range,
 				m_largeflag,

@@ -96,7 +96,10 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "Blue/Red maximum ratio",  0.4, &m_bOverRMax, 0.0, 5.0);
 
     propSet->addProperty(config, false, "MaxAspectRatio",
-        "MaxAspectRatio",  2.0, &m_maxAspectRatio, 0.0, 10.0);
+        "MaxAspectRatio",  5.0, &m_maxAspectRatio, 0.0, 10.0);
+
+    propSet->addProperty(config, false, "MinSize",
+        "MinSize",  15, &m_minSize, 0, 500);
 
 
     // Newer Color filter properties
@@ -123,7 +126,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                     "RedL", "Red Luminance",
                                     "RedC", "Red Chrominance",
                                     "RedH", "Red Hue",
-                                    53, 148, 97, 255,9, 160);
+                                    70, 255, 0, 255,0, 90);
 
 
 }
@@ -258,6 +261,16 @@ pipe
 
 	//double givenAspectRatio = 1.0;
 	m_framenumber = m_framenumber+1;
+
+	Mat img = input->asIplImage();
+	Mat img_hsv;
+	img_whitebalance = WhiteBalance(img);
+
+	cv::Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
+	int ksize = 15;
+	//imshow("hsv",img_whitebalance);
+	medianBlur(img_whitebalance, img_blur, ksize);
+
 	int red_minH =m_redFilter->getChannel3Low();
 	int red_maxH =m_redFilter->getChannel3High();
 
@@ -266,14 +279,10 @@ pipe
 
 	int red_maxS =m_redFilter->getChannel1High();
 	int red_minS =m_redFilter->getChannel1Low();
-
-	Mat img = input->asIplImage();
-	Mat img_hsv;
-	img_whitebalance = WhiteBalance(img);
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
+	cvtColor(img_blur,img_hsv,CV_BGR2HSV);
 	vector<Mat> hsv_planes;
 	split(img_hsv,hsv_planes);
 
@@ -315,10 +324,7 @@ pipe
 		//imshow("Luminance Red",img_Luminance);
 	}	
   	erode(img_red, erode_dst_red, element);
-
-  	//imshow("green",erode_dst_green);
-	//imshow("yellow",erode_dst_yellow);
-	imshow("red",erode_dst_red);
+	//imshow("red",erode_dst_red);
 
 	//get Blobs 
 	//needs to be able to handle multiple pipes
@@ -328,7 +334,7 @@ pipe
 	if (finalpipe.found == true)
 	{	
 		m_foundpipe1 = true;
-		publishFoundEvent(finalpipe,1);
+	//	publishFoundEvent(finalpipe,1);
 	}
 	else if (m_foundpipe1 == true)
 	{
@@ -339,7 +345,7 @@ pipe
 	if (finalpipe.found2 == true)
 	{	
 		m_foundpipe2 = true;
-		publishFoundEvent(finalpipe,2);
+	//	publishFoundEvent(finalpipe,2);
 	}
 	else if (m_foundpipe2== true)
 	{
@@ -373,6 +379,9 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 	//targetSmall and targetLarge are within the maxSize contour
 	double area;
 	double desiredAspectRatio = 5.0;
+	Point2f vertices[4];
+	int minX,maxX,minY,maxY; //for calculating the angle
+
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
 
@@ -398,9 +407,8 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		}
 	};
 
-	if (maxArea  > 5)
+	if (maxArea  > m_minSize)
 	{
-		Point2f vertices[4];
 		maxtemp.points(vertices);
 	
 		//allocate data
@@ -409,12 +417,29 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		finalpipe.centerx = maxtemp.center.x;
 		finalpipe.centery = maxtemp.center.y;
 		finalpipe.range = maxtemp.size.width;
-		finalpipe.angle = maxtemp.angle;
+		finalpipe.angle = maxtemp.angle; //maxtemp.angle doesn't work well since its not absolute
+						  //want angle of height!
+		
 
 		//Display Purposes
+				minX = 1000;
+		maxX = 0;
+		maxY = 0;
+		minY = 100;
 		for (int i = 0; i < 4; i++)
+		{
+			if (vertices[i].x < minX)
+				minX=vertices[i].x;
+			if (vertices[i].x > maxX)
+				maxX=vertices[i].x;
+			if (vertices[i].y < minY)
+				minY=vertices[i].y;
+			if (vertices[i].y < maxY)
+				maxY=vertices[i].y;
+			
+			
 		    line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),5);
-		//imshow("final",img_whitebalance);
+		}
 		drawContours(img_whitebalance, contours, maxContour, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
 
 	}
@@ -428,10 +453,14 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		finalpipe.angle = 0;
 	}
 
-
-	if (maxArea2  > 5)
+	if (maxContour == maxContour2)
 	{
-		Point2f vertices[4];
+		printf("\nERROR REPORTING THE SAME CONTOUR TWICE");
+	}
+	printf("\n Pipe1 angle = %f should be = %f",finalpipe.angle,maxtemp.angle);
+	if (maxArea2  >m_minSize)
+	{
+		
 		maxtemp2.points(vertices);
 	
 		//allocate data
@@ -457,7 +486,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		finalpipe.range2 = 0;
 		finalpipe.angle2 = 0;
 	}
-	 imshow("final",img_whitebalance); 
+	 //imshow("final",img_whitebalance); 
 	return(finalpipe);
 }
 
@@ -497,8 +526,8 @@ void OrangePipeDetector::publishLostEvent(int number)
 
 void OrangePipeDetector::processImage(Image* input, Image* output)
 {
-	printf("Step 1");
-	printf("ready?");
+	//printf("Step 1");
+	//printf("ready?");
 	DetectorContours(input);
 
 	 if(output)
@@ -509,11 +538,17 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 		//imshow("sat",img_saturation);
 		//imshow("yellowerosion",erode_dst_yellow);
 		//imshow("rederosion",erode_dst_red);
-
-	       input->setData(img_whitebalance.data,false);
-	      // frame->copyFrom(input);
-	       //output->copyFrom(frame);
-
+		if (!img_whitebalance.data)	
+		{
+			printf("\n ERROR NO WHITEBALANCE");
+		}
+		else
+		{	
+			imshow("color",img_whitebalance);
+		        input->setData(img_whitebalance.data,false);
+		       //frame->copyFrom(input);
+		       output->copyFrom(input);
+		}
 	   }
 
 
