@@ -320,6 +320,12 @@ buoy
 	int numberoftrackedcontours = 6;
 	bincontours bins[numberoftrackedcontours];
 	getSquareBlob(dilate_dst_red, bins,numberoftrackedcontours);
+
+	m_Bin37Found =false;
+	m_Bin98Found =false;
+	m_Bin10Found =false;
+	m_Bin16Found = false;
+	m_BinoutlineFound=false;
 	for (int i=0;i<numberoftrackedcontours;i++)
 	{
 		if (bins[i].found == true);
@@ -327,6 +333,31 @@ buoy
 			publishFoundEventSURF(bins[i]);
 		}
 	}
+	 if (m_Bin37Found == false && m_Bin37FoundBefore == true)
+	{
+		publishLostEvent(Symbol::BIN37);
+	}
+	 if (m_Bin98Found == false && m_Bin98FoundBefore == true)
+	{
+		publishLostEvent(Symbol::BIN98);
+	}
+	 if (m_Bin16Found == false && m_Bin16FoundBefore == true)
+	{
+		publishLostEvent(Symbol::BIN16);
+	}
+	 if (m_Bin10Found == false && m_Bin10FoundBefore == true)
+	{
+		publishLostEvent(Symbol::BIN10);
+	}
+	 if (m_BinoutlineFound == false && m_BinoutlineFoundBefore == true)
+	{
+		publishLostEvent(Symbol::BINOUTLINE);
+	}
+	m_Bin37FoundBefore= m_Bin37Found;
+	m_Bin98FoundBefore= m_Bin98Found;
+	m_Bin10FoundBefore= m_Bin10Found;
+	m_Bin16FoundBefore= m_Bin16Found;
+	m_BinoutlineFoundBefore= m_BinoutlineFound;
 	
 };
 
@@ -838,27 +869,27 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		Bin98 = 0;	
 	}	
 	
-	//printf("\n Bin37 = %d at %f, Bin10=%d at %f, Bin16=%d at %f,Bin98=%d at %f",Bin37,Bin37value,Bin10,Bin10value,Bin16,Bin16value,Bin98,Bin98value);
+	printf("\n Bin37 = %d at %f, Bin10=%d at %f, Bin16=%d at %f,Bin98=%d at %f",Bin37,Bin37value,Bin10,Bin10value,Bin16,Bin16value,Bin98,Bin98value);
 	
-	if (Bin37 > 0 && Bin37value < 1.0)
+	if (Bin37 > 0 && Bin37value <m_upperlimit)
 	{
 		drawContours(img_whitebalance, contours, bins[Bin37].contournumber, Scalar(0,0,255), 10, 8, hierarchy, 0, Point() );
 		bins[Bin37].type = 1;
 		bins[Bin37].identified = true;
 	}
-	if (Bin98 > 0 && Bin98value < 1.0)
+	if (Bin98 > 0 && Bin98value <m_upperlimit)
 	{
 		drawContours(img_whitebalance, contours, bins[Bin98].contournumber, Scalar(0,255,0), 10, 8, hierarchy, 0, Point() );
 		bins[Bin98].type = 2;
 		bins[Bin98].identified = true;
 	}
-	if (Bin10 > 0 && Bin10value < 1.0)
+	if (Bin10 > 0 && Bin10value <m_upperlimit)
 	{
 		drawContours(img_whitebalance, contours, bins[Bin10].contournumber, Scalar(255,0,0), 10, 8, hierarchy, 0, Point() );
 		bins[Bin10].type = 3;
 		bins[Bin10].identified = true;
 	}
-	if (Bin16 > 0 && Bin16value < 1.0)
+	if (Bin16 > 0 && Bin16value <m_upperlimit)
 	{
 		drawContours(img_whitebalance, contours, bins[Bin16].contournumber, Scalar(0,255,255), 10, 8, hierarchy, 0, Point() );
 		bins[Bin16].type = 4;
@@ -868,7 +899,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	//have bins - so Now I need to publish the event
 
 	//imshow("final",img_whitebalance); 
-	//printf("\n done comparing\n");
+	printf("\n done comparing\n");
 	return;
 }
 
@@ -901,7 +932,7 @@ void BinDetector::calcTrainingData()
         Mat descriptors_object[numberofclasses*numberoftrainingimages];
 	
 	//m_minHessian = 300;
-	//printf("\n minHessian = %d",m_minHessian);
+	printf("\n minHessian = %d",m_minHessian);
 	FileStorage fs(m_binyml, FileStorage::WRITE);
 	for (int k=1;k<numberofclasses+1;k++)
 	{
@@ -972,7 +1003,7 @@ char* a = new char[m_binyml.size()+1];
 
 	FileStorage fs(m_binyml, FileStorage::READ);
 	fs.open(m_binyml, FileStorage::READ);
-	//printf("\n opening binyml file");
+	printf("\n opening binyml file");
 	stringstream ss_class, ss_number;
 	string classnumber;
 	string imagenumber;
@@ -1018,19 +1049,19 @@ void BinDetector::saveTrainingImages(Mat* finalresize)
 
 filepath = m_trainingpath;
 	
-	filename = filepath+"0_"+filetype;
+	filename = filepath+"0_"+imagenumber+filetype;
        	imwrite(filename,finalresize[0]);
 
-	filename = filepath+"1_"+filetype;
+	filename = filepath+"1_"+imagenumber+filetype;
        	imwrite(filename,finalresize[1]);
 
-	filename = filepath+"2_"+filetype;
+	filename = filepath+"2_"+imagenumber+filetype;
        	imwrite(filename,finalresize[2]);
 
-	filename = filepath+"3_"+filetype;
+	filename = filepath+"3_"+imagenumber+filetype;
        	imwrite(filename,finalresize[3]);
 
-	filename = filepath+"4_"+filetype;
+	filename = filepath+"4_"+imagenumber+filetype;
        	imwrite(filename,finalresize[4]);
 	
 	printf("\n Training Data Collected for this Frame");
@@ -1096,7 +1127,7 @@ int BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_ob
 				}
 			}//end for j2
 			//avgDistance[j1-1] = ((float)total_dist/(float)trainingimagesused);
-			avgDistance[j1-1] = ((float)total_mindist);///(float)trainingimagesused);
+			avgDistance[j1-1] = ((float)total_mindist)/((float)trainingimagesused);
 			//printf("\n class= %d, avgDistance %f, minDist=%f",j1, avgDistance[j1-1],total_mindist);
 	     }//end for j1
              return(1);
@@ -1122,20 +1153,41 @@ void BinDetector::publishFoundEventSURF(bincontours bin)
     event->y = centerY;
     event->range = bin.width;
 	if (bin.type == 0)
-	    event->symbol =Symbol::UNKNOWN;
+	{
+		  event->symbol =Symbol::BINOUTLINE;
+		m_BinoutlineFound = true;
+	}
 	else if (bin.type == 1)
+	{
 	    event->symbol = Symbol::BIN37;
+		m_Bin37Found = true;
+	}
 	else if (bin.type == 2)
+	{
 	    event->type = Symbol::BIN98;
+		m_Bin98Found = true;
+	}
 	else if (bin.type == 3)
+	{
 	    event->type = Symbol::BIN10;
+		m_Bin10Found = true;
+	}
 	else if (bin.type == 4)
+	{
 	    event->type = Symbol::BIN16;
-
+		m_Bin16Found = true;
+	}
     event->angle = bin.angle;
     publish(EventType::BIN_FOUND, event);
 }
 
+void BinDetector::publishLostEvent(Symbol::SymbolType color)
+{
+    BinEventPtr event(new BinEvent());
+    event->id = color;
+    
+    publish(EventType::BINS_LOST, event);
+}
 
 
 
@@ -1515,7 +1567,7 @@ void BinDetector::init(core::ConfigNode config)
                                     "redC", "Chrominance",
                                     "redH", "Hue",
                                     0, 54,  // L defaults // 180,255
-                                    150, 255,  // U defaults // 76, 245
+                                    75, 255,  // U defaults // 76, 245
                                     0, 255); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -1594,6 +1646,11 @@ void BinDetector::init(core::ConfigNode config)
  propSet->addProperty(config, false, "NumberofBinTypes",
         "NumberofBinTypes",
         8, &m_numberofclasses, 0, 20); // 50 in Dans version
+
+ propSet->addProperty(config, false, "UpperLimitforBin",
+       "UpperLimitforBin",
+        0.3, &m_upperlimit, 0.0, 2.0); // 50 in Dans version
+
 }
 
 void BinDetector::allocateImages(int width, int height)

@@ -384,7 +384,7 @@ class RAM_EXPORT BinDetector : public Detector
 	int getTrainingData(cv::Mat* descriptors_object);
 	void saveTrainingImages(cv::Mat* finalresize);
 	void publishFoundEventSURF(bincontours bin);
-
+	void publishLostEvent(Symbol::SymbolType color);
 	cv::Mat img_whitebalance;
 	//cv::Mat img_saturation;
 	bincontours m_bin;
@@ -402,6 +402,18 @@ class RAM_EXPORT BinDetector : public Detector
 	bool m_comparebins;
 	bool m_saveimages;
 	std::string m_trainingpath; //path to where teh images (not quite training images) will be saved
+	double m_upperlimit; //upper threshold for bin detection
+
+	bool m_BinoutlineFound;
+	bool m_Bin37Found;
+	bool m_Bin98Found;
+	bool m_Bin10Found;
+	bool m_Bin16Found;
+	bool m_BinoutlineFoundBefore;
+	bool m_Bin37FoundBefore;
+	bool m_Bin98FoundBefore;
+	bool m_Bin10FoundBefore;
+	bool m_Bin16FoundBefore;
 
 };
 
