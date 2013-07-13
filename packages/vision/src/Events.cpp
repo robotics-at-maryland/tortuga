@@ -220,6 +220,7 @@ core::EventPtr BinEvent::clone()
     event->y = y;
     event->symbol = symbol;
     event->angle = angle;
+    event->range = range;
     return event;
 }
 

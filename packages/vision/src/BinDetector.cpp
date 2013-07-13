@@ -213,9 +213,9 @@ buoy
 
 	cv::Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
 	int ksize = 15;
-	imshow("hsv",img_whitebalance);
+	//imshow("hsv",img_whitebalance);
 	medianBlur(img_whitebalance, img_blur, ksize);
-	imshow("blur",img_blur);
+	//imshow("blur",img_blur);
 
 	//double givenAspectRatio = 1.0;
 
@@ -299,15 +299,39 @@ buoy
 	//imshow("Or images",img_added);
 	//imshow("sat1",img_saturation);
 	//imshow("rederosion1",erode_dst_red);
-	imshow("final erode",dilate_dst_red);
+	//imshow("final erode",dilate_dst_red);
 
+
+	//and the img_whitebalance S channel with dilate_dst_redsh
+/* DISPLAY PURPOSES
+	cv::vector<Mat> img_planes;
+	cv::split(img_whitebalance,img_planes); //still in RGB so I need to and each color
+	Mat img_temp;
+	
+	bitwise_and(dilate_dst_red,img_planes[0],img_planes[0],noArray());
+	if (img_whitebalance.channels() > 1)
+	{	
+		bitwise_and(dilate_dst_red,img_planes[1],img_planes[1],noArray());
+		bitwise_and(dilate_dst_red,img_planes[2],img_planes[2],noArray());
+	}	
+	cv::merge(img_planes,img_whitebalance);
+*/
 	//get Contours
-	m_bin = getSquareBlob(dilate_dst_red);
-	m_binyml = "VisionTrainingtest.yml";
+	int numberoftrackedcontours = 6;
+	bincontours bins[numberoftrackedcontours];
+	getSquareBlob(dilate_dst_red, bins,numberoftrackedcontours);
+	for (int i=0;i<numberoftrackedcontours;i++)
+	{
+		if (bins[i].found == true);
+		{
+			publishFoundEventSURF(bins[i]);
+		}
+	}
+	
 };
 
 
-BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
+void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedcontours)
 {
 	//finds the maximum contour that meets aspectratio
 	double aspectratio = 1.0;
@@ -332,12 +356,11 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 	//next 4 largest - contour between black and white inside bins
 	//next 4 largest - contour of the yellow bottom
 
-	int numberoftrackedcontours = 6;
 	Mat Mmap;
 	Mat cropped[numberoftrackedcontours];
 	Mat finalcropped[numberoftrackedcontours];
 	Mat finalresize[numberoftrackedcontours];
-	bincontours bins[numberoftrackedcontours];
+	//bincontours bins[numberoftrackedcontours];
 
 	//initialize to zero, just to verify everything is at zero
 	for (int k=0;k<numberoftrackedcontours;k++)
@@ -426,6 +449,13 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 				bins[0].maxY = maxY;
 				bins[0].minY = minY;
 				bins[0].found=true;
+				bins[0].centerx = temp.center.x;
+				bins[0].centery = temp.center.y;
+				bins[0].angle = temp.angle;
+				bins[0].identified = true;
+				bins[0].type = 0;
+				bins[0].width = temp.size.width;
+				bins[0].height = temp.size.height;
 			}
 		}//end if size
 	};
@@ -520,11 +550,12 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 						bins[i].maxY = maxY2;
 						bins[i].minY = minY2;
 						bins[i].found = true;
-
-
-
-
-
+						bins[i].centerx = temp.center.x;
+						bins[i].centery = temp.center.y;
+						bins[i].identified = false;
+						bins[i].angle = temp.angle;
+						bins[i].width = temp.size.width;
+						bins[i].height = temp.size.height;
 						used = true;
 						for (int i2 = 0; i2 < 4; i2++)
 						{
@@ -536,7 +567,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 			}
 		}//end if size
 	};
-	printf("\n should have all of them");
+	//printf("\n should have all of them");
 
 	//m_saveimages = false;
 	Mat img_whitebalance_gray(img_whitebalance.size(),CV_8UC1);
@@ -566,7 +597,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 			resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
 			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
 
-
+	/*
 			if (k == 0)
 				imshow("cropped",finalresize[k]);
 			else if (k==1)
@@ -581,7 +612,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 				imshow("cropped5",finalresize[k]);
 			else if (k==6)
 				imshow("cropped",finalresize[k]);
-
+	*/
 
 			//need the angle - so take the vertices and find the one where the Y increases
 			for (int i = 0; i < 4; i++)
@@ -595,7 +626,7 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 	//feature detector	//save images for training purposes
 	Mat descriptors_object[m_numberofclasses*m_numberoftrainingimages];
 	
-	printf("\n Training = classes: %d, neach = %d", m_numberofclasses, m_numberoftrainingimages);
+	//printf("\n Training = classes: %d, neach = %d", m_numberofclasses, m_numberoftrainingimages);
 	int trainingsuccess =0;
 	//saveimages = false;
 	//bool calcTraining = false;
@@ -616,9 +647,17 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 		printf("\n Saved Training data!");
 	}
 
-	printf("\n numberof classes = %d",m_numberofclasses);
+	//printf("\n numberof classes = %d",m_numberofclasses);
 	int foundBinType = 0;
 	double foundBinValue = 100;
+	int Bin37,Bin10,Bin16,Bin98;
+	double Bin37value,Bin10value,Bin16value,Bin98value;
+	Bin37value=900;
+	Bin10value=900;
+	Bin16value=900;
+	Bin98value=900;
+	double minvalue;
+	int findmatchesworked = 0;
 	if (m_comparebins == true)
 	{
 		//do bin matching
@@ -626,24 +665,85 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 		trainingsuccess = getTrainingData(descriptors_object);
 		if (trainingsuccess == 1)
 		{//can now do comparision
-			printf("\n  Have Training data!");
+			//printf("\n  Have Training data!");
 			for (int k=1;k<numberoftrackedcontours;k++)
 			{
 				if (bins[k].found==true)
 				{	
 					foundBinValue = 999;
-					FindMatches(finalresize[k], avgDistance, descriptors_object);
-					printf("\n FinalMatches: ");
-					for (j1 = 1;j1<=m_numberofclasses;j1++)
-					{	
-						if (avgDistance[j1-1]< foundBinValue)
+					minvalue = 100;
+					findmatchesworked = FindMatches(finalresize[k], avgDistance, descriptors_object);
+					
+					if (findmatchesworked == 1)
+					{
+						//printf("\n Image %d: ",k);
+						for (j1 = 1;j1<=m_numberofclasses;j1++)
+						{	
+							if (avgDistance[j1-1]< foundBinValue)
+							{
+								foundBinValue = avgDistance[j1-1];
+								foundBinType = j1;
+							}
+							if (avgDistance[j1-1]<minvalue)
+								minvalue = avgDistance[j1-1];
+							//printf("k=%d,class=%d, %f ",k,j1,avgDistance[j1-1]);
+						}//end for j1
+						//printf("\n Image: =%d, BinType =%d, value =%f",k,foundBinType, foundBinValue);
+
+						//find the lowest value for each BinType
+						//not just a matter of finding the lowest value for each one, because image k cannot be assigned to multiple bins
+
+						//will I used the minimum value of this? and if so, only assign it to that bin - if it works
+						if (avgDistance[0]<Bin37value)
 						{
-							foundBinValue = avgDistance[j1-1];
-							foundBinType = j1;
+							Bin37value = avgDistance[0];
+							Bin37=k;
 						}
-						//printf("k=%d,class=%d, %f ",k,j1,avgDistance[j1-1]);
-					}//end for j1
-					printf("\n Image: =%d, BinType =%d, value =%f",k,foundBinType, foundBinValue);
+						if (avgDistance[1]<Bin10value)
+						{
+							Bin10value = avgDistance[1];
+							Bin10=k;
+						}
+						if (avgDistance[2]<Bin98value)
+						{
+							Bin98value = avgDistance[2];
+							Bin98=k;
+						}
+						if (avgDistance[3]<Bin16value)
+						{
+							Bin16value = avgDistance[3];
+							Bin16=k;
+						}
+
+						if(m_numberofclasses>4)
+						{
+							if (avgDistance[4]<Bin37value)
+							{
+								Bin37value = avgDistance[4];
+								Bin37=k;
+							}
+							if (avgDistance[5]<Bin10value)
+							{
+								Bin10value = avgDistance[5];
+								Bin10=k;
+							}
+							if (avgDistance[6]<Bin98value)
+							{
+								Bin98value = avgDistance[6];
+								Bin98=k;
+							}
+							if (avgDistance[7]<Bin16value)
+							{
+								Bin16value = avgDistance[7];
+								Bin16=k;
+							}
+						}
+					}
+					else
+					{
+						printf("\n Unable to retrieve Keypoints for image %d \n",k);
+					}
+					
 				/*
 					//Get keypoints of potential bin
 					detector.detect(finalresize[k], keypoints_bin_test0);
@@ -686,240 +786,90 @@ BinDetector::bincontours BinDetector::getSquareBlob(Mat src)
 		}
 
 	}
-/*
-	string filepath;
-	string imagenumber;
-	string filetype  =m_filetype;
-	string filename;
-	stringstream ss;
-	ss<< m_framecount;
-	imagenumber = ss.str();
 
-	if (saveimages == true)
+	//check to see if we have valid results
+	if (Bin37 == Bin10  &&(Bin37value < Bin10value))
 	{
-		filepath ="../images/cropped0_";
-		filename = filepath+imagenumber+filetype;
-        	imwrite(filename,finalresize[0]);
-
-		filepath ="../images/cropped1_";
-		filename = filepath+imagenumber+filetype;
-        	imwrite(filename,finalresize[1]);
-
-		filepath ="../images/cropped2_";
-		filename = filepath+imagenumber+filetype;
-        	imwrite(filename,finalresize[2]);
-
-		filepath ="../images/cropped3_";
-		filename = filepath+imagenumber+filetype;
-        	imwrite(filename,finalresize[3]);
-
-		filepath ="../images/cropped4_";
-		filename = filepath+imagenumber+filetype;
-        	imwrite(filename,finalresize[4]);
+		//Bin10 is not found
+		Bin10 = 0;	
 	}
-
-	int minHessian = 300; //lower number = more keypoints? 100 seemed worse than 200/300
-	std::vector<KeyPoint> keypoints_0;
-	std::vector<KeyPoint> keypoints_1;
-	std::vector<KeyPoint> keypoints_2;
-	std::vector<KeyPoint> keypoints_3;
-
-	//std::vector<KeyPoint> keypoints_bin[numberoftrackedcontours];
-
-	Mat descriptors_0;
-	Mat descriptors_1;
-	Mat descriptors_2;
-	Mat descriptors_3;
-
-	//descriptors_bin[numberoftrackedcontours];
-	Mat descriptors_bin_test;
+	if (Bin37 == Bin16  &&(Bin37value < Bin16value))
+	{
+		Bin16 = 0;	
+	}
+	if (Bin37 == Bin98  &&(Bin37value < Bin98value))
+	{
+		Bin98 = 0;	
+	}
+	if (Bin10 == Bin37  &&(Bin10value < Bin37value))
+	{
+		Bin37 = 0;	
+	}
+	if (Bin10 == Bin16  &&(Bin10value < Bin16value))
+	{
+		Bin37 = 0;	
+	}
+	if (Bin10 == Bin98  &&(Bin10value < Bin98value))
+	{
+		Bin98 = 0;	
+	}
+	if (Bin98 == Bin10  &&(Bin98value < Bin10value))
+	{
+		Bin10 = 0;	
+	}
+	if (Bin98 == Bin16  &&(Bin98value < Bin16value))
+	{
+		Bin16 = 0;	
+	}
+	if (Bin98 == Bin37  &&(Bin98value < Bin37value))
+	{
+		Bin37 = 0;	
+	}
+	if (Bin16 == Bin10  &&(Bin16value < Bin10value))
+	{
+		Bin10 = 0;	
+	}
+	if (Bin16 == Bin37  &&(Bin16value < Bin37value))
+	{
+		Bin37 = 0;	
+	}
+	if (Bin16 == Bin98  &&(Bin16value < Bin98value))
+	{
+		Bin98 = 0;	
+	}	
 	
-	std::vector<KeyPoint> keypoints_bin_test0;
-	std::vector<KeyPoint> keypoints_bin_test1;
-
-
-	double max_dist = 0;
- 	double min_dist = 100;
-	double dist;
-	Mat training0,training1,training2,training3;
-	BFMatcher matcher(NORM_L2);
-	std::vector< DMatch > matches0;
-	std::vector< DMatch > matches1;
-	std::vector< DMatch > matches2;
-	std::vector< DMatch > matches3;
-
-	SurfFeatureDetector detector( minHessian );
-	SurfDescriptorExtractor extractor;
-
-	if (m_framecount >= 0)
-	{	
-
-		printf("running this");
-		//load training data
-		  //bin 1 CV_LOAD_IMAGE_GRAYSCALE
-		  training0 = imread("/home/kmcbryan/Documents/RAM/tortuga/images/cropped1_1.png", CV_LOAD_IMAGE_GRAYSCALE);
-		  training1 = imread("/home/kmcbryan/Documents/RAM/tortuga/images/cropped2_1.png", CV_LOAD_IMAGE_GRAYSCALE);
-		  training2 = imread("/home/kmcbryan/Documents/RAM/tortuga/images/cropped3_1.png", CV_LOAD_IMAGE_GRAYSCALE);
-		  training3 = imread("/home/kmcbryan/Documents/RAM/tortuga/images/cropped4_1.png", CV_LOAD_IMAGE_GRAYSCALE);
-
-		if (training0.empty())
-			printf("ERROR DID NOT LOAD IMAGE");
-		else
-			imshow("training 0",training0);
-		
-		printf("\n starting training detection");
-		  //-- Step 1: Detect the keypoints using SURF Detector
-		  detector.detect(training0, keypoints_0 );
-		  detector.detect(training1, keypoints_1 );
-		  detector.detect(training2, keypoints_2 );
-		  detector.detect(training3, keypoints_3 );
-		printf("extraction");
-		  //-- Step 2: Calculate descriptors (feature vectors)
-		  extractor.compute(training0, keypoints_0, descriptors_0);
-		  extractor.compute(training1, keypoints_1, descriptors_1);
-		  extractor.compute(training2, keypoints_2, descriptors_2);
-		  extractor.compute(training3, keypoints_3, descriptors_3);
-		printf("donw with training");
-	}
-
-double total_dist;
-	//take the new images and find teh good matches
-double minimum_total_dist[numberoftrackedcontours];
-double minimum_dist[numberoftrackedcontours];
-int minimum_total_bin[numberoftrackedcontours];
-int minimum_dist_bin[numberoftrackedcontours];
-int i2;
-
-printf("\n starting comparision");
-	for (int k=1;k<numberoftrackedcontours;k++)
+	//printf("\n Bin37 = %d at %f, Bin10=%d at %f, Bin16=%d at %f,Bin98=%d at %f",Bin37,Bin37value,Bin10,Bin10value,Bin16,Bin16value,Bin98,Bin98value);
+	
+	if (Bin37 > 0 && Bin37value < 1.0)
 	{
-		minimum_dist[k] = 100000;
-		minimum_total_dist[k] = 100000;
-		if (bins[k].found==true)
-		{
-			//printf("\n element found");
-			detector.detect(finalresize[k], keypoints_bin_test0);
-			printf("\n keypoint_bin_test size = %d",keypoints_bin_test0.size());
-			if (keypoints_bin_test0.size() > 0)
-			{
-				extractor.compute(finalresize[k], keypoints_bin_test0, descriptors_bin_test);
-				//match with training image 0
-				matcher.match(descriptors_0,descriptors_bin_test, matches0 );
-				//printf(" \n matched0 =%d",descriptors_0.rows);
-
-				  //-- Quick calculation of max and min distances between keypoints
-				  max_dist = 0;
-				  min_dist = 10000;
-				  total_dist= 0;
-
-				  for( i2= 0; i2< descriptors_0.rows; i2++ )
-				  { dist = matches0[i2].distance;
-				    if( dist < min_dist ) min_dist = dist;
-				    if( dist > max_dist ) max_dist = dist;
-				    total_dist = dist+total_dist;
-				  }
-				  if (total_dist < minimum_total_dist[k])
-				  {
-					minimum_total_dist[k] = total_dist;
-					minimum_total_bin[k] = 0;
-				  }
-				  if (min_dist < minimum_dist[k])
-				  {
-					minimum_dist[k] = min_dist;
-					minimum_dist_bin[k] = 0;
-				  }
-			  
-				//match with training image 1
-
-				matcher.match(descriptors_1,descriptors_bin_test, matches1 );
-		//	printf(" \n matched1 =%d",descriptors_1.rows);
-					  //-- Quick calculation of max and min distances between keypoints
-				  max_dist = 0;
-				  min_dist = 10000;
-				  total_dist= 0;
-				  for( i2= 0; i2< descriptors_1.rows; i2++ )
-				  { dist = matches1[i2].distance;
-				    if( dist < min_dist ) min_dist = dist;
-				    if( dist > max_dist ) max_dist = dist;
-				    total_dist = dist+total_dist;
-				  }
-				  if (total_dist < minimum_total_dist[k])
-				  {
-					minimum_total_dist[k] = total_dist;
-					minimum_total_bin[k] = 1;
-				  }
-				  if (min_dist < minimum_dist[k])
-				  {
-					minimum_dist[k] = min_dist;
-					minimum_dist_bin[k] = 1;
-				  }
-				//match with training image 2
-				matcher.match(descriptors_2,descriptors_bin_test, matches2 );
-		//	printf(" \n matched2 =%d",descriptors_2.rows);
-				  //-- Quick calculation of max and min distances between keypoints
-				  max_dist = 0;
-				  min_dist = 10000;
-				  total_dist= 0;
-
-				  for( i2= 0; i2< descriptors_2.rows; i2++ )
-				  { dist = matches2[i2].distance;
-				    if( dist < min_dist ) min_dist = dist;
-				    if( dist > max_dist ) max_dist = dist;
-				    total_dist = dist+total_dist;
-				  }
-				  if (total_dist < minimum_total_dist[k])
-				  {
-					minimum_total_dist[k] = total_dist;
-					minimum_total_bin[k] = 2;
-				  }
-				  if (min_dist < minimum_dist[k])
-				  {
-					minimum_dist[k] = min_dist;
-					minimum_dist_bin[k] = 2;
-				  }
-			
-				//match with training image 3
-				matcher.match(descriptors_3,descriptors_bin_test, matches3 );
-
-		//		printf(" \n matched3 =%d",descriptors_3.rows);
-				  //-- Quick calculation of max and min distances between keypoints
-				  max_dist = 0;
-				  min_dist = 10000;
-				  total_dist= 0;
-
-
-				  for( i2= 0; i2< descriptors_3.rows; i2++ )
-				  { dist = matches3[i2].distance;
-				    if( dist < min_dist ) min_dist = dist;
-				    if( dist > max_dist ) max_dist = dist;
-				    total_dist = dist+total_dist;
-				  }
-				  if (total_dist < minimum_total_dist[k])
-				  {
-					minimum_total_dist[k] = total_dist;
-					minimum_total_bin[k] = 3;
-				  }
-				  if (min_dist < minimum_dist[k])
-				  {
-					minimum_dist[k] = min_dist;
-					minimum_dist_bin[k] = 3;
-				  }
-			 }
-			else
-			{
-				printf("\n \n Unable to get keypoints");
-			}
-
-			  printf("\n-K=%d- Min total dist : %f, at training %d ", k,minimum_total_dist[k], minimum_total_bin[k] );
-			  printf(" Min dist : %f, at training %d ", minimum_dist[k], minimum_dist_bin[k] );
-		}
-		
+		drawContours(img_whitebalance, contours, bins[Bin37].contournumber, Scalar(0,0,255), 10, 8, hierarchy, 0, Point() );
+		bins[Bin37].type = 1;
+		bins[Bin37].identified = true;
 	}
-*/
-	imshow("final",img_whitebalance); 
-	printf("\n done");
- 	
-	return(bins[0]);
+	if (Bin98 > 0 && Bin98value < 1.0)
+	{
+		drawContours(img_whitebalance, contours, bins[Bin98].contournumber, Scalar(0,255,0), 10, 8, hierarchy, 0, Point() );
+		bins[Bin98].type = 2;
+		bins[Bin98].identified = true;
+	}
+	if (Bin10 > 0 && Bin10value < 1.0)
+	{
+		drawContours(img_whitebalance, contours, bins[Bin10].contournumber, Scalar(255,0,0), 10, 8, hierarchy, 0, Point() );
+		bins[Bin10].type = 3;
+		bins[Bin10].identified = true;
+	}
+	if (Bin16 > 0 && Bin16value < 1.0)
+	{
+		drawContours(img_whitebalance, contours, bins[Bin16].contournumber, Scalar(0,255,255), 10, 8, hierarchy, 0, Point() );
+		bins[Bin16].type = 4;
+		bins[Bin16].identified = true;
+	}
+
+	//have bins - so Now I need to publish the event
+
+	//imshow("final",img_whitebalance); 
+	//printf("\n done comparing\n");
+	return;
 }
 
 void BinDetector::calcTrainingData()
@@ -939,7 +889,7 @@ void BinDetector::calcTrainingData()
 	string underscore =m_underscore;
 	string D = m_D;
 	
-	m_binyml = "VisionTrainingtest.yml";
+	//m_binyml = "VisionTrainingtest.yml";
 	m_filepath = filepath;
 
 	int rownumber;
@@ -951,7 +901,7 @@ void BinDetector::calcTrainingData()
         Mat descriptors_object[numberofclasses*numberoftrainingimages];
 	
 	//m_minHessian = 300;
-	printf("\n minHessian = %d",m_minHessian);
+	//printf("\n minHessian = %d",m_minHessian);
 	FileStorage fs(m_binyml, FileStorage::WRITE);
 	for (int k=1;k<numberofclasses+1;k++)
 	{
@@ -1014,16 +964,15 @@ int BinDetector::getTrainingData(Mat* descriptors_object)
    	//read in training data saved in m_filename;
       	//load file
 	
-	m_binyml = "VisionTrainingtest.yml";
 char* a = new char[m_binyml.size()+1];
 	a[m_binyml.size()] = 0;
 	memcpy(a,m_binyml.c_str(),m_binyml.size());
-	printf("\n bin YML file: ");
-	printf("%s",a);	
+	//printf("\n bin YML file: ");
+	//printf("%s",a);	
 
 	FileStorage fs(m_binyml, FileStorage::READ);
 	fs.open(m_binyml, FileStorage::READ);
-printf("\n opening binyml file");
+	//printf("\n opening binyml file");
 	stringstream ss_class, ss_number;
 	string classnumber;
 	string imagenumber;
@@ -1067,33 +1016,32 @@ void BinDetector::saveTrainingImages(Mat* finalresize)
 	ss<< m_framecount;
 	imagenumber = ss.str();
 
-	filepath ="../images/cropped0_";
-	filename = filepath+imagenumber+filetype;
+filepath = m_trainingpath;
+	
+	filename = filepath+"0_"+filetype;
        	imwrite(filename,finalresize[0]);
 
-	filepath ="../images/cropped1_";
-	filename = filepath+imagenumber+filetype;
+	filename = filepath+"1_"+filetype;
        	imwrite(filename,finalresize[1]);
 
-	filepath ="../images/cropped2_";
-	filename = filepath+imagenumber+filetype;
+	filename = filepath+"2_"+filetype;
        	imwrite(filename,finalresize[2]);
 
-	filepath ="../images/cropped3_";
-	filename = filepath+imagenumber+filetype;
+	filename = filepath+"3_"+filetype;
        	imwrite(filename,finalresize[3]);
 
-	filepath ="../images/cropped4_";
-	filename = filepath+imagenumber+filetype;
+	filename = filepath+"4_"+filetype;
        	imwrite(filename,finalresize[4]);
-return;
+	
+	printf("\n Training Data Collected for this Frame");
+	return;
 }
 
 
-void BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_object)
+int BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_object)
 {	
 
-	printf(" finding matches");
+	//printf("\n finding matches");
 	//m_minHessian = 300;
 	 FlannBasedMatcher matcher;
 	std::vector< DMatch > matches0;
@@ -1111,7 +1059,8 @@ void BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_o
 	detector.detect(image, keypoints_bin_test0);
 	extractor.compute(image, keypoints_bin_test0, descriptors_bin_test);
 	double dist;
-
+	double total_mindist;
+	int trainingimagesused = 0;
 	if (keypoints_bin_test0.size() > 0)
 	{
 		for (j1 = 1;j1<m_numberofclasses+1;j1++)
@@ -1120,9 +1069,11 @@ void BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_o
 			  min_dist = 10000;
 			  total_dist= 0;
 			  avgDistance[j1-1] = 0;
+			 trainingimagesused = 0;
+			total_mindist = 0;
 	    		  for (j2 = 1;j2<m_numberoftrainingimages+1;j2++)
 			  {
-				
+				trainingimagesused = trainingimagesused+1;
 				rownumber = (j1-1)*m_numberoftrainingimages+(j2-1);
 				//match with training images
 			       // printf("\n Descriptors= %d",(descriptors_object[rownumber].rows));
@@ -1137,24 +1088,53 @@ void BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_o
 				   if( dist > max_dist ) max_dist = dist;
 				   total_dist = dist+total_dist;
 				  }
-
+				total_mindist = min_dist+total_mindist;
 				if (matches0.size() == 0)
+				{
 					total_dist = total_dist+1000;
-
+					total_mindist = total_mindist + 100;
+				}
 			}//end for j2
-			avgDistance[j1-1] = ((float)total_dist/(float)m_numberoftrainingimages);
-			//printf("\n class= %d, avgDistance %f, should be=%f",j1, avgDistance[j1-1],((float)total_dist/(float)m_numberoftrainingimages));
+			//avgDistance[j1-1] = ((float)total_dist/(float)trainingimagesused);
+			avgDistance[j1-1] = ((float)total_mindist);///(float)trainingimagesused);
+			//printf("\n class= %d, avgDistance %f, minDist=%f",j1, avgDistance[j1-1],total_mindist);
 	     }//end for j1
+             return(1);
 	}//end if keypoints good
 	else
 	{
-		printf("ERROR- Unable to find Keypoints from the test image");
+		//printf("\n ERROR- Unable to find Keypoints from the test image");
+		return(0);
 	}
-return;
 }; //end function
 
 
 
+void BinDetector::publishFoundEventSURF(bincontours bin)
+{
+    BinEventPtr event(new BinEvent());  
+    double centerX = 0, centerY = 0;
+    Detector::imageToAICoordinates(m_frame, bin.centerx, bin.centery,
+                                   centerX, centerY);
+
+    event->id = bin.identified;
+    event->x = centerX;
+    event->y = centerY;
+    event->range = bin.width;
+	if (bin.type == 0)
+	    event->symbol =Symbol::UNKNOWN;
+	else if (bin.type == 1)
+	    event->symbol = Symbol::BIN37;
+	else if (bin.type == 2)
+	    event->type = Symbol::BIN98;
+	else if (bin.type == 3)
+	    event->type = Symbol::BIN10;
+	else if (bin.type == 4)
+	    event->type = Symbol::BIN16;
+
+    event->angle = bin.angle;
+    publish(EventType::BIN_FOUND, event);
+}
 
 
 
@@ -1166,8 +1146,18 @@ void BinDetector::processImage(Image* input, Image* out)
 {
     m_frame->copyFrom(input);
     m_framecount =  m_framecount+1;
-    DetectorContours(input);
-/*
+    DetectorContours(input); //find bins
+
+	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+
+	//imshow("greenAND",erode_dst_green);
+	//imshow("sat",img_saturation);
+	//imshow("yellowerosion",erode_dst_yellow);
+	//imshow("rederosion",erode_dst_red);
+
+       input->setData(img_whitebalance.data,false);
+       m_frame->copyFrom(input);
+ /*
     // Ensure all the images are the proper size
     if ((m_whiteMaskedFrame->getWidth() != m_frame->getWidth()) || 
         (m_whiteMaskedFrame->getHeight() != m_frame->getHeight()))
@@ -1525,33 +1515,85 @@ void BinDetector::init(core::ConfigNode config)
                                     "redC", "Chrominance",
                                     "redH", "Hue",
                                     0, 54,  // L defaults // 180,255
-                                    200, 255,  // U defaults // 76, 245
+                                    150, 255,  // U defaults // 76, 245
                                     0, 255); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 	m_framecount = 0;
+
+     
+
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
-	m_numberofclasses = 4; //four different bins
+
+	//m_numberofclasses = 4; //four different bins
 	//m_numberoftrainingimages = 6; //number of training images PER CLASS - so a total of 40 images
-	m_filepath= "/home/kmcbryan/Documents/RAM/tortuga/images/training/cropped"; //should be an input
+	//m_filepath= "/home/kmcbryan/Documents/RAM/tortuga/images/training/cropped"; //should be an input
 	m_filetype  =".png";
 	m_underscore ="_";
 	m_D = "Descriptors";
+	//m_binyml = "VisionTrainingtest.yml";
+
+      /** Create the property object for you, load from the config */
+    //template <typename T>
+    //void addProperty(core::ConfigNode config, bool requireInConfig,
+     //                const std::string& name, const std::string& desc, 
+     //                T defaultValue, T* valuePtr);
+
+//	propSet->addProperty(config,false,"BinYMLPath","BinYMLPath","VisionTrainingTest.yml",&m_binyml);
+
+//	string temp = "BinYMLPath";
+//    m_binyml=  config((string)"BinYMLPath");
+
+
+	if (config.exists("BinYMLPath"))
+        {
+		m_binyml = config["BinYMLPath"].asString();
+	}	
+	else 
+	{
+		m_binyml = "VisionTrainingTest.yml";
+	}
+
+	if (config.exists("TrainingImagesFilePath"))
+        {
+		m_filepath = config["TrainingImagesFilePath"].asString();
+	}	
+	else 
+	{
+		m_filepath = "/home/kmcbryan/Documents/RAM/tortuga/images/training/cropped";
+	}
+
+	if (config.exists("SavingImagesFilePath"))
+        {
+		m_trainingpath = config["SavingImagesFilePath"].asString();
+	}	
+	else 
+	{
+		m_trainingpath = "/home/kmcbryan/Documents/RAM/tortuga/images/cropped";
+	}
+
+
+
+   // assert(vision::DetectorMaker::isKeyRegistered(symbolDetectorType) &&
+   //        "Invalid symbol detector type");
+
 
     propSet->addProperty(config, false, "CalcTraining",
         "CalcTraining",false, &m_calcTraining);
     propSet->addProperty(config, false, "CompareBins",
         "CompareBins",false, &m_comparebins);
-    propSet->addProperty(config, false, "Save Images",
-        "Save Images",false, &m_saveimages);
+    propSet->addProperty(config, false, "SaveImages",
+        "SaveImages",false, &m_saveimages);
   propSet->addProperty(config, false, "minHessian",
         "minHessian",
         500, &m_minHessian, 0, 5000); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofImages",
         "NumberofImages",
         6, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
-
+ propSet->addProperty(config, false, "NumberofBinTypes",
+        "NumberofBinTypes",
+        8, &m_numberofclasses, 0, 20); // 50 in Dans version
 }
 
 void BinDetector::allocateImages(int width, int height)

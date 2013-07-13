@@ -238,7 +238,7 @@ public:
     BinEvent(double x_, double y_, double range_, 
              Symbol::SymbolType s_, math::Degree angle_) :
         VisionEvent(x_, y_, range_),
-        symbol(s_), angle(angle_) {}
+        symbol(s_), angle(angle_){}
     
     BinEvent(math::Degree angle_) :
         VisionEvent(),

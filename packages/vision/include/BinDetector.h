@@ -39,6 +39,7 @@ class RAM_EXPORT BinDetector : public Detector
 	{
 		cv::Point2f vertices[4];
 	};
+
 	struct bincontours
 	{
 		int area;
@@ -50,7 +51,15 @@ class RAM_EXPORT BinDetector : public Detector
 		double minX;
 		bool found;
 		cv::Point2f vertices[4];
+		int centerx;
+		int centery;
+		bool identified;
+		int type;
+		double angle;
+		double width;
+		double height;
 	};
+	
 
   public:
     class Bin : public TrackedBlob
@@ -369,26 +378,30 @@ class RAM_EXPORT BinDetector : public Detector
 	int m_framecount;
 	/**Kate changes*/
 	void DetectorContours(Image* input);
-	bincontours getSquareBlob(cv::Mat erosion_dst);
-	cv::Mat img_whitebalance;
-	//cv::Mat img_saturation;
-	bincontours m_bin;
+	void getSquareBlob(cv::Mat erosion_dst, bincontours* bins, int  numberoftrackedcontours);
+	int FindMatches(cv::Mat image, double* avgDistance, cv::Mat* descriptors_object);
 	void calcTrainingData(void);
 	int getTrainingData(cv::Mat* descriptors_object);
 	void saveTrainingImages(cv::Mat* finalresize);
+	void publishFoundEventSURF(bincontours bin);
+
+	cv::Mat img_whitebalance;
+	//cv::Mat img_saturation;
+	bincontours m_bin;
+	//for surf featurs
 	int m_minHessian; //used for finding keypoints
 	std::string m_binyml;
 
 	int m_numberofclasses; //four different bins
 	int m_numberoftrainingimages; //number of training images PER CLASS - so a total of 40 images
-	std::string m_filepath; //should be an input
-	std::string m_filetype;
-	std::string m_underscore;
+	std::string m_filepath; //where the training iamges are located
+	std::string m_filetype; //type of image file example ".png"
+	std::string m_underscore; //just an underscore "_"
 	std::string m_D;
-	void FindMatches(cv::Mat image, double* avgDistance, cv::Mat* descriptors_object);
 	bool m_calcTraining;
 	bool m_comparebins;
 	bool m_saveimages;
+	std::string m_trainingpath; //path to where teh images (not quite training images) will be saved
 
 };
 
