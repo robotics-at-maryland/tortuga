@@ -73,7 +73,7 @@ void TargetDetector::init(core::ConfigNode config)
     core::PropertySetPtr propSet(getPropertySet());
 
     // Hack properties to deal noise from the surface of the water
-/*
+
     propSet->addProperty(config, false, "topRemovePercentage",
                          "% of the screen from the top to be blacked out",
                          0.0, &m_topRemovePercentage, 0.0, 1.0);
@@ -81,7 +81,7 @@ void TargetDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "bottomRemovePercentage",
                          "% of the screen from the bottom to be blacked out",
                          0.0, &m_bottomRemovePercentage, 0.0, 1.0);
-*/
+
     // Standard tuning properties
     propSet->addProperty(config, false, "maxAspectRatio",
                          "How \"skinny\" a blob can be",
@@ -91,20 +91,21 @@ void TargetDetector::init(core::ConfigNode config)
                          "How \"fat\" a blob can be",
                          0.3, &m_minAspectRatio, 0.0, 1.0);
 
-  /*  
+  
     propSet->addProperty(config, false, "minGreenPixels",
                          "The minimum pixel count of the green target blob",
                          500, &m_minGreenPixels, 0, 50000);
-*/
+
     propSet->addProperty(config, false, "erodeIterations",
                          "How many times to erode the filtered image",
                          2, &m_erodeIterations, 0, 10);
-/*
+
     propSet->addProperty(config, false, "dilateIterations",
                          "How many times to dilate the filtered image",
                          0, &m_dilateIterations, 0, 10);
 
     // Color filter properties
+    m_filter =new ColorFilter(0, 255, 0, 255, 0, 255);
     m_filter->addPropertiesToSet(propSet, &config,
                                  "Blue", "L*",
                                  "Yellow", "Blue Chrominance",
@@ -112,7 +113,7 @@ void TargetDetector::init(core::ConfigNode config)
                                  145, 255,  // L defaults
                                  0, 44,  // U defaults (0, 75)
                                  27, 63); // V defaults (137, 181)
-*/
+
     m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedH", "RedH",
@@ -1044,7 +1045,7 @@ void TargetDetector::publishFoundEvent()
 				m_angle,
 				  m_color));
 				
-        
+        printf("\n Publishing Target");
         publish(EventType::TARGET_FOUND, event);
 }
 
