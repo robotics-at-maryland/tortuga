@@ -42,7 +42,7 @@ so, it returns multiple events because there are multiple colors
 namespace ram {
 namespace vision {
 
-//static log4cpp::Category& Logger(log4cpp::Category::getInstance("TargetDetector"));
+static log4cpp::Category& logger(log4cpp::Category::getInstance("CupidDetector"));
 
     
 TargetDetector::TargetDetector(core::ConfigNode config,
@@ -62,6 +62,7 @@ TargetDetector::TargetDetector(core::ConfigNode config,
     m_topRemovePercentage(0),
     m_bottomRemovePercentage(0)
 {
+    logger.info("Starting Target Detector");
     init(config);
 }
     
@@ -142,6 +143,8 @@ void TargetDetector::init(core::ConfigNode config)
 
 
 	m_framenumber = 0;
+
+
 
 
 
@@ -294,7 +297,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat img_hsv;
 
 	img_whitebalance = WhiteBalance(img);
-	//Logger.infoStream() << "\n Whitebalance complete row=: "<<img_whitebalance.rows<<" cols= "<<img_whitebalance.cols;
+	logger.infoStream() << "Whitebalance complete row=: "<<img_whitebalance.rows<<" cols= "<<img_whitebalance.cols;
 
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
@@ -386,7 +389,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		img_blue = temp_blue;
 	}	
   	erode(img_blue, erosion_dst_blue, element);
-	//Logger.infoStream() << "\n ColorFiltering Complete";
+	logger.infoStream() << "ColorFiltering Complete";
 
 
 
@@ -418,7 +421,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
 	Mat img_blue =blob.SaturationFilter(hsv_planes,blue_minS,blue_maxS);
-	//Logger.infoStream() << "\n ColorFiltering Complete";
+	logger.infoStream() << "\n ColorFiltering Complete";
 
 	//For the erode function, which really helps clean things up
 	int erosion_type = 0; //morph rectangle type of erosion
@@ -430,18 +433,18 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat erosion_dst_red, erosion_dst_green, erosion_dst_blue, erosion_dst_yellow;
   	erode(img_red, erosion_dst_red, element );
 */
-	//Logger.infoStream() << "\n Finding Red";
+	logger.infoStream() << " Finding Red";
 	targetPanel squareRed = getSquareBlob(erosion_dst_red,img_whitebalance,Color::RED);
 
-	//Logger.infoStream() << "\n Finding Green";
+	logger.infoStream() << " Finding Green";
   	//erode(img_green, erosion_dst_green, element );
 	targetPanel squareGreen = getSquareBlob(erosion_dst_green,img_whitebalance,Color::GREEN);
 
-	//Logger.infoStream() << "\n Finding Yellow";
+	logger.infoStream() << " Finding Yellow";
   	//erode(img_yellow, erosion_dst_yellow, element );
 	targetPanel squareYellow = getSquareBlob(erosion_dst_yellow,img_whitebalance,Color::YELLOW);
 
-	//Logger.infoStream() << "\n Finding Blue";
+	logger.infoStream() << " Finding Blue";
   	//erode(img_blue, erosion_dst_blue, element );
 	targetPanel squareBlue = getSquareBlob(erosion_dst_blue,img_whitebalance,Color::BLUE);
 
@@ -454,7 +457,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	if (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
-	        //Logger.infoStream() << "\n Green Target Found";
+	        logger.infoStream() << "Green Target Found";
 		m_greenFound = TRUE;
 		m_found = true;
 		m_color = Color::GREEN;
@@ -466,7 +469,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	else if (m_greenFound == true)
 	{
         	// Just lost the light so issue a lost event
-	        //Logger.infoStream() << "\n Green Target Lost";
+	        logger.infoStream() << "Green Target Lost";
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_greenFound = false;
 	}
@@ -476,7 +479,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
-	        //Logger.infoStream() << "\n Red Target Found";
+	        logger.infoStream() << " Red Target Found";
 		m_redFound = TRUE;
 		m_found = true;
 		m_color = Color::RED;
@@ -488,7 +491,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	else if (m_redFound == true)
 	{
         	// Just lost the light so issue a lost event
-	        //Logger.infoStream() << "\n Red Target Found";
+	        logger.infoStream() << "Red Target Found";
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_redFound = false;
 	}
@@ -497,7 +500,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
-	        //Logger.infoStream() << "\n Yellow Target Found";
+	        logger.infoStream() << " Yellow Target Found";
 		m_yellowFound = TRUE;
 		m_found = true;
 		m_color = Color::YELLOW;
@@ -508,7 +511,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}
 	else if (m_yellowFound == true)
 	{
-	        //Logger.infoStream() << "\n Yellow Target Found";
+	        logger.infoStream() << " Yellow Target Found";
         	// Just lost the light so issue a lost event
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_yellowFound = false;
@@ -518,7 +521,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
 	{ 
 	 	 //valid panel
-	        //Logger.infoStream() << "\n BLUE Target Found";
+	        logger.infoStream() << " BLUE Target Found";
 		m_blueFound = TRUE;
 		m_found = true;
 		m_color = Color::BLUE;
@@ -529,7 +532,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}
 	else if (m_blueFound == true)
 	{
-	        //Logger.infoStream() << "\n Blue Target Found";
+	        logger.infoStream() << "Blue Target Found";
         	// Just lost the light so issue a lost event
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_blueFound = false;
@@ -546,14 +549,14 @@ void TargetDetector::processColorImage(Image* input, Image* output)
     //find center of the entire panel
     if (m_greenFound == TRUE || m_redFound == TRUE || m_blueFound ==TRUE || m_yellowFound == TRUE)
 	{
-	        //Logger.infoStream() << "\n\n Main Target Found";
+	        logger.infoStream() << " Main Target Found";
 	  m_found = 1;
 	  mainpanelrange = 0;
 	  //have found atleast one panel and therefore I can estimate  the center of the panel
 	  
 		if (m_greenFound == TRUE)
 		{	
-	        //Logger.infoStream() << "\n Green Target Found";
+	        logger.infoStream() << " Green Target Found";
 			//green should be the upper right panel, so the center of the entire panel is the lower left corner
 			numberofpanels = 1+numberofpanels;
 			tempx = 100000;
@@ -575,7 +578,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		if (m_redFound == TRUE)
 		{
 
-		        //Logger.infoStream() << "\n Red Target Found";
+		        logger.infoStream() << " Red Target Found";
 			//red is upper left panel, so I want to lower right vertex for the center of the entire panel
 			numberofpanels = 1+numberofpanels;
 			tempx = 0;
@@ -598,7 +601,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		if (m_yellowFound == TRUE)
 		{
 
-	      		  //Logger.infoStream() << "\n Yellow Target Found";
+	      		  logger.infoStream() << " Yellow Target Found";
 			//yellow is lower right, so I want the upper left
 			numberofpanels = 1+numberofpanels;
 			tempx = 100000;
@@ -621,7 +624,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		if (m_blueFound == TRUE)
 		{
 
-	               //Logger.infoStream() << "\n Blue Target Found";
+	               logger.infoStream() << " Blue Target Found";
 			//blue is the lower left, so I want upper right corner
 			numberofpanels = 1+numberofpanels;
 			tempx = 0;
@@ -644,19 +647,19 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		//printf("\n number of panels found = %d",numberofpanels);
 
 
-	        //Logger.infoStream() << "\nTotal Panels Found : " <<numberofpanels;
+	        logger.infoStream() << "Total Panels Found : " <<numberofpanels;
 		centerX = centerX/double(numberofpanels);
 		centerY = centerY/double(numberofpanels);
 		circle(img_whitebalance, Point(centerX, centerY),5,Scalar( 255, 255, 0),-1,8 );
 
-	        //Logger.infoStream() << "\n center ("<<centerX<< " , " <<centerY;
+	        logger.infoStream() << " center ("<<centerX<< " , " <<centerY;
 		Detector::imageToAICoordinates(input, 
 		                               centerX,
 		                               centerY,
 		                               m_targetCenterX,
 		                               m_targetCenterY);
 
-	        //Logger.infoStream() << " Transformed to ("<<m_targetCenterX<<" , "<<m_targetCenterY;
+	        logger.infoStream() << " Transformed to ("<<m_targetCenterX<<" , "<<m_targetCenterY;
 
 		m_color = Color::UNKNOWN;
 		mainpanelrange = ((mainpanelrange)/(numberofpanels))*2;
@@ -711,7 +714,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	//for now only do blob detection based on area
 
 
-	  //Logger.infoStream() << "\n Finding Contours, Entered getSquareBlob";
+	  logger.infoStream() << " Finding Contours, Entered getSquareBlob";
 	
 	  vector<vector<Point> > contours;
 	  vector<Vec4i> hierarchy;
@@ -759,7 +762,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		}
 	};
 
-	//Logger.infoStream() << "\n Contours FOund with maxSize = "<<maxContour <<" with area : "<<maxArea;
+	logger.infoStream() << "Contours FOund with maxSize = "<<maxContour <<" with area : "<<maxArea;
 	Point2f vertices[4];
 	maxtemp.points(vertices);
 	//given the vertices find the min and max X and min and maxY
@@ -817,7 +820,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	};
 
 
-	        //Logger.infoStream() << "\n TargetLareArea = " <<targetLargeArea <<" Small Area "<<targetSmallArea;
+	        logger.infoStream() << " TargetLareArea = " <<targetLargeArea <<" Small Area "<<targetSmallArea;
 	//imshow("internal",img_whitebalance);
 
 	//Display Purposes
@@ -1021,13 +1024,13 @@ processColorImage(input,output);
 
 void TargetDetector::publishFoundEvent()
 {
-//Logger.infoStream() << "\n Publish Event: Center "<<m_targetCenterX <<", "<<m_targetCenterY<< 
-//				"\n large center: "<<m_targetLargeCenterX <<", "<<m_targetLargeCenterY<<
-//				"\n small center: "<<m_targetSmallCenterX <<", "<<m_targetSmallCenterY<<
-//				"\n Squareness: "<<m_squareNess <<", range: "<<m_range<<
-//				"\n Flags: Large: "<<m_largeflag <<", small: "<<m_smallflag<<
-//				"\n ranges: "<<m_rangelarge<<", small: "<<m_rangesmall<<
-//				"\n angle: "<<m_angle <<", Color"<<m_color<< " ";
+logger.infoStream() << "Publish Event: Center "<<m_targetCenterX <<", "<<m_targetCenterY<< 
+				" large center: "<<m_targetLargeCenterX <<", "<<m_targetLargeCenterY<<
+				" small center: "<<m_targetSmallCenterX <<", "<<m_targetSmallCenterY<<
+				" Squareness: "<<m_squareNess <<", range: "<<m_range<<
+				" Flags: Large: "<<m_largeflag <<", small: "<<m_smallflag<<
+				" ranges: "<<m_rangelarge<<", small: "<<m_rangesmall<<
+				" angle: "<<m_angle <<", Color"<<m_color<< " ";
 
         TargetEventPtr event(new TargetEvent(
                                  m_targetCenterX,
@@ -1111,13 +1114,13 @@ bool TargetDetector::processGreenBlobs(const BlobDetector::BlobList& blobs,
 void TargetDetector::setPublishData(targetPanel square, Image* input)
 {
 
-//Logger.infoStream() << "\n Setting Data to be Publish";
+logger.infoStream() << " Setting Data to be Publish";
 
 	Point2f vertices[4];
 	int minTargetSize = 25;
 	square.outline.points(vertices);
 	// Determine the corindates of the target
-//Logger.infoStream() << "\n Center of main panel ("<<(int)square.outline.center.x<<" , "<<(int)square.outline.center.y <<") ";
+logger.infoStream() << " Center of main panel ("<<(int)square.outline.center.x<<" , "<<(int)square.outline.center.y <<") ";
 
 	Detector::imageToAICoordinates(input, 
 	              (int)square.outline.center.x,
@@ -1125,7 +1128,7 @@ void TargetDetector::setPublishData(targetPanel square, Image* input)
 	              m_targetCenterX,
                       m_targetCenterY);
 
-//Logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targetCenterY <<") ";
+logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targetCenterY <<") ";
 
 	// Determine range
 	//m_range = 1.0 - (((double)square.outline.size.width) /
