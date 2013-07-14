@@ -71,11 +71,14 @@ void OrangePipeDetector::init(core::ConfigNode config)
     m_filter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_useLUVFilter = false;
     
+
     // Detection variables
     // NOTE: The property set automatically loads the value from the given
     //       config if its present, if not it uses the default value presented.
     core::PropertySetPtr propSet(getPropertySet());
 
+//commented out purely to clean up VisionToolV2 for use with contours
+/*
     propSet->addProperty(config, false, "centeredLimit",
         "Max distance from the center for the pipe to be considered centered",
         0.1, &m_centeredLimit);
@@ -83,11 +86,11 @@ void OrangePipeDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "minBrightness",
         "Minimum brighness for orange",
         100, &m_minBrightness, 0, 255);
-
+*/
     propSet->addProperty(config, false, "erodeIterations",
         "How many times to erode the filtered image",
         1, &m_erodeIterations);
-
+/*
     propSet->addProperty(config, false, "openIterations",
                          "How many times to perform the open morphological operation",
                          0, &m_openIterations);
@@ -99,13 +102,13 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "Red/Green maximum ratio", 2.0, &m_rOverGMax, 0.0, 5.0);
     propSet->addProperty(config, false, "bOverRMax",
         "Blue/Red maximum ratio",  0.4, &m_bOverRMax, 0.0, 5.0);
-
+*/
     propSet->addProperty(config, false, "MaxAspectRatio",
         "MaxAspectRatio",  5.0, &m_maxAspectRatio, 0.0, 10.0);
 
     propSet->addProperty(config, false, "MinSize",
         "MinSize",  15, &m_minSize, 0, 500);
-
+/*
 
     // Newer Color filter properties
     propSet->addProperty(config, false, "useLUVFilter",
@@ -123,6 +126,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                  0, 129,  // L defaults
                                  14, 200,  // U defaults
                                  126, 255); // V defaults
+*/
     m_framenumber = 0;
     // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
@@ -266,6 +270,7 @@ pipe
 
 	//double givenAspectRatio = 1.0;
 	m_framenumber = m_framenumber+1;
+	LOGGER.infoStream() << "\n \n Frame Number: "<<m_framenumber;
 
 	Mat img = input->asIplImage();
 	Mat img_hsv;
@@ -313,9 +318,11 @@ pipe
 	Mat  erode_dst_red;
 
 	//red
+	LOGGER.infoStream() << "\n Filtering Color";
 	Mat img_red =blob.OtherColorFilter(hsv_planes,red_minH,red_maxH);	
 	if (red_minS != 0 || red_maxS != 255)	
 	{
+		LOGGER.infoStream() << "\n Filtering Saturaiton Channel";
 		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
 		bitwise_and(img_saturation,img_red,temp_red,noArray());
 		img_red = temp_red;
@@ -323,6 +330,7 @@ pipe
 	}
 	if (red_minL != 0 || red_maxL != 255)	
 	{
+		LOGGER.infoStream() << "\n Filtering Luminance Channel";
 		Mat img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 		bitwise_and(img_Luminance_red,img_red,temp_red,noArray());
 		img_red = temp_red;
@@ -332,29 +340,36 @@ pipe
 	//imshow("red",erode_dst_red);
 
 	//get Blobs 
-	//needs to be able to handle multiple pipes
+        LOGGER.infoStream() << "Have filtered image with rows= " << erode_dst_red.rows<<" col= "<< erode_dst_red.cols <<" \n ";
+
+
 	foundpipe finalpipe;
 	finalpipe= getSquareBlob(erode_dst_red);
 
 	if (finalpipe.found == true)
-	{	
+	{	LOGGER.infoStream() << "\n Pipe1 found going to publish Data";
 		m_foundpipe1 = true;
-		publishFoundEvent(finalpipe,1,input);
+		publishFoundEvent(finalpipe,finalpipe.id,input);
 	}
 	else if (m_foundpipe1 == true)
 	{
+
+		LOGGER.infoStream() << "\n Pipe1 Lost publishing lost even";
 		//lost event
 		m_foundpipe1= false;
 		publishLostEvent(1);
 	}
 	if (finalpipe.found2 == true)
 	{	
+
+		LOGGER.infoStream() << "\n Pipe2 found going to publish Data";
 		m_foundpipe2 = true;
-		publishFoundEvent(finalpipe,2,input);
+		publishFoundEvent(finalpipe,finalpipe.id2,input);
 	}
 	else if (m_foundpipe2== true)
 	{
 		//lost event
+		LOGGER.infoStream() << "\n Pipe1 Lost publishing lost even";
 		m_foundpipe2 = false;
 		publishLostEvent(2);
 	}	
@@ -588,16 +603,23 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
 {
     PipeEventPtr event(new PipeEvent()); 
     double centerX = 0, centerY = 0;
+
+	LOGGER.infoStream() << "\n Publishing Event pipe id = "<<pipe.id<<" center : "<<pipe.centerx <<" , "<<pipe.centery <<"range "<<pipe.range<<" angle "<<pipe.angle;
+	LOGGER.infoStream() << "\n Publishing Event pipe id = "<<pipe.id2<<" center : "<<pipe.centerx2 <<" , "<<pipe.centery2 <<"range "<<pipe.range2<<" angle "<<pipe.angle2;
+
+
 	if (id == 1)
 	{
 	    Detector::imageToAICoordinates(input, pipe.centerx, pipe.centery,
 		                           centerX, centerY);
+	
 	    event-> id =id;	    
 	    event->x = centerX;
 	    event->y = centerY;
 	    event->range = pipe.range;
 	    event->angle = pipe.angle;
 	    publish(EventType::PIPE_FOUND, event);
+		LOGGER.infoStream() << "\n Publishing ID 1";
 
 	}
 	else if (id == 2)
@@ -610,6 +632,7 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
 	    event->range = pipe.range2;
 	    event->angle = pipe.angle2;
 	    publish(EventType::PIPE_FOUND, event);
+	    LOGGER.infoStream() << "\n Publishing ID 2"; 
 	}
 
 }
