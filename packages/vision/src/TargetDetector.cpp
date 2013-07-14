@@ -812,6 +812,7 @@ bool TargetDetector::processGreenBlobs(const BlobDetector::BlobList& blobs,
 
 void TargetDetector::setPublishData(targetPanel square, Image* input)
 {
+
 	Point2f vertices[4];
 	int minTargetSize = 25;
 	square.outline.points(vertices);

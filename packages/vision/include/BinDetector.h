@@ -84,6 +84,8 @@ class RAM_EXPORT BinDetector : public Detector
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
+
+
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);

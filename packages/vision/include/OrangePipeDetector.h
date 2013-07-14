@@ -130,7 +130,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 	//Kate added functions
  	foundpipe getSquareBlob(cv::Mat erosion_dst); //find contours of pipes
 	void DetectorContours(Image* input);
-	void publishFoundEvent(foundpipe pipe,int id);
+	void publishFoundEvent(foundpipe pipe,int id,Image* input);
 	void publishLostEvent(int number);
 
 	bool m_foundpipe1;
@@ -142,12 +142,13 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 	ColorFilter *m_yellowFilter;
 
 	cv::Mat img_whitebalance;
-	cv::Mat m_frame;
 
 	double m_maxAspectRatio;
 
     /** Working Images */
-    Image *frame;
+	Image* input;
+	Image* output;
+    Image* m_frame;
     int m_minSize;
 
 };

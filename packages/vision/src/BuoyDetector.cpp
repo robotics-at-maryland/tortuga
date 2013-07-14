@@ -1559,8 +1559,6 @@ void BuoyDetector::processBuoysMask(cv::Mat* mask, Image* img, Image* output)
 
 
 
-
-
 void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType color)
 {
     static math::Degree xFOV = VisionSystem::getFrontHorizontalFieldOfView();
