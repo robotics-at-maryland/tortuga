@@ -137,7 +137,7 @@ void TargetDetector::init(core::ConfigNode config)
                                     "BlueH", "BlueH",
                                     "BlueS", "BlueS",
                                     "BlueV", "BlueV",
-                                    75, 190, 99 255, 0, 255);
+                                    75, 190, 99, 255, 0, 255);
 
 
 	m_framenumber = 0;
