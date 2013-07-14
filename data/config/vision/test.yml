@@ -33,32 +33,6 @@ RedLightDetector:
     redPercentage: 38.0
     redIntensity: 150
     maxAspectRatio: 2.0
-OrangePipeDetector:
-    rOverGMin: 1.05 #0.75 (NEW# 0.88)
-    rOverGMax: 2.41 #1.5 (NEW# 2.16)
-    bOverRMax: 0.75  #(NEW# 2.25)
-    centeredLimitt: 0.4
-    minBrightness: 100
-    minPixels: 3000
-    minPixelsFound: 1500
-    erodeIterations: 1
-    minRedOverGreen: 0.5
-    maxRedOverGreen: 1.5
-    minRedOverBlue: 1.0
-    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
-    maxRedFailureThresh: 50
-    minTotalRGB: 125
-    minTotalRGBOnFailure: 150
-    erodeIterations: 3
-    dilateIterations: 3
-    minBlackPercent: 5
-    maxBlackTotal: 300
-    defaultGrowThreshX: 0.05
-    defaultGrowThreshY: 0.05
-    minXOverYToUpGrowThresh: 1.5
-    uppedGrowThreshX: 0.5
-    uppedGrowThreshY: 0.05
-DownwardDuctDetector:
     minRedOverGreen: 0.5
     maxRedOverGreen: 1.5
     minRedOverBlue: 1.0
@@ -73,12 +47,6 @@ SafeDetector:
     erodeIterations: 0
     dilateIterations: 0
     minTotal: 100
-
-TargetDetector:
-    filtUMax: 79
-    filtUMin: 0
-    filtVMax: 179
-    filtVMin: 130
 
 BarbedWireDetector:
     bottomRemovePercentage: 0.1
@@ -309,3 +277,47 @@ BinDetector:
     BinYMLPath: /home/kmcbryan/Documents/RAM/tortuga/data/config/vision/VisionTrainingTest2.yml
     TrainingImagesFilePath: /home/kmcbryan/Desktop/images/training/cropped
     SavingImagesFilePath: /home/kmcbryan/Documents/
+TargetDetector:
+    MinContourSize: 49
+    MinSize: 25
+    erodeIterations: 4
+    filtBlueHMax: 190
+    filtBlueHMin: 75
+    filtBlueSMax: 255
+    filtBlueSMin: 99
+    filtBlueVMax: 255
+    filtBlueVMin: 0
+    filtGreenHMax: 80
+    filtGreenHMin: 25
+    filtGreenSMax: 255
+    filtGreenSMin: 0
+    filtGreenVMax: 255
+    filtGreenVMin: 0
+    filtRedHMax: 146
+    filtRedHMin: 18
+    filtRedSMax: 255
+    filtRedSMin: 0
+    filtRedVMax: 255
+    filtRedVMin: 0
+    filtYellowHMax: 45
+    filtYellowHMin: 14
+    filtYellowSMax: 255
+    filtYellowSMin: 0
+    filtYellowVMax: 255
+    filtYellowVMin: 0
+    maxAspectRatio: 10
+    minAspectRatio: 0
+OrangePipeDetector:
+    MaxAspectRatio: 5
+    MinSize: 15
+    erodeIterations: 1
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 90
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 90
+    minPixels: 3000
+    minPixelsFound: 2500
+    noHough: 0
+    samePipeThreshold: 0.2

@@ -214,7 +214,7 @@ void OrangePipeDetector::setUseLUVFilter(bool value)
 
 OrangePipeDetector::~OrangePipeDetector()
 {
-    delete m_filter;
+    delete m_redFilter;
 
     if ( m_colorFilterLookupTable )
         delete m_tableColorFilter;
@@ -484,16 +484,25 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		if (run != 0)
 		{
 			finalpipe.angle =atan((double)rise/(double)run)*(180.0/3.14);
-
+			if (finalpipe.angle < 0)
+			{
+				finalpipe.angle = finalpipe.angle + 90; //correction to make vertical = 0
+			}
+			else if (finalpipe.angle > 0)
+			{
+				finalpipe.angle = finalpipe.angle -90; //correction to make vertical = 0
+			}		
 		}		
 		else
 		{
-			finalpipe.angle = 90;
+			finalpipe.angle = 0;
 		}
+
+
+		//printf("\n pipe angle = %f",finalpipe.angle);
 
 		line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
-
 
        		LOGGER.infoStream() << "FoundLine: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
 	}

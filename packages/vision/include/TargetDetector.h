@@ -88,6 +88,11 @@ class RAM_EXPORT TargetDetector : public Detector
     
     /** Filters for the green in the water */
     ColorFilter* m_filter;
+   ColorFilter *m_blueFilter; //for finding the blue target
+   ColorFilter *m_redFilter;
+   ColorFilter *m_yellowFilter;
+   ColorFilter *m_greenFilter;
+
 
 /**Filter for Red value for VisionToolV2*/
 	int m_redminH;
@@ -156,10 +161,12 @@ class RAM_EXPORT TargetDetector : public Detector
 	double m_angle; //angle of RotatedRect
 
 	Mat img_whitebalance;
-	targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
+	targetPanel getSquareBlob(Mat img, Mat img_whitebalance,Color::ColorType color); //color type is purefly for display purposes
 	void setPublishData(targetPanel square, Image* input);
 
 	int m_minSize;
+	int m_framenumber;
+	 int m_minContourSize;
 };
 	
 } // namespace vision
