@@ -49,7 +49,7 @@ namespace vision {
 //    return b1.distanceTo(0,0) < b2.distanceTo(0,0);/
 //}
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("OrangePipeDetector"));
+static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("PipeDetectorLog"));
 
     
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
