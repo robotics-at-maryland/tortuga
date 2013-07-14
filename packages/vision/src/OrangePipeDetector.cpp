@@ -49,7 +49,7 @@ namespace vision {
 //    return b1.distanceTo(0,0) < b2.distanceTo(0,0);/
 //}
 
-static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("PipeDetectorLog"));
+static log4cpp::Category& logger(log4cpp::Category::getInstance("PipeDetector"));
 
     
 OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
@@ -60,6 +60,7 @@ OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
     m_lookupTablePath("")
 {
     init(config);
+  logger.info("Starting Pipe Detector");
 }
     
 void OrangePipeDetector::init(core::ConfigNode config)
@@ -137,6 +138,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                     "RedH", "Red Hue",
                                     70, 255, 0, 255,0, 90);
 
+  logger.info("Got values maybe");
 
 }
 
@@ -270,7 +272,6 @@ pipe
 
 	//double givenAspectRatio = 1.0;
 	m_framenumber = m_framenumber+1;
-	LOGGER.infoStream() << "\n \n Frame Number: "<<m_framenumber;
 
 	Mat img = input->asIplImage();
 	Mat img_hsv;
@@ -318,11 +319,11 @@ pipe
 	Mat  erode_dst_red;
 
 	//red
-	LOGGER.infoStream() << "\n Filtering Color";
+	logger.infoStream() << " Filtering Color";
 	Mat img_red =blob.OtherColorFilter(hsv_planes,red_minH,red_maxH);	
 	if (red_minS != 0 || red_maxS != 255)	
 	{
-		LOGGER.infoStream() << "\n Filtering Saturaiton Channel";
+		logger.infoStream() << " Filtering Saturaiton Channel";
 		img_saturation = blob.SaturationFilter(hsv_planes,red_minS,red_maxS);
 		bitwise_and(img_saturation,img_red,temp_red,noArray());
 		img_red = temp_red;
@@ -330,7 +331,7 @@ pipe
 	}
 	if (red_minL != 0 || red_maxL != 255)	
 	{
-		LOGGER.infoStream() << "\n Filtering Luminance Channel";
+		logger.infoStream() << " Filtering Luminance Channel";
 		Mat img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 		bitwise_and(img_Luminance_red,img_red,temp_red,noArray());
 		img_red = temp_red;
@@ -340,21 +341,21 @@ pipe
 	//imshow("red",erode_dst_red);
 
 	//get Blobs 
-        LOGGER.infoStream() << "Have filtered image with rows= " << erode_dst_red.rows<<" col= "<< erode_dst_red.cols <<" \n ";
+        logger.infoStream() << "Have filtered image with rows= " << erode_dst_red.rows<<" col= "<< erode_dst_red.cols <<" \n ";
 
 
 	foundpipe finalpipe;
 	finalpipe= getSquareBlob(erode_dst_red);
 
 	if (finalpipe.found == true)
-	{	LOGGER.infoStream() << "\n Pipe1 found going to publish Data";
+	{	logger.infoStream() << " Pipe1 found going to publish Data";
 		m_foundpipe1 = true;
 		publishFoundEvent(finalpipe,finalpipe.id,input);
 	}
 	else if (m_foundpipe1 == true)
 	{
 
-		LOGGER.infoStream() << "\n Pipe1 Lost publishing lost even";
+		logger.infoStream() << " Pipe1 Lost publishing lost even";
 		//lost event
 		m_foundpipe1= false;
 		publishLostEvent(1);
@@ -362,14 +363,14 @@ pipe
 	if (finalpipe.found2 == true)
 	{	
 
-		LOGGER.infoStream() << "\n Pipe2 found going to publish Data";
+		logger.infoStream() << " Pipe2 found going to publish Data";
 		m_foundpipe2 = true;
 		publishFoundEvent(finalpipe,finalpipe.id2,input);
 	}
 	else if (m_foundpipe2== true)
 	{
 		//lost event
-		LOGGER.infoStream() << "\n Pipe1 Lost publishing lost even";
+		logger.infoStream() << " Pipe1 Lost publishing lost even";
 		m_foundpipe2 = false;
 		publishLostEvent(2);
 	}	
@@ -504,7 +505,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
 
-       		LOGGER.infoStream() << "FoundLine: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
+       		logger.infoStream() << "FoundLine: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
 	}
 	else	
 	{
@@ -516,7 +517,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		finalpipe.angle = 0;
 		finalpipe.id = 0;
 
-       		LOGGER.infoStream() << "Unable to find single line in ORangePipeDetector";
+       		logger.infoStream() << "Unable to find single line in ORangePipeDetector";
 
 	} 
 
@@ -588,7 +589,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour2, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
 
-       		LOGGER.infoStream() << "2nd FoundLine: at" <<finalpipe.centerx2  << "," << finalpipe.centery2 << " with angle"  << finalpipe.angle2 
+       		logger.infoStream() << "2nd FoundLine: at" <<finalpipe.centerx2  << "," << finalpipe.centery2 << " with angle"  << finalpipe.angle2 
 				<< " and range"  << finalpipe.range2 << " ";
 
 	}
@@ -602,7 +603,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		finalpipe.angle2 = 0;
 		finalpipe.id2=0;
 
-  		LOGGER.infoStream() << "Unable to find SECOND line in ORangePipeDetector";
+  		logger.infoStream() << "Unable to find SECOND line in ORangePipeDetector";
 
 	}
 	return(finalpipe);
@@ -613,8 +614,8 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
     PipeEventPtr event(new PipeEvent()); 
     double centerX = 0, centerY = 0;
 
-	LOGGER.infoStream() << "\n Publishing Event pipe id = "<<pipe.id<<" center : "<<pipe.centerx <<" , "<<pipe.centery <<"range "<<pipe.range<<" angle "<<pipe.angle;
-	LOGGER.infoStream() << "\n Publishing Event pipe id = "<<pipe.id2<<" center : "<<pipe.centerx2 <<" , "<<pipe.centery2 <<"range "<<pipe.range2<<" angle "<<pipe.angle2;
+	logger.infoStream() << " Publishing Event pipe id = "<<pipe.id<<" center : "<<pipe.centerx <<" , "<<pipe.centery <<"range "<<pipe.range<<" angle "<<pipe.angle;
+	logger.infoStream() << " Publishing Event pipe id = "<<pipe.id2<<" center : "<<pipe.centerx2 <<" , "<<pipe.centery2 <<"range "<<pipe.range2<<" angle "<<pipe.angle2;
 
 
 	if (id == 1)
@@ -628,7 +629,7 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
 	    event->range = pipe.range;
 	    event->angle = pipe.angle;
 	    publish(EventType::PIPE_FOUND, event);
-		LOGGER.infoStream() << "\n Publishing ID 1";
+		logger.infoStream() << " Publishing ID 1";
 
 	}
 	else if (id == 2)
@@ -641,7 +642,7 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
 	    event->range = pipe.range2;
 	    event->angle = pipe.angle2;
 	    publish(EventType::PIPE_FOUND, event);
-	    LOGGER.infoStream() << "\n Publishing ID 2"; 
+	    logger.infoStream() << " Publishing ID 2"; 
 	}
 
 }
@@ -668,7 +669,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 		//imshow("rederosion",erode_dst_red);
 		if (!img_whitebalance.data)	
 		{
-			printf("\n ERROR NO WHITEBALANCE");
+			printf("ERROR NO WHITEBALANCE");
 		}
 		else
 		{	
