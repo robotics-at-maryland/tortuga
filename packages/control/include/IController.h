@@ -132,6 +132,12 @@ public:
     /** Returns true if the vehicle is at the desired depth */
     virtual bool atDepth() = 0;
 
+    //stop the oci from moving!
+    virtual void setSpeed(double sp)
+    {
+        moveVel(0,0,0);
+    }
+
     virtual void moveVel(double x, double y, double z)
     {
 
