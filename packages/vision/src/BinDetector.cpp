@@ -430,6 +430,7 @@ void BinDetector::init(core::ConfigNode config)
 	m_filetype  =".png";
 	m_underscore ="_";
 	m_D = "Descriptors";
+	m_trainingsuccess =0;
 	//m_binyml = "VisionTrainingtest.yml";
 
       /** Create the property object for you, load from the config */
@@ -491,7 +492,7 @@ void BinDetector::init(core::ConfigNode config)
         6, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofBinTypes",
         "NumberofBinTypes",
-        8, &m_numberofclasses, 0, 20); // 50 in Dans version
+        4, &m_numberofclasses, 0, 20); // 50 in Dans version
 
  propSet->addProperty(config, false, "UpperLimitforBin",
        "UpperLimitforBin",
@@ -1748,10 +1749,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	}
 
 	//feature detector	//save images for training purposes
-	Mat descriptors_object[m_numberofclasses*m_numberoftrainingimages];
-	
-	//printf("\n Training = classes: %d, neach = %d", m_numberofclasses, m_numberoftrainingimages);
-	int trainingsuccess =0;
+
 
 //logger.infoStream() << "Have all the bins extracted now to start comparing";
 //Have all the images now
@@ -1770,6 +1768,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				   //saves to a yml file
 				//would like to do KNN of the keypoints		
 		printf("\n Saved Training data!");
+		m_trainingsuccess = 0;
 	}
 
 	//printf("\n numberof classes = %d",m_numberofclasses);
@@ -1787,12 +1786,23 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	Bin98=0;
 	double minvalue;
 	int findmatchesworked = 0;
+	
+
 	if (m_comparebins == true)
 	{
 		//do bin matching
 		//step 1: load data
-		trainingsuccess = getTrainingData(descriptors_object);
-		if (trainingsuccess == 1)
+		if (m_trainingsuccess < 1)
+		{
+			m_trainingsuccess = getTrainingData(m_descriptors_object);
+			if (m_trainingsuccess == 1)
+			{
+				//m_descriptors_object = descriptors_object; //so this line works
+			}
+ 		}
+	
+	
+		if (m_trainingsuccess == 1)
 		{//can now do comparision
 			//printf("\n  Have Training data!");
 			for (int k=1;k<numberoftrackedcontours;k++)
@@ -1801,7 +1811,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				{	
 					foundBinValue = 999;
 					minvalue = 100;
-					findmatchesworked = FindMatches(finalresize[k], avgDistance, descriptors_object);
+					findmatchesworked = FindMatches(finalresize[k], avgDistance, m_descriptors_object);
 					
 					if (findmatchesworked == 1)
 					{
@@ -2633,7 +2643,14 @@ void BinDetector::checkPreviousFrames()
 void BinDetector::processImage(Image* input, Image* out)
 {
     m_frame->copyFrom(input);
+  	if(m_framecount < 2)
+	{
+		m_trainingsuccess =0;
+	}
+
     m_framecount =  m_framecount+1;
+
+
 //	if (m_framecount > 1 && m_bins.MainBox_Found==true)
 //	{
 //		m_previousbins= m_allbins;

@@ -454,6 +454,9 @@ class RAM_EXPORT BinDetector : public Detector
 	int m_minAssumeFrame;
 	int m_minDistanceX;
 	int m_maxDistanceY;
+	int m_trainingsuccess;
+ 	cv::Mat m_descriptors_object[4*6];
+ 
 };
 
 } // namespace vision
