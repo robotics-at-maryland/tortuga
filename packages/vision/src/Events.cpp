@@ -230,9 +230,6 @@ core::EventPtr BinEvent::clone()
 
 	event->vectorbin4= vectorbin4;
 	event->type4=type4;
-
-
-
     return event;
 }
 

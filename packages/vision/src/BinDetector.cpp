@@ -393,6 +393,20 @@ void BinDetector::init(core::ConfigNode config)
         "Dilation iterations on the red filtered image",
          2, &m_redDilateIterations, 0, 10);
 
+/*
+    propSet->addProperty(config, false, "maxDistanceX",
+        "max allowed distance in X between frames",
+         40, &m_minDistanceX, 0, 500);
+
+    propSet->addProperty(config, false, "maxDistanceX",
+        "max allowed distance in Y between frames",
+         40, &m_maxDistanceY, 0, 500);
+
+    propSet->addProperty(config, false, "MinimumFrames",
+        "Minimum Number of frames the bin id canbe assumed",
+         2, &m_minAssumeFrame, 0, 20);
+*/
+
    m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "redL", "Luminance",
@@ -1397,13 +1411,15 @@ buoy
 	m_Bin10Found =false;
 	m_Bin16Found = false;
 	m_BinoutlineFound=false;
-	for (int i=0;i<numberoftrackedcontours;i++)
-	{
-		if (bins[i].found == true);
-		{
-			publishFoundEventSURF(bins[i]);
-		}
-	}
+//	for (int i=0;i<numberoftrackedcontours;i++)
+//	{
+//		if (bins[i].found == true);
+//		{/
+//			publishFoundEventSURF(bins[i]);
+//		}//
+//	}
+//
+publishFoundEventSURFAll();
 	 if (m_Bin37Found == false && m_Bin37FoundBefore == true)
 	{
 		publishLostEvent(Symbol::BIN37);
@@ -2509,16 +2525,124 @@ void BinDetector::publishFoundEventSURFAll()
 
 
 
+/*
 
+void BinDetector::checkPreviousFrames()
+{
 
+	//Have the previous frames bins and also have the new frames' bin
+	//now lets compare them!
 
+	int maxXdistance = 50;
+	int maxYdistance= 50;
+	int distanceX=0,distanceY=0;
+	//check main bin first
+	int minDistance[4];
+	minDistance[0]=1000;
+	minDistance[1]=1000;
+	minDistance[2]=1000;
+	minDistance[3]=1000;
 
+	int minDistanceBin[4];
+	minDistanceBin[0]=0;
+	minDistanceBin[1]=0;
+	minDistanceBin[2]=0;
+	minDistanceBin[3]=0;
+
+	int tempDistance;
+	if (m_previousbins.MainBox_Found == true && m_allbins.MainBox_Found == true)
+	{
+		distanceX= abs(m_allbins.MainBox_x-m_previousbins.MainBox_x);
+		distanceY= abs(m_allbins.MainBox_y-m_previousbins.MainBox_y);
+		if ((distanceX < maxXdistance) &&(distanceY<maxYdistance))
+		{
+			//same main bin as previoius
+			//good. Now check the rest
+			for (int i= 0;i<5;i++)
+			{
+				if (m_allbins.Box[i].Box_Found == true)
+				{
+					for (int j= 0;j<5;j++)
+					{
+						if (m_previousbins.Box[j].Box_Found == true)
+						{
+							tempDistance = abs(m_allbins.Box[i].Box_x-m_previousbins.Box[j].Box_x)+
+									abs(m_allbins.Box[i].Box_y-m_previousbins.Box[j].Box_y);
+							if ((abs(m_allbins.Box[i].Box_x-m_previousbins.Box[j].Box_x) < minDistanceX) && 
+								(abs(m_allbins.Box[i].Box_y-m_previousbins.Box[j].Box_y) <maxDistanceY) && (tempDistance < minDistance[i]))
+						 	{
+								minDistance[i] = tempDistance;
+								minDistanceBin[i] = j;
+							}
+						}
+					}//end int j
+					if (minDistance[i] < (minDistanceX+minDistanceY)/2)
+					{
+						//same bin as seen before
+						//check the ID 
+						if (m_allbins.Box[i].Box_identified== true && m_previousbins.Box[j].Box_identified == true)
+						{
+						  //do they match? 
+							if (m_allbins.Box[i].Box_type== m_previousbins.Box[j].Box_type)
+							{
+								//good, increase the numberof frame value
+								if (m_allbins.Box[i].Box_numberofframes < 0)
+									m_allbins.Box[i].Box_numberofframes = 0;
+								if (m_allbins.Box[i].Box_numberofframes > m_numberofframes)
+									m_allbins.Box[i].Box_numberofframes=0
+
+								m_allbins.Box[i].Box_numberofframes = m_allbins.Box[i].Box_numberofframes+1;
+							}
+							else
+							{ 
+								//they dont match
+								if (m_allbins.Box[i].Box_numberofframes >m_minAssumeFrame)
+								{ 
+									//can assume the old one was correct
+									m_allbins.Box[i].Box_type = m_previousbins.Box[j].Box_type;
+									m_allbins.Box[i].Box_numberofframes = m_allbins.Box[i].Box_numberofframes-1;
+								}
+								else
+								{
+									//reset counter can't assume the type
+									m_allbins.Box[i].Box_numberofframes = 0;
+								}
+							}
+						}//end if have borth of them
+						else if (m_allbins.Box[i].Box_identified== false && m_previousbins.Box[j].Box_identified == true)
+						{
+
+						
+					}//end if (minDistance[i] < (minDistanceX+minDistanceY)/2)
+					else
+					{
+					  	//unable to tell if they are the same bin
+						//so do nothing
+						m_allbins.Box[i].Box_numberofframes = 0;
+			
+					}
+				} //end if m_allbins = true
+			}//end int i
+
+		} //end same main bin
+	}
+
+}
+*/
 
 void BinDetector::processImage(Image* input, Image* out)
 {
     m_frame->copyFrom(input);
     m_framecount =  m_framecount+1;
+//	if (m_framecount > 1 && m_bins.MainBox_Found==true)
+//	{
+//		m_previousbins= m_allbins;
+//	}
     DetectorContours(input); //find bins
+
+	//Have the previous frames bins and also have the new frames' bin
+	//now lets compare them!
+
 
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
 

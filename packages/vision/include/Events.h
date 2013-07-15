@@ -239,7 +239,8 @@ public:
 	
 	//before Kate changed the event to include all bins in one event
 	//but can only have 15 measurements, so we have to use vector3 instead of just sending each one
-    BinEvent(math::Vector3 vectorbin0_, double angle_,
+	//also conslidated the type: type = -2, bin not found, type=-1, bin found but not identified, otherwise identified
+        BinEvent(math::Vector3 vectorbin0_, double angle_,
 		math::Vector3 vectorbin1_, int type1_,
 		math::Vector3 vectorbin2_, int type2_,
 		math::Vector3 vectorbin3_, int type3_,

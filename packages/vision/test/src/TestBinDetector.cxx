@@ -326,6 +326,7 @@ TEST_FIXTURE(BinDetectorFixture, UpperLeft)
 
 TEST_FIXTURE(BinDetectorFixture, BinSpinAngleTest)
 {
+
     printf("Starting BinSpinAngleTest:\n");
     double thresh = 3;
     for (int deg = -180; deg < 180; deg+=13)

@@ -445,11 +445,15 @@ class RAM_EXPORT BinDetector : public Detector
 
 	//trying to keep teh bins at the same angle as the main
 
-	finalBins m_allbins;
-	double m_minanglepercent;
-	double m_maxanglepercent;
+	finalBins m_allbins; //data structure of all relevant data plus a little bit more
+	double m_minanglepercent; //min angle the internal bins can be, not really used
+	double m_maxanglepercent; //not really used
+	finalBins m_previousbins;
 
 	void publishFoundEventSURFAll();
+	int m_minAssumeFrame;
+	int m_minDistanceX;
+	int m_maxDistanceY;
 };
 
 } // namespace vision
