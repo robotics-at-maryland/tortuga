@@ -277,37 +277,6 @@ BinDetector:
     BinYMLPath: /home/kmcbryan/Documents/RAM/tortuga/data/config/vision/VisionTrainingTest2.yml
     TrainingImagesFilePath: /home/kmcbryan/Desktop/images/training/cropped
     SavingImagesFilePath: /home/kmcbryan/Documents/
-TargetDetector:
-    MinContourSize: 49
-    MinSize: 25
-    erodeIterations: 4
-    filtBlueHMax: 190
-    filtBlueHMin: 75
-    filtBlueSMax: 255
-    filtBlueSMin: 99
-    filtBlueVMax: 255
-    filtBlueVMin: 0
-    filtGreenHMax: 80
-    filtGreenHMin: 25
-    filtGreenSMax: 255
-    filtGreenSMin: 0
-    filtGreenVMax: 255
-    filtGreenVMin: 0
-    filtRedHMax: 146
-    filtRedHMin: 18
-    filtRedSMax: 255
-    filtRedSMin: 0
-    filtRedVMax: 255
-    filtRedVMin: 0
-    filtYellowHMax: 45
-    filtYellowHMin: 14
-    filtYellowSMax: 255
-    filtYellowSMin: 0
-    filtYellowVMax: 255
-    filtYellowVMin: 0
-    maxAspectRatio: 10
-    minAspectRatio: 0
-OrangePipeDetector:
     MaxAspectRatio: 5
     MinSize: 15
     erodeIterations: 1
@@ -321,3 +290,43 @@ OrangePipeDetector:
     minPixelsFound: 2500
     noHough: 0
     samePipeThreshold: 0.2
+TargetDetector:
+    MinContourSize: 6
+    MinSize: 6
+    bottomRemovePercentage: 0
+    dilateIterations: 0
+    erodeIterations: 2
+    filtBlueHMax: 190
+    filtBlueHMin: 75
+    filtBlueMax: 255
+    filtBlueMin: 145
+    filtBlueSMax: 255
+    filtBlueSMin: 99
+    filtBlueVMax: 255
+    filtBlueVMin: 0
+    filtGreenHMax: 80
+    filtGreenHMin: 25
+    filtGreenMax: 63
+    filtGreenMin: 27
+    filtGreenSMax: 255
+    filtGreenSMin: 0
+    filtGreenVMax: 255
+    filtGreenVMin: 0
+    filtRedHMax: 145
+    filtRedHMin: 18
+    filtRedSMax: 255
+    filtRedSMin: 0
+    filtRedVMax: 255
+    filtRedVMin: 0
+    filtYellowHMax: 45
+    filtYellowHMin: 15
+    filtYellowMax: 44
+    filtYellowMin: 0
+    filtYellowSMax: 255
+    filtYellowSMin: 0
+    filtYellowVMax: 255
+    filtYellowVMin: 0
+    maxAspectRatio: 1
+    minAspectRatio: 0.3
+    minGreenPixels: 500
+    topRemovePercentage: 0

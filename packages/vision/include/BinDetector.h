@@ -58,6 +58,32 @@ class RAM_EXPORT BinDetector : public Detector
 		double angle;
 		double width;
 		double height;
+		
+	};
+	struct binData
+	{
+
+		bool Box_found;
+		int Box_x;
+		int Box_y;
+		double Box_angle;	
+		int Box_height;
+		int Box_width;
+		bool Box_identified; //is it identified
+		int Box_numberofframes; //number of frames consistently id'd
+		int Box_type; //identification number
+		
+	};
+	struct finalBins
+	{
+		bool MainBox_found;
+		int MainBox_x;
+		int MainBox_y;
+		double MainBox_angle;
+		int MainBox_height;
+		int MainBox_width;
+		int MainBox_type; //identification number
+		binData Box[4];
 	};
 	
 
@@ -417,6 +443,13 @@ class RAM_EXPORT BinDetector : public Detector
 	bool m_Bin10FoundBefore;
 	bool m_Bin16FoundBefore;
 
+	//trying to keep teh bins at the same angle as the main
+
+	finalBins m_allbins;
+	double m_minanglepercent;
+	double m_maxanglepercent;
+
+	void publishFoundEventSURFAll();
 };
 
 } // namespace vision

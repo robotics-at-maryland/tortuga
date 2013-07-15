@@ -1048,7 +1048,7 @@ logger.infoStream() << "Publish Event: Center "<<m_targetCenterX <<", "<<m_targe
 				m_angle,
 				  m_color));
 				
-        printf("\n Publishing Target");
+        //printf("\n Publishing Target");
         publish(EventType::TARGET_FOUND, event);
 }
 

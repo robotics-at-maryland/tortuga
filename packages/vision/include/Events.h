@@ -16,7 +16,7 @@
 #include "vision/include/Color.h"
 
 #include "core/include/Event.h"
-
+#include "math/include/Events.h"
 #include "math/include/Math.h"
 
 // Must Be Included last
@@ -236,20 +236,68 @@ typedef boost::shared_ptr<PipeEvent> PipeEventPtr;
 class RAM_EXPORT BinEvent : public VisionEvent
 {
 public:
-    BinEvent(double x_, double y_, double range_, 
-             Symbol::SymbolType s_, math::Degree angle_) :
-        VisionEvent(x_, y_, range_),
-        symbol(s_), angle(angle_){}
-    
-    BinEvent(math::Degree angle_) :
-        VisionEvent(),
-        symbol(Symbol::UNKNOWN), angle(angle_) {}
+	
+	//before Kate changed the event to include all bins in one event
+	//but can only have 15 measurements, so we have to use vector3 instead of just sending each one
+    BinEvent(math::Vector3 vectorbin0_, double angle_,
+		math::Vector3 vectorbin1_, int type1_,
+		math::Vector3 vectorbin2_, int type2_,
+		math::Vector3 vectorbin3_, int type3_,
+		math::Vector3 vectorbin4_ , int type4_) :
+             vectorbin0(vectorbin0_),angle(angle_),  vectorbin1(vectorbin1_),type1(type1_),vectorbin2(vectorbin2_),type2(type2_),vectorbin3(vectorbin3_),type3(type3_),  vectorbin4(vectorbin4_),type4(type4_) {}
 
-    BinEvent() : VisionEvent(), symbol(Symbol::UNKNOWN), angle(0) {}
-    
-    Symbol::SymbolType symbol;
-    math::Degree angle;
+    //BinEvent(math::Degree angle_) :
+    //    angle(angle_) {}
 
+   /* BinEvent() : x(0),y(0),range(0), 
+	     x1(0),y1(0),range1(0),type1(-2),
+	     x2(0),y2(0),range2(0),type2(-2),
+	     x3(0),y3(0),range3(0),type3(-2),
+	     x4(0),y4(0),range4(0),type4(-2) {}
+  */
+
+	BinEvent(): vectorbin0(0,0,0),angle(0),
+			vectorbin1(0,0,0),type1(0),
+			vectorbin2(0,0,0),type2(0),
+			vectorbin3(0,0,0),type3(0),
+			vectorbin4(0,0,0),type4(0)  {}
+
+	math::Vector3 vectorbin0;
+	double angle;
+	math::Vector3 vectorbin1;
+	int type1;
+	math::Vector3 vectorbin2;
+	int type2;
+	math::Vector3 vectorbin3;
+	int type3;
+	math::Vector3 vectorbin4;
+	int type4;
+   // Symbol::SymbolType symbol;
+	/*
+	double x;
+	double y;
+	double range;
+
+	double x1;
+	double y1;
+	double range1;
+	int type1;
+
+	double x2;
+	double y2;
+	double range2;
+	int type2;
+
+	double x3;
+	double y3;
+	double range3;
+	int type3;
+
+	double x4;
+	double y4;
+	double range4;
+	int type4;
+	*/
     virtual core::EventPtr clone();
 };
 

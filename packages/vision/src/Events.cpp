@@ -214,14 +214,25 @@ core::EventPtr PipeEvent::clone()
 
 core::EventPtr BinEvent::clone()
 {
-    BinEventPtr event = BinEventPtr(new BinEvent());
-    copyInto(event);
-    event->id = id;
-    event->x = x;
-    event->y = y;
-    event->symbol = symbol;
-    event->angle = angle;
-    event->range = range;
+	BinEventPtr event = BinEventPtr(new BinEvent());
+	copyInto(event);
+	event->vectorbin0= vectorbin0;
+	event->angle = angle;
+
+	event->vectorbin1= vectorbin1;
+	event->type1=type1;
+
+	event->vectorbin2= vectorbin2;
+	event->type2=type2;
+
+	event->vectorbin3= vectorbin3;
+	event->type3=type3;
+
+	event->vectorbin4= vectorbin4;
+	event->type4=type4;
+
+
+
     return event;
 }
 
