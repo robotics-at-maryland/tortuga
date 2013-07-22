@@ -401,10 +401,6 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "maxDistanceX",
         "max allowed distance in Y between frames",
          40, &m_maxDistanceY, 0, 500);
-
-    propSet->addProperty(config, false, "MinimumFrames",
-        "Minimum Number of frames the bin id canbe assumed",
-         2, &m_minAssumeFrame, 0, 20);
 */
 
    m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
@@ -498,14 +494,17 @@ void BinDetector::init(core::ConfigNode config)
        "UpperLimitforBin",
         0.3, &m_upperlimit, 0.0, 2.0); // 50 in Dans version
 
- propSet->addProperty(config, false, "MaxAnglePercent",
-        "MaxAnglePercent",
-        8.0, &m_maxanglepercent, 0.0, 20.0); // 50 in Dans version
+ propSet->addProperty(config, false, "MaxdistanceX",
+        "maximum distance in X to be considered same bin as previous frame",
+        90, &m_maxdistanceX, 0, 200); // 50 in Dans version
 
- propSet->addProperty(config, false, "MinAnglePercent",
-       "MinAnglePercent",
-        0.3, &m_minanglepercent, 0.0, 2.0); // 50 in Dans version
+ propSet->addProperty(config, false, "maxdistsanceY",
+       "maximum distance in Y to be considered same bin as previous frame",
+        90, &m_maxdistanceY, 0, 200); // 50 in Dans version
 
+    propSet->addProperty(config, false, "MinimumFrames",
+        "Minimum Number of frames the bin id canbe assumed",
+         5, &m_minAssumeFrame, 0, 20);
 
 
 }
@@ -1404,6 +1403,7 @@ buoy
 	//logger.infoStream() << " Starting getSquareBlob, done with all color filters";
 	int numberoftrackedcontours = 6;
 	bincontours bins[numberoftrackedcontours];
+	//printf("\n entering getSquareBlob");
 	getSquareBlob(img_red_final, bins,numberoftrackedcontours);
 
 	//allocate data
@@ -1503,6 +1503,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		bins[k].angle = 0;
 		bins[k].height=0;
 		bins[k].width=0;
+		
 
 	}
 	bool used; //used later on to when trying to find the top areas
@@ -1516,6 +1517,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	Point2f vertices[4];
 //find the largest rectangular contour
 //find the contours inside that one
+
+	//printf("\n about to find largest");
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
 		if (contours[j].size()>5)
@@ -1581,7 +1584,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			}
 		}//end if size
 	};
-
+	//printf("\n have final");
 	//printf("\n FINAL j = %d, countoursize = %d, area = %d, aspectratio_diff =%f",bins[0].contournumber,contours[bins[0].contournumber].size(),bins[0].area,bins[0].aspectratio_diff);
 	//logger.infoStream() << " Largest Contour: Size = "<< contours[bins[0].contournumber].size() <<" ";
 	for (int i = 0; i < 4; i++)
@@ -1699,27 +1702,44 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	for (int k=0;k<numberoftrackedcontours;k++)
 	{
 		
-		if (bins[k].found==true)
+		if (bins[k].found==true )
 		{
 			//printf("\n angle = %f",bins[k].angle);
 			temp = minAreaRect(contours[bins[k].contournumber]); //finds the rectangle that will encompass all the points
-			
+			//printf(" got temp");
 			Mmap = getRotationMatrix2D(temp.center,temp.angle,1.0);
+			////printf(" mmap center = %f, %f", temp.center.x, temp.center.y);
 			warpAffine(img_whitebalance_gray, rotated, Mmap, img_whitebalance.size(), INTER_CUBIC);
-			getRectSubPix(rotated, temp.size, temp.center, cropped[k]);
-			if (temp.size.width > temp.size.height)
-			{
-				//need to transpose image
-				//dont want to tranpose becase that... tranposes want to rotate, so I'll just flip it at the end
-				transpose(cropped[k], finalcropped[k]);
-				flip(finalcropped[k], finalcropped[k], 0); //0  flips vertical
+			//printf(" warpAffine");
+			//printf(" about to resize. size  %f,%f", temp.size.height, temp.size.width);
+			if (temp.size.height < 10 || temp.size.width < 10)
+			{	
+				printf("\n unable to rescale bin"); 
+				//make empty- just unable to get rotated image
+
 			}
 			else
 			{
-				finalcropped[k] = cropped[k];	
-			}
+				getRectSubPix(rotated, temp.size, temp.center, cropped[k]);
+						
 
-			resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
+				if (temp.size.width > temp.size.height)
+				{
+					//printf(" flipping");
+					//need to transpose image
+					//dont want to tranpose becase that... tranposes want to rotate, so I'll just flip it at the end
+					transpose(cropped[k], finalcropped[k]);
+					flip(finalcropped[k], finalcropped[k], 0); //0  flips vertical
+
+				}
+				else
+				{
+					//printf(" else");
+					finalcropped[k] = cropped[k];	
+				}
+
+				resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
+			}
 			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
 
 	/*
@@ -1771,7 +1791,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		m_trainingsuccess = 0;
 	}
 
-	//printf("\n numberof classes = %d",m_numberofclasses);
+	printf("\n numberof classes = %d",m_numberofclasses);
 	int foundBinType = 0;
 	double foundBinValue = 100;
 	int Bin37,Bin10,Bin16,Bin98;
@@ -1887,40 +1907,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 						//logger.infoStream() << "Unable to retrieve Keypoints for image" <<k ;
 
 					}
-					
-				/*
-					//Get keypoints of potential bin
-					detector.detect(finalresize[k], keypoints_bin_test0);
-					extractor.compute(finalresize[k], keypoints_bin_test0, descriptors_bin_test);
-					
-					if (keypoints_bin_test0.size() > 0 && descriptors_bin_test.size() > 0)
-					{
-						for (j1 = 1;j1<m_numberofclasses;j1++)
-						{
-	 					  max_dist = 0;
-						  min_dist = 10000;
-						  total_dist= 0;
-							for (j2 = 0;j2<m_numberoftrainingimages;j2++)
-							{
-								rownumber = (j1-1)*m_numberoftrainingimages+j2;
-								//match with training images
-								matcher.match(descriptors_object[rownumber],descriptors_bin_test, matches0 );
-								//printf(" \n matched0 =%d",descriptors_0.rows);
 
-								
-								  for( i2= 0; i2< descriptors_0.rows; i2++ )
-								  { dist = matches0[i2].distance;
-								    if( dist < min_dist ) min_dist = dist;
-								    if( dist > max_dist ) max_dist = dist;
-								    total_dist = dist+total_dist;
-								  }
-							}//end for j2
-							avgDistance[j1-1] = total_dist/m_numberoftrainingimages;
-						}//end for j1
-
-
-					}//end if keypoints good
-					*/
 				} //end if bins found
 			}//end for k
 		}//end if training data loaded
@@ -2016,6 +2003,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		bins[Bin16].identified = true;
 	}
 
+
 	//have bins - so Now I need to publish the event
 
 	//imshow("final",img_whitebalance); 
@@ -2030,12 +2018,14 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 
 		if (i == 0 && bins[0].found == true)
 		{
-			m_allbins.MainBox_found = false;
+			printf("\n setting m_allbins.MainBox_found = true");
+			m_allbins.MainBox_found = true;
 			m_allbins.MainBox_x = bins[i].centerx;	
 			m_allbins.MainBox_y = bins[i].centery;	
 			m_allbins.MainBox_angle = bins[i].angle;	
 			m_allbins.MainBox_height = bins[i].height;
 			m_allbins.MainBox_width = bins[i].width;
+			m_allbins.MainBox_type = 1;
 		}
 		else if (bins[0].found == false)
 		{	
@@ -2046,6 +2036,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			m_allbins.MainBox_angle = 0;	
 			m_allbins.MainBox_height =0;
 			m_allbins.MainBox_width = 0;
+			m_allbins.MainBox_type = 0;
 		}
 		else if (bins[i].found == true && bins[0].found == true && i>0 && i<5)
 		{
@@ -2053,12 +2044,27 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			m_allbins.Box[i-1].Box_x = bins[i].centerx;
 			m_allbins.Box[i-1].Box_y = bins[i].centery;
 			m_allbins.Box[i-1].Box_angle =bins[i].angle;
-			m_allbins.Box[i-1].Box_height =bins[i].height;
-			m_allbins.Box[i-1].Box_width =bins[i].width;
+			if (bins[i].height > bins[i].width)
+			{
+				m_allbins.Box[i-1].Box_width =bins[i].width;
+				m_allbins.Box[i-1].Box_height =bins[i].height;
+			}
+			else
+			{
+				m_allbins.Box[i-1].Box_width =bins[i].height;
+				m_allbins.Box[i-1].Box_height =bins[i].width;
+			}
 			m_allbins.Box[i-1].Box_identified = bins[i].identified;	
-			m_allbins.Box[i-1].Box_numberofframes =0;
-			m_allbins.Box[i-1].Box_type =bins[i].type;
 			
+			//m_allbins.Box[i-1].Box_numberofframes =0;
+			if (bins[i].identified == true && (bins[i].type == 16 ||bins[i].type == 10 ||bins[i].type == 98|| bins[i].type == 37))
+				m_allbins.Box[i-1].Box_type =bins[i].type;
+			else
+			{
+				m_allbins.Box[i-1].Box_type = 0;	
+				m_allbins.Box[i-1].Box_identified = false;
+			}	
+
 		}//end else
 		else if(i>0 && i<5)
 		{
@@ -2074,7 +2080,39 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		}
 	}//for i
 		
-		
+if (m_framecount > 2)		
+	checkPreviousFrames();
+
+for (int i=0;i<numberoftrackedcontours;i++)	
+{
+	printf("\n Allbins = boxfound = %d, Type %d, numberofframes = %d",m_allbins.Box[i].Box_found, m_allbins.Box[i].Box_type,m_allbins.Box[i].Box_numberofframes);
+}
+
+//Draw boxes
+if (m_allbins.MainBox_found== true)
+{		
+	for (int i=0;i<numberoftrackedcontours;i++)
+	{
+		if (m_allbins.Box[i].Box_found == true && m_allbins.Box[i].Box_type == 16)
+		{
+			cv::circle(img_whitebalance, cvPoint(m_allbins.Box[i].Box_x,m_allbins.Box[i].Box_y),m_allbins.Box[i].Box_width, Scalar(0,255,255), 10, 8);
+		}
+		if (m_allbins.Box[i].Box_found == true && m_allbins.Box[i].Box_type == 10)
+		{
+			cv::circle(img_whitebalance, cvPoint(m_allbins.Box[i].Box_x,m_allbins.Box[i].Box_y),m_allbins.Box[i].Box_width, Scalar(255,0,0), 10, 8);
+		}
+		if (m_allbins.Box[i].Box_found == true && m_allbins.Box[i].Box_type == 37)
+		{
+			cv::circle(img_whitebalance, cvPoint(m_allbins.Box[i].Box_x,m_allbins.Box[i].Box_y),m_allbins.Box[i].Box_width, Scalar(0,0,255), 10, 8);
+		}
+		if (m_allbins.Box[i].Box_found == true && m_allbins.Box[i].Box_type == 98)
+		{
+			cv::circle(img_whitebalance, cvPoint(m_allbins.Box[i].Box_x,m_allbins.Box[i].Box_y),m_allbins.Box[i].Box_width, Scalar(0,255,0), 10, 8);
+		}
+	}
+
+
+}
 
 	return;
 }
@@ -2535,16 +2573,15 @@ void BinDetector::publishFoundEventSURFAll()
 
 
 
-/*
-
 void BinDetector::checkPreviousFrames()
 {
+	printf("\n nchecking previous frames");
 
 	//Have the previous frames bins and also have the new frames' bin
 	//now lets compare them!
 
-	int maxXdistance = 50;
-	int maxYdistance= 50;
+	int maxdistanceX = m_maxdistanceX;
+	int maxdistanceY= m_maxdistanceY;
 	int distanceX=0,distanceY=0;
 	//check main bin first
 	int minDistance[4];
@@ -2560,85 +2597,332 @@ void BinDetector::checkPreviousFrames()
 	minDistanceBin[3]=0;
 
 	int tempDistance;
-	if (m_previousbins.MainBox_Found == true && m_allbins.MainBox_Found == true)
+	printf(" previous = %d, all = %d", m_previousbins.MainBox_found, m_allbins.MainBox_found);
+	if (m_previousbins.MainBox_found == true && m_allbins.MainBox_found == true)
 	{
+		printf("\n both boxes are found");
 		distanceX= abs(m_allbins.MainBox_x-m_previousbins.MainBox_x);
 		distanceY= abs(m_allbins.MainBox_y-m_previousbins.MainBox_y);
-		if ((distanceX < maxXdistance) &&(distanceY<maxYdistance))
+		if ((distanceX < maxdistanceX) &&(distanceY<maxdistanceY))
 		{
 			//same main bin as previoius
 			//good. Now check the rest
 			for (int i= 0;i<5;i++)
 			{
-				if (m_allbins.Box[i].Box_Found == true)
+				if (m_allbins.Box[i].Box_found == true)
 				{
 					for (int j= 0;j<5;j++)
 					{
-						if (m_previousbins.Box[j].Box_Found == true)
+						if (m_previousbins.Box[j].Box_found == true)
 						{
+						//printf("\n found previous bin and found current bin");
 							tempDistance = abs(m_allbins.Box[i].Box_x-m_previousbins.Box[j].Box_x)+
 									abs(m_allbins.Box[i].Box_y-m_previousbins.Box[j].Box_y);
-							if ((abs(m_allbins.Box[i].Box_x-m_previousbins.Box[j].Box_x) < minDistanceX) && 
-								(abs(m_allbins.Box[i].Box_y-m_previousbins.Box[j].Box_y) <maxDistanceY) && (tempDistance < minDistance[i]))
+							if ((abs(m_allbins.Box[i].Box_x-m_previousbins.Box[j].Box_x) < maxdistanceX) && 
+								(abs(m_allbins.Box[i].Box_y-m_previousbins.Box[j].Box_y) <maxdistanceY) && (tempDistance < minDistance[i]))
 						 	{
 								minDistance[i] = tempDistance;
 								minDistanceBin[i] = j;
 							}
 						}
 					}//end int j
-					if (minDistance[i] < (minDistanceX+minDistanceY)/2)
+					//printf(" min distance = %d", minDistance[i]);
+					if (minDistance[i] < (maxdistanceX+maxdistanceY)/2)
 					{
+						//printf(" same bin");
 						//same bin as seen before
 						//check the ID 
-						if (m_allbins.Box[i].Box_identified== true && m_previousbins.Box[j].Box_identified == true)
+						if (m_allbins.Box[i].Box_identified== true && m_previousbins.Box[minDistanceBin[i]].Box_identified == true)
 						{
-						  //do they match? 
-							if (m_allbins.Box[i].Box_type== m_previousbins.Box[j].Box_type)
+							//do they match? 
+							if (m_allbins.Box[i].Box_type== m_previousbins.Box[minDistanceBin[i]].Box_type)
 							{
 								//good, increase the numberof frame value
-								if (m_allbins.Box[i].Box_numberofframes < 0)
-									m_allbins.Box[i].Box_numberofframes = 0;
-								if (m_allbins.Box[i].Box_numberofframes > m_numberofframes)
-									m_allbins.Box[i].Box_numberofframes=0
+								if (m_allbins.Box[i].Box_type == 16)
+								{
+									if (m_bin16frames < 1 || m_bin16frames > m_framecount)
+										m_bin16frames = 0;
 
-								m_allbins.Box[i].Box_numberofframes = m_allbins.Box[i].Box_numberofframes+1;
+									m_bin16frames = m_bin16frames +1;
+									m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+								}
+								else if (m_allbins.Box[i].Box_type == 10)
+								{
+									if (m_bin10frames < 1 || m_bin10frames > m_framecount)
+										m_bin10frames = 0;
+
+									m_bin10frames = m_bin10frames +1;
+									m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+								}
+							
+								if (m_allbins.Box[i].Box_type == 37)
+								{
+									if (m_bin37frames < 1 || m_bin37frames > m_framecount)
+										m_bin37frames = 0;
+
+									m_bin37frames = m_bin37frames +1;
+									m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+								}
+							
+								if (m_allbins.Box[i].Box_type == 98)
+								{
+									if (m_bin98frames < 1 || m_bin98frames > m_framecount)
+										m_bin98frames = 0;
+
+									m_bin98frames = m_bin98frames +1;
+									m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+								}
+
+								
+
+								//printf(" matched id as before = %d", m_allbins.Box[i].Box_numberofframes);
 							}
 							else
 							{ 
 								//they dont match
 								if (m_allbins.Box[i].Box_numberofframes >m_minAssumeFrame)
 								{ 
-									//can assume the old one was correct
-									m_allbins.Box[i].Box_type = m_previousbins.Box[j].Box_type;
-									m_allbins.Box[i].Box_numberofframes = m_allbins.Box[i].Box_numberofframes-1;
+									//need to make sure I dont have two of the same bin types now
+									bool idusedbefore = false;
+									for (int i2= 0;i2<5;i2++)
+									{
+										if (i2 != i && m_allbins.Box[i2].Box_found == true && m_allbins.Box[i2].Box_type ==  m_previousbins.Box[minDistanceBin[i]].Box_type)
+										{
+											idusedbefore = true;
+										}
+									}
+									if (idusedbefore == false)
+									{
+										m_allbins.Box[i].Box_type = m_previousbins.Box[minDistanceBin[i]].Box_type;
+										if (m_allbins.Box[i].Box_type == 16)
+										{
+											if (m_bin16frames < 1 || m_bin16frames > m_framecount)
+												m_bin16frames = 0;
+
+											m_bin16frames = m_bin16frames -1;
+											m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+										}
+										else if (m_allbins.Box[i].Box_type == 10)
+										{
+											if (m_bin10frames < 1 || m_bin10frames > m_framecount)
+												m_bin10frames = 0;
+
+											m_bin10frames = m_bin10frames -1;
+											m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+										}
+							
+										if (m_allbins.Box[i].Box_type == 37)
+										{
+											if (m_bin37frames < 1 || m_bin37frames > m_framecount)
+												m_bin37frames = 0;
+
+											m_bin37frames = m_bin37frames -1;
+											m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+										}
+							
+										if (m_allbins.Box[i].Box_type == 98)
+										{
+											if (m_bin98frames < 1 || m_bin98frames > m_framecount)
+												m_bin98frames = 0;
+
+											m_bin98frames = m_bin98frames -1;
+											m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+										}
+
+
+
+									}
+									else
+									{
+										//reset counter can't assume the type- so keep as what was found
+										if (m_allbins.Box[i].Box_type == 16)
+										{
+											m_bin16frames = 0;
+											m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+										}
+										else if (m_allbins.Box[i].Box_type == 10)
+										{
+											m_bin10frames = 0;
+											m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+										}
+							
+										if (m_allbins.Box[i].Box_type == 37)
+										{
+											m_bin37frames = 0;
+											m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+										}
+							
+										if (m_allbins.Box[i].Box_type == 98)
+										{
+											m_bin98frames = 0;
+											m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+										}
+
+									}
+									
 								}
 								else
 								{
-									//reset counter can't assume the type
-									m_allbins.Box[i].Box_numberofframes = 0;
+									//reset counter can't assume the type- so keep as what was found
+									if (m_allbins.Box[i].Box_type == 16)
+									{
+										m_bin16frames = 0;
+										m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+									}
+									else if (m_allbins.Box[i].Box_type == 10)
+									{
+										m_bin10frames = 0;
+										m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+									}
+							
+									if (m_allbins.Box[i].Box_type == 37)
+									{
+										m_bin37frames = 0;
+										m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+									}
+							
+									if (m_allbins.Box[i].Box_type == 98)
+									{
+										m_bin98frames = 0;
+										m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+									}
+
+								}
+								//printf(" No match = %d", m_allbins.Box[i].Box_numberofframes);
+							}
+						}//end if have IDs for both of them
+						else if (m_allbins.Box[i].Box_identified== true)
+						{
+							//only have current bin
+							if (m_allbins.Box[i].Box_type == 16)
+							{
+								m_bin16frames = 0;
+								m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+							}
+							else if (m_allbins.Box[i].Box_type == 10)
+							{
+								m_bin10frames = 0;
+								m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+							}
+							if (m_allbins.Box[i].Box_type == 37)
+							{
+								m_bin37frames = 0;
+								m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+							}
+							if (m_allbins.Box[i].Box_type == 98)
+							{
+								m_bin98frames = 0;
+								m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+							}
+
+
+						}
+						else if (m_previousbins.Box[minDistanceBin[i]].Box_identified == true && m_allbins.Box[i].Box_numberofframes >m_minAssumeFrame)
+						{
+							//can assume the old one was correct- if its not alredy found
+							bool idusedbefore = false;
+							for (int i2= 0;i2<5;i2++)
+							{
+								if (i2 != i && m_allbins.Box[i2].Box_found == true && m_allbins.Box[i2].Box_type ==  m_previousbins.Box[minDistanceBin[i]].Box_type)			{
+									idusedbefore = true;
 								}
 							}
-						}//end if have borth of them
-						else if (m_allbins.Box[i].Box_identified== false && m_previousbins.Box[j].Box_identified == true)
-						{
+							if (idusedbefore == false)
+							{
+								m_allbins.Box[i].Box_type = m_previousbins.Box[minDistanceBin[i]].Box_type;	
+								if (m_allbins.Box[i].Box_type == 16)
+								{
+									m_bin16frames = m_bin16frames -1;
+									m_allbins.Box[i].Box_numberofframes = m_bin16frames;
+								}
+								else if (m_allbins.Box[i].Box_type == 10)
+								{
+									m_bin10frames = m_bin10frames -1;
+									m_allbins.Box[i].Box_numberofframes = m_bin10frames;
+								}
+							
+								if (m_allbins.Box[i].Box_type == 37)
+								{
+									m_bin37frames = m_bin37frames -1;
+									m_allbins.Box[i].Box_numberofframes = m_bin37frames;
+								}
+							
+								if (m_allbins.Box[i].Box_type == 98)
+								{
+									m_bin98frames = m_bin98frames -1;
+									m_allbins.Box[i].Box_numberofframes = m_bin98frames;
+								}
+							
+							
+								m_allbins.Box[i].Box_identified= true;
+							}
+							else
+							{
+								m_allbins.Box[i].Box_type = 0;
+							}
 
-						
+
+							
+							//again, need to make sure there aren't more than one of these bin types
+						}
 					}//end if (minDistance[i] < (minDistanceX+minDistanceY)/2)
 					else
 					{
 					  	//unable to tell if they are the same bin
 						//so do nothing
-						m_allbins.Box[i].Box_numberofframes = 0;
+						//m_allbins.Box[i].Box_numberofframes = 0;
 			
 					}
 				} //end if m_allbins = true
 			}//end int i
 
 		} //end same main bin
+	} //end previous bins exist
+
+	//if bin isn't found, make sure its counter is reset
+	if ( m_allbins.MainBox_found == true)
+	{
+		m_Bin37Found = false;
+		m_Bin98Found=false;
+		m_Bin10Found=false;
+		m_Bin16Found=false;
+		for (int i= 0;i<5;i++)
+		{
+			if (m_allbins.Box[i].Box_found == true)
+			{
+
+				if (m_allbins.Box[i].Box_type == 16)
+				{
+					m_Bin16Found = true;
+				}
+				if (m_allbins.Box[i].Box_type == 10)
+				{
+					m_Bin10Found = true;
+				}
+				if (m_allbins.Box[i].Box_type == 37)
+				{
+					m_Bin37Found = true;
+				}
+				if (m_allbins.Box[i].Box_type == 98)
+				{
+					m_Bin98Found = true;
+				}
+
+			} //end if inner bin found
+
+		} //end for i
+		if (m_Bin37Found == false)
+			m_bin37frames =0;
+		if (m_Bin16Found == false)
+			m_bin16frames =0;
+		if (m_Bin10Found == false)
+			m_bin10frames =0;
+		if (m_Bin98Found == false)
+			m_bin98frames =0;
 	}
 
 }
-*/
+
 
 void BinDetector::processImage(Image* input, Image* out)
 {
@@ -2646,15 +2930,21 @@ void BinDetector::processImage(Image* input, Image* out)
   	if(m_framecount < 2)
 	{
 		m_trainingsuccess =0;
+		m_bin16frames=0;
+		m_bin37frames=0;
+		m_bin10frames=0;
+		m_bin98frames=0;
 	}
 
-    m_framecount =  m_framecount+1;
+   	m_framecount =  m_framecount+1;
+	//printf("\n framecount = %d", m_framecount);
 
+	if (m_framecount > 1 && m_allbins.MainBox_found==true)
+	{
+		m_previousbins= m_allbins;
+		//printf("\n saving allbins as previousbins: found = %d", m_previousbins.MainBox_found);
+	}
 
-//	if (m_framecount > 1 && m_bins.MainBox_Found==true)
-//	{
-//		m_previousbins= m_allbins;
-//	}
     DetectorContours(input); //find bins
 
 	//Have the previous frames bins and also have the new frames' bin

@@ -1147,40 +1147,42 @@ logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targe
 	//plot pretty results
 	//for (int i = 0; i < 4; i++)
   	//	line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));
-	
- 	if (square.targetLarge.size.width > minTargetSize && square.targetLarge.size.height > minTargetSize && square.foundLarge == true)
+	if (square.foundLarge == true)
 	{
-		m_largeflag = true;
-		//valid
-		Detector::imageToAICoordinates(input, 
-                         (int)square.targetLarge.center.x,
-                         (int)square.targetLarge.center.y,
-                          m_targetLargeCenterX,
-                          m_targetLargeCenterY);
-		m_rangelarge = square.targetLarge.size.width; 
+	 	if (square.targetLarge.size.width > minTargetSize && square.targetLarge.size.height > minTargetSize)
+		{
+			m_largeflag = true;
+			//valid
+			Detector::imageToAICoordinates(input, 
+		                 (int)square.targetLarge.center.x,
+		                 (int)square.targetLarge.center.y,
+		                  m_targetLargeCenterX,
+		                  m_targetLargeCenterY);
+			m_rangelarge = square.targetLarge.size.width; 
 
-		//plot pretty results
-		if (m_color == Color::RED)
-		{
-			ellipse(img_whitebalance, square.targetLarge, Scalar(0,0,255), 4, 8 );
-		}
-		else if (m_color == Color::GREEN)
-		{
-			ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,0), 4, 8 );
-		}
-		else if (m_color == Color::BLUE)
-		{
-			ellipse(img_whitebalance, square.targetLarge, Scalar(255,0,0), 4, 8 );
-		}
-		else if (m_color == Color::YELLOW)
-		{
-			ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,255), 4, 8 );
-		}
-		else 
-		{
-			ellipse(img_whitebalance, square.targetLarge, Scalar(255,255,0), 4, 8 );
-		}
+			//plot pretty results
+			if (m_color == Color::RED)
+			{
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,0,255), 4, 8 );
+			}
+			else if (m_color == Color::GREEN)
+			{
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,0), 4, 8 );
+			}
+			else if (m_color == Color::BLUE)
+			{
+				ellipse(img_whitebalance, square.targetLarge, Scalar(255,0,0), 4, 8 );
+			}
+			else if (m_color == Color::YELLOW)
+			{
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,255), 4, 8 );
+			}
+			else 
+			{
+				ellipse(img_whitebalance, square.targetLarge, Scalar(255,255,0), 4, 8 );
+			}
 
+		}
 	}
 	else
 	{
@@ -1189,36 +1191,39 @@ logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targe
                 m_targetLargeCenterY=0;
 		m_rangelarge =0;
 	}
-  	if (square.targetSmall.size.width > minTargetSize && square.targetSmall.size.height > minTargetSize &&  square.foundSmall == true)
+	if (square.foundSmall == true)
 	{
-		m_smallflag = true;
-		//valid
-		Detector::imageToAICoordinates(input, 
-                         (int)square.targetSmall.center.x,
-                         (int)square.targetSmall.center.y,
-                         m_targetSmallCenterX,
-                         m_targetSmallCenterY);
+	  	if (square.targetSmall.size.width > minTargetSize && square.targetSmall.size.height > minTargetSize)
+		{
+			m_smallflag = true;
+			//valid
+			Detector::imageToAICoordinates(input, 
+		                 (int)square.targetSmall.center.x,
+		                 (int)square.targetSmall.center.y,
+		                 m_targetSmallCenterX,
+		                 m_targetSmallCenterY);
 		
-		m_rangesmall = square.targetSmall.size.width; 
-		if (m_color == Color::RED)
-		{
-			ellipse(img_whitebalance, square.targetSmall, Scalar(0,0,150), 4, 8 );
-		}
-		else if (m_color == Color::GREEN)
-		{
-			ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,0), 4, 8 );
-		}
-		else if (m_color == Color::BLUE)
-		{
-			ellipse(img_whitebalance, square.targetSmall, Scalar(150,0,0), 4, 8 );
-		}
-		else if (m_color == Color::YELLOW)
-		{
-			ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,150), 4, 8 );
-		}
-		else 
-		{
-			ellipse(img_whitebalance, square.targetSmall, Scalar(150,150,0), 4, 8 );
+			m_rangesmall = square.targetSmall.size.width; 
+			if (m_color == Color::RED)
+			{
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,0,150), 4, 8 );
+			}
+			else if (m_color == Color::GREEN)
+			{
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,0), 4, 8 );
+			}
+			else if (m_color == Color::BLUE)
+			{
+				ellipse(img_whitebalance, square.targetSmall, Scalar(150,0,0), 4, 8 );
+			}
+			else if (m_color == Color::YELLOW)
+			{
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,150), 4, 8 );
+			}
+			else 
+			{
+				ellipse(img_whitebalance, square.targetSmall, Scalar(150,150,0), 4, 8 );
+			}
 		}
 	}
 	else
