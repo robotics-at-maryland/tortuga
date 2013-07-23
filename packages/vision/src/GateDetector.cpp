@@ -496,7 +496,17 @@ void GateDetector::FindContours(Mat img_src)
 		Vertical_small = Vertical_smallest;
 	}
 
-	if (Horizontal_large.area < minArea && Vertical_large.area >minArea && Vertical_small.area >minArea)
+	//found gate
+	if (Vertical_large.area >minArea && Vertical_small.area <minArea && Horizontal_large.area < minArea)
+	{
+		finalGate.area = Vertical_large.area;
+		finalGate.centerx = Vertical_large.centerx;
+		finalGate.centery = Vertical_large.centery;
+		finalGate.width = Vertical_large.width;
+		finalGate.height = Vertical_large.height;
+		finalGate.gatepieces = 1;
+	}	
+	else if (Horizontal_large.area < minArea && Vertical_large.area >minArea && Vertical_small.area >minArea)
 	{
 		//have two verticals which we have to assume form a gate
 		//information to save: center of gate and range, range => height information
@@ -505,6 +515,7 @@ void GateDetector::FindContours(Mat img_src)
 		finalGate.centery = (Vertical_large.centery + Vertical_small.centery)/2;
 		finalGate.width = abs(Vertical_large.centerx-Vertical_small.centerx);
 		finalGate.height = (Vertical_large.height + Vertical_small.height)/2;
+		finalGate.gatepieces = 2;
 	}
 	else if (Horizontal_large.area >minArea && Vertical_large.area >minArea )
 	{
@@ -514,7 +525,7 @@ void GateDetector::FindContours(Mat img_src)
 		//to do that, I need to find the minX and maxX value for the horizontals
 		temp = minAreaRect(contours[Horizontal_large.contournumber]); //finds the rectangle that will encompass all the points
 		temp.points(vertices);
-
+		finalGate.gatepieces = 2;
 		int minX = 9000;
 		int maxX =0;
 		
@@ -784,7 +795,7 @@ void GateDetector::publishFoundEventContour(contourblob contour, Color::ColorTyp
     event->x = centerX;
     event->y = centerY;
     event->range = contour.width;
-    event->azimuth = math::Degree((-1) * (xFOV / 2) * centerX);
+    event->azimuth = finalGate.gatepieces;
     event->elevation = math::Degree((yFOV / 2) * centerY);
     event->color = color;
     event->touchingEdge = false;

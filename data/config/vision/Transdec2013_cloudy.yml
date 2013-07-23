@@ -258,3 +258,20 @@ BuoyDetector:
     minWidth: 50
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
+GateDetector:
+    ErosionSize: 2
+    GreenHuemax: 80
+    GreenHuemin: 25
+    MaxAngleDiff: 20
+    RedHuemax: 127
+    RedHuemin: 9
+    RefelctionDiff: 50
+    Saturationmax: 157
+    Saturationmin: 0
+    Valuemax: 255
+    Valuemin: 0
+    diff: 100
+    maxAspectRatio: 6
+    minArea: 200
+    minAspectRatio: 0.25
+    thresholdwithred: 1

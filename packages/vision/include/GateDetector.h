@@ -32,6 +32,7 @@ struct contourblob
 	int height;
 	int centerx;
 	int centery;
+	int gatepieces;
 };
 
 class RAM_EXPORT GateDetector : public Detector
