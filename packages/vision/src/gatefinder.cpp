@@ -68,44 +68,7 @@ foundLines::parallelLinesPairs foundLines::hedgeblob(Mat img_hsv)
 
 
 foundLines::parallelLinesPairs foundLines::gateblob(Mat bw, Mat img_whitebalance)
-{
-	//m_found = false;
-	//Mat img_hsv;
-	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
-		
-	//use blob detection to find gate
-	//find left and right red poles - vertical poles
-	//vector<Mat> hsv_planes;
-	//split(img_hsv,hsv_planes);
-
-	//first take any value higher than max and converts it to 0
-	//red is a special case because the hue value for red are 0-10 and 170-1980
-	//same filter as the other cases followed by an invert
-	
-/*int red_minH = GateDetector::returnRedmin();
-	int red_maxH = GateDetector::m_redmaxH;
-	blobfinder blob;
-	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
-
-	//For attempting to use with canny
-	int erosion_type = 0;
-	int erosion_size = 1;
-	//if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
-	// else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
-	// else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
-	Mat element = getStructuringElement( erosion_type,
-                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
-                                       Point( erosion_size, erosion_size ) );
-
-  	/// Apply the erosion operation
-	Mat erosion_dst;
-  	erode(img_red, erosion_dst, element );
-  	//imshow( "Erosion Demo", erosion_dst );
-
-
-	//imshow("red",img_red);
-*/
-	
+{	
 	parallelLinesPairs parallelLinesresults = verticalParallelLines(bw,img_whitebalance);
 	//imshow("Vertical filter whitebalacnce",img_whitebalance);
 	return(parallelLinesresults);

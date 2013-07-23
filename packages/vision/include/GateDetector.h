@@ -22,6 +22,18 @@
 namespace ram {
 namespace vision {
     
+
+struct contourblob
+{
+	double angle;
+	int contournumber;
+	int area;
+	int width;
+	int height;
+	int centerx;
+	int centery;
+};
+
 class RAM_EXPORT GateDetector : public Detector
 {
   public:
@@ -63,10 +75,10 @@ bool m_found;
 	int m_redmaxH;
 	int m_greenminH;
 	int m_greenmaxH;
-	int m_yellowminH;
-	int m_yellowmaxH;
 	int m_minS;
 	int m_maxS;
+	int m_minV;
+	int m_maxV;
 	bool m_checkRed;
 
     int gateX;
@@ -84,7 +96,15 @@ bool m_found;
 	cv::Mat img_whitebalance;
 	cv::Mat img_gate;
 	foundLines gate;
-
+	int m_erosion_size;
+	int m_maxanglediff;
+	void FindContours(cv::Mat img_src);
+	double m_minAspectRatio;
+	double m_maxAspectRatio;
+	int m_minArea;
+	
+	void publishFoundEventContour(contourblob contour, Color::ColorType color);
+	contourblob finalGate; //final gate information using contours
 };
     
 } // namespace vision
