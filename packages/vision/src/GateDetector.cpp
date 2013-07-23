@@ -119,6 +119,25 @@ propSet->addProperty(config, false, "RefelctionDiff",
                          "ReflectionDiff",
                          50, &m_reflectiondiff, 0,500);
 
+propSet->addProperty(config, false, "CannyLow",
+                         "CannyLow",
+                         50, &m_cannylow, 0,900);
+
+
+propSet->addProperty(config, false, "CannyHigh",
+                         "CannyHigh",
+                         150, &m_cannyhigh, 0,5000);
+
+propSet->addProperty(config, false, "ToptoIgnore",
+                         "ToptoIgnore",
+                         150, &m_minY, 0,500);
+
+propSet->addProperty(config, false, "Dilate",
+                         "Dilate",
+                         1, &m_dilatesize, 0,5);
+
+
+
 }
     
 GateDetector::~GateDetector()
@@ -190,6 +209,8 @@ Mat GateDetector::processImageColor(Image*input)
 	cv::Mat img_saturation(img_whitebalance.size(),CV_8UC1); //S filter
 	cv::Mat img_luminance(img_whitebalance.size(),CV_8UC1);	//Vlaue filter
 	cv::Mat temp(img_whitebalance.size(),CV_8UC1); //temporary image for use when bitwising
+	cv::Mat dilate_dst(img_whitebalance.size(),CV_8UC1); //temporary image for use when bitwising
+
 
 	//printf("\n entering whitebalance");
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
@@ -228,6 +249,12 @@ Mat GateDetector::processImageColor(Image*input)
 		}	
 	  	erode(img_red, erosion_dst, element);
 
+		int dilate_size = m_dilatesize;
+		cv::Mat dilate_element = getStructuringElement( erosion_type,
+                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+                                       Point( dilate_size, dilate_size ) );
+		dilate(erosion_dst, dilate_dst, dilate_element );
+
 	}
 	else
 	{
@@ -248,11 +275,17 @@ Mat GateDetector::processImageColor(Image*input)
 		}	
 	  	erode(img_green, erosion_dst, element);
 
+		int dilate_size = m_dilatesize;
+		cv::Mat dilate_element = getStructuringElement( erosion_type,
+                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+                                       Point( dilate_size, dilate_size ) );
+		dilate(erosion_dst, dilate_dst, dilate_element );
+
 
 	}
 	//imshow("AND",erosion_dst);
 
-	return(erosion_dst);
+	return(dilate_dst);
 }
 void GateDetector::FindContours(Mat img_src)
 {
@@ -311,57 +344,62 @@ void GateDetector::FindContours(Mat img_src)
 			area = temp.size.width*temp.size.height;
 			foundaspectdiff = abs(temp.size.height/temp.size.width);
 			temp.points(vertices);
-
-			//get angle
-			maxdistance =0;
-			maxdistance2 = 0;
-			for (int i = 0; i < 4; i++)
+			if (temp.center.y > m_minY)
 			{
-				midpointx=(int)((vertices[i].x+vertices[(i+1)%4].x)/2);
-				midpointy =(int)((vertices[i].y+vertices[(i+1)%4].y)/2);
+				//get angle
+				maxdistance =0;
+				maxdistance2 = 0;
+				for (int i = 0; i < 4; i++)
+				{
+					midpointx=(int)((vertices[i].x+vertices[(i+1)%4].x)/2);
+					midpointy =(int)((vertices[i].y+vertices[(i+1)%4].y)/2);
 
-				distance = abs(temp.center.x-midpointx)+abs(temp.center.y-midpointy);
-				if (distance > maxdistance)
-				{
-					maxdistance2 = maxdistance;
-					midpointx2=midpointx1;
-					midpointy2=midpointy1;
-					maxdistance = distance;
-					midpointx1 = midpointx;
-					midpointy1 = midpointy;
+					distance = abs(temp.center.x-midpointx)+abs(temp.center.y-midpointy);
+					if (distance > maxdistance)
+					{
+						maxdistance2 = maxdistance;
+						midpointx2=midpointx1;
+						midpointy2=midpointy1;
+						maxdistance = distance;
+						midpointx1 = midpointx;
+						midpointy1 = midpointy;
+					}
+					else if (distance > maxdistance2)
+					{
+						maxdistance2 = distance;
+						midpointx2 = midpointx;
+						midpointy2 = midpointy;
+					}
 				}
-				else if (distance > maxdistance2)
-				{
-					maxdistance2 = distance;
-					midpointx2 = midpointx;
-					midpointy2 = midpointy;
-				}
-			}
-			//lower point always first
-			rise = (midpointy2-midpointy1);
-			run = (midpointx2-midpointx1);
+				//lower point always first
+				rise = (midpointy2-midpointy1);
+				run = (midpointx2-midpointx1);
 		
 	
-			if (run != 0)
-			{
-				angle =atan((double)rise/(double)run)*(180.0/3.14);
-				if (angle < 0)
+				if (run != 0)
 				{
-					angle = angle + 90; //correction to make vertical = 0
-				}
-				else if (angle > 0)
-				{
-					angle = angle -90; //correction to make vertical = 0
+					angle =atan((double)rise/(double)run)*(180.0/3.14);
+					if (angle < 0)
+					{
+						angle = angle + 90; //correction to make vertical = 0
+					}
+					else if (angle > 0)
+					{
+						angle = angle -90; //correction to make vertical = 0
+					}		
 				}		
-			}		
+				else
+				{
+					angle = 0;
+				}
+
+				angle = abs(angle);
+				drawContours(img_whitebalance,contours,j, Scalar(0,150,0), 2, 8, hierarchy, 0, Point() ); 
+			}
 			else
 			{
-				angle = 0;
+				area = 0;		
 			}
-
-			angle = abs(angle);
-			drawContours(img_whitebalance,contours,j, Scalar(0,150,0), 2, 8, hierarchy, 0, Point() ); 
-
 			//printf("\n area = %f, aspectratio = %f, angle = %f, rise = %f, run=%f",area, foundaspectdiff,angle,rise,run);
 			if (area > minArea && abs(angle-90)<m_maxanglediff&& (foundaspectdiff > m_maxAspectRatio || foundaspectdiff < m_minAspectRatio))
 			{
@@ -466,7 +504,7 @@ void GateDetector::FindContours(Mat img_src)
 
 	//DEALING WITH REFLECTION FOR VERTICALS
 	int reflection_small=0,reflection_smaller=0,reflection_smallest =0;
-	//printf("\n Large = %d, small %d, smaller %d, smallest %d",Vertical_large.centerx, Vertical_small.centerx, Vertical_smaller.centerx, Vertical_smallest.centerx);
+	printf("\n Large = %d, small %d, smaller %d, smallest %d",Vertical_large.centerx, Vertical_small.centerx, Vertical_smaller.centerx, Vertical_smallest.centerx);
 	if (Vertical_small.area >minArea && abs(Vertical_small.centerx-Vertical_large.centerx)<m_reflectiondiff)
 	{
 		//Then small is a reflection of large
@@ -667,7 +705,18 @@ void GateDetector::FindContours(Mat img_src)
 
 void GateDetector::processImage(Image* input, Image* output)
 {	
+	
+	//Mat img = input->asIplImage();
+	//Mat img_whitebalance2 = WhiteBalance(img);
+	//Mat bw;
+	//cvtColor(img_whitebalance2,bw,CV_BGR2HSV);
+
 	Mat imgprocess = processImageColor(input);
+	imshow("ImgProcess",imgprocess);
+
+	//cv::Canny(bw,bw, m_cannylow, m_cannyhigh, 3);
+	//imshow("Canny",bw);
+
 	FindContours(imgprocess);
 	//foundLines::parallelLinesPairs final= gate.gateblob(imgprocess,img_whitebalance); //built in redfilter
 	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter

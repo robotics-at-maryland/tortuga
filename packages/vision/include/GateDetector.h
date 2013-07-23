@@ -107,6 +107,11 @@ bool m_found;
 	void publishFoundEventContour(contourblob contour, Color::ColorType color);
 	contourblob finalGate; //final gate information using contours
 	int m_reflectiondiff;
+	int m_cannylow;
+	int m_cannyhigh;
+	int m_minY;
+
+	int m_dilatesize;
 };
     
 } // namespace vision

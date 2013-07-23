@@ -259,19 +259,22 @@ BuoyDetector:
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
 GateDetector:
-    ErosionSize: 2
+    CannyHigh: 150
+    CannyLow: 50
+    ErosionSize: 0
     GreenHuemax: 80
     GreenHuemin: 25
     MaxAngleDiff: 20
     RedHuemax: 127
     RedHuemin: 9
     RefelctionDiff: 50
-    Saturationmax: 157
-    Saturationmin: 0
-    Valuemax: 255
-    Valuemin: 0
+    Saturationmax: 105
+    Saturationmin: 18
+    ToptoIgnore: 150
+    Valuemax: 124
+    Valuemin: 89
     diff: 100
-    maxAspectRatio: 6
+    maxAspectRatio: 3
     minArea: 200
     minAspectRatio: 0.25
     thresholdwithred: 1
