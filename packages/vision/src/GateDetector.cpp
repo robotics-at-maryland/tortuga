@@ -213,9 +213,9 @@ Mat GateDetector::processImageColor(Image*input)
 
 
 	//printf("\n entering whitebalance");
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 	vector<Mat> hsv_planes;
-	split(img_hsv,hsv_planes);
+	split(img_whitebalance,hsv_planes);
 
 	//first take any value higher than max and converts it to 0
 	//red is a special case because the hue value for red are 0-10 and 170-1980

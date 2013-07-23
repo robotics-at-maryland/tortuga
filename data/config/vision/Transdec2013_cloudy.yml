@@ -258,28 +258,6 @@ BuoyDetector:
     minWidth: 50
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
-GateDetector:
-    CannyHigh: 150
-    CannyLow: 50
-    Dilate: 2
-    ErosionSize: 0
-    GreenHuemax: 80
-    GreenHuemin: 25
-    MaxAngleDiff: 20
-    RedHuemax: 127
-    RedHuemin: 9
-    RefelctionDiff: 50
-    Saturationmax: 105
-    Saturationmin: 28
-    ToptoIgnore: 150
-    Valuemax: 124
-    Valuemin: 89
-    diff: 100
-    maxAspectRatio: 3
-    minArea: 200
-    minAspectRatio: 0.3
-    thresholdwithred: 1
-TargetDetector:
     MinContourSize: 6
     MinSize: 6
     bottomRemovePercentage: 0
@@ -319,3 +297,24 @@ TargetDetector:
     minAspectRatio: 0
     minGreenPixels: 500
     topRemovePercentage: 0
+GateDetector:
+    CannyHigh: 150
+    CannyLow: 50
+    Dilate: 0
+    ErosionSize: 3
+    GreenHuemax: 159
+    GreenHuemin: 0
+    MaxAngleDiff: 20
+    RedHuemax: 71
+    RedHuemin: 0
+    RefelctionDiff: 50
+    Saturationmax: 121
+    Saturationmin: 89
+    ToptoIgnore: 150
+    Valuemax: 255
+    Valuemin: 115
+    diff: 100
+    maxAspectRatio: 6
+    minArea: 200
+    minAspectRatio: 0.25
+    thresholdwithred: 0
