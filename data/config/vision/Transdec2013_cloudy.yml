@@ -261,6 +261,7 @@ BuoyDetector:
 GateDetector:
     CannyHigh: 150
     CannyLow: 50
+    Dilate: 2
     ErosionSize: 0
     GreenHuemax: 80
     GreenHuemin: 25
@@ -269,12 +270,52 @@ GateDetector:
     RedHuemin: 9
     RefelctionDiff: 50
     Saturationmax: 105
-    Saturationmin: 18
+    Saturationmin: 28
     ToptoIgnore: 150
     Valuemax: 124
     Valuemin: 89
     diff: 100
     maxAspectRatio: 3
     minArea: 200
-    minAspectRatio: 0.25
+    minAspectRatio: 0.3
     thresholdwithred: 1
+TargetDetector:
+    MinContourSize: 6
+    MinSize: 6
+    bottomRemovePercentage: 0
+    dilateIterations: 0
+    erodeIterations: 2
+    filtBlueHMax: 190
+    filtBlueHMin: 109
+    filtBlueMax: 255
+    filtBlueMin: 73
+    filtBlueSMax: 255
+    filtBlueSMin: 53
+    filtBlueVMax: 255
+    filtBlueVMin: 0
+    filtGreenHMax: 80
+    filtGreenHMin: 25
+    filtGreenMax: 40
+    filtGreenMin: 72
+    filtGreenSMax: 255
+    filtGreenSMin: 32
+    filtGreenVMax: 255
+    filtGreenVMin: 0
+    filtRedHMax: 122
+    filtRedHMin: 95
+    filtRedSMax: 144
+    filtRedSMin: 0
+    filtRedVMax: 103
+    filtRedVMin: 0
+    filtYellowHMax: 45
+    filtYellowHMin: 15
+    filtYellowMax: 44
+    filtYellowMin: 0
+    filtYellowSMax: 255
+    filtYellowSMin: 0
+    filtYellowVMax: 255
+    filtYellowVMin: 0
+    maxAspectRatio: 4.98
+    minAspectRatio: 0
+    minGreenPixels: 500
+    topRemovePercentage: 0
