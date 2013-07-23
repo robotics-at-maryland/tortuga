@@ -504,7 +504,7 @@ void GateDetector::FindContours(Mat img_src)
 
 	//DEALING WITH REFLECTION FOR VERTICALS
 	int reflection_small=0,reflection_smaller=0,reflection_smallest =0;
-	printf("\n Large = %d, small %d, smaller %d, smallest %d",Vertical_large.centerx, Vertical_small.centerx, Vertical_smaller.centerx, Vertical_smallest.centerx);
+	//printf("\n Large = %d, small %d, smaller %d, smallest %d",Vertical_large.centerx, Vertical_small.centerx, Vertical_smaller.centerx, Vertical_smallest.centerx);
 	if (Vertical_small.area >minArea && abs(Vertical_small.centerx-Vertical_large.centerx)<m_reflectiondiff)
 	{
 		//Then small is a reflection of large
@@ -712,7 +712,7 @@ void GateDetector::processImage(Image* input, Image* output)
 	//cvtColor(img_whitebalance2,bw,CV_BGR2HSV);
 
 	Mat imgprocess = processImageColor(input);
-	imshow("ImgProcess",imgprocess);
+	//imshow("ImgProcess",imgprocess);
 
 	//cv::Canny(bw,bw, m_cannylow, m_cannyhigh, 3);
 	//imshow("Canny",bw);
