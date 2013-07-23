@@ -56,6 +56,7 @@ class RAM_EXPORT TargetDetector : public Detector
 	 RotatedRect targetLarge;
 	bool foundLarge;
 	bool foundSmall;
+	bool foundOutline;
 	};
         
   private:

@@ -347,10 +347,116 @@ pipe
 	foundpipe finalpipe;
 	finalpipe= getSquareBlob(erode_dst_red);
 
+	//have two pipes - i want to make sure I dont flip the ID on each one
+	//going to do that by looking at the previous foundpipe
+	int mindistance1=900,mindistance2=900;
+	
+	if (m_framenumber > 1)
+	{
+		//want to check the distance between teh center of each pipe to the center of each pipe
+		//want to find the minimum distance for each finalpipe
+		//finalpipe1 to previous1 - if min use previous1 ID
+		//finalpipe2 to previous1 - if min use previous 1 ID
+		//finalpipe1 to previous2 - if min use previous2 ID
+		//finalpipe2 to previous2 - if min use Previosu2 ID
+
+		//if mindistance to finalpipe1 is previous1 and mindistance to finalpipe2 is previous 2
+		//then those IDs 
+		if (finalpipe.found == true && m_previousfinalpipe.found == true)
+		{
+		 //both have found one pipe
+		  mindistance1 = abs(finalpipe.centerx-m_previousfinalpipe.centerx)+abs(finalpipe.centery-m_previousfinalpipe.centery);
+
+			if (m_previousfinalpipe.found2 == true)
+			{
+				 if (abs(finalpipe.centerx-m_previousfinalpipe.centerx2)+abs(finalpipe.centery-m_previousfinalpipe.centery2) < mindistance1)
+			 	 {	
+					mindistance1 = abs(finalpipe.centerx-m_previousfinalpipe.centerx2)+abs(finalpipe.centery-m_previousfinalpipe.centery2);
+					finalpipe.id = m_previousfinalpipe.id2;
+				  }
+				else
+				{
+					finalpipe.id = m_previousfinalpipe.id;
+				}
+			}
+			else
+			{
+				finalpipe.id = m_previousfinalpipe.id;
+			}
+
+		}
+
+		if (finalpipe.found2 == true && m_previousfinalpipe.found == true)
+		{
+		 //both have found one pipe
+		  mindistance2 = abs(finalpipe.centerx2-m_previousfinalpipe.centerx)+abs(finalpipe.centery2-m_previousfinalpipe.centery);
+
+			if (m_previousfinalpipe.found2 == true)
+			{
+				 if (abs(finalpipe.centerx2-m_previousfinalpipe.centerx2)+abs(finalpipe.centery2-m_previousfinalpipe.centery2) < mindistance2)
+			 	 {	
+					mindistance2 = abs(finalpipe.centerx2-m_previousfinalpipe.centerx2)+abs(finalpipe.centery2-m_previousfinalpipe.centery2);
+					finalpipe.id2 = m_previousfinalpipe.id2;
+				  }
+				else
+				{
+					finalpipe.id2 = m_previousfinalpipe.id;
+				}
+			}
+			else
+			{
+				finalpipe.id2 = m_previousfinalpipe.id;
+			}
+
+		}
+
+		if (finalpipe.found == true && finalpipe.found2 == true && finalpipe.id== finalpipe.id2)
+		{
+		//oops, both same label
+			if (mindistance1 < mindistance2)
+			{ //keep finalpipe.id 1 the same
+			 	if (finalpipe.id == 1)
+					finalpipe.id2 = 2;
+				else
+					finalpipe.id2 = 1;
+			}
+			else
+			{
+				if (finalpipe.id2 == 1)
+					finalpipe.id = 2;
+				else
+					finalpipe.id = 2;			
+
+			}
+		} //end make sure pipes aren't labeled the same
+	}//end frame number > 1
+	//drawing purposes
+	//printf("\n Ids: %d %d",finalpipe.id,finalpipe.id2);
+
+	if (finalpipe.found == true)
+	{
+		if (finalpipe.id == 1)
+			circle(img_whitebalance, cvPoint(finalpipe.centerx,finalpipe.centery),15,Scalar( 0, 255, 0),-1,8 ); //Center
+		else if (finalpipe.id == 2)
+			circle(img_whitebalance, cvPoint(finalpipe.centerx,finalpipe.centery),15,Scalar( 255, 255, 0),-1,8 ); //Cent
+	}
+	if (finalpipe.found2 == true)
+	{
+		if (finalpipe.id2 == 1)
+			circle(img_whitebalance, cvPoint(finalpipe.centerx2,finalpipe.centery2),15,Scalar( 0, 255, 0),-1,8 ); //Center
+		else if(finalpipe.id2 == 2)
+			circle(img_whitebalance, cvPoint(finalpipe.centerx2,finalpipe.centery2),15,Scalar( 255, 255, 0),-1,8 ); //Cent
+	}	
+	
+
+	//save as next previous
+	m_previousfinalpipe = finalpipe;
+
+
 	if (finalpipe.found == true)
 	{	logger.infoStream() << " Pipe1 found going to publish Data";
 		m_foundpipe1 = true;
-		publishFoundEvent(finalpipe,finalpipe.id,input);
+		publishFoundEvent(finalpipe,1,input);
 	}
 	else if (m_foundpipe1 == true)
 	{
@@ -358,21 +464,21 @@ pipe
 		logger.infoStream() << " Pipe1 Lost publishing lost even";
 		//lost event
 		m_foundpipe1= false;
-		publishLostEvent(1);
+		publishLostEvent(m_previousfinalpipe.id);
 	}
 	if (finalpipe.found2 == true)
 	{	
 
 		logger.infoStream() << " Pipe2 found going to publish Data";
 		m_foundpipe2 = true;
-		publishFoundEvent(finalpipe,finalpipe.id2,input);
+		publishFoundEvent(finalpipe,2,input);
 	}
 	else if (m_foundpipe2== true)
 	{
 		//lost event
 		logger.infoStream() << " Pipe1 Lost publishing lost even";
 		m_foundpipe2 = false;
-		publishLostEvent(2);
+		publishLostEvent(m_previousfinalpipe.id2); //this is a hack that may work
 	}	
 
 }
@@ -451,7 +557,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		//can find midpoints of each of the vertices- two with the furthest distance (just subtracting the x and yvalues) are the longest
 		//average the angle between teh center and those
 
-		circle(img_whitebalance, maxtemp.center,15,Scalar( 0, 255, 0),-1,8 ); //Center
+		//circle(img_whitebalance, maxtemp.center,15,Scalar( 0, 255, 0),-1,8 ); //Center
 
 		//calculate the angle and draw
 		for (int i = 0; i < 4; i++)
@@ -502,7 +608,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 
 		//printf("\n pipe angle = %f",finalpipe.angle);
 
-		line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
+		//line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
 
        		logger.infoStream() << "FoundLine: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
@@ -545,7 +651,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 		//can find midpoints of each of the vertices- two with the furthest distance (just subtracting the x and yvalues) are the longest
 		//average the angle between teh center and those
 
-		circle(img_whitebalance, maxtemp2.center,15,Scalar( 0, 255, 0),-1,8 ); //Center
+		//circle(img_whitebalance, maxtemp2.center,15,Scalar( 0, 255, 0),-1,8 ); //Center
 
 		//calculate the angle and draw
 		for (int i = 0; i < 4; i++)
@@ -554,7 +660,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 			midpointx=(int)((vertices[i].x+vertices[(i+1)%4].x)/2);
 			midpointy =(int)((vertices[i].y+vertices[(i+1)%4].y)/2);
 
-			circle(img_whitebalance, Point(midpointx, midpointy),5,Scalar( 0, 255, 255),-1,8 );
+			//circle(img_whitebalance, Point(midpointx, midpointy),5,Scalar( 0, 255, 255),-1,8 );
 			distance = abs(maxtemp2.center.x-midpointx)+abs(maxtemp2.center.y-midpointy);
 			if (distance > maxdistance)
 			{
@@ -586,7 +692,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 			finalpipe.angle2 = 90;
 		}
 
-		line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
+		//line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour2, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
 
        		logger.infoStream() << "2nd FoundLine: at" <<finalpipe.centerx2  << "," << finalpipe.centery2 << " with angle"  << finalpipe.angle2 
@@ -609,7 +715,7 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 	return(finalpipe);
 }
 
-void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
+void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int pipenumber, Image* input)
 {
     PipeEventPtr event(new PipeEvent()); 
     double centerX = 0, centerY = 0;
@@ -618,31 +724,31 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int id, Image* input)
 	logger.infoStream() << " Publishing Event pipe id = "<<pipe.id2<<" center : "<<pipe.centerx2 <<" , "<<pipe.centery2 <<"range "<<pipe.range2<<" angle "<<pipe.angle2;
 
 
-	if (id == 1)
+	if (pipenumber == 1)
 	{
 	    Detector::imageToAICoordinates(input, pipe.centerx, pipe.centery,
 		                           centerX, centerY);
 	
-	    event-> id =id;	    
+	    event-> id =pipe.id;	    
 	    event->x = centerX;
 	    event->y = centerY;
 	    event->range = pipe.range;
 	    event->angle = pipe.angle;
 	    publish(EventType::PIPE_FOUND, event);
-		logger.infoStream() << " Publishing ID 1";
+		logger.infoStream() << " Publishing 1st pipe";
 
 	}
-	else if (id == 2)
+	else if (pipenumber == 2)
 	{
 	    Detector::imageToAICoordinates(input, pipe.centerx2, pipe.centery2,
 	                             centerX, centerY);
-	    event-> id = id;
+	    event-> id = pipe.id2;
 	    event->x = centerX;
 	    event->y = centerY;
 	    event->range = pipe.range2;
 	    event->angle = pipe.angle2;
 	    publish(EventType::PIPE_FOUND, event);
-	    logger.infoStream() << " Publishing ID 2"; 
+	    logger.infoStream() << " Publishing 2nd pipe"; 
 	}
 
 }

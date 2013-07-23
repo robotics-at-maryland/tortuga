@@ -148,8 +148,10 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Working Images */
 	Image* input;
 	Image* output;
-    Image* m_frame;
-    int m_minSize;
+   	Image* m_frame;
+    	int m_minSize;
+	
+	foundpipe m_previousfinalpipe;
 
 };
     

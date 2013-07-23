@@ -372,8 +372,6 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}	
   	erode(img_red, erosion_dst_red, element);
 
-
-
 	//blue
 	Mat img_blue =blob.OtherColorFilter(hsv_planes,blue_minH,blue_maxH);	
 	if (blue_minS != 0 || blue_maxS != 255)	
@@ -433,18 +431,22 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat erosion_dst_red, erosion_dst_green, erosion_dst_blue, erosion_dst_yellow;
   	erode(img_red, erosion_dst_red, element );
 */
+	//printf("\n Red");
 	logger.infoStream() << " Finding Red";
 	targetPanel squareRed = getSquareBlob(erosion_dst_red,img_whitebalance,Color::RED);
 
+	//printf("\nGreen");
 	logger.infoStream() << " Finding Green";
   	//erode(img_green, erosion_dst_green, element );
 	targetPanel squareGreen = getSquareBlob(erosion_dst_green,img_whitebalance,Color::GREEN);
 
+	//printf("\nYellow");
 	logger.infoStream() << " Finding Yellow";
   	//erode(img_yellow, erosion_dst_yellow, element );
 	targetPanel squareYellow = getSquareBlob(erosion_dst_yellow,img_whitebalance,Color::YELLOW);
 
 	logger.infoStream() << " Finding Blue";
+	//printf("\n Blue");
   	//erode(img_blue, erosion_dst_blue, element );
 	targetPanel squareBlue = getSquareBlob(erosion_dst_blue,img_whitebalance,Color::BLUE);
 
@@ -453,18 +455,29 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	float foundAspectRatio;
 
 	//green event
-	foundAspectRatio = squareGreen.outline.size.height/squareGreen.outline.size.width;
-	if (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
-	{ 
-	 	 //valid panel
-	        logger.infoStream() << "Green Target Found";
-		m_greenFound = TRUE;
-		m_found = true;
-		m_color = Color::GREEN;
-		m_range = squareGreen.outline.size.width;
-		setPublishData(squareGreen,input);
-		publishFoundEvent();
-		// Notify every that we have found the target
+	if (squareGreen.foundOutline == true)
+	{
+		foundAspectRatio = squareGreen.outline.size.height/squareGreen.outline.size.width;
+		if (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
+		{ 
+		 	 //valid panel
+			logger.infoStream() << "Green Target Found";
+			m_greenFound = TRUE;
+			m_found = true;
+			m_color = Color::GREEN;
+			m_range = squareGreen.outline.size.width;
+			setPublishData(squareGreen,input);
+			publishFoundEvent();
+			// Notify every that we have found the target
+		}
+		else if (m_greenFound == true)
+		{
+			// Just lost the light so issue a lost event
+			logger.infoStream() << "Green Target Lost";
+	    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+			m_greenFound = false;
+		}
+
 	}
 	else if (m_greenFound == true)
 	{
@@ -475,18 +488,28 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	}
 
 	//Red event
-	foundAspectRatio = squareRed.outline.size.height/squareRed.outline.size.width;
-	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
-	{ 
-	 	 //valid panel
-	        logger.infoStream() << " Red Target Found";
-		m_redFound = TRUE;
-		m_found = true;
-		m_color = Color::RED;
-		m_range = squareRed.outline.size.width;
-		setPublishData(squareRed,input);
-		publishFoundEvent();
-		// Notify every that we have found the target
+	if (squareRed.foundOutline == true)
+	{
+		foundAspectRatio = squareRed.outline.size.height/squareRed.outline.size.width;
+		if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
+		{ 
+		 	 //valid panel
+			logger.infoStream() << " Red Target Found";
+			m_redFound = TRUE;
+			m_found = true;
+			m_color = Color::RED;
+			m_range = squareRed.outline.size.width;
+			setPublishData(squareRed,input);
+			publishFoundEvent();
+			// Notify every that we have found the target
+		}
+		else if (m_redFound == true)
+		{
+			// Just lost the light so issue a lost event
+			logger.infoStream() << "Red Target Found";
+	    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+			m_redFound = false;
+		}	
 	}
 	else if (m_redFound == true)
 	{
@@ -495,19 +518,30 @@ void TargetDetector::processColorImage(Image* input, Image* output)
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_redFound = false;
 	}
+
 	//yellow event
-	foundAspectRatio = squareYellow.outline.size.height/squareYellow.outline.size.width;
-	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
-	{ 
-	 	 //valid panel
-	        logger.infoStream() << " Yellow Target Found";
-		m_yellowFound = TRUE;
-		m_found = true;
-		m_color = Color::YELLOW;
-		setPublishData(squareYellow,input);
-		m_range = squareYellow.outline.size.width;
-		publishFoundEvent();
-		// Notify every that we have found the target
+	if (squareYellow.foundOutline == true)
+	{
+		foundAspectRatio = squareYellow.outline.size.height/squareYellow.outline.size.width;
+		if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
+		{ 
+		 	 //valid panel
+			logger.infoStream() << " Yellow Target Found";
+			m_yellowFound = TRUE;
+			m_found = true;
+			m_color = Color::YELLOW;
+			setPublishData(squareYellow,input);
+			m_range = squareYellow.outline.size.width;
+			publishFoundEvent();
+			// Notify every that we have found the target
+		}
+		else if (m_yellowFound == true)
+		{
+			logger.infoStream() << " Yellow Target Found";
+			// Just lost the light so issue a lost event
+	    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+			m_yellowFound = false;
+		}
 	}
 	else if (m_yellowFound == true)
 	{
@@ -517,18 +551,28 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		m_yellowFound = false;
 	}
 	//blue event
-	foundAspectRatio = squareBlue.outline.size.height/squareBlue.outline.size.width;
-	if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
-	{ 
-	 	 //valid panel
-	        logger.infoStream() << " BLUE Target Found";
-		m_blueFound = TRUE;
-		m_found = true;
-		m_color = Color::BLUE;
-		m_range = squareBlue.outline.size.width;
-		setPublishData(squareBlue,input);
-		publishFoundEvent();
-		// Notify every that we have found the target
+	if (squareBlue.foundOutline == true)
+	{
+		foundAspectRatio = squareBlue.outline.size.height/squareBlue.outline.size.width;
+		if  (foundAspectRatio< m_maxAspectRatio && foundAspectRatio > m_minAspectRatio)
+		{ 
+		 	 //valid panel
+			logger.infoStream() << " BLUE Target Found";
+			m_blueFound = TRUE;
+			m_found = true;
+			m_color = Color::BLUE;
+			m_range = squareBlue.outline.size.width;
+			setPublishData(squareBlue,input);
+			publishFoundEvent();
+			// Notify every that we have found the target
+		}
+		else if (m_blueFound == true)
+		{
+			logger.infoStream() << "Blue Target Found";
+			// Just lost the light so issue a lost event
+	    		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
+			m_blueFound = false;
+		}
 	}
 	else if (m_blueFound == true)
 	{
@@ -537,7 +581,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
     		publish(EventType::TARGET_LOST, core::EventPtr(new core::Event()));
 		m_blueFound = false;
 	}
-
+	
 	
     int numberofpanels = 0;	
     int tempx = 0;
@@ -726,7 +770,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	  //Mat drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
 	 
 	  for( unsigned int i = 0; i< contours.size(); i++ )
-	     {
+	  {
 		if ((int)contours[i].size() > m_minContourSize)
 		{
 			if (color == Color::RED)
@@ -745,14 +789,14 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 
 	//find contour with the largest area- by area I mean number of pixels
 	double maxArea = 0;
-	unsigned int maxContour;
+	unsigned int maxContour=0;
 	RotatedRect temp,maxtemp;
 	//targetSmall and targetLarge are within the maxSize contour
-	double area;
+	double area=0.0;
+	//printf("\n number of contours: %d",contours.size());
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-
-	     //cout << "# of contour points: " << contours[i].size() << endl ;
+	        
 		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
 		area = temp.size.width*temp.size.height;
 		if (area > maxArea)
@@ -760,114 +804,136 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 			maxtemp = temp;
 			maxArea = area;
 		}
-	};
-
-	logger.infoStream() << "Contours FOund with maxSize = "<<maxContour <<" with area : "<<maxArea;
-	Point2f vertices[4];
-	maxtemp.points(vertices);
-	//given the vertices find the min and max X and min and maxY
-	double minX= 90000;
-	double maxX = 0;
-	double minY= 90000;
-	double maxY=0;	
-	for (int i = 0; i < 4; i++)
-	{
-		//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
-		if (vertices[i].x < minX)
-			minX = vertices[i].x;
-		if (vertices[i].x > maxX)
-			maxX = vertices[i].x;
-		if (vertices[i].y < minY)
-			minY = vertices[i].y;
-		if (vertices[i].y > maxY)
-			maxY = vertices[i].y;
-	};
-
-	
-	RotatedRect minEllipse;
-        RotatedRect targetLarge;
-	RotatedRect targetSmall;
-	double targetLargeArea = 0;
-	double targetSmallArea = 0;
-	for(unsigned int j=0; j<contours.size(); j++)
-	{
-		if (j != maxContour && (int(contours[j].size()) > m_minSize))
-		{
-	     		//make sure the center of the next contour is within the bouding area
-			//have the center, height and width
-			minEllipse = fitEllipse( Mat(contours[j])); //finds the rectangle that will encompass all the points
-			//printf("\n center = (%f,%f), Xrange = %f,%f, Yrange = %f,%f",minEllipse.center.x,minEllipse.center.y,minX,maxX,minY,maxY);
-			if (minEllipse.center.x > minX && minEllipse.center.x < maxX && minEllipse.center.y < maxY && minEllipse.center.y >minY)
-			{
-				//in the middle, therefore save
-				//should also be roughly circular - width should be about equal to height
-				if (minEllipse.size.height*minEllipse.size.width > targetLargeArea && abs(minEllipse.size.height-minEllipse.size.width) < 20)
-				{	
-					//before we go over the large one, save the previous large one to the small one
-				        targetSmall = targetLarge;
-					targetSmallArea = targetLargeArea;
-					targetLarge = minEllipse;
-					targetLargeArea = minEllipse.size.height*minEllipse.size.width;
-				}
-				else if (minEllipse.size.height*minEllipse.size.width > targetSmallArea)
-				{
-					targetSmall = minEllipse;
-					targetSmallArea = minEllipse.size.height*minEllipse.size.width;
-				}
-
-			}//end if in the center
-		} //end if j!=maxcounter
+		
+		//printf("\n size %d, width %f, height %f area = %f", contours[j].size(), temp.size.width,temp.size.height,area);
 	};
 
 
-	        logger.infoStream() << " TargetLareArea = " <<targetLargeArea <<" Small Area "<<targetSmallArea;
-	//imshow("internal",img_whitebalance);
-
-	//Display Purposes
-	
-/*
-	maxtemp.points(vertices);
-	for (int i = 0; i < 4; i++)
-	{
-
-		if (color == Color::RED)
-		{
-		 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,0,255),2);
-		}
-		else if (color == Color::GREEN)
-		{
-			 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),2);
-		}
-		else if (color == Color::BLUE)
-		{
-		 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(255,0,0),2);
-		}
-		else if (color == Color::YELLOW)
-		{
-		 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,255),2);
-		}
-		else 
-		{
-		 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(255,255,0),2);
-		}
-	}
-*/ 
-
+	  logger.infoStream() << " Max contour area " <<maxArea <<" at " <<maxContour;
 	targetPanel answer;
-	if (targetLargeArea > 0)
-		answer.foundLarge = true;
-	else
+	//printf("\n area = %f, maxsize = %d",area,maxsize);
+	if (maxArea < 5)
+	{
+		//unable to find any contours
 		answer.foundLarge = false;
-
-	if (targetSmallArea > 0)
-		answer.foundSmall = true;
-	else
 		answer.foundSmall = false;
+		answer.foundOutline = false;
+		logger.infoStream() << " Unable to find Contours with an area more than 5" ;
+		
+		return(answer);
+	
+	}
+	else	
+	{
+		answer.foundOutline = true;
+		logger.infoStream() << "Contours FOund with maxSize = "<<maxContour <<" with area : "<<maxArea;
+		Point2f vertices[4];
+		maxtemp.points(vertices);
+		//given the vertices find the min and max X and min and maxY
+		double minX= 90000;
+		double maxX = 0;
+		double minY= 90000;
+		double maxY=0;	
+		for (int i = 0; i < 4; i++)
+		{
+			//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+			if (vertices[i].x < minX)
+				minX = vertices[i].x;
+			if (vertices[i].x > maxX)
+				maxX = vertices[i].x;
+			if (vertices[i].y < minY)
+				minY = vertices[i].y;
+			if (vertices[i].y > maxY)
+				maxY = vertices[i].y;
+		};
 
-	answer.outline = maxtemp;
-	answer.targetSmall = targetSmall;
-	answer.targetLarge = targetLarge;
-	return(answer);
+	
+		RotatedRect minEllipse;
+		RotatedRect targetLarge;
+		RotatedRect targetSmall;
+		double targetLargeArea = 0;
+		double targetSmallArea = 0;
+		double aspectratio;
+		for(unsigned int j=0; j<contours.size(); j++)
+		{
+			if (j != maxContour && (int(contours[j].size()) > m_minSize))
+			{
+		     		//make sure the center of the next contour is within the bouding area
+				//have the center, height and width
+				minEllipse = fitEllipse( Mat(contours[j])); //finds the rectangle that will encompass all the points
+				//printf("\n center = (%f,%f), Xrange = %f,%f, Yrange = %f,%f",minEllipse.center.x,minEllipse.center.y,minX,maxX,minY,maxY);
+				if (minEllipse.center.x > minX && minEllipse.center.x < maxX && minEllipse.center.y < maxY && minEllipse.center.y >minY)
+				{
+					//in the middle, therefore save
+					//should also be roughly circular - width should be about equal to height
+					aspectratio = minEllipse.size.height/minEllipse.size.width;
+					if (minEllipse.size.height*minEllipse.size.width > targetLargeArea && aspectratio < m_maxAspectRatio && aspectratio > m_minAspectRatio)
+					{	
+						//before we go over the large one, save the previous large one to the small one
+						targetSmall = targetLarge;
+						targetSmallArea = targetLargeArea;
+						targetLarge = minEllipse;
+						targetLargeArea = minEllipse.size.height*minEllipse.size.width;
+					}
+					else if (minEllipse.size.height*minEllipse.size.width > targetSmallArea)
+					{
+						targetSmall = minEllipse;
+						targetSmallArea = minEllipse.size.height*minEllipse.size.width;
+					}
+
+				}//end if in the center
+			} //end if j!=maxcounter
+		};
+
+
+			logger.infoStream() << " TargetLareArea = " <<targetLargeArea <<" Small Area "<<targetSmallArea;
+		//imshow("internal",img_whitebalance);
+
+		//Display Purposes
+	
+	
+		maxtemp.points(vertices);
+		for (int i = 0; i < 4; i++)
+		{
+
+			if (color == Color::RED)
+			{
+			 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,0,255),12);
+			}
+			else if (color == Color::GREEN)
+			{
+				 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),12);
+			}
+			else if (color == Color::BLUE)
+			{
+			 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(255,0,0),12);
+			}
+			else if (color == Color::YELLOW)
+			{
+			 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,255),12);
+			}
+			else 
+			{
+			 line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(255,255,0),12);
+			}
+		}
+	 
+	
+		if (targetLargeArea > 0)
+			answer.foundLarge = true;
+		else
+			answer.foundLarge = false;
+
+		if (targetSmallArea > 0)
+			answer.foundSmall = true;
+		else
+			answer.foundSmall = false;
+	
+		answer.outline = maxtemp;
+		answer.targetSmall = targetSmall;
+		answer.targetLarge = targetLarge;
+		return(answer);
+	}//end able to find contours
 };
 
    
@@ -1163,23 +1229,23 @@ logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targe
 			//plot pretty results
 			if (m_color == Color::RED)
 			{
-				ellipse(img_whitebalance, square.targetLarge, Scalar(0,0,255), 4, 8 );
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,0,255), 14, 8 );
 			}
 			else if (m_color == Color::GREEN)
 			{
-				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,0), 14, 8 );
 			}
 			else if (m_color == Color::BLUE)
 			{
-				ellipse(img_whitebalance, square.targetLarge, Scalar(255,0,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetLarge, Scalar(255,0,0), 14, 8 );
 			}
 			else if (m_color == Color::YELLOW)
 			{
-				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,255), 4, 8 );
+				ellipse(img_whitebalance, square.targetLarge, Scalar(0,255,255), 14, 8 );
 			}
 			else 
 			{
-				ellipse(img_whitebalance, square.targetLarge, Scalar(255,255,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetLarge, Scalar(255,255,0), 14, 8 );
 			}
 
 		}
@@ -1206,23 +1272,23 @@ logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targe
 			m_rangesmall = square.targetSmall.size.width; 
 			if (m_color == Color::RED)
 			{
-				ellipse(img_whitebalance, square.targetSmall, Scalar(0,0,150), 4, 8 );
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,0,150), 14, 8 );
 			}
 			else if (m_color == Color::GREEN)
 			{
-				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,0), 14, 8 );
 			}
 			else if (m_color == Color::BLUE)
 			{
-				ellipse(img_whitebalance, square.targetSmall, Scalar(150,0,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetSmall, Scalar(150,0,0), 14, 8 );
 			}
 			else if (m_color == Color::YELLOW)
 			{
-				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,150), 4, 8 );
+				ellipse(img_whitebalance, square.targetSmall, Scalar(0,150,150), 14, 8 );
 			}
 			else 
 			{
-				ellipse(img_whitebalance, square.targetSmall, Scalar(150,150,0), 4, 8 );
+				ellipse(img_whitebalance, square.targetSmall, Scalar(150,150,0), 14, 8 );
 			}
 		}
 	}
