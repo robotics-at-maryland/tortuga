@@ -115,6 +115,10 @@ void GateDetector::init(core::ConfigNode config)
                          "minArea",
                          200, &m_minArea, 0,5000);
 
+propSet->addProperty(config, false, "RefelctionDiff",
+                         "ReflectionDiff",
+                         50, &m_reflectiondiff, 0,500);
+
 }
     
 GateDetector::~GateDetector()
@@ -274,11 +278,16 @@ void GateDetector::FindContours(Mat img_src)
 	finalGate.area = 0;	
 	contourblob Vertical_large;
 	contourblob Vertical_small;
+	contourblob Vertical_smaller;
+	contourblob Vertical_smallest;
+
 	contourblob Horizontal_large;
 	contourblob Horizontal_small;
 	Horizontal_large.area = 0;
 	Vertical_large.area = 0;
 	Vertical_small.area = 0;
+	Vertical_smaller.area = 0;
+	Vertical_smallest.area = 0;
 	Horizontal_small.area =0;
 
 	RotatedRect temp;
@@ -392,6 +401,8 @@ void GateDetector::FindContours(Mat img_src)
 
 				if (area > Vertical_large.area)
 				{
+					Vertical_smallest = Vertical_smaller;
+					Vertical_smaller = Vertical_small;
 				 	Vertical_small = Vertical_large;
 				 	Vertical_large.area =area;
 				  	Vertical_large.angle = angle;
@@ -403,6 +414,8 @@ void GateDetector::FindContours(Mat img_src)
 				}		
 				else if (area > Vertical_small.area)
 				{
+					Vertical_smallest = Vertical_smaller;
+					Vertical_smaller = Vertical_small;
 				 	Vertical_small.area =area;
 				  	Vertical_small.angle = angle;
 					Vertical_small.contournumber = j;
@@ -410,6 +423,27 @@ void GateDetector::FindContours(Mat img_src)
 					Vertical_small.height = temp.size.height;
 					Vertical_small.centerx = temp.center.x;
 					Vertical_small.centery = temp.center.y;
+				}
+				else if (area > Vertical_smaller.area)
+				{
+					Vertical_smallest = Vertical_smaller;
+				 	Vertical_smaller.area =area;
+				  	Vertical_smaller.angle = angle;
+					Vertical_smaller.contournumber = j;
+					Vertical_smaller.width = temp.size.width;
+					Vertical_smaller.height = temp.size.height;
+					Vertical_smaller.centerx = temp.center.x;
+					Vertical_smaller.centery = temp.center.y;
+				}
+				else if (area > Vertical_smallest.area)
+				{
+				 	Vertical_smallest.area =area;
+				  	Vertical_smallest.angle = angle;
+					Vertical_smallest.contournumber = j;
+					Vertical_smallest.width = temp.size.width;
+					Vertical_smallest.height = temp.size.height;
+					Vertical_smallest.centerx = temp.center.x;
+					Vertical_smallest.centery = temp.center.y;
 				}
 
 				//drawContours(img_whitebalance,contours,j, Scalar(255,255,0), 2, 8, hierarchy, 0, Point() ); //
@@ -422,14 +456,6 @@ void GateDetector::FindContours(Mat img_src)
 		}//end min contour size
 	}//end for j
 
-	if (Horizontal_large.area > minArea)
-		drawContours(img_whitebalance,contours,Horizontal_large.contournumber, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
-	if (Horizontal_small.area > minArea)
-		drawContours(img_whitebalance,contours,Horizontal_small.contournumber, Scalar(150,0,0), 2, 8, hierarchy, 0, Point() ); 
-	if (Vertical_large.area > minArea)
-		drawContours(img_whitebalance,contours,Vertical_large.contournumber, Scalar(0,0,255), 2, 8, hierarchy, 0, Point() ); 
-	if (Vertical_small.area > minArea)
-		drawContours(img_whitebalance,contours,Vertical_small.contournumber, Scalar(0,0,150), 2, 8, hierarchy, 0, Point() ); 
 
 	int Xdistance=9000,Xdistance1=9000;
 	int Xdistance_vert1=0,Xdistance_vert2=0;
@@ -437,6 +463,39 @@ void GateDetector::FindContours(Mat img_src)
 	//Given: just two vertical, which makes a gate
 	//given: two vertical and a horizontal, need to see if the horizontal is about where the vertical ends
 	//given one vertical and one horizonal, need to see if the horizontal is about where the vertical ends
+
+	//DEALING WITH REFLECTION FOR VERTICALS
+	int reflection_small=0,reflection_smaller=0,reflection_smallest =0;
+	//printf("\n Large = %d, small %d, smaller %d, smallest %d",Vertical_large.centerx, Vertical_small.centerx, Vertical_smaller.centerx, Vertical_smallest.centerx);
+	if (Vertical_small.area >minArea && abs(Vertical_small.centerx-Vertical_large.centerx)<m_reflectiondiff)
+	{
+		//Then small is a reflection of large
+		//do dont want to use
+		reflection_small =1;
+	}
+	if (Vertical_smaller.area >minArea && abs(Vertical_smaller.centerx-Vertical_large.centerx)<m_reflectiondiff)
+	{
+		//Then small is a reflection of large
+		//do dont want to use
+		reflection_smaller =1;
+	}
+
+	if (Vertical_smallest.area >minArea && abs(Vertical_smallest.centerx-Vertical_large.centerx)<m_reflectiondiff)
+	{
+		//Then small is a reflection of large
+		//do dont want to use
+		reflection_smallest =1;
+	}
+
+	if (reflection_small == 1 && reflection_smaller == 0)
+	{
+		Vertical_small = Vertical_smaller;
+	}
+	else if (reflection_small ==1 && reflection_smallest == 0)
+	{
+		Vertical_small = Vertical_smallest;
+	}
+
 	if (Horizontal_large.area < minArea && Vertical_large.area >minArea && Vertical_small.area >minArea)
 	{
 		//have two verticals which we have to assume form a gate
@@ -575,6 +634,16 @@ void GateDetector::FindContours(Mat img_src)
 			}
 		}
 	}
+
+	if (Horizontal_large.area > minArea)
+		drawContours(img_whitebalance,contours,Horizontal_large.contournumber, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 
+	if (Horizontal_small.area > minArea)
+		drawContours(img_whitebalance,contours,Horizontal_small.contournumber, Scalar(150,0,0), 2, 8, hierarchy, 0, Point() ); 
+	if (Vertical_large.area > minArea)
+		drawContours(img_whitebalance,contours,Vertical_large.contournumber, Scalar(0,0,255), 2, 8, hierarchy, 0, Point() ); 
+	if (Vertical_small.area > minArea)
+		drawContours(img_whitebalance,contours,Vertical_small.contournumber, Scalar(0,0,150), 2, 8, hierarchy, 0, Point() ); 
+
 	//given just horizontals or one vertical: nothing, cannot see
 	if (finalGate.area >minArea)
 	{
