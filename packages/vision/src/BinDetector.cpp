@@ -382,7 +382,7 @@ void BinDetector::init(core::ConfigNode config)
     
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
-        0.2, &m_binSameThreshold, 0.0, 4.0/3.0);
+        0.2, &m_binSameThreshold, 0.0, 40.0);
     propSet->addProperty(config, false, "binLostFrames",
        "How many frames a bin must be missing before reporting lost",
         0, &m_binLostFrames, 0, 30);
@@ -391,7 +391,7 @@ void BinDetector::init(core::ConfigNode config)
 	1, &m_redErodeIterations, 0, 10);
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
-         2, &m_redDilateIterations, 0, 10);
+         5, &m_redDilateIterations, 0, 10);
 
 /*
     propSet->addProperty(config, false, "maxDistanceX",
@@ -408,8 +408,8 @@ void BinDetector::init(core::ConfigNode config)
                                     "redL", "Luminance",
                                     "redC", "Chrominance",
                                     "redH", "Hue",
-                                    0, 54,  // L defaults // 180,255
-                                    75, 255,  // U defaults // 76, 245
+                                    0, 22,  // L defaults // 180,255
+                                    130, 255,  // U defaults // 76, 245
                                     0, 255); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -482,17 +482,17 @@ void BinDetector::init(core::ConfigNode config)
         "SaveImages",false, &m_saveimages);
   propSet->addProperty(config, false, "minHessian",
         "minHessian",
-        500, &m_minHessian, 0, 5000); // 50 in Dans version
+        250, &m_minHessian, 0, 5000); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofImages",
         "NumberofImages",
-        6, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
+        20, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofBinTypes",
         "NumberofBinTypes",
-        4, &m_numberofclasses, 0, 20); // 50 in Dans version
+        8, &m_numberofclasses, 0, 20); // 50 in Dans version
 
  propSet->addProperty(config, false, "UpperLimitforBin",
        "UpperLimitforBin",
-        0.3, &m_upperlimit, 0.0, 2.0); // 50 in Dans version
+        2.0, &m_upperlimit, 0.0, 5.0); // 50 in Dans version
 
  propSet->addProperty(config, false, "MaxdistanceX",
         "maximum distance in X to be considered same bin as previous frame",
@@ -1527,7 +1527,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			area = temp.size.width*temp.size.height;
 			aspectratio_diff = abs((float(temp.size.height)/float(temp.size.width))- aspectratio);
 			//printf("\n j = %d, countoursize = %d, area = %f, aspectratio_diff =%f, height = %f, width = %f",j,contours[j].size(),area,aspectratio_diff,temp.size.height,temp.size.width);
-			drawContours(img_whitebalance, contours, j, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
+			//drawContours(img_whitebalance, contours, j, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
 			if (area > bins[0].area && aspectratio_diff < aspectratio_limit)
 			{
 				//printf(" beating max");
@@ -1849,7 +1849,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		//logger.infoStream() << "Image Number" <<k <<" class: "<<j1 <<" avgDistance "<< avgDistance[j1-1] <<" ";
 						//	printf("k=%d,class=%d, %f ",k,j1,avgDistance[j1-1]);
 						}//end for j1
-						//printf("\n Image: =%d, BinType =%d, value =%f",k,foundBinType, foundBinValue);
+						printf("\n Image: =%d, BinType =%d, value =%f",k,foundBinType, foundBinValue);
 		//logger.infoStream() << "Image Number" <<k <<" BinType: "<<foundBinType <<" Value "<< foundBinValue <<" ";
 
 						//find the lowest value for each BinType

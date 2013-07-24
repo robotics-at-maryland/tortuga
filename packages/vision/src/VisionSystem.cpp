@@ -148,11 +148,11 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
                                          eventHub));
     m_downwardSafeDetector = DetectorPtr(
-        new SafeDetector(getConfig(config, "SafeDetector"), eventHub));
+        new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(getConfig(config, "GateDetector"), eventHub));
     m_cupidDetector = DetectorPtr(
-        new CupidDetector(getConfig(config, "CupidDetector"), eventHub));
+        new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
     m_loversLaneDetector = DetectorPtr(
         new LoversLaneDetector(getConfig(config, "LoversLaneDetector"), eventHub));
 

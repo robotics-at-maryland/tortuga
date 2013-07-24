@@ -1209,7 +1209,13 @@ logger.infoStream() << "Center converted to ("<<m_targetCenterX <<" , "<<m_targe
 	    m_squareNess = 1.0;
 	else
 	    m_squareNess = 1.0/aspectRatio;
-	m_angle = square.outline.angle;
+
+	if (abs(square.outline.angle) <45) 
+		m_angle = abs(square.outline.angle);
+	else
+		m_angle = 90-abs(square.outline.angle);
+
+	//printf("\n angle: %f",m_angle);
 	//plot pretty results
 	//for (int i = 0; i < 4; i++)
   	//	line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));

@@ -334,7 +334,6 @@ void GateDetector::FindContours(Mat img_src)
 	double rise=0.0, run=0.0;
 	double foundaspectdiff=0.0;
 	int minArea = m_minArea;
-	
 
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
@@ -414,7 +413,6 @@ void GateDetector::FindContours(Mat img_src)
 					Horizontal_large.height = temp.size.height;
 					Horizontal_large.centerx = temp.center.x;
 					Horizontal_large.centery = temp.center.y;
-
 				}		
 				else if (area > Horizontal_small.area)
 				{
@@ -535,6 +533,7 @@ void GateDetector::FindContours(Mat img_src)
 	}
 
 	//found gate
+	
 	if (Vertical_large.area >minArea && Vertical_small.area <minArea && Horizontal_large.area < minArea)
 	{
 		finalGate.area = Vertical_large.area;
@@ -543,7 +542,19 @@ void GateDetector::FindContours(Mat img_src)
 		finalGate.width = Vertical_large.width;
 		finalGate.height = Vertical_large.height;
 		finalGate.gatepieces = 1;
+		finalGate.angle = Vertical_large.angle;
 	}	
+	else if (Horizontal_large.area >minArea && Vertical_large.area < minArea)
+	{
+		//only have horizontal
+		finalGate.area = Horizontal_large.area;
+		finalGate.centerx = Horizontal_large.centerx;
+		finalGate.centery = Horizontal_large.centery;
+		finalGate.width = Horizontal_large.width;
+		finalGate.height = Horizontal_large.height;
+		finalGate.gatepieces = 1;
+		finalGate.angle = Horizontal_large.angle;
+	}
 	else if (Horizontal_large.area < minArea && Vertical_large.area >minArea && Vertical_small.area >minArea)
 	{
 		//have two verticals which we have to assume form a gate
@@ -554,6 +565,7 @@ void GateDetector::FindContours(Mat img_src)
 		finalGate.width = abs(Vertical_large.centerx-Vertical_small.centerx);
 		finalGate.height = (Vertical_large.height + Vertical_small.height)/2;
 		finalGate.gatepieces = 2;
+		finalGate.angle = (Vertical_large.angle+Vertical_small.angle)/2;
 	}
 	else if (Horizontal_large.area >minArea && Vertical_large.area >minArea )
 	{
@@ -649,6 +661,7 @@ void GateDetector::FindContours(Mat img_src)
 				finalGate.centery = Vertical_large.centery;
 				finalGate.width = Horizontal_small.width;
 				finalGate.height = Vertical_large.height;
+				finalGate.angle = Horizontal_small.angle;
 			}
 			else if (Xdistance_vert2 ==2)
 			{
@@ -658,6 +671,7 @@ void GateDetector::FindContours(Mat img_src)
 				finalGate.centery = Vertical_small.centery;
 				finalGate.width = Horizontal_small.width;
 				finalGate.height = Vertical_small.height;
+				finalGate.angle = Horizontal_small.angle;
 			}
 		}
 		else
@@ -671,6 +685,7 @@ void GateDetector::FindContours(Mat img_src)
 				finalGate.centery = Vertical_large.centery;
 				finalGate.width = Horizontal_large.width;
 				finalGate.height = Vertical_large.height;
+				finalGate.angle = Horizontal_large.angle;
 			}
 			else if (Xdistance_vert1 ==2)
 			{
@@ -680,6 +695,7 @@ void GateDetector::FindContours(Mat img_src)
 				finalGate.centery = Vertical_small.centery;
 				finalGate.width = Horizontal_large.width;
 				finalGate.height = Vertical_small.height;
+				finalGate.angle = Horizontal_large.angle;
 			}
 		}
 	}
@@ -845,7 +861,7 @@ void GateDetector::publishFoundEventContour(contourblob contour, Color::ColorTyp
     event->y = centerY;
     event->range = contour.width;
     event->azimuth = finalGate.gatepieces;
-    event->elevation = math::Degree((yFOV / 2) * centerY);
+    event->elevation =finalGate.angle;
     event->color = color;
     event->touchingEdge = false;
 
