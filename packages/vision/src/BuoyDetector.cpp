@@ -568,9 +568,9 @@ m_framenumber = m_framenumber+1;
 	}	
   	erode(img_red, erode_dst_red, element);
 
-  	imshow("green",erode_dst_green);
-	imshow("yellow",erode_dst_yellow);
-	imshow("red",erode_dst_red);
+  	//imshow("green",erode_dst_green);
+	//imshow("yellow",erode_dst_yellow);
+	//imshow("red",erode_dst_red);
 
 	//get Blobs
 	m_redbuoy= getSquareBlob(erode_dst_red);

@@ -1738,7 +1738,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 					finalcropped[k] = cropped[k];	
 				}
 
-				resize(finalcropped[k], finalresize[k], Size(100,300), 0, 0, INTER_LINEAR );
+				resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
 			}
 			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
 
