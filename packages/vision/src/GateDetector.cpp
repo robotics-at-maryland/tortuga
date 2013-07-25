@@ -328,6 +328,7 @@ void GateDetector::FindContours(Mat img_src)
 	double angle = 0;
 	Point2f vertices[4];
 
+	int minX=0,minY=0,maxX=0,maxY=0;
 	int maxdistance=0, maxdistance2=0,distance=9;
 	int midpointx=0,midpointy=0;
 	int midpointx1=0,midpointy1=0,midpointx2=0,midpointy2=0;
@@ -339,6 +340,10 @@ void GateDetector::FindContours(Mat img_src)
 	{
 		if (contours[j].size() > minContourSize)	
 		{
+			minX = 9000;
+			minY=9000;
+			maxX=0;
+			maxY=0;
 			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
 			area = temp.size.width*temp.size.height;
 			foundaspectdiff = abs(temp.size.height/temp.size.width);
@@ -348,6 +353,7 @@ void GateDetector::FindContours(Mat img_src)
 				//get angle
 				maxdistance =0;
 				maxdistance2 = 0;
+				foundaspectdiff = abs(temp.size.height/temp.size.width);
 				for (int i = 0; i < 4; i++)
 				{
 					midpointx=(int)((vertices[i].x+vertices[(i+1)%4].x)/2);
@@ -369,7 +375,17 @@ void GateDetector::FindContours(Mat img_src)
 						midpointx2 = midpointx;
 						midpointy2 = midpointy;
 					}
+					if (vertices[i].x < minX)
+						minX = vertices[i].x;
+					if (vertices[i].x>maxX)
+						maxX = vertices[i].x;
+					if (vertices[i].y < minY)
+						minY = vertices[i].y;
+					if (vertices[i].y > maxY)
+						maxY = vertices[i].y;
+				
 				}
+				foundaspectdiff = double(maxY-minY)/double(maxX-minX);
 				//lower point always first
 				rise = (midpointy2-midpointy1);
 				run = (midpointx2-midpointx1);
@@ -400,7 +416,7 @@ void GateDetector::FindContours(Mat img_src)
 				area = 0;		
 			}
 			//printf("\n area = %f, aspectratio = %f, angle = %f, rise = %f, run=%f",area, foundaspectdiff,angle,rise,run);
-			if (area > minArea && abs(angle-90)<m_maxanglediff&& (foundaspectdiff > m_maxAspectRatio || foundaspectdiff < m_minAspectRatio))
+			if (area > minArea && abs(angle-90)<m_maxanglediff&& (foundaspectdiff < m_minAspectRatio))
 			{
 				//Horizontal
 				if (area > Horizontal_large.area)
@@ -431,7 +447,7 @@ void GateDetector::FindContours(Mat img_src)
 				//}
 
 			}
-			if (area > minArea && abs(angle)<m_maxanglediff && (foundaspectdiff > m_maxAspectRatio || foundaspectdiff < m_minAspectRatio))
+			if (area > minArea && abs(angle)<m_maxanglediff && (foundaspectdiff > m_maxAspectRatio))// || foundaspectdiff < m_minAspectRatio))
 			{
 				//vertical
 

@@ -37,6 +37,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 		bool found;
 		int centerx;
 		int centery;
+		double area;
 		double range;
 		double angle;
 		int id2;
@@ -45,6 +46,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 		int centery2;
 		double range2;
 		double angle2;
+		double area2;
 	};	
   public:
     OrangePipeDetector(core::ConfigNode config,
@@ -69,7 +71,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     // Setter and Getter for lookup table color filter
     bool getLookupTable();
     void setLookupTable(bool lookupTable);
-  
+    bool m_onlyReportOnePipe;
   private:
     void init(core::ConfigNode config);
 

@@ -148,7 +148,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
                          "Number of dilate iterations to perform",
                          0, &m_dilateIteration);
 
-
+m_onlyReportOnePipe=false;
 logger.info("Got Initial Values");
 
 }
@@ -488,19 +488,23 @@ logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <
 		m_foundpipe1= false;
 		publishLostEvent(m_previousfinalpipe.id);
 	}
-	if (finalpipe.found2 == true)
-	{	
 
-		logger.infoStream() << " Pipe2 found going to publish Data";
-		m_foundpipe2 = true;
-		publishFoundEvent(finalpipe,2,input);
-	}
-	else if (m_foundpipe2== true)
+	if (m_onlyReportOnePipe== false)
 	{
-		//lost event
-		logger.infoStream() << " Pipe1 Lost publishing lost even";
-		m_foundpipe2 = false;
-		publishLostEvent(m_previousfinalpipe.id2); //this is a hack that may work
+		if (finalpipe.found2 == true)
+		{	
+
+			logger.infoStream() << " Pipe2 found going to publish Data";
+			m_foundpipe2 = true;
+			publishFoundEvent(finalpipe,2,input);
+		}
+		else if (m_foundpipe2== true)
+		{
+			//lost event
+			logger.infoStream() << " Pipe1 Lost publishing lost even";
+			m_foundpipe2 = false;
+			publishLostEvent(m_previousfinalpipe.id2); //this is a hack that may work
+		}
 	}	
 
 }
@@ -569,7 +573,7 @@ logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" S
 	if (maxArea  > m_minSize)
 	{
 		maxtemp.points(vertices);
-	
+		finalpipe.area = maxArea;
 		//allocate data
 		finalpipe.found = true;
 		finalpipe.id = 1;
@@ -665,6 +669,7 @@ logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" S
 	
 		//allocate data
 		
+		finalpipe.area2 = maxArea2;
 		finalpipe.found2 = true;
 		finalpipe.id2 = 2;
 		finalpipe.centerx2 = (int)maxtemp2.center.x;
@@ -718,6 +723,7 @@ logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" S
 		{
 			finalpipe.angle2 = 90;
 		}
+			
 
 		//line(img_whitebalance,Point(midpointx1,midpointy1),Point(midpointx2,midpointy2),Scalar(150,0,0),5);
 		drawContours(img_whitebalance, contours, maxContour2, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() ); 

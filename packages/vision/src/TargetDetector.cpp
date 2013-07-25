@@ -795,6 +795,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	RotatedRect temp,maxtemp;
 	//targetSmall and targetLarge are within the maxSize contour
 	double area=0.0;
+	double aspectratio=0;
 	//printf("\n number of contours: %d",contours.size());
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
@@ -802,7 +803,8 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		{
 			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
 			area = temp.size.width*temp.size.height;
-			if (area > maxArea)
+			aspectratio = temp.size.height/temp.size.width;
+			if (area > maxArea && aspectratio < m_maxAspectRatio && aspectratio > m_minAspectRatio)
 			{	maxContour = j;
 				maxtemp = temp;
 				maxArea = area;
@@ -857,7 +859,6 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		RotatedRect targetSmall;
 		double targetLargeArea = 0;
 		double targetSmallArea = 0;
-		double aspectratio=0;
 		for(unsigned int j=0; j<contours.size(); j++)
 		{
 			if (j != maxContour && (int(contours[j].size()) > m_minSize))
@@ -871,7 +872,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 					//in the middle, therefore save
 					//should also be roughly circular - width should be about equal to height
 					aspectratio = minEllipse.size.height/minEllipse.size.width;
-					if (minEllipse.size.height*minEllipse.size.width > targetLargeArea && aspectratio < m_maxAspectRatio && aspectratio > m_minAspectRatio)
+					if (minEllipse.size.height*minEllipse.size.width > targetLargeArea)// && aspectratio < m_maxAspectRatio && aspectratio > m_minAspectRatio)
 					{	
 						//before we go over the large one, save the previous large one to the small one
 						targetSmall = targetLarge;
