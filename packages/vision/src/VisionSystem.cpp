@@ -12,6 +12,7 @@
 // Library Includes
 #include <boost/foreach.hpp>
 
+
 // Project Includes
 #include "vision/include/VisionSystem.h"
 #include "vision/include/VisionRunner.h"
@@ -73,7 +74,8 @@ VisionSystem::VisionSystem(core::ConfigNode config,
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_cupidDetector(DetectorPtr()),
-    m_loversLaneDetector(DetectorPtr())
+    m_loversLaneDetector(DetectorPtr()),
+    m_monoPipeDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -90,7 +92,8 @@ VisionSystem::VisionSystem(CameraPtr forward, CameraPtr downward,
     m_pipelineDetector(DetectorPtr()),
     m_gateDetector(DetectorPtr()),
     m_cupidDetector(DetectorPtr()),
-    m_loversLaneDetector(DetectorPtr())
+    m_loversLaneDetector(DetectorPtr()),
+    m_monoPipeDetector(DetectorPtr())
 {
     init(config, core::Subsystem::getSubsystemOfType<core::EventHub>(deps));
 }
@@ -158,7 +161,13 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_cupidDetector = DetectorPtr(
         new TargetDetector(getConfig(config, "TargetDetector"), eventHub));
     m_loversLaneDetector = DetectorPtr(
-        new LoversLaneDetector(getConfig(config, "LoversLaneDetector"), eventHub));
+        new GateDetector(getConfig(config, "HedgeDetector"), eventHub));
+
+    boost::shared_ptr<OrangePipeDetector> tmp( new OrangePipeDetector(getConfig(config,"OrangePipeDetector"),eventHub));
+    
+    //call the function to change the setting for looking for one pipe
+    //cast down to detector ptr like the rest of them
+    m_monoPipeDetector = tmp;
 
     // Start camera in the background (at the fastest rate possible)
     m_forwardCamera->background(-1);
@@ -250,6 +259,21 @@ void VisionSystem::binDetectorOff()
 {
     m_downward->removeDetector(m_binDetector);
     publish(EventType::BIN_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+
+void VisionSystem::monoPipeLineDetectorOn()
+{
+    addDownwardDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::monoPipeLineDetectorOff()
+{
+    m_downward->removeDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
 
