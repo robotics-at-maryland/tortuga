@@ -100,123 +100,6 @@ VelocityDetector:
     minRelInnerWidth: .3
     minPixelPercentage: 0.12
     minWidth: 40
-HedgeDetector:
-    debug: 0
-    dilateIterations: 1
-    filtCMax: 255
-    filtCMin: 35
-    filtHMax: 107
-    filtHMin: 29
-    filtLMax: 255
-    filtLMin: 49
-    maxAspectRatio: 4
-    minAspectRatio: 0.3
-    minHeight: 40
-    maxPixelPercentage: 0.15
-    minPixelPercentage: 0.04
-    minWidth: 80
-    GreenColorFilterLookupTable: 0
-    RedColorFilterLookupTable: 0
-    YellowColorFilterLookupTable: 0
-    almostHitPercentage: 0.2
-    bottomIgnorePercentage: 0
-    checkBlack: 0
-    debug: 2
-    dilateIterations: 0
-    erodeIterations: 3
-    filtBlackCMax: 255
-    filtBlackCMin: 0
-    filtBlackHMax: 255
-    filtBlackHMin: 0
-    filtBlackLMax: 255
-    filtBlackLMin: 0
-    filtGreenCMax: 255
-    filtGreenCMin: 0
-    filtGreenHMax: 90
-    filtGreenHMin: 255
-    filtGreenLMax: 255
-    filtGreenLMin: 0
-    filtRedCMax: 255
-    filtRedCMin: 97
-    filtRedHMax: 160
-    filtRedHMin: 9
-    filtRedLMax: 148
-    filtRedLMin: 53
-    filtYellowCMax: 255
-    filtYellowCMin: 0
-    filtYellowHMax: 35
-    filtYellowHMin: 15
-    filtYellowLMax: 255
-    filtYellowLMin: 0
-    leftIgnorePercentage: 0
-    maxAspectRatio: 1.1
-    maxDistance: 15
-    maxTotalBlackCheckSize: 0.1
-    minAspectRatio: 0.25
-    minBlackPercentage: 0.25
-    minHeight: 50
-    minPixelPercentage: 0.1
-    minPixels: 15
-    minWidth: 50
-    rightIgnorePercentage: 0
-    topIgnorePercentage: 0
-    ErosionSize: 2
-    GreenHuemax: 80
-    GreenHuemin: 25
-    MaxAngleDiff: 20
-    RedHuemax: 127
-    RedHuemin: 9
-    RefelctionDiff: 84
-    Saturationmax: 228
-    Saturationmin: 25
-    Valuemax: 255
-    Valuemin: 0
-    diff: 100
-    maxAspectRatio: 6
-    minArea: 200
-    minAspectRatio: 0.25
-    thresholdwithred: 1
-    CalcTraining: 0
-    CompareBins: 0
-    MaxdistanceX: 90
-    MinimumFrames: 5
-    NumberofBinTypes: 4
-    NumberofImages: 6
-    SaveImages: 0
-    UpperLimitforBin: 0.3
-    binLostFrames: 0
-    binSameThreshold: 0.2
-    debug: 0
-    filtredCMax: 255
-    filtredCMin: 146
-    filtredHMax: 255
-    filtredHMin: 0
-    filtredLMax: 255
-    filtredLMin: 0
-    maxdistsanceY: 90
-    minHessian: 500
-    redDilateIterations: 2
-    redErodeIterations: 1
-    CannyHigh: 150
-    CannyLow: 50
-    Dilate: 0
-    ErosionSize: 3
-    GreenHuemax: 159
-    GreenHuemin: 0
-    MaxAngleDiff: 20
-    RedHuemax: 71
-    RedHuemin: 0
-    RefelctionDiff: 50
-    Saturationmax: 121
-    Saturationmin: 89
-    ToptoIgnore: 150
-    Valuemax: 255
-    Valuemin: 115
-    diff: 100
-    maxAspectRatio: 6
-    minArea: 200
-    minAspectRatio: 0.25
-    thresholdwithred: 0
 BuoyDetector:
     GreenColorFilterLookupTable: 0
     RedColorFilterLookupTable: 0
@@ -324,28 +207,6 @@ OrangePipeDetector:
     minPixelsFound: 2500
     noHough: 0
     samePipeThreshold: 0.2
-GateDetector:
-    CannyHigh: 150
-    CannyLow: 50
-    Dilate: 1
-    ErosionSize: 2
-    GreenHuemax: 255
-    GreenHuemin: 0
-    MaxAngleDiff: 20
-    RedHuemax: 255
-    RedHuemin: 0
-    RefelctionDiff: 50
-    Saturationmax: 255
-    Saturationmin: 0
-    ToptoIgnore: 150
-    Valuemax: 255
-    Valuemin: 120
-    diff: 100
-    maxAspectRatio: 6
-    minArea: 200
-    minAspectRatio: 0.25
-    thresholdwithred: 0
-HedgeDetector:
     CannyHigh: 150
     CannyLow: 50
     Dilate: 1
@@ -365,4 +226,46 @@ HedgeDetector:
     maxAspectRatio: 3.75
     minArea: 200
     minAspectRatio: 0.5
+    thresholdwithred: 0
+HedgeDetector:
+    CannyHigh: 150
+    CannyLow: 50
+    Dilate: 1
+    ErosionSize: 2
+    GreenHuemax: 255
+    GreenHuemin: 0
+    MaxAngleDiff: 20
+    RedHuemax: 127
+    RedHuemin: 9
+    RefelctionDiff: 50
+    Saturationmax: 255
+    Saturationmin: 0
+    ToptoIgnore: 150
+    Valuemax: 255
+    Valuemin: 4
+    diff: 100
+    maxAspectRatio: 1
+    minArea: 400
+    minAspectRatio: 0.25
+    thresholdwithred: 0
+GateDetector:
+    CannyHigh: 150
+    CannyLow: 50
+    Dilate: 1
+    ErosionSize: 2
+    GreenHuemax: 255
+    GreenHuemin: 0
+    MaxAngleDiff: 20
+    RedHuemax: 127
+    RedHuemin: 9
+    RefelctionDiff: 50
+    Saturationmax: 255
+    Saturationmin: 116
+    ToptoIgnore: 150
+    Valuemax: 255
+    Valuemin: 79
+    diff: 100
+    maxAspectRatio: 1.87
+    minArea: 0
+    minAspectRatio: 1.5
     thresholdwithred: 0
