@@ -45,11 +45,12 @@
 #include "vision/include/WhiteBalance.h"
 #include "vision/include/BuoyDetectorKate.h"
 
-static boost::filesystem::path getImagesDir()
-{
-    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
-    return root / "packages" / "vision" / "test" / "data" / "references";
-}
+//depricated EElliott code
+//static boost::filesystem::path getImagesDir()//
+//{
+//    boost::filesystem::path root(getenv("RAM_SVN_DIR"));
+//    return root / "packages" / "vision" / "test" / "data" / "references";
+//}
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("BuoyDetector"));
 
@@ -239,6 +240,7 @@ void BuoyDetector::init(core::ConfigNode config)
         
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+    
     //
     //redFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
     //greenFrame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -251,20 +253,16 @@ void BuoyDetector::init(core::ConfigNode config)
     //          "/home/eliot/Python Tests/finalTemplates/ArtificialTemplateA3.png",0),
     //      cv::imread(
     //          "/home/eliot/Python Tests/finalTemplates/ArtificialTemplateB4.png",0));
-    initProcessBuoys(cv::imread(
-                         (getImagesDir() / "ArtificialTemplateA3.png").string(),0),
-            cv::imread(
-                (getImagesDir() / "ArtificialTemplateB4.png").string(),0));
+  
 
-
-    LOGGER.info("foundRed redX redY redRange redWidth "
-                "redHeight redNumPixels redPixelPct" 
-                "foundGreen greenX greenY greenRange greenWidth "
-                "greenHeight greenNumPixels greenPixelPct"
-                "foundYellow yellowX yellowY yellowRange yellowWidth "
-                "yellowHeight yellowNumPixel yellowPixelPct");
+    //LOGGER.info("foundRed redX redY redRange redWidth "
+    //            "redHeight redNumPixels redPixelPct" 
+    //            "foundGreen greenX greenY greenRange greenWidth "
+    //            "greenHeight greenNumPixels greenPixelPct"
+    //            "foundYellow yellowX yellowY yellowRange yellowWidth "
+    //            "yellowHeight yellowNumPixel yellowPixelPct");
  
-     foundgreenbefore=(false);
+    foundgreenbefore=(false);
     foundredbefore=(false);
     foundyellowbefore=(false);
     m_framenumber = 0;
@@ -459,7 +457,7 @@ buoy
 
 */
 	//double givenAspectRatio = 1.0;
-m_framenumber = m_framenumber+1;
+	m_framenumber = m_framenumber+1;
 	int red_minH =m_redFilter->getChannel3Low();
 	int red_maxH =m_redFilter->getChannel3High();
 
@@ -487,11 +485,18 @@ m_framenumber = m_framenumber+1;
 	int green_minS = m_greenFilter->getChannel1Low();
 	int green_maxS = m_greenFilter->getChannel1High();
 
+LOGGER.infoStream() << "Input Data: Red H:" << red_minH <<"," <<red_maxH <<" S: "<<red_minS << "," <<red_maxS << " V: "<< red_minL << ","<<red_maxL << " ";
+LOGGER.infoStream() << "Input Data: green H:" << green_minH <<"," <<green_maxH <<" S: "<<green_minS << "," <<green_maxS << " V: "<< green_minL << ","<<green_maxL << " ";
+LOGGER.infoStream() << "Input Data: yellow H:" << yellow_minH <<"," <<yellow_maxH <<" S: "<<yellow_minS << "," <<yellow_maxS << " V: "<< yellow_minL << ","<<yellow_maxL << " ";
+LOGGER.infoStream() << "Input Data: Erosion:" << m_erodeIterations<<",";
+
 	Mat img = input->asIplImage();
 	Mat img_hsv;
 
 	img_whitebalance = WhiteBalance(img);
 	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+LOGGER.infoStream() << "Whitebalance complete, and converted to HSV " << " ";
+
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
@@ -504,13 +509,16 @@ m_framenumber = m_framenumber+1;
 	blobfinder blob;
 
 	//green blends in really well so we want to use a saturation filter as well
-	Mat temp_yellow,temp_red,temp_green; //temperoary Mat used for merging channels
+	Mat temp_yellow(img_whitebalance.size(),CV_8UC1);
+	Mat temp_red(img_whitebalance.size(),CV_8UC1);
+	Mat temp_green(img_whitebalance.size(),CV_8UC1);; //temperoary Mat used for merging channels
 
 	Mat img_saturation(img_whitebalance.size(),CV_8UC1);
 	Mat img_Luminance(img_whitebalance.size(),CV_8UC1);
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
 	int erosion_size = m_erodeIterations;
+
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
@@ -573,8 +581,13 @@ m_framenumber = m_framenumber+1;
 	//imshow("red",erode_dst_red);
 
 	//get Blobs
+LOGGER.infoStream() << "--------RED -----------";
 	m_redbuoy= getSquareBlob(erode_dst_red);
+	//get Blobs
+LOGGER.infoStream() << "--------YELLOW -----------";
 	m_yellowbuoy = getSquareBlob(erode_dst_yellow);
+	//get Blobs
+LOGGER.infoStream() << "--------GREEN -----------";
 	m_greenbuoy = getSquareBlob(erode_dst_green);
 }
 
@@ -582,36 +595,47 @@ m_framenumber = m_framenumber+1;
 BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 {
 	//finds the maximum contour that meets aspectratio
-
+LOGGER.infoStream() << "Starting to find contours " << " ";
 	double aspectdifflimit = m_maxAspectRatio;
-	double foundaspectdiff;
+	double foundaspectdiff=0;
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 
 	  /// Find contours
 	findContours(erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
+LOGGER.infoStream() << "Contours found, NUmber:" << contours.size()<<",";
 	//find contour with the largest area- by area I mean number of pixels
 	double maxArea = 0;
-	unsigned int maxContour;
+	unsigned int maxContour=0;
 	RotatedRect temp,maxtemp;
 	//targetSmall and targetLarge are within the maxSize contour
-	double area;
+	double area=0.0;
 	foundblob finalbuoy; 
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-
 	     //cout << "# of contour points: " << contours[i].size() << endl ;
-		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
-		area = temp.size.width*temp.size.height;
-		foundaspectdiff = abs(temp.size.height/temp.size.width- 1.0);
-		//printf("\n foundaspectdiff = %f",foundaspectdiff);
-		if (area > maxArea && foundaspectdiff < aspectdifflimit)
-		{	maxContour = j;
-			maxtemp = temp;
-			maxArea = area;
+		if (contours[(int)j].size() > 6)
+		{
+			//printf("\n greater than 6");
+		
+			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+			area = temp.size.width*temp.size.height;
+			foundaspectdiff = abs(temp.size.height/temp.size.width- 1.0);
+			//printf("\n foundaspectdiff = %f",foundaspectdiff);
+			if (area > maxArea && foundaspectdiff < aspectdifflimit)
+			{	maxContour = j;
+				maxtemp = temp;
+				maxArea = area;
+			}
 		}
+
 	};
+	LOGGER.infoStream() << "Area of max Contour:" << maxArea<<" maxContour number" << maxContour <<" ";
+
+	CvPoint vert;	
+	vert.x = 0;
+	vert.y = 0;
 
 	if (maxArea  > 5)
 	{
@@ -625,6 +649,15 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 		for (int i = 0; i < 4; i++)
 		{
 			//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
+			if (vertices[i].y > 480)
+				vertices[i].y=480;
+			if (vertices[i].x > 640)
+				vertices[i].x=640;
+			if (vertices[i].y < 0)
+				vertices[i].y=0;
+			if (vertices[i].x < 0)
+				vertices[i].x=0;
+
 			if (vertices[i].x < minX)
 				minX = vertices[i].x;
 			if (vertices[i].x > maxX)
@@ -633,7 +666,9 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 				minY = vertices[i].y;
 			if (vertices[i].y > maxY)
 				maxY = vertices[i].y;
+
 		};
+LOGGER.infoStream() << "Contour Found ";
 		//allocate data
 		finalbuoy.minX = minX;
 		finalbuoy.minY = minY;
@@ -645,11 +680,11 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 		finalbuoy.range = maxtemp.size.width;
 		finalbuoy.angle = maxtemp.angle;
 
+
 		//Display Purposes
-		maxtemp.points(vertices);
+		//maxtemp.points(vertices);
 		for (int i = 0; i < 4; i++)
 		    line(img_whitebalance, vertices[i], vertices[(i+1)%4], Scalar(0,255,0),5);
-		//imshow("final",img_whitebalance); 
 
 		finalbuoy.vertex1 = vertices[0]; 
 		finalbuoy.vertex2 = vertices[1]; 
@@ -659,6 +694,7 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 	else	
 	{
 		//printf("\n unable to find buoy");
+LOGGER.infoStream() << "Contour NOT Found ";
 		finalbuoy.minX = 0;
 		finalbuoy.minY = 0;
 		finalbuoy.maxX = 0;
@@ -668,16 +704,20 @@ BuoyDetector::foundblob BuoyDetector::getSquareBlob(Mat erosion_dst)
 		finalbuoy.centery = 0;
 		finalbuoy.range = 0;
 		finalbuoy.angle = 0;
-		CvPoint vert;	
-		vert.x = 0;
-		vert.y = 0;
+
 		finalbuoy.vertex1 = vert; 
 		finalbuoy.vertex2 = vert; 
 		finalbuoy.vertex3 = vert; 
 		finalbuoy.vertex4 = vert; 
 	}
  
-		return(finalbuoy);
+LOGGER.infoStream() <<" Allocating data: minX, maxX, minY, maxY" << finalbuoy.minX<<","<< finalbuoy.maxX<<","<< finalbuoy.minY<<","<< finalbuoy.maxY << " ";
+LOGGER.infoStream() << "Cener: " << finalbuoy.centerx <<","<< finalbuoy.centery <<" range: "<< finalbuoy.range<< " angle:"<< finalbuoy.angle << " ";
+LOGGER.infoStream() << "Vertex: " << finalbuoy.vertex1.x<<","<< finalbuoy.vertex1.y<<" - " << finalbuoy.vertex2.x<<","<< finalbuoy.vertex2.y<<" - " <<finalbuoy.vertex3.x<<","<< 				finalbuoy.vertex3.y<<" - " << finalbuoy.vertex4.x<<","<< finalbuoy.vertex4.y<<" - " << " "; 
+
+	return(finalbuoy);
+
+
 }
 
 
@@ -777,10 +817,14 @@ void BuoyDetector::processImage(Image* input, Image* output)
 {
 
 	//KATE Update 2013
+LOGGER.infoStream() << "Staring Detecting Contours";
 	DetectorContours(input);
+	
+LOGGER.infoStream() << "Detector Complete: Yellow Size "<<m_yellowbuoy.range <<" Red : "<<m_redbuoy.range << " Green: "<<m_greenbuoy.range << " ";
 	if (m_yellowbuoy.range > 10)
 	{
 		foundyellowbefore = true;
+		LOGGER.infoStream() << "Yellow Buoy Found" << " ";
 		publishFoundEventContour(m_yellowbuoy, Color::YELLOW);
 
 	}
@@ -788,39 +832,35 @@ void BuoyDetector::processImage(Image* input, Image* output)
 	{
 		foundyellowbefore = false;
 		publishLostEvent(Color::YELLOW);
-
-       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
-                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
+		LOGGER.infoStream() << "Yellow Lost Event" << " ";
 	}
 
 	if (m_redbuoy.range > 10)
 	{
 		foundredbefore = true;
+		LOGGER.infoStream() << "Red Buoy Found" << " ";
 		publishFoundEventContour(m_redbuoy, Color::RED);
 
 	}
 	if (m_redbuoy.range < 10 && foundredbefore==true)
 	{
+		LOGGER.infoStream() << "Red Buoy Lost" << " ";
 		foundredbefore = false;
 		publishLostEvent(Color::RED);
-
-       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
-                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
 	}
 
 	if (m_greenbuoy.range > 10)
 	{
+		LOGGER.infoStream() << "Green Buoy Found" << " ";
 		foundgreenbefore = true;
 		publishFoundEventContour(m_greenbuoy, Color::GREEN);
 
 	}
 	if (m_greenbuoy.range < 10 && foundgreenbefore==true)
 	{
+		LOGGER.infoStream() << "Green Buoy Lost" << " ";
 		foundgreenbefore = false;
 		publishLostEvent(Color::GREEN);
-
-       		LOGGER.infoStream() << "0" << " " << "0" << " " << "0" << " " << "0" << " "
-                            << "0" << " " << "0" << " " << "0" << " " << "0" << " ";
 	}
 
 /*
@@ -1067,20 +1107,24 @@ void BuoyDetector::processImage(Image* input, Image* output)
 */
     if(output)
     {
+	LOGGER.infoStream() << "Output is on" << " ";
 	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
-
+LOGGER.infoStream() << "Whitebalance converted to BGR" << " ";
 	//imshow("greenAND",erode_dst_green);
 	//imshow("sat",img_saturation);
 	//imshow("yellowerosion",erode_dst_yellow);
 	//imshow("rederosion",erode_dst_red);
 
        input->setData(img_whitebalance.data,false);
-       frame->copyFrom(input);
-        output->copyFrom(frame);
+LOGGER.infoStream() << "Input 'copied' from img_whitebalance" << " ";
+       //frame->copyFrom(input);
+        output->copyFrom(input);
+LOGGER.infoStream() << "Output copied from input" << " ";
         if (m_debug >= 1) {
-            output->copyFrom(frame);
+	    LOGGER.infoStream() << "Debug is on, Copying from frame" ;
+            output->copyFrom(input);
 
-
+/*
             unsigned char *data = output->getData();
             int width = output->getWidth();
             int height = output->getHeight();
@@ -1097,6 +1141,7 @@ void BuoyDetector::processImage(Image* input, Image* output)
                     *(data + r * width * nch + c) = 0;
                 }
             }
+	*/
 
        //     for(int r = height - bottomRowsToIgnore - 1; r < height - 1; r++)
        //     {
@@ -1565,7 +1610,8 @@ void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType col
     static math::Degree yFOV = VisionSystem::getFrontVerticalFieldOfView();
     static double xPixelWidth = VisionSystem::getFrontHorizontalPixelResolution();
     static double yPixelHeight = VisionSystem::getFrontVerticalPixelResolution();
-
+	//get Blobs
+LOGGER.infoStream() << "Publishing Event: ininitial Calc xFOV: "<<xFOV <<" yFOV "<<yFOV <<" xpixelwidth "<<xPixelWidth <<" yPixelHeight"<< yPixelHeight;
     BuoyEventPtr event(new BuoyEvent());  
   
     double centerX = 0, centerY = 0;
@@ -1587,6 +1633,8 @@ void BuoyDetector::publishFoundEventContour(foundblob buoy, Color::ColorType col
     bool touchingEdge = false;
     if(minX == 0 || minY == 0 || maxX == xPixelWidth || maxY == yPixelHeight)
         touchingEdge = true;
+
+LOGGER.infoStream() << "Data Being Sent Center: "<<centerX <<","<<centerY <<" Range: "<<buoy.range <<" Aximuth"<< m_framenumber <<" elevation "<<math::Degree((yFOV / 2) * centerY) <<" Color: "<<color <<" Touching Edge " <<touchingEdge <<" angle "<<buoy.angle <<" ";
 
     event->x = centerX;
     event->y = centerY;
@@ -1691,7 +1739,7 @@ void BuoyDetector::publishLostEvent(Color::ColorType color)
 {
     BuoyEventPtr event(new BuoyEvent());
     event->color = color;
-    
+    LOGGER.infoStream() << "Lost event: Color "<<color <<" ";
     publish(EventType::BUOY_LOST, event);
 }
 

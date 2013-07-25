@@ -118,6 +118,7 @@ Mat WhiteBalance(Mat Input)
 	//imshow("Output",image_output);
 	//cvWaitKey(0);
 
+	//Input.copyTo(image_output);
 	return image_output;
 }	
 }//end namespace vision

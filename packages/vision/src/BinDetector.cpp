@@ -1749,7 +1749,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				imshow("cropped1",finalresize[k]);
 			else if (k==2)
 				imshow("cropped2",finalresize[k]);
-			else if (k==3)
+			else if (k==3)s
 				imshow("cropped3",finalresize[k]);
 			else if (k==4)
 				imshow("cropped4",finalresize[k]);

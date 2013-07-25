@@ -88,9 +88,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
         "Minimum brighness for orange",
         100, &m_minBrightness, 0, 255);
 */
-    propSet->addProperty(config, false, "erodeIterations",
-        "How many times to erode the filtered image",
-        1, &m_erodeIterations);
+
 /*
     propSet->addProperty(config, false, "openIterations",
                          "How many times to perform the open morphological operation",
@@ -104,12 +102,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "bOverRMax",
         "Blue/Red maximum ratio",  0.4, &m_bOverRMax, 0.0, 5.0);
 */
-    propSet->addProperty(config, false, "MaxAspectRatio",
-        "MaxAspectRatio",  5.0, &m_maxAspectRatio, 0.0, 10.0);
-
-    propSet->addProperty(config, false, "MinSize",
-        "MinSize",  15, &m_minSize, 0, 500);
-/*
+  /*
 
     // Newer Color filter properties
     propSet->addProperty(config, false, "useLUVFilter",
@@ -128,9 +121,22 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                  14, 200,  // U defaults
                                  126, 255); // V defaults
 */
-    m_framenumber = 0;
-    // Make sure the configuration is valid
+      // Make sure the configuration is valid
     //propSet->verifyConfig(config, true);
+  m_framenumber = 0;
+
+
+  propSet->addProperty(config, false, "erodeIterations",
+        "How many times to erode the filtered image",
+        1, &m_erodeIterations);
+
+    propSet->addProperty(config, false, "MaxAspectRatio",
+        "MaxAspectRatio",  5.0, &m_maxAspectRatio, 0.0, 10.0);
+
+    propSet->addProperty(config, false, "MinSize",
+        "MinSize",  15, &m_minSize, 0, 500);
+
+
  m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedL", "Red Luminance",
@@ -138,7 +144,12 @@ void OrangePipeDetector::init(core::ConfigNode config)
                                     "RedH", "Red Hue",
                                     70, 255, 0, 255,0, 90);
 
-  logger.info("Got values maybe");
+    propSet->addProperty(config, false, "dilateIterations",
+                         "Number of dilate iterations to perform",
+                         0, &m_dilateIteration);
+
+
+logger.info("Got Initial Values");
 
 }
 
@@ -273,14 +284,16 @@ pipe
 	//double givenAspectRatio = 1.0;
 	m_framenumber = m_framenumber+1;
 
-	Mat img = input->asIplImage();
-	Mat img_hsv;
-	img_whitebalance = WhiteBalance(img);
-
-	cv::Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
+	
+	img_whitebalance=input->asIplImage();
+	//Mat img = input->asIplImage();
+	//img_whitebalance = WhiteBalance(img);
+	Mat img_hsv(img_whitebalance.size(),img_whitebalance.type());
+	Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
 	int ksize = 15;
 	//imshow("hsv",img_whitebalance);
 	medianBlur(img_whitebalance, img_blur, ksize);
+logger.infoStream() << " Median Blur Done" << " ";
 
 	int red_minH =m_redFilter->getChannel3Low();
 	int red_maxH =m_redFilter->getChannel3High();
@@ -290,6 +303,9 @@ pipe
 
 	int red_maxS =m_redFilter->getChannel1High();
 	int red_minS =m_redFilter->getChannel1Low();
+
+logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <<" S: "<<red_minS<<", "<<red_maxS <<" V: "<<red_minL <<", "<<red_maxL<<" "<< "erode: " <<m_erodeIterations<<" dilate "<<m_dilateIteration <<" ";
+
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
@@ -303,16 +319,20 @@ pipe
 	blobfinder blob;
 
 	//green blends in really well so we want to use a saturation filter as well
-	Mat temp_red; //temperoary Mat used for merging channels
-
+	Mat temp_red(img_whitebalance.size(),CV_8UC1); //temperoary Mat used for merging channels
 	Mat img_saturation(img_whitebalance.size(),CV_8UC1);
 	Mat img_Luminance(img_whitebalance.size(),CV_8UC1);
+	Mat dilate_dst_red(img_whitebalance.size(),CV_8UC1);
 	//For attempting to use with canny
 	int erosion_type = 0; //morph rectangle type of erosion
 	int erosion_size = m_erodeIterations;
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
+	int dilate_size = m_dilateIteration;
+	Mat dilate_element = getStructuringElement( erosion_type,
+                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+                                       Point( dilate_size, dilate_size ) );
 
 	//green blends in really well so we want to use a saturation filter as well
 	//green
@@ -337,15 +357,17 @@ pipe
 		img_red = temp_red;
 		//imshow("Luminance Red",img_Luminance);
 	}	
+
   	erode(img_red, erode_dst_red, element);
+	dilate(erode_dst_red, dilate_dst_red, dilate_element );
 	//imshow("red",erode_dst_red);
 
 	//get Blobs 
-        logger.infoStream() << "Have filtered image with rows= " << erode_dst_red.rows<<" col= "<< erode_dst_red.cols <<" \n ";
+        logger.infoStream() << "Frame Number "<<m_framenumber<<" Have filtered image with rows= " << erode_dst_red.rows<<" col= "<< erode_dst_red.cols <<" \n ";
 
 
 	foundpipe finalpipe;
-	finalpipe= getSquareBlob(erode_dst_red);
+	finalpipe= getSquareBlob(dilate_dst_red);
 
 	//have two pipes - i want to make sure I dont flip the ID on each one
 	//going to do that by looking at the previous foundpipe
@@ -496,46 +518,51 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
 
 	  /// Find contours
 	findContours(erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+logger.infoStream() << "Found Contours , Number of contour " << contours.size();
 
 	//find contour with the largest area- by area I mean number of pixels
 	double maxArea = 0;
 	double maxArea2 = 0;
 	
-	unsigned int maxContour, maxContour2;
+	unsigned int maxContour=0, maxContour2=0;
 	RotatedRect temp,maxtemp,maxtemp2;
 	//targetSmall and targetLarge are within the maxSize contour
-	double area;
+	double area=0;
 	double desiredAspectRatio = 5.0;
 	Point2f vertices[4];
-	int maxdistance, maxdistance2,distance;
-	int midpointx,midpointy;
-	int midpointx1,midpointy1,midpointx2,midpointy2;
-	double rise, run;
+	int maxdistance=0, maxdistance2=0,distance=0;
+	int midpointx=0,midpointy=0;
+	int midpointx1=0,midpointy1=0,midpointx2=0,midpointy2=0;
+	double rise=0, run=0;
 
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-
-	        //cout << "# of contour points: " << contours[j].size() << endl ;
-		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
-		area = temp.size.width*temp.size.height;
-		foundaspectdiff = abs(temp.size.height/temp.size.width- desiredAspectRatio);
-		//printf("\n foundaspectdiff = %f",foundaspectdiff);
-		if (area > maxArea && foundaspectdiff < aspectdifflimit)
-		{	
-			maxArea2 =maxArea;
-			maxContour2 = maxContour;
-			maxtemp2 = maxtemp;
-			maxContour = j;
-			maxtemp = temp;
-			maxArea = area;
-		}
-		else if (area > maxArea2)
+		if (contours[j].size() > 6) //rotatedRect doesn't like to be made out of less than 6 pixels
 		{
-			maxContour2 = j;
-			maxArea2 = area;
-			maxtemp2 = temp;
 		}
+			//cout << "# of contour points: " << contours[j].size() << endl ;
+			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+			area = temp.size.width*temp.size.height;
+			foundaspectdiff = abs(temp.size.height/temp.size.width- desiredAspectRatio);
+			//printf("\n foundaspectdiff = %f",foundaspectdiff);
+			if (area > maxArea && foundaspectdiff < aspectdifflimit)
+			{	
+				maxArea2 =maxArea;
+				maxContour2 = maxContour;
+				maxtemp2 = maxtemp;
+				maxContour = j;
+				maxtemp = temp;
+				maxArea = area;
+			}
+			else if (area > maxArea2)
+			{
+				maxContour2 = j;
+				maxArea2 = area;
+				maxtemp2 = temp;
+			}
+		
 	};
+logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" Smaller Area "<< maxArea2 <<" at contour "<< maxContour2 <<" ";
 
 
 //Get info for first pipe
@@ -712,6 +739,9 @@ OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
   		logger.infoStream() << "Unable to find SECOND line in ORangePipeDetector";
 
 	}
+logger.infoStream() << "Data being passed: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
+logger.infoStream() << "2nd FoundLine: at" <<finalpipe.centerx2  << "," << finalpipe.centery2 << " with angle"  << finalpipe.angle2 << " and range"  << finalpipe.range2 << " ";
+
 	return(finalpipe);
 }
 
@@ -767,7 +797,7 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 
 	 if(output)
 	    {
-		cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+		//cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
 		//imshow("final",img_whitebalance);
 		//imshow("greenAND",erode_dst_green);
 		//imshow("sat",img_saturation);

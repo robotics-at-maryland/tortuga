@@ -494,8 +494,6 @@ Mat blobfinder::OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH)
 		threshold(hsv_planes[0],img,maxH,0,THRESH_TOZERO_INV);
 		threshold(img,img,minH,255,THRESH_TOZERO);
 		threshold(img,img,1,255,THRESH_BINARY);
-		
-		
 		return(img);
 };
 Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,int minH,int maxH)
@@ -513,7 +511,6 @@ Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,int minH,int maxH)
 
 Mat blobfinder::LuminanceFilter(vector<Mat> hsv_planes,int minH,int maxH)
 {
-
 		Mat img;
 		threshold(hsv_planes[2],img,maxH,0,THRESH_TOZERO_INV);
 		threshold(img,img,minH,255,THRESH_TOZERO);

@@ -145,9 +145,6 @@ void TargetDetector::init(core::ConfigNode config)
 	m_framenumber = 0;
 
 
-
-
-
     /// TODO: add a found pixel drop off
 	m_greenFound = FALSE;
 	m_redFound = FALSE;
@@ -254,6 +251,10 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat element = getStructuringElement( erosion_type,
                                        Size( 2*erosion_size + 1, 2*erosion_size+1 ),
                                        Point( erosion_size, erosion_size ) );
+	int dilate_size = m_dilateIterations;
+	Mat dilate_element = getStructuringElement( erosion_type,
+                                       Size( 2*dilate_size + 1, 2*dilate_size+1 ),
+                                       Point( dilate_size, dilate_size ) );
 
 	int red_minV =m_redFilter->getChannel3Low();
 	int red_maxV =m_redFilter->getChannel3High();
@@ -292,15 +293,18 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	int blue_minH = m_blueFilter->getChannel1Low();
 	int blue_maxH = m_blueFilter->getChannel1High();
 
+logger.infoStream() << "Inputs Red H: "<<red_minH <<" , "<<red_maxH << " S: "<<red_minS <<", "<<red_maxS <<" V : "<<red_minS <<", "<<red_maxS<<" ";
+logger.infoStream() << "Inputs Yellow H: "<<yellow_minH <<" , "<<yellow_maxH << " S: "<<yellow_minS <<", "<<yellow_maxS <<" V : "<<yellow_minS <<", "<<yellow_maxS<<" ";
+logger.infoStream() << "Inputs Green H: "<<green_minH <<" , "<<green_maxH << " S: "<<green_minS <<", "<<green_maxS <<" V : "<<green_minS <<", "<<green_maxS<<" ";
+logger.infoStream() << "Inputs Blue H: "<<blue_minH <<" , "<<blue_maxH << " S: "<<blue_minS <<", "<<blue_maxS <<" V : "<<blue_minS <<", "<<blue_maxS<<" ";
+logger.infoStream() <<"Erode "<< m_erodeIterations <<" Dilate "<< m_dilateIterations;
 
 	Mat img = input->asIplImage();
-	Mat img_hsv;
-
 	img_whitebalance = WhiteBalance(img);
 	logger.infoStream() << "Whitebalance complete row=: "<<img_whitebalance.rows<<" cols= "<<img_whitebalance.cols;
 
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
-		
+	Mat img_hsv(img_whitebalance.size(),CV_8UC1);
+	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);		
 	vector<Mat> hsv_planes;
 	split(img_hsv,hsv_planes);
 
@@ -320,6 +324,11 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 	Mat erosion_dst_green(img_whitebalance.size(),CV_8UC1); 
 	Mat erosion_dst_blue(img_whitebalance.size(),CV_8UC1); 
 	Mat erosion_dst_yellow(img_whitebalance.size(),CV_8UC1); 
+
+	Mat dilate_dst_red(img_whitebalance.size(),CV_8UC1); 
+	Mat dilate_dst_green(img_whitebalance.size(),CV_8UC1); 
+	Mat dilate_dst_blue(img_whitebalance.size(),CV_8UC1); 
+	Mat dilate_dst_yellow(img_whitebalance.size(),CV_8UC1); 
  
 	
 	//green
@@ -337,6 +346,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		img_green = temp_green;
 	}	
   	erode(img_green, erosion_dst_green, element);
+	dilate(erosion_dst_green, dilate_dst_green, dilate_element );
 
 	//yellow
 	Mat img_yellow =blob.OtherColorFilter(hsv_planes,yellow_minH,yellow_maxH);	
@@ -353,6 +363,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		img_yellow = temp_yellow;
 	}	
   	erode(img_yellow, erosion_dst_yellow, element);
+	dilate(erosion_dst_yellow, dilate_dst_yellow, dilate_element );
 
 	//red
 	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);	
@@ -371,6 +382,7 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		//imshow("Luminance Red",img_Luminance);
 	}	
   	erode(img_red, erosion_dst_red, element);
+	dilate(erosion_dst_red, dilate_dst_red, dilate_element );
 
 	//blue
 	Mat img_blue =blob.OtherColorFilter(hsv_planes,blue_minH,blue_maxH);	
@@ -387,18 +399,8 @@ void TargetDetector::processColorImage(Image* input, Image* output)
 		img_blue = temp_blue;
 	}	
   	erode(img_blue, erosion_dst_blue, element);
+	dilate(erosion_dst_blue, dilate_dst_blue, dilate_element );
 	logger.infoStream() << "ColorFiltering Complete";
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -432,23 +434,23 @@ void TargetDetector::processColorImage(Image* input, Image* output)
   	erode(img_red, erosion_dst_red, element );
 */
 	//printf("\n Red");
-	logger.infoStream() << " Finding Red";
-	targetPanel squareRed = getSquareBlob(erosion_dst_red,img_whitebalance,Color::RED);
+	logger.infoStream() << " ------------Finding Red";
+	targetPanel squareRed = getSquareBlob(dilate_dst_red,img_whitebalance,Color::RED);
 
 	//printf("\nGreen");
-	logger.infoStream() << " Finding Green";
+	logger.infoStream() << "------------ Finding Green";
   	//erode(img_green, erosion_dst_green, element );
-	targetPanel squareGreen = getSquareBlob(erosion_dst_green,img_whitebalance,Color::GREEN);
+	targetPanel squareGreen = getSquareBlob(dilate_dst_green,img_whitebalance,Color::GREEN);
 
 	//printf("\nYellow");
-	logger.infoStream() << " Finding Yellow";
+	logger.infoStream() << "------------- Finding Yellow";
   	//erode(img_yellow, erosion_dst_yellow, element );
-	targetPanel squareYellow = getSquareBlob(erosion_dst_yellow,img_whitebalance,Color::YELLOW);
+	targetPanel squareYellow = getSquareBlob(dilate_dst_yellow,img_whitebalance,Color::YELLOW);
 
-	logger.infoStream() << " Finding Blue";
+	logger.infoStream() << "------------- Finding Blue";
 	//printf("\n Blue");
   	//erode(img_blue, erosion_dst_blue, element );
-	targetPanel squareBlue = getSquareBlob(erosion_dst_blue,img_whitebalance,Color::BLUE);
+	targetPanel squareBlue = getSquareBlob(dilate_dst_blue,img_whitebalance,Color::BLUE);
 
 	//NOw that I have the contours, check to see if outer box meets desired aspect ratio
 	Point2f vertices[4];
@@ -796,13 +798,15 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 	//printf("\n number of contours: %d",contours.size());
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-	        
-		temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
-		area = temp.size.width*temp.size.height;
-		if (area > maxArea)
-		{	maxContour = j;
-			maxtemp = temp;
-			maxArea = area;
+	        if (contours[j].size() > 6)
+		{
+			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
+			area = temp.size.width*temp.size.height;
+			if (area > maxArea)
+			{	maxContour = j;
+				maxtemp = temp;
+				maxArea = area;
+			}
 		}
 		
 		//printf("\n size %d, width %f, height %f area = %f", contours[j].size(), temp.size.width,temp.size.height,area);
@@ -853,7 +857,7 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		RotatedRect targetSmall;
 		double targetLargeArea = 0;
 		double targetSmallArea = 0;
-		double aspectratio;
+		double aspectratio=0;
 		for(unsigned int j=0; j<contours.size(); j++)
 		{
 			if (j != maxContour && (int(contours[j].size()) > m_minSize))
@@ -932,8 +936,14 @@ TargetDetector::targetPanel TargetDetector::getSquareBlob(Mat erosion_dst, Mat i
 		answer.outline = maxtemp;
 		answer.targetSmall = targetSmall;
 		answer.targetLarge = targetLarge;
+
+		logger.infoStream() << "Sending data: found outline = " <<answer.foundOutline <<" TargetLarge "<<answer.foundLarge << "Target Smaller "<< answer.foundSmall;
 		return(answer);
 	}//end able to find contours
+		answer.foundLarge = false;
+		answer.foundSmall = false;
+		answer.foundOutline = false;
+	return(answer);
 };
 
    
