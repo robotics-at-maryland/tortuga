@@ -177,7 +177,14 @@ void IMU::update(double timestep)
                 new RawIMUDataEvent());
             event->name = getName();
             event->rawIMUData = rotatedState;
-            event->magIsCorrupt = false;
+            if(corflg == false)
+            {
+                event->magIsCorrupt = false;
+            }
+            else
+            {
+                event->magIsCorrupt = true;
+            }
             event->timestep = timestep;
             publish(IIMU::RAW_UPDATE, event);
 

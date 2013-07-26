@@ -15,6 +15,7 @@
 #include "estimation/include/EstimationModule.h"
 #include "estimation/include/StateEstimatorBase.h"
 #include "estimation/include/modules/IncludeAllModules.h"
+#include "estimation/include/DVLAccelerometerEstimator.h"
 
 #include "core/include/Forward.h"
 #include "core/include/EventHub.h"

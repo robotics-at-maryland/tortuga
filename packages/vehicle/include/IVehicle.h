@@ -109,6 +109,11 @@ public:
     /** Toggle the external thruster */
     virtual void setExtraThruster(int speed) = 0;
 
+    virtual void corruptIMU(bool c)
+    {
+        //empty, this is a hack
+    }
+
     /** This event should be published when thrusts are updated */
     static const core::Event::EventType VEHICLE_THRUST_UPDATE;
     

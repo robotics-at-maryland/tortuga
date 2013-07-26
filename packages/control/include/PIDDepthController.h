@@ -26,9 +26,12 @@ public:
         double timestep,
         estimation::IStateEstimatorPtr estimator,
         control::DesiredStatePtr desiredState);
-
+    virtual double getISum()
+    {
+        return m_iErr;
+    }
 private:
-    double m_iErr; // Integrated error
+    double m_iErr; // Integrated er
     double m_kp, m_kd, m_ki; // PID gains
     double m_dtMin, m_dtMax; // Timestep limits
 };

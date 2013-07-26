@@ -95,6 +95,27 @@ private:
 
     /** Delay the start of the controller */
     double m_initializationPause;
+
+    bool vConx;
+    bool vCony;
+    bool vConz;
+    math::Vector2 intTermxy;
+    double intTermz;
+    double lastDV;
+    double kpvx;
+    double kdvx;
+    double kivx;
+    double kpvy;
+    double kdvy;
+    double kivy;
+    double kpvz;
+    double kdvz;
+    double kivz;
+    //last integral sum for each controller
+    double pix;
+    double piy;
+    double piz;
+
 };
     
 } // namespace control

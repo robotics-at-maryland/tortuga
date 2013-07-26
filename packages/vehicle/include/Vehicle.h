@@ -63,6 +63,9 @@ public:
     virtual void releaseGrabber();
 
     virtual void closeGrabber();
+
+    virtual void corruptIMU(bool c);
+
     
     virtual void applyForcesAndTorques(const math::Vector3& force,
                                        const math::Vector3& torque);

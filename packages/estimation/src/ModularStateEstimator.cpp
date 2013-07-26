@@ -62,9 +62,14 @@ ModularStateEstimator::ModularStateEstimator(core::ConfigNode config,
 void ModularStateEstimator::init(core::ConfigNode config,
                                  core::EventHubPtr eventHub)
 {
+    //Removed 7/13/2013 to test Combined DVL Acclerometer Kalman filter
+    //modules.push_back(EstimationModulePtr(
+    //                      new BasicDVLEstimationModule(
+    //                          config["DVLEstimationModule"],
+    //                          eventHub,
+    //                          m_estimatedState)));
     modules.push_back(EstimationModulePtr(
-                          new BasicDVLEstimationModule(
-                              config["DVLEstimationModule"],
+                          new DVLAccelerometerEstimator(
                               eventHub,
                               m_estimatedState)));
 

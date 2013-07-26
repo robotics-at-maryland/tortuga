@@ -81,6 +81,15 @@ private:
     DeviceAveragingMap m_filteredGyroX; 
     DeviceAveragingMap m_filteredGyroY;
     DeviceAveragingMap m_filteredGyroZ;
+    math::AveragingFilter<double,FILTER_SIZE> m_filteredGyroXV; 
+    math::AveragingFilter<double,FILTER_SIZE> m_filteredGyroYV;
+    math::AveragingFilter<double,FILTER_SIZE> m_filteredGyroZV;
+    double lx;
+    double ly;
+    double lz;
+    double m_gyroXThresh;
+    double m_gyroYThresh;
+    double m_gyroZThresh;
 
     DeviceAveragingMap m_filteredMagX; 
     DeviceAveragingMap m_filteredMagY;

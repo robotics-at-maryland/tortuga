@@ -446,7 +446,8 @@ Controller:
         dtMax: 0.1
 
     RotationalController:
-        type: NonlinearPDRotationalController
+        #type: NonlinearPDRotationalController
+        type: NonlinearLinearVelocityAdaptivePDRotationalController
         kp: 22.5
         kd: 2
         dtMin: 0.005

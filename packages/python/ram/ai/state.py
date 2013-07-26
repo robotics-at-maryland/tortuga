@@ -81,6 +81,7 @@ class State(object):
         @warning: Only valid when the object is created by a Machine object
         """
         raise 
+    
 
 class FindAttempt(State):
     """
@@ -154,13 +155,12 @@ class ZigZag(State):
     DONE = core.declareEventType('DONE')
 
     @staticmethod
-    def transitions(finishState, myState = None):
+    def transitions(myState = None):
         
         if myState is None :
             myState = ZigZag
         
-        return { motion.basic.MotionManager.FINISHED : myState,
-                 ZigZag.DONE : finishState }
+        return { motion.basic.MotionManager.FINISHED : myState}
 
     #moves the robot forward a set distance as defined in the getattr() function
     def Forward(self):
@@ -270,6 +270,115 @@ class ZigZag(State):
 
     def exit(self):
         self.motionManager.stopCurrentMotion()
+
+
+class Center(State):
+    
+    CENTERED = core.declareEventType('CENTERED')
+    TIMEOUT = core.declareEventType('TIMEOUT')
+
+    STEPNUM = 0
+
+    @staticmethod
+    def transitions():
+        return { motion.basic.MotionManager.FINISHED : Center }
+
+    @staticmethod
+    def getattr():
+        return { 'speed' : 0.15 , 'diveRate' : 0.15 , 'distance' : 4 ,
+                 'xmin' : -0.05 , 'xmax' : 0.05 , 
+                 'ymin' : -0.05 , 'ymax' : 0.05,
+                 'timeout' : 30 }
+
+    def move(self, distance):
+        if not self.move_again:
+            return
+
+        translateTrajectory = motion.trajectories.Vector2CubicTrajectory(
+            initialValue = math.Vector2.ZERO,
+            finalValue = math.Vector2(0, distance),
+            initialRate = self.stateEstimator.getEstimatedVelocity(),
+            avgRate = self._speed)
+        translateMotion = motion.basic.Translate(
+            trajectory = translateTrajectory,
+            frame = Frame.LOCAL)
+
+        self.motionManager.setMotion(translateMotion)
+
+        self.move_again = False
+
+    def dive(self, distance):
+        if not self.move_again:
+            return
+
+        diveTrajectory = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = self.stateEstimator.getEstimatedDepth(),
+            finalValue = self.stateEstimator.getEstimatedDepth() + distance,
+            initialRate = self.stateEstimator.getEstimatedDepthRate(),
+            avgRate = self._diveRate)
+        diveMotion = motion.basic.ChangeDepth(trajectory = diveTrajectory)
+
+        self.motionManager.setMotion(diveMotion)
+
+        self.move_again = False
+
+    def enter(self):
+        self.STEPNUM = 0
+
+        self.move_again = True
+
+        self.timer = self.timerManager.newTimer(Center.TIMEOUT, self._timeout)
+        self.timer.start()
+
+    def exit(self):
+        if self.timer is not None:
+            self.timer.stop()
+        self.motionManager.stopCurrentMotion()
+
+
+    def FINISHED(self, event):
+        self.move_again = True
+
+    def update(self, event):
+        if(self.STEPNUM == 0):
+            #print("Buoy X: " + str(event.x))
+            if(event.x <= self._xmin):
+                #print("Moving left to compensate")
+                self.move(-self._distance)
+            elif(event.x >= self._xmax):
+                #print("Moving right to compensate")
+                self.move(self._distance)
+
+            self.STEPNUM += 1
+        
+        elif(self.STEPNUM == 1):
+            if(event.x > self._xmin and event.x < self._xmax):
+                #print("X Axis Aligned")
+                self.motionManager.stopCurrentMotion()
+                self.move_again = True
+                self.STEPNUM += 1
+            else:
+                self.STEPNUM -= 1
+
+        elif(self.STEPNUM == 2):
+            #print("Buoy Y: " + str(event.y))
+            if(event.y <= self._ymin):
+                #print("Moving down to compensate")
+                self.dive(self._distance)
+            elif(event.y >= self._ymax):
+                #print("Moving up to compensate")
+                self.dive(-self._distance)
+
+            self.STEPNUM += 1
+
+        elif(self.STEPNUM == 3):
+            if(event.y > self._ymin and event.y < self._ymax):
+                #print("Y Axis Aligned, All Done")
+                self.motionManager.stopCurrentMotion()
+                self.publish(Center.CENTERED, core.Event())
+            else:
+                self.STEPNUM -= 1
+
 
 class Branch(object):
     """

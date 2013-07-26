@@ -185,7 +185,36 @@ public:
         return Updatable::backgrounded();
     }
 
+    virtual void moveVel(double x, double y, double z)
+    {
+        math::Vector2 vxy = m_desiredState->getDesiredVelocity();
+        double vz = m_desiredState->getDesiredDepthRate();
+        bool bx = false;
+        bool by = false;
+        bool bz = false;
+        if(x != 0)
+        {
+            vxy.x = x;
+            bx = true;
+        }
+        if(y != 0)
+        {
+            vxy.y = y;
+            by = true;
+        }
+        if(z != 0)
+        {
+            vz = z;
+            bz = true;
+        }
+        m_desiredState->setDesiredVelocity(vxy);
+        m_desiredState->setDesiredDepthRate(vz);
+        m_desiredState->setvCon(bx,by,bz);
+    }
+
+
 protected:
+
     /** Implemeted by subclasses, does actual controller work
      *
      *  @param timestep

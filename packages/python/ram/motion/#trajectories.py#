@@ -927,6 +927,81 @@ class ScalarSVAJTrajectory(Trajectory):
                     cq * 5 * rt**4 + \
                     cr * 6 * rt**5 + \
                     cs * 7 * rt**6)
+        if initialTime == 0:
+            self._relative = True
+
+    def computeValue(self, time):
+        # before the initial time, we need to return the initial value
+        if time < self._initialTime:
+            return self._initialValue
+        
+        # otherwise compute the difference in time between start and now
+        elif time > self._finalTime:
+            timestep = self._timePeriod
+        elif time > self._initialTime and time < self._finalTime:
+            timestep = time - self._initialTime
+
+        # calculate the current value based on the timestep and rate
+        derivativeQuat = self._initialValue.derivative(self._rate)
+        currentValue += timestep * derivativeQuat
+        currentValue.normalise()
+        return currentValue
+        
+
+    def computeDerivative(self, time, order = 1):
+        # during the defined time, compute the derivative
+        if time > self._initialTime and time < self._finalTime:
+            if order == 1:
+                return self._rate
+            else:
+                return 0
+        # we dont know the pre, post conditions so return None
+        else:
+            return None
+
+    def getInitialTime(self):
+        return self._initialTime
+
+    def getFinalTime(self):
+        return self._finalTime
+
+    def getMaxOfDerivative(self, order):
+        if order == 1:
+            return self._rate
+        else:
+            return 0
+
+    def isRelative(self):
+        return self._relative
+
+class Vector2ConstAccelTrajectory(Trajectory):
+    """
+    This trajectory is to be used for attaining a desired
+    velocity by means of a constant acceleration.  It is to
+    be used for velocity control and hence there is no
+    parameter for a final value.
+    """
+
+    def __init__(self, initialValue, initialRate, finalRate,
+                 accel,  initialTime = 0):
+
+        self._initialValue = initialValue
+        self._initialRate = initialRate
+        self._finalRate = finalRate
+        self._initialTime = initialTime
+        self._accel = accel
+
+        self._changeInRateV = finalRate - initialRate
+        self._changeInRateS = self._changeInRateV.length()
+
+        self._timePeriod = self._changeInRateS / accel
+        self._finalTime = initialTime + self._timePeriod
+
+        if initialTime == 0:
+            self._relative = True
+
+
+    def computeValue(self
             return r
         elif order == 2:
             r = chg * it**2 * ( \
