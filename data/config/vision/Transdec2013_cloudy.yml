@@ -192,42 +192,6 @@ DBuoyDetector:
     minWidth: 50
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
-OrangePipeDetector:
-    MaxAspectRatio: 5
-    MinSize: 15
-    dilateIterations: 2
-    erodeIterations: 0
-    filtRedCMax: 255
-    filtRedCMin: 116
-    filtRedHMax: 245
-    filtRedHMin: 0
-    filtRedLMax: 69
-    filtRedLMin: 35
-    minPixels: 3000
-    minPixelsFound: 2500
-    noHough: 0
-    samePipeThreshold: 0.2
-    CannyHigh: 150
-    CannyLow: 50
-    Dilate: 1
-    ErosionSize: 2
-    GreenHuemax: 255
-    GreenHuemin: 0
-    MaxAngleDiff: 20
-    RedHuemax: 127
-    RedHuemin: 9
-    RefelctionDiff: 50
-    Saturationmax: 255
-    Saturationmin: 212
-    ToptoIgnore: 150
-    Valuemax: 255
-    Valuemin: 0
-    diff: 100
-    maxAspectRatio: 3.75
-    minArea: 200
-    minAspectRatio: 0.5
-    thresholdwithred: 0
-HedgeDetector:
     CannyHigh: 150
     CannyLow: 50
     Dilate: 1
@@ -248,24 +212,53 @@ HedgeDetector:
     minArea: 400
     minAspectRatio: 0.25
     thresholdwithred: 0
+    MaxAspectRatio: 5
+    MinSize: 15
+    dilateIterations: 0
+    erodeIterations: 6
+    filtRedCMax: 219
+    filtRedCMin: 0
+    filtRedHMax: 90
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 70
+    minPixels: 3000
+    minPixelsFound: 2500
+    noHough: 0
+    samePipeThreshold: 0.2
 GateDetector:
     CannyHigh: 150
     CannyLow: 50
-    Dilate: 1
+    Dilate: 3
     ErosionSize: 2
     GreenHuemax: 255
-    GreenHuemin: 0
+    GreenHuemin: 65
     MaxAngleDiff: 20
-    RedHuemax: 127
-    RedHuemin: 9
+    RedHuemax: 255
+    RedHuemin: 117
     RefelctionDiff: 50
     Saturationmax: 255
-    Saturationmin: 116
+    Saturationmin: 0
     ToptoIgnore: 150
     Valuemax: 255
-    Valuemin: 79
+    Valuemin: 102
     diff: 100
     maxAspectRatio: 1.87
     minArea: 0
     minAspectRatio: 1.5
-    thresholdwithred: 0
+    thresholdwithred: 1
+OrangePipeDetector:
+    MaxAspectRatio: 5
+    MinSize: 15
+    dilateIterations: 0
+    erodeIterations: 1
+    filtRedCMax: 255
+    filtRedCMin: 217
+    filtRedHMax: 30
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 23
+    minPixels: 3000
+    minPixelsFound: 2500
+    noHough: 0
+    samePipeThreshold: 0.2

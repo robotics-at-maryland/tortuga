@@ -205,7 +205,7 @@ Mat GateDetector::processImageColor(Image*input)
 	Mat temphsv;
 	cvtColor(img_whitebalance,temphsv,CV_BGR2HSV);
 	vector<Mat> hsv_planes;
-	split(img_whitebalance,hsv_planes);
+	split(temphsv,hsv_planes);
 	Mat tempWhite;
 	equalizeHist(hsv_planes[1], hsv_planes[1]);
 	equalizeHist(hsv_planes[2], hsv_planes[2]);
