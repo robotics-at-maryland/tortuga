@@ -22,6 +22,19 @@
 namespace ram {
 namespace vision {
     
+
+struct contourblob
+{
+	double angle;
+	int contournumber;
+	int area;
+	int width;
+	int height;
+	int centerx;
+	int centery;
+	int gatepieces;
+};
+
 class RAM_EXPORT GateDetector : public Detector
 {
   public:
@@ -35,6 +48,8 @@ class RAM_EXPORT GateDetector : public Detector
     void processImage(Image* input, Image* output= 0);
     void publishFoundEvent(foundLines::parallelLinesPairs finalPairs);
     Mat processImageColor(Image* input);
+    void publishFoundEventBuoy(foundLines::parallelLinesPairs finalPairs, Color::ColorType color); //hack to trick event system
+    void publishLostEventBuoy(Color::ColorType color);
     double getX();
     double getY();
     void show(char* window);
@@ -49,6 +64,8 @@ int m_maxdiff;
    
     
   private:
+
+bool m_found;
     void init(core::ConfigNode config);
       ColorFilter* m_filter;
 /**Filter for Red value for VisionToolV2*/
@@ -59,10 +76,10 @@ int m_maxdiff;
 	int m_redmaxH;
 	int m_greenminH;
 	int m_greenmaxH;
-	int m_yellowminH;
-	int m_yellowmaxH;
 	int m_minS;
 	int m_maxS;
+	int m_minV;
+	int m_maxV;
 	bool m_checkRed;
 
     int gateX;
@@ -75,11 +92,26 @@ int m_maxdiff;
     Image* frame;
     Camera* cam;
 
+
 /*Kate edit - same whitebalance image and final output*/
 	cv::Mat img_whitebalance;
 	cv::Mat img_gate;
 	foundLines gate;
+	int m_erosion_size;
+	int m_maxanglediff;
+	void FindContours(cv::Mat img_src);
+	double m_minAspectRatio;
+	double m_maxAspectRatio;
+	int m_minArea;
+	
+	void publishFoundEventContour(contourblob contour, Color::ColorType color);
+	contourblob finalGate; //final gate information using contours
+	int m_reflectiondiff;
+	int m_cannylow;
+	int m_cannyhigh;
+	int m_minY;
 
+	int m_dilatesize;
 };
     
 } // namespace vision

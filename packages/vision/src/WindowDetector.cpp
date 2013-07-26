@@ -284,10 +284,10 @@ void WindowDetector::processImage(Image* input, Image* output)
 	Mat img = input->asIplImage();
 	imshow("input image", img);
 
-	blobfinder window;
-        Mat output_blob= img;
+//	blobfinder window;
+ //       Mat output_blob= img;
 	//IplImage* tempImage=0;
-	window.FindWindow(input,output_blob, m_redFilter, m_greenFilter,m_yellowFilter);
+	//window.FindWindow(input,output_blob, m_redFilter, m_greenFilter,m_yellowFilter);
        // output->setData(output_blob2.data,false);
         //tempImage->imageData = (char *)output_blob2.data;
 

@@ -54,6 +54,9 @@ class RAM_EXPORT TargetDetector : public Detector
 	 RotatedRect outline;
 	 RotatedRect targetSmall;
 	 RotatedRect targetLarge;
+	bool foundLarge;
+	bool foundSmall;
+	bool foundOutline;
 	};
         
   private:
@@ -86,6 +89,11 @@ class RAM_EXPORT TargetDetector : public Detector
     
     /** Filters for the green in the water */
     ColorFilter* m_filter;
+   ColorFilter *m_blueFilter; //for finding the blue target
+   ColorFilter *m_redFilter;
+   ColorFilter *m_yellowFilter;
+   ColorFilter *m_greenFilter;
+
 
 /**Filter for Red value for VisionToolV2*/
 	int m_redminH;
@@ -117,6 +125,11 @@ class RAM_EXPORT TargetDetector : public Detector
 	Color::ColorType m_color;
     /** 0 When the target fills the screen, goes to 1 as it shrinks */
     double m_range;
+    double m_rangelarge;
+    double m_rangesmall;
+
+    bool m_largeflag;
+    bool m_smallflag;
 
     /** The minimum pixel count of the green target blob */
     int m_minGreenPixels;
@@ -141,10 +154,20 @@ class RAM_EXPORT TargetDetector : public Detector
 
     /** Percentage of the image to remove from the bottom */
     double m_bottomRemovePercentage;
+	bool m_greenFound;
+	bool m_redFound;
+	bool m_blueFound;
+	bool m_yellowFound;
 
+	double m_angle; //angle of RotatedRect
 
-Mat img_whitebalance;
-    targetPanel getSquareBlob(Mat img, Mat img_whitebalance);
+	Mat img_whitebalance;
+	targetPanel getSquareBlob(Mat img, Mat img_whitebalance,Color::ColorType color); //color type is purefly for display purposes
+	void setPublishData(targetPanel square, Image* input);
+
+	int m_minSize;
+	int m_framenumber;
+	 int m_minContourSize;
 };
 	
 } // namespace vision

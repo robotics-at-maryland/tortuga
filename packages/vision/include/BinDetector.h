@@ -13,6 +13,8 @@
 // STD Includes
 #include <list>
 #include <map>
+#include <string>
+
 
 // Project Includes
 #include "core/include/ConfigNode.h"
@@ -21,14 +23,70 @@
 #include "vision/include/BlobDetector.h"
 #include "vision/include/TrackedBlob.h"
 #include "vision/include/Symbol.h"
+#include "opencv2/nonfree/features2d.hpp"
+#include "opencv2/features2d/features2d.hpp"
+
 // Must be included last
 #include "vision/include/Export.h"
+
 
 namespace ram {
 namespace vision {
     
 class RAM_EXPORT BinDetector : public Detector
 {
+	struct contourvertices
+	{
+		cv::Point2f vertices[4];
+	};
+
+	struct bincontours
+	{
+		int area;
+		int contournumber;
+		double aspectratio_diff;
+		double maxX;
+		double maxY;
+		double minY;
+		double minX;
+		bool found;
+		cv::Point2f vertices[4];
+		int centerx;
+		int centery;
+		bool identified;
+		int type;
+		double angle;
+		double width;
+		double height;
+		
+	};
+	struct binData
+	{
+
+		bool Box_found;
+		int Box_x;
+		int Box_y;
+		double Box_angle;	
+		int Box_height;
+		int Box_width;
+		bool Box_identified; //is it identified
+		int Box_numberofframes; //number of frames consistently id'd
+		int Box_type; //identification number
+		
+	};
+	struct finalBins
+	{
+		bool MainBox_found;
+		int MainBox_x;
+		int MainBox_y;
+		double MainBox_angle;
+		int MainBox_height;
+		int MainBox_width;
+		int MainBox_type; //identification number
+		binData Box[4];
+	};
+	
+
   public:
     class Bin : public TrackedBlob
     {
@@ -52,6 +110,8 @@ class RAM_EXPORT BinDetector : public Detector
     
     BinDetector(core::ConfigNode config,
                 core::EventHubPtr eventHub = core::EventHubPtr());
+
+
     ~BinDetector();
 
     void processImage(Image* input, Image* output= 0);
@@ -342,6 +402,71 @@ class RAM_EXPORT BinDetector : public Detector
 
     /** Temporary LCH Image */
     OpenCVImage* m_frame;
+
+	/**Kate changes*/
+	void DetectorContours(Image* input);
+	void getSquareBlob(cv::Mat erosion_dst, bincontours* bins, int  numberoftrackedcontours);
+	int FindMatches(cv::Mat image, double* avgDistance, cv::Mat* descriptors_object);
+	void calcTrainingData(void);
+	int getTrainingData(cv::Mat* descriptors_object);
+	void saveTrainingImages(cv::Mat* finalresize);
+	void publishFoundEventSURF(bincontours bin);
+	void publishLostEvent(Symbol::SymbolType color);
+	void checkPreviousFrames();
+	void publishFoundEventSURFAll();
+
+	cv::Mat img_whitebalance;
+	//cv::Mat img_saturation;
+	bincontours m_bin;
+	//for surf featurs
+	int m_minHessian; //used for finding keypoints
+	std::string m_binyml;
+
+	int m_numberofclasses; //four different bins
+	int m_numberoftrainingimages; //number of training images PER CLASS - so a total of 40 images
+	std::string m_filepath; //where the training iamges are located
+	std::string m_filetype; //type of image file example ".png"
+	std::string m_underscore; //just an underscore "_"
+	std::string m_D;
+	bool m_calcTraining;
+	bool m_comparebins;
+	bool m_saveimages;
+	std::string m_trainingpath; //path to where teh images (not quite training images) will be saved
+	double m_upperlimit; //upper threshold for bin detection
+
+	bool m_BinoutlineFound;
+	bool m_Bin37Found;
+	bool m_Bin98Found;
+	bool m_Bin10Found;
+	bool m_Bin16Found;
+	bool m_BinoutlineFoundBefore;
+	bool m_Bin37FoundBefore;
+	bool m_Bin98FoundBefore;
+	bool m_Bin10FoundBefore;
+	bool m_Bin16FoundBefore;
+
+	//trying to keep teh bins at the same angle as the main
+
+	finalBins m_allbins; //data structure of all relevant data plus a little bit more
+	int m_bin16frames;
+int m_bin37frames;
+int m_bin10frames;
+int m_bin98frames;
+
+
+
+	double m_minanglepercent; //min angle the internal bins can be, not really used
+	double m_maxanglepercent; //not really used
+	
+	finalBins m_previousbins;
+	int m_minAssumeFrame;
+	int m_maxdistanceX;
+	int m_maxdistanceY;
+	int m_trainingsuccess;
+ 	cv::Mat m_descriptors_object[16*50];
+int m_framecount;
+
+ 
 };
 
 } // namespace vision

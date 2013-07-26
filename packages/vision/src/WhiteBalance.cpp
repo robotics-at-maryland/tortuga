@@ -21,7 +21,7 @@ Mat WhiteBalance(Mat Input)
 	//int njet = 0;
 	double mink_norm = 5;
 	//int sigma = 0;
-	Mat image_output;
+	Mat image_output(Input.size(),Input.type());
 	Input.copyTo(image_output);
 	
 	//Size of input
@@ -118,6 +118,7 @@ Mat WhiteBalance(Mat Input)
 	//imshow("Output",image_output);
 	//cvWaitKey(0);
 
+	//Input.copyTo(image_output);
 	return image_output;
 }	
 }//end namespace vision

@@ -25,10 +25,10 @@ namespace ram {
 namespace vision {
 
 //dont need to run whitebalance before this since I'm just going to convert to grayscale.
-Mat foundLines::hedgeblob(Mat img_whitebalance)
+foundLines::parallelLinesPairs foundLines::hedgeblob(Mat img_hsv)
 {
-	Mat img_hsv;
-	cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
+	//Mat img_hsv;
+	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
 		
 	//use blob detection to find gate
 	//find left and right red poles - vertical poles
@@ -61,76 +61,39 @@ Mat foundLines::hedgeblob(Mat img_whitebalance)
 
 	//imshow("green",img);
 
-	Mat parallelLinesresults = verticalParallelLines(erosion_dst,img_whitebalance);
+	parallelLinesPairs parallelLinesresults = verticalParallelLines(erosion_dst,img_hsv);
 	//imshow("ertical filter whitebalacnce",img_whitebalance);
-	return(erosion_dst);
+	return(parallelLinesresults);
 };
 
 
-Mat foundLines::gateblob(Mat bw, Mat img_whitebalance)
-{
-	m_found = false;
-	Mat img_hsv;
-	//cvtColor(img_whitebalance,img_hsv,CV_BGR2HSV);
-		
-	//use blob detection to find gate
-	//find left and right red poles - vertical poles
-	//vector<Mat> hsv_planes;
-	//split(img_hsv,hsv_planes);
-
-	//first take any value higher than max and converts it to 0
-	//red is a special case because the hue value for red are 0-10 and 170-1980
-	//same filter as the other cases followed by an invert
-	
-/*int red_minH = GateDetector::returnRedmin();
-	int red_maxH = GateDetector::m_redmaxH;
-	blobfinder blob;
-	Mat img_red =blob.RedFilter(hsv_planes,red_minH,red_maxH);
-
-	//For attempting to use with canny
-	int erosion_type = 0;
-	int erosion_size = 1;
-	//if( erosion_elem == 0 ){ erosion_type = MORPH_RECT; }
-	// else if( erosion_elem == 1 ){ erosion_type = MORPH_CROSS; }
-	// else if( erosion_elem == 2) { erosion_type = MORPH_ELLIPSE; }
-	Mat element = getStructuringElement( erosion_type,
-                                       Size( 2*erosion_size + 1, 2*erosion_size+1 ),
-                                       Point( erosion_size, erosion_size ) );
-
-  	/// Apply the erosion operation
-	Mat erosion_dst;
-  	erode(img_red, erosion_dst, element );
-  	//imshow( "Erosion Demo", erosion_dst );
-
-
-	//imshow("red",img_red);
-*/
-	
-	Mat parallelLinesresults = verticalParallelLines(bw,img_whitebalance);
+foundLines::parallelLinesPairs foundLines::gateblob(Mat bw, Mat img_whitebalance)
+{	
+	parallelLinesPairs parallelLinesresults = verticalParallelLines(bw,img_whitebalance);
 	//imshow("Vertical filter whitebalacnce",img_whitebalance);
-	return(img_whitebalance);
+	return(parallelLinesresults);
 };
 
-Mat foundLines::verticalParallelLines(Mat bw, Mat src)
+foundLines::parallelLinesPairs foundLines::verticalParallelLines(Mat bw, Mat src)
 {
 	//use hough lines to find two vertical parallel lines
 	//check to see if there is a horizontal line inbetween, preferably at either the top or bottom of the bars
-
-	//int cannylow = 40;
-	//int cannyhigh =80;
+	int cannylow = 40;
+	int cannyhigh =80;
 	float aspectRatio =1.0; //height/width
 	float horizontalslope = 0.5; //metric to determine if horizontal
 	float verticleslope = 6.1;
 	int hough_threshold = 50;
-	int hough_minLineLength = 50;
-	int hough_maxLinegap = 10;
-	float maxAspectRatio_diff = 0.75;
-	//int maxdiff = 100;
-	//float foundAspectRatio = 0;
+	int hough_minLineLength = 30;
+	int hough_maxLinegap = 5;
+	float maxAspectRatio_diff = 0.85;
+	int maxdiff = 200;
+	float foundAspectRatio = 0;
+	int height;
 	//int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
-	//cv::Canny(bw, bw, cannylow, cannyhigh, 3);
+	cv::Canny(bw, bw, cannylow, cannyhigh, 3);
 	//imshow("Bw",bw);
 
 	//Step 2: Use Hough to find lines
@@ -146,6 +109,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 	vector<Vec4i> linesP;
   	  HoughLinesP(bw, linesP, 1, CV_PI/180, hough_threshold, hough_minLineLength, hough_maxLinegap );
 
+
+ //Step 3: Clean up lines
 	//calculate slope and yintercept  - used to filter out horizontal and vertical lines
 	//then they are saved for each line so I dont have to calculate them again
 	float m1, m2, b1,b2,bdiff;
@@ -169,11 +134,13 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 		repeatabilityP[i] = 0;
 		matchesP[i] = 0;
 		horizontalOrVertical[i] = 0;
-      		line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
+      	//	line(src, Point(linesP[i][0], linesP[i][1]),
+   	   //     	 Point(linesP[i][2], linesP[i][3]), Scalar(0,0,255), 1, 8 );
 			//printf("\n m = %f", m1);
 	 }
 	//imshow("all hough", src);
+
+
 
    	 for( size_t i = 0; i < linesP.size(); i++ )
    	 {
@@ -275,8 +242,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 			//horizontal line
 			//printf(" horizontal lines = %d", matchesP[i]);
 			//horizontal
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	// Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
 			
 			//recalculate slope here for the new combine line, and save
 			if (linesP[i][0] == linesP[i][2])
@@ -378,8 +345,9 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 			}//end for j
 			//verticel
 
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	          	 Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
+			//display only
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	          	// Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
 
 			//find slope for new combined line and save
 			if (linesP[i][0] == linesP[i][2])
@@ -406,23 +374,20 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 
 	int totalVertical= 0;
 	int totalHorizontal = 0;
-	finalPair.foundAspectRatio_diff = maxAspectRatio_diff;
-	finalPair.foundleft = 0;
-	finalPair.foundright = 0;
- 	for( size_t i = 0; i < linesP.size(); i++ )
+	for( size_t i = 0; i < linesP.size(); i++ )
    	{
 		if (horizontalOrVertical[i] == 2)
 			totalVertical= totalVertical+1;
 		if (horizontalOrVertical[i] == 1)
 			totalHorizontal= totalHorizontal+1;
 	};
-	printf("\n numberof lines found = %d",linesP.size());
+	//printf("\n numberof lines found = %d",linesP.size());
 
-/*
+//Step 4: look for horizontal and vertical ones and decide which ones go together
 	//I have all the lines
 	//look for vertical and horizontal lines with about the same endpoints
 	//or vertical lines with roughly the same y coordinates
-       checklines lineResults[linesP.size()];
+        checklines lineResults[linesP.size()];
 	checklines temp;
 	int diff;
 	int diff2;
@@ -458,7 +423,7 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 				{
 					//is vertical
 					//find upper and lower ones
-					if (linesP[i][1]< linesP[i][3])
+					if (linesP[j][1]< linesP[j][3])
 					{
 						temp.upper2.x = linesP[j][2];
 						temp.upper2.y = linesP[j][3];
@@ -473,23 +438,28 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 						temp.lower2.y = linesP[j][3];
 					}
 					widthUpper = abs(lineResults[i].upper1.x - temp.upper2.x);
+					//printf("width upper = %d",widthUpper);
 					foundAspectRatio = float(lineResults[i].upper1.y-lineResults[i].lower1.y)/float(widthUpper);
 					diff = abs(lineResults[i].lower1.y-temp.lower2.y)+abs(lineResults[i].upper1.y-temp.upper2.y);
 					diff2 = lineResults[i].diffVertical*1.5;
-					if ((widthUpper > 50) && (abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff)  && (((diff < lineResults[i].diffVertical) && (lineResults[i].foundHorizontal == false)) || (lineResults[i].foundHorizontal == true && (diff<diff2))))
+					if ((widthUpper > 10) && (abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff)  && (( (diff < lineResults[i].diffVertical) )))
 					{	
 					  lineResults[i].upper2 = temp.upper2;
 					  lineResults[i].lower2 = temp.lower2;
 					  lineResults[i].foundVertical = true;
 					  lineResults[i].diffVertical = diff;
+					  lineResults[i].aspectratio_diff = abs(foundAspectRatio-aspectRatio);
 					}
+
+				 // printf("\n aspectRatio = %f, Vert diff = %d", foundAspectRatio, diff);
+					
 
 				}
 				else if (horizontalOrVertical[j] == 1 && i!=j)
 				{
 					//is horizontal
 					//find upper and lower ones
-					if (linesP[i][0]< linesP[i][2])
+					if (linesP[j][0]< linesP[j][2])
 					{
 						temp.right.x = linesP[j][2];
 						temp.right.y = linesP[j][3];
@@ -504,45 +474,203 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 						temp.left.y = linesP[j][3];;
 					}
 					//unlike Vertical, only want to check one side, the closer side
-					diff = abs(lineResults[i].lower1.x-temp.left.x);
-					if (abs(lineResults[i].upper1.x-temp.right.x)< diff)
-						diff = abs(lineResults[i].upper1.x-temp.right.x);
+					
+					//can also use the difference between determined width and actual width...
 					diff2 = lineResults[i].diffHorizontal*1.5;
 					widthUpper = temp.right.x-temp.left.x;
-					foundAspectRatio = float(lineResults[i].upper1.y-lineResults[i].lower1.y)/float(widthUpper);
+					height = abs(lineResults[i].upper1.y-lineResults[i].lower1.y);
+					if (temp.right.y < lineResults[i].lower1.y)
+					{
+					 // below the previous line
+					 	height = lineResults[i].upper1.y-temp.right.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].lower1.x-temp.left.x);
+							if (abs(lineResults[i].lower1.x-temp.right.x)< diff)
+								diff = abs(lineResults[i].lower1.x-temp.right.x);
+					}
+					else if (temp.right.y > lineResults[i].upper1.y)
+					{
 
-					if ((abs(foundAspectRatio-aspectRatio) <maxAspectRatio_diff) && (((diff < lineResults[i].diffVertical) && (lineResults[i].foundVertical == false)) || (lineResults[i].foundVertical == true && diff <diff2)))
+						height = temp.right.y-lineResults[i].lower1.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].upper1.x-temp.left.x);
+							if (abs(lineResults[i].upper1.x-temp.right.x)< diff)
+								diff = abs(lineResults[i].upper1.x-temp.right.x);
+					}
+					else
+					{
+						//line is in between so not a hedge
+						foundAspectRatio = 9000;
+						diff = 90000;
+					}
+					//  printf("\n aspectRatio = %f, horizontal diff = %d", foundAspectRatio, diff);
+					//printf("\n widthupper, height = %d %d",widthUpper,height);
+				
+					//also want to make sure that the horizontal line isn't in the middle of the vertical
+					
+					if ( (foundAspectRatio < 4) && (diff < lineResults[i].diffHorizontal))
 					{	
+					  //printf(" aspect ratio difference = %f",abs(foundAspectRatio-aspectRatio));
 					  lineResults[i].left = temp.left; 
 					  lineResults[i].right = temp.right;
 					  lineResults[i].foundHorizontal = true;
 					  lineResults[i].diffHorizontal = diff;
+					  lineResults[i].aspectratio_diff = abs(foundAspectRatio-aspectRatio);
+
+
+
+
+
 					}
 				}//end horizontalOrVertical
 			} //end for j
 		} //end if vertical
 	}//end for i
 
+parallelLinesPairs final;
+final.foundAspectRatio_diff = 900;
+
 
 	for(size_t i = 0; i < linesP.size(); i++ )	
 	{
-		printf("\n i = %d, diff = %d, horizontal diff = %d", i, lineResults[i].diffVertical,lineResults[i].diffHorizontal);
+		//printf("\n i = %d, diff = %d, horizontal diff = %d aspectratio difference = %f", i, lineResults[i].diffVertical,lineResults[i].diffHorizontal,lineResults[i].aspectratio_diff);
 		if (lineResults[i].foundVertical == true && lineResults[i].diffVertical <maxdiff)
 		{
-			line(src, lineResults[i].upper1,lineResults[i].lower1, Scalar(0,0,255), 15, 8 ); 
-			line(src, lineResults[i].upper2,lineResults[i].lower2, Scalar(0,255,255), 15, 8 ); 
+			line(src, lineResults[i].upper1,lineResults[i].lower1, Scalar(0,0,255), 2, 8 ); 
+			line(src, lineResults[i].upper2,lineResults[i].lower2, Scalar(0,255,255), 2, 8 ); 
 		}
+		else
+			lineResults[i].foundVertical = false;
+			
 		if (lineResults[i].foundHorizontal == true && lineResults[i].diffHorizontal < (maxdiff))
-		{	line(src, lineResults[i].left,lineResults[i].right, Scalar(255,0,0), 10, 8 ); 
-			line(src, lineResults[i].upper1,lineResults[i].lower1, Scalar(255,0,255), 10, 8 ); 
+		{	line(src, lineResults[i].left,lineResults[i].right, Scalar(255,0,0), 2, 8 ); 
+			line(src, lineResults[i].upper1,lineResults[i].lower1, Scalar(255,0,255), 2, 8 ); 
+		}
+		else
+			lineResults[i].foundHorizontal = false;
+
+		if ((lineResults[i].foundVertical == true || lineResults[i].foundHorizontal == true) && (final.foundAspectRatio_diff > lineResults[i].aspectratio_diff))
+		{
+			 final.foundAspectRatio_diff = lineResults[i].aspectratio_diff;
+			 final.line1_lower = lineResults[i].lower1;
+			 final.line1_upper = lineResults[i].upper1;	
+			 final.foundtwosides = 0;
+			 final.foundHorizontal = 0;
+			 if (lineResults[i].foundVertical == true && lineResults[i].foundHorizontal == true)
+			{
+				//having found both, need to determine if the horizontal is actually between the vertical and if not, which one to trust
+				//already know its near line 1, but not which side
+			
+				       
+					if (lineResults[i].right.y < lineResults[i].lower1.y)
+					{
+					 // below the previous line
+					 	height = lineResults[i].upper1.y-temp.right.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].lower1.x-lineResults[i].left.x);
+						diff2 = abs(lineResults[i].lower2.x-lineResults[i].right.x);
+						if (abs(lineResults[i].lower1.x-lineResults[i].right.x)< diff)
+						{
+							diff = abs(lineResults[i].lower1.x-lineResults[i].right.x);
+							diff2 = abs(lineResults[i].lower2.x-lineResults[i].left.x);
+						}
+					}
+					else if (lineResults[i].right.y > lineResults[i].upper1.y)
+					{
+						height = temp.right.y-lineResults[i].lower1.y;
+						foundAspectRatio = float(height)/float(widthUpper);
+						diff = abs(lineResults[i].upper1.x-lineResults[i].left.x);
+						diff2 = abs(lineResults[i].upper2.x-lineResults[i].right.x);
+						if (abs(lineResults[i].upper1.x-lineResults[i].right.x)< diff)
+						{
+							diff = abs(lineResults[i].upper1.x-lineResults[i].right.x);
+							diff2 = abs(lineResults[i].upper2.x-lineResults[i].left.x);
+						}
+					}
+
+				if (diff2 < diff*2)
+				{
+					//THEY BOTH WORK
+			 		final.foundtwosides = 1;
+					final.foundHorizontal = 1;
+		 			final.line2_lower = lineResults[i].lower2;
+					final.line2_upper = lineResults[i].upper2;
+	  				final.center.x = (lineResults[i].left.x+lineResults[i].right.x)/2;
+					final.center.y = (lineResults[i].upper1.y+lineResults[i].lower1.y+lineResults[i].upper2.y+lineResults[i].lower2.y)/4;
+					final.width = lineResults[i].right.x - lineResults[i].left.x;
+				}
+				else
+				{
+					//one of these three doesn't below
+					//find what gives the lowest aspect ratio difference
+					if (foundAspectRatio <= lineResults[i].aspectratio_diff)
+					{
+					//keep horizontal line
+						lineResults[i].foundVertical = false;
+						lineResults[i].foundHorizontal= true;
+					}
+					else	
+					{
+					//keep Vertical line
+						lineResults[i].foundVertical = true;
+						lineResults[i].foundHorizontal= false;
+					}
+				
+				}
+			}
+			if (lineResults[i].foundVertical == true && lineResults[i].foundHorizontal == false)
+			{
+				final.foundtwosides = 1;
+		 		final.line2_lower = lineResults[i].lower2;
+				final.line2_upper = lineResults[i].upper2;
+				final.center.y = (lineResults[i].upper1.y+lineResults[i].lower1.y+lineResults[i].upper2.y+lineResults[i].lower2.y)/4;
+				final.center.x = (lineResults[i].upper1.x+lineResults[i].lower1.x+lineResults[i].upper2.x+lineResults[i].lower2.x)/4;
+				final.width = abs((lineResults[i].upper2.x+lineResults[i].lower2.x)/2-(lineResults[i].upper1.x+lineResults[i].lower1.x)/2) ;
+			  }
+			 if (lineResults[i].foundHorizontal == true && lineResults[i].foundVertical == false)
+			 {
+				final.foundHorizontal = 1;
+			 	final.center.x = (lineResults[i].left.x+lineResults[i].right.x)/2;
+				final.center.y = (lineResults[i].upper1.y+lineResults[i].lower1.y)/2;
+				final.width = (-lineResults[i].left.x+lineResults[i].right.x);
+				final.left = lineResults[i].left;
+				final.right = lineResults[i].right;
+			 }
 		}
 	}
-	imshow("hough",src);
+
+	//printf("\n Final aspectratio difference = %f vertical = %d, horizontal = %d, upper1=%d,%d upper2 = %d,%d", final.foundAspectRatio_diff,final.foundtwosides, final.foundHorizontal,final.line1_upper.x,final.line1_upper.y, final.line2_upper.x,final.line2_upper.y);
+
+	if (final.foundtwosides == 1 && final.foundHorizontal == 1)
+	{
+		line(src, final.line1_upper,final.line1_lower, Scalar(0,255,0), 20, 8 ); 
+		line(src, final.left,final.right, Scalar(0,255,0), 20, 8 ); 
+		line(src, final.line2_upper,final.line2_lower, Scalar(0,255,0), 20, 8 ); 
+	}
+	else if (final.foundtwosides == 1)
+	{
+		line(src, final.line1_upper,final.line1_lower, Scalar(0,255,255), 10, 8 ); 
+		line(src, final.line2_upper,final.line2_lower, Scalar(0,255,255), 10, 8 ); 
+
+	}
+	else if (final.foundHorizontal == 1)
+	{
+		line(src, final.line1_upper,final.line1_lower, Scalar(255,0,255), 10, 8 ); 
+		line(src, final.left,final.right, Scalar(255,0,255), 10, 8 ); 
+	}
+	if (final.foundtwosides == 1 || final.foundHorizontal == 1)
+		circle(src, final.center,10,Scalar( 0, 255, 0),-1,8 );
+
+	//imshow("hough",src);
+	return(final);
+//just want to return the one with the closest aspect ratio and most points
+
+
 	//I should have all the lines now
 	//look for pairs- which they'll all be since they're all vertical
 	//if there are more than two lines, than find the ones with the best aspect ratio
-*/
 
+/*
 	parallelLinesPairs pairs;
 	if (totalVertical ==  1)
 	{
@@ -752,8 +880,8 @@ Mat foundLines::verticalParallelLines(Mat bw, Mat src)
 		}
 		circle(src, finalPair.center,3,Scalar( 0, 255, 0),-1,8 );
 	}//end else
+*/
 
-	return(src);
 };
 
 
@@ -790,6 +918,8 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 	int cornerdifference = 10; //how far away opposite corners can be before they're considered part of the square 
 	int bdifflimit = 15; //allowable difference in bintercept of horizontal lines before they're considered the same line
 	int topdifflimit = 40;
+	int imageheight =src.rows;
+	int imagewidth=src.cols;
 
 	//save previous results
 	for (unsigned int i=0;i<5;i++)
@@ -947,8 +1077,10 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			//horizontal line
 			//printf(" horizontal lines = %d", matchesP[i]);
 			//horizontal
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	         	 Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
+
+			
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	         	// Point(linesP[i][2], linesP[i][3]), Scalar(255,0,255), 2, 8 );
 			
 			//recalculate slope here for the new combine line, and save
 			if (linesP[i][0] == linesP[i][2])
@@ -1050,8 +1182,8 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			}//end for j
 			//verticel
 
-			line(src, Point(linesP[i][0], linesP[i][1]),
-   	          	 Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
+			//line(src, Point(linesP[i][0], linesP[i][1]),
+   	          	// Point(linesP[i][2], linesP[i][3]), Scalar(255,255,0), 2, 8 ); 
 
 			//find slope for new combined line and save
 			if (linesP[i][0] == linesP[i][2])
@@ -1128,6 +1260,15 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 			//find the center the horizontal line
 			Xcenter = (linesP[i][0]+linesP[i][2])/2;
 			Ycenter = (linesP[i][1]+linesP[i][3])/2;
+			if (Xcenter > imagewidth)
+				Xcenter = imagewidth;
+			if (Xcenter < 0)
+				Xcenter = 0;
+			if (Ycenter > imageheight)
+				Ycenter = imageheight;
+			if (Ycenter < 0)
+				Ycenter = 0;
+
 			circle(src, Point(Xcenter, Ycenter),5,Scalar( 255, 0, 0),-1,8 );
 		
 			for( size_t j = 0; j < linesP.size(); j++ )
@@ -1139,7 +1280,7 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 					//I only want the yvalue to determine if the horizontal line is above/below the vertical line
 					Yvert = (linesP[j][1]+linesP[j][3])/2;
 					Xvert = (linesP[j][0]+linesP[j][2])/2;
-					circle(src, Point(Xvert, Yvert),3,Scalar( 0, 255, 0),-1,8 );
+					//circle(src, Point(Xvert, Yvert),3,Scalar( 0, 255, 0),-1,8 );
 
 				 	//determine if vertical is left or right of center of horizontal
 					//want to find where the two intersect 
@@ -1259,14 +1400,14 @@ Mat foundLines::rectangle(Mat bw, Mat src)
 					if (abs(corners[counter].cornerX- linesP[j][2]) > corners[counter].width)
 						corners[counter].width = abs(corners[counter].cornerX- linesP[j][2]);
 
-					circle(src, Point(corners[counter].cornerX, corners[counter].cornerY),3,Scalar(0, 0,255),-1,8 );
+					//circle(src, Point(corners[counter].cornerX, corners[counter].cornerY),3,Scalar(0, 0,255),-1,8 );
 
 					counter = counter+1;
 				}//end if vertical
 			} //end for j
 		} //end if horizontal 
 	}//end for i
-printf("\nnumber of corners = %d", counter);
+//printf("\nnumber of corners = %d", counter);
 
 int cornerpoints;
 int j,k;
@@ -1367,7 +1508,7 @@ for (int i = 0;i<counter;i++)
 //only save the top 5
 		if (aspectRatio_diff < allowableAspectRatio_diff && width > 30 && height > 30)
 		{	
-			printf("\n width = %d, height   %d",width, height);
+			//printf("\n width = %d, height   %d",width, height);
 			numberoffinals = numberoffinals+1;
 			//foundRectangle* finalpoints = new foundRectangle;
 			finalpoints.corner1.x = corners[i].cornerX;
@@ -1390,6 +1531,15 @@ for (int i = 0;i<counter;i++)
 			}
 			else
 			{
+
+				if (corners[j].cornerX > imagewidth)
+					corners[j].cornerX = imagewidth;
+				if (corners[j].cornerX< 0)
+					corners[j].cornerX = 0;
+				if (corners[j].cornerY> imageheight)
+					corners[j].cornerY = imageheight;
+				if (corners[j].cornerY <0)
+					corners[j].cornerY = 0;
 
 				finalpoints.corner2.x = corners[j].cornerX;
 				finalpoints.corner2.y = corners[j].cornerY;
@@ -1415,7 +1565,7 @@ for (int i = 0;i<counter;i++)
 			finalpoints.center.x = (finalpoints.corner1.x+finalpoints.corneropposite.x)/2;
 			finalpoints.center.y = (finalpoints.corner1.y+finalpoints.corneropposite.y)/2;
 
-	printf("\n number of corners = %d,  i=%d, j=%d,k=%d,p=%d, aspect = %f, height =%d width  =%d", finalpoints.numberofcorners,finalpoints.c1,finalpoints.c2,finalpoints.c3,finalpoints.c4,finalpoints.foundAspectRatio_difference, finalpoints.height, finalpoints.width);
+	//printf("\n number of corners = %d,  i=%d, j=%d,k=%d,p=%d, aspect = %f, height =%d width  =%d", finalpoints.numberofcorners,finalpoints.c1,finalpoints.c2,finalpoints.c3,finalpoints.c4,finalpoints.foundAspectRatio_difference, finalpoints.height, finalpoints.width);
 
 
 
@@ -1441,12 +1591,31 @@ for (int i = 0;i<counter;i++)
 	}//end for j
 
 } //end for i
-printf("\n\n fNEXT");
+//printf("\n\n fNEXT");
 
 for (unsigned int i =0;i<5;i++)
 {
 	if (final[i].foundAspectRatio_difference < 200)
 	{
+		if (final[i].corner1.x > imagewidth)
+			final[i].corner1.x = imagewidth;
+		if (final[i].corner1.x < 0)
+			final[i].corner1.x = 0;
+		if (final[i].corner1.y > imageheight)
+			final[i].corner1.y = imageheight;
+		if (final[i].corner1.y <0)
+			final[i].corner1.y = 0;
+
+		if (final[i].corneropposite.x > imagewidth)
+			final[i].corneropposite.x = imagewidth;
+		if (final[i].corneropposite.x < 0)
+			final[i].corneropposite.x = 0;
+		if (final[i].corneropposite.y > imageheight)
+			final[i].corneropposite.y = imageheight;
+		if (final[i].corneropposite.y <0)
+			final[i].corneropposite.y = 0;
+
+
 		cv::rectangle(src, final[i].corner1, final[i].corneropposite, Scalar(0,0,50*i), 2, 8, 0);
 
 		circle(src, final[i].corner1,5,Scalar(0, 0,255),-1,8 );
@@ -1460,7 +1629,7 @@ for (unsigned int i =0;i<5;i++)
 			circle(src, final[i].corner4,5,Scalar(100, 0,255),-1,8 );
 	}
  
-	printf("\n yay i  = %d, center =( %d, %d ), height %d, width %d",i,final[i].center.x,final[i].center.y, final[i].height, final[i].width);
+	//printf("\n yay i  = %d, center =( %d, %d ), height %d, width %d",i,final[i].center.x,final[i].center.y, final[i].height, final[i].width);
 
 }
 
@@ -1492,7 +1661,7 @@ for (unsigned int i =0;i<5;i++)
 	if (final[i].previous2diff < 40 && final[i].previousdiff < 20)
 		cv::rectangle(src, final[i].corner1, final[i].corneropposite, Scalar(0,0,50*i), 10, 8, 0);
 
-	printf("\n i  = %d, previous = %d, %d, height %d, width %d",i,final[i].previousdiff,final[i].previous2diff, final[i].height, final[i].width);
+	//printf("\n i  = %d, previous = %d, %d, height %d, width %d",i,final[i].previousdiff,final[i].previous2diff, final[i].height, final[i].width);
 }//end  for i
 
 

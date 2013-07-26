@@ -56,6 +56,10 @@ public:
     virtual void cupidDetectorOff();
     virtual void loversLaneDetectorOn();
     virtual void loversLaneDetectorOff();
+     virtual void monoPipeLineDetectorOn();
+    virtual void monoPipeLineDetectorOff();
+ 
+
 
     /** Creates a recorder based on the string with the given policy
      *
@@ -208,6 +212,7 @@ private:
     DetectorPtr m_gateDetector;
     DetectorPtr m_cupidDetector;
     DetectorPtr m_loversLaneDetector;
+    DetectorPtr m_monoPipeDetector;
 
     /** Flag which when true enables use of back/unback and update */
     bool m_testing;

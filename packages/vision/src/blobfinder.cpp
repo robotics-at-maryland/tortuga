@@ -29,8 +29,6 @@ blobfinder::blobfinder()
 */
 }
 
-
-
 Mat blobfinder::DetectBuoys(Mat img_whitebalance,ColorFilter *m_redFilter, ColorFilter *m_greenFilter, ColorFilter *m_yellowFilter)
 {
 
@@ -53,20 +51,21 @@ thats getting moved to the estimator
 	Mat img_temp;
 	Mat img_red, img_green, img_yellow; //thresholded for these colors
 
-
+/*
 	_keypoints_red_previous2  = _keypoints_red_previous;
 	_keypoints_green_previous2  = _keypoints_green_previous;
 	_keypoints_yellow_previous2  = _keypoints_yellow_previous;
 	_keypoints_red_previous  = _keypoints_red;
 	_keypoints_green_previous  = _keypoints_green;
 	_keypoints_yellow_previous  = _keypoints_yellow;
+*/
 
 
-	CvPoint point;
-	CvPoint point2;
-	CvPoint point3;
-	unsigned int i;
-unsigned int j,k;
+//	CvPoint point;
+//	CvPoint point2;
+//	CvPoint point3;
+//	unsigned int i;
+//	unsigned int j,k;
 
 	/*
 	for (i=0;i<_keypoints_red_previous.size();i++)
@@ -164,7 +163,7 @@ unsigned int j,k;
 		blob_yellow.detect(img_yellow,_keypoints_yellow);
 		blob_green.detect(img_green,_keypoints_green);
 		//extract x y coordinates of the keypoints
-		
+		/*
 		//printf("\n Red");
 		for (i=0;i<_keypoints_red.size();i++)
 		{		
@@ -427,7 +426,7 @@ unsigned int j,k;
 
 	}
 
-
+*/
 
 		//imshow("Found Blobs",img_whitebalance);
 		//imshow("img_red",img_red);
@@ -495,11 +494,9 @@ Mat blobfinder::OtherColorFilter(vector<Mat> hsv_planes,int minH, int maxH)
 		threshold(hsv_planes[0],img,maxH,0,THRESH_TOZERO_INV);
 		threshold(img,img,minH,255,THRESH_TOZERO);
 		threshold(img,img,1,255,THRESH_BINARY);
-		
-		
 		return(img);
 };
-Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH)
+Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,int minH,int maxH)
 {
 
 		Mat img;
@@ -512,6 +509,17 @@ Mat blobfinder::SaturationFilter(vector<Mat> hsv_planes,double minH, double maxH
 		return(img);
 };
 
+Mat blobfinder::LuminanceFilter(vector<Mat> hsv_planes,int minH,int maxH)
+{
+		Mat img;
+		threshold(hsv_planes[2],img,maxH,0,THRESH_TOZERO_INV);
+		threshold(img,img,minH,255,THRESH_TOZERO);
+		threshold(img,img,1,255,THRESH_BINARY);
+		//double alpha = 0.5;
+		// double beta = ( 1-alpha );
+		// addWeighted( img, alpha, img_saturation, beta, 0.0, img);
+		return(img);
+};
 
 }//end namspace vision
 }//end namespace RAM

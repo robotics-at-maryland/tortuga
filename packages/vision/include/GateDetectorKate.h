@@ -49,16 +49,40 @@ using namespace cv;
 namespace ram {
 namespace vision {
 
-
 class foundLines {
+
 public:
-Mat gateblob(Mat bw, Mat img_whitebalance);
-Mat hedgeblob(Mat img_whitebalance);
+	struct parallelLinesPairs
+	{
+		CvPoint line1_lower;
+		CvPoint line1_upper;
+		CvPoint line2_lower;
+		CvPoint line2_upper;
+		CvPoint left; //horizontla
+		CvPoint right; //horizontal
+		int line1_height;
+		int line2_height;
+		int height; //max height - lowest point ot the heightest point
+		int width;
+		float foundAspectRatio;
+		float foundAspectRatio_diff;
+		int foundtwosides;
+		int foundleft;
+		int foundright;
+		int foundhedge;
+		int foundHorizontal;
+		int horizontalAtTop;
+		CvPoint center;
+	};
+
+parallelLinesPairs gateblob(Mat bw, Mat img_whitebalance);
+parallelLinesPairs hedgeblob(Mat img_whitebalance);
 
 Mat rectangle(Mat bw,Mat src);
-Mat verticalParallelLines(Mat bw, Mat src);
+parallelLinesPairs verticalParallelLines(Mat bw, Mat src);
 
-bool m_found;
+
+
 
 	struct checklines
 	{
@@ -73,6 +97,7 @@ bool m_found;
 		int diffHorizontal;
 		bool foundHorizontal;
 		bool foundVertical;
+		float aspectratio_diff;
 	};
 
 	struct foundCorner
@@ -130,30 +155,11 @@ bool m_found;
 		int width;
 	};
 
-	struct parallelLinesPairs
-	{
-		CvPoint line1_lower;
-		CvPoint line1_upper;
-		CvPoint line2_lower;
-		CvPoint line2_upper;
-		int line1_height;
-		int line2_height;
-		int height; //max height - lowest point ot the heightest point
-		int width;
-		float foundAspectRatio;
-		float foundAspectRatio_diff;
-		int foundtwoside;
-		int foundleft;
-		int foundright;
-		int foundhedge;
-		int foundHorizontal;
-		int horizontalAtTop;
-		CvPoint center;
-	};
+
 
 	//int foundFullHedge;
 	//int foundFullSquare;
-	parallelLinesPairs finalPair;
+
 private:
 	foundRectangle final[5];
 	foundRectangle previous[5];

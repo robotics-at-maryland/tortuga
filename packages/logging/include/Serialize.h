@@ -330,7 +330,7 @@ void serialize(Archive &ar, ram::vision::BinEvent &t,
   ar & t.y;
   ar & t.y;
   ar & t.id;
-  ar & t.symbol;
+  //ar & t.symbol; //McBrYAN 2013 because symbol is no longer part of the bin event 
   ar & (*((double*)(&t.angle)));
 }
 

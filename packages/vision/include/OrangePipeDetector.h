@@ -16,6 +16,7 @@
 
 // Project Includes
 #include "vision/include/Common.h"
+#include "vision/include/Color.h"
 #include "vision/include/PipeDetector.h"
 #include "core/include/ConfigNode.h"
 #include "math/include/Math.h"
@@ -29,6 +30,24 @@ namespace vision {
         
 class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 {
+
+	struct foundpipe
+	{
+		int id;
+		bool found;
+		int centerx;
+		int centery;
+		double area;
+		double range;
+		double angle;
+		int id2;
+		bool found2;
+		int centerx2;
+		int centery2;
+		double range2;
+		double angle2;
+		double area2;
+	};	
   public:
     OrangePipeDetector(core::ConfigNode config,
                        core::EventHubPtr eventHub = core::EventHubPtr());
@@ -52,7 +71,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     // Setter and Getter for lookup table color filter
     bool getLookupTable();
     void setLookupTable(bool lookupTable);
-  
+    bool m_onlyReportOnePipe;
   private:
     void init(core::ConfigNode config);
 
@@ -109,6 +128,33 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     bool m_colorFilterLookupTable;
     
     std::string m_lookupTablePath;
+
+	//Kate added functions
+ 	foundpipe getSquareBlob(cv::Mat erosion_dst); //find contours of pipes
+	void DetectorContours(Image* input);
+	void publishFoundEvent(foundpipe pipe,int id,Image* input);
+	void publishLostEvent(int number);
+
+	bool m_foundpipe1;
+	bool m_foundpipe2;
+	int m_framenumber;
+
+    /** Color Filters */
+	ColorFilter *m_redFilter;
+	ColorFilter *m_yellowFilter;
+
+	cv::Mat img_whitebalance;
+
+	double m_maxAspectRatio;
+
+    /** Working Images */
+	Image* input;
+	Image* output;
+   	Image* m_frame;
+    	int m_minSize;
+	int m_dilateIteration;
+	foundpipe m_previousfinalpipe;
+
 };
     
 } // namespace vision

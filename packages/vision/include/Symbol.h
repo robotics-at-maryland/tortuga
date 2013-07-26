@@ -29,7 +29,7 @@ struct Symbol
         AXE, CLIPPERS, HAMMER, MACHETE,
         LARGE_X, SMALL_X, LARGE_O, SMALL_O,
         NET, SHIELD, SWORD, TRIDENT,
-        UNKNOWN, NONEFOUND
+        UNKNOWN, NONEFOUND, BIN37,BIN10,BIN16,BIN98,BINOUTLINE
     };
 
     /** A list of all symbol names */

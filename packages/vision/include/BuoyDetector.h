@@ -41,6 +41,22 @@ namespace vision {
 
 class RAM_EXPORT BuoyDetector : public Detector
 {
+
+		struct foundblob
+		{
+			double centerx;
+			double centery;
+			double range;
+			int minX, minY, maxX,maxY;
+			int color;
+			int position;
+			CvPoint vertex1;
+			CvPoint vertex2;
+			CvPoint vertex3;
+			CvPoint vertex4;
+			double angle;
+		};
+
   public:
     BuoyDetector(core::ConfigNode config,
                  core::EventHubPtr eventHub = core::EventHubPtr());
@@ -53,8 +69,7 @@ class RAM_EXPORT BuoyDetector : public Detector
     void processBuoysImage(Image* input, Image* output = 0);
     void processBuoysMask(cv::Mat* mask, Image* img, Image* output);
     void initProcessBuoys(cv::Mat temp1, cv::Mat temp2);
-    
-    IplImage* getAnalyzedImage();
+      IplImage* getAnalyzedImage();
 
     // Setter and Getter for lookup table color filter
     bool getRedLookupTable();
@@ -65,8 +80,17 @@ class RAM_EXPORT BuoyDetector : public Detector
     
     bool getGreenLookupTable();
     void setGreenLookupTable(bool lookupTable); 
-  
+	
+    void DetectorContours(Image* input);
+    foundblob getSquareBlob(Mat erosion_dst);
+    void processImageSimpleBlob(Image* input, Image* output);
   private:
+
+	Mat erode_dst_red;
+	Mat erode_dst_green;
+	Mat erode_dst_yellow;
+	Mat erode_dst;
+
     void init(core::ConfigNode config);
 
     /* Normal processing to find one blob/color */
@@ -81,7 +105,9 @@ class RAM_EXPORT BuoyDetector : public Detector
     void publishFoundEvent(BlobDetector::Blob& blob, Color::ColorType color);
     void publishFoundEventKate(cv::KeyPoint blob, Color::ColorType color);
     void publishLostEvent(Color::ColorType color);
-
+	bool foundyellowbefore;
+	bool foundgreenbefore;
+	bool foundredbefore;
 
     Camera *cam;
 
@@ -213,10 +239,11 @@ class RAM_EXPORT BuoyDetector : public Detector
     double stDevFactor;
     
     //added for Kate's buoy detector
-	//want blobfinder class to be added
-	blobfinder blob;
-
-
+    //want blobfinder class to be added
+   blobfinder blob;
+  foundblob m_yellowbuoy,m_greenbuoy,m_redbuoy;
+  void publishFoundEventContour(foundblob buoy, Color::ColorType color);
+	int m_framenumber; //frame number since start of class
 };
 	
 } // namespace vision
