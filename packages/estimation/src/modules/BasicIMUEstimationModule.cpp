@@ -37,11 +37,17 @@ BasicIMUEstimationModule::BasicIMUEstimationModule(core::ConfigNode config,
     EstimationModule(eventHub,"BasicIMUEstimationModule",estState,
                      vehicle::device::IIMU::RAW_UPDATE),
     m_magIMUName(config["magIMUNum"].asString("MagBoom")),
-    m_cgIMUName(config["cgIMUNum"].asString("IMU"))
+    m_cgIMUName(config["cgIMUNum"].asString("IMU")),
+    m_gyroXThresh(config["xThresh"].asDouble(0)),
+    m_gyroYThresh(config["xThresh"].asDouble(0)),
+    m_gyroZThresh(config["xThresh"].asDouble(0))
 {
     /* initialization of estimator from config values should be done here */
     LOGGER.info("% IMU-Name[1] Accel[3] Mag[3] Gyro[3] Accel-Raw[3] Mag-Raw[3]"
                 " Gyro-Raw[3] Quat[4] TimeStamp[1]");
+    lx = 0;
+    ly = 0;
+    lz = 0;
 }
 
 void BasicIMUEstimationModule::update(core::EventPtr event)
@@ -83,7 +89,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     m_filteredAccelX[name].addValue(newState.accelX); 
     m_filteredAccelY[name].addValue(newState.accelY);
     m_filteredAccelZ[name].addValue(newState.accelZ);
-
+    
     m_filteredMagX[name].addValue(newState.magX);
     m_filteredMagY[name].addValue(newState.magY);
     m_filteredMagZ[name].addValue(newState.magZ);
@@ -91,6 +97,10 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     m_filteredGyroX[name].addValue(newState.gyroX);
     m_filteredGyroY[name].addValue(newState.gyroY);
     m_filteredGyroZ[name].addValue(newState.gyroZ);
+    m_filteredGyroXV.addValue((newState.gyroX-lx)/timestep);
+    m_filteredGyroYV.addValue((newState.gyroY-ly)/timestep);
+    m_filteredGyroZV.addValue((newState.gyroZ-lz)/timestep);
+
 
     if(m_filteredState.find(name) == m_filteredState.end())
     {
@@ -167,7 +177,7 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
 
     math::Quaternion estOrientation = math::Quaternion::IDENTITY;
     
-    if(imuList.find(m_magIMUName) != imuList.end())
+    if(imuList.find(m_magIMUName) != imuList.end() && magIsCorrupt == false) 
     {
 
         /* If we have the magboom IMU, compute the quaternion from the
@@ -202,17 +212,26 @@ void BasicIMUEstimationModule::update(core::EventPtr event)
     {
 
         /* If we dont have the magboom IMU and the magnetometer
-         * reading is corrupted, compute the estimated orientation from
+         * reading is corrupted(or if the magnetometer is just corrupt),
+         * compute the estimated orientation from
          * the previous quaternion and the angular rate
          */
-
-        math::Vector3 omega;
+        
+        math::Vector3 omega(0,0,0);
         {
             core::ReadWriteMutex::ScopedReadLock lock(m_stateMutex);
-
-            omega[0] = m_filteredState[m_cgIMUName]->gyroX;
-            omega[1] = m_filteredState[m_cgIMUName]->gyroY;
-            omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
+            if(abs(m_filteredGyroXV.getValue()) > m_gyroXThresh)
+            {
+                omega[0] = m_filteredState[m_cgIMUName]->gyroX;
+            }
+            if(abs(m_filteredGyroYV.getValue()) > m_gyroYThresh)
+            {
+                omega[1] = m_filteredState[m_cgIMUName]->gyroY;
+            }
+            if(abs(m_filteredGyroZV.getValue()) > m_gyroZThresh)
+            {
+                omega[2] = m_filteredState[m_cgIMUName]->gyroZ;
+            }
         }
 
         math::Quaternion oldOrientation = 

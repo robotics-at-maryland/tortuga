@@ -577,6 +577,11 @@ math::MatrixN Vehicle::createControlSignalToThrusterForcesMatrix(
     math::MatrixN Ainv = A.inverse();
     return Ainv;
 }
+void Vehicle::corruptIMU(bool c)
+{
+    getDevice("MagBoom")->setcor( c);
+    getDevice("IMU")->setcor( c);
+}
 
     
 } // namespace vehicle

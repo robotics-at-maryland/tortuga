@@ -17,6 +17,7 @@ namespace device {
 IDevice::IDevice(core::EventHubPtr eventHub, std::string name) :
     core::EventPublisher(eventHub, "Vehicle.Device." + name)
 {
+    corflg = false;
 }
 
 IDevice::~IDevice()

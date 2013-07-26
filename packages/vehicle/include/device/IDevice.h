@@ -53,9 +53,16 @@ public:
         assert(ptr && "Failed to cast IDevice pointer");
         return ptr;
     }
-    
+    void setcor(bool c)
+    {
+        corflg = c;
+    }
+
+
 protected:
     IDevice(core::EventHubPtr eventHub, std::string name = "UNNAMED");
+    bool corflg;//this flag controls if an imu is corrupt
+
 };
     
 } // namespace device
