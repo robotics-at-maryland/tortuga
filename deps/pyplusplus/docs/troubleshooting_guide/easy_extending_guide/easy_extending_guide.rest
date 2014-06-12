@@ -1,0 +1,120 @@
+====================
+Easy extending guide
+====================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+"... Boost.Python library is designed to wrap C++ interfaces non-intrusively, so that
+you should not have to change the C++ code at all in order to wrap it."
+
+The previous statement is almost true. There are few use cases that the library
+doesn't support. This guide will list some of them and will offer few possible
+solutions.
+
+-------------------
+Pointer to function
+-------------------
+
+Boost.Python doesn't handle "pointer to function" functionality. You cannot pass
+it as function argument or keep it, as a member variable.
+
+The simple work-around is to use `command design pattern`_
+
+.. _`command design pattern` : http://en.wikipedia.org/wiki/Command_pattern
+
+------------------------------------
+Problematic function arguments types
+------------------------------------
+
+C arrays
+--------
+
+Boost.Python doesn't handle ``C arrays``, the only exception are ``char*`` and
+``wchar_t*``.
+
+Consider the following function:
+
+.. code-block:: C++
+
+  int write( int* data, size_t size );
+
+The technical reasons are not the only one that prevent Boost.Python to expose such
+functions, there is a mental one: such interface is not intuitive for Python
+developers. They expect to pass single argument. For example, built-in ``file.write``
+method takes a single argument - sequence of characters.
+
+Work-around:
+
+  1. With small help from the developer, Py++ generates code which feets well into
+     Python developer mental model. Pure virtual member functions are a special
+     case, which Py++ doesn't handle right now.
+
+  2. Use STL containers, ``std::vector<...>`` and others.
+
+
+Immutable by reference
+----------------------
+
+Python defines few fundamental types as "immutable". The value of an instance of
+the immutable type could not be changed after construction. Try to avoid passing
+the immutable types by reference.
+
+Immutable types:
+
+    * ``char``
+    * ``signed char``
+    * ``unsigned char``
+    * ``wchar_t``
+    * ``short int``
+    * ``short unsigned int``
+    * ``bool``
+    * ``int``
+    * ``unsigned int``
+    * ``long int``
+    * ``long unsigned int``
+    * ``long long int``
+    * ``long long unsigned int``
+    * ``float``
+    * ``double``
+    * ``long double``
+    * ``complex double``
+    * ``complex long double``
+    * ``complex float``
+    * ``std::string``
+    * ``std::wstring``
+    * C++ ``enum`` is mapped to Python ``int`` type
+    * smart pointers
+
+Work around:
+
+    * Just don't pass them by reference :-)
+
+    * With small help from the developer, Py++ generates code which work-arounds
+      this issue, but the resulting interface is ugly.
+
+``void*``
+---------
+
+In most cases, ``void*`` is used when a developer has to deal with a memory block. 
+Python provides support for this functionality, but I still didn't find an easy and 
+intuitive way to expose it. There is no work-around for this issue.
+
+If you use ``void*`` to pass a reference to some object, than Boost.Python and Py++
+support such use case.
+
+----------------
+Memory managment
+----------------
+
+* Use ``std::auto_ptr`` to transfer ownership and responsibility for an object 
+  destruction. 
+
+* The only well supported smart pointer class is ``boost::shared_ptr``.  I suggest 
+  you to use it all the time, especially in cases where you want to create object 
+  from Python and pass ownership to C++ code. You don't want the headache associated 
+  with this task.
+

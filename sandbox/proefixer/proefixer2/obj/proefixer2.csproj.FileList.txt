@@ -1,0 +1,10 @@
+obj\Release\ResolveAssemblyReference.cache
+bin\Release\proefixer2.exe
+bin\Release\proefixer2.pdb
+obj\Release\proefixer2.exe
+obj\Release\proefixer2.pdb
+bin\Debug\proefixer2.exe
+bin\Debug\proefixer2.pdb
+obj\Debug\ResolveAssemblyReference.cache
+obj\Debug\proefixer2.exe
+obj\Debug\proefixer2.pdb

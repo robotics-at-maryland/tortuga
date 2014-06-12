@@ -1,0 +1,6 @@
+include LICENSE_1_0.txt
+recursive-include dev/*.py
+recursive-include dev/*.hpp
+recursive-include dev/sconscript*
+prune dev/*/.svn
+

@@ -1,0 +1,7 @@
+ctxapi is at:
+  http://ram.umd.edu/wiki/Public/Software/ctxapi
+
+See the version at that site if you would like support for reading and
+writing configuration values to/from the PSU. If you make improvements to
+this code, please consider adding them to the public version.
+

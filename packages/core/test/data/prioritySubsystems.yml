@@ -1,0 +1,9 @@
+Subsystems:
+    SystemA:
+        type: MockSubsystem
+        test: "John"
+        priority: low
+        
+    BSystem:
+        type: MockSubsystem
+        test: "Bob"

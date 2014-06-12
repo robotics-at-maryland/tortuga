@@ -1,0 +1,233 @@
+=============
+return_range
+=============
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+Class ``return_range`` is a model of `CallPolicies`_, which can be used to wrap
+C++ functions that return a pointer to some array. The new call policy constructs
+object, which provides a regular `Python`_ `sequence`_ interface.
+
+.. _`sequence` : http://docs.python.org/lib/typesseq.html
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+  struct image_t{
+
+      ...
+
+      const unsigned char* get_data() const{
+          return m_raw_data;
+      }
+
+      ssize_t get_width() const{
+          return m_width;
+      }
+
+      ssize_t get_height() const{
+          return m_height;
+      }
+
+  private:
+      unsigned long m_width;
+      unsigned long m_height;
+      unsigned char* m_raw_data;
+  };
+
+Before introducing the whole solution, I would like to describe "return_range"
+interface.
+
+----------------------
+``return_range`` class
+----------------------
+
+.. code-block:: C++
+
+  template < typename TGetSize
+             , typename TValueType
+             , typename TValuePolicies=boost::python::default_call_policies >
+  struct return_range : boost::python::default_call_policies
+  { ... };
+
+`Boost.Python`_ call policies are stateless classes, which do not care any
+information about the invoked function or object. In our case we have to pass
+the following information:
+
+* the array size
+
+* the array type
+
+* "__getitem__" call policies for the array elements
+
+
+``TGetSize`` parameter
+++++++++++++++++++++++
+
+``TGetSize`` is a class, which is responsible to find out the size of the returned
+array.
+
+``TGetSize`` class must have:
+
+* default constructor
+
+* call operator with the following signature:
+
+  .. code-block:: C++
+
+    ssize_t operator()( boost::python::tuple args );
+
+  ``args`` is a tuple of arguments, the function was called with.
+
+  Pay attention: this operator will be invoked **after** the function. This
+  call policy is **not thread-safe**!
+
+For our case, the following class could be defined:
+
+.. code-block:: C++
+
+  struct image_data_size_t{
+      ssize_t operator()( boost::python::tuple args ){
+          namespace bpl = boost::python;
+          bpl::object self = args[0];
+          image_t& img = bpl::extract< image_t& >( self );
+          return img.get_width() * img.get_height();
+      }
+  };
+
+Passing all arguments, instead of single "self" argument gives you an ability
+to treat functions, where the user asked to get access to the part of the array.
+
+.. code-block:: C++
+
+  struct image_t{
+      ...
+      const unsigned char* get_data(ssize_t offset) const{
+          //check that offset represents a legal value
+          ...
+          return &m_raw_data[offset];
+      }
+      ...
+  };
+
+The following "get size" class treats this situation:
+
+.. code-block:: C++
+
+  struct image_data_size_t{
+      ssize_t operator()( boost::python::tuple args ){
+          namespace bpl = boost::python;
+          bpl::object self = args[0];
+          image_t& img = bpl::extract< image_t& >( self );
+          bpl::object offset_obj = args[1];
+          ssize_t offset = bpl::extract< ssize_t >( offset_obj );
+          return img.get_width() * img.get_height() - offset;
+      }
+  };
+
+
+``TValueType`` parameter
+++++++++++++++++++++++++
+
+``TValueType`` is a type of array element. In our case it is ``unsigned char``.
+
+``TValuePolicies`` parameter
+++++++++++++++++++++++++++++
+
+``TValuePolicies`` is a "call policy" class, which will be applied when the array
+element is returned to `Python`_. This is a call policy for "__getitem__" function.
+
+``unsigned char`` is mapped to immutable type in `Python`_, so I have to use
+``default_call_policies``. ``default_call_policies`` is a default value for
+``TValuePolicies`` parameter.
+
+
+I think, now you are ready to see the whole solution:
+
+.. code-block:: C++
+
+  namespace bpl = boost::python;
+  namespace ppc = pyplusplus::call_policies;
+
+  BOOST_PYTHON_MODULE(my_module){
+    bpl::class_< image_t >( "image_t" )
+        .def( "get_width", &image_t::get_width )
+        .def( "get_height", &image_t::get_height )
+        .def( "get_raw_data", ppc::return_range< image_size_t, unsigned char >() );
+  }
+
+Py++ integration
+~~~~~~~~~~~~~~~~
+
+The `Py++`_ code is not that different from what you already know:
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+  from pyplusplus.module_builder import call_policies
+
+  image_size_code = \
+  """
+  struct image_data_size_t{
+      ssize_t operator()( boost::python::tuple args ){
+          namespace bpl = boost::python;
+          bpl::object self = args[0];
+          image_t& img = bpl::extract< image_t& >( self );
+          return img.get_width() * img.get_height();
+      }
+  };
+  """
+
+  mb = module_builder.module_builder_t( ... )
+  image = mb.class_( 'image_t' )
+  image.add_declaration_code( image_size_code )
+  get_raw_data = image.mem_fun( 'get_raw_data' )
+  get_raw_data.call_policies \
+      = call_policies.return_range( get_raw_data, "image_data_size_t" )
+
+call_policies.return_range arguments:
+
+1. A reference to function. `Py++`_ will extract by itself the type of the array
+   element.
+
+2. A name of "get size" class.
+
+3. A call policies for "__getitem__" function. `Py++`_ will analyze the array
+   element type. If the type is mapped to immutable type, than ``default_call_policies``
+   is used, otherwise you have to specify call policies.
+
+
+Python usage code:
+
+.. code-block:: Python
+
+  from my_module import *
+
+  img = image_t(...)
+  for p in img.get_raw_data():
+      print p
+
+Dependencies
+~~~~~~~~~~~~
+
+The new call policy depends on `new indexing suite`_ and `Py++`_ :-). But if you
+want you can extract the relevant piece of code from `this file`_.
+
+.. _`new indexing suite` : ./../../containers.html
+.. _`this file` : http://pygccxml.svn.sourceforge.net/viewvc/pygccxml/pyplusplus_dev/pyplusplus/code_repository/call_policies.py?view=markup
+
+.. _`ResultConverterGenerator` : http://boost.org/libs/python/doc/v2/ResultConverter.html#ResultConverterGenerator-concept
+.. _`CallPolicies` : http://www.boost.org/libs/python/doc/v2/CallPolicies.html#CallPolicies-concept
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

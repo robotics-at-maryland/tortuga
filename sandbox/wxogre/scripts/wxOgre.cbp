@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="wxOgre" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="../bin/debug/wxOgre" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../bin/obj/debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-D__WXDEBUG__" />
+				</Compiler>
+				<Linker>
+					<Add library="pthread" />
+					<Add library="wx_gtk2ud_xrc-2.6" />
+					<Add library="wx_gtk2ud_qa-2.6" />
+					<Add library="wx_gtk2ud_html-2.6" />
+					<Add library="wx_gtk2ud_adv-2.6" />
+					<Add library="wx_gtk2ud_core-2.6" />
+					<Add library="wx_baseud_xml-2.6" />
+					<Add library="wx_baseud_net-2.6" />
+					<Add library="wx_baseud-2.6" />
+					<Add library="wx_gtk2ud_gl-2.6" />
+				</Linker>
+				<Environment>
+					<Variable name="TEST" value="TEST" />
+				</Environment>
+			</Target>
+			<Target title="Release">
+				<Option output="../bin/release/wxOgre" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../bin/obj/release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="pthread" />
+					<Add library="wx_gtk2u_xrc-2.6" />
+					<Add library="wx_gtk2u_qa-2.6" />
+					<Add library="wx_gtk2u_html-2.6" />
+					<Add library="wx_gtk2u_adv-2.6" />
+					<Add library="wx_gtk2u_core-2.6" />
+					<Add library="wx_baseu_xml-2.6" />
+					<Add library="wx_baseu_net-2.6" />
+					<Add library="wx_baseu-2.6" />
+				</Linker>
+			</Target>
+			<Environment>
+				<Variable name="MRBC_SVN_ROOT" value="/home/jlisee/projects/mrbc/trunk" />
+			</Environment>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="`pkg-config --cflags gtk+-2.0`" />
+			<Add option="-DEXT_HASH" />
+			<Add option="-DGTK_NO_CHECK_CASTS" />
+			<Add option="-D__WXGTK__" />
+			<Add option="-D_FILE_OFFSET_BITS=64" />
+			<Add option="-D_LARGE_FILES" />
+			<Add option="-DNO_GCC_PRAGMA" />
+			<Add option='-DOGRE_ROOT=&quot;$MRBC_SVN_ROOT/deps/local&quot;' />
+			<Add directory="$MRBC_SVN_ROOT/deps/local/include" />
+			<Add directory="$MRBC_SVN_ROOT/deps/local/include/OGRE" />
+			<Add directory="/usr/lib/wx/include/gtk2-unicode-release-2.6" />
+			<Add directory="/usr/include/wx-2.6" />
+			<Add directory="../include" />
+		</Compiler>
+		<Linker>
+			<Add option="`pkg-config --libs gtk+-2.0`" />
+			<Add library="OgreMain" />
+			<Add directory="$MRBC_SVN_ROOT/deps/local/lib" />
+		</Linker>
+		<Unit filename="../include/OgreApp.h" />
+		<Unit filename="../include/wxOgre.h" />
+		<Unit filename="../src/OgreApp.cpp" />
+		<Unit filename="../src/wxOgre.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars set="default" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

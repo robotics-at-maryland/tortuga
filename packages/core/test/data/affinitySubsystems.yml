@@ -1,0 +1,9 @@
+Subsystems:
+    SystemA:
+        type: MockSubsystem
+        test: "John"
+        
+    BSystem:
+        type: MockSubsystem
+        test: "Bob"
+        affinity: 1

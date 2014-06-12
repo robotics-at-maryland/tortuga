@@ -1,0 +1,202 @@
+=============
+Call policies
+=============
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Boost.Python`_ has a `nice introduction`__ to call policies. `"Call policies concept"`_
+document will provide you with formal definition.
+
+.. __ : http://boost.org/libs/python/doc/tutorial/doc/html/python/functions.html#python.call_policies
+.. _`"Call policies concept"` : http://boost.org/libs/python/doc/v2/CallPolicies.html#CallPolicies-concept
+
+------
+Syntax
+------
+
+The call policies in `Py++`_ are named exactly as in `Boost.Python`_, only the
+syntax is slightly different. For instance, this call policy:
+
+.. code-block:: C++
+
+  return_internal_reference< 1, with_custodian_and_ward<1, 2> >()
+
+becomes in `Py++`_
+
+.. code-block:: Python
+
+  return_internal_reference( 1, with_custodian_and_ward(1, 2) )
+
+`Py++`_ supports all call policies presented in `Boost.Python`_.
+
+-------------
+Usage example
+-------------
+
+Every "callable" object in `Py++`_ has ``call_policies`` property.
+
+C++ code:
+
+  .. code-block:: C++
+
+    struct data{...};
+    const data& do_smth( const data& d, int x );
+
+    void return_second_arg( int x, int y );
+
+    typedef struct opaque_ *opaque_pointer;
+    opaque_pointer get_opaque();
+
+Python code:
+
+  .. code-block:: Python
+
+    from pyplusplus import module_builder
+    from pyplusplus.module_builder import call_policies
+
+    mb = module_builder.module_builder_t( ... )
+    mb.free_function( 'return_second_arg' ).call_policies = call_policies.return_arg( 2 )
+    #---------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    mb.member_function( 'do_smth' ).call_policies = call_policies.return_self()
+    #-------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    mb.calldef( 'get_opaque' ).call_policies
+        = call_policies.return_value_policy( call_policies.return_opaque_pointer )
+
+--------
+Defaults
+--------
+
+`Py++`_ is able to "guess" few call policies, base on analysis of return type
+and\\or callable name:
+
+* ``default_call_policies``:
+
+  * `Python`_ immutable type returned by value: C++ fundamental types, ``std::string``, enumerations
+
+  *  user-defined type ( class ) returned by value
+
+  * return type is ``const char*``
+
+* ``return_value_policy``
+
+  * ``return_opaque_pointer``
+
+    * return type is ``void*``
+
+    * return type is ``const void*``
+
+    * return type is ``T*`` and ``T`` is a user defined opaque type
+
+      ``class_t`` and ``class_declaration_t`` classes have ``opaque`` property.
+      You have to set it to ``True``, if you want `Py++`_ to create this call
+      policy automatically for all functions, that use ``T*`` as return type.
+
+  * ``copy_const_reference``
+
+    * return type is ``const T&``
+
+    * for member ``operator[]`` that returns const reference to immutable type
+
+  * ``return_by_value``
+
+    * return type is ``const wchar_t*``
+
+  * ``copy_non_const_reference``
+
+    * return type is ``T&``, for member ``operator[]`` that returns reference to immutable type
+
+  * ``return_internal_reference``
+
+    * return type is ``T&``, for member ``operator[]``
+
+* ``return_self``
+
+  This call policy will be used for ``operator=``.
+
+---------------------
+Missing call policies
+---------------------
+
+If you don't specify call policy for a function and it needs one, few things will
+happen:
+
+* `Py++`_ prints a warning message
+
+* `Py++`_ generates code with
+
+  .. code-block:: C++
+
+    /* undefined call policies */
+
+  comment, instead of call policy. If `Py++`_ was wrong and function doesn't
+  need call policy the generate code will compile fine, otherwise you will get a
+  compilation error.
+
+
+------------
+Special case
+------------
+
+Before you read this paragraph consider to read `Boost.Python`_ `return_opaque_pointer documentation`_.
+
+``return_value_policy( return_opaque_pointer )`` is a special policy for `Boost.Python`_.
+In this case, it requires from you to define specialization for the
+``boost::python::type_id`` function on the type pointed to by returned pointer.
+`Py++`_ will generate the required code.
+
+
+Actually you should define ``boost::python::type_id`` specialization also in case
+a function takes the opaque type as an argument. `Py++`_ can do it for you, all
+you need is to mark a declaration as opaque.
+
+Example:
+
+.. code-block:: C++
+
+  struct identity_impl_t{};
+  typedef identity_impl_t* identity;
+
+  struct world_t{
+
+      world_t( identity id );
+
+      identity get_id() const;
+
+      ...
+  };
+
+`Py++`_ code:
+
+.. code-block:: Python
+
+  mb = module_builder_t(...)
+  mb.class_( 'identity_impl_t' ).opaque = True
+
+
+.. _`return_opaque_pointer documentation` : http://boost.org/libs/python/doc/v2/return_opaque_pointer.html
+
+--------------------------
+Py++ defined call policies
+--------------------------
+
+`Py++`_ defines few call policies. I hope you will find them useful. I don't mind
+to contribute them to `Boost.Python`_ library, but I don't have enough free time 
+to "boostify" them.
+
+.. _`new indexing suite` : ./../../containers.html
+.. _`this file` : http://pygccxml.svn.sourceforge.net/viewvc/pygccxml/pyplusplus_dev/pyplusplus/code_repository/call_policies.py?view=markup
+
+.. _`ResultConverterGenerator` : http://boost.org/libs/python/doc/v2/ResultConverter.html#ResultConverterGenerator-concept
+.. _`CallPolicies` : http://www.boost.org/libs/python/doc/v2/CallPolicies.html#CallPolicies-concept
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

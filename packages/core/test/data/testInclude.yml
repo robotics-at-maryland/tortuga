@@ -1,0 +1,10 @@
+Base:
+    Sub:
+        count: 100
+        type: Test.Good
+        # Importation of "standard settings"
+        INCLUDE: packages/core/test/data/includeMeSubSub.yml
+        
+    INCLUDE: packages/core/test/data/includeMeSub.yml
+    
+INCLUDE: packages/core/test/data/includeMe.yml

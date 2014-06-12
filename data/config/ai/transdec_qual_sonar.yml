@@ -1,0 +1,30 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Travel1',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 4
+    pipeDepth: 7
+    binDepth: 12
+    targetBuoys: ['green', 'red']
+    targetWindows: 'green'
+    targetSymbols: ['Clippers', 'Axe']
+    sonarDepth: 3
+    safeDepth: 9.5
+    safeOffset: -0.4
+    Gate:
+        time: 32
+        speed: 3
+    Travel1:
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 10
+                speed: 20
+                absolute: True
+            '2':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 10
+                speed: 4
+                duration: 40
+                absolute: True

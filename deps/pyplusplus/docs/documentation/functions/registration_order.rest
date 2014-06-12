@@ -1,0 +1,150 @@
+==================
+Registration order
+==================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+"... I would very much like to pass booleans from Python to C++ and have them
+accepted as boils. However I cannot seem to do this. ..."
+
+"... My class has 2 "append" functions. The first one, has single argument with
+type "const char*", the second one also has single argument with type "char".
+It seems, that I am not able to call the first function. ..."
+
+If you have problem similar to described ones, than I am almost sure you have
+registration order problem.
+
+-------
+Example
+-------
+
+.. code-block:: C++
+
+  struct tester_t{
+      tester_t() {}
+
+      const char* append(const char*)
+      { return "append(const char *)"; }
+
+      const char* append(const char)
+      { return "append(const char)"; }
+
+      const char* do_smth( bool )
+      { return "do_smth( bool )"; }
+
+      const char* do_smth( int )
+      { return "do_smth( int )"; }
+  };
+
+`Py++`_ generates code, that register functions in the order they appear in the
+source code:
+
+.. code-block:: C++
+
+  namespace bp = boost::python;
+
+  BOOST_PYTHON_MODULE(my_module){
+    bp::class_< tester_t >( "tester_t" )
+        .def( bp::init< >() )
+        .def( "append"
+            , (char const * ( ::tester_t::* )( char const * ) )( &::tester_t::append ) )
+        .def( "append"
+            , (char const * ( ::tester_t::* )( char const ) )( &::tester_t::append ) )
+        .def( "do_smth"
+            , (char const * ( ::tester_t::* )( bool ) )( &::tester_t::do_smth ) )
+        .def( "do_smth"
+            , (char const * ( ::tester_t::* )( int ) )( &::tester_t::do_smth ) );
+  }
+
+---------------------------
+Registration order pitfalls
+---------------------------
+
+Do you want to guess what is the output of the following program:
+
+.. code-block:: Python
+
+  import my_module
+  tester = my_module.tester_t()
+  print tester.do_smth( True )
+  print tester.do_smth( 10 )
+  print tester.append( "Hello world!" )
+
+?
+
+The output is:
+
+  do_smth( int )
+
+  do_smth( int )
+
+  append(const char)
+
+Unexpected, right? The registration order of exposed overloaded functions is
+important. `Boost.Python`_ tries overloads in reverse order of definition.
+
+If I understand right, `Boost.Python`_ tries to match in reverse order the
+overloaded functions, if it can convert `Python`_ arguments to C++ ones, it does
+this and calls the function.
+
+Now, when you understand the behavior, it should be pretty simple to provide
+a correct functionality:
+
+1. You can change alias of the function, by mangling the type of the argument
+   into it:
+
+  .. code-block:: Python
+
+    mb = module_builder_t( ... )
+    for f in mb.class_( 'tester_t' ).member_functions():
+        f.alias = f.alias + f.arguments[0].type.decl_string
+
+2. You can reorder the declarations within the source file.
+
+3. You can ask `Py++`_ to generate code, which takes into account the order of
+   declarations:
+
+   .. code-block:: Python
+
+     from pyplusplus.module_creator import sort_algorithms
+
+     sort_algorithms.USE_CALLDEF_ORGANIZER = True
+     # The functionality is available from version 0.8.3
+
+4. The last and the perfect solution. `Py++`_ will let you know, when your code
+   has such problem. The functionality is available from version 0.8.3. After
+   this you can change the aliases of the functions. The third step is to create
+   small "dispatch" function in Python:
+
+   .. code-block:: Python
+
+     import my_module
+
+     def tester_t_do_smth( self, value ):
+         if isinstance( value, bool ):
+             self.do_smth_bool( value ):
+         else:
+             self.do_smth_int( value )
+
+     tester_t.do_smth = tester_t_do_smth
+
+   The technique shown here described pretty good in `Boost.Python`_
+   `Extending Wrapped Objects in Python tutorials`_ .
+
+   May be in future, `Py++`_ will generate this code for you. Anyway, if you have
+   a lot of use cases like this consider to generate `Python`_ code and not to
+   write it manually.
+
+.. _`Extending Wrapped Objects in Python tutorials` : http://boost.org/libs/python/doc/tutorial/doc/html/python/techniques.html#python.extending_wrapped_objects_in_python
+
+
+
+
+.. _`Py++` : ./../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org

@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: py_easybmp
+Version: 0.70
+Author: Roman Yakovenko
+Author-email: roman yakovenko at gmail com
+Maintainer: Roman Yakovenko
+Maintainer-email: roman yakovenko at gmail com
+Home-page: http://www.language-binding.net/pyplusplus/examples/py_easybmp/py_easybmp.html
+Download-url: http://sourceforge.net/project/showfiles.php?group_id=118209
+Summary: Python bindings for C++ EasyBMP library
+License: Boost Software License
+Description: Python bindings for C++ EasyBMP library. Bindings has been created with pyplusplus code generator.
+Keywords: C++ code generation bindings EasyBMP
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: Freeware
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development

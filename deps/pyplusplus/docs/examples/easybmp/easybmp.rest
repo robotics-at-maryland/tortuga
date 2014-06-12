@@ -1,0 +1,80 @@
+===============
+EasyBMP example
+===============
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+What is EasyBMP?
+-------------------
+
+`EasyBMP`_ is a simple, cross-platform, open source (LGPL) C++ library designed
+for easily reading, writing, and modifying Windows bitmap (BMP) image files.
+In this example I am referring to version 0.70.
+
+What is `Py++`_?
+----------------------
+
+.. include:: ./../../definition.rest
+
+-----------
+Description
+-----------
+
+`Py++`_ has been used to create `Python`_ bindings for `EasyBMP`_
+library. Before proceeding with this example, I should say, that I did not work
+with `EasyBMP`_ at all. I have seen it's announcement on www.freshmeat.org site
+and decided to test `Py++`_ with "real world" project. It took me 30
+minutes, to create full working python version of this library. These examples
+consist few files and directories:
+
+    1. environment.py - contains different environment settings
+
+    2. generate_code.py - contains source code needed to generate
+       `Boost.Python`_ bindings for `EasyBMP`_ library.
+
+    3. sconstruct - build configuration file
+
+    4. generated - directory that contains all generated code and only it
+
+    5. unittests - directory that contains grey scale example from tutorials.
+       C++
+
+I run grey scale example on
+
+|source.bmp|
+
+and this is what I have got:
+
+|target.bmp|
+
+  .. |source.bmp| image:: ./source.bmp
+                  :alt: Py++ logo
+                  :align: middle
+  ..              :border: 0
+
+  .. |target.bmp| image:: ./target.bmp
+                  :alt: Py++ logo
+                  :align: middle
+  ..              :border: 0
+
+--------
+Download
+--------
+
+http://sourceforge.net/project/showfiles.php?group_id=118209.
+
+.. _`Py++` : ./../../pyplusplus.html
+.. _`environment.py`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/environment.py?view=markup
+.. _`sconstruct`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/sconstruct?view=markup
+.. _`greyscale.py`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/grayscale.py?view=markup
+.. _`create_easybmp.py`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/create_easybmp.py?view=markup
+.. _`py_easybmp.cpp`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/py_easybmp.cpp?view=markup
+.. _`Python`: http://www.python.org
+.. _`pygccxml`: http://www.language-binding.net/pygccxml/pygccxml.html
+.. _`EasyBMP`: http://easybmp.sourceforge.net/
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+

@@ -1,0 +1,41 @@
+{
+   OpenCV Loading Error 1
+   Memcheck:Addr4
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:dlopen
+   fun:cvUseOptimized
+   fun:cvRegisterModule
+}
+
+{
+   Open CV Loading Error 2
+   Memcheck:Cond
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   fun:dlopen
+   fun:cvUseOptimized
+   fun:cvRegisterModule
+}
+
+{
+   OpenCV JPEG Load Error
+   Memcheck:Value4
+   fun:_ZN11RMBitStream7GetHuffEPKs
+}
+
+{
+   OpenCV Shut Down Error
+   Memcheck:Free
+   fun:_vgrZU_libcZdsoZa_free
+   obj:*
+   fun:__libc_freeres
+   fun:_vgnU_freeres
+   fun:_Exit
+   fun:__libc_start_main
+}

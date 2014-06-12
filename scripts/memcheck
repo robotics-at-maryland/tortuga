@@ -1,0 +1,2 @@
+#! /bin/sh
+valgrind --tool=memcheck --suppressions=$RAM_SVN_DIR/scripts/python.supp --suppressions=$RAM_SVN_DIR/scripts/opencv.supp $*

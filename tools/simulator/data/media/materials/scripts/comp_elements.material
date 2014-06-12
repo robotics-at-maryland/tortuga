@@ -1,0 +1,329 @@
+material Simple/Red
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 1.0 0.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 0.0 0.0
+		}
+	}
+}
+
+material Simple/Black
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 0.0 0.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 0.0 0.0 0.0
+		}
+	}
+}
+
+material Simple/Blue
+{
+	technique
+	{
+		pass
+		{
+			diffuse 0.0 0.0 1.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 0.0 0.0 1.0
+		}
+	}
+}
+
+material Simple/Yellow
+{
+	technique
+	{
+		pass
+		{
+			diffuse 1.0 1.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 1.0 0.0
+		}
+	}
+}
+
+material Simple/Orange
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 1.0 0.6 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 1.0 0.6 0.0
+		}
+	}
+}
+
+material Simple/Green
+{
+	technique
+	{
+		
+		pass
+		{
+			diffuse 0.0 1.0 0.0
+			specular 0 0 0 0
+			ambient 0 0 0
+			emissive 0.0 1.0 0.0
+		}
+	}
+}
+
+
+material CompElement/TankWalls
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture pitted-concrete.jpg
+			}
+		}
+	}
+}
+
+material CompElement/Bin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture bin.png
+			}
+		}
+	}
+}
+
+material CompElement/SpadeBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture spade_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/ClubBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture club_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/DiamondBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture diamond_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/HeartBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture heart_bin.png
+			}
+		}
+	}
+}
+
+material CompElement/ShipBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture ship.png
+			}
+		}
+	}
+}
+
+material CompElement/AircraftBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture aircraft.png
+			}
+		}
+	}
+}
+
+material CompElement/TankBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture tank.png
+			}
+		}
+	}
+}
+
+material CompElement/FactoryBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture factory.png
+			}
+		}
+	}
+}
+
+material CompElement/AxeBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture axe.png
+			}
+		}
+	}
+}
+
+material CompElement/ClippersBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture clippers.png
+			}
+		}
+	}
+}
+
+material CompElement/HammerBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture hammer.png
+			}
+		}
+	}
+}
+
+material CompElement/MacheteBin
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1
+			texture_unit
+			{
+				texture machete.png
+			}
+		}
+	}
+}
+
+material CompElement/AirDuctSide
+{
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            texture_unit
+            {
+                texture duct_side.png
+            }
+        }
+    }
+}
+
+material CompElement/AirDuctBottom
+{
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1
+            texture_unit
+            {
+                texture duct_bottom.png
+            }
+        }
+    }
+}
+

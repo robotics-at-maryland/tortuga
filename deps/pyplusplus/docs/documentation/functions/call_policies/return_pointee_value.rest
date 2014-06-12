@@ -1,0 +1,144 @@
+====================
+return_pointee_value
+====================
+
+.. contents:: Table of contents
+
+----------
+Definition
+----------
+
+Class ``return_pointee_value`` is a model of `ResultConverterGenerator`_ which 
+can be used to wrap C++ functions, that return a pointer to a C++ object. The 
+policy implements the following logic:
+
+.. code-block:: C++
+
+  if( <<<return value is NULL pointer>>> ){
+      return None;
+  }    
+  else{
+      return boost::python::object( *<<<return value>>> );
+  }
+
+The return type of the function should be ``T*``.
+
+It passes the value of the pointee to `Python`_, thus the conversion for ``T`` 
+is used. This call policy could be used to return pointers to `Python`_, which 
+types are not known to `Boost.Python`_, but only a conversion for the pointees. 
+
+Therefore this policy should be used to return pointers to objects, whose types 
+were wrapped with other tools, such as SWIG\SIP. 
+
+Another usage of this call policy is to return to Python new object, which contains
+copy of ``(*return value)``.
+
+Please note: This policy does not take ownership of the wrapped pointer. If the 
+object pointed to is deleted in C++, the python-object will become invalid too, 
+if your custom conversion depends on the original object.
+
+--------
+Examples
+--------
+
+Unknown type
+------------
+
+This technique and example was contributed by Maximilian Matthe.
+
+.. code-block:: C++
+
+  struct int_wrapper{
+       int_wrapper(int v) 
+       : val(v) 
+       {}
+       
+       int val;
+  };
+  
+  //we will expose the following function
+  int_wrapper* return_int_wrapper(){
+       static int_wrapper w(42);
+       return &w;
+  }
+  
+  //the Boost.Python custom converter
+  struct convert_int_wrapper{
+      static PyObject* convert(int_wrapper const& w){
+          boost::python::object value(w.val);
+          return boost::python::incref( value.ptr() );
+      }
+  };
+  
+  
+  BOOST_PYTHON_MODULE(my_module){       
+       using namespace boost::python;
+       //register our custom converter
+       to_python_converter<int_wrapper, convert_int_wrapper, false>();
+       
+       def( "return_int_wrapper"
+            , &return_int_wrapper
+            , return_value_policy<return_pointee_value>() );
+  }
+
+Python code:
+
+.. code-block:: Python
+
+  import my_module
+  
+  assert 42 == my_module.return_int_wrapper()
+
+
+Return pointee value
+--------------------
+
+.. code-block:: C++
+
+  float* get_value(){
+      static float value = 0.5;
+      return &value;
+  }
+
+  float* get_null_value(){
+    return (float*)( 0 );
+  }
+
+  namespace bpl = boost::python;
+  BOOST_PYTHON_MODULE(my_module){
+    def( "get_value"
+         , bpl::return_value_policy< pyplusplus::call_policies::return_pointee_value<> >() );
+
+    def( "get_null_value"
+         , bpl::return_value_policy< pyplusplus::call_policies::return_pointee_value<> >() );
+  }
+
+The `Py++`_ code is not that different from what you already know:
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+  from pyplusplus.module_builder import call_policies
+
+  mb = module_builder.module_builder_t( ... )
+  mb.free_function( return_type='float *' ).call_policies \
+      = call_policies.return_value_policy( call_policies.return_pointee_value )
+
+Python code:
+
+.. code-block:: Python
+
+  import my_module
+
+  assert 0.5 == my_module.get_value()
+  assert None is my_module.get_null_value()
+
+
+.. _`ResultConverterGenerator` : http://boost.org/libs/python/doc/v2/ResultConverter.html#ResultConverterGenerator-concept
+.. _`CallPolicies` : http://www.boost.org/libs/python/doc/v2/CallPolicies.html#CallPolicies-concept
+
+.. _`Py++` : ./../../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

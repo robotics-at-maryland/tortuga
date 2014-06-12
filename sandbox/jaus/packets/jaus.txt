@@ -1,0 +1,34 @@
+JAUS
+Subsystem ID = 100
+Source: 192.168.10.100
+Dest: 192.168.10.101
+
+Start
+
+64 - Resume with bad version number in the header
+66 - A standby just in case we did not catch the previous error.
+
+
+108 - Experimental bit is incorrectly set.
+110 - Standby
+
+
+126 - Serivce connection bit set incorrectly
+128 - Standby
+
+133 - ACK NACK
+135 - Standby
+
+148 - Invalid Priority
+150 - Standby
+
+157 - Invalid data control
+161 - Standby
+
+165 - Invalid sequence number
+167 - Standby
+
+169 - Both messages are valid (Valid resume)
+171 - Standby
+
+

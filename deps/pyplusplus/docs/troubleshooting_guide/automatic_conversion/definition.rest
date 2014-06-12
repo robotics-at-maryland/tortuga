@@ -1,0 +1,3 @@
+Boost.Python allows to define automatic conversion from\\to C++\\Python types.
+While this is very, very useful functionality, the documentation for it does not
+exist. This example will shed some light on "r-value"\\"l-value" converters.

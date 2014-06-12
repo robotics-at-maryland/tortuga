@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/tortuga/vehicle_refactor/packages/vision/test/src/clean_camera.cpp
+cassert
+-
+cstdlib
+-
+cstdio
+-
+dc1394/video.h
+-
+dc1394/camera.h
+-
+dc1394/conversions.h
+-
+

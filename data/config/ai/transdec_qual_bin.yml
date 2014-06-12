@@ -1,0 +1,42 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.TravelPoint',
+            'ram.ai.course.TravelPoint1', 'ram.ai.course.Bin']
+
+config:
+    gateDepth: 6
+    #pipeDepth: 6
+    #buoyX: 0
+    #buoyY: 0
+    #buoyDepth: 2.1
+    binDepth: 11
+    #targetBuoys: ['red']
+    targetSymbols: ['LARGE_X', 'LARGE_O']
+    #sonarDepth: 3
+    # windowX : -1
+    # windowY : -1
+    # windowDepth : 0
+    # windowOrientation : -1
+    # PipeGate:
+    #     taskTimeout: 180
+    #     biasDirection: -60
+    #     threshold: 30
+    # Buoy:
+    #     taskTimeout: 240
+    #     orientation: -50
+    #     buoyOrder: ['green', 'yellow', 'red']
+    #     lostTimeout: 240
+    #     searchTimeout: 240
+    TravelPoint:
+        taskTimeout: 120
+        Y: 10
+        X: 0
+        orientation: 30
+        speed: 0.3
+    TravelPoint1:
+        taskTimeout: 120
+        Y: 10
+        X: 0
+        orientation: 40
+        speed: 0.3
+    Bin:
+        binDirection: 75
+        adjustAngle: False

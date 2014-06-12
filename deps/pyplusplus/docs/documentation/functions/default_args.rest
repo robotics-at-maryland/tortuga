@@ -1,0 +1,149 @@
+=================
+Default arguments
+=================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+There is more than one way to export function with default arguments. Before we
+proceed, please take a look on the following class:
+
+.. code-block:: C++
+
+  struct X
+  {
+      bool f(int a=12)
+      {
+          return true;
+      }
+  };
+
+-------------------
+Do nothing approach
+-------------------
+
+By default `Py++`_ exposes function with its default arguments.
+
+.. code-block:: C++
+
+  namespace bp = boost::python;
+
+  BOOST_PYTHON_MODULE(pyplusplus){
+    bp::class_< X >( "X" )
+        .def(
+            "f"
+            , &::X::f
+            , ( bp::arg("a")=(int)(12) ) );
+  }
+
+The additional value of the approach is keyword arguments. You will be able to
+call function ``f`` like this:
+
+.. code-block:: Python
+
+  x = X()
+  x.f( a=13 )
+
+----------------------------
+Default values, using macros
+----------------------------
+
+``BOOST_PYTHON_FUNCTION_OVERLOADS`` and ``BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS``
+macros can help to deal with default values too. You can turn ``use_overload_macro``
+to ``True``:
+
+.. code-block:: Python
+
+  import module_builder
+
+  mb = module_builder.module_builder_t( ... )
+  x = mb.class_( "X" )
+  x.member_function( "f" ).use_overload_macro = True
+  #------------------------^^^^^^^^^^^^^^^^^^^^^^^^^
+
+--------------------------
+Registration order problem
+--------------------------
+
+There is different trades-off between these approaches. In general you should
+use the first one, until you have "registration order" problem:
+
+.. code-block:: C++
+
+  struct S1;
+  struct S2;
+
+  struct S1{
+      void do_smth( S2* s2=0 );
+  };
+
+  struct S2{
+      void do_smth( S1 s1=S1() );
+  };
+
+  BOOST_PYTHON_MODULE( ... ){
+      using namespace boost::python;
+
+      class_< S2 >( "S2" )
+          .def( "do_smth", &S2::do_smth, ( arg("s1")=S1() ) );
+
+      class_< S1 >( "S1" )
+          .def( "do_smth", &S1::do_smth, ( arg("s2")=object() ) );
+
+  }
+
+The good news is that it is very easy to identify the problem: the module could
+not be loaded. The main reason is that expression ``arg("s1")=S1()`` requires
+``S1`` struct to be registered. `GCC-XML`_ reports default arguments as strings.
+`Py++`_ doesn't have enough information to generate code with the right class
+registration order. In this case you have to instruct `Py++`_ to use macros:
+
+.. code-block:: Python
+
+  import module_builder
+
+  mb = module_builder.module_builder_t( ... )
+  s2 = mb.class_( "S2" )
+  s2.member_function( "do_smth" ).use_overload_macro = True
+
+When you switch to macros, than:
+
+* You will not be able to override virtual functions in `Python`_.
+
+* You will not be able to use "named" arguments.
+
+* You will not be able to set the functions documentation.
+
+Special case
+------------
+
+Class constructors are special case:
+
+.. code-block:: C++
+
+  struct S1;
+  struct S2;
+
+  struct S1{
+      S1( S2* s2=0 );
+  };
+
+  struct S2{
+      S2( S1 s1=S1() );
+  };
+
+
+You cannot use same work around and `Py++`_ ( version 0.8.2 ) could not help you.
+The use case presented here is a little bit esoteric. If you have such use case
+and you cannot change the source code, consider contacting `Py++`_ developers.
+I am sure we will be able to help you.
+
+
+.. _`Py++` : ./../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

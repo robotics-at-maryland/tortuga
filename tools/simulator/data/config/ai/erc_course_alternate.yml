@@ -1,0 +1,49 @@
+# Demo course without the barbed wire
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+#            'ram.ai.course.Bin', 'ram.ai.course.Pinger',
+#            'ram.ai.course.Octagon']
+
+# Demo course with the barbed wire    
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Light', 'ram.ai.course.Pipe2',
+#            'ram.ai.course.BarbedWire',
+#            'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
+
+# Demo course with everything
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Light', 'ram.ai.course.Bin',
+            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+            'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 4
+    lightDepth: 4.75
+    pipeDepth: 6
+    bwireDepth: 8.5
+    targetDepth: 5.5
+    binDepth: 13
+    targetSymbols: ['Aircraft', 'Tank']
+    sonarDepth: 8
+    safeDepth: 15
+    safeOffset: -0.35
+    Gate:
+         time: 30
+         speed: 3
+    Light:
+        forwardDuration: 10
+    Bin:
+        duration: 30
+        forwardDuration: 10
+        heading: -120
+        absolute: True
+        forwardSpeed: 5
+        binDirection: -100
+        adjustAngle: False
+    Target:
+        forwardDuration: 10
+        heading: -10
+        absolute: True
+        forwardSpeed: 5
+    BarbedWire:
+        orientation: -65

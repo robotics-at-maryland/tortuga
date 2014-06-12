@@ -1,0 +1,44 @@
+GUI:
+    updateRate: 5
+    numSubsystems: 1
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:    
+    VisionSystem:
+        type: VisionSystem
+        depends_on: ["EventHub", "Vehicle"]
+        priority: "low"
+
+        #ForwardRecorders:
+        #    forward.avi: 5 # Really compressed @ 5Hz
+        #forward.rmv: 5 # Raw video at 10Hz
+        #    "50000(320,240)": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+        #    downward.avi: 5 # Really compressed @ 5Hz
+        #downward.rmv: 5 # Raw video at 10Hz
+        #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
+
+        # Includes all camera and vision system settings
+        INCLUDE: data/config/vision/transdec2011.yml
+        
+
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/ai/transdec_final_backup.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem",
+                     "StateEstimator"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/ai/transdec2011_state.yml
+
+
+    # Includes all common subsystems    
+    INCLUDE: data/config/base.yml

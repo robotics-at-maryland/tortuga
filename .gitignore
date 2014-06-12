@@ -1,0 +1,9 @@
+/build
+/build_ext
+/logs
+/packages/core/include/Feature.h
+/scripts/setenv
+*.pyc
+*~
+*.swp
+*.svn

@@ -1,0 +1,48 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.5.4	//
+!_TAG_REVISION_NAME	MCHPTags	//
+!_TAG_REVISION_VERSION	6.0.1	//
+CODE_PROT_OFF	C:\PICprog\dsPIC30F2020 edge detect\main.c	11;"	v	line:11
+FWDTEN_OFF	C:\PICprog\dsPIC30F2020 edge detect\main.c	10;"	v	line:10
+HS	C:\PICprog\dsPIC30F2020 edge detect\main.c	7;"	v	line:7
+PRIOSC_PLL	C:\PICprog\dsPIC30F2020 edge detect\main.c	8;"	v	line:8
+bestTrigger	C:\PICprog\dsPIC30F2020 edge detect\main.c	31;"	l	line:31
+byte::unsignedchar	C:\PICprog\dsPIC30F2020 edge detect\main.c	3;"	d	line:3	file:
+delay	C:\PICprog\dsPIC30F2020 edge detect\main.c	107;"	f	line:107	signature:(int mseconds)
+delay	C:\PICprog\dsPIC30F2020 edge detect\main.c	22;"	p	line:22	file:	signature:(int mseconds)
+dsPIC30F2020ADC_Init	C:\PICprog\dsPIC30F2020 edge detect\main.c	14;"	p	line:14	file:
+dsPIC30F2020ADC_Init	C:\PICprog\dsPIC30F2020 edge detect\main.c	199;"	f	line:199
+getBestTrigger	C:\PICprog\dsPIC30F2020 edge detect\main.c	121;"	f	line:121
+getBestTrigger	C:\PICprog\dsPIC30F2020 edge detect\main.c	23;"	p	line:23	file:
+getSamples	C:\PICprog\dsPIC30F2020 edge detect\main.c	21;"	p	line:21	file:
+i	C:\PICprog\dsPIC30F2020 edge detect\main.c	257;"	l	line:257
+initUart	C:\PICprog\dsPIC30F2020 edge detect\main.c	13;"	p	line:13	file:	signature:(void)
+initUart	C:\PICprog\dsPIC30F2020 edge detect\main.c	286;"	f	line:286	signature:(void)
+keepGoing	C:\PICprog\dsPIC30F2020 edge detect\main.c	74;"	l	line:74
+main	C:\PICprog\dsPIC30F2020 edge detect\main.c	27;"	f	line:27	signature:(void)
+max	C:\PICprog\dsPIC30F2020 edge detect\main.c	124;"	l	line:124
+max	C:\PICprog\dsPIC30F2020 edge detect\main.c	30;"	l	line:30
+max1	C:\PICprog\dsPIC30F2020 edge detect\main.c	30;"	l	line:30
+max2	C:\PICprog\dsPIC30F2020 edge detect\main.c	30;"	l	line:30
+max3	C:\PICprog\dsPIC30F2020 edge detect\main.c	30;"	l	line:30
+max4	C:\PICprog\dsPIC30F2020 edge detect\main.c	30;"	l	line:30
+maxValue	C:\PICprog\dsPIC30F2020 edge detect\main.c	73;"	l	line:73
+onemillisecond	C:\PICprog\dsPIC30F2020 edge detect\main.c	108;"	l	line:108
+sampleTotal::70	C:\PICprog\dsPIC30F2020 edge detect\main.c	4;"	d	line:4	file:
+samples	C:\PICprog\dsPIC30F2020 edge detect\main.c	125;"	l	line:125
+saveValue	C:\PICprog\dsPIC30F2020 edge detect\main.c	72;"	l	line:72
+sendByte	C:\PICprog\dsPIC30F2020 edge detect\main.c	18;"	p	line:18	file:	signature:(byte i)
+sendByte	C:\PICprog\dsPIC30F2020 edge detect\main.c	247;"	f	line:247	signature:(byte i)
+sendNum	C:\PICprog\dsPIC30F2020 edge detect\main.c	17;"	p	line:17	file:	signature:(unsigned int i)
+sendNum	C:\PICprog\dsPIC30F2020 edge detect\main.c	266;"	f	line:266	signature:(unsigned int i)
+sendString	C:\PICprog\dsPIC30F2020 edge detect\main.c	15;"	p	line:15	file:	signature:(unsigned char str[])
+sendString	C:\PICprog\dsPIC30F2020 edge detect\main.c	256;"	f	line:256	signature:(unsigned char str[])
+temp	C:\PICprog\dsPIC30F2020 edge detect\main.c	122;"	l	line:122
+temp	C:\PICprog\dsPIC30F2020 edge detect\main.c	28;"	l	line:28
+temp2	C:\PICprog\dsPIC30F2020 edge detect\main.c	29;"	l	line:29
+timerCounter	C:\PICprog\dsPIC30F2020 edge detect\main.c	25;"	v	line:25
+tmp	C:\PICprog\dsPIC30F2020 edge detect\main.c	267;"	l	line:267

@@ -1,0 +1,11 @@
+
+More or less formal definition of DSL could be found `here`__.
+
+.. __ : http://en.wikipedia.org/wiki/Domain_Specific_Language
+
+`Py++`_ has been created to solve single and well-defined problem: to create
+Python bindings for C++ projects. The good news - `Py++`_ achieved the goal,
+the bad news - users are forced to read the documentation. DSL cannot completely
+solve the problem, but it can eliminate the need to read documentation in 80% of
+the cases.
+

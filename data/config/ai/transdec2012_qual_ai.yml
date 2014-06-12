@@ -1,0 +1,58 @@
+taskOrder: ['ram.ai.course.Gate',
+            'ram.ai.course.FakeGate',
+            'ram.ai.course.Pinger',
+            'ram.ai.course.Vase', 'ram.ai.course.Octagon',
+            'ram.ai.course.SimpleDive']
+
+config:
+    gateDepth: 3.5
+    fakeGateDepth: 6.7
+    #gateOrientation: 100
+    #pipeDepth: 6
+    #buoyX: 0
+    #buoyY: 0
+    buoyDepth: 7.5
+    binDepth: 9.2
+    targetBuoys: ['red']
+    targetSymbols: ['SHIELD', 'SWORD']
+    sonarDepth: 6.5
+    uprightsDepth: 6.7
+    windowDepth: 7.7
+    windowOrientation: 50
+    Bin:
+        orientation:  15
+    # windowX : -1
+    # windowY : -1
+    # windowDepth : 0
+    # windowOrientation : -1
+    # PipeGate:
+    #     taskTimeout: 180
+    #     biasDirection: -60
+    #     threshold: 30
+    # Buoy:
+    #     taskTimeout: 240
+    #     orientation: -50
+    #     buoyOrder: ['green', 'yellow', 'red']
+    #     lostTimeout: 240
+    #     searchTimeout: 240
+    # LoversLane:
+    #     orientation: 0
+    #     depth: 1.5
+    TravelPoint:
+        taskTimeout: 120
+        Y: 20
+        X: 0
+        orientation: 75
+        speed: 0.3
+    # TravelPoint1:
+    #     taskTimeout: 120
+    #     Y: 20
+    #     X: 0
+    #     orientation: 40
+    #     speed: 0.3
+    # LoversLane:
+    #     orientation: -40
+    #     depth: 7
+    # Bin:
+    #     binDirection: 30
+    #     adjustAngle: False

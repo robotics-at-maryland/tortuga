@@ -1,0 +1,246 @@
+=================================
+Splitting generated code to files
+=================================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Py++`_ provides 4 different strategies for splitting the generated code into files:
+
+* single file
+
+* multiple files
+
+* fixed set of multiple files
+
+* multiple files, where single class code is split to few files
+
+-----------
+Single file
+-----------
+
+If you just start with `Py++`_ or you are developing small module, than you should 
+start with this strategy. It is simple - all source code generated to a single file.
+
+Of course this solution has it's price - every time you change the code you will
+have to recompile it. If you expose 2 or more declarations, this is annoying and 
+time-consuming operation. In some cases you even will not be able to compile the
+generated code, because of its size.
+
+
+Usage example
+-------------
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder
+   
+   mb = module_builder.module_builder_t(...)
+   mb.build_code_creator( ... )
+   mb.write_module( <<<file name>>> )
+
+--------------
+Multiple files
+--------------
+
+I believe this is the most widely used strategy. `Py++`_ splits generated code 
+as follows:
+
+* every class has it's own source & header file
+* the following declarations are split to separate source files:
+
+  * named & unnamed enumerations
+
+  * free functions
+
+  * global variables
+* "main" file - the file, which contains complete module registration
+
+The main advantage of this mode is that you don't have to recompile the whole 
+project if only single declaration was changed. Thus this mode suites well huge
+projects.
+
+There are few problems with this mode:
+
+1. There are use cases, when the generated file name is too long. `Py++`_
+   uses class name as a basis for the file name. So in case of template
+   instantiations the file name could be really long, very long.
+
+2. This mode doesn't play nicely with IDEs. Every time you add/remove classes in
+   your project the list of generated files will be changed. So, you will have
+   to maintain your IDE environment file.
+
+   This problem was addressed in "fixed set of multiple files" mode. Keep
+   reading :-).
+
+3. If your project has pretty big class, than it is possible that the generated
+   code will be too big and it take huge amount of time to compile it (GCC) or
+   even to fail to compile it (MSVC 7.1).
+
+   This problem was addressed in "multiple files, where single class code is
+   split to few files" mode.
+
+Usage example
+-------------
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder
+   
+   mb = module_builder.module_builder_t(...)
+   mb.build_code_creator( ... )
+   mb.split_module( <<<directory name>>> )
+
+
+-------------------------------------------------------------
+Multiple files, where single class code is split to few files
+-------------------------------------------------------------
+
+This mode solves the problem, I mentioned earlier - you have to expose huge class
+and you have problems to compile generated code. 
+
+`Py++`_ will split huge class to files using the following strategy:
+
+* every generated source file can contain maximum 20 exposed declarations
+* the following declarations are split to separate source files:
+
+  * enumerations
+
+  * unnamed enumerations
+
+  * classes
+
+  * member functions
+
+  * virtual member functions
+
+  * pure virtual member functions
+
+  * protected member functions  
+
+* "main" class file - the file, which contains complete definition/registration
+  of the generated file
+
+Usage example
+-------------
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder
+   
+   mb = module_builder.module_builder_t(...)
+   mb.build_code_creator( ... )
+   mb.split_module( <<<directory name>>>, [ <<<list of huge classes names>>> ] )
+
+---------------------------
+Fixed set of multiple files
+---------------------------
+
+This mode was born to play nicely with IDEs. It also can solve the problem with
+long file names. The scheme used to name files doesn't use class name.
+
+In this mode you define the number of generated source files for classes.
+
+
+Usage example
+-------------
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder
+   
+   mb = module_builder.module_builder_t(...)
+   mb.build_code_creator( ... )
+   mb.balanced_split_module( <<<directory name>>>, <<<number of generated source files>>> )
+
+
+------------------
+Precompiled header
+------------------
+
+Usage of precompiled header file reduces overall compilation time. Not all
+compilers support the feature, moreover some of them can't handle presence of 
+"boost/python.hpp" header in precompiled header file. 
+
+`Py++`_ doesn't provide user-friendly API to add/define precompiled header file
+to the generated code. The main reason is that I don't have a good idea how to
+integrate/add this functionality to `Py++`_. Nevertheless, you can enjoy from 
+this time-saving feature:
+
+.. code-block:: Python
+
+   from pyplusplus import module_builder
+   from pyplusplus import code_creators
+   
+   mb = module_builder_t( ... )
+   mb.build_code_creator( ... )
+
+   precompiled_header = code_creators.include_t( 'your file name' )
+   mb.code_creator.adopt_creator( precompiled_header, 0 )
+
+   mb.split_module( ... )
+
+
+-----------
+API summary
+-----------
+
+Class ``module_builder_t`` contains 3 functions, related to file generation:
+
+* 
+  .. code-block:: Python
+
+     def write_module( file_name )
+
+*  
+  .. code-block:: Python
+
+     def split_module( self
+                       , dir_name
+                       , huge_classes=None
+                       , on_unused_file_found=os.remove
+                       , use_files_sum_repository=True)
+
+
+  * ``dir_name`` - directory name the generated files will be put in
+  * ``huge_classes`` - list of names of huge classes
+  * ``on_unused_file_found`` - callable object, which is called every time
+    `Py++`_ found that previously generated file is not in use anymore.
+  * ``use_files_sum_repository``
+    `Py++`_ is able to store md5 sum of the generated files in a file. Next 
+    time you will generate code, Py++ will compare generated file content 
+    against the sum, instead of loading the content of the previously generated
+    file from the disk and comparing against it. 
+
+    "<your module name>.md5.sum" is the file, that will be generated in the
+    ``dir_name`` directory.
+
+    Enabling this functionality should give you 10-15% of performance boost.
+
+    Warning: If you changed manually some of the files - don't forget to delete
+    the relevant line from "md5.sum" file. You can also delete the whole file. 
+    If the file is missing, Py++ will use old plain method of comparing content 
+    of the files. It will not re-write "unchanged" files and you will not be 
+    forced to recompile the whole project.
+
+*  
+  .. code-block:: Python
+
+     def balanced_split_module( self
+                                , dir_name
+                                , number_of_files
+                                , on_unused_file_found=os.remove
+                                , use_files_sum_repository=True)
+
+
+  * ``number_of_files`` - the desired number of generated source files
+  
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : ./../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org

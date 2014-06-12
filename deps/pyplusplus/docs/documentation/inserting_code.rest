@@ -1,0 +1,251 @@
+==============
+Inserting code
+==============
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Py++`_ is not a magician! Sometimes there is a need to add code to
+generated file(s). This document will describe how you can insert your code to
+almost any place.
+
+---------------------
+Insert code to module
+---------------------
+
+Almost every ``Boost.Python`` module has the following structure:
+
+.. code-block:: C++
+
+  //declarations code
+  ...
+  BOOST_PYTHON_MODULE(X)
+  {
+    //registrations code
+    ...
+  }
+
+Using ``module_builder_t`` you can add code to declaration and registration
+sections. More over you can add the code to head or tail of the section.
+``module_builder_t`` class provides API, which will help you to complete the task:
+
+* ``add_declaration_code( self, code, tail=True )``
+
+  This function will add a code to the declaration section. If you want to add
+  the code to the head of the section, pass ``tail=False`` to the method.
+
+* ``add_registration_code( self, code, tail=True )``
+
+  This function will add a code to the registration section. If you want to add
+  the code to the head of the section, pass ``tail=False`` to the method.
+
+Example
+-------
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  mb.build_code_creator( ... )
+  mb.add_declaration_code( '//just a comment' )
+  mb.add_registration_code( '//another comment', False ) #adding code to the head
+
+
+--------------------
+Insert code to class
+--------------------
+
+``class_t`` declaration defines few methods, which add user code to the generated one.
+Lets take a look on the following use case:
+
+.. code-block:: C++
+
+  struct window_t{
+      ...
+      void get_size( int& height, int& width ) const;
+      ...
+  };
+
+``int`` is immutable type in Python. So you cannot expose ``get_size`` member
+function as is. You need to create a wrapper and expose it.
+
+In the near future `Py++`_ will eliminate the need of creating hand
+written wrapper for this use case.
+
+.. code-block:: C++
+
+  boost::python::tuple get_window_size( const window_t& win ){
+      int h(0), w(0);
+      win.get_size( h, w );
+      return boost::python::make_tuple( h, w );
+  }
+
+Now you have to register it:
+
+.. code-block:: C++
+
+  using boost::python;
+  class_< window_t >( ... )
+      .def( "get_size", &::get_window_size )
+      ...
+  ;
+
+How it could be achieved with `Py++`_? Class declaration, has also two
+functions:
+
+* ``add_declaration_code( self, code )``
+
+  This method will add the code to the declaration section within the module.
+
+  If you split your module to few files, `Py++`_ will add this code to the
+  "cpp" file, class registration code will be written in.
+
+  Attention: there is no defined order between wrapper code and declaration section
+  code. If you have dependencies between code from declaration section and class
+  wrapper, consider to move declaration code to class wrapper.
+
+* ``add_registration_code( self, code, works_on_instance=True )``
+
+  This method will add the code to the registration section of the class.
+
+  What is ``works_on_instance`` argument for? In our case, we added new method
+  to the class. The first argument of the call will be ``self``.
+
+  .. code-block:: Python
+
+    #From Python user can call this method like this:
+    win = window_t( )
+    height, width = win.get_size()
+
+  If you will pass ``works_on_instance=False`` the following code will be generated:
+
+  .. code-block:: C++
+
+    {
+        class_< window_t > window_exporter( "window_t" );
+        scope window_scope( window_exporter );
+        ...
+        def( "get_size", &::get_window_size );
+    }
+
+  And in this case, user will be forced to pass reference to ``window_t`` object:
+
+  .. code-block:: C++
+
+    win = window_t()
+    height, width = window_t.get_size( win )
+
+Example
+-------
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  window = mb.class_( 'window_t' )
+  window.add_declaration_code( get_window_size definition )
+  window.add_registration_code( 'def( "get_size", &::get_window_size )' )
+  #Py++ will add ';' if needed
+
+----------------------------
+Insert code to class wrapper
+----------------------------
+
+There are use cases, when you have to add code to `class wrapper`_. Please take a
+look on the following thread: http://mail.python.org/pipermail/c++-sig/2006-June/010791.html .
+
+
+.. _`class wrapper` : http://boost.org/libs/python/doc/tutorial/doc/html/python/exposing.html#python.class_virtual_functions
+
+
+The short description is the following: there are classes with parent/child relationship.
+Parent keeps child class instances using raw pointer. When parent die, it also
+destroys children classes. It is not an option to switch to ``boost::shared_ptr``.
+
+The solution Niall Douglas found was to implement small lifetime manager. For
+this solution he needed:
+
+* to add to every constructor of class wrapper some code that registers the
+  instance of the class within the manager
+
+* to add to destructor of class wrapper some code, that will destroy the instance
+  if needed.
+
+* to add to class wrapper new variable
+
+Solution
+--------
+
+.. code-block:: Python
+
+  def inject_code( cls ):
+      constructors = cls.constructors()
+      constructors.body = class instance registration code
+      #if you need to add code to default or copy constructor only
+      #than you can you the following shortcuts
+      cls.null_constructor_body = <<<your code>>>
+      cls.copy_constructor_body = <<<your code>>>
+      #which will update the appropriate ``body`` property.
+	  
+	  #If you want to add code to the class destructor,
+	  #use ``add_destructor_code`` method
+	  cls.add_destructor_code( <<<your code>>> )
+      
+	  #If you need to add new class variables:		   
+      cls.add_wrapper_code( <<<variable declaration>>> )
+
+.. code-block:: Python
+
+  mb = module_builder_t( ... )
+  for cls in mb.classes( <<<relevant classes only>>> ):
+    inject_code( cls )
+
+------------
+Header files
+------------
+
+Now, when you know how to add your code to a generated one, I think you also should
+now how to add your own set of include directives to the generated files. There
+are few ways to do this.
+
+1. The easiest and the most effective one - tell to `Py++`_ that generated code
+   for the declaration should include additional files:
+
+   .. code-block:: Python
+
+     mb = module_builder_t( ... )
+     my_class = mb.class_( ... )
+     my_class.include_files.append( "vector" )
+
+   Every declaration has ``include_files`` property. This is a list of header files,
+   you want to include from the generated file(s).
+
+2. Other approach is a little bit low level, but it allows you to add your header
+   files to every generated file:
+
+   .. code-block:: Python
+
+     mb = module_builder_t( ... )
+     ...
+     mb.build_code_creator( ... )
+     mb.code_creator.add_include( "iostream" )
+
+   You can also replace all (to be) generated header files with your own set:
+
+   .. code-block:: Python
+
+     mb.code_creator.replace_included_headers( ["stdafx.h"] )
+
+Of course you can, and may be should, use both approaches.
+
+I suggest you to spend some time and to tweak `Py++`_ to generate source code
+with as little as possible include directives. This will save you huge amount of
+time later.
+
+.. _`Py++` : ./../pyplusplus.html
+.. _`pygccxml` : ./../../pygccxml/pygccxml.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org
+

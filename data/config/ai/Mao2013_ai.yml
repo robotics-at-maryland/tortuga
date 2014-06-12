@@ -1,0 +1,29 @@
+#Corrupt
+#taskOrder: ['ram.ai.course.GateCorrupt', 'ram.ai.course.DeadReckon', 'ram.ai.course.Sonar1', 'ram.ai.course.Sonar2']
+
+#Normal
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.DeadReckon', 'ram.ai.course.Sonar1', 'ram.ai.course.Sonar2']
+
+#----------------- Ones with orientation
+
+#Velocity
+#taskOrder: ['ram.ai.course.GateVel', 'ram.ai.course.DeadReckon', 'ram.ai.course.Sonar1', 'ram.ai.course.Sonar2']
+
+#Hold Orientation
+#taskOrder: ['ram.ai.course.GateHold', 'ram.ai.course.DeadReckon', 'ram.ai.course.Sonar1', 'ram.ai.course.Sonar2']
+
+#Hold and corrupt
+#taskOrder: ['ram.ai.course.GateHC', 'ram.ai.course.DeadReckon', 'ram.ai.course.Sonar1', 'ram.ai.course.Sonar2']
+
+# ------------- NBRF 2013
+#taskOrder: ['ram.ai.course.Pipe1', 'ram.ai.course.NextPipe1', 'ram.ai.course.Pipe2', 'ram.ai.course.NextPipe2', 'ram.ai.course.Pipe3', 'ram.ai.course.NextPipe3', 'ram.ai.course.Pipe4', 'ram.ai.course.NextPipe4', 'ram.ai.course.Target']
+
+#testing pipe transitions
+
+#taskOrder: ['ram.ai.course.Pipe1', 'ram.ai.course.NextPipe1', 'ram.ai.course.Pipe2']
+#just pipes
+taskOrder: ['ram.ai.course.Dive', 'ram.ai.course.NextPipe1', 'ram.ai.course.Pipe2', 'ram.ai.course.transTar', 'ram.ai.course.Target']
+
+config:
+    gateDepth: 3.5
+   

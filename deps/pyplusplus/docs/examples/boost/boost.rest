@@ -1,0 +1,265 @@
+===============
+boost libraries
+===============
+
+.. contents:: Table of contents
+
+--------------
+ Introduction
+--------------
+
+What is the `Py++`_?
+--------------------------
+
+.. include:: ./../../definition.rest
+
+What is the Boost?
+------------------
+
+`Boost`_ is repository of free peer-reviewed portable C++ source libraries.
+
+`Boost`_ works on almost any modern operating system, including UNIX and Windows
+variants.
+
+Abstract
+--------
+
+`Boost`_ libraries have good interface, documentation and unit tests.
+A lot of people contributed their knowledge and experience to those libraries.
+Ten `Boost`_ libraries are already included in the `C++ Standards Committee's`_
+Library Technical Report ( `TR1`_ ) as a step toward becoming part of a future
+C++ Standard. More Boost libraries are proposed for the upcoming `TR2`_.
+
+.. _`C++ Standards Committee's` : http://www.open-std.org/jtc1/sc22/wg21/
+.. _`TR1` : http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1745.pdf
+.. _`TR2` : http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1810.html
+
+
+I believe that `Py++`_ is ready for hard work. It is quick, stable and
+flexible. `Py++`_ is a new tool and in my opinion I should prove its
+usefulness. Using `Py++`_, I exposed the following libraries to Python:
+
+  * `Boost.Date_Time`_
+  * `Boost.CRC`_
+  * `Boost.Rational`_
+  * `Boost.Random`_
+
+There are few reasons I choose to expose those libraries.
+
+1. I used those libraries at my work.
+
+2. All those libraries have:
+
+  * good documentation
+  * well-defined interfaces
+  * clear concepts
+  * comprehensive unit tests
+
+3. I think, that Python is missing functionality provided by `Boost.Date_Time`_
+   and `Boost.Random`_ libraries.
+
+I spent different amount of time on each library. It took me one week, to expose
+the `Boost.Date_Time`_ library. I added few missing features to `Py++`_,
+polished the existing ones. Most of the time I spent translating tests from C++
+to `Python`_. It took me 3 days to expose all other libraries.
+
+---------------
+pyboost package
+---------------
+
+Documentation
+-------------
+Right now, pyboost package does not have documentation. In my opinion it is
+fairly simple to read original documentation and "translate" it to Python.
+
+
+Examples
+--------
+
+One picture worth thousands words.
+
+random
+~~~~~~
+
+* C++ code: http://boost.org/libs/random/index.html
+
+* Python code:
+
+  .. code-block:: Python
+
+    import time
+    from pyboost import boost_random
+    
+    rng = boost_random.mt19937( int( time.time() ) ) #setting initial seed
+    six = boost_random.uniform_int(1,6)
+    die = boost_random.variate_generator( rng, six )
+    
+    print die()
+
+date_time
+~~~~~~~~~
+
+* C++ code: http://www.boost.org/doc/html/date_time/examples/general_usage_examples.html
+
+* Python code:
+
+  .. code-block:: Python
+
+    import os
+    from pyboost import date_time
+    from pyboost.date_time import gregorian
+    from pyboost.date_time import posix_time
+    from pyboost.date_time import local_time
+    from pyboost.date_time import to_simple_string
+    
+    #Date programming
+    
+    weekstart = gregorian.date(2002, date_time.Feb,1)
+    print 'weekstart: ', to_simple_string( weekstart )
+    
+    weekend  = weekstart + gregorian.weeks(1)
+    print 'weekend: ', to_simple_string( weekend )
+    
+    today = gregorian.day_clock.local_day()
+    d2 = weekstart + gregorian.days(5)
+    if d2 >= today: #comparison operator
+        pass
+    
+    thisWeek = gregorian.date_period(today,d2)
+    if thisWeek.contains(today):
+        pass
+    
+    #date generator functions
+    
+    d5 = gregorian.next_weekday(today, date_time.Sunday); #calculate Sunday following d4
+    print 'd5: ', to_simple_string( d5 )
+    
+    #US labor day is first Monday in Sept
+    first = gregorian.nth_day_of_the_week_in_month.first
+    labor_day = gregorian.nth_day_of_the_week_in_month(first, date_time.Monday, date_time.Sep)
+    #calculate a specific date for 2004 from functor
+    print 'labor day 2004: ', to_simple_string( labor_day.get_date(2004) )
+    
+    #Time programming:
+    
+    d = gregorian.date(2002,date_time.Feb,1)#an arbitrary date
+    t1 = posix_time.ptime(d, posix_time.hours(5) + posix_time.millisec(100)); #date + time of day offset
+    print 't1: ', to_simple_string( t1 )
+    
+    t2 = t1 - posix_time.minutes(4) + posix_time.seconds(2)
+    print 't2: ', to_simple_string( t2 )
+    
+    now = posix_time.second_clock.local_time(); #use the clock
+    print 'now: ', to_simple_string( now )
+    today = now.date() #Get the date part out of the time
+    print 'today: ', to_simple_string( today )
+    tomorrow = today + gregorian.date_duration(1)
+    print 'tomorrow: ', to_simple_string( tomorrow )
+    
+    #Local time programming:
+    
+    #setup some timezones for creating and adjusting times
+    #first time zone uses the time zone file for regional timezone definitions
+    tz_db = local_time.time_zone_database()
+    tz_db.load_from_file( os.path.join( date_time.__path__[0], "date_time_zonespec.csv") )
+    nyc_tz = tz_db.time_zone_from_region("America/New_York")
+    #This timezone uses a posix time zone string definition to create a time zone
+    phx_tz = local_time.posix_time_zone("MST-07:00:00")
+    
+    #local departure time in phoenix is 11 pm on April 2 2005
+    #Note that New York changes to daylight savings on Apr 3 at 2 am)
+    phx_departure = local_time.local_date_time(
+        gregorian.date(2005, date_time.Apr, 2)
+        , posix_time.hours(23)
+        , phx_tz
+        , local_time.local_date_time.NOT_DATE_TIME_ON_ERROR)
+    
+    flight_length = posix_time.hours(4) + posix_time.minutes(30)
+    phx_arrival = phx_departure + flight_length
+    #convert the phx time to a nyz time
+    nyc_arrival = phx_arrival.local_time_in(nyc_tz, posix_time.time_duration() )
+    print "New York arrival: ", nyc_arrival.to_string() #//2005-Apr-03 06:30:00 EDT
+
+rational
+~~~~~~~~
+
+* C++ code: http://boost.org/libs/rational/rational_example.cpp
+
+* Python code:
+
+  .. code-block:: Python
+
+    import unittest
+    from pyboost import rational
+    
+    half = rational.rational( 1, 2 )
+    one = rational.rational( 1 )
+    two = rational.rational( 2 )
+    
+    #Some basic checks
+    assert half.numerator() == 1
+    assert half.denominator() == 2
+    assert float(half) == 0.5
+    
+    #Arithmetic
+    assert half + half == one == 1
+    assert one - half == half
+    assert two * half == one == 1
+    assert one / half == two == 2
+
+crc
+~~~
+
+* C++ code: http://boost.org/libs/crc/crc_example.cpp
+
+* Python code:
+
+  .. code-block:: Python
+
+    import os
+    import sys
+    from pyboost import crc
+    
+    if __name__ == '__main__':
+        if sys.argv:
+            files = sys.argv
+        else:
+            files = [ sys.executable ]
+     
+        try:
+            result = crc.crc_32_type()
+            for file_name in files:
+                ifs = file( file_name, 'rb' )
+                for line in ifs:
+                    result.process_bytes( line )
+            print hex( result.checksum() ).upper()
+        except Exception, error:
+            sys.stderr.write( "Found an exception with'%s'%s" %( str( error ), os.linesep ) )
+            sys.exit( 1 )
+
+--------
+Download
+--------
+
+http://sourceforge.net/project/showfiles.php?group_id=118209.
+
+
+.. _`boost.date_time` : http://boost.org/doc/html/date_time.html
+.. _`boost.crc` : http://boost.org/libs/crc/index.html
+.. _`boost.rational` : http://boost.org/libs/rational/index.html
+.. _`boost.random` : http://boost.org/libs/random/index.html
+
+
+.. _`environment.py`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/environment.py?view=markup
+.. _`sconstruct`: http://cvs.sourceforge.net/viewcvs.py/pygccxml/source/pyplusplus/examples/py_easybmp/sconstruct?view=markup
+.. _`Python`: http://www.python.org
+.. _`pygccxml`: http://www.language-binding.net/pygccxml/pygccxml.html
+.. _`boost.date_time`: http://boost.org/doc/html/date_time.html
+.. _`date_time`: http://boost.org/doc/html/date_time.html
+.. _`boost`: http://www.boost.org
+.. _`Boost`: http://www.boost.org
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`boost.operators`: http://www.boost.org/
+.. _`GCC-XML`: http://www.gccxml.org
+.. _`Py++` : ./../../pyplusplus.html
+

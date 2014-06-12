@@ -1,0 +1,1 @@
+.. image:: pyplusplus_gui.png

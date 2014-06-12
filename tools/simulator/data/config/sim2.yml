@@ -1,0 +1,421 @@
+# This is our config file
+# It tells the program what kind of vehicle to create
+
+
+GUI:
+    # In Hz
+    updateRate: 30
+    guiConfigFile: ramsim.yml
+
+Subsystems:
+#    VisionSystem:
+#        #type: SimVision
+#        type: IdealSimVision
+#        cameraRate: 10
+#        depends_on: ["EventHub", "Vehicle", "Simulation"]
+#
+#        # Recording Settings
+#        #maxRecordRate: 10 # Hz
+#        #forwardFile: forward.avi
+#        #downwardFile: downward.avi
+#        #forwardPort: 50000
+#        #downwardPort: 57002
+#
+#       RedLightDetector:       
+#           intialMinPixels: 400
+#           foundMinPixelScale: 0.85
+#           lostMinPixelScale: 0.75
+#           # About 20% of the total pixels
+#           almostHitPixels: 61440.0
+#           
+#        DuctDetector:
+#            centerAlignedThreshold: 50
+#            alignedThreshold: 2
+#            minRedOverGreen: 0.9
+#            maxRedOverGreen: 1.1
+#            minRedOverBlue: 2.0
+#            minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+#            minBlackPercent: 15
+#            maxBlackTotal: 100
+#            dilateIterations: 0
+#            erodeIterations: 0
+#            defaultGrowThreshX: 0.05
+#            defaultGrowThreshY: 0.05
+#            minXOverYToUpGrowThresh: 1.5
+#            uppedGrowThreshX: 0.5
+#            uppedGrowThreshY: 0.05
+    SimSonar:
+        type: SimSonar
+        depends_on: ["Simulation", "Vehicle", "EventHub"]
+        pingInterval: 2.0
+           
+    EventHub:
+        type: EventHub
+        
+    # Queues events from background threads so they can be executed in python
+    QueuedEventHub:
+        depends_on: ["EventHub"]
+        type: QueuedEventHub
+
+    Vehicle:
+        type: SimVehicle
+        depends_on: ["Simulation", "EventHub"]
+
+    # Exectures Motions
+    MotionManager:
+        type: MotionManager
+        depends_on: ["Vehicle", "Controller", "QueuedEventHub", "EventHub"]
+
+    # Handles Timers
+    TimerManager:
+        type: TimerManager
+        depends_on: ["EventHub"]
+
+    Ai:
+        type: AI
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle", 
+                     "MotionManager", "TimerManager", "Ai"]#, "VisionSystem"]
+                     
+                     
+        States:
+            ram.ai.duct.SeekingToRange:
+                desiredRange: 0.5
+                depthGain: 5
+            ram.ai.duct.SeekingToAligned:
+                depthGain: 5
+                alignGain: 0.2
+                desiredRange: 0.5
+                maxAlignDiff: 2
+            ram.ai.duct.Aligning:
+                alignGain: 0.2
+                desiredRange: 0.3
+                maxAlignDiff: 2
+                depthGain: 5
+            ram.ai.duct.Through:
+                forwardTime: 40
+
+            ram.ai.bin.Seeking:
+                sidewaysSpeedGain: 10
+                speedGain: 7
+            ram.ai.bin.NextBin:
+                sidewaysSpeedGain: 3
+                speedGain: 3
+            ram.ai.bin.Examine:
+                targetSymbols: ['Diamond', 'Heart']
+            
+            ram.ai.sonarCourse.PingerDive:
+                depth: 1.5
+            ram.ai.sonarCourse.SafeDive:
+                depth: 5
+    
+            ram.ai.safe.Dive:
+                safeDepth: 15
+            ram.ai.safe.Grabbing:
+                safeDepth: 15
+            ram.ai.safe.Offsetting:
+                offset: -0.35
+            ram.ai.safe.Centering:
+                offset: -0.35
+            ram.ai.safe.Settling:
+                offset: -0.35
+
+            # Gate sub task
+            ram.ai.gate.Dive:
+                depth: 4 
+                speed: 0.33
+            ram.ai.gate.Forward:
+                time: 30
+                speed: 2
+
+            # Light/Bouy sub task
+            ram.ai.light.Searching:
+                sweepAngle: 0
+                speed: 2
+            ram.ai.light.Seek:
+                depthGain: 0.5
+
+            # Sonar subtask
+            ram.ai.sonar.CloseSeeking:
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
+                maxSpeed: 1
+                speedGain: 2
+                closeZ: 0.98
+            ram.ai.sonar.FarSeeking:
+                maxSidewaysSpeed: 2.5
+                sidewaysSpeedGain: 6
+                maxSpeed: 2.5
+                speedGain: 6
+                midRangeZ: 0.8
+            ram.ai.sonar.Hovering:
+                maxSidewaysSpeed: 1
+                sidewaysSpeedGain: 2
+                maxSpeed: 1
+                speedGain: 2
+
+            # SONAR & Safe subtask
+            ram.ai.sonarSafe.Settling:
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 3
+                maxSpeed: 3
+                speedGain: 3
+            ram.ai.sonarSafe.Dive:
+                #Hilton Pool
+                #safeDepth: 6.5
+                #depthOffset: 1
+                safeDepth: 10.5
+                depthOffset: 1
+                diveRate: 0.2
+                maxSidewaysSpeed: 3
+                sidewaysSpeedGain: 3
+                maxSpeed: 3
+                speedGain: 3
+            ram.ai.sonarSafe.PreGrabSettling:
+                maxSidewaysSpeed: 2
+                sidewaysSpeedGain: 2
+                maxSpeed: 2
+                speedGain: 2
+            ram.ai.sonarSafe.Grabbing:
+                # Hilton Pool
+                #safeDepth: 6.5
+                #depthOffset: 1.5
+                safeDepth: 10.5
+                depthOffset: 1
+
+            # Gate + Buoy + Safe + Octagon Mission
+            ram.ai.buoySonarCourse.Light:
+                timeout: 40
+            ram.ai.buoySonarCourse.PingerDive:
+                depth: 1.5
+                
+#    RemoteController:
+#        type: RemoteController
+#        depends_on: ["Controller"]
+#        update_interval: -1
+#        yawGain: 50
+
+    Controller:
+        
+depends_on: ["Vehicle", "EventHub"]
+        type: BWPDController
+        update_interval: 40
+        priority: high
+        holdCurrentHeading: 1 # Set to 0 to always point north
+      
+        orientationThreshold: 0.05
+
+        adaptCtrlRotK: 5
+        adaptCtrlRotGamma: 1
+
+
+        angularPGain: 5
+        angularDGain: 1
+        speedPGain: 3
+        sidewaysSpeedPGain: 3
+        # Should not be negative
+        depthPGain: 20
+
+#        inertia: [[0.501, 0, 0],
+#                  [0, 1.5, 0],
+#                  [0, 0, 1.5]]
+
+        desiredSpeed: 0
+        desiredDepth: 0.2
+        desiredQuaternion: [0, 0, 0, 1]
+
+        
+        # Picks kind of depth controller
+        # 1 = P control (Normal)
+        # 2 = Observer Control for 2d depth state
+        # 3 = Observer Control for 4d depth state
+        # 4 = Observer Control with scaling for 4d depth state
+        # 5 = PID
+
+        # We want to run controlTypes 1, 3, 4, 5
+        # Record 2 runs for each controlType: from depth = 1 to depth = 3
+        # and from depth = 1 to depth - 15
+        depthControlType: 1
+        dtMin: 0.001
+        dtMax: 0.05
+        
+        # Observer Control for 4d depth state (controllers 3 and 4)
+        # low gains:
+        depthOCIA4: [-0.355, -539.9952, -1.6815, 0,
+                      0, -8.4250, 1.0, 0,
+                      0.05, -22.1456, -0.575, 0,
+                      -0.355, -0.5952, -1.6815, 0]
+        depthOCIB4: [539.4, 8.425, 22.1456, 0]
+        depthOCIC4: [0, 0, 0, 1]
+        # K gains: -2  L gains: -15
+        #depthOCIA4: [-6, -70468, -248, 0,
+        #              0, -45, 1.0, 0,
+        #              0, -667, -1, 0,
+        #             -6, -244, -248, 0]
+        #depthOCIB4: [70224, 45, 667, 0]
+        #depthOCIC4: [0, 0, 0, 1]
+ 
+        # K gains: -.7  L gains: -7
+        #depthOCIA4: [-1.2, -4204.2, -7.3, 0,
+        #              0, -17.4, 1.0, 0,
+        #              0.1, -97, -0.6, 0,
+        #             -1.2, -4.2, -7.3, 0]
+        #depthOCIB4: [4200, 17.4, 97, 0]
+        #depthOCIC4: [0, 0, 0, 1]
+
+        # K gains: -.7 L gains: -12
+        #depthOCIA4: [-1, -34562, -7, 0, 
+                       0,    -35,  1, 0,
+                       0,   -412, -1, 0,
+                      -1,     -4, -7, 0]
+        #depthOCIB4: [34558,35,412,0]
+        #depthOCIC4: [0, 0, 0, 1]
+
+        # K gains: -.7 L gains: -15
+        #depthOCIA4: [-1, -67501, -7, 0, 
+                       0,    -44,  1, 0,
+                       0,   -649, -1, 0,
+                      -1,     -4, -7, 0]
+        #depthOCIB4: [67497,44,649,0]
+        #depthOCIC4: [0, 0, 0, 1]
+
+        # K gains: -.7 L gains: -10
+        #depthOCIA4: [-1, -20002, -7, 0, 
+                       0,    -29,  1, 0,
+                       0,   -283, -1, 0,
+                      -1,     -4, -7, 0]
+        #depthOCIB4: [19998,29,283,0]
+        #depthOCIC4: [0, 0, 0, 1]
+
+        # Discrete Observer Control for 4d depth state (controller 6)
+        # K gains: -.7 L gains: -7
+        #depthOCIA4: [.9501, -114.3028, -2.8764, 0,
+        #              0, 0.4482, 0.0277, 0,
+        #              0.0019, -2.8158, 0.9146, 0,
+        #             -0.0481, 3.5461, -0.2331, 1.00]
+        #depthOCIB4: [114.1389, 0.5518, 2.8157, -3.7101]
+        #depthOCIC4: [0, 0, 0, 1]
+
+        # Settings for PID Depth Controller (#5)
+        # PID 1
+        depthKp: 20
+        depthKi: 1
+        depthKd: 4
+        # PID 2
+        depthKp: 30
+        depthKi: 1
+        depthKd: 4
+        # PID 3
+        depthKp: 20
+        depthKi: 1.5
+        depthKd: 4
+        # PID 4
+        #depthKp: 20
+        #depthKi: 1
+        #depthKd: 2
+        # PID 5
+        depthKp: 30
+        depthKi: 1.5
+        depthKd: 2
+        # PID 6
+        depthKp: 30
+        depthKi: 0.5
+        depthKd: 10
+        # PID 7
+        depthKp: 30
+        depthKi: 1.2
+        depthKd: 10
+
+#    RemoteController:
+#        type: RemoteController
+#        depends_on: ["Controller"]
+#        update_interval: -1
+
+    KeyboardController:
+        depends_on: ["Controller"]
+        type: KeyboardController
+
+    Simulation:
+        type: Simulation
+        scene_path: ['%(RAM_SVN_DIR)s/tools/simulator/data/scenes']
+        #debug: 0
+        
+        Scenes:
+            # Each scene must be on the given scene_path, this for example is 
+            # in 'data/scenes/nxtest.xml'
+            #Main: objectives/pipe.sml
+            #Main: objectives/bin.sml
+            #Main: objectives/duct.sml
+            #Main: objectives/buoy.sml
+            #Main: objectives/pinger.sml
+            #Main: objectives/safe.sml
+            #Main: transdec.sml
+            #Main: nxtest.sml
+            Main: safePing.sml
+            #Main: shortCourse.sml
+        
+        Graphics:
+            Plugins:
+                # TODO: Remove the extra paths
+                search_path: ['%(PYTHON_OGRE_HOME)s/plugins',
+                'C:\Libraries\PythonOgre\plugins',
+                'C:\Developement\PythonOgre\plugins','C:\PythonOgre\plugins',
+                '/home/lsinger/ram_deps/python-ogre-snapshot/plugins',
+                '/opt/ram/local/lib/OGRE']
+                
+                plugins: ['RenderSystem_GL', 'Plugin_ParticleFX', 
+                'Plugin_OctreeSceneManager']
+                       
+            RenderSystem:
+                type: OpenGL
+                
+                OpenGL:
+                    - [FSAA, '0']
+                    - [RTT Preferred Mode, 'FBO']
+                    - [VSync, 'No']
+                    
+        Input:
+            KeyMap:
+                # Camera Controls
+                W : CAM_FORWARD
+                A : CAM_LEFT 
+                S : CAM_BACK 
+                D : CAM_RIGHT
+                Q : CAM_UP 
+                E : CAM_DOWN
+                R : CAM_ZOOM_IN
+                F : CAM_ZOOM_OUT
+                V : CAM_TOGGLE_FOLLOW
+                
+                NUMPAD8 : CAM_FORWARD
+                NUMPAD4 : CAM_LEFT 
+                NUMPAD5 : CAM_BACK 
+                NUMPAD6 : CAM_RIGHT
+                NUMPAD7 : CAM_UP 
+                NUMPAD9 : CAM_DOWN
+                ADD : CAM_ZOOM_IN
+                SUBTRACT : CAM_ZOOM_OUT
+                NUMPAD2 : CAM_PITCH_UP
+                NUMPAD0 : CAM_PITCH_DOWN
+                NUMPAD1 : CAM_YAW_LEFT
+                NUMPAD3 : CAM_YAW_RIGHT
+                
+                # Vehicle Controls
+                I : THRUST_FORE
+                K : THRUST_BACK
+                G : THRUST_KILL
+                J : TURN_LEFT
+                L : TURN_RIGHT
+                U : SURFACE
+                O : DIVE
+                Y : PITCH_UP
+                H : PITCH_DOWN
+                Z : ROLL_PORT
+                X : ROLL_STARBOARD
+                N : STRAFE_LEFT
+                M : STRAFE_RIGHT
+                
+                # Misc.
+                CTRL+B : SCREENSHOT

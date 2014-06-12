@@ -1,0 +1,8 @@
+env = Environment(tools = ['default', 'Microchip'],
+                  toolpath = ['.'],
+				  MCPU = '30f4013')
+
+env.Append(CPPPATH = ['../../sonar/sonarController/include'])
+sourcefiles = ['../../sonar/sonarController/src/dft.c','leoadc.c','uart.c']
+hex = env.Bin2Hex('out.hex', env.Program('out.coff',sourcefiles))
+env.PicKit2(hex)

@@ -1,0 +1,41 @@
+#! /usr/bin/python
+# Copyright 2004-2008 Roman Yakovenko.
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+import os
+import sys
+from environment import settings
+
+def get_shlibsuffix():
+    if sys.platform == 'win32':
+        return '.pyd'
+    else:
+        return '.so'
+
+def get_ccflags():
+    if sys.platform == 'win32':
+        return ['/MD', '/EHsc' , '/GR' ] 
+    else:
+        return []
+
+def get_py_easybmp_files():
+    source_files = filter( lambda s: s.endswith( '.cpp' ), os.listdir(settings.generated_files_dir) )
+    return map( lambda fname: os.path.join( settings.generated_files_dir, fname ), source_files )
+
+def get_target():
+    return os.path.join( settings.unittests_dir, settings.module_name + get_shlibsuffix() )
+
+SharedLibrary( target=get_target()
+    , source=[ get_py_easybmp_files() ]
+    , LIBS=[ 'boost_python', ]
+    , LIBPATH=[ settings.boost_libs_path, settings.python_libs_path ]
+    , CPPPATH=[ settings.boost_path
+                , settings.working_dir
+                , settings.easybmp_path
+                , settings.python_include_path ]
+    , CCFLAGS=get_ccflags()
+    , SHLIBPREFIX=''
+    , SHLIBSUFFIX=get_shlibsuffix()
+)

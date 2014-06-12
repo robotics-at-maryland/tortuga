@@ -1,0 +1,78 @@
+================
+make_constructor
+================
+
+.. contents:: Table of contents
+
+------------
+Introduction
+------------
+
+`Boost.Python`_ allows us to register some function as `Python`_ class ``__init__``
+method. This could be done using `make_constructor`_ functionality.
+
+Not every function could be registered as ``__init__`` method. The function return
+type should be a pointer or a smart pointer to the new class instance.
+
+-------------
+Usage example
+-------------
+I am going to use the following code to demonstrate the functionality:
+
+.. code-block:: C++
+
+  #include <memory>
+
+  namespace mc{
+
+  struct number_t{
+
+      static std::auto_ptr<number_t> create( int i, int j);
+
+      int x;
+  };
+
+  std::auto_ptr<number_t> create(int i);
+
+  }//namespace mc
+
+The code is pretty simple - it defines two ``create`` functions, which construct
+new class ``number_t`` instances.
+
+`Py++`_ configuration is pretty simple:
+
+.. code-block:: Python
+
+  from pyplusplus import module_builder
+
+  mb = module_builder.module_builder_t( ... )
+  mc = mb.namespace( 'mc ')
+  number = mc.class_( 'number_t' )
+  number.add_fake_constructors( mc.calldefs( 'create' ) )
+  #------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Basically you associate with the class the functions, you want to register as
+the class ``__init__`` method.
+
+The method ``add_fake_constructors`` takes as argument a reference to "create"
+function or a list of such.
+
+The generated code is pretty boring and the only thing I would like to mention
+is that the function will **not** be exposed as a standalone function.
+
+The usage code is even more boring:
+
+.. code-block:: Python
+
+  from your_module import number_t
+
+  number = number_t( 1 )
+  print number.x
+  number = number_t( 1, 2 )
+  print number.x
+
+.. _`make_constructor`: http://www.boost.org/doc/libs/1_35_0/libs/python/doc/v2/make_function.html#make_constructor-spec
+.. _`Py++` : ./../../pyplusplus.html
+.. _`Boost.Python`: http://www.boost.org/libs/python/doc/index.html
+.. _`Python`: http://www.python.org
+.. _`GCC-XML`: http://www.gccxml.org

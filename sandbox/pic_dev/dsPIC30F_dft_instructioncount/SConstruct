@@ -1,0 +1,9 @@
+env = Environment(tools = ['default', 'Microchip'],
+                  toolpath = ['../common/buildfiles'],
+				  MCPU = '30f4011')
+env.Append(LINKFLAGS = '-Wl,--heap=100')
+env.Append(CFLAGS = ['-O3'])
+
+env.Append(CPPPATH = ['../../sonar/sonarController/include'])
+sourcefiles = ['main.c']
+hex = env.Bin2Hex('out.hex', env.Program('out.coff',sourcefiles))

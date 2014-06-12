@@ -1,0 +1,217 @@
+ForwardCamera:
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 2  # 0 to 15
+    shutter: -1  # 0 to 7
+    gamma: -1     # 0 to 0
+    gain: -1      # 0 to 46
+
+DownwardCamera:
+    uValue: 106
+    vValue: 221
+    brightness: 64
+    exposure: 2
+    shutter: -1
+    gamma: -1
+    gain: -1
+
+AdaptiveThresher:
+    foobared: true
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.2
+    topRemovePercentage: 0.33
+    bottomRemovePercentage: 0.33
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+RedLightDetector:
+    initialMinPixels: 150
+    foundMinPixelScale: 0.85
+    lostMinPixelScale: 0.75
+    almostHitPercentage: 0.17
+    topRemovePercentage: 0.0
+    bottomRemovePercentage: 0.0
+    redPercentage: 38.0
+    redIntensity: 150
+    maxAspectRatio: 2.0
+OrangePipeDetector:
+    rOverGMin: 1.05 #0.75 (NEW# 0.88)
+    rOverGMax: 2.41 #1.5 (NEW# 2.16)
+    bOverRMax: 0.75  #(NEW# 2.25)
+    filtLMax: 255
+    filtLMin: 152
+    filtUMax: 191
+    filtUMin: 95
+    filtVMax: 210
+    filtVMin: 116
+    centeredLimitt: 0.4
+    minBrightness: 100
+    minPixels: 3000
+    minPixelsFound: 1500
+    erodeIterations: 1
+BinDetector:
+    symbolDetector: BasicGladiatorDetector
+    logSymbolImages: false
+    centeredLimit: 0.2
+    #sameBinThreshold: 0.2
+    #maxAspectRatio: 3
+    blackMaskMinimumPercent: 10
+    blackMaskMaxTotalIntensity: 350
+    whiteMaskMinimumPercent: 15
+    whiteMaskMinimumIntensity: 137
+    redMinRValue: 70
+    filtblackCMax: 255
+    filtblackCMin: 0
+    filtblackHMax: 255
+    filtblackHMin: 0
+    filtblackLMax: 124
+    filtblackLMin: 0
+    filtredCMax: 136
+    filtredCMin: 0
+    filtredHMax: 27
+    filtredHMin: 0
+    filtredLMax: 255
+    filtredLMin: 0
+    filtwhiteCMax: 255
+    filtwhiteCMin: 0
+    filtwhiteHMax: 255
+    filtwhiteHMin: 0
+    filtwhiteLMax: 255
+    filtwhiteLMin: 125
+DuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+    erodeIterations: 3
+    dilateIterations: 3
+    minBlackPercent: 5
+    maxBlackTotal: 300
+    defaultGrowThreshX: 0.05
+    defaultGrowThreshY: 0.05
+    minXOverYToUpGrowThresh: 1.5
+    uppedGrowThreshX: 0.5
+    uppedGrowThreshY: 0.05
+DownwardDuctDetector:
+    minRedOverGreen: 0.5
+    maxRedOverGreen: 1.5
+    minRedOverBlue: 1.0
+    minGreenOverBlueOnRedFailureForInsideDuct: 1.1
+    maxRedFailureThresh: 50
+    minTotalRGB: 125
+    minTotalRGBOnFailure: 150
+SafeDetector:
+    rOverGMin: 0.9
+    rOverGMax: 4.0
+    bOverRMax: 0.55
+    erodeIterations: 0
+    dilateIterations: 0
+    minTotal: 100
+
+TargetDetector:
+    filtUMax: 79
+    filtUMin: 0
+    filtVMax: 179
+    filtVMin: 130
+
+BarbedWireDetector:
+    bottomRemovePercentage: 0.1
+    filtVMax: 247
+    filtVMin: 121
+    filtUMax: 75
+    filtUMin: 0
+VelocityDetector:
+    usePhaseCorrelation: 0
+    useLKFlow: 1
+
+BuoyDetector:
+    debug: 0
+    filtGreenCMax: 0
+    filtGreenCMin: 0
+    filtGreenHMax: 0
+    filtGreenHMin: 0
+    filtGreenLMax: 0
+    filtGreenLMin: 0 #120
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 253
+    filtRedHMin: 183
+    filtRedLMax: 255
+    filtRedLMin: 0
+    filtYellowCMax: 0
+    filtYellowCMin: 0
+    filtYellowHMax: 0
+    filtYellowHMin: 0
+    filtYellowLMax: 0
+    filtYellowLMin: 0 #120
+    maxAspectRatio: 1.5
+    minAspectRatio: 0.6
+    minHeight: 15
+    minPixelPercentage: 0.5
+    minPixels: 15
+    minWidth: 20
+    almostHitPercentage: 0.17
+WindowDetector:
+    debug: 0
+    dilateIterations: 0
+    erodeIterations: 0
+    #filtBgCMax: 51
+    #filtBgCMin: 0
+    #filtBgHMax: 63
+    #filtBgHMin: 199
+    #filtBgLMax: 255
+    #filtBgLMin: 0
+    filtBlueCMax: 255
+    filtBlueCMin: 40
+    filtBlueHMax: 216
+    filtBlueHMin: 145
+    filtBlueLMax: 255
+    filtBlueLMin: 80
+    filtGreenCMax: 221
+    filtGreenCMin: 20
+    filtGreenHMax: 120
+    filtGreenHMin: 75
+    filtGreenLMax: 158
+    filtGreenLMin: 80
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 45
+    filtRedHMin: 202
+    filtRedLMax: 166
+    filtRedLMin: 43
+    filtYellowCMax: 255
+    filtYellowCMin: 35
+    filtYellowHMax: 75
+    filtYellowHMin: 35
+    filtYellowLMax: 240
+    filtYellowLMin: 80
+    innerMinPixelPercentage: 0.5
+    maxAspectRatio: 2.5
+    maxPixelPercentage: 0.5
+    minAspectRatio: 0.5
+    minHeight: 40
+    minRelInnerHeight: .3
+    minRelInnerWidth: .3
+    minPixelPercentage: 0.12
+    minWidth: 40
+HedgeDetector:
+    debug: 0
+    dilateIterations: 1
+    filtCMax: 255
+    filtCMin: 35
+    filtHMax: 107
+    filtHMin: 29
+    filtLMax: 255
+    filtLMin: 49
+    maxAspectRatio: 4
+    minAspectRatio: 0.3
+    minHeight: 40
+    maxPixelPercentage: 0.15
+    minPixelPercentage: 0.04
+    minWidth: 80

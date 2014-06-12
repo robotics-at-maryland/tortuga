@@ -1,0 +1,36 @@
+# Demo course with everything
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Light', 'ram.ai.course.Pipe1',
+            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+            'ram.ai.course.Bin', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 9
+    lightDepth: 9.5
+    pipeDepth: 10
+    bwireDepth: 10
+    targetDepth: 5.5
+    binDepth: 15.5
+    targetSymbols: ['Aircraft', 'Tank']
+    sonarDepth: 13
+    safeDepth: 23
+    safeOffset: -0.35
+    Gate:
+        time: 10
+        speed: 3
+    PipeBarbedWire:
+        biasDirection: -30
+        threshold: 15
+    PipeTarget:
+        biasDirection: 174
+        threshold: 45
+        rotation: 90
+    Light:
+        forwardDuration: 10
+    BarbedWire:
+        forwardDuration: 10
+    Target:
+        forwardDuration: 10
+    Bin:
+        forwardDuration: 10

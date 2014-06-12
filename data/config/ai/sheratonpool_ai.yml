@@ -1,0 +1,60 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Pipe', 
+            'ram.ai.course.Buoy', 'ram.ai.course.Bin',
+            'ram.ai.course.Pinger']# 'ram.ai.course.Pipe1',
+            #'ram.ai.course.Window']
+            
+config:
+    gateDepth: 5
+    lightDepth: 9.5 #6
+    pipeDepth: 7
+    bwireDepth: 11.3
+    targetDepth: 7.5
+    binDepth: 9
+    targetSymbols: ['Sword', 'Trident']
+    buoyDepth: 3
+    targetBuoys: ['red']
+    targetWindows: ['green', 'red']
+    buoyDepth: 8.0
+    hedgeDepth: 12.5
+    windowDepth: 11.4
+    sonarDepth: 2.5
+    safeDepth: 10
+    #safeDepthOffset: 1
+    safeOffset: -0.4
+    Gate:
+        speed: 3
+        time: 5
+    Pipe:
+
+        taskTimeout: 120
+        biasDirection: -75
+        threshold: 30
+    PipeGate:
+        taskTimeout: 30
+        biasDirection: -125
+        threshold: 30
+    Pipe1:
+        biasDirection: -40
+        threshold: 30
+    PipeTarget:
+        biasDirection: 15
+        threshold: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.TimedMoveDirection'
+                desiredHeading: 180
+                duration: 4
+                absolute: False
+    PipeBin:
+        biasDirection: 165
+        threshold: 30
+        motions:
+            '1':
+                type: 'ram.motion.basic.RateChangeHeading'
+                desiredHeading: 120
+                speed: 20
+    Bin:
+        orientation: 105
+        adjustAngle: False
+    Buoy:
+        taskTimeout: 135

@@ -1,0 +1,29 @@
+#! /usr/bin/python
+# Copyright 2004-2008 Roman Yakovenko.
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+
+import os
+import sys
+sys.path.append( './../..' )
+import environment
+
+env = Environment(
+      LIBS=['boost_python']
+    , LIBPATH=[ environment.boost.libs, environment.python.libs ]
+    , CPPPATH=[ environment.boost.include, environment.python.include, '#.' ]
+    , SHLIBPREFIX=''
+    , SHLIBSUFFIX=environment.scons.suffix  
+)
+
+if sys.platform == 'win32':
+    env.Replace( no_import_lib=1 )
+    env.Append( CCFLAGS='/EHsc' )
+else:
+    env.Append( CCFLAGS=' -Os -fPIC -fvisibility=hidden' )
+
+properties = env.SharedLibrary( target='properties'
+                                , source=[ 'generated/properties.py.cpp' ] )
+
+env.Install( '#unittests', properties )

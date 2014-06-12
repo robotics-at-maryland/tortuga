@@ -1,0 +1,90 @@
+GUI:
+    updateRate: 5
+    numSubsystems: 1
+
+# Config for the vehicle
+# Each module is a seperate system that needs to be started up
+Subsystems:
+    VisionSystem:
+        type: VisionSystem
+        depends_on: ["EventHub", "Vehicle"]
+        priority: "low"
+
+        #ForwardRecorders:
+        #    forward.avi: 5 # Really compressed @ 5Hz
+        #forward.rmv: 5 # Raw video at 10Hz
+        #    "50000(320,240)": 5 # Really compressed streaming @ 5hz
+        #DownwardRecorders:
+        #    downward.avi: 5 # Really compressed @ 5Hz
+        #downward.rmv: 5 # Raw video at 10Hz
+        #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
+
+        # Includes all camera and vision system settings
+        #INCLUDE: data/config/vision/transdec2012.yml
+        INCLUDE: data/config/vision/test.yml
+
+    Ai:
+         type: AI
+
+         # Includes the "taskOrder" for the AI
+         INCLUDE: data/config/ai/transdec2012_ai.yml
+
+
+    StateMachine:
+        type: StateMachine
+        depends_on: ["EventHub", "QueuedEventHub", "Controller", "Vehicle",
+                     "MotionManager", "TimerManager", "Ai", "VisionSystem",
+                     "StateEstimator"]
+        States:
+            # Includes all the state specific NBRF settings
+            INCLUDE: data/config/ai/transdec2012_state.yml
+
+
+    # Includes all common subsystems
+    INCLUDE: data/config/base.yml
+#BuoyDetector:
+#    GreenColorFilterLookupTable: 0
+#    RedColorFilterLookupTable: 0
+#    YellowColorFilterLookupTable: 0
+#    almostHitPercentage: 0.2
+#    bottomIgnorePercentage: 0.2
+#    checkBlack: 0
+#    debug: 2
+#    dilateIterations: 1
+#    erodeIterations: 1
+#    filtBlackCMax: 0
+#    filtBlackCMin: 0
+#    filtBlackHMax: 0
+#    filtBlackHMin: 0
+#    filtBlackLMax: 0
+#    filtBlackLMin: 0
+#    filtGreenCMax: 0
+#    filtGreenCMin: 0
+#    filtGreenHMax: 0
+#    filtGreenHMin: 0
+#    filtGreenLMax: 0
+#    filtGreenLMin: 0
+#    filtRedCMax: 255
+#    filtRedCMin: 97
+#    filtRedHMax: 160
+#    filtRedHMin: 9
+#    filtRedLMax: 148
+#    filtRedLMin: 53
+#    filtYellowCMax: 0
+#    filtYellowCMin: 0
+#    filtYellowHMax: 0
+#    filtYellowHMin: 0
+#    filtYellowLMax: 0
+#    filtYellowLMin: 0
+#    leftIgnorePercentage: 0
+#    maxAspectRatio: 1.6
+#    maxDistance: 15
+#    maxTotalBlackCheckSize: 0.1
+#    minAspectRatio: 0.7
+#    minBlackPercentage: 0.25
+#    minHeight: 10
+#    minPixelPercentage: 0.1
+#    minPixels: 15
+#    minWidth: 10
+#    rightIgnorePercentage: 0
+#    topIgnorePercentage: 0

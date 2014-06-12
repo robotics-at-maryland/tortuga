@@ -1,0 +1,13 @@
+1.0 (04/15/2007)
+
+   Allow Fetch task to unpack zip files.
+
+   New builtin global replacement value: 'platform', which is the value
+   of distutils.util.get_platform() if distutils is installed.
+
+   Fixed a bug in the guts of the postorder machinery to not generate
+   too many duplicate tasks.
+
+0.1 (02/04/2007)
+
+   Initial release

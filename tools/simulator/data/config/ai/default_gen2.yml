@@ -1,0 +1,5 @@
+
+# Demo course with pipe and light only
+taskOrder: ['ram.ai.gen2.course.Pipe1', 'ram.ai.gen2.course.Light']
+
+failureTasks: {'ram.ai.gen2.course.Light' : 'ram.ai.task.End' }

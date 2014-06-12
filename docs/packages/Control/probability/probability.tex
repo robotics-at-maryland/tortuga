@@ -1,0 +1,84 @@
+\documentclass{article}
+
+\title{DRAFT\\DO NOT DISTRIBUTE\\A Summary of Probability Relevant to Kalman Filtering }
+\author{Chris Bennet and Joseph Galante }
+\date{}%leave this blank for no date, otherwise latex automagically puts in the current date at compile time
+
+\begin{document}
+
+\maketitle
+
+\section{Intuitive Probability}
+
+An independent event occurs N times with a discrete set of outcomes, and we observe that a particular outcome happens X times; we say that outcome has an X in N chance of happening.  This definition suffers from sampling error.  You'll only ever see the "actual" probability by chance, because the actual probability only tells you what to expect; what you observe can vary to either side of the expected number of outcomes. However, the more outcomes you observe the closer you should get to the "actual" probability.  As you observe more and more events, the difference between observed and expected outcomes to throw off the probability by, say, 1\% increases, and larger differences are less likely.  Of course there's always the unlikely chance you won't get closer to the "actual" probability b/c that's how probability works. And then you start talking about the probability that the difference between your observed probability and the "actual" probability is within some acceptable amount of error (see: probability distribution).  The best thing this method can give you is an estimate of probability.  However in practice this is almost always a more practical method of determining probability. 
+
+
+Example:  You flip a quarter 100 times, and observe that it lands heads up 46 times.  You say that the probability of getting heads is 46\%.
+
+
+
+\section{Classical Probability}
+
+We lay out all the possible outcomes of the event we are interested in; the probability of a particular type of outcome occurring is the total number of ways it can happen (fancy talk: multiplicity?) divided by the the total number of every possible outcome (multiples included).  Again, we assume that the events are independent. We also assume that the outcomes are equally likely and mutually exclusive. This method has no sampling error because we are looking at the entire population of possible outcomes.  But in the real world we don't usually (read: ever) know what the entire population of outcomes is.  We simplify a coin flip down to two outcomes, heads and tails, but technically we should consider the possibility that the coin could land on its side.  And technically, a coin landing heads up after bouncing once and a coin landing heads up after bouncing twice are two different outcomes.  (Depending on how thorough we want to be, we can talk about how every time we flip a coin, the outcome is different at a microscopic level, or how no coin flip is really an independent event because the outcome depends in some small way on interactions between the coin and the surface we flip it onto, which in turn were influenced in some small way by the previous coin flip. (see:  the butterfly effect)
+
+
+Example:  You roll two fair six-sided dice and want to know the probability that the sum of the numbers on the two dice is 5.  This outcome can occur by rolling (1,4), (4,1), (2,3), and (3,2) out of 36 possible outcomes.  You say that the probability of rolling two dice and getting a 5 is 1 in 9.  (Note that (2,3) and (3,2) are different outcomes because which die each number appears on is switched.)
+
+
+\section{Bayes Theorem*}
+
+
+\section{Random Variable}
+
+2007-10-09: "Rule for assigning a number X to each elementary outcome in underlying probability space"
+
+A way of numerically describing a set of outcomes that may or may not be quantitative.
+
+Useful when you want to describe outcomes with a probability distribution/density function.
+
+
+To analyse probability with mathematical methods it is necessary to treat the elementary outcomes of an event numerically, even though they may not be quantitative.  A random variable assigns a number to each elementary outcome according to some rule you define.  For quantitative outcomes you can simply use the quantity you are measuring.
+
+
+Example:   A coin flip can turn up heads or tails.  You define a random variable that assigns a 0 to tails and a 1 to heads.
+
+
+\section{Probability Distribution Function/Probability Density Function}
+
+When introducing the probability density function it is convenient to first talk about the concept of a histogram.  Suppose you have a random sample of continuous data, e.g. the ages of 30 people. 
+
+%<list of data>
+
+If you want to make a frequency plot of the data, it is inconvenient and uninformative to make a plot of just the frequency of each individual age, especially if you you have the ages measured to a precision of days or hours.  it doesn't make sense to record the frequency of each individual age because you're dealing with continuous data.  The frequency of each age will always be one. \footnote{Technically you will only have the ages measured to a finite precision, to the nearest year for example.  You might argue that two people aged 34 would therefore be counted as the same age within the precision of your data, even though in reality they aren't \textit{exactly} the same age.  But this frequency plot wouldn't be much of an improvement and is really just a more limited version of the discretization that is performed to create a histogram.}  Instead, you would define a few equally spaced ranges called bins, and plot the number of data points that fall in each bin.  This is called a histogram.  A histogram for the data listed above might look like this:  <chart>
+
+
+From your histogram you can get a piecewise defined frequency function:  <eqn>  Likewise you can get a piecewise defined probability function (by normalizing?) by dividing the frequency function by your sample size, giving you the probability of a randomly selected age falling into each bin.  \footnote{There is another way of treating a discrete probability function, using a linear combination of delta functions.  When integrated this yields a peicewise defined cumulative probability function.  It is more convenient to consider the histogram here as it provides a ready analog to the continouse probability density function.}  As you would expect, if you take the sum of the probabilities over all the bins, you will get: %<eqn>
+
+
+...How do you define bin ranges? Want a histogram that gives a "good picture" of the data.  What is a "good picture"?...
+
+
+...In general the more data points you have, the more narrowly you can define your bins and still get a "good picture" from your histogram.  You can imagine taking an infinite number of data points; then you can have bins that are infinitely narrow.  The limit as the number of data points approaches infinity and the bin width approaches zero is a continous function, the probability density function for the data you are measuring: %<eqn>
+
+A sum over the probabilities of a number of bins in the case of a histogram is equivalent to a definite integral between some values a and b of the continuous probability density function.  A sum over all the bins is equivalent to an integral from negative infinity to positive infinity, and must still be equal to 1: %<eqn>
+
+We also define a cumulative probability function:  %eqn
+
+
+
+\subsection{Normal Distribution}
+One important type of probability density/distribution function is the normal or gaussian distribution.  
+
+
+\section{Expected Values}
+The "expected value" of an outcome is equivalent to a weighted average, in which the weights are taken from the value at each point of the random variable associated with the set of outcomes.  It is so named because it is the value you would expect an event to yield on average.  In the case of a continuous probability distribution function it is equivalent to:  %eqn
+
+
+\section{Variance}
+
+
+\section{Stochastic Process*}
+
+\section{Random Walk}
+
+\end{document}

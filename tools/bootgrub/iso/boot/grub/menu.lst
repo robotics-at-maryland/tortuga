@@ -1,0 +1,7 @@
+default 0
+timeout 1
+
+title vmlinuz on sda4
+root (hd0,2)
+kernel /boot/vmlinuz root=/dev/sda4
+

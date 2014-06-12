@@ -1,0 +1,23 @@
+taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+            'ram.ai.course.Buoy', 'ram.ai.course.Pinger',
+            'ram.ai.course.SafeSonar', 'ram.ai.course.Octagon']
+
+config:
+    gateDepth: 4
+    pipeDepth: 7
+    binDepth: 12
+    targetBuoys: ['green', 'red']
+    targetWindows: 'green'
+    targetSymbols: ['Clippers', 'Axe']
+    sonarDepth: 3
+    safeDepth: 10
+    safeOffset: -0.4
+    Gate:
+        time: 25
+        speed: 3
+    PipeGate:
+        taskTimeout: 30
+    Buoy:
+        forwardDuration: 10
+        forwardSpeed: 1
+        taskTimeout: 120

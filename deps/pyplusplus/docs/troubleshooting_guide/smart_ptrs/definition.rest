@@ -1,0 +1,3 @@
+There are projects, which use custom smart pointer(s). For majority of the
+projects, it is not an option to switch to ``boost::shared_ptr``. The
+solution contains source code and comprehensive unit test for the problem.

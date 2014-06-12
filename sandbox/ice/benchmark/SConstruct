@@ -1,0 +1,16 @@
+import os
+
+# Import path from environment
+benv = Environment(ENV = {'PATH' : os.environ['PATH']})
+
+benv.Append(CPPPATH = ['/opt/local/include', '/opt/local/include/ice', '.'])
+benv.Append(LIBPATH = ['/opt/local/lib'])
+benv.Append(LIBS = ['Ice', 'IceUtil'])
+
+
+for optimLevel in range(0,4):
+    optimName = "O%d" % optimLevel
+    optimFlag = '-' + optimName
+    env = benv.Clone(CPPFLAGS = [optimFlag])
+    Export('env')
+    benv.SConscript('src/SConscript', variant_dir='#build/'+optimName)

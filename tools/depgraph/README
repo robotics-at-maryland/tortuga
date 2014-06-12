@@ -1,0 +1,17 @@
+This is tool that uses from a few small python modules found on the internet.
+It generates a graph which show interdependencies between python modules. It
+creates a dot which can be run through the 'dot' tool to generate images.
+
+Options:
+  --mono(-m)   -   Sets the ouput to be black and white
+  --ouput(-o)  -   Sets the dot file to writen to the given file instead of stdout
+
+Example:
+
+This runs the tool on the simulator tool and genertes then pipe the output to
+do which turns it into depgraph.png.
+  python gengraph.py ../simulator/app.py | dot -T png -o depgraph.png
+
+This Example stores the graph in a file first then generates the image.
+  python gengraph.py ../simulator/app.py -o depgraph.dot
+  dot depgraph.dot -T png -o depgraph.png
