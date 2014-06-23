@@ -63,6 +63,7 @@ class MotionManager(core.Subsystem):
         
         self._queuedMotions = []
         self._queueActive = False
+        self._counter = 0
         
     def _setMotion(self, motion):
         """
@@ -70,7 +71,8 @@ class MotionManager(core.Subsystem):
         """
         eventPublisher = core.EventPublisher(self._eventHub)
         started = False
-        
+        self._counter = self._counter + 1#iterate to next available motion, in case you killed the current one
+
         if motion.type & Motion.IN_PLANE:
             if self._inPlaneMotion is not None:
                 self._stopMotion(self._inPlaneMotion)
@@ -101,6 +103,7 @@ class MotionManager(core.Subsystem):
                 self._orientationMotion.start(self._controller, self._vehicle,
                                               self._estimator, self._qeventHub,
                                               eventPublisher)
+        return self._counter
 
     def setMotion(self, motion, *motions):
         self._queuedMotions = []
@@ -108,11 +111,17 @@ class MotionManager(core.Subsystem):
         # Reason: If the first motion finishes in its _start function,
         # it will not queue the remaining motions correctly
         self._queueMotions(*motions)
-        self._setMotion(motion)
+        return self._setMotion(motion)
 
     def _queueMotions(self, *motions):
         for m in motions:
             self._queuedMotions.append(m)
+
+    def queryMotionDone(self, motionID):
+        if(motionID < self._counter):
+            return True
+        else:
+            return False
 
     def stopCurrentMotion(self):
         """
@@ -182,10 +191,12 @@ class MotionManager(core.Subsystem):
             self._orientationMotion = None
     
     def _stopMotion(self, motion):
+        self._counter = self._counter + 1#iterate to next available motion, since this one is done
         motion.stop()
         self._removeMotion(motion)
         
     def _motionFinished(self, event):
+        self._counter = self._counter + 1#iterate to next available motion
         self._removeMotion(event.motion)
         # Start any remaining motions
         self._startQueuedMotion()
