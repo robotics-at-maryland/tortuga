@@ -29,15 +29,17 @@ class NestingState(state.State):
         if isinstance(nestedMachine, NestedStateMachine):
             self._nestedMachine = nestedMachine
         else:
-            self._nestedMachine = nestedMachine
+            self._nestedMachine = None
 
-    def enter(self):
+    def enter(self, transition=None):
         if self._nestedMachine is None:
-            raise Exception('NestingState must have a valid StateMachie')
+            raise Exception('NestingState must have a NestedStateMachine')
         return super(NestingState, self).enter(transition)
 
     def update(self):
-        if self._nestedMachine.completed():
+        if not self._nestedMachine.started():
+            self._nestedMachine.start()
+        elif self._nestedMachine.completed():
             self._transition = 'MACHINE_COMPLETE'
         else:
             self._nestedMachine.update()
