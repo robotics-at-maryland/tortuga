@@ -32,8 +32,7 @@ class Body(oldState.State):
 
     @staticmethod
     def transitions():
-        return { motion.basic.MotionManager.FINISHED : Body,
-                 MACHINE_COMPLETE : Body,
+        return { MACHINE_COMPLETE : Body,
                  TIMEOUT : Body,
                  UPDATE : Body,
                  TERMINATE : Conclusion }
@@ -69,9 +68,6 @@ class Body(oldState.State):
         self._machine.update()
         if self._machine.isCompleted():
             self.publish(MACHINE_COMPLETE, core.Event())
-
-    def FINISHED(self, event):
-        self._machine.injectEvent(event)
 
     def TIMEOUT(self, event):
         """ I'll do something later i.e cleanup """

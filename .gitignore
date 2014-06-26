@@ -2,6 +2,7 @@
 /build_ext
 /logs
 /packages/core/include/Feature.h
+/buildfiles/cmake/modules/FindOpenCV.cmake
 /scripts/setenv
 *.pyc
 *~

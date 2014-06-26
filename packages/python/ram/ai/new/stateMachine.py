@@ -18,15 +18,16 @@ class StateMachine(object):
 
     def getState(self, stateName):
         '''Returns the state associated with the given state name.'''
-        return self._stateMap.get(stateName, None)
+        try:
+            return self._stateMap.get[stateName]
+        except KeyError:
+            raise Exception('State "' + stateName + '" does not exist in the state machine.')
 
-    def createState(self, stateName, stateType, *args, **kwargs):
-        '''
-        Creates a new state with the given name and type(i.e. superclass),
-        adds it to the stateMachine, and returns it.
-        '''
-        state = stateType(stateName, self, *args, **kwargs)
-        self._stateMap[stateName] = state
+    def addState(self, state):
+        '''Adds a state to the state map.'''
+
+        self._stateMap[state.getName()] = state
+        state.setStateMachine(self)
         return state
 
     def getLegacyState(self):
@@ -39,6 +40,7 @@ class StateMachine(object):
         self._legacyState = state
 
     def getStartState(self):
+        '''Returns the state this state machine will start on.'''
         return self._startState
 
     def setStartState(self, state):
@@ -78,20 +80,6 @@ class StateMachine(object):
             self._currentTransition = None
             self._currentState.doEnter(transition)
 
-    def fireEvent(self, event):
-        if self._legacyState is None:
-            raise Exception('Machine is unable to publish without legacy state.')
-        self._legacyState.publish(event, core.Event())
-
-    def injectEvent(self, event):
-        #Code copied from _getTransitionFunc of the old state
-        eventName = event.type
-        eventName = eventName.split(' ')[-1]
-        eventName = eventName.split(':')[-1]
-
-        self._currentState.doEvent(eventName, event)
-        self.executeTransition()
-
     def configure(self, config):
         """
         Configure: implement in future version
@@ -102,7 +90,6 @@ class StateMachine(object):
         """
         Start the current stateMachine at the mentioned start State
         """
-
         self._currentState = self._startState
         self._currentState.doEnter(None)
         self._started = True # self._currentState.enter() needs to succeed
