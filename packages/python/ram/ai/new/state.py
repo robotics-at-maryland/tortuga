@@ -3,7 +3,7 @@ import weakref
 import stateMachine
 
 class State(object):
-    def __init__(self, name, machine):
+    def __init__(self, name, machine, *args, **kwargs):
         self._name = name
         self._machine = weakref.ref(machine)
 
@@ -12,7 +12,7 @@ class State(object):
         self._leaveCallbacks = {}   # Map from transition name to callback function
         self._eventCallbacks = {}   # Map from event name to callback function
 
-        self.initialize()
+        self.initialize(*args, **kwargs)
 
     def getName(self):
         '''Returns the name of this state.'''
@@ -60,7 +60,6 @@ class State(object):
         '''Sets the event callback for the given event name.'''
         self._eventCallbacks[eventName] = callback
 
-    ## These methods should be called by the state machine
     def doEnter(self, transitionName):
         '''Signals the state to perform its enter callback.'''
         self.getEnterCallback(transitionName)()
@@ -83,7 +82,7 @@ class State(object):
         '''Signals the state machine to fire an event.'''
         self.getStateMachine().fireEvent(event)
 
-    def initialize(self):
+    def initialize(self, *args, **kwargs):
         pass
 
     def configure(self, *args, **kwargs):

@@ -66,9 +66,11 @@ class StateMachine(object):
         return self._completed
             
     def queueTransition(self, transitionName):
+        '''Queues a transition to be handled after the current callback returns.'''
         self._currentTransition = transitionName
 
     def executeTransition(self):
+        '''Checks to see if there is a queued transition, and executes it if so.'''
         while self._currentTransition is not None:
             transition = self._currentTransition
             self._currentState.doLeave(transition)
@@ -80,6 +82,15 @@ class StateMachine(object):
         if self._legacyState is None:
             raise Exception('Machine is unable to publish without legacy state.')
         self._legacyState.publish(event, core.Event())
+
+    def injectEvent(self, event):
+        #Code copied from _getTransitionFunc of the old state
+        eventName = event.type
+        eventName = eventName.split(' ')[-1]
+        eventName = eventName.split(':')[-1]
+
+        self._currentState.doEvent(eventName, event)
+        self.executeTransition()
 
     def configure(self, config):
         """

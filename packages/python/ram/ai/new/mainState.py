@@ -5,15 +5,18 @@ import ram.ai.new.testing as testMachine
 
 #Old project imports 2013
 import ram.ai.state as oldState
+import ram.motion as motion
 import ext.core as core
 import ext.math as math
 import ram.timer as timer
 
-
 #std imports
 import time
 
-
+UPDATE = core.declareEventType('UPDATE')
+TIMEOUT = core.declareEventType('TIMEOUT')
+MACHINE_COMPLETE = core.declareEventType('MACHINE_COMPLETE')
+TERMINATE = core.declareEventType('TERMINATE')
 COMPLETE = core.declareEventType('COMPLETE')
 
 class Body(oldState.State):
@@ -26,63 +29,57 @@ class Body(oldState.State):
     For more information view ram/ai/new/stateMachine.py and 
     ram/ai/new/state.py
     """
-    
-    # These tell the state to perform some clean up before exiting
-    # and cause some logging for exit cases
-    machine_complete = core.declareEventType('MACHINE_COMPLETE')
-    time_out = core.declareEventType('TIME_OUT')
-    update = core.declareEventType('UPDATE')
-    #Actally transition to the end state (in this case Conclusion)
-    terminate = core.declareEventType('TERMINATE')
 
     @staticmethod
     def transitions():
-        return { Body.machine_complete : Body,
-                 Body.time_out : Body,
-                 Body.update : Body,
-                 Body.terminate : Conclusion }
+        return { motion.basic.MotionManager.FINISHED : Body,
+                 MACHINE_COMPLETE : Body,
+                 TIMEOUT : Body,
+                 UPDATE : Body,
+                 TERMINATE : Conclusion }
 
     def enter(self):
-        self._updateDelay = 0.1
-        self._courseTimeOut = 1200
+        self._updateDelay = 1
+        self._courseTimeOut = 20
         """
         Since this will only be called on entry for the first time
         all initialization will be done here.
         """
-        self._courseTimeOutTimer = self.timerManager.newTimer(Body.time_out,
-                                                             self._courseTimeOut)
-        self._updateDelay = self._updateDelay
 
         self._machine = testMachine.TestMachine()
         self._machine.setLegacyState(self)
         self._machine.configure(self._config)
         self._machine.start()
-        self.publish(Body.update, core.Event())
+
+        self._updateTimer = timer.Timer(self.timerManager, UPDATE, self._updateDelay, True)
+        self._updateTimer.start()
+
+        self._courseTimeOutTimer = timer.Timer(self.timerManager, UPDATE, self._updateDelay)
+        self._courseTimeOutTimer.start()
         
     def exit(self):
         """
         Normally, clean up would be done here but in this case we're just
         leaving since clean up is done in our callbacks
         """
-        pass
+        self._updateTimer.stop()
+        self._courseTimeOutTimer.stop()
 
     def UPDATE(self, event):
-        time.sleep(self._updateDelay)
         self._machine.update()
         if self._machine.isCompleted():
-            self.publish(Body.machine_complete, core.Event())
-        else:
-            self.publish(Body.update, core.Event())
+            self.publish(MACHINE_COMPLETE, core.Event())
+
+    def FINISHED(self, event):
+        self._machine.injectEvent(event)
+
+    def TIMEOUT(self, event):
+        """ I'll do something later i.e cleanup """
+        self.publish(TERMINATE, core.Event())
 
     def MACHINE_COMPLETE(self, event):
         """ I'll do something later i.e. cleanup """
-        self.publish(Body.terminate, core.Event())
-
-    def TIME_OUT(self, event):
-        """ I'll do something later i.e cleanup """
-        self.publish(Body.terminate, core.Event())
-
-#class CallBackHelper(oldState.State):
+        self.publish(TERMINATE, core.Event())
 
 class Conclusion(oldState.State):
     """
