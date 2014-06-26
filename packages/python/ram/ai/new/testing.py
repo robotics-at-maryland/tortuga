@@ -6,47 +6,36 @@ import time
 import ram.motion as motion
 
 class testState1(state.State):
-
-    def __init__(self, machine):
-        super(testState1, self).__init__(machine)
-        self._transToStateID = {'NEXT' : 'test2', 'NEXT2' : 'test1'}
-        self._enterCallBacks = {'NEXT2' : self.enterT}
-
-    def defaultEnter(self):
+    def enter(self):
         print "hi\n"
-        time.sleep(2)
-        self.setTransition('NEXT2')
-        
-    def enterT(self):
-        print "snoooze\n"
-        time.sleep(2)
-        self.setTransition('NEXT')
+        self.fireTransition('NEXT')
 
+    def differentEnter(self):
+        print "hi again\n"
+        self.fireTransition('END')
 
 class testState2(state.State):
-
-    def __init__(self, machine):
-        super(testState2, self).__init__(machine)
-        self._transToStateID = {'NEXT' : 'test3'}
-
-    def defaultEnter(self):
+    def enter(self):
         print "goodbye\n"
-        self.setTransition('NEXT')
-
+        self.fireTransition('DIFFERENT')
 
 class testState3(state.State):
+    def enter(self):
+        print "at the end\n"
+        self.getStateMachine().setComplete()
 
-    def __init__(self, machine):
-        super(testState3, self).__init__(machine)
-        self._transToStateID = {'NEXT' : 'test3', 'NEXT2' : 'test3'}
-        self._enterCallBacks = {'NEXT' : self.enterT}
+class TestMachine(stateMachine.StateMachine):
+    def __init__(self):
+        super(TestMachine, self).__init__()
 
-    def enterT(self):
-        print "notyet\n"
-        self.setTransition('NEXT2')
+        test1 = self.createState('test1', testState1)
+        test2 = self.createState('test2', testState2)
+        test3 = self.createState('test3', testState3)
 
-    def defaultEnter(self):
-        print "ending\n"
-        self._machine.setComplete()
+        test1.setNextState('NEXT', test2)
+        test1.setNextState('END', test3)
+        test1.setEnterCallback('DIFFERENT', test1.differentEnter)
 
+        test2.setNextState('DIFFERENT', test1)
 
+        self.setStartState(test1)

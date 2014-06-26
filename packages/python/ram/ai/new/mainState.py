@@ -1,7 +1,7 @@
 # new project imports as of June 2014
 import ram.ai.new.stateMachine as StateMachine
 import ram.ai.new.state as state
-import ram.ai.new.testMachine as testMachine
+import ram.ai.new.testing as testMachine
 
 #Old project imports 2013
 import ram.ai.state as oldState
@@ -16,27 +16,7 @@ import time
 
 COMPLETE = core.declareEventType('COMPLETE')
 
-
-"""
-Let's treat the naming for the states like a simple essay
-"""
-
-class Intro(oldState.State):
-    """
-    I am the intro, I'm supposed to lead you into the main body of the 'essay'
-    with some understanding of what's going to happen...
-
-    Good luck with that. I just tell you to go to the Body
-    This is only used in autonomous runs, so I'm not actually accessed here
-    (Yay, I'm useless)
-    """
-
-    @staticmethod
-    def transitions():
-        return {'Start' : Body}
-
-
-class Start(oldState.State):
+class Body(oldState.State):
     """
     Just like the body of an essay I contain the meat of this routine
     you'll find within me a different stateMachine, *cue the inception horn*.
@@ -45,7 +25,6 @@ class Start(oldState.State):
     in the real world beta = full release right?
     For more information view ram/ai/new/stateMachine.py and 
     ram/ai/new/state.py
-
     """
     
     # These tell the state to perform some clean up before exiting
@@ -58,10 +37,10 @@ class Start(oldState.State):
 
     @staticmethod
     def transitions():
-        return { Start.machine_complete : Start,
-                 Start.time_out : Start,
-                 Start.update : Start,
-                 Start.terminate : Conclusion }
+        return { Body.machine_complete : Body,
+                 Body.time_out : Body,
+                 Body.update : Body,
+                 Body.terminate : Conclusion }
 
     def enter(self):
         self._updateDelay = 0.1
@@ -70,17 +49,15 @@ class Start(oldState.State):
         Since this will only be called on entry for the first time
         all initialization will be done here.
         """
-        self._courseTimeOutTimer = self.timerManager.newTimer(Start.time_out,
+        self._courseTimeOutTimer = self.timerManager.newTimer(Body.time_out,
                                                              self._courseTimeOut)
         self._updateDelay = self._updateDelay
 
         self._machine = testMachine.TestMachine()
         self._machine.setLegacyState(self)
-        self._machine.setStartState('test1') # needed here because not set
-                                             # manually in machine
         self._machine.configure(self._config)
         self._machine.start()
-        self.publish(Start.update, core.Event())
+        self.publish(Body.update, core.Event())
         
     def exit(self):
         """
@@ -92,18 +69,18 @@ class Start(oldState.State):
     def UPDATE(self, event):
         time.sleep(self._updateDelay)
         self._machine.update()
-        if self._machine.completed():
-            self.publish(Start.machine_complete, core.Event())
+        if self._machine.isCompleted():
+            self.publish(Body.machine_complete, core.Event())
         else:
-            self.publish(Start.update, core.Event())
+            self.publish(Body.update, core.Event())
 
     def MACHINE_COMPLETE(self, event):
         """ I'll do something later i.e. cleanup """
-        self.publish(Start.terminate, core.Event())
+        self.publish(Body.terminate, core.Event())
 
     def TIME_OUT(self, event):
         """ I'll do something later i.e cleanup """
-        self.publish(Start.terminate, core.Event())
+        self.publish(Body.terminate, core.Event())
 
 #class CallBackHelper(oldState.State):
 
