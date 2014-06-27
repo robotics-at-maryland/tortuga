@@ -34,9 +34,10 @@ class State(object):
         except KeyError:
             raise Exception('Transition "' + transitionName + '" in "' + self._name + '" does not exist.')
 
-    def setNextState(self, transitionName, nextState):
+    def setNextState(self, nextState, transitionName = 'next'):
         '''Sets the next state for the given transition.'''
         self._transitions[transitionName] = weakref.ref(nextState)
+        return nextState
 
     def getEnterCallback(self, transitionName):
         '''Returns the enter callback for the given transition.'''

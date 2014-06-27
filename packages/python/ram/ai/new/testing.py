@@ -12,16 +12,20 @@ from ram.motion.basic import Frame
 class TestMachine(stateMachine.StateMachine):
     def configure(self, config):
         start = self.addState(utilStates.Start('start'))
-        forward = self.addState(motionStates.Move('forward', 1, 0))
-        right = self.addState(motionStates.Move('right', 0, 1))
+        dive = self.addState(motionStates.Dive('dive', 8))
+        forward = self.addState(motionStates.Forward('forward', 1))
+        right = self.addState(motionStates.Strafe('right', 1))
         back = self.addState(motionStates.Move('back', -1, 0))
         left = self.addState(motionStates.Move('left', 0, -1))
+        turn = self.addState(motionStates.Turn('turn', 10))
         end = self.addState(utilStates.End('end'))
 
-        start.setNextState('next', forward)
-        forward.setNextState('next', right)
-        right.setNextState('next', back)
-        back.setNextState('next', left)
-        left.setNextState('next', end)
+        start.setNextState(dive)    \
+             .setNextState(forward) \
+             .setNextState(right)   \
+             .setNextState(back)    \
+             .setNextState(left)    \
+             .setNextState(turn)    \
+             .setNextState(end)
 
         self.setStartState(start)
