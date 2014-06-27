@@ -1,6 +1,7 @@
 import state
 import ram.ai.state as oldState
 
+import weakref
 import ext.core
 
 class StateMachine(object):
@@ -19,15 +20,17 @@ class StateMachine(object):
     def getState(self, stateName):
         '''Returns the state associated with the given state name.'''
         try:
-            return self._stateMap.get[stateName]
+            return self._stateMap[stateName]
         except KeyError:
             raise Exception('State "' + stateName + '" does not exist in the state machine.')
 
-    def addState(self, state):
+    def addState(self, name, state):
         '''Adds a state to the state map.'''
-
-        self._stateMap[state.getName()] = state
-        state.setStateMachine(self)
+        if name in self._stateMap.keys():
+            raise Exception('State "' + stateName + '" already exists in the state machine.')
+        self._stateMap[name] = state
+        state._name = name
+        state._machine = weakref.ref(self)
         return state
 
     def getLegacyState(self):
@@ -76,15 +79,9 @@ class StateMachine(object):
         while self._currentTransition is not None:
             transition = self._currentTransition
             self._currentState.doLeave(transition)
-            self._currentState = self._currentState.getNextState(transition)
+            self._currentState = self.getState(self._currentState.getNextState(transition))
             self._currentTransition = None
             self._currentState.doEnter(transition)
-
-    def configure(self, config):
-        """
-        Configure: implement in future version
-        """
-        pass
 
     def start(self):
         """

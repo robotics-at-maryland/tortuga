@@ -7,8 +7,8 @@ import ram.motion as motion
 from ram.motion.basic import Frame
 
 class MotionState(state.State):
-    def __init__(self, name):
-        super(MotionState, self).__init__(name)
+    def __init__(self):
+        super(MotionState, self).__init__()
         self._motionID = -1
 
     def getMotionManager(self):
@@ -29,8 +29,8 @@ class MotionState(state.State):
             self.doTransition('next')
 
 class Move(MotionState):
-    def __init__(self, name, x, y, rate = 0.15):
-        super(Move, self).__init__(name)
+    def __init__(self, x, y, rate = 0.15):
+        super(Move, self).__init__()
         self._vect = math.Vector2(x, y)
         self._rate = rate
 
@@ -46,8 +46,8 @@ class Move(MotionState):
         return mot
 
 class MoveTo(MotionState):
-    def __init__(self, name, x, y, rate = 0.15):
-        super(Move, self).__init__(name)
+    def __init__(self, x, y, rate = 0.15):
+        super(Move, self).__init__()
         self._vect = math.Vector2(x, y)
         self._rate = rate
 
@@ -63,16 +63,16 @@ class MoveTo(MotionState):
         return mot
 
 class Forward(Move):
-    def __init__(self, name, distance, rate = 0.15):
-        super(Forward, self).__init__(name, distance, 0, rate)
+    def __init__(self, distance, rate = 0.15):
+        super(Forward, self).__init__(distance, 0, rate)
 
 class Strafe(Move):
-    def __init__(self, name, distance, rate = 0.15):
-        super(Strafe, self).__init__(name, 0, distance, rate)
+    def __init__(self, distance, rate = 0.15):
+        super(Strafe, self).__init__(0, distance, rate)
 
 class Dive(MotionState):
-    def __init__(self, name, depth, rate = 0.15):
-        super(Dive, self).__init__(name)
+    def __init__(self, depth, rate = 0.15):
+        super(Dive, self).__init__()
         self._depth = depth
         self._rate = rate
 
@@ -86,8 +86,8 @@ class Dive(MotionState):
         return mot
 
 class Turn(MotionState):
-    def __init__(self, name, angle):
-        super(Turn, self).__init__(name)
+    def __init__(self, angle):
+        super(Turn, self).__init__()
         self._angle = angle
 
     def getMotion(self):
@@ -102,8 +102,8 @@ class Turn(MotionState):
         return mot
 
 class TurnTo(MotionState):
-    def __init__(self, name, angle):
-        super(TurnTo, self).__init__(name)
+    def __init__(self, angle):
+        super(TurnTo, self).__init__()
         self._angle = angle
 
     def getMotion(self):

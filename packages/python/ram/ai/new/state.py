@@ -1,10 +1,8 @@
-import weakref
-
 import stateMachine
 
 class State(object):
-    def __init__(self, name):
-        self._name = name
+    def __init__(self):
+        self._name = None
         self._machine = None
 
         self._transitions = {}      # Map from transition name to weakref of next state
@@ -23,21 +21,16 @@ class State(object):
         '''Returns the state machine for this state.'''
         return self._machine()
 
-    def setStateMachine(self, machine):
-        '''Sets the parent state machine for this state.'''
-        self._machine = weakref.ref(machine)
-
     def getNextState(self, transitionName):
         '''Returns the next state for the given transition.'''
         try:
-            return self._transitions[transitionName]()
+            return self._transitions[transitionName]
         except KeyError:
             raise Exception('Transition "' + transitionName + '" in "' + self._name + '" does not exist.')
 
-    def setNextState(self, nextState, transitionName = 'next'):
+    def setNextState(self, stateName, transitionName = 'next'):
         '''Sets the next state for the given transition.'''
-        self._transitions[transitionName] = weakref.ref(nextState)
-        return nextState
+        self._transitions[transitionName] = stateName
 
     def getEnterCallback(self, transitionName):
         '''Returns the enter callback for the given transition.'''
@@ -66,10 +59,7 @@ class State(object):
     def doTransition(self, transitionName):
         '''Signals the state machine to execute the given transition.'''
         self.getStateMachine().queueTransition(transitionName)
-
-    def configure(self, *args, **kwargs):
-        pass
-
+        
     def enter(self):
         pass
 

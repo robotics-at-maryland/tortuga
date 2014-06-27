@@ -6,8 +6,8 @@ class Start(state.State):
     Marks the start of a state machine.  
     Sets the state machine's start state to self upon init.
     '''
-    def __init__(self, name):
-        super(Start, self).__init__(name)
+    def __init__(self):
+        super(Start, self).__init__()
 
     def enter(self):
         self.doTransition('next')
@@ -21,8 +21,8 @@ class End(state.State):
         self.getStateMachine().setComplete()
 
 class NestedState(state.State):
-    def __init__(self, name):
-        super(NestedState, self).__init__(name)
+    def __init__(self):
+        super(NestedState, self).__init__()
 
         self._innerMachine = stateMachine.StateMachine()
         self._innerMachine.setLegacyState(self.getStateMachine().getLegacyState())
