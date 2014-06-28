@@ -1,6 +1,25 @@
+import weakref
 import stateMachine
 
+class MetaState(type):
+    _STATES = {}
+
+    def __init__(self, name, bases, dict):
+        MetaState._STATES[name] = self
+
+    @staticmethod
+    def getStateType(name):
+        '''Returns the state type associated with the given name.'''
+        return MetaState._STATES[name]
+
+    @staticmethod
+    def getStateTypes():
+        '''Returns the map of state names to their state types.'''
+        return MetaState._STATES
+
 class State(object):
+    __metaclass__ = MetaState
+
     def __init__(self):
         self._name = None
         self._machine = None
@@ -20,6 +39,10 @@ class State(object):
     def getStateMachine(self):
         '''Returns the state machine for this state.'''
         return self._machine()
+
+    def addToStateMachine(self, name, machine):
+        self._name = name
+        self._machine = weakref.ref(machine)
 
     def getNextState(self, transitionName):
         '''Returns the next state for the given transition.'''
@@ -59,7 +82,7 @@ class State(object):
     def doTransition(self, transitionName):
         '''Signals the state machine to execute the given transition.'''
         self.getStateMachine().queueTransition(transitionName)
-        
+
     def enter(self):
         pass
 

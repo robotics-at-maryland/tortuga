@@ -29,8 +29,7 @@ class StateMachine(object):
         if name in self._stateMap.keys():
             raise Exception('State "' + stateName + '" already exists in the state machine.')
         self._stateMap[name] = state
-        state._name = name
-        state._machine = weakref.ref(self)
+        state.addToStateMachine(name, self)
         return state
 
     def getLegacyState(self):
