@@ -29,14 +29,16 @@ class End(state.State):
         self.getStateMachine().setComplete()
 
 class NestedState(state.State):
-    def __init__(self,internalMachine):
+    def __init__(self,internalMachine = None):
         super(NestedState, self).__init__()
 
-        self._innerMachine = internalMachine
+        if(internalMachine != None):
+            self._innerMachine = internalMachine
+        else:
+            self._innerMachine = stateMachine.StateMachine()
 
     def getInnerStateMachine(self):
         return self._innerMachine
-        self.getInnerStateMachine().update()
 
     def addToStateMachine(self, name, machine):
         super(NestedState, self).addToStateMachine(name, machine)
@@ -68,9 +70,9 @@ class YAMLState(NestedState):
 #Note that state will always go to success if failure is not set
 class ConstrainedState(NestedState):
     def __init__(self, internalMachine, queryFunc, success, failure = None):
-        super(ConstrainedState, self).__init(internalMachine)
+        super(ConstrainedState, self).__init__(internalMachine)
         self._query = queryFunc
-        self.setNextState(success,'success')
+        self.setNextState(success,'complete')
         if(failure == None):
             self.setNextState(success,'failure')
         else:
@@ -78,12 +80,13 @@ class ConstrainedState(NestedState):
 
     #note that the constrain is prioritized over the state machine completing
     def update(self):
+        print self._query()
         if(self._query()):
             self.getInnerStateMachine().update()
         else:
             self.doTransition('failure')
-        if(self.getInnerStateMachine.isComplete):
-            self.doTransition('success')
+        if(self.getInnerStateMachine().isCompleted()):
+            self.doTransition('complete')
 
 #the following state is a simple counter, it merely goes to the next state instantly
 #this can be used for counting the number of passes through a certain transition path
@@ -92,7 +95,7 @@ class PassCounter(state.State):
     def __init__(self,destination):
         super(PassCounter,self).__init__()
         self._count = 0
-        self._setNextState(destination):
+        self.setNextState(destination)
    
     def update(self):
         self._count = self._count + 1
@@ -100,4 +103,11 @@ class PassCounter(state.State):
 
     def getPasses(self):
         return self._count
-        
+    
+    #this function returns a function that checks the check you pass in
+    #aren't closures wonderful?
+    #returns true if under the count and false if over it
+    def getPassChecker(self,countToCheck):
+        def checkPasses(self):
+            return (self._count > countToCheck)
+        return checkPasses
