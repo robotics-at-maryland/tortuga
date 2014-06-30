@@ -80,7 +80,6 @@ class ConstrainedState(NestedState):
 
     #note that the constrain is prioritized over the state machine completing
     def update(self):
-        print self._query()
         if(self._query()):
             self.getInnerStateMachine().update()
         else:

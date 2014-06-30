@@ -22,11 +22,9 @@ class SearchPattern(utilStates.ConstrainedState):
         
     def update(self):
         if(self._stopConditions()):
-            print 'search succeeded'
             self.doTransition('next')
         else:
             super(SearchPattern, self).update()
-            print 'searching'
     
     def leave(self):
         oldUtil.freeze(self.getStateMachine().getLegacyState())
