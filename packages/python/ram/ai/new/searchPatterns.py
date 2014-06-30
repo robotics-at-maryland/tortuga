@@ -1,6 +1,7 @@
 import ram.ai.new.motionStates as motion
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.stateMachine as stateMachine
+import ram.ai.Utility as oldUtil
 
 #utility function used in this module for default parameters
 def alwaysTrue():
@@ -26,6 +27,9 @@ class SearchPattern(utilStates.ConstrainedState):
         else:
             super(SearchPattern, self).update()
             print 'searching'
+    
+    def leave(self):
+        oldUtil.freeze(self.getStateMachine().getLegacyState())
 
 
 #A simplistic search machine, it merely moves forwards a prespecified distance

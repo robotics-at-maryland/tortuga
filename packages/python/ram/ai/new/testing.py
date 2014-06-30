@@ -20,7 +20,7 @@ def reverseFun(fun):
 class TestMachine(stateMachine.StateMachine):
     def configure(self, config):
         start = self.addState('start', utilStates.Start())
-        testForwardsSearch = self.addState('search', search.ForwardsSearchPattern(1,reverseFun(utilClasses.timer(100).check),'dive','end', utilClasses.timer(100).check))
+        testForwardsSearch = self.addState('search', search.ForwardsSearchPattern(10,reverseFun(utilClasses.timer(100).check),'dive','end', utilClasses.timer(1).check))
         dive = self.addState('dive', motionStates.Dive(8))
         forward = self.addState('forward', motionStates.Forward(1))
         right = self.addState('right', motionStates.Strafe(1))
