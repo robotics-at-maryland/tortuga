@@ -2,7 +2,11 @@ ram.ai.new.mainState.Body:
     start:
         type: Start
         transitions:
-            next: forward
+            next: test
+    test:
+        type: TesterState
+        transitions:
+            next: forward  
 
     forward:
         type: Forward
