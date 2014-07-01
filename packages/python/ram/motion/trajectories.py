@@ -635,10 +635,10 @@ class SlerpTrajectory(Trajectory):
     def __init__(self, initialValue, finalValue,
                  timePeriod, initialTime = 0):
 
-        assert isInstance(initialValue, math.Quaternion), \
-            'SlerpTrajectory: initialValue must be a Quaternion'
-        assert isInstance(finalValue, math.Quaternion), \
-            'SlerpTrajectory: finalValue must be a Quaternion'
+        assert isinstance(initialValue, math.Quaternion), \
+             'SlerpTrajectory: initialValue must be a Quaternion'
+        assert isinstance(finalValue, math.Quaternion), \
+             'SlerpTrajectory: finalValue must be a Quaternion'
 
         self._initialValue = initialValue
         self._finalValue = finalValue
@@ -654,7 +654,7 @@ class SlerpTrajectory(Trajectory):
         rotQuat = initialValue.errorQuaternion(finalValue)
         angle = math.Radian(0)
         axis = math.Vector3.ZERO
-        rotQuat.ToAxisAngle(angle, axis)
+        rotQuat.ToAngleAxis(angle, axis)
         self._angularVelocity = angle / self._timePeriod
 
     def computeValue(self, time):
@@ -669,8 +669,8 @@ class SlerpTrajectory(Trajectory):
         # during the defined time, we calculate the trajectory value
         else:
             pctComplete = (time - self._initialTime) / self._timePeriod
-            return math.Quaternion.Slerp(pctComplete, self._initialValue,
-                                         self._finalValue, true)
+            self._initialValue = math.Quaternion.Slerp(pctComplete, self._initialValue,self._finalValue, True)
+            return self._initialValue
         
 
 
@@ -678,12 +678,14 @@ class SlerpTrajectory(Trajectory):
         # during the defined time, compute the derivative
         if time > self._initialTime and time < self._finalTime:
             if order == 1:
-                return self._angularVelocity
+                inverse_init_value = math.Quaternion.Inverse(self._initialValue)
+                a = self._finalValue * inverse_init_value
+                v = a.Ln()
+                return v
             else:
-                return 0
-        # we dont know the pre, post conditions so return None
+                return math.Vector3.ZERO
         else:
-            return None
+            return math.Vector3.ZERO
 
     def getInitialTime(self):
         return self._initialTime
