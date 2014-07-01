@@ -39,4 +39,25 @@ class ForwardsSearchMachine(stateMachine.StateMachine):
 class ForwardsSearchPattern(SearchPattern):
     def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
         super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance),stopConditions,success,failure,constraint)
+
+class BoxSearchMachine(stateMachine.StateMachine):
+    def __init__(self, X, Y):
+        super(BoxSearchMachine, self).__init__()
+        start = self.addState('start', utilStates.Start())
+        end = self.addState('end', utilStates.End())
+        transXOut = self.addState('transXOut', motion.Forward(X))
+        transXIn = self.addState('transXIn', motion.Forward(-X))
+        strafeOut = self.addState('strafeOut', motion.Strafe(-Y))
+        strafeIn = self.addState('strafeIn', motion.Strafe(Y))
+        start.setNextState('transXOut')
+        transXOut.setNextState('strafeOut')
+        strafeOut.setNextState('transXIn')
+        transXIn.setNextState('strafeIn')
+        strafeIn.setNextState('end')
+
+class BoxSearchPattern(SearchPattern):
+    def __init__(self, xDistance, yDistance, stopConditions, success, failure,
+                 constraint = alwaysTrue):
+        super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance, yDistance),stopConditions,success,failure,constraint)
+        
         

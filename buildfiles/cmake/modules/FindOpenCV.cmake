@@ -48,7 +48,11 @@
 #----------------------------------------------------------
 
 
+<<<<<<< Updated upstream
 FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/eliot/opencv-2.4.5/release NO_DEFAULT_PATH)
+=======
+FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/stephenc/opencv/release)
+>>>>>>> Stashed changes
 message("OpenCV Firectory!!! : " ${OPENCV_DIR})
 
 ##====================================================
