@@ -14,9 +14,11 @@ def alwaysTrue():
 #the first is the success conditions, the second are the termination conditions
 #note that search patterns must ALWAYS have a failure case, if you always wan't to go to the same state then make success and failure both the same state ID
 class SearchPattern(utilStates.ConstrainedState):
-    def __init__(self,searchMachine,stopConditions,success,failure,constraint = alwaysTrue()):
-        #a search pattern only sucforwardceeds if its stop condition is met, it always if the search pattern finishes, or if a constraint is met
-        super(SearchPattern,self).__init__(searchMachine,constraint,failure,failure)
+    def __init__(self, searchMachine, stopConditions, success, failure,
+                 constraint = alwaysTrue):
+        #a search pattern only succeeds if its stop condition is met, it always if the search pattern finishes, or if a constraint is met
+        super(SearchPattern,self).__init__(searchMachine, constraint, failure,
+                                           failure)
         self.setNextState(success)
         self._stopConditions = stopConditions
         
@@ -41,6 +43,28 @@ class ForwardsSearchMachine(stateMachine.StateMachine):
         move.setNextState('end')
         
 class ForwardsSearchPattern(SearchPattern):
-    def __init__(self,searchDistance, stopConditions, success, failure,constraint = alwaysTrue()):
+    def __init__(self, searchDistance, stopConditions, success, failure,
+                 constraint = alwaysTrue):
         super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance),stopConditions,success,failure,constraint)
+
+class BoxSearchMachine(stateMachine.StateMachine):
+    def __init__(self, X, Y):
+        super(BoxSearchMachine, self).__init__()
+        start = self.addState('start', utilStates.Start())
+        end = self.addState('end', utilStates.End())
+        transXOut = self.addState('transXOut', motion.Forward(X))
+        transXIn = self.addState('transXIn', motion.Forward(-X))
+        strafeOut = self.addState('strafeOut', motion.Strafe(-Y))
+        strafeIn = self.addState('strafeIn', motion.Strafe(Y))
+        start.setNextState('transXOut')
+        transXOut.setNextState('strafeOut')
+        strafeOut.setNextState('transXIn')
+        transXIn.setNextState('strafeIn')
+        strafeIn.setNextState('end')
+
+class BoxSearchPattern(SearchPattern):
+    def __init__(self, xDistance, yDistance, stopConditions, success, failure,
+                 constraint = alwaysTrue):
+        super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance, yDistance),stopConditions,success,failure,constraint)
+        
         
