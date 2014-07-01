@@ -49,11 +49,11 @@ class BoxSearchMachine(stateMachine.StateMachine):
         transXIn = self.addState('transXIn', motion.Forward(-X))
         strafeOut = self.addState('strafeOut', motion.Strafe(-Y))
         strafeIn = self.addState('strafeIn', motion.Strafe(Y))
-        start.setNextState('transXOut')
-        transXOut.setNextState('strafeOut')
-        strafeOut.setNextState('transXIn')
-        transXIn.setNextState('strafeIn')
-        strafeIn.setNextState('end')
+        start.setNextState('next', 'transXOut')
+        transXOut.setNextState('next', 'strafeOut')
+        strafeOut.setNextState('next', 'transXIn')
+        transXIn.setNextState('next', 'strafeIn')
+        strafeIn.setNextState('next', 'end')
 
 class BoxSearchPattern(SearchPattern):
     def __init__(self, xDistance, yDistance, stopConditions, success, failure,
