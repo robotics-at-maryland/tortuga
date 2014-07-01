@@ -48,9 +48,8 @@
 #----------------------------------------------------------
 
 
-FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/eliot/opencv-2.4.5/release NO_DEFAULT_PATH)
-message("OpenCV Firectory!!! : " ${OPENCV_DIR})
-
+FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /usr/local/share/OpenCV NO_DEFAULT_PATH)
+message(" KateOPENCV_DIR : " ${OPENCV_DIR})
 ##====================================================
 ## Find OpenCV libraries
 ##----------------------------------------------------
