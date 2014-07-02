@@ -40,6 +40,19 @@ class ForwardsSearchPattern(SearchPattern):
     def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
         super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance),stopConditions,success,failure,constraint)
 
+class StrafeSearchMachine(stateMachine.StateMachine):
+    def __init__(self,distance):
+        super(StrafeSearchMachine,self).__init__()
+        start = self.addState('start',utilStates.Start())
+        end = self.addState('end',utilStates.End())
+        move = self.addState('move',motion.Strafe(distance))
+        start.setTransition('next', 'move')
+        move.setTransition('next', 'end')
+        
+class StrafeSearchPattern(SearchPattern):
+    def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
+        super(StrafeSearchPattern,self).__init__(StrafeSearchMachine(searchDistance),stopConditions,success,failure,constraint)
+
 class BoxSearchMachine(stateMachine.StateMachine):
     def __init__(self, X, Y):
         super(BoxSearchMachine, self).__init__()
@@ -49,11 +62,11 @@ class BoxSearchMachine(stateMachine.StateMachine):
         transXIn = self.addState('transXIn', motion.Forward(-X))
         strafeOut = self.addState('strafeOut', motion.Strafe(-Y))
         strafeIn = self.addState('strafeIn', motion.Strafe(Y))
-        start.setNextState('next', 'transXOut')
-        transXOut.setNextState('next', 'strafeOut')
-        strafeOut.setNextState('next', 'transXIn')
-        transXIn.setNextState('next', 'strafeIn')
-        strafeIn.setNextState('next', 'end')
+        start.setTransition('next', 'transXOut')
+        transXOut.setTransition('next', 'strafeOut')
+        strafeOut.setTransition('next', 'transXIn')
+        transXIn.setTransition('next', 'strafeIn')
+        strafeIn.setTransition('next', 'end')
 
 class BoxSearchPattern(SearchPattern):
     def __init__(self, xDistance, yDistance, stopConditions, success, failure,
