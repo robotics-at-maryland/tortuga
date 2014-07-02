@@ -53,6 +53,8 @@ class StrafeSearchPattern(SearchPattern):
     def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
         super(StrafeSearchPattern,self).__init__(StrafeSearchMachine(searchDistance),stopConditions,success,failure,constraint)
 
+
+# Search in a rectangle in the plane of the robot orthogonal to depth
 class BoxSearchMachine(stateMachine.StateMachine):
     def __init__(self, X, Y):
         super(BoxSearchMachine, self).__init__()
@@ -71,6 +73,26 @@ class BoxSearchMachine(stateMachine.StateMachine):
 class BoxSearchPattern(SearchPattern):
     def __init__(self, xDistance, yDistance, stopConditions, success, failure,
                  constraint = alwaysTrue):
-        super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance, yDistance),stopConditions,success,failure,constraint)
+        super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance,
+                                                               yDistance),
+                                              stopConditions, success,
+                                              failure, constraint)
+
+# Maintaining position yaw the robot to search
+class YawSearchMachine(stateMachine.StateMachine):
+    def __init__(self, yawAngle):
+        super(YawSearchMachine, self).__init__()
+        start = self.addState('start', utilStates.Start())
+        end = self.addState('end', utilStates.End())
+        yaw = self.addState('yaw', motion.turn(yaw))
+        start.setTransition('next', 'yaw')
+        yaw.setTransition('next', 'end')
         
+        
+class YawSearchPattern(SearchPattern):
+    def __init__(self, yawAngle, stopConditions, success, failure,
+                 constraint = alwaysTrue):
+        super(BoxSearchPattern,self).__init__(YawSearchMachine(yawAngle),
+                                              stopConditions, success,
+                                              failure, constraint)
         
