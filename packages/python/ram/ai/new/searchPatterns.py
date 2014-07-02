@@ -96,3 +96,37 @@ class YawSearchPattern(SearchPattern):
                                               stopConditions, success,
                                               failure, constraint)
         
+# zigzag search
+class ZigZagSearchMachine(stateMachine.StateMachine):
+    def __init__(self, travelDistance, strafeDistance):
+        super(ZigZagSearchPattern, self).__init__()
+        start = self.addState('start', utilStates.Start())
+        end = self.addState('end', utilStates.End())
+        # starting half strafe
+        startingStrafe = self.addState('startingStrafe',
+                                       motion.strafe(strafeDistance/2))
+        move1 = self.addState('move1', motion.Forward(travelDistance))
+        move2 = self.addState('move2', motion.Forward(travelDistance))
+        strafeIn = self.addState('strafeIn', motion.strafe(-strafeDistance))
+        strafeOut = self.addState('strafeOut', motion.strafe(strafeDistance))
+        passCount = self.addState('passCount', utilStates.PassCounter('move1'))
+
+        start.setTransition('next', 'startingStrafe')
+        startingStrafe.setTransition('next', 'move1')
+        move1.setTransition('next', 'strafeIn')
+        strafeIn.setTranstiion('next', 'move2')
+        move2.setTransition('next', 'strafeOut')
+        strafeOut.setTransition('next', 'passCount')
+
+    def getPasses(self):
+        return self.getState('passCount').getPasses()
+        
+
+class ZigZagSearchPattern(SearchPattern):
+    def __init__(self, travelDistance, strafeDistance, success, failure,
+                 constraint = alwaysTrue):
+        super(ZigZagSearchPattern, self).__init__(ZigZagSearchMachine(travelDistance, strafeDistance),
+                                                  stopConditions, success,
+                                                  failure, constraint)
+        
+    
