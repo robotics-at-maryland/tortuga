@@ -72,7 +72,7 @@ class BoxSearchMachine(stateMachine.StateMachine):
 
 class BoxSearchPattern(SearchPattern):
     def __init__(self, xDistance, yDistance, stopConditions, success, failure,
-                 constraint = alwaysTrue):
+                 constraint = lambda: True):
         super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance,
                                                                yDistance),
                                               stopConditions, success,
@@ -91,7 +91,7 @@ class YawSearchMachine(stateMachine.StateMachine):
         
 class YawSearchPattern(SearchPattern):
     def __init__(self, yawAngle, stopConditions, success, failure,
-                 constraint = alwaysTrue):
+                 constraint = lambda: True):
         super(BoxSearchPattern,self).__init__(YawSearchMachine(yawAngle),
                                               stopConditions, success,
                                               failure, constraint)
@@ -124,7 +124,7 @@ class ZigZagSearchMachine(stateMachine.StateMachine):
 
 class ZigZagSearchPattern(SearchPattern):
     def __init__(self, travelDistance, strafeDistance, success, failure,
-                 constraint = alwaysTrue):
+                 constraint = lambda: True):
         super(ZigZagSearchPattern, self).__init__(ZigZagSearchMachine(travelDistance, strafeDistance),
                                                   stopConditions, success,
                                                   failure, constraint)
