@@ -99,7 +99,7 @@ class YawSearchPattern(SearchPattern):
 # zigzag search
 class ZigZagSearchMachine(stateMachine.StateMachine):
     def __init__(self, travelDistance, strafeDistance):
-        super(ZigZagSearchPattern, self).__init__()
+        super(ZigZagSearchMachine, self).__init__()
         start = self.addState('start', utilStates.Start())
         end = self.addState('end', utilStates.End())
         # starting half strafe
