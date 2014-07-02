@@ -31,16 +31,14 @@ def dive(you, depth, rate):
 def freeze(you):
     traj = motion.trajectories.Vector2CubicTrajectory(math.Vector2.ZERO,math.Vector2.ZERO)
     dive(you, you.stateEstimator.getEstimatedDepth(), 0.15)
-    currentOrientation = self.stateEstimator.getEstimatedOrientation()
+    currentOrientation = you.stateEstimator.getEstimatedOrientation()
     yawTrajectory = motion.trajectories.StepTrajectory(
         initialValue = currentOrientation,
         finalValue = currentOrientation,
-        initialRate = self.stateEstimator.getEstimatedAngularRate(),
+        initialRate = you.stateEstimator.getEstimatedAngularRate(),
         finalRate = math.Vector3.ZERO)
     yawMotion = motion.basic.ChangeOrientation(yawTrajectory)
-    self.motionManager.setMotion(yawMotion)
-    self.timer = self.timerManager.newTimer(YAWED, t)
-    self.timer.start()
+    you.motionManager.setMotion(yawMotion)
     mot = motion.basic.Translate(traj,Frame.LOCAL)
     you.motionManager.setMotion(mot)
 
