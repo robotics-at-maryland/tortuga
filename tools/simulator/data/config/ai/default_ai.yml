@@ -11,17 +11,17 @@
 #            'ram.ai.course.Pipe3', 'ram.ai.course.Bin']
 
 # Demo course with everything
-taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
-            'ram.ai.course.Buoy', 'ram.ai.course.Pipe1',
-            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
-            'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
-            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
-            'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
-            'ram.ai.course.Travel1', 'ram.ai.course.Window',
-            'ram.ai.course.Bin', 'ram.ai.course.Vase',
-            'ram.ai.course.TravelPoint']
+#taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.PipeGate',
+#            'ram.ai.course.Buoy', 'ram.ai.course.Pipe1',
+#            'ram.ai.course.BarbedWire', 'ram.ai.course.PipeBarbedWire',
+#            'ram.ai.course.Target', 'ram.ai.course.PipeTarget',
+#            'ram.ai.course.Pinger', 'ram.ai.course.SafeSonar',
+#            'ram.ai.course.Octagon', 'ram.ai.course.Pipe',
+#            'ram.ai.course.Travel1', 'ram.ai.course.Window',
+#            'ram.ai.course.Bin', 'ram.ai.course.Vase',
+#            'ram.ai.course.TravelPoint']
 
-failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
+#failureTasks: {'ram.ai.course.Light' : 'ram.ai.course.Pinger'}
 
 config:
     gateDepth: 4
