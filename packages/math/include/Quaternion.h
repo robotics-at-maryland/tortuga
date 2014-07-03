@@ -221,7 +221,7 @@ namespace math {
 	Quaternion Power (Real fScala) const;
         Quaternion Exp () const;
         Quaternion Log () const;
-	Vector3 Ln() const;
+	Vector3 Ln();
         // rotation of a vector by a quaternion
         Vector3 operator* (const Vector3& rkVector) const;
 

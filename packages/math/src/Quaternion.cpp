@@ -436,7 +436,7 @@ namespace math {
         return kResult;
     }
     //-----------------------------------------------------------------------
-   Vector3 Quaternion::Ln() const
+  Vector3 Quaternion::Ln()
   {
     Vector3 v(x,y,z);
     Real length = Math::Sqrt(w*w+x*x+y*y+z*z);
