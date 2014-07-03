@@ -48,7 +48,7 @@ Torus Knot Software Ltd.
 #include <cstddef>
 #include <cstring>
 #include <ostream>
-
+#include <iostream>
 // Project Includes
 #include "math/include/Math.h"
 
@@ -218,9 +218,10 @@ namespace math {
         Real normalise(void); 
         Quaternion Inverse () const;  // apply to non-zero quaternion
         Quaternion UnitInverse () const;  // apply to unit-length quaternion
+	Quaternion Power (Real fScala) const;
         Quaternion Exp () const;
         Quaternion Log () const;
-
+	Vector3 Ln();
         // rotation of a vector by a quaternion
         Vector3 operator* (const Vector3& rkVector) const;
 
