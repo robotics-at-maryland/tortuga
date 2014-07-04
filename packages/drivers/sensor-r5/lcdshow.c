@@ -68,12 +68,15 @@ int main(int argc, char ** argv)
         printf("\nOther commands:\n");
         printf("\t-check (crude system check)\n");
         printf("\t-status (show sensor readings)\n");
+        printf("\t-marker {1|2} (drop marker 1 or 2)\n");
+        printf("\t-s  (begin start sequence)\n");
+
+        printf("\nLED Bar commands (DEPRICATED)");
         printf("\t-baron (enable bar outputs)\n");
         printf("\t-baroff (disable bar outputs)\n");
         printf("\t-baron [n] (enable bar output n)\n");
         printf("\t-baroff [n] (disable bar output n)\n");
-        printf("\t-marker {1|2} (drop marker 1 or 2)\n");
-        printf("\t-s  (begin start sequence)\n");
+     
         printf("\t-setbars n (set bar outputs)\n");
         printf("\t-noblink (stop animation)\n");
         printf("\t-redgreen (start red/green animation)\n");
@@ -106,7 +109,7 @@ int main(int argc, char ** argv)
         return -1;
     }
 
-    int fd = openSensorBoard("/dev/ttyUSB0");
+    int fd = openSensorBoard("/dev/sensor");
 
     if(fd == -1)
     {
