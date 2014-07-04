@@ -33,17 +33,6 @@ import math as pmath
 import ext.core as core
 import ext.math as math
 import ext.vehicle
-import ram.ai.light as light
-import ram.ai.buoy as buoy
-import ram.ai.gen2.light as light2
-import ram.ai.pipe as pipe
-import ram.ai.bin as bin
-import ram.ai.barbedwire as bwire
-import ram.ai.target as target
-import ram.ai.window as window
-import ram.ai.hedge as hedge
-import ram.ai.course as course
-import ram.ai.gen2.course as course2
 import ram.motion as motion
 import ram.motion.trajectories as traj
 import ram.motion.basic as basic
@@ -51,6 +40,8 @@ import ram.motion.search as search
 import ram.timer as timer
 from datetime import datetime
 from pprint import pprint
+
+import ram.ai.new.mainState as mainState
 
 vars = dir()
 

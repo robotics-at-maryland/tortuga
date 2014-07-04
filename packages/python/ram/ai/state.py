@@ -658,8 +658,8 @@ class Machine(core.Subsystem):
         transitionTable = newState.transitions()
         if self._qeventHub is not None:
             for eventType in transitionTable.iterkeys():
-                if type(eventType) == type(self._enterState):
-                    raise Exception("Event type is actually a function")
+                if type(eventType) is type(self._enterState):
+                    raise Exception("[%s] Event type is actually a function" % eventType)
                 else:
                     conn = self._qeventHub.subscribeToType(eventType, 
                                                            self.injectEvent)

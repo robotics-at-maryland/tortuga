@@ -27,11 +27,11 @@ Subsystems:
         # Includes all camera and vision system settings
         INCLUDE: tools/simulator/data/config/vision/default.yml
 
-    #Ai:
-    #    type: AI
-#
-#        # Includes the "taskOrder" for the AI
-#        INCLUDE: tools/simulator/data/config/ai/default_ai.yml
+    Ai:
+        type: AI
+
+        # Includes the "taskOrder" for the AI
+        INCLUDE: tools/simulator/data/config/ai/default_ai.yml
 
     StateMachine:
         type: StateMachine
