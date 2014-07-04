@@ -66,7 +66,6 @@ def setup_dependencies():
     deps.append(dependency('essential', 'build-essential p7zip'))
     deps.append(dependency('cmake', 'cmake'))
     deps.append(dependency('python', 'python-dev python-numpy'))
-    deps.append(dependency('opencv', 'libcv-dev libhighgui-dev libcvaux-dev'))
     deps.append(dependency('dc1394', 'libdc1394-22-dev'))
     deps.append(dependency('opengl', 'mesa-common-dev libglu1-mesa-dev'))
     deps.append(dependency('libusb', 'libusb-dev'))
@@ -133,6 +132,8 @@ def download_precompiled(quiet=False):
                              '%s/%s' % (url, dep)], cwd = '/opt/ram/local')
             subprocess.call(['7zr', 'x', dest], cwd = '/opt/ram/local')
 
+
+    
     print 'success: all archives installed'
     
 def main(argv=None):
@@ -191,6 +192,22 @@ def main(argv=None):
         software = Software(task, context)
         software.install()
 
+
+    file_exists, join_path = os.path.exists, os.path.join
+    openCVTar = join_path('/opt/ram/local', 'opencv-2.4.6.1.tar.gz')
+    openCVExtract = join_path('/opt/ram/local', 'opencv-2.4.6.1')
+    openCVBuild = join_path(openCVExtract, 'build')
+    if not file_exists(openCVTar):
+        subprocess.call(['wget', 'http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/2.4.6.1/opencv-2.4.6.1.tar.gz'], cwd = '/opt/ram/local')
+    if not file_exists(openCVExtract):
+        subprocess.call(['tar', '-xvzf', openCVTar], cwd = '/opt/ram/local')
+    if not file_exists(openCVBuild):
+        subprocess.call(['mkdir', 'build'], cwd = openCVExtract)
+        subprocess.call(['cmake', '..'], cwd = openCVBuild)
+        subprocess.call(['make'], cwd = openCVBuild)
+        subprocess.call(['sudo', 'make', 'install'], cwd = openCVBuild)
+    if not file_exists(openCVTar):
+        subprocess.call(['rm', 'opencv-2.4.6.1.tar.gz'], cwd = '/opt/ram/local')
     return 0
 
 if __name__ == "__main__":
