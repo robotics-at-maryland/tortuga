@@ -38,7 +38,7 @@ class ForwardsSearchMachine(stateMachine.StateMachine):
         
 class ForwardsSearchPattern(SearchPattern):
     def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
-        super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance),stopConditions,success,failure,constraint)
+        super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance), stopConditions, success, failure, constraint)
 
 class StrafeSearchMachine(stateMachine.StateMachine):
     def __init__(self,distance):
@@ -84,7 +84,7 @@ class YawSearchMachine(stateMachine.StateMachine):
         super(YawSearchMachine, self).__init__()
         start = self.addState('start', utilStates.Start())
         end = self.addState('end', utilStates.End())
-        yaw = self.addState('yaw', motion.Turn(yaw))
+        yaw = self.addState('yaw', motion.Turn(yawAngle))
         start.setTransition('next', 'yaw')
         yaw.setTransition('next', 'end')
         
@@ -92,7 +92,7 @@ class YawSearchMachine(stateMachine.StateMachine):
 class YawSearchPattern(SearchPattern):
     def __init__(self, yawAngle, stopConditions, success, failure,
                  constraint = lambda: True):
-        super(BoxSearchPattern,self).__init__(YawSearchMachine(yawAngle),
+        super(YawSearchPattern,self).__init__(YawSearchMachine(yawAngle),
                                               stopConditions, success,
                                               failure, constraint)
         
@@ -117,6 +117,7 @@ class ZigZagSearchMachine(stateMachine.StateMachine):
         strafeIn.setTransition('next', 'move2')
         move2.setTransition('next', 'strafeOut')
         strafeOut.setTransition('next', 'passCount')
+        passCount.setTransition('next', 'move1')
 
     def getPasses(self):
         return self.getState('passCount').getPasses()
