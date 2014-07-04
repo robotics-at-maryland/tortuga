@@ -1,5 +1,5 @@
 # new project imports as of June 2014
-import ram.ai.new.stateMachine as StateMachine
+import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
@@ -46,13 +46,11 @@ class Body(oldState.State):
         Since this will only be called on entry for the first time
         all initialization will be done here.
         """
-        #self._temp = utilStates.YAMLState(states = self._config)
 
-        #self._machine = self._temp._innerMachine
+        stateMachine.StateMachine._LEGACY_STATE = self
         self._machine = testMachine.TestMachine()
-        self._machine.setLegacyState(self)
-        self._machine.configure(None)
-
+        self._machine.configure(self._config)
+        self._machine.validate()
         self._machine.start()
 
         self._updateTimer = timer.Timer(self.timerManager, UPDATE, self._updateDelay, True)

@@ -1,12 +1,13 @@
-import ram.ai.new.state as state
-import ram.ai.new.stateMachine as stateMachine
-
 import ext.math as math
 from ext.control import yawVehicleHelper
 import ram.motion as motion
 from ram.motion.basic import Frame
 
-class MotionState(state.State):
+from state import *
+from stateMachine import *
+
+@require_transitions('next')
+class MotionState(State):
     def __init__(self):
         super(MotionState, self).__init__()
         self._motionID = -1
@@ -18,7 +19,7 @@ class MotionState(state.State):
         return self.getStateMachine().getLegacyState().stateEstimator
 
     def getMotion(self):
-        '''Overridable method that returns what motion to perform.'''
+        """Overridable method that returns what motion to perform."""
         pass
 
     def enter(self):

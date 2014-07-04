@@ -1,70 +1,60 @@
 import yaml
 
-import ram.ai.new.state as state
-import ram.ai.new.stateMachine as stateMachine
+from state import *
+from stateMachine import *
+from motionStates import *
 
-from ram.ai.new.motionStates import *
-
-class Start(state.State):
-    '''
+@require_transitions('next')
+class Start(State):
+    """
     Marks the start of a state machine.  
     Sets the state machine's start state to self upon init.
-    '''
-    def __init__(self):
-        super(Start, self).__init__()
-
-    def addToStateMachine(self, name, machine):
-        super(Start, self).addToStateMachine(name, machine)
+    """
+    def added(self, name, machine):
+        super(Start, self).added(name, machine)
         machine.setStartState(self)
 
     def enter(self):
         self.doTransition('next')
 
-class End(state.State):
-    '''
+class End(State):
+    """
     Marks the end of a state machine.
     Sets the state machine to complete upon entry.
-    '''
+    """
     def enter(self):
         self.getStateMachine().setComplete()
 
-class NestedState(state.State):
-    def __init__(self,internalMachine = None):
+class NestedState(State):
+    def __init__(self, innerMachine = StateMachine()):
         super(NestedState, self).__init__()
+        assert isinstance(innerMachine, StateMachine)
 
-        if(internalMachine != None):
-            self._innerMachine = internalMachine
-        else:
-            self._innerMachine = stateMachine.StateMachine()
+        self._innerMachine = innerMachine
 
     def getInnerStateMachine(self):
         return self._innerMachine
 
-    def addToStateMachine(self, name, machine):
-        super(NestedState, self).addToStateMachine(name, machine)
-        self._innerMachine.setLegacyState(machine.getLegacyState())
+    def configure(self, config):
+        self.getInnerStateMachine().configure(config)
+
+    def validate(self):
+        super(NestedState, self).validate()
+        self.getInnerStateMachine().validate()
 
     def enter(self):
         self.getInnerStateMachine().start()
+        if self.getInnerStateMachine().isCompleted():
+            self.doTransition('complete')
 
     def update(self):
         self.getInnerStateMachine().update()
+        if self.getInnerStateMachine().isCompleted():
+            self.doTransition('complete')
 
-class YAMLState(NestedState):
-    def __init__(self, filename = None, states = None):
-        super(YAMLState, self).__init__()
-        
-        if filename is not None:
-            states = yaml.load(open(filename, 'r'))
-
-        for name, config in states.iteritems():
-            typ = state.MetaState.getStateType(config['type'])
-            init = config.get('init', {})
-            transitions = config.get('transitions', {})
-            newState = typ(**init)
-            self.getInnerStateMachine().addState(name, newState)
-            for k, v in transitions.iteritems():
-                newState.setNextState(v, k)
+    def exit(self):
+        if not self.getInnerStateMachine().isCompleted():
+            self.getInnerStateMachine().stop()
 
 #internal statem machine, constraint(boolean returning function, true if constraint is being followed), state to transition to if inner machine finishes(success case), state to transition to if constraint is violated(failure case)
 #Note that state will always go to success if failure is not set
@@ -72,11 +62,11 @@ class ConstrainedState(NestedState):
     def __init__(self, internalMachine, queryFunc, success, failure = None):
         super(ConstrainedState, self).__init__(internalMachine)
         self._query = queryFunc
-        self.setNextState(success,'complete')
-        if(failure == None):
-            self.setNextState(success,'failure')
+        self.setTransition('complete', success)
+        if(failure is None):
+            self.setTransition('failure', success)
         else:
-            self.setNextState(failure,'failure')
+            self.setTransition('failure', failure)
 
     #note that the constrain is prioritized over the state machine completing
     def update(self):
@@ -90,11 +80,11 @@ class ConstrainedState(NestedState):
 #the following state is a simple counter, it merely goes to the next state instantly
 #this can be used for counting the number of passes through a certain transition path
 
-class PassCounter(state.State):
-    def __init__(self,destination):
+class PassCounter(State):
+    def __init__(self, destination):
         super(PassCounter,self).__init__()
         self._count = 0
-        self.setNextState(destination)
+        self.setTransition(destination)
    
     def update(self):
         self._count = self._count + 1
