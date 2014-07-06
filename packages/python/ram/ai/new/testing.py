@@ -1,8 +1,9 @@
 import time
-import utilClasses
+import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
+import approach as centering
 
 from state import *
 from stateMachine import *
@@ -20,11 +21,9 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-        s = self.addStates({
-                'start' : utilStates.Start(),
-                'forward' : search.ForwardsSearchPattern(2, lambda: False, 'end', 'end'),
-                'end' : utilStates.End()
-            })
-
-        s['start'].setTransition('next', 'forward')
-        s['forward'].setTransition('next', 'end')
+        pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
+        start = self.addState('start',utilStates.Start())
+        end = self.addState('end',utilStates.End())
+        center = self.addState('center', centering.DownCenter(pipe, 'align', 'end'))
+        align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
+        start.setTransition('next', 'center')
