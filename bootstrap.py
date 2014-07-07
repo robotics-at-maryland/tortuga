@@ -33,7 +33,7 @@ platforms = {
   ('Ubuntu', '10.04', 'lucid') : 'ubuntu_1004',
   ('Ubuntu', '10.10', 'maverick') : 'ubuntu_1010',
   ('Ubuntu', '11.04', 'natty') : 'ubuntu_1104',
-  ('LinuxMint', '11', 'katya') : 'ubuntu_1104',
+  ('LinuxMint', '11', 'katya') : 'ubuntu_1104'
 }
 
 class dependency(object):
