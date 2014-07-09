@@ -40,7 +40,7 @@ class Body(oldState.State):
                  TERMINATE : Conclusion }
 
     def enter(self):
-        self._updateDelay = 1
+        self._updateDelay = .1#this needs to be .1 for visual servoing, don't change
         self._courseTimeOut = 20
         """
         Since this will only be called on entry for the first time

@@ -19,6 +19,7 @@ class VisionObject(object):
         self.seen = False
         self.x = 0
         self.y = 0
+        self.angle = 0
         self.range = 0
 
     #should be overloaded to update the values in here
@@ -46,6 +47,23 @@ class OldSimulatorHackVisionObject(VisionObject):
     def seeit(self,event):
         if(event.color == vision.Color.RED):
             self.seen = False
+
+#hack vision object that  tracks a pipe in the old simulator
+class OldSimulatorHackPipe(VisionObject):
+    def __init__(self,oldStatePtr):
+        super(OldSimulatorHackPipe,self).__init__()
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_FOUND,self.callback)
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_LOST,self.seeit)
+
+
+    def callback(self,event):
+        self.seen = True
+        self.x = event.x
+        self.y = event.y
+        self.angle = event.angle.valueDegrees()
+            
+    def seeit(self,event):
+        self.seen = False
         
 #checks if a vision object is in the range specified
 class ObjectInVisionRangeQuery(object):
@@ -59,8 +77,10 @@ class ObjectInVisionRangeQuery(object):
         self._range_range = range_range
     
     def query(self):
-        visionObject.update(self)
-        return visionObject.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (math.abs(obj.y - self._y_center) <= self._y_range) and (math.abs(obj.range - self._range_center) <= self._range_range))
+        self._obj.update()
+        obj = self._obj
+        obj.range = 0
+        return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range) and (abs(obj.range - self._range_center) <= self._range_range))
         
 
 #this class transforms a query into a  query which only becomes false if the the query has only returned false under a certain amount of time(such that all queries made in that time returned true, does not account for queries that weren't actually made)
