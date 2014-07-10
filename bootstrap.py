@@ -193,16 +193,23 @@ def main(argv=None):
         software.install()
     
     downloadCV = "placeholder"
-    while downloadCV == ("placeholder" or (not "" and not "yes" and not "no")):
+    while downloadCV == 'placeholder' or (not downloadCV == '' and 
+                                          not downloadCV == 'yes' and 
+                                          not downloadCV == 'no' and
+                                          not downloadCV == 'y' and
+                                          not downloadCV == 'n')):
         try:
-            downloadCV = str(raw_input("Download and install OpenCV? (yes/no) [no]: ")).strip()
+            downloadCV = str(raw_input('Download and install OpenCV?' /
+                                       '(y/n) [n]: ')).strip()
         except Exception as e:
-            downloadCV = "no"
+            downloadCV = 'no'
         downloadCV = downloadCV.lower()
-        if downloadCV == (not "" and not "yes" and not "no"):
+        if downloadCV ==  '' and not downloadCV == 'yes' 
+            and not downloadCV == 'no' and not downloadCV == 'y'
+            and not downloadCV == 'n'):
             print("please input yes or no")
 
-    if downloadCV == 'yes':
+    if downloadCV == 'y' or downloadCV == 'yes':
         file_exists, join_path = os.path.exists, os.path.join
         openCVTar = join_path('/opt/ram/local', 'opencv-2.4.6.1.tar.gz')
         openCVExtract = join_path('/opt/ram/local', 'opencv-2.4.6.1')
