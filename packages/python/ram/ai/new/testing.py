@@ -21,9 +21,8 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-        pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
+        pipe = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        center = self.addState('center', centering.DownCenter(pipe, 'align', 'end'))
-        align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
+        center = self.addState('center', centering.ForwardsCenter(pipe, 'end', 'end',10))
         start.setTransition('next', 'center')
