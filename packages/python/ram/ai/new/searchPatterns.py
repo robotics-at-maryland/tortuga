@@ -3,16 +3,20 @@ import ram.ai.new.utilStates as utilStates
 import ram.ai.new.stateMachine as stateMachine
 import ram.ai.Utility as oldUtil
 
-#search patterns require a search machine which performs the motions associated with searching, and a function which returns true if the search has failed
-#success and failure are the destination state ids for the success and failure cases
-#if not present, the failure case will also map to next
-#unlike constrainedState, SearchPattern has two parameters for stopping
+#search patterns require a search machine which performs the motions associated
+#with searching, and a function which returns true if the search has failed
+#success and failure are the destination state ids for the success and failure
+#cases if not present, the failure case will also map to next unlike
+#constrainedState, SearchPattern has two parameters for stopping
 #the first is the success conditions, the second are the termination conditions
-#note that search patterns must ALWAYS have a failure case, if you always wan't to go to the same state then make success and failure both the same state ID
+#note that search patterns must ALWAYS have a failure case, if you always wan't
+# to go to the same state then make success and failure both the same state ID
 class SearchPattern(utilStates.ConstrainedState):
-    def __init__(self,searchMachine,stopConditions,success,failure,constraint = lambda: True):
+    def __init__(self, searchMachine, stopConditions, success, failure,
+                 constraint = lambda: True):
         #a search pattern only sucforwardceeds if its stop condition is met, it always if the search pattern finishes, or if a constraint is met
-        super(SearchPattern,self).__init__(searchMachine,constraint,failure,failure)
+        super(SearchPattern,self).__init__(searchMachine, constraint, failure,
+                                           failure)
         self.setTransition('next', success)
         self._stopConditions = stopConditions
         
@@ -37,8 +41,11 @@ class ForwardsSearchMachine(stateMachine.StateMachine):
         move.setTransition('next', 'end')
         
 class ForwardsSearchPattern(SearchPattern):
-    def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
-        super(ForwardsSearchPattern,self).__init__(ForwardsSearchMachine(searchDistance), stopConditions, success, failure, constraint)
+    def __init__(self,searchDistance, stopConditions, success, failure,
+                 constraint = lambda: True):
+        super(ForwardsSearchPattern,self).__init__(
+            ForwardsSearchMachine(searchDistance),
+            stopConditions, success, failure, constraint)
 
 class StrafeSearchMachine(stateMachine.StateMachine):
     def __init__(self,distance):
@@ -50,8 +57,11 @@ class StrafeSearchMachine(stateMachine.StateMachine):
         move.setTransition('next', 'end')
         
 class StrafeSearchPattern(SearchPattern):
-    def __init__(self,searchDistance, stopConditions, success, failure,constraint = lambda: True):
-        super(StrafeSearchPattern,self).__init__(StrafeSearchMachine(searchDistance),stopConditions,success,failure,constraint)
+    def __init__(self,searchDistance, stopConditions, success, failure,
+                 constraint = lambda: True):
+        super(StrafeSearchPattern,self).__init__(
+            StrafeSearchMachine(searchDistance),
+            stopConditions, success, failure, constraint)
 
 
 # Search in a rectangle in the plane of the robot orthogonal to depth
@@ -73,10 +83,9 @@ class BoxSearchMachine(stateMachine.StateMachine):
 class BoxSearchPattern(SearchPattern):
     def __init__(self, xDistance, yDistance, stopConditions, success, failure,
                  constraint = lambda: True):
-        super(BoxSearchPattern,self).__init__(BoxSearchMachine(xDistance,
-                                                               yDistance),
-                                              stopConditions, success,
-                                              failure, constraint)
+        super(BoxSearchPattern,self).__init__(
+            BoxSearchMachine(xDistance, yDistance),
+            stopConditions, success, failure, constraint)
 
 # Maintaining position yaw the robot to search
 class YawSearchMachine(stateMachine.StateMachine):
@@ -126,8 +135,8 @@ class ZigZagSearchMachine(stateMachine.StateMachine):
 class ZigZagSearchPattern(SearchPattern):
     def __init__(self, travelDistance, strafeDistance, stopConditions, success, failure,
                  constraint = lambda: True):
-        super(ZigZagSearchPattern, self).__init__(ZigZagSearchMachine(travelDistance, strafeDistance),
-                                                  stopConditions, success,
-                                                  failure, constraint)
+        super(ZigZagSearchPattern, self).__init__(
+            ZigZagSearchMachine(travelDistance, strafeDistance),
+            stopConditions, success, failure, constraint)
         
     
