@@ -17,6 +17,12 @@ class GateTask(utilStates.Task):
                                        success, failure,
                                        duration)
 
+    def enter(self):
+        self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOn()
+
+    def leave(self):
+        self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOff()
+
     def doFailure(self):
        """
        Method added to initiate failure case from within nested
