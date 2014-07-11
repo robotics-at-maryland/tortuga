@@ -4,6 +4,8 @@ from state import *
 from stateMachine import *
 from motionStates import *
 
+import ram.ai.new.utilClasses as utilClasses
+
 @require_transitions('next')
 class Start(State):
     """
@@ -100,3 +102,14 @@ class PassCounter(State):
         def checkPasses(self):
             return (self._count > countToCheck)
         return checkPasses
+
+
+class Task(ConstrainedState):
+    def __init__(self, internalMachine, success, failure = None, 
+                 timerDuration = None):
+        self._taskTimer = utilClasses.Timer(timerDuration)
+        super(Task, self).__init__(internalMachine, self._taskTimer.check,
+                                   success, failure)
+
+        def enter(self):
+            self._taskTimer.reset()
