@@ -3,7 +3,7 @@ import ext.vision as vision
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
-class timer(object):
+class Timer(object):
     def __init__(self, duration):
         self.reset()
         self._duration = duration
