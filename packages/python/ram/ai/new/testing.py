@@ -29,7 +29,7 @@ class TestMachine(StateMachine):
         
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        gateTask = self.addState('gate', gate.GateTask(pipe, 4, 4, 4,
+        gateTask = self.addState('gate', gate.GateTask(pipe, 4, .5, 4,
                                                        'end', 'yaw', 
                                                        300))
         yaw = self.addState('yaw', motionStates.Turn(30))
