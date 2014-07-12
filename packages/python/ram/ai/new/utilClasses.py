@@ -3,7 +3,7 @@ import ext.vision as vision
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
-class timer(object):
+class Timer(object):
     def __init__(self, duration):
         self.reset()
         self._duration = duration
@@ -79,7 +79,6 @@ class ObjectInVisionRangeQuery(object):
     def query(self):
         self._obj.update()
         obj = self._obj
-        obj.range = 0
         return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range) and (abs(obj.range - self._range_center) <= self._range_range))
         
 
