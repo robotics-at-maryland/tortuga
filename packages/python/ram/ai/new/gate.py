@@ -19,9 +19,11 @@ class GateTask(utilStates.Task):
 
     def enter(self):
         self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOn()
+        super(GateTask, self).enter()
 
     def leave(self):
         self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOff()
+        super(GateTask, self).leave()
 
     def doFailure(self):
        """
@@ -58,9 +60,10 @@ class GateTaskMachine(stateMachine.StateMachine):
         dive.setTransition('next', 'forward')
         forward.setTransition('next', 'search')
 
-        def update(self):
-            print(self.getCurrentState().getName())
-            super(GateTaskMachine, self).update()
+    def update(self):
+        print 'why hello'
+        print(self.getCurrentState().getName())
+        super(GateTaskMachine, self).update()
 
 class GateFailure(utilStates.State):
     def __init__(self):
