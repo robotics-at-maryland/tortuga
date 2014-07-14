@@ -98,7 +98,9 @@ class StateMachine(object):
         self._completed = True
 
     def queueTransition(self, transitionName):
-        """Queues a transition to be handled after the current callback returns."""
+        """Queues a transition to be handled after the current callback 
+        returns.
+        """
         assert type(transitionName) is StringType
         self._currentTransition = transitionName
 

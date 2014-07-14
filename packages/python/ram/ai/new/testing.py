@@ -36,3 +36,4 @@ class TestMachine(StateMachine):
         start.setTransition('next', 'gate')
 
         yaw.setTransition('next', 'end')
+        print 'testing'

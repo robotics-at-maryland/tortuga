@@ -40,8 +40,10 @@ class Body(oldState.State):
                  TERMINATE : Conclusion }
 
     def enter(self):
+        print 'starting up'
         self._updateDelay = .1#this needs to be .1 for visual servoing, don't change
-        self._courseTimeOut = 20
+        self._courseTimeOut = 20000000
+
         """
         Since this will only be called on entry for the first time
         all initialization will be done here.
@@ -68,6 +70,7 @@ class Body(oldState.State):
         self._courseTimeOutTimer.stop()
 
     def UPDATE(self, event):
+        print 'swordfish'
         self._machine.update()
         if self._machine.isCompleted():
             self.publish(MACHINE_COMPLETE, core.Event())

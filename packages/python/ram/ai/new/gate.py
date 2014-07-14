@@ -8,7 +8,7 @@ import ram.ai.new.approach as approach
 
 class GateTask(utilStates.Task):
     def __init__(self, pipe, 
-                 diveDistance, forwardDistance, searchDistance, 
+                 taskDepth, forwardDistance, searchDistance, 
                  success, failure, duration = 120):
         super(GateTask, self).__init__(GateTaskMachine(pipe, self,
                                                        diveDistance, 
@@ -18,11 +18,13 @@ class GateTask(utilStates.Task):
                                        duration)
 
     def enter(self):
-        self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOn()
+        self.getStateMachine().getLegacyState().visionSystem\
+            .pipeLineDetectorOn()
         super(GateTask, self).enter()
 
     def leave(self):
-        self.getStateMachine().getLegacyState().visionSystem.pipeLineDetectorOff()
+        self.getStateMachine().getLegacyState().visionSystem\
+            .pipeLineDetectorOff()
         super(GateTask, self).leave()
 
     def doFailure(self):
@@ -33,7 +35,7 @@ class GateTask(utilStates.Task):
        self.doTransition('failure')
 
 class GateTaskMachine(stateMachine.StateMachine):
-    def __init__(self, pipe, taskState, diveDistance, forwardDistance, 
+    def __init__(self, pipe, taskState, taskDepth, forwardDistance, 
                  searchDistance):
         super(GateTaskMachine, self).__init__()
         self._taskState = taskState
@@ -48,7 +50,7 @@ class GateTaskMachine(stateMachine.StateMachine):
         start = self.addState('start', utilStates.Start())
         end = self.addState('end', utilStates.End())
         failure = self.addState('failure', GateFailure())
-        dive = self.addState('dive', motion.Dive(diveDistance))
+        dive = self.addState('dive', motion.Dive(taskDepth))
         forward = self.addState('forward', motion.Forward(forwardDistance))
         pipeSearch = self.addState('search', pipeSearch)
         center = self.addState('center', 
@@ -61,15 +63,10 @@ class GateTaskMachine(stateMachine.StateMachine):
         forward.setTransition('next', 'search')
 
     def update(self):
-        print 'why hello'
-        print(self.getCurrentState().getName())
         super(GateTaskMachine, self).update()
 
-class GateFailure(utilStates.State):
+class GateFailure(utilStates.End):
     def __init__(self):
         super(GateFailure, self).__init__()
-
-    def update(self):
-        self.getStateMachine()._taskState.doFailure()
     
 
