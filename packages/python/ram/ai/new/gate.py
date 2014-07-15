@@ -11,7 +11,7 @@ class GateTask(utilStates.Task):
                  taskDepth, forwardDistance, searchDistance, 
                  success, failure, duration = 120):
         super(GateTask, self).__init__(GateTaskMachine(pipe, self,
-                                                       diveDistance, 
+                                                       taskDepth, 
                                                        forwardDistance,
                                                        searchDistance),
                                        success, failure,
