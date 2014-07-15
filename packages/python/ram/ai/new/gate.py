@@ -27,6 +27,13 @@ class GateTask(utilStates.Task):
             .pipeLineDetectorOff()
         super(GateTask, self).leave()
 
+    def update(self):
+        if self._InnerMachine().isCompleted() and \
+                isinstance(self._InnerMachine().getCurrentState(), 
+                           GateFailure):
+            self.doTransition(failure)
+        super(GateTask, self).update()
+
     def doFailure(self):
        """
        Method added to initiate failure case from within nested
@@ -35,10 +42,9 @@ class GateTask(utilStates.Task):
        self.doTransition('failure')
 
 class GateTaskMachine(stateMachine.StateMachine):
-    def __init__(self, pipe, taskState, taskDepth, forwardDistance, 
+    def __init__(self, pipe, taskDepth, forwardDistance, 
                  searchDistance):
         super(GateTaskMachine, self).__init__()
-        self._taskState = taskState
         
         pipeSearch = searches.ForwardsSearchPattern(
             searchDistance, 
@@ -69,4 +75,3 @@ class GateFailure(utilStates.End):
     def __init__(self):
         super(GateFailure, self).__init__()
     
-
