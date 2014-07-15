@@ -10,7 +10,7 @@ class GateTask(utilStates.Task):
     def __init__(self, pipe, 
                  taskDepth, forwardDistance, searchDistance, 
                  success, failure, duration = 120):
-        super(GateTask, self).__init__(GateTaskMachine(pipe, self,
+        super(GateTask, self).__init__(GateTaskMachine(pipe,
                                                        taskDepth, 
                                                        forwardDistance,
                                                        searchDistance),
@@ -42,8 +42,7 @@ class GateTask(utilStates.Task):
        self.doTransition('failure')
 
 class GateTaskMachine(stateMachine.StateMachine):
-    def __init__(self, pipe, taskDepth, forwardDistance, 
-                 searchDistance):
+    def __init__(self, pipe, taskDepth, forwardDistance, searchDistance):
         super(GateTaskMachine, self).__init__()
         
         pipeSearch = searches.ForwardsSearchPattern(
