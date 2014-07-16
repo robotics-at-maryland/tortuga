@@ -112,7 +112,28 @@ class YawVisualServoing(state.State):
 
     def getStateEstimator(self):
         return self.getStateMachine().getLegacyState().stateEstimator
+ def decideY(self,event):
+        if(event.x<(self._x_d - self._x_bound)):
+            return 1#go the other way
+        else:
+            if(event.x>(self._x_d + self._x_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
 
+    def decideZ(self,event):
+        return 0
+
+    def decideX(self,event):
+        if(event.y<(self._y_d - self._y_bound)):
+            return 1#go the other way
+        else:
+            if(event.y>(self._y_d + self._y_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
     def update(self):
         self._obj.update()
         currentOrientation = self.getStateEstimator().getEstimatedOrientation()

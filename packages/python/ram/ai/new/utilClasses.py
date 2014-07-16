@@ -1,5 +1,7 @@
 import time
 import ext.vision as vision
+import ext.vehicle as vehicle
+
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
@@ -48,7 +50,26 @@ class OldSimulatorHackVisionObject(VisionObject):
         if(event.color == vision.Color.RED):
             self.seen = False
 
-#hack vision object that  tracks a pipe in the old simulator
+class SonarObject(object):
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.z = 0
+
+    def update(self):
+        pass
+
+class OldSimulatorHackSonarObject(SonarObject):
+    def __init__(self,oldStatePtr):
+        super(OldSimulatorHackSonarObject,self).__init__()
+        oldStatePtr.queuedEventHub.subscribeToType(vehicle.device.ISonar.UPDATE,self.callback)
+
+    def callback(self,event):
+        self.x = event.direction.x
+        self.y = event.direction.y
+        self.z = event.direction.z
+            
+#hack vision object that tracks a pipe in the old simulator
 class OldSimulatorHackPipe(VisionObject):
     def __init__(self,oldStatePtr):
         super(OldSimulatorHackPipe,self).__init__()
