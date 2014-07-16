@@ -16,9 +16,6 @@ class Surrender(state.State):
     def update(self):
         self.doTransition('next')
 
-
-
-
 class Approach(search.SearchPattern):
     def __init__(self, stopConditions, servoingStateMachine,success, failure, retryConstraint = lambda : True, recoverAction = Surrender(), constraint = lambda : True):
         super(Approach,self).__init__(ServoingMachine(servoingStateMachine, retryConstraint, recoverAction), stopConditions, success, failure, constraint)
@@ -37,7 +34,6 @@ class ServoingMachine(stateMachine.StateMachine):
         #route start to the visual servoing
         start.setTransition('next', 'servo')
 
-
 class VisualServoingStateMachine(stateMachine.StateMachine):
     def __init__(self, servoingState):
         super(VisualServoingStateMachine,self).__init__()
@@ -48,7 +44,6 @@ class VisualServoingStateMachine(stateMachine.StateMachine):
         servo.setTransition('next','end')
         start.setTransition('next','servo')
     
-
 #does not use optional features: retry condition, recovery action and constraint
 #Centers on an object in the view of the downwards camera
 class DownCenter(Approach):
@@ -61,11 +56,10 @@ class ForwardsCenter(Approach):
     def __init__(self, visionObject, success, failure, rangeGoal, xBound = .1, yBound = .1, rangeBound = 10, configNode = None):
         super(ForwardsCenter, self).__init__(util.ObjectInVisionRangeQuery(visionObject, 0, 0, 0,xBound,yBound, rangeBound).query, VisualServoingStateMachine(fVS.ForwardsVisualServoing(visionObject, 0, 0,rangeGoal, configNode)), success, failure)
 
-
 #orients self with downwards object
 class DownOrient(Approach):
     def __init__(self, visionObject, success, failure, angleBound = 1):
         super(DownOrient,self).__init__(lambda : (abs(visionObject.angle) < angleBound),VisualServoingStateMachine(downVS.YawVisualServoing(visionObject)),success,failure)
         
-        
-    
+class SonarCenter(Approach):
+    def __init__(self, sonarObject, 
