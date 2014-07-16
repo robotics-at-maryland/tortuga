@@ -132,8 +132,6 @@ def download_precompiled(quiet=False):
                              '%s/%s' % (url, dep)], cwd = '/opt/ram/local')
             subprocess.call(['7zr', 'x', dest], cwd = '/opt/ram/local')
 
-
-    
     print 'success: all archives installed'
     
 def main(argv=None):
@@ -192,17 +190,23 @@ def main(argv=None):
         software = Software(task, context)
         software.install()
     
-    downloadCV = "placeholder"
-    while downloadCV == ("placeholder" or (not "" and not "yes" and not "no")):
+    downloadCV = 'placeholder'
+    while downloadCV == 'placeholder' or not(downloadCV == '' or 
+                                             downloadCV == 'yes' or 
+                                             downloadCV == 'no' or 
+                                             downloadCV == 'y' or 
+                                             downloadCV == 'n'):
         try:
-            downloadCV = str(raw_input("Download and install OpenCV? (yes/no) [no]: ")).strip()
+            downloadCV = str(raw_input(
+                    'Download and install OpenCV? (y/n) [n]: ')).strip()
         except Exception as e:
-            downloadCV = "no"
+            downloadCV = 'no'
         downloadCV = downloadCV.lower()
-        if downloadCV == (not "" and not "yes" and not "no"):
-            print("please input yes or no")
+        if not (downloadCV == '' or downloadCV == 'yes' or downloadCV == 'no' 
+                or downloadCV == 'y' or downloadCV == 'n'):
+                print('please input yes, no, y, or n')
 
-    if downloadCV == 'yes':
+    if downloadCV == 'yes' or downloadCV == 'y':
         file_exists, join_path = os.path.exists, os.path.join
         openCVTar = join_path('/opt/ram/local', 'opencv-2.4.6.1.tar.gz')
         openCVExtract = join_path('/opt/ram/local', 'opencv-2.4.6.1')
