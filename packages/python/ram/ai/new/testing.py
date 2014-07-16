@@ -7,6 +7,7 @@ import ram.ai.new.approach as approach
 import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.gate as gate
+import ram.ai.new.Buoy2014 as buoy
 
 from state import *
 from stateMachine import *
@@ -25,15 +26,18 @@ class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
 
-        pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
-        
-        start = self.addState('start',utilStates.Start())
-        end = self.addState('end',utilStates.End())
-        gateTask = self.addState('gate', gate.GateTask(pipe, 4, .5, 4,
-                                                       'end', 'yaw', 
-                                                       300))
-        yaw = self.addState('yaw', motionStates.Turn(30))
-        start.setTransition('next', 'gate')
+        buoyVis = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
 
-        yaw.setTransition('next', 'end')
+        self.addStates({
+            'start'     : utilStates.Start(),
+            'search'    : buoy.BuoySearchState(buoyVis, -2, 10, 0.25, 1),
+            'end'       : utilStates.End()
+            })
+
+        self.addTransitions([
+            ('start'    , 'next'    , 'search'  ),
+            ('search'   , 'success' , 'end'     ),
+            ('search'   , 'failure' , 'end'     )
+            ])
+
         print 'testing'
