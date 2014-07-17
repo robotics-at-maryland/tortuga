@@ -102,10 +102,12 @@ class State(object):
 
     def doEnter(self, transitionName):
         """Signals the state to perform its enter callback."""
+        #print("Entering State " + self._name)
         self.getEnterCallback(transitionName)()
 
     def doLeave(self, transitionName):
         """Signals the state to perform its leave callback."""
+        #print("Leaving State " + self._name)
         self.getLeaveCallback(transitionName)()
 
     def added(self, name, machine):

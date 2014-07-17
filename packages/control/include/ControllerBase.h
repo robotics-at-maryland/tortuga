@@ -189,7 +189,6 @@ public:
 
     virtual void moveVel(double x, double y, double z)
     {
-        std::cerr<<"hi there"<<std::endl;
         math::Vector2 vxy = m_desiredState->getDesiredVelocity();
         double vz = m_desiredState->getDesiredDepthRate();
         bool bx = false;
