@@ -26,8 +26,6 @@ class AcousticServoing(state.State):
         self.runMotion(self._sonarObject)
 
     def runMotion(self,event):
-        print event.x
-        print event.y
         new_x = self.decideX(self.kx*(event.x - self._destinationVector.x))
         new_y = self.decideY(self.ky*(event.y - self._destinationVector.y))
         new_z = self.kz*(event.z - self._destinationVector.z)

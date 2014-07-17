@@ -3,7 +3,7 @@ import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
-#import approach as centering
+import approach as centering
 import ram.ai.new.acousticServoing as acousticServoing
 
 
@@ -27,8 +27,8 @@ class TestMachine(StateMachine):
         pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        #center = self.addState('center', centering.DownCenter(pipe, 'align', 'end'))
+        center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end'), math.Vector3(0.0,0.0,3.0))
         #align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
-        acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
+        #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
         start.setTransition('next', 'acoustic')
-
+        

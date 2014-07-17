@@ -101,7 +101,18 @@ class ObjectInVisionRangeQuery(object):
         self._obj.update()
         obj = self._obj
         return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range) and (abs(obj.range - self._range_center) <= self._range_range))
-        
+
+class ObjectInSonarQuery(object):
+    def __init__(self, sonarObject, x_center, y_center, z_center, ):
+        self._obj = visionObject
+        self._x_center = x_center
+        self._y_center = y_center
+        self._z_center = z_center
+    
+    def query(self):
+        self._obj.update()
+        obj = self._obj
+        return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range) and (abs(obj.range - self._range_center) <= self._range_range))        
 
 #this class transforms a query into a  query which only becomes false if the the query has only returned false under a certain amount of time(such that all queries made in that time returned true, does not account for queries that weren't actually made)
 #this effectively introduces a delay into a query, it is useful for dealing with things like vision where an object might disappear for 1 or 2 frames, but then reappear immediately afterwards
