@@ -51,7 +51,7 @@ class BuoyTask(utilStates.Task):
         elif self.getInnerStateMachine().getCurrentState().getName() == 'success':
             self.doTransition('success')
 
-@require_transitions('success', 'failure')
+@require_transitions('complete', 'failure')
 class BuoySearchState(utilStates.NestedState):
     def __init__(self, buoyVisionObject, searchDist, approachDist, bumpDist, backDist):
         super(BuoySearchState, self).__init__()
@@ -72,9 +72,9 @@ class BuoySearchState(utilStates.NestedState):
 
         self.getInnerStateMachine().addTransitions([
             ('start'            , 'next'    , 'search'      ),
-            ('search'           , 'complete', 'approach'    ),
+            ('search'           , 'next', 'approach'    ),
             ('search'           , 'failure' , 'failure'     ),
-            ('approach'         , 'complete', 'bump'        ),
+            ('approach'         , 'next', 'bump'        ),
             ('approach'         , 'failure' , 'failure'     ),
             ('bump'             , 'next'    , 'back'        ),
             ('back'             , 'next'    , 'success'     )

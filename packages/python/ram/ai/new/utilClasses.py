@@ -42,7 +42,7 @@ class OldSimulatorHackVisionObject(VisionObject):
             self.seen = True
             self.x = event.x
             self.y = event.y
-            self.range = event.range
+            self.range = 1/event.range
             
     def seeit(self,event):
         if(event.color == vision.Color.RED):

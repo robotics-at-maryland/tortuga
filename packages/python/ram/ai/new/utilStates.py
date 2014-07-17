@@ -105,8 +105,8 @@ class PassCounter(State):
         return checkPasses
 
 #this class will transition to first while check is false, if check is true it goes to second
-class Switch(state.State):
-    def __init__(first, second, check):
+class Switch(State):
+    def __init__(self,first, second, check):
         self.setTransition('next', first)
         self.setTransition('switch', second)
         self.check = check

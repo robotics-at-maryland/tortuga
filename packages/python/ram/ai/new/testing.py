@@ -30,13 +30,13 @@ class TestMachine(StateMachine):
 
         self.addStates({
             'start'     : utilStates.Start(),
-            'search'    : buoy.BuoySearchState(buoyVis, -2, 10, 0.25, 1),
+            'search'    : buoy.BuoySearchState(buoyVis, -2, 3, 0.25, 1),
             'end'       : utilStates.End()
             })
 
         self.addTransitions([
             ('start'    , 'next'    , 'search'  ),
-            ('search'   , 'success' , 'end'     ),
+            ('search'   , 'complete' , 'end'     ),
             ('search'   , 'failure' , 'end'     )
             ])
 
