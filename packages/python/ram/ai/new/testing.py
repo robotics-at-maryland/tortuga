@@ -8,6 +8,7 @@ import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
+import ram.ai.new.Torp2014 as torp
 
 from state import *
 from stateMachine import *
@@ -26,17 +27,15 @@ class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
 
-        buoyVis = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
-
         self.addStates({
             'start'     : utilStates.Start(),
-            'search'    : buoy.BuoySearchState(buoyVis, -2, 3, 0.25, 1),
+            'search'    : torp.TorpedoTask({},'end','end',10000000),
             'end'       : utilStates.End()
             })
 
         self.addTransitions([
             ('start'    , 'next'    , 'search'  ),
-            ('search'   , 'complete' , 'end'     ),
+            ('search'   , 'success' , 'end'     ),
             ('search'   , 'failure' , 'end'     )
             ])
 

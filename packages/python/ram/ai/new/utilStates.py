@@ -87,7 +87,7 @@ class PassCounter(State):
     def __init__(self, destination):
         super(PassCounter,self).__init__()
         self._count = 0
-        self.setTransition(destination)
+        self.setTransition('next', destination)
    
     def update(self):
         self._count = self._count + 1
@@ -100,21 +100,23 @@ class PassCounter(State):
     #aren't closures wonderful?
     #returns true if under the count and false if over it
     def getPassChecker(self,countToCheck):
-        def checkPasses(self):
+        def checkPasses():
             return (self._count > countToCheck)
         return checkPasses
 
 #this class will transition to first while check is false, if check is true it goes to second
 class Switch(State):
     def __init__(self,first, second, check):
+        super(Switch, self).__init__()
         self.setTransition('next', first)
         self.setTransition('switch', second)
         self.check = check
     
-    def update():
+    def update(self):
         if self.check():
             self.doTransition('switch')
-        super(PassSwitch, self).update()
+        else:
+            self.doTransition('next')
         
 
 class Task(ConstrainedState):
