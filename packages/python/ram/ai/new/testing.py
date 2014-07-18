@@ -26,7 +26,7 @@ class TestMachine(StateMachine):
         pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end'), math.Vector3(0.0,0.0,3.0))
+        center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0)))
         #align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
         #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
         start.setTransition('next', 'center')

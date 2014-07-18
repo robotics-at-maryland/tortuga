@@ -64,4 +64,4 @@ class DownOrient(Approach):
         
 class SonarCenter(Approach):
     def __init__(self, sonarObject, success, failure, destination):
-        super(SonarCenter, self).__init__(util.ObjectInSonarQuery().query ,VisualServoingStateMachine(aS(sonarObject, destination),success, failure)
+        super(SonarCenter, self).__init__(util.ObjectInSonarQuery(sonarObject, destination.x, destination.y, destination.z, .1, .1, .1).query ,VisualServoingStateMachine(aS.AcousticServoing(sonarObject, destination)), success, failure)

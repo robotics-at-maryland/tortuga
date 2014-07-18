@@ -119,7 +119,8 @@ class YawVisualServoing(state.State):
 
     def getStateEstimator(self):
         return self.getStateMachine().getLegacyState().stateEstimator
- def decideY(self,event):
+
+    def decideY(self,event):
         if(event.x<(self._x_d - self._x_bound)):
             return 1#go the other way
         else:
