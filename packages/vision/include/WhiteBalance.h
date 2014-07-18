@@ -21,6 +21,8 @@ namespace ram {
 namespace vision {
 
 Mat WhiteBalance (Mat Input);
+//Mat SaliencyFilter(Mat img);
+//Mat ShapeRecon(Mat erosion_dst, Mat img);
 
 } //end ram
 } //end vision

@@ -55,11 +55,18 @@ class RAM_EXPORT GateDetector : public Detector
     void show(char* window);
     IplImage* getAnalyzedImage();
     blobfinder blob;
+    void FindShape(Mat erosion_dst, Mat img, Mat ref_canny);
+    Mat GetReference(int refnumber);
+    Mat GetOutline(Mat img);
+    Mat m_ref_canny;
+    Mat m_ref_img;
+    Mat m_sal_output;
 
  int returnRedmin(void);
 int returnRedmax(void);
 int getmaxdiff(); //gets the maximum allowed difference for kate function
 int m_maxdiff;
+int m_refcontour;
 
    
     
@@ -102,6 +109,15 @@ bool m_found;
 	void FindContours(cv::Mat img_src);
 	double m_minAspectRatio;
 	double m_maxAspectRatio;
+
+	int m_refimage;
+	int m_minrefarea;
+	int m_maxrefarea;
+	double m_aspectratio;
+	double m_bestMatch;
+	double m_arearatio;
+
+	double m_arclengthratio;
 	int m_minArea;
 	
 	void publishFoundEventContour(contourblob contour, Color::ColorType color);
@@ -110,8 +126,15 @@ bool m_found;
 	int m_cannylow;
 	int m_cannyhigh;
 	int m_minY;
-
+	int m_morphsize;
+	int m_morphtype;
+	int m_erodesize;
 	int m_dilatesize;
+	int m_cannyoradaptive;
+	int m_adwindow;
+	double m_threshvalue;
+	cv::Mat m_saliency;
+	void SaliencyFilter(cv::Mat img);
 };
     
 } // namespace vision

@@ -20,7 +20,9 @@
 #include "vision/include/VisionSystem.h"
 #include "vision/include/TableColorFilter.h"
 #include "vision/include/WhiteBalance.h"
+//#include "vision/include/saliency.h"
 #include "vision/include/GateDetectorKate.h"
+#include "vision/include/saliency.h"
 
 
 using namespace std;
@@ -62,6 +64,8 @@ void GateDetector::init(core::ConfigNode config)
 
     // Color filter properties
 //Kate edit: trying to edit the VisionToolV2 gui to allow sliders    
+
+/*
 	propSet->addProperty(config, false, "RedHuemin",
                          "RedHuemin",
                          9, &m_redminH, 0, 255);
@@ -105,7 +109,7 @@ void GateDetector::init(core::ConfigNode config)
 
 	propSet->addProperty(config, false, "maxAspectRatio",
                          "maxAspectRatio",
-                         6.0, &m_maxAspectRatio, 1.0,10.0);
+                         3.5, &m_maxAspectRatio, 1.0,10.0);
 
 	propSet->addProperty(config, false, "minAspectRatio",
                          "minAspectRatio",
@@ -113,11 +117,11 @@ void GateDetector::init(core::ConfigNode config)
 
 	propSet->addProperty(config, false, "minArea",
                          "minArea",
-                         200, &m_minArea, 0,5000);
+                         800, &m_minArea, 0,5000);
 
 propSet->addProperty(config, false, "RefelctionDiff",
                          "ReflectionDiff",
-                         50, &m_reflectiondiff, 0,500);
+                         10, &m_reflectiondiff, 0,500);
 
 propSet->addProperty(config, false, "CannyLow",
                          "CannyLow",
@@ -131,13 +135,56 @@ propSet->addProperty(config, false, "CannyHigh",
 propSet->addProperty(config, false, "ToptoIgnore",
                          "ToptoIgnore",
                          150, &m_minY, 0,500);
-
+*/
 propSet->addProperty(config, false, "Dilate",
                          "Dilate",
-                         1, &m_dilatesize, 0,5);
+                       1, &m_dilatesize, 0,5);
+propSet->addProperty(config, false, "Erode",
+                         "Erode",
+                       1, &m_erodesize, 0,5);
 
+propSet->addProperty(config, false, "ArcLengthRatio",
+                         "ArcLengthRatio",
+                         1.0, &m_arclengthratio, 0.0,5.0);
+propSet->addProperty(config, false, "RefImage",
+                         "RefImage",
+                         1, &m_refimage, 1,50);
+propSet->addProperty(config, false, "AspectRatio",
+                         "AspectRatio",
+                         1.0, &m_aspectratio, 0.0,10.0);
+propSet->addProperty(config, false, "BestMatch",
+                         "BestMatch",
+                         1.0, &m_bestMatch, 0.0,50.0);
+propSet->addProperty(config, false, "AreaRatio",
+                         "AreaRatio",
+                         1.0, &m_arearatio, 0.0,10.0);
+	propSet->addProperty(config, false, "minRefArea",
+                         "minRefArea",
+                         100, &m_minrefarea, 0,5000);
 
+	propSet->addProperty(config, false, "maxRefArea",
+                         "maxRefArea",
+                         500, &m_maxrefarea, 0,5000);
 
+	propSet->addProperty(config, false, "Canny",
+                         "Canny",
+                         70, &m_cannylow, 0,300);
+
+	propSet->addProperty(config, false, "MorphSize",
+                         "MorphSize",
+                         2, &m_morphsize, 0,50);
+	propSet->addProperty(config, false, "MorphType ",
+                         "MorphType",
+                         4, &m_morphtype, 0,6);
+	propSet->addProperty(config, false, "AdaptiveThresholdWindow",
+                         "AdaptiveThresholdWindow",
+                         13, &m_adwindow, 1,20);
+	propSet->addProperty(config, false, "CannyorAdaptive",
+                         "CannyorAdaptive",
+                         0, &m_cannyoradaptive, 0,1);
+	propSet->addProperty(config, false, "SalientThreshold",
+                         "SalientThreshold",
+                         0.0, &m_threshvalue, 0.0,200.0);
 }
     
 GateDetector::~GateDetector()
@@ -172,6 +219,7 @@ void GateDetector::update()
 {
     cam->getImage(frame);
     processImage(frame, 0);
+	printf("ASLKDJLASDJ?");
 }
     
 int GateDetector::returnRedmin(void)
@@ -188,20 +236,58 @@ return(m_redmaxH);
 
 Mat GateDetector::processImageColor(Image*input)
 {
+	printf("Starting ProcessIMageColor");
 
-	int red_maxH = m_redmaxH;
-	int red_minH = m_redminH;
-	int green_minH = m_greenminH;
-	int green_maxH = m_greenmaxH;
-	int minV = m_minV;
-	int maxV = m_maxV;
-	double minS = (double)m_minS;
-	double maxS = (double)m_maxS;
+	//int red_maxH = m_redmaxH;
+	//int red_minH = m_redminH;
+	//int green_minH = m_greenminH;
+	//int green_maxH = m_greenmaxH;
+	//int minV = m_minV;
+	//int maxV = m_maxV;
+	//double minS = (double)m_minS;
+	//double maxS = (double)m_maxS;
 
 	//printf("\n saving img from input");
 	Mat img = input->asIplImage();
+	//Mat dst(img.size(),img.type());
 
-	img_whitebalance = WhiteBalance(img);
+	printf("whitebalance");
+	img_whitebalance=img.clone();
+
+	//img_whitebalance = WhiteBalance(img);
+	int iframe = m_refimage;
+	m_ref_canny = GetReference(iframe);
+	printf("\n going for real image now");
+
+	namedWindow( "ImgKInput", CV_WINDOW_AUTOSIZE );
+	imshow( "ImgKInput",img_whitebalance);
+
+	printf("line 259");
+	Mat img_outline = GetOutline(img_whitebalance);
+
+	namedWindow( "OutlineOutput", CV_WINDOW_AUTOSIZE );
+	imshow( "OutlineOutput",img_outline);
+
+	printf("line 261");
+	printf("line 262");
+	printf("done with FindShape");
+	printf("AHHHH");
+	//Mat dst = m_saliency.clone();
+
+
+
+//	img_whitebalance = SaliencyFilter(img);
+//	Mat img_gray;
+//	cvtColor(img_whitebalance,img_gray,CV_RGB2GRAY);
+//printf("done with saliency");
+
+
+	FindShape(img_outline, img_whitebalance, m_ref_canny);
+
+	//cvtColor(img_whitebalance,dst,CV_RGB2BGR);
+
+/*
+
 	Mat temphsv;
 	cvtColor(img_whitebalance,temphsv,CV_BGR2HSV);
 	vector<Mat> hsv_planes;
@@ -278,8 +364,7 @@ Mat GateDetector::processImageColor(Image*input)
 			img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
 			bitwise_and(img_saturation,img_green,temp,noArray());
 			img_green = temp;
-			//imshow("Sat",img_saturation);
-		}
+			//imshow("Sat",img_saturation);		}
 		if (minV != 0 || maxV != 255)	
 		{
 			img_luminance = blob.LuminanceFilter(hsv_planes,minV,maxV);
@@ -298,9 +383,12 @@ Mat GateDetector::processImageColor(Image*input)
 
 	}
 	//imshow("AND",erosion_dst);
+*/
 
-	return(dilate_dst);
+	return(img);
 }
+
+
 void GateDetector::FindContours(Mat img_src)
 {
 	//do color filter
@@ -758,12 +846,13 @@ void GateDetector::processImage(Image* input, Image* output)
 	//cvtColor(img_whitebalance2,bw,CV_BGR2HSV);
 
 	Mat imgprocess = processImageColor(input);
+	//printf("WTF?");
 	//imshow("ImgProcess",imgprocess);
 
 	//cv::Canny(bw,bw, m_cannylow, m_cannyhigh, 3);
 	//imshow("Canny",bw);
 
-	FindContours(imgprocess);
+	//FindContours(imgprocess);
 	//foundLines::parallelLinesPairs final= gate.gateblob(imgprocess,img_whitebalance); //built in redfilter
 	//Mat img_red = gate.hedgeblob(img_whitebalance);  //built in green filter
 
@@ -771,7 +860,9 @@ void GateDetector::processImage(Image* input, Image* output)
 	//img_gate = gate.rectangle(img_red, img_whitebalance);
 	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
 	//printf("\n done with gateblob");
-
+/*
+	finalGate.area = 0;
+	m_found = FALSE;
 	if (finalGate.area > m_minArea)
 	{
 		m_found = TRUE;
@@ -788,6 +879,7 @@ void GateDetector::processImage(Image* input, Image* output)
 		else
 			publishLostEventBuoy(Color::GREEN);
 	}
+*/
 /*
 	if (final.foundtwosides == 1 || final.foundHorizontal == 1)
 	{
@@ -814,11 +906,11 @@ void GateDetector::processImage(Image* input, Image* output)
 	}
 */
 //	printf("\n outputting!");
-	cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
+	//cvtColor(img_whitebalance,img_whitebalance,CV_BGR2RGB);
 	input->setData(img_whitebalance.data,false);
 	frame->copyFrom(input);
 
-
+printf("HATE");
 	if(output)
 	    {
 		//imshow("Blue",erosion_dst_blue);
@@ -831,7 +923,7 @@ void GateDetector::processImage(Image* input, Image* output)
 		//} //endif mdebug==1
 
 	    } //end if output
-	
+	printf("No output");
 	
         
 
@@ -978,5 +1070,646 @@ int GateDetector::getmaxdiff(void)
 {
 	return(m_maxdiff);
 };
+
+Mat GateDetector::GetOutline(Mat img)
+{
+	Mat img_saliency;
+	//This function gets the outline of an image
+	//uses saliency, thresholding, canny or adaptive thresholding
+
+
+	int lowThreshold= m_cannylow; 
+	int morph_size = m_morphsize;
+	int morph_type = m_morphtype;
+	int erode_size = m_erodesize;
+	int dilate_size = m_dilatesize;
+	int cannyoradaptive= m_cannyoradaptive;
+	int adwindow = m_adwindow;
+	double threshvalue = m_threshvalue;
+	//leave alone
+	int ratio = 3;
+	int kernel_size = 3;
+	Mat element;
+	//create blank image of the same size as others and in color
+
+	//perform saliency
+	printf("\n saliency on original");
+	SaliencyFilter(img);
+	
+	printf("\n works?");
+	if (m_saliency.data)
+	{
+		printf("VICTORY");
+	//	namedWindow( "tempSal", CV_WINDOW_AUTOSIZE );
+	//	imshow( "tempSal",m_saliency);
+
+	}
+	else
+	{
+		printf("\n No Saliency Data Line 1103");
+	}
+
+
+	//find edges: convert to gray, canny, and then morph_gradietn Morphology	
+	Mat img_gray;
+	Mat temp;
+	printf(" line 1068");
+
+	if (m_saliency.channels() == 3)
+	{
+		cvtColor(m_saliency,img_gray,CV_BGR2GRAY);
+	}
+	else if (img_saliency.channels() == 1)
+	{
+		printf("\n Expected color, got gray");
+		img_gray = m_saliency;
+	}
+	else
+	{
+		printf("ERROR: WTF ON LINE 1123");
+	}
+
+	//namedWindow( "imgGray", CV_WINDOW_AUTOSIZE );
+	//imshow( "imgGray",img_gray);
+
+	printf(" line 1070");
+	if (threshvalue > 0)
+	{
+		threshold(img_gray, img_gray, threshvalue,1,3);
+	//	namedWindow( "Threshold", CV_WINDOW_AUTOSIZE );
+	//	imshow( "Threshold",img_gray);
+	//	temp.copyTo(img_gray);
+	}
+
+	printf("line 1136");
+	if (cannyoradaptive == 1)
+	{
+	
+		adaptiveThreshold(img_gray, img_gray, 255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,adwindow, 1 );
+	//	namedWindow( "AdaptiveThreshold", CV_WINDOW_AUTOSIZE );
+	//	imshow( "AdaptiveThreshold",img_gray);
+	}
+	else
+	{
+		printf(" canny on 1146");
+		Canny(img_gray,img_gray, lowThreshold, lowThreshold*ratio, kernel_size );
+	}
+
+	if (morph_size > 0 && morph_type >=2)
+	{	printf("\n morph is greater then 0 and type greater then 2");
+		
+		if(morph_type == 2 && cannyoradaptive == 0)
+		{
+			printf("\n Cannot close a canny image");
+		}
+		else
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+			morphologyEx(img_gray,temp,morph_type, element);
+			if (!temp.empty())
+			{
+				temp.copyTo(img_gray); //perform a deep copy  but only if the image isn't empty
+			}
+			else
+			{
+				printf("\n ERROR: Empty image, so not performing morphology");
+			}	
+		}	
+	}
+	if (morph_type == 2)
+	{
+		if (dilate_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+			dilate(img_gray, temp, element);
+			if (erode_size > 0)	
+			{	
+				element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );	
+				erode(temp, img_gray, element);
+			}
+			else
+			{
+				if (temp.data)
+				{
+					temp.copyTo(img_gray); //perform a deep copy  but only if the image isn't empty
+				}
+				else
+				{
+					printf("\n ERROR: Empty image, so not performing morphology");
+				}	
+			}
+		}
+		else if (erode_size > 0 && cannyoradaptive == 0) //cannot erode without dilating! will result in empty image
+		{
+			printf("\n ERROR: Cannot erode without dilating first, will result in an empty image");
+			//element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );
+			//erode(ref_canny, temp, element);
+			//temp.copyTo(ref_canny);
+		}
+		else if (erode_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );
+			erode(img_gray, temp, element);
+			temp.copyTo(img_gray);
+
+		}
+	}
+	if (morph_type == 1 && cannyoradaptive == 1)
+	{
+		if (erode_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );	
+			erode(img_gray, temp, element);
+			if (dilate_size > 0)	
+			{	
+				element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+				dilate(temp, img_gray, element);
+			}
+			else
+			{
+				if (temp.data)
+				{
+					temp.copyTo(img_gray); //perform a deep copy  but only if the image isn't empty
+				}
+				else
+				{
+					printf("\n ERROR: Empty image, so not performing morphology");
+				}	
+			}
+		}
+		else if (dilate_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+			dilate(img_gray, img_gray, element);
+		}
+	}
+
+printf("Line 1180 done with getoutline");
+return (img_gray);
+
+}
+
+
+Mat GateDetector::GetReference(int refnumber)
+{
+	printf("\n getReference");
+	//Load Reference Image for shape matching
+	//Input: 
+	//	reference object number. So it'll load the correct reference
+
+	//Output: Canny image from reference, also will save to variable m_refcontour
+	//	m_refcontour is the counter number in the reference image to be used
+
+	unsigned int maxRefArea =(unsigned int)m_maxrefarea;
+	unsigned int minRefArea =(unsigned int)m_minrefarea;
+
+
+
+	//Other variables: 
+	int lowThreshold= m_cannylow; //can be modified but shouldn't need to
+	//leave alone
+	int ratio = 3;
+	int kernel_size = 3;
+	int morph_size = m_morphsize;
+	int morph_type = m_morphtype;
+	int erode_size = m_erodesize;
+	int dilate_size = m_dilatesize;
+	int cannyoradaptive= m_cannyoradaptive;
+	int adwindow = m_adwindow;
+	double threshvalue = m_threshvalue;
+	Mat element;
+	//create blank image of the same size as others and in color
+	
+	Mat ref_img;
+
+	//get reference image name
+	stringstream ss;
+	ss << "../GateRef";
+	ss << refnumber;
+	ss <<".png";
+	string str = ss.str();
+
+	cout << "string = " << str ;
+
+	//Load image
+	m_ref_img = imread(str);
+	if (!m_ref_img.data)
+	{
+		printf("Unable to find Reference Image");
+		rectangle(m_ref_img, Point(50,100), Point(350,105), Scalar( 255, 255, 255 ),10,10, 0);
+	}
+	str = "";
+	printf("\n loaded iamge?");
+
+	//perform saliency
+	printf("\n Saliency on Reference");
+	SaliencyFilter(m_ref_img);
+	ref_img = m_saliency;
+
+		namedWindow( "ReferenceSaliency", CV_WINDOW_AUTOSIZE );
+		imshow( "ReferenceSaliency",ref_img);
+
+
+	//find edges: convert to gray, canny, and then morph_gradietn Morphology	
+	Mat ref_canny;
+	Mat temp;
+
+
+	if (ref_img.channels() == 3)
+		cvtColor(ref_img,ref_canny,CV_BGR2GRAY);
+	else
+	{
+		ref_canny = ref_img;
+	}
+
+	//	namedWindow( "RefCanny2", CV_WINDOW_AUTOSIZE );
+	//	imshow( "RefCanny2",ref_canny);
+
+
+
+	if (threshvalue > 0)
+	{
+		threshold(ref_canny, temp, threshvalue,1,3);
+	//	namedWindow( "Threshold", CV_WINDOW_AUTOSIZE );
+	//	imshow( "Threshold",temp);
+		temp.copyTo(ref_canny);
+	}
+
+	if (cannyoradaptive == 1)
+	{
+	
+		adaptiveThreshold(ref_canny, ref_canny, 255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,adwindow, 1 );
+	//	namedWindow( "AdaptiveThreshold", CV_WINDOW_AUTOSIZE );
+	//	imshow( "AdaptiveThreshold",ref_canny);
+	}
+	else
+	{
+		Canny(ref_canny,ref_canny, lowThreshold, lowThreshold*ratio, kernel_size );
+	}
+
+	if (morph_size > 0 && morph_type >=2)
+	{
+		
+		if(morph_type == 2 && cannyoradaptive == 0)
+		{
+			printf("\n Cannot close a canny image");
+		}
+		else
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+			morphologyEx(ref_canny,temp,morph_type, element);
+			if (!temp.empty())
+			{
+				temp.copyTo(ref_canny); //perform a deep copy  but only if the image isn't empty
+			}
+			else
+			{
+				printf("\n ERROR: Empty image, so not performing morphology");
+			}	
+		}	
+	}
+	if (morph_type == 2)
+	{
+		if (dilate_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+			dilate(ref_canny, temp, element);
+			if (erode_size > 0)	
+			{	
+				element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );	
+				erode(temp, ref_canny, element);
+			}
+			else
+			{
+				if (temp.data)
+				{
+					temp.copyTo(ref_canny); //perform a deep copy  but only if the image isn't empty
+				}
+				else
+				{
+					printf("\n ERROR: Empty image, so not performing morphology");
+				}	
+			}
+		}
+		else if (erode_size > 0 && cannyoradaptive == 0) //cannot erode without dilating! will result in empty image
+		{
+			printf("\n ERROR: Cannot erode without dilating first, will result in an empty image");
+			//element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );
+			//erode(ref_canny, temp, element);
+			//temp.copyTo(ref_canny);
+		}
+		else if (erode_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );
+			erode(ref_canny, temp, element);
+			temp.copyTo(ref_canny);
+
+		}
+	}
+	if (morph_type == 1 && cannyoradaptive == 1)
+	{
+		if (erode_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*erode_size + 1, 2*erode_size+1 ), Point( erode_size, erode_size ) );	
+			erode(ref_canny, temp, element);
+			if (dilate_size > 0)	
+			{	
+				element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+				dilate(temp, ref_canny, element);
+			}
+			else
+			{
+				if (temp.data)
+				{
+					temp.copyTo(ref_canny); //perform a deep copy  but only if the image isn't empty
+				}
+				else
+				{
+					printf("\n ERROR: Empty image, so not performing morphology");
+				}	
+			}
+		}
+		else if (dilate_size > 0)
+		{
+			element = getStructuringElement( MORPH_ELLIPSE, Size( 2*dilate_size + 1, 2*dilate_size+1 ), Point( dilate_size, dilate_size ) );
+			dilate(ref_canny, ref_canny, element);
+		}
+	}
+
+	printf("\n\n done");
+
+	printf("line 1359");
+
+	ref_canny = GetOutline(m_ref_img);
+
+	//ref_canny = m_saliency.clone();
+
+	//find contours for reference image
+	vector<vector<Point> > ref_contours;
+	vector<vector<Point> > final_contours;
+	vector<Vec4i> ref_hierarchy;
+	findContours(ref_canny, ref_contours, ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	printf("\n contours!");
+	int j;
+	int contournumber =0;
+	for (unsigned int i = 0; i < ref_contours.size(); i++) {
+		j = i;
+		if (ref_contours[i].size() > minRefArea && ref_contours[i].size() < maxRefArea)
+		{
+			drawContours(m_ref_img, ref_contours, i,Scalar(0,255,255), 1, 8, vector<Vec4i>(), 0, Point() );
+			contournumber = i;
+		}
+	}
+
+
+
+	namedWindow( "ReferenceCanny", CV_WINDOW_AUTOSIZE );
+	imshow( "ReferenceCanny",ref_canny);
+
+	namedWindow( "Reference", CV_WINDOW_AUTOSIZE );
+	imshow( "Reference",m_ref_img);
+
+	m_refcontour = contournumber;
+	return (ref_canny);
+};
+
+void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
+{
+	//Find shape based on edges
+	//input: Mat erosion_Dst: saliency filtered image
+	//	Mat img = original image
+	//Output: Output image
+	
+	//Get variables from GUI/file
+
+	double bestMatch_ref = m_bestMatch;
+	double AR_final_ref = m_aspectratio;
+	double area_final_ref = m_arearatio;
+	double AL_final_ref = m_arclengthratio;
+	int iframe = m_refimage;
+
+	//Load reference image, with int as the image type
+	//Mat ref_canny = GetReference(iframe);
+
+	//Get edges
+/*s
+	int lowThreshold= m_cannylow;
+	int ratio = 3;
+	int kernel_size = 3;
+	int morph_size = m_morphsize;
+	Mat element = getStructuringElement( MORPH_ELLIPSE, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+	Canny(erosion_dst,erosion_dst, lowThreshold, lowThreshold*ratio, kernel_size );
+	morphologyEx(erosion_dst,erosion_dst,MORPH_GRADIENT, element);
+*/
+	//now find contours
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	findContours( erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	printf("got contours");
+
+	//find contours for reference image
+	ref_canny = GetReference(iframe);
+	vector<Vec4i> ref_hierarchy;
+	vector<vector<Point> > ref_contours;
+	findContours(ref_canny, ref_contours, ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	printf("got reference contours");
+
+	//create parameters
+	double area_ref, area, area_final;
+	double rect_area_ref, rect_area;
+	double ref_AR, AR, AR_final; //aspect ratio
+	double AL, ref_AL, AL_final; //arch length
+	double perimeter, perimeter_final, perimeter_ref;
+	RotatedRect box, box_ref;
+	double bestMatch;
+	int j= 0;
+
+	//set reference contour to the number found in the reference
+	unsigned int i = m_refcontour;
+
+	for (int idx = 0; idx >= 0; idx = hierarchy[idx][0]) {
+		if (contours[idx].size() > 50)
+		{
+			if (ref_contours[i].size()>50)
+			{
+			//got contours to compare
+			vector<Point>& a = ref_contours[i];
+			vector<Point>& b = contours[idx];
+
+			//std::cout << "a.size = " << a.size() << ", b.size = " << b.size();
+				//get shape information
+				bestMatch = matchShapes(a, b, CV_CONTOURS_MATCH_I3, 0); //parameter to compare shapes
+
+				//draw rectangle about contours to get more information
+				box = minAreaRect(contours[idx]);
+				box_ref = minAreaRect(ref_contours[i]);
+				rect_area = double(box.size.width*box.size.height);
+				rect_area_ref = double(box_ref.size.width*box_ref.size.height);
+				area_ref = contourArea(ref_contours[i]);
+				area = contourArea(contours[idx]);
+
+				if (box_ref.size.height < box_ref.size.width)
+					ref_AR = double(box_ref.size.height/box_ref.size.width);
+				else
+					ref_AR = double(box_ref.size.width/box_ref.size.height);
+				if (box.size.height < box.size.width)
+					AR = double(box.size.height/box.size.width);
+				else
+					AR = double(box.size.width/box.size.height);
+				if (double(area_ref/rect_area_ref) < double(area/rect_area))
+					area_final = 1- double(area_ref/rect_area_ref) / double(area/rect_area) ;
+				else
+					area_final = 1- double(area/rect_area)/ double(area_ref/rect_area_ref) ;
+
+				AL = arcLength(contours[idx],TRUE);
+				ref_AL = arcLength(ref_contours[i],TRUE);
+
+		
+				if (AR < ref_AR)
+					AR_final = 1- AR/ref_AR;
+				else
+					AR_final = 1- ref_AR/AR;
+				if (double(AL/area) < double(ref_AL/area_ref))
+					AL_final = 1- double(AL/area)/double(ref_AL/area_ref);
+				else
+					AL_final = 1- double(ref_AL/area_ref)/double(AL/area);
+
+				if (AL < 2*(box.size.width+box.size.height))
+					perimeter = 1-AL/((box.size.width+box.size.height)*2);
+				else
+					perimeter = 1-((box.size.width+box.size.height)*2)/AL;
+				if (ref_AL < 2*(box_ref.size.width+box_ref.size.height))
+					perimeter_ref = 1-ref_AL/((box_ref.size.width+box_ref.size.height)*2);
+				else
+					perimeter_ref = 1-((box_ref.size.width+box_ref.size.height)*2)/ref_AL;
+				if ((perimeter) <(perimeter_ref))
+					perimeter_final =1-double( double(perimeter) / double(perimeter_ref));
+				else
+					perimeter_final = 1-double( double(perimeter_ref) / double(perimeter));
+
+
+				printf("bestmatch = %f Area_final = %f, AR_final = %f, AL_final = %f i = %d \n", bestMatch, area_final, AR_final, AL_final, i);
+	
+					//double bestMatch_ref, AR_final_ref, area_final_ref;
+						j = i;
+				Scalar color = Scalar(0,255,0);
+	/*
+					if (abs(perimeter_final) < .2)
+					{		
+						Scalar color = Scalar(0,0,255);
+						//drawContours( img, contours, idx, color, 1, 8, vector<Vec4i>(), 0, Point() );
+						drawContours( img, hull, idx, color, 15, 8, vector<Vec4i>(), 0, Point() );
+			  		}
+					if (abs(AL_final) < 0.1)
+					{		
+						Scalar color = Scalar(0,255,0);
+						//Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+						drawContours( img, contours, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+						//drawContours( img, hull, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+			  		}
+					if (area_final < 0.2)
+					{		
+						Scalar color = Scalar(255,0,0);
+						//Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+						drawContours( img, contours, idx, color, 5, 8, vector<Vec4i>(), 0, Point() );
+						//drawContours( img, hull, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+			  		}
+					if (AR_final < 0.2)
+					{		
+						Scalar color = Scalar(255,255,255);
+						//Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+						drawContours( img, contours, idx, color, 3, 8, vector<Vec4i>(), 0, Point() );
+						//drawContours( img, hull, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+			  		}
+	*/
+				if (bestMatch < bestMatch_ref && AR_final< AR_final_ref && area_final<area_final_ref  && AL_final < AL_final_ref)
+				{		
+					printf("bestmatch = %f, ref = %f, AR = %f, %f, area = %f, %f \n",bestMatch,bestMatch_ref, AR_final,AR_final_ref, area_final, area_final_ref);
+					//Scalar color = Scalar(255,0,255);
+					//Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+					drawContours( img, contours, idx, color, 1, 8, vector<Vec4i>(), 0, Point() );
+					//drawContours( img, hull, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+			  	}
+			}//end if refcontours is large enough
+		}; //end if contour is large enough
+	};//end for
+ 	  /// Show in a window
+ 	  namedWindow( "Hull demo", CV_WINDOW_AUTOSIZE );
+ 	  imshow( "Hull demo", img);
+
+
+printf("\n aaaaaah");
+printf("\n sigh");
+
+ 	//cvtColor(erosion_dst,img,CV_GRAY2RGB);
+	//return img;
+	
+}
+
+
+
+
+
+void GateDetector::SaliencyFilter(Mat img)
+{
+	//Mat image_output(img.size(),img.type());
+	//img.copyTo(image_output);
+	if (!img.empty()) 
+	{
+		printf("141");
+		//Mat image_output(img.size(),img.type());
+		//Mat image_output;
+		Mat img_gray; //(img.size(), CV_8U);
+		printf("1639");
+		printf("1640");
+		cout<< "img.channels() = "<< img.channels();
+		cout<< "img.type() = " <<img.type();
+
+		if (img.channels()==  3)
+			cvtColor(img,img_gray,CV_BGR2GRAY);
+		else
+		{
+			printf("WTF in SaliencyFilter");
+			img_gray = img;
+		}
+
+		IplImage* dstImg = cvCreateImage(cvSize(img_gray.cols, img_gray.rows), 8, 1);
+
+		IplImage* srcImg= new IplImage(img_gray);
+
+		//get saliency
+		Saliency saliency;
+		saliency.calcIntensityChannel(srcImg, dstImg);
+		Mat img_salience(dstImg);
+
+		m_saliency=img_salience.clone();
+		cvReleaseImage(&dstImg);
+
+
+	//	namedWindow( "Salience1", CV_WINDOW_AUTOSIZE );
+	//	cvShowImage( "Salience1",srcImg);
+
+		//namedWindow( "Salience", CV_WINDOW_AUTOSIZE );
+		//imshow( "Salience",m_saliency);
+		printf("175");
+//		cvReleaseImage(&srcImg);
+
+//		return image_output;
+	}
+	else
+	{
+		printf("No IMage!! for Salien");
+//		return image_output;
+		m_saliency=img.clone();
+
+	}
+}
+
+
+
+
+
+
+
 } // namespace vision
 } // namespace ram
