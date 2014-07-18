@@ -78,6 +78,22 @@ class Dive(MotionState):
         self._rate = rate
 
     def getMotion(self):
+        depth = self.getStateEstimator().getEstimatedDepth()
+        traj = motion.trajectories.ScalarCubicTrajectory(
+            initialValue = depth,
+            finalValue = depth + self._depth,
+            initialRate = self.getStateEstimator().getEstimatedDepthRate(),
+            avgRate = self._rate)
+        mot = motion.basic.ChangeDepth(trajectory = traj)
+        return mot
+
+class DiveTo(MotionState):
+    def __init__(self, depth, rate = 0.15):
+        super(Dive, self).__init__()
+        self._depth = depth
+        self._rate = rate
+
+    def getMotion(self):
         traj = motion.trajectories.ScalarCubicTrajectory(
             initialValue = self.getStateEstimator().getEstimatedDepth(),
             finalValue = self._depth,
