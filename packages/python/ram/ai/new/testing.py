@@ -3,10 +3,8 @@ import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
-import ram.ai.new.approach as approach
-import ram.ai.new.motionStates as motionStates
-
-import ram.ai.new.gate as gate
+import approach as centering
+import ram.ai.new.acousticServoing as acousticServoing
 
 from state import *
 from stateMachine import *
@@ -24,15 +22,11 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-
-        pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
-        
+        #pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
+        pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        gateTask = self.addState('gate', gate.GateTask(pipe, 4, .5, 4,
-                                                       'end', 'yaw', 
-                                                       300))
-        yaw = self.addState('yaw', motionStates.Turn(30))
-        start.setTransition('next', 'gate')
-
-        yaw.setTransition('next', 'end')
+        center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0)))
+        #align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
+        #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
+        start.setTransition('next', 'center')

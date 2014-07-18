@@ -16,7 +16,8 @@ class Start(State):
         super(Start, self).added(name, machine)
         machine.setStartState(self)
 
-    def enter(self):
+    def update(self):
+        print 'start'
         self.doTransition('next')
 
 class End(State):
@@ -104,8 +105,8 @@ class PassCounter(State):
         return checkPasses
 
 #this class will transition to first while check is false, if check is true it goes to second
-class Switch(state.State):
-    def __init__(first, second, check):
+class Switch(State):
+    def __init__(self,first, second, check):
         self.setTransition('next', first)
         self.setTransition('switch', second)
         self.check = check
@@ -117,7 +118,7 @@ class Switch(state.State):
         
 
 class Task(ConstrainedState):
-    def __init__(self, internalMachine, success, failure = None, 
+    def __init__(self, internalMachine, success, failure = 'end', 
                  timerDuration = None):
         self._taskTimer = utilClasses.Timer(timerDuration)
         super(Task, self).__init__(internalMachine, self._taskTimer.check,

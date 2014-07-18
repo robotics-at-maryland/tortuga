@@ -63,6 +63,14 @@ class StateMachine(object):
 
         return self._stateMap
 
+    def addTransition(self, state, transition, next):
+        self.getState(state).setTransition(transition, next)
+        return next
+
+    def addTransitions(self, transitions):
+        for state, transition, next in transitions:
+            self.getState(state).setTransition(transition, next)
+
     def getStartState(self):
         """Returns the state this state machine will start on."""
         return self._startState
@@ -98,7 +106,9 @@ class StateMachine(object):
         self._completed = True
 
     def queueTransition(self, transitionName):
-        """Queues a transition to be handled after the current callback returns."""
+        """Queues a transition to be handled after the current callback 
+        returns.
+        """
         assert type(transitionName) is StringType
         self._currentTransition = transitionName
 

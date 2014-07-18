@@ -23,7 +23,7 @@
 #include "vision/include/DownwardDuctDetector.h"
 #include "vision/include/SafeDetector.h"
 #include "vision/include/AdaptiveThresher.h"
-#include "vision/include/TargetDetector.h"
+#include "vision/include/TargetDetector2014.h"
 #include "vision/include/BarbedWireDetector.h"
 #include "vision/include/HedgeDetector.h"
 #include "vision/include/WindowDetector.h"
@@ -38,6 +38,7 @@
 
 namespace ram {
 namespace vision {
+using namespace vision2014;
 
 // static DetectorMakerTemplate<RedLightDetector>
 // registerRedLightDetector("RedLightDetector");

@@ -679,8 +679,6 @@ class SlerpTrajectory(Trajectory):
         if time > self._initialTime and time < self._finalTime:
             if order == 1:
                 inverse_init_value = math.Quaternion.Inverse(self._initialValue)
-                #v = (self._finalValue * inverse_init_value).Ln()
-                #return v
                 return math.Vector3.ZERO
             else:
                 return math.Vector3.ZERO
