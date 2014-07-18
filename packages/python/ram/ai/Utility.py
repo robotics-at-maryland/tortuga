@@ -29,6 +29,7 @@ def dive(you, depth, rate):
 
 #hold the current position in xy
 def freeze(you):
+    you.motionManager._controller.moveVel(0,0,0)
     traj = motion.trajectories.Vector2CubicTrajectory(math.Vector2.ZERO,math.Vector2.ZERO)
     dive(you, you.stateEstimator.getEstimatedDepth(), 0.15)
     currentOrientation = you.stateEstimator.getEstimatedOrientation()
