@@ -15,8 +15,8 @@ class AcousticServoing(state.State):
         super(AcousticServoing,self).__init__()
         self._sonarObject = sonarObject
         self._destinationVector = destinationVector
-        self.kx = .43
-        self.ky = -.43
+        self.kx = .30
+        self.ky = -.30
         self.kz = 0
         self.minVx = .1
         self.minVy = .1
