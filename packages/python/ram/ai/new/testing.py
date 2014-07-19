@@ -33,11 +33,11 @@ class TestMachine(StateMachine):
         end = self.addState('end',utilStates.End())
         upRightsTask = self.addState('uprights', 
                                      uprights.UprightsTask(buoy, pipe, 
-                                                           8, 4, 2, 2,
-                                                           1, 1, 1.5,
+                                                           8, 4, 2, 1,
+                                                           100, 1, 1.5,
                                                            'end', 'yaw', 
                                                            300))
-        yaw = self.addState('yaw', motionStates.Turn(30))
+        yaw = self.addState('yaw', motionStates.Turn(-30))
         start.setTransition('next', 'uprights')
 
         yaw.setTransition('next', 'end')
