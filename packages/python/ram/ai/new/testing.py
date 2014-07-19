@@ -7,7 +7,7 @@ import ram.ai.new.approach as approach
 
 import ram.ai.new.gate as gate
 import ram.ai.new.uprights as uprights
-import ram.ai.new.acousticServoing as acousticServoing
+import ram.ai.new.sonarNavigation as sonarNavigation
 
 from state import *
 from stateMachine import *
@@ -28,18 +28,16 @@ class TestMachine(StateMachine):
 
         buoy = utilClasses.BuoyVisionObject(self.getLegacyState())
         pipe = utilClasses.PipeVisionObject(self.getLegacyState())
+        pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
         
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
-        upRightsTask = self.addState('uprights', 
-                                     uprights.UprightsTask(buoy, pipe, 
-                                                           8, 4, 2, 2,
-                                                           1, 1, 1.5,
-                                                           'end', 'yaw', 
-                                                           300))
-        yaw = self.addState('yaw', motionStates.Turn(30))
-        start.setTransition('next', 'uprights')
 
-        yaw.setTransition('next', 'end')
-        print 'testing'
+        sonar = self.addState('sonar', sonarNavigation.SonarNavigationTask(pinger, 
+                                                                 'end',
+                                                                 'end',
+                                                                 300)) 
+
+        start.setTransition('next', 'sonar')
+
 
