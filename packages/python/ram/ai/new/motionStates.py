@@ -86,7 +86,7 @@ class Forward(Move):
         super(Forward, self).__init__(distance, 0, rate)
 
 class ForwardWithInitalRate(MoveWithInitalRate):
-    def __init__(self, distance, 0, initalRate = 0.15, rate = 0.15):
+    def __init__(self, distance, initalRate, rate):
         super(ForwardWithInitalRate, self).__init__(distance, 0, initalRate, rate)
 
 
@@ -112,7 +112,7 @@ class Dive(MotionState):
 
 class DiveTo(MotionState):
     def __init__(self, depth, rate = 0.15):
-        super(DiveTo, self).__init__()
+        super(Dive, self).__init__()
         self._depth = depth
         self._rate = rate
 
