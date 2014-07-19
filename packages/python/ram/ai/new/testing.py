@@ -9,6 +9,8 @@ import ram.ai.new.motionStates as motionStates
 import ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
 import ram.ai.new.Torp2014 as torp
+import ram.ai.new.SonarManip2014 as sonarm
+import ram.ai.new.uprights as uprights
 
 from state import *
 from stateMachine import *
@@ -27,16 +29,22 @@ class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
 
-        self.addStates({
-            'start'     : utilStates.Start(),
-            'search'    : torp.TorpedoTask({},'end','end',10000000),
-            'end'       : utilStates.End()
-            })
+        buoy = utilClasses.BuoyVisionObject(self.getLegacyState())
+        pipe = utilClasses.PipeVisionObject(self.getLegacyState())
+        
+        start = self.addState('start',utilStates.Start())
+        end = self.addState('end',utilStates.End())
+        start.setTransition('next','test')
+        test = self.addState('test', utilStates.NestedState(sonarm.PogoMotion(4,4,.5,6)))
+        
+        #upRightsTask = self.addState('uprights', 
+        #                             uprights.UprightsTask(buoy, pipe, 
+        #                                                   8, 4, 2, 2,
+        #                                                   1, 1, 1.5,
+        #                                                   'end', 'yaw', 
+        #                                                   300))
+        #yaw = self.addState('yaw', motionStates.Turn(30))
+        #start.setTransition('next', 'uprights')
 
-        self.addTransitions([
-            ('start'    , 'next'    , 'search'  ),
-            ('search'   , 'success' , 'end'     ),
-            ('search'   , 'failure' , 'end'     )
-            ])
-
-        print 'testing'
+        #yaw.setTransition('next', 'end')
+        #print 'testing'

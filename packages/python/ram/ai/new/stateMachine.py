@@ -67,7 +67,7 @@ class StateMachine(object):
         self.getState(state).setTransition(transition, next)
         return next
 
-    def addTransitions(self, transitions):
+    def addTransitions(self, *transitions):
         for state, transition, next in transitions:
             self.getState(state).setTransition(transition, next)
 
