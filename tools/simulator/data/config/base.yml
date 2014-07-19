@@ -199,6 +199,15 @@ Logging:
 Controller:
     depends_on: ["Vehicle", "EventHub", "StateEstimator"]
     type: CombineController
+    kpvx: 25
+    kdvx: 12
+    kivx: 1
+    kpvy: 25
+    kdvy: 12
+    kivy: 1
+    kpvz: 20
+    kdvz: 3
+    kivz: 1
 
     # wait for this amout of time before doing control
     initializationPause: 2
@@ -284,11 +293,11 @@ Simulation:
         #Main: objectives/vase.sml
         #Main: objectives/window.sml
         #Main: objectives/caesar.sml
-        Main: objectives/emperorGrapes.sml
+        #Main: objectives/emperorGrapes.sml
         #Main: transdec.sml
         #Main: nxtest.sml
         #Main: gen_course.sml
-        #Main: safePing.sml
+        Main: safePing.sml
         #Main: shortCourse.sml
         #Main: nbrf_tank.sml
         #Main: nbrf_tank_demo.sml

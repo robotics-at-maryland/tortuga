@@ -25,7 +25,7 @@ class ForwardsVisualServoing(state.State):
             self._minvy = configNode.get('minvy',.1)
             self._minvz = configNode.get('minvz',.1)
         else:
-            self._kx = .0125
+            self._kx = .15
             self._ky = .4
             self._kz = .4
             self._x_d = dx

@@ -1,6 +1,6 @@
-taskOrder: ['ram.ai.course.Gate', 'ram.ai.course.Pipe', 
-            'ram.ai.course.Buoy', 'ram.ai.course.Bin',
-            'ram.ai.course.Pinger']# 'ram.ai.course.Pipe1',
+taskOrder: []#'ram.ai.course.Gate', 'ram.ai.course.Pipe', 
+            #'ram.ai.course.Buoy', 'ram.ai.course.Bin',
+            #'ram.ai.course.Pinger']# 'ram.ai.course.Pipe1',
             #'ram.ai.course.Window']
             
 config:

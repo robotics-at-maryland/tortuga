@@ -43,13 +43,14 @@ if (RAM_WITH_VISION)
 #    ${Boost_PROGRAM_OPTIONS_LIBRARY}
 #    ${Boost_REGEX_LIBRARY}
 #    )
-  if (RAM_WITH_LOGGING)
+
+#  if (RAM_WITH_LOGGING)
 #    target_link_libraries(DetectorTest
 #      ram_logging
 #      ram_math
 #      ram_control
 #      )
-  endif (RAM_WITH_LOGGING)
+#  endif (RAM_WITH_LOGGING)
 
 #  add_executable(UndistortTest "test/src/UndistortTest.cpp")
 #  target_link_libraries(UndistortTest
