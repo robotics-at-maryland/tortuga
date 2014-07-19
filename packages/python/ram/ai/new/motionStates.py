@@ -114,7 +114,7 @@ class Turn(MotionState):
             initialValue = currentOrientation,
             finalValue = yawVehicleHelper(currentOrientation, 
                                           self._angle),
-            timePeriod = self._angle * 100,
+            timePeriod = self._angle,
             initialTime = 0)
         mot = motion.basic.ChangeOrientation(traj)
         return mot

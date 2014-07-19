@@ -11,15 +11,15 @@ from ext.control import yawVehicleHelper
 import math as m
 
 class AcousticServoing(state.State):
-    def __init__(self, sonarObject, destinationVector):
+    def __init__(self, sonarObject, destinationVector, minVx, minVy):
         super(AcousticServoing,self).__init__()
         self._sonarObject = sonarObject
         self._destinationVector = destinationVector
         self.kx = .30
         self.ky = -.30
         self.kz = 0
-        self.minVx = .1
-        self.minVy = .1
+        self.minVx = minVx
+        self.minVy = minVy
  
     def update(self):
         self._sonarObject.update()
