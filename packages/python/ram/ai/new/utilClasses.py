@@ -1,6 +1,5 @@
 import time
 import ext.vision as vision
-<<<<<<< HEAD
 import ext.vehicle as vehicle
 
 
@@ -47,7 +46,8 @@ class BuoyVisionObject(VisionObject):
             self.seen = True
             self.x = event.x
             self.y = event.y
-            self.range = 1.0/event.range
+            self.range = event.range
+
             
     def seeit(self,event):
         if(event.color == vision.Color.RED):

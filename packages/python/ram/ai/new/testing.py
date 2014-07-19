@@ -3,10 +3,9 @@ import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
-<<<<<<< HEAD
+
 import approach as centering
 import ram.ai.new.acousticServoing as acousticServoing
-=======
 import ram.ai.new.approach as approach
 import ram.ai.new.motionStates as motionStates
 
@@ -15,7 +14,9 @@ import ram.ai.new.Buoy2014 as buoy
 import ram.ai.new.Torp2014 as torp
 import ram.ai.new.SonarManip2014 as sonarm
 import ram.ai.new.uprights as uprights
->>>>>>> e39bba3e88d6fb58ccd6da526d3d4e86bcc0b35f
+
+
+import ram.ai.new.Buoy2014 as buoy
 
 from state import *
 from stateMachine import *
@@ -37,7 +38,10 @@ class TestMachine(StateMachine):
         pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
+        #center = self.addState('center', buoy.BuoySearchState(utilClasses.OldSimulatorHackVisionObject(self.getLegacyState()), 2, 100, 0.25, 2))
         center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0)))
         #align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
         #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
         start.setTransition('next', 'center')
+        center.setTransition('complete', 'end')
+        center.setTransition('failure', 'end')
