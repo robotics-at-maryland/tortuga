@@ -4,10 +4,8 @@ import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
 
-import approach as centering
 import ram.ai.new.acousticServoing as acousticServoing
 import ram.ai.new.approach as approach
-import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
@@ -16,6 +14,7 @@ import ram.ai.new.uprights as uprights
 
 
 import ram.ai.new.Buoy2014 as buoy
+
 
 from state import *
 from stateMachine import *

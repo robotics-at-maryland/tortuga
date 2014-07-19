@@ -47,8 +47,9 @@
 # 
 #----------------------------------------------------------
 
-FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /usr/local/share/OpenCV NO_DEFAULT_PATH)
-message(" KateOPENCV_DIR : " ${OPENCV_DIR})
+
+FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /opt/ram/local/opencv-2.4.6.1/build NO_DEFAULT_PATH)
+message("OpenCV Firectory!!! : " ${OPENCV_DIR})
 
 ##====================================================
 ## Find OpenCV libraries

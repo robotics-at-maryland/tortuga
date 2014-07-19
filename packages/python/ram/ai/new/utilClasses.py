@@ -53,6 +53,23 @@ class BuoyVisionObject(VisionObject):
         if(event.color == vision.Color.RED):
             self.seen = False
 
+#hack vision object that  tracks a pipe in the old simulator
+class PipeVisionObject(VisionObject):
+    def __init__(self,oldStatePtr):
+        super(PipeVisionObject,self).__init__()
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_FOUND,self.callback)
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_LOST,self.seeit)
+
+
+    def callback(self,event):
+        self.seen = True
+        self.x = event.x
+        self.y = event.y
+        self.angle = event.angle.valueDegrees()
+            
+    def seeit(self,event):
+        self.seen = False
+
 class SonarObject(object):
     def __init__(self):
         self.x = 0
@@ -73,25 +90,6 @@ class OldSimulatorHackSonarObject(SonarObject):
         self.y = event.direction.y
         self.z = event.direction.z
         self.seen = True
-    
-
-#hack vision object that  tracks a pipe in the old simulator
-class PipeVisionObject(VisionObject):
-    def __init__(self,oldStatePtr):
-        super(PipeVisionObject,self).__init__()
-        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_FOUND,self.callback)
-        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_LOST,self.seeit)
-
-
-    def callback(self,event):
-        self.seen = True
-        self.x = event.x
-        self.y = event.y
-        self.angle = event.angle.valueDegrees()
-            
-    def seeit(self,event):
-        self.seen = False
-
         
 #checks if a vision object is in the range specified
 class ObjectInVisionRangeQuery(object):
