@@ -15,11 +15,11 @@ class AcousticServoing(state.State):
         super(AcousticServoing,self).__init__()
         self._sonarObject = sonarObject
         self._destinationVector = destinationVector
-        self.kx = .43
-        self.ky = -.43
+        self.kx = .33
+        self.ky = -.33
         self.kz = 0
-        self.minVx = .1
-        self.minVy = .1
+        self.minVx = .05
+        self.minVy = .05
  
     def update(self):
         self._sonarObject.update()

@@ -11,8 +11,7 @@ import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
-import ram.ai.new.Torp2014 as torp
-import ram.ai.new.SonarManip2014 as sonarm
+#import ram.ai.new.SonarManip2014 as sonarm
 import ram.ai.new.uprights as uprights
 
 
