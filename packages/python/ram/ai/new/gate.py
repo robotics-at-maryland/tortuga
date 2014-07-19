@@ -32,14 +32,9 @@ class GateTask(utilStates.Task):
                 isinstance(self._InnerMachine().getCurrentState(), 
                            GateFailure):
             self.doTransition(failure)
-        super(GateTask, self).update()
+        else:
+            super(GateTask, self).update()
 
-    def doFailure(self):
-       """
-       Method added to initiate failure case from within nested
-       machine
-       """
-       self.doTransition('failure')
 
 class GateTaskMachine(stateMachine.StateMachine):
     def __init__(self, pipe, taskDepth, forwardDistance, searchDistance):
@@ -55,7 +50,7 @@ class GateTaskMachine(stateMachine.StateMachine):
         start = self.addState('start', utilStates.Start())
         end = self.addState('end', utilStates.End())
         failure = self.addState('failure', GateFailure())
-        dive = self.addState('dive', motion.Dive(taskDepth))
+        dive = self.addState('dive', motion.DiveTo(taskDepth))
         forward = self.addState('forward', motion.Forward(forwardDistance))
         pipeSearch = self.addState('search', pipeSearch)
         center = self.addState('center', 

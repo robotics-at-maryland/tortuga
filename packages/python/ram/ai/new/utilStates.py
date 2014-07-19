@@ -28,6 +28,14 @@ class End(State):
     def enter(self):
         self.getStateMachine().setComplete()
 
+class Failure(End):
+    """
+    User needs to check to see if the end state was a failure
+    to use this
+    """
+    def enter(self):
+        self.getStateMachine().setComplete()
+
 class NestedState(State):
     def __init__(self, innerMachine = StateMachine()):
         super(NestedState, self).__init__()
@@ -87,7 +95,7 @@ class PassCounter(State):
     def __init__(self, destination):
         super(PassCounter,self).__init__()
         self._count = 0
-        self.setTransition(destination)
+        self.setTransition('next', destination)
    
     def update(self):
         self._count = self._count + 1
@@ -98,15 +106,16 @@ class PassCounter(State):
     
     #this function returns a function that checks the check you pass in
     #aren't closures wonderful?
-    #returns true if under the count and false if over it
+    #returns true if under or equal to the count and false if over it
     def getPassChecker(self,countToCheck):
         def checkPasses(self):
             return (self._count > countToCheck)
         return checkPasses
 
 #this class will transition to first while check is false, if check is true it goes to second
-class Switch(state.State):
-    def __init__(first, second, check):
+class Switch(State):
+    def __init__(self, first, second, check):
+        super(Switch, self).__init__()
         self.setTransition('next', first)
         self.setTransition('switch', second)
         self.check = check
@@ -115,7 +124,7 @@ class Switch(state.State):
         if self.check():
             self.doTransition('switch')
         super(PassSwitch, self).update()
-        
+
 
 class Task(ConstrainedState):
     def __init__(self, internalMachine, success, failure = 'end', 
