@@ -67,7 +67,7 @@ class StateMachine(object):
         self.getState(state).setTransition(transition, next)
         return next
 
-    def addTransitions(self, transitions):
+    def addTransitions(self, *transitions):
         for state, transition, next in transitions:
             self.getState(state).setTransition(transition, next)
 
@@ -115,6 +115,7 @@ class StateMachine(object):
     def executeTransition(self):
         """Checks to see if there is a queued transition, and executes it if so."""
         while self._currentTransition is not None:
+            print 'transition: ' + self._currentTransition + ' to ' + self.getState(self._currentState.getTransition(self._currentTransition))._name
             transition = self._currentTransition
             self._currentState.doLeave(transition)
             self._currentState = self.getState(self._currentState.getTransition(transition))
