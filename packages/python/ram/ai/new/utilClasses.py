@@ -1,9 +1,11 @@
 import time
 import ext.vision as vision
 import subprocess as subprocess
+from types import MethodType
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
+#don't forget to reset timers upon entering states
 class Timer(object):
     def __init__(self, duration):
         self.reset()
@@ -91,13 +93,13 @@ class ObjectInVisionRangeQuery(object):
 # vision where an object might disappear for 1 or 2 frames, but then reappear immediately afterwards
 # TLDR; this query returns if "query" was true in the last "timeout" seconds, as long as you call it continously
 class hasQueryBeenFalse(object):
-    def __init__(self, timeout, query):
-        self._query = query
-        self._timer = Timer(timeout).query
+    def __init__(self, timeout, queryF):
+        self._queryFF =  queryF
+        self._timer = Timer(timeout)
 
     def query(self):
         #if query true, reset timer and return true
-        if(self._query()):
+        if(self._queryFF()):
             self._timer.reset()
             return True
         else:
@@ -137,7 +139,7 @@ class SonarSession(object):
         
 class hasQueryBeenTrue(object):
     def __init__(self, timeout, query):
-        self._query = query
+        self._query = MethodType(query, self, self.__class__)
         self._timer = Timer(timeout)
 
     def query(self):
