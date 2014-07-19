@@ -114,7 +114,8 @@ class Turn(MotionState):
             initialValue = currentOrientation,
             finalValue = yawVehicleHelper(currentOrientation, 
                                           self._angle),
-            timePeriod = self._angle,
+            #timePeriod = self._angle//,
+            timePeriod = 1,
             initialTime = 0)
         mot = motion.basic.ChangeOrientation(traj)
         return mot
@@ -126,11 +127,11 @@ class TurnTo(MotionState):
 
     def getMotion(self):
         currentOrientation = self.getStateEstimator().getEstimatedOrientation()
-        traj = motion.trajectories.StepTrajectory(
+        traj = motion.trajectories.SlerpTrajectory(
             initialValue = currentOrientation,
             finalValue = math.Quaternion(math.Degree(self._angle), 
                                          math.Vector3.UNIT_Z),
-            initialRate = self.getStateEstimator().getEstimatedAngularRate(),
-            finalRate = math.Vector3.ZERO)
+            timePeriod = self._angle,
+            initialTime = 0)
         mot = motion.basic.ChangeOrientation(traj)
         return mot

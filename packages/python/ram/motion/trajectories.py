@@ -676,14 +676,15 @@ class SlerpTrajectory(Trajectory):
 
     def computeDerivative(self, time, order = 1):
         # during the defined time, compute the derivative
-        if time > self._initialTime and time < self._finalTime:
-            if order == 1:
-                inverse_init_value = math.Quaternion.Inverse(self._initialValue)
-                return math.Vector3.ZERO
-            else:
-                return math.Vector3.ZERO
-        else:
-            return math.Vector3.ZERO
+        #if time > self._initialTime and time < self._finalTime:
+        #    if order == 1:
+        #       inverse_init_value = math.Quaternion.Inverse(self._initialValue)
+        #        return math.Vector3.ZERO
+        #    else:
+        #        return math.Vector3.ZERO
+        #else:
+        #    return math.Vector3.ZERO
+        return math.Vector3.ZERO
 
     def getInitialTime(self):
         return self._initialTime
