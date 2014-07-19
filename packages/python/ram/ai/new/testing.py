@@ -3,11 +3,16 @@ import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
+<<<<<<< HEAD
 import ram.ai.new.approach as approach
 import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.gate as gate
 import ram.ai.new.uprights as uprights
+=======
+import approach as centering
+import ram.ai.new.acousticServoing as acousticServoing
+>>>>>>> 7444bf77d01c9ece190be0572aa039f7fdc7b107
 
 from state import *
 from stateMachine import *
@@ -42,3 +47,4 @@ class TestMachine(StateMachine):
 
         yaw.setTransition('next', 'end')
         print 'testing'
+

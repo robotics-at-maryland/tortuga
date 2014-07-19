@@ -1,5 +1,7 @@
 import time
 import ext.vision as vision
+import ext.vehicle as vehicle
+
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
@@ -42,7 +44,7 @@ class BuoyVisionObject(VisionObject):
             self.seen = True
             self.x = event.x
             self.y = event.y
-            self.range = event.range
+            self.range = 1/event.range
             
     def seeit(self,event):
         if(event.color == vision.Color.RED):
@@ -65,6 +67,26 @@ class PipeVisionObject(VisionObject):
     def seeit(self,event):
         self.seen = False
 
+class SonarObject(object):
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.z = 0
+        self.seen = False
+
+    def update(self):
+        pass
+
+class OldSimulatorHackSonarObject(SonarObject):
+    def __init__(self,oldStatePtr):
+        super(OldSimulatorHackSonarObject,self).__init__()
+        oldStatePtr.queuedEventHub.subscribeToType(vehicle.device.ISonar.UPDATE,self.callback)
+
+    def callback(self,event):
+        self.x = event.direction.x
+        self.y = event.direction.y
+        self.z = event.direction.z
+        self.seen = True
         
 #checks if a vision object is in the range specified
 class ObjectInVisionRangeQuery(object):
@@ -81,7 +103,21 @@ class ObjectInVisionRangeQuery(object):
         self._obj.update()
         obj = self._obj
         return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range) and (abs(obj.range - self._range_center) <= self._range_range))
-        
+
+class ObjectInSonarQuery(object):
+    def __init__(self, sonarObject, x_center, y_center, z_center, x_range, y_range, z_range):
+        self._obj = sonarObject
+        self._x_center = x_center
+        self._y_center = y_center
+        self._z_center = z_center
+        self._x_range = x_range
+        self._y_range = y_range
+        self._z_range = z_range
+
+    def query(self):
+        self._obj.update()
+        obj = self._obj
+        return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range))        
 
 # this class transforms a query into a  query which only becomes false if the the query has 
 # only returned false under a certain amount of time(such that all queries made in that time 
