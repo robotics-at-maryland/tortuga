@@ -9,6 +9,12 @@ import ram.ai.new.motionStates as motionStates
 
 _CHECKPOINTS = {}
 
+def getCheckpoint(checkpoint):
+    return _CHECKPOINTS.get(checkpoint, None)
+
+def setCheckpoint(checkpoint, vector):
+    _CHECKPOINTS[checkpoint] = vector
+
 @require_transitions('next')
 class SaveCheckpoint(State):
     def __init__(self, checkpoint = 'default', x_offset = 0, y_offset = 0):
