@@ -72,9 +72,9 @@ class BuoySearchState(utilStates.NestedState):
 
         self.getInnerStateMachine().addTransitions([
             ('start'            , 'next'    , 'search'      ),
-            ('search'           , 'next', 'approach'    ),
+            ('search'           , 'next'    , 'approach'    ),
             ('search'           , 'failure' , 'failure'     ),
-            ('approach'         , 'next', 'bump'        ),
+            ('approach'         , 'next'    , 'bump'        ),
             ('approach'         , 'failure' , 'failure'     ),
             ('bump'             , 'next'    , 'back'        ),
             ('back'             , 'next'    , 'success'     )

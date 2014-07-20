@@ -32,4 +32,3 @@ class GotoCheckpoint(motionStates.MoveTo):
     def getMotion(self):
         self._vect = _CHECKPOINTS[self._checkpoint] + self._offset
         return super(GotoCheckpoint, self).getMotion()
-
