@@ -35,6 +35,55 @@ class VisionObject(object):
     def isSeen(self):
         return self.seen
 
+class TorpedoHole(VisionObject):
+    def __init__(self, oldStatePtr):
+        super(TorpedoHole,self).__init__()
+        self.x = 0
+        self.y = 0
+        self.range = 0
+        self.seen = false
+
+
+
+class TorpedoGroupObject(object):
+    def __init__(self, oldStatePtr):
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.TARGET_FOUND,self.callback)
+        self.square = TorpedoHole(oldStatePtr)
+        self.left = TorpedoHole(oldStatePtr)
+        self.right = TorpedoHole(oldStatePtr)
+        self.large = TorpedoHole(oldStatePtr)
+    def callback(self,event):
+        if(event.range == 0):
+            self.square.seen = false
+        else:
+            self.square.seen = true
+            self.square.x = event.x
+            self.square.y = event.y
+            self.square.range = event.range
+        if(event.leftsize == 0):
+            self.left.seen = false
+        else:
+            self.left.seen = true
+            self.left.x = event.leftx
+            self.left.y = event.lefty
+            self.left.range = event.leftsize
+        if(event.rightsize == 0):
+            self.right.seen = false
+        else:
+            self.right.seen = true
+            self.right.x = event.rightx
+            self.right.y = event.righty
+            self.right.range = event.rightsize
+        if(event.downsize == 0):
+            self.large.seen = false
+        else:
+            self.large.seen = true
+            self.large.x = event.downx
+            self.large.y = event.downy
+            self.lage.range = event.downsize
+    
+
+
 #hack vision object that  tracks a Red buoy in the old simulator
 class BuoyVisionObject(VisionObject):
     def __init__(self, oldStatePtr):
@@ -49,6 +98,7 @@ class BuoyVisionObject(VisionObject):
             self.x = event.x
             self.y = event.y
             self.range = event.range
+            
 
             
     def seeit(self,event):

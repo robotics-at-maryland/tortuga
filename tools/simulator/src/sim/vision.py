@@ -564,7 +564,7 @@ class Hedge(ram.sim.object.Object):
         #       'position' : position, 
         #       'orientation' : [0, 1, 0, 90],
         #       'Graphical' : gfxNode}
-        #self._hedge = Visual()
+        #self._hedge = Visual()x
         #self._hedge.load((scene, parent, cfg))
 
         # Create Right Pipe

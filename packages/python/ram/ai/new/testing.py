@@ -59,5 +59,5 @@ class TestMachine(StateMachine):
         #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
         start.setTransition('next', 'center')
         center.setTransition('complete', 'end')
-        center.setTransition('failure', 'end')
+        center.setTransition('failure', 'end'
 #>>>>>>> rajath/vehicle_refactor_2014

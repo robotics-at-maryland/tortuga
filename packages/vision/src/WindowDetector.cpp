@@ -519,11 +519,11 @@ void WindowDetector::publishFoundEvent(const BlobDetector::Blob& blob,
                           ((double)frame->getHeight()));
 
     // Determine the squareness
-    double aspectRatio = blob.getTrueAspectRatio();
-    if (aspectRatio < 1)
-        event->squareNess = 1.0;
-    else
-        event->squareNess = 1.0/aspectRatio;
+    //double aspectRatio = blob.getTrueAspectRatio();
+    //if (aspectRatio < 1)
+    //    event->squareNess = 1.0;
+    //else
+    //    event->squareNess = 1.0/aspectRatio;
 
     publish(EventType::WINDOW_FOUND, event);
 }
