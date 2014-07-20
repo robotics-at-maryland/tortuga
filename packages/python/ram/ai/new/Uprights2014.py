@@ -71,7 +71,7 @@ class UprightsTask(utilStates.Task):
                                utilStates.Failure):
                     self.doTransition(failure)
             else:
-                super(GateTask, self).update()
+                super(UprightsTask, self).update()
 
 class FindUprights(searches.ForwardsSearchPattern):
     def __init__(self, searchDistance, query, success, failure):
