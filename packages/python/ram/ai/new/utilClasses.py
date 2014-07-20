@@ -48,18 +48,18 @@ class TorpedoHole(VisionObject):
 class TorpedoGroupObject(object):
     def __init__(self, oldStatePtr):
         oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.TARGET_FOUND,self.callback)
-        self.square = TorpedoHole(oldStatePtr)
+        self.box = TorpedoHole(oldStatePtr)
         self.left = TorpedoHole(oldStatePtr)
         self.right = TorpedoHole(oldStatePtr)
         self.large = TorpedoHole(oldStatePtr)
     def callback(self,event):
         if(event.range == 0):
-            self.square.seen = false
+            self.box.seen = false
         else:
-            self.square.seen = true
-            self.square.x = event.x
-            self.square.y = event.y
-            self.square.range = event.range
+            self.box.seen = true
+            self.box.x = event.x
+            self.box.y = event.y
+            self.box.range = event.range
         if(event.leftsize == 0):
             self.left.seen = false
         else:

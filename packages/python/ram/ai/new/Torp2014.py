@@ -61,11 +61,16 @@ class TorpedoMachine(stateMachine.StateMachine):
         
     #later on, put code in here that picks what torpedos we're after
     #for now, we're going buoy hunting
-        hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
-        hole2 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
-        torps = hole1
-        torps.box = hole1
+        #not a hack anymore, this ones real!
+        torps = TorpedoGroupObject(self.legacyState())
+        #hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
+        #hole2 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
+        #torps = hole1
+        #torps.box = hole1
         #END HACK TO TEST IN SIMULATOR
+        hole1 = torps.left
+        hole2 = torps.right
+        
 
         start = self.addState('start',utilStates.Start())
         start.setTransition('next','initialMove')
