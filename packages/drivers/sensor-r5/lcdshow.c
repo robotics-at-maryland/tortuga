@@ -891,8 +891,17 @@ int main(int argc, char ** argv)
     else if(strcmp(argv[1], "-extgrabber") == 0)
     {
         int ret;
-        if((ret = extendGrabber(fd)) != SB_OK)
+        if(argc == 2)
+        {
+            if((ret = extendGrabber(fd, 0)) != SB_OK)
             printf("Error: %s\n", sbErrorToText(ret));
+        }
+        else if (argc == 3 && (argv[1]<=2 && argv[1]>=0)) 
+        {
+            if((ret = extendGrabber(fd, argv[2])) != SB_OK)
+            printf("Error: %s\n", sbErrorToText(ret));
+        }
+        else printf("Error: Return 0 or nothing for BOTH, 1 for Grabber 1, and 2 for Grabber 2");
     }
 
     else if(strcmp(argv[1], "-retgrabber") == 0)

@@ -80,7 +80,7 @@ byte cfgRegs[16];
 #define STATE_WRITE_CMD     2
 #define STATE_SETSPEED_U1   4
 #define STATE_SETSPEED_U2   5
-
+#define STATE_READ_LED_VAL  6
 
 byte busState = 0;
 byte nParam = 0;
@@ -153,6 +153,12 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_SET_BARS:
+                {
+                    busState = STATE_READ_LED_VAL;
+                    break;
+                }
+
                 case BUS_CMD_SETSPEED_U2:
                 {
                     busState = STATE_SETSPEED_U2;
@@ -212,8 +218,8 @@ void processData(byte data)
             busState = STATE_TOP_LEVEL;
             txBuf[0] = 1;
             txBuf[1] = cfgRegs[data];
+            break;
         }
-        break;
 
         case STATE_WRITE_CMD:
         {
@@ -228,9 +234,18 @@ void processData(byte data)
                 busState = STATE_TOP_LEVEL;
                 cfgRegs[p1] = data;
             }
-
+            break;    
         }
-        break;
+
+        case STATE_READ_LED_VAL:
+        {
+            p1 = data;
+            byte tempAddr = ((data >> 3) | 0xC0) & 0xFE;    
+            byte tempCode = data & 0x0F;
+            setLEDBars(tempAddr, tempCode);
+            busState = STATE_TOP_LEVEL;
+            break;
+        }
 
     }
 }
@@ -431,6 +446,7 @@ int main()
     for(i=0; i<TEMP_DATA_SIZE; i++)
         tempData[i] = 0;
 
+    initLEDBars();//Kanga - turn osc on to allow displays, and set default blink frequency
 
     while(1)
     {
