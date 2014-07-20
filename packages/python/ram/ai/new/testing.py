@@ -3,11 +3,19 @@ import ram.ai.new.utilClasses as utilClasses
 import searchPatterns as search
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
+
+import ram.ai.new.acousticServoing as acousticServoing
 import ram.ai.new.approach as approach
-import ram.ai.new.motionStates as motionStates
+import ram.ai.new.checkpoints as checkpoints
 
 import ram.ai.new.gate as gate
+import ram.ai.new.Buoy2014 as buoy
+#import ram.ai.new.SonarManip2014 as sonarm
 import ram.ai.new.uprights as uprights
+
+
+import ram.ai.new.Buoy2014 as buoy
+
 
 from state import *
 from stateMachine import *
@@ -25,20 +33,21 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-
-        buoy = utilClasses.BuoyVisionObject(self.getLegacyState())
-        pipe = utilClasses.PipeVisionObject(self.getLegacyState())
         
-        start = self.addState('start',utilStates.Start())
-        end = self.addState('end',utilStates.End())
-        upRightsTask = self.addState('uprights', 
-                                     uprights.UprightsTask(buoy, pipe, 
-                                                           8, 4, 2, 1,
-                                                           100, 1, 1.5,
-                                                           'end', 'yaw', 
-                                                           300))
-        yaw = self.addState('yaw', motionStates.Turn(-30))
-        start.setTransition('next', 'uprights')
 
-        yaw.setTransition('next', 'end')
-        print 'testing'
+        self.addStates({
+            'start' : utilStates.Start(),
+            'save' : checkpoints.SaveCheckpoint(checkpoint = 'test'),
+            'forward' : motionStates.Move(4, 2),
+            'return' : checkpoints.GotoCheckpoint(checkpoint = 'test',
+                                                  x_offset = 2,
+                                                  y_offset = 2),
+            'end' : utilStates.End()
+          })
+
+        self.addTransitions(
+            ('start', 'next', 'save'),
+            ('save', 'next', 'forward'),
+            ('forward', 'next', 'return'),
+            ('return', 'next', 'end'),
+          )

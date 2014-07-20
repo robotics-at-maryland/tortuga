@@ -352,6 +352,31 @@ namespace math {
         return Quaternion(-x,-y,-z,w);
     }
     //-----------------------------------------------------------------------
+    Quaternion Quaternion::Power (Real fScalar) const
+    {
+        Radian fAngle ( Math::Sqrt(x*x+y*y+z*z)*fScalar );
+        Real fSin = Math::Sin(fAngle);
+
+        Quaternion kResult;
+        kResult.w = Math::Cos(fAngle);
+
+        if ( Math::Abs(fSin) >= ms_fEpsilon )
+        {
+            Real fCoeff = fSin/(fAngle.valueRadians());
+            kResult.x = fCoeff*x;
+            kResult.y = fCoeff*y;
+            kResult.z = fCoeff*z;
+        }
+        else
+        {
+            kResult.x = x;
+            kResult.y = y;
+            kResult.z = z;
+        }
+
+        return kResult;
+    }
+    //-----------------------------------------------------------------------
     Quaternion Quaternion::Exp () const
     {
         // If q = A*(x*i+y*j+z*k) where (x,y,z) is unit length, then
@@ -411,6 +436,18 @@ namespace math {
         return kResult;
     }
     //-----------------------------------------------------------------------
+  Vector3 Quaternion::Ln()
+  {
+    Vector3 v(x,y,z);
+    Real length = Math::Sqrt(w*w+x*x+y*y+z*z);
+    if (length != 0){
+      Real scale = acos(w/length);
+      v = v.normalise();
+      return log(length)+scale*v;
+    }
+    return Vector3::ZERO;
+  }
+  //--------------------------------------------------------------------------
     Vector3 Quaternion::operator* (const Vector3& v) const
     {
 		// nVidia SDK implementation
@@ -477,7 +514,11 @@ namespace math {
     //-----------------------------------------------------------------------
     Quaternion Quaternion::Slerp (Real fT, const Quaternion& rkP,
         const Quaternion& rkQ, bool shortestPath)
-    {
+    { /*
+      Quaternion rkP_inv = rkP.Inverse();
+      Quaternion factor = rkP_inv * rkQ;
+      Quaternion t = rkP * factor.Power(1/3);
+      return t;*/
         Real fCos = rkP.Dot(rkQ);
         Quaternion rkT;
 

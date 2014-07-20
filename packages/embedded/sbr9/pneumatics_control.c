@@ -454,6 +454,10 @@ int main(void)
             } else if(buff[2] == BUS_CMD_EXT_GRABBER) {
                 extendPiston(GRABBER_1_PIST);
                 extendPiston(GRABBER_2_PIST);
+            } else if(buff[2] == BUS_CMD_EXT_GRABBER_1) {
+                extendPiston(GRABBER_1_PIST);
+            } else if(buff[2] == BUS_CMD_EXT_GRABBER_2) {
+                extendPiston(GRABBER_2_PIST);
             } else if(buff[2] == BUS_CMD_RET_GRABBER) {
                 retractPiston(GRABBER_1_PIST);
                 retractPiston(GRABBER_2_PIST);

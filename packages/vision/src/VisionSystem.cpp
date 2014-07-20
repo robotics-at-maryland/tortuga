@@ -25,7 +25,7 @@
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
-#include "vision/include/TargetDetector.h"
+#include "vision/include/TargetDetector2014.h"
 #include "vision/include/WindowDetector.h"
 #include "vision/include/CupidDetector.h"
 #include "vision/include/BarbedWireDetector.h"
@@ -44,6 +44,7 @@ RAM_CORE_REGISTER_SUBSYSTEM_MAKER(ram::vision::VisionSystem, VisionSystem);
 
 namespace ram {
 namespace vision {
+using namespace vision2014;
 
 static math::Degree FUJINON_TF28DA8_HFOV(89 + 8.0 / 60);
 static math::Degree FUJINON_TF28DA8_VFOV(69 + 20.0 / 60);

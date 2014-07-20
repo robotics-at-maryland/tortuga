@@ -15,20 +15,27 @@ class ForwardsVisualServoing(state.State):
         super(ForwardsVisualServoing,self).__init__()
         self._obj = visionObject
         if(configNode != None):
-            #Put some code here to parse stuff out of config files!
-            pass
+            self._kx = configNode.get('kx',.15)
+            self._ky = configNode.get('ky',.4)
+            self._kz = configNode.get('kz',.4)
+            self._x_bound = configNode.get('x_bound',.1)
+            self._y_bound = configNode.get('y_bound',.1)
+            self._r_bound = configNode.get('r_bound',.1)
+            self._minvx = configNode.get('minvx',.1)
+            self._minvy = configNode.get('minvy',.1)
+            self._minvz = configNode.get('minvz',.1)
         else:
             self._kx = .15
             self._ky = .4
-            self._kz = .15
+            self._kz = .4
             self._x_d = dx
             self._y_d = dy
             self._r_d = 1
             self._x_bound = .1
             self._y_bound = .1
             self._r_bound = .1
-            self._minvx = .2
-            self._minvy = .2
+            self._minvx = .1
+            self._minvy = .1
             self._minvz = .1
 
     def enter(self):

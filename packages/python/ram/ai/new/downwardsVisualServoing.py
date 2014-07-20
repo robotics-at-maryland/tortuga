@@ -19,8 +19,15 @@ class DownVisualServoing(state.State):
         super(DownVisualServoing,self).__init__()
         self._obj = visionObject
         if(configNode != None):
-            #Put some code here to parse stuff out of config files!
-            pass
+            self._kx = configNode.get('kx',.15)
+            self._ky = configNode.get('kx',.4)
+            self._kz = configNode.get('kz',0)
+            self._x_bound = configNode.get('x_bound',.1)
+            self._y_bound = configNode.get('y_bound',.1)
+            self._r_bound = configNode.get('r_bound',0)
+            self._minvx = configNode.get('minvx',.2)
+            self._minvy = configNode.get('minvx',.2)
+            self._minvz = configNode.get('minvx',.1)
         else:
             self._kx = .15
             self._ky = .4
@@ -113,6 +120,28 @@ class YawVisualServoing(state.State):
     def getStateEstimator(self):
         return self.getStateMachine().getLegacyState().stateEstimator
 
+    def decideY(self,event):
+        if(event.x<(self._x_d - self._x_bound)):
+            return 1#go the other way
+        else:
+            if(event.x>(self._x_d + self._x_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
+
+    def decideZ(self,event):
+        return 0
+
+    def decideX(self,event):
+        if(event.y<(self._y_d - self._y_bound)):
+            return 1#go the other way
+        else:
+            if(event.y>(self._y_d + self._y_bound)):
+                return 1#go the other way
+            else:
+            #inside the bounds, don't move
+                return 0
     def update(self):
         self._obj.update()
         currentOrientation = self.getStateEstimator().getEstimatedOrientation()

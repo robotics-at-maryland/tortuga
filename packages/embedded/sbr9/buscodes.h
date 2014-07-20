@@ -116,7 +116,7 @@
 
 #define BUS_CMD_MOTRSPEEDS      0x4B
 
-#define BUS_CMD_SET_BARMODE     0x4C
+//#define BUS_CMD_SET_BARMODE     0x4C
 #define BUS_CMD_BFRESET         0x4D
 
 #define BUS_CMD_SET_BARS        0x4E
@@ -180,12 +180,17 @@
 we are setting up an interrupt circuit for replicating plugging and unplugging 
 the subcon connector. this will be fixed when the power supply for the cameras 
 is redesigned
+
 Kanga - 7/3/2013*/
 #define BUS_CMD_CAM_RELAY_ON    0x6C
 #define BUS_CMD_CAM_RELAY_OFF   0x6D
 
-/*Next free is 0x6E*/
+//Kanga - Enabling options for separately extending grabbers
 
+ #define BUS_CMD_EXT_GRABBER_1 	0x6E
+ #define BUS_CMD_EXT_GRABBER_2	0x6F
+
+/*Next free is 0x70*/
 
 /* I wanted a more Unique response to a ping.
  * Ideally, the response would be 0xBEEF or 0xDEAD or 0xABADBABE
@@ -290,9 +295,6 @@ Kanga - 7/3/2013*/
 #define HOST_CMD_SERVO_POWER_OFF    0x30
 #define HOST_CMD_MAG_PWR_OFF        0x30
 
-/* The hole here comes from the never implemented motor reset command */
-// 0x31 is open
-
 #define HOST_CMD_DVL_ON             0x32
 #define HOST_CMD_DVL_OFF            0x33
 
@@ -322,6 +324,10 @@ kanga - 7/3/2013*/
 #define HOST_CMD_CAM_RELAY_ON    0x43
 #define HOST_CMD_CAM_RELAY_OFF   0x44
 
+//Kanga - enabling options for separately extending grabbers
+
+ #define HOST_CMD_EXT_GRABBER_1 	0x45
+ #define HOST_CMD_EXT_GRABBER_2		0x46
 
 /* So we have host commands, Bus commands,
  * and then we had a section with commands.
