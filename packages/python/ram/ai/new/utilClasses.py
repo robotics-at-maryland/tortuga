@@ -3,6 +3,8 @@ import ext.vision as vision
 import ext.vehicle as vehicle
 
 
+import subprocess as subprocess
+
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
 class Timer(object):
@@ -44,7 +46,8 @@ class BuoyVisionObject(VisionObject):
             self.seen = True
             self.x = event.x
             self.y = event.y
-            self.range = 1/event.range
+            self.range = event.range
+
             
     def seeit(self,event):
         if(event.color == vision.Color.RED):
@@ -128,7 +131,7 @@ class ObjectInSonarQuery(object):
 class hasQueryBeenFalse(object):
     def __init__(self, timeout, query):
         self._query = query
-        self._timer = Timer(timeout)
+        self._timer = Timer(timeout).query
 
     def query(self):
         #if query true, reset timer and return true
@@ -139,6 +142,37 @@ class hasQueryBeenFalse(object):
             #if query false return if the timer has triggered yet
             return self._timer.check()
 
+#connects to the blackfin and provides control over it
+class SonarSession(object):
+    def __init__(self):
+        self.connect()
+
+    def __del__(self):
+        self.exit()
+    #telnets the subprocess into to blackfin
+    #Note that blackfin must be turned on
+    #returns zero if successful
+    def connect(self):
+        return subprocess.call('telnet 192.168.10.19')+subprocess.call('export LD_LIBRARY_PATH=/card/sonar12_2/')
+    
+    #this command kills the sonar
+    #this is needed to change frequency
+    #this kills all instances of sonard
+    def killSonar(self):
+        return subprocess.call('kill -15 $(pidof sonard)')
+    
+    #exits the telnet session
+    def exit(self):
+        return subprocess.call('^] close')
+    
+    #sets the sonar frequency, freq1 is desired, freq2 is frequency to ignore
+    #will attempt to kill sonard first in case its running
+    def setSonarFreq(self,freq1,freq2):
+        self.killSonar()
+        return subprocess.call('/card/sonar12_2/sonard '+str(freq1)+' '+str(freq2)+ ' &')
+
+        
+        
 class hasQueryBeenTrue(object):
     def __init__(self, timeout, query):
         self._query = query

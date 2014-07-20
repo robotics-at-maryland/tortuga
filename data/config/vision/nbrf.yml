@@ -130,34 +130,6 @@ VelocityDetector:
     usePhaseCorrelation: 0
     useLKFlow: 1
 
-BuoyDetector:
-    debug: 0
-    filtGreenCMax: 255
-    filtGreenCMin: 0
-    filtGreenHMax: 152
-    filtGreenHMin: 92
-    filtGreenLMax: 200
-    filtGreenLMin: 0 #120
-    filtRedCMax: 255
-    filtRedCMin: 0
-    filtRedHMax: 6
-    filtRedHMin: 201
-    filtRedLMax: 197
-    filtRedLMin: 0
-    filtYellowCMax: 255
-    filtYellowCMin: 0
-    filtYellowHMax: 112
-    filtYellowHMin: 36
-    filtYellowLMax: 204
-    filtYellowLMin: 0 #120
-    maxAspectRatio: 1.5
-    minAspectRatio: 0.6
-    minHeight: 15
-    minPixelPercentage: 0.5
-    minPixels: 15
-    minWidth: 20
-    almostHitPercentage: 0.17
-WindowDetector:
     debug: 0
     dilateIterations: 0
     erodeIterations: 0
@@ -215,3 +187,49 @@ HedgeDetector:
     maxPixelPercentage: 0.15
     minPixelPercentage: 0.04
     minWidth: 80
+BuoyDetector:
+    GreenColorFilterLookupTable: 0
+    RedColorFilterLookupTable: 0
+    YellowColorFilterLookupTable: 0
+    almostHitPercentage: 0.2
+    bottomIgnorePercentage: 0
+    checkBlack: 0
+    debug: 2
+    dilateIterations: 0
+    erodeIterations: 0
+    filtBlackCMax: 255
+    filtBlackCMin: 0
+    filtBlackHMax: 0
+    filtBlackHMin: 0
+    filtBlackLMax: 0
+    filtBlackLMin: 0
+    filtGreenCMax: 0
+    filtGreenCMin: 0
+    filtGreenHMax: 0
+    filtGreenHMin: 0
+    filtGreenLMax: 0
+    filtGreenLMin: 0
+    filtRedCMax: 255
+    filtRedCMin: 191
+    filtRedHMax: 207
+    filtRedHMin: 3
+    filtRedLMax: 255
+    filtRedLMin: 91
+    filtYellowCMax: 2
+    filtYellowCMin: 0
+    filtYellowHMax: 0
+    filtYellowHMin: 0
+    filtYellowLMax: 0
+    filtYellowLMin: 0
+    leftIgnorePercentage: 0
+    maxAspectRatio: 2
+    maxDistance: 15
+    maxTotalBlackCheckSize: 0.1
+    minAspectRatio: 0
+    minBlackPercentage: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minPixels: 15
+    minWidth: 50
+    rightIgnorePercentage: 0
+    topIgnorePercentage: 0

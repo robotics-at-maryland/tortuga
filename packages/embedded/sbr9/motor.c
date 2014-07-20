@@ -540,6 +540,18 @@ void processData(byte data)
                     break;
                 }
 
+                case BUS_CMD_EXT_GRABBER_1:
+                {
+                    forwardCmd(BUS_CMD_EXT_GRABBER_1);
+                    break;
+                }
+
+                case BUS_CMD_EXT_GRABBER_2:
+                {
+                    forwardCmd(BUS_CMD_EXT_GRABBER_2);
+                    break;
+                }
+
                 case BUS_CMD_RET_GRABBER:
                 {
                     forwardCmd(BUS_CMD_RET_GRABBER);

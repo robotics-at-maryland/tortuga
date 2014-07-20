@@ -112,7 +112,7 @@ class Dive(MotionState):
 
 class DiveTo(MotionState):
     def __init__(self, depth, rate = 0.15):
-        super(DiveTo, self).__init__()
+        super(Dive, self).__init__()
         self._depth = depth
         self._rate = rate
 
