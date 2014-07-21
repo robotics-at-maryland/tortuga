@@ -155,6 +155,9 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 	int m_dilateIteration;
 	foundpipe m_previousfinalpipe;
 
+	int m_medianblur;
+	int m_threshold;
+	double m_hueshiftnumber;
 };
     
 } // namespace vision

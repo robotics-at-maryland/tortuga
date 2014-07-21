@@ -148,6 +148,19 @@ void OrangePipeDetector::init(core::ConfigNode config)
                          "Number of dilate iterations to perform",
                          0, &m_dilateIteration);
 
+
+
+    propSet->addProperty(config, false, "MedianBlur",
+                         "MedianBlur",
+                         5, &m_medianblur,1,50);
+    propSet->addProperty(config, false, "Threshold",
+                         "Threshold",
+                         150, &m_threshold,0,250);
+	propSet->addProperty(config, false, "HueShiftNumber",
+                         "HueShiftNumber",
+                         150.0, &m_hueshiftnumber,0.0,180.0);
+
+
 m_onlyReportOnePipe=false;
 logger.info("Got Initial Values");
 
@@ -383,8 +396,8 @@ logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <
 		//imshow("Sat ReD",img_saturation);
 	}
 	//imshow("Saturation",img_saturation);
-Mat img_Luminance_red;
-img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
+	Mat img_Luminance_red;
+	img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 
 	if (red_minL != 0 || red_maxL != 255)	
 	{
@@ -406,6 +419,16 @@ img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 
 
 	foundpipe finalpipe;
+
+	//HUE SHIFT
+	//dilate_dst_red= HueShifter_RedMinusGreen(img, (int)m_hueshiftnumber, m_medianblur);
+
+	
+	int threshvalue = m_threshold;
+	
+	threshold(dilate_dst_red,dilate_dst_red, threshvalue,255,0);
+	imshow("Threshold", dilate_dst_red);
+
 	finalpipe= getSquareBlob(dilate_dst_red);
 
 	//have two pipes - i want to make sure I dont flip the ID on each one

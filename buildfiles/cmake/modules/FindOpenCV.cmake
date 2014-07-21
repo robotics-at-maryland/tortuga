@@ -48,7 +48,7 @@
 #----------------------------------------------------------
 
 
-FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/tortuga/opencv-2.4.5/build NO_DEFAULT_PATH)
+FIND_PATH(OPENCV_DIR OpenCVConfig.cmake /home/kate/opencv-2.4.6 NO_DEFAULT_PATH)
 message("OpenCV Firectory!!! : " ${OPENCV_DIR})
 
 ##====================================================

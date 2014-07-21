@@ -54,6 +54,9 @@ void GateDetector::init(core::ConfigNode config)
 	gateX=0;
 	gateY=0;
 	found=false;
+	m_gotreference = 0;
+	m_previousobjectnumber = 0;
+	m_foundobjectnumber = 0;
 	//This frame will be a copy of the original rotated 90¼ counterclockwise.  
 	//But only if the camera is on sideways, otherwise we do 640 by 480 like usual.
 	//ie 640 by 480 if cameras on right (Or completely upsidedown!... sigh), else 480 by 640.
@@ -154,7 +157,7 @@ propSet->addProperty(config, false, "AspectRatio",
                          1.0, &m_aspectratio, 0.0,10.0);
 propSet->addProperty(config, false, "BestMatch",
                          "BestMatch",
-                         1.0, &m_bestMatch, 0.0,50.0);
+                         20.0, &m_bestMatch, 0.0,500.0);
 propSet->addProperty(config, false, "AreaRatio",
                          "AreaRatio",
                          1.0, &m_arearatio, 0.0,10.0);
@@ -178,13 +181,59 @@ propSet->addProperty(config, false, "AreaRatio",
                          4, &m_morphtype, 0,6);
 	propSet->addProperty(config, false, "AdaptiveThresholdWindow",
                          "AdaptiveThresholdWindow",
-                         13, &m_adwindow, 1,20);
+                         13, &m_adwindow, 1,60);
 	propSet->addProperty(config, false, "CannyorAdaptive",
                          "CannyorAdaptive",
                          0, &m_cannyoradaptive, 0,1);
 	propSet->addProperty(config, false, "SalientThreshold",
                          "SalientThreshold",
                          0.0, &m_threshvalue, 0.0,200.0);
+
+
+	propSet->addProperty(config, false, "RefCanny",
+                         "RefCanny",
+                         100, &m_ref_cannylow, 0,300);
+
+	propSet->addProperty(config, false, "ref_MorphSize",
+                         "ref_MorphSize",
+                         2, &m_ref_morphsize, 0,50);
+	propSet->addProperty(config, false, "ref_MorphType ",
+                         "ref_MorphType",
+                         4, &m_ref_morphtype, 0,6);
+	propSet->addProperty(config, false, "ref_AdaptiveThresholdWindow",
+                         "ref_AdaptiveThresholdWindow",
+                         13, &m_ref_adwindow, 1,60);
+	propSet->addProperty(config, false, "ref_CannyorAdaptive",
+                         "ref_CannyorAdaptive",
+                         0, &m_ref_cannyoradaptive, 0,1);
+	propSet->addProperty(config, false, "ref_SalientThreshold",
+                         "ref_SalientThreshold",
+                         0.0, &m_ref_threshvalue, 0.0,200.0);
+	propSet->addProperty(config, false, "GotReference",
+                         "GotReference",
+                         0, &m_gotreference, 0,1);
+	propSet->addProperty(config, false, "MaxXAllowance",
+                         "MaxXAllowance",
+                         70, &m_xallowance, 0,500);
+
+	propSet->addProperty(config, false, "MaxYAllowance",
+                         "MaxYAllowance",
+                         50, &m_yallowance, 0,500);
+
+	propSet->addProperty(config, false, "AreaAllowance",
+                         "AreaAllowance",
+                         100.0, &m_areaallowance, 0.0,500.0);
+
+	propSet->addProperty(config, false, "MinNmberofFrames",
+                         "MinNumberofFrames",
+                         0, &m_minframes, 0,10);
+	
+	propSet->addProperty(config, false, "Smoothing",
+                         "Smoothing",
+                         0, &m_smooth, 0,10);
+	propSet->addProperty(config,false,"SmoothParameter",
+			"SmoothParamter",
+			0, &m_smoothparam, 0, 500);
 }
     
 GateDetector::~GateDetector()
@@ -255,8 +304,22 @@ Mat GateDetector::processImageColor(Image*input)
 	img_whitebalance=img.clone();
 
 	//img_whitebalance = WhiteBalance(img);
-	int iframe = m_refimage;
-	m_ref_canny = GetReference(iframe);
+	int gotreference = m_gotreference;
+	if (gotreference < 1)
+	{
+		printf("\n LOADING REFERENCE");
+		int iframe = m_refimage;
+		//m_ref_canny = GetReference(iframe);
+
+		//find contours for reference image
+		Mat ref_canny = GetReference(iframe);
+		//vector<Vec4i> ref_hierarchy;
+		//vector<vector<Point> > ref_contours;
+		findContours(ref_canny, m_ref_contours, m_ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+		//m_gotreference = true;
+		printf("got reference contours");
+	}
+
 	printf("\n going for real image now");
 
 	namedWindow( "ImgKInput", CV_WINDOW_AUTOSIZE );
@@ -268,21 +331,35 @@ Mat GateDetector::processImageColor(Image*input)
 	namedWindow( "OutlineOutput", CV_WINDOW_AUTOSIZE );
 	imshow( "OutlineOutput",img_outline);
 
-	printf("line 261");
-	printf("line 262");
-	printf("done with FindShape");
-	printf("AHHHH");
-	//Mat dst = m_saliency.clone();
+	Mat hsv_whitebalance;
+	cvtColor(img_whitebalance,hsv_whitebalance,CV_BGR2HSV);
+	printf("\n refcontour = %d",m_gotrefcontour);
 
+	if (m_gotreference > 0 && m_gotrefcontour > 0)
+	{
+		printf("\n Entering FindShape");
+		FindShape(img_outline,img_whitebalance, m_ref_canny,hsv_whitebalance);
+		printf("\n Done with Find Shape");
+	}
+	else
+	{
+		m_foundobjectnumber = 0;
+		//m_refcontour = 0;
+	}
+	//check multiple frames
+	printf("\n do I check previousframes = %d, and %d",m_previousobjectnumber,m_foundobjectnumber);
 
+	if (m_previousobjectnumber > 0 && m_foundobjectnumber > 0  && m_refcontour > 0)
+	{
+		MultipleFrames(1,img_whitebalance);
+	}
+	
+	for (int i=0;i<m_foundobjectnumber;i++)
+	{
+		m_previousObjects[i] = m_currentObjects[i];
+	}
 
-//	img_whitebalance = SaliencyFilter(img);
-//	Mat img_gray;
-//	cvtColor(img_whitebalance,img_gray,CV_RGB2GRAY);
-//printf("done with saliency");
-
-
-	FindShape(img_outline, img_whitebalance, m_ref_canny);
+	m_previousobjectnumber= m_foundobjectnumber; 
 
 	//cvtColor(img_whitebalance,dst,CV_RGB2BGR);
 
@@ -292,7 +369,6 @@ Mat GateDetector::processImageColor(Image*input)
 	cvtColor(img_whitebalance,temphsv,CV_BGR2HSV);
 	vector<Mat> hsv_planes;
 	split(temphsv,hsv_planes);
-	Mat tempWhite;
 	equalizeHist(hsv_planes[1], hsv_planes[1]);
 	equalizeHist(hsv_planes[2], hsv_planes[2]);
 	merge(hsv_planes,temphsv);
@@ -1074,8 +1150,27 @@ int GateDetector::getmaxdiff(void)
 Mat GateDetector::GetOutline(Mat img)
 {
 	Mat img_saliency;
+	Mat temp_smooth;
 	//This function gets the outline of an image
 	//uses saliency, thresholding, canny or adaptive thresholding
+printf("\n m_smoothparam= %d",m_smoothparam);
+
+	if(m_smoothparam%2 < 1)
+	{	
+		m_smoothparam=m_smoothparam+1; //must be odd
+		printf("\n m_smoothparam= %d",m_smoothparam);
+	}
+	if (m_smooth == 1)
+	{
+		bilateralFilter (img, temp_smooth, m_smoothparam, m_smoothparam*2, m_smoothparam/2 );
+		img = temp_smooth.clone();
+	}
+	else if (m_smooth == 2)
+	{
+		medianBlur (img, temp_smooth, m_smoothparam);
+		img = temp_smooth.clone();
+	}
+imshow( "SmoothInput",img);
 
 
 	int lowThreshold= m_cannylow; 
@@ -1144,6 +1239,10 @@ Mat GateDetector::GetOutline(Mat img)
 	printf("line 1136");
 	if (cannyoradaptive == 1)
 	{
+
+		if (adwindow%2 <1)
+			adwindow = adwindow +1;
+
 	
 		adaptiveThreshold(img_gray, img_gray, 255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,adwindow, 1 );
 	//	namedWindow( "AdaptiveThreshold", CV_WINDOW_AUTOSIZE );
@@ -1253,6 +1352,7 @@ return (img_gray);
 Mat GateDetector::GetReference(int refnumber)
 {
 	printf("\n getReference");
+printf("\n getReference");
 	//Load Reference Image for shape matching
 	//Input: 
 	//	reference object number. So it'll load the correct reference
@@ -1260,23 +1360,24 @@ Mat GateDetector::GetReference(int refnumber)
 	//Output: Canny image from reference, also will save to variable m_refcontour
 	//	m_refcontour is the counter number in the reference image to be used
 
+	m_gotrefcontour=0;
 	unsigned int maxRefArea =(unsigned int)m_maxrefarea;
 	unsigned int minRefArea =(unsigned int)m_minrefarea;
 
 
 
 	//Other variables: 
-	int lowThreshold= m_cannylow; //can be modified but shouldn't need to
+	int lowThreshold= m_ref_cannylow; //can be modified but shouldn't need to
 	//leave alone
 	int ratio = 3;
 	int kernel_size = 3;
-	int morph_size = m_morphsize;
-	int morph_type = m_morphtype;
-	int erode_size = m_erodesize;
-	int dilate_size = m_dilatesize;
-	int cannyoradaptive= m_cannyoradaptive;
-	int adwindow = m_adwindow;
-	double threshvalue = m_threshvalue;
+	int morph_size = m_ref_morphsize;
+	int morph_type = m_ref_morphtype;
+	int erode_size = m_ref_erodesize;
+	int dilate_size = m_ref_dilatesize;
+	int cannyoradaptive= m_ref_cannyoradaptive;
+	int adwindow = m_ref_adwindow;
+	double threshvalue = m_ref_threshvalue;
 	Mat element;
 	//create blank image of the same size as others and in color
 	
@@ -1290,9 +1391,10 @@ Mat GateDetector::GetReference(int refnumber)
 	string str = ss.str();
 
 	cout << "string = " << str ;
-
+	printf("\n Loading Data");
 	//Load image
 	m_ref_img = imread(str);
+	Mat originalImage = imread(str);
 	if (!m_ref_img.data)
 	{
 		printf("Unable to find Reference Image");
@@ -1306,8 +1408,8 @@ Mat GateDetector::GetReference(int refnumber)
 	SaliencyFilter(m_ref_img);
 	ref_img = m_saliency;
 
-		namedWindow( "ReferenceSaliency", CV_WINDOW_AUTOSIZE );
-		imshow( "ReferenceSaliency",ref_img);
+	namedWindow( "ReferenceSaliency", CV_WINDOW_AUTOSIZE );
+	imshow( "ReferenceSaliency",ref_img);
 
 
 	//find edges: convert to gray, canny, and then morph_gradietn Morphology	
@@ -1334,10 +1436,13 @@ Mat GateDetector::GetReference(int refnumber)
 	//	imshow( "Threshold",temp);
 		temp.copyTo(ref_canny);
 	}
-
+	namedWindow( "Thresh", CV_WINDOW_AUTOSIZE );
+	imshow( "Thresh",ref_canny);
 	if (cannyoradaptive == 1)
 	{
 	
+		if (adwindow%2 < 1) //needs to be odd
+			adwindow = adwindow +1;
 		adaptiveThreshold(ref_canny, ref_canny, 255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,adwindow, 1 );
 	//	namedWindow( "AdaptiveThreshold", CV_WINDOW_AUTOSIZE );
 	//	imshow( "AdaptiveThreshold",ref_canny);
@@ -1347,6 +1452,7 @@ Mat GateDetector::GetReference(int refnumber)
 		Canny(ref_canny,ref_canny, lowThreshold, lowThreshold*ratio, kernel_size );
 	}
 
+	printf("\n morph_type = %d, morph_size = %d", morph_type, morph_size);
 	if (morph_size > 0 && morph_type >=2)
 	{
 		
@@ -1439,25 +1545,26 @@ Mat GateDetector::GetReference(int refnumber)
 	printf("\n\n done");
 
 	printf("line 1359");
-
+	m_ref_img = ref_canny.clone();
 	ref_canny = GetOutline(m_ref_img);
 
 	//ref_canny = m_saliency.clone();
 
 	//find contours for reference image
-	vector<vector<Point> > ref_contours;
+	//vector<vector<Point> > ref_contours;
 	vector<vector<Point> > final_contours;
-	vector<Vec4i> ref_hierarchy;
-	findContours(ref_canny, ref_contours, ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	//vector<Vec4i> ref_hierarchy;
+	findContours(ref_canny, m_ref_contours, m_ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 	printf("\n contours!");
 	int j;
 	int contournumber =0;
-	for (unsigned int i = 0; i < ref_contours.size(); i++) {
+	for (unsigned int i = 0; i < m_ref_contours.size(); i++) {
 		j = i;
-		if (ref_contours[i].size() > minRefArea && ref_contours[i].size() < maxRefArea)
+		if (m_ref_contours[i].size() > minRefArea && m_ref_contours[i].size() < maxRefArea)
 		{
-			drawContours(m_ref_img, ref_contours, i,Scalar(0,255,255), 1, 8, vector<Vec4i>(), 0, Point() );
+			drawContours(originalImage, m_ref_contours, i,Scalar(0,255,255), 1, 8, vector<Vec4i>(), 0, Point() );
 			contournumber = i;
+			m_gotrefcontour = 1;
 		}
 	}
 
@@ -1466,14 +1573,14 @@ Mat GateDetector::GetReference(int refnumber)
 	namedWindow( "ReferenceCanny", CV_WINDOW_AUTOSIZE );
 	imshow( "ReferenceCanny",ref_canny);
 
-	namedWindow( "Reference", CV_WINDOW_AUTOSIZE );
-	imshow( "Reference",m_ref_img);
+	namedWindow( "ReferenceContours", CV_WINDOW_AUTOSIZE );
+	imshow( "ReferenceContours",originalImage);
 
 	m_refcontour = contournumber;
 	return (ref_canny);
 };
 
-void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
+void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny,Mat hsv_img)
 {
 	//Find shape based on edges
 	//input: Mat erosion_Dst: saliency filtered image
@@ -1486,7 +1593,7 @@ void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
 	double AR_final_ref = m_aspectratio;
 	double area_final_ref = m_arearatio;
 	double AL_final_ref = m_arclengthratio;
-	int iframe = m_refimage;
+	//int iframe = m_refimage;
 
 	//Load reference image, with int as the image type
 	//Mat ref_canny = GetReference(iframe);
@@ -1506,13 +1613,14 @@ void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
 	vector<Vec4i> hierarchy;
 	findContours( erosion_dst, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 	printf("got contours");
-
+	m_contours = contours;
 	//find contours for reference image
-	ref_canny = GetReference(iframe);
-	vector<Vec4i> ref_hierarchy;
-	vector<vector<Point> > ref_contours;
-	findContours(ref_canny, ref_contours, ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-	printf("got reference contours");
+		
+	//ref_canny = GetReference(iframe);
+	vector<Vec4i> ref_hierarchy = m_ref_hierarchy;
+	vector<vector<Point> > ref_contours = m_ref_contours;
+	//findContours(ref_canny, ref_contours, ref_hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	//printf("got reference contours");
 
 	//create parameters
 	double area_ref, area, area_final;
@@ -1523,10 +1631,13 @@ void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
 	RotatedRect box, box_ref;
 	double bestMatch;
 	int j= 0;
-
+	Mat mask;
 	//set reference contour to the number found in the reference
-	unsigned int i = m_refcontour;
+	unsigned int i = (unsigned int)m_refcontour;
+   vector<vector<Point> >hull( contours.size() );
 
+	int foundobjectnumber = 0;
+	foundObjectusingRef currentObjects[10];// = m_currentObjects[10];
 	for (int idx = 0; idx >= 0; idx = hierarchy[idx][0]) {
 		if (contours[idx].size() > 50)
 		{
@@ -1629,6 +1740,39 @@ void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
 					//Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
 					drawContours( img, contours, idx, color, 1, 8, vector<Vec4i>(), 0, Point() );
 					//drawContours( img, hull, idx, color, 10, 8, vector<Vec4i>(), 0, Point() );
+
+					if(box.size.width < box.size.height)
+						{currentObjects[foundobjectnumber].angle= box.angle+180;}
+					else{
+						currentObjects[foundobjectnumber].angle= box.angle+90;
+					    }
+					m_currentObjects[foundobjectnumber].centerx =box.center.x;
+					m_currentObjects[foundobjectnumber].arclengthratio = AL_final;
+					m_currentObjects[foundobjectnumber].bestmatch = bestMatch;
+					m_currentObjects[foundobjectnumber].aspectratio = AR_final;
+					m_currentObjects[foundobjectnumber].arearatio = area_final;
+					m_currentObjects[foundobjectnumber].contourID = idx;
+					//m_currentObjects[foundobjectnumber].contour = b;
+					m_currentObjects[foundobjectnumber].rect_area = area;
+					m_currentObjects[foundobjectnumber].rect_aspectratio = AR;	
+					m_currentObjects[foundobjectnumber].arclength = AL;
+	      				convexHull( Mat(contours[idx]), hull[idx], false ); 
+	    				//drawContours(img, hull, idx, Scalar(255,0,0), 1, 8, vector<Vec4i>(), 0, Point() );		
+					mask = Mat::zeros(erosion_dst.size(),CV_8UC1);
+					drawContours(mask, contours, idx, Scalar(255), CV_FILLED, 8, vector<Vec4i>(), 0, Point() );		
+					Scalar colorIndex = mean(hsv_img,mask);
+					printf("\n colorIndex = %f,%f,%f,%f",colorIndex[0],colorIndex[1],colorIndex[2],colorIndex[3]);
+					imshow("Mask",mask);				
+
+					if (foundobjectnumber > 9)
+					{
+						printf("\n ERROR TOO MANY OBJECTS, CHANGE PARAMTERS");
+						foundobjectnumber = 9;
+					}					
+					else
+					{
+						foundobjectnumber = foundobjectnumber+1;
+					}
 			  	}
 			}//end if refcontours is large enough
 		}; //end if contour is large enough
@@ -1638,14 +1782,16 @@ void GateDetector::FindShape(Mat erosion_dst, Mat img, Mat ref_canny)
  	  imshow( "Hull demo", img);
 
 
+m_foundobjectnumber = foundobjectnumber;
+printf("\n I found %d OBJECTS",foundobjectnumber);
+printf("\n aaaaaah");
+printf("\n sigh");
 printf("\n aaaaaah");
 printf("\n sigh");
 
  	//cvtColor(erosion_dst,img,CV_GRAY2RGB);
 	//return img;
-	
 }
-
 
 
 
@@ -1706,7 +1852,82 @@ void GateDetector::SaliencyFilter(Mat img)
 }
 
 
+void GateDetector::MultipleFrames(int display, Mat img_whitebalance)
+{
 
+	//checks if the found contour has been found before
+	int xallowance = m_xallowance;
+	int yallowance = m_yallowance;
+	double areallowance = m_areaallowance;
+	//CG can only move so much, by the xallowance and yallowance
+	int minframes = m_minframes;
+	//must be in minframes before its selected as a thing
+	int distance;
+	int xdiff, ydiff;
+	double areadiff;
+	double areachange;
+	int closestmatch;
+printf("\n Found Objects = %d, before = %d",m_foundobjectnumber,m_previousobjectnumber);
+
+	printf("\n begin multipframes");
+	
+	for (int i=0;i<m_foundobjectnumber;i++)
+	{
+		distance  = 999;
+		areachange = 9999;
+		closestmatch = 11;
+		for(int j = 0;j<m_previousobjectnumber;j++)
+		{
+			//check to see if its within xallwance and yallowance
+			//also check to see if the parameters... haven't changed? or just go with it since they have to meet min criteria anyway
+			xdiff = abs(m_currentObjects[i].centerx-m_previousObjects[j].centerx);
+			ydiff = abs(m_currentObjects[i].centery-m_previousObjects[j].centery);
+			areadiff = double(abs(double(double(m_currentObjects[i].rect_area - m_previousObjects[j].rect_area)/ m_previousObjects[i].rect_area)))*100;
+			printf("areadiff = %f, xdiff = %d,ydiff = %d",areadiff,xdiff,ydiff);
+			if (xdiff+ydiff < distance && areadiff < areachange)
+			{
+				distance = xdiff+ydiff;
+				areachange = areadiff;
+				closestmatch = j;
+			}	
+		}//end for j
+		if (xdiff<xallowance && ydiff<yallowance && areadiff < areallowance && closestmatch < 11)
+		{
+			//same object as before so increase the frame number
+			m_currentObjects[i].framesfound = m_previousObjects[closestmatch].framesfound+1;
+		}
+		else 
+		{
+			m_currentObjects[i].framesfound = 0;
+		}
+		if (display > 0 && m_currentObjects[i].framesfound > minframes)
+		{
+			//display images
+			printf("Have Match, and is plotting");
+			Scalar color = Scalar(255,0,255);
+		if (m_currentObjects[i].framesfound < 0)
+		{
+			printf("ERROR WITH FRAMES FOUND");
+			m_currentObjects[i].framesfound = 0;
+		}
+		if (m_currentObjects[i].framesfound > 250)
+		{
+			printf("\n So many frames found, error, reseting to 1");
+			m_currentObjects[i].framesfound = 1;
+		}
+		
+			//drawContours( img_whitebalance, m_contours, m_currentObjects[i].contourID, color,  m_currentObjects[i].framesfound, 8, Point() );
+	drawContours( img_whitebalance,m_contours, m_currentObjects[i].contourID, color,3+m_currentObjects[i].framesfound, 8, vector<Vec4i>(), 0, Point() );				
+		}
+	printf(" Frames = %d",m_currentObjects[i].framesfound);
+	}//end for i
+	if (display > 0)
+	{
+		namedWindow( "Final", CV_WINDOW_AUTOSIZE );
+		imshow( "Final",img_whitebalance);
+	}
+printf("\n leaving multiframes");
+};//end void MultipleFrames
 
 
 

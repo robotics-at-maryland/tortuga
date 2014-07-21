@@ -23,6 +23,8 @@
 #include "vision/include/RedLightDetector.h"
 #include "vision/include/BuoyDetector.h"
 #include "vision/include/BinDetector.h"
+
+#include "vision/include/ChrisPipeDetector.h"
 #include "vision/include/OrangePipeDetector.h"
 #include "vision/include/DuctDetector.h"
 #include "vision/include/TargetDetector.h"
@@ -144,9 +146,13 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new BuoyDetector(getConfig(config, "BuoyDetector"), eventHub));
     m_binDetector = DetectorPtr(
         new BinDetector(getConfig(config, "BinDetector"), eventHub));
+
     m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
-                                         eventHub));
+        new ChrisPipeDetector(getConfig(config, "ChrisPipeDetector"),eventHub));
+
+   m_pipelineDetector = DetectorPtr(
+        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
+
     m_downwardSafeDetector = DetectorPtr(
         new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
     m_gateDetector = DetectorPtr(

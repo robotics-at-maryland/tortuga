@@ -21,7 +21,8 @@ namespace ram {
 namespace vision {
 
 Mat WhiteBalance (Mat Input);
-//Mat SaliencyFilter(Mat img);
+Mat SaliencyFilterSingle(Mat img);
+Mat HueShifter_RedMinusGreen(Mat img, int hueshit_int, int bluramount);
 //Mat ShapeRecon(Mat erosion_dst, Mat img);
 
 } //end ram
