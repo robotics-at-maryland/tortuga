@@ -135,6 +135,8 @@ def download_precompiled(quiet=False):
     print 'success: all archives installed'
     
 def main(argv=None):
+    subprocess.call(['sudo', 'mkdir', '/opt/ram/local/'])
+    subprocess.call(['sudo', 'chown', '-R', getpass.getuser()+':'+getpass.getuser() , '/opt/ram/local/'])
     # Parse Arguments
     parser = OptionParser()
     parser.set_defaults(task = str(DEFAULT_TASKS), prefix = DEFAULT_PREFIX)
@@ -190,24 +192,26 @@ def main(argv=None):
         software = Software(task, context)
         software.install()
     downloadCV = "placeholder"
-    while downloadCV == 'placeholder' or (not downloadCV == '' and 
-                                          not downloadCV == 'yes' and 
-                                          not downloadCV == 'no' and
-                                          not downloadCV == 'y' and
-                                          not downloadCV == 'n')):
+    
+    while downloadCV == 'placeholder' or (not downloadCV == '' and \
+                                              not downloadCV == 'yes' and \
+                                              not downloadCV == 'no' and \
+                                              not downloadCV == 'y' and \
+                                              not downloadCV == 'n'):
         try:
-            downloadCV = str(raw_input('Download and install OpenCV?' /
-                                       '(y/n) [n]: ')).strip()
+            downloadCV = str(raw_input('Download and install OpenCV? (y/n) [n]: ')).strip()
         except Exception as e:
             downloadCV = 'no'
         downloadCV = downloadCV.lower()
-        if downloadCV ==  '' and not downloadCV == 'yes' 
-            and not downloadCV == 'no' and not downloadCV == 'y'
-            and not downloadCV == 'n'):
+        if downloadCV ==  '' and not downloadCV == 'yes' \
+                and not downloadCV == 'no' and not downloadCV == 'y' \
+                and not downloadCV == 'n':
             print("please input yes or no")
 
     if downloadCV == 'y' or downloadCV == 'yes':
         file_exists, join_path = os.path.exists, os.path.join
+        subprocess.call(['sudo', 'apt-get', 'install', 'cmake'])
+        subprocess.call(['sudo', 'apt-get', 'install', 'libgtk2.0-dev'])
         openCVTar = join_path('/opt/ram/local', 'opencv-2.4.6.1.tar.gz')
         openCVExtract = join_path('/opt/ram/local', 'opencv-2.4.6.1')
         openCVBuild = join_path(openCVExtract, 'build')
