@@ -1,5 +1,5 @@
 
-TCPATH=/home/kickmyassman/robotics-toolchain/
+TCPATH=/home/nlimpari/ram_toolchain/pic_projects
 
 PATH = $(TCPATH)/usr/bin:/bin:/usr/kde/3.5/bin
 
@@ -18,7 +18,7 @@ BIN2HEX = pic30-elf-bin2hex
 LIBS = $(TCPATH)/c30/lib/libp30F4011-elf.a
 
 
-all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex bfin.hex debug.hex motor.hex
+all: ic1.hex ic2.hex ic3.hex ic4.hex distro.hex balancer.hex bfin.hex debug.hex motor.hex pneumatics_control.hex
 
 distro.o : distro.c buscodes.h common.c
 	$(CC) -mcpu=30F6014A $(CFLAGS) -Wunused-function -c $< -o $@
@@ -31,6 +31,9 @@ motor.o : motor.c buscodes.h
 
 ic4.o : ic4.c buscodes.h common.c
 	$(CC) -mcpu=30F4013 $(CFLAGS) -Wunused-function -c $< -o $@
+
+
+
 
 distro.elf : distro.o common.c
 	$(CC) -Wl,-L$(TCPATH)/c30/lib,--script=$(TCPATH)/c30/support/gld/p30f6014A.gld,--heap=0,-lp30F6014A-elf,--report-mem $^ $(TCPATH)/c30/lib/libp30F6014A-elf.a -o $@
@@ -86,6 +89,9 @@ balancer: balancer.hex
 
 debug: debug.hex
 	piklab-prog -p icd2 -d 30f4011 -c program debug.hex
+
+pneumatics_control: pneumatics_control.hex
+	piklab-prog -p icd2 -d 30f4011 -c program pneumatics_control.hex
 
 clean:
 	rm -f *.o *.elf *.hex *~
