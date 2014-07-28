@@ -6,6 +6,7 @@ import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.acousticServoing as acousticServoing
 import ram.ai.new.approach as approach
+import ram.ai.new.checkpoints as checkpoints
 
 import ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
@@ -32,14 +33,21 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-        #pipe = utilClasses.OldSimulatorHackPipe(self.getLegacyState())
-        pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
-        start = self.addState('start',utilStates.Start())
-        end = self.addState('end',utilStates.End())
-        #center = self.addState('center', buoy.BuoySearchState(utilClasses.OldSimulatorHackVisionObject(self.getLegacyState()), 2, 100, 0.25, 2))
-        center = self.addState('center', centering.SonarCenter(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0)))
-        #align = self.addState('align', centering.DownOrient(pipe, 'end', 'end'))
-        #acoustic = self.addState('acoustic', acousticServoing.AcousticServoing(pinger, math.Vector3(0.0,0.0,3.0)))
-        start.setTransition('next', 'center')
-        center.setTransition('complete', 'end')
-        center.setTransition('failure', 'end')
+        
+
+        self.addStates({
+            'start' : utilStates.Start(),
+            'save' : checkpoints.SaveCheckpoint(checkpoint = 'test'),
+            'forward' : motionStates.Move(4, 2),
+            'return' : checkpoints.GotoCheckpoint(checkpoint = 'test',
+                                                  x_offset = 2,
+                                                  y_offset = 2),
+            'end' : utilStates.End()
+          })
+
+        self.addTransitions(
+            ('start', 'next', 'save'),
+            ('save', 'next', 'forward'),
+            ('forward', 'next', 'return'),
+            ('return', 'next', 'end'),
+          )

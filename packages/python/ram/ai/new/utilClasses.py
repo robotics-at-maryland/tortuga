@@ -131,7 +131,7 @@ class ObjectInSonarQuery(object):
 class hasQueryBeenFalse(object):
     def __init__(self, timeout, query):
         self._query = query
-        self._timer = Timer(timeout).query
+        self._timer = Timer(timeout)
 
     def query(self):
         #if query true, reset timer and return true

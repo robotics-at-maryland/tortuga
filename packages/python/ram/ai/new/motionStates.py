@@ -48,7 +48,7 @@ class Move(MotionState):
 
 class MoveTo(MotionState):
     def __init__(self, x, y, rate = 0.15):
-        super(Move, self).__init__()
+        super(MoveTo, self).__init__()
         self._vect = math.Vector2(x, y)
         self._rate = rate
 
@@ -65,7 +65,7 @@ class MoveTo(MotionState):
 
 class MoveWithInitalRate(MotionState):
     def __init__(self, x, y, initalRate = 0.15, rate = 0.15):
-        super(Move, self).__init__()
+        super(MoveWithInitalRate, self).__init__()
         self._vect = math.Vector2(x, y)
         self._initalRate = initalRate
         self._rate = rate
@@ -86,7 +86,7 @@ class Forward(Move):
         super(Forward, self).__init__(distance, 0, rate)
 
 class ForwardWithInitalRate(MoveWithInitalRate):
-    def __init__(self, distance, initalRate, rate):
+    def __init__(self, distance, initalRate = 0.15, rate = 0.15):
         super(ForwardWithInitalRate, self).__init__(distance, 0, initalRate, rate)
 
 
@@ -112,7 +112,7 @@ class Dive(MotionState):
 
 class DiveTo(MotionState):
     def __init__(self, depth, rate = 0.15):
-        super(Dive, self).__init__()
+        super(DiveTo, self).__init__()
         self._depth = depth
         self._rate = rate
 

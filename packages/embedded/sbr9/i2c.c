@@ -168,3 +168,55 @@ long readTemp(byte addr)
     StopI2C();
     return temp;
 }
+
+//Kanga - Write address and color code
+//reference at http://www.ti.com/lit/ds/slds157d/slds157d.pdf
+void setLEDBars(byte addr, byte code){
+    byte blink = code >> 3;
+    byte red = (code & 0x04) >> 2;
+    byte green = (code & 0x02) >> 1;
+    byte blue = code & 0x01;
+
+    int x = 0;
+    IdleI2C();                  //wait for bus Idle
+    StartI2C();                 //Generate Start condition
+    
+    WriteI2C(addr | 0x01); //Select slave for write
+    IdleI2C();
+
+    WriteI2C(0x81); //Auto-increment on all registers starting at 0x01 (Mode2)
+    IdleI2C();
+
+    blink ? WriteI2C(0x20): WriteI2C(0x00); //set DMBLNK to 1 (on) or 0 (off)
+    IdleI2C();
+    
+    for(int i=2; i<=17; i++)
+    {
+        x = i % 3;
+        ((red && x==2) || (green && x==0) || (blue && x==1)) ? WriteI2C(0xFF) : WriteI2C(0x00); //turn appropriate colors on/off
+        IdleI2C();
+    }
+    StopI2C();
+}
+
+void initLEDBars(){
+    IdleI2C();
+    StartI2C();
+    WriteI2C(0xD1);//led allcall write
+    IdleI2C();
+    WriteI2C(0x01);//write to Mode1 register
+    IdleI2C();
+    WriteI2C(0x01);//turn on oscillator
+    IdleI2C();
+    StopI2C();
+
+    IdleI2C();
+    StartI2C();
+    WriteI2C(0xD1);//led allcall write
+    IdleI2C();
+    WriteI2C(0x04);//Write to global blink frequency
+    IdleI2C();
+    WriteI2C(0x0B);//11+1/24 = 0.5 second blink period
+    IdleI2C();
+    StopI2C();
+}

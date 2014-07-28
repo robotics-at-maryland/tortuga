@@ -460,7 +460,7 @@ int setMagPower(int fd, unsigned char power);
 int fireTorpedo(int fd, unsigned char torpnum);
 int voidTorpedo(int fd, unsigned char torpnum);
 int armTorpedo(int fd, unsigned char torpnum);
-int extendGrabber(int fd);
+int extendGrabber(int fd, int param);
 int retractGrabber(int fd);
 int voidGrabber(int fd);
 int voidSystem(int fd);
@@ -633,7 +633,7 @@ int setMagPower(int fd, unsigned char power);
 int fireTorpedo(int fd, unsigned char torpnum);
 int voidTorpedo(int fd, unsigned char torpnum);
 int armTorpedo(int fd, unsigned char torpnum);
-int extendGrabber(int fd);
+int extendGrabber(int fd, int param); //kanga
 int retractGrabber(int fd);
 int voidGrabber(int fd);
 int voidSystem(int fd);

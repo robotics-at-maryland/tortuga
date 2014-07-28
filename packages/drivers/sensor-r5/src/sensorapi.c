@@ -1262,11 +1262,29 @@ int armTorpedo(int fd, unsigned char torpnum)
     return SB_ERROR;
 }
 
-int extendGrabber(int fd)
+//Kanga - Allowing for separate grabber extension
+int extendGrabber(int fd, int param)
 {
     unsigned char buf[2];
 
-    buf[0]= buf[1]= HOST_CMD_EXT_GRABBER;
+    switch(param)
+    {
+        case 0: 
+        {
+            buf[0]= buf[1]= HOST_CMD_EXT_GRABBER; 
+            break;
+        }
+        case 1: 
+        {
+            buf[0]= buf[1]= HOST_CMD_EXT_GRABBER_1; 
+            break;
+        }
+        case 2: 
+        {
+            buf[0]= buf[1]= HOST_CMD_EXT_GRABBER_2; 
+            break;
+        }
+    }
 
     writeData(fd, buf, 2);
     readData(fd, buf, 1);
