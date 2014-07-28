@@ -26,15 +26,15 @@ archives = ('boost-1.45.7z', 'fann-2.1.0.7z', 'gccxml-0.9.0.7z',
             'log4cpp-1.0.0.7z', 'python-ogre-1.6.4.7z', 'segment-1.0.7z',
             'unittestpp-1.3.7z')
 platforms = {
-    ('Ubuntu', '8.04', 'hardy') : 'ubuntu_804',
-    ('Ubuntu', '8.10', 'intrepid') : 'ubuntu_810',
-    ('Ubuntu', '9.04', 'jaunty') : 'ubuntu_904',
-    ('Ubuntu', '9.10', 'karmic') : 'ubuntu_910',
-    ('Ubuntu', '10.04', 'lucid') : 'ubuntu_1004',
-    ('Ubuntu', '10.10', 'maverick') : 'ubuntu_1010',
-    ('Ubuntu', '11.04', 'natty') : 'ubuntu_1104',
-    ('LinuxMint', '11', 'katya') : 'ubuntu_1104'
-    }
+  ('Ubuntu', '8.04', 'hardy') : 'ubuntu_804',
+  ('Ubuntu', '8.10', 'intrepid') : 'ubuntu_810',
+  ('Ubuntu', '9.04', 'jaunty') : 'ubuntu_904',
+  ('Ubuntu', '9.10', 'karmic') : 'ubuntu_910',
+  ('Ubuntu', '10.04', 'lucid') : 'ubuntu_1004',
+  ('Ubuntu', '10.10', 'maverick') : 'ubuntu_1010',
+  ('Ubuntu', '11.04', 'natty') : 'ubuntu_1104',
+  ('LinuxMint', '11', 'katya') : 'ubuntu_1104',
+}
 
 class dependency(object):
     def __init__(self, name, packages):
@@ -67,6 +67,7 @@ def setup_dependencies():
     deps.append(dependency('cmake', 'cmake'))
     deps.append(dependency('python', 'python-dev python-numpy'))
     deps.append(dependency('dc1394', 'libdc1394-22-dev'))
+    deps.append(dependency('opencv', 'libcv-dev libhighgui-dev libcvaux-dev'))
     deps.append(dependency('opengl', 'mesa-common-dev libglu1-mesa-dev'))
     deps.append(dependency('libusb', 'libusb-dev'))
     deps.append(dependency('wx', 'python-wxgtk2.8 libwxgtk2.8-dev'))
@@ -135,8 +136,6 @@ def download_precompiled(quiet=False):
     print 'success: all archives installed'
     
 def main(argv=None):
-    subprocess.call(['sudo', 'mkdir', '/opt/ram/local/'])
-    subprocess.call(['sudo', 'chown', '-R', getpass.getuser()+':'+getpass.getuser() , '/opt/ram/local/'])
     # Parse Arguments
     parser = OptionParser()
     parser.set_defaults(task = str(DEFAULT_TASKS), prefix = DEFAULT_PREFIX)
@@ -144,7 +143,7 @@ def main(argv=None):
                       help = 'Bootstrap tasks to run', default = None)
     parser.add_option('-p','--prefix', nargs = 1,    
                       help = 'The prefix to install all packages into'
-                      ' [default: %default]')
+                             ' [default: %default]')
     parser.add_option('--download', action='store_true', dest='download',
                       help = 'Turn on automatic downloading of dependencies')
     parser.add_option('-q', '--quiet', action='store_true')
