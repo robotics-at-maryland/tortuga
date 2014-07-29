@@ -21,6 +21,12 @@ MACHINE_COMPLETE = core.declareEventType('MACHINE_COMPLETE')
 TERMINATE = core.declareEventType('TERMINATE')
 COMPLETE = core.declareEventType('COMPLETE')
 
+class Intro(oldState.State):
+
+    @staticmethod
+    def transitions():
+        return{ 'Start' : Body }
+
 class Body(oldState.State):
     """
     Just like the body of an essay I contain the meat of this routine

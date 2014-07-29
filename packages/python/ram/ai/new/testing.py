@@ -8,12 +8,12 @@ import ram.ai.new.acousticServoing as acousticServoing
 import ram.ai.new.approach as approach
 import ram.ai.new.checkpoints as checkpoints
 
-import ram.ai.new.gate as gate
+#import ram.ai.new.Gate2014 as gate
+import ram.ai.new.Gate2014WithVel as gate
 import ram.ai.new.Buoy2014 as buoy
 #import ram.ai.new.SonarManip2014 as sonarm
-import ram.ai.new.uprights as uprights
-
-
+import ram.ai.new.Uprights2014 as uprights
+import ram.ai.new.Pipe2014 as pipe
 import ram.ai.new.Buoy2014 as buoy
 
 
@@ -33,21 +33,16 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-        
+
+        buoy = utilClasses.BuoyVisionObject(self.getLegacyState())
 
         self.addStates({
             'start' : utilStates.Start(),
-            'save' : checkpoints.SaveCheckpoint(checkpoint = 'test'),
-            'forward' : motionStates.Move(4, 2),
-            'return' : checkpoints.GotoCheckpoint(checkpoint = 'test',
-                                                  x_offset = 2,
-                                                  y_offset = 2),
+            'forward' : gate.GateTask(buoy, 4, 2, 2, 'end', 'end'),
             'end' : utilStates.End()
           })
 
         self.addTransitions(
-            ('start', 'next', 'save'),
-            ('save', 'next', 'forward'),
-            ('forward', 'next', 'return'),
-            ('return', 'next', 'end'),
+            ('start', 'next', 'forward'),
+            ('forward', 'next', 'end')
           )
