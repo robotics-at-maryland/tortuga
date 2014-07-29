@@ -11,7 +11,8 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
-
+#include <string>
+#include <sstream>
 // Library Includes
 #include "highgui.h"
 #include <boost/foreach.hpp>
@@ -32,7 +33,7 @@
 
 
 static log4cpp::Category& LOGGER(log4cpp::Category::getInstance("LoversLaneDetector"));
-
+int imagenumber;
 namespace ram {
 namespace vision {
 
@@ -66,6 +67,7 @@ LoversLaneDetector::LoversLaneDetector(Camera* camera) :
 
 void LoversLaneDetector::init(core::ConfigNode config)
 {
+imagenumber = 1;
     LOGGER.info("Not IMPLEMENTED YET");
     core::PropertySetPtr propSet(getPropertySet());
 
@@ -137,6 +139,17 @@ void LoversLaneDetector::init(core::ConfigNode config)
     // Working images
     frame = new vision::OpenCVImage(640, 480, Image::PF_BGR_8);
     greenFrame = new vision::OpenCVImage(640, 480, Image::PF_BGR_8);
+
+
+//std::string name ="VideoAVI.avi";
+//int FPS = 30;
+//cv::Size S = img.size();
+//printf("S = %d, %d", S.width, S.height);
+//outputVideo.open(name,CV_FOURCC('M','J','P','G'),FPS, cv::Size(480,640),true);
+printf("setup?");
+
+
+
 }
 
 LoversLaneDetector::~LoversLaneDetector()
@@ -148,6 +161,57 @@ LoversLaneDetector::~LoversLaneDetector()
         delete m_tableColorFilter;
 
     delete m_colorFilter;
+
+
+
+cv::VideoWriter outputVideo;
+std::string name ="Video.avi";
+int FPS = 30;
+
+cv::Mat img;
+std::stringstream s;
+std::string imagestring;
+printf("\n imagenumber= %d",imagenumber);
+
+s << "images/" <<imagenumber <<".jpeg";
+imagestring = s.str();
+img = cv::imread(imagestring,1);
+
+outputVideo.open(name,CV_FOURCC('P','I','M','1'),FPS, img.size(),true);
+printf("setup?");
+int i;
+
+s.str(std::string());
+imagestring = s.str();
+for (i = 2;i<imagenumber;i++)
+{
+s << "images/" <<i <<".jpeg";
+imagestring = s.str();
+img = cv::imread(imagestring,1);
+
+
+if (!img.data)
+{
+printf("\n NO data for %d", i);
+}
+else
+{
+//cv::namedWindow("image",cv::WINDOW_AUTOSIZE);
+//cv::imshow("image",img);
+//cv::waitKey(10);
+printf("\n works = %d", i);
+outputVideo<<img;
+}
+//printf("1 ");
+
+s.str(std::string());
+imagestring = s.str();
+
+//outputVideo.release();
+}
+
+
+
 }
 
 void LoversLaneDetector::show(char* window)
@@ -292,6 +356,42 @@ bool LoversLaneDetector::processSides(Image* input,
 void LoversLaneDetector::processImage(Image* input, Image* output)
 {
     frame->copyFrom(input);
+
+cv::Mat img_input = frame->asIplImage();
+cv::Mat img;
+cv::cvtColor(img_input,img, CV_RGB2BGR);
+
+imagenumber = imagenumber+1;
+printf(" %d ",imagenumber);
+std::stringstream s;
+s << "images/" <<imagenumber <<".jpeg";
+std::string imagestring = s.str();
+//std::string imagestring = "/images"+imagenumber;
+imwrite(imagestring,img);
+
+/*
+cv::VideoWriter outputVideo;
+std::string name ="VideoAVI3.avi";
+int FPS = 30;
+cv::Size S = img.size();
+printf("S = %d, %d", S.width, S.height);
+outputVideo.open(name,CV_FOURCC('M','J','P','G'),FPS, S,true);
+printf("setup?");
+*/
+
+
+//outputVideo<<img;
+//printf("1 ");
+//outputVideo.release();
+
+
+
+
+
+
+
+
+
     
     BlobDetector::Blob loversLaneBlob, leftBlob, rightBlob;
     bool found = false;

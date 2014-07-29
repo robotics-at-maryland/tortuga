@@ -222,7 +222,12 @@ void Model::openFile(std::string filename)
     std::string extension = bfs::path(filename).extension();
 
     if (".rmv" == extension)
+    {
         m_camera = new vision::RawFileCamera(filename);
+
+
+
+    }
     else
         m_camera = new vision::OpenCVCamera(filename);
     
@@ -447,6 +452,10 @@ void Model::sendNewImage(bool grabFromSource)
         m_detectorInput->copyFrom(m_latestImage);
         m_detector->processImage(m_detectorInput, m_detectorOutput);
     }
+
+
+
+
 
     m_processingImage->copyFrom(m_latestImage);
     m_processingImage->setPixelFormat(vision::Image::PF_HSV_8);

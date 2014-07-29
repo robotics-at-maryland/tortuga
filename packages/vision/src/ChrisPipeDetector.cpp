@@ -1,11 +1,3 @@
-/*
- * Copyright (C) 2007 Robotics at Maryland
- * Copyright (C) 2007 Daniel Hakim
- * All rights reserved.
- *
- * Author: Daniel Hakim <dhakim@umd.edu>
- * File:  packages/vision/src/OrangePipeDetector.cpp
- */
 
 // STD Includes
 #include <iostream>
@@ -23,7 +15,7 @@
 
 // Project Includes
 #include "vision/include/main.h"
-#include "vision/include/OrangePipeDetector.h"
+#include "vision/include/ChrisPipeDetector.h"
 #include "vision/include/OpenCVImage.h"
 #include "vision/include/Camera.h"
 #include "vision/include/Events.h"
@@ -52,7 +44,7 @@ namespace vision {
 static log4cpp::Category& logger(log4cpp::Category::getInstance("PipeDetector"));
 
     
-OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
+ChrisPipeDetector::ChrisPipeDetector(core::ConfigNode config,
                                        core::EventHubPtr eventHub) :
     PipeDetector(config, eventHub),
     m_centered(false),
@@ -63,7 +55,7 @@ OrangePipeDetector::OrangePipeDetector(core::ConfigNode config,
   logger.info("Starting Pipe Detector");
 }
     
-void OrangePipeDetector::init(core::ConfigNode config)
+void ChrisPipeDetector::init(core::ConfigNode config)
 {
     m_angle = math::Degree(0);
     m_lineX = 0;
@@ -110,8 +102,8 @@ void OrangePipeDetector::init(core::ConfigNode config)
     
     propSet->addProperty(config, false, "ColorFilterLookupTable",
         "True uses color filter lookup table", false,
-        boost::bind(&OrangePipeDetector::getLookupTable, this),
-        boost::bind(&OrangePipeDetector::setLookupTable, this, _1));
+        boost::bind(&ChrisPipeDetector::getLookupTable, this),
+        boost::bind(&ChrisPipeDetector::setLookupTable, this, _1));
 
     m_filter->addPropertiesToSet(propSet, &config,
                                  "L", "L*",
@@ -126,7 +118,7 @@ void OrangePipeDetector::init(core::ConfigNode config)
   m_framenumber = 0;
 
 
-  propSet->addProperty(config, false, "erodeIterations",
+  /*propSet->addProperty(config, false, "erodeIterations",
         "How many times to erode the filtered image",
         1, &m_erodeIterations);
 
@@ -136,8 +128,9 @@ void OrangePipeDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "MinSize",
         "MinSize",  15, &m_minSize, 0, 50000);
 
-
+*/	
  m_redFilter = new ColorFilter(0, 255, 0, 255, 0, 255);
+	
     m_redFilter->addPropertiesToSet(propSet, &config,
                                     "RedL", "Red Luminance",
                                     "RedC", "Red Chrominance",
@@ -148,17 +141,46 @@ void OrangePipeDetector::init(core::ConfigNode config)
                          "Number of dilate iterations to perform",
                          0, &m_dilateIteration);
 
-
-
-    propSet->addProperty(config, false, "MedianBlur",
-                         "MedianBlur",
-                         5, &m_medianblur,1,50);
-    propSet->addProperty(config, false, "Threshold",
-                         "Threshold",
-                         150, &m_threshold,0,250);
-	propSet->addProperty(config, false, "HueShiftNumber",
+    propSet->addProperty(config, false, "HueShiftNumber",
                          "HueShiftNumber",
                          150.0, &m_hueshiftnumber,0.0,180.0);
+
+    propSet->addProperty(config, false, "BlurAmount",
+                         "BlurAmount",
+                         5, &m_bluramount,0,15);
+    propSet->addProperty(config, false, "Threshvalue",
+                         "Threshvalue",
+                         150, &m_threshvalue,0,255);
+
+    propSet->addProperty(config, false, "minSize",
+                         "minSize",
+                        70, &m_minContourSize,0,500);
+    propSet->addProperty(config, false, "minAspectRatio",
+                         "minAspectRatio",
+                         0.0, &m_minAR,0.0,10.0);
+    propSet->addProperty(config, false, "maxAspectRatio",
+                         "maxAspectRatio",
+                         7.0, &m_maxAR,0.0,10.0);
+
+    propSet->addProperty(config, false, "MinAreaRatio",
+                         "MinAreaRatio",
+                         0.0, &m_minAreaRatio,0.0,50.0);
+
+    propSet->addProperty(config, false, "MaxAreaRatio",
+                         "MaxAreaRatio",
+                         1.0, &m_maxAreaRatio,0.0,50.0);
+    propSet->addProperty(config, false, "MinPerimeter",
+                         "MinPerimeter",
+                         0.0, &m_minPerimeter,0.0,50.0);
+    propSet->addProperty(config, false, "MaxPerimeter",
+                         "MaxPerimeter",
+                         0.5, &m_maxPerimeter,0.0,50.0);
+
+    propSet->addProperty(config, false, "DistanceRef",
+                         "DistanceRef",
+                         50, &m_distanceref,0,500);
+
+
 
 
 m_onlyReportOnePipe=false;
@@ -166,12 +188,12 @@ logger.info("Got Initial Values");
 
 }
 
-bool OrangePipeDetector::getLookupTable()
+bool ChrisPipeDetector::getLookupTable()
 {
     return m_colorFilterLookupTable;
 }
 
-void OrangePipeDetector::setLookupTable(bool lookupTable)
+void ChrisPipeDetector::setLookupTable(bool lookupTable)
 {
     if ( lookupTable ) {
         m_colorFilterLookupTable = true;
@@ -185,7 +207,8 @@ void OrangePipeDetector::setLookupTable(bool lookupTable)
     }
 }
 
-void OrangePipeDetector::filterForOrangeOld(Image* image)
+/*
+void ChrisPipeDetector::filterForOrangeOld(Image* image)
 {
     if (m_found)
     {
@@ -203,7 +226,7 @@ void OrangePipeDetector::filterForOrangeOld(Image* image)
     }
 }
 
-void OrangePipeDetector::filterForOrangeNew(Image* image)
+void ChrisPipeDetector::filterForOrangeNew(Image* image)
 {
     // Filter the image so all orange is white, and everything else is black
     image->setPixelFormat(Image::PF_LUV_8);
@@ -212,33 +235,33 @@ void OrangePipeDetector::filterForOrangeNew(Image* image)
     else
         m_filter->filterImage(image);
 }
-    
-bool OrangePipeDetector::found()
+  */  
+bool ChrisPipeDetector::found()
 {
     return m_found;
 }
 
-double OrangePipeDetector::getX()
+double ChrisPipeDetector::getX()
 {
     return m_lineX;
 }
 
-double OrangePipeDetector::getY()
+double ChrisPipeDetector::getY()
 {
     return m_lineY;
 }
 
-math::Degree OrangePipeDetector::getAngle()
+math::Degree ChrisPipeDetector::getAngle()
 {
     return m_angle;
 }
 
-void OrangePipeDetector::setUseLUVFilter(bool value)
+void ChrisPipeDetector::setUseLUVFilter(bool value)
 {
     m_useLUVFilter = value;
 }   
 
-OrangePipeDetector::~OrangePipeDetector()
+ChrisPipeDetector::~ChrisPipeDetector()
 {
     delete m_redFilter;
 
@@ -280,7 +303,7 @@ OrangePipeDetector::~OrangePipeDetector()
 
 
 
-void OrangePipeDetector::DetectorContours(Image* input)
+void ChrisPipeDetector::DetectorContours(Image* input)
 {
 /*
 Kate Note:
@@ -396,8 +419,8 @@ logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <
 		//imshow("Sat ReD",img_saturation);
 	}
 	//imshow("Saturation",img_saturation);
-	Mat img_Luminance_red;
-	img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
+Mat img_Luminance_red;
+img_Luminance_red = blob.LuminanceFilter(hsv_planes,red_minL,red_maxL);
 
 	if (red_minL != 0 || red_maxL != 255)	
 	{
@@ -419,16 +442,6 @@ logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <
 
 
 	foundpipe finalpipe;
-
-	//HUE SHIFT
-	//dilate_dst_red= HueShifter_RedMinusGreen(img, (int)m_hueshiftnumber, m_medianblur);
-
-	
-	int threshvalue = m_threshold;
-	
-	threshold(dilate_dst_red,dilate_dst_red, threshvalue,255,0);
-	imshow("Threshold", dilate_dst_red);
-
 	finalpipe= getSquareBlob(dilate_dst_red);
 
 	//have two pipes - i want to make sure I dont flip the ID on each one
@@ -572,7 +585,7 @@ logger.infoStream() << "Initial Values Red Hue: " << red_minH<<" , "<<red_maxH <
 }
 
 
-OrangePipeDetector::foundpipe OrangePipeDetector::getSquareBlob(Mat erosion_dst)
+ChrisPipeDetector::foundpipe ChrisPipeDetector::getSquareBlob(Mat erosion_dst)
 {
 	//finds the maximum contour that meets aspectratio
 
@@ -716,7 +729,7 @@ logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" S
 		finalpipe.angle = 0;
 		finalpipe.id = 0;
 
-       		logger.infoStream() << "Unable to find single line in ORangePipeDetector";
+       		logger.infoStream() << "Unable to find single line in ChrisPipeDetector";
 
 	} 
 
@@ -804,7 +817,7 @@ logger.infoStream() << "Max Area" <<maxArea <<" at contour :"<< maxContour <<" S
 		finalpipe.angle2 = 0;
 		finalpipe.id2=0;
 
-  		logger.infoStream() << "Unable to find SECOND line in ORangePipeDetector";
+  		logger.infoStream() << "Unable to find SECOND line in ChrisPipeDetector";
 
 	}
 logger.infoStream() << "Data being passed: at" <<finalpipe.centerx  << "," << finalpipe.centery << " with angle"  << finalpipe.angle << " and range"  << finalpipe.range << " ";
@@ -813,7 +826,7 @@ logger.infoStream() << "2nd FoundLine: at" <<finalpipe.centerx2  << "," << final
 	return(finalpipe);
 }
 
-void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int pipenumber, Image* input)
+void ChrisPipeDetector::publishFoundEvent(foundpipe pipe, int pipenumber, Image* input)
 {
     PipeEventPtr event(new PipeEvent()); 
     double centerX = 0, centerY = 0;
@@ -851,7 +864,7 @@ void OrangePipeDetector::publishFoundEvent(foundpipe pipe, int pipenumber, Image
 
 }
 
-void OrangePipeDetector::publishLostEvent(int number)
+void ChrisPipeDetector::publishLostEvent(int number)
 {
     PipeEventPtr event(new PipeEvent());
     event->id = number;
@@ -859,9 +872,264 @@ void OrangePipeDetector::publishLostEvent(int number)
 }
 
 
-void OrangePipeDetector::processImage(Image* input, Image* output)
+void ChrisPipeDetector::processImage(Image* input, Image* output)
 {
-	DetectorContours(input);
+
+
+	Mat img = input->asIplImage();
+	Mat img_filter= HueShifter_RedMinusGreen(img, (int)m_hueshiftnumber, m_bluramount);
+	
+	int threshvalue = m_threshvalue;
+	threshold( img_filter, img_filter, threshvalue,255,0);
+	imshow("Threshold", img_filter);
+
+	//Now to find the pipe using contours
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	findContours(img_filter, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+	//printf("\n Found Contours = %d",contours.size());
+	logger.infoStream() << "Found Contours , Number of contour " << contours.size();
+
+
+	double area;
+	double rect_area;
+	double AreaRatio;
+	double AR; //aspect ratio
+	double AL; //arch length
+	double perimeter;
+	RotatedRect box;
+	unsigned int minContourSize =(unsigned int)m_minContourSize;
+
+	//int foundpipe1 =0;
+	//int foundpipe2 =0;
+	int pipe1_size = 0;
+	//int pipe2_size = 0;
+	int foundanypipe = 0;
+	//int pipe1_x=0;
+	//int pipe1_y=0;
+	//double pipe1_angle=0;
+	//int pipe1_area = 0;
+	int pipe1_id=0;
+	int pipe2_id=0;
+
+	m_currentpipe.centerx =0;
+	m_currentpipe.centery=0;
+	m_currentpipe.range= 0;
+	m_currentpipe.angle=0;
+	m_currentpipe.area=0;
+	
+
+
+	for (unsigned int i=0;i<contours.size();i++)
+	{
+		//printf("\n Size = %d", contours[i].size());
+		if (contours[i].size() > minContourSize)
+		{			
+				drawContours(img, contours, i,Scalar(0,255,255), 1, 8, vector<Vec4i>(), 0, Point() );
+				//draw rectangle about contours to get more information
+				box = minAreaRect(contours[i]);
+				rect_area = double(box.size.width*box.size.height);
+				area = contourArea(contours[i]);
+				AL = arcLength(contours[i],TRUE);
+
+				if (box.size.height < box.size.width)
+					AR = double(box.size.height/box.size.width);
+				else
+					AR = double(box.size.width/box.size.height);
+
+				if (rect_area< area)
+					AreaRatio = double(rect_area/area);
+				else
+					AreaRatio = double(area/rect_area);
+
+				if (AL < 2*(box.size.width+box.size.height))
+					perimeter = 1-double(AL/((box.size.width+box.size.height)*2));
+				else
+					perimeter = 1-double(((box.size.width+box.size.height)*2)/AL);
+			//    printf("\n Size = %d ", contours[i].size());
+			//	printf("Area_final = %f, Perimeter = %f, AR = %f i = %d ", AreaRatio,perimeter,AR,i);
+				
+				if (AreaRatio < m_maxAreaRatio && AreaRatio > m_minAreaRatio && perimeter > m_minPerimeter && perimeter < m_maxPerimeter && AR > m_minAR && AR < m_maxAR)
+				{
+			//		printf(" WORKS");
+					foundanypipe = foundanypipe+1;
+					if ((int)contours[i].size()> pipe1_size)
+					{
+						if (foundanypipe > 1)
+							m_currentpipe.found2 = false; //always false cause I just want the main pipe
+
+						m_currentpipe.id2 =2;
+						m_currentpipe.framenumber2 = 0;
+						m_currentpipe.centerx2 =m_currentpipe.centerx;
+						m_currentpipe.centery2=m_currentpipe.centery;
+						m_currentpipe.range2= m_currentpipe.range;
+						m_currentpipe.angle2=m_currentpipe.angle;
+						m_currentpipe.area2=m_currentpipe.area;
+						pipe2_id = pipe1_id;
+
+						m_currentpipe.found =true;
+						m_currentpipe.id = 1;
+						m_currentpipe.framenumber = 10;
+						m_currentpipe.centerx=box.center.x;
+						m_currentpipe.centery=box.center.y;
+						m_currentpipe.area=rect_area;
+						m_currentpipe.range=contours[i].size();
+						m_currentpipe.angle=box.angle;
+						pipe1_id = i;
+						pipe1_size = m_currentpipe.range;
+					}
+				}
+		}
+	}	
+	//now to find the two most likely pipes, which are the two largest pipes- if any
+	//then we want to compare them to a previous frame
+	
+int distance[4];
+distance[0]=9999;
+distance[1]=9999;
+distance[2]= 9999;
+distance[3] = 9999;
+
+//COMMENTED OUT BECAUSE WE ARENT GOING TO THE DOUBLE PIPE SO WE ONLY WANT THE LARGEST
+//So only look at teh first pipe
+
+	if (m_currentpipe.found > 0)
+	{
+		//FOUND ONE PIPE
+		//check the previous frame
+		
+		if (m_framenumber  > 0 && m_previousfinalpipe.found == true)
+		{
+			distance[0] = abs(m_currentpipe.centerx-m_previousfinalpipe.centerx)+abs(m_currentpipe.centery-m_previousfinalpipe.centery);
+
+			if (m_currentpipe.found2 == true)
+			{
+				distance[1] = abs(m_currentpipe.centerx2-m_previousfinalpipe.centerx)+abs(m_currentpipe.centery2-m_previousfinalpipe.centery);
+			}
+			else
+			{
+				distance[1] = m_distanceref+10;
+			}
+
+			if (m_previousfinalpipe.found2 == true)
+			{
+				distance[2] = abs(m_currentpipe.centerx-m_previousfinalpipe.centerx2)+abs(m_currentpipe.centery-m_previousfinalpipe.centery2);
+				if (m_currentpipe.found2 == true)
+				{
+					distance[3] = abs(m_currentpipe.centerx2-m_previousfinalpipe.centerx2)+abs(m_currentpipe.centery2-m_previousfinalpipe.centery2);
+				}
+				else
+				{
+					distance[3] = m_distanceref+10;
+				}
+			}
+			else
+			{
+				distance[2] = m_distanceref+10;
+			}
+
+		
+			if (distance[0] < m_distanceref && distance[0] <= distance[2])
+			{
+			  	m_currentpipe.id = m_previousfinalpipe.id;
+				m_currentpipe.framenumber = m_previousfinalpipe.framenumber+1;
+				if (distance[3] < m_distanceref )
+				{
+					m_currentpipe.id2 = m_previousfinalpipe.id2;	
+					m_currentpipe.framenumber2 = m_previousfinalpipe.framenumber2+1;		
+				}
+				else
+				{
+					m_currentpipe.id2 =2;
+					m_currentpipe.framenumber2 = 0;
+				}
+			}
+			else if (distance[2] < m_distanceref && distance[2] < distance[0])
+			{
+				m_currentpipe.id = m_previousfinalpipe.id2;
+				m_currentpipe.framenumber = m_previousfinalpipe.framenumber2+1;
+				if (distance[1] < m_distanceref )
+				{
+					m_currentpipe.id2 = m_previousfinalpipe.id;	
+					m_currentpipe.framenumber2 = m_previousfinalpipe.framenumber+1;		
+				}
+				else
+				{
+					m_currentpipe.id2 =2;
+					m_currentpipe.framenumber2 = 0;
+				}
+			}
+			else
+			{
+				m_currentpipe.id =1;
+				m_currentpipe.framenumber = 0;
+			}
+		}
+		//if distance1 < (distance2 and distance3) then this is the same ID as previous_pipe1 
+		//if distance2 < (distance1 and distance 4) then this is previos_pipe1
+		//if distance3 < (distance1 && distance 4) then its pipe2
+		//if distance4 < (distance2 && distance 3) then its pipe2
+		//Pipe1 = previousPipe1 if (distance1 < distance3 && distance1 < distance2)
+		//Else swap
+
+		if (m_currentpipe.id == 1 && m_currentpipe.found2 == true)
+		{
+			m_currentpipe.id2 = 2;
+		}
+		else if (m_currentpipe.found2 == true)
+		{
+			m_currentpipe.id2 = 1;
+		}
+		
+
+		if (m_currentpipe.framenumber > 20)
+			m_currentpipe.framenumber = 20;
+		if (m_currentpipe.framenumber2 > 20)
+			m_currentpipe.framenumber2 = 20;
+
+
+//		printf("\n Pipe 1: %d,ID =  %d", m_currentpipe.framenumber, m_currentpipe.id);
+//		printf("\n Pipe 2: %d,ID =  %d", m_currentpipe.framenumber2, m_currentpipe.id2);
+		
+		if (m_currentpipe.framenumber > 0 && m_currentpipe.found == true)
+		{
+			if (m_currentpipe.id == 1)	
+				drawContours(img, contours,pipe1_id,Scalar(0,0,255), m_currentpipe.framenumber, 8, vector<Vec4i>(), 0, Point() );
+			else
+				drawContours(img, contours,pipe1_id,Scalar(255,0,0), m_currentpipe.framenumber, 8, vector<Vec4i>(), 0, Point() );
+
+			finalpipe = m_currentpipe;
+		}
+		if (m_currentpipe.framenumber2 > 0 && m_currentpipe.found2 == true)		
+		{	
+			if (m_currentpipe.id2 == 1)	
+				drawContours(img, contours,pipe2_id,Scalar(0,255,0), m_currentpipe.framenumber2, 8, vector<Vec4i>(), 0, Point() );
+			else
+				drawContours(img, contours,pipe2_id,Scalar(255,255,0), m_currentpipe.framenumber2, 8, vector<Vec4i>(), 0, Point() );
+		}
+
+		m_previousfinalpipe = m_currentpipe;
+		m_framenumber = m_framenumber+1;
+		
+		//printf("\n END");
+	}
+	else
+	{
+		printf("\n UNABLE TO FIND CONTOUR");
+	}
+
+
+
+
+	if (finalpipe.found == true && m_currentpipe.framenumber > 0)
+	{	logger.infoStream() << " Pipe1 found going to publish Data";
+		m_foundpipe1 = true;
+		if (finalpipe.found2 == true)
+			publishFoundEvent(finalpipe,2,input);
+		else
+			publishFoundEvent(finalpipe,1,input);
+	}
+	
 
 	 if(output)
 	    {
@@ -871,145 +1139,19 @@ void OrangePipeDetector::processImage(Image* input, Image* output)
 		//imshow("sat",img_saturation);
 		//imshow("yellowerosion",erode_dst_yellow);
 		//imshow("rederosion",erode_dst_red);
-		if (!img_whitebalance.data)	
-		{
-			printf("ERROR NO WHITEBALANCE");
-		}
-		else
-		{	
+	
 			//imshow("color",img_whitebalance);
-		        input->setData(img_whitebalance.data,false);
+		        input->setData(img.data,false);
 		       //frame->copyFrom(input);
 		       output->copyFrom(input);
-		}
+
 	   }
 
 
-
-/*
-    //Plan is:  Search out orange with a strict orange filter, as soon as we
-    // see a good deal of orange use a less strict filter, and reduce the
-    // amount we need to see. In theory this makes us follow the pipeline as
-    // long as possible, but be reluctant to follow some arbitrary blob until
-    // we know its of a large size and the right shade of orange.  If the
-    // pipeline is found, the angle found by hough is reported.  
-    
-    // Mask orange takes frame, then alter image, then strictness (true=more
-
-    input->setPixelFormat(Image::PF_BGR_8);
-    
-    // Filter the image for the proper color
-    if (m_useLUVFilter)
-        filterForOrangeNew(input);
-    else
-        filterForOrangeOld(input);
-
-    // 3 x 3 default erosion element, default 3 iterations.
-    cvErode(input->asIplImage(), input->asIplImage(), 0, m_erodeIterations);
-
-    if(m_openIterations > 0)
-    {
-        cvErode(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
-        cvDilate(input->asIplImage(), input->asIplImage(), 0, m_openIterations);
-    }
-
-    // Debug display
-    if (output)
-        output->copyFrom(input);
-
-    // Find all of our pipes
-    PipeDetector::processImage(input, output);
-    PipeDetector::PipeList pipes = getPipes();
-
-    // Determine if we found any pipes
-    bool found = pipes.size() > 0;
-    
-    // Determine which pipes (by id) were present last time, but aren't present
-    // now.  Also build the set of current pipe IDs
-
-    // Get the set of the Ids of the newest pipes
-    std::set<int> newIds;
-    BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
-        newIds.insert(pipe.getId());
-
-    // Get the Set Ids that were in the last frame but not the current
-    std::vector<int> lostIds(m_lastPipeIds.size()); 
-    std::vector<int>::iterator lostIdsEnd =
-        std::set_difference(m_lastPipeIds.begin(), m_lastPipeIds.end(),
-                            newIds.begin(), newIds.end(), lostIds.begin());
-    lostIds.resize(lostIdsEnd -lostIds.begin());
-    
-    // Send out lost events for all the pipes we lost
-    BOOST_FOREACH(int id, lostIds)
-    {
-        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
-        event->id = id;
-        publish(EventType::PIPE_DROPPED, event);
-    }
-    
-    // Send out found events for all the pipes we currently see
-    BOOST_FOREACH(PipeDetector::Pipe pipe, pipes)
-    {
-        PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
-        event->id = pipe.getId();
-        event->x = pipe.getX();
-        event->y = pipe.getY();
-        event->angle = pipe.getAngle();
-        publish(EventType::PIPE_FOUND, event);
-    }
-
-    // Record the current set of Ids
-    m_lastPipeIds = newIds;
-
-    // Send the lost event if we lost all the pipes
-    if (!found && m_found)
-    {
-        // We have lost the pipe
-        publish(EventType::PIPE_LOST, core::EventPtr(new core::Event()));
-    }
-    m_found = found;
-    
-    if (m_found)
-    {
-        // Record the center pipe information
-        m_lineX = pipes[0].getX();
-        m_lineY = pipes[0].getY();
-        m_angle = pipes[0].getAngle();
-        
-        // Send out the centerted event
-        std::sort(pipes.begin(), pipes.end(), pipeToCenterComparer);
-
-        // Determine Centered
-        math::Vector2 toCenter(pipes[0].getX(), pipes[0].getY());
-        if (toCenter.normalise() < m_centeredLimit)
-        {
-            if(!m_centered)
-            {
-                PipeEventPtr event(new PipeEvent(0, 0, 0, 0));
-                event->x = pipes[0].getX();
-                event->y = pipes[0].getY();
-                event->angle = pipes[0].getAngle();
-                event->id = pipes[0].getId();
-
-                m_centered = true;
-                publish(EventType::PIPE_CENTERED, event);
-            }
-        }
-        else
-        {
-            m_centered = false;
-        }
-    }
-    
-    //    if (output)
-    //    {
-    //        CvPoint center;
-    //	center.x = linex;
-    //	center.y = liney;
-    //	cvCircle(output->asIplImage(), center, 5, CV_RGB(0, 0, 255), -1);
-    //    }
-*/
 }
+
+
+
 
 } // namespace vision
 } // namespace ram

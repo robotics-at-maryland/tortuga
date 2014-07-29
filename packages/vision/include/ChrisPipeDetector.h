@@ -4,11 +4,11 @@
  * All rights reserved.
  *
  * Author: Daniel Hakim <dhakim@umd.edu>
- * File:  packages/vision/include/OrangePipeDetector.h
+ * File:  packages/vision/include/ChrisPipeDetector.h
  */
 
-#ifndef RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
-#define RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
+#ifndef RAM_Chris_PIPE_DETECTOR_H_06_23_2007
+#define RAM_Chris_PIPE_DETECTOR_H_06_23_2007
 
 // STD Includes
 #include <set>
@@ -28,8 +28,16 @@
 namespace ram {
 namespace vision {
         
-class RAM_EXPORT OrangePipeDetector  : public PipeDetector
+class RAM_EXPORT ChrisPipeDetector  : public PipeDetector
 {
+
+	double m_hueshiftnumber;
+	int m_bluramount;
+	int m_threshvalue;
+	double m_maxAreaRatio, m_minAreaRatio, m_minPerimeter, m_maxPerimeter, m_minAR, m_maxAR;
+	int m_minContourSize;
+//(AreaRatio < m_maxAreaRatio && AreaRatio > m_minAreaRatio && perimeter < m_minPerimeter && perimeter > m_maxperimeter && AR < m_minAR && AR > m_maxAR)
+				
 
 	struct foundpipe
 	{
@@ -40,6 +48,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 		double area;
 		double range;
 		double angle;
+		int framenumber;
 		int id2;
 		bool found2;
 		int centerx2;
@@ -47,20 +56,21 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 		double range2;
 		double angle2;
 		double area2;
+		int framenumber2;
 	};	
   public:
-    OrangePipeDetector(core::ConfigNode config,
+    ChrisPipeDetector(core::ConfigNode config,
                        core::EventHubPtr eventHub = core::EventHubPtr());
-    ~OrangePipeDetector();
+    ~ChrisPipeDetector();
     
     void processImage(Image* input, Image* output= 0);
     
     bool found();
 
-    /** Get normalized X cordinate of the center of the orange line */
+    /** Get normalized X cordinate of the center of the Chris line */
     double getX();
 
-    /** Get normalized Y cordinate of the center of the orange line */
+    /** Get normalized Y cordinate of the center of the Chris line */
     double getY();
 
     math::Degree getAngle();
@@ -75,14 +85,14 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
   private:
     void init(core::ConfigNode config);
 
-    /** Use Dan's custom mask_orange function */
-    void filterForOrangeOld(Image* image);
+    /** Use Dan's custom mask_Chris function */
+    void filterForChrisOld(Image* image);
 
     /** Use LUV color mask function  */
-    void filterForOrangeNew(Image* image);
+    void filterForChrisNew(Image* image);
     
-    /** Use the color filter to filter for orange */
-    //    void filterForOrange();
+    /** Use the color filter to filter for Chris */
+    //    void filterForChris();
 
     /** Angle of the pipe */
     math::Radian m_angle;
@@ -98,7 +108,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     double m_bOverRMax;
     bool m_found;
 
-    /** Filters for orange */
+    /** Filters for Chris */
     ColorFilter* m_filter;
 
     /** table color filter */
@@ -113,7 +123,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     /** Whether or not we are centered */
     bool m_centered;
 
-    /** The minimum brightness a pixel has to be to be considered orange */
+    /** The minimum brightness a pixel has to be to be considered Chris */
     int m_minBrightness;
 
     /** Number of times to erode the masked image before the hough */
@@ -138,6 +148,7 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
 	bool m_foundpipe1;
 	bool m_foundpipe2;
 	int m_framenumber;
+	int m_distanceref;
 
     /** Color Filters */
 	ColorFilter *m_redFilter;
@@ -154,14 +165,14 @@ class RAM_EXPORT OrangePipeDetector  : public PipeDetector
     	int m_minSize;
 	int m_dilateIteration;
 	foundpipe m_previousfinalpipe;
+	foundpipe m_currentpipe;
+	foundpipe finalpipe;
 
-	int m_medianblur;
-	int m_threshold;
-	double m_hueshiftnumber;
+
 };
     
 } // namespace vision
 } // namespace ram
 
-#endif // RAM_ORANGE_PIPE_DETECTOR_H_06_23_2007
+#endif // RAM_Chris_PIPE_DETECTOR_H_06_23_2007
 
