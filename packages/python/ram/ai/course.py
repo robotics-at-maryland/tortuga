@@ -13,6 +13,7 @@ import ram.ai.state as state
 import ram.ai.Utility as utility
 
 # ----- Here are Task Imports
+import ram.ai.gate as gate
 import ram.ai.GoodPipe as pipe
 import ram.ai.Skip as nextPipe
 import ram.ai.transToTarget as tran
@@ -22,15 +23,14 @@ import ram.ai.GenericDiveStart as dive
 
 
 
-class Dive(task.Task):
+class GateTask(task.Task):
   
     # test timer
     #DONE = core.declareEventType('DONE')
     @staticmethod
     def _transitions():
-        return { dive.COMPLETE : task.Next,
-                 #Pipe1.DONE : task.Next,
-                 'GO' : state.Branch(dive.Start) }
+        return { gate.COMPLETE : task.Next,
+                 'GO' : state.Branch(gate.Start) }
 
     @staticmethod
     def getattr():
@@ -38,129 +38,14 @@ class Dive(task.Task):
 
     def enter(self):
         
-        self.stateMachine.start(state.Branch(dive.Start))
-        # test
-        #self.timer = self.timerManager.newTimer(Pipe1.DONE, 5)
-        #self.timer.start()
+        self.stateMachine.start(state.Branch(gate.Start))
         
     def exit(self):
         task.Task.exit(self)
 
         self.exited = True
-        if (self.stateMachine.branches.has_key(dive.Start)):
-            self.stateMachine.stopBranch(dive.Start)
+        if (self.stateMachine.branches.has_key(gate.Start)):
+            self.stateMachine.stopBranch(gate.Start)
 
-class NextPipe1(task.Task):
-
-    # test timer
-    #DONE = core.declareEventType('DONE')
-    @staticmethod
-    def _transitions():
-        return { nextPipe.COMPLETE : task.Next,
-                 #NextPipe1.DONE : task.Next,
-                 'GO' : state.Branch(nextPipe.Start) }
-
-    @staticmethod
-    def getattr():
-        return set(task.Task.getattr())
-
-    def enter(self):
-        
-        self.stateMachine.start(state.Branch(nextPipe.Start))
-        # test
-        #self.timer = self.timerManager.newTimer(NextPipe1.DONE, 5)
-        #self.timer.start()
-        
-    def exit(self):
-        task.Task.exit(self)
-
-        self.exited = True
-        if (self.stateMachine.branches.has_key(nextPipe.Start)):
-            self.stateMachine.stopBranch(nextPipe.Start)
-
-class Pipe2(task.Task):
-  
-    # test timer
-    #DONE = core.declareEventType('DONE')
-    @staticmethod
-    def _transitions():
-        return { pipe.COMPLETE : task.Next,
-                 #Pipe2.DONE : task.Next,
-                 'GO' : state.Branch(pipe.Start) }
-
-    @staticmethod
-    def getattr():
-        return set(task.Task.getattr())
-
-    def enter(self):
-        
-        self.stateMachine.start(state.Branch(pipe.Start))
-        # test
-        #self.timer = self.timerManager.newTimer(Pipe2.DONE, 5)
-        #self.timer.start()
-        
-    def exit(self):
-        task.Task.exit(self)
-
-        self.exited = True
-        if (self.stateMachine.branches.has_key(pipe.Start)):
-            self.stateMachine.stopBranch(pipe.Start)
-
-
-class transTar(task.Task):
-
-# test timer
-    #DONE = core.declareEventType('DONE')
-    @staticmethod
-    def _transitions():
-        return { tran.COMPLETE : task.Next,
-                 #NextPipe4.DONE : task.Next,
-                 'GO' : state.Branch(tran.Start) }
-
-    @staticmethod
-    def getattr():
-        return set(task.Task.getattr())
-
-    def enter(self):
-        
-        self.stateMachine.start(state.Branch(tran.Start))
-        # test
-        #self.timer = self.timerManager.newTimer(transTar.DONE, 5)
-        #self.timer.start()
-        
-    def exit(self):
-        task.Task.exit(self)
-
-        self.exited = True
-        if (self.stateMachine.branches.has_key(tran.Start)):
-            self.stateMachine.stopBranch(tran.Start)
-
-class Target(task.Task):
-
-    # test timer
-    #DONE = core.declareEventType('DONE')
-    @staticmethod
-    def _transitions():
-        return { window.COMPLETE : task.Task,
-                 #Target.DONE : task.Next,
-                 'GO' : state.Branch(window.Start) }
-
-    @staticmethod
-    def getattr():
-        return set(task.Task.getattr())
-
-    def enter(self):
-        
-        self.stateMachine.start(state.Branch(window.Start))
-        # test
-        #self.timer = self.timerManager.newTimer(Target.DONE, 5)
-        #self.timer.start()
-      
-    def exit(self):
-        task.Task.exit(self)
-
-        self.exited = True
-        if (self.stateMachine.branches.has_key(window.Start)):
-            self.stateMachine.stopBranch(window.Start)
 
 

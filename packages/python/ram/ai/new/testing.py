@@ -43,6 +43,7 @@ class TestMachine(StateMachine):
 #        test = self.addState('test', utilStates.NestedState(sonarm.PogoMotion(4,4,2,6)))
 #        test.setTransition('complete', 'end')
         
+
         #upRightsTask = self.addState('uprights', 
         #                             uprights.UprightsTask(buoy, pipe, 
         #                                                   8, 4, 2, 2,

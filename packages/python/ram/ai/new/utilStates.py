@@ -138,3 +138,4 @@ class Task(ConstrainedState):
 
         def enter(self):
             self._taskTimer.reset()
+            super(Task, self).enter()
