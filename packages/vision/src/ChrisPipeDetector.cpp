@@ -881,7 +881,7 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 	
 	int threshvalue = m_threshvalue;
 	threshold( img_filter, img_filter, threshvalue,255,0);
-	//imshow("Threshold", img_filter);
+	imshow("Threshold", img_filter);
 
 	//Now to find the pipe using contours
 	vector<vector<Point> > contours;
@@ -956,7 +956,7 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 					if ((int)contours[i].size()> pipe1_size)
 					{
 						if (foundanypipe > 1)
-							m_currentpipe.found2 = true;
+							m_currentpipe.found2 = false; //always false cause I just want the main pipe
 
 						m_currentpipe.id2 =2;
 						m_currentpipe.framenumber2 = 0;
@@ -969,7 +969,7 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 
 						m_currentpipe.found =true;
 						m_currentpipe.id = 1;
-						m_currentpipe.framenumber = 0;
+						m_currentpipe.framenumber = 10;
 						m_currentpipe.centerx=box.center.x;
 						m_currentpipe.centery=box.center.y;
 						m_currentpipe.area=rect_area;
@@ -990,17 +990,27 @@ distance[1]=9999;
 distance[2]= 9999;
 distance[3] = 9999;
 
+//COMMENTED OUT BECAUSE WE ARENT GOING TO THE DOUBLE PIPE SO WE ONLY WANT THE LARGEST
+//So only look at teh first pipe
+
 	if (m_currentpipe.found > 0)
 	{
 		//FOUND ONE PIPE
 		//check the previous frame
+		
 		if (m_framenumber  > 0 && m_previousfinalpipe.found == true)
 		{
 			distance[0] = abs(m_currentpipe.centerx-m_previousfinalpipe.centerx)+abs(m_currentpipe.centery-m_previousfinalpipe.centery);
+
 			if (m_currentpipe.found2 == true)
 			{
 				distance[1] = abs(m_currentpipe.centerx2-m_previousfinalpipe.centerx)+abs(m_currentpipe.centery2-m_previousfinalpipe.centery);
 			}
+			else
+			{
+				distance[1] = m_distanceref+10;
+			}
+
 			if (m_previousfinalpipe.found2 == true)
 			{
 				distance[2] = abs(m_currentpipe.centerx-m_previousfinalpipe.centerx2)+abs(m_currentpipe.centery-m_previousfinalpipe.centery2);
@@ -1008,10 +1018,18 @@ distance[3] = 9999;
 				{
 					distance[3] = abs(m_currentpipe.centerx2-m_previousfinalpipe.centerx2)+abs(m_currentpipe.centery2-m_previousfinalpipe.centery2);
 				}
+				else
+				{
+					distance[3] = m_distanceref+10;
+				}
+			}
+			else
+			{
+				distance[2] = m_distanceref+10;
 			}
 
 		
-			if (distance[0] < m_distanceref && distance[0] < distance[2])
+			if (distance[0] < m_distanceref && distance[0] <= distance[2])
 			{
 			  	m_currentpipe.id = m_previousfinalpipe.id;
 				m_currentpipe.framenumber = m_previousfinalpipe.framenumber+1;
@@ -1062,6 +1080,7 @@ distance[3] = 9999;
 		{
 			m_currentpipe.id2 = 1;
 		}
+		
 
 		if (m_currentpipe.framenumber > 20)
 			m_currentpipe.framenumber = 20;
