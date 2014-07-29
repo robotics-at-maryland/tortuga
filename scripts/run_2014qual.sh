@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Running GATE -> SONAR"
-scripts/reload_cameras.sh
+echo "Running GATE"
+#scripts/reload_cameras.sh
 source scripts/setenv
 lcdshow -unsafe
 
@@ -16,7 +16,7 @@ sleep 2
 #lcdshow -setbars 240
 lcdshow -t "Running..."
 
-python tools/acs/src/main.py -c data/config/transdec2014_practice.yml -s ram.ai.course.Gate
+python tools/acs/src/main.py -c data/config/transdec2014_qual.yml -s ram.ai.course.GateTask
 
 #lcdshow -noblink
 #lcdshow -setbars 12

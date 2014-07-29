@@ -2,15 +2,15 @@ ForwardCamera:
     #brightness: auto # 275
     #uValue: 72 # 80 (NBRF sun) # 100
     #vValue: 114 # 90 (NBRF sun) # 100
-    uValue: 53
-    vValue: 141
+    #uValue: 53
+    #vValue: 141
 
 DownwardCamera:
     #brightness: auto # 275
-    uValue: 58
+    #uValue: 58
     #uValue: 72 # 80 (NBRF sun) # 100
     #vValue: 114 # 90 (NBRF sun) # 100
-    vValue: 122
+    #vValue: 122
 
 AdaptiveThresher:
     foobared: true
