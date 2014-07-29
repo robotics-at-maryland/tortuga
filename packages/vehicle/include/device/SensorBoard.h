@@ -187,7 +187,7 @@ public:
      *      0 if the grabber successfully released the object. -1 if
      *      the object was already released.
      */
-    virtual int extendGrabber();
+    virtual int extendGrabber(int param);
 
     /** Opens the grabber
      *

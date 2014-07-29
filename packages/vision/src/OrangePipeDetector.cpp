@@ -310,7 +310,7 @@ Mat img = input->asIplImage();
 	split(temphsv,hsv_planes);
 	Mat tempWhite;
 	//equalizeHist(hsv_planes[1], hsv_planes[1]);
-	equalizeHist(hsv_planes[2], hsv_planes[2]);
+	//equalizeHist(hsv_planes[2], hsv_planes[2]);
 	merge(hsv_planes,temphsv);
 	cvtColor(temphsv,img_whitebalance,CV_HSV2BGR);
 

@@ -89,9 +89,71 @@ class RAM_EXPORT TargetDetector : public Detector
     {
         return ((a1 + range/2) > a2) && ((a1 - range/2) < a2);
     }
+    double computeSquaredCornerDistance(double cx, double cy, Hole h)
+    {
+        if(h.x > 1000 || h.x < 0)
+        {
+            return -1;
+        }
+        return (h.x-cx)*(h.x-cx)+(h.y-cy)*(h.y-cy);
+    }
     
+void BinHolesSize(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareSize);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            int holeInsert = 0;
+            for(unsigned int i = 1; i < holes.size(); i++)
+            {
+                Hole h = holes[i];
+                if(CheckInRange(holes[i-1].size, holes[i].size,range))
+                {
+                    a[holeInsert].push_back(holes[i]);
+                }
+                else
+                {
+                    std::vector<Hole> b;
+                    b.push_back(holes[i]);
+                    a.push_back(b);
+                    holeInsert++;
+                }   
+            }
+        }
+    }
+void BinHolesXY(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareXY);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            int holeInsert = 0;
+            for(unsigned int i = 1; i < holes.size(); i++)
+            {
+                Hole h = holes[i];
+                Hole jz = holes[i-1];
+                if(((h.x-jz.x)*(h.x-jz.x) + (h.y-jz.y)*(h.y-jz.y)) < (range*range))
+                {
+                    a[holeInsert].push_back(holes[i]);
+                }
+                else
+                {
+                    std::vector<Hole> b;
+                    b.push_back(holes[i]);
+                    a.push_back(b);
+                    holeInsert++;
+                }   
+            }
+        }
+    }
 
-    void BinHolesSize(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    //outdated, new more optimal algorithm in use
+    /*void BinHolesSize(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
     {
         if(holes.size() != 0)
         {
@@ -188,7 +250,7 @@ class RAM_EXPORT TargetDetector : public Detector
                 
             }
         }
-}
+        }*/
 
   struct targetPanel
 	{

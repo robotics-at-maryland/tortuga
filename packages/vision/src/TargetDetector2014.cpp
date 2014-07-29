@@ -195,7 +195,11 @@ void TargetDetector::processImage(Image* input, Image* output)
     cv::Mat blurred;
     //removed gaussianblur to use bilateral filter instead
     //cv::GaussianBlur(imageHSV,blurred,cv::Size(bSize,bSize),blurSigma);
-    cv::bilateralFilter(imageHSV, blurred, filterSize,colorSigma, spaceSigma);
+
+    //competition day 1, switched from HSV to BGR(no seriously, i'm not kidding)
+    //cv::bilateralFilter(imageHSV, blurred, filterSize,colorSigma, spaceSigma);
+    cv::bilateralFilter(image, blurred, filterSize,colorSigma, spaceSigma);
+
 
     //split the channels of the image
     std::vector<cv::Mat> hsvChannels;
@@ -226,7 +230,11 @@ void TargetDetector::processImage(Image* input, Image* output)
     //Initial MC results indicated value is the only decent channel, hue can have things, but full of noise
     //may be due to technique used for image generation
     //for now only value will be going forwards, can always OR it with another channel in future
-    cv::Mat threshResult = vThresh;
+
+    //competition day 1,, now using BGR, so looking for green channel, not red
+    //cv::Mat threshResult = vThresh;
+    cv::Mat threshResult = sThresh;
+
     //apply edge detector to result
     cv::Mat edges;
 
@@ -364,7 +372,8 @@ void TargetDetector::processImage(Image* input, Image* output)
     for(unsigned int i = 0; i < xyBinned.size(); i++)
     {
         std::sort(xyBinned[i].begin(), xyBinned[i].end(), compareSize);
-        if(xyBinned[i][0].x < leftmost.x)
+        //competition day 1, changed to appropriate corner distances
+        /*if(xyBinned[i][0].x < leftmost.x)
         {
             leftmost = xyBinned[i][0];
         }
@@ -372,6 +381,15 @@ void TargetDetector::processImage(Image* input, Image* output)
         {
             rightmost = xyBinned[i][0];
         }
+        */
+        if(TargetDetector::computeSquaredCornerDistance(640,480,xyBinned[i][0]) > TargetDetector::computeSquaredCornerDistance(640,480,leftmost))
+        {
+            leftmost = xyBinned[i][0];
+        }
+        if(TargetDetector::computeSquaredCornerDistance(0,480,xyBinned[i][0]) > TargetDetector::computeSquaredCornerDistance(0,480,rightmost))
+        {
+            rightmost = xyBinned[i][0];
+        }  
         if(xyBinned[i][0].y > downmost.y)
         {
             downmost = xyBinned[i][0];

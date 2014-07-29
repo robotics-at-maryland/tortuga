@@ -60,7 +60,7 @@ class TorpedoMachine(stateMachine.StateMachine):
         reverseRefindDistance = configNode.get('reverseRefindDistance', 1)
         
     #later on, put code in here that picks what torpedos we're after
-    #for now, we're going buoy hunting
+    #for now, we're going buoy thunting
         #not a hack anymore, this ones real!
         torps = TorpedoGroupObject(self.legacyState())
         #hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())

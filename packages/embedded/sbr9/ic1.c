@@ -114,7 +114,7 @@ _FWDT ( WDT_OFF );
 #define SLAVE_ID_STARTSW    IRQ_IC3
 #define SLAVE_ID_KILLSW     IRQ_DISTRO
 #define SLAVE_ID_BATTSTAT   IRQ_BALANCER
-#define SLAVE_ID_BARS       IRQ_DISTRO
+#define SLAVE_ID_BARS       IRQ_IC3 //Kanga - Changed from Distro to allow for I2C interface to LED Bars
 #define SLAVE_ID_IMOTOR     IRQ_DISTRO
 #define SLAVE_ID_VLOW       IRQ_DISTRO
 #define SLAVE_ID_DVL        IRQ_DISTRO
@@ -1633,12 +1633,14 @@ int main(void)
             }
 
 
+/*Kanga - Bar Animations are not currently implemented 
             case HOST_CMD_BARANIMATION:
             {
                 rxBuf[0] = waitchar(1);
                 rxBuf[1] = waitchar(1);
 
-                /* Check checksum and check if command is valid */
+                // Check checksum and check if command is valid
+                
                 if((rxBuf[0] != 0 && rxBuf[0] != 1 && rxBuf[0] != 2) || (chksum(rxBuf, 1, HOST_CMD_BARANIMATION) != rxBuf[1]))
                 {
                     sendByte(HOST_REPLY_BADCHKSUM);
@@ -1661,7 +1663,9 @@ int main(void)
                 sendByte(HOST_REPLY_SUCCESS);
                 break;
             }
+*/
 
+//Kanga - Bits 0-2, Address. Bits 3-7, Color/Pattern options (R, G, B, Blink R, Blink G, Blink B, White, Off) 
 
             case HOST_CMD_SET_BARS:
             {
@@ -2440,6 +2444,38 @@ int main(void)
                 }
 
                 if(busWriteByte(BUS_CMD_EXT_GRABBER, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_EXT_GRABBER_1:
+            {
+                if(waitchar(1) != HOST_CMD_EXT_GRABBER_1) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_EXT_GRABBER_1, SLAVE_ID_GRABBER) != 0) {
+                    sendByte(HOST_REPLY_FAILURE);
+                    break;
+                }
+
+                sendByte(HOST_REPLY_SUCCESS);
+                break;
+            }
+
+            case HOST_CMD_EXT_GRABBER_2:
+            {
+                if(waitchar(1) != HOST_CMD_EXT_GRABBER_2) {
+                    sendByte(HOST_REPLY_BADCHKSUM);
+                    break;
+                }
+
+                if(busWriteByte(BUS_CMD_EXT_GRABBER_2, SLAVE_ID_GRABBER) != 0) {
                     sendByte(HOST_REPLY_FAILURE);
                     break;
                 }

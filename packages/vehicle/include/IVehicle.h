@@ -101,7 +101,8 @@ public:
     virtual void fireTorpedoIndex(int index) = 0;
 
     /** Drop the PVC cube */
-    virtual void releaseGrabber() = 0;
+    virtual void releaseGrabber(int index)
+    {}
 
     /** Grab the PVC */
     virtual void closeGrabber() = 0;
