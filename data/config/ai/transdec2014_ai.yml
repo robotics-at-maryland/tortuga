@@ -1,0 +1,4 @@
+taskOrder: ['ram.ai.course.Gate' ]
+
+config:
+    gateDepth: 3.5
