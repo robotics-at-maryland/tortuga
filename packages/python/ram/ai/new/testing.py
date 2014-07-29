@@ -33,7 +33,6 @@ def reverseFun(fun):
 class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
-        
 
         self.addStates({
             'start' : utilStates.Start(),
@@ -51,3 +50,4 @@ class TestMachine(StateMachine):
             ('forward', 'next', 'return'),
             ('return', 'next', 'end'),
           )
+

@@ -122,7 +122,7 @@ namespace estimation {
       math::MatrixN S(observation_matrix * covariance * observation_matrix.transpose() + R);
       
       //Optimal Kalman gain
-      math::MatrixN K(covariance * observation_matrix.transpose() * S.invert());
+      math::MatrixN K(covariance * observation_matrix.transpose() * S.inverse());
       
       estimate = estimate + K * y;
       covariance = (identity - (K * observation_matrix)) * covariance;

@@ -307,42 +307,19 @@ OrangePipeDetector:
     noHough: 0
     samePipeThreshold: 0.2
 TargetDetector:
-    MinContourSize: 6
-    MinSize: 6
-    bottomRemovePercentage: 0
-    dilateIterations: 0
-    erodeIterations: 2
-    filtBlueHMax: 151
-    filtBlueHMin: 89
-    filtBlueMax: 255
-    filtBlueMin: 145
-    filtBlueSMax: 255
-    filtBlueSMin: 134
-    filtBlueVMax: 255
-    filtBlueVMin: 19
-    filtGreenHMax: 94
-    filtGreenHMin: 24
-    filtGreenMax: 63
-    filtGreenMin: 15
-    filtGreenSMax: 255
-    filtGreenSMin: 0
-    filtGreenVMax: 255
-    filtGreenVMin: 0
-    filtRedHMax: 130
-    filtRedHMin: 12
-    filtRedSMax: 255
-    filtRedSMin: 2
-    filtRedVMax: 255
-    filtRedVMin: 4
-    filtYellowHMax: 78
-    filtYellowHMin: 0
-    filtYellowMax: 96
-    filtYellowMin: 0
-    filtYellowSMax: 255
-    filtYellowSMin: 26
-    filtYellowVMax: 255
-    filtYellowVMin: 0
-    maxAspectRatio: 10
-    minAspectRatio: 0.04
-    minGreenPixels: 500
-    topRemovePercentage: 0
+    bilateral d param: 7
+    c Hue: 1
+    c Saturation: 1
+    c Value: 2
+    circularity bound: 0.35
+    closing iterations: 1
+    color sigma: 45
+    debug Images?: 1
+    dilate iterations: 1
+    erode iterations: 1
+    min vertices: 15
+    rectangularity bound: 0.5
+    size binning range: 25
+    space sigma: 5
+    threshold block size: 5
+    xy binning range: 50

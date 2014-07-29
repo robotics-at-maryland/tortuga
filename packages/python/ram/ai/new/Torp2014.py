@@ -1,6 +1,7 @@
 import ram.ai.new.utilClasses as utilClasses
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motion
+import ram.ai.new.searchPatterns as search
 import ram.ai.new.searchPatterns as searches
 import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
@@ -8,10 +9,10 @@ import ram.ai.new.approach as approach
 
 
 class TorpedoTask(utilStates.Task):
-    def __init__(self, torps, initialDepth,yawSearchBound ,forwardsSearchIncrement, maxSearchAttempts, squareCenteringRange, squareCenteringRangeBound, squareCenteringXYBound, holeSearchDist, holeCenteringRange, holeCenteringRangeBound, holeCenteringXYBound,reverseRefindDistance,success, failure, duration = 300)
-    super(TorpedoTask,self).__init(TorpedoTaskMachine(torps,initialDepth, yawSearchBound ,forwardsSearchIncrement, maxSearchAttempts, holeSearchDist, squareCenteringRange, squareCenteringRangeBound, squareCenteringXYBound, holeCenteringRange, holeCenteringRangeBound, holeCenteringXYBound,reverseRefindDistance),success, failure, duration) 
+    def __init__(self, configNode,success, failure, duration = 300):
+        super(TorpedoTask,self).__init__(TorpedoMachine(configNode),success, failure, duration) 
 
-    def update():
+    def update(self):
         super(TorpedoTask,self).update()
         if self.getInnerStateMachine().getCurrentState().getName() == 'taskFailed':
             self.doTransition('failure')
@@ -24,9 +25,10 @@ class FireLeft(state.State):
         super(FireLeft, self).__init__()
         self.setTransition('next', next)
 
-    def update():
+    def update(self):
+        self.getStateMachine().getLegacyState().vehicle.fireTorpedoIndex(0)
+        print 'HETERER'
         self.doTransition('next')
-        pass#put firing code here
 
 
 
@@ -35,42 +37,66 @@ class FireRight(state.State):
         super(FireRight, self).__init__()
         self.setTransition('next', next)
 
-    def update():
+    def update(self):
+        self.getStateMachine().getLegacyState().vehicle.fireTorpedoIndex(1)
         self.doTransition('next')
-        pass#put firing code here
 
 
 class TorpedoMachine(stateMachine.StateMachine):
-    def __init__(torps,initialDepth, yawSearchBound ,forwardsSearchIncrement, maxSearchAttempts, holeSearchDist, squareCenteringRange, squareCenteringRangeBound, squareCenteringXYBound, holeCenteringRange, holeCenteringRangeBound, holeCenteringXYBound,reverseRefindDistance)
-    super(TorpedoMachine).__init__()
+    def __init__(self, configNode):
+        super(TorpedoMachine,self).__init__()
     #other hole option is to shoot through the large hole, torps.large
-    hole1 = torps.left
-    hole2 = torps.right
-    pipe = BLAH BLAH LOAD A PIPE
-    start = self.addState('start',utilStates.Start())
-    endS = self.addState('taskSuccess',utilStates.End())
-    endF = self.addState('taskFailure',utilState.End())
+        initialDepth = configNode.get('initialDepth',5)
+        yawSearchBound = configNode.get('yawSearchAngle',0)
+        forwardsSearchIncrement = configNode.get('forwardsSearchIncrement',5)
+        maxSearchAttempts = configNode.get('maxSearchAttempts', 20)
+        holeSearchDist = configNode.get('holeSearchDist',1)
+        squareCenteringRange = configNode.get('squareCenteringRange',3) 
+        squareCenteringRangeBound = configNode.get('squareCenteringRangeBound', 1)
+        squareCenteringXYBound = configNode.get('squareCenteringXYBound', .1)
+        holeCenteringRange = configNode.get('holeCenteringRange', 1)
+        holeCenteringRangeBound = configNode.get('holeCenteringRangeBound', 1/.5)
+        holeCenteringXYBound = configNode.get('holeCenteringXYBound', .1) 
+        reverseRefindDistance = configNode.get('reverseRefindDistance', 1)
+        
+    #later on, put code in here that picks what torpedos we're after
+    #for now, we're going buoy hunting
+        #not a hack anymore, this ones real!
+        torps = TorpedoGroupObject(self.legacyState())
+        #hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
+        #hole2 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
+        #torps = hole1
+        #torps.box = hole1
+        #END HACK TO TEST IN SIMULATOR
+        hole1 = torps.left
+        hole2 = torps.right
+        
+
+        start = self.addState('start',utilStates.Start())
+        start.setTransition('next','initialMove')
+        endS = self.addState('taskSuccess',utilStates.End())
+        endF = self.addState('taskFailure',utilStates.End())
     #box finding search
-    initialMove = self.addState('initialMove', motion.Turn(-yawSearchBound/2))
-    initialMove.setTransition('next', 'initialSearch')
-    initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, torps.box.isSeen, 'boxCentering', 'prepareForwards'))
-    prepareForwards =  self.addState('prepareForwards', motion.Turn(-yawSearchBound/2))
-    prepareForwards.setTransition('next', 'forwardsSearch')
-    forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, torps.box.isSeen, 'boxCentering', 'counter'))
-    counter = self.addState('counter', utilStates.PassCounter('passSwitch'))
-    passSwitch = self.addState('passSwitch', utilStates.Switch('initialMove', 'taskFailure', counter.getPassChecker(maxSearchAttempts)))
+        initialMove = self.addState('initialMove', motion.Turn(-yawSearchBound/2))
+        initialMove.setTransition('next', 'initialSearch')
+        initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, torps.box.isSeen, 'boxCentering', 'prepareForwards'))
+        prepareForwards =  self.addState('prepareForwards', motion.Turn(-yawSearchBound/2))
+        prepareForwards.setTransition('next', 'forwardsSearch')
+        forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, torps.box.isSeen, 'boxCentering', 'counter'))
+        counter = self.addState('counter', utilStates.PassCounter('passSwitch'))
+        passSwitch = self.addState('passSwitch', utilStates.Switch('initialMove', 'taskFailure', counter.getPassChecker(maxSearchAttempts)))
     #aligning with box, if that fails, try to search again
-    boxCentering = self.addState('boxCentering', approach.ForwardsCenter(torps.box, 'holePassCount', 'initialMove', squareCenteringRange, squareCenteringXYBound,squareCenteringXYBound,squareCenteringRangeBound))
-    holePassCount = self.addState('holePassCount', utilStates.PassCount('holeSwitch'))
-    holeSwitch = self.addState('holeSwitch', utilStates.Switch('hole1Search','hole2search',holePassCount.getPassChecker(2)))
-    hole1Search = self.addState('hole1Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole1Center', 'backUp'))
-    hole1Center = self.addState('hole1Center', approach.ForwardsCenter(hole1, 'fireLeft', 'backUp', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound))
-    fireLeft = self.addState('fireLeft', FireLeft('backUp'))
-    backUp = self.addState('backUp', motion.Forwards(-reverseRefindDistance))
-    backUp.setTransition('next', 'holePassCount')
-    hole2Search = self.addState('hole2Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole2Center', 'backUp'))
-    hole2Center = self.addState('hole2Center', approach.ForwardsCenter(hole1, 'fireRight', 'backUp', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound))
-    fireRight = self.addState('fireRight', FireRight('moveAway'))
+        boxCentering = self.addState('boxCentering', approach.ForwardsCenter(torps.box, 'holePassCount', 'initialMove', squareCenteringRange, squareCenteringXYBound,squareCenteringXYBound,squareCenteringRangeBound))
+        holePassCount = self.addState('holePassCount', utilStates.PassCounter('holeSwitch'))
+        holeSwitch = self.addState('holeSwitch', utilStates.Switch('hole1Search','hole2Search',holePassCount.getPassChecker(2)))
+        hole1Search = self.addState('hole1Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole1Center', 'backUp'))
+        hole1Center = self.addState('hole1Center', approach.ForwardsCenter(hole1, 'fireLeft', 'backUp', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound))
+        fireLeft = self.addState('fireLeft', FireLeft('backUp'))
+        backUp = self.addState('backUp', motion.Forward(-reverseRefindDistance))
+        backUp.setTransition('next', 'holePassCount')
+        hole2Search = self.addState('hole2Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole2Center', 'backUp'))
+        hole2Center = self.addState('hole2Center', approach.ForwardsCenter(hole1, 'fireRight', 'backUp', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound))
+        fireRight = self.addState('fireRight', FireRight('taskSuccess'))
     #Now that manipulator is dropped, this probably just needs to move to the side to prepare for the sonar task
     
 

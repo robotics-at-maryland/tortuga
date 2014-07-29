@@ -376,7 +376,7 @@ void serialize(Archive &ar, ram::vision::TargetEvent &t,
   ar & boost::serialization::base_object<ram::core::Event>(t);
   ar & t.x;
   ar & t.y;
-  ar & t.squareNess;
+  //ar & t.squareNess;
   ar & t.range;
 }
 
