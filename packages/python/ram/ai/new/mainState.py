@@ -3,7 +3,6 @@ import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
-import ram.ai.new.testing as testMachine
 
 from ram.ai.new.configuration import initFromYAML
 
