@@ -4,12 +4,14 @@ ram.ai.new.mainState.Body:
     start:
       type: Start
     forward:
-      type: TorpedoTask
+      type: PogoTask
       init:
-        configNode: {}
-        success: 'end'
-        failure: 'end'
-        duration: 10000
+        pogoHeight: 1.2
+        pogoWidth: 1.2
+        pogoShift: .15
+        pogoShiftV: .45
+        attackHeight: 11.9
+        
     end:
       type: End
 

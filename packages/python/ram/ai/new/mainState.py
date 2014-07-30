@@ -17,6 +17,7 @@ import ram.timer as timer
 #std imports
 import time
 import Torp2014
+import SonarManip2014
 
 UPDATE = core.declareEventType('UPDATE')
 TIMEOUT = core.declareEventType('TIMEOUT')
