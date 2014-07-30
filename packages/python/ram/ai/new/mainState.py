@@ -21,7 +21,7 @@ MACHINE_COMPLETE = core.declareEventType('MACHINE_COMPLETE')
 TERMINATE = core.declareEventType('TERMINATE')
 COMPLETE = core.declareEventType('COMPLETE')
 
-class Intro(state.State):
+class Intro(oldState.State):
     @staticmethod
     def transitions():
         return {'Start' : Body}

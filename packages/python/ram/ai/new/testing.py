@@ -15,7 +15,7 @@ import ram.ai.new.uprights as uprights
 
 
 import ram.ai.new.Buoy2014 as buoy
-
+import ram.ai.new.Pipe2014 as pipe
 
 from state import *
 from stateMachine import *
@@ -34,19 +34,22 @@ class TestMachine(StateMachine):
     def __init__(self):
         super(TestMachine, self).__init__()
         
-
         self.addStates({
             'start' : utilStates.Start(),
+            'dive' : motionStates.Dive(4),
+            
             'save' : checkpoints.SaveCheckpoint(checkpoint = 'test'),
             'forward' : motionStates.Move(4, 2),
             'return' : checkpoints.GotoCheckpoint(checkpoint = 'test',
                                                   x_offset = 2,
                                                   y_offset = 2),
+
             'end' : utilStates.End()
           })
 
         self.addTransitions(
-            ('start', 'next', 'save'),
+            ('start', 'next', 'dive'),
+            ('dive', 'next', 'save'),
             ('save', 'next', 'forward'),
             ('forward', 'next', 'return'),
             ('return', 'next', 'end'),
