@@ -398,7 +398,7 @@ void BinDetector::init(core::ConfigNode config)
 
 	propSet->addProperty(config, false, "ThresholdForBinary",
                          "ThresholdForBinary",
-                         60, &m_threshbinary, 5,250);
+                         20, &m_threshbinary, 5,250);
 
 
 /*
@@ -417,7 +417,7 @@ void BinDetector::init(core::ConfigNode config)
                                     "redC", "Chrominance",
                                     "redH", "Hue",
                                     0, 255,  // L defaults // 180,255
-                                    78, 203,  // U defaults // 76, 245
+                                    185, 255,  // U defaults // 76, 245
                                     255, 0); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
@@ -1410,8 +1410,8 @@ buoy
 	dilate(erode_dst_red, dilate_dst_red, dilate_element );
 	dilate(erode_dst_redS, dilate_dst_redS, dilate_element );
 	dilate(erode_dst_redL, dilate_dst_redL, dilate_element );
-	imshow("dilate S",dilate_dst_redS);
-	imshow("dilate L",dilate_dst_redL);
+	//imshow("dilate S",dilate_dst_redS);
+	//imshow("dilate L",dilate_dst_redL);
 
 	//merge the dilated V & H and then and S	
 	bitwise_and(dilate_dst_red,dilate_dst_redL, dilate_dst_redHL,noArray());
@@ -1439,7 +1439,9 @@ buoy
 //		}//
 //	}
 //
-publishFoundEventSURFAll();
+	publishFoundEventSURFAll();
+
+/*
 	 if (m_Bin37Found == false && m_Bin37FoundBefore == true)
 	{
 		publishLostEvent(Symbol::BIN37);
@@ -1465,7 +1467,7 @@ publishFoundEventSURFAll();
 	m_Bin10FoundBefore= m_Bin10Found;
 	m_Bin16FoundBefore= m_Bin16Found;
 	m_BinoutlineFoundBefore= m_BinoutlineFound;
-	
+*/	
 };
 
 
@@ -1499,6 +1501,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	Mat cropped[numberoftrackedcontours];
 	Mat finalcropped[numberoftrackedcontours];
 	Mat finalresize[numberoftrackedcontours];
+	Mat finalresizeSaving[numberoftrackedcontours];
 	//bincontours bins[numberoftrackedcontours];
 
 	//initialize to zero, just to verify everything is at zero
@@ -1683,7 +1686,6 @@ cout<<hierarchy[bins[0].contournumber];
 			}
 			//also want to make sure the center is the same as the previous center
 			printf("\n Area diff = %f",(bins[0].width*bins[0].height)/area);
-			//if ((aspectratio_diff <aspectratio_limit)&& (minX2 >=bins[0].minX) && (maxX2<=bins[0].maxX) && (minY2>=bins[0].minY) &&(maxY2<=bins[0].maxY) && (centerxdistance > 20) && (centerydistance > 20) && (area > m_adwindow)  && (temp.center.x > bins[0].minX) && (temp.center.x < bins[0].maxX) && (temp.center.y > bins[0].minY) && (temp.center.y < bins[0].maxY))
 			if ((aspectratio_diff <aspectratio_limit) && (hierarchy[j][3] == bins[0].contournumber) && (centerxdistance > 20) && (centerydistance > 20) && (area > m_adwindow) && (((bins[0].width*bins[0].height)/area) >  4) )
 			{
 				used = false;
@@ -1766,10 +1768,10 @@ cout<<hierarchy[bins[0].contournumber];
 
 	split(img_whitebalance,hsv_planes);
 	img_whitebalance_gray = hsv_planes[2]-hsv_planes[1];
-	imshow("B",hsv_planes[0]);
-	imshow("G",hsv_planes[1]);
-	imshow("R",hsv_planes[2]);
-	imshow("EqualizeHistogram",img_whitebalance);
+	//imshow("B",hsv_planes[0]);
+	//imshow("G",hsv_planes[1]);
+	//imshow("R",hsv_planes[2]);
+	//imshow("EqualizeHistogram",img_whitebalance);
 double area_ref, area_final;
 	double rect_area_ref, rect_area;
 	double ref_AR, AR, AR_final; //aspect ratio
@@ -1780,6 +1782,14 @@ double area_ref, area_final;
 	double finalscores3[6];
 	double finalscores4[6];
 	int finalindex[6];
+
+	int bestindex[6];
+	bestindex[0] = 0;
+	bestindex[1] = 0;
+	bestindex[2] = 0;
+	bestindex[3] = 0;
+	bestindex[4] = 0;
+	bestindex[5] = 0;
 	int safetycounter =0;
 
 
@@ -1795,26 +1805,21 @@ double area_ref, area_final;
 			//imshow("adaptive",img_whitebalance_gray);
 
 	
-		int ref_distancetocenter = 9999;
-		int xdistance,ydistance,distancetocenter;
-		int centercontour=0;
-		Scalar color = Scalar(0,0,255);
-		RotatedRect box_ref, box;
+	int ref_distancetocenter = 9999;
+	int xdistance,ydistance,distancetocenter;
+	int centercontour=0;
+	Scalar color = Scalar(0,0,255);
+	double maxsize = 0;
+	RotatedRect box_ref, box;
 
-
-	for (int k=0;k<numberoftrackedcontours;k++)
+	for (int k=1;k<numberoftrackedcontours;k++)
 	{
 		ref_distancetocenter = 9999;
-		if (bins[k].found==true )
+		if (bins[k].found==true  )
 		{
-			//printf("\n angle = %f",bins[k].angle);
 			temp = minAreaRect(contours[bins[k].contournumber]); //finds the rectangle that will encompass all the points
-			//printf(" got temp");
 			Mmap = getRotationMatrix2D(temp.center,temp.angle,1.0);
-			////printf(" mmap center = %f, %f", temp.center.x, temp.center.y);
 			warpAffine(img_whitebalance_gray, rotated, Mmap, img_whitebalance.size(), INTER_CUBIC);
-			//printf(" warpAffine");
-			//printf(" about to resize. size  %f,%f", temp.size.height, temp.size.width);
 			if (temp.size.height < 10 || temp.size.width < 10)
 			{	
 				printf("\n unable to rescale bin"); 
@@ -1824,11 +1829,8 @@ double area_ref, area_final;
 			else
 			{
 				getRectSubPix(rotated, temp.size, temp.center, cropped[k]);
-						
-
 				if (temp.size.width > temp.size.height)
 				{
-					//printf(" flipping");
 					//need to transpose image
 					//dont want to tranpose becase that... tranposes want to rotate, so I'll just flip it at the end
 					transpose(cropped[k], finalcropped[k]);
@@ -1837,64 +1839,67 @@ double area_ref, area_final;
 				}
 				else
 				{
-					//printf(" else");
 					finalcropped[k] = cropped[k];	
 					
 				}
 				//run adaptive threshold on the small images
+				//threshold(cropped[k],finalcropped[k],0,255,CV_THRESH_BINARY | CV_THRESH_OTSU);
+				//finalcropped[k] =  SaliencyFilterSingle(finalcropped[k]);
+				//imshow("TempK",finalcropped[k]);
 
-					//threshold(cropped[k],finalcropped[k],0,255,CV_THRESH_BINARY | CV_THRESH_OTSU);
-					finalcropped[k] =  SaliencyFilterSingle(finalcropped[k]);
-					imshow("TempK",finalcropped[k]);
-
-				  	threshold(finalcropped[k], finalcropped[k], m_threshbinary, 255,1);
-					imshow("ThresholdBinary",finalcropped[k]);
+			  	threshold(finalcropped[k], finalcropped[k], m_threshbinary, 255,0);
+			//	imshow("ThresholdBinary",finalcropped[k]);
 				resize(finalcropped[k], finalresize[k], Size(74,146), 0, 0, INTER_LINEAR );
-
-				vector<vector<Point> > contours;
-				vector<Vec4i> hierarchy;
-				findContours( finalresize[k], contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+			//	imshow("SMALL",finalresize[k]);
+				finalresizeSaving[k] =finalresize[k].clone();
+				printf("\n K = %d, safetycounter = %d ", k,safetycounter);
+				vector<vector<Point> > littlecontours;
+				vector<Vec4i> littlehierarchy;
+				findContours(finalresize[k],littlecontours, littlehierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 				//find centermost
-				for (unsigned int idx = 0;idx<contours.size();idx++)
+				//or just find the largest? or one not touching a corner?
+				//or just look at all of them and find the closest (longest but safest)
+				maxsize = 0;
+				for (unsigned int idx = 0;idx<littlecontours.size();idx++)
 				{
-					box = minAreaRect(contours[idx]);
+					box = minAreaRect(littlecontours[idx]);
 					xdistance = abs(74/2-box.center.x);
 					ydistance = abs(176/2-box.center.y);
 					distancetocenter = xdistance+ydistance;
-				printf("\n contour size = %d, height, %f, width %f, distance=%d",contours[idx].size(),box.size.width,box.size.height,distancetocenter);
-					if ((distancetocenter < ref_distancetocenter) && (contours[idx].size() > 60) )
+					//printf("\n contour size = %d, height, %f, width %f, distance=%d",littlecontours[idx].size(),box.size.width,box.size.height,distancetocenter);
+					if ((xdistance < m_maxdistanceX) &&(ydistance<m_maxdistanceY) && (littlecontours[idx].size() > maxsize))
 					{
-						ref_distancetocenter = distancetocenter;
+						maxsize = littlecontours[idx].size();
 						centercontour = idx;	
 						box_ref = box;
-						printf(" Ebest");
+					//	printf(" Best");
+						ref_distancetocenter = xdistance+ydistance;
 					}
-					//drawContours( m_ref_color, contours, i, Scalar(0,0,255), 1, 8, vector<Vec4i>(), 0, Point() );
 				}
 
 				finalindex[safetycounter] = centercontour;
+				
+				//test every contour and find the safest
 				if (ref_distancetocenter < 999 && safetycounter<6)
 				{
-
-					
-					printf("\n Got one\n ");
+					//printf("\n Got one\n ");
 					//now compare
 					for(int refcounter = 1;refcounter <5;refcounter++)
 					{
 					//got contours to compare
 						vector<Point>& a = m_ref_contours[refcounter];
-						vector<Point>& b = contours[centercontour];
+						vector<Point>& b = littlecontours[centercontour];
 
-						std::cout << "a.size = " << a.size() << ", b.size = " << b.size();
+						//std::cout << "\n a.size = " << a.size() << ", b.size = " << b.size() << " ";
 						//get shape information
 						double bestMatch = matchShapes(a, b, CV_CONTOURS_MATCH_I3, 0); //parameter to compare shapes
-						box = minAreaRect(contours[centercontour ]);
+						box = minAreaRect(littlecontours[centercontour ]);
 
 						box_ref = minAreaRect(m_ref_contours[refcounter]);
 						rect_area = double(box.size.width*box.size.height);
 						rect_area_ref = double(box_ref.size.width*box_ref.size.height);
 						area_ref = contourArea(m_ref_contours[refcounter]);
-						area = contourArea(contours[centercontour ]);
+						area = contourArea(littlecontours[centercontour ]);
 
 						if (box_ref.size.height < box_ref.size.width)
 							ref_AR = double(box_ref.size.height/box_ref.size.width);
@@ -1909,7 +1914,7 @@ double area_ref, area_final;
 						else
 							area_final = 1- double(area/rect_area)/ double(area_ref/rect_area_ref) ;
 
-						AL = arcLength(contours[centercontour ],TRUE);
+						AL = arcLength(littlecontours[centercontour ],TRUE);
 						ref_AL = arcLength(m_ref_contours[refcounter],TRUE);
 
 		
@@ -1953,34 +1958,41 @@ double area_ref, area_final;
 						{
 							finalscores4[safetycounter] = bestMatch+AR_final+AL_final+area_final;
 						};	
-							bestMatch = bestMatch+1;
+						
 			
 					}//end 
 					
 				}
 				else
 				{
-					double bestMatch = 100;
+					//double bestMatch = 100;
 
-					printf("NOEN FOUND = %f",bestMatch);
+					//printf("NOEN FOUND = %f",bestMatch);
 		
-					bestMatch = bestMatch+1;
+					//bestMatch = bestMatch+1;
 					finalscores4[safetycounter] = 999;
 					finalscores2[safetycounter] = 999;
 					finalscores3[safetycounter] = 999;
 					finalscores1[safetycounter] = 999;
 				}
+				bestindex[safetycounter] = k;
 				safetycounter= safetycounter+1;
 							
-
+			}//end if able to rotate	
 		} //if bins found = true 
-			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
-		printf("\n Finalscores1 %f, %f, %f, %f, %f, %f",finalscores1[0],finalscores1[1],finalscores1[2],finalscores1[3],finalscores1[4],finalscores1[5]);
-		printf("\n Finalscores2 %f, %f, %f, %f, %f, %f",finalscores2[0],finalscores2[1],finalscores2[2],finalscores2[3],finalscores2[4],finalscores2[5]);
-		printf("\n Finalscores3 %f, %f, %f, %f, %f, %f",finalscores3[0],finalscores3[1],finalscores3[2],finalscores3[3],finalscores3[4],finalscores3[5]);
-		printf("\n Finalscores4 %f, %f, %f, %f, %f, %f",finalscores4[0],finalscores4[1],finalscores4[2],finalscores4[3],finalscores4[4],finalscores4[5]);
 
-		//Find Minimums of each
+	}//end for k
+
+			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
+	//	printf("\n Finalscores1 %f, %f, %f, %f, %f, %f",finalscores1[0],finalscores1[1],finalscores1[2],finalscores1[3],finalscores1[4],finalscores1[5]);
+	//	printf("\n Finalscores2 %f, %f, %f, %f, %f, %f",finalscores2[0],finalscores2[1],finalscores2[2],finalscores2[3],finalscores2[4],finalscores2[5]);
+	//	printf("\n Finalscores3 %f, %f, %f, %f, %f, %f",finalscores3[0],finalscores3[1],finalscores3[2],finalscores3[3],finalscores3[4],finalscores3[5]);
+	//	printf("\n Finalscores4 %f, %f, %f, %f, %f, %f",finalscores4[0],finalscores4[1],finalscores4[2],finalscores4[3],finalscores4[4],finalscores4[5]);
+	//	printf("\n K index = %d, %d, %d,   %d, %d, %d",bestindex[0],bestindex[1],bestindex[2],bestindex[3],bestindex[4],bestindex[5]);
+	//	printf("\n J index = %d, %d, %d,   %d, %d, %d",bins[bestindex[0]].contournumber,bins[bestindex[1]].contournumber,bins[bestindex[2]].contournumber,bins[bestindex[3]].contournumber,bins[bestindex[4]].contournumber,bins[bestindex[5]].contournumber);
+	
+
+	//Find Minimums of each
 		double min1, min2, min3, min4;
 		min1 = 9000;
 		min2 = 9000;
@@ -2020,9 +2032,247 @@ double area_ref, area_final;
 			}
 		}
 	printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+	//these are the lowest values to match each bin type, so what happens if a contour is selected twice? pick the lowest and forget the other
+	//index 1	
+	printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
 
-/*
-	
+
+	if ((index1 == index2) && (min1 > min2))
+	{
+		min1 = 999;
+		//find the next lowest for min1
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores1[i] < min1) && (i != index2))
+			{		
+				min1 = finalscores1[i];
+				index1 = i;
+			}
+		}
+		printf("\n Changin index1 to %d from %d with score = %f",index1,index2,min1);
+	}
+
+	if (index1 == index3 && min1 > min3)
+	{
+		min1 = 999;
+		index1 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores1[i] < min1 && i != index3)
+			{		
+				min1 = finalscores1[i];
+				index1 = i;
+			}
+		}
+		printf("\n Changin index1 to %d from %d with score = %f",index1,index3,min1);
+
+
+	}
+	if (index1 == index4 && min1 > min4)
+	{
+		min1 = 999;
+		index1 = 0;
+
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores1[i] < min1 && i != index4)
+			{		
+				min1 = finalscores1[i];
+				index1 = i;
+			}
+		}
+		printf("\n Changin index1 to %d from %d with score = %f",index1,index4,min1);
+
+
+	}
+
+	//index 2
+	if (index2 == index1 && min2 > min1)
+	{
+		min2 = 999;
+		index2 = 0;
+	printf("\n in case where index1==index2 and min2 > min1 safetycounter = %d", safetycounter);
+	printf("\n sigh");
+
+		for (int i=0;i<safetycounter;i++)
+		{
+			printf("\n i = %d, min = %f", i, finalscores2[i]);
+			if ((finalscores2[i] < min2) &&	(i != index1) && (((i == index3) && (finalscores2[i] < min3)) || (i !=index3)) 
+			&& (((i == index4) && (finalscores2[i] < min4)) || (i !=index4)) )
+			{
+				min2 = finalscores2[i];
+				index2 = i;
+			printf("\n changing min2 = %f",min2);
+			}
+		}
+		printf("\n Changin index2  from index1 to %d from %d with score = %f",index2,index1,min2);
+	}
+printf("\n done with that loop");
+printf("\n yup");
+	if (index2 == index3 && min2 > min3)
+	{
+		min2 = 999;
+		index2 = 0;
+
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores2[i] < min2) &&	(i != index1) && (((i == index3) && (finalscores2[i] < min3)) || (i !=index3)) 
+			&& (((i == index4) && (finalscores2[i] < min4)) || (i !=index4)) )
+			{		
+				min2 = finalscores2[i];
+				index2 = i;
+			}
+
+		}
+		printf("\n Changin index2 from index3 to %d from %d with score = %f",index2,index3,min2);
+
+	}
+	if (index2 == index4 && min2 > min4)
+	{
+		min2 = 999;
+		index2 = 0;
+
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores2[i] < min2) &&	(i != index1) && (((i == index3) && (finalscores2[i] < min3)) || (i !=index3)) 
+			&& (((i == index4) && (finalscores2[i] < min4)) || (i !=index4)) )
+			{		
+				min2 = finalscores2[i];
+				index2 = i;
+			}
+
+		}
+
+		printf("\n Changin index2 from index4 to %d from %d with score = %f",index2,index4,min2);
+	}
+
+printf("\n done with index2");
+printf("\n doone");
+	//index 3
+	if (index3 == index1 && min3 > min1)
+	{
+		min3 = 999;
+		index3 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores3[i] < min3) && (i != index2) && (i != index1) )
+			{		
+				min3 = finalscores3[i];
+				index3 = i;
+			}
+		}
+		printf("\n Changin index3 to %d from %d with score = %f",index3,index1,min3);
+
+
+	}
+	if (index3 == index2 && min3 > min2)
+	{
+		min3 = 999;
+		index3 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores3[i] < min3) && (i != index2) && (i != index1) )
+			{		
+				min3 = finalscores3[i];
+				index3 = i;
+			}
+		}
+		printf("\n Changin index3 to %d from %d with score = %f",index3,index2,min3);
+
+
+	}
+	if (index3 == index4 && min3 > min4)
+	{
+		min3 = 999;
+		index3 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores3[i] < min3) && (i != index2) && (i != index1) && (i != index4) )
+			{		
+				min3 = finalscores3[i];
+				index3 = i;
+			}
+		}
+		printf("\n Changin index3 to %d from %d with score = %f",index3,index4,min3);
+	}
+
+
+printf("\n done with index3");
+printf("\n doone");
+	//index 3
+	if (index4 == index1 && min4 > min1)
+	{
+		min3 = 999;
+		index3 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores4[i] < min4) && (i != index2) && (i != index1) )
+			{		
+				min4 = finalscores4[i];
+				index4 = i;
+			}
+		}
+		printf("\n Changin index4 to %d from %d with score = %f",index4,index1,min4);
+
+
+	}
+	if (index4 == index2 && min4 > min2)
+	{
+		min3 = 999;
+		index3 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores4[i] < min4) && (i != index2) && (i != index1) )
+			{		
+				min4 = finalscores4[i];
+				index4 = i;
+			}
+		}
+		printf("\n Changin index4 to %d from %d with score = %f",index4,index2,min4);
+
+
+	}
+	if (index3 == index4 && min4 > min3)
+	{
+		min4 = 999;
+		index4 = 0;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if ((finalscores4[i] < min4) && (i != index2) && (i != index1) && (i != index3) )
+			{		
+				min4 = finalscores4[i];
+				index4 = i;
+			}
+		}
+		printf("\n Changin index4 to %d from %d with score = %f",index4,index3,min4);
+	}
+
+printf("\n done with index4");
+printf("\n doone");
+printf("\nFINAL Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+
+	if (min1 < 35)
+	{
+		drawContours(img_whitebalance, contours, bins[bestindex[index1]].contournumber, Scalar(0,0,255), 20, 8, hierarchy, 0, Point() );
+	}
+	if (min2 < 35)
+	{
+		drawContours(img_whitebalance, contours, bins[bestindex[index2]].contournumber, Scalar(255,255,0), 20, 8, hierarchy, 0, Point() );
+	}
+	if (min3 < 35)
+	{
+		drawContours(img_whitebalance, contours, bins[bestindex[index3]].contournumber, Scalar(255,0,0), 20, 8, hierarchy, 0, Point() );
+	}
+	if (min4 < 35)
+	{
+		drawContours(img_whitebalance, contours, bins[bestindex[index4]].contournumber, Scalar(0,255,255), 20, 8, hierarchy, 0, Point() );
+	}
+
+	//imshow("BinsNew",img_whitebalance);
+printf("\n DONE");
+
+
+/*	
 			if (k == 0)
 				imshow("cropped",finalresize[k]);
 			else if (k==1)
@@ -2037,16 +2287,15 @@ double area_ref, area_final;
 				imshow("cropped5",finalresize[k]);
 			else if (k==6)
 				imshow("cropped",finalresize[k]);
-*/	
+	
+*/
+//			//need the angle - so take the vertices and find the one where the Y increases
+//			for (int i = 0; i < 4; i++)
+//			{		
+//				line(img_whitebalance, bins[k].vertices[i], bins[k].vertices[(i+1)%4], Scalar(255,255,0),5);
+//			}
+//
 
-			//need the angle - so take the vertices and find the one where the Y increases
-			for (int i = 0; i < 4; i++)
-			{		
-				line(img_whitebalance, bins[k].vertices[i], bins[k].vertices[(i+1)%4], Scalar(255,255,0),5);
-			}
-
-		}//end if
-	}//end k
 /*
 	for (int k=0;k<numberoftrackedcontours;k++)
 	{
@@ -2070,14 +2319,40 @@ double area_ref, area_final;
 
 //logger.infoStream() << "Have all the bins extracted now to start comparing";
 //Have all the images now
-	int j1;
-	double avgDistance[m_numberofclasses];
+//	int j1;
+//	double avgDistance[m_numberofclasses];
 	if (m_saveimages == true)
 	{
 		printf("\n\n Saving Training Images");
 		//logger.infoStream() << "Saving Training Images";
-		saveTrainingImages(finalresize);
+		saveTrainingImages(finalresizeSaving);
 	}
+
+
+//have all information now. so send it
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	if (m_calcTraining== true)
 	{
 		printf("\n\nTraining Bin Data, for %d classes with %d images each class",m_numberofclasses,m_numberoftrainingimages);
@@ -2087,6 +2362,7 @@ double area_ref, area_final;
 		printf("\n Saved Training data!");
 		m_trainingsuccess = 0;
 	}
+/*
 
 	printf("\n numberof classes = %d",m_numberofclasses);
 	int foundBinType = 0;
@@ -2102,7 +2378,8 @@ double area_ref, area_final;
 	Bin16=0;
 	Bin98=0;
 	double minvalue;
-	int findmatchesworked = 0;
+
+	int findmatchesworked = 1;
 	
 
 	if (m_comparebins == true)
@@ -2308,7 +2585,231 @@ double area_ref, area_final;
 
 	//logger.infoStream() << "Donen Comparing";
 
+*/
 
+//Find two leftest and the two righest
+int minleft = 9999;
+int minleft2 = 999;
+int minleft3 = 9999;
+int minleft4 = 9999;
+int minleft_index = 0;
+int minleft2_index = 0;
+int minleft3_index = 0;
+int minleft4_index = 0;
+
+
+
+if ( (bins[bestindex[index1]].centerx < minleft) )
+{
+	minleft = bins[bestindex[index1]].centerx;
+	minleft_index = index1;
+}
+if ( (bins[bestindex[index2]].centerx < minleft) )
+{
+	minleft = bins[bestindex[index2]].centerx;
+	minleft_index = index2;
+}
+if ( (bins[bestindex[index3]].centerx < minleft) )
+{
+	minleft = bins[bestindex[index3]].centerx;
+	minleft_index = index3;
+}
+if ( (bins[bestindex[index4]].centerx < minleft) )
+{
+	minleft = bins[bestindex[index4]].centerx;
+	minleft_index = index4;
+}
+
+
+if ( (bins[bestindex[index1]].centerx < minleft2)  && (bins[bestindex[index1]].centerx >minleft)  )
+{
+	minleft2 = bins[bestindex[index1]].centerx;
+	minleft2_index = index1;
+}
+if ( (bins[bestindex[index2]].centerx < minleft2) && (bins[bestindex[index2]].centerx >minleft)  )
+{
+	minleft2 = bins[bestindex[index2]].centerx;
+	minleft2_index = index2;
+}
+if ( (bins[bestindex[index3]].centerx < minleft2) && (bins[bestindex[index3]].centerx >minleft) )
+{
+	minleft2 = bins[bestindex[index3]].centerx;
+	minleft2_index = index3;
+}
+if ( (bins[bestindex[index4]].centerx < minleft2) && (bins[bestindex[index4]].centerx >minleft) )
+{
+	minleft2 = bins[bestindex[index4]].centerx;
+	minleft2_index = index4;
+}
+
+
+
+if ( (bins[bestindex[index1]].centerx < minleft3)  && (bins[bestindex[index1]].centerx >minleft2)  )
+{
+	minleft3 = bins[bestindex[index1]].centerx;
+	minleft3_index = index1;
+}
+if ( (bins[bestindex[index2]].centerx < minleft3) && (bins[bestindex[index2]].centerx >minleft2)  )
+{
+	minleft3 = bins[bestindex[index2]].centerx;
+	minleft3_index = index2;
+}
+if ( (bins[bestindex[index3]].centerx < minleft3) && (bins[bestindex[index3]].centerx >minleft2) )
+{
+	minleft3 = bins[bestindex[index3]].centerx;
+	minleft3_index = index3;
+}
+if ( (bins[bestindex[index4]].centerx < minleft3) && (bins[bestindex[index4]].centerx >minleft2) )
+{
+	minleft3 = bins[bestindex[index4]].centerx;
+	minleft3_index = index4;
+}
+
+
+if ( (bins[bestindex[index1]].centerx < minleft4)  && (bins[bestindex[index1]].centerx >minleft3)  )
+{
+	minleft4 = bins[bestindex[index1]].centerx;
+	minleft4_index = index1;
+}
+if ( (bins[bestindex[index2]].centerx < minleft4) && (bins[bestindex[index2]].centerx >minleft3)  )
+{
+	minleft4 = bins[bestindex[index2]].centerx;
+	minleft4_index = index2;
+}
+if ( (bins[bestindex[index3]].centerx < minleft4) && (bins[bestindex[index3]].centerx >minleft3) )
+{
+	minleft4 = bins[bestindex[index3]].centerx;
+	minleft4_index = index3;
+}
+if ( (bins[bestindex[index4]].centerx < minleft4) && (bins[bestindex[index4]].centerx >minleft3) )
+{
+	minleft4 = bins[bestindex[index4]].centerx;
+	minleft4_index = index4;
+}
+
+
+int lowerleft = 0;
+int upperleft = 0;
+int lowerright = 0;
+int upperright = 0;
+
+//now have the order
+if (bins[bestindex[minleft_index]].centery < bins[bestindex[minleft2_index]].centery)
+{
+	lowerleft = minleft_index;
+	upperleft = minleft2_index;
+}
+else
+{
+	lowerleft = minleft2_index;
+	upperleft = minleft_index;
+}
+
+if (bins[bestindex[minleft3_index]].centery < bins[bestindex[minleft4_index]].centery)
+{
+	lowerright = minleft3_index;
+	upperright = minleft4_index;
+}
+else
+{
+	lowerright = minleft4_index;
+	upperright = minleft3_index;
+}
+
+
+		if (bins[0].found == true)
+		{
+			printf("\n setting m_allbins.MainBox_found = true");
+			m_allbins.MainBox_found = true;
+			m_allbins.MainBox_x = bins[0].centerx;	
+			m_allbins.MainBox_y = bins[0].centery;	
+			m_allbins.MainBox_angle = bins[0].angle;	
+			m_allbins.MainBox_height = bins[0].height;
+			m_allbins.MainBox_width = bins[0].width;
+			m_allbins.MainBox_type = 1;
+		}
+		else if (bins[0].found == false)
+		{	
+			//unable to find main bin
+			m_allbins.MainBox_found = false;
+			m_allbins.MainBox_x = 0;	
+			m_allbins.MainBox_y = 0;	
+			m_allbins.MainBox_angle = 0;	
+			m_allbins.MainBox_height =0;
+			m_allbins.MainBox_width = 0;
+			m_allbins.MainBox_type = 0;
+		}
+		if (upperleft > 0)
+		{
+			m_allbins.Box[1].Box_found = true;	
+			m_allbins.Box[1].Box_x = bins[bestindex[upperleft]].centerx;
+			m_allbins.Box[1].Box_y = bins[bestindex[upperleft]].centery;
+			m_allbins.Box[1].Box_type = upperleft;
+		}
+		else
+		{
+			m_allbins.Box[1].Box_found = false;	
+			m_allbins.Box[1].Box_x = 0;
+			m_allbins.Box[1].Box_y = 0;
+			m_allbins.Box[1].Box_type = 0;
+		}
+		if (lowerleft > 0)
+		{
+			m_allbins.Box[2].Box_found = true;	
+			m_allbins.Box[2].Box_x = bins[bestindex[lowerleft]].centerx;
+			m_allbins.Box[2].Box_y = bins[bestindex[lowerleft]].centery;
+			m_allbins.Box[2].Box_type = lowerleft;
+		}
+		else
+		{
+			m_allbins.Box[2].Box_found = false;	
+			m_allbins.Box[2].Box_x = 0;
+			m_allbins.Box[2].Box_y = 0;
+			m_allbins.Box[2].Box_type = 0;
+		}
+
+
+		if (upperright > 0)
+		{
+			m_allbins.Box[3].Box_found = true;	
+			m_allbins.Box[3].Box_x = bins[bestindex[upperright]].centerx;
+			m_allbins.Box[3].Box_y = bins[bestindex[upperright]].centery;
+			m_allbins.Box[3].Box_type = upperright;
+		}
+		else
+		{
+			m_allbins.Box[3].Box_found = false;	
+			m_allbins.Box[3].Box_x = 0;
+			m_allbins.Box[3].Box_y = 0;
+			m_allbins.Box[3].Box_type = 0;
+		}
+		if (lowerright > 0)
+		{
+			m_allbins.Box[0].Box_found = true;	
+			m_allbins.Box[0].Box_x = bins[bestindex[lowerright]].centerx;
+			m_allbins.Box[0].Box_y = bins[bestindex[lowerright]].centery;
+			m_allbins.Box[0].Box_type = lowerright;
+		}
+		else
+		{
+			m_allbins.Box[0].Box_found = false;	
+			m_allbins.Box[0].Box_x = 0;
+			m_allbins.Box[0].Box_y = 0;
+			m_allbins.Box[0].Box_type = 0;
+		}
+
+
+	if (lowerright > 0 || lowerleft > 0 || upperright > 0 || upperleft > 0)
+	{
+		m_allbins.MainBox_found = true;
+	}
+	else
+	{
+		m_allbins.MainBox_found = false;
+	}
+
+
+/*
 	//set them all into a single event
 	for (int i=0;i<numberoftrackedcontours;i++)	
 	{
@@ -2376,7 +2877,7 @@ double area_ref, area_final;
 			m_allbins.Box[i-1].Box_type =0;
 		}
 	}//for i
-		
+		*/
 if (m_framecount > 2)		
 	checkPreviousFrames();
 
@@ -2385,6 +2886,7 @@ for (int i=0;i<numberoftrackedcontours;i++)
 	printf("\n Allbins = boxfound = %d, Type %d, numberofframes = %d",m_allbins.Box[i].Box_found, m_allbins.Box[i].Box_type,m_allbins.Box[i].Box_numberofframes);
 }
 
+/*
 //Draw boxes
 if (m_allbins.MainBox_found== true)
 {		
@@ -2410,6 +2912,7 @@ if (m_allbins.MainBox_found== true)
 
 
 }
+*/
 
 	return;
 }
@@ -2715,6 +3218,7 @@ void BinDetector::publishLostEvent(Symbol::SymbolType color)
 }
 
 
+
 void BinDetector::publishFoundEventSURFAll()
 {
 
@@ -2743,8 +3247,8 @@ void BinDetector::publishFoundEventSURFAll()
 	math::Vector3 vectorbin0;
 	vectorbin0.x = centerMainX;
 	vectorbin0.y = centerMainY;
-	vectorbin0.z = m_allbins.MainBox_width;	
-	event->angle = m_allbins.MainBox_angle;
+	vectorbin0.z = 0;	
+//	event->angle = m_allbins.MainBox_angle;
 	//send rest of the bins now
 	if (m_allbins.Box[0].Box_found == true && (int)m_allbins.Box[0].Box_x > 0 && (int)m_allbins.Box[0].Box_x<640 && (int)m_allbins.Box[0].Box_y>0 
 		&& (int)m_allbins.Box[0].Box_y<640)
@@ -2762,7 +3266,8 @@ void BinDetector::publishFoundEventSURFAll()
 	math::Vector3 vectorbin1;
 	vectorbin1.x = centerBinX;
 	vectorbin1.y = centerBinY;
-	vectorbin1.z = m_allbins.Box[0].Box_width;
+	vectorbin1.z = m_allbins.Box[0].Box_type;
+/*
 	if (m_allbins.Box[0].Box_found == false)
 	{	
 		event->type1 = -2;
@@ -2775,6 +3280,7 @@ void BinDetector::publishFoundEventSURFAll()
 	{
 		event->type1= m_allbins.Box[0].Box_type;
 	}
+*/
 	
 	 //send rest of the bins now
 	if (m_allbins.Box[1].Box_found == true &&(int)m_allbins.Box[1].Box_x > 0 &&(int)m_allbins.Box[1].Box_x<640 &&(int)m_allbins.Box[1].Box_y>0
@@ -2792,7 +3298,9 @@ void BinDetector::publishFoundEventSURFAll()
 	math::Vector3 vectorbin2;
 	vectorbin2.x = centerBinX;
 	vectorbin2.y = centerBinY;
-	vectorbin2.z = m_allbins.Box[1].Box_width;;
+	vectorbin2.z = m_allbins.Box[1].Box_type;
+
+/*
 	if (m_allbins.Box[1].Box_found == false)
 	{	
 		event->type2 = -2;
@@ -2805,7 +3313,7 @@ void BinDetector::publishFoundEventSURFAll()
 	{
 		event->type2= m_allbins.Box[1].Box_type;
 	}
-
+*/
 	 //send rest of the bins now
 	if (m_allbins.Box[2].Box_found == true && (int)m_allbins.Box[2].Box_x > 0 && (int)m_allbins.Box[2].Box_x<640 && (int)m_allbins.Box[2].Box_y>0 && 			(int)m_allbins.Box[2].Box_y<640)
 	{
@@ -2821,7 +3329,8 @@ void BinDetector::publishFoundEventSURFAll()
 	math::Vector3 vectorbin3;
 	vectorbin3.x = centerBinX;
 	vectorbin3.y = centerBinY;
-	vectorbin3.z = m_allbins.Box[2].Box_width;
+	vectorbin3.z = m_allbins.Box[2].Box_type;
+/*
 	if (m_allbins.Box[2].Box_found == false)
 	{	
 		event->type3 = -2;
@@ -2834,7 +3343,7 @@ void BinDetector::publishFoundEventSURFAll()
 	{
 		event->type3= m_allbins.Box[2].Box_type;
 	}
-
+*/
 	 //send rest of the bins now
 	if (m_allbins.Box[3].Box_found == true && (int)m_allbins.Box[3].Box_x > 0 && (int)m_allbins.Box[3].Box_x<640 && (int)m_allbins.Box[3].Box_y>0 && 			(int)m_allbins.Box[3].Box_y<640)
 	{
@@ -2850,8 +3359,8 @@ void BinDetector::publishFoundEventSURFAll()
 	math::Vector3 vectorbin4;
 	vectorbin4.x = centerBinX;
 	vectorbin4.y = centerBinY;
-	vectorbin4.z = m_allbins.Box[3].Box_width;
-
+	vectorbin4.z = m_allbins.Box[3].Box_type;
+/*
 	if (m_allbins.Box[3].Box_found == false)
 	{	
 		event->type4 = -2;
@@ -2864,8 +3373,7 @@ void BinDetector::publishFoundEventSURFAll()
 	{
 		event->type4= m_allbins.Box[3].Box_type;
 	}
- 
-	event->vectorbin0 = vectorbin0;
+ */
 	event->vectorbin1 = vectorbin1;
 	event->vectorbin2 = vectorbin2;
 	event->vectorbin3 = vectorbin3;
@@ -3451,7 +3959,7 @@ void BinDetector::LoadReferences(void)
 		vector<vector<Point> > contours;
 		vector<Vec4i> hierarchy;
 		findContours(m_ref_img, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-		//printf("got contours");
+		printf("got reference contours");
 		 //find the contour closest to the center
 		int ref_distancetocenter = 9999;
 		int xdistance,ydistance,distancetocenter;
@@ -3464,7 +3972,7 @@ void BinDetector::LoadReferences(void)
 			xdistance = abs(74/2-box.center.x);
 			ydistance = abs(176/2-box.center.y);
 			distancetocenter = xdistance+ydistance;
-		printf("\n contour size = %d, height, %f, width %f, distance=%d",contours[i].size(),box.size.width,box.size.height,distancetocenter);
+			//printf("\n contour size = %d, height, %f, width %f, distance=%d",contours[i].size(),box.size.width,box.size.height,distancetocenter);
 			if ((distancetocenter < ref_distancetocenter) && (contours[i].size() > 60) )
 			{
 				ref_distancetocenter = distancetocenter;
@@ -3479,6 +3987,7 @@ void BinDetector::LoadReferences(void)
 			m_ref_box[j] = box_ref;
 			drawContours( m_ref_color, contours, centercontour, Scalar(0,255,0), 3, 8, vector<Vec4i>(), 0, Point() );
 		}
+/*
 		if (j == 1)
 			imshow("referenceImages1",m_ref_color);
 		if (j == 2)
@@ -3489,6 +3998,7 @@ void BinDetector::LoadReferences(void)
 			imshow("referenceImages4",m_ref_color);
 
 		printf("\n centercontour = %d", centercontour);
+*/
 	} //end j
 
 }//end LoadReferences
