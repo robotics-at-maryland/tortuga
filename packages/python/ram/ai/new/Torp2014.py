@@ -51,11 +51,11 @@ class TorpedoMachine(stateMachine.StateMachine):
         forwardsSearchIncrement = configNode.get('forwardsSearchIncrement',5)
         maxSearchAttempts = configNode.get('maxSearchAttempts', 20)
         holeSearchDist = configNode.get('holeSearchDist',1)
-        squareCenteringRange = configNode.get('squareCenteringRange',3) 
-        squareCenteringRangeBound = configNode.get('squareCenteringRangeBound', 1)
+        squareCenteringRange = configNode.get('squareCenteringRange',30) 
+        squareCenteringRangeBound = configNode.get('squareCenteringRangeBound', 50)
         squareCenteringXYBound = configNode.get('squareCenteringXYBound', .1)
-        holeCenteringRange = configNode.get('holeCenteringRange', 1)
-        holeCenteringRangeBound = configNode.get('holeCenteringRangeBound', 1/.5)
+        holeCenteringRange = configNode.get('holeCenteringRange', 50)
+        holeCenteringRangeBound = configNode.get('holeCenteringRangeBound', 8)
         holeCenteringXYBound = configNode.get('holeCenteringXYBound', .1) 
         reverseRefindDistance = configNode.get('reverseRefindDistance', 1)
         
@@ -70,7 +70,7 @@ class TorpedoMachine(stateMachine.StateMachine):
         #END HACK TO TEST IN SIMULATOR
         hole1 = torps.left
         hole2 = torps.right
-        
+        box = torps.left
 
         start = self.addState('start',utilStates.Start())
         start.setTransition('next','initialMove')
@@ -79,14 +79,14 @@ class TorpedoMachine(stateMachine.StateMachine):
     #box finding search
         initialMove = self.addState('initialMove', motion.Turn(-yawSearchBound/2))
         initialMove.setTransition('next', 'initialSearch')
-        initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, torps.box.isSeen, 'boxCentering', 'prepareForwards'))
+        initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, box.isSeen, 'boxCentering', 'prepareForwards'))
         prepareForwards =  self.addState('prepareForwards', motion.Turn(-yawSearchBound/2))
         prepareForwards.setTransition('next', 'forwardsSearch')
-        forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, torps.box.isSeen, 'boxCentering', 'counter'))
+        forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, box.isSeen, 'boxCentering', 'counter'))
         counter = self.addState('counter', utilStates.PassCounter('passSwitch'))
         passSwitch = self.addState('passSwitch', utilStates.Switch('initialMove', 'taskFailure', counter.getPassChecker(maxSearchAttempts)))
     #aligning with box, if that fails, try to search again
-        boxCentering = self.addState('boxCentering', approach.ForwardsCenter(torps.box, 'holePassCount', 'initialMove', squareCenteringRange, squareCenteringXYBound,squareCenteringXYBound,squareCenteringRangeBound))
+        boxCentering = self.addState('boxCentering', approach.ForwardsCenter(box, 'holePassCount', 'initialMove', squareCenteringRange, squareCenteringXYBound,squareCenteringXYBound,squareCenteringRangeBound))
         holePassCount = self.addState('holePassCount', utilStates.PassCounter('holeSwitch'))
         holeSwitch = self.addState('holeSwitch', utilStates.Switch('hole1Search','hole2Search',holePassCount.getPassChecker(2)))
         hole1Search = self.addState('hole1Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole1Center', 'backUp'))
