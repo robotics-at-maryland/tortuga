@@ -382,11 +382,11 @@ void TargetDetector::processImage(Image* input, Image* output)
             rightmost = xyBinned[i][0];
         }
         */
-        if(TargetDetector::computeSquaredCornerDistance(640,480,xyBinned[i][0]) > TargetDetector::computeSquaredCornerDistance(640,480,leftmost))
+        if(TargetDetector::computeSquaredCornerDistance(0,0,xyBinned[i][0]) < TargetDetector::computeSquaredCornerDistance(0,0,leftmost))
         {
             leftmost = xyBinned[i][0];
         }
-        if(TargetDetector::computeSquaredCornerDistance(0,480,xyBinned[i][0]) > TargetDetector::computeSquaredCornerDistance(0,480,rightmost))
+        if(TargetDetector::computeSquaredCornerDistance(640,0,xyBinned[i][0]) < TargetDetector::computeSquaredCornerDistance(640,0,rightmost))
         {
             rightmost = xyBinned[i][0];
         }  

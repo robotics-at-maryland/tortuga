@@ -93,7 +93,7 @@ class RAM_EXPORT TargetDetector : public Detector
     {
         if(h.x > 1000 || h.x < 0)
         {
-            return -1;
+            return 1000000000;
         }
         return (h.x-cx)*(h.x-cx)+(h.y-cy)*(h.y-cy);
     }
