@@ -3,6 +3,10 @@ import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
 import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
+<<<<<<< HEAD
+=======
+#import ram.ai.new.testing as testMachine
+>>>>>>> b205b3b9c4ad1332dc20dee9b386e7c9c2dff774
 
 from ram.ai.new.configuration import initFromYAML
 
@@ -17,6 +21,8 @@ import Torp2014
 
 #std imports
 import time
+import Torp2014
+import SonarManip2014
 
 UPDATE = core.declareEventType('UPDATE')
 TIMEOUT = core.declareEventType('TIMEOUT')

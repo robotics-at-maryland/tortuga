@@ -6,14 +6,12 @@ import ram.ai.new.motionStates as motionStates
 
 import ram.ai.new.acousticServoing as acousticServoing
 import ram.ai.new.approach as approach
-import ram.ai.new.checkpoints as checkpoints
-
-#import ram.ai.new.Gate2014 as gate
-import ram.ai.new.Gate2014WithVel as gate
+import ram.ai.new.checkpoints as checkpointsimport ram.ai.new.gate as gate
 import ram.ai.new.Buoy2014 as buoy
 #import ram.ai.new.SonarManip2014 as sonarm
-import ram.ai.new.Uprights2014 as uprights
-import ram.ai.new.Pipe2014 as pipe
+import ram.ai.new.uprights as uprights
+
+
 import ram.ai.new.Buoy2014 as buoy
 
 
@@ -46,3 +44,4 @@ class TestMachine(StateMachine):
             ('start', 'next', 'forward'),
             ('forward', 'next', 'end')
           )
+
