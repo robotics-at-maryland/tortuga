@@ -1,20 +1,30 @@
-# Torps
+# Pipe Align
 ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
-    forward:
-      type: PogoTask
+    forward1:
+      type: Forward
       init:
-        pogoHeight: 1.2
-        pogoWidth: 1.2
-        pogoShift: .15
-        pogoShiftV: .45
-        attackHeight: 11.9
-        
+        distance: 1
+    pipe1:
+      type: PipeAlign
+      init:
+        searchDist: 20        
+    forward2:
+       type: Forward
+       init:
+         distance: 3
+    pipe2:
+      type: PipeAlign
+      init:
+        searchDist: 20   
     end:
       type: End
 
   transitions:
-    - [start,   next, forward]
-    - [forward, success, end ]
+    - [start, next, forward1]
+    - [forward1, next, pipe1]
+    - [pipe1, complete, forward2]
+    - [forward2, next, pipe2]
+    - [pipe2, complete, end]
