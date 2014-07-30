@@ -75,6 +75,12 @@ void NullDetector::init(core::ConfigNode config)
         
     // Working images
     frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
+
+
+
+
+
+
     
         
 }
@@ -106,6 +112,27 @@ void NullDetector::processImage(Image* input, Image* output)
         logImage(frame);
     }
     output->copyFrom(input);
+
+
+//cv::Mat img = frame->asIplImage();
+
+/*
+cv::VideoWriter outputVideo;
+std::string name ="VideoAVI3.avi";
+int FPS = 30;
+cv::Size S = img.size();
+printf("S = %d, %d", S.width, S.height);
+outputVideo.open(name,CV_FOURCC('M','J','P','G'),FPS, S,true);
+printf("setup?");
+*/
+
+
+//outputVideo<<img;
+//printf("1 ");
+//outputVideo.release();
+
+
+
 }
 
 

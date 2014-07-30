@@ -289,14 +289,16 @@ core::EventPtr TargetEvent::clone()
     copyInto(event);
     event->x = x;
     event->y = y;
-    event->largex = largex;
-    event->largey = largey;
-    event->smallx = smallx;
-    event->smally = smally;
-    event->squareNess = squareNess;
     event->range = range;
-    event->color = color;
-    event->angle = angle;
+    event->leftx = leftx;
+    event->lefty = lefty;
+    event->leftsize = leftsize;
+    event->rightx = rightx;
+    event->righty = righty;
+    event->rightsize = rightsize;
+    event->downx = downx;
+    event->downy = downy;
+    event->downsize = downsize;
     return event;
 }
 

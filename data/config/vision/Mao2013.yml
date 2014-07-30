@@ -248,3 +248,20 @@ BuoyDetector:
     minWidth: 50
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
+TargetDetector:
+    bilateral d param: 5
+    c Hue: 1
+    c Saturation: 2
+    c Value: 1
+    circularity bound: 0.25
+    closing iterations: 1
+    color sigma: 25
+    debug Images?: 1
+    dilate iterations: 1
+    erode iterations: 1
+    min vertices: 25
+    rectangularity bound: 0.5
+    size binning range: 25
+    space sigma: 15
+    threshold block size: 15
+    xy binning range: 50

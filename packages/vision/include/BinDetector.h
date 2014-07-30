@@ -15,7 +15,6 @@
 #include <map>
 #include <string>
 
-
 // Project Includes
 #include "core/include/ConfigNode.h"
 #include "vision/include/Common.h"
@@ -25,6 +24,9 @@
 #include "vision/include/Symbol.h"
 #include "opencv2/nonfree/features2d.hpp"
 #include "opencv2/features2d/features2d.hpp"
+
+#include "vision/include/GateDetectorKate.h"
+//#include "vision/include/BuoyDetectorKate.h"
 
 // Must be included last
 #include "vision/include/Export.h"
@@ -85,8 +87,9 @@ class RAM_EXPORT BinDetector : public Detector
 		int MainBox_type; //identification number
 		binData Box[4];
 	};
-	
 
+	
+int m_adwindow;
   public:
     class Bin : public TrackedBlob
     {
@@ -414,6 +417,10 @@ class RAM_EXPORT BinDetector : public Detector
 	void publishLostEvent(Symbol::SymbolType color);
 	void checkPreviousFrames();
 	void publishFoundEventSURFAll();
+	int m_threshbinary;
+	cv::vector<cv::Point> m_ref_contours[4];
+	cv::RotatedRect m_ref_box[4];
+	void LoadReferences(void);
 
 	cv::Mat img_whitebalance;
 	//cv::Mat img_saturation;

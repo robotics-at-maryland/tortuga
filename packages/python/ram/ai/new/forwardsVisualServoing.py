@@ -42,6 +42,7 @@ class ForwardsVisualServoing(state.State):
         self.motionManager = self.getStateMachine().getLegacyState().motionManager
 
     def update(self):
+        super(ForwardsVisualServoing,self).update()
         self._obj.update()
         self.runMotion(self._obj)
 

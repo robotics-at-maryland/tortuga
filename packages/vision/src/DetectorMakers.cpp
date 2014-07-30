@@ -17,6 +17,7 @@
 #include "vision/include/BuoyDetector.h"
 #include "vision/include/BinDetector.h"
 #include "vision/include/OrangePipeDetector.h"
+#include "vision/include/ChrisPipeDetector.h"
 #include "vision/include/GateDetector.h"
 #include "vision/include/FeatureDetector.h"
 #include "vision/include/DuctDetector.h"
@@ -63,7 +64,11 @@ registerBasicLetterDetector("BasicGladiatorDetector");
 
 static DetectorMakerTemplate<OrangePipeDetector>
 registerOrangePipeDetector("OrangePipeDetector");
+
+   static DetectorMakerTemplate<ChrisPipeDetector>
+registerChrisPipeDetector("ChrisPipeDetector");
     
+ 
 static DetectorMakerTemplate<GateDetector>
 registerGateDetector("GateDetector");
 

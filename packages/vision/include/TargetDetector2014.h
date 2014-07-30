@@ -11,10 +11,16 @@
 #define RAM_TARGET_DETECTOR_H_04_29_2014
 
 // Project Includes
+#include "cv.h"
+#include "highgui.h"
 #include "vision/include/Common.h"
 #include "vision/include/Detector.h"
 #include "vision/include/BlobDetector.h"
 #include "vision/include/Color.h"
+#include <boost/foreach.hpp>
+#include <vector>
+#include <algorithm>
+
 
 #include "core/include/ConfigNode.h"
 
@@ -24,12 +30,27 @@
 namespace ram {
 namespace vision {
 namespace vision2014 {
-    
+  
+class Hole
+{
+public:
+    double x;
+    double y;
+    double size;
+};
+
+
+
+  
 class RAM_EXPORT TargetDetector : public Detector
 {
   public:
     TargetDetector(core::ConfigNode config,
                    core::EventHubPtr eventHub = core::EventHubPtr());
+    TargetDetector()
+    {
+        //I do nothing but appease the compilation
+    }
     ~TargetDetector();
 
     void processImage(Image* input, Image* output= 0);
@@ -48,6 +69,189 @@ class RAM_EXPORT TargetDetector : public Detector
     /** The percent of the bottom of the image blacked out */
     void setBottomRemovePercentage(double percent);
 
+    struct myclass 
+    {
+        bool operator() (Hole h1, Hole h2)
+        {
+            return h1.size > h2.size;
+        }
+    } compareSize;   
+
+    struct myclass2
+    {
+        bool operator() (Hole h1, Hole h2)
+        {
+            return h1.x < h2.x;
+        }
+    } compareXY;   
+
+    bool CheckInRange(double a1, double a2, double range)
+    {
+        return ((a1 + range/2) > a2) && ((a1 - range/2) < a2);
+    }
+    double computeSquaredCornerDistance(double cx, double cy, Hole h)
+    {
+        if(h.x > 1000 || h.x < 0)
+        {
+            return 1000000000;
+        }
+        return (h.x-cx)*(h.x-cx)+(h.y-cy)*(h.y-cy);
+    }
+    
+void BinHolesSize(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareSize);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            int holeInsert = 0;
+            for(unsigned int i = 1; i < holes.size(); i++)
+            {
+                Hole h = holes[i];
+                if(CheckInRange(holes[i-1].size, holes[i].size,range))
+                {
+                    a[holeInsert].push_back(holes[i]);
+                }
+                else
+                {
+                    std::vector<Hole> b;
+                    b.push_back(holes[i]);
+                    a.push_back(b);
+                    holeInsert++;
+                }   
+            }
+        }
+    }
+void BinHolesXY(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareXY);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            int holeInsert = 0;
+            for(unsigned int i = 1; i < holes.size(); i++)
+            {
+                Hole h = holes[i];
+                Hole jz = holes[i-1];
+                if(((h.x-jz.x)*(h.x-jz.x) + (h.y-jz.y)*(h.y-jz.y)) < (range*range))
+                {
+                    a[holeInsert].push_back(holes[i]);
+                }
+                else
+                {
+                    std::vector<Hole> b;
+                    b.push_back(holes[i]);
+                    a.push_back(b);
+                    holeInsert++;
+                }   
+            }
+        }
+    }
+
+    //outdated, new more optimal algorithm in use
+    /*void BinHolesSize(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareSize);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            for(unsigned int i = 0; i < holes.size(); i++)
+            {
+                bool temp = false;
+                Hole h = holes[i];
+                bool same = false;
+                for(unsigned int j = 0; j < a.size(); j++)
+                {                
+                    for(unsigned int k = 0; k < a[j].size(); k++)
+                    {                    
+                        Hole jz = a[j][k];
+                    
+
+                        if(CheckInRange(jz.size,h.size,range))
+                        {
+                            temp = true;
+                        }
+                        if(jz.size == h.size && jz.x == h.x && jz.y == h.y)
+                        {
+                            same = true;
+                            temp = false;
+                        }
+
+                    }
+                    if(temp == true)
+                    {
+                        (a[j]).push_back(h);
+                    }
+                }
+                if(temp == false)
+                {
+                    if(same == false)
+                    {
+                        std::vector<Hole> c;
+                        c.push_back(h);
+                        a.push_back(c);
+                    }   
+                }
+                
+            }
+        }
+    }
+    void BinHolesXY(std::vector<Hole> holes, double range,std::vector<std::vector<Hole> >& a)
+    {
+        if(holes.size() != 0)
+        {
+            std::sort(holes.begin(), holes.end(), compareXY);
+            std::vector<Hole> b;
+            b.push_back(holes[0]);
+            a.push_back(b);
+            for(unsigned int i = 0; i < holes.size(); i++)
+            {
+                bool temp = false;
+                Hole h = holes[i];
+                bool same = false;
+                for(unsigned int j = 0; j < a.size(); j++)
+                {                
+                    for(unsigned int k = 0; k < a[j].size(); k++)
+                    {                    
+                        Hole jz = a[j][k];
+                    
+
+                        if(((h.x-jz.x)*(h.x-jz.x) + (h.y-jz.y)*(h.y-jz.y)) < (range*range))
+                        {
+                            temp = true;
+                        }
+                        if(jz.size == h.size && jz.x == h.x && jz.y == h.y)
+                        {
+                            same = true;
+                            temp = false;
+                        }
+
+                    }
+                    if(temp == true)
+                    {
+                        (a[j]).push_back(h);
+                    }
+                }
+                if(temp == false)
+                {
+                    if(same == false)
+                    {
+                        std::vector<Hole> c;
+                        c.push_back(h);
+                        a.push_back(c);
+                    }   
+                }
+                
+            }
+        }
+        }*/
+
   struct targetPanel
 	{
         cv::RotatedRect outline;
@@ -57,7 +261,12 @@ class RAM_EXPORT TargetDetector : public Detector
         bool foundSmall;
         bool foundOutline;
 	};
-        
+  
+  //output variables(FOR PYTHON ACCESS)
+  Hole leftHole;
+  Hole rightHole;
+  Hole downHole;
+      
   private:
     void init(core::ConfigNode config);
 
@@ -74,9 +283,9 @@ class RAM_EXPORT TargetDetector : public Detector
     
     //performs categorization on the contours
     void categorizeContours(    std::vector<std::vector<cv::Point> > &contours,
-                                                std::vector<std::vector<cv::Point> > &prunedContours,
-                                                std::vector<std::vector<cv::Point> > &circleContours,
-                                                std::vector<std::vector<cv::Point> > &rectangleContours);
+                                std::vector<std::vector<cv::Point> > &prunedContours,
+                                std::vector<std::vector<cv::Point> > &circleContours,
+                                std::vector<std::vector<cv::Point> > &rectangleContours);
 
     //define fixed parameters
     int bSize;//block size for adaptive threshold
@@ -99,6 +308,9 @@ class RAM_EXPORT TargetDetector : public Detector
     int dilateCount;
     int erodeCount;
     int debugOut;
+    double xyRange;
+    double sizeRange;
+    
     cv::RNG rng;
 
     //outdated params

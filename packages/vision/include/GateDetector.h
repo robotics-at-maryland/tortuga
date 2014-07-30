@@ -35,6 +35,22 @@ struct contourblob
 	int gatepieces;
 };
 
+struct foundObjectusingRef
+{
+	double angle;
+	int centerx;
+	int centery;
+	double arclengthratio;
+	double arearatio;
+	double aspectratio;
+	double bestmatch;
+	int framesfound;
+	int rect_area;
+	double rect_aspectratio;
+	double arclength;
+	int contourID;
+};
+
 class RAM_EXPORT GateDetector : public Detector
 {
   public:
@@ -55,14 +71,28 @@ class RAM_EXPORT GateDetector : public Detector
     void show(char* window);
     IplImage* getAnalyzedImage();
     blobfinder blob;
+    void FindShape(Mat erosion_dst, Mat img, Mat ref_canny,Mat hsv_img);
+    Mat GetReference(int refnumber);
+    Mat GetOutline(Mat img);
+    Mat m_ref_canny;
+    Mat m_ref_img;
+    Mat m_sal_output;
 
- int returnRedmin(void);
-int returnRedmax(void);
-int getmaxdiff(); //gets the maximum allowed difference for kate function
-int m_maxdiff;
+	vector<Vec4i> m_ref_hierarchy;
+	vector<vector<Point> > m_ref_contours;
+	vector<vector<Point> > m_contours;
 
-   
-    
+	 int returnRedmin(void);
+	int returnRedmax(void);
+	int getmaxdiff(); //gets the maximum allowed difference for kate function
+	int m_maxdiff;
+	int m_refcontour;
+	foundObjectusingRef m_previousObjects[10];
+	foundObjectusingRef m_currentObjects[10];
+	int m_foundobjectnumber;
+	int m_previousobjectnumber; 
+	void MultipleFrames(int display, Mat img_whitebalance);
+	    
   private:
 
 bool m_found;
@@ -102,6 +132,15 @@ bool m_found;
 	void FindContours(cv::Mat img_src);
 	double m_minAspectRatio;
 	double m_maxAspectRatio;
+
+	int m_refimage;
+	int m_minrefarea;
+	int m_maxrefarea;
+	double m_aspectratio;
+	double m_bestMatch;
+	double m_arearatio;
+
+	double m_arclengthratio;
 	int m_minArea;
 	
 	void publishFoundEventContour(contourblob contour, Color::ColorType color);
@@ -110,8 +149,34 @@ bool m_found;
 	int m_cannylow;
 	int m_cannyhigh;
 	int m_minY;
-
+	int m_morphsize;
+	int m_morphtype;
+	int m_erodesize;
 	int m_dilatesize;
+	int m_cannyoradaptive;
+	int m_adwindow;
+	double m_threshvalue;
+	cv::Mat m_saliency;
+	void SaliencyFilter(cv::Mat img);
+
+	int m_ref_cannylow;
+	int m_ref_morphsize;
+	int m_ref_morphtype;
+	int m_ref_AdaptiveThresholdWindow;
+	int m_ref_cannyoradaptive;
+	double m_ref_threshvalue;
+	int m_ref_erodesize;
+	int m_ref_dilatesize;
+	int m_ref_adwindow;
+	int m_gotreference;
+	int m_xallowance;
+	int m_yallowance;
+	double m_areaallowance;
+	int m_smooth;
+	int m_minframes;
+	int m_smoothparam;
+	int m_gotrefcontour;
+	
 };
     
 } // namespace vision

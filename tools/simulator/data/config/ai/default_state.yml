@@ -1,27 +1,19 @@
 ram.ai.new.mainState.Body:
+  states:
     start:
-        type: Start
-        transitions:
-            next: test
-    test:
-        type: TesterState
-        transitions:
-            next: forward  
-
+      type: Start
     forward:
-        type: Forward
-        init:
-            distance: 2
-        transitions:
-            next: strafe
-
+      type: Forward
+      init:
+        distance: 2
     strafe:
-        type: Strafe
-        init:
-            distance: 2
-        transitions:
-            next: end
-
+      type: Strafe
+      init:
+        distance: 2
     end:
-        type: End
+      type: End
 
+  transitions:
+    - [start,   next, forward]
+    - [forward, next, strafe ]
+    - [strafe,  next, end    ]

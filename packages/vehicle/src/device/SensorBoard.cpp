@@ -483,11 +483,11 @@ int SensorBoard::fireTorpedo(int index)
     }
     return -1;
 }
-int SensorBoard::extendGrabber()
+int SensorBoard::extendGrabber(int param)
 {
     // Closes Grabber
     boost::mutex::scoped_lock lock(m_deviceMutex);
-    handleReturn(::extendGrabber(m_deviceFD));
+    handleReturn(::extendGrabber(m_deviceFD,param));
     return 1;
 
 }
@@ -648,8 +648,6 @@ void SensorBoard::depthEvent(double depth)
     math::NumericEventPtr event(new math::NumericEvent());
     event->number = depth;
     publish(IDepthSensor::UPDATE, event);
-
-
 }
     
 void SensorBoard::powerSourceEvents(struct boardInfo* telemetry)

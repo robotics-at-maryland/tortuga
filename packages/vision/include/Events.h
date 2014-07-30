@@ -553,58 +553,78 @@ typedef boost::shared_ptr<BarbedWireEvent> BarbedWireEventPtr;
 class RAM_EXPORT TargetEvent : public core::Event
 {
   public:
-    TargetEvent(double centerX, double centerY, double largeCenterX, double largeCenterY, double smallCenterX, double smallCenterY,double squareNess_,
-		double range_, bool largeflag, bool smallflag, double rangelarge, double rangesmall,double angle_, Color::ColorType color_= Color::UNKNOWN) :
-        x(centerX),
-        y(centerY),
-	largex(largeCenterX),
-        largey(largeCenterY),
-	smallx(smallCenterX),
-        smally(smallCenterY),
-        squareNess(squareNess_),
-        range(range_),
-	largeflag(largeflag),
-	smallflag(smallflag),
-	rangelarge(rangelarge),
-	rangesmall(rangesmall),
-	angle(angle_),
-        color(color_)
+    TargetEvent(    double x,
+                    double y,
+                    double range,
+                    double leftx,
+                    double lefty,
+                    double leftsize,
+                    double rightx,
+                    double righty,
+                    double rightsize,
+                    double downx,
+                    double downy,
+    double downsize) :
+        x(x),
+        y(y),
+        range(range),
+        leftx(leftx),
+        lefty(lefty),
+        leftsize(leftsize),
+        rightx(rightx),
+        righty(righty),
+        rightsize(rightsize),
+        downx(downx),
+        downy(downy),
+        downsize(downsize)
     {
     }
+
+    TargetEvent(double&, double&, double&, double&, double&, double&, double&, double&, bool&, bool&, double&, double&, double&, ram::vision::Color::ColorType&):
+        x(0),
+        y(0),
+        range(0),
+        leftx(0),
+        lefty(0),
+        leftsize(0),
+        rightx(0),
+        righty(0),
+        rightsize(0),
+        downx(0),
+        downy(0),
+        downsize(0)
+    {
+    }
+
     TargetEvent() :
         x(0),
         y(0),
-	largex(0),
-	largey(0),
-	smallx(0),
-	smally(0),
-        squareNess(0),
         range(0),
-	largeflag(false),
-	smallflag(false),
-	rangelarge(0),
-	rangesmall(0),
-	angle(0),
-        color(Color::UNKNOWN)
+        leftx(0),
+        lefty(0),
+        leftsize(0),
+        rightx(0),
+        righty(0),
+        rightsize(0),
+        downx(0),
+        downy(0),
+        downsize(0)
     {
     }
 
-
     double x;
     double y;
-    double largex; 
-    double largey;
-    double smallx;
-    double smally;
-    double panelx;
-    double panely;
-    double squareNess;
     double range;
-    bool largeflag;
-    bool smallflag;
-    double rangelarge;
-    double rangesmall;
-	double angle;
+    double leftx;
+    double lefty;
+    double leftsize;
+    double rightx;
+    double righty;
+    double rightsize;
+    double downx;
+    double downy;
+    double downsize;
+
     Color::ColorType color; 
     virtual core::EventPtr clone();
 };

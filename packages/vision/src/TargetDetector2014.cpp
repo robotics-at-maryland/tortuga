@@ -1,17 +1,11 @@
 /*
- * Copyright (C) 2009 Robotics at Maryland
- * Copyright (C) 2009 Joseph Lisee
+ * Copyright (C) 2014 Robotics at Maryland
+ * Copyright (C) 2014 Eliot Rudnick-Cohen
  * All rights reserved.
  *
- * Author: Joseph Lisee <jlisee@umd.edu>
+ * Author: Eliot Rudnick-Cohen <erudnick@umd.edu>
  * File:  packages/vision/include/TargetDetector.cpp
  */
-
-/*
-Kate update
-now uses contours to find target (which I believe is called the window in thhe past...)
-so, it returns multiple events because there are multiple colors
-*/
 
 // STD Includes
 #include <algorithm>
@@ -117,6 +111,13 @@ void TargetDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "erode iterations",
                          "erode iterations",
                          0, &erodeCount, 0, 10);
+
+    propSet->addProperty(config, false, "xy binning range",
+                         "xy binning range",
+                         0.0, &xyRange, 0.0, 100.0);
+    propSet->addProperty(config, false, "size binning range",
+                         "size binning range",
+                         0.0, &sizeRange, 0.0, 100.0);
     
     morph_elem = 0;//0 rect, 1 circle, 2 ellipse
     morph_size = 2;
@@ -194,7 +195,11 @@ void TargetDetector::processImage(Image* input, Image* output)
     cv::Mat blurred;
     //removed gaussianblur to use bilateral filter instead
     //cv::GaussianBlur(imageHSV,blurred,cv::Size(bSize,bSize),blurSigma);
-    cv::bilateralFilter(imageHSV, blurred, filterSize,colorSigma, spaceSigma);
+
+    //competition day 1, switched from HSV to BGR(no seriously, i'm not kidding)
+    //cv::bilateralFilter(imageHSV, blurred, filterSize,colorSigma, spaceSigma);
+    cv::bilateralFilter(image, blurred, filterSize,colorSigma, spaceSigma);
+
 
     //split the channels of the image
     std::vector<cv::Mat> hsvChannels;
@@ -225,7 +230,11 @@ void TargetDetector::processImage(Image* input, Image* output)
     //Initial MC results indicated value is the only decent channel, hue can have things, but full of noise
     //may be due to technique used for image generation
     //for now only value will be going forwards, can always OR it with another channel in future
-    cv::Mat threshResult = vThresh;
+
+    //competition day 1,, now using BGR, so looking for green channel, not red
+    //cv::Mat threshResult = vThresh;
+    cv::Mat threshResult = sThresh;
+
     //apply edge detector to result
     cv::Mat edges;
 
@@ -307,9 +316,150 @@ void TargetDetector::processImage(Image* input, Image* output)
     }
 
 
+    std::vector<Hole> holes;
+    for(unsigned int i = 0; i< circleContours.size(); i++)
+    {
+        float idealRad;
+        cv::Point2f center;
+        cv::minEnclosingCircle(circleContours[i], center, idealRad);
+        Hole h;
+        h.x = center.x;
+        h.y = center.y;
+        h.size = idealRad;
+        holes.push_back(h);
+    }
+    std::vector<std::vector<Hole> > sizeBinned;
+    //std::cout<<"swordfishx"<<std::endl;
+    TargetDetector::BinHolesSize(holes, sizeRange,sizeBinned);
+    //std::cout<<"swordfishz"<<std::endl;
+    //for(unsigned int i = 0; i < sizeBinned.size(); i++)
+    //{
+    //    std::cout<<"------------------------------"<<std::endl;
+    //    for(unsigned int j =0; j < sizeBinned[i].size(); j++)
+    //    {
+    //        std::cout<<sizeBinned[i][j].x<<" "<<sizeBinned[i][j].y<<" "<<sizeBinned[i][j].size<<std::endl;
+    //    }
+    //}
+    //std::cout<<"SWORDFISH FINALLY"<<std::endl;
+    std::vector<std::vector<Hole> > xyBinned;
+    holes.clear();
+    for(unsigned int i = 0; (i < 2 && i < sizeBinned.size()); i++)
+    {
+        holes.insert(holes.begin(),sizeBinned[i].begin(),sizeBinned[i].end());
+    }
+    TargetDetector::BinHolesXY(holes, xyRange,xyBinned);
+    //for(unsigned int i = 0; i < xyBinned.size(); i++)
+    //{
+    //    std::cout<<"------------------------------"<<std::endl;
+    //    for(unsigned int j =0; j < xyBinned[i].size(); j++)
+    //    {
+    //        std::cout<<xyBinned[i][j].x<<" "<<xyBinned[i][j].y<<" "<<xyBinned[i][j].size<<std::endl;
+    //    }
+    //}
+    //AND NOW, WE CATEGORIZE THE BINS
+    //ASCII CAT GOES HERE
+    
+    //the three holes are leftmost, rightmost and downmost
+    //they are allowed to be the same thing
+    //this is an awesome way of doing things, as since the bins were only the two largest hole sizes, this is pretty accurate
+    Hole leftmost;
+    leftmost.x = 10000;
+    Hole rightmost;
+    rightmost.x = -1;
+    Hole downmost;
+    downmost.y = -1;
+    holes.clear();
+    for(unsigned int i = 0; i < xyBinned.size(); i++)
+    {
+        std::sort(xyBinned[i].begin(), xyBinned[i].end(), compareSize);
+        //competition day 1, changed to appropriate corner distances
+        /*if(xyBinned[i][0].x < leftmost.x)
+        {
+            leftmost = xyBinned[i][0];
+        }
+        if(xyBinned[i][0].x > rightmost.x)
+        {
+            rightmost = xyBinned[i][0];
+        }
+        */
+        if(TargetDetector::computeSquaredCornerDistance(0,0,xyBinned[i][0]) < TargetDetector::computeSquaredCornerDistance(0,0,leftmost))
+        {
+            leftmost = xyBinned[i][0];
+        }
+        if(TargetDetector::computeSquaredCornerDistance(640,0,xyBinned[i][0]) < TargetDetector::computeSquaredCornerDistance(640,0,rightmost))
+        {
+            rightmost = xyBinned[i][0];
+        }  
+        if(xyBinned[i][0].y > downmost.y)
+        {
+            downmost = xyBinned[i][0];
+        }
+    }
+    std::cout<<leftmost.x<<" "<<leftmost.y<<" "<<leftmost.size<<std::endl;
+    std::cout<<rightmost.x<<" "<<rightmost.y<<" "<<rightmost.size<<std::endl;
+    std::cout<<downmost.x<<" "<<downmost.y<<" "<<downmost.size<<std::endl;
+    
+    double tx;
+    double ty;
+	Detector::imageToAICoordinates(input, 
+	              (int)leftmost.x,
+	              (int)leftmost.y,
+	              tx,
+                  ty);
+    leftHole = leftmost;
+    leftHole.x = tx;
+    leftHole.y = ty;
+	Detector::imageToAICoordinates(input, 
+	              (int)rightmost.x,
+	              (int)rightmost.y,
+	              tx,
+                  ty);
+    rightHole = rightmost;
+    rightHole.x = tx;
+    rightHole.y = ty;
+	Detector::imageToAICoordinates(input, 
+	              (int)downmost.x,
+	              (int)downmost.y,
+	              tx,
+                  ty);
+    downHole = downmost;
+    downHole.x = tx;
+    downHole.y = ty;
+
+    TargetEventPtr event(new TargetEvent());
+
+    //grab square contour info
+    if(rectangleContours.size() > 0)
+    {
+        cv::RotatedRect r = minAreaRect(rectangleContours[0]);
+        event->x = r.center.x;
+        event->y = r.center.y;
+        event->range = r.size.width;
+    }
+    if(leftmost.x < 1000)
+    {
+        event->leftx = leftHole.x;
+        event->lefty = leftHole.y;
+        event->leftsize = leftHole.size;
+    }
+    if(rightmost.x > -1)
+    {
+        event->rightx = rightHole.x;
+        event->righty = rightHole.y;
+        event->rightsize = rightHole.size;
+    }
+    if(downmost.y > -1)
+    {
+        event->downx = downHole.x;
+        event->downy = downHole.y;
+        event->downsize = downHole.size;
+    }
+    publish(EventType::TARGET_FOUND, event);
 
 
-    input->setData(img_whitebalance.data,false);
+
+
+    //input->setData(img_whitebalance.data,false);
     if (output)
     {
         cv::Mat drawing = cv::Mat::zeros( morphEdges.size(), CV_8UC3 );
@@ -331,9 +481,16 @@ void TargetDetector::processImage(Image* input, Image* output)
             cv::drawContours( drawing, rectangleContours, i, color, 2, 8, hierarchy, 0, cv::Point() );
             //std::cout<<cv::arcLength(rectangleContours[i],true)<<std::endl;
         }
+        cv::Scalar color = cv::Scalar( 0,0,255 );
+        cv::circle(drawing,cv::Point2d(leftmost.x, leftmost.y), leftmost.size, color,-1);
+        cv::circle(drawing,cv::Point2d(rightmost.x, rightmost.y), rightmost.size, color,-1);
+        color = cv::Scalar( 0,255,0 );
+        cv::circle(drawing,cv::Point2d(downmost.x, downmost.y), downmost.size, color,-1);
         input->setData(drawing.data,false);
         output->copyFrom(input);
 	}
+
+
 
 }
 
@@ -446,16 +603,21 @@ void TargetDetector::categorizeContours(    std::vector<std::vector<cv::Point> >
                 double metric = r.size.width/r.size.height;
                 if((metric >= (1-rectangularityBound)) && (metric <= (1+rectangularityBound)))
                 {
-                    if((area) > maxRectArea)
+                    //make sure shape isn't the side of the whole frame
+                    //numbers are 70% of frame
+                    if(r.size.width < 448 && r.size.height < 336)
                     {
-                        maxRectArea = area;
-                        shapeValid = true;
-                        if(rectangleContours.size() > 0)
+                        if((area) > maxRectArea)
                         {
-                            rectangleContours.pop_back();
+                            maxRectArea = area;
+                            shapeValid = true;
+                            if(rectangleContours.size() > 0)
+                            {
+                                rectangleContours.pop_back();
+                            }
+                            rectangleContours.push_back(contours[i]);
+                            //std::cout<<metric<<"  "<<area<<" "<<r.center<<std::endl;
                         }
-                        rectangleContours.push_back(contours[i]);
-                        //std::cout<<metric<<"  "<<area<<" "<<r.center<<std::endl;
                     }
                     //std::cout<<metric<<"  "<<area<<" "<<r.center<<std::endl;
                 }
@@ -473,6 +635,7 @@ void TargetDetector::categorizeContours(    std::vector<std::vector<cv::Point> >
     //now prune the contours further by eliminating duplicate contours
     //only prune circles, there can only be one square
     //larger object always wins
+    
     
 }
 

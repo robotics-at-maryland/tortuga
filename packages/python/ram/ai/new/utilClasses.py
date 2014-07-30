@@ -4,9 +4,11 @@ import ext.vehicle as vehicle
 
 
 import subprocess as subprocess
+from types import MethodType
 
 #checks if a specified amount of time has passed
 #check will return true until duration is exceeded
+#don't forget to reset timers upon entering states
 class Timer(object):
     def __init__(self, duration):
         self.reset()
@@ -33,6 +35,55 @@ class VisionObject(object):
     def isSeen(self):
         return self.seen
 
+class TorpedoHole(VisionObject):
+    def __init__(self, oldStatePtr):
+        super(TorpedoHole,self).__init__()
+        self.x = 0
+        self.y = 0
+        self.range = 0
+        self.seen = false
+
+
+
+class TorpedoGroupObject(object):
+    def __init__(self, oldStatePtr):
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.TARGET_FOUND,self.callback)
+        self.box = TorpedoHole(oldStatePtr)
+        self.left = TorpedoHole(oldStatePtr)
+        self.right = TorpedoHole(oldStatePtr)
+        self.large = TorpedoHole(oldStatePtr)
+    def callback(self,event):
+        if(event.range == 0):
+            self.box.seen = false
+        else:
+            self.box.seen = true
+            self.box.x = event.x
+            self.box.y = event.y
+            self.box.range = event.range
+        if(event.leftsize == 0):
+            self.left.seen = false
+        else:
+            self.left.seen = true
+            self.left.x = event.leftx
+            self.left.y = event.lefty
+            self.left.range = event.leftsize
+        if(event.rightsize == 0):
+            self.right.seen = false
+        else:
+            self.right.seen = true
+            self.right.x = event.rightx
+            self.right.y = event.righty
+            self.right.range = event.rightsize
+        if(event.downsize == 0):
+            self.large.seen = false
+        else:
+            self.large.seen = true
+            self.large.x = event.downx
+            self.large.y = event.downy
+            self.lage.range = event.downsize
+    
+
+
 #hack vision object that  tracks a Red buoy in the old simulator
 class BuoyVisionObject(VisionObject):
     def __init__(self, oldStatePtr):
@@ -47,6 +98,7 @@ class BuoyVisionObject(VisionObject):
             self.x = event.x
             self.y = event.y
             self.range = event.range
+            
 
             
     def seeit(self,event):
@@ -129,13 +181,13 @@ class ObjectInSonarQuery(object):
 # vision where an object might disappear for 1 or 2 frames, but then reappear immediately afterwards
 # TLDR; this query returns if "query" was true in the last "timeout" seconds, as long as you call it continously
 class hasQueryBeenFalse(object):
-    def __init__(self, timeout, query):
-        self._query = query
+    def __init__(self, timeout, queryF):
+        self._queryFF =  queryF
         self._timer = Timer(timeout)
 
     def query(self):
         #if query true, reset timer and return true
-        if(self._query()):
+        if(self._queryFF()):
             self._timer.reset()
             return True
         else:
@@ -175,7 +227,7 @@ class SonarSession(object):
         
 class hasQueryBeenTrue(object):
     def __init__(self, timeout, query):
-        self._query = query
+        self._query = MethodType(query, self, self.__class__)
         self._timer = Timer(timeout)
 
     def query(self):

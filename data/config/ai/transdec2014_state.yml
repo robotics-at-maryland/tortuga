@@ -1,3 +1,20 @@
-# Gate
-ram.ai.course.Gate:
-    pipeDelay: 60
+# Torps
+ram.ai.new.mainState.Body:
+  states:
+    start:
+      type: Start
+    forward:
+      type: TorpedoTask
+      init:
+        configNode: {}
+        success: 'end'
+        failure: 'end'
+        duration: 10000
+    end:
+      type: End
+
+  transitions:
+    - [start,   next, forward]
+    - [forward, success, end ]
+    - [strafe,  success, end ]
+

@@ -257,9 +257,9 @@ void Vehicle::fireTorpedoIndex(int index)
     m_torpedoLauncher->releaseObjectIndex(index);
 }
 
-void Vehicle::releaseGrabber()
+void Vehicle::releaseGrabber(int index)
 {
-    m_grabber->releaseObject();
+    m_grabber->releaseObjectIndex(index);
 }
 
 void Vehicle::closeGrabber()

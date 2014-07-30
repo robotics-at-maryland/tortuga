@@ -382,7 +382,7 @@ void BinDetector::init(core::ConfigNode config)
     
     propSet->addProperty(config, false, "binSameThreshold",
        "The max distance between bins on different frames",
-        0.2, &m_binSameThreshold, 0.0, 40.0);
+        0.25, &m_binSameThreshold, 0.0, 40.0);
     propSet->addProperty(config, false, "binLostFrames",
        "How many frames a bin must be missing before reporting lost",
         0, &m_binLostFrames, 0, 30);
@@ -392,6 +392,14 @@ void BinDetector::init(core::ConfigNode config)
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
          5, &m_redDilateIterations, 0, 10);
+	propSet->addProperty(config, false, "AdaptiveThresholdWindow",
+                         "AdaptiveThresholdWindow",
+                         60, &m_adwindow, 1,200);
+
+	propSet->addProperty(config, false, "ThresholdForBinary",
+                         "ThresholdForBinary",
+                         60, &m_threshbinary, 5,250);
+
 
 /*
     propSet->addProperty(config, false, "maxDistanceX",
@@ -408,9 +416,9 @@ void BinDetector::init(core::ConfigNode config)
                                     "redL", "Luminance",
                                     "redC", "Chrominance",
                                     "redH", "Hue",
-                                    0, 22,  // L defaults // 180,255
-                                    130, 255,  // U defaults // 76, 245
-                                    0, 255); // V defaults // 200,255
+                                    0, 255,  // L defaults // 180,255
+                                    78, 203,  // U defaults // 76, 245
+                                    255, 0); // V defaults // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 	m_framecount = 0;
@@ -433,7 +441,7 @@ void BinDetector::init(core::ConfigNode config)
     //template <typename T>
     //void addProperty(core::ConfigNode config, bool requireInConfig,
      //                const std::string& name, const std::string& desc, 
-     //                T defaultValue, T* valuePtr);
+     //                T defaultValue, T*r valuePtr);
 
 //	propSet->addProperty(config,false,"BinYMLPath","BinYMLPath","VisionTrainingTest.yml",&m_binyml);
 
@@ -456,7 +464,7 @@ void BinDetector::init(core::ConfigNode config)
 	}	
 	else 
 	{
-		m_filepath = "/home/kmcbryan/Documents/RAM/tortuga/images/training/cropped";
+		m_filepath = "/home/kate/tortuga/images/training/cropped";
 	}
 
 	if (config.exists("SavingImagesFilePath"))
@@ -465,7 +473,7 @@ void BinDetector::init(core::ConfigNode config)
 	}	
 	else 
 	{
-		m_trainingpath = "/home/kmcbryan/Documents/RAM/tortuga/images/cropped";
+		m_trainingpath = "/home/kate/tortuga/images/cropped";
 	}
 
 
@@ -485,7 +493,7 @@ void BinDetector::init(core::ConfigNode config)
         250, &m_minHessian, 0, 5000); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofImages",
         "NumberofImages",
-        20, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
+        5, &m_numberoftrainingimages, 0, 30); // 50 in Dans version
  propSet->addProperty(config, false, "NumberofBinTypes",
         "NumberofBinTypes",
         8, &m_numberofclasses, 0, 20); // 50 in Dans version
@@ -1325,11 +1333,20 @@ buoy
 	img = input->asIplImage();
 	img_whitebalance.create(img.size(),img.type());
 
-	img_whitebalance = WhiteBalance(img);	
+
+	//get reference image name
+	LoadReferences();
+
+
+
+	//img_whitebalance = WhiteBalance(img);
+	img_whitebalance = img.clone(); //get rid of whitebalance
+	cvtColor(img_whitebalance,img_whitebalance,CV_RGB2BGR);
+
+	
 	//logger.infoStream() << " Whitebalance done";
 	cv::Mat img_blur(img_whitebalance.size(),img_whitebalance.type());
 	int ksize = 15;
-
 	medianBlur(img_whitebalance, img_blur, ksize);
 	//logger.infoStream() << " Median Blur done";
 
@@ -1369,9 +1386,10 @@ buoy
 	cv::split(img_hsv,hsv_planes);
 
 	//Color Filter
+	img_red = blob.RedFilter(hsv_planes,red_minH,red_maxH);
 	Mat img_Luminance = blob.LuminanceFilter(hsv_planes,minV,maxV);
 	img_saturation = blob.SaturationFilter(hsv_planes,minS,maxS);
-	img_red =blob.OtherColorFilter(hsv_planes,red_minH,red_maxH);
+//imshow("RedfFinal",img_red);
 
 	int erosion_type = 0; //morph rectangle type of erosion
 
@@ -1392,13 +1410,14 @@ buoy
 	dilate(erode_dst_red, dilate_dst_red, dilate_element );
 	dilate(erode_dst_redS, dilate_dst_redS, dilate_element );
 	dilate(erode_dst_redL, dilate_dst_redL, dilate_element );
-	//imshow("dilate S",dilate_dst_redS);
-	//imshow("dilate L",dilate_dst_redL);
+	imshow("dilate S",dilate_dst_redS);
+	imshow("dilate L",dilate_dst_redL);
 
 	//merge the dilated V & H and then and S	
 	bitwise_and(dilate_dst_red,dilate_dst_redL, dilate_dst_redHL,noArray());
 	bitwise_and(dilate_dst_redHL,dilate_dst_redS, img_red_final,noArray());
 
+	//imshow("RedfFinal",img_red_final);
 	//get Contours
 	//logger.infoStream() << " Starting getSquareBlob, done with all color filters";
 	int numberoftrackedcontours = 6;
@@ -1464,6 +1483,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	  /// Find contours
 	findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
 
+	
 	//find contour with the largest area- by area I mean number of pixels
 	RotatedRect temp,maxtemp;
 	double area=0;
@@ -1528,7 +1548,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			aspectratio_diff = abs((float(temp.size.height)/float(temp.size.width))- aspectratio);
 			//printf("\n j = %d, countoursize = %d, area = %f, aspectratio_diff =%f, height = %f, width = %f",j,contours[j].size(),area,aspectratio_diff,temp.size.height,temp.size.width);
 			//drawContours(img_whitebalance, contours, j, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
-			if (area > bins[0].area && aspectratio_diff < aspectratio_limit)
+			if (area > bins[0].area && aspectratio_diff < aspectratio_limit )
 			{
 				//printf(" beating max");
 				bins[0].contournumber = j;
@@ -1600,7 +1620,24 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	int contourcounter =1;
 	int k2=0,tick=0;
 	Mat mapMatrix(2,3,CV_32FC1);
+
+
 	//printf("\n allowable angle range = %f to %f",maxallowangle, minallowangle);
+cout<<hierarchy[bins[0].contournumber];
+	if (hierarchy[bins[0].contournumber][2] > -1)
+	{
+		//bins[1].contournumber = hierarchy[bins[0].contournumber][3]; //child
+		//printf("\n internal contour found %d is inside %d",bins[0].contournumber,bins[1].contournumber);
+	}
+	else
+		printf("no internal contours");
+
+
+	int centerxdistance;
+	int centerydistance;
+
+
+	
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
 		if ((contours[j].size() > 5)&&((int)j!=bins[0].contournumber) && (bins[0].found == true))
@@ -1612,7 +1649,9 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			minX2= 90000;
 			maxX2 = 0;
 			minY2= 90000;
-			maxY2=0;	
+			maxY2=0;
+			centerxdistance = abs(temp.center.x-bins[0].centerx);
+			centerydistance = abs(temp.center.y-bins[0].centery);		
 			for (int i = 0; i < 4; i++)
 			{
 				//printf("\n verticle = (%f, %f)",vertices[i].x, vertices[i].y);
@@ -1642,7 +1681,10 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			{
 				 minY2 = 0;
 			}
-			if ((aspectratio_diff <aspectratio_limit)&& (minX2 >=bins[0].minX) && (maxX2<=bins[0].maxX) && (minY2>=bins[0].minY) &&(maxY2<=bins[0].maxY) )
+			//also want to make sure the center is the same as the previous center
+			printf("\n Area diff = %f",(bins[0].width*bins[0].height)/area);
+			//if ((aspectratio_diff <aspectratio_limit)&& (minX2 >=bins[0].minX) && (maxX2<=bins[0].maxX) && (minY2>=bins[0].minY) &&(maxY2<=bins[0].maxY) && (centerxdistance > 20) && (centerydistance > 20) && (area > m_adwindow)  && (temp.center.x > bins[0].minX) && (temp.center.x < bins[0].maxX) && (temp.center.y > bins[0].minY) && (temp.center.y < bins[0].maxY))
+			if ((aspectratio_diff <aspectratio_limit) && (hierarchy[j][3] == bins[0].contournumber) && (centerxdistance > 20) && (centerydistance > 20) && (area > m_adwindow) && (((bins[0].width*bins[0].height)/area) >  4) )
 			{
 				used = false;
 				for (int i =0;i<numberoftrackedcontours;i++)
@@ -1696,12 +1738,73 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	};
 	//printf("\n should have all of them");
 
+	int adwindow = m_adwindow;
+			if (adwindow%2 < 1) //needs to be odd
+				adwindow = adwindow +1;
+
+
 	//m_saveimages = false;
 	Mat img_whitebalance_gray(img_whitebalance.size(),CV_8UC1);
-	cvtColor(img_whitebalance,img_whitebalance_gray,CV_RGB2GRAY);
+	Mat temp_smooth2;
+	Mat temphsv;
+	cvtColor(img_whitebalance,temphsv,CV_RGB2HSV);
+
+	vector<Mat> hsv_planes;
+	split(img_whitebalance,hsv_planes);
+
+
+	equalizeHist(hsv_planes[0], hsv_planes[0]);
+	equalizeHist(hsv_planes[1], hsv_planes[1]);
+	equalizeHist(hsv_planes[2], hsv_planes[2]);
+
+	merge(hsv_planes,img_whitebalance);
+	medianBlur (img_whitebalance, temp_smooth2, 3);
+	img_whitebalance = temp_smooth2.clone();
+
+	//cvtColor(img_whitebalance,img_whitebalance_gray,CV_BGR2GRAY);
+	//img_whitebalance_gray = hsv_planes[2].clone();
+
+	split(img_whitebalance,hsv_planes);
+	img_whitebalance_gray = hsv_planes[2]-hsv_planes[1];
+	imshow("B",hsv_planes[0]);
+	imshow("G",hsv_planes[1]);
+	imshow("R",hsv_planes[2]);
+	imshow("EqualizeHistogram",img_whitebalance);
+double area_ref, area_final;
+	double rect_area_ref, rect_area;
+	double ref_AR, AR, AR_final; //aspect ratio
+	double AL, ref_AL, AL_final; //arch length
+	double perimeter, perimeter_final, perimeter_ref;
+	double finalscores1[6];
+	double finalscores2[6];
+	double finalscores3[6];
+	double finalscores4[6];
+	int finalindex[6];
+	int safetycounter =0;
+
+
+
+	//for each bin I have four final values
+	
+	//cvtColor(img_whitebalance,img_whitebalance_gray,CV_RGB2GRAY);
+
+			
+			//img_whitebalance_gray =  SaliencyFilterSingle(img_whitebalance_gray);
+			//adaptiveThreshold(img_whitebalance_gray, img_whitebalance_gray, 255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,adwindow, 1 );
+			//imshow("Sal",sal);
+			//imshow("adaptive",img_whitebalance_gray);
+
+	
+		int ref_distancetocenter = 9999;
+		int xdistance,ydistance,distancetocenter;
+		int centercontour=0;
+		Scalar color = Scalar(0,0,255);
+		RotatedRect box_ref, box;
+
+
 	for (int k=0;k<numberoftrackedcontours;k++)
 	{
-		
+		ref_distancetocenter = 9999;
 		if (bins[k].found==true )
 		{
 			//printf("\n angle = %f",bins[k].angle);
@@ -1736,20 +1839,197 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				{
 					//printf(" else");
 					finalcropped[k] = cropped[k];	
+					
+				}
+				//run adaptive threshold on the small images
+
+					//threshold(cropped[k],finalcropped[k],0,255,CV_THRESH_BINARY | CV_THRESH_OTSU);
+					finalcropped[k] =  SaliencyFilterSingle(finalcropped[k]);
+					imshow("TempK",finalcropped[k]);
+
+				  	threshold(finalcropped[k], finalcropped[k], m_threshbinary, 255,1);
+					imshow("ThresholdBinary",finalcropped[k]);
+				resize(finalcropped[k], finalresize[k], Size(74,146), 0, 0, INTER_LINEAR );
+
+				vector<vector<Point> > contours;
+				vector<Vec4i> hierarchy;
+				findContours( finalresize[k], contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+				//find centermost
+				for (unsigned int idx = 0;idx<contours.size();idx++)
+				{
+					box = minAreaRect(contours[idx]);
+					xdistance = abs(74/2-box.center.x);
+					ydistance = abs(176/2-box.center.y);
+					distancetocenter = xdistance+ydistance;
+				printf("\n contour size = %d, height, %f, width %f, distance=%d",contours[idx].size(),box.size.width,box.size.height,distancetocenter);
+					if ((distancetocenter < ref_distancetocenter) && (contours[idx].size() > 60) )
+					{
+						ref_distancetocenter = distancetocenter;
+						centercontour = idx;	
+						box_ref = box;
+						printf(" Ebest");
+					}
+					//drawContours( m_ref_color, contours, i, Scalar(0,0,255), 1, 8, vector<Vec4i>(), 0, Point() );
 				}
 
-				resize(finalcropped[k], finalresize[k], Size(50,150), 0, 0, INTER_LINEAR );
-			}
-			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
+				finalindex[safetycounter] = centercontour;
+				if (ref_distancetocenter < 999 && safetycounter<6)
+				{
 
-	/*
+					
+					printf("\n Got one\n ");
+					//now compare
+					for(int refcounter = 1;refcounter <5;refcounter++)
+					{
+					//got contours to compare
+						vector<Point>& a = m_ref_contours[refcounter];
+						vector<Point>& b = contours[centercontour];
+
+						std::cout << "a.size = " << a.size() << ", b.size = " << b.size();
+						//get shape information
+						double bestMatch = matchShapes(a, b, CV_CONTOURS_MATCH_I3, 0); //parameter to compare shapes
+						box = minAreaRect(contours[centercontour ]);
+
+						box_ref = minAreaRect(m_ref_contours[refcounter]);
+						rect_area = double(box.size.width*box.size.height);
+						rect_area_ref = double(box_ref.size.width*box_ref.size.height);
+						area_ref = contourArea(m_ref_contours[refcounter]);
+						area = contourArea(contours[centercontour ]);
+
+						if (box_ref.size.height < box_ref.size.width)
+							ref_AR = double(box_ref.size.height/box_ref.size.width);
+						else
+							ref_AR = double(box_ref.size.width/box_ref.size.height);
+						if (box.size.height < box.size.width)
+							AR = double(box.size.height/box.size.width);
+						else
+							AR = double(box.size.width/box.size.height);
+						if (double(area_ref/rect_area_ref) < double(area/rect_area))
+							area_final = 1- double(area_ref/rect_area_ref) / double(area/rect_area) ;
+						else
+							area_final = 1- double(area/rect_area)/ double(area_ref/rect_area_ref) ;
+
+						AL = arcLength(contours[centercontour ],TRUE);
+						ref_AL = arcLength(m_ref_contours[refcounter],TRUE);
+
+		
+						if (AR < ref_AR)
+							AR_final = 1- AR/ref_AR;
+						else
+							AR_final = 1- ref_AR/AR;
+						if (double(AL/area) < double(ref_AL/area_ref))
+							AL_final = 1- double(AL/area)/double(ref_AL/area_ref);
+						else
+							AL_final = 1- double(ref_AL/area_ref)/double(AL/area);
+
+						if (AL < 2*(box.size.width+box.size.height))
+							perimeter = 1-AL/((box.size.width+box.size.height)*2);
+						else
+							perimeter = 1-((box.size.width+box.size.height)*2)/AL;
+						if (ref_AL < 2*(box_ref.size.width+box_ref.size.height))
+							perimeter_ref = 1-ref_AL/((box_ref.size.width+box_ref.size.height)*2);
+						else
+							perimeter_ref = 1-((box_ref.size.width+box_ref.size.height)*2)/ref_AL;
+						if ((perimeter) <(perimeter_ref))
+							perimeter_final =1-double( double(perimeter) / double(perimeter_ref));
+						else
+							perimeter_final = 1-double( double(perimeter_ref) / double(perimeter));
+
+
+						printf("bestmatch = %f Area_final = %f, AR_final = %f, AL_final = %f i = %d \n", bestMatch, area_final, AR_final, AL_final, refcounter);
+						if (refcounter == 1)
+						{
+							finalscores1[safetycounter] = bestMatch+AR_final+AL_final+area_final;
+						};	
+						if (refcounter == 2)
+						{
+							finalscores2[safetycounter] = bestMatch+AR_final+AL_final+area_final;
+						};	
+						if (refcounter == 3)
+						{
+							finalscores3[safetycounter] = bestMatch+AR_final+AL_final+area_final;
+						};	
+						if (refcounter == 4)
+						{
+							finalscores4[safetycounter] = bestMatch+AR_final+AL_final+area_final;
+						};	
+							bestMatch = bestMatch+1;
+			
+					}//end 
+					
+				}
+				else
+				{
+					double bestMatch = 100;
+
+					printf("NOEN FOUND = %f",bestMatch);
+		
+					bestMatch = bestMatch+1;
+					finalscores4[safetycounter] = 999;
+					finalscores2[safetycounter] = 999;
+					finalscores3[safetycounter] = 999;
+					finalscores1[safetycounter] = 999;
+				}
+				safetycounter= safetycounter+1;
+							
+
+		} //if bins found = true 
+			//printf("\n angle = %f, width=%f, height = %f",temp.angle,temp.size.width,temp.size.height);
+		printf("\n Finalscores1 %f, %f, %f, %f, %f, %f",finalscores1[0],finalscores1[1],finalscores1[2],finalscores1[3],finalscores1[4],finalscores1[5]);
+		printf("\n Finalscores2 %f, %f, %f, %f, %f, %f",finalscores2[0],finalscores2[1],finalscores2[2],finalscores2[3],finalscores2[4],finalscores2[5]);
+		printf("\n Finalscores3 %f, %f, %f, %f, %f, %f",finalscores3[0],finalscores3[1],finalscores3[2],finalscores3[3],finalscores3[4],finalscores3[5]);
+		printf("\n Finalscores4 %f, %f, %f, %f, %f, %f",finalscores4[0],finalscores4[1],finalscores4[2],finalscores4[3],finalscores4[4],finalscores4[5]);
+
+		//Find Minimums of each
+		double min1, min2, min3, min4;
+		min1 = 9000;
+		min2 = 9000;
+		min3 = 9000;
+		min4 = 9000;
+		int index1,index2,index3,index4;
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores1[i] < min1)
+			{		
+				min1 = finalscores1[i];
+				index1 = i;
+			}
+		}
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores2[i] < min2)
+			{		
+				min2 = finalscores2[i];
+				index2 = i;
+			}
+		}
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores3[i] < min3)
+			{		
+				min3 = finalscores3[i];
+				index3 = i;
+			}
+		}
+		for (int i=0;i<safetycounter;i++)
+		{
+			if (finalscores4[i] < min4)
+			{		
+				min4 = finalscores4[i];
+				index4 = i;
+			}
+		}
+	printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+
+/*
+	
 			if (k == 0)
 				imshow("cropped",finalresize[k]);
 			else if (k==1)
 				imshow("cropped1",finalresize[k]);
 			else if (k==2)
 				imshow("cropped2",finalresize[k]);
-			else if (k==3)s
+			else if (k==3)
 				imshow("cropped3",finalresize[k]);
 			else if (k==4)
 				imshow("cropped4",finalresize[k]);
@@ -1757,7 +2037,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				imshow("cropped5",finalresize[k]);
 			else if (k==6)
 				imshow("cropped",finalresize[k]);
-	*/
+*/	
 
 			//need the angle - so take the vertices and find the one where the Y increases
 			for (int i = 0; i < 4; i++)
@@ -1765,9 +2045,26 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				line(img_whitebalance, bins[k].vertices[i], bins[k].vertices[(i+1)%4], Scalar(255,255,0),5);
 			}
 
+		}//end if
+	}//end k
+/*
+	for (int k=0;k<numberoftrackedcontours;k++)
+	{
+		//Mat temp2;
+		//
+		//imshow("Sal",sal);
+		if (bins[k].found==true )
+		{
+			equalizeHist(finalcropped[k], finalcropped[k]);
+			if (k == 1)
+				imshow("adaptive1",finalcropped[k]);
+			if (k == 2)
+				imshow("adaptive2",finalcropped[k]);
+			if (k == 3)
+				imshow("adaptive3",finalcropped[k]);
 		}
-	}
-
+	};
+*/
 	//feature detector	//save images for training purposes
 
 
@@ -2291,7 +2588,10 @@ int BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_ob
 	 FlannBasedMatcher matcher;
 	std::vector< DMatch > matches0;
 	//printf("\n m_minHessian= %d",m_minHessian);
+
+
 	SurfFeatureDetector detector( m_minHessian );
+
 	SurfDescriptorExtractor extractor;
 	int j1,j2,i2;
 	double max_dist,min_dist,total_dist;
@@ -2301,8 +2601,17 @@ int BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_ob
 	int rownumber;
 
 	//Get keypoints of potential bin
-	detector.detect(image, keypoints_bin_test0);
+	//detector.detect(image, keypoints_bin_test0);
+
+	FAST(image, keypoints_bin_test0, m_minHessian, true );
 	extractor.compute(image, keypoints_bin_test0, descriptors_bin_test);
+
+	Mat img_keypoints_1; 
+
+	drawKeypoints( image, keypoints_bin_test0, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT );
+ 
+	imshow("keypoints",img_keypoints_1);
+
 	double dist;
 	double total_mindist;
 	int trainingimagesused = 0;
@@ -3118,7 +3427,71 @@ void BinDetector::processImage(Image* input, Image* out)
 */
 }
 
+void BinDetector::LoadReferences(void)
+{
+	//get reference image name
+	//int refnumber = 1;
+	//vector<Point> m_ref_contours[4];
+	//RotatedRect m_ref_box[4];
 
+	for (int j = 1;j<5;j++)
+	{
+		stringstream ss;
+		ss << "../BinRef";
+		ss << j;
+		ss <<".png";
+		string str = ss.str();
+		cout << "string = " << str ;
+		printf("\n Loading Data");
+		Mat m_ref_color = imread(str,1);
+		Mat m_ref_img;
+		cvtColor(m_ref_color,m_ref_img,CV_BGR2GRAY);
+		//imshow("Reference2",m_ref_img);
+
+		vector<vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		findContours(m_ref_img, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+		//printf("got contours");
+		 //find the contour closest to the center
+		int ref_distancetocenter = 9999;
+		int xdistance,ydistance,distancetocenter;
+		int centercontour=0;
+		Scalar color = Scalar(0,0,255);
+		RotatedRect box_ref, box;
+		for (unsigned int i = 0;i<contours.size();i++)
+		{
+			box = minAreaRect(contours[i]);
+			xdistance = abs(74/2-box.center.x);
+			ydistance = abs(176/2-box.center.y);
+			distancetocenter = xdistance+ydistance;
+		printf("\n contour size = %d, height, %f, width %f, distance=%d",contours[i].size(),box.size.width,box.size.height,distancetocenter);
+			if ((distancetocenter < ref_distancetocenter) && (contours[i].size() > 60) )
+			{
+				ref_distancetocenter = distancetocenter;
+				centercontour = i;	
+				box_ref = box;
+			}
+			drawContours( m_ref_color, contours, i, Scalar(0,0,255), 1, 8, vector<Vec4i>(), 0, Point() );
+		}
+		if (ref_distancetocenter < 999)
+		{
+			m_ref_contours[j] = contours[centercontour];
+			m_ref_box[j] = box_ref;
+			drawContours( m_ref_color, contours, centercontour, Scalar(0,255,0), 3, 8, vector<Vec4i>(), 0, Point() );
+		}
+		if (j == 1)
+			imshow("referenceImages1",m_ref_color);
+		if (j == 2)
+			imshow("referenceImages2",m_ref_color);
+		if (j == 3)
+			imshow("referenceImages3",m_ref_color);
+		if (j == 4)
+			imshow("referenceImages4",m_ref_color);
+
+		printf("\n centercontour = %d", centercontour);
+	} //end j
+
+}//end LoadReferences
 
 
 
