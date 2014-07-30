@@ -1,19 +1,20 @@
+# Torps
 ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
     forward:
-      type: Forward
+      type: PogoTask
       init:
-        distance: 2
-    strafe:
-      type: Strafe
-      init:
-        distance: 2
+        pogoHeight: 1.2
+        pogoWidth: 1.2
+        pogoShift: .15
+        pogoShiftV: .45
+        attackHeight: 11.9
+        
     end:
       type: End
 
   transitions:
     - [start,   next, forward]
-    - [forward, next, strafe ]
-    - [strafe,  next, end    ]
+    - [forward, success, end ]

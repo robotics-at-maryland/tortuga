@@ -32,7 +32,7 @@ class GateTask(task.Task):
     @staticmethod
     def _transitions():
         return { gate.COMPLETE : task.Next,
-                 'GO' : state.Branch(mainState.Body) }
+                 'GO' : state.Branch(gate.Start) }
 
     @staticmethod
     def getattr():
@@ -40,14 +40,14 @@ class GateTask(task.Task):
 
     def enter(self):
         
-        self.stateMachine.start(state.Branch(mainState.Body))
+        self.stateMachine.start(state.Branch(gate.Start))
         
     def exit(self):
         task.Task.exit(self)
 
         self.exited = True
-        if (self.stateMachine.branches.has_key(mainState.Body)):
-            self.stateMachine.stopBranch(mainState.Body)
+        if (self.stateMachine.branches.has_key(gate.Start)):
+            self.stateMachine.stopBranch(gate.Start)
 
 
 

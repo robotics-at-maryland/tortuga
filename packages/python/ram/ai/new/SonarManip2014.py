@@ -25,7 +25,7 @@ class SonarManipulation(stateMachine.StateMachine):
 #this state machine performs the "pogo" motion which consists of the robot moving up and down in a square over an area
 #it contains an cheap trick for telling if the robot has already hit the site by checking if the depth reading hasn't changed by a specified margin for a brief time(like a second).  This speeds up the manuver, avoids hangups, and reduces the chance of knocking over the task(within reason)
 class PogoMotion(stateMachine.StateMachine):
-    def __init__(self,pogoHeight, pogoWidth, pogoShift, attackHeight):
+    def __init__(self,pogoHeight, pogoWidth, pogoShift, pogoShiftV,attackHeight):
         super(PogoMotion, self).__init__()
         start = self.addState('start',utilStates.Start())
         start.setTransition('next', 'taskDepth')
@@ -36,19 +36,19 @@ class PogoMotion(stateMachine.StateMachine):
         translate.setTransition('next', 'pogo') 
         #begin the pogoing
         #this occurs in another state machine for the depth motion
-        shift = self.addState('shift', motion.Strafe(pogoShift))
+        shift = self.addState('shift', motion.Strafe(pogoShift,.5))
         shift.setTransition('next', 'pogo')
-        pogo = self.addState('pogo', DownStopIfHit(2, 10.0,'up'))
-        up = self.addState('up', motion.DiveTo(attackHeight,.3))
+        pogo = self.addState('pogo', DownStopIfHit(1.5, 10.0,'up'))
+        up = self.addState('up', motion.DiveTo(attackHeight,.5))
         up.setTransition('next','countSide')
         countSide = self.addState('countSide', utilStates.PassCounter('countSwitch'))
         countSwitch = self.addState('countSwitch', utilStates.Switch('shiftSwitch', 'vShift', countSide.getPassChecker(pogoWidth/pogoShift)))
-        vShift = self.addState('vShift',motion.Forward(pogoShift))
+        vShift = self.addState('vShift',motion.Forward(pogoShiftV,.5))
         vShift.setTransition('next', 'countvShift')
         countvShift = self.addState('countvShift', utilStates.PassCounter('vShiftSwitch'))
         #need to do magical reset somehow, need to figure out
         #probably using exit transition
-        vShiftSwitch = self.addState('vShiftSwitch', utilStates.Switch('pogo', 'end', countvShift.getPassChecker(pogoHeight/pogoShift)))
+        vShiftSwitch = self.addState('vShiftSwitch', utilStates.Switch('pogo', 'end', countvShift.getPassChecker(pogoHeight/pogoShiftV)))
         rShift = self.addState('rShift', motion.Strafe(-pogoShift))
         shiftSwitch = self.addState('shiftSwitch',utilStates.Switch('rShift','shift', lambda: (countvShift.getPasses()%2 == 0)))
         rShift.setTransition('next', 'pogo')
@@ -80,7 +80,7 @@ class DepthStopCondition(object):
 class DownStopIfHit(utilStates.ConstrainedState):
     def __init__(self, depth,tm,success):
         self.tim = utilClasses.Timer(tm)
-        super(DownStopIfHit,self).__init__(MonoStateMachine(motion.Dive(depth,.3)),self.tim.check,success)
+        super(DownStopIfHit,self).__init__(MonoStateMachine(motion.Dive(depth,.5)),self.tim.check,success)
 
     def enter(self):
         super(DownStopIfHit, self).enter()
@@ -88,3 +88,11 @@ class DownStopIfHit(utilStates.ConstrainedState):
         
 #DepthStopCondition(self,.025 ,tm).check,success)
     
+class PogoTask(utilStates.Task):
+    def __init__(self, pogoHeight, pogoWidth, pogoShift, pogoShiftV,attackHeight,success= 'end', failure = 'end', duration = 30000):
+        super(PogoTask,self).__init__(PogoMotion(pogoHeight, pogoWidth, pogoShift, pogoShiftV,attackHeight),success, failure, duration) 
+
+    def update(self):
+        super(PogoTask,self).update()
+        if self.getInnerStateMachine().getCurrentState().getName() == 'end':
+            self.doTransition('success')

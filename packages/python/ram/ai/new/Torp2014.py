@@ -62,7 +62,7 @@ class TorpedoMachine(stateMachine.StateMachine):
     #later on, put code in here that picks what torpedos we're after
     #for now, we're going buoy thunting
         #not a hack anymore, this ones real!
-        torps = TorpedoGroupObject(self.legacyState())
+        torps = utilClasses.TorpedoGroupObject(self.getLegacyState())
         #hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
         #hole2 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
         #torps = hole1

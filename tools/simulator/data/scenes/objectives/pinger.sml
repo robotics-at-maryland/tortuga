@@ -26,7 +26,7 @@ Scene:
     Robots:
         Tortuga: 
             path: '%(RAM_SVN_DIR)s/tools/simulator/data/robots/tortuga.rml'
-            position: [-18, 0, -1.5]
+            position: [-13, 0, -1.5]
             
     Objects:        
         pinger1:
