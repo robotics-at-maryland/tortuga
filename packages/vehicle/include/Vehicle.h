@@ -60,7 +60,7 @@ public:
 
     virtual void fireTorpedoIndex(int index);
 
-    virtual void releaseGrabber();
+    virtual void releaseGrabber(int index);
 
     virtual void closeGrabber();
 

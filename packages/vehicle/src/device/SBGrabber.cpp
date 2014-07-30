@@ -40,7 +40,7 @@ SBGrabber::~SBGrabber()
 
 void SBGrabber::releaseObject()
 {
-    if (-1 != m_sensorBoard->extendGrabber())
+    if (-1 != m_sensorBoard->extendGrabber(0))
     {
         m_released = 1;
         publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));
@@ -49,7 +49,7 @@ void SBGrabber::releaseObject()
 
 void SBGrabber::releaseObjectIndex(int index)
 {
-    if (-1 != m_sensorBoard->extendGrabber())
+    if (-1 != m_sensorBoard->extendGrabber(index))
     {
         m_released = 1;
         publish(OBJECT_RELEASED, core::EventPtr(new core::Event()));
