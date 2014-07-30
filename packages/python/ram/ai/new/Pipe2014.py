@@ -54,7 +54,7 @@ class PipeAlign(utilStates.NestedState):
 
         self.getInnerStateMachine().addStates({
             'start' : utilStates.Start(),
-            'search' : searches.ForwardsSearchMachine(searchDist
+            'search' : searches.ForwardsSearchMachine(searchDist,
                                                       self._visionObj.isSeen,
                                                       'buf1', 'end'),
             'buf1' : motionStates.Forward(0),
