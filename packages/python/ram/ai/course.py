@@ -12,6 +12,8 @@ import ram.ai.task as task
 import ram.ai.state as state
 import ram.ai.Utility as utility
 
+import ram.ai.new.mainState as mainState
+
 # ----- Here are Task Imports
 import ram.ai.gate as gate
 import ram.ai.GoodPipe as pipe
@@ -30,7 +32,7 @@ class GateTask(task.Task):
     @staticmethod
     def _transitions():
         return { gate.COMPLETE : task.Next,
-                 'GO' : state.Branch(gate.Start) }
+                 'GO' : state.Branch(mainState.Body) }
 
     @staticmethod
     def getattr():
@@ -38,14 +40,14 @@ class GateTask(task.Task):
 
     def enter(self):
         
-        self.stateMachine.start(state.Branch(gate.Start))
+        self.stateMachine.start(state.Branch(mainState.Body))
         
     def exit(self):
         task.Task.exit(self)
 
         self.exited = True
-        if (self.stateMachine.branches.has_key(gate.Start)):
-            self.stateMachine.stopBranch(gate.Start)
+        if (self.stateMachine.branches.has_key(mainState.Body)):
+            self.stateMachine.stopBranch(mainState.Body)
 
 
 

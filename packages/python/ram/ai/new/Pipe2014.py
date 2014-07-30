@@ -44,3 +44,6 @@ class GotoPipe(motionStates.Move):
         currentLoc = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedPosition()
         self._vect = (nextLoc - prevLoc) - (currentLoc - prevLoc)
         return super(GotoPipe, self).getMotion()
+
+
+        

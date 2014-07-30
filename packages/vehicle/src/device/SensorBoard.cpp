@@ -487,7 +487,7 @@ int SensorBoard::extendGrabber()
 {
     // Closes Grabber
     boost::mutex::scoped_lock lock(m_deviceMutex);
-    handleReturn(::extendGrabber(m_deviceFD));
+    handleReturn(::extendGrabber(m_deviceFD,0));
     return 1;
 
 }

@@ -36,6 +36,7 @@
 #include "vision/include/VelocityDetector.h"
 #include "vision/include/HedgeDetector.h"
 #include "vision/include/LoversLaneDetector.h"
+#include "vision/include/ChrisPipeDetector.h"
 
 #include "core/include/EventHub.h"
 #include "core/include/SubsystemMaker.h"
@@ -149,11 +150,11 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new BinDetector(getConfig(config, "BinDetector"), eventHub));
 
     m_pipelineDetector = DetectorPtr(
-        new ChrisPipeDetector(getConfig(config, "ChrisPipeDetector"),eventHub));
+        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
+                                         eventHub));
 
-   m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
-
+    m_pipelineDetector = DetectorPtr( 
+        new ChrisPipeDetector(getConfig(config,"ChrisPipeDetector"),eventHub));
     m_downwardSafeDetector = DetectorPtr(
         new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
     m_gateDetector = DetectorPtr(
