@@ -881,7 +881,7 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 	
 	int threshvalue = m_threshvalue;
 	threshold( img_filter, img_filter, threshvalue,255,0);
-	imshow("Threshold", img_filter);
+	//imshow("Threshold", img_filter);
 
 	//Now to find the pipe using contours
 	vector<vector<Point> > contours;
@@ -974,7 +974,15 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 						m_currentpipe.centery=box.center.y;
 						m_currentpipe.area=rect_area;
 						m_currentpipe.range=contours[i].size();
-						m_currentpipe.angle=box.angle;
+
+						 if(box.size.width < box.size.height)
+ 						{
+							m_currentpipe.angle = box.angle;
+		  			    	}
+						else
+						{
+							m_currentpipe.angle = box.angle+90;
+						}
 						pipe1_id = i;
 						pipe1_size = m_currentpipe.range;
 					}
@@ -982,8 +990,9 @@ void ChrisPipeDetector::processImage(Image* input, Image* output)
 		}
 	}	
 	//now to find the two most likely pipes, which are the two largest pipes- if any
-	//then we want to compare them to a previous frame
-	
+//then we want to compare them to a previous frame
+
+
 int distance[4];
 distance[0]=9999;
 distance[1]=9999;
