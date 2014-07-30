@@ -15,8 +15,12 @@ def initFromYAML(machine, config):
         else:
             curr = machine.getState(k)
 
+        print 'Added: ' + str(k)
+
         if isinstance(curr, NestedState):
             initFromYAML(curr.getInnerStateMachine(), v)
 
     for i in config.get('transitions', []):
         machine.addTransition(*i)
+
+        print 'Added: ' + str(i)

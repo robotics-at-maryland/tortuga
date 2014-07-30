@@ -459,7 +459,7 @@ void TargetDetector::processImage(Image* input, Image* output)
 
 
 
-    input->setData(img_whitebalance.data,false);
+    //input->setData(img_whitebalance.data,false);
     if (output)
     {
         cv::Mat drawing = cv::Mat::zeros( morphEdges.size(), CV_8UC3 );
