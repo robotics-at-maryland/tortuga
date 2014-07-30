@@ -41,7 +41,7 @@ class TorpedoHole(VisionObject):
         self.x = 0
         self.y = 0
         self.range = 0
-        self.seen = false
+        self.seen = False
 
 
 
@@ -54,30 +54,30 @@ class TorpedoGroupObject(object):
         self.large = TorpedoHole(oldStatePtr)
     def callback(self,event):
         if(event.range == 0):
-            self.box.seen = false
+            self.box.seen = False
         else:
-            self.box.seen = true
+            self.box.seen = True
             self.box.x = event.x
             self.box.y = event.y
             self.box.range = event.range
         if(event.leftsize == 0):
-            self.left.seen = false
+            self.left.seen = False
         else:
-            self.left.seen = true
+            self.left.seen = True
             self.left.x = event.leftx
             self.left.y = event.lefty
             self.left.range = event.leftsize
         if(event.rightsize == 0):
-            self.right.seen = false
+            self.right.seen = False
         else:
-            self.right.seen = true
+            self.right.seen = True
             self.right.x = event.rightx
             self.right.y = event.righty
             self.right.range = event.rightsize
         if(event.downsize == 0):
-            self.large.seen = false
+            self.large.seen = False
         else:
-            self.large.seen = true
+            self.large.seen = True
             self.large.x = event.downx
             self.large.y = event.downy
             self.lage.range = event.downsize

@@ -42,8 +42,6 @@ class TestMachine(StateMachine):
 #        start.setTransition('next','test')
 #        test = self.addState('test', utilStates.NestedState(sonarm.PogoMotion(4,4,2,6)))
 #        test.setTransition('complete', 'end')
-        
-
         #upRightsTask = self.addState('uprights', 
         #                             uprights.UprightsTask(buoy, pipe, 
         #                                                   8, 4, 2, 2,
@@ -52,7 +50,6 @@ class TestMachine(StateMachine):
         #                                                   300))
         #yaw = self.addState('yaw', motionStates.Turn(30))
         #start.setTransition('next', 'uprights')
-
         #yaw.setTransition('next', 'end')
         #print 'testing'
 #=======
@@ -65,17 +62,15 @@ class TestMachine(StateMachine):
         center.setTransition('failure', 'end'
 #>>>>>>> rajath/vehicle_refactor_2014
 #=======
-        
 #        self.addStates({
 #            'start' : utilStates.Start(),
 #            'save' : checkpoints.SaveCheckpoint(checkpoint = 'test'),
 #            'forward' : motionStates.Move(4, 2),
 #            'return' : checkpoints.GotoCheckpoint(checkpoint = 'test',
-                                                  x_offset = 2,
-                                                  y_offset = 2),
+#                                                  x_offset = 2,
+#                                                  y_offset = 2),
 #            'end' : utilStates.End()
 #          })
-
 #        self.addTransitions(
 #            ('start', 'next', 'save'),
 #            ('save', 'next', 'forward'),

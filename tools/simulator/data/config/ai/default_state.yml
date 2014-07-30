@@ -1,19 +1,18 @@
+# Torps
 ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
     forward:
-      type: Forward
+      type: TorpedoTask
       init:
-        distance: 2
-    strafe:
-      type: Strafe
-      init:
-        distance: 2
+        configNode: {}
+        success: 'end'
+        failure: 'end'
+        duration: 10000
     end:
       type: End
 
   transitions:
     - [start,   next, forward]
-    - [forward, next, strafe ]
-    - [strafe,  next, end    ]
+    - [forward, success, end ]
