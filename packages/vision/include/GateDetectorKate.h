@@ -25,7 +25,9 @@
 #include "vision/include/BlobDetector.h"
 #include "vision/include/TableColorFilter.h"
 #include "core/include/ConfigNode.h"
+
 #include "vision/include/WhiteBalance.h"
+
 #include "vision/include/Camera.h"
 #include "vision/include/Color.h"
 #include "vision/include/Events.h"
@@ -37,7 +39,6 @@
 #include "vision/include/Utility.h"
 //#include "vision/include/VisionSystem.h"
 //#include "vision/include/TableColorFilter.h"
-#include "vision/include/WhiteBalance.h"
 
 
 // Must be included last

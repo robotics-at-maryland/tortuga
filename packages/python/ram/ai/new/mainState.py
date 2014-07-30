@@ -5,6 +5,8 @@ import ram.ai.new.utilStates as utilStates
 import ram.ai.new.motionStates as motionStates
 import ram.ai.new.testing as testMachine
 
+from ram.ai.new.configuration import initFromYAML
+
 #Old project imports 2013
 import ram.ai.state as oldState
 import ram.motion as motion
@@ -55,8 +57,9 @@ class Body(oldState.State):
         """
 
         stateMachine.StateMachine._LEGACY_STATE = self
-        self._machine = testMachine.TestMachine()
-        self._machine.configure(self._config)
+        self._machine = stateMachine.StateMachine()
+        initFromYAML(self._machine, self._config)
+        self._machine.configure(self._config.get('config', {}))
         self._machine.validate()
         self._machine.start()
 

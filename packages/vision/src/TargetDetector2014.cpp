@@ -395,9 +395,9 @@ void TargetDetector::processImage(Image* input, Image* output)
             downmost = xyBinned[i][0];
         }
     }
-    //std::cout<<leftmost.x<<" "<<leftmost.y<<" "<<leftmost.size<<std::endl;
-    //std::cout<<rightmost.x<<" "<<rightmost.y<<" "<<rightmost.size<<std::endl;
-    //std::cout<<downmost.x<<" "<<downmost.y<<" "<<downmost.size<<std::endl;
+    std::cout<<leftmost.x<<" "<<leftmost.y<<" "<<leftmost.size<<std::endl;
+    std::cout<<rightmost.x<<" "<<rightmost.y<<" "<<rightmost.size<<std::endl;
+    std::cout<<downmost.x<<" "<<downmost.y<<" "<<downmost.size<<std::endl;
     
     double tx;
     double ty;

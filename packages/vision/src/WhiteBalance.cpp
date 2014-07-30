@@ -10,10 +10,86 @@ based off of matlab code general_cc.m based on J. Van de Weijer
 2013 Kate McBryan
 */
 
+/*
+Saliency filter
+Input:Mat Image
+Output: Mat Image that only has salient parts
+
+Based on Saliency filter from Sebastian Montabone (found on the interwebs)
+
+2014 Kate McBryan
+*/
+
+
 #include "vision/include/WhiteBalance.h"
+#include "vision/include/saliency.h"
+
 
 namespace ram {
 namespace vision {
+
+Mat HueShifter_RedMinusGreen(Mat img, int hueshift_int, int bluramount)
+{
+	Mat img_hsv;	
+	cvtColor(img,img_hsv,CV_RGB2HSV);
+
+	//double hueshift = m_hueshiftnumber;
+	vector<Mat> hsv_planes;
+	split(img_hsv,hsv_planes);
+
+	//printf("\n hueshift = %d, %f",hueshift_int,hueshift);
+	//imshow("start",hsv_planes[0]);
+	Scalar_<uint8_t> bgrPixel;
+	uint8_t*pixelPtr2 = (uint8_t*)hsv_planes[0].data;
+	int cn2 = hsv_planes[0].channels();
+	for(int i = 0; i < hsv_planes[0].rows; i++)
+	{
+	    for(int j = 0; j < hsv_planes[0].cols; j++)
+	    {
+		bgrPixel.val[0] = pixelPtr2[i*hsv_planes[0].cols*cn2 + j*cn2 + 0]; // H
+		bgrPixel.val[0] = int(bgrPixel.val[0]+hueshift_int);
+		pixelPtr2[i*hsv_planes[0].cols*cn2 + j*cn2 + 0] = int(int(bgrPixel.val[0])%180);
+		// do something with BGR values...
+	    }
+	}
+
+	//imshow("end",hsv_planes[0]);
+	merge(hsv_planes,img_hsv);
+	Mat img_final;
+	cvtColor(img_hsv,img_final,CV_HSV2BGR);
+//	imshow("HueShift", img_final);
+
+	//now subtract out the green channels
+	split(img_final,hsv_planes);
+
+//	imshow("PreBLUE", hsv_planes[0]);
+//	imshow("PreRed", hsv_planes[2]);
+//	imshow("PreGreen", hsv_planes[1]);
+//	equalizeHist(hsv_planes[0], hsv_planes[0]);
+	equalizeHist(hsv_planes[1], hsv_planes[1]);
+	equalizeHist(hsv_planes[2], hsv_planes[2]);
+
+//	int bluramount = m_bluramount;
+	if (bluramount%2 < 1)		
+	{
+		//even and bad
+		bluramount= bluramount+1;
+	}
+
+//	medianBlur (hsv_planes[0],hsv_planes[0], bluramount);
+	medianBlur (hsv_planes[1],hsv_planes[1], bluramount);
+	medianBlur (hsv_planes[2],hsv_planes[2], bluramount);
+	
+//	imshow("red", hsv_planes[2]);	
+//	imshow("blue", hsv_planes[0]);
+//	imshow("Green", hsv_planes[1]);
+	//hsv_planes[2] = hsv_planes[2]-hsv_planes[1]; //subract out the green
+
+	Mat tempred;
+	subtract(hsv_planes[2],hsv_planes[1],tempred, noArray(), -1);
+	hsv_planes[2] = tempred;
+	return(hsv_planes[2]);
+};
 
 Mat WhiteBalance(Mat Input)
 {
@@ -23,7 +99,7 @@ Mat WhiteBalance(Mat Input)
 	//int sigma = 0;
 	Mat image_output(Input.size(),Input.type());
 	Input.copyTo(image_output);
-	
+
 	//Size of input
 	int width = Input.rows; 
 	int height = Input.cols;
@@ -119,7 +195,121 @@ Mat WhiteBalance(Mat Input)
 	//cvWaitKey(0);
 
 	//Input.copyTo(image_output);
+	printf("Whitebalancedone");
 	return image_output;
-}	
+};	
+
+
+Mat SaliencyFilter(Mat img)
+{
+
+	Mat image_output(img.size(),img.type());
+	img.copyTo(image_output);
+
+	if (img.data) 
+	{
+		printf("141");
+		//Mat image_output(img.size(),img.type());
+		//Mat image_output;
+		Mat img_gray;
+		cvtColor(img,img_gray,CV_BGR2GRAY);
+		printf("\n 147");
+		//Mat img_hsv;
+		//cvtColor(img,img_hsv,CV_BGR2HSV);
+		//vector<Mat> hsv_planes;
+		//vector<Mat> sal_planes;
+		//split(img,sal_planes);
+		//Mat erosion_dst;
+		//Mat thresh;
+		namedWindow( "SalienceInput", CV_WINDOW_AUTOSIZE );
+		imshow( "SalienceInput",img);
+
+
+		IplImage* dstImg = cvCreateImage(cvSize(img.cols, img.rows), 8, 1);
+		IplImage* srcImg= new IplImage(img_gray);
+		
+		printf("164");
+		//get saliency
+		Saliency saliency;
+		saliency.calcIntensityChannel(srcImg, dstImg);
+		Mat img_salience = cvarrToMat(dstImg,true);
+		image_output = img_salience.clone();
+
+		printf("172");
+		namedWindow( "Salience", CV_WINDOW_AUTOSIZE );
+		imshow( "Salience",image_output);
+		printf("175");
+		return image_output;
+	}
+	else
+	{
+		printf("No IMage!! for Salien");
+		return image_output;
+	}
+}
+
+
+
+Mat SaliencyFilterSingle(Mat img)
+{
+	Mat image_output(img.size(),img.type());
+	img.copyTo(image_output);
+
+	if (!img.empty()) 
+	{
+		//Mat image_output(img.size(),img.type());
+		//Mat image_output;
+		Mat img_gray; //(img.size(), CV_8U);
+		cout<< "\n img.channels() = "<< img.channels();
+		cout<< "img.type() = " <<img.type();
+
+		if (img.channels()==  3)
+			cvtColor(img,img_gray,CV_BGR2GRAY);
+		else if (img.channels() == 1)
+		{
+			img_gray = img;
+		}
+		else
+			printf("\n WTF in SaliencyFilter");
+
+		IplImage* dstImg = cvCreateImage(cvSize(img_gray.cols, img_gray.rows), 8, 1);
+
+		IplImage* srcImg= new IplImage(img_gray);
+
+		//get saliency
+		Saliency saliency;
+		saliency.calcIntensityChannel(srcImg, dstImg);
+		Mat img_salience(dstImg);
+
+		image_output=img_salience.clone();
+		cvReleaseImage(&dstImg);
+
+
+	//	namedWindow( "Salience1", CV_WINDOW_AUTOSIZE );
+	//	cvShowImage( "Salience1",srcImg);
+
+		//namedWindow( "Salience", CV_WINDOW_AUTOSIZE );
+		//imshow( "Salience",m_saliency);
+		printf("175");
+//		cvReleaseImage(&srcImg);
+
+//		return image_output;
+	}
+	else
+	{
+		printf("No IMage!! for Salien");
+//		return image_output;
+		image_output=img.clone();
+
+	}
+return (image_output);
+}
+
+
+
+
+
 }//end namespace vision
 }//end namespace RAM
+
+

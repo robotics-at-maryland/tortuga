@@ -2,15 +2,15 @@ ForwardCamera:
     #brightness: auto # 275
     #uValue: 72 # 80 (NBRF sun) # 100
     #vValue: 114 # 90 (NBRF sun) # 100
-    #uValue: 53
-    #vValue: 141
+    uValue: 53
+    vValue: 141
 
 DownwardCamera:
     #brightness: auto # 275
-    #uValue: 58
+    uValue: 58
     #uValue: 72 # 80 (NBRF sun) # 100
     #vValue: 114 # 90 (NBRF sun) # 100
-    #vValue: 122
+    vValue: 122
 
 AdaptiveThresher:
     foobared: true
@@ -54,40 +54,34 @@ BarbedWireDetector:
     filtVMin: 121
     filtUMax: 75
     filtUMin: 0
-GateDetector:
-    CannyHigh: 150
-    CannyLow: 50
-    Dilate: 3
-    ErosionSize: 2
-    GreenHuemax: 255
-    GreenHuemin: 65
-    MaxAngleDiff: 20
-    RedHuemax: 255
-    RedHuemin: 117
-    RefelctionDiff: 50
-    Saturationmax: 255
-    Saturationmin: 0
-    ToptoIgnore: 150
-    Valuemax: 255
-    Valuemin: 102
-    diff: 100
-    maxAspectRatio: 1.87
-    minArea: 0
-    minAspectRatio: 1.5
-    thresholdwithred: 1
+    MaxAspectRatio: 5
+    MinSize: 3000
+    dilateIterations: 0
+    erodeIterations: 3
+    filtRedCMax: 255
+    filtRedCMin: 217
+    filtRedHMax: 30
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 23
+    minPixels: 3000
+    minPixelsFound: 2500
+    noHough: 0
+    samePipeThreshold: 0.2
+TargetDetector:
     MinContourSize: 6
     MinSize: 6
     bottomRemovePercentage: 0
     dilateIterations: 0
     erodeIterations: 2
-    filtBlueHMax: 190
-    filtBlueHMin: 71
+    filtBlueHMax: 141
+    filtBlueHMin: 75
     filtBlueMax: 255
-    filtBlueMin: 145
+    filtBlueMin: 114
     filtBlueSMax: 255
-    filtBlueSMin: 47
+    filtBlueSMin: 56
     filtBlueVMax: 255
-    filtBlueVMin: 0
+    filtBlueVMin: 3
     filtGreenHMax: 80
     filtGreenHMin: 25
     filtGreenMax: 63
@@ -96,24 +90,25 @@ GateDetector:
     filtGreenSMin: 0
     filtGreenVMax: 255
     filtGreenVMin: 0
-    filtRedHMax: 145
-    filtRedHMin: 18
+    filtRedHMax: 122
+    filtRedHMin: 0
     filtRedSMax: 255
-    filtRedSMin: 0
+    filtRedSMin: 39
     filtRedVMax: 255
     filtRedVMin: 0
-    filtYellowHMax: 45
-    filtYellowHMin: 15
+    filtYellowHMax: 41
+    filtYellowHMin: 1
     filtYellowMax: 44
     filtYellowMin: 0
     filtYellowSMax: 255
     filtYellowSMin: 0
     filtYellowVMax: 255
     filtYellowVMin: 0
-    maxAspectRatio: 2
+    maxAspectRatio: 1.5
     minAspectRatio: 0.3
     minGreenPixels: 500
     topRemovePercentage: 0
+BuoyDetector:
     GreenColorFilterLookupTable: 0
     RedColorFilterLookupTable: 0
     YellowColorFilterLookupTable: 0
@@ -159,49 +154,93 @@ GateDetector:
     minWidth: 50
     rightIgnorePercentage: 0
     topIgnorePercentage: 0
-    MaxAspectRatio: 5
-    MinSize: 2769
+DBuoyDetector:
+    GreenColorFilterLookupTable: 0
+    RedColorFilterLookupTable: 0
+    YellowColorFilterLookupTable: 0
+    almostHitPercentage: 0.2
+    bottomIgnorePercentage: 0
+    checkBlack: 0
+    debug: 2
     dilateIterations: 0
-    erodeIterations: 1
+    erodeIterations: 0
+    filtBlackCMax: 255
+    filtBlackCMin: 0
+    filtBlackHMax: 255
+    filtBlackHMin: 0
+    filtBlackLMax: 255
+    filtBlackLMin: 0
+    filtGreenCMax: 255
+    filtGreenCMin: 0
+    filtGreenHMax: 0
+    filtGreenHMin: 0
+    filtGreenLMax: 255
+    filtGreenLMin: 0
     filtRedCMax: 255
-    filtRedCMin: 0
-    filtRedHMax: 90
-    filtRedHMin: 8
-    filtRedLMax: 255
-    filtRedLMin: 189
-    minPixels: 3000
-    minPixelsFound: 2500
-    noHough: 0
-    samePipeThreshold: 0.2
-TargetDetector:
-    bilateral d param: 5
-    c Hue: 1
-    c Saturation: 2
-    c Value: 1
-    circularity bound: 0.25
-    closing iterations: 1
-    color sigma: 25
-    debug Images?: 1
-    dilate iterations: 1
-    erode iterations: 1
-    min vertices: 25
-    rectangularity bound: 0.5
-    size binning range: 25
-    space sigma: 15
-    threshold block size: 15
-    xy binning range: 50
-OrangePipeDetector:
-    MaxAspectRatio: 5
-    MinSize: 800
+    filtRedCMin: 97
+    filtRedHMax: 160
+    filtRedHMin: 9
+    filtRedLMax: 148
+    filtRedLMin: 53
+    filtYellowCMax: 255
+    filtYellowCMin: 0
+    filtYellowHMax: 29
+    filtYellowHMin: 0
+    filtYellowLMax: 255
+    filtYellowLMin: 0
+    leftIgnorePercentage: 0
+    maxAspectRatio: 1.1
+    maxDistance: 15
+    maxTotalBlackCheckSize: 0.1
+    minAspectRatio: 0.25
+    minBlackPercentage: 0.25
+    minHeight: 50
+    minPixelPercentage: 0.1
+    minPixels: 15
+    minWidth: 50
+    rightIgnorePercentage: 0
+    topIgnorePercentage: 0
+GateDetector:
+    CannyHigh: 150
+    CannyLow: 50
+    Dilate: 3
+    ErosionSize: 2
+    GreenHuemax: 255
+    GreenHuemin: 62
+    MaxAngleDiff: 20
+    RedHuemax: 255
+    RedHuemin: 80
+    RefelctionDiff: 50
+    Saturationmax: 255
+    Saturationmin: 0
+    ToptoIgnore: 150
+    Valuemax: 255
+    Valuemin: 102
+    diff: 100
+    maxAspectRatio: 2
+    minArea: 0
+    minAspectRatio: 0.3
+    thresholdwithred: 1
+ChrisPipeDetector:
+    BlurAmount: 5
+    DistanceRef: 50
+    HueShiftNumber: 14.91
+    MaxAreaRatio: 1
+    MaxPerimeter: 0.5
+    MinAreaRatio: 0
+    MinPerimeter: 0
+    Threshvalue: 18
     dilateIterations: 0
-    erodeIterations: 1
     filtRedCMax: 255
     filtRedCMin: 0
     filtRedHMax: 90
     filtRedHMin: 0
     filtRedLMax: 255
     filtRedLMin: 70
+    maxAspectRatio: 7
+    minAspectRatio: 0
     minPixels: 3000
     minPixelsFound: 2500
+    minSize: 70
     noHough: 0
     samePipeThreshold: 0.2
