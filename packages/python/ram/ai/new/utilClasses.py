@@ -122,6 +122,25 @@ class PipeVisionObject(VisionObject):
     def seeit(self,event):
         self.seen = False
 
+class BinVisionObject(VisionObject):
+    def __init__(self, oldStatePtr, bin_id):
+        super(BinVisionObject,self).__init__()
+        self._bin_id = bin_id
+        self.symbol = -1
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.BIN_FOUND, self.callback)
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.BIN_LOST, self.seeit)
+
+    def callback(self, event):
+        bin = getattr(event, 'binvector' + str(self._bin_id))
+        self.seen = True
+        self.x = bin.x
+        self.y = bin.y
+        self.angle = 0
+        self.symbol = bin.z
+        
+    def seeit(self, event):
+        self.seen = False
+
 class SonarObject(object):
     def __init__(self):
         self.x = 0

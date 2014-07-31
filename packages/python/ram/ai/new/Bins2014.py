@@ -8,22 +8,41 @@ import ram.ai.new.checkpoints as checkpoints
 from ram.ai.new.state import *
 from ram.ai.new.stateMachine import *
 
+import itertools
+from collections import defaultdict
+from operator import itemgetter
+
+class BinData(object):
+    def __init__(self, legacyState, symbol1, symbol2):
+        self.bins = []
+        for i in xrange(5):
+            self.bins.append(utilClasses.BinVisionObject(legacyState, i))
+
+        self.symbol1 = symbol1
+        self.count1 = defaultdict(int)
+
+        self.symbol2 = symbol2
+        self.count2 = defaultdict(int)
+
 class BinsTask(utilStates.Task):
-    def __init__(self, binCenterVO, bin1VO, bin2VO, 
-                 initialDepth, searchDist, success, failure, duration = 300):
+    def __init__(self, binSymbol1, binSymbol2, searchDist, hoverTime, success, failure, duration = 300):
         super(BinsTask, self).__init__(StateMachine(), success, failure, duration)
+
+        self.data = BinData(self.getInnerStateMachine().getLegacyState(), binSymbol1, binSymbol2)
 
         self.getInnerStateMachine().addStates({
             'start'             : utilStates.Start(),
             'forwardsSearch'    : searches.ForwardsSearchPattern(searchDist,
-                                                                 binCenterVO.isSeen, 
+                                                                 self.data.bins[0].isSeen, 
                                                                  'center', 'failure'),
-            'center'            : approach.DownCenter(binCenterVO,
-                                                      'saveCenter', 'failure'),
+            'center'            : approach.DownCenter(self.data.bins[0],
+                                                      'buf1', 'failure'),
+            'buf1'              : motion.Forward(0),
+            'hover'             : BinHover(self.data, hoverTime),
             'saveCenter'        : checkpoints.SaveCheckpoint('bins-center'),
-            'bin1'              : BinSearchState(bin1VO, 1),
+            'bin1'              : BinSearch(self.data, 1),
             'gotoCenter'        : checkpoints.GotoCheckpoint('bins-center'),
-            'bin2'              : BinSearchState(bin2VO, 2),
+            'bin2'              : BinSearch(self.data, 2),
             'failure'           : utilStates.End(),
             'success'           : utilStates.End()
             })
@@ -32,8 +51,10 @@ class BinsTask(utilStates.Task):
             ('start'            , 'next'    , 'forwardsSearch'   ),
             ('forwardsSearch'   , 'next'    , 'center'           ),
             ('forwardsSearch'   , 'failure' , 'failure'          ),
-            ('center'           , 'next'    , 'saveCenter'       ),
+            ('center'           , 'next'    , 'buf1'             ),
             ('center'           , 'failure' , 'failure'          ),
+            ('buf1'             , 'next'    , 'hover'            ),
+            ('hover'            , 'next'    , 'saveCenter'       ),
             ('saveCenter'       , 'next'    , 'bin1'             ),
             ('bin1'             , 'complete', 'gotoCenter'       ),
             ('bin1'             , 'failure' , 'failure'          ),
@@ -49,23 +70,47 @@ class BinsTask(utilStates.Task):
         elif self.getInnerStateMachine().getCurrentState().getName() == 'success':
             self.doTransition('success')
 
+@require_transitions('next')
+class BinHover(State):
+    def __init__(self, binData, hoverTime):
+        super(BinHover, self).__init__()
+        self.data = binData
+        self.timer = utilClasses.Timer(hoverTime)
+
+    def enter(self):
+        self.timer.reset()
+
+    def update(self):
+        if not self.timer.check():
+            self.doTransition('next')
+            return
+
+        for i in xrange(1,5):
+            if self.data.bins[i].z == self.data.binSymbol1:
+                self.data.binCount1[i] += 1
+            elif self.data.bins[i].z == self.data.binSymbol2:
+                self.data.binCount2[i] += 1
+
 @require_transitions('complete', 'failure')
-class BinSearchState(utilStates.NestedState):
-    def __init__(self, binVisionObject, markerNum):
-        super(BinSearchState, self).__init__(StateMachine())
+class BinSearch(utilStates.NestedState):
+    def __init__(self, binData, markerNum):
+        super(BinSearch, self).__init__(StateMachine())
+
+        count = getattr(binData, 'count' + str(markerNum))
+        #vo = binData.bins[max(count, key=count.get)]
+        vo = None
 
         self.getInnerStateMachine().addStates({
             'start'             : utilStates.Start(),
-            'center'            : approach.DownCenter(binVisionObject,
-                                                      'drop', 'end'),
+            'center'            : approach.DownCenter(vo, 'buf1', 'end'),
+            'buf1'              : motion.Forward(0),
             'drop'              : BinDrop(markerNum),
             'end'               : utilStates.End()
             })
 
         self.getInnerStateMachine().addTransitions(
             ('start'  , 'next'     , 'center'),
-            ('center' , 'complete' , 'drop'  ),
-            ('center' , 'failure'  , 'end'   ),
+            ('buf1'   , 'next'     , 'drop'  ),
             ('drop'   , 'next'     , 'end'   )
             )
 
