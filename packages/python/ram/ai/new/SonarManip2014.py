@@ -99,7 +99,7 @@ class PogoTask(utilStates.Task):
         if self.getInnerStateMachine().getCurrentState().getName() == 'end':
             self.doTransition('success')
 
-class SonarManipTask(utilStates.Task)
+class SonarManipTask(utilStates.Task):
     def __init__(self, siteSearchDistance,boxX, boxY, success= 'end', failure = 'end', duration = 30000):
         super(SonarManipTask).__init__(SonarManipulation(siteSearchDistance,boxX, boxY), success= 'end', failure = 'end', duration = 30000)
         

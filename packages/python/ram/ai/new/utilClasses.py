@@ -80,7 +80,7 @@ class TorpedoGroupObject(object):
             self.large.seen = True
             self.large.x = event.downx
             self.large.y = event.downy
-            self.lage.range = event.downsize
+            self.large.range = event.downsize
     
 
 

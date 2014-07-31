@@ -30,7 +30,7 @@ class Intro(oldState.State):
 
     @staticmethod
     def transitions():
-
+        return {'Start' : Body}
 
 class Body(oldState.State):
     """

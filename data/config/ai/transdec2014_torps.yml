@@ -6,12 +6,14 @@ ram.ai.new.mainState.Body:
     forward:
       type: TorpedoTask
       init:
-        configNode: {}, success: 'end', failure: 'end', duration: 10000
+        configNode: {}
+        success: 'end'
+        failure: 'end'
+        duration: 10000
     end:
       type: End
 
   transitions:
     - [start,   next, forward]
     - [forward, success, end ]
-    - [strafe,  success, end ]
 
