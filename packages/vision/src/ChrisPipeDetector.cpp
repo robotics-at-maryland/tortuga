@@ -143,14 +143,14 @@ void ChrisPipeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "HueShiftNumber",
                          "HueShiftNumber",
-                         150.0, &m_hueshiftnumber,0.0,180.0);
+                         15.0, &m_hueshiftnumber,0.0,180.0);
 
     propSet->addProperty(config, false, "BlurAmount",
                          "BlurAmount",
                          5, &m_bluramount,0,15);
     propSet->addProperty(config, false, "Threshvalue",
                          "Threshvalue",
-                         150, &m_threshvalue,0,255);
+                         15, &m_threshvalue,0,255);
 
     propSet->addProperty(config, false, "minSize",
                          "minSize",
@@ -160,7 +160,7 @@ void ChrisPipeDetector::init(core::ConfigNode config)
                          0.0, &m_minAR,0.0,10.0);
     propSet->addProperty(config, false, "maxAspectRatio",
                          "maxAspectRatio",
-                         7.0, &m_maxAR,0.0,10.0);
+                         0.6, &m_maxAR,0.0,10.0);
 
     propSet->addProperty(config, false, "MinAreaRatio",
                          "MinAreaRatio",
@@ -168,13 +168,13 @@ void ChrisPipeDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "MaxAreaRatio",
                          "MaxAreaRatio",
-                         1.0, &m_maxAreaRatio,0.0,50.0);
+                         4.0, &m_maxAreaRatio,0.0,50.0);
     propSet->addProperty(config, false, "MinPerimeter",
                          "MinPerimeter",
                          0.0, &m_minPerimeter,0.0,50.0);
     propSet->addProperty(config, false, "MaxPerimeter",
                          "MaxPerimeter",
-                         0.5, &m_maxPerimeter,0.0,50.0);
+                         0.2, &m_maxPerimeter,0.0,50.0);
 
     propSet->addProperty(config, false, "DistanceRef",
                          "DistanceRef",
@@ -872,6 +872,32 @@ void ChrisPipeDetector::publishLostEvent(int number)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void ChrisPipeDetector::processImage(Image* input, Image* output)
 {
 
@@ -913,6 +939,7 @@ printf("\n THIS IS HERE TO ENSURE WE ARE RUNNING THE RIGHT PIPE DETECTOR");
 	int pipe1_id=0;
 	int pipe2_id=0;
 
+	m_currentpipe.found = false;
 	m_currentpipe.centerx =0;
 	m_currentpipe.centery=0;
 	m_currentpipe.range= 0;
@@ -947,12 +974,12 @@ printf("\n THIS IS HERE TO ENSURE WE ARE RUNNING THE RIGHT PIPE DETECTOR");
 					perimeter = 1-double(AL/((box.size.width+box.size.height)*2));
 				else
 					perimeter = 1-double(((box.size.width+box.size.height)*2)/AL);
-			//    printf("\n Size = %d ", contours[i].size());
-			//	printf("Area_final = %f, Perimeter = %f, AR = %f i = %d ", AreaRatio,perimeter,AR,i);
-				
-				if (AreaRatio < m_maxAreaRatio && AreaRatio > m_minAreaRatio && perimeter > m_minPerimeter && perimeter < m_maxPerimeter && AR > m_minAR && AR < m_maxAR)
+			        printf("\n Size = %d ", contours[i].size());
+				printf("Area_final = %f, Perimeter = %f, AR = %f i = %d ", AreaRatio,perimeter,AR,i);
+				printf("\n reference  Area %f, %f Perimeter %f, %f, AR %f, %f", m_maxAreaRatio, m_minAreaRatio, m_maxPerimeter, m_minPerimeter, m_maxAR,m_minAR );
+				if ((AreaRatio < m_maxAreaRatio) && (AreaRatio > m_minAreaRatio) && (perimeter > m_minPerimeter) && (perimeter < m_maxPerimeter) && (AR > m_minAR) && (AR < m_maxAR))
 				{
-			//		printf(" WORKS");
+					printf(" WORKS");
 					foundanypipe = foundanypipe+1;
 					if ((int)contours[i].size()> pipe1_size)
 					{
@@ -1110,6 +1137,10 @@ distance[3] = 9999;
 
 			finalpipe = m_currentpipe;
 		}
+		else
+		{
+			printf("\n Unable to find FinalPipe");
+		}
 		if (m_currentpipe.framenumber2 > 0 && m_currentpipe.found2 == true)		
 		{	
 			if (m_currentpipe.id2 == 1)	
@@ -1126,18 +1157,21 @@ distance[3] = 9999;
 	else
 	{
 		printf("\n UNABLE TO FIND CONTOUR");
+		m_currentpipe.found = false;
 	}
 
 
 
 
-	if (finalpipe.found == true && m_currentpipe.framenumber > 0)
+	if (m_currentpipe.found == true && m_currentpipe.framenumber > 0 && m_currentpipe.range > minContourSize)
 	{	logger.infoStream() << " Pipe1 found going to publish Data";
 		m_foundpipe1 = true;
-		if (finalpipe.found2 == true)
-			publishFoundEvent(finalpipe,2,input);
-		else
-			publishFoundEvent(finalpipe,1,input);
+		cout << "\n final pipe: "  << finalpipe.found << "X,Y"<< finalpipe.centerx << ", "<<finalpipe.centery;
+		publishFoundEvent(finalpipe,1,input);
+//		if (finalpipe.found2 == true)
+//			publishFoundEvent(finalpipe,2,input);
+//		else
+//			publishFoundEvent(finalpipe,1,input);
 	}
 	
 
