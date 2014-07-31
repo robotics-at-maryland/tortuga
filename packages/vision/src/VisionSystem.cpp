@@ -151,8 +151,8 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     m_pipelineDetector = DetectorPtr(
         new ChrisPipeDetector(getConfig(config, "ChrisPipeDetector"),eventHub));
 
-   m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
+  // m_pipelineDetector = DetectorPtr(
+  //      new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
 
     m_forwardpipelineDetector = DetectorPtr(
         new ChrisPipeDetector(getConfig(config, "FowardPipeDetector"),eventHub));
@@ -276,14 +276,15 @@ void VisionSystem::pipeLineDetectorOff()
 
 void VisionSystem::forwardpipeLineDetectorOn()
 {
-    addForwardDetector(m_forwardpipelineDetector);
+  addForwardDetector(m_forwardpipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_ON,
             core::EventPtr(new core::Event()));
 }
 
 void VisionSystem::forwardpipeLineDetectorOff()
 {
-    m_forward->removeDetector(m_forwardpipelineDetector);
+	printf("\n forwardpipeLine is OFF");
+      m_forward->removeDetector(m_forwardpipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
