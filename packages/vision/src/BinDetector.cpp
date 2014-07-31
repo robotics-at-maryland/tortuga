@@ -4048,7 +4048,11 @@ void BinDetector::LoadReferences(void)
 	for (int j = 1;j<5;j++)
 	{
 		stringstream ss;
-		ss << "../BinRef";
+		    char * val = getenv("RAM_SVN_DIR");
+		cout << val;
+		cout << "\n sigh";
+		ss << val;
+		ss << "/BinRef";
 		ss << j;
 		ss <<".png";
 		string str = ss.str();
