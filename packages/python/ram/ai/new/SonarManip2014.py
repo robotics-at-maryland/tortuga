@@ -54,7 +54,7 @@ class PogoMotion(stateMachine.StateMachine):
         taskDepth = self.addState('taskDepth', motion.DiveTo(attackHeight,.3))
         taskDepth.setTransition('next', 'translate')
         end = self.addState('end', utilStates.End())
-        translate = self.addState('translate', motion.Move(-pogoHeight/2, -pogoWidth/2))
+        translate = self.addState('translate', motion.Move(pogoHeight/2, -pogoWidth/2))
         translate.setTransition('next', 'pogo') 
         #begin the pogoing
         #this occurs in another state machine for the depth motion
