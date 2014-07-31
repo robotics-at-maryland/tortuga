@@ -86,10 +86,10 @@ class BinHover(State):
             return
 
         for i in xrange(1,5):
-            if self.data.bins[i].z == self.data.binSymbol1:
-                self.data.binCount1[i] += 1
-            elif self.data.bins[i].z == self.data.binSymbol2:
-                self.data.binCount2[i] += 1
+            if self.data.bins[i].symbol == self.data.symbol1:
+                self.data.count1[i] += 1
+            elif self.data.bins[i].symbol == self.data.symbol2:
+                self.data.count2[i] += 1
 
 @require_transitions('complete', 'failure')
 class BinSearch(utilStates.NestedState):

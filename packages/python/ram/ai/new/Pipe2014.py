@@ -13,6 +13,14 @@ from ram.motion.basic import Frame
 
 import math
 
+_YAW = {}
+
+def setYaw(name, value):
+    _YAW[name] = value
+
+def getYaw(name):
+    return _YAW.get(name, None)
+
 class PipeCheckpoint(checkpoints.SaveCheckpoint):
     def __init__(self, checkpoint, nextCheckpoint, distanceToNextPipe):
         super(PipeCheckpoint, self).__init__(checkpoint, 0, 0)
@@ -22,8 +30,9 @@ class PipeCheckpoint(checkpoints.SaveCheckpoint):
         self._leaveCallbacks = { 'next' : self.storeNextPipe }
 
     def storeNextPipe(self):
-        radians = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
-        radians = math.radians(self._transdecYawOffset + radians)
+        degrees = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+        _YAW[self._checkpoint] = degrees
+        radians = math.radians(self._transdecYawOffset + degrees)
                   
         x_offset = math.cos(radians) * self._magnitude
         y_offset = math.sin(radians) * self._magnitude
@@ -44,6 +53,23 @@ class GotoPipe(motionStates.Move):
         currentLoc = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedPosition()
         self._vect = (nextLoc - prevLoc) - (currentLoc - prevLoc)
         return super(GotoPipe, self).getMotion()
+
+    def getYawMotion(self):
+        currentOrientation = self.getStateEstimator().getEstimatedOrientation()
+        traj = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = math.Quaternion(math.Degree(_YAW.get(self._prev, 
+                                                              None)), 
+                                         math.Vector3.UNIT_Z),
+            initialRate = self.getStateEstimator().getEstimatedAngularRate()
+            finalRate = math.Vector3.ZERO)
+        mot = motion.basic.ChangeOrientation(traj)
+        return mot
+
+    def enter(self):
+        self._motionID = self.getMotionManager().setMotion(self.getYawMotion())
+        super(GotoPipe, self).enter(self)
+        
 
 class PipeAlign(utilStates.NestedState):
     def __init__(self, searchDist):

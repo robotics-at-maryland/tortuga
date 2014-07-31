@@ -128,10 +128,10 @@ class BinVisionObject(VisionObject):
         self._bin_id = bin_id
         self.symbol = -1
         oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.BIN_FOUND, self.callback)
-        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.BIN_LOST, self.seeit)
+        #oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.BIN_LOST, self.seeit)
 
     def callback(self, event):
-        bin = getattr(event, 'binvector' + str(self._bin_id))
+        bin = getattr(event, 'vectorbin' + str(self._bin_id))
         self.seen = True
         self.x = bin.x
         self.y = bin.y

@@ -18,7 +18,16 @@ ram.ai.new.mainState.Body:
     pipe2:
       type: PipeAlign
       init:
-        searchDist: 20   
+        searchDist: 20
+    bins:
+      type: BinsTask
+      init:
+        binSymbol1: 1
+        binSymbol2: 2
+        searchDist: 20
+        hoverTime: 15
+        success: end
+        failure: end
     end:
       type: End
 
@@ -27,4 +36,4 @@ ram.ai.new.mainState.Body:
     - [forward1, next, pipe1]
     - [pipe1, complete, forward2]
     - [forward2, next, pipe2]
-    - [pipe2, complete, end]
+    - [pipe2, complete, bins]

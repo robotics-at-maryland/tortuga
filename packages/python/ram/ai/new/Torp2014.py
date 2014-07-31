@@ -21,11 +21,11 @@ class TorpedoTask(utilStates.Task):
             
     def enter(self):
         super(TorpedoTask,self).enter()
-        self.getLegacyState().visionSystem.cupidDetectorOn()
+        self.getInnerStateMachine().getLegacyState().visionSystem.cupidDetectorOn()
 
     def leave(self):
         super(TorpedoTask,self).leave()
-        self.getLegacyState().visionSystem.cupidDetectorOff()       
+        self.getInnerStateMachine().getLegacyState().visionSystem.cupidDetectorOff()       
 
 
 class FireLeft(state.State):

@@ -1412,9 +1412,9 @@ buoy
 	dilate(erode_dst_red, dilate_dst_red, dilate_element );
 	dilate(erode_dst_redS, dilate_dst_redS, dilate_element );
 	dilate(erode_dst_redL, dilate_dst_redL, dilate_element );
-	imshow("dilate S",dilate_dst_redS);
-	imshow("dilate L",dilate_dst_redL);
-	imshow("dilate H",dilate_dst_red);
+	//imshow("dilate S",dilate_dst_redS);
+	//imshow("dilate L",dilate_dst_redL);
+	//imshow("dilate H",dilate_dst_red);
 	//merge the dilated V & H and then and S	
 	bitwise_and(dilate_dst_red,dilate_dst_redL, dilate_dst_redHL,noArray());
 	bitwise_and(dilate_dst_redHL,dilate_dst_redS, img_red_final,noArray());
@@ -1428,7 +1428,7 @@ buoy
 	//printf("\n entering getSquareBlob");
 	if (img_red_final.data)
 	{
-		imshow("RedfFinal",img_red_final);
+		//imshow("RedfFinal",img_red_final);
 		getSquareBlob(img_red_final, bins,numberoftrackedcontours);
 	}
 	else
@@ -3216,7 +3216,7 @@ int BinDetector::FindMatches(Mat image, double* avgDistance, Mat* descriptors_ob
 
 	drawKeypoints( image, keypoints_bin_test0, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT );
  
-	imshow("keypoints",img_keypoints_1);
+	//imshow("keypoints",img_keypoints_1);
 
 	double dist;
 	double total_mindist;
