@@ -25,8 +25,10 @@ ram.ai.new.mainState.Body:
     bins:
       type: BinsTask
       init:
-          initialDepth: 6
+          binSymbol1: 1
+          binSymbol2: 2
           searchDist: 10
+          hoverTime: 15
           success: torps
           failure: gotoTorpBinPipe
           duration: 210
@@ -38,18 +40,20 @@ ram.ai.new.mainState.Body:
           failure: gotoTorpBinPipe
           duration: 300
     sonarPinger1:
-      type: SonarPingerTask
+      type: SonarNavigationTask
       init:
-          configNode: {}
           success: sonarManip
-          failure: end
-          releaseLeft: False
-          releaseRight: False
+          failure: surface
+          startDepth: 6
+          shortDepth: 8
+          endDepth: 4
           duration: 100000000
     sonarManip:
       type: SonarManipTask
       init:
-          configNode: {}
+          siteSearchDistance: 3
+          boxX: 1.5
+          boxY: 1.5
           success: pogo
           failure: sonarPinger4
           duration: 300
@@ -65,32 +69,51 @@ ram.ai.new.mainState.Body:
         failure: sonarPinger4
         duration: 210
     sonarPinger2:
-      type: SonarPingerTask
+      type: SonarNavigationTask
       init:
-        configNode: {}
-        success: 'sonarPinger3'
-        failure: 'end'
-        releaseLeft: True
-        releaseRight: False
+        success: releaseOne
+        failure: surface
+        startDepth: 6
+        shortDepth: 8
+        endDepth: 8
         duration: 180
+    releaseOne:
+        type: ManipReleaseTask
+        init:
+            release: 1
+            wait: 7
     sonarPinger3:
-      type: SonarPingerTask
+      type: SonarNavigationTask
       init:
-          configNode: {}
-          success: 'end'
-          failure: 'end'
-          releaseLeft: False
-          releaseRight: True
+          success: releaseOther
+          failure: surface
+          startDepth: 6
+          shortDepth: 8
+          endDepth: 8
           duration: 180
+    releaseOther:
+        type: ManipReleaseTask
+        init:
+            release: 2
+            wait: 7
     sonarPinger4:
-      type: SonarPingerTask
+      type: SonarNavigationTask
       init:
-          configNode: {}
-          success: 'end'
-          failure: 'end'
-          releaseLeft: True
-          releaseRight: True
+          success: releaseAll
+          failure: surface
+          startDepth: 6
+          shortDepth: 8
+          endDepth: 8
           duration: 90
+    releaseAll:
+        type: ManipReleaseTask
+        init:
+            release: 0
+            wait: 7
+    surface:
+        type: DiveTo
+        init:
+            depth: 0
 
     # PIPES
     pipeAlignBuoyCP:
@@ -142,6 +165,10 @@ ram.ai.new.mainState.Body:
     - [start, next, gate]
     - [pipeAlignBuoyCP, next, uprights]
     - [gotoUprightsPipe, next, pipeAlignUprightsCP]
-    - [pipeAlignUprightsCP, 'next', 'bins']
+    - [pipeAlignUprightsCP, next,bins]
     - [gotoTorpBinPipe, next, sonarPinger1]
+    - [releaseOne, next, sonarPinger3]
+    - [releaseOther, next, surface]
+    - [releaseAll, next, surface]
+    - [surface, next, end]
 

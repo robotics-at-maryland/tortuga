@@ -18,11 +18,12 @@ import ram.motion as motion
 from ram.motion.basic import Frame
 
 class SonarNavigationTask(utilStates.Task):
-    def __init__(self, sonarObject, success, failure, duration):
-        super(SonarNavigationTask, self).__init__(SonarNavigation(), success, failure, duration)
+    def __init__(self, success, failure, startDepth, shortDepth, endDepth, 
+                 duration):
+        super(SonarNavigationTask, self).__init__(SonarNavigation(shortDepth), success, failure, duration)
 
 class SonarNavigation(StateMachine):
-    def __init__(self):
+    def __init__(self, shortDepth):
         super(SonarNavigation, self).__init__()
         
         pinger = utilClasses.OldSimulatorHackSonarObject(self.getLegacyState())
@@ -30,8 +31,15 @@ class SonarNavigation(StateMachine):
         start = self.addState('start',utilStates.Start())
         end = self.addState('end',utilStates.End())
         orientation =  self.addState('orientation', approach.SonarOrient(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0)))
-        servoing = self.addState('servoing', approach.SonarCenter(pinger, 'end', 'end', math.Vector3(0.0,0.0,3.0), .1, .1))
-        
-        start.setTransition('next', 'orientation')
-        orientation.setTransition('next', 'servoing')
-        servoing.setTransition('next', 'end')
+        broadRange = self.addState('servoing1', approach.SonarCenter(pinger, 'diveShort', 'end', math.Vector3(5.0,5.0,3.0), 0.2, 0.2))
+        servoing = self.addState('servoing2', approach.SonarCenter(pinger, 'diveEnd', 'end', math.Vector3(0.0,0.0,3.0), .1, .1))
+
+        startDive = self.addState('diveStart', motionStates.DiveTo(startDepth))
+        shortDive = self.addState('diveShort', motionStates.DiveTo(shortDepth))
+        endDive = self.addState('diveEnd', motionStates.DiveTo(endDepth))
+
+        start.setTransition('next', 'diveStart')
+        startDive.setTransition('next', 'orientation')
+        orientation.setTransition('next', 'servoing1')
+        shortDive.setTransition('next', 'servoing2')
+        diveEnd.setTransition('next', 'end')

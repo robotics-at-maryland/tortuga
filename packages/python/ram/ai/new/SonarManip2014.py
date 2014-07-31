@@ -6,6 +6,7 @@ import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
 import ram.ai.new.approach as approach
 
+import time
 
 
 class SonarManipulation(stateMachine.StateMachine):
@@ -128,3 +129,19 @@ class SonarManipTask(utilStates.Task):
             self.doTransition('failure')
         elif self.getInnerStateMachine().getCurrentState().getName() == 'endSuccess':
             self.doTransition('success')
+
+class ManipRelease(state.State):
+    def __init_(self, release, wait = 7):
+        super(ManipRelease, self).__init__()
+        self._release = release
+        self._start = time.time()
+        
+        
+
+    def enter(self):
+        self.getStateMachine().getLegacyState().vehicle.releaseGrabber(release)
+        super(ManipRelease, self).enter()
+
+    def update(self):
+        if time.time() - self._start >= 7:
+            self.doTransition('next')
