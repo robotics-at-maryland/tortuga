@@ -158,7 +158,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new ChrisPipeDetector(getConfig(config, "FowardPipeDetector"),eventHub));
 
     m_downwardSafeDetector = DetectorPtr(
-        new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
+        new  ChrisPipeDetector(getConfig(config, "SonarChrisPipeDetector"), eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(getConfig(config, "GateDetector"), eventHub));
     m_cupidDetector = DetectorPtr(
