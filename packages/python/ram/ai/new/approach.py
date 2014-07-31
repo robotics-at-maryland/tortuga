@@ -8,6 +8,8 @@ import ram.ai.new.utilClasses as util
 import downwardsVisualServoing as downVS
 import forwardsVisualServoing as fVS
 import acousticServoing as aS
+import acousticOrientation as aO
+import math as m
 
 class Surrender(state.State):
     def __init__(self):
@@ -65,3 +67,7 @@ class DownOrient(Approach):
 class SonarCenter(Approach):
     def __init__(self, sonarObject, success, failure, destination, minVx = .1, minVy = .1):
         super(SonarCenter, self).__init__(util.ObjectInSonarQuery(sonarObject, destination.x, destination.y, destination.z, .1, .1, .1).query ,VisualServoingStateMachine(aS.AcousticServoing(sonarObject, destination, minVx, minVy)), success, failure)
+
+class SonarOrient(Approach):
+    def __init__(self, sonarObject, success, failure, destination):
+        super(SonarOrient, self).__init__(util.ObjectInSonarQueryAngle(sonarObject, 5).query ,VisualServoingStateMachine(aO.AcousticOrientation(sonarObject)), success, failure)
