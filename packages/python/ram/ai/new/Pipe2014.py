@@ -55,14 +55,14 @@ class PipeAlign(utilStates.NestedState):
         self.getInnerStateMachine().addStates({
             'start' : utilStates.Start(),
             'search' : searches.ForwardsSearchPattern(searchDist,
-                                                      self._visionObj.isSeen,
-                                                      'buf1', 'buf3'),
+                                                      utilClasses.hasQueryBeenFalse(self._visionObj.isSeen).query,
+                                                      'center', 'end'),
             'buf1' : motionStates.Forward(0),
             'center' : approach.DownCenter(self._visionObj, 
-                                           'buf2', 'buf3'),
+                                           'align', 'end'),
             'buf2' : motionStates.Forward(0),
             'align' : approach.DownOrient(self._visionObj,
-                                         'buf3', 'buf3'),
+                                         'end', 'end'),
             'buf3' : motionStates.Forward(0),
             'end' : utilStates.End()
             })
