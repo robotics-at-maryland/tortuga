@@ -7,23 +7,42 @@ import ram.ai.new.state as state
 import ram.ai.new.approach as approach
 
 
+
 class SonarManipulation(stateMachine.StateMachine):
     def __init__(self, siteSearchDistance,boxX, boxY):
         super(SonarManipulation,self).__init__()
         pipe = utilClasses.PipeVisionObject(self.getLegacyState())
         sampleSite = utilClasses.PipeVisionObject(self.getLegacyState())
         start = self.addState('start', utilStates.Start())
+        start.setEnterCallback('next', self.turnPipeOn)
+        start.setTransition('next', 'boxSearch')
         endS = self.addState('endSuccess',utilStates.End())
         endF = self.addState('endFailure',utilStates.End())
         #perform the initial pipe search(square)
-        boxSearch = self.addState('boxSearch',search.BoxSearchPattern(boxX,boxY, pipe.isSeen(), 'pipeCenter','endFailure'))
+        boxSearch = self.addState('boxSearch',searches.BoxSearchPattern(boxX,boxY, pipe.isSeen, 'pipeCenter','endFailure'))
         center = self.addState('pipeCenter', approach.DownCenter(pipe, 'alignPipe', 'endFailure'))
         align = self.addState('alignPipe', approach.DownOrient(pipe, 'siteSearch', 'endFailure'))
-        pipeSearch = self.addState( searches.ForwardsSearchPattern(siteSearchDistance, sampleSite.isSeen, 'centerSite',  'endFailure'))
+        align.setLeaveCallback('next', self.turnPipeOff)
+        align.setLeaveCallback('failure', self.turnPipeOff)
+        pipeSearch = self.addState('siteSearch',searches.ForwardsSearchPattern(siteSearchDistance, sampleSite.isSeen, 'centerSite',  'endFailure'))
+        pipeSearch.setEnterCallback('next',self.turnSiteOn)
         center = self.addState('centerSite', approach.DownCenter(sampleSite, 'alignSite', 'endFailure'))    
         align = self.addState('alignSite', approach.DownOrient(sampleSite, 'endSuccess', 'endFailure'))
+        
+    def turnPipeOn(self):
+        self.getLegacyState().visionSystem.pipeLineDetectorOn()        
+    def turnPipeOff(self):
+        self.getLegacyState().visionSystem.pipeLineDetectorOff()
+    def turnSiteOn(self):
+        self.getLegacyState().visionSystem.downwardSafeDetectorOn()
+    def turnSiteOff(self):
+        self.getLegacyState().visionSystem.downwardSafeDetectorOn()
+       
 
 
+
+            
+        
 #this state machine performs the "pogo" motion which consists of the robot moving up and down in a square over an area
 #it contains an cheap trick for telling if the robot has already hit the site by checking if the depth reading hasn't changed by a specified margin for a brief time(like a second).  This speeds up the manuver, avoids hangups, and reduces the chance of knocking over the task(within reason)
 class PogoMotion(stateMachine.StateMachine):
@@ -101,7 +120,7 @@ class PogoTask(utilStates.Task):
 
 class SonarManipTask(utilStates.Task):
     def __init__(self, siteSearchDistance,boxX, boxY, success= 'end', failure = 'end', duration = 30000):
-        super(SonarManipTask).__init__(SonarManipulation(siteSearchDistance,boxX, boxY), success= 'end', failure = 'end', duration = 30000)
+        super(SonarManipTask,self).__init__(SonarManipulation(siteSearchDistance,boxX, boxY), success, failure, duration)
         
     def update(self):
         super(SonarManipTask,self).update()

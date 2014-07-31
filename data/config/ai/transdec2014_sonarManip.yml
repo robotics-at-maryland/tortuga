@@ -27,4 +27,3 @@ ram.ai.new.mainState.Body:
     - [site, failure, end]
     - [pogo, success, end]
     - [pogo, failure, end]
-
