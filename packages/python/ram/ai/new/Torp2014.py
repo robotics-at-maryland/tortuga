@@ -9,7 +9,7 @@ import ram.ai.new.approach as approach
 
 
 class TorpedoTask(utilStates.Task):
-    def __init__(self, configNode,success, failure, duration = 300):
+    def __init__(self, configNode, success, failure, duration = 300):
         super(TorpedoTask,self).__init__(TorpedoMachine(configNode),success, failure, duration) 
 
     def update(self):
