@@ -92,6 +92,7 @@ ram.ai.new.mainState.Body:
           releaseRight: True
           duration: 90
 
+    # PIPES
     pipeAlignBuoyCP:
       type: PipeAlign
       init:
@@ -134,7 +135,6 @@ ram.ai.new.mainState.Body:
       init:
           prevCheckpoint: pipe2
           nextCheckpoint: pipe2next
-
     end:
       type: End
       
