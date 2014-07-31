@@ -1,0 +1,45 @@
+#Pipes using checkpoints
+ram.ai.new.mainState.Body
+  states:
+    start:
+      type: Start
+    pipeSearch:
+      type: PipeAlign
+      init:
+	searchDist: 4
+
+    storePipe:
+      type: PipeCheckpoint
+      init:
+        checkpoint: pipe1
+        nextCheckpoint: pipe2
+        distanceToNextpipe: 5
+  
+    move:
+      type: Move
+      init:
+        x: 2
+        y: 6
+
+    turn:
+      type: Turn
+      init: 
+        10
+
+    goto:
+      type: GotoPipe
+      init:
+	prevCheckpoint: pipe1
+	nextCheckpoint: pipe2
+
+    end:
+      type: End
+
+    transitions:
+      - [start, next, pipeSearch]
+      - [pipeSearch, next, storePipe]
+      - [storePipe, next, move]
+      - [move, next, turn]
+      - [turn, next, goto]
+      - [goto, next, end]
+      
