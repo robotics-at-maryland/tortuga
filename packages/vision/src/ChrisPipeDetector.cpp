@@ -875,6 +875,7 @@ void ChrisPipeDetector::publishLostEvent(int number)
 void ChrisPipeDetector::processImage(Image* input, Image* output)
 {
 
+printf("\n THIS IS HERE TO ENSURE WE ARE RUNNING THE RIGHT PIPE DETECTOR");
 
 	Mat img = input->asIplImage();
 	Mat img_filter= HueShifter_RedMinusGreen(img, (int)m_hueshiftnumber, m_bluramount);
