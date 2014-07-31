@@ -1,7 +1,7 @@
 import time
 import ext.vision as vision
 import ext.vehicle as vehicle
-
+import math as m
 
 import subprocess as subprocess
 from types import MethodType
@@ -172,7 +172,20 @@ class ObjectInSonarQuery(object):
     def query(self):
         self._obj.update()
         obj = self._obj
-        return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range))        
+        return self._obj.seen and ((abs(obj.x - self._x_center) <= self._x_range) and (abs(obj.y - self._y_center) <= self._y_range))
+
+class ObjectInSonarQueryAngle(object):
+    def __init__(self, sonarObject, angle_range):
+        self._obj = sonarObject
+        self._angle_range = angle_range
+
+    def query(self):
+        self._obj.update()
+        obj = self._obj
+        if (obj.x != 0):
+            return (abs(m.degrees(m.atan(obj.y/obj.x))) <= self._angle_range)
+        else:
+            return False
 
 # this class transforms a query into a  query which only becomes false if the the query has 
 # only returned false under a certain amount of time(such that all queries made in that time 

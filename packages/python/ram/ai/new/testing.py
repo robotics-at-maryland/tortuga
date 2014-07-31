@@ -44,4 +44,3 @@ class TestMachine(StateMachine):
             ('start', 'next', 'forward'),
             ('forward', 'next', 'end')
           )
-
