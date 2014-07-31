@@ -247,9 +247,9 @@ FowardPipeDetector:
 ChrisPipeDetector:
     BlurAmount: 5
     DistanceRef: 50
-    HueShiftNumber: 15
+    HueShiftNumber: 123.23
     MaxAreaRatio: 4
-    MaxPerimeter: 0.2
+    MaxPerimeter: 1.2
     MinAreaRatio: 0
     MinPerimeter: 0
     Threshvalue: 15
@@ -260,7 +260,7 @@ ChrisPipeDetector:
     filtRedHMin: 0
     filtRedLMax: 255
     filtRedLMin: 70
-    maxAspectRatio: 0.6
+    maxAspectRatio: 1.6
     minAspectRatio: 0
     minPixels: 3000
     minPixelsFound: 2500
