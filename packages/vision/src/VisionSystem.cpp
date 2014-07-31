@@ -134,6 +134,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Recorders
     if (config.exists("ForwardRecorders"))
         createRecordersFromConfig(config["ForwardRecorders"], m_forwardCamera);
+
     if (config.exists("DownwardRecorders"))
         createRecordersFromConfig(config["DownwardRecorders"], m_downwardCamera);
     
@@ -152,6 +153,9 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
 
    m_pipelineDetector = DetectorPtr(
         new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
+
+    m_forwardpipelineDetector = DetectorPtr(
+        new ChrisPipeDetector(getConfig(config, "FowardPipeDetector"),eventHub));
 
     m_downwardSafeDetector = DetectorPtr(
         new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
@@ -265,6 +269,21 @@ void VisionSystem::pipeLineDetectorOn()
 void VisionSystem::pipeLineDetectorOff()
 {
     m_downward->removeDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+
+void VisionSystem::forwardpipeLineDetectorOn()
+{
+    addForwardDetector(m_forwardpipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::forwardpipeLineDetectorOff()
+{
+    m_forward->removeDetector(m_forwardpipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }
