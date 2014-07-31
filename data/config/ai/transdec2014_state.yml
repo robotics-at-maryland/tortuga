@@ -1,20 +1,147 @@
-# Torps
+# Full Course
 ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
-    forward:
+    gate:
+      type: GateTask
+      init:
+        taskDepth: 4
+	forwardDistance: 12
+        success: pipeAlignBuoyCP
+        failure: end
+        duration: 90
+    uprights:
+      type: UprightsTask
+      init:
+	taskDepth: 8
+	returnDepth: 4
+	uprightsSearchDistance: 7
+	rectWidth: 1
+	rectLength: 2.5
+	success: gotoUprightsPipe
+	failure: gotoUprightsPipe
+	duration: 180
+    bins:
+      type: BinsTask
+      init:
+	initialDepth: 6
+	searchDist: 10
+	success: torps
+	failure: gotoTorpBinPipe
+	duration: 210
+    torps:
       type: TorpedoTask
       init:
+	configNode: {}
+	success: gotoTorpBinPipe
+	failure: gotoTorpBinPipe
+	duration: 300
+    sonarPinger1:
+      type: SonarPingerTask
+      init:
+	configNode: {}
+	success: sonarManip
+	failure: end
+	releaseLeft: False
+	releaseRight: False
+	duration: 100000000
+    sonarManip:
+      type: SonarManipTask
+      init:
+	configNode: {}
+	success: pogo
+	failure: sonarPinger4
+	duration: 300
+    pogo:
+      type: PogoTask
+      init: 
+      	pogoHeight: 1.2
+	pogoWidth: 1.2
+	pogoShift: .15
+	pogoShiftV: .45
+	attackHeight: 11.9
+	success: sonarPinger2
+	failure: sonarPinger4
+	duration: 210
+    sonarPinger2:
+      type: SonarPingerTask
+      init:
         configNode: {}
-        success: 'end'
-        failure: 'end'
-        duration: 10000
+	success: 'sonarPinger3'
+	failure: 'end'
+	releaseLeft: True
+	releaseRight: False
+	duration: 180
+    sonarPinger3:
+      type: SonarPingerTask
+      init:
+	configNode: {}
+	success: 'end'
+	failure: 'end'
+	releaseLeft: False
+	releaseRight: True
+	duration: 180
+    sonarPinger4:
+      type: SonarPingerTask
+      init:
+	configNode: {}
+	success: 'end'
+	failure: 'end'
+	releaseLeft: True
+	releaseRight: True
+	duration: 90
+
+    pipeAlignBuoyCP:
+      type: PipeAlign
+      init:
+	searchDist: 3
+    pipeAlignUprightsCP:
+      type: PipeAlign
+      init:
+	searchDist: 3
+    pipeAlignBuoyNCP:
+      type: PipeAlign
+      init:
+	searchDist: 7
+    pipeAlignUprightsNCP:
+      type: PipeAlign
+      init:
+	searchDist: 7
+
+    #Pipe1 with checkpoints
+    storeBuoyPipe:
+      type: PipeCheckpoint
+      init:
+	checkpoint: pipe1
+	nextCheckpoint: pipe1next
+	distanceToNextPipe: 11
+    gotoUprightsPipe:
+      type: GotoPipe
+      init:
+	prevCheckpoint: pipe1
+	nextCheckpoint: pipe1next
+    
+    #Pipe2 with checkpoints
+    storeUprightsPipe:
+      type: PipeCheckpoint
+      init:
+	checkpoint: pipe2
+	nextCheckpoint: pipe2next
+	distanceToNextpipe: 15
+    gotoTorpBinPipe:
+      type: GotoPipe
+      init:
+	prevCheckpoint: pipe2
+	nextCheckpoint: pipe2next
+	
     end:
       type: End
-
+      
   transitions:
-    - [start,   next, forward]
-    - [forward, success, end ]
-    - [strafe,  success, end ]
+    - [start, next, gate]
+    - [pipeAlignBuoyCP, next, uprights]
+    - [gotoUprightsPipe, next, pipeAlignUprightsCP]
+    - [pipeAlignUprightsCP, 'next', 'bins']
+    - [gotoTorpBinPipe, next, sonarPinger1]
 
