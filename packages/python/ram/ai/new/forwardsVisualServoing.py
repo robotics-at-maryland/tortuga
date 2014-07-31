@@ -30,7 +30,7 @@ class ForwardsVisualServoing(state.State):
             self._kz = .4
             self._x_d = dx
             self._y_d = dy
-            self._r_d = 1
+            self._r_d = drange
             self._x_bound = .1
             self._y_bound = .1
             self._r_bound = .1

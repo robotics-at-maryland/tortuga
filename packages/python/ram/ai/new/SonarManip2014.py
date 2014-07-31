@@ -8,8 +8,10 @@ import ram.ai.new.approach as approach
 
 
 class SonarManipulation(stateMachine.StateMachine):
-    def __init__(self, pogoHeight, pogoWidth, pogoShift, siteSearchDistance,boxX, boxY):
+    def __init__(self, siteSearchDistance,boxX, boxY):
         super(SonarManipulation,self).__init__()
+        pipe = utilClasses.PipeVisionObject(self.getLegacyState())
+        sampleSite = utilClasses.PipeVisionObject(self.getLegacyState())
         start = self.addState('start', utilStates.Start())
         endS = self.addState('endSuccess',utilStates.End())
         endF = self.addState('endFailure',utilStates.End())
@@ -19,7 +21,7 @@ class SonarManipulation(stateMachine.StateMachine):
         align = self.addState('alignPipe', approach.DownOrient(pipe, 'siteSearch', 'endFailure'))
         pipeSearch = self.addState( searches.ForwardsSearchPattern(siteSearchDistance, sampleSite.isSeen, 'centerSite',  'endFailure'))
         center = self.addState('centerSite', approach.DownCenter(sampleSite, 'alignSite', 'endFailure'))    
-        align = self.addState('alignSite', approach.DownOrient(sampleSite, 'pogoTime', 'endFailure'))
+        align = self.addState('alignSite', approach.DownOrient(sampleSite, 'endSuccess', 'endFailure'))
 
 
 #this state machine performs the "pogo" motion which consists of the robot moving up and down in a square over an area
@@ -95,4 +97,15 @@ class PogoTask(utilStates.Task):
     def update(self):
         super(PogoTask,self).update()
         if self.getInnerStateMachine().getCurrentState().getName() == 'end':
+            self.doTransition('success')
+
+class SonarManipTask(utilStates.Task):
+    def __init__(self, siteSearchDistance,boxX, boxY, success= 'end', failure = 'end', duration = 30000):
+        super(SonarManipTask).__init__(SonarManipulation(siteSearchDistance,boxX, boxY), success= 'end', failure = 'end', duration = 30000)
+        
+    def update(self):
+        super(SonarManipTask,self).update()
+        if self.getInnerStateMachine().getCurrentState().getName() == 'endFailure':
+            self.doTransition('failure')
+        elif self.getInnerStateMachine().getCurrentState().getName() == 'endSuccess':
             self.doTransition('success')

@@ -451,6 +451,7 @@ int m_adwindow;
 	bool m_Bin98FoundBefore;
 	bool m_Bin10FoundBefore;
 	bool m_Bin16FoundBefore;
+	int m_minSize;
 
 	//trying to keep teh bins at the same angle as the main
 

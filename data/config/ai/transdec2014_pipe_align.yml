@@ -6,7 +6,7 @@ ram.ai.new.mainState.Body:
     forward1:
       type: Forward
       init:
-        distance: 10
+        distance: 1
     pipe1:
       type: PipeAlign
       init:
@@ -14,7 +14,7 @@ ram.ai.new.mainState.Body:
     forward2:
        type: Forward
        init:
-         distance: 20
+         distance: 10
     pipe2:
       type: PipeAlign
       init:
