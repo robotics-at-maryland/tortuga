@@ -6,7 +6,7 @@ ram.ai.new.mainState.Body
     pipeSearch:
       type: PipeAlign
       init:
-	    searchDist: 4
+          searchDist: 4
 
     storePipe:
       type: PipeCheckpoint
@@ -29,8 +29,8 @@ ram.ai.new.mainState.Body
     goto:
       type: GotoPipe
       init:
-	    prevCheckpoint: pipe1
-	    nextCheckpoint: pipe2
+          prevCheckpoint: pipe1
+          nextCheckpoint: pipe2
 
     end:
       type: End
