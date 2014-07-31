@@ -38,7 +38,7 @@ Mat HueShifter_RedMinusGreen(Mat img, int hueshift_int, int bluramount)
 	split(img_hsv,hsv_planes);
 
 	//printf("\n hueshift = %d, %f",hueshift_int,hueshift);
-	//imshow("start",hsv_planes[0]);
+//	imshow("start",hsv_planes[0]);
 	Scalar_<uint8_t> bgrPixel;
 	uint8_t*pixelPtr2 = (uint8_t*)hsv_planes[0].data;
 	int cn2 = hsv_planes[0].channels();
@@ -65,9 +65,9 @@ Mat HueShifter_RedMinusGreen(Mat img, int hueshift_int, int bluramount)
 //	imshow("PreBLUE", hsv_planes[0]);
 //	imshow("PreRed", hsv_planes[2]);
 //	imshow("PreGreen", hsv_planes[1]);
-//	equalizeHist(hsv_planes[0], hsv_planes[0]);
-	equalizeHist(hsv_planes[1], hsv_planes[1]);
-	equalizeHist(hsv_planes[2], hsv_planes[2]);
+	//equalizeHist(hsv_planes[0], hsv_planes[0]);
+	//equalizeHist(hsv_planes[1], hsv_planes[1]);
+	//equalizeHist(hsv_planes[2], hsv_planes[2]);
 
 //	int bluramount = m_bluramount;
 	if (bluramount%2 < 1)		
@@ -88,6 +88,7 @@ Mat HueShifter_RedMinusGreen(Mat img, int hueshift_int, int bluramount)
 	Mat tempred;
 	subtract(hsv_planes[2],hsv_planes[1],tempred, noArray(), -1);
 	hsv_planes[2] = tempred;
+//	imshow("hsvplane2",hsv_planes[2]);
 	return(hsv_planes[2]);
 };
 

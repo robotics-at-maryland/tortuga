@@ -47,28 +47,30 @@ class GotoPipe(motionStates.Move):
 
 class PipeAlign(utilStates.NestedState):
     def __init__(self, searchDist):
-        super(PipeAlign, self).__init__()
+        super(PipeAlign, self).__init__(stateMachine.StateMachine())
         
         self._visionObj = utilClasses.PipeVisionObject(
             self.getInnerStateMachine().getLegacyState())
 
         self.getInnerStateMachine().addStates({
             'start' : utilStates.Start(),
-            'search' : searches.ForwardsSearchMachine(searchDist
+            'search' : searches.ForwardsSearchPattern(searchDist,
                                                       self._visionObj.isSeen,
-                                                      'buf1', 'end'),
+                                                      'buf1', 'buf3'),
             'buf1' : motionStates.Forward(0),
             'center' : approach.DownCenter(self._visionObj, 
-                                           'buf2', 'end'),
+                                           'buf2', 'buf3'),
             'buf2' : motionStates.Forward(0),
-            'align' : approach.DownAlign(self._visionObj,
-                                         'end', 'end'),
+            'align' : approach.DownOrient(self._visionObj,
+                                         'buf3', 'buf3'),
+            'buf3' : motionStates.Forward(0),
             'end' : utilStates.End()
             })
         
         self.getInnerStateMachine().addTransitions(
             ('start' ,'next', 'search'),
             ('buf1', 'next', 'center'),
-            ('buf2', 'next', 'align')
+            ('buf2', 'next', 'align'),
+            ('buf3', 'next', 'end')
             )
         
