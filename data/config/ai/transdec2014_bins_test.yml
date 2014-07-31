@@ -1,0 +1,19 @@
+# Pipe Align
+ram.ai.new.mainState.Body:
+  states:
+    start:
+      type: Start
+    bins:
+      type: BinsTask
+      init:
+        binSymbol1: 1
+        binSymbol2: 2
+        searchDist: 10
+        hoverTime: 10
+        success: end
+        failure: end
+    end:
+      type: End
+
+  transitions:
+    - [start, next, bins]

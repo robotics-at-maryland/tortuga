@@ -15,6 +15,7 @@ import ram.timer as timer
 
 #std imports
 import time
+import ram.ai.new.Bins2014
 import ram.ai.new.Pipe2014
 import ram.ai.new.Torp2014
 import ram.ai.new.SonarManip2014
