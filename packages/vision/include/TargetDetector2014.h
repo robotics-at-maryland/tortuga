@@ -266,6 +266,8 @@ void BinHolesXY(std::vector<Hole> holes, double range,std::vector<std::vector<Ho
   Hole leftHole;
   Hole rightHole;
   Hole downHole;
+  double minR;
+  double maxR;
       
   private:
     void init(core::ConfigNode config);

@@ -130,6 +130,14 @@ void TargetDetector::init(core::ConfigNode config)
                          "rectangle bound",
                          .5, &rectangularityBound, 0.0, 3.0); 
 
+   propSet->addProperty(config, false, "minimum radius",
+                         "minimum radius",
+                         10.0, &minR, 0.0, 500.0); 
+
+   propSet->addProperty(config, false, "maximum radius",
+                         "maximum radius",
+                         200.0, &maxR, 0.0, 500.0); 
+
    propSet->addProperty(config, false, "min vertices",
                          "minimum number of vertices in valid contour",
                          10, &numPointsThreshold, 0, 100);     
@@ -589,8 +597,12 @@ void TargetDetector::categorizeContours(    std::vector<std::vector<cv::Point> >
             //check metric
             if(shapeValid == false && (metric >= (1-circularityBound)*2*PI)&& (metric <= (1+circularityBound)*2*PI))
             {
-                shapeValid = true;
-                circleContours.push_back(contours[i]);
+                //only if in size bounds
+                if(idealRad > minR && idealRad< maxR)
+                {
+                    shapeValid = true;
+                    circleContours.push_back(contours[i]);
+                }
             }
             //end circularity test
 
