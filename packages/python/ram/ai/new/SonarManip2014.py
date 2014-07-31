@@ -36,7 +36,7 @@ class SonarManipulation(stateMachine.StateMachine):
     def turnSiteOn(self):
         self.getLegacyState().visionSystem.downwardSafeDetectorOn()
     def turnSiteOff(self):
-        self.getLegacyState().visionSystem.downwardSafeDetectorOn()
+        self.getLegacyState().visionSystem.downwardSafeDetectorOff()
        
 
 
