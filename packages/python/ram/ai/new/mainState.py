@@ -27,9 +27,10 @@ TERMINATE = core.declareEventType('TERMINATE')
 COMPLETE = core.declareEventType('COMPLETE')
 
 class Intro(oldState.State):
+
     @staticmethod
     def transitions():
-        return {'Start' : Body}
+
 
 class Body(oldState.State):
     """

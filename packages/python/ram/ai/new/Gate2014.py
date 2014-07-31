@@ -7,25 +7,23 @@ import ram.ai.new.state as state
 import ram.ai.new.approach as approach
 
 class GateTask(utilStates.Task):
-    def __init__(self, pipe, 
-                 taskDepth, forwardDistance, searchDistance, 
+    def __init__(self, taskDepth, forwardDistance,  
                  success, failure, duration = 120):
-        super(GateTask, self).__init__(GateTaskMachine(pipe,
-                                                       taskDepth, 
-                                                       forwardDistance,
-                                                       searchDistance),
+        super(GateTask, self).__init__(GateTaskMachine(taskDepth, 
+                                                       forwardDistance),
                                        success, failure,
                                        duration)
 
-    def enter(self):
-        self.getStateMachine().getLegacyState().visionSystem\
-            .pipeLineDetectorOn()
-        super(GateTask, self).enter()
-
-    def leave(self):
-        self.getStateMachine().getLegacyState().visionSystem\
-            .pipeLineDetectorOff()
-        super(GateTask, self).leave()
+        self.getInnerStateMachine.addStates(
+            {'start' : utilState.State(),
+             'end' : utilState.End(),
+             'dive' : motionStates.DiveTo(taskDepth),
+             'forward' : motionStates.Forward(forwardDistance)})
+ 
+        self.getInnerStateMachine.addTransitions(
+            ('start', 'next', 'dive'),
+            ('dive', 'next', 'forward'),
+            ('forward', 'next', 'end'))
 
     def update(self):
         if self._InnerMachine().isCompleted() and \
@@ -37,35 +35,10 @@ class GateTask(utilStates.Task):
 
 
 class GateTaskMachine(stateMachine.StateMachine):
-    def __init__(self, pipe, taskDepth, forwardDistance, searchDistance):
+    def __init__(self, taskDepth, forwardDistance):
         super(GateTaskMachine, self).__init__()
-        
-        pipeSearch = searches.ForwardsSearchPattern(
-            searchDistance, 
-            pipe.isSeen,
-            'center', 
-            'failure')
-
-        # Add states
-        start = self.addState('start', utilStates.Start())
-        end = self.addState('end', utilStates.End())
-        failure = self.addState('failure', GateFailure())
-        dive = self.addState('dive', motion.DiveTo(taskDepth))
-        forward = self.addState('forward', motion.Forward(forwardDistance))
-        pipeSearch = self.addState('search', pipeSearch)
-        center = self.addState('center', 
-                              approach.DownCenter(pipe, 'align', 'failure'))
-        align = self.addState('align', 
-                              approach.DownOrient(pipe, 'end', 'failure'))
-
-        start.setTransition('next', 'dive')
-        dive.setTransition('next', 'forward')
-        forward.setTransition('next', 'search')
 
     def update(self):
         super(GateTaskMachine, self).update()
 
-class GateFailure(utilStates.End):
-    def __init__(self):
-        super(GateFailure, self).__init__()
     
