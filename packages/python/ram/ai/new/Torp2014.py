@@ -19,6 +19,14 @@ class TorpedoTask(utilStates.Task):
         elif self.getInnerStateMachine().getCurrentState().getName() == 'taskSuccess':
             self.doTransition('success')
             
+    def enter(self):
+        super(TorpedoTask,self).enter()
+        self.getLegacyState().visionSystem.cupidDetectorOn()
+
+    def leave(self):
+        super(TorpedoTask,self).leave()
+        self.getLegacyState().visionSystem.cupidDetectorOff()       
+
 
 class FireLeft(state.State):
     def __init__(self, next):
