@@ -55,14 +55,14 @@ class PipeAlign(utilStates.NestedState):
         self.getInnerStateMachine().addStates({
             'start' : utilStates.Start(),
             'search' : searches.ForwardsSearchPattern(searchDist,
-                                                      utilClasses.hasQueryBeenFalse(self._visionObj.isSeen).query,
-                                                      'center', 'end'),
+                                                      utilClasses.hasQueryBeenFalse(2, self._visionObj.isSeen).query,
+                                                      'buf1', 'buf3'),
             'buf1' : motionStates.Forward(0),
             'center' : approach.DownCenter(self._visionObj, 
-                                           'align', 'end'),
+                                           'buf2', 'buf3'),
             'buf2' : motionStates.Forward(0),
             'align' : approach.DownOrient(self._visionObj,
-                                         'end', 'end'),
+                                         'buf3', 'buf3'),
             'buf3' : motionStates.Forward(0),
             'end' : utilStates.End()
             })
@@ -73,4 +73,12 @@ class PipeAlign(utilStates.NestedState):
             ('buf2', 'next', 'align'),
             ('buf3', 'next', 'end')
             )
+
+    def enter(self):
+        self.getInnerStateMachine().getLegacyState().visionSystem.pipeLineDetectorOn()
+        super(PipeAlign, self).enter()
+
+    def leave(self):
+        self.getInnerStateMachine().getLegacyState().visionSystem.pipeLineDetectorOff()
+        super(PipeAlign, self).leave()
         
