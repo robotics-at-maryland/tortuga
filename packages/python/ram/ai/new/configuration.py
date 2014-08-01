@@ -11,13 +11,14 @@ def initFromYAML(machine, config):
         if 'type' in v:
             typ = MetaState.getStateType(v['type'])
             init = v.get('init', {})
+            print 'Creating ' + k
             curr = machine.addState(k, typ(**init))
         else:
+            print 'Found ' + k
             curr = machine.getState(k)
 
-        print 'Added: ' + str(k)
-
         if isinstance(curr, NestedState):
+            print 'Recursing into ' + k
             initFromYAML(curr.getInnerStateMachine(), v)
 
     for i in config.get('transitions', []):

@@ -16,7 +16,8 @@ class BinData(object):
     def __init__(self, legacyState, symbol1, symbol2):
         self.bins = []
         for i in xrange(5):
-            self.bins.append(utilClasses.BinVisionObject(legacyState, i))
+            #self.bins.append(utilClasses.BinVisionObject(legacyState, i))
+            self.bins.append(utilClasses.FakeBinVisionObject(legacyState, i))
 
         self.symbol1 = symbol1
         self.count1 = defaultdict(int)
@@ -63,12 +64,20 @@ class BinsTask(utilStates.Task):
             ('bin2'             , 'failure' , 'failure'          ) 
             )
 
+    def enter(self):
+        super(BinsTask,self).enter()
+        self.getInnerStateMachine().getLegacyState().visionSystem.binDetectorOn()
+
     def update(self):
         super(BinsTask,self).update()
         if self.getInnerStateMachine().getCurrentState().getName() == 'failure':
             self.doTransition('failure')
         elif self.getInnerStateMachine().getCurrentState().getName() == 'success':
             self.doTransition('success')
+
+    def leave(self):
+        super(BinsTask,self).enter()
+        self.getInnerStateMachine().getLegacyState().visionSystem.binDetectorOff()
 
 @require_transitions('next')
 class BinHover(State):
@@ -95,16 +104,23 @@ class BinHover(State):
 class BinSearch(utilStates.NestedState):
     def __init__(self, binData, markerNum):
         super(BinSearch, self).__init__(StateMachine())
+        self.data = binData
+        self.markerNum = markerNum
 
-        count = getattr(binData, 'count' + str(markerNum))
-        #vo = binData.bins[max(count, key=count.get)]
-        vo = None
+    def enter(self):
+        count = getattr(self.data, 'count' + str(self.markerNum))
+        i = 1
+        for k, v in count.iteritems():
+            if v > i:
+                i = k
+        print 'Centering on Bin ' + str(i)
+        vo = self.data.bins[i]
 
         self.getInnerStateMachine().addStates({
             'start'             : utilStates.Start(),
-            'center'            : approach.DownCenter(vo, 'buf1', 'end'),
+            'center'            : approach.DownCenter(vo, 'buf1', 'end', xBound = .05, yBound = .05),
             'buf1'              : motion.Forward(0),
-            'drop'              : BinDrop(markerNum),
+            'drop'              : BinDrop(self.markerNum),
             'end'               : utilStates.End()
             })
 
@@ -113,6 +129,8 @@ class BinSearch(utilStates.NestedState):
             ('buf1'   , 'next'     , 'drop'  ),
             ('drop'   , 'next'     , 'end'   )
             )
+
+        super(BinSearch, self).enter()
 
 @require_transitions('next')
 class BinDrop(State):
