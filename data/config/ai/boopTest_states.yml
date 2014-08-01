@@ -1,0 +1,18 @@
+# Pipe Align
+ram.ai.new.mainState.Body:
+  states:
+    start:
+      type: Start
+    bins:
+      type: BoopBuoyTask
+      init:
+        searchDistance: 6
+        boopDepth: 8
+        endDepth: 4
+        success: end
+        failure: end
+    end:
+      type: End
+
+  transitions:
+    - [start, next, bins]
