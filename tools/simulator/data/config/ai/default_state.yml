@@ -1,21 +1,124 @@
-# Pipe Align
+# Full Course
 ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
-    bins:
-      type: BinsTask
+    gate:
+      type: GateTask
       init:
-        binSymbol1: 1
-        binSymbol2: 2
-        searchDist: 20
-        hoverTime: 5
-        success: end
-        failure: end
+        taskDepth: 4
+        forwardDistance: 12
+        success: shootTheMoonDistance
+        failure: shootTheMoonDistance
+        duration: 90
+
+    shootTheMoonDistance:
+      type: Forward
+      init:
+        distance: 5
+
+    sonarPinger1:
+      type: SonarNavigationTask
+      init:
+        success: surface
+        failure: surface
+        startDepth: 4
+        shortDepth: 8
+        endDepth: 0
+        duration: 100000000
+
+    sonarDive:
+      type: DiveTo
+      init:
+        depth: 4
+
+    sonarManip:
+      type: SonarManipTask
+      init:
+        siteSearchDistance: 3
+        boxX: 1.5
+        boxY: 1.5
+        success: pogo
+        failure: sonarPinger4
+        duration: 180
+
+    pogo:
+      type: PogoTask
+      init: 
+        pogoHeight: 1.2
+        pogoWidth: 1.2
+        pogoShift: .15
+        pogoShiftV: .45
+        attackHeight: 11.9
+        success: sonarPinger2
+        failure: sonarPinger2
+        duration: 180
+
+    sonarPinger2:
+      type: SonarNavigationTask
+      init:
+        success: releaseOne
+        failure: surface
+        startDepth: 6
+        shortDepth: 8
+        endDepth: 8
+        duration: 180
+
+    releaseOne:
+      type: ManipRelease
+      init:
+        release: 1
+        wait: 7
+
+    sonarPinger3:
+      type: SonarNavigationTask
+      init:
+        success: releaseOther
+        failure: surface
+        startDepth: 6
+        shortDepth: 8
+        endDepth: 8
+        duration: 180
+
+    releaseOther:
+      type: ManipRelease
+      init:
+        release: 2
+        wait: 7
+
+    sonarPinger4:
+      type: SonarNavigationTask
+      init:
+        success: releaseAll
+        failure: surface
+        startDepth: 6
+        shortDepth: 8
+        endDepth: 8
+        duration: 90
+
+    releaseAll:
+      type: ManipRelease
+      init:
+        release: 0
+        wait: 7
+
+    surface:
+      type: DiveTo
+      init:
+        depth: 0
+
     end:
       type: End
 
   transitions:
-    - [start, next, bins]
-    - [bins, success, end]
-    - [bins, failure, end]
+    - [start, next, gate]
+
+    #Shoot The Moon Sonar
+    - [shootTheMoonYaw, next, shootTheMoonDistance]
+    - [shootTheMoonDistance, next, sonarPinger1]
+
+    - [releaseOne, next, sonarPinger3]
+    - [releaseOther, next, surface]
+    - [releaseAll, next, surface]
+    - [surface, next, sonarDive]
+    - [sonarDive, next, sonarManip]
