@@ -1,0 +1,19 @@
+# Pipe Align
+ram.ai.new.mainState.Body:
+  states:
+    start:
+      type: Start
+    site:
+      type: SonarNavigationTask
+      init:
+        success: end
+        failure: end
+        startDepth: 1.2
+        shortDepth: 1.2
+        endDepth: 1.2
+        duration: 300
+    end:
+      type: End
+
+  transitions:
+    - [start, next, site]
