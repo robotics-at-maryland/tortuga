@@ -122,6 +122,27 @@ class PipeVisionObject(VisionObject):
     def seeit(self,event):
         self.seen = False
 
+class FakeBinVisionObject(VisionObject):
+    def __init__(self,oldStatePtr, bin_id):
+        super(FakeBinVisionObject,self).__init__()
+        self._bin_id = bin_id
+        self.symbol = bin_id
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_FOUND,self.callback)
+        oldStatePtr.queuedEventHub.subscribeToType(vision.EventType.PIPE_LOST,self.seeit)
+
+    def callback(self, event):
+        self.seen = True
+        if self._bin_id == 0:
+            self.x = event.x
+            self.y = event.y
+        else:  
+            self.x = event.x + (0.2 * m.cos(0.5 * m.pi * self._bin_id))
+            self.y = event.y + (0.2 * m.sin(0.5 * m.pi * self._bin_id))
+        self.angle = event.angle.valueDegrees()
+        
+    def seeit(self, event):
+        self.seen = False
+
 class BinVisionObject(VisionObject):
     def __init__(self, oldStatePtr, bin_id):
         super(BinVisionObject,self).__init__()

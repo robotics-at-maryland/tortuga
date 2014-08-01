@@ -3,28 +3,19 @@ ram.ai.new.mainState.Body:
   states:
     start:
       type: Start
-    site:
-      type: SonarManipTask
+    bins:
+      type: BinsTask
       init:
-        siteSearchDistance: 3
-        boxX: 1.5
-        boxY: 1.5
-        duration: 300
+        binSymbol1: 1
+        binSymbol2: 2
+        searchDist: 20
+        hoverTime: 5
+        success: end
+        failure: end
     end:
       type: End
 
-    pogo:
-      type: PogoTask
-      init:
-        pogoHeight: 1.2
-        pogoWidth: 1.2
-        pogoShift: .15
-        pogoShiftV: .45
-        attackHeight: 11.9
   transitions:
-    - [start, next, site]
-    - [site, success, pogo]
-    - [site, failure, end]
-    - [pogo, success, end]
-    - [pogo, failure, end]
-
+    - [start, next, bins]
+    - [bins, success, end]
+    - [bins, failure, end]
