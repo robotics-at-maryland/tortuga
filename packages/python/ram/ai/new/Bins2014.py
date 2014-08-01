@@ -16,8 +16,8 @@ class BinData(object):
     def __init__(self, legacyState, symbol1, symbol2):
         self.bins = []
         for i in xrange(5):
-            self.bins.append(utilClasses.BinVisionObject(legacyState, i))
-            #self.bins.append(utilClasses.FakeBinVisionObject(legacyState, i))
+            #self.bins.append(utilClasses.BinVisionObject(legacyState, i))
+            self.bins.append(utilClasses.FakeBinVisionObject(legacyState, i))
 
         self.symbol1 = symbol1
         self.count1 = defaultdict(int)
@@ -110,7 +110,7 @@ class BinSearch(utilStates.NestedState):
     def enter(self):
         count = getattr(self.data, 'count' + str(self.markerNum))
         i = 1
-        for k, v in count:
+        for k, v in count.iteritems():
             if v > i:
                 i = k
         print 'Centering on Bin ' + str(i)
