@@ -58,8 +58,8 @@ class DownCenter(Approach):
 #does not use optional features: retry condition, recovery action and constraint
 #Centers on an object in the view of the downwards camera
 class ForwardsCenter(Approach):
-    def __init__(self, visionObject, success, failure, rangeGoal, xBound = .1, yBound = .1, rangeBound = 10, configNode = None):
-        super(ForwardsCenter, self).__init__(util.ObjectInVisionRangeQuery(visionObject, 0, 0, 0,xBound,yBound, rangeBound).query, VisualServoingStateMachine(fVS.ForwardsVisualServoing(visionObject, 0, 0,rangeGoal, configNode)), success, failure)
+    def __init__(self, visionObject, success, failure, rangeGoal, xBound = .1, yBound = .1, rangeBound = 10, configNode = None, constraint = lambda : True):
+        super(ForwardsCenter, self).__init__(util.ObjectInVisionRangeQuery(visionObject, 0, 0, 0,xBound,yBound, rangeBound).query, VisualServoingStateMachine(fVS.ForwardsVisualServoing(visionObject, 0, 0,rangeGoal, configNode)), success, failure, constraint)
 
 #orients self with downwards object
 class DownOrient(Approach):

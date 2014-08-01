@@ -13,7 +13,7 @@ class SonarManipulation(stateMachine.StateMachine):
     def __init__(self, siteSearchDistance,boxX, boxY):
         super(SonarManipulation,self).__init__()
         pipe = utilClasses.PipeVisionObject(self.getLegacyState())
-        sampleSite = utilClasses.PipeVisionObject(self.getLegacyState())
+        self.sampleSite = utilClasses.PipeVisionObject(self.getLegacyState())
         start = self.addState('start', utilStates.Start())
         start.setEnterCallback('next', self.turnPipeOn)
         start.setTransition('next', 'boxSearch')
@@ -25,16 +25,17 @@ class SonarManipulation(stateMachine.StateMachine):
         align = self.addState('alignPipe', approach.DownOrient(pipe, 'siteSearch', 'endFailure'))
         align.setLeaveCallback('next', self.turnPipeOff)
         align.setLeaveCallback('failure', self.turnPipeOff)
-        pipeSearch = self.addState('siteSearch',searches.ForwardsSearchPattern(siteSearchDistance, sampleSite.isSeen, 'centerSite',  'endFailure'))
+        pipeSearch = self.addState('siteSearch',searches.ForwardsSearchPattern(siteSearchDistance, self.sampleSite.isSeen, 'centerSite',  'endFailure'))
         pipeSearch.setEnterCallback('next',self.turnSiteOn)
-        center = self.addState('centerSite', approach.DownCenter(sampleSite, 'alignSite', 'endFailure'))    
-        align = self.addState('alignSite', approach.DownOrient(sampleSite, 'endSuccess', 'endFailure'))
+        center = self.addState('centerSite', approach.DownCenter(self.sampleSite, 'alignSite', 'endFailure'))    
+        align = self.addState('alignSite', approach.DownOrient(self.sampleSite, 'endSuccess', 'endFailure'))
         
     def turnPipeOn(self):
         self.getLegacyState().visionSystem.pipeLineDetectorOn()        
     def turnPipeOff(self):
         self.getLegacyState().visionSystem.pipeLineDetectorOff()
     def turnSiteOn(self):
+        self.sampleSite.seen = False#makes sure site isn't in view
         self.getLegacyState().visionSystem.downwardSafeDetectorOn()
     def turnSiteOff(self):
         self.getLegacyState().visionSystem.downwardSafeDetectorOff()
@@ -54,7 +55,7 @@ class PogoMotion(stateMachine.StateMachine):
         taskDepth = self.addState('taskDepth', motion.DiveTo(attackHeight,.3))
         taskDepth.setTransition('next', 'translate')
         end = self.addState('end', utilStates.End())
-        translate = self.addState('translate', motion.Move(pogoHeight/2, -pogoWidth/2))
+        translate = self.addState('translate', motion.Move(pogoHeight/2, pogoWidth/2))
         translate.setTransition('next', 'pogo') 
         #begin the pogoing
         #this occurs in another state machine for the depth motion
