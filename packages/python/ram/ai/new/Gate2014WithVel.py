@@ -74,7 +74,7 @@ class GateForward(motionStates.MotionState):
         currVect = self.getStateEstimator().getEstimatedPosition()
         travelDist = math.sqrt(math.pow(currVect.y - self._startVect.y, 2) + \
                                    math.pow(currVect.x - self._startVect.x, 2))
-        print 'Update, distance traveled: %f' % travelDist
+        #print 'Update, distance traveled: %f' % travelDist
         if travelDist >= self._distance:
             oldUtils.freeze(self.getStateMachine().getLegacyState())
             self.doTransition('next')

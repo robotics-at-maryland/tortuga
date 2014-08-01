@@ -7,7 +7,7 @@ ram.ai.new.mainState.Body:
       type: GateTask
       init:
         taskDepth: 4
-        forwardDistance: 13
+        forwardDistance: 11
         success: gateForward
         failure: end
         duration: 90
