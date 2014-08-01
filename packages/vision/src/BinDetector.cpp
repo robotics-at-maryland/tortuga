@@ -391,7 +391,8 @@ void BinDetector::init(core::ConfigNode config)
 	1, &m_redErodeIterations, 0, 10);
     propSet->addProperty(config, false, "redDilateIterations",
         "Dilation iterations on the red filtered image",
-         5, &m_redDilateIterations, 0, 10);
+         7, &m_redDilateIterations, 0, 20);
+
 	propSet->addProperty(config, false, "AdaptiveThresholdWindow",
                          "AdaptiveThresholdWindow",
                          60, &m_adwindow, 1,200);
@@ -399,6 +400,16 @@ void BinDetector::init(core::ConfigNode config)
 	propSet->addProperty(config, false, "ThresholdForBinary",
                          "ThresholdForBinary",
                          20, &m_threshbinary, 5,250);
+
+	propSet->addProperty(config, false, "minAspectRatio",
+                         "minAspectRatio",
+                         0.0, &m_minAspectRatio, 0.0,10.0);
+propSet->addProperty(config, false, "maxAspectRatio",
+                         "maxAspectRatio",
+                         2.0, &m_maxAspectRatio, 0.0,10.0);
+propSet->addProperty(config, false, "maxSize",
+                         "maxSize",
+                         150000, &m_maxSize, 0,800000);
 
 
 /*
@@ -416,9 +427,9 @@ void BinDetector::init(core::ConfigNode config)
                                     "redL", "Luminance",
                                     "redC", "Chrominance",
                                     "redH", "Hue",
-                                    0, 255,  // L defaults // 180,255
-                                    185, 255,  // U defaults // 76, 245
-                                    255, 0); // V defaults // 200,255
+                                    41, 106,  // L defaults // 180,255
+                                    185, 255,  //C // 76, 245
+                                    105, 144); //H // 200,255
 
     m_frame = new OpenCVImage(640, 480, Image::PF_BGR_8);
 	m_framecount = 0;
@@ -441,8 +452,6 @@ void BinDetector::init(core::ConfigNode config)
     //template <typename T>
     //void addProperty(core::ConfigNode config, bool requireInConfig,
      //                const std::string& name, const std::string& desc, 
-     //                T defaultValue, T*r valuePtr);
-
 //	propSet->addProperty(config,false,"BinYMLPath","BinYMLPath","VisionTrainingTest.yml",&m_binyml);
 
 //	string temp = "BinYMLPath";
@@ -516,7 +525,7 @@ void BinDetector::init(core::ConfigNode config)
 
     propSet->addProperty(config, false, "MinSizeforContous",
         "Minsizeforcontours",
-         70, &m_minSize, 5, 2000);
+         270, &m_minSize, 5, 2000);
 }
 
 void BinDetector::allocateImages(int width, int height)
@@ -1419,8 +1428,8 @@ buoy
 	bitwise_and(dilate_dst_red,dilate_dst_redL, dilate_dst_redHL,noArray());
 	bitwise_and(dilate_dst_redHL,dilate_dst_redS, img_red_final,noArray());
 
-	printf("\n bitwise done");
-	printf("\n bitwise and");
+	//printf("\n bitwise done");
+	//printf("\n bitwise and");
 	//get Contours
 	//logger.infoStream() << " Starting getSquareBlob, done with all color filters";
 	int numberoftrackedcontours = 6;
@@ -1450,7 +1459,21 @@ buoy
 //		}//
 //	}
 //
-	publishFoundEventSURFAll();
+
+	if (m_allbins.MainBox_found == true)
+	{
+		printf("\n publising event\n \n");
+		publishFoundEventSURFAll();
+		m_BinoutlineFoundBefore = true;
+	}
+	else if (m_allbins.MainBox_found == false && m_BinoutlineFoundBefore == true)
+	{
+		printf("\n lost event\n");
+		publishLostEvent(Symbol::BINOUTLINE);
+		m_BinoutlineFoundBefore= false;
+	}
+	else
+		printf("\n NO EVENT\n");
 
 /*
 	 if (m_Bin37Found == false && m_Bin37FoundBefore == true)
@@ -1559,19 +1582,23 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	//printf("\n about to find largest");
 	for(unsigned int j=0; j<contours.size(); j++)
 	{
-		if (contours[j].size()>(unsigned int)m_minSize)
+		if (contours[j].size()>(unsigned int)m_minSize )
 		{
 			temp = minAreaRect(contours[j]); //finds the rectangle that will encompass all the points
 			area = temp.size.width*temp.size.height;
-			aspectratio_diff = abs((float(temp.size.height)/float(temp.size.width))- aspectratio);
-			//printf("\n j = %d, countoursize = %d, area = %f, aspectratio_diff =%f, height = %f, width = %f",j,contours[j].size(),area,aspectratio_diff,temp.size.height,temp.size.width);
+			if (temp.size.height > temp.size.width)
+				aspectratio = abs((float(temp.size.height)/float(temp.size.width)));
+			else
+				aspectratio = abs((float(temp.size.width)/float(temp.size.height)));
+	
+			printf("\n j = %d, countoursize = %d, area = %f, aspectratio_diff =%f, height = %f, width = %f, maxSize = %d",j,contours[j].size(),area,aspectratio_diff,temp.size.height,temp.size.width,m_maxSize);
 			//drawContours(img_whitebalance, contours, j, Scalar(255,0,0), 2, 8, hierarchy, 0, Point() );
-			if (area > bins[0].area && aspectratio_diff < aspectratio_limit )
+			if (area> bins[0].area && area <m_maxSize && aspectratio <m_maxAspectRatio && aspectratio > m_minAspectRatio )
 			{
 				//printf(" beating max");
 				bins[0].contournumber = j;
 				bins[0].area = area;
-				bins[0].aspectratio_diff = aspectratio_diff;
+				bins[0].aspectratio_diff = abs(aspectratio-1);
 				//get the min and max points
 				temp.points(vertices);
 				minX= 90000;
@@ -2053,10 +2080,10 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 					index4 = i;
 				}
 			}
-		printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+	//	printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
 		//these are the lowest values to match each bin type, so what happens if a contour is selected twice? pick the lowest and forget the other
 		//index 1	
-		printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+	//	printf("\n Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
 
 
 		if ((index1 == index2) && (min1 > min2) && (index1 > -1))
@@ -2113,8 +2140,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		{
 			min2 = 999;
 			index2 = 0;
-		printf("\n in case where index1==index2 and min2 > min1 safetycounter = %d", safetycounter);
-		printf("\n sigh");
+	//	printf("\n in case where index1==index2 and min2 > min1 safetycounter = %d", safetycounter);
+	//	printf("\n sigh");
 
 			for (int i=0;i<safetycounter;i++)
 			{
@@ -2129,8 +2156,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			}
 			printf("\n Changin index2  from index1 to %d from %d with score = %f",index2,index1,min2);
 		}
-	printf("\n done with that loop");
-	printf("\n yup");
+	//printf("\n done with that loop");
+	//printf("\n yup");
 		if (index2 == index3 && min2 > min3 && (index2 > -1))
 		{
 			min2 = 999;
@@ -2168,8 +2195,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			printf("\n Changin index2 from index4 to %d from %d with score = %f",index2,index4,min2);
 		}
 
-	printf("\n done with index2");
-	printf("\n doone");
+	//printf("\n done with index2");
+	//printf("\n doone");
 		//index 3
 		if (index3 == index1 && min3 > min1 && (index3 > -1))
 		{
@@ -2219,8 +2246,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		}
 
 
-	printf("\n done with index3");
-	printf("\n doone");
+	//printf("\n done with index3");
+	//printf("\n doone");
 		//index 3
 		if (index4 == index1 && min4 > min1 && (index4 > -1))
 		{
@@ -2269,11 +2296,11 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			printf("\n Changin index4 to %d from %d with score = %f",index4,index3,min4);
 		}
 
-	printf("\n done with index4");
-	printf("\n doone");
-	printf("\nFINAL Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
+	//printf("\n done with index4");
+	//printf("\n doone");
+	//printf("\nFINAL Order %d, %d, %d, %d, Valu es= %f, %f, %f, %f",index1,index2,index3,index4,min1,min2,min3,min4);
 
-	printf("\n seriously");
+	//printf("\n seriously");
 		if (min1 < 35  && (index1 > -1))
 		{
 			drawContours(img_whitebalance, contours, bins[bestindex[index1]].contournumber, Scalar(0,0,255), 20, 8, hierarchy, 0, Point() );
@@ -2308,8 +2335,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 		}
 
 		//imshow("BinsNew",img_whitebalance);
-	printf("\n DONE");
-	printf("\n seriously");
+	//printf("\n DONE");
+	//printf("\n seriously");
 
 
 	/*	
@@ -2639,8 +2666,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 
 	printf("\n index1 = %d, %d, %d, %d", index1,index2,index3,index4);
 
-	printf("\n starting loop");
-	printf("\n starting loop");
+	//printf("\n starting loop");
+	//printf("\n starting loop");
 
 	if ((index1 > -1))
 	{
@@ -2775,8 +2802,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			minleft4_index = index4;
 		}
 	}
-	printf("\n after long");
-	printf("\n checks");
+	//printf("\n after long");
+	//printf("\n checks");
 
 	int lowerleft = -1;
 	int upperleft = -1;
@@ -2811,13 +2838,14 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 			upperright = minleft3_index;
 		}
 	}
-	printf("\n about to enter main");
-	printf("\n entering");
+	//printf("\n about to enter main");
+	//printf("\n entering");
 
+m_allbins.MainBox_found = false;
 			if (bins[0].found == true)
 			{
 				printf("\n setting m_allbins.MainBox_found = true");
-				printf("\n really...");			
+				//printf("\n really...");			
 				m_allbins.MainBox_found = true;
 				m_allbins.MainBox_x = bins[0].centerx;	
 				m_allbins.MainBox_y = bins[0].centery;	
@@ -2898,8 +2926,8 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 				m_allbins.Box[0].Box_type = 0;
 			}
 
-	printf("\n afrer setting up m_allbins");
-	printf("\n stupid");
+	//printf("\n afrer setting up m_allbins");
+	//printf("\n stupid");
 
 		if (lowerright > 0 || lowerleft > 0 || upperright > 0 || upperleft > 0)
 		{
@@ -3015,6 +3043,7 @@ void BinDetector::getSquareBlob(Mat src, bincontours* bins, int numberoftrackedc
 	{
 		printf("\n cannot find contour");
 		printf("\n so nothing is run");
+		m_allbins.MainBox_found = false;
 	}
 
 	return;

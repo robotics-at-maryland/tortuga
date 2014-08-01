@@ -21,22 +21,22 @@ class ForwardsVisualServoing(state.State):
             self._x_bound = configNode.get('x_bound',.1)
             self._y_bound = configNode.get('y_bound',.1)
             self._r_bound = configNode.get('r_bound',.1)
-            self._minvx = configNode.get('minvx',.1)
-            self._minvy = configNode.get('minvy',.1)
-            self._minvz = configNode.get('minvz',.1)
+            self._minvx = configNode.get('minvx',.05)
+            self._minvy = configNode.get('minvy',.05)
+            self._minvz = configNode.get('minvz',.05)
         else:
             self._kx = .15
-            self._ky = .4
-            self._kz = .4
+            self._ky = .15
+            self._kz = .15
             self._x_d = dx
             self._y_d = dy
             self._r_d = drange
             self._x_bound = .1
             self._y_bound = .1
             self._r_bound = .1
-            self._minvx = .1
-            self._minvy = .1
-            self._minvz = .1
+            self._minvx = .05
+            self._minvy = .05
+            self._minvz = .05
 
     def enter(self):
         self.motionManager = self.getStateMachine().getLegacyState().motionManager

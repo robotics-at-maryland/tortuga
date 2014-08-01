@@ -38,7 +38,7 @@ Subsystems:
                      "StateEstimator"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/transdec2014_pipe_align.yml
+            INCLUDE: data/config/ai/transdec2014_torps.yml
 
 
     # Includes all common subsystems

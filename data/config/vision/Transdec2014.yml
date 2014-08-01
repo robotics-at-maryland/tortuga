@@ -270,8 +270,8 @@ FowardPipeDetector:
 ChrisPipeDetector:
     BlurAmount: 5
     DistanceRef: 50
-    HueShiftNumber: 4.82
-    MaxAreaRatio: 4
+    HueShiftNumber: 15
+    MaxAreaRatio: 1
     MaxPerimeter: 0.2
     MinAreaRatio: 0
     MinPerimeter: 0
@@ -283,7 +283,7 @@ ChrisPipeDetector:
     filtRedHMin: 0
     filtRedLMax: 255
     filtRedLMin: 70
-    maxAspectRatio: 0.6
+    maxAspectRatio: 0.4
     minAspectRatio: 0
     minPixels: 3000
     minPixelsFound: 2500
@@ -313,3 +313,31 @@ SonarChrisPipeDetector:
     minSize: 70
     noHough: 0
     samePipeThreshold: 0.2
+BinDetector:
+    AdaptiveThresholdWindow: 60
+    CalcTraining: 0
+    CompareBins: 0
+    MaxdistanceX: 90
+    MinSizeforContous: 270
+    MinimumFrames: 5
+    NumberofBinTypes: 8
+    NumberofImages: 5
+    SaveImages: 0
+    ThresholdForBinary: 20
+    UpperLimitforBin: 2
+    binLostFrames: 0
+    binSameThreshold: 0.25
+    debug: 0
+    filtredCMax: 255
+    filtredCMin: 185
+    filtredHMax: 144
+    filtredHMin: 105
+    filtredLMax: 106
+    filtredLMin: 41
+    maxAspectRatio: 2
+    maxSize: 150000
+    maxdistsanceY: 90
+    minAspectRatio: 0
+    minHessian: 250
+    redDilateIterations: 7
+    redErodeIterations: 1

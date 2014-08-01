@@ -61,7 +61,7 @@ class GotoPipe(motionStates.Move):
             finalValue = math.Quaternion(math.Degree(_YAW.get(self._prev, 
                                                               None)), 
                                          math.Vector3.UNIT_Z),
-            initialRate = self.getStateEstimator().getEstimatedAngularRate()
+            initialRate = self.getStateEstimator().getEstimatedAngularRate(),
             finalRate = math.Vector3.ZERO)
         mot = motion.basic.ChangeOrientation(traj)
         return mot
