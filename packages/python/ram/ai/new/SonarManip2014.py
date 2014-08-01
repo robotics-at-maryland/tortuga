@@ -131,16 +131,15 @@ class SonarManipTask(utilStates.Task):
             self.doTransition('success')
 
 class ManipRelease(state.State):
-    def __init_(self, release, wait = 7):
+    def __init__(self, release = 0, wait = 7):
         super(ManipRelease, self).__init__()
         self._release = release
         self._start = time.time()
-        
-        
 
     def enter(self):
-        self.getStateMachine().getLegacyState().vehicle.releaseGrabber(release)
+        self.getStateMachine().getLegacyState().vehicle.releaseGrabber(self._release)
         super(ManipRelease, self).enter()
+        
 
     def update(self):
         if time.time() - self._start >= 7:

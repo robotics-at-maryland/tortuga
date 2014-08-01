@@ -2,7 +2,7 @@
 import ram.ai.new.stateMachine as stateMachine
 import ram.ai.new.state as state
 import ram.ai.new.utilStates as utilStates
-import ram.ai.new.motionStates as motionStates
+import ram.ai.new.motionStates
 
 from ram.ai.new.configuration import initFromYAML
 
@@ -15,10 +15,13 @@ import ram.timer as timer
 
 #std imports
 import time
+#Tasks
+import ram.ai.new.Gate2014WithVel
 import ram.ai.new.Bins2014
 import ram.ai.new.Pipe2014
 import ram.ai.new.Torp2014
 import ram.ai.new.SonarManip2014
+import ram.ai.new.sonarNavigation
 
 UPDATE = core.declareEventType('UPDATE')
 TIMEOUT = core.declareEventType('TIMEOUT')

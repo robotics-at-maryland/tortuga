@@ -15,13 +15,10 @@ import time
 import math
 
 class GateTask(utilStates.Task):
-    def __init__(self, buoy, 
-                 taskDepth, forwardDistance, searchDistance, 
+    def __init__(self, taskDepth, forwardDistance,
                  success, failure, duration = 120):
-        super(GateTask, self).__init__(GateTaskMachine(buoy,
-                                                       taskDepth,
-                                                       forwardDistance,
-                                                       searchDistance),
+        super(GateTask, self).__init__(GateTaskMachine(taskDepth,
+                                                       forwardDistance),
                                        success, failure,
                                        duration)
 
@@ -35,14 +32,9 @@ class GateTask(utilStates.Task):
 
 
 class GateTaskMachine(stateMachine.StateMachine):
-    def __init__(self, buoy, taskDepth, forwardDistance, searchDistance):
+    def __init__(self, taskDepth, forwardDistance):
         super(GateTaskMachine, self).__init__()
         
-        buoySearch = searches.ForwardsSearchPattern(
-            searchDistance, 
-            buoy.isSeen,
-            'end', 
-            'failure')
 
         # Add states
         start = self.addState('start', utilStates.Start())
@@ -50,11 +42,10 @@ class GateTaskMachine(stateMachine.StateMachine):
         failure = self.addState('failure', GateFailure())
         dive = self.addState('dive', motionStates.DiveTo(taskDepth))
         forward = self.addState('forward', GateForward(forwardDistance))
-        buoySearch = self.addState('search', buoySearch)
 
         start.setTransition('next', 'dive')
         dive.setTransition('next', 'forward')
-        forward.setTransition('next', 'search')
+        forward.setTransition('next', 'end')
 
     def update(self):
         super(GateTaskMachine, self).update()

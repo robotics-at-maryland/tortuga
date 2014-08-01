@@ -7,14 +7,14 @@ import ram.ai.new.state as state
 import ram.ai.new.approach as approach
 
 class UprightsTask(utilStates.Task):
-    def __init__(self, uprights, pipe, 
-                 taskDepth, returnDepth, 
-                 uprightsSearchDistance,  pipeSearchDistance, 
+    def __init__(self, taskDepth, returnDepth, uprightsSearchDistance,
                  endRange, rectWidth, rectLength, 
                  success, failure, duration = 300):
         super(UprightsTask, self).__init__(stateMachine.StateMachine(),
                                            success, failure,
                                            duration)
+        
+
         passcounter = utilStates.PassCounter('switch')
         self.getInnerStateMachine().addStates({
                 'start' : utilStates.Start(),
