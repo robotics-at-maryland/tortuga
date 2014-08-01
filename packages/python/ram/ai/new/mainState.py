@@ -22,6 +22,7 @@ import ram.ai.new.Pipe2014
 import ram.ai.new.Torp2014
 import ram.ai.new.SonarManip2014
 import ram.ai.new.sonarNavigation
+import ram.ai.new.BoopBuoy
 
 UPDATE = core.declareEventType('UPDATE')
 TIMEOUT = core.declareEventType('TIMEOUT')
