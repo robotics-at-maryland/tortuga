@@ -4,7 +4,7 @@ Robot:
     name: Tortuga
     
     # In the X, Y, and Z direction
-    position: [-13, 0, 0]
+    position: [-18, 0, 0]
     # In Axis/Angle Form (last term angle)
     orientation: [0.0, 0.0, 1.0, 0.0]
     

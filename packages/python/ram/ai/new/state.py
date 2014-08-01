@@ -85,7 +85,11 @@ class State(object):
 
     def setEnterCallback(self, transitionName, callback):
         """Sets the enter callback for the given transition."""
-        self._enterCallbacks[transitionName] = callback
+        def callBFun():
+            super(self.__class__,self).enter()
+            self.enter()
+            callback()
+        self._enterCallbacks[transitionName] = callBFun
 
     def getLeaveCallback(self, transitionName):
         """Returns the leave callback for the given transition."""
@@ -93,7 +97,11 @@ class State(object):
 
     def setLeaveCallback(self, transitionName, callback):
         """Sets the leave callback for the given transition."""
-        self._leaveCallbacks[transitionName] = callback
+        def callBFun():
+            super(self.__class__,self).leave()
+            self.leave()
+            callback()
+        self._leaveCallbacks[transitionName] = callBFun
 
     def doTransition(self, transitionName):
         """Signals the state machine to execute the given transition."""

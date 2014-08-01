@@ -1,8 +1,5 @@
+
 # Full Course
-ram.ai.new.mainState.Body:
-  states:
-    start:
-      type: Start
     gate:
       type: GateTask
       init:
