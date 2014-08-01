@@ -278,7 +278,7 @@ Simulation:
     Scenes:
         # Each scene must be on the given scene_path, this for example is 
         # in 'data/scenes/nxtest.xml'
-        Main: objectives/pipe.sml
+        #Main: objectives/pipe.sml
         #Main: objectives/bin.sml
         #Main: objectives/duct.sml
         #Main: objectives/multi_pipe.sml
@@ -288,7 +288,7 @@ Simulation:
         #Main: objectives/target2.sml
         #Main: objectives/buoy.sml
         #Main: objectives/multi_buoy.sml
-        #Main: objectives/pinger.sml
+        Main: objectives/pinger.sml
         #Main: objectives/safe.sml
         #Main: objectives/vase.sml
         #Main: objectives/window.sml

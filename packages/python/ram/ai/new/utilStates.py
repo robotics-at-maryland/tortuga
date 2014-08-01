@@ -132,7 +132,9 @@ class Switch(State):
 class Task(ConstrainedState):
     def __init__(self, internalMachine, success, failure = 'end', 
                  timerDuration = None, maxDistance = None):
-        self._taskTimer = utilClasses.Timer(timerDuration)
+        self._taskTimer = None
+        if timerDuration is not None:
+            self._taskTimer = utilClasses.Timer(timerDuration)
         self._startPos = None
         self._maxDist = maxDistance
         super(Task, self).__init__(internalMachine, self.constrain,
@@ -144,5 +146,9 @@ class Task(ConstrainedState):
         super(Task, self).enter()
 
     def constrain(self):
+        if self._taskTime is not None and self._taskTimer.check():
+            return True
         currPos = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedPosition()
-        return self._taskTimer.check() or currPos.distance(self._startPos) > self._maxDist
+        if self._maxDist is not None and currPos.distance(self._startPos) > self._maxDist:
+            return True
+        return False

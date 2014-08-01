@@ -7,7 +7,7 @@ ram.ai.new.mainState.Body:
       type: GateTask
       init:
         taskDepth: 4
-        forwardDistance: 11
+        forwardDistance: 12
         success: gateForward
         failure: end
         duration: 90
@@ -16,17 +16,40 @@ ram.ai.new.mainState.Body:
       type: Move
       init:
         x: 1
-        y: 1
+        y: 0
+
+    boopBuoy:
+      type: BoopBuoyTask
+      init:
+        boopDepth: 8
+        endDepth: 4
+        success: boopForward
+        failure: shootTheMoonYaw
+
+    shootTheMoonYaw:
+      type: TurnTo
+      init:
+        angle: 25
+
+    shootTheMoonDistance:
+      type: Forward
+      init:
+        distance: 25
+
+    boopForward:
+      type: Forward
+      init:
+        distance: 1
 
     pipeAlignBuoyCP:
       type: PipeAlign
       init:
-        searchDist: 3.5
+        searchDist: 3
 
     pipeAlignBuoyNCP:
       type: PipeAlign
       init:
-        searchDist: 3.5
+        searchDist: 3
 
     moveForward:
       type: Forward
@@ -74,7 +97,7 @@ ram.ai.new.mainState.Body:
 #        taskDepth: 8
 #        returnDepth: 4
 #        uprightsSearchDistance: 7
-#	 endRange: 80
+#	     endRange: 80
 #        rectWidth: 1
 #        rectLength: 2.5
 #        success: gotoUprightsPipe
@@ -91,7 +114,7 @@ ram.ai.new.mainState.Body:
         hoverTime: 15
         success: strafeTorps
         failure: sonarPinger1
-        duration: 210
+        duration: 180
 
     strafeTorps:
       type: Move
@@ -105,7 +128,7 @@ ram.ai.new.mainState.Body:
         configNode: {}
         success: sonarPinger1
         failure: sonarPinger1
-        duration: 300
+        duration: 120
 
     sonarPinger1:
       type: SonarNavigationTask
@@ -130,7 +153,8 @@ ram.ai.new.mainState.Body:
         boxY: 1.5
         success: pogo
         failure: sonarPinger4
-        duration: 300
+        duration: 180
+
     pogo:
       type: PogoTask
       init: 
@@ -140,8 +164,9 @@ ram.ai.new.mainState.Body:
         pogoShiftV: .45
         attackHeight: 11.9
         success: sonarPinger2
-        failure: sonarPinger4
-        duration: 210
+        failure: sonarPinger2
+        duration: 180
+
     sonarPinger2:
       type: SonarNavigationTask
       init:
@@ -151,11 +176,13 @@ ram.ai.new.mainState.Body:
         shortDepth: 8
         endDepth: 8
         duration: 180
+
     releaseOne:
       type: ManipRelease
       init:
         release: 1
         wait: 7
+
     sonarPinger3:
       type: SonarNavigationTask
       init:
@@ -165,11 +192,13 @@ ram.ai.new.mainState.Body:
         shortDepth: 8
         endDepth: 8
         duration: 180
+
     releaseOther:
       type: ManipRelease
       init:
         release: 2
         wait: 7
+
     sonarPinger4:
       type: SonarNavigationTask
       init:
@@ -179,11 +208,13 @@ ram.ai.new.mainState.Body:
         shortDepth: 8
         endDepth: 8
         duration: 90
+
     releaseAll:
       type: ManipRelease
       init:
         release: 0
         wait: 7
+
     surface:
       type: DiveTo
       init:
@@ -199,9 +230,12 @@ ram.ai.new.mainState.Body:
       
   transitions:
     - [start, next, gate]
-    - [gateForward, next, pipeAlignBuoyNCP]
+    - [gateForward, next, pipeAlignBuoyBoop]
+    - [pipeAlignBuoyBoop, next, boopBuoy]
+    - [boopForward, next, pipeAlignBuoyNCP]
 
     - [strafeTorps, next, torps]
+
 
     #checkpoints
     - [pipeAlignBuoyCP, complete, storeBuoyPipe]
@@ -210,13 +244,15 @@ ram.ai.new.mainState.Body:
     - [pipeAlignUprightsCP, complete, storeUprightsPipe]
     - [storeUprightsPipe, next, bins]
 
-
     #no checkpoints
     - [pipeAlignBuoyNCP, complete, moveForward]
     - [moveForward, next, pipeAlignUprightsNCP]
     - [pipeAlignUprightsNCP, complete, moveToBins]
     - [moveToBins, next, bins]
 
+    #Shoot The Moon Sonar
+    - [shootTheMoonYaw, next, shootTheMoonDistance]
+    - [shootTheMoonDistance, next, sonarPinger1]
 
     - [releaseOne, next, sonarPinger3]
     - [releaseOther, next, surface]
