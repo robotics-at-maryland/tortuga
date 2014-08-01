@@ -6,14 +6,14 @@ ram.ai.new.mainState.Body
     pipeSearch:
       type: PipeAlign
       init:
-	searchDist: 4
+          searchDist: 4
 
     storePipe:
       type: PipeCheckpoint
       init:
         checkpoint: pipe1
         nextCheckpoint: pipe2
-        distanceToNextpipe: 5
+        distanceToNextpipe: 8
   
     move:
       type: Move
@@ -24,22 +24,22 @@ ram.ai.new.mainState.Body
     turn:
       type: Turn
       init: 
-        10
+        angle: 10
 
     goto:
       type: GotoPipe
       init:
-	prevCheckpoint: pipe1
-	nextCheckpoint: pipe2
+          prevCheckpoint: pipe1
+          nextCheckpoint: pipe2
 
     end:
       type: End
 
-    transitions:
-      - [start, next, pipeSearch]
-      - [pipeSearch, next, storePipe]
-      - [storePipe, next, move]
-      - [move, next, turn]
-      - [turn, next, goto]
-      - [goto, next, end]
+  transitions:
+    - [start, next, pipeSearch]
+    - [pipeSearch, complete, storePipe]
+    - [storePipe, next, move]
+    - [move, next, turn]
+    - [turn, next, goto]
+    - [goto, next, end]
       

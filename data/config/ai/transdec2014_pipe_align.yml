@@ -6,25 +6,44 @@ ram.ai.new.mainState.Body:
     forward1:
       type: Forward
       init:
-        distance: 10
+        distance: 1
     pipe1:
       type: PipeAlign
       init:
-        searchDist: 20        
+        searchDist: 20
+    buf1:
+        type: Forward
+        init:
+            distance: 0
     forward2:
        type: Forward
        init:
-         distance: 20
+         distance: 10
     pipe2:
       type: PipeAlign
       init:
-        searchDist: 20   
+        searchDist: 20
+    buf2:
+        type: Forward
+        init:
+            distance: 0
+    bins:
+      type: BinsTask
+      init:
+        binSymbol1: 1
+        binSymbol2: 2
+        searchDist: 20
+        hoverTime: 15
+        success: end
+        failure: end
     end:
       type: End
 
   transitions:
     - [start, next, forward1]
     - [forward1, next, pipe1]
-    - [pipe1, complete, forward2]
+    - [pipe1, complete, buf1]
+    - [buf1, next, forward2]
     - [forward2, next, pipe2]
-    - [pipe2, complete, end]
+    - [pipe2, complete, buf2]
+    - [buf2, next, bins]

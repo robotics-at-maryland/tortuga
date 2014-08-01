@@ -69,45 +69,22 @@ BarbedWireDetector:
     noHough: 0
     samePipeThreshold: 0.2
 TargetDetector:
-    MinContourSize: 6
-    MinSize: 6
-    bottomRemovePercentage: 0
-    dilateIterations: 0
-    erodeIterations: 2
-    filtBlueHMax: 141
-    filtBlueHMin: 75
-    filtBlueMax: 255
-    filtBlueMin: 114
-    filtBlueSMax: 255
-    filtBlueSMin: 56
-    filtBlueVMax: 255
-    filtBlueVMin: 3
-    filtGreenHMax: 80
-    filtGreenHMin: 25
-    filtGreenMax: 63
-    filtGreenMin: 27
-    filtGreenSMax: 255
-    filtGreenSMin: 0
-    filtGreenVMax: 255
-    filtGreenVMin: 0
-    filtRedHMax: 122
-    filtRedHMin: 0
-    filtRedSMax: 255
-    filtRedSMin: 39
-    filtRedVMax: 255
-    filtRedVMin: 0
-    filtYellowHMax: 41
-    filtYellowHMin: 1
-    filtYellowMax: 44
-    filtYellowMin: 0
-    filtYellowSMax: 255
-    filtYellowSMin: 0
-    filtYellowVMax: 255
-    filtYellowVMin: 0
-    maxAspectRatio: 1.5
-    minAspectRatio: 0.3
-    minGreenPixels: 500
-    topRemovePercentage: 0
+    bilateral d param: 5
+    c Hue: 1
+    c Saturation: 2
+    c Value: 1
+    circularity bound: 0.25
+    closing iterations: 1
+    color sigma: 25
+    debug Images?: 0
+    dilate iterations: 1
+    erode iterations: 1
+    min vertices: 25
+    rectangularity bound: 0.5
+    size binning range: 25
+    space sigma: 15
+    threshold block size: 15
+    xy binning range: 50
 BuoyDetector:
     GreenColorFilterLookupTable: 0
     RedColorFilterLookupTable: 0
@@ -244,7 +221,76 @@ FowardPipeDetector:
     minSize: 70
     noHough: 0
     samePipeThreshold: 0.2
+    AdaptiveThresholdWindow: 60
+    CalcTraining: 0
+    CompareBins: 0
+    MaxdistanceX: 90
+    MinSizeforContous: 200
+    MinimumFrames: 5
+    NumberofBinTypes: 8
+    NumberofImages: 5
+    SaveImages: 0
+    ThresholdForBinary: 20
+    UpperLimitforBin: 2
+    binLostFrames: 0
+    binSameThreshold: 0.25
+    debug: 0
+    filtredCMax: 255
+    filtredCMin: 185
+    filtredHMax: 0
+    filtredHMin: 255
+    filtredLMax: 255
+    filtredLMin: 64
+    maxdistsanceY: 90
+    minHessian: 250
+    redDilateIterations: 5
+    redErodeIterations: 1
+    BlurAmount: 5
+    DistanceRef: 50
+    HueShiftNumber: 15
+    MaxAreaRatio: 4
+    MaxPerimeter: 0.2
+    MinAreaRatio: 0
+    MinPerimeter: 0
+    Threshvalue: 15
+    dilateIterations: 0
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 90
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 70
+    maxAspectRatio: 0.6
+    minAspectRatio: 0
+    minPixels: 3000
+    minPixelsFound: 2500
+    minSize: 70
+    noHough: 0
+    samePipeThreshold: 0.2
 ChrisPipeDetector:
+    BlurAmount: 5
+    DistanceRef: 50
+    HueShiftNumber: 4.82
+    MaxAreaRatio: 4
+    MaxPerimeter: 0.2
+    MinAreaRatio: 0
+    MinPerimeter: 0
+    Threshvalue: 0
+    dilateIterations: 0
+    filtRedCMax: 255
+    filtRedCMin: 0
+    filtRedHMax: 90
+    filtRedHMin: 0
+    filtRedLMax: 255
+    filtRedLMin: 70
+    maxAspectRatio: 0.6
+    minAspectRatio: 0
+    minPixels: 3000
+    minPixelsFound: 2500
+    minSize: 70
+    noHough: 0
+    samePipeThreshold: 0.2
+SonarChrisPipeDetector:
     BlurAmount: 5
     DistanceRef: 50
     HueShiftNumber: 123.23

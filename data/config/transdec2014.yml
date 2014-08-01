@@ -20,7 +20,7 @@ Subsystems:
         #    "50001(320,240)": 5 # Really compressed streaming @ 5hz
 
         # Includes all camera and vision system settings
-        INCLUDE: data/config/vision/Transdeck2013_cloudy.yml
+        INCLUDE: data/config/vision/Transdec2014.yml
         #INCLUDE: data/config/vision/test.yml
 
 
@@ -38,7 +38,8 @@ Subsystems:
                      "StateEstimator"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: data/config/ai/transdec2014_state_test_pogo.yml
+            INCLUDE: data/config/ai/transdec2014_pipe_align.yml
+
 
     # Includes all common subsystems
     INCLUDE: data/config/base.yml

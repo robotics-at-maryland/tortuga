@@ -48,6 +48,9 @@ public:
     virtual void binDetectorOff();
     virtual void pipeLineDetectorOn();
     virtual void pipeLineDetectorOff();
+    virtual void forwardpipeLineDetectorOn();
+    virtual void forwardpipeLineDetectorOff();
+
     virtual void downwardSafeDetectorOn();
     virtual void downwardSafeDetectorOff();
     virtual void gateDetectorOn();
@@ -208,6 +211,7 @@ private:
     DetectorPtr m_buoyDetector;
     DetectorPtr m_binDetector;
     DetectorPtr m_pipelineDetector;
+    DetectorPtr m_forwardpipelineDetector;
     DetectorPtr m_downwardSafeDetector;
     DetectorPtr m_gateDetector;
     DetectorPtr m_cupidDetector;

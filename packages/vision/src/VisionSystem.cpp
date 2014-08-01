@@ -136,6 +136,7 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
     // Recorders
     if (config.exists("ForwardRecorders"))
         createRecordersFromConfig(config["ForwardRecorders"], m_forwardCamera);
+
     if (config.exists("DownwardRecorders"))
         createRecordersFromConfig(config["DownwardRecorders"], m_downwardCamera);
     
@@ -150,13 +151,18 @@ void VisionSystem::init(core::ConfigNode config, core::EventHubPtr eventHub)
         new BinDetector(getConfig(config, "BinDetector"), eventHub));
 
     m_pipelineDetector = DetectorPtr(
-        new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),
-                                         eventHub));
+        new ChrisPipeDetector(getConfig(config, "ChrisPipeDetector"),eventHub));
+
+  // m_pipelineDetector = DetectorPtr(
+  //      new OrangePipeDetector(getConfig(config, "OrangePipeDetector"),eventHub));
+
+    m_forwardpipelineDetector = DetectorPtr(
+        new ChrisPipeDetector(getConfig(config, "FowardPipeDetector"),eventHub));
 
     m_pipelineDetector = DetectorPtr( 
         new ChrisPipeDetector(getConfig(config,"ChrisPipeDetector"),eventHub));
     m_downwardSafeDetector = DetectorPtr(
-        new BuoyDetector(getConfig(config, "DBuoyDetector"), eventHub));
+        new  ChrisPipeDetector(getConfig(config, "SonarChrisPipeDetector"), eventHub));
     m_gateDetector = DetectorPtr(
         new GateDetector(getConfig(config, "GateDetector"), eventHub));
     m_cupidDetector = DetectorPtr(
@@ -267,6 +273,22 @@ void VisionSystem::pipeLineDetectorOn()
 void VisionSystem::pipeLineDetectorOff()
 {
     m_downward->removeDetector(m_pipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_OFF,
+            core::EventPtr(new core::Event()));
+}
+
+
+void VisionSystem::forwardpipeLineDetectorOn()
+{
+  addForwardDetector(m_forwardpipelineDetector);
+    publish(EventType::PIPELINE_DETECTOR_ON,
+            core::EventPtr(new core::Event()));
+}
+
+void VisionSystem::forwardpipeLineDetectorOff()
+{
+	printf("\n forwardpipeLine is OFF");
+      m_forward->removeDetector(m_forwardpipelineDetector);
     publish(EventType::PIPELINE_DETECTOR_OFF,
             core::EventPtr(new core::Event()));
 }

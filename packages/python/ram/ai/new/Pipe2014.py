@@ -13,6 +13,14 @@ from ram.motion.basic import Frame
 
 import math
 
+_YAW = {}
+
+def setYaw(name, value):
+    _YAW[name] = value
+
+def getYaw(name):
+    return _YAW.get(name, None)
+
 class PipeCheckpoint(checkpoints.SaveCheckpoint):
     def __init__(self, checkpoint, nextCheckpoint, distanceToNextPipe):
         super(PipeCheckpoint, self).__init__(checkpoint, 0, 0)
@@ -22,8 +30,9 @@ class PipeCheckpoint(checkpoints.SaveCheckpoint):
         self._leaveCallbacks = { 'next' : self.storeNextPipe }
 
     def storeNextPipe(self):
-        radians = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
-        radians = math.radians(self._transdecYawOffset + radians)
+        degrees = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedOrientation().getYaw().valueDegrees()
+        _YAW[self._checkpoint] = degrees
+        radians = math.radians(self._transdecYawOffset + degrees)
                   
         x_offset = math.cos(radians) * self._magnitude
         y_offset = math.sin(radians) * self._magnitude
@@ -45,6 +54,23 @@ class GotoPipe(motionStates.Move):
         self._vect = (nextLoc - prevLoc) - (currentLoc - prevLoc)
         return super(GotoPipe, self).getMotion()
 
+    def getYawMotion(self):
+        currentOrientation = self.getStateEstimator().getEstimatedOrientation()
+        traj = motion.trajectories.StepTrajectory(
+            initialValue = currentOrientation,
+            finalValue = math.Quaternion(math.Degree(_YAW.get(self._prev, 
+                                                              None)), 
+                                         math.Vector3.UNIT_Z),
+            initialRate = self.getStateEstimator().getEstimatedAngularRate()
+            finalRate = math.Vector3.ZERO)
+        mot = motion.basic.ChangeOrientation(traj)
+        return mot
+
+    def enter(self):
+        self._motionID = self.getMotionManager().setMotion(self.getYawMotion())
+        super(GotoPipe, self).enter(self)
+        
+
 class PipeAlign(utilStates.NestedState):
     def __init__(self, searchDist):
         super(PipeAlign, self).__init__(stateMachine.StateMachine())
@@ -55,14 +81,14 @@ class PipeAlign(utilStates.NestedState):
         self.getInnerStateMachine().addStates({
             'start' : utilStates.Start(),
             'search' : searches.ForwardsSearchPattern(searchDist,
-                                                      utilClasses.hasQueryBeenFalse(self._visionObj.isSeen).query,
-                                                      'center', 'end'),
+                                                      utilClasses.hasQueryBeenFalse(2, self._visionObj.isSeen).query,
+                                                      'buf1', 'buf3'),
             'buf1' : motionStates.Forward(0),
             'center' : approach.DownCenter(self._visionObj, 
-                                           'align', 'end'),
+                                           'buf2', 'buf3'),
             'buf2' : motionStates.Forward(0),
             'align' : approach.DownOrient(self._visionObj,
-                                         'end', 'end'),
+                                         'buf3', 'buf3'),
             'buf3' : motionStates.Forward(0),
             'end' : utilStates.End()
             })
@@ -73,4 +99,12 @@ class PipeAlign(utilStates.NestedState):
             ('buf2', 'next', 'align'),
             ('buf3', 'next', 'end')
             )
+
+    def enter(self):
+        self.getInnerStateMachine().getLegacyState().visionSystem.pipeLineDetectorOn()
+        super(PipeAlign, self).enter()
+
+    def leave(self):
+        self.getInnerStateMachine().getLegacyState().visionSystem.pipeLineDetectorOff()
+        super(PipeAlign, self).leave()
         

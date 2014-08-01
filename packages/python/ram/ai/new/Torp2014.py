@@ -9,7 +9,7 @@ import ram.ai.new.approach as approach
 
 
 class TorpedoTask(utilStates.Task):
-    def __init__(self, configNode,success, failure, duration = 300):
+    def __init__(self, configNode, success, failure, duration = 300):
         super(TorpedoTask,self).__init__(TorpedoMachine(configNode),success, failure, duration) 
 
     def update(self):
@@ -19,6 +19,14 @@ class TorpedoTask(utilStates.Task):
         elif self.getInnerStateMachine().getCurrentState().getName() == 'taskSuccess':
             self.doTransition('success')
             
+    def enter(self):
+        super(TorpedoTask,self).enter()
+        self.getInnerStateMachine().getLegacyState().visionSystem.cupidDetectorOn()
+
+    def leave(self):
+        super(TorpedoTask,self).leave()
+        self.getInnerStateMachine().getLegacyState().visionSystem.cupidDetectorOff()       
+
 
 class FireLeft(state.State):
     def __init__(self, next):
