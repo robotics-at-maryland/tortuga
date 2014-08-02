@@ -28,6 +28,7 @@ class TorpedoTask(utilStates.Task):
         self.getInnerStateMachine().getLegacyState().visionSystem.cupidDetectorOff()       
 
 
+
 class FireLeft(state.State):
     def __init__(self, next):
         super(FireLeft, self).__init__()
@@ -73,13 +74,13 @@ class TorpedoMachine(stateMachine.StateMachine):
     #for now, we're going buoy thunting
         #not a hack anymore, this ones real!
         torps = utilClasses.TorpedoGroupObject(self.getLegacyState())
-        #hole1 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
-        #hole2 = utilClasses.OldSimulatorHackVisionObject(self.getLegacyState())
+        #hole1 = utilClasses.BuoyVisionObject(self.getLegacyState())
+        #hole2 = utilClasses.BuoyVisionObject(self.getLegacyState())
         #torps = hole1
-        #torps.box = hole1
+        #box = hole1
         #END HACK TO TEST IN SIMULATOR
-        hole1 = torps.left
-        hole2 = torps.right
+        hole1 = torps.large
+        hole2 = torps.large
         box = torps.left
 
         start = self.addState('start',utilStates.Start())
@@ -89,10 +90,11 @@ class TorpedoMachine(stateMachine.StateMachine):
     #box finding search
         initialMove = self.addState('initialMove', motion.Turn(-yawSearchBound/2))
         initialMove.setTransition('next', 'initialSearch')
-        initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, box.isSeen, 'boxCentering', 'prepareForwards'))
+        #competition day 4, short circuiting to bypass box search and center
+        initialSearch = self.addState('initialSearch', searches.YawSearchPattern(yawSearchBound, box.isSeen, 'holeSwitch', 'prepareForwards'))
         prepareForwards =  self.addState('prepareForwards', motion.Turn(-yawSearchBound/2))
         prepareForwards.setTransition('next', 'forwardsSearch')
-        forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, box.isSeen, 'boxCentering', 'counter'))
+        forwardsSearch = self.addState('forwardsSearch', search.ForwardsSearchPattern(forwardsSearchIncrement, box.isSeen, 'holeSwitch', 'counter'))
         counter = self.addState('counter', utilStates.PassCounter('passSwitch'))
         passSwitch = self.addState('passSwitch', utilStates.Switch('initialMove', 'taskFailure', counter.getPassChecker(maxSearchAttempts)))
     #aligning with box, if that fails, try to search again
@@ -102,14 +104,15 @@ class TorpedoMachine(stateMachine.StateMachine):
         hole1Search = self.addState('hole1Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole1Center', 'backUp'))
         #competition day 4, made hole centering have timeout and just fire anyway when the state fails
         self.timer = utilClasses.Timer(holeSearchDuration)
-        hole1Center = self.addState('hole1Center', approach.ForwardsCenter(hole1, 'fireLeft', 'fireLeft', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound, None))
-        #hole1Center.setEnterCallback('next')
+
+        hole1Center = self.addState('hole1Center', approach.ForwardsCenter(hole1, 'fireLeft', 'fireLeft', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound, None, self.timer.check))
+        hole1Center.setEnterCallback('next',self.timer.reset)
         fireLeft = self.addState('fireLeft', FireLeft('backUp'))
         backUp = self.addState('backUp', motion.Forward(-reverseRefindDistance))
         backUp.setTransition('next', 'holePassCount')
         hole2Search = self.addState('hole2Search', search.ForwardsSearchPattern(holeSearchDist, hole1.isSeen,'hole2Center', 'backUp'))
-        hole2Center = self.addState('hole2Center', approach.ForwardsCenter(hole1, 'fireRight', 'fireRight', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound,None))
-        #hole2Center.setEnterCallback('next')
+        hole2Center = self.addState('hole2Center', approach.ForwardsCenter(hole1, 'fireRight', 'fireRight', holeCenteringRange, holeCenteringXYBound, holeCenteringXYBound, holeCenteringRangeBound,None, self.timer.check))
+        hole2Center.setEnterCallback('next',self.timer.reset)
         fireRight = self.addState('fireRight', FireRight('taskSuccess'))
     #Now that manipulator is dropped, this probably just needs to move to the side to prepare for the sonar task
     

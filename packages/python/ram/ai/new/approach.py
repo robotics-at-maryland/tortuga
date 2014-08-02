@@ -59,7 +59,7 @@ class DownCenter(Approach):
 #Centers on an object in the view of the downwards camera
 class ForwardsCenter(Approach):
     def __init__(self, visionObject, success, failure, rangeGoal, xBound = .1, yBound = .1, rangeBound = 10, configNode = None, constraint = lambda : True):
-        super(ForwardsCenter, self).__init__(util.ObjectInVisionRangeQuery(visionObject, 0, 0, 0,xBound,yBound, rangeBound).query, VisualServoingStateMachine(fVS.ForwardsVisualServoing(visionObject, 0, 0,rangeGoal, configNode)), success, failure, constraint)
+        super(ForwardsCenter, self).__init__(util.ObjectInVisionRangeQuery(visionObject, 0, 0, 0,xBound,yBound, rangeBound).query, VisualServoingStateMachine(fVS.ForwardsVisualServoing(visionObject, 0, 0,rangeGoal, configNode)), success, failure, lambda : True, Surrender(), constraint)
 
 #orients self with downwards object
 class DownOrient(Approach):
@@ -68,7 +68,7 @@ class DownOrient(Approach):
         
 class SonarCenter(Approach):
     def __init__(self, sonarObject, success, failure, destination, minVx = .1, minVy = .1):
-        super(SonarCenter, self).__init__(util.ObjectInSonarQuery(sonarObject, destination.x, destination.y, destination.z, .1, .1, .1).query ,VisualServoingStateMachine(aS.AcousticServoing(sonarObject, destination, minVx, minVy)), success, failure)
+        super(SonarCenter, self).__init__(util.ObjectInSonarQuery(sonarObject, destination.x, destination.y, destination.z, .2, .2, .2).query ,VisualServoingStateMachine(aS.AcousticServoing(sonarObject, destination, minVx, minVy)), success, failure)
 
 class SonarOrient(Approach):
     def __init__(self, sonarObject, success, failure, destination):
