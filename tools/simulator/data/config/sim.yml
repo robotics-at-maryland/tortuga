@@ -40,8 +40,8 @@ Subsystems:
                      "StateEstimator"]
         States:
             # Includes all the state specific NBRF settings
-            INCLUDE: tools/simulator/data/config/ai/straightToSonar.yml
-            
+            INCLUDE: tools/simulator/data/config/ai/transdec2014_bins_test.yml
+
     # EventLogger:
     #     type: EventLogger
     #     depends_on: ["QueuedEventHub","EventHub"]

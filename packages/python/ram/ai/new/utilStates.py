@@ -146,7 +146,7 @@ class Task(ConstrainedState):
         super(Task, self).enter()
 
     def constrain(self):
-        if self._taskTime is not None and self._taskTimer.check():
+        if self._taskTimer is not None and self._taskTimer.check():
             return True
         currPos = self.getStateMachine().getLegacyState().stateEstimator.getEstimatedPosition()
         if self._maxDist is not None and currPos.distance(self._startPos) > self._maxDist:

@@ -35,8 +35,8 @@ class DownVisualServoing(state.State):
             self._x_d = dx
             self._y_d = dy
             self._r_d = 1
-            self._x_bound = .1
-            self._y_bound = .1
+            self._x_bound = .05
+            self._y_bound = .05
             self._r_bound = 0
             self._minvx = .2
             self._minvy = .2

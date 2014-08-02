@@ -73,7 +73,7 @@ class BinsTask(utilStates.Task):
         if self.getInnerStateMachine().getCurrentState().getName() == 'failure':
             self.doTransition('failure')
         elif self.getInnerStateMachine().getCurrentState().getName() == 'success':
-            self.doTransition('success')
+            self.doTransition('complete')
 
     def leave(self):
         super(BinsTask,self).enter()
@@ -140,5 +140,5 @@ class BinDrop(State):
 
     def enter(self):
         print 'Dropped marker ' + str(self._markerNum)
-        #StateMachine._LEGACY_STATE.vehicle.dropMarkerIndex(self._markerNum)
+        StateMachine._LEGACY_STATE.vehicle.dropMarkerIndex(self._markerNum)
         self.doTransition('next')
